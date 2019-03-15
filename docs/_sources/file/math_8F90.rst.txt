@@ -1,4 +1,0 @@
-File math.F90
-=============
-
-.. doxygenfile:: math.F90

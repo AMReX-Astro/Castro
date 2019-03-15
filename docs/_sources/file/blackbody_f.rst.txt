@@ -1,0 +1,8 @@
+blackbody.f90
+=============
+
+blackbody\_module
+-----------------
+
+.. f:automodule:: blackbody_module
+

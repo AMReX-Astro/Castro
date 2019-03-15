@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="File GR_Gravity_1d.f90" href="file/GR__Gravity__1d_8f90.html" />
-    <link rel="prev" title="File timestep.F90" href="file/timestep_8F90.html" /> 
+    <link rel="next" title="GR_Gravity_1d.f90" href="file/GR_Gravity_1d_f.html" />
+    <link rel="prev" title="timestep.F90" href="file/timestep_f.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -127,18 +127,18 @@
 <li class="toctree-l2"><a class="reference internal" href="diffusion_files.html">Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="driver_files.html">Driver</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Gravity</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="file/GR__Gravity__1d_8f90.html">File GR_Gravity_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/GR__Gravity__2d_8f90.html">File GR_Gravity_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/GR__Gravity__3d_8f90.html">File GR_Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/GR_Gravity_1d_f.html">GR_Gravity_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/GR_Gravity_2d_f.html">GR_Gravity_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/GR_Gravity_3d_f.html">GR_Gravity_3d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Gravity_8H.html">File Gravity.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Gravity__1d_8f90.html">File Gravity_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Gravity__2d_8f90.html">File Gravity_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Gravity__3d_8f90.html">File Gravity_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Gravity__nd_8f90.html">File Gravity_nd.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/gravity__sources__nd_8F90.html">File gravity_sources_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/pointmass__nd_8F90.html">File pointmass_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/prescribe__grav__nd_8f90.html">File prescribe_grav_nd.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/prescribe__phi__nd_8F90.html">File prescribe_phi_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/Gravity_1d_f.html">Gravity_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/Gravity_2d_f.html">Gravity_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/Gravity_3d_f.html">Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/Gravity_nd_f.html">Gravity_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/gravity_sources_nd_f.html">gravity_sources_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/pointmass_nd_f.html">pointmass_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/prescribe_grav_nd_f.html">prescribe_grav_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/prescribe_phi_nd_f.html">prescribe_phi_nd.F90</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="hydro_files.html">Hydro</a></li>
@@ -152,6 +152,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 </ul>
+<p class="caption"><span class="caption-text">References</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
 </ul>
@@ -224,18 +225,51 @@
 <h1>Gravity<a class="headerlink" href="#gravity" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="file/GR__Gravity__1d_8f90.html">File GR_Gravity_1d.f90</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/GR__Gravity__2d_8f90.html">File GR_Gravity_2d.f90</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/GR__Gravity__3d_8f90.html">File GR_Gravity_3d.f90</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file/GR_Gravity_1d_f.html">GR_Gravity_1d.f90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/GR_Gravity_1d_f.html#ca-compute-avgpres-subroutine">ca_compute_avgpres subroutine</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file/GR_Gravity_2d_f.html">GR_Gravity_2d.f90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/GR_Gravity_2d_f.html#ca-compute-avgpres-subroutine">ca_compute_avgpres subroutine</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file/GR_Gravity_3d_f.html">GR_Gravity_3d.f90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/GR_Gravity_3d_f.html#ca-compute-avgpres-subroutine">ca_compute_avgpres subroutine</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="file/Gravity_8H.html">File Gravity.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/Gravity__1d_8f90.html">File Gravity_1d.f90</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/Gravity__2d_8f90.html">File Gravity_2d.f90</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/Gravity__3d_8f90.html">File Gravity_3d.f90</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/Gravity__nd_8f90.html">File Gravity_nd.f90</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/gravity__sources__nd_8F90.html">File gravity_sources_nd.F90</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/pointmass__nd_8F90.html">File pointmass_nd.F90</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/prescribe__grav__nd_8f90.html">File prescribe_grav_nd.f90</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/prescribe__phi__nd_8F90.html">File prescribe_phi_nd.F90</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file/Gravity_1d_f.html">Gravity_1d.f90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/Gravity_1d_f.html#f/gravity_1d_module">gravity_1d_module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file/Gravity_2d_f.html">Gravity_2d.f90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/Gravity_2d_f.html#f/gravity_2d_module">gravity_2d_module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file/Gravity_3d_f.html">Gravity_3d.f90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/Gravity_3d_f.html#f/gravity_3d_module">gravity_3d_module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file/Gravity_nd_f.html">Gravity_nd.f90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/Gravity_nd_f.html#f/gravity_module">gravity_module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file/gravity_sources_nd_f.html">gravity_sources_nd.F90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/gravity_sources_nd_f.html#f/gravity_sources_module">gravity_sources_module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file/pointmass_nd_f.html">pointmass_nd.F90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/pointmass_nd_f.html#f/pointmass_module">pointmass_module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file/prescribe_grav_nd_f.html">prescribe_grav_nd.f90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/prescribe_grav_nd_f.html#f/prescribe_grav_module">prescribe_grav_module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file/prescribe_phi_nd_f.html">prescribe_phi_nd.F90</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file/prescribe_phi_nd_f.html#f/prescribe_phi_module">prescribe_phi_module</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -248,10 +282,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="file/GR__Gravity__1d_8f90.html" class="btn btn-neutral float-right" title="File GR_Gravity_1d.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="file/GR_Gravity_1d_f.html" class="btn btn-neutral float-right" title="GR_Gravity_1d.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="file/timestep_8F90.html" class="btn btn-neutral float-left" title="File timestep.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="file/timestep_f.html" class="btn btn-neutral float-left" title="timestep.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

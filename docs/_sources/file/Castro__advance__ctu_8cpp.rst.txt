@@ -1,4 +1,0 @@
-File Castro_advance_ctu.cpp
-===========================
-
-.. doxygenfile:: Castro_advance_ctu.cpp

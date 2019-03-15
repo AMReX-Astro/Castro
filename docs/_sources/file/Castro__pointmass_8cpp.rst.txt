@@ -1,4 +1,0 @@
-File Castro_pointmass.cpp
-=========================
-
-.. doxygenfile:: Castro_pointmass.cpp

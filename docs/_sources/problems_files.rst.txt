@@ -7,25 +7,13 @@ Problems
    file/Castro__bc__fill_8H
    file/Castro__bc__fill__nd_8H
    file/Castro__prob__err__list_8H
-   file/Prob__1d_8f90
-   file/Prob__2d_8f90
-   file/Prob__3d_8f90
-   file/Prob__nd_8F90
+   file/Prob_nd_f
    file/Problem_8H
-   file/Problem_8f90
+   file/Problem_f
    file/Problem__Derive_8H
    file/Problem__Derives_8H
-   file/bc__ext__fill__1d_8F90
-   file/bc__ext__fill__2d_8F90
-   file/bc__ext__fill__3d_8F90
-   file/bc__ext__fill__nd_8F90
-   file/bc__fill__1d_8F90
-   file/bc__fill__2d_8F90
-   file/bc__fill__3d_8F90
-   file/bc__fill__nd_8F90
-   file/problem__derive__nd_8f90
-   file/problem__tagging__1d_8f90
-   file/problem__tagging__2d_8f90
-   file/problem__tagging__3d_8f90
-   file/problem__tagging__nd_8F90
+   file/bc_ext_fill_nd_f
+   file/bc_fill_nd_f
+   file/problem_derive_nd_f
+   file/problem_tagging_nd_f
    

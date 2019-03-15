@@ -4,7 +4,7 @@ Rotation
 .. toctree::
    :maxdepth: 2
 
-   file/Rotation__frequency_8F90
-   file/Rotation__nd_8F90
-   file/rotation__sources__nd_8F90
+   file/Rotation_frequency_f
+   file/Rotation_nd_f
+   file/rotation_sources_nd_f
    

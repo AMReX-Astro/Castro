@@ -4,11 +4,11 @@ Sources
 .. toctree::
    :maxdepth: 2
 
-   file/ext__src__1d_8f90
-   file/ext__src__2d_8f90
-   file/ext__src__3d_8f90
-   file/ext__src__nd_8F90
-   file/sponge__nd_8F90
-   file/thermo__nd_8F90
-   file/update__sponge__params_8f90
+   file/ext_src_1d_f
+   file/ext_src_2d_f
+   file/ext_src_3d_f
+   file/ext_src_nd_f
+   file/sponge_nd_f
+   file/thermo_nd_f
+   file/update_sponge_params_f
    

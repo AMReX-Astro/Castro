@@ -1,4 +1,0 @@
-File check_for_nan.f90
-======================
-
-.. doxygenfile:: check_for_nan.f90

@@ -133,6 +133,7 @@
 <li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 </ul>
+<p class="caption"><span class="caption-text">References</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
 </ul>
@@ -268,7 +269,7 @@ file extension, so that they can be preprocessed.</li>
 </div>
 <div class="section" id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
-<p>A routines should use Doxygen style comments.</p>
+<p>C++ routines should use Doxygen style comments.</p>
 <ul>
 <li><p class="first">C++ functions should be documented in the header file using the style:</p>
 <div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span>
@@ -286,19 +287,24 @@ with a brief inline description:</p>
 </pre></div>
 </div>
 </li>
+</ul>
+<p>Fortran functions should use Sphinx style comments</p>
+<ul>
 <li><p class="first">Fortran functions should be documented by placing a comment block
-before their definition using the style:</p>
-<div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span>!&gt; @brief Description of the function
-!!
-!! @param bar      datatype,    Brief description of the variable
-subroutine foo(bar)
+immediately after their prototype (i.e. <cite>without</cite> a line in betwen ) using the style:</p>
+<div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span>subroutine foo(bar)
+  ! Description of the function
+
+  use some_module
+
+  implicit none
+
+  integer, intent(inout) :: bar   ! Brief description of bar
   ...
 </pre></div>
 </div>
-<p>Note that Doxygen does not automatically pick up the variable datatypes
-of Fortran functions (as it does for C++ functions), so we include these in the
-parameter list of the function’s docstring. Documentation for modules should
-be similarly formatted, with the comment block again coming <cite>before</cite> the module definition.</p>
+<p>Documentation for modules should be similarly formatted, with the comment block again
+coming <cite>immediately</cite> after the module definition.</p>
 </li>
 </ul>
 </div>

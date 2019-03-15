@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Castro_mol_nd.F90 &mdash; Castro 19.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="advection_util_nd.F90" href="advection_util_nd_f.html" />
+    <link rel="prev" title="File Castro_hydro.H" href="Castro__hydro_8H.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_ctu_nd_f.html">Castro_ctu_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_fourth_order_f.html">Castro_fourth_order.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Castro_mol_nd.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ca-mol-single-stage-subroutine">ca_mol_single_stage subroutine</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flatten_nd_f.html">flatten_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fourth_order_f.html">fourth_order.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ppm_nd_f.html">ppm_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="riemann_nd_f.html">riemann_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="riemann_util_f.html">riemann_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slope_nd_f.html">slope_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace_plm_f.html">trace_plm.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace_ppm_f.html">trace_ppm.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trans_f.html">trans.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+        
+      <li>Castro_mol_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Castro_mol_nd_f.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="castro-mol-nd-f90">
+<h1>Castro_mol_nd.F90<a class="headerlink" href="#castro-mol-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ca-mol-single-stage-subroutine">
+<h2>ca_mol_single_stage subroutine<a class="headerlink" href="#ca-mol-single-stage-subroutine" title="Permalink to this headline">¶</a></h2>
+<dl class="subroutine">
+<dt id="f/_/ca_mol_single_stage">
+<em class="property">subroutine  </em><code class="descname">ca_mol_single_stage</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>time</em>, <em>domlo</em>, <em>domhi</em>, <em>stage_weight</em>, <em>uin</em>, <em>uin_lo</em>, <em>uin_hi</em>, <em>uout</em>, <em>uout_lo</em>, <em>uout_hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>srcu</em>, <em>sru_lo</em>, <em>sru_hi</em>, <em>update</em>, <em>updt_lo</em>, <em>updt_hi</em>, <em>update_flux</em>, <em>uf_lo</em>, <em>uf_hi</em>, <em>dx</em>, <em>dt</em>, <em>flux1</em>, <em>flux1_lo</em>, <em>flux1_hi</em>, <em>flux2</em>, <em>flux2_lo</em>, <em>flux2_hi</em>, <em>flux3</em>, <em>flux3_lo</em>, <em>flux3_hi</em>, <em>area1</em>, <em>area1_lo</em>, <em>area1_hi</em>, <em>area2</em>, <em>area2_lo</em>, <em>area2_hi</em>, <em>area3</em>, <em>area3_lo</em>, <em>area3_hi</em>, <em>pradial</em>, <em>p_lo</em>, <em>p_hi</em>, <em>dloga</em>, <em>dloga_lo</em>, <em>dloga_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em>, <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_mol_single_stage" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>stage_weight</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uin</strong> (uin_hi(1)-(uin_lo(1))+1,uin_hi(2)-(uin_lo(2))+1,uin_hi(3)-(uin_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uin_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uin_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uout</strong> (uout_hi(1)-(uout_lo(1))+1,uout_hi(2)-(uout_lo(2))+1,uout_hi(3)-(uout_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>uout_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uout_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q</strong> (q_hi(1)-(q_lo(1))+1,q_hi(2)-(q_lo(2))+1,q_hi(3)-(q_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>q_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>srcu</strong> (sru_hi(1)-(sru_lo(1))+1,sru_hi(2)-(sru_lo(2))+1,sru_hi(3)-(sru_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sru_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sru_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>update</strong> (updt_hi(1)-(updt_lo(1))+1,updt_hi(2)-(updt_lo(2))+1,updt_hi(3)-(updt_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>updt_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>updt_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>update_flux</strong> (uf_hi(1)-(uf_lo(1))+1,uf_hi(2)-(uf_lo(2))+1,uf_hi(3)-(uf_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>uf_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uf_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux1</strong> (flux1_hi(1)-(flux1_lo(1))+1,flux1_hi(2)-(flux1_lo(2))+1,flux1_hi(3)-(flux1_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>flux1_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux1_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux2</strong> (flux2_hi(1)-(flux2_lo(1))+1,flux2_hi(2)-(flux2_lo(2))+1,flux2_hi(3)-(flux2_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>flux2_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux2_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux3</strong> (flux3_hi(1)-(flux3_lo(1))+1,flux3_hi(2)-(flux3_lo(2))+1,flux3_hi(3)-(flux3_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>flux3_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux3_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>area1</strong> (area1_hi(1)-(area1_lo(1))+1,area1_hi(2)-(area1_lo(2))+1,area1_hi(3)-(area1_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>area1_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>area1_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>area2</strong> (area2_hi(1)-(area2_lo(1))+1,area2_hi(2)-(area2_lo(2))+1,area2_hi(3)-(area2_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>area2_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>area2_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>area3</strong> (area3_hi(1)-(area3_lo(1))+1,area3_hi(2)-(area3_lo(2))+1,area3_hi(3)-(area3_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>area3_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>area3_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>pradial</strong> (p_hi(1)-(p_lo(1))+1,p_hi(2)-(p_lo(2))+1,p_hi(3)-(p_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>p_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>p_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dloga</strong> (dloga_hi(1)-(dloga_lo(1))+1,dloga_hi(2)-(dloga_lo(2))+1,dloga_hi(3)-(dloga_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dloga_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dloga_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol</strong> (vol_hi(1)-(vol_lo(1))+1,vol_hi(2)-(vol_lo(2))+1,vol_hi(3)-(vol_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>verbose</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_error_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_mempool_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">bl_allocate()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">bl_deallocate()</span></code>), <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/gdpres" title="f/meth_params_module/gdpres"><code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/utemp" title="f/meth_params_module/utemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ushk" title="f/meth_params_module/ushk"><code class="xref f f-func docutils literal notranslate"><span class="pre">ushk()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umx" title="f/meth_params_module/umx"><code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/use_flattening" title="f/meth_params_module/use_flattening"><code class="xref f f-func docutils literal notranslate"><span class="pre">use_flattening()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qpres" title="f/meth_params_module/qpres"><code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code></a>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qtemp" title="f/meth_params_module/qtemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">qtemp()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qfs" title="f/meth_params_module/qfs"><code class="xref f f-func docutils literal notranslate"><span class="pre">qfs()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qfx" title="f/meth_params_module/qfx"><code class="xref f f-func docutils literal notranslate"><span class="pre">qfx()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qreint" title="f/meth_params_module/qreint"><code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qrho" title="f/meth_params_module/qrho"><code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/first_order_hydro" title="f/meth_params_module/first_order_hydro"><code class="xref f f-func docutils literal notranslate"><span class="pre">first_order_hydro()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/difmag" title="f/meth_params_module/difmag"><code class="xref f f-func docutils literal notranslate"><span class="pre">difmag()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/hybrid_riemann" title="f/meth_params_module/hybrid_riemann"><code class="xref f f-func docutils literal notranslate"><span class="pre">hybrid_riemann()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/limit_fluxes_on_small_dens" title="f/meth_params_module/limit_fluxes_on_small_dens"><code class="xref f f-func docutils literal notranslate"><span class="pre">limit_fluxes_on_small_dens()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ppm_type" title="f/meth_params_module/ppm_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_type()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ppm_temp_fix" title="f/meth_params_module/ppm_temp_fix"><code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_temp_fix()</span></code></a>), <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module" title="f/advection_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">advection_util_module</span></code></a> (<a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/limit_hydro_fluxes_on_small_dens" title="f/advection_util_module/limit_hydro_fluxes_on_small_dens"><code class="xref f f-func docutils literal notranslate"><span class="pre">limit_hydro_fluxes_on_small_dens()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/ca_shock" title="f/advection_util_module/ca_shock"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_shock()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/divu" title="f/advection_util_module/divu"><code class="xref f f-func docutils literal notranslate"><span class="pre">divu()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/normalize_species_fluxes" title="f/advection_util_module/normalize_species_fluxes"><code class="xref f f-func docutils literal notranslate"><span class="pre">normalize_species_fluxes()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/calc_pdivu" title="f/advection_util_module/calc_pdivu"><code class="xref f f-func docutils literal notranslate"><span class="pre">calc_pdivu()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/scale_flux" title="f/advection_util_module/scale_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">scale_flux()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/apply_av" title="f/advection_util_module/apply_av"><code class="xref f f-func docutils literal notranslate"><span class="pre">apply_av()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">fourth()</span></code>), <a class="reference internal" href="flatten_nd_f.html#f/flatten_module" title="f/flatten_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">flatten_module</span></code></a> (<a class="reference internal" href="flatten_nd_f.html#f/flatten_module/ca_uflatten" title="f/flatten_module/ca_uflatten"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_uflatten()</span></code></a>), <a class="reference internal" href="riemann_nd_f.html#f/riemann_module" title="f/riemann_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">riemann_module</span></code></a> (<a class="reference internal" href="riemann_nd_f.html#f/riemann_module/cmpflx" title="f/riemann_module/cmpflx"><code class="xref f f-func docutils literal notranslate"><span class="pre">cmpflx()</span></code></a>), <a class="reference internal" href="slope_nd_f.html#f/slope_module" title="f/slope_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">slope_module</span></code></a> (<a class="reference internal" href="slope_nd_f.html#f/slope_module/uslope" title="f/slope_module/uslope"><code class="xref f f-func docutils literal notranslate"><span class="pre">uslope()</span></code></a>), <a class="reference internal" href="riemann_util_f.html#f/riemann_util_module" title="f/riemann_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">riemann_util_module</span></code></a> (<a class="reference internal" href="riemann_util_f.html#f/riemann_util_module/ca_store_godunov_state" title="f/riemann_util_module/ca_store_godunov_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_store_godunov_state()</span></code></a>), <a class="reference internal" href="ppm_nd_f.html#f/ppm_module" title="f/ppm_module: this does the parabolic reconstruction on a variable and the (optional) integration under the characteristic domain of the parabola"><code class="xref f f-mod docutils literal notranslate"><span class="pre">ppm_module</span></code></a> (<a class="reference internal" href="ppm_nd_f.html#f/ppm_module/ca_ppm_reconstruct" title="f/ppm_module/ca_ppm_reconstruct"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_ppm_reconstruct()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module" title="f/hybrid_advection_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">hybrid_advection_module</span></code></a> (<a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module/add_hybrid_advection_source" title="f/hybrid_advection_module/add_hybrid_advection_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">add_hybrid_advection_source()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dg" title="f/prob_params_module/dg"><code class="xref f f-func docutils literal notranslate"><span class="pre">dg()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/ca_shock" title="f/advection_util_module/ca_shock"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_shock()</span></code></a>, <a class="reference internal" href="flatten_nd_f.html#f/flatten_module/ca_uflatten" title="f/flatten_module/ca_uflatten"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_uflatten()</span></code></a>, <a class="reference internal" href="slope_nd_f.html#f/slope_module/uslope" title="f/slope_module/uslope"><code class="xref f f-func docutils literal notranslate"><span class="pre">uslope()</span></code></a>, <a class="reference internal" href="ppm_nd_f.html#f/ppm_module/ca_ppm_reconstruct" title="f/ppm_module/ca_ppm_reconstruct"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_ppm_reconstruct()</span></code></a>, <a class="reference internal" href="riemann_nd_f.html#f/riemann_module/cmpflx" title="f/riemann_module/cmpflx"><code class="xref f f-func docutils literal notranslate"><span class="pre">cmpflx()</span></code></a>, <a class="reference internal" href="riemann_util_f.html#f/riemann_util_module/ca_store_godunov_state" title="f/riemann_util_module/ca_store_godunov_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_store_godunov_state()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/divu" title="f/advection_util_module/divu"><code class="xref f f-func docutils literal notranslate"><span class="pre">divu()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/apply_av" title="f/advection_util_module/apply_av"><code class="xref f f-func docutils literal notranslate"><span class="pre">apply_av()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/limit_hydro_fluxes_on_small_dens" title="f/advection_util_module/limit_hydro_fluxes_on_small_dens"><code class="xref f f-func docutils literal notranslate"><span class="pre">limit_hydro_fluxes_on_small_dens()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/normalize_species_fluxes" title="f/advection_util_module/normalize_species_fluxes"><code class="xref f f-func docutils literal notranslate"><span class="pre">normalize_species_fluxes()</span></code></a>, <a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module/add_hybrid_advection_source" title="f/hybrid_advection_module/add_hybrid_advection_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">add_hybrid_advection_source()</span></code></a>, <a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/scale_flux" title="f/advection_util_module/scale_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">scale_flux()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="advection_util_nd_f.html" class="btn btn-neutral float-right" title="advection_util_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Castro__hydro_8H.html" class="btn btn-neutral float-left" title="File Castro_hydro.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

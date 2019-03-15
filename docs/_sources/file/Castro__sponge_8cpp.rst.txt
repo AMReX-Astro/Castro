@@ -1,4 +1,0 @@
-File Castro_sponge.cpp
-======================
-
-.. doxygenfile:: Castro_sponge.cpp

@@ -1,0 +1,153 @@
+Castro_nd.F90
+=============
+
+ca\_network\_init subroutine
+----------------------------
+
+.. f:autosubroutine:: ca_network_init
+
+ca\_network\_finalize subroutine
+--------------------------------
+
+.. f:autosubroutine:: ca_network_finalize
+
+ca\_eos\_finalize subroutine
+----------------------------
+
+.. f:autosubroutine:: ca_eos_finalize
+
+ca\_extern\_init subroutine
+---------------------------
+
+.. f:autosubroutine:: ca_extern_init
+
+ca\_get\_num\_spec subroutine
+-----------------------------
+
+.. f:autosubroutine:: ca_get_num_spec
+
+ca\_get\_num\_aux subroutine
+----------------------------
+
+.. f:autosubroutine:: ca_get_num_aux
+
+ca\_get\_num\_adv subroutine
+----------------------------
+
+.. f:autosubroutine:: ca_get_num_adv
+
+ca\_get\_spec\_names subroutine
+-------------------------------
+
+.. f:autosubroutine:: ca_get_spec_names
+
+ca\_get\_spec\_az subroutine
+----------------------------
+
+.. f:autosubroutine:: ca_get_spec_az
+
+ca\_get\_aux\_names subroutine
+------------------------------
+
+.. f:autosubroutine:: ca_get_aux_names
+
+ca\_get\_nqsrc subroutine
+-------------------------
+
+.. f:autosubroutine:: ca_get_nqsrc
+
+ca\_get\_nq subroutine
+----------------------
+
+.. f:autosubroutine:: ca_get_nq
+
+ca\_get\_nqaux subroutine
+-------------------------
+
+.. f:autosubroutine:: ca_get_nqaux
+
+ca\_get\_ngdnv subroutine
+-------------------------
+
+.. f:autosubroutine:: ca_get_ngdnv
+
+ca\_amrinfo\_init subroutine
+----------------------------
+
+.. f:autosubroutine:: ca_amrinfo_init
+
+ca\_amrinfo\_finalize subroutine
+--------------------------------
+
+.. f:autosubroutine:: ca_amrinfo_finalize
+
+ca\_set\_amr\_info subroutine
+-----------------------------
+
+.. f:autosubroutine:: ca_set_amr_info
+
+ca\_get\_method\_params subroutine
+----------------------------------
+
+.. f:autosubroutine:: ca_get_method_params
+
+allocate\_outflow\_data subroutine
+----------------------------------
+
+.. f:autosubroutine:: allocate_outflow_data
+
+set\_old\_outflow\_data subroutine
+----------------------------------
+
+.. f:autosubroutine:: set_old_outflow_data
+
+set\_new\_outflow\_data subroutine
+----------------------------------
+
+.. f:autosubroutine:: set_new_outflow_data
+
+swap\_outflow\_data subroutine
+------------------------------
+
+.. f:autosubroutine:: swap_outflow_data
+
+ca\_set\_method\_params subroutine
+----------------------------------
+
+.. f:autosubroutine:: ca_set_method_params
+
+ca\_set\_problem\_params subroutine
+-----------------------------------
+
+.. f:autosubroutine:: ca_set_problem_params
+
+ca\_set\_grid\_info subroutine
+------------------------------
+
+.. f:autosubroutine:: ca_set_grid_info
+
+ca\_get\_tagging\_params subroutine
+-----------------------------------
+
+.. f:autosubroutine:: ca_get_tagging_params
+
+ca\_get\_sponge\_params subroutine
+----------------------------------
+
+.. f:autosubroutine:: ca_get_sponge_params
+
+ca\_allocate\_sponge\_params subroutine
+---------------------------------------
+
+.. f:autosubroutine:: ca_allocate_sponge_params
+
+ca\_deallocate\_sponge\_params subroutine
+-----------------------------------------
+
+.. f:autosubroutine:: ca_deallocate_sponge_params
+
+set\_pointmass subroutine
+-------------------------
+
+.. f:autosubroutine:: set_pointmass
+

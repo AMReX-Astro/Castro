@@ -1,0 +1,831 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>sdc_util.F90 &mdash; Castro 19.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="sums_nd.F90" href="sums_nd_f.html" />
+    <link rel="prev" title="prob_params.F90" href="prob_params_f.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_nd_f.html">Castro_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_util_f.html">Castro_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_nd_f.html">Derive_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils_nd_f.html">MGutils_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tagging_nd_f.html">Tagging_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="amrinfo_f.html">amrinfo.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="check_for_nan_f.html">check_for_nan.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filcc_nd_f.html">filcc_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generic_fill_f.html">generic_fill.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interpolate_f.html">interpolate.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io_f.html">io.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="math_f.html">math.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="meth_params_f.html">meth_params.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prob_params_f.html">prob_params.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">sdc_util.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/rpar_sdc_module">rpar_sdc_module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#f/sdc_util">sdc_util</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sums_nd_f.html">sums_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timestep_f.html">timestep.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../driver_files.html">Driver</a> &raquo;</li>
+        
+      <li>sdc_util.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/sdc_util_f.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="sdc-util-f90">
+<h1>sdc_util.F90<a class="headerlink" href="#sdc-util-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/rpar_sdc_module">
+<span id="rpar-sdc-module"></span><h2>rpar_sdc_module<a class="headerlink" href="#f/rpar_sdc_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#f/rpar_sdc_module/irp_dt" title="f/rpar_sdc_module/irp_dt"><code class="xref f f-var docutils literal notranslate"><span class="pre">irp_dt</span></code></a>, <a class="reference internal" href="#f/rpar_sdc_module/irp_evar" title="f/rpar_sdc_module/irp_evar"><code class="xref f f-var docutils literal notranslate"><span class="pre">irp_evar</span></code></a>, <a class="reference internal" href="#f/rpar_sdc_module/irp_f_source" title="f/rpar_sdc_module/irp_f_source"><code class="xref f f-var docutils literal notranslate"><span class="pre">irp_f_source</span></code></a>, <a class="reference internal" href="#f/rpar_sdc_module/irp_mom" title="f/rpar_sdc_module/irp_mom"><code class="xref f f-var docutils literal notranslate"><span class="pre">irp_mom</span></code></a>, <a class="reference internal" href="#f/rpar_sdc_module/irp_spec" title="f/rpar_sdc_module/irp_spec"><code class="xref f f-var docutils literal notranslate"><span class="pre">irp_spec</span></code></a>, <a class="reference internal" href="#f/rpar_sdc_module/n_rpar" title="f/rpar_sdc_module/n_rpar"><code class="xref f f-var docutils literal notranslate"><span class="pre">n_rpar</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Needed modules</p>
+<ul class="simple">
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nspec_evolve()</span></code>)</li>
+</ul>
+<p class="rubric">Variables</p>
+<ul>
+<li><dl class="variable">
+<dt id="f/rpar_sdc_module/irp_dt">
+<code class="descclassname">rpar_sdc_module/</code><code class="descname">irp_dt</code><em> [</em><em>integer</em><em>,</em><em>parameter=</em><a class="reference internal" href="#f/rpar_sdc_module/irp_f_source" title="f/rpar_sdc_module/irp_f_source">irp_f_source</a>+nspec_evolve+2<em>]</em><a class="headerlink" href="#f/rpar_sdc_module/irp_dt" title="Permalink to this definition">¶</a></dt>
+<dd><p>3 components</p>
+</dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/rpar_sdc_module/irp_evar">
+<code class="descclassname">rpar_sdc_module/</code><code class="descname">irp_evar</code><em> [</em><em>integer</em><em>,</em><em>parameter=</em><a class="reference internal" href="#f/rpar_sdc_module/irp_mom" title="f/rpar_sdc_module/irp_mom">irp_mom</a>+3<em>]</em><a class="headerlink" href="#f/rpar_sdc_module/irp_evar" title="Permalink to this definition">¶</a></dt>
+<dd><p>nspec - nspec_evolve components</p>
+</dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/rpar_sdc_module/irp_f_source">
+<code class="descclassname">rpar_sdc_module/</code><code class="descname">irp_f_source</code><em> [</em><em>integer</em><em>,</em><em>parameter=</em>0<em>]</em><a class="headerlink" href="#f/rpar_sdc_module/irp_f_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>nspec_evolve + 2 components</p>
+</dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/rpar_sdc_module/irp_mom">
+<code class="descclassname">rpar_sdc_module/</code><code class="descname">irp_mom</code><em> [</em><em>integer</em><em>,</em><em>parameter=</em><a class="reference internal" href="#f/rpar_sdc_module/irp_dt" title="f/rpar_sdc_module/irp_dt">irp_dt</a>+1<em>]</em><a class="headerlink" href="#f/rpar_sdc_module/irp_mom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/rpar_sdc_module/irp_spec">
+<code class="descclassname">rpar_sdc_module/</code><code class="descname">irp_spec</code><em> [</em><em>integer</em><em>,</em><em>parameter=</em><a class="reference internal" href="#f/rpar_sdc_module/irp_evar" title="f/rpar_sdc_module/irp_evar">irp_evar</a>+1<em>]</em><a class="headerlink" href="#f/rpar_sdc_module/irp_spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/rpar_sdc_module/n_rpar">
+<code class="descclassname">rpar_sdc_module/</code><code class="descname">n_rpar</code><em> [</em><em>integer</em><em>,</em><em>parameter=</em>nspec_evolve+7+(nspec-nspec_evolve)<em>]</em><a class="headerlink" href="#f/rpar_sdc_module/n_rpar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+</ul>
+</div>
+<div class="section" id="f/sdc_util">
+<span id="sdc-util"></span><h2>sdc_util<a class="headerlink" href="#f/sdc_util" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/sdc_util/ca_instantaneous_react" title="f/sdc_util/ca_instantaneous_react"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_instantaneous_react()</span></code></a>, <a class="reference internal" href="#f/sdc_util/ca_sdc_compute_c4" title="f/sdc_util/ca_sdc_compute_c4"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_compute_c4()</span></code></a>, <a class="reference internal" href="#f/sdc_util/ca_sdc_conservative_update" title="f/sdc_util/ca_sdc_conservative_update"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_conservative_update()</span></code></a>, <a class="reference internal" href="#f/sdc_util/ca_sdc_update_advection_o2" title="f/sdc_util/ca_sdc_update_advection_o2"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_update_advection_o2()</span></code></a>, <a class="reference internal" href="#f/sdc_util/ca_sdc_update_advection_o4" title="f/sdc_util/ca_sdc_update_advection_o4"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_update_advection_o4()</span></code></a>, <a class="reference internal" href="#f/sdc_util/ca_sdc_update_centers_o4" title="f/sdc_util/ca_sdc_update_centers_o4"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_update_centers_o4()</span></code></a>, <a class="reference internal" href="#f/sdc_util/ca_sdc_update_o2" title="f/sdc_util/ca_sdc_update_o2"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_update_o2()</span></code></a>, <a class="reference internal" href="#f/sdc_util/ca_store_reaction_state" title="f/sdc_util/ca_store_reaction_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_store_reaction_state()</span></code></a>, <a class="reference internal" href="#f/sdc_util/f_ode" title="f/sdc_util/f_ode"><code class="xref f f-func docutils literal notranslate"><span class="pre">f_ode()</span></code></a>, <a class="reference internal" href="#f/sdc_util/f_sdc" title="f/sdc_util/f_sdc"><code class="xref f f-func docutils literal notranslate"><span class="pre">f_sdc()</span></code></a>, <a class="reference internal" href="#f/sdc_util/f_sdc_jac" title="f/sdc_util/f_sdc_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">f_sdc_jac()</span></code></a>, <a class="reference internal" href="#f/sdc_util/jac_ode" title="f/sdc_util/jac_ode"><code class="xref f f-func docutils literal notranslate"><span class="pre">jac_ode()</span></code></a>, <a class="reference internal" href="#f/sdc_util/sdc_solve" title="f/sdc_util/sdc_solve"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_solve()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Needed modules</p>
+<ul class="simple">
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_error_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">amrex_error()</span></code>)</li>
+</ul>
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/sdc_util/sdc_solve">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">sdc_solve</code><span class="sig-paren">(</span><em>dt_m</em>, <em>u_old</em>, <em>u_new</em>, <em>c</em>, <em>sdc_iteration</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/sdc_solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>the purpose of this function is to solve the system
+U - dt R(U) = U_old + dt C</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dt_m</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_old</strong> (nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_new</strong> (nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>c</strong> (nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sdc_iteration</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueden" title="f/meth_params_module/ueden"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueint" title="f/meth_params_module/ueint"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ufs" title="f/meth_params_module/ufs"><code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umx" title="f/meth_params_module/umx"><code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umz" title="f/meth_params_module/umz"><code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/utemp" title="f/meth_params_module/utemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/sdc_solver" title="f/meth_params_module/sdc_solver"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_solver()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/sdc_solver_tol" title="f/meth_params_module/sdc_solver_tol"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_solver_tol()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/sdc_solve_for_rhoe" title="f/meth_params_module/sdc_solve_for_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/sdc_use_analytic_jac" title="f/meth_params_module/sdc_use_analytic_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_use_analytic_jac()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">burn_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">burn_t()</span></code>), <a class="reference internal" href="react_util_f.html#f/react_util_module" title="f/react_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">react_util_module</span></code></a>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">extern_probin_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">small_x_safe()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nspec_evolve()</span></code>), <a class="reference internal" href="#f/rpar_sdc_module" title="f/rpar_sdc_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rpar_sdc_module</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/sdc_util/ca_sdc_update_o2" title="f/sdc_util/ca_sdc_update_o2"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_update_o2()</span></code></a>, <a class="reference internal" href="#f/sdc_util/ca_sdc_update_centers_o4" title="f/sdc_util/ca_sdc_update_centers_o4"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_update_centers_o4()</span></code></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/sdc_util/f_sdc_jac" title="f/sdc_util/f_sdc_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">f_sdc_jac()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/f_ode">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">f_ode</code><span class="sig-paren">(</span><em>n</em>, <em>t</em>, <em>u</em>, <em>dudt</em>, <em>rpar</em>, <em>ipar</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/f_ode" title="Permalink to this definition">¶</a></dt>
+<dd><p>this is the righthand side for the ODE system that we will use
+with VODE</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(u)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u</strong> (n)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dudt</strong> (n)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>rpar</strong> (<a class="reference internal" href="#f/rpar_sdc_module/n_rpar" title="f/rpar_sdc_module/n_rpar">n_rpar</a>-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ipar</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ufs" title="f/meth_params_module/ufs"><code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueden" title="f/meth_params_module/ueden"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/utemp" title="f/meth_params_module/utemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umx" title="f/meth_params_module/umx"><code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umz" title="f/meth_params_module/umz"><code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueint" title="f/meth_params_module/ueint"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">burn_type_module</span></code>, <a class="reference internal" href="#f/rpar_sdc_module" title="f/rpar_sdc_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rpar_sdc_module</span></code></a>, <a class="reference internal" href="react_util_f.html#f/react_util_module" title="f/react_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">react_util_module</span></code></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="RadHydro_nd_f.html#f/radhydro_nd_module/dudt" title="f/radhydro_nd_module/dudt"><code class="xref f f-func docutils literal notranslate"><span class="pre">dudt()</span></code></a>, <a class="reference internal" href="react_util_f.html#f/react_util_module/single_zone_react_source" title="f/react_util_module/single_zone_react_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_react_source()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/jac_ode">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">jac_ode</code><span class="sig-paren">(</span><em>n</em>, <em>time</em>, <em>u</em>, <em>ml</em>, <em>mu</em>, <em>jac</em>, <em>nrowpd</em>, <em>rpar</em>, <em>ipar</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/jac_ode" title="Permalink to this definition">¶</a></dt>
+<dd><p>this is the Jacobian function for use with VODE</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(u)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>u</strong> (n)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>ml</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>mu</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>jac</strong> (n,n)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>nrowpd</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rpar</strong> (<a class="reference internal" href="#f/rpar_sdc_module/n_rpar" title="f/rpar_sdc_module/n_rpar">n_rpar</a>-1+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>ipar</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ufs" title="f/meth_params_module/ufs"><code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueden" title="f/meth_params_module/ueden"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/utemp" title="f/meth_params_module/utemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umx" title="f/meth_params_module/umx"><code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umz" title="f/meth_params_module/umz"><code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueint" title="f/meth_params_module/ueint"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">burn_type_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <a class="reference internal" href="#f/rpar_sdc_module" title="f/rpar_sdc_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rpar_sdc_module</span></code></a>, <a class="reference internal" href="react_util_f.html#f/react_util_module" title="f/react_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">react_util_module</span></code></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="react_util_f.html#f/react_util_module/single_zone_react_source" title="f/react_util_module/single_zone_react_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_react_source()</span></code></a>, <a class="reference internal" href="react_util_f.html#f/react_util_module/single_zone_jac" title="f/react_util_module/single_zone_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_jac()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/f_sdc">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">f_sdc</code><span class="sig-paren">(</span><em>n</em>, <em>u</em>, <em>f</em>, <em>iflag</em>, <em>rpar</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/f_sdc" title="Permalink to this definition">¶</a></dt>
+<dd><p>this is used by the Newton solve to compute the Jacobian via differencing</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(u)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>u</strong> (n)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f</strong> (n)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>iflag</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em> :: ! leave this untouched</li>
+<li><strong>rpar</strong> (<a class="reference internal" href="#f/rpar_sdc_module/n_rpar" title="f/rpar_sdc_module/n_rpar">n_rpar</a>-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/rpar_sdc_module" title="f/rpar_sdc_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rpar_sdc_module</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ufs" title="f/meth_params_module/ufs"><code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueden" title="f/meth_params_module/ueden"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umx" title="f/meth_params_module/umx"><code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umz" title="f/meth_params_module/umz"><code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueint" title="f/meth_params_module/ueint"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/sdc_solve_for_rhoe" title="f/meth_params_module/sdc_solve_for_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nspec_evolve()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">burn_type_module</span></code>, <a class="reference internal" href="react_util_f.html#f/react_util_module" title="f/react_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">react_util_module</span></code></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/sdc_util/f_sdc_jac" title="f/sdc_util/f_sdc_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">f_sdc_jac()</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="react_util_f.html#f/react_util_module/single_zone_react_source" title="f/react_util_module/single_zone_react_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_react_source()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/f_sdc_jac">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">f_sdc_jac</code><span class="sig-paren">(</span><em>n</em>, <em>u</em>, <em>f</em>, <em>jac</em>, <em>ldjac</em>, <em>iflag</em>, <em>rpar</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/f_sdc_jac" title="Permalink to this definition">¶</a></dt>
+<dd><p>this is used with the Newton solve and returns f and the Jacobian</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(u)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>u</strong> (n)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f</strong> (n)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>jac</strong> (ldjac,n)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>ldjac</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>iflag</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em> :: ! leave this untouched</li>
+<li><strong>rpar</strong> (<a class="reference internal" href="#f/rpar_sdc_module/n_rpar" title="f/rpar_sdc_module/n_rpar">n_rpar</a>-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/rpar_sdc_module" title="f/rpar_sdc_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rpar_sdc_module</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ufs" title="f/meth_params_module/ufs"><code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueint" title="f/meth_params_module/ueint"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueden" title="f/meth_params_module/ueden"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umx" title="f/meth_params_module/umx"><code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/umz" title="f/meth_params_module/umz"><code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/utemp" title="f/meth_params_module/utemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/sdc_solve_for_rhoe" title="f/meth_params_module/sdc_solve_for_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/sdc_use_analytic_jac" title="f/meth_params_module/sdc_use_analytic_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_use_analytic_jac()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nspec_evolve()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">burn_type_module</span></code>, <a class="reference internal" href="react_util_f.html#f/react_util_module" title="f/react_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">react_util_module</span></code></a>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/sdc_util/sdc_solve" title="f/sdc_util/sdc_solve"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_solve()</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="react_util_f.html#f/react_util_module/single_zone_react_source" title="f/react_util_module/single_zone_react_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_react_source()</span></code></a>, <a class="reference internal" href="react_util_f.html#f/react_util_module/single_zone_jac" title="f/react_util_module/single_zone_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_jac()</span></code></a>, <a class="reference internal" href="#f/sdc_util/f_sdc" title="f/sdc_util/f_sdc"><code class="xref f f-func docutils literal notranslate"><span class="pre">f_sdc()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/ca_sdc_update_advection_o2">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">ca_sdc_update_advection_o2</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dt_m</em>, <em>k_m</em>, <em>kmlo</em>, <em>kmhi</em>, <em>k_n</em>, <em>knlo</em>, <em>knhi</em>, <em>a_m</em>, <em>amlo</em>, <em>amhi</em>, <em>a_0_old</em>, <em>a0lo</em>, <em>a0hi</em>, <em>a_1_old</em>, <em>a1lo</em>, <em>a1hi</em>, <em>m_start</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/ca_sdc_update_advection_o2" title="Permalink to this definition">¶</a></dt>
+<dd><p>update k_m to k_n via advection – this is a second-order accurate update</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt_m</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k_m</strong> (kmhi(1)-(kmlo(1))+1,kmhi(2)-(kmlo(2))+1,kmhi(3)-(kmlo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kmlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kmhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k_n</strong> (knhi(1)-(knlo(1))+1,knhi(2)-(knlo(2))+1,knhi(3)-(knlo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>knlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>knhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_m</strong> (amhi(1)-(amlo(1))+1,amhi(2)-(amlo(2))+1,amhi(3)-(amlo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>amlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>amhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_0_old</strong> (a0hi(1)-(a0lo(1))+1,a0hi(2)-(a0lo(2))+1,a0hi(3)-(a0lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a0lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a0hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_1_old</strong> (a1hi(1)-(a1lo(1))+1,a1hi(2)-(a1lo(2))+1,a1hi(3)-(a1lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a1lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a1hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>m_start</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/ca_sdc_update_advection_o4">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">ca_sdc_update_advection_o4</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dt</em>, <em>k_m</em>, <em>kmlo</em>, <em>kmhi</em>, <em>k_n</em>, <em>knlo</em>, <em>knhi</em>, <em>a_m</em>, <em>amlo</em>, <em>amhi</em>, <em>a_0_old</em>, <em>a0lo</em>, <em>a0hi</em>, <em>a_1_old</em>, <em>a1lo</em>, <em>a1hi</em>, <em>a_2_old</em>, <em>a2lo</em>, <em>a2hi</em>, <em>m_start</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/ca_sdc_update_advection_o4" title="Permalink to this definition">¶</a></dt>
+<dd><p>update k_m to k_n via advection – this is a second-order accurate update
+:p real dt [in]: is the total timestep from n to n+1</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k_m</strong> (kmhi(1)-(kmlo(1))+1,kmhi(2)-(kmlo(2))+1,kmhi(3)-(kmlo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kmlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kmhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k_n</strong> (knhi(1)-(knlo(1))+1,knhi(2)-(knlo(2))+1,knhi(3)-(knlo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>knlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>knhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_m</strong> (amhi(1)-(amlo(1))+1,amhi(2)-(amlo(2))+1,amhi(3)-(amlo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>amlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>amhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_0_old</strong> (a0hi(1)-(a0lo(1))+1,a0hi(2)-(a0lo(2))+1,a0hi(3)-(a0lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a0lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a0hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_1_old</strong> (a1hi(1)-(a1lo(1))+1,a1hi(2)-(a1lo(2))+1,a1hi(3)-(a1lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a1lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a1hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_2_old</strong> (a2hi(1)-(a2lo(1))+1,a2hi(2)-(a2lo(2))+1,a2hi(3)-(a2lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a2lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a2hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>m_start</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">five()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eight()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/ca_sdc_compute_c4">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">ca_sdc_compute_c4</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>a_m</em>, <em>amlo</em>, <em>amhi</em>, <em>a_0_old</em>, <em>a0lo</em>, <em>a0hi</em>, <em>a_1_old</em>, <em>a1lo</em>, <em>a1hi</em>, <em>a_2_old</em>, <em>a2lo</em>, <em>a2hi</em>, <em>r_0_old</em>, <em>r0lo</em>, <em>r0hi</em>, <em>r_1_old</em>, <em>r1lo</em>, <em>r1hi</em>, <em>r_2_old</em>, <em>r2lo</em>, <em>r2hi</em>, <em>c</em>, <em>clo</em>, <em>chi</em>, <em>m_start</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/ca_sdc_compute_c4" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute the ‘C’ term for the 4th-order solve with reactions
+note: this ‘C’ is cell-averages</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_m</strong> (amhi(1)-(amlo(1))+1,amhi(2)-(amlo(2))+1,amhi(3)-(amlo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>amlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>amhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_0_old</strong> (a0hi(1)-(a0lo(1))+1,a0hi(2)-(a0lo(2))+1,a0hi(3)-(a0lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a0lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a0hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_1_old</strong> (a1hi(1)-(a1lo(1))+1,a1hi(2)-(a1lo(2))+1,a1hi(3)-(a1lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a1lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a1hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_2_old</strong> (a2hi(1)-(a2lo(1))+1,a2hi(2)-(a2lo(2))+1,a2hi(3)-(a2lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a2lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a2hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_0_old</strong> (r0hi(1)-(r0lo(1))+1,r0hi(2)-(r0lo(2))+1,r0hi(3)-(r0lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r0lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r0hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_1_old</strong> (r1hi(1)-(r1lo(1))+1,r1hi(2)-(r1lo(2))+1,r1hi(3)-(r1lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r1lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r1hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_2_old</strong> (r2hi(1)-(r2lo(1))+1,r2hi(2)-(r2lo(2))+1,r2hi(3)-(r2lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r2lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r2hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c</strong> (chi(1)-(clo(1))+1,chi(2)-(clo(2))+1,chi(3)-(clo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>clo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>chi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>m_start</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">five()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eight()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">twelfth()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/ca_sdc_update_o2">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">ca_sdc_update_o2</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dt_m</em>, <em>k_m</em>, <em>kmlo</em>, <em>kmhi</em>, <em>k_n</em>, <em>knlo</em>, <em>knhi</em>, <em>a_m</em>, <em>amlo</em>, <em>amhi</em>, <em>a_0_old</em>, <em>a0lo</em>, <em>a0hi</em>, <em>a_1_old</em>, <em>a1lo</em>, <em>a1hi</em>, <em>r_0_old</em>, <em>r0lo</em>, <em>r0hi</em>, <em>r_1_old</em>, <em>r1lo</em>, <em>r1hi</em>, <em>sdc_iteration</em>, <em>m_start</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/ca_sdc_update_o2" title="Permalink to this definition">¶</a></dt>
+<dd><p>update k_m to k_n via advection – this is a second-order accurate update</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt_m</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k_m</strong> (kmhi(1)-(kmlo(1))+1,kmhi(2)-(kmlo(2))+1,kmhi(3)-(kmlo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kmlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kmhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k_n</strong> (knhi(1)-(knlo(1))+1,knhi(2)-(knlo(2))+1,knhi(3)-(knlo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>knlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>knhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_m</strong> (amhi(1)-(amlo(1))+1,amhi(2)-(amlo(2))+1,amhi(3)-(amlo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>amlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>amhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_0_old</strong> (a0hi(1)-(a0lo(1))+1,a0hi(2)-(a0lo(2))+1,a0hi(3)-(a0lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a0lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a0hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_1_old</strong> (a1hi(1)-(a1lo(1))+1,a1hi(2)-(a1lo(2))+1,a1hi(3)-(a1lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a1lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a1hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_0_old</strong> (r0hi(1)-(r0lo(1))+1,r0hi(2)-(r0lo(2))+1,r0hi(3)-(r0lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r0lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r0hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_1_old</strong> (r1hi(1)-(r1lo(1))+1,r1hi(2)-(r1lo(2))+1,r1hi(3)-(r1lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r1lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r1hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sdc_iteration</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>m_start</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">burn_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">burn_t()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nspec_evolve()</span></code>), <a class="reference internal" href="react_util_f.html#f/react_util_module" title="f/react_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">react_util_module</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/sdc_util/sdc_solve" title="f/sdc_util/sdc_solve"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_solve()</span></code></a>, <a class="reference internal" href="react_util_f.html#f/react_util_module/single_zone_react_source" title="f/react_util_module/single_zone_react_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_react_source()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/ca_sdc_update_centers_o4">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">ca_sdc_update_centers_o4</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dt_m</em>, <em>u_old</em>, <em>uo_lo</em>, <em>uo_hi</em>, <em>u_new</em>, <em>un_lo</em>, <em>un_hi</em>, <em>c</em>, <em>c_lo</em>, <em>c_hi</em>, <em>sdc_iteration</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/ca_sdc_update_centers_o4" title="Permalink to this definition">¶</a></dt>
+<dd><p>update k_m to k_n via advection – this is a fourth-order accurate update</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt_m</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_old</strong> (uo_hi(1)-(uo_lo(1))+1,uo_hi(2)-(uo_lo(2))+1,uo_hi(3)-(uo_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_new</strong> (un_hi(1)-(un_lo(1))+1,un_hi(2)-(un_lo(2))+1,un_hi(3)-(un_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>un_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>un_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c</strong> (c_hi(1)-(c_lo(1))+1,c_hi(2)-(c_lo(2))+1,c_hi(3)-(c_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sdc_iteration</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/sdc_util/sdc_solve" title="f/sdc_util/sdc_solve"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_solve()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/ca_sdc_conservative_update">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">ca_sdc_conservative_update</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dt_m</em>, <em>u_old</em>, <em>uo_lo</em>, <em>uo_hi</em>, <em>u_new</em>, <em>un_lo</em>, <em>un_hi</em>, <em>c</em>, <em>c_lo</em>, <em>c_hi</em>, <em>r_new</em>, <em>r_lo</em>, <em>r_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/ca_sdc_conservative_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>given &lt;U&gt;_old, &lt;R&gt;_new, and &lt;C&gt;, compute &lt;U&gt;_new</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt_m</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_old</strong> (uo_hi(1)-(uo_lo(1))+1,uo_hi(2)-(uo_lo(2))+1,uo_hi(3)-(uo_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_new</strong> (un_hi(1)-(un_lo(1))+1,un_hi(2)-(un_lo(2))+1,un_hi(3)-(un_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>un_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>un_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c</strong> (c_hi(1)-(c_lo(1))+1,c_hi(2)-(c_lo(2))+1,c_hi(3)-(c_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_new</strong> (r_hi(1)-(r_lo(1))+1,r_hi(2)-(r_lo(2))+1,r_hi(3)-(r_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/ca_instantaneous_react">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">ca_instantaneous_react</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>state</em>, <em>s_lo</em>, <em>s_hi</em>, <em>r_source</em>, <em>r_lo</em>, <em>r_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/ca_instantaneous_react" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_source</strong> (r_hi(1)-(r_lo(1))+1,r_hi(2)-(r_lo(2))+1,r_hi(3)-(r_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>r_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">burn_type_module</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qfs" title="f/meth_params_module/qfs"><code class="xref f f-func docutils literal notranslate"><span class="pre">qfs()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qrho" title="f/meth_params_module/qrho"><code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qtemp" title="f/meth_params_module/qtemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">qtemp()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ufs" title="f/meth_params_module/ufs"><code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueden" title="f/meth_params_module/ueden"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueint" title="f/meth_params_module/ueint"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nspec_evolve()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">aion()</span></code>), <a class="reference internal" href="react_util_f.html#f/react_util_module" title="f/react_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">react_util_module</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="react_util_f.html#f/react_util_module/single_zone_react_source" title="f/react_util_module/single_zone_react_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_react_source()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/sdc_util/ca_store_reaction_state">
+<em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">ca_store_reaction_state</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>r_old</em>, <em>r_lo</em>, <em>r_hi</em>, <em>state</em>, <em>s_lo</em>, <em>s_hi</em>, <em>r_store</em>, <em>rs_lo</em>, <em>rs_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/ca_store_reaction_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>copy the data from the last node’s reactive source to the state data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_old</strong> (r_hi(1)-(r_lo(1))+1,r_hi(2)-(r_lo(2))+1,r_hi(3)-(r_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_store</strong> (rs_hi(1)-(rs_lo(1))+1,rs_hi(2)-(rs_lo(2))+1,rs_hi(3)-(rs_lo(3))+1,nspec+2)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>rs_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rs_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueden" title="f/meth_params_module/ueden"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ufs" title="f/meth_params_module/ufs"><code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sums_nd_f.html" class="btn btn-neutral float-right" title="sums_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="prob_params_f.html" class="btn btn-neutral float-left" title="prob_params.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

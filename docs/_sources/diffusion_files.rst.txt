@@ -5,5 +5,5 @@ Diffusion
    :maxdepth: 2
 
    file/Diffusion_8H
-   file/Diffusion__nd_8F90
+   file/Diffusion_nd_f
    

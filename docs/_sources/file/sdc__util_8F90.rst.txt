@@ -1,4 +1,0 @@
-File sdc_util.F90
-=================
-
-.. doxygenfile:: sdc_util.F90

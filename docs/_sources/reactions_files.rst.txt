@@ -4,6 +4,6 @@ Reactions
 .. toctree::
    :maxdepth: 2
 
-   file/React__nd_8F90
-   file/react__util_8F90
+   file/React_nd_f
+   file/react_util_f
    

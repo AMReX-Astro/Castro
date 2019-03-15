@@ -1,0 +1,455 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ppm_nd.F90 &mdash; Castro 19.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="riemann_nd.F90" href="riemann_nd_f.html" />
+    <link rel="prev" title="hybrid_advection_nd.F90" href="hybrid_advection_nd_f.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                19.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_ctu_nd_f.html">Castro_ctu_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_fourth_order_f.html">Castro_fourth_order.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_mol_nd_f.html">Castro_mol_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flatten_nd_f.html">flatten_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fourth_order_f.html">fourth_order.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ppm_nd.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/ppm_module">ppm_module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="riemann_nd_f.html">riemann_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="riemann_util_f.html">riemann_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slope_nd_f.html">slope_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace_plm_f.html">trace_plm.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace_ppm_f.html">trace_ppm.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trans_f.html">trans.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+        
+      <li>ppm_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/ppm_nd_f.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ppm-nd-f90">
+<h1>ppm_nd.F90<a class="headerlink" href="#ppm-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/ppm_module">
+<span id="ppm-module"></span><h2>ppm_module<a class="headerlink" href="#f/ppm_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Description</p>
+<p>this does the parabolic reconstruction on a variable and the (optional)
+integration under the characteristic domain of the parabola</p>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/ppm_module/ca_ppm_reconstruct" title="f/ppm_module/ca_ppm_reconstruct"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_ppm_reconstruct()</span></code></a>, <a class="reference internal" href="#f/ppm_module/ppm_int_profile" title="f/ppm_module/ppm_int_profile"><code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_int_profile()</span></code></a>, <a class="reference internal" href="#f/ppm_module/ppm_reconstruct_with_eos" title="f/ppm_module/ppm_reconstruct_with_eos"><code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_reconstruct_with_eos()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Needed modules</p>
+<ul class="simple">
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">sixth()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two3rd()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">three()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">six()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">seven12th()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">twelfth()</span></code>)</li>
+<li><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dg" title="f/prob_params_module/dg"><code class="xref f f-func docutils literal notranslate"><span class="pre">dg()</span></code></a>): This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params().</li>
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+</ul>
+<p class="rubric">Variables</p>
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/ppm_module/ca_ppm_reconstruct">
+<em class="property">subroutine  </em><code class="descclassname">ppm_module/</code><code class="descname">ca_ppm_reconstruct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>put_on_edges</em>, <em>idir</em>, <em>s</em>, <em>s_lo</em>, <em>s_hi</em>, <em>nc</em>, <em>nstart</em>, <em>nend</em>, <em>flatn</em>, <em>f_lo</em>, <em>f_hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>ncq</em>, <em>nqstart</em>, <em>nqend</em><span class="sig-paren">)</span><a class="headerlink" href="#f/ppm_module/ca_ppm_reconstruct" title="Permalink to this definition">¶</a></dt>
+<dd><p>this routine does the reconstruction of the zone data into
+parabola.  The loops are over zone centers and for zone center,
+it will compute the left and right values of the parabola and
+store these in the qm and qp arrays.  If put_on_edges = 0, then
+this storage is done by zone so the parabola information for a
+zone can then be used in ppm_int_profile to compute the
+integrals.  If put_on_edges = 1, then we copy this information
+to the appropriate edges, such that qm(i,j,k,1) is the left
+state on the i-1/2 interface.  This is used for method-of-lines
+integration methods.</p>
+<p>here s has nc components and we reconstruct component n</p>
+<p>we store the result in the arrays qm and qp, in component nq out
+of ncq components</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>put_on_edges</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>s</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>nstart</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>nend</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>flatn</strong> (f_hi(1)-(f_lo(1))+1,f_hi(2)-(f_lo(2))+1,f_hi(3)-(f_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qm</strong> (qm_hi(1)-(qm_lo(1))+1,qm_hi(2)-(qm_lo(2))+1,qm_hi(3)-(qm_lo(3))+1,ncq,amrex_spacedim)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qp</strong> (qp_hi(1)-(qp_lo(1))+1,qp_hi(2)-(qp_lo(2))+1,qp_hi(3)-(qp_lo(3))+1,ncq,amrex_spacedim)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncq</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>nqstart</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>nqend</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_error_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">amrex_error()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_ctu_nd_f.html#f/ctu_module/ctu_ppm_states" title="f/ctu_module/ctu_ppm_states"><code class="xref f f-func docutils literal notranslate"><span class="pre">ctu_ppm_states()</span></code></a>, <a class="reference internal" href="Castro_mol_nd_f.html#f/_/ca_mol_single_stage" title="f/_/ca_mol_single_stage"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_mol_single_stage()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/ppm_module/ppm_int_profile">
+<em class="property">subroutine  </em><code class="descclassname">ppm_module/</code><code class="descname">ppm_int_profile</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>idir</em>, <em>s</em>, <em>s_lo</em>, <em>s_hi</em>, <em>ncomp</em>, <em>n</em>, <em>q</em>, <em>qd_lo</em>, <em>qd_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>sm_in</em>, <em>sm_lo</em>, <em>sm_hi</em>, <em>sp_in</em>, <em>sp_lo</em>, <em>sp_hi</em>, <em>ip</em>, <em>ip_lo</em>, <em>ip_hi</em>, <em>im</em>, <em>im_lo</em>, <em>im_hi</em>, <em>icomp</em>, <em>ic</em>, <em>dx</em>, <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/ppm_module/ppm_int_profile" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>s</strong> (s_hi(1)-(s_lo(1))+1, s_hi(2)-(s_lo(2))+1, s_hi(3)-(s_lo(3))+1,ncomp)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q</strong> (qd_hi(1)-(qd_lo(1))+1,qd_hi(2)-(qd_lo(2))+1,qd_hi(3)-(qd_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qd_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qd_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sm_in</strong> (sm_hi(1)-(sm_lo(1))+1, sm_hi(2)-(sm_lo(2))+1, sm_hi(3)-(sm_lo(3))+1,amrex_spacedim)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sp_in</strong> (sp_hi(1)-(sp_lo(1))+1, sp_hi(2)-(sp_lo(2))+1, sp_hi(3)-(sp_lo(3))+1,amrex_spacedim)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ip</strong> (ip_hi(1)-(ip_lo(1))+1,ip_hi(2)-(ip_lo(2))+1,ip_hi(3)-(ip_lo(3))+1,3,icomp)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>ip_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ip_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>im</strong> (im_hi(1)-(im_lo(1))+1,im_hi(2)-(im_lo(2))+1,im_hi(3)-(im_lo(3))+1,3,icomp)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>im_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>im_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>icomp</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>ic</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qc" title="f/meth_params_module/qc"><code class="xref f f-func docutils literal notranslate"><span class="pre">qc()</span></code></a>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qu" title="f/meth_params_module/qu"><code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qv" title="f/meth_params_module/qv"><code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qw" title="f/meth_params_module/qw"><code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_ctu_nd_f.html#f/ctu_module/ctu_ppm_states" title="f/ctu_module/ctu_ppm_states"><code class="xref f f-func docutils literal notranslate"><span class="pre">ctu_ppm_states()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/ppm_module/ppm_reconstruct_with_eos">
+<em class="property">subroutine  </em><code class="descclassname">ppm_module/</code><code class="descname">ppm_reconstruct_with_eos</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>idir</em>, <em>ip</em>, <em>ip_lo</em>, <em>ip_hi</em>, <em>im</em>, <em>im_lo</em>, <em>im_hi</em>, <em>ip_gc</em>, <em>ipg_lo</em>, <em>ipg_hi</em>, <em>im_gc</em>, <em>img_lo</em>, <em>img_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/ppm_module/ppm_reconstruct_with_eos" title="Permalink to this definition">¶</a></dt>
+<dd><p>temperature-based PPM – if desired, take the Ip(T)/Im(T)
+constructed above and use the EOS to overwrite Ip(p)/Im(p)
+get an edge-based gam1 here if we didn’t get it from the EOS
+call above (for ppm_temp_fix = 1)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>ip</strong> (ip_hi(1)-(ip_lo(1))+1,ip_hi(2)-(ip_lo(2))+1,ip_hi(3)-(ip_lo(3))+1,3,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>ip_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ip_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>im</strong> (im_hi(1)-(im_lo(1))+1,im_hi(2)-(im_lo(2))+1,im_hi(3)-(im_lo(3))+1,3,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>im_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>im_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ip_gc</strong> (ipg_hi(1)-(ipg_lo(1))+1,ipg_hi(2)-(ipg_lo(2))+1,ipg_hi(3)-(ipg_lo(3))+1,3,1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>ipg_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ipg_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>im_gc</strong> (img_hi(1)-(img_lo(1))+1,img_hi(2)-(img_lo(2))+1,img_hi(3)-(img_lo(3))+1,3,1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>img_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>img_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module: This file is automatically created by parse_castro_params.py.  To update or add runtime parameters, please edit _cpp_parameters and then run mk_params.sh"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qrho" title="f/meth_params_module/qrho"><code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qtemp" title="f/meth_params_module/qtemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">qtemp()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qpres" title="f/meth_params_module/qpres"><code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qreint" title="f/meth_params_module/qreint"><code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qfs" title="f/meth_params_module/qfs"><code class="xref f f-func docutils literal notranslate"><span class="pre">qfs()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qfx" title="f/meth_params_module/qfx"><code class="xref f f-func docutils literal notranslate"><span class="pre">qfx()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/small_temp" title="f/meth_params_module/small_temp"><code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_ctu_nd_f.html#f/ctu_module/ctu_ppm_states" title="f/ctu_module/ctu_ppm_states"><code class="xref f f-func docutils literal notranslate"><span class="pre">ctu_ppm_states()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="riemann_nd_f.html" class="btn btn-neutral float-right" title="riemann_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="hybrid_advection_nd_f.html" class="btn btn-neutral float-left" title="hybrid_advection_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

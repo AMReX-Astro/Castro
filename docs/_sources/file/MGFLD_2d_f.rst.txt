@@ -1,0 +1,123 @@
+MGFLD_2d.f90
+============
+
+ca\_accel\_acoe subroutine
+--------------------------
+
+.. f:autosubroutine:: ca_accel_acoe
+
+ca\_accel\_rhs subroutine
+-------------------------
+
+.. f:autosubroutine:: ca_accel_rhs
+
+ca\_accel\_spec subroutine
+--------------------------
+
+.. f:autosubroutine:: ca_accel_spec
+
+ca\_check\_conv subroutine
+--------------------------
+
+.. f:autosubroutine:: ca_check_conv
+
+ca\_check\_conv\_er subroutine
+------------------------------
+
+.. f:autosubroutine:: ca_check_conv_er
+
+ca\_compute\_coupt subroutine
+-----------------------------
+
+.. f:autosubroutine:: ca_compute_coupt
+
+ca\_compute\_etat subroutine
+----------------------------
+
+.. f:autosubroutine:: ca_compute_etat
+
+ca\_compute\_emissivity subroutine
+----------------------------------
+
+.. f:autosubroutine:: ca_compute_emissivity
+
+ca\_compute\_kappas subroutine
+------------------------------
+
+.. f:autosubroutine:: ca_compute_kappas
+
+ca\_compute\_rhs subroutine
+---------------------------
+
+.. f:autosubroutine:: ca_compute_rhs
+
+ca\_compute\_rhs\_so subroutine
+-------------------------------
+
+.. f:autosubroutine:: ca_compute_rhs_so
+
+ca\_local\_accel subroutine
+---------------------------
+
+.. f:autosubroutine:: ca_local_accel
+
+ca\_state\_update subroutine
+----------------------------
+
+.. f:autosubroutine:: ca_state_update
+
+ca\_update\_matter subroutine
+-----------------------------
+
+.. f:autosubroutine:: ca_update_matter
+
+ca\_ncupdate\_matter subroutine
+-------------------------------
+
+.. f:autosubroutine:: ca_ncupdate_matter
+
+ca\_opacs subroutine
+--------------------
+
+.. f:autosubroutine:: ca_opacs
+
+ca\_compute\_rosseland subroutine
+---------------------------------
+
+.. f:autosubroutine:: ca_compute_rosseland
+
+ca\_compute\_planck subroutine
+------------------------------
+
+.. f:autosubroutine:: ca_compute_planck
+
+ca\_accel\_ccoe subroutine
+--------------------------
+
+.. f:autosubroutine:: ca_accel_ccoe
+
+ca\_flux\_face2center subroutine
+--------------------------------
+
+.. f:autosubroutine:: ca_flux_face2center
+
+ca\_rhstoer subroutine
+----------------------
+
+.. f:autosubroutine:: ca_rhstoer
+
+ca\_compute\_powerlaw\_kappa\_s subroutine
+------------------------------------------
+
+.. f:autosubroutine:: ca_compute_powerlaw_kappa_s
+
+ca\_compute\_powerlaw\_kappa subroutine
+---------------------------------------
+
+.. f:autosubroutine:: ca_compute_powerlaw_kappa
+
+ca\_spalpha subroutine
+----------------------
+
+.. f:autosubroutine:: ca_spalpha
+

@@ -1,0 +1,8 @@
+Rotation_frequency.F90
+======================
+
+rotation\_frequency\_module
+---------------------------
+
+.. f:automodule:: rotation_frequency_module
+

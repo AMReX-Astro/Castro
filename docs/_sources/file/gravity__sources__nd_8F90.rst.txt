@@ -1,4 +1,0 @@
-File gravity_sources_nd.F90
-===========================
-
-.. doxygenfile:: gravity_sources_nd.F90

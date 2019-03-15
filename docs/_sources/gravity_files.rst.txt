@@ -4,16 +4,16 @@ Gravity
 .. toctree::
    :maxdepth: 2
 
-   file/GR__Gravity__1d_8f90
-   file/GR__Gravity__2d_8f90
-   file/GR__Gravity__3d_8f90
+   file/GR_Gravity_1d_f
+   file/GR_Gravity_2d_f
+   file/GR_Gravity_3d_f
    file/Gravity_8H
-   file/Gravity__1d_8f90
-   file/Gravity__2d_8f90
-   file/Gravity__3d_8f90
-   file/Gravity__nd_8f90
-   file/gravity__sources__nd_8F90
-   file/pointmass__nd_8F90
-   file/prescribe__grav__nd_8f90
-   file/prescribe__phi__nd_8F90
+   file/Gravity_1d_f
+   file/Gravity_2d_f
+   file/Gravity_3d_f
+   file/Gravity_nd_f
+   file/gravity_sources_nd_f
+   file/pointmass_nd_f
+   file/prescribe_grav_nd_f
+   file/prescribe_phi_nd_f
    

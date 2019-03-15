@@ -1,4 +1,0 @@
-File flatten_nd.F90
-===================
-
-.. doxygenfile:: flatten_nd.F90

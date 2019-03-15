@@ -126,8 +126,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../classlist.html">Class list</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="classCastro.html">Class Castro</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classCastroBld.html">Class CastroBld</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classDiffusion.html">Class Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classDumpModel.html">Class DumpModel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classGradPhiPhysBCFunct.html">Class GradPhiPhysBCFunct</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Class Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classHypreABec.html">Class HypreABec</a></li>
@@ -136,18 +136,15 @@
 <li class="toctree-l2"><a class="reference internal" href="classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classNGBndry.html">Class NGBndry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classNGBndryBld.html">Class NGBndryBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classProxyGeometry.html">Class ProxyGeometry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classRadBndry.html">Class RadBndry</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classRadBndryBld.html">Class RadBndryBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classRadBndryData.html">Class RadBndryData</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classRadBoundCond.html">Class RadBoundCond</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classRadInterpBndryData.html">Class RadInterpBndryData</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classRadSolve.html">Class RadSolve</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classRadTests.html">Class RadTests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classRadiation.html">Class Radiation</a></li>
 </ul>
 </li>
 </ul>
+<p class="caption"><span class="caption-text">References</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
 </ul>
@@ -349,7 +346,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N7Gravity17get_grad_phi_prevEi">
-<span id="_CPPv3N7Gravity17get_grad_phi_prevEi"></span><span id="_CPPv2N7Gravity17get_grad_phi_prevEi"></span><span id="Gravity::get_grad_phi_prev__i"></span><span class="target" id="classGravity_1a3d570b5fe855fccdff2e7c7c56b76fb0"></span>Vector&lt;std::unique_ptr&lt;MultiFab&gt;&gt; &amp;<code class="descname">get_grad_phi_prev</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity17get_grad_phi_prevEi" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity17get_grad_phi_prevEi"></span><span id="_CPPv2N7Gravity17get_grad_phi_prevEi"></span><span id="Gravity::get_grad_phi_prev__i"></span><span class="target" id="classGravity_1a034464fb3b53a6215876d2fc65a02e24"></span>amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; &amp;<code class="descname">get_grad_phi_prev</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity17get_grad_phi_prevEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Return <code class="docutils literal notranslate"><span class="pre">grad_phi_prev</span></code> at given level</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -363,7 +360,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N7Gravity17get_grad_phi_currEi">
-<span id="_CPPv3N7Gravity17get_grad_phi_currEi"></span><span id="_CPPv2N7Gravity17get_grad_phi_currEi"></span><span id="Gravity::get_grad_phi_curr__i"></span><span class="target" id="classGravity_1a4fc3447e0224d3526658c3e87866b4f2"></span>Vector&lt;std::unique_ptr&lt;MultiFab&gt;&gt; &amp;<code class="descname">get_grad_phi_curr</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity17get_grad_phi_currEi" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity17get_grad_phi_currEi"></span><span id="_CPPv2N7Gravity17get_grad_phi_currEi"></span><span id="Gravity::get_grad_phi_curr__i"></span><span class="target" id="classGravity_1afc03fd5dae1ee5363ff2784d1a9c6271"></span>amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; &amp;<code class="descname">get_grad_phi_curr</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity17get_grad_phi_currEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Return <code class="docutils literal notranslate"><span class="pre">grad_phi_curr</span></code> at given level</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -377,7 +374,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N7Gravity22get_grad_phi_prev_compEii">
-<span id="_CPPv3N7Gravity22get_grad_phi_prev_compEii"></span><span id="_CPPv2N7Gravity22get_grad_phi_prev_compEii"></span><span id="Gravity::get_grad_phi_prev_comp__i.i"></span><span class="target" id="classGravity_1a1114489e950fdb28314fcf8d930282ae"></span>MultiFab *<code class="descname">get_grad_phi_prev_comp</code><span class="sig-paren">(</span>int <em>level</em>, int <em>comp</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity22get_grad_phi_prev_compEii" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity22get_grad_phi_prev_compEii"></span><span id="_CPPv2N7Gravity22get_grad_phi_prev_compEii"></span><span id="Gravity::get_grad_phi_prev_comp__i.i"></span><span class="target" id="classGravity_1a0ff3986288a314325972df28f2e3c4c9"></span>amrex::MultiFab *<code class="descname">get_grad_phi_prev_comp</code><span class="sig-paren">(</span>int <em>level</em>, int <em>comp</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity22get_grad_phi_prev_compEii" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Return given component of <code class="docutils literal notranslate"><span class="pre">grad_phi_prev</span></code> at given level</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -712,6 +709,46 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="_CPPv4N7Gravity18fill_multipole_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE">
+<span id="_CPPv3N7Gravity18fill_multipole_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE"></span><span id="_CPPv2N7Gravity18fill_multipole_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE"></span><span id="Gravity::fill_multipole_BCs__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::MultiFabR"></span><span class="target" id="classGravity_1a036c8842605734f1b2082c1f8cf8793b"></span>void <code class="descname">fill_multipole_BCs</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>Rhs</em>, amrex::MultiFab &amp;<em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity18fill_multipole_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Implement multipole boundary conditions</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">Rhs</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N7Gravity19init_multipole_gravEv">
+<span id="_CPPv3N7Gravity19init_multipole_gravEv"></span><span id="_CPPv2N7Gravity19init_multipole_gravEv"></span><span id="Gravity::init_multipole_grav"></span><span class="target" id="classGravity_1ab3311fd738c9ed128e00f15efff3ef43"></span>void <code class="descname">init_multipole_grav</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity19init_multipole_gravEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize multipole gravity </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N7Gravity19fill_direct_sum_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE">
+<span id="_CPPv3N7Gravity19fill_direct_sum_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE"></span><span id="_CPPv2N7Gravity19fill_direct_sum_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE"></span><span id="Gravity::fill_direct_sum_BCs__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::MultiFabR"></span><span class="target" id="classGravity_1a574779b21f04b3d844ff62aecc6be9a1"></span>void <code class="descname">fill_direct_sum_BCs</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>Rhs</em>, amrex::MultiFab &amp;<em>phi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity19fill_direct_sum_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Compute and fill direct sum boundary conditions</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: Index of coarse level </li>
+<li><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: Index of fine level </li>
+<li><code class="docutils literal notranslate"><span class="pre">Rhs</span></code>: Vector of MultiFabs, right hand side </li>
+<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: MultiFab, phi </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="_CPPv4N7Gravity10make_mg_bcEv">
 <span id="_CPPv3N7Gravity10make_mg_bcEv"></span><span id="_CPPv2N7Gravity10make_mg_bcEv"></span><span id="Gravity::make_mg_bc"></span><span class="target" id="classGravity_1afe42c53b873e967735b52f6e9523be95"></span>void <code class="descname">make_mg_bc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity10make_mg_bcEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Make multigrid boundary conditions </p>
@@ -891,32 +928,37 @@
 <p class="breathe-sectiondef-title rubric">Protected Static Attributes</p>
 <dl class="member">
 <dt id="_CPPv4N7Gravity11test_solvesE">
-<span id="_CPPv3N7Gravity11test_solvesE"></span><span id="_CPPv2N7Gravity11test_solvesE"></span><span id="Gravity::test_solves__i"></span><span class="target" id="classGravity_1ac08196542f647f011081acbb56c40001"></span>int <code class="descname">test_solves</code> = 0<a class="headerlink" href="#_CPPv4N7Gravity11test_solvesE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity11test_solvesE"></span><span id="_CPPv2N7Gravity11test_solvesE"></span><span id="Gravity::test_solves__i"></span><span class="target" id="classGravity_1ac08196542f647f011081acbb56c40001"></span>int <code class="descname">test_solves</code><a class="headerlink" href="#_CPPv4N7Gravity11test_solvesE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity11mass_offsetE">
-<span id="_CPPv3N7Gravity11mass_offsetE"></span><span id="_CPPv2N7Gravity11mass_offsetE"></span><span id="Gravity::mass_offset__Real"></span><span class="target" id="classGravity_1a653063ef33fc9b552b689b3871a0e1c0"></span>Real <code class="descname">mass_offset</code> =  0.0<a class="headerlink" href="#_CPPv4N7Gravity11mass_offsetE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity11mass_offsetE"></span><span id="_CPPv2N7Gravity11mass_offsetE"></span><span id="Gravity::mass_offset__amrex::Real"></span><span class="target" id="classGravity_1a6f051c1d5d93b44d62f2832c855b2008"></span>amrex::Real <code class="descname">mass_offset</code><a class="headerlink" href="#_CPPv4N7Gravity11mass_offsetE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity15radial_grav_oldE">
-<span id="_CPPv3N7Gravity15radial_grav_oldE"></span><span id="_CPPv2N7Gravity15radial_grav_oldE"></span><span id="Gravity::radial_grav_old__Vector:Vector:Real::"></span><span class="target" id="classGravity_1a99e8fb16733295f9ce0981a12e06444c"></span>Vector&lt;Vector&lt;Real&gt;&gt; <code class="descname">radial_grav_old</code><a class="headerlink" href="#_CPPv4N7Gravity15radial_grav_oldE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity15radial_grav_oldE"></span><span id="_CPPv2N7Gravity15radial_grav_oldE"></span><span id="Gravity::radial_grav_old__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classGravity_1a2ac11c821b61f47e54c8965671c4c59d"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radial_grav_old</code><a class="headerlink" href="#_CPPv4N7Gravity15radial_grav_oldE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity15radial_grav_newE">
-<span id="_CPPv3N7Gravity15radial_grav_newE"></span><span id="_CPPv2N7Gravity15radial_grav_newE"></span><span id="Gravity::radial_grav_new__Vector:Vector:Real::"></span><span class="target" id="classGravity_1a00dc6ff8d2e6037ccdc60f63971507fd"></span>Vector&lt;Vector&lt;Real&gt;&gt; <code class="descname">radial_grav_new</code><a class="headerlink" href="#_CPPv4N7Gravity15radial_grav_newE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity15radial_grav_newE"></span><span id="_CPPv2N7Gravity15radial_grav_newE"></span><span id="Gravity::radial_grav_new__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classGravity_1aa5fb5d81165ffee8998130cf6cdb817c"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radial_grav_new</code><a class="headerlink" href="#_CPPv4N7Gravity15radial_grav_newE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity11radial_massE">
-<span id="_CPPv3N7Gravity11radial_massE"></span><span id="_CPPv2N7Gravity11radial_massE"></span><span id="Gravity::radial_mass__Vector:Vector:Real::"></span><span class="target" id="classGravity_1a77cd084e5f297b533486a43974c0d609"></span>Vector&lt;Vector&lt;Real&gt;&gt; <code class="descname">radial_mass</code><a class="headerlink" href="#_CPPv4N7Gravity11radial_massE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity11radial_massE"></span><span id="_CPPv2N7Gravity11radial_massE"></span><span id="Gravity::radial_mass__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classGravity_1a1531f6e1f5d6dfe05b63587733efa184"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radial_mass</code><a class="headerlink" href="#_CPPv4N7Gravity11radial_massE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity10radial_volE">
-<span id="_CPPv3N7Gravity10radial_volE"></span><span id="_CPPv2N7Gravity10radial_volE"></span><span id="Gravity::radial_vol__Vector:Vector:Real::"></span><span class="target" id="classGravity_1ac72d2be008bbb6b0d37b9f63fed5e988"></span>Vector&lt;Vector&lt;Real&gt;&gt; <code class="descname">radial_vol</code><a class="headerlink" href="#_CPPv4N7Gravity10radial_volE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity10radial_volE"></span><span id="_CPPv2N7Gravity10radial_volE"></span><span id="Gravity::radial_vol__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classGravity_1a396f48e5cce574a9324ec08704f79953"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radial_vol</code><a class="headerlink" href="#_CPPv4N7Gravity10radial_volE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N7Gravity11radial_presE">
+<span id="_CPPv3N7Gravity11radial_presE"></span><span id="_CPPv2N7Gravity11radial_presE"></span><span id="Gravity::radial_pres__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classGravity_1a42a451ce14a6232c9c2f191685c84f4a"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radial_pres</code><a class="headerlink" href="#_CPPv4N7Gravity11radial_presE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
@@ -926,82 +968,7 @@
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity24max_radius_all_in_domainE">
-<span id="_CPPv3N7Gravity24max_radius_all_in_domainE"></span><span id="_CPPv2N7Gravity24max_radius_all_in_domainE"></span><span id="Gravity::max_radius_all_in_domain__Real"></span><span class="target" id="classGravity_1aad099dc8481a39fb6f486974f3d26408"></span>Real <code class="descname">max_radius_all_in_domain</code> =  0.0<a class="headerlink" href="#_CPPv4N7Gravity24max_radius_all_in_domainE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity12gravity_typeE">
-<span id="_CPPv3N7Gravity12gravity_typeE"></span><span id="_CPPv2N7Gravity12gravity_typeE"></span><span id="Gravity::gravity_type__ss"></span><span class="target" id="classGravity_1a6ab0d3ef6cbd6c39c33451457c2fb490"></span>std::string <code class="descname">gravity_type</code> = &quot;fillme&quot;<a class="headerlink" href="#_CPPv4N7Gravity12gravity_typeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity10const_gravE">
-<span id="_CPPv3N7Gravity10const_gravE"></span><span id="_CPPv2N7Gravity10const_gravE"></span><span id="Gravity::const_grav__amrex::Real"></span><span class="target" id="classGravity_1aaf203cc847fbe4dd64803773e3f1fe02"></span>amrex::Real <code class="descname">const_grav</code> = 0.0<a class="headerlink" href="#_CPPv4N7Gravity10const_gravE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity14direct_sum_bcsE">
-<span id="_CPPv3N7Gravity14direct_sum_bcsE"></span><span id="_CPPv2N7Gravity14direct_sum_bcsE"></span><span id="Gravity::direct_sum_bcs__i"></span><span class="target" id="classGravity_1a36417855fed548fe5abbdfda8846b3d9"></span>int <code class="descname">direct_sum_bcs</code> = 0<a class="headerlink" href="#_CPPv4N7Gravity14direct_sum_bcsE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity7drdxfacE">
-<span id="_CPPv3N7Gravity7drdxfacE"></span><span id="_CPPv2N7Gravity7drdxfacE"></span><span id="Gravity::drdxfac__i"></span><span class="target" id="classGravity_1a86c6741ed179aedd384952209eabf316"></span>int <code class="descname">drdxfac</code> = 1<a class="headerlink" href="#_CPPv4N7Gravity7drdxfacE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity4lnumE">
-<span id="_CPPv3N7Gravity4lnumE"></span><span id="_CPPv2N7Gravity4lnumE"></span><span id="Gravity::lnum__i"></span><span class="target" id="classGravity_1a003245103cf2bedd0aa12378d031fa36"></span>int <code class="descname">lnum</code> = 0<a class="headerlink" href="#_CPPv4N7Gravity4lnumE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity7verboseE">
-<span id="_CPPv3N7Gravity7verboseE"></span><span id="_CPPv2N7Gravity7verboseE"></span><span id="Gravity::verbose__i"></span><span class="target" id="classGravity_1a0edc0e34db6aed40e5d90afa3ae714d4"></span>int <code class="descname">verbose</code> = 0<a class="headerlink" href="#_CPPv4N7Gravity7verboseE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity7no_syncE">
-<span id="_CPPv3N7Gravity7no_syncE"></span><span id="_CPPv2N7Gravity7no_syncE"></span><span id="Gravity::no_sync__i"></span><span class="target" id="classGravity_1a1b0b1ecbb033c81c9860ffe9c2666b2a"></span>int <code class="descname">no_sync</code> = 0<a class="headerlink" href="#_CPPv4N7Gravity7no_syncE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity12no_compositeE">
-<span id="_CPPv3N7Gravity12no_compositeE"></span><span id="_CPPv2N7Gravity12no_compositeE"></span><span id="Gravity::no_composite__i"></span><span class="target" id="classGravity_1a4a82497e9387e830cf1cf77b7732c704"></span>int <code class="descname">no_composite</code> = 0<a class="headerlink" href="#_CPPv4N7Gravity12no_compositeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity27do_composite_phi_correctionE">
-<span id="_CPPv3N7Gravity27do_composite_phi_correctionE"></span><span id="_CPPv2N7Gravity27do_composite_phi_correctionE"></span><span id="Gravity::do_composite_phi_correction__i"></span><span class="target" id="classGravity_1a82d90caf4f70a785a88951df02730c81"></span>int <code class="descname">do_composite_phi_correction</code> = 1<a class="headerlink" href="#_CPPv4N7Gravity27do_composite_phi_correctionE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity15max_solve_levelE">
-<span id="_CPPv3N7Gravity15max_solve_levelE"></span><span id="_CPPv2N7Gravity15max_solve_levelE"></span><span id="Gravity::max_solve_level__i"></span><span class="target" id="classGravity_1a4fa8d774ea4bb4f04f47ba6a272273bf"></span>int <code class="descname">max_solve_level</code> = <a class="reference internal" href="../file/Gravity_8cpp.html#Gravity_8cpp_1aaf900f23f86c82aca5502edba1f68fcf"><span class="std std-ref">MAX_LEV</span></a>-1<a class="headerlink" href="#_CPPv4N7Gravity15max_solve_levelE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity14get_g_from_phiE">
-<span id="_CPPv3N7Gravity14get_g_from_phiE"></span><span id="_CPPv2N7Gravity14get_g_from_phiE"></span><span id="Gravity::get_g_from_phi__i"></span><span class="target" id="classGravity_1a8889a7495bb7906206a4048a908d1d1e"></span>int <code class="descname">get_g_from_phi</code> = 0<a class="headerlink" href="#_CPPv4N7Gravity14get_g_from_phiE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity17mlmg_max_fmg_iterE">
-<span id="_CPPv3N7Gravity17mlmg_max_fmg_iterE"></span><span id="_CPPv2N7Gravity17mlmg_max_fmg_iterE"></span><span id="Gravity::mlmg_max_fmg_iter__i"></span><span class="target" id="classGravity_1ae6f7f9c537eaa312205be4811b88e501"></span>int <code class="descname">mlmg_max_fmg_iter</code> = 0<a class="headerlink" href="#_CPPv4N7Gravity17mlmg_max_fmg_iterE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity18mlmg_agglomerationE">
-<span id="_CPPv3N7Gravity18mlmg_agglomerationE"></span><span id="_CPPv2N7Gravity18mlmg_agglomerationE"></span><span id="Gravity::mlmg_agglomeration__i"></span><span class="target" id="classGravity_1a630212699945ac50bb24a75964b7e37e"></span>int <code class="descname">mlmg_agglomeration</code> = 1<a class="headerlink" href="#_CPPv4N7Gravity18mlmg_agglomerationE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity18mlmg_consolidationE">
-<span id="_CPPv3N7Gravity18mlmg_consolidationE"></span><span id="_CPPv2N7Gravity18mlmg_consolidationE"></span><span id="Gravity::mlmg_consolidation__i"></span><span class="target" id="classGravity_1ac7b90335e96a0aaa82be3b87b868a6e4"></span>int <code class="descname">mlmg_consolidation</code> = 1<a class="headerlink" href="#_CPPv4N7Gravity18mlmg_consolidationE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N7Gravity11mlmg_nsolveE">
-<span id="_CPPv3N7Gravity11mlmg_nsolveE"></span><span id="_CPPv2N7Gravity11mlmg_nsolveE"></span><span id="Gravity::mlmg_nsolve__i"></span><span class="target" id="classGravity_1af5e1911cdb5f7fd9f66839726b45fb32"></span>int <code class="descname">mlmg_nsolve</code> = 0<a class="headerlink" href="#_CPPv4N7Gravity11mlmg_nsolveE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity24max_radius_all_in_domainE"></span><span id="_CPPv2N7Gravity24max_radius_all_in_domainE"></span><span id="Gravity::max_radius_all_in_domain__amrex::Real"></span><span class="target" id="classGravity_1acbb91e5ff3eb2a2bf1e077926a117b68"></span>amrex::Real <code class="descname">max_radius_all_in_domain</code><a class="headerlink" href="#_CPPv4N7Gravity24max_radius_all_in_domainE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -1009,7 +976,7 @@
 <p class="breathe-sectiondef-title rubric">Private Functions</p>
 <dl class="function">
 <dt id="_CPPv4N7Gravity7get_rhsEiii">
-<span id="_CPPv3N7Gravity7get_rhsEiii"></span><span id="_CPPv2N7Gravity7get_rhsEiii"></span><span id="Gravity::get_rhs__i.i.i"></span><span class="target" id="classGravity_1a1ffdcd9b792db4d53f30745bb8eef042"></span>Vector&lt;std::unique_ptr&lt;MultiFab&gt;&gt; <code class="descname">get_rhs</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>nlevs</em>, int <em>is_new</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity7get_rhsEiii" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity7get_rhsEiii"></span><span id="_CPPv2N7Gravity7get_rhsEiii"></span><span id="Gravity::get_rhs__i.i.i"></span><span class="target" id="classGravity_1ae454e6e5fca3298d85ef249d251fc206"></span>amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; <code class="descname">get_rhs</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>nlevs</em>, int <em>is_new</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity7get_rhsEiii" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the rhs</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1039,7 +1006,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv3N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="Gravity::actual_solve_with_mlmg__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabCP:CR.amrex::Vector:std::array:amrex::MultiFabP.AMREX_SPACEDIM::CR.amrex::Vector:amrex::MultiFabP:CR.amrex::MultiFabCPC.amrex::Real.amrex::Real"></span><span class="target" id="classGravity_1a9f234ae779308ad39a5b9b086c08d4d7"></span>Real <code class="descname">actual_solve_with_mlmg</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>phi</em>, <em class="property">const</em> amrex::Vector&lt;<em class="property">const</em> amrex::MultiFab *&gt; &amp;<em>rhs</em>, <em class="property">const</em> amrex::Vector&lt;std::array&lt;amrex::MultiFab *, AMREX_SPACEDIM&gt;&gt; &amp;<em>grad_phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>res</em>, <em class="property">const</em> amrex::MultiFab *<em class="property">const</em> <em>crse_bcdata</em>, amrex::Real <em>rel_eps</em>, amrex::Real <em>abs_eps</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="Gravity::actual_solve_with_mlmg__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabCP:CR.amrex::Vector:std::array:amrex::MultiFabP.AMREX_SPACEDIM::CR.amrex::Vector:amrex::MultiFabP:CR.amrex::MultiFabCPC.amrex::Real.amrex::Real"></span><span class="target" id="classGravity_1ace28eaeb063353d15479e0dc15c6dd9d"></span>amrex::Real <code class="descname">actual_solve_with_mlmg</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>phi</em>, <em class="property">const</em> amrex::Vector&lt;<em class="property">const</em> amrex::MultiFab *&gt; &amp;<em>rhs</em>, <em class="property">const</em> amrex::Vector&lt;std::array&lt;amrex::MultiFab *, AMREX_SPACEDIM&gt;&gt; &amp;<em>grad_phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>res</em>, <em class="property">const</em> amrex::MultiFab *<em class="property">const</em> <em>crse_bcdata</em>, amrex::Real <em>rel_eps</em>, amrex::Real <em>abs_eps</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Do multigrid solve</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1061,7 +1028,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE">
-<span id="_CPPv3N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE"></span><span id="_CPPv2N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE"></span><span id="Gravity::solve_phi_with_mlmg__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Real"></span><span class="target" id="classGravity_1a0b01c61225c3791fcf86385caf26f4a3"></span>Real <code class="descname">solve_phi_with_mlmg</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>rhs</em>, <em class="property">const</em> amrex::Vector&lt;amrex::Vector&lt;amrex::MultiFab *&gt;&gt; &amp;<em>grad_phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>res</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE"></span><span id="_CPPv2N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE"></span><span id="Gravity::solve_phi_with_mlmg__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Real"></span><span class="target" id="classGravity_1a0f10081c07c5037f65233086647ca262"></span>amrex::Real <code class="descname">solve_phi_with_mlmg</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>rhs</em>, <em class="property">const</em> amrex::Vector&lt;amrex::Vector&lt;amrex::MultiFab *&gt;&gt; &amp;<em>grad_phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>res</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Do multigrid solve to find phi</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
