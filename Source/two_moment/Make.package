@@ -25,19 +25,24 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += KindModule.f90
 
 # In Modules/ProgramHeader 
-  ca_f90EXE_sources += ProgramHeaderModule.f90
+  ca_F90EXE_sources += ProgramHeaderModule.F90
 
 # In Modules/Library
+  ca_f90EXE_sources += CublasModule.f90
+  ca_f90EXE_sources += CudaModule.f90
+  ca_F90EXE_sources += DeviceModule.F90
   ca_f90EXE_sources += LagrangePolynomialsModule.f90
+  ca_F90EXE_sources += LinearAlgebraModule.F90
   ca_f90EXE_sources += QuadratureModule.f90
   ca_f90EXE_sources += ReferenceElementModuleE.f90
   ca_f90EXE_sources += ReferenceElementModuleX.f90
-  ca_f90EXE_sources += ReferenceElementModule.f90
+  ca_F90EXE_sources += ReferenceElementModule.F90
   ca_f90EXE_sources += PolynomialBasisModule_Lagrange.f90
   ca_f90EXE_sources += PolynomialBasisModuleX_Lagrange.f90
-  ca_f90EXE_sources += ReferenceElementModuleX_Lagrange.f90
+  ca_F90EXE_sources += ReferenceElementModuleX_Lagrange.F90
   ca_f90EXE_sources += ReferenceElementModuleE_Lagrange.f90
-  ca_f90EXE_sources += ReferenceElementModule_Lagrange.f90
+  ca_F90EXE_sources += ReferenceElementModule_Lagrange.F90
+  ca_f90EXE_sources += TimersModule.f90
   ca_f90EXE_sources += UtilitiesModule.f90
 
   ca_f90EXE_sources += SubcellReconstructionModule.f90
@@ -48,7 +53,7 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
 # In Modules/Geometry
   ca_f90EXE_sources += GeometryFieldsModuleE.f90	    
   ca_f90EXE_sources += GeometryFieldsModule.f90	   
-  ca_f90EXE_sources += GeometryComputationModule.f90
+  ca_F90EXE_sources += GeometryComputationModule.F90
   ca_f90EXE_sources += GeometryComputationModuleE.f90
 
 # In Modules/Fields
@@ -58,9 +63,9 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
 # In Modules/TwoMoment
   ca_F90EXE_sources += TwoMoment_ClosureModule.F90
   ca_f90EXE_sources += TwoMoment_PositivityLimiterModule.f90
-  ca_f90EXE_sources += TwoMoment_DiscretizationModule_Streaming.f90
-  ca_f90EXE_sources += TwoMoment_BoundaryConditionsModule.f90
-  ca_f90EXE_sources += TwoMoment_UtilitiesModule.f90
+  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Streaming.F90
+  ca_F90EXE_sources += TwoMoment_BoundaryConditionsModule.F90
+  ca_F90EXE_sources += TwoMoment_UtilitiesModule.F90
   ca_f90EXE_sources += TwoMoment_DiscretizationModule_Collisions_Neutrinos.f90
   ca_f90EXE_sources += TwoMoment_MeshRefinementModule.f90
 
