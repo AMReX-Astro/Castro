@@ -421,7 +421,8 @@ endif
 
 ifeq ($(USE_THORNADO), TRUE)
   LIBRARY_LOCATIONS += -L$(LAPACK_HOME)
-  LIBRARIES         += -llapack
+  LIBRARIES         += -llapack 
+  LIBRARIES         += -lblas 
 endif
 
 #------------------------------------------------------------------------------

@@ -4,7 +4,7 @@ PROFILE    = FALSE
 DEBUG      = FALSE
 OPTIMIZE   = TRUE 
 
-DIM        = 3
+DIM        = 2
 
 COMP	   = gnu
 
@@ -20,6 +20,7 @@ USE_THORNADO = TRUE
 
 DEFINES += -DMOMENT_CLOSURE_MAXIMUM_ENTROPY_CB
 DEFINES += -DMICROPHYSICS_WEAKLIB
+DEFINES += -DTHORNADO_LA_LAPACK
 
 # define the location of the CASTRO top directory
 CASTRO_HOME   := ../../..

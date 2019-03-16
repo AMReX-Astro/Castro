@@ -247,12 +247,12 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
   ! zero it out, just in case
   rad_state = 0.0e0_rt
 
-  print *,'nrad_comp ',nrad_comp
-  print *,'nSpecies  ',nSpecies
-  print *,'n_moments ',n_moments
-  print *,'nE        ',nE
-  print *,'nNodesE   ',nNodesE
-  print *,'MULT ', nSpecies * n_moments * nE * nNodesE
+  ! print *,'nrad_comp ',nrad_comp
+  ! print *,'nSpecies  ',nSpecies
+  ! print *,'n_moments ',n_moments
+  ! print *,'nE        ',nE
+  ! print *,'nNodesE   ',nNodesE
+  ! print *,'MULT ', nSpecies * n_moments * nE * nNodesE
 
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)
