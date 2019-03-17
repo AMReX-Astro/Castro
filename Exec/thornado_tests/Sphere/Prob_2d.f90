@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use eos_module
   use eos_type_module
-  use amrex_constants_module, only: half
+  use amrex_constants_module, only: zero,half,one
   use amrex_error_module 
   use network
   use probdata_module
@@ -40,8 +40,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   read(untin,fortin)
   close(unit=untin)
 
-  xn(:) = 0.0e0_rt
-  xn(1) = 1.0e0_rt
+  xn(:) = zero
+  xn(1) = one
 
   centx = half * (problo(1)+probhi(1))
   centy = half * (problo(2)+probhi(2))
@@ -106,38 +106,41 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   allocate(Epermass_out(lo(1):hi(1)))
   allocate(Ne_out(lo(1):hi(1)))
 
-  if (UFX .lt. 0.d0) &
+  if (UFX .lt. zero) &
      call amrex_abort("Must have UFX defined to run this problem!")
 
   ! ************************ Min and max values of rho, T, Ye ************************
-  rho_min = 1.0e8 
-  rho_max = 4.0e14
+  rho_min = 1.0d8 
+  rho_max = 4.0d14
 
-  T_min = 5.0e9 
-  T_max = 2.6e11
+  T_min = 5.0d9 
+  T_max = 2.6d11
 
-  Ye_min = 0.3
-  Ye_max = 0.46
+  Ye_min = 0.3d0
+  Ye_max = 0.46d0
 
   ! ************************ Radii and widths for rho, T, Ye ************************
-  r_rho = 2.0e6
-  H_rho = 1.0e6
+  r_rho = 2.0d6
+  H_rho = 1.0d6
 
-  r_T = 2.5e6
-  H_T = 2.0e6
+  r_T = 2.5d6
+  H_T = 2.0d6
 
-  r_Ye = 4.5e6
-  H_Ye = 1.0e6
+  r_Ye = 4.5d6
+  H_Ye = 1.0d6
 
   ! ************************ ************************ ************************
 
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)
 
-        x = xlo(1) + delta(1)*(dble(i-lo(1))+half) - centx
-        y = xlo(2) + delta(2)*(dble(j-lo(2))+half) - centy
+!       x = xlo(1) + delta(1)*(dble(i-lo(1))+half) - centx
+!       y = xlo(2) + delta(2)*(dble(j-lo(2))+half) - centy
 
-        radius = sqrt(x*x+y*y)
+        x = -1.d7 + delta(1)*(dble(i)+half) - centx
+        y = -1.d7 + delta(2)*(dble(j)+half) - centy
+
+        radius = dsqrt(x*x+y*y)
  
         ! These go from near-zero at radius = 0 to near-one at large radius
         tanh_r = half * (one + tanh((radius - r_rho)/H_rho))
@@ -150,7 +153,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,j,UMX:UMY) = zero
 
-        state(i,j,UFS:UFS-1+nspec) = 0.0e0_rt
+        state(i,j,UFS:UFS-1+nspec) = zero
         state(i,j,UFS            ) = state(i,j,URHO)
 
         rho_in(i) = state(i,j,URHO) * (Gram/Centimeter**3)
@@ -245,7 +248,7 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
   integer :: ii,ii_0,is,im,ie
   real(rt) :: rho_in(1), T_in(1), Ye_in(1), Evol(1), Ne_loc(1), Em_in(1), M_e(1), M_p(1), M_n(1), M_nu(1), E(1)
   ! zero it out, just in case
-  rad_state = 0.0e0_rt
+  rad_state = 0.0d0
 
   ! print *,'nrad_comp ',nrad_comp
   ! print *,'nSpecies  ',nSpecies
@@ -258,10 +261,10 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
      do i = lo(1), hi(1)
         
         ! Get Castro fluid variables unit convert to thornado units
-        rho_in(1) = state(i,j,URHO) * Gram / Centimeter**3
-        T_in(1) = state(i,j,UTEMP) * Kelvin
-        Evol(1) = state(i,j,UEINT) * (Erg/Centimeter**3)
-        Ne_loc(1) = state(i,j,UFX) / Centimeter**3  
+        rho_in(1) = state(i,j,URHO ) * Gram / Centimeter**3
+        T_in(1)   = state(i,j,UTEMP) * Kelvin
+        Evol(1)   = state(i,j,UEINT) * (Erg/Centimeter**3)
+        Ne_loc(1) = state(i,j,UFX  ) / Centimeter**3  
         
         ! Calculate chemical potentials via thornado subroutines
         call ComputeThermodynamicStates_Auxiliary_TABLE( rho_in, Evol, Ne_loc, T_in, Em_in, Ye_in) 
@@ -287,16 +290,17 @@ subroutine ca_init_thornado_data(level,time,lo,hi, &
 
               ! J moment, im = 1
               if (im .eq. 1) then 
-                      rad_state(i,j,ii) = max(1.0e0_rt / (exp( (E(1)-M_nu(1)) / T_in(1))  + 1.0e0_rt), 1.0d-99)
+                 rad_state(i,j,ii) = max(1.0d0 / (dexp( (E(1)-M_nu(1)) / T_in(1))  + 1.0d0), 1.0d-99)
               endif 
+
               ! H_x moment, im = 2
-              if (im .eq. 2) rad_state(i,j,ii) = 0.0e0_rt  
+              if (im .eq. 2) rad_state(i,j,ii) = 0.0d0
 
               ! H_y moment, im = 3
-              if (im .eq. 3) rad_state(i,j,ii) = 0.0e0_rt
+              if (im .eq. 3) rad_state(i,j,ii) = 0.0d0
    
               ! H_z moment, im = 4
-              if (im .eq. 4) rad_state(i,j,ii) = 0.0e0_rt
+              if (im .eq. 4) rad_state(i,j,ii) = 0.0d0
    
            end do
 
