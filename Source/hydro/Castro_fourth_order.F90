@@ -253,8 +253,8 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   if (use_flattening == 1) then
      call ca_uflatten(lo - ngf*dg, hi + ngf*dg, &
-          q_bar, q_bar_lo, q_bar_hi, &
-          flatn, q_bar_lo, q_bar_hi, QPRES)
+                      q_bar, q_bar_lo, q_bar_hi, &
+                      flatn, q_bar_lo, q_bar_hi, QPRES)
   else
      flatn = ONE
   endif

@@ -108,6 +108,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           stage_weight = b_mol[mol_iteration];
         }
 
+
 	// Allocate fabs for fluxes
 	for (int i = 0; i < AMREX_SPACEDIM ; i++)  {
 	  const Box& bxtmp = amrex::surroundingNodes(bx,i);
@@ -158,6 +159,33 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              verbose);
 
         } else {
+
+          // second order method
+
+          // get div{U} -- we'll use this for artificial viscosity
+          divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+               BL_TO_FORTRAN_ANYD(q[mfi]),
+               AMREX_REAL_ANYD(dx),
+               BL_TO_FORTRAN_ANYD(div));
+
+          // get the flattening coefficient
+          if (first_order_hydro == 1) {
+            flatn = 0.0;
+          } else if (use_flattening == 1) {
+            ca_uflatten
+              (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+               BL_TO_FORTRAN_ANYD(q[mfi]),
+               BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
+          } else {
+            flatn = 1.0;
+          }
+
+          // get the interface states and shock variable
+
+          // compute the fluxes
+
+          // do the conservative update -- and store the shock variable
+
           ca_mol_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &stage_weight,
@@ -166,6 +194,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              BL_TO_FORTRAN_ANYD(q[mfi]),
              BL_TO_FORTRAN_ANYD(qaux[mfi]),
              BL_TO_FORTRAN_ANYD(source_in),
+             BL_TO_FORTRAN_ANYD(div)
              BL_TO_FORTRAN_ANYD(source_out),
              BL_TO_FORTRAN_ANYD(source_hydro_only),
              ZFILL(dx), &dt,

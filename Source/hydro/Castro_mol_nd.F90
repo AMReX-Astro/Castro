@@ -1,50 +1,50 @@
 ! advection routines in support of method of lines integration
 !
 subroutine ca_mol_single_stage(lo, hi, time, &
-     domlo, domhi, &
-     stage_weight, &
-     uin, uin_lo, uin_hi, &
-     uout, uout_lo, uout_hi, &
-     q, q_lo, q_hi, &
-     qaux, qa_lo, qa_hi, &
-     srcU, srU_lo, srU_hi, &
-     update, updt_lo, updt_hi, &
-     update_flux, uf_lo, uf_hi, &
-     dx, dt, &
-     flux1, flux1_lo, flux1_hi, &
+                               domlo, domhi, &
+                               stage_weight, &
+                               uin, uin_lo, uin_hi, &
+                               uout, uout_lo, uout_hi, &
+                               q, q_lo, q_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               srcU, srU_lo, srU_hi, &
+                               div, div_lo, div_hi, &
+                               update, updt_lo, updt_hi, &
+                               update_flux, uf_lo, uf_hi, &
+                               dx, dt, &
+                               flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
-     flux2, flux2_lo, flux2_hi, &
+                               flux2, flux2_lo, flux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-     flux3, flux3_lo, flux3_hi, &
+                               flux3, flux3_lo, flux3_hi, &
 #endif
-     area1, area1_lo, area1_hi, &
+                               area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-     area2, area2_lo, area2_hi, &
+                               area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-     area3, area3_lo, area3_hi, &
+                               area3, area3_lo, area3_hi, &
 #endif
 #if AMREX_SPACEDIM < 3
-     pradial, p_lo, p_hi, &
-     dloga, dloga_lo, dloga_hi, &
+                               pradial, p_lo, p_hi, &
+                               dloga, dloga_lo, dloga_hi, &
 #endif
-     vol, vol_lo, vol_hi, &
-     verbose) bind(C, name="ca_mol_single_stage")
+                               vol, vol_lo, vol_hi, &
+                               verbose) bind(C, name="ca_mol_single_stage")
 
   use amrex_error_module
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
-       UTEMP, USHK, UMX, &
-       use_flattening, QPRES, NQAUX, &
-       QTEMP, QFS, QFX, QREINT, QRHO, &
-       first_order_hydro, difmag, hybrid_riemann, &
-       limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
-  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, ca_shock, &
-       divu, normalize_species_fluxes, calc_pdivu, &
-       scale_flux, apply_av
+                                 UTEMP, USHK, UMX, &
+                                 use_flattening, QPRES, NQAUX, &
+                                 QTEMP, QFS, QFX, QREINT, QRHO, &
+                                 first_order_hydro, difmag, hybrid_riemann, &
+                                 limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
+  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, &
+                                    normalize_species_fluxes, calc_pdivu, &
+                                    scale_flux, apply_av
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-  use flatten_module, only: ca_uflatten
   use riemann_module, only: cmpflx
   use slope_module, only : uslope
   use riemann_util_module, only : ca_store_godunov_state
@@ -72,6 +72,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   integer, intent(in) :: q_lo(3), q_hi(3)
   integer, intent(in) :: qa_lo(3), qa_hi(3)
   integer, intent(in) :: srU_lo(3), srU_hi(3)
+  integer, intent(in) :: div_lo(3), div_hi(3)
   integer, intent(in) :: updt_lo(3), updt_hi(3)
   integer, intent(in) :: uf_lo(3), uf_hi(3)
   integer, intent(in) :: flux1_lo(3), flux1_hi(3)
@@ -95,6 +96,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
+  real(rt), intent(in) :: div(div_lo(1):div_hi(1), div_lo(2):div_hi(2), div_lo(3):div_hi(3))
   real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
   real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
   real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
@@ -116,7 +118,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   ! Automatic arrays for workspace
   real(rt)        , pointer:: flatn(:,:,:)
-  real(rt)        , pointer:: div(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
   real(rt)        , pointer:: q_int(:,:,:,:)
@@ -159,8 +160,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   shk_lo(:) = lo(:) - dg(:)
   shk_hi(:) = hi(:) + dg(:)
-
-  call bl_allocate(   div, lo, hi+dg)
 
   call bl_allocate(q_int, It_lo, It_hi, NQ)
 #ifdef RADIATION
@@ -231,20 +230,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      shk(:,:,:) = ZERO
   endif
 #endif
-
-  ! Compute flattening coefficient for slope calculations.
-  call bl_allocate(flatn, q_lo, q_hi)
-
-  if (first_order_hydro == 1) then
-     flatn = ZERO
-  elseif (use_flattening == 1) then
-     call ca_uflatten(lo - ngf*dg, hi + ngf*dg, &
-                      q, q_lo, q_hi, &
-                      flatn, q_lo, q_hi, QPRES)
-  else
-     flatn = ONE
-  endif
-
 
 
   if (ppm_type == 0)  then
@@ -443,8 +428,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 #endif
 
 
-  call bl_deallocate(flatn)
-
 
   if (ppm_type == 0) then
      call bl_deallocate(dq)
@@ -460,10 +443,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
 
   call bl_deallocate(shk)
 
-
-  ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo, hi+dg, q, q_lo, q_hi, &
-       dx, div, lo, hi+dg)
 
   do n = 1, NVAR
 
@@ -492,20 +471,20 @@ subroutine ca_mol_single_stage(lo, hi, time, &
   end do
 
   call apply_av(flux1_lo, flux1_hi, 1, dx, &
-                div, lo, hi+dg, &
+                div, div_lo, div_hi, &
                 uin, uin_lo, uin_hi, &
                 flux1, flux1_lo, flux1_hi)
 
 #if AMREX_SPACEDIM >= 2
   call apply_av(flux2_lo, flux2_hi, 2, dx, &
-                div, lo, hi+dg, &
+                div, div_lo, div_hi, &
                 uin, uin_lo, uin_hi, &
                 flux2, flux2_lo, flux2_hi)
 #endif
 
 #if AMREX_SPACEDIM == 3
   call apply_av(flux3_lo, flux3_hi, 3, dx, &
-                div, lo, hi+dg, &
+                div, div_lo, div_hi, &
                 uin, uin_lo, uin_hi, &
                 flux3, flux3_lo, flux3_hi)
 #endif
@@ -636,8 +615,6 @@ subroutine ca_mol_single_stage(lo, hi, time, &
      pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = q1(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),GDPRES) * dt
   end if
 #endif
-
-  call bl_deallocate(   div)
 
   call bl_deallocate(q1)
 #if AMREX_SPACEDIM >= 2
