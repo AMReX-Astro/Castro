@@ -296,7 +296,7 @@ subroutine ca_mol_single_stage(lo, hi, time, &
                        if (k >= lo(3)) then
 
                           ! left state at k-1/2 interface
-                          qm(i,j,k,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+                          qm(i,j,k,n,3) = q(i,j,k-1,n) + HALF*dq(i,j,k-1,n)
 
                           ! right state at k-1/2 interface
                           qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n)
