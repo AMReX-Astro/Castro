@@ -2308,6 +2308,11 @@
 <span id="_CPPv3N6Castro11theTracerPCEv"></span><span id="_CPPv2N6Castro11theTracerPCEv"></span><span id="Castro::theTracerPC"></span><span class="target" id="classCastro_1abd88ee4a3cb9cace54cfbe692c6e7f94"></span><em class="property">static</em> amrex::AmrTracerParticleContainer *<code class="descname">theTracerPC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11theTracerPCEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
+<dl class="function">
+<dt id="_CPPv4N6Castro12minBCThreadsEi">
+<span id="_CPPv3N6Castro12minBCThreadsEi"></span><span id="_CPPv2N6Castro12minBCThreadsEi"></span><span id="Castro::minBCThreads__i"></span><span class="target" id="classCastro_1a40ef8d943b0be650fa6293c41be5d533"></span><em class="property">static</em> int <code class="descname">minBCThreads</code><span class="sig-paren">(</span>int <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro12minBCThreadsEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Static Attributes</p>
@@ -2563,6 +2568,12 @@
 <dt id="_CPPv4N6Castro18num_zones_advancedE">
 <span id="_CPPv3N6Castro18num_zones_advancedE"></span><span id="_CPPv2N6Castro18num_zones_advancedE"></span><span id="Castro::num_zones_advanced__amrex::Real"></span><span class="target" id="classCastro_1ad09d050c7a2b17af5a4312d530f23330"></span>amrex::Real <code class="descname">num_zones_advanced</code><a class="headerlink" href="#_CPPv4N6Castro18num_zones_advancedE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>A record of how many cells we have advanced throughout the simulation. This is saved as a real because we will be storing the number of zones advanced as a ratio with the number of zones on the coarse grid (to help prevent the number from getting too large), and that may be a non-integer number. </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro15numBCThreadsMinE">
+<span id="_CPPv3N6Castro15numBCThreadsMinE"></span><span id="_CPPv2N6Castro15numBCThreadsMinE"></span><span id="Castro::numBCThreadsMin__iA"></span><span class="target" id="classCastro_1a50dde0c77458af0db577b035e8f37b99"></span>int <code class="descname">numBCThreadsMin</code>[3]<a class="headerlink" href="#_CPPv4N6Castro15numBCThreadsMinE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Minimum CUDA threadblock size for BC fills. </p>
 </dd></dl>
 
 </div>
