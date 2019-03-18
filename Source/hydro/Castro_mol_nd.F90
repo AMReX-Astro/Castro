@@ -24,9 +24,6 @@ subroutine ca_mol_reconstruct(lo, hi, &
   use riemann_util_module, only : ca_store_godunov_state
   use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
-#ifdef RADIATION
-  use rad_params_module, only : ngroups
-#endif
 #ifdef HYBRID_MOMENTUM
   use hybrid_advection_module, only : add_hybrid_advection_source
 #endif
@@ -287,9 +284,6 @@ subroutine ca_mol_reconstruct(lo, hi, time, &
   use riemann_util_module, only : ca_store_godunov_state
   use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
-#ifdef RADIATION
-  use rad_params_module, only : ngroups
-#endif
 #ifdef HYBRID_MOMENTUM
   use hybrid_advection_module, only : add_hybrid_advection_source
 #endif
@@ -355,9 +349,6 @@ subroutine ca_mol_reconstruct(lo, hi, time, &
 
 
   call bl_allocate(q_int, It_lo, It_hi, NQ)
-#ifdef RADIATION
-  call bl_allocate(lambda_int, It_lo(1), It_hi(1), It_lo(2), It_hi(2), It_lo(3), It_hi(3), 0, ngroups-1)
-#endif
 
   call bl_allocate(q1, flux1_lo, flux1_hi, NGDNV)
 #if AMREX_SPACEDIM >= 2
@@ -367,85 +358,42 @@ subroutine ca_mol_reconstruct(lo, hi, time, &
   call bl_allocate(q3, flux3_lo, flux3_hi, NGDNV)
 #endif
 
-#ifdef RADIATION
-  ! when we do radiation, these would be passed out
-  call bl_allocate(rflx, flux1_lo, flux1_hi, ngroups)
-#if AMREX_SPACEDIM >= 2
-  call bl_allocate(rfly, flux2_lo, flux2_hi, ngroups)
-#endif
-#if AMREX_SPACEDIM == 3
-  call bl_allocate(rflz, flux3_lo, flux3_hi, ngroups)
-#endif
-#endif
 
-  ! Compute F^x at kc (k3d)
-  call cmpflx([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
-              qm, It_lo, It_hi, &
-              qp, It_lo, It_hi, AMREX_SPACEDIM, 1, &
-              flux1, flux1_lo, flux1_hi, &
-              q_int, It_lo, It_hi, &
-#ifdef RADIATION
-              rflx, flux1_lo, flux1_hi, &
-              lambda_int, It_lo, It_hi, &
-#endif
-              qaux, qa_lo, qa_hi, &
-              shk, shk_lo, shk_hi, &
-              1, domlo, domhi)
-
-  call ca_store_godunov_state(lo, [hi(1)+1, hi(2), hi(3)], &
-                              q_int, It_lo, It_hi, &
-#ifdef RADIATION
-                              lambda_int, It_lo, It_hi, &
-#endif
-                              q1, flux1_lo, flux1_hi)
+  ! Compute F^x
+  call cmpflx_plus_godunov([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+                           qm, It_lo, It_hi, &
+                           qp, It_lo, It_hi, AMREX_SPACEDIM, 1, &
+                           flux1, flux1_lo, flux1_hi, &
+                           q_int, It_lo, It_hi, &
+                           q1, flux1_lo, flux1_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           shk, shk_lo, shk_hi, &
+                           1, domlo, domhi)
 
 #if AMREX_SPACEDIM >= 2
-  ! Compute F^y at kc (k3d)
-  call cmpflx([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
-              qm, It_lo, It_hi, &
-              qp, It_lo, It_hi, AMREX_SPACEDIM, 2, &
-              flux2, flux2_lo, flux2_hi, &
-              q_int, It_lo, It_hi, &  ! temporary
-#ifdef RADIATION
-              rfly, flux2_lo, flux2_hi, &
-              lambda_int, It_lo, It_hi, &
+  ! Compute F^y
+  call cmpflx_plus_godunov([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
+                           qm, It_lo, It_hi, &
+                           qp, It_lo, It_hi, AMREX_SPACEDIM, 2, &
+                           flux2, flux2_lo, flux2_hi, &
+                           q_int, It_lo, It_hi, &
+                           q2, flux2_lo, flux2_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           shk, shk_lo, shk_hi, &
+                           2, domlo, domhi)
 #endif
-              qaux, qa_lo, qa_hi, &
-              shk, shk_lo, shk_hi, &
-              2, domlo, domhi)
-
-  call ca_store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
-                              q_int, It_lo, It_hi, &
-#ifdef RADIATION
-                              lambda_int, It_lo, It_hi, &
-#endif
-                              q2, flux2_lo, flux2_hi)
-#endif
-
 
 #if AMREX_SPACEDIM == 3
-  ! Compute F^z at kc (k3d)
-
-  call cmpflx([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
-              qm, It_lo, It_hi, &
-              qp, It_lo, It_hi, AMREX_SPACEDIM, 3, &
-              flux3, flux3_lo, flux3_hi, &
-              q_int, It_lo, It_hi, &
-#ifdef RADIATION
-              rflz, flux3_lo, flux3_hi, &
-              lambda_int, It_lo, It_hi, &
-#endif
-              qaux, qa_lo, qa_hi, &
-              shk, shk_lo, shk_hi, &
-              3, domlo, domhi)
-
-  call ca_store_godunov_state(lo, [hi(1), hi(2)+1, hi(3)], &
-                              q_int, It_lo, It_hi, &
-#ifdef RADIATION
-                              lambda_int, It_lo, It_hi, &
-#endif
-                              q3, flux3_lo, flux3_hi)
-
+  ! Compute F^z
+  call cmpflx_plus_godunov([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
+                           qm, It_lo, It_hi, &
+                           qp, It_lo, It_hi, AMREX_SPACEDIM, 3, &
+                           flux3, flux3_lo, flux3_hi, &
+                           q_int, It_lo, It_hi, &
+                           q3, flux3_lo, flux3_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           shk, shk_lo, shk_hi, &
+                           3, domlo, domhi)
 #endif
 
 
@@ -458,9 +406,6 @@ subroutine ca_mol_reconstruct(lo, hi, time, &
   call bl_deallocate(qp)
 
   call bl_deallocate(q_int)
-#ifdef RADIATION
-  call bl_deallocate(lambda_int)
-#endif
 
   call bl_deallocate(shk)
 
@@ -643,16 +588,6 @@ subroutine ca_mol_reconstruct(lo, hi, time, &
 #endif
 #if AMREX_SPACEDIM == 3
   call bl_deallocate(q3)
-#endif
-
-#ifdef RADIATION
-  call bl_deallocate(rflx)
-#if AMREX_SPACEDIM >= 2
-  call bl_deallocate(rfly)
-#endif
-#if AMREX_SPACEDIM == 3
-  call bl_deallocate(rflz)
-#endif
 #endif
 
 end subroutine ca_mol_single_stage
