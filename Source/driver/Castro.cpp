@@ -141,6 +141,10 @@ Vector<Real> Castro::c_mol;
 int          Castro::SDC_NODES;
 Vector<Real> Castro::dt_sdc;
 
+#ifdef AMREX_USE_CUDA
+int          Castro::numBCThreadsMin[3] = {1, 1, 1};
+#endif
+
 #include <castro_defaults.H>
 
 #ifdef SELF_GRAVITY
