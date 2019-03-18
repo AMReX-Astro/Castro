@@ -181,7 +181,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           }
 
           // get the interface states and shock variable
+          ca_mol_reconstruct
+            (ARLIM_INT_ANYD(obx.loVect()), ARLIM_INT_ANYD(obx.hiVect()),
+             BL_TO_FORTRAN_ANYD(q[mfi]),
+             BL_TO_FORTRAN_ANYD(flatn),
+             BL_TO_FORTRAN_ANYD(qm),
+             BL_TO_FORTRAN_ANYD(qp),
+             ZFILL(dx));
 
+        }
+          
           // compute the fluxes
 
           // do the conservative update -- and store the shock variable
