@@ -415,7 +415,7 @@
 
          do id = 1, nNodesE
             ii   = ioff + (id-1)
-            dR(i,j,k,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(ic,jc,kc,ii)
+            dR(i,j,k,ii) = uCR(id,ie,ic,jc,kc,im,is) - U_R_o(i,j,k,ii)
          end do
 
          do id = nNodesE+1, 2*nNodesE
