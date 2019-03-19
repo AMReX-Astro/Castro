@@ -44,7 +44,6 @@ enum StateType { State_Type = 0,
 	       Mag_Type_y,
 	       Mag_Type_z,
 #endif
-#ifdef SDC
 #ifdef REACTIONS
 		 Simplified_SDC_React_Type
 #endif
