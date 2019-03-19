@@ -34,6 +34,8 @@
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
     use UnitsModule, only : Gram, Centimeter, Second,  AtomicMassUnit, Erg
 
+    use SubcellReconstructionModule, only : ProjectionMatrix
+
     implicit none
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) ::  s_lo(3),  s_hi(3)
@@ -58,6 +60,7 @@
     ! Temporary variables
     integer  :: i,j,k,ioff,nu
     integer  :: ic,jc,kc
+    integer  :: ind
     integer  :: ii,id,ie,im,is
     integer  :: u_lo(3), u_hi(3)
     real(rt) :: conv_dens, conv_mom, conv_enr, conv_ne
@@ -201,66 +204,174 @@
          ! Update_IMEX_PC2 doesn't currently change the fluid density or momentum
          !
          !   S spatial indices start at lo - (number of ghost zones)
-         ! uCF spatial indices start at 1 - (number of ghost zones)
+         ! uCF spatial indices start at 1  - (number of ghost zones)
          i = lo(1) + 2*(ic-1)
          j = lo(2) + 2*(jc-1)
          k = lo(3) + 2*(kc-1)
 
-         dS(i  ,j  ,k  ,URHO ) = dS(i  ,j  ,k  ,URHO ) + (uCF(1,ic,jc,kc,iCF_D ) - u0(1,ic,jc,kc,iCF_D ) )
-         dS(i  ,j  ,k  ,UMX  ) = dS(i  ,j  ,k  ,UMX  ) + (uCF(1,ic,jc,kc,iCF_S1) - u0(1,ic,jc,kc,iCF_S1) )
-         dS(i  ,j  ,k  ,UMY  ) = dS(i  ,j  ,k  ,UMY  ) + (uCF(1,ic,jc,kc,iCF_S2) - u0(1,ic,jc,kc,iCF_S2) )
-         dS(i  ,j  ,k  ,UMZ  ) = dS(i  ,j  ,k  ,UMZ  ) + (uCF(1,ic,jc,kc,iCF_S3) - u0(1,ic,jc,kc,iCF_S3) )
-         dS(i  ,j  ,k  ,UEDEN) = dS(i  ,j  ,k  ,UEDEN) + (uCF(1,ic,jc,kc,iCF_E ) - u0(1,ic,jc,kc,iCF_E ) )
-         dS(i  ,j  ,k  ,UFX  ) = dS(i  ,j  ,k  ,UFX  ) + (uCF(1,ic,jc,kc,iCF_Ne) - u0(1,ic,jc,kc,iCF_Ne) )
+!!$         dS(i  ,j  ,k  ,URHO ) = dS(i  ,j  ,k  ,URHO ) + (uCF(1,ic,jc,kc,iCF_D ) - u0(1,ic,jc,kc,iCF_D ) )
+!!$         dS(i  ,j  ,k  ,UMX  ) = dS(i  ,j  ,k  ,UMX  ) + (uCF(1,ic,jc,kc,iCF_S1) - u0(1,ic,jc,kc,iCF_S1) )
+!!$         dS(i  ,j  ,k  ,UMY  ) = dS(i  ,j  ,k  ,UMY  ) + (uCF(1,ic,jc,kc,iCF_S2) - u0(1,ic,jc,kc,iCF_S2) )
+!!$         dS(i  ,j  ,k  ,UMZ  ) = dS(i  ,j  ,k  ,UMZ  ) + (uCF(1,ic,jc,kc,iCF_S3) - u0(1,ic,jc,kc,iCF_S3) )
+!!$         dS(i  ,j  ,k  ,UEDEN) = dS(i  ,j  ,k  ,UEDEN) + (uCF(1,ic,jc,kc,iCF_E ) - u0(1,ic,jc,kc,iCF_E ) )
+!!$         dS(i  ,j  ,k  ,UFX  ) = dS(i  ,j  ,k  ,UFX  ) + (uCF(1,ic,jc,kc,iCF_Ne) - u0(1,ic,jc,kc,iCF_Ne) )
+!!$
+!!$         dS(i+1,j  ,k  ,URHO ) = dS(i+1,j  ,k  ,URHO ) + (uCF(2,ic,jc,kc,iCF_D ) - u0(2,ic,jc,kc,iCF_D ) )
+!!$         dS(i+1,j  ,k  ,UMX  ) = dS(i+1,j  ,k  ,UMX  ) + (uCF(2,ic,jc,kc,iCF_S1) - u0(2,ic,jc,kc,iCF_S1) )
+!!$         dS(i+1,j  ,k  ,UMY  ) = dS(i+1,j  ,k  ,UMY  ) + (uCF(2,ic,jc,kc,iCF_S2) - u0(2,ic,jc,kc,iCF_S2) )
+!!$         dS(i+1,j  ,k  ,UMZ  ) = dS(i+1,j  ,k  ,UMZ  ) + (uCF(2,ic,jc,kc,iCF_S3) - u0(2,ic,jc,kc,iCF_S3) )
+!!$         dS(i+1,j  ,k  ,UEDEN) = dS(i+1,j  ,k  ,UEDEN) + (uCF(2,ic,jc,kc,iCF_E ) - u0(2,ic,jc,kc,iCF_E ) )
+!!$         dS(i+1,j  ,k  ,UFX  ) = dS(i+1,j  ,k  ,UFX  ) + (uCF(2,ic,jc,kc,iCF_Ne) - u0(2,ic,jc,kc,iCF_Ne) )
+!!$
+!!$         dS(i  ,j+1,k  ,URHO ) = dS(i  ,j+1,k  ,URHO ) + (uCF(3,ic,jc,kc,iCF_D ) - u0(3,ic,jc,kc,iCF_D ) )
+!!$         dS(i  ,j+1,k  ,UMX  ) = dS(i  ,j+1,k  ,UMX  ) + (uCF(3,ic,jc,kc,iCF_S1) - u0(3,ic,jc,kc,iCF_S1) )
+!!$         dS(i  ,j+1,k  ,UMY  ) = dS(i  ,j+1,k  ,UMY  ) + (uCF(3,ic,jc,kc,iCF_S2) - u0(3,ic,jc,kc,iCF_S2) )
+!!$         dS(i  ,j+1,k  ,UMZ  ) = dS(i  ,j+1,k  ,UMZ  ) + (uCF(3,ic,jc,kc,iCF_S3) - u0(3,ic,jc,kc,iCF_S3) )
+!!$         dS(i  ,j+1,k  ,UEDEN) = dS(i  ,j+1,k  ,UEDEN) + (uCF(3,ic,jc,kc,iCF_E ) - u0(3,ic,jc,kc,iCF_E ) )
+!!$         dS(i  ,j+1,k  ,UFX  ) = dS(i  ,j+1,k  ,UFX  ) + (uCF(3,ic,jc,kc,iCF_Ne) - u0(3,ic,jc,kc,iCF_Ne) )
+!!$
+!!$         dS(i+1,j+1,k  ,URHO ) = dS(i+1,j+1,k  ,URHO ) + (uCF(4,ic,jc,kc,iCF_D ) - u0(4,ic,jc,kc,iCF_D ) )
+!!$         dS(i+1,j+1,k  ,UMX  ) = dS(i+1,j+1,k  ,UMX  ) + (uCF(4,ic,jc,kc,iCF_S1) - u0(4,ic,jc,kc,iCF_S1) )
+!!$         dS(i+1,j+1,k  ,UMY  ) = dS(i+1,j+1,k  ,UMY  ) + (uCF(4,ic,jc,kc,iCF_S2) - u0(4,ic,jc,kc,iCF_S2) )
+!!$         dS(i+1,j+1,k  ,UMZ  ) = dS(i+1,j+1,k  ,UMZ  ) + (uCF(4,ic,jc,kc,iCF_S3) - u0(4,ic,jc,kc,iCF_S3) )
+!!$         dS(i+1,j+1,k  ,UEDEN) = dS(i+1,j+1,k  ,UEDEN) + (uCF(4,ic,jc,kc,iCF_E ) - u0(4,ic,jc,kc,iCF_E ) )
+!!$         dS(i+1,j+1,k  ,UFX  ) = dS(i+1,j+1,k  ,UFX  ) + (uCF(4,ic,jc,kc,iCF_Ne) - u0(4,ic,jc,kc,iCF_Ne) )
+!!$
+!!$         dS(i  ,j  ,k+1,URHO ) = dS(i  ,j  ,k+1,URHO ) + (uCF(5,ic,jc,kc,iCF_D ) - u0(5,ic,jc,kc,iCF_D ) )
+!!$         dS(i  ,j  ,k+1,UMX  ) = dS(i  ,j  ,k+1,UMX  ) + (uCF(5,ic,jc,kc,iCF_S1) - u0(5,ic,jc,kc,iCF_S1) )
+!!$         dS(i  ,j  ,k+1,UMY  ) = dS(i  ,j  ,k+1,UMY  ) + (uCF(5,ic,jc,kc,iCF_S2) - u0(5,ic,jc,kc,iCF_S2) )
+!!$         dS(i  ,j  ,k+1,UMZ  ) = dS(i  ,j  ,k+1,UMZ  ) + (uCF(5,ic,jc,kc,iCF_S3) - u0(5,ic,jc,kc,iCF_S3) )
+!!$         dS(i  ,j  ,k+1,UEDEN) = dS(i  ,j  ,k+1,UEDEN) + (uCF(5,ic,jc,kc,iCF_E ) - u0(5,ic,jc,kc,iCF_E ) )
+!!$         dS(i  ,j  ,k+1,UFX  ) = dS(i  ,j  ,k+1,UFX  ) + (uCF(5,ic,jc,kc,iCF_Ne) - u0(5,ic,jc,kc,iCF_Ne) )
+!!$
+!!$         dS(i+1,j  ,k+1,URHO ) = dS(i+1,j  ,k+1,URHO ) + (uCF(6,ic,jc,kc,iCF_D ) - u0(6,ic,jc,kc,iCF_D ) )
+!!$         dS(i+1,j  ,k+1,UMX  ) = dS(i+1,j  ,k+1,UMX  ) + (uCF(6,ic,jc,kc,iCF_S1) - u0(6,ic,jc,kc,iCF_S1) )
+!!$         dS(i+1,j  ,k+1,UMY  ) = dS(i+1,j  ,k+1,UMY  ) + (uCF(6,ic,jc,kc,iCF_S2) - u0(6,ic,jc,kc,iCF_S2) )
+!!$         dS(i+1,j  ,k+1,UMZ  ) = dS(i+1,j  ,k+1,UMZ  ) + (uCF(6,ic,jc,kc,iCF_S3) - u0(6,ic,jc,kc,iCF_S3) )
+!!$         dS(i+1,j  ,k+1,UEDEN) = dS(i+1,j  ,k+1,UEDEN) + (uCF(6,ic,jc,kc,iCF_E ) - u0(6,ic,jc,kc,iCF_E ) )
+!!$         dS(i+1,j  ,k+1,UFX  ) = dS(i+1,j  ,k+1,UFX  ) + (uCF(6,ic,jc,kc,iCF_Ne) - u0(6,ic,jc,kc,iCF_Ne) )
+!!$
+!!$         dS(i  ,j+1,k+1,URHO ) = dS(i  ,j+1,k+1,URHO ) + (uCF(7,ic,jc,kc,iCF_D ) - u0(7,ic,jc,kc,iCF_D ) )
+!!$         dS(i  ,j+1,k+1,UMX  ) = dS(i  ,j+1,k+1,UMX  ) + (uCF(7,ic,jc,kc,iCF_S1) - u0(7,ic,jc,kc,iCF_S1) )
+!!$         dS(i  ,j+1,k+1,UMY  ) = dS(i  ,j+1,k+1,UMY  ) + (uCF(7,ic,jc,kc,iCF_S2) - u0(7,ic,jc,kc,iCF_S2) )
+!!$         dS(i  ,j+1,k+1,UMZ  ) = dS(i  ,j+1,k+1,UMZ  ) + (uCF(7,ic,jc,kc,iCF_S3) - u0(7,ic,jc,kc,iCF_S3) )
+!!$         dS(i  ,j+1,k+1,UEDEN) = dS(i  ,j+1,k+1,UEDEN) + (uCF(7,ic,jc,kc,iCF_E ) - u0(7,ic,jc,kc,iCF_E ) )
+!!$         dS(i  ,j+1,k+1,UFX  ) = dS(i  ,j+1,k+1,UFX  ) + (uCF(7,ic,jc,kc,iCF_Ne) - u0(7,ic,jc,kc,iCF_Ne) )
+!!$
+!!$         dS(i+1,j+1,k+1,URHO ) = dS(i+1,j+1,k+1,URHO ) + (uCF(8,ic,jc,kc,iCF_D ) - u0(8,ic,jc,kc,iCF_D ) )
+!!$         dS(i+1,j+1,k+1,UMX  ) = dS(i+1,j+1,k+1,UMX  ) + (uCF(8,ic,jc,kc,iCF_S1) - u0(8,ic,jc,kc,iCF_S1) )
+!!$         dS(i+1,j+1,k+1,UMY  ) = dS(i+1,j+1,k+1,UMY  ) + (uCF(8,ic,jc,kc,iCF_S2) - u0(8,ic,jc,kc,iCF_S2) )
+!!$         dS(i+1,j+1,k+1,UMZ  ) = dS(i+1,j+1,k+1,UMZ  ) + (uCF(8,ic,jc,kc,iCF_S3) - u0(8,ic,jc,kc,iCF_S3) )
+!!$         dS(i+1,j+1,k+1,UEDEN) = dS(i+1,j+1,k+1,UEDEN) + (uCF(8,ic,jc,kc,iCF_E ) - u0(8,ic,jc,kc,iCF_E ) )
+!!$         dS(i+1,j+1,k+1,UFX  ) = dS(i+1,j+1,k+1,UFX  ) + (uCF(8,ic,jc,kc,iCF_Ne) - u0(8,ic,jc,kc,iCF_Ne) )
 
-         dS(i+1,j  ,k  ,URHO ) = dS(i+1,j  ,k  ,URHO ) + (uCF(2,ic,jc,kc,iCF_D ) - u0(2,ic,jc,kc,iCF_D ) )
-         dS(i+1,j  ,k  ,UMX  ) = dS(i+1,j  ,k  ,UMX  ) + (uCF(2,ic,jc,kc,iCF_S1) - u0(2,ic,jc,kc,iCF_S1) )
-         dS(i+1,j  ,k  ,UMY  ) = dS(i+1,j  ,k  ,UMY  ) + (uCF(2,ic,jc,kc,iCF_S2) - u0(2,ic,jc,kc,iCF_S2) )
-         dS(i+1,j  ,k  ,UMZ  ) = dS(i+1,j  ,k  ,UMZ  ) + (uCF(2,ic,jc,kc,iCF_S3) - u0(2,ic,jc,kc,iCF_S3) )
-         dS(i+1,j  ,k  ,UEDEN) = dS(i+1,j  ,k  ,UEDEN) + (uCF(2,ic,jc,kc,iCF_E ) - u0(2,ic,jc,kc,iCF_E ) )
-         dS(i+1,j  ,k  ,UFX  ) = dS(i+1,j  ,k  ,UFX  ) + (uCF(2,ic,jc,kc,iCF_Ne) - u0(2,ic,jc,kc,iCF_Ne) )
+         do ind = 1, 8
 
-         dS(i  ,j+1,k  ,URHO ) = dS(i  ,j+1,k  ,URHO ) + (uCF(3,ic,jc,kc,iCF_D ) - u0(3,ic,jc,kc,iCF_D ) )
-         dS(i  ,j+1,k  ,UMX  ) = dS(i  ,j+1,k  ,UMX  ) + (uCF(3,ic,jc,kc,iCF_S1) - u0(3,ic,jc,kc,iCF_S1) )
-         dS(i  ,j+1,k  ,UMY  ) = dS(i  ,j+1,k  ,UMY  ) + (uCF(3,ic,jc,kc,iCF_S2) - u0(3,ic,jc,kc,iCF_S2) )
-         dS(i  ,j+1,k  ,UMZ  ) = dS(i  ,j+1,k  ,UMZ  ) + (uCF(3,ic,jc,kc,iCF_S3) - u0(3,ic,jc,kc,iCF_S3) )
-         dS(i  ,j+1,k  ,UEDEN) = dS(i  ,j+1,k  ,UEDEN) + (uCF(3,ic,jc,kc,iCF_E ) - u0(3,ic,jc,kc,iCF_E ) )
-         dS(i  ,j+1,k  ,UFX  ) = dS(i  ,j+1,k  ,UFX  ) + (uCF(3,ic,jc,kc,iCF_Ne) - u0(3,ic,jc,kc,iCF_Ne) )
+            dS(i  ,j  , k  ,URHO ) = dS(i  ,j  ,k  ,URHO ) &
+              + ProjectionMatrix(1,ind) * ( uCF(ind,ic,jc,kc,iCF_D ) - u0(ind,ic,jc,kc,iCF_D ) )
+            dS(i  ,j  , k  ,UMX  ) = dS(i  ,j  ,k  ,UMX  ) &
+              + ProjectionMatrix(1,ind) * ( uCF(ind,ic,jc,kc,iCF_S1) - u0(ind,ic,jc,kc,iCF_S1) )
+            dS(i  ,j  , k  ,UMY  ) = dS(i  ,j  ,k  ,UMY  ) &
+              + ProjectionMatrix(1,ind) * ( uCF(ind,ic,jc,kc,iCF_S2) - u0(ind,ic,jc,kc,iCF_S2) )
+            dS(i  ,j  , k  ,UMZ  ) = dS(i  ,j  ,k  ,UMZ  ) &
+              + ProjectionMatrix(1,ind) * ( uCF(ind,ic,jc,kc,iCF_S3) - u0(ind,ic,jc,kc,iCF_S3) )
+            dS(i  ,j  , k  ,UEDEN) = dS(i  ,j  ,k  ,UEDEN) &
+              + ProjectionMatrix(1,ind) * ( uCF(ind,ic,jc,kc,iCF_E ) - u0(ind,ic,jc,kc,iCF_E ) )
+            dS(i  ,j  , k  ,UFX  ) = dS(i  ,j  ,k  ,UFX  ) &
+              + ProjectionMatrix(1,ind) * ( uCF(ind,ic,jc,kc,iCF_Ne) - u0(ind,ic,jc,kc,iCF_Ne) )
 
-         dS(i+1,j+1,k  ,URHO ) = dS(i+1,j+1,k  ,URHO ) + (uCF(4,ic,jc,kc,iCF_D ) - u0(4,ic,jc,kc,iCF_D ) )
-         dS(i+1,j+1,k  ,UMX  ) = dS(i+1,j+1,k  ,UMX  ) + (uCF(4,ic,jc,kc,iCF_S1) - u0(4,ic,jc,kc,iCF_S1) )
-         dS(i+1,j+1,k  ,UMY  ) = dS(i+1,j+1,k  ,UMY  ) + (uCF(4,ic,jc,kc,iCF_S2) - u0(4,ic,jc,kc,iCF_S2) )
-         dS(i+1,j+1,k  ,UMZ  ) = dS(i+1,j+1,k  ,UMZ  ) + (uCF(4,ic,jc,kc,iCF_S3) - u0(4,ic,jc,kc,iCF_S3) )
-         dS(i+1,j+1,k  ,UEDEN) = dS(i+1,j+1,k  ,UEDEN) + (uCF(4,ic,jc,kc,iCF_E ) - u0(4,ic,jc,kc,iCF_E ) )
-         dS(i+1,j+1,k  ,UFX  ) = dS(i+1,j+1,k  ,UFX  ) + (uCF(4,ic,jc,kc,iCF_Ne) - u0(4,ic,jc,kc,iCF_Ne) )
+            dS(i+1,j  , k  ,URHO ) = dS(i+1,j  ,k  ,URHO ) &
+              + ProjectionMatrix(2,ind) * ( uCF(ind,ic,jc,kc,iCF_D ) - u0(ind,ic,jc,kc,iCF_D ) )
+            dS(i+1,j  , k  ,UMX  ) = dS(i+1,j  ,k  ,UMX  ) &
+              + ProjectionMatrix(2,ind) * ( uCF(ind,ic,jc,kc,iCF_S1) - u0(ind,ic,jc,kc,iCF_S1) )
+            dS(i+1,j  , k  ,UMY  ) = dS(i+1,j  ,k  ,UMY  ) &
+              + ProjectionMatrix(2,ind) * ( uCF(ind,ic,jc,kc,iCF_S2) - u0(ind,ic,jc,kc,iCF_S2) )
+            dS(i+1,j  , k  ,UMZ  ) = dS(i+1,j  ,k  ,UMZ  ) &
+              + ProjectionMatrix(2,ind) * ( uCF(ind,ic,jc,kc,iCF_S3) - u0(ind,ic,jc,kc,iCF_S3) )
+            dS(i+1,j  , k  ,UEDEN) = dS(i+1,j  ,k  ,UEDEN) &
+              + ProjectionMatrix(2,ind) * ( uCF(ind,ic,jc,kc,iCF_E ) - u0(ind,ic,jc,kc,iCF_E ) )
+            dS(i+1,j  , k  ,UFX  ) = dS(i+1,j  ,k  ,UFX  ) &
+              + ProjectionMatrix(2,ind) * ( uCF(ind,ic,jc,kc,iCF_Ne) - u0(ind,ic,jc,kc,iCF_Ne) )
 
-         dS(i  ,j  ,k+1,URHO ) = dS(i  ,j  ,k+1,URHO ) + (uCF(5,ic,jc,kc,iCF_D ) - u0(5,ic,jc,kc,iCF_D ) )
-         dS(i  ,j  ,k+1,UMX  ) = dS(i  ,j  ,k+1,UMX  ) + (uCF(5,ic,jc,kc,iCF_S1) - u0(5,ic,jc,kc,iCF_S1) )
-         dS(i  ,j  ,k+1,UMY  ) = dS(i  ,j  ,k+1,UMY  ) + (uCF(5,ic,jc,kc,iCF_S2) - u0(5,ic,jc,kc,iCF_S2) )
-         dS(i  ,j  ,k+1,UMZ  ) = dS(i  ,j  ,k+1,UMZ  ) + (uCF(5,ic,jc,kc,iCF_S3) - u0(5,ic,jc,kc,iCF_S3) )
-         dS(i  ,j  ,k+1,UEDEN) = dS(i  ,j  ,k+1,UEDEN) + (uCF(5,ic,jc,kc,iCF_E ) - u0(5,ic,jc,kc,iCF_E ) )
-         dS(i  ,j  ,k+1,UFX  ) = dS(i  ,j  ,k+1,UFX  ) + (uCF(5,ic,jc,kc,iCF_Ne) - u0(5,ic,jc,kc,iCF_Ne) )
+            dS(i  ,j+1, k  ,URHO ) = dS(i  ,j+1,k  ,URHO ) &
+              + ProjectionMatrix(3,ind) * ( uCF(ind,ic,jc,kc,iCF_D ) - u0(ind,ic,jc,kc,iCF_D ) )
+            dS(i  ,j+1, k  ,UMX  ) = dS(i  ,j+1,k  ,UMX  ) &
+              + ProjectionMatrix(3,ind) * ( uCF(ind,ic,jc,kc,iCF_S1) - u0(ind,ic,jc,kc,iCF_S1) )
+            dS(i  ,j+1, k  ,UMY  ) = dS(i  ,j+1,k  ,UMY  ) &
+              + ProjectionMatrix(3,ind) * ( uCF(ind,ic,jc,kc,iCF_S2) - u0(ind,ic,jc,kc,iCF_S2) )
+            dS(i  ,j+1, k  ,UMZ  ) = dS(i  ,j+1,k  ,UMZ  ) &
+              + ProjectionMatrix(3,ind) * ( uCF(ind,ic,jc,kc,iCF_S3) - u0(ind,ic,jc,kc,iCF_S3) )
+            dS(i  ,j+1, k  ,UEDEN) = dS(i  ,j+1,k  ,UEDEN) &
+              + ProjectionMatrix(3,ind) * ( uCF(ind,ic,jc,kc,iCF_E ) - u0(ind,ic,jc,kc,iCF_E ) )
+            dS(i  ,j+1, k  ,UFX  ) = dS(i  ,j+1,k  ,UFX  ) &
+              + ProjectionMatrix(3,ind) * ( uCF(ind,ic,jc,kc,iCF_Ne) - u0(ind,ic,jc,kc,iCF_Ne) )
 
-         dS(i+1,j  ,k+1,URHO ) = dS(i+1,j  ,k+1,URHO ) + (uCF(6,ic,jc,kc,iCF_D ) - u0(6,ic,jc,kc,iCF_D ) )
-         dS(i+1,j  ,k+1,UMX  ) = dS(i+1,j  ,k+1,UMX  ) + (uCF(6,ic,jc,kc,iCF_S1) - u0(6,ic,jc,kc,iCF_S1) )
-         dS(i+1,j  ,k+1,UMY  ) = dS(i+1,j  ,k+1,UMY  ) + (uCF(6,ic,jc,kc,iCF_S2) - u0(6,ic,jc,kc,iCF_S2) )
-         dS(i+1,j  ,k+1,UMZ  ) = dS(i+1,j  ,k+1,UMZ  ) + (uCF(6,ic,jc,kc,iCF_S3) - u0(6,ic,jc,kc,iCF_S3) )
-         dS(i+1,j  ,k+1,UEDEN) = dS(i+1,j  ,k+1,UEDEN) + (uCF(6,ic,jc,kc,iCF_E ) - u0(6,ic,jc,kc,iCF_E ) )
-         dS(i+1,j  ,k+1,UFX  ) = dS(i+1,j  ,k+1,UFX  ) + (uCF(6,ic,jc,kc,iCF_Ne) - u0(6,ic,jc,kc,iCF_Ne) )
+            dS(i+1,j+1, k  ,URHO ) = dS(i+1,j+1,k  ,URHO ) &
+              + ProjectionMatrix(4,ind) * ( uCF(ind,ic,jc,kc,iCF_D ) - u0(ind,ic,jc,kc,iCF_D ) )
+            dS(i+1,j+1, k  ,UMX  ) = dS(i+1,j+1,k  ,UMX  ) &
+              + ProjectionMatrix(4,ind) * ( uCF(ind,ic,jc,kc,iCF_S1) - u0(ind,ic,jc,kc,iCF_S1) )
+            dS(i+1,j+1, k  ,UMY  ) = dS(i+1,j+1,k  ,UMY  ) &
+              + ProjectionMatrix(4,ind) * ( uCF(ind,ic,jc,kc,iCF_S2) - u0(ind,ic,jc,kc,iCF_S2) )
+            dS(i+1,j+1, k  ,UMZ  ) = dS(i+1,j+1,k  ,UMZ  ) &
+              + ProjectionMatrix(4,ind) * ( uCF(ind,ic,jc,kc,iCF_S3) - u0(ind,ic,jc,kc,iCF_S3) )
+            dS(i+1,j+1, k  ,UEDEN) = dS(i+1,j+1,k  ,UEDEN) &
+              + ProjectionMatrix(4,ind) * ( uCF(ind,ic,jc,kc,iCF_E ) - u0(ind,ic,jc,kc,iCF_E ) )
+            dS(i+1,j+1, k  ,UFX  ) = dS(i+1,j+1,k  ,UFX  ) &
+              + ProjectionMatrix(4,ind) * ( uCF(ind,ic,jc,kc,iCF_Ne) - u0(ind,ic,jc,kc,iCF_Ne) )
 
-         dS(i  ,j+1,k+1,URHO ) = dS(i  ,j+1,k+1,URHO ) + (uCF(7,ic,jc,kc,iCF_D ) - u0(7,ic,jc,kc,iCF_D ) )
-         dS(i  ,j+1,k+1,UMX  ) = dS(i  ,j+1,k+1,UMX  ) + (uCF(7,ic,jc,kc,iCF_S1) - u0(7,ic,jc,kc,iCF_S1) )
-         dS(i  ,j+1,k+1,UMY  ) = dS(i  ,j+1,k+1,UMY  ) + (uCF(7,ic,jc,kc,iCF_S2) - u0(7,ic,jc,kc,iCF_S2) )
-         dS(i  ,j+1,k+1,UMZ  ) = dS(i  ,j+1,k+1,UMZ  ) + (uCF(7,ic,jc,kc,iCF_S3) - u0(7,ic,jc,kc,iCF_S3) )
-         dS(i  ,j+1,k+1,UEDEN) = dS(i  ,j+1,k+1,UEDEN) + (uCF(7,ic,jc,kc,iCF_E ) - u0(7,ic,jc,kc,iCF_E ) )
-         dS(i  ,j+1,k+1,UFX  ) = dS(i  ,j+1,k+1,UFX  ) + (uCF(7,ic,jc,kc,iCF_Ne) - u0(7,ic,jc,kc,iCF_Ne) )
+            dS(i  ,j  , k+1,URHO ) = dS(i  ,j  ,k+1,URHO ) &
+              + ProjectionMatrix(5,ind) * ( uCF(ind,ic,jc,kc,iCF_D ) - u0(ind,ic,jc,kc,iCF_D ) )
+            dS(i  ,j  , k+1,UMX  ) = dS(i  ,j  ,k+1,UMX  ) &
+              + ProjectionMatrix(5,ind) * ( uCF(ind,ic,jc,kc,iCF_S1) - u0(ind,ic,jc,kc,iCF_S1) )
+            dS(i  ,j  , k+1,UMY  ) = dS(i  ,j  ,k+1,UMY  ) &
+              + ProjectionMatrix(5,ind) * ( uCF(ind,ic,jc,kc,iCF_S2) - u0(ind,ic,jc,kc,iCF_S2) )
+            dS(i  ,j  , k+1,UMZ  ) = dS(i  ,j  ,k+1,UMZ  ) &
+              + ProjectionMatrix(5,ind) * ( uCF(ind,ic,jc,kc,iCF_S3) - u0(ind,ic,jc,kc,iCF_S3) )
+            dS(i  ,j  , k+1,UEDEN) = dS(i  ,j  ,k+1,UEDEN) &
+              + ProjectionMatrix(5,ind) * ( uCF(ind,ic,jc,kc,iCF_E ) - u0(ind,ic,jc,kc,iCF_E ) )
+            dS(i  ,j  , k+1,UFX  ) = dS(i  ,j  ,k+1,UFX  ) &
+              + ProjectionMatrix(5,ind) * ( uCF(ind,ic,jc,kc,iCF_Ne) - u0(ind,ic,jc,kc,iCF_Ne) )
 
-         dS(i+1,j+1,k+1,URHO ) = dS(i+1,j+1,k+1,URHO ) + (uCF(8,ic,jc,kc,iCF_D ) - u0(8,ic,jc,kc,iCF_D ) )
-         dS(i+1,j+1,k+1,UMX  ) = dS(i+1,j+1,k+1,UMX  ) + (uCF(8,ic,jc,kc,iCF_S1) - u0(8,ic,jc,kc,iCF_S1) )
-         dS(i+1,j+1,k+1,UMY  ) = dS(i+1,j+1,k+1,UMY  ) + (uCF(8,ic,jc,kc,iCF_S2) - u0(8,ic,jc,kc,iCF_S2) )
-         dS(i+1,j+1,k+1,UMZ  ) = dS(i+1,j+1,k+1,UMZ  ) + (uCF(8,ic,jc,kc,iCF_S3) - u0(8,ic,jc,kc,iCF_S3) )
-         dS(i+1,j+1,k+1,UEDEN) = dS(i+1,j+1,k+1,UEDEN) + (uCF(8,ic,jc,kc,iCF_E ) - u0(8,ic,jc,kc,iCF_E ) )
-         dS(i+1,j+1,k+1,UFX  ) = dS(i+1,j+1,k+1,UFX  ) + (uCF(8,ic,jc,kc,iCF_Ne) - u0(8,ic,jc,kc,iCF_Ne) )
+            dS(i+1,j  , k+1,URHO ) = dS(i+1,j  ,k+1,URHO ) &
+              + ProjectionMatrix(6,ind) * ( uCF(ind,ic,jc,kc,iCF_D ) - u0(ind,ic,jc,kc,iCF_D ) )
+            dS(i+1,j  , k+1,UMX  ) = dS(i+1,j  ,k+1,UMX  ) &
+              + ProjectionMatrix(6,ind) * ( uCF(ind,ic,jc,kc,iCF_S1) - u0(ind,ic,jc,kc,iCF_S1) )
+            dS(i+1,j  , k+1,UMY  ) = dS(i+1,j  ,k+1,UMY  ) &
+              + ProjectionMatrix(6,ind) * ( uCF(ind,ic,jc,kc,iCF_S2) - u0(ind,ic,jc,kc,iCF_S2) )
+            dS(i+1,j  , k+1,UMZ  ) = dS(i+1,j  ,k+1,UMZ  ) &
+              + ProjectionMatrix(6,ind) * ( uCF(ind,ic,jc,kc,iCF_S3) - u0(ind,ic,jc,kc,iCF_S3) )
+            dS(i+1,j  , k+1,UEDEN) = dS(i+1,j  ,k+1,UEDEN) &
+              + ProjectionMatrix(6,ind) * ( uCF(ind,ic,jc,kc,iCF_E ) - u0(ind,ic,jc,kc,iCF_E ) )
+            dS(i+1,j  , k+1,UFX  ) = dS(i+1,j  ,k+1,UFX  ) &
+              + ProjectionMatrix(6,ind) * ( uCF(ind,ic,jc,kc,iCF_Ne) - u0(ind,ic,jc,kc,iCF_Ne) )
+
+            dS(i  ,j+1, k+1,URHO ) = dS(i  ,j+1,k+1,URHO ) &
+              + ProjectionMatrix(7,ind) * ( uCF(ind,ic,jc,kc,iCF_D ) - u0(ind,ic,jc,kc,iCF_D ) )
+            dS(i  ,j+1, k+1,UMX  ) = dS(i  ,j+1,k+1,UMX  ) &
+              + ProjectionMatrix(7,ind) * ( uCF(ind,ic,jc,kc,iCF_S1) - u0(ind,ic,jc,kc,iCF_S1) )
+            dS(i  ,j+1, k+1,UMY  ) = dS(i  ,j+1,k+1,UMY  ) &
+              + ProjectionMatrix(7,ind) * ( uCF(ind,ic,jc,kc,iCF_S2) - u0(ind,ic,jc,kc,iCF_S2) )
+            dS(i  ,j+1, k+1,UMZ ) = dS(i  ,j+1,k+1,UMZ   ) &
+              + ProjectionMatrix(7,ind) * ( uCF(ind,ic,jc,kc,iCF_S3) - u0(ind,ic,jc,kc,iCF_S3) )
+            dS(i  ,j+1, k+1,UEDEN) = dS(i  ,j+1,k+1,UEDEN) &
+              + ProjectionMatrix(7,ind) * ( uCF(ind,ic,jc,kc,iCF_E ) - u0(ind,ic,jc,kc,iCF_E ) )
+            dS(i  ,j+1, k+1,UFX  ) = dS(i  ,j+1,k+1,UFX  ) &
+              + ProjectionMatrix(7,ind) * ( uCF(ind,ic,jc,kc,iCF_Ne) - u0(ind,ic,jc,kc,iCF_Ne) )
+
+            dS(i+1,j+1, k+1,URHO ) = dS(i+1,j+1,k+1,URHO ) &
+              + ProjectionMatrix(8,ind) * ( uCF(ind,ic,jc,kc,iCF_D ) - u0(ind,ic,jc,kc,iCF_D ) )
+            dS(i+1,j+1, k+1,UMX  ) = dS(i+1,j+1,k+1,UMX  ) &
+              + ProjectionMatrix(8,ind) * ( uCF(ind,ic,jc,kc,iCF_S1) - u0(ind,ic,jc,kc,iCF_S1) )
+            dS(i+1,j+1, k+1,UMY  ) = dS(i+1,j+1,k+1,UMY  ) &
+              + ProjectionMatrix(8,ind) * ( uCF(ind,ic,jc,kc,iCF_S2) - u0(ind,ic,jc,kc,iCF_S2) )
+            dS(i+1,j+1, k+1,UMZ  ) = dS(i+1,j+1,k+1,UMZ  ) &
+              + ProjectionMatrix(8,ind) * ( uCF(ind,ic,jc,kc,iCF_S3) - u0(ind,ic,jc,kc,iCF_S3) )
+            dS(i+1,j+1, k+1,UEDEN) = dS(i+1,j+1,k+1,UEDEN) &
+              + ProjectionMatrix(8,ind) * ( uCF(ind,ic,jc,kc,iCF_E ) - u0(ind,ic,jc,kc,iCF_E ) )
+            dS(i+1,j+1, k+1,UFX  ) = dS(i+1,j+1,k+1,UFX  ) &
+              + ProjectionMatrix(8,ind) * ( uCF(ind,ic,jc,kc,iCF_Ne) - u0(ind,ic,jc,kc,iCF_Ne) )
+
+         end do
 
     end do
     end do
@@ -349,7 +460,6 @@
     end do
     end do
     end do
-
 
     deallocate(u0)
 

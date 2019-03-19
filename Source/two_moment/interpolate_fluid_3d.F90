@@ -8,6 +8,7 @@
     use amrex_fort_module, only : rt => amrex_real
     use amrex_error_module, only : amrex_abort
     use meth_params_module, only : URHO,UMX,UMY,UMZ,UEDEN,UFX,UTEMP
+    use SubcellReconstructionModule, only : ReconstructionMatrix
     use FluidFieldsModule, only : uCF, nCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use EquationOfStateModule_TABLE, only : ComputeTemperatureFromSpecificInternalEnergy_TABLE, &
                                             ComputeThermodynamicStates_Primitive_TABLE
@@ -62,7 +63,9 @@
     integer  :: interp_type
 
     ! No interpolation
-    interp_type = 0 
+    !interp_type = 0
+    ! Use reconstruction matrix:
+    interp_type = 1
 
     ! Conversion to thornado units
     conv_dens = Gram / Centimeter**3
@@ -178,6 +181,100 @@
        end do
        end do
        end do
+    ! ************************************************************************************
+    ! Use reconstruction matrix
+    ! ************************************************************************************
+    elseif (interp_type .eq. 1) then
+
+       do kc = u_lo(3),u_hi(3)
+       do jc = u_lo(2),u_hi(2)
+       do ic = u_lo(1),u_hi(1)
+
+          !   S spatial indices start at lo - (number of ghost zones)
+          ! uCF spatial indices start at 1  - (number of ghost zones)
+          i = lo(1) + 2*(ic-1)
+          j = lo(2) + 2*(jc-1)
+          k = lo(3) + 2*(kc-1)
+
+          ! Thornado uses units where c = G = k = 1, Meter = 1
+
+          do ind = 1, 8
+
+            uCF(ind,ic,jc,kc,iCF_D) &
+              = ( ReconstructionMatrix  (ind,1) * S(i,  j,  k,  URHO) &
+                  + ReconstructionMatrix(ind,2) * S(i+1,j,  k,  URHO) &
+                  + ReconstructionMatrix(ind,3) * S(i,  j+1,k,  URHO) &
+                  + ReconstructionMatrix(ind,4) * S(i+1,j+1,k,  URHO) &
+                  + ReconstructionMatrix(ind,5) * S(i,  j,  k+1,URHO) &
+                  + ReconstructionMatrix(ind,6) * S(i+1,j,  k+1,URHO) &
+                  + ReconstructionMatrix(ind,7) * S(i,  j+1,k+1,URHO) &
+                  + ReconstructionMatrix(ind,8) * S(i+1,j+1,k+1,URHO) ) * conv_dens
+
+            uCF(ind,ic,jc,kc,iCF_S1) &
+              = ( ReconstructionMatrix  (ind,1) * S(i,  j,  k,  UMX) &
+                  + ReconstructionMatrix(ind,2) * S(i+1,j,  k,  UMX) &
+                  + ReconstructionMatrix(ind,3) * S(i,  j+1,k,  UMX) &
+                  + ReconstructionMatrix(ind,4) * S(i+1,j+1,k,  UMX) &
+                  + ReconstructionMatrix(ind,5) * S(i,  j,  k+1,UMX) &
+                  + ReconstructionMatrix(ind,6) * S(i+1,j,  k+1,UMX) &
+                  + ReconstructionMatrix(ind,7) * S(i,  j+1,k+1,UMX) &
+                  + ReconstructionMatrix(ind,8) * S(i+1,j+1,k+1,UMX) ) * conv_mom
+
+            uCF(ind,ic,jc,kc,iCF_S2) &
+              = ( ReconstructionMatrix  (ind,1) * S(i,  j,  k,  UMY) &
+                  + ReconstructionMatrix(ind,2) * S(i+1,j,  k,  UMY) &
+                  + ReconstructionMatrix(ind,3) * S(i,  j+1,k,  UMY) &
+                  + ReconstructionMatrix(ind,4) * S(i+1,j+1,k,  UMY) &
+                  + ReconstructionMatrix(ind,5) * S(i,  j,  k+1,UMY) &
+                  + ReconstructionMatrix(ind,6) * S(i+1,j,  k+1,UMY) &
+                  + ReconstructionMatrix(ind,7) * S(i,  j+1,k+1,UMY) &
+                  + ReconstructionMatrix(ind,8) * S(i+1,j+1,k+1,UMY) ) * conv_mom
+
+            uCF(ind,ic,jc,kc,iCF_S3) &
+              = ( ReconstructionMatrix  (ind,1) * S(i,  j,  k,  UMZ) &
+                  + ReconstructionMatrix(ind,2) * S(i+1,j,  k,  UMZ) &
+                  + ReconstructionMatrix(ind,3) * S(i,  j+1,k,  UMZ) &
+                  + ReconstructionMatrix(ind,4) * S(i+1,j+1,k,  UMZ) &
+                  + ReconstructionMatrix(ind,5) * S(i,  j,  k+1,UMZ) &
+                  + ReconstructionMatrix(ind,6) * S(i+1,j,  k+1,UMZ) &
+                  + ReconstructionMatrix(ind,7) * S(i,  j+1,k+1,UMZ) &
+                  + ReconstructionMatrix(ind,8) * S(i+1,j+1,k+1,UMZ) ) * conv_mom
+
+            uCF(ind,ic,jc,kc,iCF_E) &
+              = ( ReconstructionMatrix  (ind,1) * S(i,  j,  k,  UEDEN) &
+                  + ReconstructionMatrix(ind,2) * S(i+1,j,  k,  UEDEN) &
+                  + ReconstructionMatrix(ind,3) * S(i,  j+1,k,  UEDEN) &
+                  + ReconstructionMatrix(ind,4) * S(i+1,j+1,k,  UEDEN) &
+                  + ReconstructionMatrix(ind,5) * S(i,  j,  k+1,UEDEN) &
+                  + ReconstructionMatrix(ind,6) * S(i+1,j,  k+1,UEDEN) &
+                  + ReconstructionMatrix(ind,7) * S(i,  j+1,k+1,UEDEN) &
+                  + ReconstructionMatrix(ind,8) * S(i+1,j+1,k+1,UEDEN) ) * conv_enr
+
+            uCF(ind,ic,jc,kc,iCF_Ne) &
+              = ( ReconstructionMatrix  (ind,1) * S(i,  j,  k,  UFX) &
+                  + ReconstructionMatrix(ind,2) * S(i+1,j,  k,  UFX) &
+                  + ReconstructionMatrix(ind,3) * S(i,  j+1,k,  UFX) &
+                  + ReconstructionMatrix(ind,4) * S(i+1,j+1,k,  UFX) &
+                  + ReconstructionMatrix(ind,5) * S(i,  j,  k+1,UFX) &
+                  + ReconstructionMatrix(ind,6) * S(i+1,j,  k+1,UFX) &
+                  + ReconstructionMatrix(ind,7) * S(i,  j+1,k+1,UFX) &
+                  + ReconstructionMatrix(ind,8) * S(i+1,j+1,k+1,UFX) ) * conv_ne
+
+          end do
+
+          ! Make this copy so we can create dS on nodes, not after S has been
+          !      averaged back to cell centers
+          u0(1:8,ic,jc,kc,iCF_D ) = uCF(1:8,ic,jc,kc,iCF_D )
+          u0(1:8,ic,jc,kc,iCF_S1) = uCF(1:8,ic,jc,kc,iCF_S1)
+          u0(1:8,ic,jc,kc,iCF_S2) = uCF(1:8,ic,jc,kc,iCF_S2)
+          u0(1:8,ic,jc,kc,iCF_S3) = uCF(1:8,ic,jc,kc,iCF_S3)
+          u0(1:8,ic,jc,kc,iCF_E ) = uCF(1:8,ic,jc,kc,iCF_E )
+          u0(1:8,ic,jc,kc,iCF_Ne) = uCF(1:8,ic,jc,kc,iCF_Ne)
+
+       end do
+       end do
+       end do
+
     end if
 
   end subroutine interpolate_fluid

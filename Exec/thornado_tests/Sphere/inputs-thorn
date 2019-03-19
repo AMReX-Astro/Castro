@@ -1,5 +1,5 @@
 amr.max_level       = 0 
-amr.n_cell          = 64 64 64 
+amr.n_cell          = 192 192 192 
 
 #amr.max_level       = 1
 #amr.n_cell          = 32 32 32
@@ -27,7 +27,7 @@ geometry.prob_hi     = 1.e7    1.e7    1.e7 # 100km
 #amr.max_grid_size   = 256
 fabarray.mfiter_tile_size = 1024 1024 1024
 
-#amr.restart = "thorn_chk00516"
+amr.restart = "thorn_chk00400"
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
