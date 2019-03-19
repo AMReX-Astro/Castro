@@ -507,7 +507,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       src_q.define(grids, dmap, NQSRC, NUM_GROW);
     }
 
-    if (fourth_order) {
+    if (mol_order == 4 || sdc_order == 4) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
     }
@@ -612,7 +612,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       src_q.clear();
     }
 
-    if (fourth_order) {
+    if (mol_order == 4 || sdc_order == 4) {
       q_bar.clear();
       qaux_bar.clear();
     }

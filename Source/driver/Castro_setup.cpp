@@ -686,7 +686,7 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  if (time_integration_method == SpectralDeferredCorrections && fourth_order == 1) {
+  if (time_integration_method == SpectralDeferredCorrections && (mol_order == 4 || sdc_order == 4)) {
 
     // we are doing 4th order reactive SDC.  We need 2 ghost cells here
     SDC_Source_Type = desc_lst.size();

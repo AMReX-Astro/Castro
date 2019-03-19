@@ -26,9 +26,9 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 #ifdef REACTIONS
   // SDC_Source_Type is only defined for 4th order
   MultiFab tmp;
-  MultiFab& C_source = (fourth_order == 1) ? get_new_data(SDC_Source_Type) : tmp;
+  MultiFab& C_source = (sdc_order == 4) ? get_new_data(SDC_Source_Type) : tmp;
 
-  if (fourth_order == 1) {
+  if (sdc_order == 4) {
 
     // for 4th order reacting flow, we need to create the "source" C
     // as averages and then convert it to cell centers.  The cell-center

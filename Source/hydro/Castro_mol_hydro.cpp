@@ -78,7 +78,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     int priv_nstep_fsp = -1;
 #endif
     // The fourth order stuff cannot do tiling because of the Laplacian corrections
-    for (MFIter mfi(S_new, (fourth_order) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, (mol_order == 4) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	const Box& bx  = mfi.tilebox();
 
@@ -122,7 +122,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 	  pradial.resize(amrex::surroundingNodes(bx,0),1);
 	}
 #endif
-        if (fourth_order) {
+        if (mol_order == 4) {
           ca_fourth_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &stage_weight,

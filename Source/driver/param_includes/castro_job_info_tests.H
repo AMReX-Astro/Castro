@@ -31,7 +31,6 @@ jobInfoFile << (Castro::small_pres == -1.e200 ? "    " : "[*] ") << "castro.smal
 jobInfoFile << (Castro::small_ener == -1.e200 ? "    " : "[*] ") << "castro.small_ener = " << Castro::small_ener << std::endl;
 jobInfoFile << (Castro::do_hydro == -1 ? "    " : "[*] ") << "castro.do_hydro = " << Castro::do_hydro << std::endl;
 jobInfoFile << (Castro::time_integration_method == 0 ? "    " : "[*] ") << "castro.time_integration_method = " << Castro::time_integration_method << std::endl;
-jobInfoFile << (Castro::fourth_order == 0 ? "    " : "[*] ") << "castro.fourth_order = " << Castro::fourth_order << std::endl;
 jobInfoFile << (Castro::limit_fourth_order == 1 ? "    " : "[*] ") << "castro.limit_fourth_order = " << Castro::limit_fourth_order << std::endl;
 jobInfoFile << (Castro::use_reconstructed_gamma1 == 0 ? "    " : "[*] ") << "castro.use_reconstructed_gamma1 = " << Castro::use_reconstructed_gamma1 << std::endl;
 jobInfoFile << (Castro::add_ext_src == 0 ? "    " : "[*] ") << "castro.add_ext_src = " << Castro::add_ext_src << std::endl;

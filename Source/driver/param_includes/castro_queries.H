@@ -36,7 +36,6 @@ pp.query("small_pres", small_pres);
 pp.query("small_ener", small_ener);
 pp.query("do_hydro", do_hydro);
 pp.query("time_integration_method", time_integration_method);
-pp.query("fourth_order", fourth_order);
 pp.query("limit_fourth_order", limit_fourth_order);
 pp.query("use_reconstructed_gamma1", use_reconstructed_gamma1);
 pp.query("add_ext_src", add_ext_src);
