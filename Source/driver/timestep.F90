@@ -128,7 +128,7 @@ contains
                            dx,dt) bind(C, name="ca_estdt_mhd")
 
     use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, do_ctu
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use prob_params_module, only: dim

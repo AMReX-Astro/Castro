@@ -28,7 +28,7 @@ subroutine corner_transport( q, qm, qp, q_l1 , q_l2 , q_l3 , q_h1 , q_h2 , q_h3,
                                 dx, dy, dz, dt)
 
  use amrex_fort_module, only : rt => amrex_real
- use meth_params_module, only : QVAR
+ use meth_params_module, only : NQ
  use electric_field
 implicit none
 
@@ -42,9 +42,9 @@ implicit none
 	integer, intent(in)   :: flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3
 	integer, intent(in)   :: flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3
 
-	real(rt), intent(in)  :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR) !prim vars at time t^n
-	real(rt), intent(in)  :: qm(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-	real(rt), intent(in)  :: qp(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
+	real(rt), intent(in)  :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ) !prim vars at time t^n
+	real(rt), intent(in)  :: qm(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ,3)
+	real(rt), intent(in)  :: qp(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ,3)
 
         ! fluxes should be NVAR+3
 	real(rt), intent(out) :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)	!Half Step Fluxes
@@ -64,10 +64,10 @@ implicit none
 	real(rt)  :: cons_half_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3) !Flux Corrected Conservative Vars
 	real(rt)  :: cons_half_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
 
-	real(rt)  :: q_temp_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3,2) !2D Temporary Primitive Vars
-	real(rt)  :: q_temp_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3,2) !2D Temporary Primitive Vars
-	real(rt)  :: q_half_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3) !Flux Corrected Primitive Vars
-	real(rt)  :: q_half_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3) !Flux Corrected Primitive Vars
+	real(rt)  :: q_temp_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ,3,2) !2D Temporary Primitive Vars
+	real(rt)  :: q_temp_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ,3,2) !2D Temporary Primitive Vars
+	real(rt)  :: q_half_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ,3) !Flux Corrected Primitive Vars
+	real(rt)  :: q_half_P(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ,3) !Flux Corrected Primitive Vars
 
 
 	real(rt)  :: flxx1D(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)
@@ -78,7 +78,7 @@ implicit none
 	real(rt)  :: flxy2D(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3, 2) !Flux2d for all directions 2 perpendicular directions
 	real(rt)  :: flxz2D(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3, 2) !Flux2d for all directions 2 perpendicular directions
 
-	real(rt)  :: q2D(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+	real(rt)  :: q2D(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ)
 	real(rt)  :: dx, dy, dz, dt
 
 	integer	 :: i, work_lo(3), work_hi(3)
@@ -445,7 +445,7 @@ subroutine PrimToCons(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
 implicit none
 
 	integer, intent(in)		::q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
-	real(rt), intent(in)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+	real(rt), intent(in)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ)
 	real(rt), intent(out)	::u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3)
 	integer					:: i ,j ,k
 
@@ -496,7 +496,7 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
 
  integer, intent(in)		::q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
  real(rt), intent(in)	::u(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3)
- real(rt), intent(out)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+ real(rt), intent(out)	::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ)
  integer					:: i ,j ,k
  integer                :: UMAGX, UMAGZ
 
@@ -1208,15 +1208,15 @@ implicit none
 	integer, intent(in)   :: flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3
 	integer, intent(in)   :: flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3
 
-	real(rt), intent(in)	:: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+	real(rt), intent(in)	:: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ)
 	real(rt), intent(in) 	:: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)
 	real(rt), intent(in) 	:: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3)
 	real(rt), intent(in) 	:: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3)
 
-	real(rt), intent(out)	::q2D(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+	real(rt), intent(out)	::q2D(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ)
 
 	real(rt)				::flx_sum(NVAR+3)
-	real(rt)				::qflx(QVAR)
+	real(rt)				::qflx(NQ)
 	real(rt)				:: dx, dy, dz, dt	
 	integer					::i, j, k
 
@@ -1249,8 +1249,8 @@ subroutine qflux(qflx,flx,q)
  ! this seems to implement dW/dU . qflux, where dW/dU is the Jacobian of
  ! the primitive quantities (W) with respect to conserved quantities (U) 
 
- real(rt), intent(in)		::flx(NVAR+3), q(QVAR)
- real(rt), intent(out)		::qflx(QVAR)
+ real(rt), intent(in)		::flx(NVAR+3), q(NQ)
+ real(rt), intent(out)		::qflx(NQ)
  real(rt) :: dedp, dedrho, totalE
 
  integer :: UMAGX, UMAGY, UMAGZ

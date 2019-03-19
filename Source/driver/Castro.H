@@ -1198,7 +1198,13 @@ public:
 /// @param is_new   do we use the old or new StateData?
 /// @param ng number of ghost cells
 ///
-    void computeTemp (int is_new, int ng);
+    void computeTemp (
+#ifdef MHD
+		      amrex::MultiFab& Bx,
+		      amrex::MultiFab& By,
+		      amrex::MultiFab& Bz, 
+#endif 		    
+		      int is_new, int ng);
 
 
 ///

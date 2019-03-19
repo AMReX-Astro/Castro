@@ -6,11 +6,11 @@ contains
 
 subroutine electric(Q, E, comp) !Use ideal Ohm's Law
 use amrex_fort_module, only : rt => amrex_real
-use meth_params_module, only : QVAR, QU,QV, QW, QMAGX, QMAGY, QMAGZ
+use meth_params_module, only : NQ, QU,QV, QW, QMAGX, QMAGY, QMAGZ
 
 implicit none
 
- real(rt), intent(in)	::Q(QVAR)
+ real(rt), intent(in)	::Q(NQ)
  real(rt), intent(out) 	::E
  integer, intent(in)    ::comp
 
@@ -44,7 +44,7 @@ subroutine electric_edge_x(work_lo, work_hi, &
   integer, intent(in)   :: flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3
   integer, intent(in)   :: flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3
 
-  real(rt), intent(in)  ::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+  real(rt), intent(in)  ::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ)
 
   real(rt), intent(in) :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3) 
   real(rt), intent(in) :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3)
@@ -164,7 +164,7 @@ subroutine electric_edge_y(work_lo, work_hi, &
   integer, intent(in)   :: flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3
   integer, intent(in)   :: flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3
 
-  real(rt), intent(in)  ::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+  real(rt), intent(in)  ::q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ)
 
   real(rt), intent(in)  :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)
   real(rt), intent(in)  :: flxz(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3)
@@ -282,7 +282,7 @@ subroutine electric_edge_z(work_lo, work_hi, &
   integer, intent(in)   :: flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3
   integer, intent(in)   :: flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3
 
-  real(rt), intent(in)  :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR)
+  real(rt), intent(in)  :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ)
 
   real(rt), intent(in)  :: flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)
   real(rt), intent(in)  :: flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3)

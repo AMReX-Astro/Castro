@@ -31,6 +31,12 @@ Castro::do_advance_mol (Real time,
   MultiFab& S_old = get_old_data(State_Type);
   MultiFab& S_new = get_new_data(State_Type);
 
+#ifdef MHD
+  MultiFab& Bx_new = get_new_data(Mag_Type_x);
+  MultiFab& By_new = get_new_data(Mag_Type_y);
+  MultiFab& Bz_new = get_new_data(Mag_Type_z);
+#endif  
+
   // Perform initialization steps.
 
   initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -174,13 +180,21 @@ Castro::do_advance_mol (Real time,
 
   // define the temperature now
   int is_new=1;
-  clean_state(is_new, S_new.nGrow());
+  clean_state(
+#ifdef MHD
+	      Bx_new, By_new, Bz_new,	  
+#endif		  
+              is_new, S_new.nGrow());
 
   // If the state has ghost zones, sync them up now
   // since the hydro source only works on the valid zones.
 
   if (S_new.nGrow() > 0) {
-    expand_state(S_new, cur_time, 1, S_new.nGrow());
+    expand_state(
+#ifdef MHD
+		 Bx_new, By_new, Bz_new,   
+#endif		    
+		 S_new, cur_time, 1, S_new.nGrow());
   }
 
 #ifndef AMREX_USE_CUDA
@@ -197,10 +211,18 @@ Castro::do_advance_mol (Real time,
   // note: we need to have ghost cells here cause some sources (in
   // particular pdivU) need them.  Perhaps it would be easier to just
   // always require State_Type to have 1 ghost cell?
-  expand_state(Sborder, prev_time, 0, Sborder.nGrow());
+  expand_state(
+#ifdef MHD
+		Bx_new, By_new, Bz_new,  
+#endif		  
+	        Sborder, prev_time, 0, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
 
-  expand_state(Sborder, cur_time, 1, Sborder.nGrow());
+  expand_state(
+#ifdef MHD
+	       Bx_new, By_new, Bz_new,	  
+#endif		  
+	       Sborder, cur_time, 1, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
 
 

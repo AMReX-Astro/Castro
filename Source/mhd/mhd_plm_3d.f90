@@ -43,15 +43,15 @@ contains
     integer , intent(in   ) ::  bzlo(3), bzhi(3)
     integer , intent(in   ) ::  srcq_l1, srcq_l2, srcq_l3, srcq_h1, srcq_h2, srcq_h3
 
-    real(rt), intent(in   ) ::  s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,QVAR) !Primitive Vars
+    real(rt), intent(in   ) ::  s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,NQ) !Primitive Vars
     real(rt), intent(in   ) ::  bx(bxlo(1):bxhi(1), bxlo(2):bxhi(2), bxlo(3):bxhi(3))!Face Centered Magnetic Fields
     real(rt), intent(in   ) ::  by(bylo(1):byhi(1), bylo(2):byhi(2), bylo(3):byhi(3))
     real(rt), intent(in   ) ::  bz(bzlo(1):bzhi(1), bzlo(2):bzhi(2), bzlo(3):bzhi(3))
-    real(rt), intent(in   ) ::  srcQ(srcq_l1:srcq_h1, srcq_l2:srcq_h2, srcq_l3:srcq_h3,QVAR)
+    real(rt), intent(in   ) ::  srcQ(srcq_l1:srcq_h1, srcq_l2:srcq_h2, srcq_l3:srcq_h3,NQ)
     real(rt), intent(in   ) ::  flatn(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
 
-    real(rt), intent(out) :: Ip(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)
-    real(rt), intent(out) :: Im(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,QVAR,3)
+    real(rt), intent(out) :: Ip(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,NQ,3)
+    real(rt), intent(out) :: Im(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,NQ,3)
 
     real(rt), intent(in   ) :: dx,dy,dz,dt
 
@@ -839,7 +839,7 @@ contains
     use actual_network, only: nspec
     implicit none
 
-    real(rt), intent(in)	:: Q(QVAR)
+    real(rt), intent(in)	:: Q(NQ)
     real(rt), intent(out)	:: lam(7) !7 waves
     integer, intent(in)		:: dir !Choose direction, 1 for x, 2 for y, 3 for z
 
@@ -911,7 +911,7 @@ contains
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ax
-    real(rt), intent(in	)	::Q(QVAR)
+    real(rt), intent(in	)	::Q(NQ)
     real(rt), intent(out)	::leig(7,7)
 
     !The characteristic speeds of the system
@@ -978,7 +978,7 @@ contains
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ay
-    real(rt), intent(in	)	::Q(QVAR)
+    real(rt), intent(in	)	::Q(NQ)
     real(rt), intent(out)	::leig(7,7)
 
     !The characteristic speeds of the system
@@ -1046,7 +1046,7 @@ contains
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Az
-    real(rt), intent(in	)	::Q(QVAR)
+    real(rt), intent(in	)	::Q(NQ)
     real(rt), intent(out)	::leig(7,7)
 
     !The characteristic speeds of the system
@@ -1113,7 +1113,7 @@ contains
     implicit none
 
     !returnes reig, where the cols are the right eigenvectors of the characteristic matrix Ax
-    real(rt), intent(in	)	::Q(QVAR)
+    real(rt), intent(in	)	::Q(NQ)
     real(rt), intent(out)	::reig(7,7)
 
     !The characteristic speeds of the system
@@ -1180,7 +1180,7 @@ contains
     implicit none
 
     !returnes reig, where the cols are the right eigenvectors of the characteristic matrix Ay
-    real(rt), intent(in	)	::Q(QVAR)
+    real(rt), intent(in	)	::Q(NQ)
     real(rt), intent(out)	::reig(7,7)
 
     !The characteristic speeds of the system
@@ -1247,7 +1247,7 @@ contains
     implicit none
 
     !returnes reig, where the cols are the right eigenvectors of the characteristic matrix Az
-    real(rt), intent(in	)	::Q(QVAR)
+    real(rt), intent(in	)	::Q(NQ)
     real(rt), intent(out)	::reig(7,7)
 
     !The characteristic speeds of the system

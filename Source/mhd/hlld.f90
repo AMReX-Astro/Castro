@@ -23,13 +23,13 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
    integer, intent(in)   :: flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3
    integer, intent(in)   :: dir
 
-   real(rt), intent(in)  :: qm(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
-   real(rt), intent(in)  :: qp(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
+   real(rt), intent(in)  :: qm(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ,3)
+   real(rt), intent(in)  :: qp(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ,3)
    real(rt), intent(out) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,NVAR+3)
 
    real(rt)	  :: cfL2, cfR, sL, sR, sM, ssL, ssR, pst, caL, canL
    real(rt) 	  :: caR, canR, asL, asR, ptL, ptR, eL, eR
-   real(rt)	  :: QL(QVAR), QR(QVAR)
+   real(rt)	  :: QL(NQ), QR(NQ)
    real(rt)	  :: FL(NVAR+3), FR(NVAR+3)
    real(rt)       :: uL(NVAR+3), uR(NVAR+3)
    real(rt)	  :: UsL(NVAR+3), FsL(NVAR+3)
@@ -384,7 +384,7 @@ subroutine PToC(q, u)
 
    implicit none
 
-   real(rt), intent(in)	 ::q(QVAR)
+   real(rt), intent(in)	 ::q(NQ)
    real(rt), intent(out) ::u(NVAR+3)
    
    type (eos_t) :: eos_state

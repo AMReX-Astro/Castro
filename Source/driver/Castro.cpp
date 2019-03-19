@@ -3346,7 +3346,14 @@ Castro::reset_internal_energy(
 }
 
 void
-Castro::computeTemp(int is_new, int ng)
+Castro::computeTemp(
+#ifdef MHD
+                    MultiFab& Bx,
+		    MultiFab& By,
+		    MultiFab& Bz,
+#endif
+
+		    int is_new, int ng)
 {
 
   BL_PROFILE("Castro::computeTemp()");
@@ -3393,7 +3400,11 @@ Castro::computeTemp(int is_new, int ng)
     // makes 1 ghost cell a valid center, we compute its temp, and
     // then the final average results only in interior temps valid
     Stemp.define(State.boxArray(), State.DistributionMap(), NUM_STATE, 2);
-    expand_state(Stemp, time, -1, Stemp.nGrow());
+    expand_state(
+#ifdef MHD
+		 Bx, By, Bz,   
+#endif		    
+		 Stemp, time, -1, Stemp.nGrow());
 
     // store the Laplacian term for the internal energy
     Eint_lap.define(State.boxArray(), State.DistributionMap(), 1, 0);
@@ -3417,9 +3428,17 @@ Castro::computeTemp(int is_new, int ng)
   }
 
   if (fourth_order) {
-    reset_internal_energy(Stemp);
+    reset_internal_energy(
+#ifdef MHD
+		          Bx, By, Bz,
+#endif		    
+		          Stemp);
   } else {
-    reset_internal_energy(State);
+    reset_internal_energy(
+#ifdef MHD
+		          Bx, By, Bz,
+#endif
+		          State);
   }
 
 
@@ -4128,7 +4147,11 @@ Castro::clean_state(
 
   // Compute the temperature (note that this will also reset
   // the internal energy for consistency with the total energy).
-  computeTemp(is_new, ng);
+  computeTemp(
+#ifdef MHD
+		  bx, by, bz,
+#endif		  
+		  is_new, ng);
 
   return frac_change;
 

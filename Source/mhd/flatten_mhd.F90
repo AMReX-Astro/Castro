@@ -25,7 +25,7 @@ contains
 
     ! here, ipres is the pressure variable we want to consider jumps on
     ! passing it in allows
-    use meth_params_module, only : small_pres, QU, QV, QW, NQ, QVAR
+    use meth_params_module, only : small_pres, QU, QV, QW, NQ
     use prob_params_module, only : dg
     use amrex_constants_module
 
@@ -36,7 +36,7 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: ipres
 
-    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),QVAR+1)
+    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ+1)
     real(rt)        , intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
 
     integer :: i, j, k, ishft

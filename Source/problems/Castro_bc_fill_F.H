@@ -49,6 +49,25 @@ extern "C"
      const int dlo[], const int dhi[],
      const amrex::Real dx[], const amrex::Real glo[],
      const amrex::Real* time, const int bc[]);
+#ifdef MHD
+  void ca_face_fillx
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const amrex::Real dx[], const amrex::Real glo[],
+     const amrex::Real* time, const int bc[]);
+
+  void ca_face_filly
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const amrex::Real dx[], const amrex::Real glo[],
+     const amrex::Real* time, const int bc[]);
+
+  void ca_face_fillz
+    (BL_FORT_FAB_ARG(state),
+     const int dlo[], const int dhi[],
+     const amrex::Real dx[], const amrex::Real glo[],
+     const amrex::Real* time, const int bc[]);
+#endif
 
 #ifdef RADIATION
   void ca_radfill

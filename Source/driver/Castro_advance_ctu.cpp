@@ -32,6 +32,12 @@ Castro::do_advance_ctu(Real time,
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
+#ifdef MHD
+    MultiFab& Bx_new = get_new_data(Mag_Type_x);
+    MultiFab& By_new = get_new_data(Mag_Type_y);
+    MultiFab& Bz_new = get_new_data(Mag_Type_z);
+#endif 
+
     // Perform initialization steps.
 
     initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -95,7 +101,11 @@ Castro::do_advance_ctu(Real time,
       do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
       apply_source_to_state(S_new, old_source, dt, 0);
       int is_new = 1;
-      clean_state(is_new, 0);
+      clean_state(
+#ifdef MHD
+		      Bx_new, By_new, Bz_new,
+#endif 		      
+		      is_new, 0);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -117,6 +127,7 @@ Castro::do_advance_ctu(Real time,
 
     if (do_hydro)
     {
+#ifndef MHD
       // Construct the primitive variables.
       cons_to_prim(time);
 
@@ -131,12 +142,19 @@ Castro::do_advance_ctu(Real time,
       apply_source_to_state(S_new, hydro_source, dt, 0);
       int is_new = 1;
       clean_state(is_new, 0);
+#else
+      just_the_mhd(time, dt);
+#endif      
     }
 
 
     // Sync up state after old sources and hydro source.
     int is_new=1;
-    frac_change = clean_state(is_new, Sborder, 0);
+    frac_change = clean_state(
+#ifdef MHD
+		              Bx_new, By_new, Bz_new,
+#endif		    
+		              is_new, Sborder, 0);
 
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
@@ -180,7 +198,11 @@ Castro::do_advance_ctu(Real time,
 
       apply_source_to_state(S_new, new_source, dt, 0);
       int is_new=1;
-      clean_state(is_new, 0);
+      clean_state(
+#ifdef MHD
+		  Bx_new, By_new, Bz_new,
+#endif		      
+		  is_new, 0);
 
     } else {
 
@@ -192,7 +214,11 @@ Castro::do_advance_ctu(Real time,
     // since the hydro source only works on the valid zones.
 
     if (S_new.nGrow() > 0) {
-      expand_state(S_new, cur_time, 1, S_new.nGrow());
+      expand_state(
+#ifdef MHD
+		   Bx_new, By_new, Bz_new,   
+#endif		      
+		   S_new, cur_time, 1, S_new.nGrow());
     }
 
     // Do the second half of the reactions.

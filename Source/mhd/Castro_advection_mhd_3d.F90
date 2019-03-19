@@ -142,14 +142,14 @@ subroutine ca_advance_mhd(time, lo, hi, &
 
   uout(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,:) = uin(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,:)
 
-  call bl_allocate(     q, lo-NHYP, hi+NHYP, QVAR)
+  call bl_allocate(     q, lo-NHYP, hi+NHYP, NQ)
   call bl_allocate(   bcc, lo-NHYP, hi+NHYP,  3  )
   call bl_allocate( flatn, lo-NHYP, hi+NHYP      )
   call bl_allocate(    cx, lo-NHYP, hi+NHYP      )
   call bl_allocate(    cy, lo-NHYP, hi+NHYP      )
   call bl_allocate(    cz, lo-NHYP, hi+NHYP      )
   call bl_allocate(  csml, lo-NHYP, hi+NHYP      )
-  call bl_allocate(  srcQ, lo-1, hi+1, QVAR)
+  call bl_allocate(  srcQ, lo-1, hi+1, NQSRC)
 
   flxx_l1 = lo(1)-3
   flxx_l2 = lo(2)-3
@@ -201,8 +201,8 @@ subroutine ca_advance_mhd(time, lo, hi, &
   allocate(Eytemp(eytemp_l1:eytemp_h1,eytemp_l2:eytemp_h2,eytemp_l3:eytemp_h3))
   allocate(Eztemp(eztemp_l1:eztemp_h1,eztemp_l2:eztemp_h2,eztemp_l3:eztemp_h3))
 
-  allocate(  qp(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR, 3))
-  allocate(  qm(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR, 3))
+  allocate(  qp(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ, 3))
+  allocate(  qm(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ, 3))
 
   q = 0.d0
 
@@ -389,7 +389,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   use amrex_error_module
   use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
                                  UEDEN, UEINT, UFA, UFS, UTEMP, &
-                                 QVAR, QRHO, QU, QV, QW, QC, NQAUX,&
+                                 NQ, NQSRC, QRHO, QU, QV, QW, QC, NQAUX,&
                                  QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
                                  QMAGX,  QMAGY, QMAGZ, &
                                  nadv, small_dens, small_pres, &
@@ -416,21 +416,21 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   real(rt) :: bz(bzin_lo(1):bzin_hi(1), bzin_lo(2):bzin_hi(2), bzin_lo(3):bzin_hi(3))
   real(rt) :: bcc(bcc_l1:bcc_h1, bcc_l2:bcc_h2, bcc_l3:bcc_h3, 3)
 
-  real(rt) :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR) !Contains Cell Centered Mag Field
+  real(rt) :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ) !Contains Cell Centered Mag Field
   real(rt) :: cx(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
   real(rt) :: cy(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
   real(rt) :: cz(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
   real(rt) :: csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
   real(rt) :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
   real(rt) :: src( src_lo(1): src_hi(1), src_lo(2): src_hi(2), src_lo(3): src_hi(3),NVAR)
-  real(rt) :: srcQ(srcq_l1:srcq_h1,srcq_l2:srcq_h2,srcq_l3:srcq_h3,QVAR)
+  real(rt) :: srcQ(srcq_l1:srcq_h1,srcq_l2:srcq_h2,srcq_l3:srcq_h3,NQSRC)
   real(rt) :: qaux(q_l1:q_h1, q_l2:q_h2, q_l3:q_h3, NQAUX)
   real(rt) :: dx, dy, dz, dt, courno
   real(rt) :: dpdr, dpde
 
   integer          :: i, j, k
   integer          :: ngp, ngf, loq(3), hiq(3)
-  integer          :: n, nq, ipassive
+  integer          :: n, nq2, ipassive
   integer          :: iadv, ispec
   real(rt) :: courx, coury, courz, courmx, courmy, courmz, cad
   real(rt) :: a_half, a_dot, rhoInv
@@ -505,11 +505,11 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
   do ipassive = 1, npassive
      n = upass_map(ipassive)
-     nq = qpass_map(ipassive)
+     nq2 = qpass_map(ipassive)
      do k = loq(3),hiq(3)
         do j = loq(2),hiq(2)
            do i = loq(1),hiq(1)
-              q(i,j,k,nq) = uin(i,j,k,n)/q(i,j,k,QRHO)
+              q(i,j,k,nq2) = uin(i,j,k,n)/q(i,j,k,QRHO)
            enddo
         enddo
      enddo
@@ -715,7 +715,7 @@ subroutine consup(uin, uin_lo, uin_hi, &
                   lo,hi,dx,dy,dz,dt)
 
   use amrex_fort_module, only : rt => amrex_real
-  use meth_params_module, only : QVAR, UMX,UMY,UMZ, NVAR, URHO, UEDEN, UEINT, UFS
+  use meth_params_module, only : UMX,UMY,UMZ, NVAR, URHO, UEDEN, UEINT, UFS
   use network, only: nspec
 
   implicit none
@@ -807,7 +807,7 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
   real(rt), intent(in)  :: bxin(bxin_lo(1):bxin_hi(1), bxin_lo(2):bxin_hi(2), bxin_lo(3):bxin_hi(3))
   real(rt), intent(in)  :: byin(byin_lo(1):byin_hi(1), byin_lo(2):byin_hi(2), byin_lo(3):byin_hi(3))
   real(rt), intent(in)  :: bzin(bzin_lo(1):bzin_hi(1), bzin_lo(2):bzin_hi(2), bzin_lo(3):bzin_hi(3))
-  real(rt), intent(in)  :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), QVAR)
+  real(rt), intent(in)  :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), NQSRC)
 
   real(rt), intent(in) ::  Ex(ex_l1:ex_h1,ex_l2:ex_h2, ex_l3:ex_h3)
   real(rt), intent(in) ::  Ey(ey_l1:ey_h1,ey_l2:ey_h2, ey_l3:ey_h3)
