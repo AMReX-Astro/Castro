@@ -822,7 +822,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               hdt, hdtdy, hdtdz);
 
 #pragma gpu
-      cmpflx_plus_godunov(AMREX_INT_ANYD(cxbx.loVect()), AMREX_INT_ANYD(cxbx.hiVect()),
+      cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(ql),
                           BL_TO_FORTRAN_ANYD(qr), 1, 1,
                           BL_TO_FORTRAN_ANYD(flux[0]),
