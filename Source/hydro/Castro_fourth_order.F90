@@ -259,10 +259,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      flatn = ONE
   endif
 
-  ! in contrast to the other solvers, we do not use 2-d slabs for 3-d,
-  ! but we consider the full 3-d box at once.
-
-
   ! do the reconstruction here -- get the interface states
 
   do n = 1, NQ
