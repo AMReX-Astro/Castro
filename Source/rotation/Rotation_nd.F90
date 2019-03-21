@@ -314,27 +314,18 @@ contains
 
 
 
-  !> @brief Construct psi, which is the distance-related part
-  !! of the rotation law. See e.g. Hachisu 1986a, Equation 15.
-  !! For rigid-body rotation, psi = -R^2 / 2, where R is the
-  !! distance orthogonal to the rotation axis. There are also
-  !! v-constant and j-constant rotation laws that we do not
-  !! implement here. We will construct this as potential / omega**2,
-  !! so that the rotational_potential routine uniquely determines
-  !! the rotation law. For the other rotation laws, we would
-  !! simply divide by v_0^2 or j_0^2 instead.
-  !!
-  !! @param[in] lo integer
-  !! @param[in] hi integer
-  !! @param[in] psi_lo integer
-  !! @param[in] psi_hi integer
-  !! @param[inout] psi real(rt)
-  !! @param[in] dx real(rt)
-  !! @param[in] time real(rt)
-  !!
   subroutine ca_fill_rotational_psi(lo, hi, &
                                     psi, psi_lo, psi_hi, &
                                     dx, time) bind(C, name='ca_fill_rotational_psi')
+    ! Construct psi, which is the distance-related part
+    ! of the rotation law. See e.g. Hachisu 1986a, Equation 15.
+    ! For rigid-body rotation, psi = -R^2 / 2, where R is the
+    ! distance orthogonal to the rotation axis. There are also
+    ! v-constant and j-constant rotation laws that we do not
+    ! implement here. We will construct this as potential / omega**2,
+    ! so that the rotational_potential routine uniquely determines
+    ! the rotation law. For the other rotation laws, we would
+    ! simply divide by v_0^2 or j_0^2 instead.
 
     use amrex_constants_module, only: HALF
     use prob_params_module, only: problo, center
