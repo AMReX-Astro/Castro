@@ -373,6 +373,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM == 3
              BL_TO_FORTRAN_ANYD(area[2][mfi]),
 #endif
+             BL_TO_FORTRAN_ANYD(qe[0]),
+#if AMREX_SPACEDIM >= 2
+             BL_TO_FORTRAN_ANYD(qe[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+             BL_TO_FORTRAN_ANYD(qe[2]),
+#endif
              BL_TO_FORTRAN_ANYD(volume[mfi]));
 
 

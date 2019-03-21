@@ -507,6 +507,13 @@ extern "C"
 #if AMREX_SPACEDIM == 3
      const BL_FORT_FAB_ARG_3D(area3),
 #endif
+     const BL_FORT_FAB_ARG_3D(q1),
+#if AMREX_SPACEDIM >= 2
+     const BL_FORT_FAB_ARG_3D(q2),
+#endif
+#if AMREX_SPACEDIM == 3
+     const BL_FORT_FAB_ARG_3D(q3),
+#endif
      const BL_FORT_FAB_ARG_3D(volume));
 
   void ca_fourth_single_stage

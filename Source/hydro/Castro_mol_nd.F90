@@ -297,6 +297,13 @@ subroutine ca_mol_consup(lo, hi, &
 #if AMREX_SPACEDIM == 3
                          area3, area3_lo, area3_hi, &
 #endif
+                         q1, q1_lo, q1_hi, &
+#if AMREX_SPACEDIM >= 2
+                         q2, q2_lo, q2_hi, &
+#endif
+#if AMREX_SPACEDIM == 3
+                         q3, q3_lo, q3_hi, &
+#endif
                          vol, vol_lo, vol_hi) bind(C, name="ca_mol_consup")
 
   use amrex_error_module
@@ -327,14 +334,18 @@ subroutine ca_mol_consup(lo, hi, &
   integer, intent(in) :: uf_lo(3), uf_hi(3)
   integer, intent(in) :: flux1_lo(3), flux1_hi(3)
   integer, intent(in) :: area1_lo(3), area1_hi(3)
+  integer, intent(in) :: q1_lo(3), q1_hi(3)
 #if AMREX_SPACEDIM >= 2
   integer, intent(in) :: flux2_lo(3), flux2_hi(3)
   integer, intent(in) :: area2_lo(3), area2_hi(3)
+  integer, intent(in) :: q2_lo(3), q2_hi(3)
 #endif
 #if AMREX_SPACEDIM == 3
   integer, intent(in) :: flux3_lo(3), flux3_hi(3)
   integer, intent(in) :: area3_lo(3), area3_hi(3)
+  integer, intent(in) :: q3_lo(3), q3_hi(3)
 #endif
+
   integer, intent(in) :: vol_lo(3), vol_hi(3)
 
   real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
@@ -342,16 +353,23 @@ subroutine ca_mol_consup(lo, hi, &
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
   real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
   real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
+
   real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
   real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
+  real(rt), intent(in) :: q1(q1_lo(1):q1_hi(1), q1_lo(2):q1_hi(2), q1_lo(3):q1_hi(3), NGDNV)
+
 #if AMREX_SPACEDIM >= 2
   real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3), NVAR)
   real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1), area2_lo(2):area2_hi(2), area2_lo(3):area2_hi(3))
+  real(rt), intent(in) :: q2(q2_lo(1):q2_hi(1), q2_lo(2):q2_hi(2), q2_lo(3):q2_hi(3), NGDNV)
 #endif
+
 #if AMREX_SPACEDIM == 3
   real(rt), intent(inout) :: flux3(flux3_lo(1):flux3_hi(1), flux3_lo(2):flux3_hi(2), flux3_lo(3):flux3_hi(3), NVAR)
   real(rt), intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
+  real(rt), intent(in) :: q3(q3_lo(1):q3_hi(1), q3_lo(2):q3_hi(2), q3_lo(3):q3_hi(3), NGDNV)
 #endif
+
   real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
   real(rt), intent(in) :: dx(3)
   real(rt), intent(in), value :: dt
@@ -373,13 +391,13 @@ subroutine ca_mol_consup(lo, hi, &
 #elif AMREX_SPACEDIM == 2
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
-                   flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
+                    flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
 
 #else
               update(i,j,k,n) = update(i,j,k,n) + &
                    (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
-                   flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
-                   flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
+                    flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
+                    flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 #endif
 
 #if AMREX_SPACEDIM == 1
@@ -411,10 +429,10 @@ subroutine ca_mol_consup(lo, hi, &
 #if AMREX_SPACEDIM == 3
 #ifdef HYBRID_MOMENTUM
   call add_hybrid_advection_source(lo, hi, dt, &
-       update, uout_lo, uout_hi, &
-       q1, flux1_lo, flux1_hi, &
-       q2, flux2_lo, flux2_hi, &
-       q3, flux3_lo, flux3_hi)
+                                   update, uout_lo, uout_hi, &
+                                   q1, q1_lo, q1_hi, &
+                                   q2, q2_lo, q2_hi, &
+                                   q3, q3_lo, q3_hi)
 #endif
 #endif
 
