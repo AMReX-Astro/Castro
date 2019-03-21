@@ -4,6 +4,15 @@
 #include <AMReX_ParmParse.H>
 #include "Castro.H"
 #include "Castro_F.H"
+#ifdef AMREX_DIMENSION_AGNOSTIC
+#include "Castro_bc_fill_nd_F.H"
+#include "Castro_bc_fill_nd.H"
+#else
+#include "Castro_bc_fill_F.H"
+#include "Castro_bc_fill.H"
+#endif
+#include "Castro_generic_fill_F.H"
+#include "Castro_generic_fill.H"
 #include <Derive_F.H>
 #include "Derive.H"
 #ifdef RADIATION
@@ -1032,6 +1041,65 @@ Castro::variableSetUp ()
   source_names[rot_src] = "rotation";
 #endif
 
+#ifdef AMREX_USE_CUDA
+  // Construct the minimum number of threads needed per
+  // threadblock to do BC fills with CUDA.
+
+  // First, find out the maximum number of ghost zones
+  // needed by all State_Types.
+
+  int ng_max = 0;
+
+  for (int n = 0; n < num_state_type; ++n) {
+      ng_max = std::max(ng_max, desc_lst[n].nExtra());
+  }
+
+  // For BCs that only use first-order extrapolation,
+  // we need ng_max + 1 threads (since all ghost
+  // zones only depend on the interior zone closest
+  // to the boundary. For BCs using higher-order
+  // extrapolation, these depend on the first, second,
+  // and third closest zones to the boundary, so we need
+  // ng_max + 3 threads. For BCs using reflection,
+  // we need ng_max * 2 threads (since every zone
+  // reflects from its opposite at equal distance from
+  // the boundary).
+
+  bool contains_foextrap = false;
+  bool contains_hoextrap = false;
+  bool contains_reflection = false;
+
+  for (auto& bc : bcs) {
+      for (int dim = 0; dim <= AMREX_SPACEDIM; ++dim) {
+          if (bc.lo(dim) == FOEXTRAP || bc.hi(dim) == FOEXTRAP) {
+              contains_foextrap = true;
+          }
+          else if (bc.lo(dim) == HOEXTRAP || bc.hi(dim) == HOEXTRAP) {
+              contains_hoextrap = true;
+          }
+          else if (bc.lo(dim) == REFLECT_EVEN || bc.hi(dim) == REFLECT_EVEN) {
+              contains_reflection = true;
+          }
+          else if (bc.lo(dim) == REFLECT_ODD || bc.hi(dim) == REFLECT_ODD) {
+              contains_reflection = true;
+          }
+      }
+  }
+
+  // Now generate the thread-count minimum over all possibilities.
+
+  for (int dim = 0; dim <= AMREX_SPACEDIM; ++dim) {
+      if (contains_foextrap) {
+          numBCThreadsMin[dim] = std::max(numBCThreadsMin[dim], ng_max + 1);
+      }
+      if (contains_hoextrap) {
+          numBCThreadsMin[dim] = std::max(numBCThreadsMin[dim], ng_max + 3);
+      }
+      if (contains_reflection) {
+          numBCThreadsMin[dim] = std::max(numBCThreadsMin[dim], ng_max * 2);
+      }
+  }
+#endif
 
   // method of lines Butcher tableau
   if (mol_order == 1) {

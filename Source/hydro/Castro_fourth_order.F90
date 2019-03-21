@@ -1,5 +1,5 @@
-!> @brief advection routines in support of method of lines integration
-!!
+! advection routines in support of method of lines integration
+!
 subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                   stage_weight, &
                                   uin, uin_lo, uin_hi, &
@@ -37,7 +37,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   use meth_params_module, only : NQ, NVAR, NGDNV, NQAUX, GDPRES, &
        UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
        use_flattening, QPRES, NQAUX, &
-       QTEMP, QFS, QFX, QREINT, QRHO, &
+       QTEMP, QFS, QFX, QREINT, QRHO, QGAME, QGC, &
        first_order_hydro, difmag, hybrid_riemann, &
        limit_fluxes_on_small_dens, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, ca_shock, &
@@ -259,10 +259,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      flatn = ONE
   endif
 
-  ! in contrast to the other solvers, we do not use 2-d slabs for 3-d,
-  ! but we consider the full 3-d box at once.
-
-
   ! do the reconstruction here -- get the interface states
 
   do n = 1, NQ
@@ -381,6 +377,8 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #if AMREX_SPACEDIM >= 2
   ! x-interfaces
   do n = 1, NQ
+     if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
+
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)+1
@@ -398,6 +396,8 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   ! y-interfaces
   do n = 1, NQ
+     if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
+
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)+1
            do i = lo(1), hi(1)
@@ -416,6 +416,8 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #if AMREX_SPACEDIM == 3
   ! z-interfaces
   do n = 1, NQ
+     if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
+
      do k = lo(3), hi(3)+1
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)

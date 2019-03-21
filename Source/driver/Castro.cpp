@@ -43,6 +43,10 @@
 #include <omp.h>
 #endif
 
+#ifdef AMREX_USE_CUDA
+#include <cuda_profiler_api.h>
+#endif
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -136,6 +140,10 @@ Vector<Real> Castro::c_mol;
 
 int          Castro::SDC_NODES;
 Vector<Real> Castro::dt_sdc;
+
+#ifdef AMREX_USE_CUDA
+int          Castro::numBCThreadsMin[3] = {1, 1, 1};
+#endif
 
 #include <castro_defaults.H>
 
@@ -512,6 +520,16 @@ Castro::Castro (Amr&            papa,
     for (int i = 0; i < n_lost; i++) {
       material_lost_through_boundary_cumulative[i] = 0.0;
       material_lost_through_boundary_temp[i] = 0.0;
+    }
+
+    // Coterminous AMR boundaries are not supported in Castro if we're doing refluxing.
+
+    if (do_hydro && do_reflux) {
+        for (int lev = 0; lev <= parent->maxLevel(); ++lev) {
+            if (parent->nErrorBuf(lev) == 0) {
+                amrex::Error("n_error_buf = 0 is unsupported when using hydro.");
+            }
+        }
     }
 
 #ifdef SELF_GRAVITY
@@ -943,6 +961,12 @@ Castro::initData ()
     if (verbose && ParallelDescriptor::IOProcessor())
        std::cout << "Initializing the data at level " << level << std::endl;
 
+    // Don't profile for this code, since there will be a lot of host
+    // activity and GPU page faults that we're uninterested in.
+#ifdef AMREX_USE_CUDA
+    AMREX_GPU_SAFE_CALL(cudaProfilerStop());
+#endif
+
 #ifdef RADIATION
     // rad quantities are in the state even if (do_radiation == 0)
     MultiFab &Rad_new = get_new_data(Rad_Type);
@@ -1118,6 +1142,10 @@ Castro::initData ()
 	init_particles();
 #endif
 
+#ifdef AMREX_USE_CUDA
+    AMREX_GPU_SAFE_CALL(cudaProfilerStart());
+#endif
+
     if (verbose && ParallelDescriptor::IOProcessor())
        std::cout << "Done initializing the level " << level << " data " << std::endl;
 }
@@ -1220,7 +1248,7 @@ Castro::estTimeStep (Real dt_old)
     Real estdt_hydro = max_dt / cfl;
 
 #ifdef DIFFUSION
-    if (do_hydro or diffuse_temp or diffuse_enth)
+    if (do_hydro or diffuse_temp)
 #else
     if (do_hydro)
 #endif
@@ -1298,30 +1326,14 @@ Castro::estTimeStep (Real dt_old)
             Real dt = max_dt / cfl;
 
             for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
-              {
+            {
                 const Box& box = mfi.tilebox();
-                ca_estdt_temp_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
-                                        BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-                                        ZFILL(dx),&dt);
-              }
-            estdt_hydro = std::min(estdt_hydro, dt);
-          }
-	}
-	if (diffuse_enth)
-	{
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_hydro)
-#endif
-          {
-            Real dt = max_dt / cfl;
 
-            for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
-              {
-                const Box& box = mfi.tilebox();
-                ca_estdt_enth_diffusion(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()),
+#pragma gpu
+                ca_estdt_temp_diffusion(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
                                         BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-                                        ZFILL(dx),&dt);
-              }
+                                        AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
+            }
             estdt_hydro = std::min(estdt_hydro, dt);
           }
 	}
@@ -1994,6 +2006,9 @@ void
 Castro::post_regrid (int lbase,
                      int new_finest)
 {
+
+    BL_PROFILE("Castro::post_regrid()");
+
     fine_mask.clear();
 
 #ifdef AMREX_PARTICLES
@@ -2207,6 +2222,9 @@ Castro::post_init (Real stop_time)
 void
 Castro::post_grown_restart ()
 {
+
+    BL_PROFILE("Castro::post_grown_restart()");
+    
     if (level > 0)
         return;
 
@@ -2303,6 +2321,8 @@ Castro::okToContinue ()
 void
 Castro::advance_aux(Real time, Real dt)
 {
+    BL_PROFILE("Castro::advance_aux()");
+    
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... special update for auxiliary variables \n";
 
@@ -2353,6 +2373,8 @@ Castro::FluxRegCrseInit() {
 void
 Castro::FluxRegFineAdd() {
 
+    BL_PROFILE("Castro::FluxRegFineAdd()");
+    
     if (level == 0) return;
 
     for (int i = 0; i < BL_SPACEDIM; ++i)
@@ -2588,7 +2610,9 @@ Castro::reflux(int crse_level, int fine_level)
     // ghost zone fills like diffusion depend on the data in the
     // coarser levels.
 
-    if (update_sources_after_reflux) {
+    if (update_sources_after_reflux &&
+        (time_integration_method == CornerTransportUpwind ||
+         time_integration_method == SimplifiedSpectralDeferredCorrections)) {
 
 	for (int lev = fine_level; lev >= crse_level; --lev) {
 
@@ -2601,8 +2625,9 @@ Castro::reflux(int crse_level, int fine_level)
 
             if (getLevel(lev).apply_sources()) {
 
+                getLevel(lev).apply_source_to_state(S_new, source, -dt_advance, 0);
                 int is_new=1;
-                getLevel(lev).apply_source_to_state(is_new, S_new, source, -dt_advance, 0);
+                getLevel(lev).clean_state(is_new, 0);
 
             }
 
@@ -2637,8 +2662,9 @@ Castro::reflux(int crse_level, int fine_level)
 
                 getLevel(lev).do_new_sources(source, S_old, S_new, time, dt_advance);
 
+                getLevel(lev).apply_source_to_state(S_new, source, dt_advance, 0);
                 int is_new=1;
-                getLevel(lev).apply_source_to_state(is_new, S_new, source, dt_advance, 0);
+                getLevel(lev).clean_state(is_new, 0);
 
             }
 
@@ -3063,6 +3089,9 @@ Castro::derive (const std::string& name,
                 Real           time,
                 int            ngrow)
 {
+
+    BL_PROFILE("Castro::derive()");
+    
 #ifdef NEUTRINO
   if (name.substr(0,4) == "Neut") {
     // Extract neutrino energy group number from name string and
@@ -3092,6 +3121,9 @@ Castro::derive (const std::string& name,
                 MultiFab&      mf,
                 int            dcomp)
 {
+
+    BL_PROFILE("Castro::derive()");
+
 #ifdef NEUTRINO
   if (name.substr(0,4) == "Neut") {
     // Extract neutrino energy group number from name string and
@@ -3232,6 +3264,8 @@ Castro::reset_internal_energy(MultiFab& S_new)
 void
 Castro::computeTemp(int is_new, int ng)
 {
+
+  BL_PROFILE("Castro::computeTemp()");
 
   // this is the "preferred" computeTemp interface -- it will work
   // directly on StateData.  is_new=0 means the old data is used,
@@ -3399,6 +3433,8 @@ void
 Castro::computeTemp(MultiFab& State, int ng)
 {
 
+  BL_PROFILE("Castro::computeTemp()");
+    
   // this is the old version of computeTemp that works for an
   // arbitrary MF.  This will not work for 4th order hydr
   if (fourth_order) {
@@ -3488,6 +3524,8 @@ Castro::apply_source_term_predictor()
 void
 Castro::swap_state_time_levels(const Real dt)
 {
+
+    BL_PROFILE("Castro::swap_state_time_levels()");
 
     for (int k = 0; k < num_state_type; k++) {
 

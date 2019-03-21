@@ -5,9 +5,6 @@
 
 #ifdef DIFFUSION
 static int diffuse_temp;
-static int diffuse_enth;
-static int diffuse_spec;
-static int diffuse_vel;
 static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cutoff_density_hi;
 static amrex::Real diffuse_cond_scale_fac;
@@ -25,11 +22,6 @@ static int state_in_rotating_frame;
 static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
-#endif
-#ifdef POINTMASS
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
@@ -145,3 +137,8 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif

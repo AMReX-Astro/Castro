@@ -244,11 +244,15 @@ Castro::restart (Amr&     papa,
       FullPathReactFile += "/ReactHeader";
       ReactFile.open(FullPathReactFile.c_str(), std::ios::in);
 
-      // Maximum rate of change of internal energy in last timestep.
+      if (ReactFile.good()) {
 
-      ReactFile >> max_dedt;
+          // Maximum rate of change of internal energy in last timestep.
 
-      ReactFile.close();
+          ReactFile >> max_dedt;
+
+          ReactFile.close();
+
+      }
 
       // Set the energy change to the components of the
       // reactions MultiFab; it will get overwritten later
@@ -274,8 +278,12 @@ Castro::restart (Amr&     papa,
       FullPathCPUFile += "/CPUtime";
       CPUFile.open(FullPathCPUFile.c_str(), std::ios::in);
 
-      CPUFile >> previousCPUTimeUsed;
-      CPUFile.close();
+      if (CPUFile.good()) {
+
+          CPUFile >> previousCPUTimeUsed;
+          CPUFile.close();
+
+      }
 
       std::cout << "read CPU time: " << previousCPUTimeUsed << "\n";
 
@@ -290,14 +298,37 @@ Castro::restart (Amr&     papa,
       FullPathDiagFile += "/Diagnostics";
       DiagFile.open(FullPathDiagFile.c_str(), std::ios::in);
 
-      for (int i = 0; i < n_lost; i++) {
-	DiagFile >> material_lost_through_boundary_cumulative[i];
-	material_lost_through_boundary_temp[i] = 0.0;
+      if (DiagFile.good()) {
+
+          for (int i = 0; i < n_lost; i++) {
+              DiagFile >> material_lost_through_boundary_cumulative[i];
+              material_lost_through_boundary_temp[i] = 0.0;
+          }
+
+          DiagFile.close();
+
       }
 
-      DiagFile.close();
+    }
+
+#ifdef GRAVITY
+    if (use_point_mass && level == 0)
+    {
+
+        // get the current value of the point mass
+        std::ifstream PMFile;
+        std::string FullPathPMFile = parent->theRestartFile();
+        FullPathPMFile += "/point_mass";
+        PMFile.open(FullPathPMFile.c_str(), std::ios::in);
+
+        if (PMFile.good()) {
+            PMFile >> point_mass;
+            set_pointmass(&point_mass);
+            PMFile.close();
+        }
 
     }
+#endif
 
     if (level == 0)
     {
@@ -586,7 +617,7 @@ Castro::checkPoint(const std::string& dir,
 	    FullPathCPUFile += "/CPUtime";
 	    CPUFile.open(FullPathCPUFile.c_str(), std::ios::out);
 
-	    CPUFile << std::setprecision(15) << getCPUTime();
+	    CPUFile << std::setprecision(17) << getCPUTime();
 	    CPUFile.close();
 	}
 
@@ -599,11 +630,27 @@ Castro::checkPoint(const std::string& dir,
 	    DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
 
 	    for (int i = 0; i < n_lost; i++)
-	      DiagFile << std::setprecision(15) << material_lost_through_boundary_cumulative[i] << std::endl;
+	      DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
 
 	    DiagFile.close();
 
 	}
+
+#ifdef GRAVITY
+        if (use_point_mass) {
+
+            // store current value of the point mass
+            std::ofstream PMFile;
+            std::string FullPathPMFile = dir;
+            FullPathPMFile += "/point_mass";
+            PMFile.open(FullPathPMFile.c_str(), std::ios::out);
+
+            PMFile << std::setprecision(17) << point_mass << std::endl;
+
+            PMFile.close();
+
+        }
+#endif
 
 	{
 	    // store any problem-specific stuff
@@ -870,6 +917,12 @@ Castro::writeJobInfo (const std::string& dir)
   jobInfoFile << "\n\n";
 
   jobInfoFile << " Domain geometry info\n";
+
+  Real center[3];
+  ca_get_center(center);
+
+  jobInfoFile << "     center: " << center[0] << " , " << center[1] << " , " << center[2] << "\n";
+  jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.is_periodic: ";
   for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
@@ -1248,10 +1301,27 @@ Castro::plotFileOutput(const std::string& dir,
         DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
 
         for (int i = 0; i < n_lost; i++)
-            DiagFile << std::setprecision(15) << material_lost_through_boundary_cumulative[i] << std::endl;
+            DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
 
         DiagFile.close();
 
     }
+
+
+#ifdef GRAVITY
+    if (use_point_mass && level == 0) {
+
+        // store current value of the point mass
+        std::ofstream PMFile;
+        std::string FullPathPMFile = dir;
+        FullPathPMFile += "/point_mass";
+        PMFile.open(FullPathPMFile.c_str(), std::ios::out);
+
+        PMFile << std::setprecision(17) << point_mass << std::endl;
+
+        PMFile.close();
+
+    }
+#endif
 
 }

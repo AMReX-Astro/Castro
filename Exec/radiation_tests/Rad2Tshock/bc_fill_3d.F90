@@ -8,10 +8,10 @@ module bc_fill_module
 contains
 
   ! ::: -----------------------------------------------------------
-  
+
   subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
                         domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
- 
+
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, UTEMP
     use network, only : nspec, naux
     use eos_module, only : eos
@@ -52,13 +52,8 @@ contains
        call eos(eos_input_rt, eos_state)
 
        eint1 = rho1 * eos_state % e
-       etot1 = eint1 + 0.5*rho1*v1**2         
+       etot1 = eint1 + 0.5*rho1*v1**2
     end if
-
-    do n = 1,NVAR
-       call filcc(adv(adv_l1,adv_l2,adv_l3,n),adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
-                  domlo,domhi,delta,xlo,bc(1,1,n))
-    enddo
 
     !     The strategy here is to set Dirichlet condition for inflow and
     !     outflow boundaries, and let the Riemann solver sort out the
@@ -67,51 +62,148 @@ contains
     !     values in either case....how do we know it's Outflow?  We have
     !     to assume that the setup routines converted Outflow to FOEXTRAP.
 
-    !     XLO
-    if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
-       do k = adv_l3, adv_h3
-          do j = adv_l2, adv_h2
-             do i = adv_l1, domlo(1)-1
-                adv(i,j,k,URHO) = rho0
-                adv(i,j,k,UMX) = rho0*v0
-                adv(i,j,k,UMY) = 0.e0_rt
-                adv(i,j,k,UMZ) = 0.e0_rt
-                adv(i,j,k,UFS) = adv(i,j,k,URHO)
-                if (naux > 0) then
-                   adv(i,j,k,UFX) = adv(i,j,k,URHO)           
-                end if
-                adv(i,j,k,UEINT) = eint0
-                adv(i,j,k,UEDEN) = etot0
-                adv(i,j,k,UTEMP) = T0
-             enddo
-          enddo
-       enddo
-    end if
 
-    !     XHI
-    if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
-       do k = adv_l3, adv_h3
-          do j = adv_l2, adv_h2
-             do i = domhi(1)+1, adv_h1
-                adv(i,j,k,URHO) = rho1
-                adv(i,j,k,UMX) = rho1*v1
-                adv(i,j,k,UMY) = 0.e0_rt
-                adv(i,j,k,UMZ) = 0.e0_rt
-                adv(i,j,k,UFS) = adv(i,j,k,URHO)
-                if (naux > 0) then
-                   adv(i,j,k,UFX) = adv(i,j,k,URHO)           
-                end if
-                adv(i,j,k,UEINT) = eint1
-                adv(i,j,k,UEDEN) = etot1
-                adv(i,j,k,UTEMP) = T1
-             end do
-          enddo
-       enddo
-    end if
+    do n = 1,NVAR
+       call filcc(adv(adv_l1,adv_l2,adv_l3,n),adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
+            domlo,domhi,delta,xlo,bc(1,1,n))
+    end do
+    
+    if (idir == 1) then
        
+       !XLO
+        if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
+           do k = adv_l3, adv_h3
+              do j = adv_l2, adv_h2
+                 do i = adv_l1, domlo(1)-1
+                    adv(i,j,k,URHO) = rho0
+                    adv(i,j,k,UMX) = rho0*v0
+                    adv(i,j,k,UMY) = 0.e0_rt
+                    adv(i,j,k,UMZ) = 0.e0_rt
+                    adv(i,j,k,UFS) = adv(i,j,k,URHO)
+                    if (naux > 0) then
+                       adv(i,j,k,UFX) = adv(i,j,k,URHO)
+                    end if
+                    adv(i,j,k,UEINT) = eint0
+                    adv(i,j,k,UEDEN) = etot0
+                    adv(i,j,k,UTEMP) = T0
+                 enddo
+              enddo
+           enddo
+        end if
+
+        !     XHI
+        if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
+           do k = adv_l3, adv_h3
+              do j = adv_l2, adv_h2
+                 do i = domhi(1)+1, adv_h1
+                    adv(i,j,k,URHO) = rho1
+                    adv(i,j,k,UMX) = rho1*v1
+                    adv(i,j,k,UMY) = 0.e0_rt
+                    adv(i,j,k,UMZ) = 0.e0_rt
+                    adv(i,j,k,UFS) = adv(i,j,k,URHO)
+                    if (naux > 0) then
+                       adv(i,j,k,UFX) = adv(i,j,k,URHO)
+                    end if
+                    adv(i,j,k,UEINT) = eint1
+                    adv(i,j,k,UEDEN) = etot1
+                    adv(i,j,k,UTEMP) = T1
+                 end do
+              enddo
+           enddo
+        end if
+
+      else if (idir == 2) then 
+         !YLO
+        if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
+           do k = adv_l3, adv_h3
+              do j = adv_l2, domlo(2)-1
+                 do i = adv_l1, adv_h1
+                    adv(i,j,k,URHO) = rho0
+                    adv(i,j,k,UMX) = 0.e0_rt
+                    adv(i,j,k,UMY) = rho0*v0
+                    adv(i,j,k,UMZ) = 0.e0_rt
+                    adv(i,j,k,UFS) = adv(i,j,k,URHO)
+                    if (naux > 0) then
+                       adv(i,j,k,UFX) = adv(i,j,k,URHO)
+                    end if
+                    adv(i,j,k,UEINT) = eint0
+                    adv(i,j,k,UEDEN) = etot0
+                    adv(i,j,k,UTEMP) = T0
+                 enddo
+              enddo
+           enddo
+        end if
+
+        !     YHI
+        if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
+           do k = adv_l3, adv_h3
+              do j = domhi(2)+1, adv_h2
+                 do i = adv_l1, adv_h1
+                    adv(i,j,k,URHO) = rho1
+                    adv(i,j,k,UMX) = 0.e0_rt
+                    adv(i,j,k,UMY) = rho1*v1
+                    adv(i,j,k,UMZ) = 0.e0_rt
+                    adv(i,j,k,UFS) = adv(i,j,k,URHO)
+                    if (naux > 0) then
+                       adv(i,j,k,UFX) = adv(i,j,k,URHO)
+                    end if
+                    adv(i,j,k,UEINT) = eint1
+                    adv(i,j,k,UEDEN) = etot1
+                    adv(i,j,k,UTEMP) = T1
+                 end do
+              enddo
+           enddo
+        end if
+
+      else if (idir == 3) then 
+         !ZLO
+        if ( bc(3,1,1).eq.EXT_DIR .and. adv_l3.lt.domlo(3)) then
+           do k = adv_l3, domlo(3)-1
+              do j = adv_l2, adv_h2
+                 do i = adv_l1, adv_h1
+                    adv(i,j,k,URHO) = rho0
+                    adv(i,j,k,UMX) = 0.e0_rt
+                    adv(i,j,k,UMY) = 0.e0_rt
+                    adv(i,j,k,UMZ) = rho0*v0
+                    adv(i,j,k,UFS) = adv(i,j,k,URHO)
+                    if (naux > 0) then
+                       adv(i,j,k,UFX) = adv(i,j,k,URHO)
+                    end if
+                    adv(i,j,k,UEINT) = eint0
+                    adv(i,j,k,UEDEN) = etot0
+                    adv(i,j,k,UTEMP) = T0
+                 enddo
+              enddo
+           enddo
+        end if
+
+        !     ZHI
+        if ( bc(3,2,1).eq.EXT_DIR .and. adv_h3.gt.domhi(3)) then
+           do k = domhi(3)+1, adv_h3
+              do j = adv_l2, adv_h2
+                 do i = adv_l1, adv_h1
+                    adv(i,j,k,URHO) = rho1
+                    adv(i,j,k,UMX) = 0.e0_rt
+                    adv(i,j,k,UMY) = 0.e0_rt
+                    adv(i,j,k,UMZ) = rho1*v1
+                    adv(i,j,k,UFS) = adv(i,j,k,URHO)
+                    if (naux > 0) then
+                       adv(i,j,k,UFX) = adv(i,j,k,URHO)
+                    end if
+                    adv(i,j,k,UEINT) = eint1
+                    adv(i,j,k,UEDEN) = etot1
+                    adv(i,j,k,UTEMP) = T1
+                 end do
+              enddo
+           enddo
+        end if
+
+      end if
+
+
   end subroutine ca_hypfill
 
-  ! ::: 
+  ! :::
   ! ::: -----------------------------------------------------------
   ! :::
 
@@ -137,31 +229,80 @@ contains
 
     call filcc(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,domlo,domhi,delta,xlo,bc)
 
-    !     XLO
-    if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
-       do k = adv_l3, adv_h3
-          do j = adv_l2, adv_h2
-             do i = adv_l1, domlo(1)-1
-                adv(i,j,k) = rho0
-             enddo
-          enddo
-       enddo
-    end if
+      if (idir == 1) then 
+        !     XLO
+        if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
+           do k = adv_l3, adv_h3
+              do j = adv_l2, adv_h2
+                 do i = adv_l1, domlo(1)-1
+                    adv(i,j,k) = rho0
+                 enddo
+              enddo
+           enddo
+        end if
 
-    !     XHI
-    if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
-       do k = adv_l3, adv_h3
-          do j = adv_l2, adv_h2
-             do i = domhi(1)+1, adv_h1
-                adv(i,j,k) = rho1
-             enddo
-          enddo
-       enddo
-    end if
+        !     XHI
+        if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
+           do k = adv_l3, adv_h3
+              do j = adv_l2, adv_h2
+                 do i = domhi(1)+1, adv_h1
+                    adv(i,j,k) = rho1
+                 enddo
+              enddo
+           enddo
+        end if
+
+      else if (idir == 2) then
+        !     YLO
+        if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
+           do k = adv_l3, adv_h3
+              do j = adv_l2, domlo(2)-1
+                 do i = adv_l1, adv_h1
+                    adv(i,j,k) = rho0
+                 enddo
+              enddo
+           enddo
+        end if
+
+        !     YHI
+        if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
+           do k = adv_l3, adv_h3
+              do j = domhi(2)+1, adv_h2
+                 do i = adv_l1, adv_h1
+                    adv(i,j,k) = rho1
+                 enddo
+              enddo
+           enddo
+        end if
+
+      else if (idir == 3) then 
+        !     ZLO
+        if ( bc(3,1,1).eq.EXT_DIR .and. adv_l3.lt.domlo(3)) then
+           do k = adv_l3, domlo(3)-1
+              do j = adv_l2, adv_h2
+                 do i = adv_l1, adv_h1
+                    adv(i,j,k) = rho0
+                 enddo
+              enddo
+           enddo
+        end if
+
+        !     ZHI
+        if ( bc(3,2,1).eq.EXT_DIR .and. adv_h3.gt.domhi(3)) then
+           do k = domhi(3)+1, adv_h3
+              do j = adv_l2, adv_h2
+                 do i = adv_l1, adv_h1
+                    adv(i,j,k) = rho1
+                 enddo
+              enddo
+           enddo
+        end if
+
+      end if
 
   end subroutine ca_denfill
 
-  ! ::: 
+  ! :::
   ! ::: -----------------------------------------------------------
   ! :::
 
@@ -179,12 +320,13 @@ contains
     real(rt)         :: delta(3), xlo(3), time
     real(rt)         :: phi(phi_l1:phi_h1,phi_l2:phi_h2,phi_l3:phi_h3)
 
-    call filcc(phi,phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3, &
+    !if (idir == 1) then
+       call filcc(phi,phi_l1,phi_l2,phi_l3,phi_h1,phi_h2,phi_h3, &
                domlo,domhi,delta,xlo,bc)
 
   end subroutine ca_phigravfill
 
-  ! ::: 
+  ! :::
   ! ::: -----------------------------------------------------------
   ! :::
 
@@ -210,27 +352,78 @@ contains
 
     call filcc(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,domlo,domhi,delta,xlo,bc)
 
-    !     XLO
-    if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
-       do k = adv_l3, adv_h3
-          do j = adv_l2, adv_h2
-             do i = adv_l1, domlo(1)-1
-                adv(i,j,k) = adv(domlo(1),j,k)
-             enddo
-          enddo
-       enddo
+
+    if (idir == 1) then !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      !     XLO
+      if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
+         do k = adv_l3, adv_h3
+            do j = adv_l2, adv_h2
+               do i = adv_l1, domlo(1)-1
+                 adv(i,j,k) = adv(domlo(1),j,k)
+               enddo
+            enddo
+         enddo
+      end if
+
+      !     XHI
+      if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
+         do k = adv_l3, adv_h3
+            do j = adv_l2, adv_h2
+               do i = domhi(1)+1, adv_h1
+                 adv(i,j,k) = adv(domhi(1),j,k)
+               enddo
+            enddo
+         enddo
+      end if
+
+    else if (idir == 2) then !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      !YLO
+      if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
+         do k = adv_l3, adv_h3
+            do j = adv_l2, domlo(2)-1
+               do i = adv_l1, adv_h1
+                 adv(i,j,k) = adv(i,domlo(2),k)
+               enddo
+            enddo
+         enddo
+      end if
+
+      !     YHI
+      if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
+         do k = adv_l3, adv_h3
+            do j = domhi(2)+1, adv_h2
+               do i = adv_l1, adv_h1
+                 adv(i,j,k) = adv(i,domhi(2),k)
+               enddo
+            enddo
+         enddo
+      end if
+
+    else if (idir == 3) then !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      !ZLO
+      if ( bc(3,1,1).eq.EXT_DIR .and. adv_l3.lt.domlo(3)) then
+         do k = adv_l3, domlo(3)-1
+            do j = adv_l2, adv_h2
+               do i = adv_l1, adv_h1
+                 adv(i,j,k) = adv(i,j,domlo(3))
+               enddo
+            enddo
+         enddo
+      end if
+
+      !     ZHI
+      if ( bc(3,2,1).eq.EXT_DIR .and. adv_h3.gt.domhi(3)) then
+         do k = domhi(3)+1, adv_h3
+            do j = adv_l2, adv_h2
+               do i = adv_l1, adv_h1
+                 adv(i,j,k) = adv(i,j,domhi(3))
+               enddo
+            enddo
+         enddo
+      end if
+
     end if
 
-    !     XHI
-    if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
-       do k = adv_l3, adv_h3
-          do j = adv_l2, adv_h2
-             do i = domhi(1)+1, adv_h1
-                adv(i,j,k) = adv(domhi(1),j,k)
-             enddo
-          enddo
-       enddo
-    end if
 
   end subroutine ca_radfill
 

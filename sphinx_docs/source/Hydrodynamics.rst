@@ -441,10 +441,6 @@ the total energy. These parameters are used as follows:
    discarding the results of the internal energy equation. Otherwise,
    we keep :math:`e` as it is.
 
-   Optionally we can also update :math:`E` so that it gains the difference of
-   the old and and new :math:`e`, by setting
-   castro.dual_energy_update_E_from_e to 1.
-
 -  :math:`\eta_3`: Similar to :math:`\eta_1`, if :math:`e_T > \eta_3 E`, we use
    :math:`e_T` for the purposes of our nuclear reactions, otherwise, we use
    :math:`e`.

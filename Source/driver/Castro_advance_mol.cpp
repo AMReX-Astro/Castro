@@ -80,8 +80,8 @@ Castro::do_advance_mol (Real time,
       // we'll reuse sources_for_hydro for this memory buffer at the moment
 
       for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.tilebox();
-        ca_make_cell_center(BL_TO_FORTRAN_BOX(bx),
+        const Box& gbx = mfi.growntilebox(1);
+        ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
                             BL_TO_FORTRAN_FAB(Sborder[mfi]),
                             BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]));
 
@@ -91,6 +91,9 @@ Castro::do_advance_mol (Real time,
     // we pass in the stage time here
     if (fourth_order) {
       do_old_sources(old_source, sources_for_hydro, time, dt, amr_iteration, amr_ncycle);
+
+      // fill the ghost cells for the sources
+      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
 
       // Note: this filled the ghost cells for us, so we can now convert to
       // cell averages.  This loop cannot be tiled.
@@ -106,6 +109,11 @@ Castro::do_advance_mol (Real time,
 
     } else {
       do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
+
+      // The individual source terms only calculate the source on the valid domain.
+      // FillPatch to get valid data in the ghost zones.
+      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
+
     }
 #endif
 
@@ -199,10 +207,11 @@ Castro::do_advance_mol (Real time,
   // always require State_Type to have 1 ghost cell?
   expand_state(Sborder, prev_time, 0, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+  AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
 
   expand_state(Sborder, cur_time, 1, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
-
+  AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
 
   // Do the second half of the reactions.
 

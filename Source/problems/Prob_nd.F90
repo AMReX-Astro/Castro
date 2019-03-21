@@ -11,28 +11,29 @@ end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
-!> @brief This routine is called at problem setup time and is used
-!! to initialize data on each grid.
-!!
-!! @note  all arrays have one cell of ghost zones surrounding
-!!        the grid interior.  Values in these cells need not
-!!        be set here.
-!!
-!! INPUTS/OUTPUTS:
-!!
-!! level     => amr level of grid
-!! time      => time at which to init data
-!! lo,hi     => index limits of grid interior (cell centered)
-!! nvar      => number of state components.
-!! state     <= scalar array
-!! dx        => cell size
-!! xlo, xhi  => physical locations of lower left and upper
-!!              right hand corner of grid.  (does not include
-!!		   ghost region).
-! ::: -----------------------------------------------------------
+
 subroutine ca_initdata(level,time,lo,hi,nvar, &
                        state,state_lo,state_hi, &
                        dx,xlo,xhi)
+    ! This routine is called at problem setup time and is used
+    ! to initialize data on each grid.
+    !
+    ! .. note::
+    !    all arrays have one cell of ghost zones surrounding
+    !    the grid interior.  Values in these cells need not
+    !    be set here.
+    !
+    ! INPUTS/OUTPUTS:
+    !
+    ! level     => amr level of grid
+    ! time      => time at which to init data
+    ! lo,hi     => index limits of grid interior (cell centered)
+    ! nvar      => number of state components.
+    ! state     <= scalar array
+    ! dx        => cell size
+    ! xlo, xhi  => physical locations of lower left and upper
+    !              right hand corner of grid.  (does not include
+    !		   ghost region).
 
   use amrex_error_module
 
