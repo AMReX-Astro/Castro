@@ -66,17 +66,28 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
   {
 
-    FArrayBox flux[AMREX_SPACEDIM];
-#if (AMREX_SPACEDIM <= 2)
-    FArrayBox pradial(Box::TheUnitBox(),1);
-#endif
-#ifdef RADIATION
-    FArrayBox rad_flux[AMREX_SPACEDIM];
-#endif
 
 #ifdef RADIATION
     int priv_nstep_fsp = -1;
 #endif
+
+    // Declare local storage now. This should be done outside the MFIter loop,
+    // and then we will resize the Fabs in each MFIter loop iteration. Then,
+    // we apply an Elixir to ensure that their memory is saved until it is no
+    // longer needed (only relevant for the asynchronous case, usually on GPUs).
+
+    FArrayBox flatn;
+    FArrayBox dq;
+    FArrayBox Ip, Im;
+    FArrayBox shk;
+    FArrayBox qm, qp;
+    FArrayBox div;
+    FArrayBox q_int;
+    FArrayBox flux[AMREX_SPACEDIM], qe[AMREX_SPACEDIM];
+#if AMREX_SPACEDIM <= 2
+    FArrayBox pradial;
+#endif
+
     // The fourth order stuff cannot do tiling because of the Laplacian corrections
     for (MFIter mfi(S_new, (fourth_order) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
       {
@@ -125,7 +136,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
         if (fourth_order) {
           ca_fourth_single_stage
-            (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+            (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), &time,
+             ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &stage_weight,
              BL_TO_FORTRAN_ANYD(statein),
              BL_TO_FORTRAN_ANYD(stateout),
@@ -162,6 +174,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           // second order method
 
+          const Box& obx = amrex::grow(bx, 1);
+
           // get div{U} -- we'll use this for artificial viscosity
           divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -169,6 +183,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                BL_TO_FORTRAN_ANYD(div));
 
           // get the flattening coefficient
+          flatn.resize(obx, 1);
+          Elixir elix_flatn = flatn.elixir();
+
           if (first_order_hydro == 1) {
             flatn = 0.0;
           } else if (use_flattening == 1) {
@@ -181,9 +198,23 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           }
 
           // get the interface states and shock variable
+
+          shk.resize(obx, 1);
+          Elixir elix_shk = shk.elixir();
+
+          qm.resize(obx, NQ*AMREX_SPACEDIM);
+          Elixir elix_qm = qm.elixir();
+
+          qp.resize(obx, NQ*AMREX_SPACEDIM);
+          Elixir elix_qp = qp.elixir();
+
           if (ppm_type == 0) {
+
+            dq.resize(obx, NQ);
+            Elixir elix_dq = dq.elixir();
+
             ca_mol_plm_reconstruct
-              (ARLIM_INT_ANYD(obx.loVect()), ARLIM_INT_ANYD(obx.hiVect()),
+              (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                BL_TO_FORTRAN_ANYD(q[mfi]),
                BL_TO_FORTRAN_ANYD(flatn),
                BL_TO_FORTRAN_ANYD(shk),
@@ -194,12 +225,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           } else {
             ca_mol_ppm_reconstruct
-              (ARLIM_INT_ANYD(obx.loVect()), ARLIM_INT_ANYD(obx.hiVect()),
+              (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                BL_TO_FORTRAN_ANYD(q[mfi]),
                BL_TO_FORTRAN_ANYD(flatn),
                BL_TO_FORTRAN_ANYD(shk),
-               BL_TO_FORTRAN_ANYD(Ip),
-               BL_TO_FORTRAN_ANYD(Im),
                BL_TO_FORTRAN_ANYD(qm),
                BL_TO_FORTRAN_ANYD(qp),
                ZFILL(dx));
@@ -207,6 +236,22 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           // compute the fluxes, add artificial viscosity, and
           // normalize species
+
+          // do we need these grown?
+          const Box& xbx = amrex::surroundingNodes(bx, 0);
+          const Box& gxbx = amrex::grow(xbx, 1);
+#if AMREX_SPACEDIM >= 2
+          const Box& ybx = amrex::surroundingNodes(bx, 1);
+          const Box& gybx = amrex::grow(ybx, 1);
+#endif
+#if AMREX_SPACEDIM == 3
+          const Box& zbx = amrex::surroundingNodes(bx, 2);
+          const Box& gzbx = amrex::grow(zbx, 1);
+#endif
+
+          q_int.resize(obx, NQ);
+          Elixir elix_q_int = q_int.elixir();
+
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
             const Box& nbx = amrex::surroundingNodes(bx, idir);
@@ -218,7 +263,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                BL_TO_FORTRAN_ANYD(qm),
                BL_TO_FORTRAN_ANYD(qp), AMREX_SPACEDIM, idir_f,
                BL_TO_FORTRAN_ANYD(flux[idir]),
-               BL_TO_FORTRAN_ANYD(qi[idir]),
+               BL_TO_FORTRAN_ANYD(q_int),
                BL_TO_FORTRAN_ANYD(qe[idir]),
                BL_TO_FORTRAN_ANYD(qaux[mfi]),
                BL_TO_FORTRAN_ANYD(shk),
@@ -263,7 +308,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              BL_TO_FORTRAN_ANYD(source_in),
              BL_TO_FORTRAN_ANYD(source_out),
              BL_TO_FORTRAN_ANYD(source_hydro_only),
-             ZFILL(dx), &dt,
+             ZFILL(dx), dt,
              BL_TO_FORTRAN_ANYD(flux[0]),
 #if AMREX_SPACEDIM >= 2
              BL_TO_FORTRAN_ANYD(flux[1]),

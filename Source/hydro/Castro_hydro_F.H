@@ -480,8 +480,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(shk),
-     BL_FORT_FAB_ARG_3D(Ip),
-     BL_FORT_FAB_ARG_3D(Im),
      BL_FORT_FAB_ARG_3D(qm),
      BL_FORT_FAB_ARG_3D(qp),
      const amrex::Real* dx);

@@ -14,20 +14,11 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
                                  UTEMP, USHK, UMX, &
                                  use_flattening, QPRES, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
-                                 first_order_hydro, difmag, hybrid_riemann, &
-                                 limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
-  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, &
-                                    normalize_species_fluxes, calc_pdivu, &
-                                    scale_flux, apply_av
+                                 first_order_hydro, hybrid_riemann, &
+                                 ppm_temp_fix
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-  use riemann_module, only: cmpflx
   use slope_module, only : uslope
-  use riemann_util_module, only : ca_store_godunov_state
-  use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
-#ifdef HYBRID_MOMENTUM
-  use hybrid_advection_module, only : add_hybrid_advection_source
-#endif
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec, naux
@@ -180,8 +171,6 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
                                   q, q_lo, q_hi, &
                                   flatn, fl_lo, fl_hi, &
                                   shk, shk_lo, shk_hi, &
-                                  Ip, Ip_lo, Ip_hi, &
-                                  Im, Im_lo, Im_hi, &
                                   qm, qm_lo, qm_hi, &
                                   qp, qp_lo, qp_hi, &
                                   dx) bind(C, name="ca_mol_ppm_reconstruct")
@@ -191,20 +180,11 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
                                  UTEMP, USHK, UMX, &
                                  use_flattening, QPRES, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
-                                 first_order_hydro, difmag, hybrid_riemann, &
-                                 limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
-  use advection_util_module, only : limit_hydro_fluxes_on_small_dens, &
-                                    normalize_species_fluxes, calc_pdivu, &
-                                    scale_flux, apply_av
+                                 first_order_hydro, hybrid_riemann, &
+                                 ppm_temp_fix
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-  use riemann_module, only: cmpflx
-  use slope_module, only : uslope
-  use riemann_util_module, only : ca_store_godunov_state
   use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
-#ifdef HYBRID_MOMENTUM
-  use hybrid_advection_module, only : add_hybrid_advection_source
-#endif
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec, naux
@@ -217,14 +197,10 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
   integer, intent(in) :: q_lo(3), q_hi(3)
   integer, intent(in) :: fl_lo(3), fl_hi(3)
   integer, intent(in) :: shk_lo(3), shk_hi(3)
-  integer, intent(in) :: Ip_lo(3), Ip_hi(3)
-  integer, intent(in) :: Im_lo(3), Im_hi(3)
 
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(in) :: flatn(fl_lo(1):fl_hi(1), fl_lo(2):fl_hi(2), fl_lo(3):fl_hi(3))
   real(rt), intent(inout) :: shk(shk_lo(1):shk_hi(1), shk_lo(2):shk_hi(2), shk_lo(3):shk_hi(3))
-  real(rt), intent(inout) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
-  real(rt), intent(inout) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
   real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ, AMREX_SPACEDIM)
   real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ, AMREX_SPACEDIM)
   real(rt), intent(in) :: dx(3)
@@ -329,16 +305,11 @@ subroutine ca_mol_consup(lo, hi, &
                                  first_order_hydro, difmag, hybrid_riemann, &
                                  limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-  use riemann_module, only: cmpflx
   use slope_module, only : uslope
-  use riemann_util_module, only : ca_store_godunov_state
-  use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
   use hybrid_advection_module, only : add_hybrid_advection_source
 #endif
-  use eos_type_module, only : eos_t, eos_input_rt
-  use eos_module, only : eos
   use network, only : nspec, naux
   use prob_params_module, only : dg, coord_type
 
