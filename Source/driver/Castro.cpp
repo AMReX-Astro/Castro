@@ -475,6 +475,15 @@ Castro::read_params ()
 #endif
 #endif
 
+   // SCF initial model construction can only be done if both
+   // rotation and gravity have been compiled in.
+
+#if (!defined(GRAVITY) || !defined(ROTATION))
+   if (do_scf_initial_model) {
+       amrex::Error("SCF initial model construction is only permitted if USE_GRAV=TRUE and USE_ROTATION=TRUE at compile time.");
+   }
+#endif
+
    StateDescriptor::setBndryFuncThreadSafety(bndry_func_thread_safe);
 
    ParmParse ppa("amr");
@@ -2163,6 +2172,16 @@ Castro::post_init (Real stop_time)
 
     problem_post_init();
 
+#endif
+
+    // If we're doing SCF initialization, do it here.
+
+#ifdef GRAVITY
+#ifdef ROTATION
+    if (do_scf_initial_model) {
+        scf_relaxation();
+    }
+#endif
 #endif
 
         int nstep = parent->levelSteps(0);
