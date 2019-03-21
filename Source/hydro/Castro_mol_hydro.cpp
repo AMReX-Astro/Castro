@@ -127,7 +127,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           ca_fourth_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &stage_weight,
-             BL_TO_FORTRAN_ANYD(statein), 
+             BL_TO_FORTRAN_ANYD(statein),
              BL_TO_FORTRAN_ANYD(stateout),
              BL_TO_FORTRAN_ANYD(q[mfi]),
              BL_TO_FORTRAN_ANYD(q_bar[mfi]),
@@ -181,27 +181,86 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           }
 
           // get the interface states and shock variable
-          ca_mol_reconstruct
-            (ARLIM_INT_ANYD(obx.loVect()), ARLIM_INT_ANYD(obx.hiVect()),
-             BL_TO_FORTRAN_ANYD(q[mfi]),
-             BL_TO_FORTRAN_ANYD(flatn),
-             BL_TO_FORTRAN_ANYD(qm),
-             BL_TO_FORTRAN_ANYD(qp),
-             ZFILL(dx));
+          if (ppm_type == 0) {
+            ca_mol_plm_reconstruct
+              (ARLIM_INT_ANYD(obx.loVect()), ARLIM_INT_ANYD(obx.hiVect()),
+               BL_TO_FORTRAN_ANYD(q[mfi]),
+               BL_TO_FORTRAN_ANYD(flatn),
+               BL_TO_FORTRAN_ANYD(shk),
+               BL_TO_FORTRAN_ANYD(dq),
+               BL_TO_FORTRAN_ANYD(qm),
+               BL_TO_FORTRAN_ANYD(qp),
+               ZFILL(dx));
 
-          // compute the fluxes
+          } else {
+            ca_mol_ppm_reconstruct
+              (ARLIM_INT_ANYD(obx.loVect()), ARLIM_INT_ANYD(obx.hiVect()),
+               BL_TO_FORTRAN_ANYD(q[mfi]),
+               BL_TO_FORTRAN_ANYD(flatn),
+               BL_TO_FORTRAN_ANYD(shk),
+               BL_TO_FORTRAN_ANYD(Ip),
+               BL_TO_FORTRAN_ANYD(Im),
+               BL_TO_FORTRAN_ANYD(qm),
+               BL_TO_FORTRAN_ANYD(qp),
+               ZFILL(dx));
+          }
+
+          // compute the fluxes, add artificial viscosity, and
+          // normalize species
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+            int idir_f = idir + 1;
+
+            cmpflx_plus_godunov
+              (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+               BL_TO_FORTRAN_ANYD(qm),
+               BL_TO_FORTRAN_ANYD(qp), AMREX_SPACEDIM, idir_f,
+               BL_TO_FORTRAN_ANYD(flux[idir]),
+               BL_TO_FORTRAN_ANYD(qi[idir]),
+               BL_TO_FORTRAN_ANYD(qe[idir]),
+               BL_TO_FORTRAN_ANYD(qaux[mfi]),
+               BL_TO_FORTRAN_ANYD(shk),
+               idir_f, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+            // set UTEMP and USHK fluxes to zero
+
+            apply_av
+              (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+               idir_f, AMREX_REAL_ANYD(dx),
+               BL_TO_FORTRAN_ANYD(div),
+               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+               BL_TO_FORTRAN_ANYD(flux[idir]));
+
+            if (limit_fluxes_on_small_dens == 1) {
+#pragma gpu
+              limit_hydro_fluxes_on_small_dens
+                  (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                   idir_f,
+                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(volume[mfi]),
+                   BL_TO_FORTRAN_ANYD(flux[idir]),
+                   BL_TO_FORTRAN_ANYD(area[idir][mfi]),
+                   dt, AMREX_REAL_ANYD(dx));
+            }
+
+            normalize_species_fluxes
+              (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+               BL_TO_FORTRAN_ANYD(flux[idir]));
+
+          }
+
 
           // do the conservative update -- and store the shock variable
 
-          ca_mol_single_stage
-            (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
+          ca_mol_consup
+            (ARLIM_3D(lo), ARLIM_3D(hi),
              &stage_weight,
              BL_TO_FORTRAN_ANYD(statein),
              BL_TO_FORTRAN_ANYD(stateout),
-             BL_TO_FORTRAN_ANYD(q[mfi]),
-             BL_TO_FORTRAN_ANYD(qaux[mfi]),
              BL_TO_FORTRAN_ANYD(source_in),
-             BL_TO_FORTRAN_ANYD(div)
              BL_TO_FORTRAN_ANYD(source_out),
              BL_TO_FORTRAN_ANYD(source_hydro_only),
              ZFILL(dx), &dt,
@@ -219,21 +278,21 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM == 3
              BL_TO_FORTRAN_ANYD(area[2][mfi]),
 #endif
-#if (AMREX_SPACEDIM < 3)
-             BL_TO_FORTRAN_ANYD(pradial),
-             BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
-#endif
              BL_TO_FORTRAN_ANYD(volume[mfi]),
              verbose);
         }
 
+
+        // scale the fluxes
+
+
 	// Store the fluxes from this advance -- we weight them by the
 	// integrator weight for this stage
 	for (int i = 0; i < AMREX_SPACEDIM ; i++) {
-	  (*fluxes[i])[mfi].saxpy(stage_weight, flux[i], 
+	  (*fluxes[i])[mfi].saxpy(stage_weight, flux[i],
                                   mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, NUM_STATE);
 #ifdef RADIATION
-	  (*rad_fluxes[i])[mfi].saxpy(stage_weight, rad_flux[i], 
+	  (*rad_fluxes[i])[mfi].saxpy(stage_weight, rad_flux[i],
 				      mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, Radiation::nGroups);
 #endif
 	}

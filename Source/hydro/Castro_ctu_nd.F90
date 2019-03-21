@@ -11,46 +11,46 @@ module ctu_module
 contains
 
   subroutine ctu_ppm_states(lo, hi, &
-       vlo, vhi, &
-       q, qd_lo, qd_hi, &
-       flatn, f_lo, f_hi, &
-       qaux, qa_lo, qa_hi, &
-       srcQ, src_lo, src_hi, &
-       shk, sk_lo, sk_hi, &
-       Ip, Ip_lo, Ip_hi, &
-       Im, Im_lo, Im_hi, &
-       Ip_src, Ips_lo, Ips_hi, &
-       Im_src, Ims_lo, Ims_hi, &
-       Ip_gc, Ipg_lo, Ipg_hi, &
-       Im_gc, Img_lo, Img_hi, &
-       sm, sm_lo, sm_hi, &
-       sp, sp_lo, sp_hi, &
-       qxm, qxm_lo, qxm_hi, &
-       qxp, qxp_lo, qxp_hi, &
+                            vlo, vhi, &
+                            q, qd_lo, qd_hi, &
+                            flatn, f_lo, f_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            srcQ, src_lo, src_hi, &
+                            shk, sk_lo, sk_hi, &
+                            Ip, Ip_lo, Ip_hi, &
+                            Im, Im_lo, Im_hi, &
+                            Ip_src, Ips_lo, Ips_hi, &
+                            Im_src, Ims_lo, Ims_hi, &
+                            Ip_gc, Ipg_lo, Ipg_hi, &
+                            Im_gc, Img_lo, Img_hi, &
+                            sm, sm_lo, sm_hi, &
+                            sp, sp_lo, sp_hi, &
+                            qxm, qxm_lo, qxm_hi, &
+                            qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM >= 2
-       qym, qym_lo, qym_hi, &
-       qyp, qyp_lo, qyp_hi, &
+                            qym, qym_lo, qym_hi, &
+                            qyp, qyp_lo, qyp_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       qzm, qzm_lo, qzm_hi, &
-       qzp, qzp_lo, qzp_hi, &
+                            qzm, qzm_lo, qzm_hi, &
+                            qzp, qzp_lo, qzp_hi, &
 #endif
-       dx, dt, &
+                            dx, dt, &
 #if AMREX_SPACEDIM < 3
-       dloga, dloga_lo, dloga_hi, &
+                            dloga, dloga_lo, dloga_hi, &
 #endif
-       domlo, domhi) bind(C, name="ctu_ppm_states")
+                            domlo, domhi) bind(C, name="ctu_ppm_states")
     ! Compute the normal interface states by reconstructing
     ! the primitive variables using the piecewise parabolic method
     ! and doing characteristic tracing.  We do not apply the
     ! transverse terms here.
 
     use meth_params_module, only : NQSRC, NQ, NVAR, &
-         QFS, QFX, QTEMP, QREINT, &
-         QC, QGAMC, NQAUX, QGAME, QREINT, &
-         NGDNV, GDU, GDV, GDW, GDPRES, &
-         ppm_predict_gammae, ppm_temp_fix, &
-         hybrid_riemann
+                                   QFS, QFX, QTEMP, QREINT, &
+                                   QC, QGAMC, NQAUX, QGAME, QREINT, &
+                                   NGDNV, GDU, GDV, GDW, GDPRES, &
+                                   ppm_predict_gammae, ppm_temp_fix, &
+                                   hybrid_riemann
     use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -148,9 +148,9 @@ contains
     ! hybrid Riemann solver
     if (hybrid_riemann == 1 .or. compute_shock) then
        call ca_shock(lo, hi, &
-            q, qd_lo, qd_hi, &
-            shk, sk_lo, sk_hi, &
-            dx)
+                     q, qd_lo, qd_hi, &
+                     shk, sk_lo, sk_hi, &
+                     dx)
     else
        shk(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = ZERO
     endif
@@ -196,49 +196,49 @@ contains
           if (.not. reconstruct_state(n)) cycle
 
           call ca_ppm_reconstruct(lo, hi, 0, idir, &
-               q, qd_lo, qd_hi, NQ, n, n, &
-               flatn, f_lo, f_hi, &
-               sm, sm_lo, sm_hi, &
-               sp, sp_lo, sp_hi, &
-               1, 1, 1)
+                                  q, qd_lo, qd_hi, NQ, n, n, &
+                                  flatn, f_lo, f_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  1, 1, 1)
 
           call ppm_int_profile(lo, hi, idir, &
-               q, qd_lo, qd_hi, NQ, n, &
-               q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               sm, sm_lo, sm_hi, &
-               sp, sp_lo, sp_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, NQ, n, &
-               dx, dt)
+                               q, qd_lo, qd_hi, NQ, n, &
+                               q, qd_lo, qd_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sm, sm_lo, sm_hi, &
+                               sp, sp_lo, sp_hi, &
+                               Ip, Ip_lo, Ip_hi, &
+                               Im, Im_lo, Im_hi, NQ, n, &
+                               dx, dt)
        end do
 
 
        if (ppm_temp_fix /= 1) then
           call ca_ppm_reconstruct(lo, hi, 0, idir, &
-               qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
-               flatn, f_lo, f_hi, &
-               sm, sm_lo, sm_hi, &
-               sp, sp_lo, sp_hi, &
-               1, 1, 1)
+                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
+                                  flatn, f_lo, f_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  1, 1, 1)
 
           call ppm_int_profile(lo, hi, idir, &
-               qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-               q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               sm, sm_lo, sm_hi, &
-               sp, sp_lo, sp_hi, &
-               Ip_gc, Ipg_lo, Ipg_hi, &
-               Im_gc, Img_lo, Img_hi, 1, 1, &
+                               qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                               q, qd_lo, qd_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sm, sm_lo, sm_hi, &
+                               sp, sp_lo, sp_hi, &
+                               Ip_gc, Ipg_lo, Ipg_hi, &
+                               Im_gc, Img_lo, Img_hi, 1, 1, &
                dx, dt)
        else
 
           ! temperature-based PPM
           call ppm_reconstruct_with_eos(lo, hi, idir, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_gc, Ipg_lo, Ipg_hi, &
-               Im_gc, Img_lo, Img_hi)
+                                        Ip, Ip_lo, Ip_hi, &
+                                        Im, Im_lo, Im_hi, &
+                                        Ip_gc, Ipg_lo, Ipg_hi, &
+                                        Im_gc, Img_lo, Img_hi)
 
        end if
 
@@ -247,21 +247,21 @@ contains
        do n = 1, NQSRC
           if (source_nonzero(n)) then
              call ca_ppm_reconstruct(lo, hi, 0, idir, &
-                  srcQ, src_lo, src_hi, NQSRC, n, n, &
-                  flatn, f_lo, f_hi, &
-                  sm, sm_lo, sm_hi, &
-                  sp, sp_lo, sp_hi, &
-                  1, 1, 1)
+                                     srcQ, src_lo, src_hi, NQSRC, n, n, &
+                                     flatn, f_lo, f_hi, &
+                                     sm, sm_lo, sm_hi, &
+                                     sp, sp_lo, sp_hi, &
+                                     1, 1, 1)
 
              call ppm_int_profile(lo, hi, idir, &
-                  srcQ, src_lo, src_hi, NQSRC, n, &
-                  q, qd_lo, qd_hi, &
-                  qaux, qa_lo, qa_hi, &
-                  sm, sm_lo, sm_hi, &
-                  sp, sp_lo, sp_hi, &
-                  Ip_src, Ips_lo, Ips_hi, &
-                  Im_src, Ims_lo, Ims_hi, NQSRC, n, &
-                  dx, dt)
+                                  srcQ, src_lo, src_hi, NQSRC, n, &
+                                  q, qd_lo, qd_hi, &
+                                  qaux, qa_lo, qa_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  Ip_src, Ips_lo, Ips_hi, &
+                                  Im_src, Ims_lo, Ims_hi, NQSRC, n, &
+                                  dx, dt)
           else
              Ip_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,n) = ZERO
              Im_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,n) = ZERO
@@ -275,108 +275,108 @@ contains
 #ifdef RADIATION
        if (idir == 1) then
           call trace_ppm_rad(lo, hi, &
-               1, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               qxm, qxm_lo, qxm_hi, &
-               qxp, qxp_lo, qxp_hi, &
+                             1, q, qd_lo, qd_hi, &
+                             qaux, qa_lo, qa_hi, &
+                             Ip, Ip_lo, Ip_hi, &
+                             Im, Im_lo, Im_hi, &
+                             Ip_src, Ips_lo, Ips_hi, &
+                             Im_src, Ims_lo, Ims_hi, &
+                             qxm, qxm_lo, qxm_hi, &
+                             qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM <= 2
-               dloga, dloga_lo, dloga_hi, &
+                             dloga, dloga_lo, dloga_hi, &
 #endif
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                             vlo, vhi, domlo, domhi, &
+                             dx, dt)
 
 #if AMREX_SPACEDIM >= 2
        else if (idir == 2) then
           call trace_ppm_rad(lo, hi, &
-               2, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               qym, qym_lo, qym_hi, &
-               qyp, qyp_lo, qyp_hi, &
+                             2, q, qd_lo, qd_hi, &
+                             qaux, qa_lo, qa_hi, &
+                             Ip, Ip_lo, Ip_hi, &
+                             Im, Im_lo, Im_hi, &
+                             Ip_src, Ips_lo, Ips_hi, &
+                             Im_src, Ims_lo, Ims_hi, &
+                             qym, qym_lo, qym_hi, &
+                             qyp, qyp_lo, qyp_hi, &
 #if AMREX_SPACEDIM == 2
-               dloga, dloga_lo, dloga_hi, &
+                             dloga, dloga_lo, dloga_hi, &
 #endif
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                             vlo, vhi, domlo, domhi, &
+                             dx, dt)
 #endif
 
 #if AMREX_SPACEDIM == 3
        else
           call trace_ppm_rad(lo, hi, &
-               3, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               qzm, qzm_lo, qzm_hi, &
-               qzp, qzp_lo, qzp_hi, &
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                             3, q, qd_lo, qd_hi, &
+                             qaux, qa_lo, qa_hi, &
+                             Ip, Ip_lo, Ip_hi, &
+                             Im, Im_lo, Im_hi, &
+                             Ip_src, Ips_lo, Ips_hi, &
+                             Im_src, Ims_lo, Ims_hi, &
+                             qzm, qzm_lo, qzm_hi, &
+                             qzp, qzp_lo, qzp_hi, &
+                             vlo, vhi, domlo, domhi, &
+                             dx, dt)
 #endif
        endif
 #else
        ! hydro (no radiation)
        if (idir == 1) then
           call trace_ppm(lo, hi, &
-               1, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               Ip_gc, Ipg_lo, Ipg_hi, &
-               Im_gc, Img_lo, Img_hi, &
-               qxm, qxm_lo, qxm_hi, &
-               qxp, qxp_lo, qxp_hi, &
+                         1, q, qd_lo, qd_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         Ip, Ip_lo, Ip_hi, &
+                         Im, Im_lo, Im_hi, &
+                         Ip_src, Ips_lo, Ips_hi, &
+                         Im_src, Ims_lo, Ims_hi, &
+                         Ip_gc, Ipg_lo, Ipg_hi, &
+                         Im_gc, Img_lo, Img_hi, &
+                         qxm, qxm_lo, qxm_hi, &
+                         qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM <= 2
-               dloga, dloga_lo, dloga_hi, &
+                         dloga, dloga_lo, dloga_hi, &
 #endif
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                         vlo, vhi, domlo, domhi, &
+                         dx, dt)
 
 #if AMREX_SPACEDIM >= 2
        else if (idir == 2) then
           call trace_ppm(lo, hi, &
-               2, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               Ip_gc, Ipg_lo, Ipg_hi, &
-               Im_gc, Img_lo, Img_hi, &
-               qym, qym_lo, qym_hi, &
-               qyp, qyp_lo, qyp_hi, &
+                         2, q, qd_lo, qd_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         Ip, Ip_lo, Ip_hi, &
+                         Im, Im_lo, Im_hi, &
+                         Ip_src, Ips_lo, Ips_hi, &
+                         Im_src, Ims_lo, Ims_hi, &
+                         Ip_gc, Ipg_lo, Ipg_hi, &
+                         Im_gc, Img_lo, Img_hi, &
+                         qym, qym_lo, qym_hi, &
+                         qyp, qyp_lo, qyp_hi, &
 #if AMREX_SPACEDIM == 2
-               dloga, dloga_lo, dloga_hi, &
+                         dloga, dloga_lo, dloga_hi, &
 #endif
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                         vlo, vhi, domlo, domhi, &
+                         dx, dt)
 #endif
 
 #if AMREX_SPACEDIM == 3
        else
           call trace_ppm(lo, hi, &
-               3, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               Ip_gc, Ipg_lo, Ipg_hi, &
-               Im_gc, Img_lo, Img_hi, &
-               qzm, qzm_lo, qzm_hi, &
-               qzp, qzp_lo, qzp_hi, &
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                         3, q, qd_lo, qd_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         Ip, Ip_lo, Ip_hi, &
+                         Im, Im_lo, Im_hi, &
+                         Ip_src, Ips_lo, Ips_hi, &
+                         Im_src, Ims_lo, Ims_hi, &
+                         Ip_gc, Ipg_lo, Ipg_hi, &
+                         Im_gc, Img_lo, Img_hi, &
+                         qzm, qzm_lo, qzm_hi, &
+                         qzp, qzp_lo, qzp_hi, &
+                         vlo, vhi, domlo, domhi, &
+                         dx, dt)
 #endif
        end if
 #endif
@@ -387,28 +387,28 @@ contains
 
 
   subroutine ctu_plm_states(lo, hi, &
-       vlo, vhi, &
-       q, qd_lo, qd_hi, &
-       flatn, f_lo, f_hi, &
-       qaux, qa_lo, qa_hi, &
-       srcQ, src_lo, src_hi, &
-       shk, sk_lo, sk_hi, &
-       dq, dq_lo, dq_hi, &
-       qxm, qxm_lo, qxm_hi, &
-       qxp, qxp_lo, qxp_hi, &
+                            vlo, vhi, &
+                            q, qd_lo, qd_hi, &
+                            flatn, f_lo, f_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            srcQ, src_lo, src_hi, &
+                            shk, sk_lo, sk_hi, &
+                            dq, dq_lo, dq_hi, &
+                            qxm, qxm_lo, qxm_hi, &
+                            qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM >= 2
-       qym, qym_lo, qym_hi, &
-       qyp, qyp_lo, qyp_hi, &
+                            qym, qym_lo, qym_hi, &
+                            qyp, qyp_lo, qyp_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       qzm, qzm_lo, qzm_hi, &
-       qzp, qzp_lo, qzp_hi, &
+                            qzm, qzm_lo, qzm_hi, &
+                            qzp, qzp_lo, qzp_hi, &
 #endif
-       dx, dt, &
+                            dx, dt, &
 #if AMREX_SPACEDIM < 3
-       dloga, dloga_lo, dloga_hi, &
+                            dloga, dloga_lo, dloga_hi, &
 #endif
-       domlo, domhi) bind(C, name="ctu_plm_states")
+                            domlo, domhi) bind(C, name="ctu_plm_states")
     ! Compute the normal interface states by reconstructing
     ! the primitive variables using piecewise linear slopes and doing
     ! characteristic tracing.  We do not apply the transverse terms here.

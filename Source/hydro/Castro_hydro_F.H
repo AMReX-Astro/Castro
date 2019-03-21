@@ -465,19 +465,36 @@ extern "C"
                const BL_FORT_FAB_ARG_3D(qy),
                const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdy);
 
-  void ca_mol_single_stage
+  void ca_mol_plm_reconstruct
     (const int* lo, const int* hi,
-     const amrex::Real* time,
-     const int* domlo, const int* domhi,
+     BL_FORT_FAB_ARG_3D(q),
+     const BL_FORT_FAB_ARG_3D(flatn),
+     BL_FORT_FAB_ARG_3D(shk),
+     BL_FORT_FAB_ARG_3D(dq),
+     BL_FORT_FAB_ARG_3D(qm),
+     BL_FORT_FAB_ARG_3D(qp),
+     const amrex::Real* dx);
+
+  void ca_mol_ppm_reconstruct
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(q),
+     const BL_FORT_FAB_ARG_3D(flatn),
+     BL_FORT_FAB_ARG_3D(shk),
+     BL_FORT_FAB_ARG_3D(Ip),
+     BL_FORT_FAB_ARG_3D(Im),
+     BL_FORT_FAB_ARG_3D(qm),
+     BL_FORT_FAB_ARG_3D(qp),
+     const amrex::Real* dx);
+
+  void ca_mol_consup
+    (const int* lo, const int* hi,
      const amrex::Real *stage_weight,
      const BL_FORT_FAB_ARG_3D(statein),
      BL_FORT_FAB_ARG_3D(stateout),
-     BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(qaux),
      const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update),
      BL_FORT_FAB_ARG_3D(update_flux),
-     const amrex::Real* dx, const amrex::Real* dt,
+     const amrex::Real* dx, const amrex::Real dt,
      BL_FORT_FAB_ARG_3D(flux1),
 #if AMREX_SPACEDIM >= 2
      BL_FORT_FAB_ARG_3D(flux2),
@@ -494,9 +511,6 @@ extern "C"
 #endif
 #if AMREX_SPACEDIM == 3
      const BL_FORT_FAB_ARG_3D(area3),
-#endif
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(dloga),
 #endif
      const BL_FORT_FAB_ARG_3D(volume),
      const int& verbose);
