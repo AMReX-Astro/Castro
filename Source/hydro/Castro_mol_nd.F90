@@ -48,6 +48,8 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
   logical :: compute_shock
   type (eos_t) :: eos_state
 
+  !$gpu
+
 #ifdef SHOCK_VAR
   compute_shock = .true.
 #else
@@ -213,6 +215,7 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
   logical :: compute_shock
   type (eos_t) :: eos_state
 
+  !$gpu
 
 #ifdef SHOCK_VAR
   compute_shock = .true.
@@ -375,6 +378,8 @@ subroutine ca_mol_consup(lo, hi, &
   real(rt), intent(in), value :: dt
 
   integer :: i, j, k, n
+
+  !$gpu
 
   ! For hydro, we will create an update source term that is
   ! essentially the flux divergence.  This can be added with dt to

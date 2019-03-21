@@ -151,6 +151,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           div.resize(obx, 1);
           Elixir elix_div = div.elixir();
 
+#pragma gpu
           divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                BL_TO_FORTRAN_ANYD(q[mfi]),
                AMREX_REAL_ANYD(dx),
@@ -163,6 +164,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           if (first_order_hydro == 1) {
             flatn = 0.0;
           } else if (use_flattening == 1) {
+#pragma gpu
             ca_uflatten
               (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -187,6 +189,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             dq.resize(obx, NQ);
             Elixir elix_dq = dq.elixir();
 
+#pragma gpu
             ca_mol_plm_reconstruct
               (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -198,6 +201,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                ZFILL(dx));
 
           } else {
+
+#pragma gpu
             ca_mol_ppm_reconstruct
               (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -261,6 +266,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             int idir_f = idir + 1;
 
+#pragma gpu
             cmpflx_plus_godunov
               (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                BL_TO_FORTRAN_ANYD(qm),
@@ -289,6 +295,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
             // apply artificial viscosity
+#pragma gpu
             apply_av
               (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                idir_f, AMREX_REAL_ANYD(dx),
@@ -311,6 +318,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             }
 
             // ensure that the species fluxes are normalized
+#pragma gpu
             normalize_species_fluxes
               (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                BL_TO_FORTRAN_ANYD(flux[idir]));
@@ -319,7 +327,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
           // do the conservative update -- and store the shock variable
-
+#pragma gpu
           ca_mol_consup
             (ARLIM_3D(lo), ARLIM_3D(hi),
              &stage_weight,
