@@ -373,8 +373,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM == 3
              BL_TO_FORTRAN_ANYD(area[2][mfi]),
 #endif
-             BL_TO_FORTRAN_ANYD(volume[mfi]),
-             verbose);
+             BL_TO_FORTRAN_ANYD(volume[mfi]));
 
 
           // scale the fluxes -- note the fourth_order routine does this

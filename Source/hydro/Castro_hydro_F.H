@@ -500,9 +500,6 @@ extern "C"
 #if AMREX_SPACEDIM == 3
      BL_FORT_FAB_ARG_3D(flux3),
 #endif
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(pradial),
-#endif
      const BL_FORT_FAB_ARG_3D(area1),
 #if AMREX_SPACEDIM >= 2
      const BL_FORT_FAB_ARG_3D(area2),
@@ -510,8 +507,7 @@ extern "C"
 #if AMREX_SPACEDIM == 3
      const BL_FORT_FAB_ARG_3D(area3),
 #endif
-     const BL_FORT_FAB_ARG_3D(volume),
-     const int& verbose);
+     const BL_FORT_FAB_ARG_3D(volume));
 
   void ca_fourth_single_stage
     (const int* lo, const int* hi,
