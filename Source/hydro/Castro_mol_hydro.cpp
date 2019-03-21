@@ -60,7 +60,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     FArrayBox qm, qp;
     FArrayBox div;
     FArrayBox q_int;
-    FArrayBox flux[AMREX_SPACEDIM], qe[AMREX_SPACEDIM];
+    FArrayBox flux[AMREX_SPACEDIM];
+    FArrayBox qe[AMREX_SPACEDIM];
 #if AMREX_SPACEDIM <= 2
     FArrayBox pradial;
 #endif
@@ -91,6 +92,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         }
 
 
+#ifndef AMREX_USE_CUDA
         if (fourth_order) {
 
           // Allocate fabs for fluxes
@@ -141,6 +143,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              verbose);
 
         } else {
+#endif   // AMREX_USE_CUDA
 
           // second order method
 
@@ -162,7 +165,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           Elixir elix_flatn = flatn.elixir();
 
           if (first_order_hydro == 1) {
-            flatn = 0.0;
+            flatn.setVal(0.0, obx);
           } else if (use_flattening == 1) {
 #pragma gpu
             ca_uflatten
@@ -170,7 +173,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                BL_TO_FORTRAN_ANYD(q[mfi]),
                BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
           } else {
-            flatn = 1.0;
+            flatn.setVal(1.0, obx);
           }
 
           // get the interface states and shock variable
@@ -406,8 +409,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           }
 
 
+#ifndef AMREX_USE_CUDA
         } // end of 4th vs 2nd order MOL update
-
+#endif
 
 
 	// Store the fluxes from this advance -- we weight them by the
