@@ -69,7 +69,7 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
         ! piecewise linear slopes
         call uslope(lo, hi, idir, &
                     q, q_lo, q_hi, n, &
-                    flatn, q_lo, q_hi, &
+                    flatn, fl_lo, fl_hi, &
                     dq, dq_lo, dq_hi)
 
      end do
@@ -233,7 +233,7 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
   do idir = 1, AMREX_SPACEDIM
      call ca_ppm_reconstruct(lo, hi, 1, idir, &
                              q, q_lo, q_hi, NQ, 1, NQ, &
-                             flatn, q_lo, q_hi, &
+                             flatn, fl_lo, fl_hi, &
                              qm, qm_lo, qm_hi, &
                              qp, qp_lo, qp_hi, NQ, 1, NQ)
   end do
