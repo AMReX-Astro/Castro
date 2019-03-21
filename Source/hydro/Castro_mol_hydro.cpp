@@ -175,8 +175,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           // second order method
 
           const Box& obx = amrex::grow(bx, 1);
+          const Box& tbx = amrex::grow(bx, 2);
 
           // get div{U} -- we'll use this for artificial viscosity
+          div.resize(obx, 1);
+          Elixir elix_div = div.elixir();
+
           divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                BL_TO_FORTRAN_ANYD(q[mfi]),
                AMREX_REAL_ANYD(dx),
@@ -202,10 +206,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           shk.resize(obx, 1);
           Elixir elix_shk = shk.elixir();
 
-          qm.resize(obx, NQ*AMREX_SPACEDIM);
+          qm.resize(tbx, NQ*AMREX_SPACEDIM);
           Elixir elix_qm = qm.elixir();
 
-          qp.resize(obx, NQ*AMREX_SPACEDIM);
+          qp.resize(tbx, NQ*AMREX_SPACEDIM);
           Elixir elix_qp = qp.elixir();
 
           if (ppm_type == 0) {
@@ -252,6 +256,35 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           q_int.resize(obx, NQ);
           Elixir elix_q_int = q_int.elixir();
 
+          flux[0].resize(gxbx, NUM_STATE);
+          Elixir elix_flux_x = flux[0].elixir();
+
+          qe[0].resize(gxbx, NGDNV);
+          Elixir elix_qe_x = qe[0].elixir();
+
+#if AMREX_SPACEDIM >= 2
+          flux[1].resize(gybx, NUM_STATE);
+          Elixir elix_flux_y = flux[1].elixir();
+
+          qe[1].resize(gybx, NGDNV);
+          Elixir elix_qe_y = qe[1].elixir();
+#endif
+
+#if AMREX_SPACEDIM == 3
+          flux[2].resize(gzbx, NUM_STATE);
+          Elixir elix_flux_z = flux[2].elixir();
+
+          qe[2].resize(gzbx, NGDNV);
+          Elixir elix_qe_z = qe[2].elixir();
+#endif
+
+#if AMREX_SPACEDIM <= 2
+          if (!Geometry::IsCartesian()) {
+            pradial.resize(xbx, 1);
+            Elixir elix_pradial = pradial.elixir();
+          }
+#endif
+
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
             const Box& nbx = amrex::surroundingNodes(bx, idir);
@@ -270,7 +303,22 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                idir_f, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
             // set UTEMP and USHK fluxes to zero
+            Array4<Real> const flux_arr = (flux[idir]).array();
+            const int temp_comp = Temp;
+#ifdef SHOCK_VAR
+            const int shk_comp = Shock;
+#endif
 
+            AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                                  {
+                                    flux_arr(i,j,k,temp_comp) = 0.e0;
+#ifdef SHOCK_VAR
+                                    flux_arr(i,j,k,shk_comp) = 0.e0;
+#endif
+                                  });
+
+
+            // apply artificial viscosity
             apply_av
               (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                idir_f, AMREX_REAL_ANYD(dx),
@@ -278,6 +326,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                BL_TO_FORTRAN_ANYD(flux[idir]));
 
+            // apply the density flux limiter
             if (limit_fluxes_on_small_dens == 1) {
 #pragma gpu
               limit_hydro_fluxes_on_small_dens
@@ -291,6 +340,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                    dt, AMREX_REAL_ANYD(dx));
             }
 
+            // ensure that the species fluxes are normalized
             normalize_species_fluxes
               (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                BL_TO_FORTRAN_ANYD(flux[idir]));
@@ -325,10 +375,55 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
              BL_TO_FORTRAN_ANYD(volume[mfi]),
              verbose);
-        }
 
 
-        // scale the fluxes
+          // scale the fluxes -- note the fourth_order routine does this
+          // internally
+#if AMREX_SPACEDIM <= 2
+          Array4<Real> pradial_fab = pradial.array();
+#endif
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+#pragma gpu
+            scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+#if AMREX_SPACEDIM == 1
+                       BL_TO_FORTRAN_ANYD(qe[idir]),
+#endif
+                       BL_TO_FORTRAN_ANYD(flux[idir]),
+                       BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
+
+
+            if (idir == 0) {
+              // get the scaled radial pressure -- we need to treat this specially
+              Array4<Real> const qex_fab = qe[idir].array();
+              const int prescomp = GDPRES;
+
+#if AMREX_SPACEDIM == 1
+              if (!Geometry::IsCartesian()) {
+                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                                      {
+                                        pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                                      });
+              }
+#endif
+
+#if AMREX_SPACEDIM == 2
+              if (!mom_flux_has_p[0][0]) {
+                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                                      {
+                                        pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                                      });
+              }
+#endif
+            }
+          }
+
+
+        } // end of 4th vs 2nd order MOL update
+
 
 
 	// Store the fluxes from this advance -- we weight them by the
