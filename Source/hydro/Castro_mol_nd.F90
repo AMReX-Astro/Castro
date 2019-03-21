@@ -23,15 +23,17 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
   use eos_module, only : eos
   use network, only : nspec, naux
   use prob_params_module, only : dg, coord_type
-
+  use advection_util_module, only : ca_shock
 
   implicit none
 
-  integer, intent(in) :: lo(3), hi(3), verbose
+  integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: q_lo(3), q_hi(3)
   integer, intent(in) :: fl_lo(3), fl_hi(3)
   integer, intent(in) :: shk_lo(3), shk_hi(3)
   integer, intent(in) :: dq_lo(3), dq_hi(3)
+  integer, intent(in) :: qm_lo(3), qm_hi(3)
+  integer, intent(in) :: qp_lo(3), qp_hi(3)
 
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(in) :: flatn(fl_lo(1):fl_hi(1), fl_lo(2):fl_hi(2), fl_lo(3):fl_hi(3))
@@ -189,14 +191,16 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
   use eos_module, only : eos
   use network, only : nspec, naux
   use prob_params_module, only : dg, coord_type
-
+  use advection_util_module, only : ca_shock
 
   implicit none
 
-  integer, intent(in) :: lo(3), hi(3), verbose
+  integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: q_lo(3), q_hi(3)
   integer, intent(in) :: fl_lo(3), fl_hi(3)
   integer, intent(in) :: shk_lo(3), shk_hi(3)
+  integer, intent(in) :: qm_lo(3), qm_hi(3)
+  integer, intent(in) :: qp_lo(3), qp_hi(3)
 
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(in) :: flatn(fl_lo(1):fl_hi(1), fl_lo(2):fl_hi(2), fl_lo(3):fl_hi(3))
@@ -204,7 +208,6 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
   real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ, AMREX_SPACEDIM)
   real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ, AMREX_SPACEDIM)
   real(rt), intent(in) :: dx(3)
-
 
   integer :: idir, i, j, k, n
   logical :: compute_shock
@@ -231,8 +234,8 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
      call ca_ppm_reconstruct(lo, hi, 1, idir, &
                              q, q_lo, q_hi, NQ, 1, NQ, &
                              flatn, q_lo, q_hi, &
-                             qm, It_lo, It_hi, &
-                             qp, It_lo, It_hi, NQ, 1, NQ)
+                             qm, qm_lo, qm_hi, &
+                             qp, qp_lo, qp_hi, NQ, 1, NQ)
   end do
 
   ! use T to define p
@@ -294,8 +297,7 @@ subroutine ca_mol_consup(lo, hi, &
 #if AMREX_SPACEDIM == 3
                          area3, area3_lo, area3_hi, &
 #endif
-                         vol, vol_lo, vol_hi, &
-                         verbose) bind(C, name="ca_mol_consup")
+                         vol, vol_lo, vol_hi) bind(C, name="ca_mol_consup")
 
   use amrex_error_module
   use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
@@ -316,7 +318,7 @@ subroutine ca_mol_consup(lo, hi, &
 
   implicit none
 
-  integer, intent(in) :: lo(3), hi(3), verbose
+  integer, intent(in) :: lo(3), hi(3)
   real(rt), intent(in) :: stage_weight
   integer, intent(in) :: uin_lo(3), uin_hi(3)
   integer, intent(in) :: uout_lo(3), uout_hi(3)
@@ -354,6 +356,7 @@ subroutine ca_mol_consup(lo, hi, &
   real(rt), intent(in) :: dx(3)
   real(rt), intent(in), value :: dt
 
+  integer :: i, j, k, n
 
   ! For hydro, we will create an update source term that is
   ! essentially the flux divergence.  This can be added with dt to
