@@ -8,14 +8,13 @@ Introduction
 There are several different time-evolution methods currently
 implemented in Castro. As best as possible, they share the same
 driver routines and use preprocessor or runtime variables to separate
-the different code paths.
+the different code paths.  These fall into two categories:
 
 -  Strang-splitting: the Strang evolution does the burning on the
    state for :math:`\Delta t/2`, then updates the hydrodynamics using the
    burned state, and then does the final :math:`\Delta t/2` burning. No
    explicit coupling of the burning and hydro is done. Within the
-   Strang code path, there are two methods for doing the hydrodynamics,
-   controlled by castro.do_ctu.
+   Strang code path, there are two methods for doing the hydrodynamics:
 
    -  Corner-transport upwind (CTU): this implements the unsplit,
       characteristic tracing method of :cite:`colella:1990`.
@@ -26,8 +25,33 @@ the different code paths.
       each requiring reconstruction, Riemann solve, etc., and the final
       solution is pieced together from the intermediate stages.
 
--  SDC: the SDC path is enabled by the SDC preprocessor
-   variable. This iteratively couples the reactions and hydrodynamics together.
+-  SDC: a class of iterative methods that couples the advection and reactions
+   such that each process explicitly sees the effect of the other.  We have
+   two SDC implementations in Castro.
+
+.. index:: castro.time_integration_method, USE_SDC
+
+The time-integration method used is controlled by
+``castro.time_integration_method``.
+
+  * ``time_integration_method = 0``: this is the original Castro method,
+    described in :cite:`castro_I`.  This uses Strang splitting and the CTU
+    hydrodynamics scheme.
+
+  * ``time_integration_method = 1``: this is a method-of-lines integration
+    method with Strang splitting for reactions.
+
+  * ``time_integration_method = 2``: this is a new implementation of
+    the spectral deferred corrections formalism, under development,
+    that will soon support 4th order (space and time) coupling of
+    hydro and reactions.
+
+  * ``time_integration_method = 3``: this is the original SDC method that
+    uses the CTU hydro advection and an ODE reaction solve that sees the
+    effects of the hydro to couple reactions and hydro to second order.
+    Note: because this requires a different set of state variables, you
+    must compile with ``USE_SDC = TRUE`` for this method to work.  We call
+    this method "simplified-SDC".
 
 Several helper functions are used throughout:
 
@@ -48,6 +72,8 @@ Several helper functions are used throughout:
 
 Overview of a single step (no SDC)
 ==================================
+
+(``castro.time_integration_method`` = 0 or 1)
 
 The main evolution for a single step is contained in
 ``Castro_advance.cpp``, as ``Castro::advance()``. This does
@@ -171,6 +197,8 @@ of each step.
 
 Main Hydro, Reaction, and Gravity Advancement (CTU w/ Strang-splitting)
 -----------------------------------------------------------------------
+
+(``castro.time_integration_method`` = 0)
 
 The explicit portion of the system advancement (reactions,
 hydrodynamics, and gravity) is done by ``do_advance()``. Consider
@@ -384,7 +412,7 @@ In the code, the objective is to evolve the state from the old time,
    are two approaches we use, the corner transport upwind (CTU) method
    that uses characteristic tracing as described in
    :cite:`colella:1990`, and a method-of-lines approach. The choice is
-   determined by the parameter castro.do_ctu.
+   determined by the parameter ``castro.time_integration_method``.
 
    #. CTU method:
 
@@ -497,6 +525,8 @@ these processes is presented below:
 
 Main Hydro, Reaction, and Gravity Advancement (MOL w/ Strang-splitting)
 -----------------------------------------------------------------------
+
+(``castro.time_integration_method`` = 1)
 
 The handling of sources differs in the MOL integration, as compared to CTU.
 Again, consider our system as:
@@ -721,8 +751,10 @@ non-advective auxiliary quantity updates) should be inside the SDC
 loop, but presently they are only done at the end. Also note that the
 radiation implicit update is not done as part of the SDC iterations.
 
-Main Hydro and Gravity Advancement (SDC)
-----------------------------------------
+Main Hydro and Gravity Advancement (simplified-SDC)
+---------------------------------------------------
+
+(``castro.time_integration_method`` = 3)
 
 The evolution in do_advance is substantially different than the
 Strang case. In particular, reactions are not evolved. Here we

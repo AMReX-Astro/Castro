@@ -1,9 +1,8 @@
 subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   use amrex_constants_module, only: ZERO, HALF
-  use amrex_error_module
+  use amrex_error_module, only: amrex_error
   use amrex_fort_module, only : rt => amrex_real
-
   use prob_params_module, only: center, coord_type
   use probdata_module
   use eos_type_module, only: eos_t, eos_input_rt
@@ -48,7 +47,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
      center(1) = ZERO
   endif
 
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM >= 2
   center(2) = HALF*(problo(2)+probhi(2))
 #endif
 #if AMREX_SPACEDIM == 3
@@ -127,7 +126,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
   real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-  real(rt) :: xc, yc, zc
+  real(rt) :: r(3)
   real(rt) :: X(nspec), temp
 
   integer :: i, j, k
@@ -139,21 +138,17 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   X(1) = 1.e0_rt
 
   do k = lo(3), hi(3)
-     zc = problo(3) + delta(3)*(dble(k) + HALF)
+     r(3) = problo(3) + delta(3) * (dble(k) + HALF)
 
      do j = lo(2), hi(2)
-        yc = problo(2) + delta(2)*(dble(j) + HALF)
+        r(2) = problo(2) + delta(2) * (dble(j) + HALF)
 
         do i = lo(1), hi(1)
-           xc = problo(1) + delta(1)*(dble(i) + HALF)
+           r(1) = problo(1) + delta(1) * (dble(i) + HALF)
 
            state(i,j,k,URHO) = rho0
 
-#if AMREX_SPACEDIM == 2
-           call analytic(xc, yc, ZERO, temp)
-#else
-           call amrex_error("no analytic solution for this dimension")
-#endif
+           call analytic(r, ZERO, temp)
 
            state(i,j,k,UTEMP) = temp
 

@@ -143,7 +143,7 @@ Castro::sum_integrated_quantities ()
     int axis_3;
 
     // Determine various coordinate axes
-    get_axes(axis_1, axis_2, axis_3);
+    get_axes(&axis_1, &axis_2, &axis_3);
 
     wd_dist_init[axis_1 - 1] = 1.0;
 

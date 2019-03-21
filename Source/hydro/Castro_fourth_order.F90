@@ -1,5 +1,5 @@
-!> @brief advection routines in support of method of lines integration
-!!
+! advection routines in support of method of lines integration
+!
 subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                   stage_weight, &
                                   uin, uin_lo, uin_hi, &
@@ -34,7 +34,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      verbose) bind(C, name="ca_fourth_single_stage")
 
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, NQAUX, GDPRES, &
+  use meth_params_module, only : NQ, NVAR, NGDNV, NQAUX, GDPRES, &
        UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
        use_flattening, QPRES, NQAUX, &
        QTEMP, QFS, QFX, QREINT, QRHO, &

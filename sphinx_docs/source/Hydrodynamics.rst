@@ -93,19 +93,17 @@ several main data structures that hold the state.
 -  primitive variable state: these arrays generally simply called
    ``q``, and has ``NQ`` components.
 
-   .. note:: if ``RADIATION`` is defined, then there are ``QVAR``
-      components that are pure hydro out of the total ``NQ``
-      components, and the pure hydro components always come first in
-      the state array.
+   A related quantity is ``NQSRC`` which is the number of primitive variable
+   source terms.  ``NQSRC`` ≤ ``NQ``.
+
+   .. note:: if ``RADIATION`` is defined, then only the gas/hydro terms are
+      present in ``NQSRC``.  
 
    Table \ `[table:primlist] <#table:primlist>`__ gives the names of the primitive variable integer
-   keys for accessing these arrays.
+   keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
+   are “gas” only and those with the “tot” subscript are “gas + radiation”.
 
-
-   .. table:: [table:primlist] The integer variable keys for
-   accessing the primitive state vector. Note, unless otherwise
-   specified the quantities without a subscript are “gas” only
-   and those with the “tot” subscript are “gas + radiation”.
+   .. table:: [table:primlist] The integer variable keys for accessing the primitive state vector.
 
       +-----------------------+------------------------+-----------------------+
       | **variable**          | **quantity**           | **note**              |
@@ -151,12 +149,10 @@ several main data structures that hold the state.
    primitive variables is that we do not attempt to do any
    reconstruction on their profiles. There are ``NQAUX`` quantities, indexed
    by the integer keys listed in table \ `[table:qauxlist] <#table:qauxlist>`__.
+   Note, unless otherwise specified the quantities without a subscript are “gas”
+   only and those with the “tot” subscript are “gas + radiation”.
 
-   .. table:: [table:qauxlist] The integer variable keys for
-   accessing the auxiliary primitive state vector, quax.
-   Note, unless otherwise specified the quantities without a
-   subscript are “gas” only and those with the “tot” subscript
-   are “gas + radiation”.
+   .. table:: [table:qauxlist] The integer variable keys for accessing the auxiliary primitive state vector, quax.
 
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
@@ -200,12 +196,10 @@ several main data structures that hold the state.
    called ``q1``, ``q2``, and ``q3`` for the x, y, and z
    interfaces respectively. There are ``NGDNV`` components accessed with
    the integer keys defined in table \ `[table:gdlist] <#table:gdlist>`__
+   Note, unless otherwise specified the quantities without a subscript are
+   “gas” only and those with the “tot” subscript are “gas + radiation”.
 
-   .. table:: [table:gdlist] The integer variable keys for
-   accessing the Godunov interface state vectors.
-   Note, unless otherwise specified the quantities without a
-   subscript are “gas” only and those with the “tot” subscript
-   are “gas + radiation”.
+   .. table:: [table:gdlist] The integer variable keys for accessing the Godunov interface state vectors.
 
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
@@ -446,10 +440,6 @@ the total energy. These parameters are used as follows:
    :math:`e_T > \eta_2 E`. If so, we reset :math:`e` to be equal to :math:`e_T`,
    discarding the results of the internal energy equation. Otherwise,
    we keep :math:`e` as it is.
-
-   Optionally we can also update :math:`E` so that it gains the difference of
-   the old and and new :math:`e`, by setting
-   castro.dual_energy_update_E_from_e to 1.
 
 -  :math:`\eta_3`: Similar to :math:`\eta_1`, if :math:`e_T > \eta_3 E`, we use
    :math:`e_T` for the purposes of our nuclear reactions, otherwise, we use

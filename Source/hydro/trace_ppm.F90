@@ -1,7 +1,7 @@
-! These routines do the characteristic tracing under the parabolic
-! profiles in each zone to the edge / half-time.
-
 module trace_ppm_module
+  !
+  ! These routines do the characteristic tracing under the parabolic
+  ! profiles in each zone to the edge / half-time.
 
   use prob_params_module, only : dg
   use amrex_error_module
@@ -32,12 +32,11 @@ contains
 #endif
                        vlo, vhi, domlo, domhi, &
                        dx, dt)
-
     ! here, lo and hi are the range we loop over -- this can include ghost cells
     ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, ppm_predict_gammae, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, ppm_predict_gammae, &
                                    ppm_temp_fix, QU, QV, QW, npassive, qpass_map, fix_mass_flux
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
@@ -65,14 +64,14 @@ contains
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
+    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
 
-    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:AMREX_SPACEDIM,1:3,1)
-    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
+    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
@@ -125,24 +124,24 @@ contains
                    ! wave, so no projection is needed.  Since we are not
                    ! projecting, the reference state doesn't matter
 
-                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,idir,2,n), un > ZERO)
-                   qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,idir,2,n)
+                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,2,n), un > ZERO)
+                   if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,2,n)
 
                 end if
 
                 ! Minus state on face i+1
                 if (idir == 1 .and. i <= vhi(1)) then
                    un = q(i,j,k,QU-1+idir)
-                   qm(i+1,j,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-                   qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
+                   qm(i+1,j,k,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 else if (idir == 2 .and. j <= vhi(2)) then
                    un = q(i,j,k,QU-1+idir)
-                   qm(i,j+1,k,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-                   qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
+                   qm(i,j+1,k,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 else if (idir == 3 .and. k <= vhi(3)) then
                    un = q(i,j,k,QU-1+idir)
-                   qm(i,j,k+1,n) = merge(Ip(i,j,k,idir,2,n), q(i,j,k,n), un > ZERO)
-                   qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,idir,2,n)
+                   qm(i,j,k+1,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 end if
 
              end do
@@ -234,7 +233,7 @@ contains
 
     use network, only : nspec, naux
 
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, &
@@ -265,14 +264,14 @@ contains
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
+    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
 
-    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:AMREX_SPACEDIM,1:3,1)
-    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
+    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
@@ -415,13 +414,13 @@ contains
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
                 ! Woodward use
-                rho_ref  = Im(i,j,k,idir,1,QRHO)
-                un_ref    = Im(i,j,k,idir,1,QUN)
+                rho_ref  = Im(i,j,k,1,QRHO)
+                un_ref    = Im(i,j,k,1,QUN)
 
-                p_ref    = Im(i,j,k,idir,1,QPRES)
-                rhoe_g_ref = Im(i,j,k,idir,1,QREINT)
+                p_ref    = Im(i,j,k,1,QPRES)
+                rhoe_g_ref = Im(i,j,k,1,QREINT)
 
-                gam_g_ref  = Im_gc(i,j,k,idir,1,1)
+                gam_g_ref  = Im_gc(i,j,k,1,1)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -439,15 +438,15 @@ contains
 
 
                 ! we also add the sources here so they participate in the tracing
-                dum = un_ref - Im(i,j,k,idir,1,QUN) - hdt*Im_src(i,j,k,idir,1,QUN)
-                dptotm = p_ref - Im(i,j,k,idir,1,QPRES) - hdt*Im_src(i,j,k,idir,1,QPRES)
+                dum = un_ref - Im(i,j,k,1,QUN) - hdt*Im_src(i,j,k,1,QUN)
+                dptotm = p_ref - Im(i,j,k,1,QPRES) - hdt*Im_src(i,j,k,1,QPRES)
 
-                drho = rho_ref - Im(i,j,k,idir,2,QRHO) - hdt*Im_src(i,j,k,idir,2,QRHO)
-                dptot = p_ref - Im(i,j,k,idir,2,QPRES) - hdt*Im_src(i,j,k,idir,2,QPRES)
-                drhoe_g = rhoe_g_ref - Im(i,j,k,idir,2,QREINT) - hdt*Im_src(i,j,k,idir,2,QREINT)
+                drho = rho_ref - Im(i,j,k,2,QRHO) - hdt*Im_src(i,j,k,2,QRHO)
+                dptot = p_ref - Im(i,j,k,2,QPRES) - hdt*Im_src(i,j,k,2,QPRES)
+                drhoe_g = rhoe_g_ref - Im(i,j,k,2,QREINT) - hdt*Im_src(i,j,k,2,QREINT)
 
-                dup = un_ref - Im(i,j,k,idir,3,QUN) - hdt*Im_src(i,j,k,idir,3,QUN)
-                dptotp = p_ref - Im(i,j,k,idir,3,QPRES) - hdt*Im_src(i,j,k,idir,3,QPRES)
+                dup = un_ref - Im(i,j,k,3,QUN) - hdt*Im_src(i,j,k,3,QUN)
+                dptotp = p_ref - Im(i,j,k,3,QPRES) - hdt*Im_src(i,j,k,3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -496,8 +495,8 @@ contains
                 ! Recall that I already takes the limit of the parabola
                 ! in the event that the wave is not moving toward the
                 ! interface
-                qp(i,j,k,QUT) = Im(i,j,k,idir,2,QUT) + hdt*Im_src(i,j,k,idir,2,QUT)
-                qp(i,j,k,QUTT) = Im(i,j,k,idir,2,QUTT) + hdt*Im_src(i,j,k,idir,2,QUTT)
+                qp(i,j,k,QUT) = Im(i,j,k,2,QUT) + hdt*Im_src(i,j,k,2,QUT)
+                qp(i,j,k,QUTT) = Im(i,j,k,2,QUTT) + hdt*Im_src(i,j,k,2,QUTT)
 
              end if
 
@@ -511,13 +510,13 @@ contains
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,idir,3,QRHO)
-                un_ref    = Ip(i,j,k,idir,3,QUN)
+                rho_ref  = Ip(i,j,k,3,QRHO)
+                un_ref    = Ip(i,j,k,3,QUN)
 
-                p_ref    = Ip(i,j,k,idir,3,QPRES)
-                rhoe_g_ref = Ip(i,j,k,idir,3,QREINT)
+                p_ref    = Ip(i,j,k,3,QPRES)
+                rhoe_g_ref = Ip(i,j,k,3,QREINT)
 
-                gam_g_ref  = Ip_gc(i,j,k,idir,3,1)
+                gam_g_ref  = Ip_gc(i,j,k,3,1)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -530,15 +529,15 @@ contains
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
 
-                dum = un_ref - Ip(i,j,k,idir,1,QUN) - hdt*Ip_src(i,j,k,idir,1,QUN)
-                dptotm  = p_ref - Ip(i,j,k,idir,1,QPRES) - hdt*Ip_src(i,j,k,idir,1,QPRES)
+                dum = un_ref - Ip(i,j,k,1,QUN) - hdt*Ip_src(i,j,k,1,QUN)
+                dptotm  = p_ref - Ip(i,j,k,1,QPRES) - hdt*Ip_src(i,j,k,1,QPRES)
 
-                drho = rho_ref - Ip(i,j,k,idir,2,QRHO) - hdt*Ip_src(i,j,k,idir,2,QRHO)
-                dptot = p_ref - Ip(i,j,k,idir,2,QPRES) - hdt*Ip_src(i,j,k,idir,2,QPRES)
-                drhoe_g = rhoe_g_ref - Ip(i,j,k,idir,2,QREINT) - hdt*Ip_src(i,j,k,idir,2,QREINT)
+                drho = rho_ref - Ip(i,j,k,2,QRHO) - hdt*Ip_src(i,j,k,2,QRHO)
+                dptot = p_ref - Ip(i,j,k,2,QPRES) - hdt*Ip_src(i,j,k,2,QPRES)
+                drhoe_g = rhoe_g_ref - Ip(i,j,k,2,QREINT) - hdt*Ip_src(i,j,k,2,QREINT)
 
-                dup = un_ref - Ip(i,j,k,idir,3,QUN) - hdt*Ip_src(i,j,k,idir,3,QUN)
-                dptotp = p_ref - Ip(i,j,k,idir,3,QPRES) - hdt*Ip_src(i,j,k,idir,3,QPRES)
+                dup = un_ref - Ip(i,j,k,3,QUN) - hdt*Ip_src(i,j,k,3,QUN)
+                dptotp = p_ref - Ip(i,j,k,3,QPRES) - hdt*Ip_src(i,j,k,3,QPRES)
 
                 ! Optionally use the reference state in evaluating the
                 ! eigenvectors
@@ -580,8 +579,8 @@ contains
                    qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
-                   qm(i+1,j,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i+1,j,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
+                   qm(i+1,j,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
 
                 else if (idir == 2) then
                    qm(i,j+1,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
@@ -590,8 +589,8 @@ contains
                    qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
-                   qm(i,j+1,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j+1,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
+                   qm(i,j+1,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
 
                 else if (idir == 3) then
                    qm(i,j,k+1,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
@@ -600,8 +599,8 @@ contains
                    qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
-                   qm(i,j,k+1,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j,k+1,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
+                   qm(i,j,k+1,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
                 endif
 
              end if
@@ -681,7 +680,7 @@ contains
                               dx, dt)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, &
@@ -712,14 +711,14 @@ contains
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
+    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
 
-    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:AMREX_SPACEDIM,1:3,1)
-    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
+    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
@@ -868,16 +867,16 @@ contains
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
                 ! Woodward use
-                rho_ref  = Im(i,j,k,idir,1,QRHO)
-                un_ref    = Im(i,j,k,idir,1,QUN)
+                rho_ref  = Im(i,j,k,1,QRHO)
+                un_ref    = Im(i,j,k,1,QUN)
 
-                p_ref    = Im(i,j,k,idir,1,QPRES)
-                rhoe_g_ref = Im(i,j,k,idir,1,QREINT)
+                p_ref    = Im(i,j,k,1,QPRES)
+                rhoe_g_ref = Im(i,j,k,1,QREINT)
 
-                tau_ref  = ONE/Im(i,j,k,idir,1,QRHO)
+                tau_ref  = ONE/Im(i,j,k,1,QRHO)
 
-                gam_g_ref  = Im_gc(i,j,k,idir,1,1)
-                game_ref = Im(i,j,k,idir,1,QGAME)
+                gam_g_ref  = Im_gc(i,j,k,1,1)
+                game_ref = Im(i,j,k,1,QGAME)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -889,20 +888,20 @@ contains
 
 
                 ! we also add the sources here so they participate in the tracing
-                dum = un_ref - Im(i,j,k,idir,1,QUN) - hdt*Im_src(i,j,k,idir,1,QUN)
-                dptotm = p_ref - Im(i,j,k,idir,1,QPRES) - hdt*Im_src(i,j,k,idir,1,QPRES)
+                dum = un_ref - Im(i,j,k,1,QUN) - hdt*Im_src(i,j,k,1,QUN)
+                dptotm = p_ref - Im(i,j,k,1,QPRES) - hdt*Im_src(i,j,k,1,QPRES)
 
-                dptot = p_ref - Im(i,j,k,idir,2,QPRES) - hdt*Im_src(i,j,k,idir,2,QPRES)
+                dptot = p_ref - Im(i,j,k,2,QPRES) - hdt*Im_src(i,j,k,2,QPRES)
 
                 ! we are treating tau as 1/rho, but we could have reconstructed
                 ! it separately
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtaum = tau_ref - ONE/Im(i,j,k,idir,1,QRHO) + hdt*Im_src(i,j,k,idir,1,QRHO)/Im(i,j,k,idir,1,QRHO)**2
-                dtau  = tau_ref - ONE/Im(i,j,k,idir,2,QRHO) + hdt*Im_src(i,j,k,idir,2,QRHO)/Im(i,j,k,idir,2,QRHO)**2
-                dtaup = tau_ref - ONE/Im(i,j,k,idir,3,QRHO) + hdt*Im_src(i,j,k,idir,3,QRHO)/Im(i,j,k,idir,3,QRHO)**2
+                dtaum = tau_ref - ONE/Im(i,j,k,1,QRHO) + hdt*Im_src(i,j,k,1,QRHO)/Im(i,j,k,1,QRHO)**2
+                dtau  = tau_ref - ONE/Im(i,j,k,2,QRHO) + hdt*Im_src(i,j,k,2,QRHO)/Im(i,j,k,2,QRHO)**2
+                dtaup = tau_ref - ONE/Im(i,j,k,3,QRHO) + hdt*Im_src(i,j,k,3,QRHO)/Im(i,j,k,3,QRHO)**2
 
-                dup = un_ref - Im(i,j,k,idir,3,QUN) - hdt*Im_src(i,j,k,idir,3,QUN)
-                dptotp = p_ref - Im(i,j,k,idir,3,QPRES) - hdt*Im_src(i,j,k,idir,3,QPRES)
+                dup = un_ref - Im(i,j,k,3,QUN) - hdt*Im_src(i,j,k,3,QUN)
+                dptotp = p_ref - Im(i,j,k,3,QPRES) - hdt*Im_src(i,j,k,3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -925,7 +924,7 @@ contains
                 alphap = HALF*(-dup - dptotp*(ONE/Clag_ev))*(ONE/Clag_ev)
                 alpha0r = dtau + dptot*(ONE/Clag_ev)**2
 
-                dge   = game_ref - Im(i,j,k,idir,2,QGAME)
+                dge   = game_ref - Im(i,j,k,2,QGAME)
                 gfactor = (game - ONE)*(game - gam_g)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
@@ -954,8 +953,8 @@ contains
                 ! Recall that I already takes the limit of the parabola
                 ! in the event that the wave is not moving toward the
                 ! interface
-                qp(i,j,k,QUT) = Im(i,j,k,idir,2,QUT) + hdt*Im_src(i,j,k,idir,2,QUT)
-                qp(i,j,k,QUTT) = Im(i,j,k,idir,2,QUTT) + hdt*Im_src(i,j,k,idir,2,QUTT)
+                qp(i,j,k,QUT) = Im(i,j,k,2,QUT) + hdt*Im_src(i,j,k,2,QUT)
+                qp(i,j,k,QUTT) = Im(i,j,k,2,QUTT) + hdt*Im_src(i,j,k,2,QUTT)
 
              end if
 
@@ -969,16 +968,16 @@ contains
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,idir,3,QRHO)
-                un_ref    = Ip(i,j,k,idir,3,QUN)
+                rho_ref  = Ip(i,j,k,3,QRHO)
+                un_ref    = Ip(i,j,k,3,QUN)
 
-                p_ref    = Ip(i,j,k,idir,3,QPRES)
-                rhoe_g_ref = Ip(i,j,k,idir,3,QREINT)
+                p_ref    = Ip(i,j,k,3,QPRES)
+                rhoe_g_ref = Ip(i,j,k,3,QREINT)
 
-                tau_ref  = ONE/Ip(i,j,k,idir,3,QRHO)
+                tau_ref  = ONE/Ip(i,j,k,3,QRHO)
 
-                gam_g_ref  = Ip_gc(i,j,k,idir,3,1)
-                game_ref = Ip(i,j,k,idir,3,QGAME)
+                gam_g_ref  = Ip_gc(i,j,k,3,1)
+                game_ref = Ip(i,j,k,3,QGAME)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -989,18 +988,18 @@ contains
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
 
-                dum = un_ref - Ip(i,j,k,idir,1,QUN) - hdt*Ip_src(i,j,k,idir,1,QUN)
-                dptotm  = p_ref - Ip(i,j,k,idir,1,QPRES) - hdt*Ip_src(i,j,k,idir,1,QPRES)
+                dum = un_ref - Ip(i,j,k,1,QUN) - hdt*Ip_src(i,j,k,1,QUN)
+                dptotm  = p_ref - Ip(i,j,k,1,QPRES) - hdt*Ip_src(i,j,k,1,QPRES)
 
-                dptot = p_ref - Ip(i,j,k,idir,2,QPRES) - hdt*Ip_src(i,j,k,idir,2,QPRES)
+                dptot = p_ref - Ip(i,j,k,2,QPRES) - hdt*Ip_src(i,j,k,2,QPRES)
 
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtaum = tau_ref - ONE/Ip(i,j,k,idir,1,QRHO) + hdt*Ip_src(i,j,k,idir,1,QRHO)/Ip(i,j,k,idir,1,QRHO)**2
-                dtau = tau_ref - ONE/Ip(i,j,k,idir,2,QRHO) + hdt*Ip_src(i,j,k,idir,2,QRHO)/Ip(i,j,k,idir,2,QRHO)**2
-                dtaup = tau_ref - ONE/Ip(i,j,k,idir,3,QRHO) + hdt*Ip_src(i,j,k,idir,3,QRHO)/Ip(i,j,k,idir,3,QRHO)**2
+                dtaum = tau_ref - ONE/Ip(i,j,k,1,QRHO) + hdt*Ip_src(i,j,k,1,QRHO)/Ip(i,j,k,1,QRHO)**2
+                dtau = tau_ref - ONE/Ip(i,j,k,2,QRHO) + hdt*Ip_src(i,j,k,2,QRHO)/Ip(i,j,k,2,QRHO)**2
+                dtaup = tau_ref - ONE/Ip(i,j,k,3,QRHO) + hdt*Ip_src(i,j,k,3,QRHO)/Ip(i,j,k,3,QRHO)**2
 
-                dup = un_ref - Ip(i,j,k,idir,3,QUN) - hdt*Ip_src(i,j,k,idir,3,QUN)
-                dptotp = p_ref - Ip(i,j,k,idir,3,QPRES) - hdt*Ip_src(i,j,k,idir,3,QPRES)
+                dup = un_ref - Ip(i,j,k,3,QUN) - hdt*Ip_src(i,j,k,3,QUN)
+                dptotp = p_ref - Ip(i,j,k,3,QPRES) - hdt*Ip_src(i,j,k,3,QPRES)
 
                 ! Optionally use the reference state in evaluating the
                 ! eigenvectors
@@ -1021,7 +1020,7 @@ contains
                 alphap = HALF*(-dup - dptotp*(ONE/Clag_ev))*(ONE/Clag_ev)
                 alpha0r = dtau + dptot*(ONE/Clag_ev)**2
 
-                dge = game_ref - Ip(i,j,k,idir,2,QGAME)
+                dge = game_ref - Ip(i,j,k,2,QGAME)
                 gfactor = (game - ONE)*(game - gam_g)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
@@ -1045,8 +1044,8 @@ contains
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QPRES )/(qm(i+1,j,k,QGAME) - ONE)
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
-                   qm(i+1,j,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i+1,j,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
+                   qm(i+1,j,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
 
                 else if (idir == 2) then
                    tau_s = tau_ref + alphap + alpham + alpha0r
@@ -1059,8 +1058,8 @@ contains
                    qm(i,j+1,k,QREINT) = qm(i,j+1,k,QPRES )/(qm(i,j+1,k,QGAME) - ONE)
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
-                   qm(i,j+1,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j+1,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
+                   qm(i,j+1,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
 
                 else if (idir == 3) then
                    tau_s = tau_ref + alphap + alpham + alpha0r
@@ -1073,8 +1072,8 @@ contains
                    qm(i,j,k+1,QREINT) = qm(i,j,k+1,QPRES )/(qm(i,j,k+1,QGAME) - ONE)
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
-                   qm(i,j,k+1,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j,k+1,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
+                   qm(i,j,k+1,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
 
                 end if
              end if
@@ -1153,7 +1152,7 @@ contains
                             dx, dt)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFS, QFX, &
                                    small_dens, small_pres, &
                                    ppm_type, &
@@ -1187,14 +1186,14 @@ contains
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:AMREX_SPACEDIM,1:3,NQ)
+    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
+    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:AMREX_SPACEDIM,1:3,QVAR)
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
 
-    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:AMREX_SPACEDIM,1:3,1)
-    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:AMREX_SPACEDIM,1:3,1)
+    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
+    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
@@ -1349,16 +1348,16 @@ contains
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
                 ! Woodward use
-                rho_ref  = Im(i,j,k,idir,1,QRHO)
-                un_ref    = Im(i,j,k,idir,1,QUN)
+                rho_ref  = Im(i,j,k,1,QRHO)
+                un_ref    = Im(i,j,k,1,QUN)
 
-                p_ref    = Im(i,j,k,idir,1,QPRES)
-                temp_ref = Im(i,j,k,idir,1,QTEMP)
+                p_ref    = Im(i,j,k,1,QPRES)
+                temp_ref = Im(i,j,k,1,QTEMP)
 
-                tau_ref  = ONE/Im(i,j,k,idir,1,QRHO)
+                tau_ref  = ONE/Im(i,j,k,1,QRHO)
 
-                gam_g_ref  = Im_gc(i,j,k,idir,1,1)
-                game_ref = Im(i,j,k,idir,1,QGAME)
+                gam_g_ref  = Im_gc(i,j,k,1,1)
+                game_ref = Im(i,j,k,1,QGAME)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -1373,26 +1372,26 @@ contains
 
 
                 ! we also add the sources here so they participate in the tracing
-                dum = un_ref - Im(i,j,k,idir,1,QUN) - hdt*Im_src(i,j,k,idir,1,QUN)
-                dptotm = p_ref - Im(i,j,k,idir,1,QPRES) - hdt*Im_src(i,j,k,idir,1,QPRES)
+                dum = un_ref - Im(i,j,k,1,QUN) - hdt*Im_src(i,j,k,1,QUN)
+                dptotm = p_ref - Im(i,j,k,1,QPRES) - hdt*Im_src(i,j,k,1,QPRES)
 
-                drho = rho_ref - Im(i,j,k,idir,2,QRHO) - hdt*Im_src(i,j,k,idir,2,QRHO)
-                dptot = p_ref - Im(i,j,k,idir,2,QPRES) - hdt*Im_src(i,j,k,idir,2,QPRES)
+                drho = rho_ref - Im(i,j,k,2,QRHO) - hdt*Im_src(i,j,k,2,QRHO)
+                dptot = p_ref - Im(i,j,k,2,QPRES) - hdt*Im_src(i,j,k,2,QPRES)
 
                 ! TODO: need to figure sources for this out...
-                dTm = temp_ref - Im(i,j,k,idir,1,QTEMP)
-                dT0 = temp_ref - Im(i,j,k,idir,2,QTEMP)
-                dTp = temp_ref - Im(i,j,k,idir,3,QTEMP)
+                dTm = temp_ref - Im(i,j,k,1,QTEMP)
+                dT0 = temp_ref - Im(i,j,k,2,QTEMP)
+                dTp = temp_ref - Im(i,j,k,3,QTEMP)
 
                 ! we are treating tau as 1/rho, but we could have reconstructed
                 ! it separately
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtaum = tau_ref - ONE/Im(i,j,k,idir,1,QRHO) + hdt*Im_src(i,j,k,idir,1,QRHO)/Im(i,j,k,idir,1,QRHO)**2
-                dtau  = tau_ref - ONE/Im(i,j,k,idir,2,QRHO) + hdt*Im_src(i,j,k,idir,2,QRHO)/Im(i,j,k,idir,2,QRHO)**2
-                dtaup = tau_ref - ONE/Im(i,j,k,idir,3,QRHO) + hdt*Im_src(i,j,k,idir,3,QRHO)/Im(i,j,k,idir,3,QRHO)**2
+                dtaum = tau_ref - ONE/Im(i,j,k,1,QRHO) + hdt*Im_src(i,j,k,1,QRHO)/Im(i,j,k,1,QRHO)**2
+                dtau  = tau_ref - ONE/Im(i,j,k,2,QRHO) + hdt*Im_src(i,j,k,2,QRHO)/Im(i,j,k,2,QRHO)**2
+                dtaup = tau_ref - ONE/Im(i,j,k,3,QRHO) + hdt*Im_src(i,j,k,3,QRHO)/Im(i,j,k,3,QRHO)**2
 
-                dup = un_ref - Im(i,j,k,idir,3,QUN) - hdt*Im_src(i,j,k,idir,3,QUN)
-                dptotp = p_ref - Im(i,j,k,idir,3,QPRES) - hdt*Im_src(i,j,k,idir,3,QPRES)
+                dup = un_ref - Im(i,j,k,3,QUN) - hdt*Im_src(i,j,k,3,QUN)
+                dptotp = p_ref - Im(i,j,k,3,QPRES) - hdt*Im_src(i,j,k,3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -1457,8 +1456,8 @@ contains
                 ! Recall that I already takes the limit of the parabola
                 ! in the event that the wave is not moving toward the
                 ! interface
-                qp(i,j,k,QUT) = Im(i,j,k,idir,2,QUT) + hdt*Im_src(i,j,k,idir,2,QUT)
-                qp(i,j,k,QUTT) = Im(i,j,k,idir,2,QUTT) + hdt*Im_src(i,j,k,idir,2,QUTT)
+                qp(i,j,k,QUT) = Im(i,j,k,2,QUT) + hdt*Im_src(i,j,k,2,QUT)
+                qp(i,j,k,QUTT) = Im(i,j,k,2,QUTT) + hdt*Im_src(i,j,k,2,QUTT)
 
              end if
 
@@ -1472,16 +1471,16 @@ contains
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,idir,3,QRHO)
-                un_ref    = Ip(i,j,k,idir,3,QUN)
+                rho_ref  = Ip(i,j,k,3,QRHO)
+                un_ref    = Ip(i,j,k,3,QUN)
 
-                p_ref    = Ip(i,j,k,idir,3,QPRES)
-                temp_ref = Ip(i,j,k,idir,3,QTEMP)
+                p_ref    = Ip(i,j,k,3,QPRES)
+                temp_ref = Ip(i,j,k,3,QTEMP)
 
-                tau_ref  = ONE/Ip(i,j,k,idir,3,QRHO)
+                tau_ref  = ONE/Ip(i,j,k,3,QRHO)
 
-                gam_g_ref  = Ip_gc(i,j,k,idir,3,1)
-                game_ref = Ip(i,j,k,idir,3,QGAME)
+                gam_g_ref  = Ip_gc(i,j,k,3,1)
+                game_ref = Ip(i,j,k,3,QGAME)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -1494,23 +1493,23 @@ contains
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
 
-                dum = un_ref - Ip(i,j,k,idir,1,QUN) - hdt*Ip_src(i,j,k,idir,1,QUN)
-                dptotm  = p_ref - Ip(i,j,k,idir,1,QPRES) - hdt*Ip_src(i,j,k,idir,1,QPRES)
+                dum = un_ref - Ip(i,j,k,1,QUN) - hdt*Ip_src(i,j,k,1,QUN)
+                dptotm  = p_ref - Ip(i,j,k,1,QPRES) - hdt*Ip_src(i,j,k,1,QPRES)
 
-                drho = rho_ref - Ip(i,j,k,idir,2,QRHO) - hdt*Ip_src(i,j,k,idir,2,QRHO)
-                dptot = p_ref - Ip(i,j,k,idir,2,QPRES) - hdt*Ip_src(i,j,k,idir,2,QPRES)
+                drho = rho_ref - Ip(i,j,k,2,QRHO) - hdt*Ip_src(i,j,k,2,QRHO)
+                dptot = p_ref - Ip(i,j,k,2,QPRES) - hdt*Ip_src(i,j,k,2,QPRES)
 
-                dTm = temp_ref - Ip(i,j,k,idir,1,QTEMP)
-                dT0 = temp_ref - Ip(i,j,k,idir,2,QTEMP)
-                dTp = temp_ref - Ip(i,j,k,idir,3,QTEMP)
+                dTm = temp_ref - Ip(i,j,k,1,QTEMP)
+                dT0 = temp_ref - Ip(i,j,k,2,QTEMP)
+                dTp = temp_ref - Ip(i,j,k,3,QTEMP)
 
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtaum = tau_ref - ONE/Ip(i,j,k,idir,1,QRHO) + hdt*Ip_src(i,j,k,idir,1,QRHO)/Ip(i,j,k,idir,1,QRHO)**2
-                dtau = tau_ref - ONE/Ip(i,j,k,idir,2,QRHO) + hdt*Ip_src(i,j,k,idir,2,QRHO)/Ip(i,j,k,idir,2,QRHO)**2
-                dtaup = tau_ref - ONE/Ip(i,j,k,idir,3,QRHO) + hdt*Ip_src(i,j,k,idir,3,QRHO)/Ip(i,j,k,idir,3,QRHO)**2
+                dtaum = tau_ref - ONE/Ip(i,j,k,1,QRHO) + hdt*Ip_src(i,j,k,1,QRHO)/Ip(i,j,k,1,QRHO)**2
+                dtau = tau_ref - ONE/Ip(i,j,k,2,QRHO) + hdt*Ip_src(i,j,k,2,QRHO)/Ip(i,j,k,2,QRHO)**2
+                dtaup = tau_ref - ONE/Ip(i,j,k,3,QRHO) + hdt*Ip_src(i,j,k,3,QRHO)/Ip(i,j,k,3,QRHO)**2
 
-                dup = un_ref - Ip(i,j,k,idir,3,QUN) - hdt*Ip_src(i,j,k,idir,3,QUN)
-                dptotp = p_ref - Ip(i,j,k,idir,3,QPRES) - hdt*Ip_src(i,j,k,idir,3,QPRES)
+                dup = un_ref - Ip(i,j,k,3,QUN) - hdt*Ip_src(i,j,k,3,QUN)
+                dptotp = p_ref - Ip(i,j,k,3,QPRES) - hdt*Ip_src(i,j,k,3,QPRES)
 
                 ! Optionally use the reference state in evaluating the
                 ! eigenvectors
@@ -1571,8 +1570,8 @@ contains
                    qm(i+1,j,k,QPRES) = small_pres ! just to make it defined
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
-                   qm(i+1,j,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i+1,j,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
+                   qm(i+1,j,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
 
                 else if (idir == 2) then
                    tau_s = tau_ref + alphap + alpham + alpha0r
@@ -1587,8 +1586,8 @@ contains
                    qm(i,j+1,k,QPRES) = small_pres ! just to make it defined
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
-                   qm(i,j+1,k,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j+1,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
+                   qm(i,j+1,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
 
                 else if (idir == 3) then
                    tau_s = tau_ref + alphap + alpham + alpha0r
@@ -1603,8 +1602,8 @@ contains
                    qm(i,j,k+1,QPRES) = small_pres ! just to make it defined
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,idir,2,QUT) + hdt*Ip_src(i,j,k,idir,2,QUT)
-                   qm(i,j,k+1,QUTT) = Ip(i,j,k,idir,2,QUTT) + hdt*Ip_src(i,j,k,idir,2,QUTT)
+                   qm(i,j,k+1,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
+                   qm(i,j,k+1,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
 
                 endif
 

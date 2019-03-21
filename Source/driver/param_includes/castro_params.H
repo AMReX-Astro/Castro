@@ -5,9 +5,6 @@
 
 #ifdef DIFFUSION
 static int diffuse_temp;
-static int diffuse_enth;
-static int diffuse_spec;
-static int diffuse_vel;
 static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cutoff_density_hi;
 static amrex::Real diffuse_cond_scale_fac;
@@ -26,11 +23,6 @@ static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
 #endif
-#ifdef POINTMASS
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
-#endif
 static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
@@ -46,6 +38,7 @@ static int do_hydro;
 static int time_integration_method;
 static int fourth_order;
 static int limit_fourth_order;
+static int use_reconstructed_gamma1;
 static int add_ext_src;
 static int hybrid_hydro;
 static int ppm_type;
@@ -84,6 +77,11 @@ static int hse_zero_vels;
 static int hse_interp_temp;
 static int hse_reflect_vels;
 static int mol_order;
+static int sdc_order;
+static int sdc_solver;
+static amrex::Real sdc_solver_tol;
+static int sdc_solve_for_rhoe;
+static int sdc_use_analytic_jac;
 static amrex::Real fixed_dt;
 static amrex::Real initial_dt;
 static amrex::Real dt_cutoff;
@@ -99,7 +97,6 @@ static amrex::Real retry_neg_dens_factor;
 static amrex::Real retry_subcycle_factor;
 static int use_post_step_regrid;
 static int max_subcycles;
-static int clamp_subcycles;
 static int sdc_iters;
 static amrex::Real dtnuc_e;
 static amrex::Real dtnuc_X;
@@ -134,3 +131,8 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif

@@ -84,6 +84,7 @@ endif
 
 ifeq ($(USE_CUDA),TRUE)
   USE_GPU_PRAGMA = TRUE
+  DEFINES += -DCUDA
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
@@ -140,10 +141,6 @@ ifeq ($(USE_GR), TRUE)
   DEFINES += -DGR_GRAV
 endif
 
-ifeq ($(USE_POINTMASS), TRUE)
-   DEFINES += -DPOINTMASS
-endif
-
 ifeq ($(USE_THORNADO), TRUE)
    DEFINES += -DTHORNADO
 
@@ -160,6 +157,8 @@ endif
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
+  # we need the compositional derivatives for SDC
+  DEFINES += -DEXTRA_THERMO
 endif
 
 ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
@@ -174,7 +173,7 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
 endif
 
 ifeq ($(USE_SDC), TRUE)
-  DEFINES += -DSDC
+  DEFINES += -DSDC -DPRIM_SPECIES_HAVE_SOURCES
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
@@ -389,6 +388,10 @@ endif
 Bpack += $(foreach dir, $(EXTERN_CORE), $(dir)/Make.package)
 Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
 
+ifeq ($(USE_EXTRA_THERMO), TRUE)
+   DEFINES += -DEXTRA_THERMO
+endif
+
 
 #------------------------------------------------------------------------------
 # external libraries
@@ -474,7 +477,7 @@ extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 # state variable info
 #-------------------------------------------------------------------------------
 set_conserved.H: set_indices.F90
-	echo "set_conserved.H will be generated at the same time as set_indices/F90"
+	echo "set_conserved.H will be generated at the same time as set_indices.F90"
 
 state_sizes.f90: set_indices.F90
 	echo "state_sizes.f90 will be generated at the same time as set_indices.F90"
@@ -543,10 +546,18 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
+ifeq ($(USE_CUDA),TRUE)
+ifeq ($(USE_GPU_PRAGMA), TRUE)
+
+include $(TOP)/Exec/Make.cuda_rules
+
+endif
+endif
+
 clean::
 	$(SILENT) $(RM) extern.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	$(RM) set_conserved.H set_primitive.H set_indices.F90 state_sizes.f90
+	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 
 # Older versions of CASTRO generated a "network.f90" file when using
 # the general_null network, which conflicts with our generalized

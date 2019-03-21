@@ -7,11 +7,16 @@
 using std::string;
 using namespace amrex;
 
-#ifndef SDC
-
 void
 Castro::strang_react_first_half(Real time, Real dt)
 {
+    BL_PROFILE("Castro::strang_react_first_half()");
+
+    // Sanity check: should only be in here if we're doing CTU or MOL.
+
+    if (time_integration_method != CornerTransportUpwind && time_integration_method != MethodOfLines) {
+        amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
+    }
 
     // Get the reactions MultiFab to fill in.
 
@@ -150,6 +155,13 @@ Castro::strang_react_first_half(Real time, Real dt)
 void
 Castro::strang_react_second_half(Real time, Real dt)
 {
+    BL_PROFILE("Castro::strang_react_second_half()");
+
+    // Sanity check: should only be in here if we're doing CTU or MOL.
+
+    if (time_integration_method != CornerTransportUpwind && time_integration_method != MethodOfLines) {
+        amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
+    }
 
     MultiFab& reactions = get_new_data(Reactions_Type);
 
@@ -256,6 +268,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     BL_PROFILE("Castro::react_state()");
 
+    // Sanity check: should only be in here if we're doing CTU or MOL.
+
+    if (time_integration_method != CornerTransportUpwind && time_integration_method != MethodOfLines) {
+        amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
+    }
+
     const Real strt_time = ParallelDescriptor::second();
 
     // Initialize the weights to the default value (everything is weighted equally).
@@ -318,14 +336,18 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
 }
 
-#else
-
-// SDC version
+// Simplified SDC version
 
 void
 Castro::react_state(Real time, Real dt)
 {
     BL_PROFILE("Castro::react_state()");
+
+    // Sanity check: should only be in here if we're doing simplified SDC.
+
+    if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
+        amrex::Error("This react_state interface is only supported for simplified SDC.");
+    }
 
     const Real strt_time = ParallelDescriptor::second();
 
@@ -363,13 +385,13 @@ Castro::react_state(Real time, Real dt)
 	FArrayBox& r       = reactions[mfi];
 	const IArrayBox& m = interior_mask[mfi];
 
-	ca_react_state(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		       uold.dataPtr(), ARLIM_3D(uold.loVect()), ARLIM_3D(uold.hiVect()),
-		       unew.dataPtr(), ARLIM_3D(unew.loVect()), ARLIM_3D(unew.hiVect()),
-		       a.dataPtr(), ARLIM_3D(a.loVect()), ARLIM_3D(a.hiVect()),
-		       r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
-		       m.dataPtr(), ARLIM_3D(m.loVect()), ARLIM_3D(m.hiVect()),
-		       time, dt, sdc_iteration);
+	ca_react_state_simplified_sdc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                                      uold.dataPtr(), ARLIM_3D(uold.loVect()), ARLIM_3D(uold.hiVect()),
+                                      unew.dataPtr(), ARLIM_3D(unew.loVect()), ARLIM_3D(unew.hiVect()),
+                                      a.dataPtr(), ARLIM_3D(a.loVect()), ARLIM_3D(a.hiVect()),
+                                      r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
+                                      m.dataPtr(), ARLIM_3D(m.loVect()), ARLIM_3D(m.hiVect()),
+                                      time, dt, sdc_iteration);
 
     }
 
@@ -405,8 +427,6 @@ Castro::react_state(Real time, Real dt)
     }
 
 }
-
-#endif
 
 
 

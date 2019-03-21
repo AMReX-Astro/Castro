@@ -7,14 +7,13 @@ module problem_tagging_module
 
 contains
 
-  ! This is a template routine for users to set their own tags based on the state.
-  ! It will be overwritten by having a copy of this file in the user's problem setup.
-  
   subroutine set_problem_tags(lo, hi, tag, tag_lo, tag_hi, &
                               state, state_lo, state_hi, &
                               set, clear,&
                               dx, problo, time, level) &
                               bind(C, name="set_problem_tags")
+    ! This is a template routine for users to set their own tags based on the state.
+    ! It will be overwritten by having a copy of this file in the user's problem setup.
 
     use meth_params_module, only: NVAR
     use amrex_fort_module, only: rt => amrex_real

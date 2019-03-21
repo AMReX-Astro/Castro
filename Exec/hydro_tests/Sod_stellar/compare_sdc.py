@@ -40,7 +40,13 @@ def get_profile(plotfile):
     return Profile(x_coord, temp, rho, e, p, u)
 
 
-def doit(ppm_file, sdc_file, outfile):
+def doit(ppm_file, sdc_file, exact_file, outfile):
+
+    # this gets the header information correct
+    have_exact = False
+    if exact_file != "":
+        exact = np.genfromtxt(exact_file, names=True)
+        have_exact = True
 
     f = plt.figure()
     f.set_size_inches(7.0, 10.0)
@@ -49,34 +55,53 @@ def doit(ppm_file, sdc_file, outfile):
     sdc_profile = get_profile(sdc_file)
 
     ax_rho = f.add_subplot(411)
-    ax_rho.plot(ppm_profile.x, ppm_profile.rho, color="C0", marker="x", label="ppm")
-    ax_rho.plot(sdc_profile.x, sdc_profile.rho, color="C1", marker="x", label="sdc")
+    ax_rho.scatter(ppm_profile.x, ppm_profile.rho, color="C0", marker="x", label="ppm")
+    ax_rho.scatter(sdc_profile.x, sdc_profile.rho, color="C1", marker="x", label="sdc")
+    if have_exact:
+        ax_rho.plot(exact["x"], exact["rho"], color="0.5", label="exact")
 
     ax_rho.legend(frameon=False)
     ax_rho.set_ylabel(r"$\rho~(\mathrm{g~cm^{-3}})$")
     ax_rho.set_yscale("log")
 
+    ax_rho.get_xaxis().set_visible(False)
+
     ax_u = f.add_subplot(412)
-    ax_u.plot(ppm_profile.x, ppm_profile.u, color="C0", marker="x")
-    ax_u.plot(sdc_profile.x, sdc_profile.u, color="C1", marker="x")
+    ax_u.scatter(ppm_profile.x, ppm_profile.u, color="C0", marker="x")
+    ax_u.scatter(sdc_profile.x, sdc_profile.u, color="C1", marker="x")
     ax_u.set_ylabel(r"$u~(\mathrm{cm~s^{-1}})$")
+    if have_exact:
+        ax_u.plot(exact["x"], exact["u"], color="0.5", label="exact")
     #ax_u.set_yscale("log")
 
+    ax_u.get_xaxis().set_visible(False)
+
     ax_p = f.add_subplot(413)
-    ax_p.plot(ppm_profile.x, ppm_profile.p, color="C0", marker="x")
-    ax_p.plot(sdc_profile.x, sdc_profile.p, color="C1", marker="x")
+    ax_p.scatter(ppm_profile.x, ppm_profile.p, color="C0", marker="x")
+    ax_p.scatter(sdc_profile.x, sdc_profile.p, color="C1", marker="x")
+    if have_exact:
+        ax_p.plot(exact["x"], exact["p"], color="0.5", label="exact")
+
     ax_p.set_ylabel(r"$p~(\mathrm{erg~cm^{-3}})$")
-    ax_u.set_yscale("log")
+    ax_p.set_yscale("log")
+
+    ax_p.get_xaxis().set_visible(False)
 
     ax_T = f.add_subplot(414)
-    ax_T.plot(ppm_profile.x, ppm_profile.T, color="C0", marker="x")
-    ax_T.plot(sdc_profile.x, sdc_profile.T, color="C1", marker="x")
+    ax_T.scatter(ppm_profile.x, ppm_profile.T, color="C0", marker="x")
+    ax_T.scatter(sdc_profile.x, sdc_profile.T, color="C1", marker="x")
+    if have_exact:
+        ax_T.plot(exact["x"], exact["T"], color="0.5", label="exact")
+
     ax_T.set_ylabel(r"$T~(\mathrm{K})$")
     ax_T.set_yscale("log")
-
     ax_T.set_xlabel(r"$x$ (cm)")
 
-    f.savefig(outfile)
+    ax_T.ticklabel_format(axis="x", style="sci", scilimits=(0,0))
+
+    f.tight_layout(pad=1.2)
+
+    f.savefig(outfile, dpi=100)
 
 
 if __name__ == "__main__":
@@ -87,6 +112,8 @@ if __name__ == "__main__":
                    help="base name for PPM files")
     p.add_argument("--sdc", type=str, nargs="+",
                    help="base name for SDC files")
+    p.add_argument("--exact", type=str, default="",
+                   help="exact solution (ASCI columns)")
     p.add_argument("-o", type=str, default="plot.png",
                    help="output plot name")
 
@@ -100,5 +127,5 @@ if __name__ == "__main__":
     plot_nums = sorted([p.split("plt")[1] for p in args.sdc], key=int)
     last_sdc_file = "{}{}".format(sdc_prefix, plot_nums[-1])
 
-    doit(last_ppm_file, last_sdc_file, args.o)
+    doit(last_ppm_file, last_sdc_file, args.exact, args.o)
 

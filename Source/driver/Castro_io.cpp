@@ -47,8 +47,8 @@ using namespace amrex;
 // 2: Source_Type was added to the checkpoint
 // 3: A ReactHeader file was generated and the maximum de/dt was stored there
 // 4: Reactions_Type added to checkpoint; ReactHeader functionality deprecated
-// 5: SDC_Source_Type and SDC_React_Type added to checkpoint
-// 6: SDC_Source_Type removed from Castro
+// 5: Simplified_SDC_Source_Type and Simplified_SDC_React_Type added to checkpoint
+// 6: Simplified_SDC_Source_Type removed from Castro
 
 namespace
 {
@@ -152,15 +152,18 @@ Castro::restart (Amr&     papa,
     }
 #endif
 
-#ifdef SDC
-    if (input_version < 6) { // old checkpoint with SDC_Source_Type
-        amrex::Abort("Cannot restart from this checkpoint when using SDC.");
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (input_version < 6) { // old checkpoint with SDC_Source_Type
+            amrex::Abort("Cannot restart from this checkpoint when using simplified SDC.");
+        }
     }
+
 #ifdef REACTIONS
-    if (input_version < 5) { // old checkpoint without SDC_React_Type
-      state[SDC_React_Type].restart(desc_lst[SDC_React_Type], state[State_Type]);
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (input_version < 5) { // old checkpoint without Simplified_SDC_React_Type
+            state[Simplified_SDC_React_Type].restart(desc_lst[Simplified_SDC_React_Type], state[State_Type]);
+        }
     }
-#endif
 #endif
 
     // For versions < 2, we didn't store all three components
@@ -241,11 +244,15 @@ Castro::restart (Amr&     papa,
       FullPathReactFile += "/ReactHeader";
       ReactFile.open(FullPathReactFile.c_str(), std::ios::in);
 
-      // Maximum rate of change of internal energy in last timestep.
+      if (ReactFile.good()) {
 
-      ReactFile >> max_dedt;
+          // Maximum rate of change of internal energy in last timestep.
 
-      ReactFile.close();
+          ReactFile >> max_dedt;
+
+          ReactFile.close();
+
+      }
 
       // Set the energy change to the components of the
       // reactions MultiFab; it will get overwritten later
@@ -271,8 +278,12 @@ Castro::restart (Amr&     papa,
       FullPathCPUFile += "/CPUtime";
       CPUFile.open(FullPathCPUFile.c_str(), std::ios::in);
 
-      CPUFile >> previousCPUTimeUsed;
-      CPUFile.close();
+      if (CPUFile.good()) {
+
+          CPUFile >> previousCPUTimeUsed;
+          CPUFile.close();
+
+      }
 
       std::cout << "read CPU time: " << previousCPUTimeUsed << "\n";
 
@@ -287,14 +298,37 @@ Castro::restart (Amr&     papa,
       FullPathDiagFile += "/Diagnostics";
       DiagFile.open(FullPathDiagFile.c_str(), std::ios::in);
 
-      for (int i = 0; i < n_lost; i++) {
-	DiagFile >> material_lost_through_boundary_cumulative[i];
-	material_lost_through_boundary_temp[i] = 0.0;
+      if (DiagFile.good()) {
+
+          for (int i = 0; i < n_lost; i++) {
+              DiagFile >> material_lost_through_boundary_cumulative[i];
+              material_lost_through_boundary_temp[i] = 0.0;
+          }
+
+          DiagFile.close();
+
       }
 
-      DiagFile.close();
+    }
+
+#ifdef GRAVITY
+    if (use_point_mass && level == 0)
+    {
+
+        // get the current value of the point mass
+        std::ifstream PMFile;
+        std::string FullPathPMFile = parent->theRestartFile();
+        FullPathPMFile += "/point_mass";
+        PMFile.open(FullPathPMFile.c_str(), std::ios::in);
+
+        if (PMFile.good()) {
+            PMFile >> point_mass;
+            set_pointmass(&point_mass);
+            PMFile.close();
+        }
 
     }
+#endif
 
     if (level == 0)
     {
@@ -505,13 +539,13 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
       state_in_checkpoint[i] = 0;
     }
 #endif
-#ifdef SDC
 #ifdef REACTIONS
-    if (input_version < 5 && i == SDC_React_Type) {
-      // We are reading an old checkpoint with no SDC_React_Type
-      state_in_checkpoint[i] = 0;
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (input_version < 5 && i == Simplified_SDC_React_Type) {
+            // We are reading an old checkpoint with no Simplified_SDC_React_Type
+            state_in_checkpoint[i] = 0;
+        }
     }
-#endif
 #endif
   }
 }
@@ -583,7 +617,7 @@ Castro::checkPoint(const std::string& dir,
 	    FullPathCPUFile += "/CPUtime";
 	    CPUFile.open(FullPathCPUFile.c_str(), std::ios::out);
 
-	    CPUFile << std::setprecision(15) << getCPUTime();
+	    CPUFile << std::setprecision(17) << getCPUTime();
 	    CPUFile.close();
 	}
 
@@ -596,11 +630,27 @@ Castro::checkPoint(const std::string& dir,
 	    DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
 
 	    for (int i = 0; i < n_lost; i++)
-	      DiagFile << std::setprecision(15) << material_lost_through_boundary_cumulative[i] << std::endl;
+	      DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
 
 	    DiagFile.close();
 
 	}
+
+#ifdef GRAVITY
+        if (use_point_mass) {
+
+            // store current value of the point mass
+            std::ofstream PMFile;
+            std::string FullPathPMFile = dir;
+            FullPathPMFile += "/point_mass";
+            PMFile.open(FullPathPMFile.c_str(), std::ios::out);
+
+            PMFile << std::setprecision(17) << point_mass << std::endl;
+
+            PMFile.close();
+
+        }
+#endif
 
 	{
 	    // store any problem-specific stuff
@@ -663,11 +713,12 @@ Castro::setPlotVariables ()
       parent->deleteStatePlotVar(desc_lst[Thornado_Rad_Source_Type].name(i));
 #endif
 
-#ifdef SDC
 #ifdef REACTIONS
-  for (int i = 0; i < desc_lst[SDC_React_Type].nComp(); i++)
-      parent->deleteStatePlotVar(desc_lst[SDC_React_Type].name(i));
-#endif
+  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      for (int i = 0; i < desc_lst[Simplified_SDC_React_Type].nComp(); i++) {
+          parent->deleteStatePlotVar(desc_lst[Simplified_SDC_React_Type].name(i));
+      }
+  }
 #endif
 
   ParmParse pp("castro");
@@ -872,6 +923,12 @@ Castro::writeJobInfo (const std::string& dir)
   jobInfoFile << "\n\n";
 
   jobInfoFile << " Domain geometry info\n";
+
+  Real center[3];
+  ca_get_center(center);
+
+  jobInfoFile << "     center: " << center[0] << " , " << center[1] << " , " << center[2] << "\n";
+  jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.is_periodic: ";
   for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
@@ -1256,4 +1313,37 @@ Castro::plotFileOutput(const std::string& dir,
     std::string TheFullPath = FullPath;
     TheFullPath += BaseName;
     VisMF::Write(plotMF,TheFullPath,how,true);
+
+    if (track_grid_losses && level == 0) {
+
+        // store diagnostic quantities
+        std::ofstream DiagFile;
+        std::string FullPathDiagFile = dir;
+        FullPathDiagFile += "/Diagnostics";
+        DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
+
+        for (int i = 0; i < n_lost; i++)
+            DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
+
+        DiagFile.close();
+
+    }
+
+
+#ifdef GRAVITY
+    if (use_point_mass && level == 0) {
+
+        // store current value of the point mass
+        std::ofstream PMFile;
+        std::string FullPathPMFile = dir;
+        FullPathPMFile += "/point_mass";
+        PMFile.open(FullPathPMFile.c_str(), std::ios::out);
+
+        PMFile << std::setprecision(17) << point_mass << std::endl;
+
+        PMFile.close();
+
+    }
+#endif
+
 }

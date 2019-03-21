@@ -1,7 +1,5 @@
-
-! This module contains information about the state of the Amr class in C++.
-
 module amrinfo_module
+  ! This module contains information about the state of the Amr class in C++.
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -14,8 +12,8 @@ module amrinfo_module
   real(rt), allocatable         :: amr_dt
 
 #ifdef AMREX_USE_CUDA
-    attributes(managed) :: amr_level, amr_iteration, amr_ncycle
-    attributes(managed) :: amr_time, amr_dt
+  attributes(managed) :: amr_level, amr_iteration, amr_ncycle
+  attributes(managed) :: amr_time, amr_dt
 #endif
 
 end module amrinfo_module

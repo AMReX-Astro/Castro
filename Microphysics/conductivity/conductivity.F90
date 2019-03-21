@@ -51,6 +51,8 @@ contains
 
     implicit none
 
+    !$gpu
+
     type (eos_t)  , intent(inout) :: state
 
     call actual_conductivity(state)

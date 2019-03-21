@@ -6,8 +6,8 @@ module advection_util_module
   private
 
   public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
-         limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, avisc, &
-         scale_flux, apply_av, store_pradial, ca_construct_hydro_update_cuda
+       limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, avisc, &
+       scale_flux, apply_av, ca_construct_hydro_update_cuda
 #ifdef RADIATION
   public apply_av_rad, scale_rad_flux
 #endif
@@ -184,12 +184,13 @@ contains
   end subroutine ca_enforce_minimum_density
 
 
-  !> @brief If no neighboring zones are above small_dens, our only recourse
-  !! is to set the density equal to small_dens, and the temperature
-  !! equal to small_temp. We set the velocities to zero,
-  !! though any choice here would be arbitrary.
-  !!
+
   subroutine reset_to_small_state(old_state, new_state, idx, lo, hi, verbose)
+    ! If no neighboring zones are above small_dens, our only recourse
+    ! is to set the density equal to small_dens, and the temperature
+    ! equal to small_temp. We set the velocities to zero,
+    ! though any choice here would be arbitrary.
+    !
 
     use amrex_constants_module, only: ZERO
     use network, only: nspec, naux
@@ -297,13 +298,13 @@ contains
   end subroutine reset_to_zone_state
 
 
-  !> @brief Compute running max of Courant number over grids
-  !!
   subroutine ca_compute_cfl(lo, hi, &
        q, q_lo, q_hi, &
        qaux, qa_lo, qa_hi, &
        dt, dx, courno, verbose) &
        bind(C, name = "ca_compute_cfl")
+    ! Compute running max of Courant number over grids
+    !
 
     use amrex_constants_module, only: ZERO, ONE
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, time_integration_method
@@ -452,13 +453,14 @@ contains
          UEDEN, UEINT, UTEMP, &
          QRHO, QU, QV, QW, &
          QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-         NQ, QC, QGAMC, QDPDR, QDPDE, NQAUX, &
+         NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
          QCG, QGAMCG, QLAMS, &
          QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
          npassive, upass_map, qpass_map, dual_energy_eta1, &
          small_dens
+
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
 #ifdef ROTATION
@@ -599,6 +601,7 @@ contains
              q(i,j,k,QREINT) = eos_state % e * q(i,j,k,QRHO)
              q(i,j,k,QPRES)  = eos_state % p
              q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
+             q(i,j,k,QGC) = eos_state % gam1
 
              qaux(i,j,k,QDPDR)  = eos_state % dpdr_e
              qaux(i,j,k,QDPDE)  = eos_state % dpde
@@ -641,7 +644,7 @@ contains
 
     use actual_network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
-         QVAR, QRHO, QU, QV, QW, NQ, &
+         NQSRC, QRHO, QU, QV, QW, NQ, &
          QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
          npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
@@ -658,7 +661,7 @@ contains
     real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt)        , intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt)        , intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
+    real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),NQSRC)
 
     integer          :: i, j, k
     integer          :: n, iq, ipassive
@@ -692,6 +695,13 @@ contains
        n = upass_map(ipassive)
        iq = qpass_map(ipassive)
 
+       ! we already accounted for velocities above
+       if (iq == QU .or. iq == QV .or. iq == QW) cycle
+
+       ! we may not be including the ability to have species sources,
+       ! so check to make sure that we are < NQSRC
+       if (iq > NQSRC) cycle
+
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -707,10 +717,11 @@ contains
 
 
 
-  !> @brief Given a conservative state and its corresponding primitive state, calculate the
-  !! corresponding flux in a given direction.
-  !!
+
   function dflux(u, q, dir, idx) result(flux)
+    ! Given a conservative state and its corresponding primitive state, calculate the
+    ! corresponding flux in a given direction.
+    !
 
     use amrex_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
@@ -784,27 +795,26 @@ contains
   end function dflux
 
 
-  !> @brief The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
-  !! "Positivity-preserving method for high-order conservative schemes solving
-  !! compressible Euler equations." It has been modified to enforce not only positivity
-  !! but also the stronger requirement that rho > small_dens. We do not limit on pressure
-  !! (or, similarly, internal energy) because those cases are easily fixed by calls to
-  !! reset_internal_energy that enforce a thermodynamic floor. The density limiter, by
-  !! contrast, is very important because calls to enforce_minimum_density can yield
-  !! hydrodynamic states that are inconsistent (there is no clear strategy for what to do
-  !! when a density is negative).
-  !!
-  !! We implement the flux limiter on a dimension-by-dimension basis, starting with the x-direction.
-  !!
   subroutine limit_hydro_fluxes_on_small_dens(lo, hi, &
-                                              idir, &
-                                              u, u_lo, u_hi, &
-                                              q, q_lo, q_hi, &
-                                              vol, vol_lo, vol_hi, &
-                                              flux, flux_lo, flux_hi, &
-                                              area, area_lo, area_hi, &
-                                              dt, dx)
-
+       idir, &
+       u, u_lo, u_hi, &
+       q, q_lo, q_hi, &
+       vol, vol_lo, vol_hi, &
+       flux, flux_lo, flux_hi, &
+       area, area_lo, area_hi, &
+       dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
+    ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
+    ! "Positivity-preserving method for high-order conservative schemes solving
+    ! compressible Euler equations." It has been modified to enforce not only positivity
+    ! but also the stronger requirement that rho > small_dens. We do not limit on pressure
+    ! (or, similarly, internal energy) because those cases are easily fixed by calls to
+    ! reset_internal_energy that enforce a thermodynamic floor. The density limiter, by
+    ! contrast, is very important because calls to enforce_minimum_density can yield
+    ! hydrodynamic states that are inconsistent (there is no clear strategy for what to do
+    ! when a density is negative).
+    !
+    ! We implement the flux limiter on a dimension-by-dimension basis, starting with the x-direction.
+    !
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
@@ -814,13 +824,14 @@ contains
     implicit none
 
     integer, intent(in) :: u_lo(3), u_hi(3)
-    integer, intent(in) :: idir
+    integer, intent(in), value :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: vol_lo(3), vol_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux_lo(3), flux_hi(3)
     integer, intent(in) :: area_lo(3), area_hi(3)
-    real(rt), intent(in   ) :: dt, dx(3)
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
 
     real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
     real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -996,7 +1007,7 @@ contains
                 else if (u(i,j-1,k,URHO) - drhoLF < density_floor) then
                    fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j-1,k,URHO)) / drhoLF)
                 endif
-                
+
                 thetap = ONE
                 thetam = ONE
 
@@ -1066,7 +1077,7 @@ contains
                 fluxR = dflux(uR, qR, idir, [i, j, k-1])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
-                flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k)) 
+                flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k))
                 drhoLF = flux_coef * fluxLF(URHO)
 
                 if (u(i,j,k,URHO) + drhoLF < density_floor) then
@@ -1122,17 +1133,18 @@ contains
   end subroutine limit_hydro_fluxes_on_small_dens
 
 
-  !> @brief This is a basic multi-dimensional shock detection algorithm.
-  !! This implementation follows Flash, which in turn follows
-  !! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
-  !!
-  !! The spirit of this follows the shock detection in Colella &
-  !! Woodward (1984)
-  !!
+
   subroutine ca_shock(lo, hi, &
        q, qd_lo, qd_hi, &
        shk, s_lo, s_hi, &
        dx) bind(C, name="ca_shock")
+    ! This is a basic multi-dimensional shock detection algorithm.
+    ! This implementation follows Flash, which in turn follows
+    ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
+    !
+    ! The spirit of this follows the shock detection in Colella &
+    ! Woodward (1984)
+    !
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type
@@ -1298,11 +1310,12 @@ contains
   ! ::: ------------------------------------------------------------------
   ! :::
 
-  !> @brief this computes the *node-centered* divergence
-  !!
+
   subroutine divu(lo, hi, &
        q, q_lo, q_hi, &
        dx, div, div_lo, div_hi) bind(C, name='divu')
+    ! this computes the *node-centered* divergence
+    !
 
     use meth_params_module, only : QU, QV, QW, NQ
     use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
@@ -1437,10 +1450,9 @@ contains
 
 
   subroutine avisc(lo, hi, &
-                   q, q_lo, q_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   dx, avis, a_lo, a_hi, idir)
-
+       q, q_lo, q_hi, &
+       qaux, qa_lo, qa_hi, &
+       dx, avis, a_lo, a_hi, idir)
     ! this computes the *face-centered* artifical viscosity using the
     ! 4th order expression from McCorquodale & Colella (Eq. 35)
 
@@ -1542,8 +1554,7 @@ contains
   ! :::
 
 
-  !> @brief this computes the *node-centered* divergence
-  !!
+
   subroutine calc_pdivu(lo, hi, &
        q1, q1_lo, q1_hi, &
        area1, a1_lo, a1_hi, &
@@ -1557,6 +1568,10 @@ contains
 #endif
        vol, v_lo, v_hi, &
        dx, pdivu, div_lo, div_hi)
+    ! this computes the cell-centered p div(U) term from the
+    ! edge-centered Godunov state.  This is used in the internal energy
+    ! update
+    !
 
     use meth_params_module, only : NQ, GDPRES, GDU, GDV, GDW
     use amrex_constants_module, only : HALF
@@ -1627,11 +1642,12 @@ contains
   end subroutine calc_pdivu
 
 
-  !> @brief Normalize the fluxes of the mass fractions so that
-  !! they sum to 0.  This is essentially the CMA procedure that is
-  !! defined in Plewa & Muller, 1999, A&A, 342, 179.
-  !!
-  subroutine normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
+
+  subroutine normalize_species_fluxes(lo, hi, flux, f_lo, f_hi) bind(c, name="normalize_species_fluxes")
+    ! Normalize the fluxes of the mass fractions so that
+    ! they sum to 0.  This is essentially the CMA procedure that is
+    ! defined in Plewa & Muller, 1999, A&A, 342, 179.
+    !
 
     use network, only: nspec
     use amrex_constants_module, only: ZERO, ONE
@@ -1752,9 +1768,9 @@ contains
 
 #ifdef RADIATION
   subroutine apply_av_rad(lo, hi, idir, dx, &
-                          div, div_lo, div_hi, &
-                          Erin, Ein_lo, Ein_hi, &
-                          radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
+       div, div_lo, div_hi, &
+       Erin, Ein_lo, Ein_hi, &
+       radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
 
     use amrex_constants_module, only: ZERO, FOURTH
     use meth_params_module, only: NVAR, UTEMP, USHK, difmag
@@ -1765,7 +1781,7 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: div_lo(3), div_hi(3)
     integer,  intent(in   ) :: Ein_lo(3), Ein_hi(3)
-   integer,  intent(in   ) :: rf_lo(3), rf_hi(3)
+    integer,  intent(in   ) :: rf_lo(3), rf_hi(3)
     real(rt), intent(in   ) :: dx(3)
     integer,  intent(in   ), value :: idir
 
@@ -1788,21 +1804,21 @@ contains
                 if (idir .eq. 1) then
 
                    div1 = FOURTH * (div(i,j,k        ) + div(i,j+1*dg(2),k        ) + &
-                                    div(i,j,k+1*dg(3)) + div(i,j+1*dg(2),k+1*dg(3)))
+                        div(i,j,k+1*dg(3)) + div(i,j+1*dg(2),k+1*dg(3)))
                    div1 = difmag * min(ZERO, div1)
                    div1 = div1 * (Erin(i,j,k,n) - Erin(i-1*dg(1),j,k,n))
 
                 else if (idir .eq. 2) then
 
                    div1 = FOURTH * (div(i,j,k        ) + div(i+1*dg(1),j,k        ) + &
-                                    div(i,j,k+1*dg(3)) + div(i+1*dg(1),j,k+1*dg(3)))
+                        div(i,j,k+1*dg(3)) + div(i+1*dg(1),j,k+1*dg(3)))
                    div1 = difmag * min(ZERO, div1)
                    div1 = div1 * (Erin(i,j,k,n) - Erin(i,j-1*dg(2),k,n))
 
                 else
 
                    div1 = FOURTH * (div(i,j        ,k) + div(i+1*dg(1),j        ,k) + &
-                                    div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
+                        div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
                    div1 = difmag * min(ZERO, div1)
                    div1 = div1 * (Erin(i,j,k,n) - Erin(i,j,k-1*dg(3),n))
 
@@ -1901,12 +1917,12 @@ contains
 
 
 
-    subroutine scale_flux(lo, hi, &
+  subroutine scale_flux(lo, hi, &
 #if AMREX_SPACEDIM == 1
-                          qint, qi_lo, qi_hi, &
+       qint, qi_lo, qi_hi, &
 #endif
-                          flux, f_lo, f_hi, &
-                          area, a_lo, a_hi, dt) bind(c, name="scale_flux")
+       flux, f_lo, f_hi, &
+       area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
     use meth_params_module, only: NVAR, UMX, GDPRES, NGDNV
     use prob_params_module, only : coord_type
@@ -1948,55 +1964,10 @@ contains
 
   end subroutine scale_flux
 
-  subroutine store_pradial(lo, hi, &
-                           qint, qi_lo, qi_hi, &
-                           pradial, p_lo, p_hi, dt) bind(C, name="store_pradial")
-
-    use meth_params_module, only: GDPRES, NGDNV, UMX
-    use prob_params_module, only : coord_type, mom_flux_has_p
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: qi_lo(3), qi_hi(3)
-    integer, intent(in) :: p_lo(3), p_hi(3)
-
-    real(rt), intent(in) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NGDNV)
-    real(rt), intent(out) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
-    real(rt), intent(in), value :: dt
-
-    integer :: i, j, k
-
-#if AMREX_SPACEDIM == 1
-    if (coord_type > 0) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                pradial(i,j,k) = qint(i,j,k,GDPRES) * dt
-             end do
-          end do
-       end do
-    end if
-#endif
-
-#if AMREX_SPACEDIM == 2
-    if (.not. mom_flux_has_p(1)%comp(UMX)) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                pradial(i,j,k) = qint(i,j,k,GDPRES) * dt
-             end do
-          end do
-       end do
-    end if
-#endif
-
-  end subroutine store_pradial
-
 #ifdef RADIATION
   subroutine scale_rad_flux(lo, hi, &
-                            rflux, rf_lo, rf_hi, &
-                            area, a_lo, a_hi, dt) bind(c, name="scale_rad_flux")
+       rflux, rf_lo, rf_hi, &
+       area, a_lo, a_hi, dt) bind(c, name="scale_rad_flux")
 
     use rad_params_module, only : ngroups
 

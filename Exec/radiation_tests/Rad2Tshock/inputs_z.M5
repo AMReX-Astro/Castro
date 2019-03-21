@@ -1,0 +1,182 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step  = 3000    # maximum timestep
+stop_time = 0.04
+
+geometry.is_periodic = 0 0 0
+
+geometry.coord_sys = 0  # 0 => cart, 1 => RZ, 2 => Spherical
+
+geometry.prob_lo   =    0.0   0.0 -4000.
+geometry.prob_hi   =    187.5 187.5 2000.
+
+amr.n_cell   = 8  8 256
+
+# REFINEMENT / REGRIDDING
+amr.max_level       = 4       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 2 2 # how often to regrid
+amr.blocking_factor = 4       # block factor in grid generation
+amr.max_grid_size   = 64
+amr.n_error_buf     = 2 2 2 2 2 2 # number of buffer cells in error est
+amr.n_proper        = 1       # default value
+amr.grid_eff        = 0.7     # what constitutes an efficient grid
+
+# CHECKPOINT FILES
+amr.check_file      = chk_z_     # root name of checkpoint file
+amr.check_int       = 1000      # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_files_output       = 1 #Don't? suppress plot files
+amr.plot_file       = plt_z_
+amr.plot_int        = 100     # number of timesteps between plot files
+amr.derive_plot_vars = ALL
+
+
+# PROBIN FILENAME
+amr.probin_file     = probin.M5
+
+# VERBOSITY
+amr.v = 1
+amr.grid_log        = grdlog  # name of grid logging file
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  4    4    1
+castro.hi_bc       =  4    4    1
+
+# WHICH PHYSICS
+castro.do_grav        = 0
+castro.do_hydro       = 1
+castro.do_radiation   = 1
+castro.do_reflux      = 1       # 1 => do refluxing
+castro.do_react       = 0       # reactions?
+
+# hydro cutoff parameters
+castro.small_dens     = 1.e-20
+
+# External source terms
+castro.add_ext_src=0            #  Add external source terms
+
+# TIME STEP CONTROL
+castro.cfl            = 0.8     # cfl number for hyperbolic system
+castro.init_shrink    = 0.1     # scale back initial timestep
+castro.change_max     = 1.1 
+#castro.initial_dt     = 0.01
+castro.dt_cutoff      = 1.e-20  # level 0 timestep below which we halt
+#castro.fixed_dt       = 1.e-15
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v = 1
+
+# ------------------  INPUTS TO RADIATION CLASS  -------------------
+
+##### SolverType #####
+# 0: single group diffusion w/o coupling to hydro
+# 5: SGFLD       6: MGFLD
+radiation.SolverType = 5
+
+radiation.comoving = 1
+
+radiation.Er_Lorentz_term = 0
+
+# RADIATION TOLERANCES
+radiation.reltol  = 1.e-6 # relative tolerance for implicit update loop
+radiation.abstol  = 0.0   # absolute tolerance for implicit update loop
+radiation.maxiter = 50    # return after numiter iterations if not converged
+
+# RADIATION LIMITER
+radiation.limiter = 0     # 0 = no limiter
+                          # 2 = correct form of Lev-Pom limiter
+
+radiation.delta_temp            = 0.01
+
+# RADIATION VERBOSITY
+radiation.v               = 2    # verbosity
+
+# We set radiation boundary conditions directly since they do not
+# correspond neatly to the physical boundary conditions used for the fluid.
+# The choices are:
+# 101 = LO_DIRICHLET           102 = LO_NEUMANN
+# 104 = LO_MARSHAK             105 = LO_SANCHEZ_POMRANING
+
+radiation.lo_bc     = 102 102 101
+radiation.hi_bc     = 102 102 101
+
+# For each boundary, we can specify either a constant boundary value
+# or use a Fortran function FORT_RADBNDRY to specify values that vary
+# in space and time.
+
+# If bcflag is 0 then bcval is used, otherwise FORT_RADBNDRY used:
+
+radiation.lo_bcflag = 0 0 0
+radiation.hi_bcflag = 0 0 0
+
+# bcval is interpreted differently depending on the boundary condition
+# 101 = LO_DIRICHLET           bcval is Dirichlet value of rad energy density
+# 102 = LO_NEUMANN             bcval is inward flux of rad energy
+# 104 = LO_MARSHAK             bcval is incident flux
+# 105 = LO_SANCHEZ_POMRANING   bcval is incident flux
+
+radiation.lo_bcval = 0.0 0.0 7.5657313567241239e-7
+radiation.hi_bcval = 0.0 0.0 0.0040567429273323397
+
+radiation.do_real_eos = 1
+
+# Power-law opacities are represented as:
+#
+#    const_kappa * (rho**m) * (temp**(-n)) * (nu**(p))
+#
+# Since the formula is both nonphysical and singular, prop_temp_floor
+# provides a floor for the temperature used in the power-law computation.
+
+# Planck mean opacity 
+radiation.const_kappa_p =  3.92663697758e-05 
+radiation.kappa_p_exp_m =  0.0
+radiation.kappa_p_exp_n =  0.0
+
+# Rosseland mean opacity 
+radiation.const_kappa_r =  0.848902853095
+radiation.kappa_r_exp_m =  0.0
+radiation.kappa_r_exp_n =  0.0
+
+# ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
+
+# solver flag values <  100 use HypreABec, support symmetric matrices only
+# solver flag values >= 100 use HypreMultiABec, support nonsymmetric matrices
+#
+# PFMG does not supprt 1D.
+# ParCSR does not work for periodic boundaries.
+# For MGFLD with accelerate = 2, must use >=100.
+#
+# 0     SMG
+# 1     PFMG  (>= 2D only)
+# 100   AMG   using ParCSR ObjectType
+# 102   GMRES using ParCSR ObjectType
+# 103   GMRES using SStruct ObjectType
+# 104   GMRES using AMG as preconditioner
+# 109   GMRES using Struct SMG/PFMG as preconditioner
+# 150   AMG   using ParCSR ObjectType
+# 1002  PCG   using ParCSR ObjectType
+# 1003  PCG   using SStruct ObjectType
+
+radsolve.level_solver_flag = 0   # can be any supported hypre solver flag
+
+radsolve.reltol     = 1.0e-11 # relative tolerance
+radsolve.abstol     = 0.0     # absolute tolerance (often not necessary)
+radsolve.maxiter    = 200     # linear solver iteration limit
+
+radsolve.v = 1      # verbosity
+
+hmabec.verbose = 2  # verbosity for HypreMultiABec solvers
+habec.verbose  = 2  # verbosity for HypreABec solvers
+
+#
+# The default strategy is SFC.
+#
+DistributionMapping.strategy = ROUNDROBIN
+DistributionMapping.strategy = KNAPSACK
+DistributionMapping.strategy = SFC

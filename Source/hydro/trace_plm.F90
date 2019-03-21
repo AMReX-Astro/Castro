@@ -29,7 +29,7 @@ contains
     ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, QVAR, QRHO, QU, QV, QW, QC, &
+    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, QC, &
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type, fix_mass_flux
@@ -56,7 +56,7 @@ contains
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ,AMREX_SPACEDIM)
+    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ)
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
@@ -64,7 +64,7 @@ contains
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),QVAR)
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
@@ -138,12 +138,12 @@ contains
              rhoe = q(i,j,k,QREINT)
              enth = (rhoe+p)/(rho*csq)
 
-             drho = dq(i,j,k,QRHO,idir)
-             dun = dq(i,j,k,QUN,idir)
-             dut = dq(i,j,k,QUT,idir)
-             dutt = dq(i,j,k,QUTT,idir)
-             dp = dq(i,j,k,QPRES,idir)
-             drhoe = dq(i,j,k,QREINT,idir)
+             drho = dq(i,j,k,QRHO)
+             dun = dq(i,j,k,QUN)
+             dut = dq(i,j,k,QUT)
+             dutt = dq(i,j,k,QUTT)
+             dp = dq(i,j,k,QPRES)
+             drhoe = dq(i,j,k,QREINT)
 
              alpham = HALF*(dp/(rho*cc) - dun)*(rho/cc)
              alphap = HALF*(dp/(rho*cc) + dun)*(rho/cc)
@@ -337,21 +337,25 @@ contains
 
                    un = q(i,j,k,QUN)
                    spzero = merge(-ONE, un*dtdx, un >= ZERO)
-                   acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n,idir)
-                   qp(i,j,k,n) = q(i,j,k,n) + acmprght + HALF*dt*srcQ(i,j,k,n)
+                   acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n)
+                   qp(i,j,k,n) = q(i,j,k,n) + acmprght
+                   if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*srcQ(i,j,k,n)
                 endif
 
                 ! Left state
                 un = q(i,j,k,QUN)
                 spzero = merge(un*dtdx, ONE, un >= ZERO)
-                acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n,idir)
+                acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
 
                 if (idir == 1 .and. i <= vhi(1)) then
-                   qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
+                   qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft
+                   if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*srcQ(i,j,k,n)
                 else if (idir == 2 .and. j <= vhi(2)) then
-                   qm(i,j+1,k,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
+                   qm(i,j+1,k,n) = q(i,j,k,n) + acmpleft
+                   if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*srcQ(i,j,k,n)
                 else if (idir == 3 .and. k <= vhi(3)) then
-                   qm(i,j,k+1,n) = q(i,j,k,n) + acmpleft + HALF*dt*srcQ(i,j,k,n)
+                   qm(i,j,k+1,n) = q(i,j,k,n) + acmpleft
+                   if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*srcQ(i,j,k,n)
                 endif
              enddo
 

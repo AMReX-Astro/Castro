@@ -27,6 +27,8 @@ state_nghost                 int           0
 do_reflux                    int           1
 
 # whether to re-compute new-time source terms after a reflux
+# Note: this only works for the CTU and simple-SDC time_integration_method
+# drivers
 update_sources_after_reflux  int           1
 
 # should we have state data for custom load-balancing weighting?
@@ -56,14 +58,19 @@ small_ener                   Real         -1.e200             y
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
-# how do we advance in time? 0 = CTU + Strang, 1 = MOL + Strang
+# how do we advance in time? 0 = CTU + Strang, 1 = MOL + Strang, 2 = SDC
 time_integration_method      int           0                  y
 
-# do we do fourth-order accurate MOL hydro?
+# do we do fourth-order accurate spatial reconstruction for hydro? (requires SDC or MOL integration)
 fourth_order                 int           0                  y
 
 # do we use a limiter with the fourth-order accurate reconstruction?
 limit_fourth_order           int           1                  y
+
+# should we use a reconstructed version of Gamma_1 in the Riemann
+# solver? or the default zone average (requires SDC or MOL
+# integration, since we do not trace)
+use_reconstructed_gamma1     int           0                  y
 
 # if true, define an additional source term
 add_ext_src                  int           0
@@ -220,6 +227,21 @@ hse_reflect_vels             int           0                  y
 # 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK
 mol_order                    int           2                  y
 
+# integration order for SDC integration
+# valid options are 2 and 4
+sdc_order                    int           2                  y
+
+# which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
+sdc_solver                   int           1                  y
+
+# which SDC nonlinear solver to use?  1 = Newton, 2 = VODE
+sdc_solver_tol               Real          1.e-6             y
+
+# do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
+sdc_solve_for_rhoe           int           1                  y
+
+# do we use the analytic or numerical Jacobian?
+sdc_use_analytic_jac         int           1                  y
 
 #-----------------------------------------------------------------------------
 # category: timestep control
@@ -286,11 +308,6 @@ use_post_step_regrid         int           0
 # Set to a negative value to disable this criterion.
 max_subcycles                int           10
 
-# If we do request more than the maximum number of subcycles,
-# should we fail, or should we clamp to that maximum number
-# and perform that many?
-clamp_subcycles              int           1
-
 # Number of iterations for the SDC advance.
 sdc_iters                    int           2
 
@@ -341,15 +358,6 @@ T_guess                     Real           1.e8               y
 
 # enable thermal diffusion
 diffuse_temp                 int           0                  n     DIFFUSION
-
-# enable enthalpy diffusion
-diffuse_enth                 int           0                  n     DIFFUSION
-
-# enable species diffusion
-diffuse_spec                 int           0                  n     DIFFUSION
-
-# enable velocity diffusion
-diffuse_vel                  int           0                  n     DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
 diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION
@@ -416,15 +424,15 @@ implicit_rotation_update     int           1                  y        ROTATION
 rot_axis                     int           3                  y        ROTATION
 
 # include a central point mass
-use_point_mass               int           1                  y        POINTMASS
+use_point_mass               int           0                  y        GRAVITY
 
 # mass of the point mass
-point_mass                   Real          0.0                y        POINTMASS
+point_mass                   Real          0.0                y        GRAVITY
 
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
 # adding their mass to the point mass object
-point_mass_fix_solution      int           0                  y        POINTMASS
+point_mass_fix_solution      int           0                  y        GRAVITY
 
 #-----------------------------------------------------------------------------
 # category: parallelization

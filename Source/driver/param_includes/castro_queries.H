@@ -5,9 +5,6 @@
 
 #ifdef DIFFUSION
 pp.query("diffuse_temp", diffuse_temp);
-pp.query("diffuse_enth", diffuse_enth);
-pp.query("diffuse_spec", diffuse_spec);
-pp.query("diffuse_vel", diffuse_vel);
 pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
 pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
 pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
@@ -26,11 +23,6 @@ pp.query("rot_source_type", rot_source_type);
 pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
 #endif
-#ifdef POINTMASS
-pp.query("use_point_mass", use_point_mass);
-pp.query("point_mass", point_mass);
-pp.query("point_mass_fix_solution", point_mass_fix_solution);
-#endif
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
 pp.query("state_nghost", state_nghost);
@@ -46,6 +38,7 @@ pp.query("do_hydro", do_hydro);
 pp.query("time_integration_method", time_integration_method);
 pp.query("fourth_order", fourth_order);
 pp.query("limit_fourth_order", limit_fourth_order);
+pp.query("use_reconstructed_gamma1", use_reconstructed_gamma1);
 pp.query("add_ext_src", add_ext_src);
 pp.query("hybrid_hydro", hybrid_hydro);
 pp.query("ppm_type", ppm_type);
@@ -84,6 +77,11 @@ pp.query("hse_zero_vels", hse_zero_vels);
 pp.query("hse_interp_temp", hse_interp_temp);
 pp.query("hse_reflect_vels", hse_reflect_vels);
 pp.query("mol_order", mol_order);
+pp.query("sdc_order", sdc_order);
+pp.query("sdc_solver", sdc_solver);
+pp.query("sdc_solver_tol", sdc_solver_tol);
+pp.query("sdc_solve_for_rhoe", sdc_solve_for_rhoe);
+pp.query("sdc_use_analytic_jac", sdc_use_analytic_jac);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);
@@ -99,7 +97,6 @@ pp.query("retry_neg_dens_factor", retry_neg_dens_factor);
 pp.query("retry_subcycle_factor", retry_subcycle_factor);
 pp.query("use_post_step_regrid", use_post_step_regrid);
 pp.query("max_subcycles", max_subcycles);
-pp.query("clamp_subcycles", clamp_subcycles);
 pp.query("sdc_iters", sdc_iters);
 pp.query("dtnuc_e", dtnuc_e);
 pp.query("dtnuc_X", dtnuc_X);
@@ -134,3 +131,8 @@ pp.query("job_name", job_name);
 pp.query("output_at_completion", output_at_completion);
 pp.query("reset_checkpoint_time", reset_checkpoint_time);
 pp.query("reset_checkpoint_step", reset_checkpoint_step);
+#ifdef GRAVITY
+pp.query("use_point_mass", use_point_mass);
+pp.query("point_mass", point_mass);
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#endif
