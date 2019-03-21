@@ -13,5 +13,6 @@ File list
    radiation_files
    reactions_files
    rotation_files
+   scf_files
    sources_files
    

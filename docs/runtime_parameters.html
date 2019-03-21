@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>namespace: castro &mdash; Castro 19.03
+  <title>namespace: castro &mdash; Castro 18.08
  documentation</title>
   
 
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                19.03
+                18.08
 
               </div>
             
@@ -129,6 +129,7 @@
 <li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
 </ul>
@@ -920,8 +921,49 @@ extend the domain</td>
 </tr>
 </tbody>
 </table>
-<p><strong>refinement</strong></p>
+<p><strong>self-consistent field initialization</strong></p>
 <table border="1" class="docutils" id="index-8">
+<colgroup>
+<col width="36%" />
+<col width="51%" />
+<col width="13%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">parameter</th>
+<th class="head">description</th>
+<th class="head">default value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_scf_initial_model</span></code></td>
+<td>Should we use SCF to construct the initial model?</td>
+<td>0</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">scf_maximum_density</span></code></td>
+<td>Maximum density on the domain when using SCF</td>
+<td>-1.e6</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">scf_equatorial_radius</span></code></td>
+<td>Equatorial and polar radii of the star constructed by
+SCF</td>
+<td>-1.e9</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">scf_polar_radius</span></code></td>
+<td>&#160;</td>
+<td>-1.e9</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">scf_relax_tol</span></code></td>
+<td>SCF relaxation tolerance</td>
+<td>1.e-3</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">scf_max_iterations</span></code></td>
+<td>Maximum number of SCF iterations</td>
+<td>30</td>
+</tr>
+</tbody>
+</table>
+<p><strong>refinement</strong></p>
+<table border="1" class="docutils" id="index-9">
 <colgroup>
 <col width="36%" />
 <col width="51%" />
@@ -945,7 +987,7 @@ extend the domain</td>
 </tbody>
 </table>
 <p><strong>diagnostics, I/O</strong></p>
-<table border="1" class="docutils" id="index-9">
+<table border="1" class="docutils" id="index-10">
 <colgroup>
 <col width="36%" />
 <col width="51%" />
@@ -1030,7 +1072,7 @@ default value.</td>
 </tbody>
 </table>
 <p><strong>particles</strong></p>
-<table border="1" class="docutils" id="index-10">
+<table border="1" class="docutils" id="index-11">
 <colgroup>
 <col width="36%" />
 <col width="51%" />
@@ -1053,7 +1095,7 @@ off</td>
 </div>
 <div class="section" id="namespace-diffusion">
 <h1>namespace: <code class="docutils literal notranslate"><span class="pre">diffusion</span></code><a class="headerlink" href="#namespace-diffusion" title="Permalink to this headline">¶</a></h1>
-<table border="1" class="docutils" id="index-11">
+<table border="1" class="docutils" id="index-12">
 <colgroup>
 <col width="36%" />
 <col width="51%" />
@@ -1080,7 +1122,7 @@ number means more output)</td>
 </div>
 <div class="section" id="namespace-gravity">
 <h1>namespace: <code class="docutils literal notranslate"><span class="pre">gravity</span></code><a class="headerlink" href="#namespace-gravity" title="Permalink to this headline">¶</a></h1>
-<table border="1" class="docutils" id="index-12">
+<table border="1" class="docutils" id="index-13">
 <colgroup>
 <col width="36%" />
 <col width="51%" />
@@ -1174,7 +1216,7 @@ the potential, rather than constructing it directly?</td>
 </div>
 <div class="section" id="namespace-particles">
 <h1>namespace: <code class="docutils literal notranslate"><span class="pre">particles</span></code><a class="headerlink" href="#namespace-particles" title="Permalink to this headline">¶</a></h1>
-<table border="1" class="docutils" id="index-13">
+<table border="1" class="docutils" id="index-14">
 <colgroup>
 <col width="36%" />
 <col width="51%" />

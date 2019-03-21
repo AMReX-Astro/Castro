@@ -456,6 +456,30 @@ namespace: ``castro``
 
 
 
+**self-consistent field initialization**
+
+.. index:: castro.do_scf_initial_model, castro.scf_maximum_density, castro.scf_equatorial_radius, castro.scf_polar_radius, castro.scf_relax_tol, castro.scf_max_iterations
+
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``do_scf_initial_model``               | Should we use SCF to construct the initial model?       | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``scf_maximum_density``                | Maximum density on the domain when using SCF            | -1.e6         |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``scf_equatorial_radius``              | Equatorial and polar radii of the star constructed by   | -1.e9         |
+|                                        | SCF                                                     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``scf_polar_radius``                   |                                                         | -1.e9         |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``scf_relax_tol``                      | SCF relaxation tolerance                                | 1.e-3         |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``scf_max_iterations``                 | Maximum number of SCF iterations                        | 30            |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
 **refinement**
 
 .. index:: castro.do_special_tagging, castro.spherical_star

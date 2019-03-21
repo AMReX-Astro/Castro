@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Flowchart &mdash; Castro 19.03
+  <title>Flowchart &mdash; Castro 18.08
  documentation</title>
   
 
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                19.03
+                18.08
 
               </div>
             
@@ -130,6 +130,7 @@
 <li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
 </ul>
@@ -220,7 +221,7 @@ burned state, and then does the final <span class="math notranslate nohighlight"
 explicit coupling of the burning and hydro is done. Within the
 Strang code path, there are two methods for doing the hydrodynamics:<ul>
 <li>Corner-transport upwind (CTU): this implements the unsplit,
-characteristic tracing method of <a class="reference internal" href="zreferences.html#colella-1990" id="id1">[10]</a>.</li>
+characteristic tracing method of <a class="reference internal" href="zreferences.html#colella-1990" id="id1">[12]</a>.</li>
 <li>Method of lines (MOL): this discretizes the space part of
 our system without any characteristic tracing and uses an
 ODE integrator to advance the state. Multiple stages can be done,
@@ -237,7 +238,7 @@ two SDC implementations in Castro.</li>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">0</span></code>: this is the original Castro method,
-described in <a class="reference internal" href="zreferences.html#castro-i" id="id2">[5]</a>.  This uses Strang splitting and the CTU
+described in <a class="reference internal" href="zreferences.html#castro-i" id="id2">[6]</a>.  This uses Strang splitting and the CTU
 hydrodynamics scheme.</li>
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">1</span></code>: this is a method-of-lines integration
 method with Strang splitting for reactions.</li>
@@ -490,7 +491,7 @@ intermediate state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)
 <li><p class="first">sponge : the sponge is a damping term added to
 the momentum equation that is designed to drive the velocities to
 zero over some timescale. Our implementation of the sponge
-follows that of Maestro <a class="reference internal" href="zreferences.html#maestro-iii" id="id4">[6]</a></p>
+follows that of Maestro <a class="reference internal" href="zreferences.html#maestro-iii" id="id4">[7]</a></p>
 </li>
 <li><p class="first">external sources : users can define problem-specific sources
 in the <code class="docutils literal notranslate"><span class="pre">ext_src_?d.f90</span></code> file. Sources for the different
@@ -553,7 +554,7 @@ complex time-integration schemes.</p>
 the state after burning, <span class="math notranslate nohighlight">\(\Ub^\star\)</span> (<code class="docutils literal notranslate"><span class="pre">Sborder</span></code>). There
 are two approaches we use, the corner transport upwind (CTU) method
 that uses characteristic tracing as described in
-<a class="reference internal" href="zreferences.html#colella-1990" id="id5">[10]</a>, and a method-of-lines approach. The choice is
+<a class="reference internal" href="zreferences.html#colella-1990" id="id5">[12]</a>, and a method-of-lines approach. The choice is
 determined by the parameter <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span></code>.</p>
 <ol class="arabic">
 <li><p class="first">CTU method:</p>

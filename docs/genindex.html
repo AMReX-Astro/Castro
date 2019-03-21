@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; Castro 19.03
+  <title>Index &mdash; Castro 18.08
  documentation</title>
   
 
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                19.03
+                18.08
 
               </div>
             
@@ -117,6 +117,7 @@
 <li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
 </ul>
@@ -612,6 +613,8 @@
 </li>
       <li><a href="file/Rotation_nd_f.html#f/rotation_module/ca_fill_rotational_potential"><strong>ca_fill_rotational_potential() (fortran subroutine in module rotation_module)</strong></a>
 </li>
+      <li><a href="file/Rotation_nd_f.html#f/rotation_module/ca_fill_rotational_psi"><strong>ca_fill_rotational_psi() (fortran subroutine in module rotation_module)</strong></a>
+</li>
       <li><a href="file/Diffusion_nd_f.html#f/diffusion_module/ca_fill_temp_cond"><strong>ca_fill_temp_cond() (fortran subroutine in module diffusion_module)</strong></a>
 </li>
       <li><a href="file/filt_prim_1d_f.html#f/_/ca_filt_prim"><strong>ca_filt_prim() (fortran subroutine)</strong></a>, <a href="file/filt_prim_2d_f.html#f/_/ca_filt_prim"><strong>[1]</strong></a>, <a href="file/filt_prim_3d_f.html#f/_/ca_filt_prim"><strong>[2]</strong></a>
@@ -932,11 +935,13 @@
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.do_rotation</a>
 </li>
-      <li><a href="runtime_parameters.html#index-8">castro.do_special_tagging</a>
+      <li><a href="runtime_parameters.html#index-8">castro.do_scf_initial_model</a>
+</li>
+      <li><a href="runtime_parameters.html#index-9">castro.do_special_tagging</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.do_sponge</a>
 </li>
-      <li><a href="runtime_parameters.html#index-10">castro.do_tracer_particles</a>
+      <li><a href="runtime_parameters.html#index-11">castro.do_tracer_particles</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.dt_cutoff</a>
 </li>
@@ -950,7 +955,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.dual_energy_eta2</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.dump_old</a>
+      <li><a href="runtime_parameters.html#index-10">castro.dump_old</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.first_order_hydro</a>
 </li>
@@ -964,7 +969,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-7">castro.grown_factor</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.hard_cfl_limit</a>
+      <li><a href="runtime_parameters.html#index-10">castro.hard_cfl_limit</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.hse_interp_temp</a>
 </li>
@@ -982,7 +987,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.initial_dt</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.job_name</a>
+      <li><a href="runtime_parameters.html#index-10">castro.job_name</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.limit_fluxes_on_small_dens</a>
 </li>
@@ -998,7 +1003,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.moving_center</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.output_at_completion</a>
+      <li><a href="runtime_parameters.html#index-10">castro.output_at_completion</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.plm_iorder</a>
 </li>
@@ -1016,9 +1021,9 @@
 </li>
       <li><a href="Hydrodynamics.html#index-0">castro.ppm_type</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.print_fortran_warnings</a>
+      <li><a href="runtime_parameters.html#index-10">castro.print_fortran_warnings</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.print_update_diagnostics</a>
+      <li><a href="runtime_parameters.html#index-10">castro.print_update_diagnostics</a>
 </li>
       <li><a href="runtime_parameters.html#index-3">castro.react_rho_max</a>
 </li>
@@ -1028,9 +1033,9 @@
 </li>
       <li><a href="runtime_parameters.html#index-3">castro.react_T_min</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.reset_checkpoint_step</a>
+      <li><a href="runtime_parameters.html#index-10">castro.reset_checkpoint_step</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.reset_checkpoint_time</a>
+      <li><a href="runtime_parameters.html#index-10">castro.reset_checkpoint_time</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.retry_neg_dens_factor</a>
 </li>
@@ -1054,6 +1059,16 @@
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.rotational_period</a>
 </li>
+      <li><a href="runtime_parameters.html#index-8">castro.scf_equatorial_radius</a>
+</li>
+      <li><a href="runtime_parameters.html#index-8">castro.scf_max_iterations</a>
+</li>
+      <li><a href="runtime_parameters.html#index-8">castro.scf_maximum_density</a>
+</li>
+      <li><a href="runtime_parameters.html#index-8">castro.scf_polar_radius</a>
+</li>
+      <li><a href="runtime_parameters.html#index-8">castro.scf_relax_tol</a>
+</li>
       <li><a href="runtime_parameters.html#index-2">castro.sdc_iters</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.sdc_order</a>
@@ -1066,7 +1081,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.sdc_use_analytic_jac</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.show_center_of_mass</a>
+      <li><a href="runtime_parameters.html#index-10">castro.show_center_of_mass</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.small_dens</a>
 </li>
@@ -1080,7 +1095,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.source_term_predictor</a>
 </li>
-      <li><a href="runtime_parameters.html#index-8">castro.spherical_star</a>
+      <li><a href="runtime_parameters.html#index-9">castro.spherical_star</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.sponge_implicit</a>
 </li>
@@ -1088,21 +1103,21 @@
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.state_in_rotating_frame</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="runtime_parameters.html#index-0">castro.state_interp_order</a>
 </li>
       <li><a href="runtime_parameters.html#index-0">castro.state_nghost</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.sum_interval</a>
+      <li><a href="runtime_parameters.html#index-10">castro.sum_interval</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="runtime_parameters.html#index-9">castro.sum_per</a>
+      <li><a href="runtime_parameters.html#index-10">castro.sum_per</a>
 </li>
       <li><a href="runtime_parameters.html#index-3">castro.T_guess</a>
 </li>
       <li><a href="FlowChart.html#index-0">castro.time_integration_method</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.track_grid_losses</a>
+      <li><a href="runtime_parameters.html#index-10">castro.track_grid_losses</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.transverse_reset_density</a>
 </li>
@@ -1128,7 +1143,7 @@
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.use_retry</a>
 </li>
-      <li><a href="runtime_parameters.html#index-9">castro.v</a>
+      <li><a href="runtime_parameters.html#index-10">castro.v</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.xl_ext_bc_type</a>
 </li>
@@ -1277,6 +1292,8 @@
       <li><a href="class/classCastro.html#_CPPv4N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii">Castro::do_advance_sdc (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro21do_energy_diagnosticsEv">Castro::do_energy_diagnostics (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro21do_energy_diagnosticsEv">[1]</a>
+</li>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro13do_hscf_solveEv">Castro::do_hscf_solve (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro13do_hscf_solveEv">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">Castro::do_new_sources (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">[1]</a>
 </li>
@@ -1654,6 +1671,8 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro5SburnE">Castro::Sburn (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro5SburnE">[1]</a>
 </li>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro14scf_relaxationEv">Castro::scf_relaxation (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14scf_relaxationEv">[1]</a>
+</li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro13sdc_iterationE">Castro::sdc_iteration (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro13sdc_iterationE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro9SDC_NODESE">Castro::SDC_NODES (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro9SDC_NODESE">[1]</a>
@@ -1928,9 +1947,9 @@
 </li>
       <li><a href="class/classDiffusion.html#_CPPv49Diffusion">Diffusion (C++ class)</a>, <a href="file/Diffusion_8H.html#_CPPv49Diffusion">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-11">diffusion.mlmg_maxorder</a>
+      <li><a href="runtime_parameters.html#index-12">diffusion.mlmg_maxorder</a>
 </li>
-      <li><a href="runtime_parameters.html#index-11">diffusion.v</a>
+      <li><a href="runtime_parameters.html#index-12">diffusion.v</a>
 </li>
       <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion7applyopEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE">Diffusion::applyop (C++ function)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion7applyopEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE">[1]</a>
 </li>
@@ -2256,35 +2275,35 @@
 </li>
       <li><a href="class/classGravity.html#_CPPv47Gravity">Gravity (C++ class)</a>, <a href="file/Gravity_8H.html#_CPPv47Gravity">[1]</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.const_grav</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.const_grav</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.direct_sum_bcs</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.direct_sum_bcs</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.do_composite_phi_correction</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.do_composite_phi_correction</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.drdxfac</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.drdxfac</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.get_g_from_phi</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.get_g_from_phi</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.gravity_type</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.gravity_type</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.max_multipole_order</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.max_multipole_order</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.max_solve_level</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.max_solve_level</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.mlmg_agglomeration</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.mlmg_agglomeration</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.mlmg_consolidation</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.mlmg_consolidation</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.mlmg_max_fmg_iter</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.mlmg_max_fmg_iter</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.mlmg_nsolve</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.mlmg_nsolve</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.no_composite</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.no_composite</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.no_sync</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.no_sync</a>
 </li>
-      <li><a href="runtime_parameters.html#index-12">gravity.v</a>
+      <li><a href="runtime_parameters.html#index-13">gravity.v</a>
 </li>
       <li><a href="class/classGravity.html#_CPPv4N7Gravity7abs_tolE">Gravity::abs_tol (C++ member)</a>, <a href="file/Gravity_8H.html#_CPPv4N7Gravity7abs_tolE">[1]</a>
 </li>
@@ -2976,21 +2995,21 @@
 </li>
       <li><a href="file/Gravity_nd_f.html#f/gravity_module/parityfactor"><strong>parityfactor (fortran variable in module gravity_module)</strong></a>
 </li>
-      <li><a href="runtime_parameters.html#index-13">particles.particle_init_file</a>
+      <li><a href="runtime_parameters.html#index-14">particles.particle_init_file</a>
 </li>
-      <li><a href="runtime_parameters.html#index-13">particles.particle_output_file</a>
+      <li><a href="runtime_parameters.html#index-14">particles.particle_output_file</a>
 </li>
-      <li><a href="runtime_parameters.html#index-13">particles.particle_restart_file</a>
+      <li><a href="runtime_parameters.html#index-14">particles.particle_restart_file</a>
 </li>
-      <li><a href="runtime_parameters.html#index-13">particles.restart_from_nonparticle_chkfile</a>
+      <li><a href="runtime_parameters.html#index-14">particles.restart_from_nonparticle_chkfile</a>
 </li>
-      <li><a href="runtime_parameters.html#index-13">particles.timestamp_density</a>
+      <li><a href="runtime_parameters.html#index-14">particles.timestamp_density</a>
 </li>
-      <li><a href="runtime_parameters.html#index-13">particles.timestamp_dir</a>
+      <li><a href="runtime_parameters.html#index-14">particles.timestamp_dir</a>
 </li>
-      <li><a href="runtime_parameters.html#index-13">particles.timestamp_temperature</a>
+      <li><a href="runtime_parameters.html#index-14">particles.timestamp_temperature</a>
 </li>
-      <li><a href="runtime_parameters.html#index-13">particles.v</a>
+      <li><a href="runtime_parameters.html#index-14">particles.v</a>
 </li>
       <li><a href="file/Castro_8H.html#_CPPv412PhiGrav_Type">PhiGrav_Type (C++ enumerator)</a>
 </li>
@@ -3804,6 +3823,28 @@
 </li>
       <li><a href="file/advection_util_nd_f.html#f/advection_util_module/scale_rad_flux"><strong>scale_rad_flux() (fortran subroutine in module advection_util_module)</strong></a>
 </li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_calculate_target_h_max"><strong>scf_calculate_target_h_max() (fortran subroutine in module scf_relaxation_module)</strong></a>
+</li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_construct_enthalpy"><strong>scf_construct_enthalpy() (fortran subroutine in module scf_relaxation_module)</strong></a>
+</li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_diagnostics"><strong>scf_diagnostics() (fortran subroutine in module scf_relaxation_module)</strong></a>
+</li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_get_bernoulli_const"><strong>scf_get_bernoulli_const() (fortran subroutine in module scf_relaxation_module)</strong></a>
+</li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_get_solar_mass"><strong>scf_get_solar_mass() (fortran subroutine in module scf_relaxation_module)</strong></a>
+</li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_r_a"><strong>scf_r_a (fortran variable in module scf_relaxation_module)</strong></a>
+</li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_r_b"><strong>scf_r_b (fortran variable in module scf_relaxation_module)</strong></a>
+</li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module"><strong>scf_relaxation_module (module)</strong></a>
+</li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_setup_relaxation"><strong>scf_setup_relaxation() (fortran subroutine in module scf_relaxation_module)</strong></a>
+</li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_update_density"><strong>scf_update_density() (fortran subroutine in module scf_relaxation_module)</strong></a>
+</li>
+      <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_update_for_omegasq"><strong>scf_update_for_omegasq() (fortran subroutine in module scf_relaxation_module)</strong></a>
+</li>
       <li><a href="file/meth_params_f.html#f/meth_params_module/sdc_order"><strong>sdc_order (fortran variable in module meth_params_module)</strong></a>
 </li>
       <li><a href="file/sdc_util_f.html#f/sdc_util/sdc_solve"><strong>sdc_solve() (fortran subroutine in module sdc_util)</strong></a>
@@ -3832,6 +3873,8 @@
 </li>
       <li><a href="file/problem_tagging_nd_f.html#f/problem_tagging_module/set_problem_tags"><strong>set_problem_tags() (fortran subroutine in module problem_tagging_module)</strong></a>
 </li>
+      <li><a href="file/Rotation_frequency_f.html#f/rotation_frequency_module/set_rot_period"><strong>set_rot_period() (fortran subroutine in module rotation_frequency_module)</strong></a>
+</li>
       <li><a href="build_system.html#index-27">set_variables.py</a>
 </li>
       <li><a href="file/Radiation_8H.html#_CPPv411SGFLDSolver">SGFLDSolver (C++ enumerator)</a>
@@ -3842,6 +3885,8 @@
 </li>
       <li><a href="file/react_util_f.html#f/react_util_module/single_zone_jac"><strong>single_zone_jac() (fortran subroutine in module react_util_module)</strong></a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/react_util_f.html#f/react_util_module/single_zone_react_source"><strong>single_zone_react_source() (fortran subroutine in module react_util_module)</strong></a>
 </li>
       <li><a href="file/Radiation_8H.html#_CPPv417SingleGroupSolver">SingleGroupSolver (C++ enumerator)</a>
@@ -3854,8 +3899,6 @@
 </li>
       <li><a href="file/meth_params_f.html#f/meth_params_module/small_dens"><strong>small_dens (fortran variable in module meth_params_module)</strong></a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/meth_params_f.html#f/meth_params_module/small_ener"><strong>small_ener (fortran variable in module meth_params_module)</strong></a>
 </li>
       <li><a href="file/meth_params_f.html#f/meth_params_module/small_pres"><strong>small_pres (fortran variable in module meth_params_module)</strong></a>
