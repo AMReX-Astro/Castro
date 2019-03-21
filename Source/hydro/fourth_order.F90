@@ -74,7 +74,7 @@ contains
        if (limit_fourth_order == 1) then
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do j = lo(2)-dg(2), hi(2)+dg(2)
-                do i = lo(1)-2, hi(1)+3
+                do i = lo(1)-1, hi(1)+1
                    ! these live on cell-centers
                    dafm(i,j,k) = a(i,j,k,n) - a_int(i,j,k)
                    dafp(i,j,k) = a_int(i+1,j,k) - a(i,j,k,n)
@@ -194,7 +194,7 @@ contains
 
        if (limit_fourth_order == 1) then
           do k = lo(3)-dg(3), hi(3)+dg(3)
-             do j = lo(2)-2, hi(2)+3
+             do j = lo(2)-1, hi(2)+1
                 do i = lo(1)-1, hi(1)+1
                    ! these live on cell-centers
                    dafm(i,j,k) = a(i,j,k,n) - a_int(i,j,k)
@@ -314,7 +314,7 @@ contains
 
        if (limit_fourth_order == 1) then
 
-          do k = lo(3)-2, hi(3)+3
+          do k = lo(3)-1, hi(3)+1
              do j = lo(2)-1, hi(2)+1
                 do i = lo(1)-1, hi(1)+1
                    ! these live on cell-centers
