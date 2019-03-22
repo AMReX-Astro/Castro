@@ -41,24 +41,6 @@ ifeq ($(USE_CUDA),TRUE)
   DEFINES += -DEXTRA_THERMO
 endif
 
-# backwards compatibility
-ifdef Network_dir
-  ifndef NETWORK_DIR
-    NETWORK_DIR := $(Network_dir)
-  endif
-endif
-
-ifdef EOS_dir
-  ifndef EOS_DIR
-    EOS_DIR := $(EOS_dir)
-  endif
-endif
-
-ifdef Conductivity_dir
-  ifndef CONDUCTIVITY_DIR
-    CONDUCTIVITY_DIR := $(Conductivity_dir)
-  endif
-endif
 
 EBASE = Castro
 
