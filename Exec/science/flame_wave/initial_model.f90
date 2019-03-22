@@ -569,6 +569,7 @@ contains
   end subroutine init_1d_tanh
 
 
+  ! Evaluate tanh using the exponential form to workaround a PGI bug on Power9
   function evaluate_tanh(z) result(t)
     use amrex_fort_module, only: rt=>amrex_real
 
