@@ -214,7 +214,7 @@ contains
        ! hyperbolic tangent transition:
        gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num) = model_params % xn_star(1:nspec) + &
             HALF*(model_params % xn_base(1:nspec) - model_params % xn_star(1:nspec))* &
-            (ONE + tanh(xc/(HALF*model_params % atm_delta)))
+            (ONE + evaluate_tanh(xc/(HALF*model_params % atm_delta)))
 
        ! force them to sum to 1
        sumX = sum(gen_model_state(i,ispec_model:ispec_model-1+nspec,model_num))
@@ -222,7 +222,7 @@ contains
 
        gen_model_state(i,itemp_model,model_num) = model_params % T_star + &
             HALF*(model_params % T_hi - model_params % T_star)* &
-            (ONE + tanh(xc/(HALF*model_params % atm_delta)))
+            (ONE + evaluate_tanh(xc/(HALF*model_params % atm_delta)))
 
        gen_model_state(1:index_base,itemp_model,model_num) = model_params % T_star
 
@@ -567,5 +567,17 @@ contains
     !enddo
 
   end subroutine init_1d_tanh
+
+
+  function evaluate_tanh(z) result(t)
+    use amrex_fort_module, only: rt=>amrex_real
+
+    implicit none
+
+    real(rt), intent(in) :: z
+    real(rt) :: t
+
+    t = (exp(z) - exp(-z))/(exp(z) + exp(-z))
+  end function evaluate_tanh
 
 end module initial_model_module
