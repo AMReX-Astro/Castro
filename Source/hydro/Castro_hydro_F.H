@@ -539,6 +539,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(volume),
      const int&  verbose);
 
+#ifndef AMREX_USE_CUDA
   void ca_sdc_update_advection_o2
     (const int* lo, const int* hi,
      const amrex::Real* time,
@@ -600,6 +601,7 @@ extern "C"
                          const BL_FORT_FAB_ARG_3D(R_2),
                          BL_FORT_FAB_ARG_3D(C),
                          const int* m_start);
+#endif
 #endif
 
 #ifdef __cplusplus

@@ -407,10 +407,12 @@ public:
                                 int  amr_iteration,
                                 int  amr_ncycle);
 
+#ifndef AMREX_USE_CUDA
     amrex::Real do_advance_sdc (amrex::Real time,
                                 amrex::Real dt,
                                 int  amr_iteration,
                                 int  amr_ncycle);
+#endif
 
 ///
 /// Should we retry advancing the simulation? By default, we
@@ -1630,7 +1632,9 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
+#ifndef AMREX_USE_CUDA
     void do_sdc_update(int m1, int m2, amrex::Real dt);
+#endif
 
 #ifdef REACTIONS
     void construct_old_react_source(amrex::MultiFab& U_state, amrex::MultiFab& R_source);
