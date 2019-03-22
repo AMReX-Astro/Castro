@@ -201,7 +201,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                BL_TO_FORTRAN_ANYD(dq),
                BL_TO_FORTRAN_ANYD(qm),
                BL_TO_FORTRAN_ANYD(qp),
-               ZFILL(dx));
+               AMREX_REAL_ANYD(dx));
 
           } else {
 
@@ -213,7 +213,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                BL_TO_FORTRAN_ANYD(shk),
                BL_TO_FORTRAN_ANYD(qm),
                BL_TO_FORTRAN_ANYD(qp),
-               ZFILL(dx));
+               AMREX_REAL_ANYD(dx));
           }
 
           // compute the fluxes, add artificial viscosity, and
@@ -332,14 +332,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           // do the conservative update -- and store the shock variable
 #pragma gpu
           ca_mol_consup
-            (ARLIM_3D(lo), ARLIM_3D(hi),
-             &stage_weight,
+            (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+             stage_weight,
              BL_TO_FORTRAN_ANYD(statein),
              BL_TO_FORTRAN_ANYD(stateout),
              BL_TO_FORTRAN_ANYD(source_in),
              BL_TO_FORTRAN_ANYD(source_out),
              BL_TO_FORTRAN_ANYD(source_hydro_only),
-             ZFILL(dx), dt,
+             AMREX_REAL_ANYD(dx), dt,
              BL_TO_FORTRAN_ANYD(flux[0]),
 #if AMREX_SPACEDIM >= 2
              BL_TO_FORTRAN_ANYD(flux[1]),

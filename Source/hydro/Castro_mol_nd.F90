@@ -329,7 +329,7 @@ subroutine ca_mol_consup(lo, hi, &
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
-  real(rt), intent(in) :: stage_weight
+  real(rt), intent(in), value :: stage_weight
   integer, intent(in) :: uin_lo(3), uin_hi(3)
   integer, intent(in) :: uout_lo(3), uout_hi(3)
   integer, intent(in) :: srU_lo(3), srU_hi(3)

@@ -432,7 +432,7 @@ extern "C"
 
   void ca_mol_consup
     (const int* lo, const int* hi,
-     const amrex::Real *stage_weight,
+     const amrex::Real stage_weight,
      const BL_FORT_FAB_ARG_3D(statein),
      BL_FORT_FAB_ARG_3D(stateout),
      const BL_FORT_FAB_ARG_3D(srcU),
