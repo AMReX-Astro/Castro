@@ -417,17 +417,35 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 	// Store the fluxes from this advance -- we weight them by the
 	// integrator weight for this stage
-	for (int i = 0; i < AMREX_SPACEDIM ; i++) {
-	  (*fluxes[i])[mfi].saxpy(stage_weight, flux[i],
-                                  mfi.nodaltilebox(i), mfi.nodaltilebox(i), 0, 0, NUM_STATE);
-	}
 
-#if (AMREX_SPACEDIM <= 2)
-	if (!Geometry::IsCartesian()) {
-	  P_radial[mfi].saxpy(stage_weight, pradial,
-                              mfi.nodaltilebox(0), mfi.nodaltilebox(0), 0, 0, 1);
-	}
+        for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+            Array4<Real> const flux_fab = (flux[idir]).array();
+            Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
+            const int numcomp = NUM_STATE;
+            const Real scale = stage_weight;
+
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+            {
+                fluxes_fab(i,j,k,n) += stage_weight * flux_fab(i,j,k,n);
+            });
+
+        }
+
+#if AMREX_SPACEDIM <= 2
+        if (!Geometry::IsCartesian()) {
+
+            Array4<Real> P_radial_fab = P_radial.array(mfi);
+            const Real scale = stage_weight;
+
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+            {
+                P_radial_fab(i,j,k,0) += scale * pradial_fab(i,j,k,0);
+            });
+
+        }
 #endif
+
       } // MFIter loop
 
   }  // end of omp parallel region
