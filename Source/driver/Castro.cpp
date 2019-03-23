@@ -997,6 +997,16 @@ Castro::initData ()
     MAESTRO_init();
 #else
     {
+
+#ifdef AMREX_USE_CUDA
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+       {
+           // Prefetch data to the host (and then back to the device at the end)
+           // to avoid expensive page faults while the initialization is done.
+           S_new.prefetchToHost(mfi);
+       }
+#endif
+
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 	  RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
@@ -1026,8 +1036,15 @@ Castro::initData ()
 
           ca_check_initial_species(AMREX_ARLIM_3D(lo), AMREX_ARLIM_3D(hi),
 				   BL_TO_FORTRAN_ANYD(S_new[mfi]));
+
        }
        enforce_consistent_e(S_new);
+
+#ifdef AMREX_USE_CUDA
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+           S_new.prefetchToDevice(mfi);
+       }
+#endif
 
        // thus far, we assume that all initialization has worked on cell-centers
        // (to second-order, these are cell-averages, so we're done in that case).
