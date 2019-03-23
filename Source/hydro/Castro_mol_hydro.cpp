@@ -4,17 +4,18 @@
 
 using namespace amrex;
 
+///
+/// Construct the hydrodynamic source at the specified time
+/// (essentially the flux divergence).  This source is suitable for
+/// method of lines or SDC integration.  The output, as a MultiFab
+/// is stored in A_update, which comes through the argument list.
+///
 void
 Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 {
 
   BL_PROFILE("Castro::construct_mol_hydro_source()");
 
-  // this constructs the hydrodynamic source (essentially the flux
-  // divergence) using method of lines integration.  The output, as a
-
-  // update to the state, is stored in the multifab A_update, which is
-  // passed in
 
   const Real strt_time = ParallelDescriptor::second();
 
@@ -67,7 +68,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
     // The fourth order stuff cannot do tiling because of the Laplacian corrections
-    for (MFIter mfi(S_new, (fourth_order) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, (mol_order == 4 || sdc_order == 4) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	const Box& bx  = mfi.tilebox();
 
@@ -93,7 +94,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
 #ifndef AMREX_USE_CUDA
-        if (fourth_order) {
+        if (mol_order == 4 || sdc_order == 4) {
 
           // Allocate fabs for fluxes
           for (int i = 0; i < AMREX_SPACEDIM ; i++)  {
