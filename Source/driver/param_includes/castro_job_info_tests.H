@@ -31,7 +31,6 @@ jobInfoFile << (Castro::small_pres == -1.e200 ? "    " : "[*] ") << "castro.smal
 jobInfoFile << (Castro::small_ener == -1.e200 ? "    " : "[*] ") << "castro.small_ener = " << Castro::small_ener << std::endl;
 jobInfoFile << (Castro::do_hydro == -1 ? "    " : "[*] ") << "castro.do_hydro = " << Castro::do_hydro << std::endl;
 jobInfoFile << (Castro::time_integration_method == 0 ? "    " : "[*] ") << "castro.time_integration_method = " << Castro::time_integration_method << std::endl;
-jobInfoFile << (Castro::fourth_order == 0 ? "    " : "[*] ") << "castro.fourth_order = " << Castro::fourth_order << std::endl;
 jobInfoFile << (Castro::limit_fourth_order == 1 ? "    " : "[*] ") << "castro.limit_fourth_order = " << Castro::limit_fourth_order << std::endl;
 jobInfoFile << (Castro::use_reconstructed_gamma1 == 0 ? "    " : "[*] ") << "castro.use_reconstructed_gamma1 = " << Castro::use_reconstructed_gamma1 << std::endl;
 jobInfoFile << (Castro::add_ext_src == 0 ? "    " : "[*] ") << "castro.add_ext_src = " << Castro::add_ext_src << std::endl;
@@ -111,6 +110,12 @@ jobInfoFile << (Castro::do_acc == -1 ? "    " : "[*] ") << "castro.do_acc = " <<
 jobInfoFile << (Castro::bndry_func_thread_safe == 1 ? "    " : "[*] ") << "castro.bndry_func_thread_safe = " << Castro::bndry_func_thread_safe << std::endl;
 jobInfoFile << (Castro::grown_factor == 1 ? "    " : "[*] ") << "castro.grown_factor = " << Castro::grown_factor << std::endl;
 jobInfoFile << (Castro::star_at_center == -1 ? "    " : "[*] ") << "castro.star_at_center = " << Castro::star_at_center << std::endl;
+jobInfoFile << (Castro::do_scf_initial_model == 0 ? "    " : "[*] ") << "castro.do_scf_initial_model = " << Castro::do_scf_initial_model << std::endl;
+jobInfoFile << (Castro::scf_maximum_density == -1.e6 ? "    " : "[*] ") << "castro.scf_maximum_density = " << Castro::scf_maximum_density << std::endl;
+jobInfoFile << (Castro::scf_equatorial_radius == -1.e9 ? "    " : "[*] ") << "castro.scf_equatorial_radius = " << Castro::scf_equatorial_radius << std::endl;
+jobInfoFile << (Castro::scf_polar_radius == -1.e9 ? "    " : "[*] ") << "castro.scf_polar_radius = " << Castro::scf_polar_radius << std::endl;
+jobInfoFile << (Castro::scf_relax_tol == 1.e-3 ? "    " : "[*] ") << "castro.scf_relax_tol = " << Castro::scf_relax_tol << std::endl;
+jobInfoFile << (Castro::scf_max_iterations == 30 ? "    " : "[*] ") << "castro.scf_max_iterations = " << Castro::scf_max_iterations << std::endl;
 jobInfoFile << (Castro::do_special_tagging == 0 ? "    " : "[*] ") << "castro.do_special_tagging = " << Castro::do_special_tagging << std::endl;
 jobInfoFile << (Castro::spherical_star == 0 ? "    " : "[*] ") << "castro.spherical_star = " << Castro::spherical_star << std::endl;
 jobInfoFile << (Castro::verbose == 0 ? "    " : "[*] ") << "castro.verbose = " << Castro::verbose << std::endl;

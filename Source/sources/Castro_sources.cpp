@@ -57,7 +57,12 @@ Castro::source_flag(int src)
 
 #ifdef DIFFUSION
     case diff_src:
-	return true;
+        if (diffuse_temp) {
+            return true;
+        }
+        else {
+            return false;
+        }
 #endif
 
 #ifdef HYBRID_MOMENTUM

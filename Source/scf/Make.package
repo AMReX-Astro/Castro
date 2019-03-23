@@ -1,0 +1,10 @@
+
+ifeq ($(USE_GRAV),TRUE)
+ifeq ($(USE_ROTATION),TRUE)
+  CEXE_sources += scf_relax.cpp
+  FEXE_headers += scf_relax_F.H
+
+  F90EXE_sources += scf_relaxation.F90
+endif
+endif
+

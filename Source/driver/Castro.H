@@ -418,10 +418,12 @@ public:
                                 int  amr_iteration,
                                 int  amr_ncycle);
 
+#ifndef AMREX_USE_CUDA
     amrex::Real do_advance_sdc (amrex::Real time,
                                 amrex::Real dt,
                                 int  amr_iteration,
                                 int  amr_ncycle);
+#endif
 
 ///
 /// Should we retry advancing the simulation? By default, we
@@ -953,6 +955,20 @@ public:
 /// @param stop_time    End time of simulation
 ///
     virtual void post_init (amrex::Real stop_time) override;
+
+#ifdef GRAVITY
+#ifdef ROTATION
+///
+/// Initialize a model using the self-consistent field method.
+///
+    void scf_relaxation();
+
+///
+/// Perform the Hachisu SCF method.
+///
+    void do_hscf_solve();
+#endif
+#endif
 
 ///
 /// Do work after restart with ``grown_factor`` > 1
@@ -1627,7 +1643,9 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
+#ifndef AMREX_USE_CUDA
     void do_sdc_update(int m1, int m2, amrex::Real dt);
+#endif
 
 #ifdef REACTIONS
     void construct_old_react_source(amrex::MultiFab& U_state, amrex::MultiFab& R_source);

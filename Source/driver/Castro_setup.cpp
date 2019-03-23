@@ -771,7 +771,7 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  if (time_integration_method == SpectralDeferredCorrections && fourth_order == 1) {
+  if (time_integration_method == SpectralDeferredCorrections && (mol_order == 4 || sdc_order == 4)) {
 
     // we are doing 4th order reactive SDC.  We need 2 ghost cells here
     SDC_Source_Type = desc_lst.size();
@@ -1127,62 +1127,30 @@ Castro::variableSetUp ()
 #endif
 
 #ifdef AMREX_USE_CUDA
-  // Construct the minimum number of threads needed per
-  // threadblock to do BC fills with CUDA.
+  // Set the minimum number of threads needed per
+  // threadblock to do BC fills with CUDA. We will
+  // force this to be 8. The reason is that it is
+  // not otherwise guaranteed for our thread blocks
+  // to be aligned with the grid in such a way that
+  // the synchronization logic in amrex_filccn works
+  // out. We need at least NUM_GROW + 1 threads in a
+  // block for CTU. If we used this minimum of 5, we
+  // would hit cases where this doesn't work since
+  // our blocking_factor is usually a power of 2, and
+  // the thread blocks would not be aligned to guarantee
+  // that the threadblocks containing the ghost zones
+  // contained all of the ghost zones, as well as the
+  // required interior zone. And for reflecting BCs,
+  // we need NUM_GROW * 2 == 8 threads anyway. This logic
+  // then requires that blocking_factor be a multiple
+  // of 8. It is a little wasteful for MOL/SDC and for
+  // problems that only have outflow BCs, but the BC
+  // fill is not the expensive part of the algorithm
+  // for our production science problems anyway, so
+  // we ignore this extra cost in favor of safety.
 
-  // First, find out the maximum number of ghost zones
-  // needed by all State_Types.
-
-  int ng_max = 0;
-
-  for (int n = 0; n < num_state_type; ++n) {
-      ng_max = std::max(ng_max, desc_lst[n].nExtra());
-  }
-
-  // For BCs that only use first-order extrapolation,
-  // we need ng_max + 1 threads (since all ghost
-  // zones only depend on the interior zone closest
-  // to the boundary. For BCs using higher-order
-  // extrapolation, these depend on the first, second,
-  // and third closest zones to the boundary, so we need
-  // ng_max + 3 threads. For BCs using reflection,
-  // we need ng_max * 2 threads (since every zone
-  // reflects from its opposite at equal distance from
-  // the boundary).
-
-  bool contains_foextrap = false;
-  bool contains_hoextrap = false;
-  bool contains_reflection = false;
-
-  for (auto& bc : bcs) {
-      for (int dim = 0; dim <= AMREX_SPACEDIM; ++dim) {
-          if (bc.lo(dim) == FOEXTRAP || bc.hi(dim) == FOEXTRAP) {
-              contains_foextrap = true;
-          }
-          else if (bc.lo(dim) == HOEXTRAP || bc.hi(dim) == HOEXTRAP) {
-              contains_hoextrap = true;
-          }
-          else if (bc.lo(dim) == REFLECT_EVEN || bc.hi(dim) == REFLECT_EVEN) {
-              contains_reflection = true;
-          }
-          else if (bc.lo(dim) == REFLECT_ODD || bc.hi(dim) == REFLECT_ODD) {
-              contains_reflection = true;
-          }
-      }
-  }
-
-  // Now generate the thread-count minimum over all possibilities.
-
-  for (int dim = 0; dim <= AMREX_SPACEDIM; ++dim) {
-      if (contains_foextrap) {
-          numBCThreadsMin[dim] = std::max(numBCThreadsMin[dim], ng_max + 1);
-      }
-      if (contains_hoextrap) {
-          numBCThreadsMin[dim] = std::max(numBCThreadsMin[dim], ng_max + 3);
-      }
-      if (contains_reflection) {
-          numBCThreadsMin[dim] = std::max(numBCThreadsMin[dim], ng_max * 2);
-      }
+  for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+      numBCThreadsMin[dim] = 8;
   }
 #endif
 

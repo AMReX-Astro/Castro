@@ -400,13 +400,6 @@ Castro::read_params ()
     if (time_integration_method != CornerTransportUpwind && use_retry)
         amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
 
-    // fourth order implies do_ctu=0
-    if (fourth_order == 1 && time_integration_method == CornerTransportUpwind)
-      {
-	if (ParallelDescriptor::IOProcessor())
-	    amrex::Error("WARNING: fourth_order requires a different time_integration_method");
-      }
-
     // The CUDA MOL implementation is only supported in 3D right now.
 #if defined(AMREX_USE_CUDA) && (AMREX_SPACEDIM < 3)
     if (time_integration_method != CornerTransportUpwind) {
@@ -495,6 +488,15 @@ Castro::read_params ()
 #endif
 #endif
 
+   // SCF initial model construction can only be done if both
+   // rotation and gravity have been compiled in.
+
+#if (!defined(GRAVITY) || !defined(ROTATION))
+   if (do_scf_initial_model) {
+       amrex::Error("SCF initial model construction is only permitted if USE_GRAV=TRUE and USE_ROTATION=TRUE at compile time.");
+   }
+#endif
+
    StateDescriptor::setBndryFuncThreadSafety(bndry_func_thread_safe);
 
    ParmParse ppa("amr");
@@ -542,6 +544,17 @@ Castro::Castro (Amr&            papa,
             }
         }
     }
+
+#ifdef AMREX_USE_CUDA
+    // Enforce our requirement on the blocking factor for CUDA. See Castro::variableSetUp() for details.
+    for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+        for (int lev = 0; lev <= parent->maxLevel(); ++lev) {
+            if (parent->blockingFactor(lev)[dim] % numBCThreadsMin[dim] != 0) {
+                amrex::Error("Using CUDA requires a blocking factor that is a multiple of 8.");
+            }
+        }
+    }
+#endif
 
 #ifdef SELF_GRAVITY
 
@@ -1004,6 +1017,16 @@ Castro::initData ()
     MAESTRO_init();
 #else
     {
+
+#ifdef AMREX_USE_CUDA
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+       {
+           // Prefetch data to the host (and then back to the device at the end)
+           // to avoid expensive page faults while the initialization is done.
+           S_new.prefetchToHost(mfi);
+       }
+#endif
+
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 	  RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
@@ -1038,11 +1061,17 @@ Castro::initData ()
 
        enforce_consistent_e(S_new);
 
+#ifdef AMREX_USE_CUDA
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+           S_new.prefetchToDevice(mfi);
+       }
+#endif
+
        // thus far, we assume that all initialization has worked on cell-centers
        // (to second-order, these are cell-averages, so we're done in that case).
        // For fourth-order, we need to convert to cell-averages now.
 #ifndef AMREX_USE_CUDA
-       if (fourth_order) {
+       if (mol_order == 4 || sdc_order == 4) {
          Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
@@ -2200,6 +2229,16 @@ Castro::post_init (Real stop_time)
 
 #endif
 
+    // If we're doing SCF initialization, do it here.
+
+#ifdef GRAVITY
+#ifdef ROTATION
+    if (do_scf_initial_model) {
+        scf_relaxation();
+    }
+#endif
+#endif
+
         int nstep = parent->levelSteps(0);
 	Real dtlev = parent->dtLevel(0);
 	Real cumtime = parent->cumTime();
@@ -3323,7 +3362,7 @@ Castro::computeTemp(int is_new, int ng)
   // overwrite the grown state as we work.
   MultiFab Eint_lap;
 
-  if (fourth_order) {
+  if (mol_order == 4 || sdc_order == 4) {
 
     // we need to make the data live at cell-centers first
 
@@ -3359,7 +3398,7 @@ Castro::computeTemp(int is_new, int ng)
 
   }
 
-  if (fourth_order) {
+  if (mol_order == 4 || sdc_order == 4) {
     reset_internal_energy(Stemp);
   } else {
     reset_internal_energy(State);
@@ -3373,7 +3412,7 @@ Castro::computeTemp(int is_new, int ng)
     {
 
       int num_ghost = ng;
-      if (fourth_order) {
+      if (mol_order == 4 || sdc_order == 4) {
         // only one ghost cell is at cell-centers
         num_ghost = 1;
       }
@@ -3397,7 +3436,7 @@ Castro::computeTemp(int is_new, int ng)
 
         // general EOS version
 
-        if (fourth_order) {
+        if (mol_order == 4 || sdc_order == 4) {
           // note, this is working on a growntilebox, but we will not have
           // valid cell-centers in the very last ghost cell
           ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
@@ -3413,7 +3452,7 @@ Castro::computeTemp(int is_new, int ng)
 #endif
     }
 
-  if (fourth_order) {
+  if (mol_order == 4 || sdc_order == 4) {
 
     // we need to copy back from Stemp into S_new, making it
     // cell-average in the process.  For temperature, we will
@@ -3464,7 +3503,7 @@ Castro::computeTemp(MultiFab& State, int ng)
     
   // this is the old version of computeTemp that works for an
   // arbitrary MF.  This will not work for 4th order hydr
-  if (fourth_order) {
+  if (mol_order == 4 || sdc_order == 4) {
     amrex::Error("this version of computeTemp does not work for 4th order -- you shouldn't have gotten here");
   }
 
@@ -3573,7 +3612,7 @@ Castro::swap_state_time_levels(const Real dt)
 
 #ifdef REACTIONS
         if (time_integration_method == SpectralDeferredCorrections &&
-            fourth_order == 1 && k == SDC_Source_Type)
+            (mol_order == 4 || sdc_order == 4) && k == SDC_Source_Type)
             state[k].swapTimeLevels(0.0);
 #endif
         state[k].allocOldData();

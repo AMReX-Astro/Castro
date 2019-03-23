@@ -358,6 +358,8 @@ extern "C"
 
 #ifdef ROTATION
 
+  void set_rot_period(const amrex::Real* period);
+    
   void ca_fill_rotational_potential
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(phi),
@@ -367,6 +369,11 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(rot),
      const BL_FORT_FAB_ARG_3D(state),
+     const amrex::Real* dx, const amrex::Real time);
+
+  void ca_fill_rotational_psi
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(psi),
      const amrex::Real* dx, const amrex::Real time);
 
   void ca_rsrc
@@ -479,6 +486,12 @@ extern "C"
 #ifdef NEUTRINO
   void ca_setgroup(const int& igroup);
 #endif
+
+/* hydrodynamics */
+#include <Castro_hydro_F.H>
+
+/* SCF */
+#include <scf_relax_F.H>
 
 #ifdef __cplusplus
 }

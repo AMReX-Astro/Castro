@@ -16,7 +16,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   integer :: untin, i
 
-  namelist /fortin/ nx_model, &
+  namelist /fortin/ dx_model, &
                     dtemp, x_half_max, x_half_width, &
                     X_min, cutoff_density, &
                     dens_base, T_star, T_hi, T_lo, H_star, atm_delta, &
@@ -36,7 +36,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer :: iash1, iash2, iash3, ifuel1, ifuel2, ifuel3
   logical :: species_defined
 
-  real(rt) :: dx_model
+  integer :: nx_model
   integer :: ng
 
   if (namlen > maxlen) call amrex_error("probin file name too long")
@@ -151,7 +151,10 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ! probhi(2) with nx_model zones.  But to allow for a interpolated
   ! lower boundary, we'll add 4 ghostcells to this, so we need to
   ! compute dx
-  dx_model = (probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/nx_model
+  nx_model = int((probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/dx_model)
+  print *, "nx_model = ", nx_model
+
+  !dx_model = (probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/nx_model
   ng = 4
 
   ! now generate the initial models

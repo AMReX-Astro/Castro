@@ -61,9 +61,6 @@ do_hydro                     int          -1                  y
 # how do we advance in time? 0 = CTU + Strang, 1 = MOL + Strang, 2 = SDC
 time_integration_method      int           0                  y
 
-# do we do fourth-order accurate spatial reconstruction for hydro? (requires SDC or MOL integration)
-fourth_order                 int           0                  y
-
 # do we use a limiter with the fourth-order accurate reconstruction?
 limit_fourth_order           int           1                  y
 
@@ -453,6 +450,28 @@ grown_factor                 int           1                  y
 
 # used with the embiggening routines to determine how to extend the domain
 star_at_center               int          -1
+
+
+#-----------------------------------------------------------------------------
+# category: self-consistent field initialization
+#-----------------------------------------------------------------------------
+
+# Should we use SCF to construct the initial model?
+do_scf_initial_model         int           0
+
+# Maximum density on the domain when using SCF
+scf_maximum_density          Real          -1.e6
+
+# Equatorial and polar radii of the star constructed by SCF
+scf_equatorial_radius        Real          -1.e9
+scf_polar_radius             Real          -1.e9
+
+# SCF relaxation tolerance
+scf_relax_tol                Real          1.e-3
+
+# Maximum number of SCF iterations
+scf_max_iterations           int           30
+
 
 
 #-----------------------------------------------------------------------------

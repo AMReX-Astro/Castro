@@ -96,4 +96,16 @@ contains
 
   end function get_domegadt
 
+  subroutine set_rot_period(period) bind(C, name='set_rot_period')
+
+    use meth_params_module, only: rot_period
+
+    implicit none
+
+    real(rt), intent(in) :: period
+
+    rot_period = period
+
+  end subroutine set_rot_period
+  
 end module rotation_frequency_module
