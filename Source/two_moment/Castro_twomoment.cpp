@@ -150,7 +150,6 @@ void
 Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int ncomp, 
                                    const IntVect& ratio)
 {
-#if 0
         AMREX_ASSERT(S_crse.nComp() == S_fine.nComp());
 
         const int* ratioV = ratio.getVect();
@@ -210,7 +209,6 @@ Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int
             
             S_crse.copy(crse_S_fine,0,0,ncomp);
         }
-#endif
 }
 
 std::unique_ptr<MultiFab>
