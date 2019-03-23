@@ -69,6 +69,20 @@ ifeq ($(USE_CUDA),TRUE)
   DEFINES += -DCUDA
 endif
 
+# Allow a problem to specify that we want to initialize
+# on the GPU if we're using CUDA. This is a subset of
+# dimension agnostic problems, and it requires a different
+# interface to initdata, so we want to define this even
+# if we're not using CUDA.
+
+ifeq ($(GPU_COMPATIBLE_INITIALIZATION),TRUE)
+  ifeq ($(DIMENSION_AGNOSTIC),TRUE)
+    DEFINES += -DGPU_COMPATIBLE_INITIALIZATION
+  else
+    $(error GPU compatible initialization is only supported if DIMENSION_AGNOSTIC=TRUE)
+  endif
+endif
+
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 all: build_status $(executable)

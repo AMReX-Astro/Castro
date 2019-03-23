@@ -11,6 +11,7 @@ USE_MPI    = TRUE
 USE_OMP    = FALSE
 
 DIMENSION_AGNOSTIC = TRUE
+GPU_COMPATIBLE_INITIALIZATION = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
