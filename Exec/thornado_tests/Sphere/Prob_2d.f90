@@ -134,11 +134,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   do j = lo(2), hi(2)
      do i = lo(1), hi(1)
 
-!       x = xlo(1) + delta(1)*(dble(i-lo(1))+half) - centx
-!       y = xlo(2) + delta(2)*(dble(j-lo(2))+half) - centy
-
-        x = -1.d7 + delta(1)*(dble(i)+half) - centx
-        y = -1.d7 + delta(2)*(dble(j)+half) - centy
+        x = xlo(1) + delta(1)*(dble(i-lo(1))+half) - centx
+        y = xlo(2) + delta(2)*(dble(j-lo(2))+half) - centy
 
         radius = dsqrt(x*x+y*y)
  
