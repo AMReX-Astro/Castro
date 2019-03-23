@@ -3214,7 +3214,7 @@ Castro::extern_init ()
 }
 
 void
-Castro::reset_internal_energy(MultiFab& S_new)
+Castro::reset_internal_energy(MultiFab& S_new, int ng)
 {
 
     BL_PROFILE("Castro::reset_internal_energy()");
@@ -3228,8 +3228,6 @@ Castro::reset_internal_energy(MultiFab& S_new)
 	old_state.define(S_new.boxArray(), S_new.DistributionMap(), S_new.nComp(), 0);
         MultiFab::Copy(old_state, S_new, 0, 0, S_new.nComp(), 0);
     }
-
-    int ng = S_new.nGrow();
 
     // Ensure (rho e) isn't too small or negative
 #ifdef _OPENMP
@@ -3354,9 +3352,9 @@ Castro::computeTemp(int is_new, int ng)
   }
 
   if (mol_order == 4 || sdc_order == 4) {
-    reset_internal_energy(Stemp);
+    reset_internal_energy(Stemp, ng);
   } else {
-    reset_internal_energy(State);
+    reset_internal_energy(State, ng);
   }
 
 
@@ -3464,7 +3462,7 @@ Castro::computeTemp(MultiFab& State, int ng)
 
   BL_PROFILE("Castro::computeTemp()");
 
-  reset_internal_energy(State);
+  reset_internal_energy(State, ng);
 
 #ifdef RADIATION
   FArrayBox temp;
