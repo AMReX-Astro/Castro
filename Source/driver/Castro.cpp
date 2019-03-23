@@ -532,6 +532,17 @@ Castro::Castro (Amr&            papa,
         }
     }
 
+#ifdef AMREX_USE_CUDA
+    // Enforce our requirement on the blocking factor for CUDA. See Castro::variableSetUp() for details.
+    for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+        for (int lev = 0; lev <= parent->maxLevel(); ++lev) {
+            if (parent->blockingFactor(lev)[dim] % numBCThreadsMin[dim] != 0) {
+                amrex::Error("Using CUDA requires a blocking factor that is a multiple of 8.");
+            }
+        }
+    }
+#endif
+
 #ifdef SELF_GRAVITY
 
    // Initialize to zero here in case we run with do_grav = false.
