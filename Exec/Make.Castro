@@ -41,24 +41,6 @@ ifeq ($(USE_CUDA),TRUE)
   DEFINES += -DEXTRA_THERMO
 endif
 
-# backwards compatibility
-ifdef Network_dir
-  ifndef NETWORK_DIR
-    NETWORK_DIR := $(Network_dir)
-  endif
-endif
-
-ifdef EOS_dir
-  ifndef EOS_DIR
-    EOS_DIR := $(EOS_dir)
-  endif
-endif
-
-ifdef Conductivity_dir
-  ifndef CONDUCTIVITY_DIR
-    CONDUCTIVITY_DIR := $(Conductivity_dir)
-  endif
-endif
 
 EBASE = Castro
 
@@ -117,7 +99,7 @@ USE_MLMG = FALSE
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/driver/param_includes \
            Source/hydro Source/problems Source/sources \
-           constants Util/model_parser
+           Source/scf constants Util/model_parser
 else
   Bdirs := constants
 endif
@@ -352,6 +334,14 @@ ifeq ($(USE_EXTRA_THERMO), TRUE)
    DEFINES += -DEXTRA_THERMO
 endif
 
+
+ifeq ($(USE_REACT), TRUE)
+  ifeq ($(USE_CUDA), TRUE)
+    ifneq ($(INTEGRATOR_DIR), VODE90)
+      $(error Only the VODE90 integrator supports GPUs currently, please change INTEGRATOR_DIR)
+    endif
+  endif
+endif
 
 #------------------------------------------------------------------------------
 # external libraries

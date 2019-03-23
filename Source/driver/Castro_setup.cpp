@@ -1070,17 +1070,17 @@ Castro::variableSetUp ()
   bool contains_reflection = false;
 
   for (auto& bc : bcs) {
-      for (int dim = 0; dim <= AMREX_SPACEDIM; ++dim) {
+      for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
           if (bc.lo(dim) == FOEXTRAP || bc.hi(dim) == FOEXTRAP) {
               contains_foextrap = true;
           }
-          else if (bc.lo(dim) == HOEXTRAP || bc.hi(dim) == HOEXTRAP) {
+          if (bc.lo(dim) == HOEXTRAP || bc.hi(dim) == HOEXTRAP) {
               contains_hoextrap = true;
           }
-          else if (bc.lo(dim) == REFLECT_EVEN || bc.hi(dim) == REFLECT_EVEN) {
+          if (bc.lo(dim) == REFLECT_EVEN || bc.hi(dim) == REFLECT_EVEN) {
               contains_reflection = true;
           }
-          else if (bc.lo(dim) == REFLECT_ODD || bc.hi(dim) == REFLECT_ODD) {
+          if (bc.lo(dim) == REFLECT_ODD || bc.hi(dim) == REFLECT_ODD) {
               contains_reflection = true;
           }
       }
@@ -1088,7 +1088,7 @@ Castro::variableSetUp ()
 
   // Now generate the thread-count minimum over all possibilities.
 
-  for (int dim = 0; dim <= AMREX_SPACEDIM; ++dim) {
+  for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
       if (contains_foextrap) {
           numBCThreadsMin[dim] = std::max(numBCThreadsMin[dim], ng_max + 1);
       }
