@@ -64,7 +64,7 @@ module initial_model_module
   integer, parameter :: ispec_model = 4
 
   ! number of points in the model file
-  integer, save :: gen_npts_model, num_models
+  integer, allocatable :: gen_npts_model, num_models
 
   ! arrays for storing the model data -- we have an extra index here
   ! which is the model number
@@ -89,6 +89,11 @@ module initial_model_module
 
   end type model_t
 
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: gen_npts_model, num_models
+  attributes(managed) :: gen_model_state, gen_model_r
+#endif
+
 contains
 
   subroutine init_model_data(nx, num_models_in)
@@ -96,6 +101,9 @@ contains
     implicit none
 
     integer, intent(in) :: nx, num_models_in
+
+    allocate(gen_npts_model)
+    allocate(num_models)
 
     ! allocate storage for the model data
     allocate (gen_model_state(nx, nvars_model, num_models_in))
