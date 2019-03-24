@@ -336,8 +336,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM <= 2
       if (!Geometry::IsCartesian()) {
           pradial.resize(xbx, 1);
-          Elixir elix_pradial = pradial.elixir();
       }
+      Elixir elix_pradial = pradial.elixir();
 #endif
 
 #if AMREX_SPACEDIM == 1
