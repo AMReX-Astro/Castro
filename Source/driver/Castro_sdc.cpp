@@ -115,8 +115,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                              BL_TO_FORTRAN_3D(U_new_center),
                              BL_TO_FORTRAN_3D(R_new));
 
-      ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
-                                   BL_TO_FORTRAN_FAB(R_new));
+      ca_make_fourth_average_in_place(BL_TO_FORTRAN_BOX(bx),
+                                      BL_TO_FORTRAN_FAB(R_new));
 
       // now do the conservative update using this <R> to get <U>
       // We'll also need to pass in <C>
