@@ -276,7 +276,7 @@ Eventually, we can do something fancier here.</p>
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>npts_model</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(model_r)</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>interpolate</strong><em> [</em><em>real</em><em>]</em></p>
+<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>interp</strong><em> [</em><em>real</em><em>]</em></p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
@@ -291,7 +291,7 @@ Eventually, we can do something fancier here.</p>
 
 <dl class="subroutine">
 <dt id="f/interpolate_module/interpolate_sub">
-<em class="property">subroutine  </em><code class="descclassname">interpolate_module/</code><code class="descname">interpolate_sub</code><span class="sig-paren">(</span><em>interpolate</em>, <em>r</em>, <em>npts_model</em>, <em>model_r</em>, <em>model_var</em><span class="optional">[</span>, <em>iloc</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/interpolate_module/interpolate_sub" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">interpolate_module/</code><code class="descname">interpolate_sub</code><span class="sig-paren">(</span><em>interp</em>, <em>r</em>, <em>npts_model</em>, <em>model_r</em>, <em>model_var</em><span class="optional">[</span>, <em>iloc</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/interpolate_module/interpolate_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>given the array of model coordinates (model_r), and variable (model_var),
 find the value of model_var at point r (var_r) using linear interpolation.
 Eventually, we can do something fancier here.</p>
@@ -300,7 +300,7 @@ Eventually, we can do something fancier here.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>interpolate</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>interp</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
 <li><strong>r</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>model_r</strong> (npts_model)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>model_var</strong> (npts_model)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
@@ -378,7 +378,7 @@ the bounds of model_x,model_y,model_z, then we abort</p>
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(xs)</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>locate</strong><em> [</em><em>integer</em><em>]</em></p>
+<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>loc</strong><em> [</em><em>integer</em><em>]</em></p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
