@@ -211,8 +211,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       get_old_data(Rad_Type).setVal(0.0);
       get_new_data(Rad_Type).setVal(0.0);
     }
-    get_old_data(State_Type).setBndry(0.0);
-    get_new_data(State_Type).setBndry(0.0);
 #endif
 
     // Reset the grid loss tracking.
