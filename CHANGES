@@ -1,5 +1,8 @@
 # changes since the last release
 
+  -- The runtime parameter castro.fix_mass_flux has been removed: it is not
+     clear what the use case is, and it had no test suite coverage. (#572)
+
   -- Fixed a bug introduced in August 2015 that resulted in incorrect
      real bounds being passed to ca_initdata after a restart for problems
      using a grown domain. This would have resulted in incorrect initialization

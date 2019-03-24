@@ -161,8 +161,6 @@ dual_energy_eta2             Real          1.0e-4             y
 # from the pressure before limiting?
 use_pslope                   int           1                  y
 
-fix_mass_flux                int           0                  y
-
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0                  y
 
