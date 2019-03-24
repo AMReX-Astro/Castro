@@ -32,7 +32,7 @@ contains
     integer,intent(in   ) :: level, set, clear
 
     integer :: i, j, k
-    real(rt) :: x
+    real(rt) :: x, xdist
 
     ! Tag on regions of with X > X_min and rho < cutoff_density.  Note
     ! that X is the first species variable and so is in index UFS of
@@ -44,7 +44,8 @@ contains
              x = problo(1) + (dble(i) + HALF)*dx(1)
 
              if ( state(i,j,k,URHO) > cutoff_density .and. state(i,j,k,UFS)/state(i,j,k,URHO) > X_min) then
-                if (level < max_hse_tagging_level .and. x < x_refine_distance) then
+                xdist = abs(x - center(1))
+                if (level < max_hse_tagging_level .and. xdist < x_refine_distance) then
                    tag(i,j,k) = set
                 end if
              end if
