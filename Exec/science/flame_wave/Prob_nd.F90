@@ -1,7 +1,7 @@
 subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   use amrex_fort_module, only: rt => amrex_real
-  use amrex_constants_module, only: ZERO, ONE
+  use amrex_constants_module, only: ZERO, ONE, HALF
   use amrex_error_module, only: amrex_error
   use model_parser_module, only: model_parser_init
   use initial_model_module, only: model_t, init_model_data, gen_model_r, gen_model_state, init_1d_tanh
@@ -15,6 +15,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
                              low_density_cutoff, smallx, &
                              max_hse_tagging_level, max_base_tagging_level, x_refine_distance
   use network, only: nspec, network_species_index
+  use prob_params_module, only : center
 
   implicit none
 
@@ -196,6 +197,14 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   call init_1d_tanh(nx_model+ng, &
                     problo(AMREX_SPACEDIM)-ng*dx_model, probhi(AMREX_SPACEDIM), &
                     model_params, 2)
+
+  ! set center
+  center(:) = HALF * (problo(:) + probhi(:))
+
+#if AMREX_SPACEDIM == 2
+  ! for axisymmetry, put the x-center on the x-axis
+  center(1) = ZERO
+#endif
 
 end subroutine amrex_probinit
 
