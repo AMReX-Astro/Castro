@@ -3491,8 +3491,6 @@ Castro::computeTemp(MultiFab& State, int ng)
     amrex::Error("this version of computeTemp does not work for 4th order -- you shouldn't have gotten here");
   }
 
-  BL_PROFILE("Castro::computeTemp()");
-
   reset_internal_energy(State, ng);
 
 #ifdef RADIATION

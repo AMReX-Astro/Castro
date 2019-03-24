@@ -1283,9 +1283,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   } // OMP loop
 
-
-  BL_PROFILE_VAR_STOP(CA_UMDRV);
-
 #ifdef RADIATION
   if (radiation->verbose>=1) {
 #ifdef BL_LAZY
