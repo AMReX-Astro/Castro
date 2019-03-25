@@ -166,6 +166,7 @@ Castro::construct_old_react_source(amrex::MultiFab& U_state,
     // Note: we cannot tile these operations
 
     FArrayBox U_center;
+    FArrayBox R_center;
 
     for (MFIter mfi(U_state); mfi.isValid(); ++mfi) {
 
@@ -179,13 +180,17 @@ Castro::construct_old_react_source(amrex::MultiFab& U_state,
                           BL_TO_FORTRAN_FAB(U_center));
 
       // burn, including one ghost cell
+      R_center.resize(obx, NUM_STATE);
       ca_instantaneous_react(BL_TO_FORTRAN_BOX(obx),
                              BL_TO_FORTRAN_3D(U_center),
-                             BL_TO_FORTRAN_3D(R_source[mfi]));
+                             BL_TO_FORTRAN_3D(R_center));
 
       // convert R to averages (in place)
       ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                              BL_TO_FORTRAN_FAB(R_source[mfi]));
+                              BL_TO_FORTRAN_FAB(R_center));
+
+      // copy this to the center
+      R_source[mfi].copy(R_center, bx, 0, bx, 0, NUM_STATE);
     }
 
   } else {

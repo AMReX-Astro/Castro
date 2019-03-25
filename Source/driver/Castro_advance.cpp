@@ -548,7 +548,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifdef REACTIONS
       // for the temporary storage of the reaction terms
-      Sburn.define(grids, dmap, NUM_STATE, 1);
+      Sburn.define(grids, dmap, NUM_STATE, 2);
 
       R_old.resize(SDC_NODES);
       for (int n = 0; n < SDC_NODES; ++n) {
