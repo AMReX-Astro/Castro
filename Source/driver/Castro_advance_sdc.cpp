@@ -219,11 +219,8 @@ Castro::do_advance_sdc (Real time,
   // m = 0, since that state never changes.
 
   for (int m = 1; m < SDC_NODES; ++m) {
-    // use a temporary storage
     // TODO: do we need a clean state here?
-    MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
-    expand_state(Sborder, cur_time, -1, Sborder.nGrow());
-    construct_old_react_source(Sborder, *(R_old[m]));
+    construct_old_react_source(*(k_new[m]), *(R_old[m]));
   }
 #endif
 
