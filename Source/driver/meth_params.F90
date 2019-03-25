@@ -141,7 +141,6 @@ module meth_params_module
   real(rt), allocatable, save :: dual_energy_eta1
   real(rt), allocatable, save :: dual_energy_eta2
   integer,  allocatable, save :: use_pslope
-  integer,  allocatable, save :: fix_mass_flux
   integer,  allocatable, save :: limit_fluxes_on_small_dens
   integer,  allocatable, save :: density_reset_method
   integer,  allocatable, save :: allow_small_energy
@@ -228,7 +227,6 @@ attributes(managed) :: transverse_reset_rhoe
 attributes(managed) :: dual_energy_eta1
 attributes(managed) :: dual_energy_eta2
 attributes(managed) :: use_pslope
-attributes(managed) :: fix_mass_flux
 attributes(managed) :: limit_fluxes_on_small_dens
 attributes(managed) :: density_reset_method
 attributes(managed) :: allow_small_energy
@@ -346,7 +344,6 @@ attributes(managed) :: get_g_from_phi
   !$acc create(dual_energy_eta1) &
   !$acc create(dual_energy_eta2) &
   !$acc create(use_pslope) &
-  !$acc create(fix_mass_flux) &
   !$acc create(limit_fluxes_on_small_dens) &
   !$acc create(density_reset_method) &
   !$acc create(allow_small_energy) &
@@ -500,6 +497,14 @@ contains
     allocate(rot_axis)
     rot_axis = 3;
 #endif
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0d0;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
     allocate(difmag)
     difmag = 0.1d0;
     allocate(small_dens)
@@ -556,8 +561,6 @@ contains
     dual_energy_eta2 = 1.0d-4;
     allocate(use_pslope)
     use_pslope = 1;
-    allocate(fix_mass_flux)
-    fix_mass_flux = 0;
     allocate(limit_fluxes_on_small_dens)
     limit_fluxes_on_small_dens = 0;
     allocate(density_reset_method)
@@ -634,14 +637,6 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0d0;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
 
     call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
@@ -659,6 +654,11 @@ contains
     call pp%query("rot_source_type", rot_source_type)
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
+#endif
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -688,7 +688,6 @@ contains
     call pp%query("dual_energy_eta1", dual_energy_eta1)
     call pp%query("dual_energy_eta2", dual_energy_eta2)
     call pp%query("use_pslope", use_pslope)
-    call pp%query("fix_mass_flux", fix_mass_flux)
     call pp%query("limit_fluxes_on_small_dens", limit_fluxes_on_small_dens)
     call pp%query("density_reset_method", density_reset_method)
     call pp%query("allow_small_energy", allow_small_energy)
@@ -727,11 +726,6 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
-#endif
     call amrex_parmparse_destroy(pp)
 
 
@@ -746,24 +740,23 @@ contains
     !$acc device(cg_tol, cg_blend, use_eos_in_riemann) &
     !$acc device(use_flattening, transverse_use_eos, transverse_reset_density) &
     !$acc device(transverse_reset_rhoe, dual_energy_eta1, dual_energy_eta2) &
-    !$acc device(use_pslope, fix_mass_flux, limit_fluxes_on_small_dens) &
-    !$acc device(density_reset_method, allow_small_energy, do_sponge) &
-    !$acc device(sponge_implicit, first_order_hydro, hse_zero_vels) &
-    !$acc device(hse_interp_temp, hse_reflect_vels, mol_order) &
-    !$acc device(sdc_order, sdc_solver, sdc_solver_tol) &
-    !$acc device(sdc_solve_for_rhoe, sdc_use_analytic_jac, cfl) &
-    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
-    !$acc device(do_react, react_T_min, react_T_max) &
-    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
-    !$acc device(T_guess, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
-    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, use_point_mass, point_mass) &
-    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
-    !$acc device(track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(use_pslope, limit_fluxes_on_small_dens, density_reset_method) &
+    !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
+    !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
+    !$acc device(hse_reflect_vels, mol_order, sdc_order) &
+    !$acc device(sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe) &
+    !$acc device(sdc_use_analytic_jac, cfl, dtnuc_e) &
+    !$acc device(dtnuc_X, dtnuc_X_threshold, do_react) &
+    !$acc device(react_T_min, react_T_max, react_rho_min) &
+    !$acc device(react_rho_max, disable_shock_burning, T_guess) &
+    !$acc device(diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac) &
+    !$acc device(do_grav, grav_source_type, do_rotation) &
+    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
+    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
+    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
+    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
 #ifdef GRAVITY
@@ -944,9 +937,6 @@ contains
     end if
     if (allocated(use_pslope)) then
         deallocate(use_pslope)
-    end if
-    if (allocated(fix_mass_flux)) then
-        deallocate(fix_mass_flux)
     end if
     if (allocated(limit_fluxes_on_small_dens)) then
         deallocate(limit_fluxes_on_small_dens)

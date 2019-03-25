@@ -104,6 +104,8 @@ contains
     integer  :: i,j,k
     real(rt) :: u, v, w, rhoInv
 
+    !$gpu
+
     !
     ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 + v^2 + w^2)
     !
@@ -382,9 +384,11 @@ contains
 
     use network           , only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
-
-    use amrex_error_module
+#ifndef AMREX_USE_CUDA
+    use amrex_error_module, only: amrex_error
+#endif
     use amrex_fort_module, only: rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -394,6 +398,8 @@ contains
     ! Local variables
     integer  :: i, j, k
     real(rt) :: spec_sum
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

@@ -15,7 +15,7 @@ contains
 
   subroutine derstate(state,s_lo,s_hi,nv, &
                          dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                         domhi,delta,xlo) bind(C, name="derstate")
+                         domhi,delta) bind(C, name="derstate")
     !
     ! The incoming   "dat" vector contains (rho,T,(rho X)_1)
     ! The outgoing "state" vector contains (rho,T,X_1)
@@ -29,7 +29,7 @@ contains
     integer, intent(in)     :: s_lo(3), s_hi(3)
     integer, intent(in)     :: d_lo(3), d_hi(3)
     integer, intent(in)     :: domlo(3), domhi(3)
-    real(rt), intent(in)    :: delta(3), xlo(3)
+    real(rt), intent(in)    :: delta(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
     real(rt), intent(in)    :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -69,7 +69,7 @@ contains
 
   subroutine dervel(vel,v_lo,v_hi,nv, &
                        dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                       domhi,delta,xlo) bind(C, name="dervel")
+                       domhi,delta) bind(C, name="dervel")
     !
     ! This routine will derive the velocity from the momentum.
     !
@@ -82,7 +82,7 @@ contains
     integer, intent(in)     :: v_lo(3), v_hi(3)
     integer, intent(in)     :: d_lo(3), d_hi(3)
     integer, intent(in)     :: domlo(3), domhi(3)
-    real(rt), intent(in)    :: delta(3), xlo(3)
+    real(rt), intent(in)    :: delta(3)
     real(rt), intent(inout) :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
     real(rt), intent(in)    :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -104,7 +104,7 @@ contains
 
   subroutine deruplusc(vel,v_lo,v_hi,nv, &
                           dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                          domhi,delta,xlo) bind(C, name="deruplusc")
+                          domhi,delta) bind(C, name="deruplusc")
 
     use network, only : nspec, naux
     use eos_module, only: eos
@@ -120,7 +120,7 @@ contains
     integer, intent(in)  :: v_lo(3), v_hi(3)
     integer, intent(in)  :: d_lo(3), d_hi(3)
     integer, intent(in)  :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout):: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
     real(rt), intent(in) :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -155,7 +155,7 @@ contains
 
   subroutine deruminusc(vel,v_lo,v_hi,nv, &
                            dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                           domhi,delta,xlo) bind(C, name="deruminusc")
+                           domhi,delta) bind(C, name="deruminusc")
 
     use network, only : nspec, naux
     use eos_module, only: eos
@@ -171,7 +171,7 @@ contains
     integer, intent(in)     :: v_lo(3), v_hi(3)
     integer, intent(in)     :: d_lo(3), d_hi(3)
     integer, intent(in)     :: domlo(3), domhi(3)
-    real(rt), intent(in)    :: delta(3), xlo(3)
+    real(rt), intent(in)    :: delta(3)
     real(rt), intent(inout) :: vel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
     real(rt), intent(in)    :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -206,7 +206,7 @@ contains
 
   subroutine dermagvel(magvel,v_lo,v_hi,nv, &
                           dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                          domhi,delta,xlo) bind(C, name="dermagvel")
+                          domhi,delta) bind(C, name="dermagvel")
     !
     ! This routine will derive magnitude of velocity.
     !
@@ -219,7 +219,7 @@ contains
     integer, intent(in)  :: v_lo(3), v_hi(3)
     integer, intent(in)  :: d_lo(3), d_hi(3)
     integer, intent(in)  :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: magvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
     real(rt), intent(in) ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -245,7 +245,7 @@ contains
 
   subroutine dermaggrav(maggrav,g_lo,g_hi,ng, &
                            dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                           domhi,delta,xlo) bind(C, name="dermaggrav")
+                           domhi,delta) bind(C, name="dermaggrav")
     !
     ! This routine will derive magnitude of the gravity vector.
     !
@@ -258,7 +258,7 @@ contains
     integer, intent(in)    :: g_lo(3), g_hi(3)
     integer, intent(in)    :: d_lo(3), d_hi(3)
     integer, intent(in)    :: domlo(3), domhi(3)
-    real(rt), intent(in)   :: delta(3), xlo(3)
+    real(rt), intent(in)   :: delta(3)
     real(rt), intent(inout):: maggrav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),ng)
     real(rt), intent(in)   ::     dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -282,12 +282,12 @@ contains
 
   subroutine derradialvel(radvel,v_lo,v_hi,nv, &
                              dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                             domhi,delta,xlo) bind(C, name="derradialvel")
+                             domhi,delta) bind(C, name="derradialvel")
     !
     ! This routine will derive the radial velocity.
     !
     use amrex_constants_module, only : HALF
-    use prob_params_module, only: center
+    use prob_params_module, only: problo, center
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -297,7 +297,7 @@ contains
     integer, intent(in) :: v_lo(3), v_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: radvel(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
     real(rt), intent(in) :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -307,11 +307,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       z = xlo(3) + (dble(k-lo(3))+HALF) * delta(3) - center(3)
+       z = problo(3) + (dble(k)+HALF) * delta(3) - center(3)
        do j = lo(2), hi(2)
-          y = xlo(2) + (dble(j-lo(2))+HALF) * delta(2) - center(2)
+          y = problo(2) + (dble(j)+HALF) * delta(2) - center(2)
           do i = lo(1), hi(1)
-             x = xlo(1) + (dble(i-lo(1))+HALF) * delta(1) - center(1)
+             x = problo(1) + (dble(i)+HALF) * delta(1) - center(1)
              r = sqrt(x*x+y*y+z*z)
              radvel(i,j,k,1) = ( dat(i,j,k,2)*x + &
                   dat(i,j,k,3)*y + &
@@ -326,7 +326,7 @@ contains
 
   subroutine dermagmom(magmom,m_lo,m_hi,nv, &
                           dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                          domhi,delta,xlo) bind(C, name="dermagmom")
+                          domhi,delta) bind(C, name="dermagmom")
     !
     ! This routine will derive magnitude of momentum.
     !
@@ -339,7 +339,7 @@ contains
     integer, intent(in) :: m_lo(3), m_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: magmom(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),nv)
     real(rt), intent(in) :: dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -362,12 +362,12 @@ contains
   subroutine derangmomx(L,L_lo,L_hi,ncomp_L, &
                            u,u_lo,u_hi,ncomp_u, &
                            lo,hi,domlo,domhi, &
-                           dx,xlo) bind(C, name="derangmomx")
+                           dx) bind(C, name="derangmomx")
 
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
-    use prob_params_module, only: center
+    use prob_params_module, only: problo, center
 
     implicit none
 
@@ -377,7 +377,7 @@ contains
     integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
     real(rt), intent(inout) :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
     real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     integer          :: i, j, k
     real(rt)         :: loc(3), mom(3), ang_mom(3), rho
@@ -385,11 +385,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+       loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+          loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+             loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -408,12 +408,12 @@ contains
   subroutine derangmomy(L,L_lo,L_hi,ncomp_L, &
                            u,u_lo,u_hi,ncomp_u, &
                            lo,hi,domlo,domhi, &
-                           dx,xlo) bind(C, name="derangmomy")
+                           dx) bind(C, name="derangmomy")
 
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
-    use prob_params_module, only: center
+    use prob_params_module, only: problo, center
 
     implicit none
 
@@ -423,7 +423,7 @@ contains
     integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
     real(rt), intent(inout) :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
     real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     integer          :: i, j, k
     real(rt)         :: loc(3), mom(3), ang_mom(3), rho
@@ -431,11 +431,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+       loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+          loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+             loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -454,12 +454,12 @@ contains
   subroutine derangmomz(L,L_lo,L_hi,ncomp_L, &
                            u,u_lo,u_hi,ncomp_u, &
                            lo,hi,domlo,domhi, &
-                           dx,xlo) bind(C, name="derangmomz")
+                           dx) bind(C, name="derangmomz")
 
     use amrex_constants_module, only: HALF
     use math_module, only: cross_product ! function
     use amrex_fort_module, only : rt => amrex_real
-    use prob_params_module, only: center
+    use prob_params_module, only: problo, center
 
     implicit none
 
@@ -469,7 +469,7 @@ contains
     integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
     real(rt), intent(inout) :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
     real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     integer          :: i, j, k
     real(rt)         :: loc(3), mom(3), ang_mom(3), rho
@@ -477,11 +477,11 @@ contains
     !$gpu
 
     do k = lo(3), hi(3)
-       loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+       loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+          loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
           do i = lo(1), hi(1)
-             loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+             loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
              rho = u(i,j,k,1)
              mom = u(i,j,k,2:4)
@@ -499,7 +499,7 @@ contains
 
   subroutine derpres(p,p_lo,p_hi,ncomp_p, &
                      u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                     domhi,dx,xlo) bind(C, name="derpres")
+                     domhi,dx) bind(C, name="derpres")
 
     use network, only: nspec, naux
     use eos_module, only: eos
@@ -517,7 +517,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(inout) :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
     real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     real(rt) :: rhoInv
     integer  :: i, j, k
@@ -550,7 +550,7 @@ contains
 
   subroutine dereint1(e,e_lo,e_hi,ncomp_e, &
                          u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                         domhi,dx,xlo) bind(C, name="dereint1")
+                         domhi,dx) bind(C, name="dereint1")
      ! Compute internal energy from (rho E).
 
     use amrex_constants_module, only : ONE, HALF
@@ -566,7 +566,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(inout) :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
     real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         :: rhoInv, ux, uy, uz
     integer          :: i, j, k
@@ -591,7 +591,7 @@ contains
 
   subroutine dereint2(e,e_lo,e_hi,ncomp_e, &
                          u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                         domhi,dx,xlo) bind(C, name="dereint2")
+                         domhi,dx) bind(C, name="dereint2")
      ! Compute internal energy from (rho e).
 
     use meth_params_module, only: URHO, UEINT
@@ -606,7 +606,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(inout) :: e(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),ncomp_e)
     real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     integer          :: i, j, k
 
@@ -626,7 +626,7 @@ contains
 
   subroutine dersoundspeed(c,c_lo,c_hi,ncomp_c, &
                               u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                              domhi,dx,xlo) bind(C, name="dersoundspeed")
+                              domhi,dx) bind(C, name="dersoundspeed")
 
     use network, only: nspec, naux
     use eos_module, only: eos
@@ -644,7 +644,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(inout) :: c(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3),ncomp_c)
     real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         :: rhoInv
     integer          :: i, j, k
@@ -675,7 +675,7 @@ contains
 
   subroutine dergamma1(g1,g1_lo,g1_hi,ncomp_g1, &
                           u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                          domhi,dx,xlo) bind(C, name="dergamma1")
+                          domhi,dx) bind(C, name="dergamma1")
 
     use network, only: nspec, naux
     use eos_module, only: eos
@@ -693,7 +693,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(inout) :: g1(g1_lo(1):g1_hi(1),g1_lo(2):g1_hi(2),g1_lo(3):g1_hi(3),ncomp_g1)
     real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         :: rhoInv
     integer          :: i, j, k
@@ -726,7 +726,7 @@ contains
 
   subroutine dermachnumber(mach,m_lo,m_hi,ncomp_mach, &
                               u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                              domhi,dx,xlo) bind(C, name="dermachnumber")
+                              domhi,dx) bind(C, name="dermachnumber")
 
     use network, only: nspec, naux
     use eos_module, only: eos
@@ -744,7 +744,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(inout) :: mach(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3),ncomp_mach)
     real(rt), intent(in) ::    u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u   )
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         :: rhoInv
     integer          :: i, j, k
@@ -777,7 +777,7 @@ contains
 
   subroutine derentropy(s,s_lo,s_hi,ncomp_s, &
                            u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                           domhi,dx,xlo) bind(C, name="derentropy")
+                           domhi,dx) bind(C, name="derentropy")
 
     use network, only: nspec, naux
     use eos_module, only: eos
@@ -795,7 +795,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(inout) :: s(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),ncomp_s)
     real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     real(rt)         :: rhoInv
     integer          :: i, j, k
@@ -828,7 +828,7 @@ contains
 
   subroutine derenuctimescale(t,t_lo,t_hi,ncomp_t, &
                                  u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                                 domhi,dx,xlo) bind(C, name="derenuctimescale")
+                                 domhi,dx) bind(C, name="derenuctimescale")
 
     use amrex_constants_module, only: ZERO, ONE
     use meth_params_module, only: URHO, UEINT, UTEMP, UFS, UFX
@@ -847,7 +847,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(inout) :: t(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3),ncomp_t)
     real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u) ! NVAR, enuc
-    real(rt), intent(in) :: dx(3), xlo(3)
+    real(rt), intent(in) :: dx(3)
 
     integer          :: i, j, k
     real(rt)         :: rhoInv, eint, enuc, t_s, t_e
@@ -900,7 +900,7 @@ contains
 
   subroutine derspec(spec,s_lo,s_hi,nv, &
                         dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                        domhi,delta,xlo) bind(C, name="derspec")
+                        domhi,delta) bind(C, name="derspec")
     !
     ! This routine derives the mass fractions of the species.
     !
@@ -913,7 +913,7 @@ contains
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),nv)
     real(rt), intent(in) ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -934,7 +934,7 @@ contains
 
   subroutine derabar(abar,a_lo,a_hi,nv, &
                      dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                     domhi,delta,xlo) bind(C, name="derabar")
+                     domhi,delta) bind(C, name="derabar")
     !
     ! This routine derives the mass fractions of the species.
     !
@@ -949,7 +949,7 @@ contains
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: abar(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3),nv)
     real(rt), intent(in) ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -977,8 +977,7 @@ contains
 
   subroutine derlogden(logden,l_lo,l_hi,nd, &
                           dat,d_lo,d_hi,nc, &
-                          lo,hi,domlo,domhi,delta, &
-                          xlo) bind(C, name="derlogden")
+                          lo,hi,domlo,domhi,delta) bind(C, name="derlogden")
 
     use amrex_fort_module, only : rt => amrex_real
 
@@ -989,7 +988,7 @@ contains
     integer, intent(in) :: l_lo(3), l_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: logden(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),nd)
     real(rt), intent(in) ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -1011,7 +1010,7 @@ contains
 
   subroutine dermagvort(vort,v_lo,v_hi,nv, &
                            dat,d_lo,d_hi,nc,lo,hi,domlo, &
-                           domhi,delta,xlo) bind(C, name="dermagvort")
+                           domhi,delta) bind(C, name="dermagvort")
     !
     ! This routine will calculate vorticity
     !
@@ -1027,7 +1026,7 @@ contains
     integer, intent(in) :: v_lo(3), v_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: vort(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),nv)
     real(rt), intent(in) ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -1129,8 +1128,7 @@ contains
 
   subroutine derdivu(divu,u_lo,u_hi,nd, &
                         dat,d_lo,d_hi,nc, &
-                        lo,hi,domlo,domhi,delta, &
-                        xlo) bind(C, name="derdivu")
+                        lo,hi,domlo,domhi,delta) bind(C, name="derdivu")
     !
     ! This routine will calculate the divergence of velocity.
     !
@@ -1146,7 +1144,7 @@ contains
     integer, intent(in) :: u_lo(3), u_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: divu(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) ::  dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -1203,8 +1201,7 @@ contains
 
   subroutine derkineng(kineng,k_lo,k_hi,nk, &
                           dat,d_lo,d_hi,nc, &
-                          lo,hi,domlo,domhi,delta, &
-                          xlo) bind(C, name="derkineng")
+                          lo,hi,domlo,domhi,delta) bind(C, name="derkineng")
     !
     ! This routine will derive kinetic energy = 1/2 rho (u^2 + v^2 + w^2)
     !
@@ -1219,7 +1216,7 @@ contains
     integer, intent(in) :: k_lo(3), k_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
     real(rt), intent(in) ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -1244,8 +1241,7 @@ contains
 #ifdef DIFFUSION
   subroutine dercond(cond,u_lo,u_hi,nd, &
                         state,d_lo,d_hi,nc, &
-                        lo,hi,domlo,domhi,delta, &
-                        xlo) bind(C, name="dercond")
+                        lo,hi,domlo,domhi,delta) bind(C, name="dercond")
     !
     ! This routine will calculate the thermal conductivity
     !
@@ -1266,7 +1262,7 @@ contains
     integer, intent(in) :: u_lo(3), u_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: cond(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -1309,8 +1305,7 @@ contains
 
   subroutine derdiffcoeff(diff,u_lo,u_hi,nd, &
                              state,d_lo,d_hi,nc, &
-                             lo,hi,domlo,domhi,delta, &
-                             xlo) bind(C, name="derdiffcoeff")
+                             lo,hi,domlo,domhi,delta) bind(C, name="derdiffcoeff")
     !
     ! This routine will calculate the thermal conductivity
     !
@@ -1331,7 +1326,7 @@ contains
     integer, intent(in) :: u_lo(3), u_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 
@@ -1374,8 +1369,7 @@ contains
 
   subroutine derdiffterm(diff,u_lo,u_hi,nd, &
                          state,d_lo,d_hi,nc, &
-                         lo,hi,domlo,domhi,delta, &
-                         xlo) bind(C, name="derdiffterm")
+                         lo,hi,domlo,domhi,delta) bind(C, name="derdiffterm")
     !
     ! This routine will calculate the thermal conductivity
     !
@@ -1393,7 +1387,7 @@ contains
     integer, intent(in) :: u_lo(3), u_hi(3)
     integer, intent(in) :: d_lo(3), d_hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3)
+    real(rt), intent(in) :: delta(3)
     real(rt), intent(inout) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
     real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
 

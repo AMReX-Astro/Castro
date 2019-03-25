@@ -4,7 +4,8 @@ module probdata_module
 
   implicit none
 
-  real(rt), save :: dtemp, x_half_max, x_half_width
+  real(rt) :: dtemp
+  real(rt), allocatable :: x_half_max, x_half_width
 
   real(rt), save :: X_min, cutoff_density
 
@@ -25,5 +26,8 @@ module probdata_module
   integer, save :: max_hse_tagging_level
   integer, save :: max_base_tagging_level
 
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: x_half_max, x_half_width
+#endif
 
 end module probdata_module
