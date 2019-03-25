@@ -586,7 +586,14 @@ contains
     real(rt), intent(in) :: z
     real(rt) :: t
 
-    t = (exp(z) - exp(-z))/(exp(z) + exp(-z))
+    if (abs(z) <= 4.0_rt) then
+       t = (exp(z) - exp(-z))/(exp(z) + exp(-z))
+    else if (z < -4.0_rt) then
+       t = -1.0_rt
+    else
+       t = 1.0_rt
+    end if
+
   end function evaluate_tanh
 
 end module initial_model_module

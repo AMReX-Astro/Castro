@@ -431,7 +431,7 @@ Castro::restart (Amr&     papa,
 
 #ifdef AMREX_DIMENSION_AGNOSTIC
 
-#ifdef GPU_COMPATIBLE_INITIALIZATION
+#ifdef GPU_COMPATIBLE_PROBLEM
 
 #pragma gpu
               ca_initdata(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),

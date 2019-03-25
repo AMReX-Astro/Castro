@@ -308,7 +308,7 @@ subroutine ca_initdata(lo, hi, &
 
            state(i,j,k,UTEMP) = eos_state % T
            state(i,j,k,UEINT) = eos_state % rho * eos_state % e
-           state(i,j,k,UEDEN) = state(i,j,k,UEDEN)
+           state(i,j,k,UEDEN) = state(i,j,k,UEINT)
 
            ! Initial velocities = 0
            state(i,j,k,UMX:UMZ) = 0.e0_rt

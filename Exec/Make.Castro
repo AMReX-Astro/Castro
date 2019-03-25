@@ -75,11 +75,11 @@ endif
 # interface to initdata, so we want to define this even
 # if we're not using CUDA.
 
-ifeq ($(GPU_COMPATIBLE_INITIALIZATION),TRUE)
+ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
   ifeq ($(DIMENSION_AGNOSTIC),TRUE)
-    DEFINES += -DGPU_COMPATIBLE_INITIALIZATION
+    DEFINES += -DGPU_COMPATIBLE_PROBLEM
   else
-    $(error GPU compatible initialization is only supported if DIMENSION_AGNOSTIC=TRUE)
+    $(error GPU_COMPATIBLE_PROBLEM is only supported if DIMENSION_AGNOSTIC=TRUE)
   endif
 endif
 

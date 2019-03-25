@@ -124,10 +124,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         call eos(eos_input_rt, eos_state)
 
-        state(i,j,UEDEN) = eos_state%e
-
-        state(i,j,UEINT) = state(i,j,URHO) * state(i,j,UEDEN)
-        state(i,j,UEDEN) = state(i,j,URHO) * state(i,j,UEDEN)
+        state(i,j,UEINT) = state(i,j,URHO) * eos_state%e
+        state(i,j,UEDEN) = state(i,j,URHO) * eos_state%e
 
         do n = 1,nspec
            state(i,j,UFS+n-1) = state(i,j,URHO) * state(i,j,UFS+n-1)

@@ -19,7 +19,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 
@@ -51,7 +51,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state_old, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 
@@ -71,7 +71,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 

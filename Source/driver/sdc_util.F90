@@ -178,6 +178,7 @@ contains
        U_react(nspec_evolve+1) = U_old(UEINT)
     endif
 
+#if (INTEGRATOR == 0)
     if (solver == NEWTON_SOLVE) then
        ! do a simple Newton solve
 
@@ -197,6 +198,7 @@ contains
           endif
 
           f_rhs(:) = -f(:)
+
           call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f_rhs, 0)
 
           dU_react(:) = f_rhs(:)
@@ -250,6 +252,7 @@ contains
        endif
 
     endif
+#endif
 
     ! update the full U_new
     ! if we updated total energy, then correct internal, or vice versa
