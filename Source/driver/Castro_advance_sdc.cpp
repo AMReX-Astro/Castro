@@ -181,7 +181,14 @@ Castro::do_advance_sdc (Real time,
     // if this is the first node of a new iteration, then we need
     // to compute and store the old reactive source
     if (m == 0 && sdc_iteration == 0) {
-      construct_old_react_source(Sborder, *(R_old[0]));
+      // we'll burn in one ghost cell to allow us to do 4th order
+      // averaging as needed.  Put the old state in Sburn and
+      // FillPatch
+      MultiFab::Copy(S_new, *(k_new[0]), 0, 0, S_new.nComp(), 0);
+      // do we need to clean?
+      expand_state(Sburn, cur_time, -1, 2);
+      bool input_is_average = true;
+      construct_old_react_source(Sburn, *(R_old[0]), input_is_average);
 
       // copy to the other nodes -- since the state is the same on all
       // nodes for sdc_iteration == 0
@@ -220,7 +227,11 @@ Castro::do_advance_sdc (Real time,
 
   for (int m = 1; m < SDC_NODES; ++m) {
     // TODO: do we need a clean state here?
-    construct_old_react_source(*(k_new[m]), *(R_old[m]));
+    MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
+    // do we need to clean?
+    expand_state(Sburn, cur_time, -1, 2);
+    bool input_is_average = true;
+    construct_old_react_source(Sburn, *(R_old[m]), input_is_average);
   }
 #endif
 

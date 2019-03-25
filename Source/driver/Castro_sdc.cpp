@@ -156,25 +156,51 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 #ifdef REACTIONS
 void
 Castro::construct_old_react_source(amrex::MultiFab& U_state,
-                                   amrex::MultiFab& R_source) {
+                                   amrex::MultiFab& R_source,
+                                   const bool input_is_average) {
 
   BL_PROFILE("Castro::construct_old_react_source()");
-    
-  // this routine simply fills R_source with the reactive source from
-  // state U_state.  Note: it is required that U_state have atleast 2
-  // valid ghost cells for 4th order.
 
-  // at this point, k_new has not yet been updated, so it represents
-  // the state at the SDC nodes from the previous iteration
-  for (MFIter mfi(U_state); mfi.isValid(); ++mfi) {
+  if (sdc_order == 4 && input_is_average) {
+    // we have cell-averages
+    // Note: we cannot tile these operations
 
-    const Box& bx = mfi.tilebox();
+    FArrayBox U_center;
 
-    // construct the reactive source term
-    ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
-                           BL_TO_FORTRAN_3D(U_state[mfi]),
-                           BL_TO_FORTRAN_3D(R_source[mfi]));
+    for (MFIter mfi(U_state); mfi.isValid(); ++mfi) {
 
+      const Box& bx = mfi.tilebox();
+      const Box& obx = mfi.growntilebox(1);
+
+      // Convert to centers
+      U_center.resize(obx, NUM_STATE);
+      ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
+                          BL_TO_FORTRAN_FAB(U_state[mfi]),
+                          BL_TO_FORTRAN_FAB(U_center));
+
+      // burn, including one ghost cell
+      ca_instantaneous_react(BL_TO_FORTRAN_BOX(obx),
+                             BL_TO_FORTRAN_3D(U_center),
+                             BL_TO_FORTRAN_3D(R_source[mfi]));
+
+      // convert R to averages (in place)
+      ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
+                              BL_TO_FORTRAN_FAB(R_source[mfi]));
+    }
+
+  } else {
+    // we are cell-centers
+
+    for (MFIter mfi(U_state); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.tilebox();
+
+      // construct the reactive source term
+      ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
+                             BL_TO_FORTRAN_3D(U_state[mfi]),
+                             BL_TO_FORTRAN_3D(R_source[mfi]));
+
+    }
   }
 }
 #endif
