@@ -601,9 +601,6 @@ runtime parameters for hydrodynamics:
 -  ``castro.normalize_species``: enforce that :math:`\sum_i X_i = 1`
    (0 or 1; default: 0)
 
--  ``castro.fix_mass_flux``: enforce constant mass flux at
-   domain boundary (0 or 1; default: 1)
-
 -  ``castro.spherical_star``: this is used to set the boundary
    conditions by assuming the star is spherically symmetric in
    the outer regions (0 or 1; default: 0)

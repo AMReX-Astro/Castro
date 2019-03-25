@@ -32,7 +32,7 @@ contains
     use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, QC, &
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, &
-                                   ppm_type, fix_mass_flux
+                                   ppm_type
     use amrex_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use amrex_fort_module, only : rt => amrex_real
@@ -85,7 +85,6 @@ contains
     real(rt) :: rho_ref, un_ref, ut_ref, utt_ref, p_ref, rhoe_ref
     real(rt) :: e(3)
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
-    logical :: fix_mass_flux_lo, fix_mass_flux_hi
 
     integer :: QUN, QUT, QUTT
     real(rt) :: ref_fac, trace_fac1, trace_fac2, trace_fac3
@@ -100,11 +99,6 @@ contains
        call amrex_error("Error:: trace_3d.f90 :: tracexy")
     end if
 #endif
-
-    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (vlo(1) == domlo(1))
-    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (vhi(1) == domhi(1))
 
     if (idir == 1) then
        QUN = QU
@@ -296,24 +290,6 @@ contains
              end if
 #endif
 
-#if (AMREX_SPACEDIM == 1)
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_lo) then
-                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
-             end if
-
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_hi) then
-                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(vhi(1)+1,j,k,QUN    ) = q(domhi(1)+1,j,k,QUN )
-                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
-             end if
-#endif
-
           end do
        end do
     end do
@@ -358,11 +334,6 @@ contains
                    if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*srcQ(i,j,k,n)
                 endif
              enddo
-
-#if (AMREX_SPACEDIM == 1)
-             if (fix_mass_flux_hi) qp(vhi(1)+1,j,k,n) = q(vhi(1)+1,j,k,n)
-             if (fix_mass_flux_lo) qm(vlo(1),j,k,n) = q(vlo(1)-1,j,k,n)
-#endif
 
           end do
        end do

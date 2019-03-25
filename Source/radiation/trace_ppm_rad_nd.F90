@@ -38,8 +38,7 @@ contains
                                    small_dens, small_pres, &
                                    ppm_type, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, &
-                                   fix_mass_flux
+                                   npassive, qpass_map
     use rad_params_module, only : ngroups
     use amrex_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
@@ -132,20 +131,12 @@ contains
 
     real(rt) :: er_foo
 
-    logical :: fix_mass_flux_lo, fix_mass_flux_hi
-    
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
        call amrex_error("Error:: trace_ppm_rad_nd.f90 :: tracexy_ppm_rad")
     end if
 
     hdt = HALF * dt
-
-
-    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (vlo(1) == domlo(1))
-    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (vhi(1) == domhi(1))
 
 
     !=========================================================================
@@ -649,29 +640,6 @@ contains
              endif
 #endif
 
-#if (AMREX_SPACEDIM == 1)
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_lo) then
-                qm(vlo(1),j,k,QRHO   ) = q(domlo(1)-1,j,k,QRHO)
-                qm(vlo(1),j,k,QUN     ) = q(domlo(1)-1,j,k,QUN  )
-                qm(vlo(1),j,k,QPRES  ) = q(domlo(1)-1,j,k,QPRES)
-                qm(vlo(1),j,k,QREINT ) = q(domlo(1)-1,j,k,QREINT)
-                qm(vlo(1),j,k,qrad:qradhi) = q(domlo(1)-1,j,k,qrad:qradhi)
-                qm(vlo(1),j,k,qptot  ) = q(domlo(1)-1,j,k,qptot)
-                qm(vlo(1),j,k,qreitot) = q(domlo(1)-1,j,k,qreitot)
-             end if
-
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_hi) then
-                qp(vhi(1)+1,j,k,QRHO   ) = q(domhi(1)+1,j,k,QRHO)
-                qp(vhi(1)+1,j,k,QUN     ) = q(domhi(1)+1,j,k,QUN  )
-                qp(vhi(1)+1,j,k,QPRES  ) = q(domhi(1)+1,j,k,QPRES)
-                qp(vhi(1)+1,j,k,QREINT ) = q(domhi(1)+1,j,k,QREINT)
-                qp(vhi(1)+1,j,k,qrad:qradhi) = q(domhi(1)+1,j,k,qrad:qradhi)
-                qp(vhi(1)+1,j,k,qptot  ) = q(domhi(1)+1,j,k,qptot)
-                qp(vhi(1)+1,j,k,qreitot) = q(domhi(1)+1,j,k,qreitot)
-             end if
-#endif
           end do
        end do
     end do
@@ -731,10 +699,6 @@ contains
 
              end do
 
-#if (AMREX_SPACEDIM == 1)
-             if (fix_mass_flux_hi) qp(vhi(1)+1,j,k,n) = q(vhi(1)+1,j,k,n)
-             if (fix_mass_flux_lo) qm(vlo(1),j,k,n) = q(vlo(1)-1,j,k,n)
-#endif
           end do
        end do
     end do
