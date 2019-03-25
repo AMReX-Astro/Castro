@@ -59,7 +59,7 @@ namespace: ``castro``
 |                                        | rad problems                                            |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``time_integration_method``            | how do we advance in time? 0 = CTU + Strang, 1 = MOL +  | 0             |
-|                                        | Strang, 2 = SDC                                         |               |
+|                                        | Strang, 2 = SDC, 3 = simplified-SDC                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``limit_fourth_order``                 | do we use a limiter with the fourth-order accurate      | 1             |
 |                                        | reconstruction?                                         |               |
