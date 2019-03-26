@@ -121,16 +121,6 @@ contains
     real(rt) :: U_FineCoarse(1:nDOF, 1:nE, 1:nFineX(1), 1:nFineX(2), 1:1)
     real(rt) :: U_CrseCoarse(1:nDOF, 1:nE)
 
-    print *,'FINE LO/HI ',fine_lo(1:3), fine_hi(1:3)
-    print *,'CRSE LO/HI ',crse_lo(1:3), crse_hi(1:3)
-    print *,'CB   LO/HI ',cblo(1:2), cbhi(1:2)
-
-    print *,'nE   ',nE
-    print *,'nDOF ',nDOF
-    print *,'nvar ',nvar
-    print *,'nCR  ',nCR
-    print *,'nNodesE  ',nNodesE
-
     ! The C++ sends in zero but Coarsen_TwoMoment expects 1
     nFineX_local(1) = nFineX(1)
     nFineX_local(2) = nFineX(2)
