@@ -589,7 +589,7 @@ note: this ‘C’ is cell-averages</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">five()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eight()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">twelfth()</span></code>)</p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">five()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eight()</span></code>)</p>
 </td>
 </tr>
 </tbody>
@@ -647,7 +647,10 @@ note: this ‘C’ is cell-averages</p>
 <dl class="subroutine">
 <dt id="f/sdc_util/ca_sdc_update_centers_o4">
 <em class="property">subroutine  </em><code class="descclassname">sdc_util/</code><code class="descname">ca_sdc_update_centers_o4</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dt_m</em>, <em>u_old</em>, <em>uo_lo</em>, <em>uo_hi</em>, <em>u_new</em>, <em>un_lo</em>, <em>un_hi</em>, <em>c</em>, <em>c_lo</em>, <em>c_hi</em>, <em>sdc_iteration</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_util/ca_sdc_update_centers_o4" title="Permalink to this definition">¶</a></dt>
-<dd><p>update k_m to k_n via advection – this is a fourth-order accurate update</p>
+<dd><p>update U_old to U_new on cell-centers.  This is an implicit
+solve because of reactions.  Here U_old corresponds to time node
+m and U_new is node m+1.  dt_m is the timestep between m and
+m+1, which is dt_m = dt/2.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

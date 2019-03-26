@@ -236,7 +236,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#f/fourth_order/twentyfourth" title="f/fourth_order/twentyfourth"><code class="xref f f-var docutils literal notranslate"><span class="pre">twentyfourth</span></code></a></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/fourth_order/ca_compute_lap_term" title="f/fourth_order/ca_compute_lap_term"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_lap_term()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_cell_center" title="f/fourth_order/ca_make_cell_center"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_cell_center()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_cell_center_in_place" title="f/fourth_order/ca_make_cell_center_in_place"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_cell_center_in_place()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_average" title="f/fourth_order/ca_make_fourth_average"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_average()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_average_n" title="f/fourth_order/ca_make_fourth_average_n"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_average_n()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_in_place" title="f/fourth_order/ca_make_fourth_in_place"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_in_place()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_in_place_n" title="f/fourth_order/ca_make_fourth_in_place_n"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_in_place_n()</span></code></a>, <a class="reference internal" href="#f/fourth_order/states" title="f/fourth_order/states"><code class="xref f f-func docutils literal notranslate"><span class="pre">states()</span></code></a></td>
+<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/fourth_order/ca_compute_lap_term" title="f/fourth_order/ca_compute_lap_term"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_lap_term()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_cell_center" title="f/fourth_order/ca_make_cell_center"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_cell_center()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_cell_center_in_place" title="f/fourth_order/ca_make_cell_center_in_place"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_cell_center_in_place()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_average" title="f/fourth_order/ca_make_fourth_average"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_average()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_in_place" title="f/fourth_order/ca_make_fourth_in_place"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_in_place()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_in_place_n" title="f/fourth_order/ca_make_fourth_in_place_n"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_in_place_n()</span></code></a>, <a class="reference internal" href="#f/fourth_order/states" title="f/fourth_order/states"><code class="xref f f-func docutils literal notranslate"><span class="pre">states()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -295,7 +295,9 @@
 <dl class="subroutine">
 <dt id="f/fourth_order/ca_make_cell_center">
 <em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">ca_make_cell_center</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>nc</em>, <em>u_cc</em>, <em>u_cc_lo</em>, <em>u_cc_hi</em>, <em>nc_cc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/ca_make_cell_center" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>Take a cell-average state U and a convert it to a cell-center
+state U_cc via U_cc = U - 1/24 L U</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -320,7 +322,10 @@
 <dl class="subroutine">
 <dt id="f/fourth_order/ca_make_cell_center_in_place">
 <em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">ca_make_cell_center_in_place</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>nc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/ca_make_cell_center_in_place" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>Take a cell-average state U and make it cell-centered in place
+via U &lt;- U - 1/24 L U.  Note that this operation is not tile
+safe.</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -344,7 +349,9 @@
 <dl class="subroutine">
 <dt id="f/fourth_order/ca_compute_lap_term">
 <em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">ca_compute_lap_term</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>nc</em>, <em>lap</em>, <em>lap_lo</em>, <em>lap_hi</em>, <em>ncomp</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/ca_compute_lap_term" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>Computes the h**2/24 L U term that is used in correcting
+cell-center to averages (and back)</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -369,9 +376,9 @@
 <dl class="subroutine">
 <dt id="f/fourth_order/ca_make_fourth_average">
 <em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">ca_make_fourth_average</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>nc</em>, <em>q_bar</em>, <em>q_bar_lo</em>, <em>q_bar_hi</em>, <em>nc_bar</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/ca_make_fourth_average" title="Permalink to this definition">¶</a></dt>
-<dd><p>this takes the cell-center q and the q constructed from the
-cell-average U (q_bar) and replaces the cell-center q with a
-proper 4th-order accurate cell-average</p>
+<dd><p>Take the cell-center state q and another state q_bar (e.g.,
+constructed from the cell-average U) and replace the cell-center
+:p real q(q_hi(1)-(q_lo(1))+1,q_hi(2)-(q_lo(2))+1,q_hi(3)-(q_lo(3))+1,nc) [inout]: with a 4th-order accurate cell-average, q &lt;- q + 1/24 L q_bar</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -379,7 +386,6 @@ proper 4th-order accurate cell-average</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q</strong> (q_hi(1)-(q_lo(1))+1,q_hi(2)-(q_lo(2))+1,q_hi(3)-(q_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>q_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>q_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
@@ -387,35 +393,6 @@ proper 4th-order accurate cell-average</p>
 <li><strong>q_bar_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>q_bar_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>nc_bar</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/fourth_order/ca_make_fourth_average_n">
-<em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">ca_make_fourth_average_n</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>nc</em>, <em>q_bar</em>, <em>q_bar_lo</em>, <em>q_bar_hi</em>, <em>nc_bar</em>, <em>ncomp</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/ca_make_fourth_average_n" title="Permalink to this definition">¶</a></dt>
-<dd><p>this takes the cell-center q and the q constructed from the
-cell-average U (q_bar) and replaces the cell-center q with a
-proper 4th-order accurate cell-average</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q</strong> (q_hi(1)-(q_lo(1))+1,q_hi(2)-(q_lo(2))+1,q_hi(3)-(q_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>q_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
-<li><strong>q_bar</strong> (q_bar_hi(1)-(q_bar_lo(1))+1,q_bar_hi(2)-(q_bar_lo(2))+1,q_bar_hi(3)-(q_bar_lo(3))+1,nc_bar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q_bar_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q_bar_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>nc_bar</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
-<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
@@ -426,9 +403,9 @@ proper 4th-order accurate cell-average</p>
 <dl class="subroutine">
 <dt id="f/fourth_order/ca_make_fourth_in_place">
 <em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">ca_make_fourth_in_place</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>nc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/ca_make_fourth_in_place" title="Permalink to this definition">¶</a></dt>
-<dd><p>this takes the cell-center q and makes it a cell-average q, in
-place (e.g. q is overwritten by its average).  Note: this
-routine is not tile safe.</p>
+<dd><p>Take the cell-center q and makes it a cell-average q, in place
+(e.g. q is overwritten by its average), q &lt;- q + 1/24 L q.
+Note: this routine is not tile safe.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -453,9 +430,12 @@ routine is not tile safe.</p>
 <dl class="subroutine">
 <dt id="f/fourth_order/ca_make_fourth_in_place_n">
 <em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">ca_make_fourth_in_place_n</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>nc</em>, <em>ncomp</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/ca_make_fourth_in_place_n" title="Permalink to this definition">¶</a></dt>
-<dd><p>this takes the cell-center q and makes it a cell-average q, in
-place (e.g. q is overwritten by its average).  Note: this
-routine is not tile safe.</p>
+<dd><p>Take the cell-center q and makes it a cell-average q, in place
+(e.g. q is overwritten by its average), q &lt;- q + 1/24 L q.
+Note: this routine is not tile safe.</p>
+<p>This version operates on a single component.  Here ncomp is the
+component to update – we expect this to come in 0-based from
+C++, so we add 1</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
