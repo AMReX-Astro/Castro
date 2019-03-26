@@ -449,16 +449,17 @@ contains
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, &
-         UEDEN, UEINT, UTEMP, &
-         QRHO, QU, QV, QW, &
-         QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-         NQ, QC, QGAMC, QDPDR, QDPDE, NQAUX, &
+                                   UEDEN, UEINT, UTEMP, &
+                                   QRHO, QU, QV, QW, &
+                                   QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
+                                   NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
-         QCG, QGAMCG, QLAMS, &
-         QPTOT, QRAD, QRADHI, QREITOT, &
+                                   QCG, QGAMCG, QLAMS, &
+                                   QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
-         npassive, upass_map, qpass_map, dual_energy_eta1, &
-         small_dens
+                                   npassive, upass_map, qpass_map, dual_energy_eta1, &
+                                   small_dens
+
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
 #ifdef ROTATION
@@ -599,6 +600,7 @@ contains
              q(i,j,k,QREINT) = eos_state % e * q(i,j,k,QRHO)
              q(i,j,k,QPRES)  = eos_state % p
              q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
+             q(i,j,k,QGC) = eos_state % gam1
 
              qaux(i,j,k,QDPDR)  = eos_state % dpdr_e
              qaux(i,j,k,QDPDE)  = eos_state % dpde
@@ -641,9 +643,9 @@ contains
 
     use actual_network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
-         QVAR, QRHO, QU, QV, QW, NQ, &
-         QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
-         npassive, upass_map, qpass_map
+                                   NQSRC, QRHO, QU, QV, QW, NQ, &
+                                   QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
+                                   npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
 
@@ -658,11 +660,13 @@ contains
     real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt)        , intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt)        , intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),QVAR)
+    real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),NQSRC)
 
     integer          :: i, j, k
     integer          :: n, iq, ipassive
     real(rt)         :: rhoinv
+
+    !$gpu
 
     srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
@@ -689,6 +693,13 @@ contains
     do ipassive = 1, npassive
        n = upass_map(ipassive)
        iq = qpass_map(ipassive)
+
+       ! we already accounted for velocities above
+       if (iq == QU .or. iq == QV .or. iq == QW) cycle
+
+       ! we may not be including the ability to have species sources,
+       ! so check to make sure that we are < NQSRC
+       if (iq > NQSRC) cycle
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -731,6 +742,8 @@ contains
     real(rt)         :: qgdnv(NGDNV)
     logical :: cell_centered
 #endif
+
+    !$gpu
 
     ! Set everything to zero; this default matters because some
     ! quantities like temperature are not updated through fluxes.
@@ -799,7 +812,7 @@ contains
                                               vol, vol_lo, vol_hi, &
                                               flux, flux_lo, flux_hi, &
                                               area, area_lo, area_hi, &
-                                              dt, dx)
+                                              dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
@@ -810,13 +823,14 @@ contains
     implicit none
 
     integer, intent(in) :: u_lo(3), u_hi(3)
-    integer, intent(in) :: idir
+    integer, intent(in), value :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: vol_lo(3), vol_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux_lo(3), flux_hi(3)
     integer, intent(in) :: area_lo(3), area_hi(3)
-    real(rt), intent(in   ) :: dt, dx(3)
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
 
     real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
     real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
@@ -827,9 +841,12 @@ contains
     integer  :: i, j, k
 
     real(rt) :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta, thetap, thetam, alpha, flux_coef
+    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ)
 
     real(rt), parameter :: density_floor_tolerance = 1.1_rt
     real(rt) :: density_floor
+
+    !$gpu
 
     ! The density floor is the small density, modified by a small factor.
     ! In practice numerical error can cause the density that is created
@@ -868,8 +885,12 @@ contains
                 ! lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
                 ! freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
 
-                fluxL = dflux(u(i-1,j,k,:), q(i-1,j,k,:), idir, [i-1, j, k])
-                fluxR = dflux(u(i  ,j,k,:), q(i  ,j,k,:), idir, [i  , j, k])
+                uL = u(i-1,j,k,:)
+                uR = u(i  ,j,k,:)
+                qL = q(i-1,j,k,:)
+                qR = q(i  ,j,k,:)
+                fluxL = dflux(uL, qL, idir, [i-1, j, k])
+                fluxR = dflux(uR, qR, idir, [i  , j, k])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i-1,j,k,:) - u(i,j,k,:)))
 
                 ! Limit the Lax-Friedrichs flux so that it doesn't cause a density < density_floor.
@@ -969,8 +990,12 @@ contains
 
                 endif
 
-                fluxL = dflux(u(i,j-1,k,:), q(i,j-1,k,:), idir, [i, j-1, k])
-                fluxR = dflux(u(i,j  ,k,:), q(i,j  ,k,:), idir, [i, j  , k])
+                uL = u(i,j-1,k,:)
+                uR = u(i,j  ,k,:)
+                qL = q(i,j-1,k,:)
+                qR = q(i,j  ,k,:)
+                fluxL = dflux(uL, qL, idir, [i, j-1, k])
+                fluxR = dflux(uR, qR, idir, [i, j  , k])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j-1,k,:) - u(i,j,k,:)))
 
                 flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k))
@@ -1043,8 +1068,12 @@ contains
 
                 endif
 
-                fluxL = dflux(u(i,j,k-1,:), q(i,j,k-1,:), idir, [i, j, k-1])
-                fluxR = dflux(u(i,j,k  ,:), q(i,j,k  ,:), idir, [i, j, k-1])
+                uL = u(i,j,k-1,:)
+                uR = u(i,j,k  ,:)
+                qL = q(i,j,k-1,:)
+                qR = q(i,j,k  ,:)
+                fluxL = dflux(uL, qL, idir, [i, j, k-1])
+                fluxR = dflux(uR, qR, idir, [i, j, k-1])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
                 flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k)) 
@@ -1571,6 +1600,8 @@ contains
 
     integer  :: i, j, k
 
+    !$gpu
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -1610,7 +1641,7 @@ contains
   !! they sum to 0.  This is essentially the CMA procedure that is
   !! defined in Plewa & Muller, 1999, A&A, 342, 179.
   !!
-  subroutine normalize_species_fluxes(lo, hi, flux, f_lo, f_hi)
+  subroutine normalize_species_fluxes(lo, hi, flux, f_lo, f_hi) bind(c, name="normalize_species_fluxes")
 
     use network, only: nspec
     use amrex_constants_module, only: ZERO, ONE

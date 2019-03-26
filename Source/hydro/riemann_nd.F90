@@ -7,15 +7,17 @@ module riemann_module
                                  UEDEN, UEINT, UFS, UFX, UTEMP, &
                                  QRHO, QU, QV, QW, &
                                  QPRES, QGAME, QREINT, QFS, QFX, &
-                                 QC, QGAMC, &
+                                 QC, QGAMC, QGC, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
+
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
                                  GDERADS, QGAMCG, QLAMS, QREITOT, &
 #endif
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp, &
-                                 use_eos_in_riemann
+                                 use_eos_in_riemann, use_reconstructed_gamma1
+
   use riemann_util_module
 
 #ifdef RADIATION
@@ -45,10 +47,10 @@ contains
                                  qgdnv, qg_lo, qg_hi, &
                                  qaux, qa_lo, qa_hi, &
                                  shk, s_lo, s_hi, &
-                                 idir, domlo, domhi)
+                                 idir, domlo, domhi) bind(C, name="cmpflx_plus_godunov")
 
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -71,10 +73,10 @@ contains
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: qg_lo(3), qg_hi(3)
 
-    integer, intent(in) :: idir
+    integer, intent(in), value :: idir
 
     integer, intent(in) :: domlo(3),domhi(3)
-    integer, intent(in) :: nc, comp
+    integer, intent(in), value :: nc, comp
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
@@ -93,6 +95,8 @@ contains
     real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
     real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
+
+    !$gpu
 
     call cmpflx(lo, hi, &
                 qm, qm_lo, qm_hi, &
@@ -130,7 +134,7 @@ contains
                     idir, domlo, domhi)
 
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -196,8 +200,8 @@ contains
                           lambda_int, q_lo, q_hi, &
 #endif
                           qaux, qa_lo, qa_hi, &
-                          idir, lo, hi, domlo, domhi)
-
+                          idir, lo, hi, &
+                          domlo, domhi, .false.)
 
        call compute_flux_q(lo, hi, &
                            qint, q_lo, q_hi, &
@@ -254,7 +258,6 @@ contains
                       cr = qaux(i,j,k,QC)
                    end select
 
-
                    ql_zone(:) = qm(i,j,k,:,comp)
                    qr_zone(:) = qp(i,j,k,:,comp)
                    call HLL(ql_zone, qr_zone, cl, cr, idir, flx_zone)
@@ -271,7 +274,9 @@ contains
 
 
 
-  !>
+  !> @brief just compute the hydrodynamic state on the interfaces
+  !! don't compute the fluxes
+  !!
   !! @param[in] qpd_lo integer
   !! @param[in] q_lo integer
   !! @param[in] qa_lo integer
@@ -280,6 +285,7 @@ contains
   !! @param[in] domlo integer
   !! @param[in] nc integer
   !! @param[in] comp integer
+  !! @param[in] compute_gammas logical
   !! @param[inout] qm real(rt)
   !! @param[inout] qp real(rt)
   !! @param[inout] qint real(rt)
@@ -292,17 +298,15 @@ contains
                            lambda_int, l_lo, l_hi, &
 #endif
                            qaux, qa_lo, qa_hi, &
-                           idir, lo, hi, domlo, domhi)
-
-    ! just compute the hydrodynamic state on the interfaces
-    ! don't compute the fluxes
+                           idir, lo, hi, domlo, domhi, compute_gammas)
 
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
     use amrex_error_module
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver, &
+                                   T_guess
 
     implicit none
 
@@ -319,6 +323,8 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
     integer, intent(in) :: nc, comp
+
+    logical, intent(in), optional :: compute_gammas
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
@@ -337,6 +343,14 @@ contains
 
     real(rt) :: cl, cr
     type (eos_t) :: eos_state
+
+    logical :: compute_interface_gamma
+
+    if (present(compute_gammas)) then
+       compute_interface_gamma = compute_gammas
+    else
+       compute_interface_gamma = .false.
+    endif
 
     !$gpu
 
@@ -364,8 +378,8 @@ contains
        ! recompute the thermodynamics on the interface to make it
        ! all consistent
 
-       ! we want to take the edge states of rho, p, and X, and get
-       ! new values for gamc and (rho e) on the edges that are
+       ! we want to take the edge states of rho, e, and X, and get
+       ! new values for p on the edges that are
        ! thermodynamically consistent.
 
        do k = lo(3), hi(3)
@@ -373,8 +387,8 @@ contains
              do i = lo(1), hi(1)
 
                 ! this is an initial guess for iterations, since we
-                ! can't be certain that temp is on interfaces
-                eos_state % T = 10000.0e0_rt
+                ! can't be certain what temp is on interfaces
+                eos_state % T = T_guess
 
                 ! minus state
                 eos_state % rho = qm(i,j,k,QRHO,comp)
@@ -398,8 +412,8 @@ contains
              do i = lo(1), hi(1)
 
                 ! this is an initial guess for iterations, since we
-                ! can't be certain that temp is on interfaces
-                eos_state % T = 10000.0e0_rt
+                ! can't be certain what temp is on interfaces
+                eos_state % T = T_guess
 
                 ! plus state
                 eos_state % rho = qp(i,j,k,QRHO,comp)
@@ -432,7 +446,7 @@ contains
                       lambda_int, q_lo, q_hi, &
 #endif
                       idir, lo, hi, &
-                      domlo, domhi)
+                      domlo, domhi, compute_interface_gamma)
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
@@ -657,14 +671,18 @@ contains
              ! left state
              rl = max(ql(i,j,k,QRHO,comp), small_dens)
 
+             pl  = ql(i,j,k,QPRES,comp)
+             rel = ql(i,j,k,QREINT,comp)
+             if (use_reconstructed_gamma1 == 1) then
+                gcl = ql(i,j,k,QGC,comp)
+             else
+                gcl = qaux(i-sx,j-sy,k-sz,QGAMC)
+             endif
+
              ! pick left velocities based on direction
              ul  = ql(i,j,k,iu,comp)
              v1l = ql(i,j,k,iv1,comp)
              v2l = ql(i,j,k,iv2,comp)
-
-             pl  = ql(i,j,k,QPRES,comp)
-             rel = ql(i,j,k,QREINT,comp)
-             gcl = qaux(i-sx,j-sy,k-sz,QGAMC)
 
              ! sometime we come in here with negative energy or pressure
              ! note: reset both in either case, to remain thermo
@@ -689,14 +707,18 @@ contains
              ! right state
              rr = max(qr(i,j,k,QRHO,comp), small_dens)
 
+             pr  = qr(i,j,k,QPRES,comp)
+             rer = qr(i,j,k,QREINT,comp)
+             if (use_reconstructed_gamma1 == 1) then
+                gcr = qr(i,j,k,QGC,comp)
+             else
+                gcr = qaux(i,j,k,QGAMC)
+             endif
+
              ! pick right velocities based on direction
              ur  = qr(i,j,k,iu,comp)
              v1r = qr(i,j,k,iv1,comp)
              v2r = qr(i,j,k,iv2,comp)
-
-             pr  = qr(i,j,k,QPRES,comp)
-             rer = qr(i,j,k,QREINT,comp)
-             gcr = qaux(i,j,k,QGAMC)
 
              if (rer <= ZERO .or. pr < small_pres) then
 #ifndef AMREX_USE_CUDA
@@ -1086,13 +1108,14 @@ contains
                        lambda_int, l_lo, l_hi, &
 #endif
                        idir, lo, hi, &
-                       domlo, domhi)
+                       domlo, domhi, compute_interface_gamma)
 
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
+    use meth_params_module, only: T_guess
 
     implicit none
 
@@ -1108,6 +1131,7 @@ contains
     integer, intent(in) :: l_lo(3), l_hi(3)
 #endif
 
+    logical, intent(in) :: compute_interface_gamma
     real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
     real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
@@ -1304,6 +1328,34 @@ contains
                 gamcgr = qaux(i,j,k,QGAMCG)
 #endif
              end if
+
+#ifndef RADIATION
+             if (use_reconstructed_gamma1 == 1) then
+                gamcl = ql(i,j,k,QGC,comp)
+                gamcr = qr(i,j,k,QGC,comp)
+             else  if (compute_interface_gamma) then
+
+                ! we come in with a good p, rho, and X on the interfaces
+                ! -- use this to find the gamma used in the sound speed
+                eos_state % p = pl
+                eos_state % rho = rl
+                eos_state % xn(:) = ql(i,j,k,QFS:QFS-1+nspec,comp)
+                eos_state % T = 100.0 ! initial guess
+
+                call eos(eos_input_rp, eos_state)
+
+                gamcl = eos_state % gam1
+
+                eos_state % p = pr
+                eos_state % rho = rr
+                eos_state % xn(:) = qr(i,j,k,QFS:QFS-1+nspec,comp)
+                eos_state % T = 100.0 ! initial guess
+
+                call eos(eos_input_rp, eos_state)
+
+                gamcr = eos_state % gam1
+             endif
+#endif
 
              wsmall = small_dens*csmall
 
@@ -1548,7 +1600,7 @@ contains
                 eos_state % rho = qint(i,j,k,QRHO)
                 eos_state % p = qint(i,j,k,QPRES)
                 eos_state % xn(:) = xn(:)
-                eos_state % T = 1.e4  ! a guess
+                eos_state % T = T_guess
 
                 call eos(eos_input_rp, eos_state)
 
@@ -1764,8 +1816,14 @@ contains
              ! interface, but we won't use these in any flux construction.
              csmall = max( small, max(small * qaux(i,j,k,QC) , small * qaux(i-sx,j-sy,k-sz,QC)) )
              cavg = HALF*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC))
-             gamcl = qaux(i-sx,j-sy,k-sz,QGAMC)
-             gamcr = qaux(i,j,k,QGAMC)
+
+             if (use_reconstructed_gamma1 == 1) then
+                gamcl = ql(i,j,k,QGC,comp)
+                gamcr = qr(i,j,k,QGC,comp)
+             else
+                gamcl = qaux(i-sx,j-sy,k-sz,QGAMC)
+                gamcr = qaux(i,j,k,QGAMC)
+             endif
 
              wsmall = small_dens*csmall
              wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))

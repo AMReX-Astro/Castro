@@ -9,7 +9,7 @@ module flatten_module
 
   public :: ca_uflatten
 #ifdef RADIATION
-  public :: rad_flatten
+  public :: ca_rad_flatten
 #endif
 
 contains
@@ -19,10 +19,10 @@ contains
 ! :::
 
 #ifdef RADIATION
-  subroutine rad_flatten(lo, hi, &
-                         q, q_lo, q_hi, &
-                         flatn, f_lo, f_hi, &
-                         flatg, fg_lo, fg_hi)
+  subroutine ca_rad_flatten(lo, hi, &
+                            q, q_lo, q_hi, &
+                            flatn, f_lo, f_hi, &
+                            flatg, fg_lo, fg_hi) bind(C, name="ca_rad_flatten")
 
     use meth_params_module, only : QPRES, QU, QV, QW, flatten_pp_threshold, QPTOT, NQ
 
@@ -36,9 +36,18 @@ contains
 
     real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt)        , intent(inout) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt)        , intent(in) :: flatg(fg_lo(1):fg_hi(1),fg_lo(2):fg_hi(2),fg_lo(3):fg_hi(3))
+    real(rt)        , intent(inout) :: flatg(fg_lo(1):fg_hi(1),fg_lo(2):fg_hi(2),fg_lo(3):fg_hi(3))
 
     integer :: i, j, k
+
+    call ca_uflatten(lo, hi, &
+                     q, q_lo, q_hi, &
+                     flatn, f_lo, f_hi, QPRES)
+
+    call ca_uflatten(lo, hi, &
+                     q, q_lo, q_hi, &
+                     flatg, fg_lo, fg_hi, QPTOT)
+
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -61,7 +70,7 @@ contains
        end do
     end do
 
-  end subroutine rad_flatten
+  end subroutine ca_rad_flatten
 #endif
 
 
@@ -71,7 +80,6 @@ contains
 
     use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: rt => amrex_real
-    use prob_params_module, only: dg
     use meth_params_module, only: NQ, QU, QV, QW
 
     implicit none

@@ -37,6 +37,7 @@ if __name__ == "__main__":
         dr = r[5, 5] - r[4, 5]
         dz = z[5, 5] - z[5, 4]
 
+        # calculate the laplacian
         lapl[1:-1, :] = 1 / (2 * dr * r[1:-1]) * (dens[2:, :] - dens[:-2, :]) + \
             (dens[2:, :] + dens[:-2, :] - 2 * dens[1:-1, :]) / dr**2
 

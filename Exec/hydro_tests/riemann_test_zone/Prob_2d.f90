@@ -3,7 +3,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module
   use amrex_error_module
   use amrex_constants_module
-  use actual_riemann_module
+  use riemann_module
   use meth_params_module
 
   use amrex_fort_module, only : rt => amrex_real
@@ -67,18 +67,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   jlo = 1
   jhi = 1
 
-  ! this should take place in init_godunov_indices, but can't call
-  ! that from here
-  ngdnv = 6
-  GDRHO = 1
-  GDU = 2
-  GDV = 3
-  GDW = 4
-  GDPRES = 5
-  GDGAME = 6
 
-  allocate(ql(ilo:ihi, jlo:jhi, QVAR))
-  allocate(qr(ilo:ihi, jlo:jhi, QVAR))
+  allocate(ql(ilo:ihi, jlo:jhi, NQ))
+  allocate(qr(ilo:ihi, jlo:jhi, NQ))
 
   ! Riemann indexes i-1 in qaux
   allocate(qaux(ilo-1:ihi, jlo:jhi, NQAUX))
