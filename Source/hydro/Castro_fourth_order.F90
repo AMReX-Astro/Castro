@@ -1,17 +1,18 @@
 !> @brief advection routines in support of method of lines integration
 !!
 subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
-     stage_weight, &
-     uin, uin_lo, uin_hi, &
-     uout, uout_lo, uout_hi, &
-     q, q_lo, q_hi, &
-     q_bar, q_bar_lo, q_bar_hi, &
-     qaux, qa_lo, qa_hi, &
-     srcU, srU_lo, srU_hi, &
-     update, updt_lo, updt_hi, &
-     update_flux, uf_lo, uf_hi, &
-     dx, dt, &
-     flx, flx_lo, flx_hi, &
+                                  stage_weight, &
+                                  uin, uin_lo, uin_hi, &
+                                  uout, uout_lo, uout_hi, &
+                                  q, q_lo, q_hi, &
+                                  q_bar, q_bar_lo, q_bar_hi, &
+                                  qaux, qa_lo, qa_hi, &
+                                  qaux_bar, qa_bar_lo, qa_bar_hi, &
+                                  srcU, srU_lo, srU_hi, &
+                                  update, updt_lo, updt_hi, &
+                                  update_flux, uf_lo, uf_hi, &
+                                  dx, dt, &
+                                  flx, flx_lo, flx_hi, &
 #if AMREX_SPACEDIM >= 2
      fly, fly_lo, fly_hi, &
 #endif
@@ -33,14 +34,15 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      verbose) bind(C, name="ca_fourth_single_stage")
 
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : NQ, QVAR, NVAR, NGDNV, NQAUX, GDPRES, &
+  use meth_params_module, only : NQ, NVAR, NGDNV, NQAUX, GDPRES, &
        UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
        use_flattening, QPRES, NQAUX, &
        QTEMP, QFS, QFX, QREINT, QRHO, &
        first_order_hydro, difmag, hybrid_riemann, &
        limit_fluxes_on_small_dens, ppm_temp_fix
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, ca_shock, &
-       divu, normalize_species_fluxes, calc_pdivu
+                                    normalize_species_fluxes, avisc
+
   use amrex_error_module
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use flatten_module, only: ca_uflatten
@@ -67,6 +69,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   integer, intent(in) :: q_lo(3), q_hi(3)
   integer, intent(in) :: q_bar_lo(3), q_bar_hi(3)
   integer, intent(in) :: qa_lo(3), qa_hi(3)
+  integer, intent(in) :: qa_bar_lo(3), qa_bar_hi(3)
   integer, intent(in) :: srU_lo(3), srU_hi(3)
   integer, intent(in) :: updt_lo(3), updt_hi(3)
   integer, intent(in) :: uf_lo(3), uf_hi(3)
@@ -91,6 +94,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(inout) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), NQ)
   real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
+  real(rt), intent(inout) :: qaux_bar(qa_bar_lo(1):qa_bar_hi(1), qa_bar_lo(2):qa_bar_hi(2), qa_bar_lo(3):qa_bar_hi(3), NQAUX)
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
   real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
   real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
@@ -114,7 +118,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #ifndef RADIATION
   ! Automatic arrays for workspace
   real(rt), pointer :: flatn(:,:,:)
-  real(rt), pointer :: div(:,:,:)
+  real(rt), pointer :: avisx(:,:,:), avisy(:,:,:), avisz(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
   real(rt), pointer :: qx_avg(:,:,:,:)
@@ -146,11 +150,14 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   integer :: st_lo(3), st_hi(3)
   integer :: shk_lo(3), shk_hi(3)
 
-  real(rt) :: div1, lap
+  real(rt) :: lap
   integer :: i, j, k, n, m
 
   type (eos_t) :: eos_state
 
+  ! artifical viscosity strength
+  real(rt), parameter :: alpha = 0.3_rt
+  real(rt) :: avisc_coeff
 
   ! to do 4th order for axisymmetry, we need to derive the transformations between
   ! averages and cell-centers with the correct volume terms in the integral.
@@ -168,7 +175,13 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   shk_lo(:) = lo(:) - dg(:)
   shk_hi(:) = hi(:) + dg(:)
 
-  call bl_allocate(   div, lo(1), hi(1)+1, lo(2), hi(2)+dg(2), lo(3), hi(3)+dg(3))
+  call bl_allocate(avisx, lo, hi+dg)
+#if BL_SPACEDIM >= 2
+  call bl_allocate(avisy, lo, hi+dg)
+#endif
+#if BL_SPACEDIM == 3
+  call bl_allocate(avisz, lo, hi+dg)
+#endif
 
   call bl_allocate(qx_avg, q_lo, q_hi, NQ)
   call bl_allocate(qx, q_lo, q_hi, NQ)
@@ -510,9 +523,32 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = flx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:)
 #endif
 
+
   ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-  call divu(lo, hi+dg, q, q_lo, q_hi, &
-       dx, div, lo, hi+dg)
+  call avisc(lo, hi, &
+             q_bar, q_bar_lo, q_bar_hi, &
+             qaux_bar, qa_bar_lo, qa_bar_hi, &
+             dx, avisx, lo, hi+dg, 1)
+
+#if BL_SPACEDIM >= 2
+  call avisc(lo, hi, &
+             q_bar, q_bar_lo, q_bar_hi, &
+             qaux_bar, qa_bar_lo, qa_bar_hi, &
+             dx, avisy, lo, hi+dg, 2)
+#endif
+
+#if BL_SPACEDIM == 3
+  call avisc(lo, hi, &
+             q_bar, q_bar_lo, q_bar_hi, &
+             qaux_bar, qa_bar_lo, qa_bar_hi, &
+             dx, avisz, lo, hi+dg, 3)
+#endif
+
+  ! avisc_coefficient is the coefficent we use.  The McCorquodale &
+  ! Colella paper suggest alpha = 0.3, but our other hydro solvers use
+  ! a coefficient on the divergence that defaults to 0.1, so we
+  ! normalize to that value, to allow for adjustments
+  avisc_coeff = alpha * (difmag / 0.1_rt)
 
   do n = 1, NVAR
 
@@ -537,19 +573,13 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #endif
 
      else
-        ! do the artificial viscosity
-        continue
-#ifdef THIS_IS_NOT_FOURTH_ORDER_ACCURATE
+
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)+1
 
-                 div1 = FOURTH*(div(i,j,k) + div(i,j+dg(2),k) + &
-                      div(i,j,k+dg(3)) + div(i,j+dg(2),k+dg(3)))
-                 div1 = difmag*min(ZERO, div1)
-
                  flx(i,j,k,n) = flx(i,j,k,n) + &
-                      dx(1) * div1 * (uin(i,j,k,n) - uin(i-1,j,k,n))
+                      avisc_coeff * avisx(i,j,k) * (uin(i,j,k,n) - uin(i-1,j,k,n))
               enddo
            enddo
         enddo
@@ -557,12 +587,9 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)+1
               do i = lo(1), hi(1)
-                 div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                      div(i,j,k+dg(3)) + div(i+1,j,k+dg(3)))
-                 div1 = difmag*min(ZERO, div1)
 
                  fly(i,j,k,n) = fly(i,j,k,n) + &
-                      dx(2) * div1 * (uin(i,j,k,n) - uin(i,j-1,k,n))
+                      avisc_coeff * avisy(i,j,k) * (uin(i,j,k,n) - uin(i,j-1,k,n))
               enddo
            enddo
         enddo
@@ -571,16 +598,12 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
         do k = lo(3), hi(3)+1
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
-                 div1 = FOURTH*(div(i,j,k) + div(i+1,j,k) + &
-                      div(i,j+1,k) + div(i+1,j+1,k))
-                 div1 = difmag*min(ZERO, div1)
 
                  flz(i,j,k,n) = flz(i,j,k,n) + &
-                      dx(3) * div1 * (uin(i,j,k,n) - uin(i,j,k-1,n))
+                      avisc_coeff * avisz(i,j,k) * (uin(i,j,k,n) - uin(i,j,k-1,n))
               enddo
            enddo
         enddo
-#endif
 #endif
      endif
 
@@ -726,8 +749,13 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
           qx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),QPRES) * dt
   end if
 #endif
-
-  call bl_deallocate(   div)
+  call bl_deallocate(avisx)
+#if BL_SPACEDIM >= 2
+  call bl_deallocate(avisy)
+#endif
+#if BL_SPACEDIM == 3
+  call bl_deallocate(avisz)
+#endif
 
   call bl_deallocate(qx_avg)
   call bl_deallocate(flx_avg)

@@ -82,7 +82,6 @@ Fortran
     ``sponge_nd.F90``, and therefore must be allocated (by
     ``ca_allocate_sponge_params``) and deallocated (by
     ``ca_deallocate_sponge_params``) at the beginning and end of the
-    main program.
 
 - Temporary variables must be defined outside of function calls. E.g. if a
   function call contains ``foo(x(a:b)/y)``, you need to define a new variable

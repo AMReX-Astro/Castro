@@ -23,7 +23,7 @@ contains
 
 
     use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, do_ctu
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, time_integration_method
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use prob_params_module, only: dim
@@ -99,7 +99,7 @@ contains
                 dt3 = dt1
              endif
 
-             if (do_ctu == 1) then
+             if (time_integration_method == 0) then
                 call amrex_min(dt, min(dt1,dt2,dt3))
              else
                 ! method of lines constraint is tougher
@@ -158,6 +158,7 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use burner_module, only: ok_to_burn
     use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn
+    use temperature_integration_module, only: self_heat
     use amrex_fort_module, only : rt => amrex_real
     use extern_probin_module, only: small_x
 
@@ -247,6 +248,7 @@ contains
 
              state_new % dx = minval(dx(1:dim))
 
+             state_new % self_heat = self_heat
              call actual_rhs(state_new)
 
              dedt = state_new % ydot(net_ienuc)
@@ -460,13 +462,13 @@ contains
 
 
   subroutine ca_check_timestep(lo, hi, s_old, so_lo, so_hi, &
-       s_new, sn_lo, sn_hi, &
+                               s_new, sn_lo, sn_hi, &
 #ifdef REACTIONS
-       r_old, ro_lo, ro_hi, &
-       r_new, rn_lo, rn_hi, &
+                               r_old, ro_lo, ro_hi, &
+                               r_new, rn_lo, rn_hi, &
 #endif
-       dx, dt_old, dt_new) &
-       bind(C, name="ca_check_timestep")
+                               dx, dt_old, dt_new) &
+                               bind(C, name="ca_check_timestep")
 
     ! Check whether the last timestep violated any of our stability criteria.
     ! If so, suggest a new timestep which would not.
@@ -498,7 +500,8 @@ contains
     real(rt), intent(in) :: r_old(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
     real(rt), intent(in) :: r_new(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
 #endif
-    real(rt), intent(in) :: dx(3), dt_old
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt_old
     real(rt), intent(inout) :: dt_new
 
     integer          :: i, j, k
@@ -515,6 +518,8 @@ contains
     type (eos_t)     :: eos_state
 
     real(rt), parameter :: derivative_floor = 1.e-50_rt
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

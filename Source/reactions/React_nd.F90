@@ -7,8 +7,6 @@ module reactions_module
 
 contains
 
-#ifndef SDC
-
   subroutine ca_react_state(lo, hi, &
                             state, s_lo, s_hi, &
                             reactions, r_lo, r_hi, &
@@ -57,6 +55,9 @@ contains
     integer, intent(in), value :: strang_half
 
     type (burn_t) :: burn_state_in, burn_state_out
+
+    ! This interface is currently unsupported with simplified SDC.
+#ifndef SDC
 
     ! Minimum zone width
 
@@ -203,19 +204,19 @@ contains
 
     !$acc end data
 
+#endif
+
   end subroutine ca_react_state
 
-#else
+  ! Simplified SDC version
 
-  ! SDC version
-
-  subroutine ca_react_state(lo,hi, &
-                            uold,uo_lo,uo_hi, &
-                            unew,un_lo,un_hi, &
-                            asrc,as_lo,as_hi, &
-                            reactions,r_lo,r_hi, &
-                            mask,m_lo,m_hi, &
-                            time,dt_react,sdc_iter) bind(C, name="ca_react_state")
+  subroutine ca_react_state_simplified_sdc(lo,hi, &
+                                           uold,uo_lo,uo_hi, &
+                                           unew,un_lo,un_hi, &
+                                           asrc,as_lo,as_hi, &
+                                           reactions,r_lo,r_hi, &
+                                           mask,m_lo,m_hi, &
+                                           time,dt_react,sdc_iter) bind(C, name="ca_react_state_simplified_sdc")
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
@@ -226,9 +227,11 @@ contains
 #endif
     use integrator_module, only : integrator
     use amrex_constants_module, only : ZERO, HALF, ONE
+#ifdef SDC
     use sdc_type_module, only : sdc_t, SRHO, SMX, SMZ, SEDEN, SEINT, SFS
-
+#endif
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer , intent(in   ) :: lo(3), hi(3)
@@ -248,8 +251,11 @@ contains
     integer          :: i, j, k, n
     real(rt)         :: rhooInv, rhonInv, delta_e, delta_rho_e
 
-    type (sdc_t) :: burn_state_in, burn_state_out
+    ! This interface is currently only supported for simplified SDC.
 
+#ifdef SDC
+
+    type (sdc_t) :: burn_state_in, burn_state_out
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -342,9 +348,8 @@ contains
           enddo
        enddo
     enddo
-
-  end subroutine ca_react_state
-
 #endif
+
+  end subroutine ca_react_state_simplified_sdc
 
 end module reactions_module

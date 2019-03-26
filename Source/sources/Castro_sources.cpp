@@ -418,9 +418,8 @@ Castro::sum_of_sources(MultiFab& source)
 // Obtain the effective source term due to reactions on the primitive variables.
 
 #ifdef REACTIONS
-#ifdef SDC
 void
-Castro::get_react_source_prim(MultiFab& react_src, Real dt)
+Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
 {
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -445,52 +444,51 @@ Castro::get_react_source_prim(MultiFab& react_src, Real dt)
 
     // Compute its primitive counterpart, q*
 
-    MultiFab q_noreact(grids, dmap, QVAR, ng);
+    MultiFab q_noreact(grids, dmap, NQ, ng);
     MultiFab qaux_noreact(grids, dmap, NQAUX, ng);
 
-    cons_to_prim(S_noreact, q_noreact, qaux_noreact);
+    cons_to_prim(S_noreact, q_noreact, qaux_noreact, time);
 
     // Compute the primitive version of the old state, q_old
 
-    MultiFab q_old(grids, dmap, QVAR, ng);
+    MultiFab q_old(grids, dmap, NQ, ng);
     MultiFab qaux_old(grids, dmap, NQAUX, ng);
 
-    cons_to_prim(S_old, q_old, qaux_old);
+    cons_to_prim(S_old, q_old, qaux_old, time);
 
     // Compute the effective advective update on the primitive state.
     // A(q) = (q* - q_old)/dt
 
-    MultiFab A_prim(grids, dmap, QVAR, ng);
+    MultiFab A_prim(grids, dmap, NQ, ng);
 
     A_prim.setVal(0.0);
 
     if (dt > 0.0) {
-        MultiFab::Saxpy(A_prim,  1.0 / dt, q_noreact, 0, 0, QVAR, ng);
-	MultiFab::Saxpy(A_prim, -1.0 / dt, q_old,     0, 0, QVAR, ng);
+        MultiFab::Saxpy(A_prim,  1.0 / dt, q_noreact, 0, 0, NQ, ng);
+	MultiFab::Saxpy(A_prim, -1.0 / dt, q_old,     0, 0, NQ, ng);
     }
 
     // Compute the primitive version of the new state.
 
-    MultiFab q_new(grids, dmap, QVAR, ng);
+    MultiFab q_new(grids, dmap, NQ, ng);
     MultiFab qaux_new(grids, dmap, NQAUX, ng);
 
-    cons_to_prim(S_new, q_new, qaux_new);
+    cons_to_prim(S_new, q_new, qaux_new, time + dt);
 
     // Compute the reaction source term.
 
     react_src.setVal(0.0, react_src.nGrow());
 
     if (dt > 0.0) {
-        MultiFab::Saxpy(react_src,  1.0 / dt, q_new, 0, 0, QVAR, ng);
-        MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, QVAR, ng);
+        MultiFab::Saxpy(react_src,  1.0 / dt, q_new, 0, 0, NQ, ng);
+        MultiFab::Saxpy(react_src, -1.0 / dt, q_old, 0, 0, NQ, ng);
     }
 
-    MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, QVAR, ng);
+    MultiFab::Saxpy(react_src, -1.0, A_prim, 0, 0, NQ, ng);
 
     // Now fill all of the ghost zones.
-    Real time = get_state_data(SDC_React_Type).curTime();
-    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), time, SDC_React_Type, 0, NUM_STATE);
+    Real cur_time = get_state_data(Simplified_SDC_React_Type).curTime();
+    AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
 
 }
-#endif
 #endif

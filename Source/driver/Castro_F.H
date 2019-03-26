@@ -30,11 +30,13 @@ extern "C"
 
   void ca_get_aux_names(int* aux_names,  const int* iaux, int* len);
 
-  void ca_get_qvar(int* qvar);
+  void ca_get_nqsrc(int* nqsrc);
 
   void ca_get_nq(int* nq);
 
   void ca_get_nqaux(int* nqaux);
+
+  void ca_get_nqsrc(int* nqsrc);
 
   void ca_get_ngdnv(int* ngdnv);
 
@@ -81,9 +83,14 @@ extern "C"
 #endif
      const int& QRHO_in,
      const int& QU_in, const int& QV_in, const int& QW_in,
-     const int& QGAME_in, const int& QPRES_in, const int& QREINT_in,
+     const int& QGAME_in, const int& QGC_in, const int& QPRES_in, const int& QREINT_in,
      const int& QTEMP_in,
-     const int& QFA_in, const int& QFS_in, const int& QFX_in);
+     const int& QFA_in, const int& QFS_in, const int& QFX_in,
+#ifdef RADIATION
+     const int& GDLAMS_in, const int& GDERADS_in,
+#endif
+     const int& GDRHO_in, const int& GDU_in, const int& GDV_in, const int& GDW_in,
+     const int& GDPRES_in, const int& GDGAME_in);
 
   void ca_finalize_meth_params();
 
@@ -165,27 +172,6 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state));
 #endif
-
-  void ca_ctoprim(const int* lo, const int* hi,
-	          const amrex::Real* u, const int* u_lo, const int* u_hi,
-#ifdef RADIATION
-		  const amrex::Real* Er, const int* Er_lo, const int* Er_hi,
-		  const amrex::Real* lam, const int* lam_lo, const int* lam_hi,
-#endif
-		  amrex::Real* q, const int* q_lo, const int* q_hi,
-		  amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
-
-  void ca_srctoprim(const int* lo,   const int* hi,
-		    const amrex::Real* q,   const int* q_lo,   const int* q_hi,
-		    const amrex::Real* qaux, const int* qa_lo, const int* qa_hi,
-		    const amrex::Real* src, const int* src_lo, const int* src_hi,
-		          amrex::Real* srQ, const int* srQ_lo, const int* srQ_hi);
-
-  void ca_compute_cfl(const int* lo, const int* hi,
-                      const BL_FORT_FAB_ARG_ANYD(q),
-                      const BL_FORT_FAB_ARG_ANYD(qaux),
-                      const amrex::Real dt, const amrex::Real* dx,
-                      amrex::Real* courno, const int verbose);
 
   void ca_check_initial_species
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state));
@@ -517,345 +503,45 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(reactions_old),
      const BL_FORT_FAB_ARG_3D(reactions_new),
 #endif
-     const amrex::Real* dx, const amrex::Real* dt_old, amrex::Real* dt);
-
-  void divu
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(q),
-     const amrex::Real* dx,
-     BL_FORT_FAB_ARG_3D(div));
-
-#ifdef AMREX_USE_CUDA
-  void ca_uflatten
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(flatn), int pres_comp);
-
-  void ca_ppm_reconstruct
-    (const int* lo, const int* hi, int put_on_edges,
-     BL_FORT_FAB_ARG_3D(q), int nc, int nstart, int nend,
-     BL_FORT_FAB_ARG_3D(flatn),
-     BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp), int nqc, int nqstart, int nqend);
-
-  void ca_shock
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(shk),
-     const amrex::Real* dx);
-
-  void ca_store_godunov_state
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(qint),
-#ifdef RADIATION
-     BL_FORT_FAB_ARG_3D(lambda_int),
-#endif
-     BL_FORT_FAB_ARG_3D(qgdnv));
-
-  void ca_construct_flux_cuda
-    (const int* lo, const int* hi,
-     const int* domlo, const int* domhi,
-     const amrex::Real* dx, const amrex::Real dt,
-     const int idir,
-     const BL_FORT_FAB_ARG_3D(statein),
-     BL_FORT_FAB_ARG_3D(div),
-     BL_FORT_FAB_ARG_3D(qaux),
-     BL_FORT_FAB_ARG_3D(shk),
-     BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp),
-     BL_FORT_FAB_ARG_3D(qe),
-     BL_FORT_FAB_ARG_3D(flux),
-     BL_FORT_FAB_ARG_3D(area));
-
-  void ca_construct_hydro_update_cuda
-    (const int* lo, const int* hi,
-     const amrex::Real* dx, const amrex::Real dt,
-     BL_FORT_FAB_ARG_3D(qx),
-     BL_FORT_FAB_ARG_3D(qy),
-     BL_FORT_FAB_ARG_3D(qz),
-     BL_FORT_FAB_ARG_3D(xflux),
-     BL_FORT_FAB_ARG_3D(yflux),
-     BL_FORT_FAB_ARG_3D(zflux),
-     BL_FORT_FAB_ARG_3D(xarea),
-     BL_FORT_FAB_ARG_3D(yarea),
-     BL_FORT_FAB_ARG_3D(zarea),
-     const BL_FORT_FAB_ARG_3D(volume),
-     const BL_FORT_FAB_ARG_3D(srcU),
-     BL_FORT_FAB_ARG_3D(update));
-#endif
-
-  void ca_ctu_update
-    (const int    lo[], const int    hi[],
-     const int* is_finest_level,
-     const amrex::Real* time,
-     const int domlo[], const int domhi[],
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(stateout),
-#ifdef RADIATION
-     BL_FORT_FAB_ARG_3D(Er),
-     BL_FORT_FAB_ARG_3D(Erout),
-#endif
-     BL_FORT_FAB_ARG_3D(q),
-     const BL_FORT_FAB_ARG_3D(qaux),
-     const BL_FORT_FAB_ARG_3D(src_q),
-     BL_FORT_FAB_ARG_3D(update),
-     const amrex::Real dx[], const amrex::Real* dt,
-     D_DECL(BL_FORT_FAB_ARG_3D(xflux),
-            BL_FORT_FAB_ARG_3D(yflux),
-            BL_FORT_FAB_ARG_3D(zflux)),
-#ifdef RADIATION
-     D_DECL(BL_FORT_FAB_ARG_3D(rxflux),
-            BL_FORT_FAB_ARG_3D(ryflux),
-            BL_FORT_FAB_ARG_3D(rzflux)),
-#endif
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(pradial),
-#endif
-     D_DECL(const BL_FORT_FAB_ARG_3D(xarea),
-            const BL_FORT_FAB_ARG_3D(yarea),
-            const BL_FORT_FAB_ARG_3D(zarea)),
-#if (BL_SPACEDIM < 3)
-     const BL_FORT_FAB_ARG_3D(dloga),
-#endif
-     const BL_FORT_FAB_ARG_3D(volume),
-     const int&  verbose,
-#ifdef RADIATION
-     const int* priv_nstep_fsp,
-#endif
-     amrex::Real& mass_lost,
-     amrex::Real& xmom_lost,
-     amrex::Real& ymom_lost,
-     amrex::Real& zmom_lost,
-     amrex::Real& eden_lost,
-     amrex::Real& xang_lost,
-     amrex::Real& yang_lost,
-     amrex::Real& zang_lost);
-
-  void ctu_normal_states
-     (const int* lo, const int* hi,
-      const int* vlo, const int* vhi,
-      const BL_FORT_FAB_ARG_3D(q),
-      const BL_FORT_FAB_ARG_3D(flatn),
-      const BL_FORT_FAB_ARG_3D(qaux),
-      const BL_FORT_FAB_ARG_3D(srcQ),
-      const BL_FORT_FAB_ARG_3D(shk),
-      BL_FORT_FAB_ARG_3D(Ip),
-      BL_FORT_FAB_ARG_3D(Im),
-      BL_FORT_FAB_ARG_3D(Ip_src),
-      BL_FORT_FAB_ARG_3D(Im_src),
-      BL_FORT_FAB_ARG_3D(Ip_gc),
-      BL_FORT_FAB_ARG_3D(Im_gc),
-      BL_FORT_FAB_ARG_3D(dq),
-      BL_FORT_FAB_ARG_3D(sm),
-      BL_FORT_FAB_ARG_3D(sp),
-      BL_FORT_FAB_ARG_3D(qxm),
-      BL_FORT_FAB_ARG_3D(qxp),
-#if AMREX_SPACEDIM >= 2
-      BL_FORT_FAB_ARG_3D(qym),
-      BL_FORT_FAB_ARG_3D(qyp),
-#endif
-#if AMREX_SPACEDIM == 3
-      BL_FORT_FAB_ARG_3D(qzm),
-      BL_FORT_FAB_ARG_3D(qzp),
-#endif
-      const amrex::Real* dx, const amrex::Real dt,
-#if AMREX_SPACEDIM < 3
-      const BL_FORT_FAB_ARG_3D(dloga),
-#endif
-      const int* domlo, const int* domhi);
-
-
-  void transx(const int* lo, const int* hi,
-              const BL_FORT_FAB_ARG_3D(qym),
-              BL_FORT_FAB_ARG_3D(qymo),
-              const BL_FORT_FAB_ARG_3D(qyp),
-              BL_FORT_FAB_ARG_3D(qypo),
-#if AMREX_SPACEDIM == 3
-              const BL_FORT_FAB_ARG_3D(qzm),
-              BL_FORT_FAB_ARG_3D(qzmo),
-              const BL_FORT_FAB_ARG_3D(qzp),
-              BL_FORT_FAB_ARG_3D(qzpo),
-#endif
-              const BL_FORT_FAB_ARG_3D(qaux),
-              const BL_FORT_FAB_ARG_3D(fx),
-#ifdef RADIATION
-              const BL_FORT_FAB_ARG_3D(rfx),
-#endif
-              const BL_FORT_FAB_ARG_3D(qx),
-#if AMREX_SPACEDIM == 2
-              const BL_FORT_FAB_ARG_3D(area1),
-              const BL_FORT_FAB_ARG_3D(vol),
-#endif
-              const amrex::Real hdt, const amrex::Real cdtdx, 
-              const int* vlo, const int* vhi);
-
-  void transy(const int* lo, const int* hi,
-              const BL_FORT_FAB_ARG_3D(qxm),
-              BL_FORT_FAB_ARG_3D(qxmo),
-              const BL_FORT_FAB_ARG_3D(qxp),
-              BL_FORT_FAB_ARG_3D(qxpo),
-#if AMREX_SPACEDIM == 3
-              const BL_FORT_FAB_ARG_3D(qzm),
-              BL_FORT_FAB_ARG_3D(qzmo),
-              const BL_FORT_FAB_ARG_3D(qzp),
-              BL_FORT_FAB_ARG_3D(qzpo),
-#endif
-              const BL_FORT_FAB_ARG_3D(qaux),
-              const BL_FORT_FAB_ARG_3D(fy),
-#ifdef RADIATION
-              const BL_FORT_FAB_ARG_3D(rfy),
-#endif
-              const BL_FORT_FAB_ARG_3D(qy),
-              const amrex::Real cdtdy,
-              const int* vlo, const int* vhi);
-
-  void transz(const int* lo, const int* hi,
-              const BL_FORT_FAB_ARG_3D(qxm),
-              BL_FORT_FAB_ARG_3D(qxmo),
-              const BL_FORT_FAB_ARG_3D(qxp),
-              BL_FORT_FAB_ARG_3D(qxpo),
-#if AMREX_SPACEDIM == 3
-              const BL_FORT_FAB_ARG_3D(qym),
-              BL_FORT_FAB_ARG_3D(qymo),
-              const BL_FORT_FAB_ARG_3D(qyp),
-              BL_FORT_FAB_ARG_3D(qypo),
-#endif
-              const BL_FORT_FAB_ARG_3D(qaux),
-              const BL_FORT_FAB_ARG_3D(fz),
-#ifdef RADIATION
-              const BL_FORT_FAB_ARG_3D(rfz),
-#endif
-              const BL_FORT_FAB_ARG_3D(qz),
-              const amrex::Real cdtdz,
-              const int* vlo, const int* vhi);
-
-  void transyz(const int* lo, const int* hi,
-               const BL_FORT_FAB_ARG_3D(qm),
-               BL_FORT_FAB_ARG_3D(qmo),
-               const BL_FORT_FAB_ARG_3D(qp),
-               BL_FORT_FAB_ARG_3D(qpo),
-               const BL_FORT_FAB_ARG_3D(qaux),
-               const BL_FORT_FAB_ARG_3D(fyz),
-#ifdef RADIATION
-               const BL_FORT_FAB_ARG_3D(rfyz),
-#endif
-               const BL_FORT_FAB_ARG_3D(fzy),
-#ifdef RADIATION
-               const BL_FORT_FAB_ARG_3D(rfzy),
-#endif
-               const BL_FORT_FAB_ARG_3D(qy),
-               const BL_FORT_FAB_ARG_3D(qz),
-               const amrex::Real hdt, const amrex::Real cdtdy, const amrex::Real cdtdz,
-               const int* vlo, const int* vhi);
-
-  void transxz(const int* lo, const int* hi,
-               const BL_FORT_FAB_ARG_3D(qm),
-               BL_FORT_FAB_ARG_3D(qmo),
-               const BL_FORT_FAB_ARG_3D(qp),
-               BL_FORT_FAB_ARG_3D(qpo),
-               const BL_FORT_FAB_ARG_3D(qaux),
-               const BL_FORT_FAB_ARG_3D(fxz),
-#ifdef RADIATION
-               const BL_FORT_FAB_ARG_3D(rfxz),
-#endif
-               const BL_FORT_FAB_ARG_3D(fzx),
-#ifdef RADIATION
-               const BL_FORT_FAB_ARG_3D(rfzx),
-#endif
-               const BL_FORT_FAB_ARG_3D(qx),
-               const BL_FORT_FAB_ARG_3D(qz),
-               const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdz,
-               const int* vlo, const int* vhi);
-
-  void transxy(const int* lo, const int* hi,
-               const BL_FORT_FAB_ARG_3D(qm),
-               BL_FORT_FAB_ARG_3D(qmo),
-               const BL_FORT_FAB_ARG_3D(qp),
-               BL_FORT_FAB_ARG_3D(qpo),
-               const BL_FORT_FAB_ARG_3D(qaux),
-               const BL_FORT_FAB_ARG_3D(fxy),
-#ifdef RADIATION
-               const BL_FORT_FAB_ARG_3D(rfxy),
-#endif
-               const BL_FORT_FAB_ARG_3D(fyx),
-#ifdef RADIATION
-               const BL_FORT_FAB_ARG_3D(rfyx),
-#endif
-               const BL_FORT_FAB_ARG_3D(qx),
-               const BL_FORT_FAB_ARG_3D(qy),
-               const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdy,
-               const int* vlo, const int* vhi);
-
+     const amrex::Real* dx, const amrex::Real dt_old, amrex::Real* dt);
 
   void ca_make_fourth_average(const int lo[], const int hi[],
                               BL_FORT_FAB_ARG_3D(q), const int* nc,
-                              BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar);
+                              const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar);
+
+  void ca_make_fourth_average_n(const int lo[], const int hi[],
+                                BL_FORT_FAB_ARG_3D(q), const int* nc,
+                                const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar, const int* ncomp);
 
   void ca_make_fourth_in_place(const int lo[], const int hi[],
                                BL_FORT_FAB_ARG_3D(q), const int* nc);
+
+  void ca_make_fourth_in_place_n(const int lo[], const int hi[],
+                                 BL_FORT_FAB_ARG_3D(q), const int* nc, const int* ncomp);
+
+  void ca_compute_lap_term(const int lo[], const int hi[],
+                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
+                           BL_FORT_FAB_ARG_ANYD(lap), const int* ncomp);
 
   void ca_make_cell_center(const int lo[], const int hi[],
                            const BL_FORT_FAB_ARG_3D(U), const int* nc,
                            BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc);
 
-  void ca_mol_single_stage
-    (const int    lo[], const int    hi[],
-     const amrex::Real* time,
-     const int domlo[], const int domhi[],
-     const amrex::Real *stage_weight,
-     const BL_FORT_FAB_ARG_3D(statein),
-     BL_FORT_FAB_ARG_3D(stateout),
-     BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(qaux),
-     const BL_FORT_FAB_ARG_3D(srcU),
-     BL_FORT_FAB_ARG_3D(update),
-     BL_FORT_FAB_ARG_3D(update_flux),
-     const amrex::Real dx[], const amrex::Real* dt,
-     D_DECL(BL_FORT_FAB_ARG_3D(flux1),
-	    BL_FORT_FAB_ARG_3D(flux2),
-	    BL_FORT_FAB_ARG_3D(flux3)),
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(pradial),
-#endif
-     D_DECL(const BL_FORT_FAB_ARG_3D(area1),
-	    const BL_FORT_FAB_ARG_3D(area2),
-	    const BL_FORT_FAB_ARG_3D(area3)),
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(dloga),
-#endif
-     const BL_FORT_FAB_ARG_3D(volume),
-     const int&  verbose);
+  void ca_make_cell_center_in_place(const int lo[], const int hi[],
+                                    BL_FORT_FAB_ARG_3D(q), const int* nc);
 
+#ifdef REACTIONS
+  void ca_instantaneous_react
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(R));
 
-  void ca_fourth_single_stage
-    (const int    lo[], const int    hi[],
-     const amrex::Real* time,
-     const int domlo[], const int domhi[],
-     const amrex::Real *stage_weight,
-     const BL_FORT_FAB_ARG_3D(statein),
-     BL_FORT_FAB_ARG_3D(stateout),
-     BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(q_bar),
-     BL_FORT_FAB_ARG_3D(qaux),
-     const BL_FORT_FAB_ARG_3D(srcU),
-     BL_FORT_FAB_ARG_3D(update),
-     BL_FORT_FAB_ARG_3D(update_flux),
-     const amrex::Real dx[], const amrex::Real* dt,
-     D_DECL(BL_FORT_FAB_ARG_3D(flux1),
-	    BL_FORT_FAB_ARG_3D(flux2),
-	    BL_FORT_FAB_ARG_3D(flux3)),
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(pradial),
+  void ca_store_reaction_state
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG_3D(R_old),
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(R_new));
 #endif
-     D_DECL(const BL_FORT_FAB_ARG_3D(area1),
-	    const BL_FORT_FAB_ARG_3D(area2),
-	    const BL_FORT_FAB_ARG_3D(area3)),
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(dloga),
-#endif
-     const BL_FORT_FAB_ARG_3D(volume),
-     const int&  verbose);
-
 
 #ifdef RADIATION
   void ca_inelastic_sct
@@ -996,8 +682,7 @@ extern "C"
      const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* s);
 
 #ifdef REACTIONS
-#ifdef SDC
-  void ca_react_state
+  void ca_react_state_simplified_sdc
     (const int* lo, const int* hi,
      const amrex::Real* uold, const int* uo_lo, const int* uo_hi,
      amrex::Real* unew, const int* un_lo, const int* un_hi,
@@ -1005,7 +690,7 @@ extern "C"
      amrex::Real* reactions, const int* r_lo, const int* r_hi,
      const int* mask, const int* m_lo, const int* m_hi,
      const amrex::Real& time, const amrex::Real& dt_react, const int& sdc_iter);
-#else
+
   void ca_react_state
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
@@ -1014,7 +699,6 @@ extern "C"
      const BL_FORT_IFAB_ARG_3D(mask),
      const amrex::Real time, const amrex::Real dt_react, const int strang_half,
      amrex::Real* burn_failure);
-#endif
 #endif
 
   void ca_tempdiffextrap
@@ -1087,6 +771,9 @@ extern "C"
   void ca_setgroup(const int& igroup);
 #endif
 
+/* hydrodynamics */
+#include <Castro_hydro_F.H>
+
 #ifdef __cplusplus
 }
 #endif
@@ -1133,12 +820,21 @@ BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
 #endif
 
 #ifdef RADIATION
+#ifdef AMREX_DIMENSION_AGNOSTIC
+BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
+  (const int& level, const amrex::Real& time,
+   const int* lo, const int* hi,
+   const int& num_state,
+   BL_FORT_FAB_ARG_3D(state),
+   const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
+#else
 BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
   (const int& level, const amrex::Real& time,
    const int* lo, const int* hi,
    const int& num_state,
    BL_FORT_FAB_ARG(state),
    const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
+#endif
 #endif
 
 #ifdef AMREX_DIMENSION_AGNOSTIC

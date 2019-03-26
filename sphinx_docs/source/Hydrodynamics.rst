@@ -93,10 +93,11 @@ several main data structures that hold the state.
 -  primitive variable state: these arrays generally simply called
    ``q``, and has ``NQ`` components.
 
-   .. note:: if ``RADIATION`` is defined, then there are ``QVAR``
-      components that are pure hydro out of the total ``NQ``
-      components, and the pure hydro components always come first in
-      the state array.
+   A related quantity is ``NQSRC`` which is the number of primitive variable
+   source terms.  ``NQSRC`` ≤ ``NQ``.
+
+   .. note:: if ``RADIATION`` is defined, then only the gas/hydro terms are
+      present in ``NQSRC``.  
 
    Table \ `[table:primlist] <#table:primlist>`__ gives the names of the primitive variable integer
    keys for accessing these arrays.
@@ -903,17 +904,17 @@ framework, the details follow exactly as given in Section 4.2.1 in
 Miller & Colella, except for the details of the Riemann solver,
 which are given below.
 
+.. index:: castro.ppm_type, castro.ppm_predict_gammae, castro.ppm_reference_eigenvectors
+
 For the reconstruction of the interface states, the following apply:
 
--  ``castro.ppm_type`` : use piecewise linear vs PPM algorithm
-   (0, 1, 2; default: 1)
-
-   Values of 1 and 2 are both piecewise parabolic reconstruction, with
-   2 using updated limiters that better preserve extrema.
+-  ``castro.ppm_type`` : use piecewise linear vs PPM algorithm (0 or 1;
+   default: 1).  A value of 1 is the standard piecewise parabolic
+   reconstruction.
 
 -  ``castro.ppm_temp_fix`` does various attempts to use the
-   temperature in the reconstruction of the interface states. This
-   is experimental.
+   temperature in the reconstruction of the interface states.
+   See :ref:`sec-ppm_temp_fix` for an explanation of the allowed options.
 
 -  ``castro.ppm_predict_gammae`` reconstructs :math:`\gamma_e = p/(\rho e) + 1`
    to the interfaces and does the necessary transverse terms to aid in
@@ -1112,39 +1113,43 @@ Again, note that since the source term is not time centered, this is
 not a second-order method. After the advective update, we correct the
 solution, effectively time-centering the source term.
 
+.. _sec-ppm_temp_fix:
+
 Temperature Fixes
 =================
 
+.. index:: castro.ppm_temp_fix
+
 There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state
-prediction. The options are controlled by castro.ppm_temp_fix,
+prediction. The options are controlled by ``castro.ppm_temp_fix``,
 which takes values:
 
--  0: the default method—temperature is not considered
+  * 0: the default method—temperature is not considered, and we do
+    reconstruction and characteristic tracing on :math:`\rho, u, p,
+    (\rho e)`.
 
--  1: do parabolic reconstruction on :math:`T`, giving
-   :math:`\mathcal{I}_{+}^{(k)}(T_i)`. We then derive the pressure and
-   internal energy (gas portion) via the equation of state as:
+  * 1: do parabolic reconstruction on :math:`T`, giving
+    :math:`\mathcal{I}_{+}^{(k)}(T_i)`. We then derive the pressure and
+    internal energy (gas portion) via the equation of state as:
 
-   .. math::
+    .. math::
 
       \begin{align}
             \mathcal{I}_{+}^{(k)}(p_i) &= p(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i)) \\
             \mathcal{I}_{+}^{(k)}((\rho e)_i) &= (\rho e)(\mathcal{I}_{+}^{(k)}(\rho_i), \mathcal{I}_{+}^{(k)}(T_i))
           \end{align}
 
-   The remainder of the hydrodynamics algorithm then proceeds unchanged.
+    The remainder of the hydrodynamics algorithm then proceeds unchanged.
 
--  2: on entering the Riemann solver, we recompute the
-   thermodynamics on the interfaces to ensure that they are all
-   consistent. This is done by taking the interface values of
-   :math:`\rho`, :math:`e`, :math:`X_k`, and computing the corresponding pressure, :math:`p`
-   from this.
+  * 2: on entering the Riemann solver, we recompute the thermodynamics
+    on the interfaces to ensure that they are all consistent. This is
+    done by taking the interface values of :math:`\rho`, :math:`e`,
+    :math:`X_k`, and computing the corresponding pressure, :math:`p`
+    from this.
 
--  3: This does the characteristic tracing using the
-   :math:`(\tau, u, T)` eigensystem. Note: this is not widely
-   implemented—see the Sod_stellar for an
-   implementation.
+  * 3: This does the characteristic tracing using the
+    :math:`(\tau, u, T)` eigensystem. 
 
 Resets
 ======

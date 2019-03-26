@@ -1,3 +1,52 @@
+# changes since the last release
+
+# 19.03
+
+  -- Fixed a minor long-standing bug in the simplified SDC implementation
+     involving incorrect indexing. This changes results slightly.
+
+  -- a number of tests involving reactions have been moved from
+     hydro_tests to reacting_tests (#527)
+
+  -- The old spectral deferred corrections method has been renamed
+     "simplified" SDC. It is accessed with time_integration_method = 3.
+     This still requires building with USE_SDC = TRUE, and when building
+     this way, the other time integration methods are unavailable.
+
+  -- The 4th order hydro was extended to support general equations
+     of state (it is still single level only).  Artificial viscosity
+     was also added.
+
+  -- A framework for a new spectral deferred corrections method was
+     added.  This will allow for higher-order time integration. (#310)
+
+  -- Fix a bug where the self_heat parameter was not being initialized
+     for the burning timestep limiter (#521).
+
+  -- By default, we no longer allocation storage for source terms to
+     species in the primitive variable state.  This is set via the
+     _variables file, parsed by set_variables.py.  To allow for
+     species sources, you need to set PRIM_SPECIES_HAVE_SOURCES.  This
+     is done currently for SDC. (#519)
+
+  -- renamed QVAR to NQSRC to make it clear that this is the number of
+     source terms for the primitive variable state.  We also fixed a
+     number of places where QVAR was used instead of NQ. (#517)
+
+  -- A new runtime parameter, T_guess, was created.  This is used as
+     the initial temperature guess when calling the EOS with inputs
+     other than rho, T, for the initial Newton iteration. (#509)
+
+  -- The CTU hydrodynamics driver has been rewritten in C++
+     (#498)
+
+  -- The input parameter castro.do_ctu has been renamed
+     castro.time_integration_method. The current legal values
+     are 0 (CTU, the default) and 1 (MOL).
+
+  -- fixed a bug in the ppm_temp_fix = 1 reconstruction -- we were not
+     doing the initial reconstruction of temperature
+
 # 19.02
 
   -- The flux limiter used with the options limit_fluxes_on_low_dens
@@ -48,10 +97,6 @@
      code. (#461)
 
   -- The MG solver was optimized a bit (#464)
-
-  -- we removed ppm_type = 2.  This was never really used and not as
-     robust as ppm_type = 1.  The forthcoming 4th order method will
-     take its place. (#442)
 
 # 18.12
 
