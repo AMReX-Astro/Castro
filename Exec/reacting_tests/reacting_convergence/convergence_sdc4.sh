@@ -6,7 +6,7 @@ set -x
 DIM=1
 EXEC=./Castro${DIM}d.gnu.MPI.ex
 
-RUNPARAMS="castro.sdc_order=4 castro.time_integration_method=2 castro.limit_fourth_order=1 castro.use_reconstructed_gamma1=1 castro.sdc_solve_for_rhoe=1"
+RUNPARAMS="castro.sdc_order=4 castro.time_integration_method=2 castro.limit_fourth_order=1 castro.use_reconstructed_gamma1=1 castro.sdc_solve_for_rhoe=1 castro.sdc_solver_tol=1.e-10 castro.sdc_solver=2"
 
 mpiexec -n 8 ${EXEC}  inputs.64 ${RUNPARAMS}  &> 64.out
 mpiexec -n 16 ${EXEC} inputs.128 ${RUNPARAMS} &> 128.out

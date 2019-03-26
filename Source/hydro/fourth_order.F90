@@ -426,6 +426,8 @@ contains
                                  U, U_lo, U_hi, nc, &
                                  U_cc, U_cc_lo, U_cc_hi, nc_cc) &
                                  bind(C, name="ca_make_cell_center")
+    ! Take a cell-average state U and a convert it to a cell-center
+    ! state U_cc via U_cc = U - 1/24 L U
 
     implicit none
 
@@ -470,6 +472,9 @@ contains
   subroutine ca_make_cell_center_in_place(lo, hi, &
                                           U, U_lo, U_hi, nc) &
                                           bind(C, name="ca_make_cell_center_in_place")
+    ! Take a cell-average state U and make it cell-centered in place
+    ! via U <- U - 1/24 L U.  Note that this operation is not tile
+    ! safe.
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
 
@@ -520,9 +525,8 @@ contains
                                  U, U_lo, U_hi, nc, &
                                  lap, lap_lo, lap_hi, ncomp) &
                                  bind(C, name="ca_compute_lap_term")
-
-    ! this computes the h**2/24 L U term that is used in correcting
-    ! cell-center to averages
+    ! Computes the h**2/24 L U term that is used in correcting
+    ! cell-center to averages (and back)
 
     implicit none
 
@@ -561,9 +565,9 @@ contains
                                     q, q_lo, q_hi, nc, &
                                     q_bar, q_bar_lo, q_bar_hi, nc_bar) &
                                     bind(C, name="ca_make_fourth_average")
-    ! this takes the cell-center q and the q constructed from the
-    ! cell-average U (q_bar) and replaces the cell-center q with a
-    ! proper 4th-order accurate cell-average
+    ! Take the cell-center state q and another state q_bar (e.g.,
+    ! constructed from the cell-average U) and replace the cell-center
+    ! q with a 4th-order accurate cell-average, q <- q + 1/24 L q_bar
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -596,51 +600,12 @@ contains
 
   end subroutine ca_make_fourth_average
 
-  subroutine ca_make_fourth_average_n(lo, hi, &
-                                      q, q_lo, q_hi, nc, &
-                                      q_bar, q_bar_lo, q_bar_hi, nc_bar, ncomp) &
-                                      bind(C, name="ca_make_fourth_average_n")
-    ! this takes the cell-center q and the q constructed from the
-    ! cell-average U (q_bar) and replaces the cell-center q with a
-    ! proper 4th-order accurate cell-average
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: q_bar_lo(3), q_bar_hi(3)
-    integer, intent(in) :: nc, nc_bar
-    integer, intent(in) :: ncomp
-    real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
-    real(rt), intent(in) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), nc_bar)
-
-    integer :: i, j, k
-    real(rt) :: lap
-
-    ! note: ncomp is the C++ index, indexed from 0, so we add 1 to it here
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             lap = q_bar(i+1,j,k,ncomp+1) - TWO*q_bar(i,j,k,ncomp+1) + q_bar(i-1,j,k,ncomp+1)
-#if AMREX_SPACEDIM >= 2
-             lap = lap + q_bar(i,j+1,k,ncomp+1) - TWO*q_bar(i,j,k,ncomp+1) + q_bar(i,j-1,k,ncomp+1)
-#endif
-#if AMREX_SPACEDIM == 3
-             lap = lap + q_bar(i,j,k+1,ncomp+1) - TWO*q_bar(i,j,k,ncomp+1) + q_bar(i,j,k-1,ncomp+1)
-#endif
-
-             q(i,j,k,ncomp+1) = q(i,j,k,ncomp+1) + TWENTYFOURTH * lap
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_make_fourth_average_n
-
   subroutine ca_make_fourth_in_place(lo, hi, &
                                      q, q_lo, q_hi, nc) &
                                      bind(C, name="ca_make_fourth_in_place")
-    ! this takes the cell-center q and makes it a cell-average q, in
-    ! place (e.g. q is overwritten by its average).  Note: this
-    ! routine is not tile safe.
+    ! Take the cell-center q and makes it a cell-average q, in place
+    ! (e.g. q is overwritten by its average), q <- q + 1/24 L q.
+    ! Note: this routine is not tile safe.
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
 
@@ -687,12 +652,13 @@ contains
   subroutine ca_make_fourth_in_place_n(lo, hi, &
                                        q, q_lo, q_hi, nc, ncomp) &
                                        bind(C, name="ca_make_fourth_in_place_n")
-    ! this takes the cell-center q and makes it a cell-average q, in
-    ! place (e.g. q is overwritten by its average).  Note: this
-    ! routine is not tile safe.
-
-    ! here ncomp is the component to update -- we expect this to come
-    ! in 0-based from C++, so we add 1
+    ! Take the cell-center q and makes it a cell-average q, in place
+    ! (e.g. q is overwritten by its average), q <- q + 1/24 L q.
+    ! Note: this routine is not tile safe.
+    !
+    ! This version operates on a single component.  Here ncomp is the
+    ! component to update -- we expect this to come in 0-based from
+    ! C++, so we add 1
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
 

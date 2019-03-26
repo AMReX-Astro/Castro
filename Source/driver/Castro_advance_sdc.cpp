@@ -94,34 +94,33 @@ Castro::do_advance_sdc (Real time,
                               BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]));
 
         }
-      }
 
-      // we pass in the stage time here
-      if (sdc_order == 4) {
-        do_old_sources(old_source, sources_for_hydro, time, dt, amr_iteration, amr_ncycle);
+        // we pass in the stage time here
+        do_old_sources(old_source, sources_for_hydro, node_time, dt, amr_iteration, amr_ncycle);
 
-        // fill the ghost cells for the sources
-        AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
+        // fill the ghost cells for the sources -- note since we have
+        // not defined the new_source yet, we either need to copy this
+        // into new_source for the time-interpolation in the ghost
+        // fill to make sense, or so long as we are not multilevel,
+        // just use the old time (prev_time) in the fill instead of
+        // the node time (time)
+        AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
 
-        // Note: this filled the ghost cells for us, so we can now convert to
-        // cell averages.  This loop cannot be tiled.
+        // Now convert to cell averages.  This loop cannot be tiled.
         for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
           const Box& bx = mfi.tilebox();
           ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
                                   BL_TO_FORTRAN_FAB(old_source[mfi]));
         }
 
-        // now that we redid these, redo the ghost fill
-        AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
-
       } else {
         do_old_sources(old_source, Sborder, node_time, dt, amr_iteration, amr_ncycle);
-
-        // The individual source terms only calculate the source on the valid domain.
-        // FillPatch to get valid data in the ghost zones.
-        AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), node_time, Source_Type, 0, NUM_STATE);
-
       }
+
+      // note: we don't need a FillPatch on the sources, since they
+      // are only used in the valid box in the conservative flux
+      // update construction
+
 #endif
 
       // hack: copy the source to the new data too, so fillpatch doesn't have to
@@ -182,7 +181,14 @@ Castro::do_advance_sdc (Real time,
     // if this is the first node of a new iteration, then we need
     // to compute and store the old reactive source
     if (m == 0 && sdc_iteration == 0) {
-      construct_old_react_source(Sborder, *(R_old[0]));
+      // we'll burn in one ghost cell to allow us to do 4th order
+      // averaging as needed.  Put the old state in Sburn and
+      // FillPatch
+      MultiFab::Copy(S_new, *(k_new[0]), 0, 0, S_new.nComp(), 0);
+      // do we need to clean?
+      expand_state(Sburn, cur_time, -1, 2);
+      bool input_is_average = true;
+      construct_old_react_source(Sburn, *(R_old[0]), input_is_average);
 
       // copy to the other nodes -- since the state is the same on all
       // nodes for sdc_iteration == 0
@@ -220,11 +226,12 @@ Castro::do_advance_sdc (Real time,
   // m = 0, since that state never changes.
 
   for (int m = 1; m < SDC_NODES; ++m) {
-    // use a temporary storage
     // TODO: do we need a clean state here?
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
-    expand_state(Sborder, cur_time, -1, Sborder.nGrow());
-    construct_old_react_source(Sborder, *(R_old[m]));
+    // do we need to clean?
+    expand_state(Sburn, cur_time, -1, 2);
+    bool input_is_average = true;
+    construct_old_react_source(Sburn, *(R_old[m]), input_is_average);
   }
 #endif
 

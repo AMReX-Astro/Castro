@@ -547,6 +547,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       }
 
 #ifdef REACTIONS
+      // for the temporary storage of the reaction terms
+      Sburn.define(grids, dmap, NUM_STATE, 2);
+
       R_old.resize(SDC_NODES);
       for (int n = 0; n < SDC_NODES; ++n) {
 	R_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
@@ -636,6 +639,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       A_old.clear();
 #ifdef REACTIONS
       R_old.clear();
+      Sburn.clear();
 #endif
     }
 
