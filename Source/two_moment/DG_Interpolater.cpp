@@ -65,16 +65,10 @@ DG_Interpolater::interp (const FArrayBox& crse,
 
     const int* ratioV = ratio.getVect();
 
-    int n_rad_dof   = Castro::THORNADO_RAD_NDOF;
-    int n_species   = Castro::THORNADO_NSPECIES;
-    int n_moments   = Castro::THORNADO_NMOMENTS;
-    int n_energy_bins = Castro::thornado_ndimse;
-
     ca_dg_refine(AMREX_ARLIM_ANYD(fblo), AMREX_ARLIM_ANYD(fbhi),
                  BL_TO_FORTRAN_ANYD(fine),
                  BL_TO_FORTRAN_ANYD(crse),
-                 AMREX_ARLIM_ANYD(ratioV),
-                 &ncomp, &n_rad_dof, &n_species, &n_moments, &n_energy_bins);
+                 AMREX_ARLIM_ANYD(ratioV), &ncomp);
 }
 
 }

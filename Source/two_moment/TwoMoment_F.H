@@ -82,11 +82,7 @@ extern "C"
                     BL_FORT_FAB_ARG_ANYD(fine),
                     const BL_FORT_FAB_ARG_ANYD(crse),
                     const int* nFineX,
-                    const int* nvar,
-                    const int* n_dof,
-                    const int* n_species,
-                    const int* n_moments,
-                    const int* n_energy_bins);
+                    const int* nvar);
 
   void ca_dg_coarsen(const int* cblo, const int* cbhi,
                      const BL_FORT_FAB_ARG_ANYD(fine),
