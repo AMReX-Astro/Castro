@@ -741,7 +741,7 @@ contains
     ! note: this 'C' is cell-averages
 
     use meth_params_module, only : NVAR
-    use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT, TWELFTH
+    use amrex_constants_module, only : ONE, HALF, TWO, FIVE, EIGHT
 
     implicit none
 
@@ -772,18 +772,19 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             ! compute the integral (without the dt)
+             ! compute the integral (without the dt).  Note that each of these is over
+             ! dt/2
              if (m_start == 0) then
-                integral(:) = TWELFTH * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
-                                         EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
-                                         (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+                integral(:) = ONE/24.0_rt * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                             EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
+                                             (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
 
              else if (m_start == 1) then
-                integral(:) = TWELFTH * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
-                                         EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
-                                         FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+                integral(:) = ONE/24.0_rt * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                             EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                                             FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
 
@@ -898,7 +899,10 @@ contains
                                       C, C_lo, C_hi, &
                                       sdc_iteration) &
                                       bind(C, name="ca_sdc_update_centers_o4")
-    ! update k_m to k_n via advection -- this is a fourth-order accurate update
+    ! update U_old to U_new on cell-centers.  This is an implicit
+    ! solve because of reactions.  Here U_old corresponds to time node
+    ! m and U_new is node m+1.  dt_m is the timestep between m and
+    ! m+1, which is dt_m = dt/2.
 
     use meth_params_module, only : NVAR
 
@@ -917,7 +921,6 @@ contains
 
     integer :: i, j, k
 
-    ! now consider the reacting system
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
