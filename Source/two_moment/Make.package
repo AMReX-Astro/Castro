@@ -7,7 +7,7 @@ CEXE_sources      += Castro_twomoment.cpp
 FEXE_headers      += TwoMoment_F.H
 ca_F90EXE_sources += two_moment_$(DIM)d.F90
 ca_F90EXE_sources += interpolate_fluid_$(DIM)d.F90
-ca_F90EXE_sources += dg_amr_helper_$(DIM)d.F90
+ca_F90EXE_sources += dg_amr_helper_nd.F90
 
 CEXE_sources      += DG_Interpolater.cpp
 CEXE_headers      += DG_Interpolater.H
