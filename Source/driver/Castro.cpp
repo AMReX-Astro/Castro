@@ -2221,6 +2221,12 @@ Castro::post_init (Real stop_time)
     }
 #endif
 
+#ifdef THORNADO
+      for (int k = finest_level-1; k>= 0; k--) {
+        getLevel(k).avgDown(Thornado_Type);
+      }
+#endif
+
 // Allow the user to define their own post_init functions.
 
 #ifdef DO_PROBLEM_POST_INIT

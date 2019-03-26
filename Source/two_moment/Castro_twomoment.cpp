@@ -38,7 +38,6 @@ Castro::init_thornado()
     InitThornado(&nDimsX, &nDimsE, &swE, &eL, &eR, &zoomE, &nSpecies);
 
     int ncomp_thornado;
-
     ca_get_rad_ncomp(&ncomp_thornado);
 
     if (thornado_plot_node_averages == 1) {
@@ -154,17 +153,27 @@ Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int
 
         const int* ratioV = ratio.getVect();
 
-        int n_rad_dof   = THORNADO_RAD_NDOF;
-        int n_species   = THORNADO_NSPECIES;
-        int n_moments   = THORNADO_NMOMENTS;
-        int n_energy_bins = thornado_ndimse;
+        int ncomp_thornado;
+        ca_get_rad_ncomp(&ncomp_thornado);
+
+        if (ncomp != ncomp_thornado)
+          amrex::Error("ncomp should equal ncomp_thornado in average_down_thornado_data");
+
+        std::cout << "FINE BA " << S_fine.boxArray() << std::endl;
+        std::cout << "CRSE BA " << S_crse.boxArray() << std::endl;
+
+        std::cout << "FINE nCOMP " << S_fine.nComp() << std::endl;
+        std::cout << "CRSE nCOMP " << S_crse.nComp() << std::endl;
         
         //
         // Coarsen() the fine stuff on processors owning the fine data.
         //
         BoxArray crse_S_fine_BA = S_fine.boxArray(); crse_S_fine_BA.coarsen(ratio);
+
+        std::cout << "CRSE_S_FINE BA " << crse_S_fine_BA << std::endl;
         
-        if (crse_S_fine_BA == S_crse.boxArray() and S_fine.DistributionMap() == S_crse.DistributionMap())
+        if (crse_S_fine_BA           == S_crse.boxArray() &&
+            S_fine.DistributionMap() == S_crse.DistributionMap())
         {
 #ifdef _OPENMP
 #pragma omp parallel
@@ -180,8 +189,7 @@ Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int
                 ca_dg_coarsen(AMREX_ARLIM_ANYD(cblo), AMREX_ARLIM_ANYD(cbhi),
                               BL_TO_FORTRAN_ANYD(S_fine[mfi]),
                               BL_TO_FORTRAN_ANYD(S_crse[mfi]),
-                              AMREX_ARLIM_ANYD(ratioV),
-                              &ncomp, &n_rad_dof, &n_species, &n_moments, &n_energy_bins);
+                              AMREX_ARLIM_ANYD(ratioV), &ncomp);
             }
         }
         else
@@ -202,8 +210,7 @@ Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int
                 ca_dg_coarsen(AMREX_ARLIM_ANYD(cblo), AMREX_ARLIM_ANYD(cbhi),
                               BL_TO_FORTRAN_ANYD(S_fine[mfi]),
                               BL_TO_FORTRAN_ANYD(crse_S_fine[mfi]),
-                              AMREX_ARLIM_ANYD(ratioV),
-                              &ncomp, &n_rad_dof, &n_species, &n_moments, &n_energy_bins);
+                              AMREX_ARLIM_ANYD(ratioV), &ncomp);
 
             }
             
