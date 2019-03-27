@@ -33,7 +33,9 @@ contains
     ! satisfies the nonlinear function
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
-         sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe, sdc_use_analytic_jac
+                                   sdc_order, sdc_solver, &
+                                   sdc_solver_tol, sdc_solver_relax_factor, &
+                                   sdc_solve_for_rhoe, sdc_use_analytic_jac
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
@@ -66,6 +68,7 @@ contains
     real(rt) :: rwork(lrw)
     integer :: iwork(liw)
     real(rt) :: time
+    real(rt) :: tol
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
@@ -80,7 +83,6 @@ contains
     integer :: m, n
 
     real(rt) :: err
-    real(rt), parameter :: tol = 1.e-5_rt
     integer, parameter :: MAX_ITER = 100
     integer :: iter
 
@@ -104,6 +106,9 @@ contains
     else
        call amrex_error("invalid sdc_solver")
     endif
+
+    ! the tolerance we are solving to may depend on the iteration
+    tol = sdc_solver_tol / sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
 
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
@@ -244,7 +249,7 @@ contains
        endif
 
        call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
-                  1, sdc_solver_tol, 1.e-100_rt, &
+                  1, tol, 1.e-100_rt, &
                   1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
 
        if (istate < 0) then
