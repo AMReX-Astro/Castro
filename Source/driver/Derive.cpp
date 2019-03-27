@@ -2,6 +2,8 @@
 
 #include "Derive.H"
 #include "Derive_F.H"
+#include "Castro.H"
+#include "Castro_F.H"
 
 using namespace amrex;
 
@@ -238,15 +240,66 @@ extern "C"
                         const int* lo, const int* hi,
                         const int* domain_lo, const int* domain_hi,
                         const Real* delta, const Real* xlo,
-                        const Real* time, const Real* dt, const int* bcrec, 
+                        const Real* time, const Real* dt, const int* bcrec,
                         const int* level, const int* grid_no)
     {
 
-        derdiffterm(der, ARLIM_3D(der_lo), ARLIM_3D(der_hi), *nvar,
-                    data, ARLIM_3D(data_lo), ARLIM_3D(data_hi), *ncomp,
-                    ARLIM_3D(lo), ARLIM_3D(hi),
-                    ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-                    ZFILL(delta));
+        // Create an array for storing cell-centered conductivity data.
+        // It needs to have a ghost zone for the next step.
+
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        const Box bx(ilo, ihi);
+        const Box& obx = amrex::grow(bx, 1);
+
+        FArrayBox coeff_cc;
+        coeff_cc.resize(obx, 1);
+        Elixir elix_coeff_cc = coeff_cc.elixir();
+
+        FArrayBox coeffs[3];
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            coeffs[dir].resize(amrex::surroundingNodes(bx, dir), 1);
+        }
+
+        Elixir elix_coeffs_x = coeffs[0].elixir();
+        Elixir elix_coeffs_y = coeffs[1].elixir();
+        Elixir elix_coeffs_z = coeffs[2].elixir();
+
+#pragma gpu
+        ca_fill_temp_cond(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                          data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
+                          BL_TO_FORTRAN_ANYD(coeff_cc));
+
+        // Now average the data to zone edges.
+
+        for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+            const int idir_f = idir + 1;
+
+#pragma gpu
+            ca_average_coef_cc_to_ec(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                                     BL_TO_FORTRAN_ANYD(coeff_cc),
+                                     BL_TO_FORTRAN_ANYD(coeffs[idir]),
+                                     idir_f);
+
+        }
+
+#pragma gpu
+        derdiffterm(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                    der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
+                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
+                    BL_TO_FORTRAN_ANYD(coeffs[0]),
+#if AMREX_SPACEDIM >= 2
+                    BL_TO_FORTRAN_ANYD(coeffs[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+                    BL_TO_FORTRAN_ANYD(coeffs[2]),
+#endif
+                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
+                    AMREX_REAL_ANYD(delta));
 
     }
 #endif
