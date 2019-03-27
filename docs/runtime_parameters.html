@@ -530,15 +530,23 @@ VODE, 3 = VODE for first iter</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol</span></code></td>
 <td>which SDC nonlinear solver to use?  1 = Newton, 2 =
-VODE</td>
+VODE, 3 = VODE for iteration 0; Newton for later
+iterations</td>
 <td>1.e-6</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_relax_factor</span></code></td>
+<td>factor by which to reduce the SDC solver tol for each
+iteration before the last (e.g., for iteration k out of
+kmax iterations, the tol is
+<span class="math notranslate nohighlight">\(\epsilon/f^{(k_\mathrm{max} - k)}\)</span></td>
+<td>1.0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code></td>
 <td>do we solve for (rho e) or (rho E) in the SDC nonlinear
 solve?</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_use_analytic_jac</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_use_analytic_jac</span></code></td>
 <td>do we use the analytic or numerical Jacobian?</td>
 <td>1</td>
 </tr>
@@ -1047,11 +1055,10 @@ default value.</td>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></td>
 <td>Do we want to reset the number of steps in the
 checkpoint? This ONLY takes effect if
-amr.regrid_on_restart = 1 and
-amr.checkpoint_on_restart = 1, (which require that
-max_step and stop_time be less than the value in the
-checkpoint) and you set it to value greater than this
-default value.</td>
+amr.regrid_on_restart = 1 and amr.checkpoint_on_restart
+= 1, (which require that max_step and stop_time be less
+than the value in the checkpoint) and you set it to
+value greater than this default value.</td>
 <td>-1</td>
 </tr>
 </tbody>

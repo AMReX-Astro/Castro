@@ -35,7 +35,7 @@ namespace: ``castro``
 
 **hydrodynamics**
 
-.. index:: castro.difmag, castro.small_dens, castro.small_temp, castro.small_pres, castro.small_ener, castro.do_hydro, castro.time_integration_method, castro.limit_fourth_order, castro.use_reconstructed_gamma1, castro.add_ext_src, castro.hybrid_hydro, castro.ppm_type, castro.ppm_temp_fix, castro.ppm_predict_gammae, castro.ppm_reference_eigenvectors, castro.plm_iorder, castro.hybrid_riemann, castro.riemann_solver, castro.cg_maxiter, castro.cg_tol, castro.cg_blend, castro.use_eos_in_riemann, castro.use_flattening, castro.transverse_use_eos, castro.transverse_reset_density, castro.transverse_reset_rhoe, castro.dual_energy_eta1, castro.dual_energy_eta2, castro.use_pslope, castro.limit_fluxes_on_small_dens, castro.density_reset_method, castro.allow_small_energy, castro.do_sponge, castro.sponge_implicit, castro.source_term_predictor, castro.first_order_hydro, castro.xl_ext_bc_type, castro.xr_ext_bc_type, castro.yl_ext_bc_type, castro.yr_ext_bc_type, castro.zl_ext_bc_type, castro.zr_ext_bc_type, castro.hse_zero_vels, castro.hse_interp_temp, castro.hse_reflect_vels, castro.mol_order, castro.sdc_order, castro.sdc_solver, castro.sdc_solver_tol, castro.sdc_solve_for_rhoe, castro.sdc_use_analytic_jac
+.. index:: castro.difmag, castro.small_dens, castro.small_temp, castro.small_pres, castro.small_ener, castro.do_hydro, castro.time_integration_method, castro.limit_fourth_order, castro.use_reconstructed_gamma1, castro.add_ext_src, castro.hybrid_hydro, castro.ppm_type, castro.ppm_temp_fix, castro.ppm_predict_gammae, castro.ppm_reference_eigenvectors, castro.plm_iorder, castro.hybrid_riemann, castro.riemann_solver, castro.cg_maxiter, castro.cg_tol, castro.cg_blend, castro.use_eos_in_riemann, castro.use_flattening, castro.transverse_use_eos, castro.transverse_reset_density, castro.transverse_reset_rhoe, castro.dual_energy_eta1, castro.dual_energy_eta2, castro.use_pslope, castro.limit_fluxes_on_small_dens, castro.density_reset_method, castro.allow_small_energy, castro.do_sponge, castro.sponge_implicit, castro.source_term_predictor, castro.first_order_hydro, castro.xl_ext_bc_type, castro.xr_ext_bc_type, castro.yl_ext_bc_type, castro.yr_ext_bc_type, castro.zl_ext_bc_type, castro.zr_ext_bc_type, castro.hse_zero_vels, castro.hse_interp_temp, castro.hse_reflect_vels, castro.mol_order, castro.sdc_order, castro.sdc_solver, castro.sdc_solver_tol, castro.sdc_solver_relax_factor, castro.sdc_solve_for_rhoe, castro.sdc_use_analytic_jac
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -111,7 +111,7 @@ namespace: ``castro``
 |                                        | we do not converge to a solution for the star state. 0  |               |
 |                                        | = do nothing; print iterations and exit 1 = revert to   |               |
 |                                        | the original guess for p-star 2 = do a bisection search |               |
-|                                        | for another 2 * cg\_maxiter iterations.                 |               |
+|                                        | for another 2 * cg_maxiter iterations.                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``use_eos_in_riemann``                 | should we use the EOS in the Riemann solver to ensure   | 0             |
 |                                        | thermodynamic consistency?                              |               |
@@ -155,7 +155,7 @@ namespace: ``castro``
 |                                        | zone state before the hydro update                      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``allow_small_energy``                 | Whether or not to allow the internal energy to be less  | 1             |
-|                                        | than the internal energy corresponding to small\_temp   |               |
+|                                        | than the internal energy corresponding to small_temp    |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``do_sponge``                          | permits sponge to be turned on and off                  | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -192,7 +192,7 @@ namespace: ``castro``
 |                                        | velocity?                                               |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``hse_interp_temp``                    | if we are doing HSE boundary conditions, should we get  | 0             |
-|                                        | the temperature via interpolation (using model\_parser) |               |
+|                                        | the temperature via interpolation (using model_parser)  |               |
 |                                        | or hold it constant?                                    |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``hse_reflect_vels``                   | if we are doing HSE boundary conditions, how do we      | 0             |
@@ -209,7 +209,13 @@ namespace: ``castro``
 |                                        | VODE, 3 = VODE for first iter                           |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``sdc_solver_tol``                     | which SDC nonlinear solver to use?  1 = Newton, 2 =     | 1.e-6         |
-|                                        | VODE                                                    |               |
+|                                        | VODE, 3 = VODE for iteration 0; Newton for later        |               |
+|                                        | iterations                                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sdc_solver_relax_factor``            | factor by which to reduce the SDC solver tol for each   | 1.0           |
+|                                        | iteration before the last (e.g., for iteration k out of |               |
+|                                        | kmax iterations, the tol is                             |               |
+|                                        | :math:`\epsilon/f^{(k_\mathrm{max} - k)}`               |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``sdc_solve_for_rhoe``                 | do we solve for (rho e) or (rho E) in the SDC nonlinear | 1             |
 |                                        | solve?                                                  |               |
@@ -527,19 +533,18 @@ namespace: ``castro``
 | ``output_at_completion``               | write a final plotfile and checkpoint upon completion   | 1             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``reset_checkpoint_time``              | Do we want to reset the time in the checkpoint? This    | -1.e200       |
-|                                        | ONLY takes effect if amr.regrid\_on\_restart = 1 and    |               |
-|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
-|                                        | max\_step and stop\_time be less than the value in the  |               |
+|                                        | ONLY takes effect if amr.regrid_on_restart = 1 and      |               |
+|                                        | amr.checkpoint_on_restart = 1, (which require that      |               |
+|                                        | max_step and stop_time be less than the value in the    |               |
 |                                        | checkpoint) and you set it to value greater than this   |               |
 |                                        | default value.                                          |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``reset_checkpoint_step``              | Do we want to reset the number of steps in the          | -1            |
 |                                        | checkpoint? This ONLY takes effect if                   |               |
-|                                        | amr.regrid\_on\_restart = 1 and                         |               |
-|                                        | amr.checkpoint\_on\_restart = 1, (which require that    |               |
-|                                        | max\_step and stop\_time be less than the value in the  |               |
-|                                        | checkpoint) and you set it to value greater than this   |               |
-|                                        | default value.                                          |               |
+|                                        | amr.regrid_on_restart = 1 and amr.checkpoint_on_restart |               |
+|                                        | = 1, (which require that max_step and stop_time be less |               |
+|                                        | than the value in the checkpoint) and you set it to     |               |
+|                                        | value greater than this default value.                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
