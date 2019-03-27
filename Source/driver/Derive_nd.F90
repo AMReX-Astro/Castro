@@ -1239,37 +1239,40 @@ contains
 
 
 #ifdef DIFFUSION
-  subroutine dercond(cond,u_lo,u_hi,nd, &
-                        state,d_lo,d_hi,nc, &
-                        lo,hi,domlo,domhi,delta) bind(C, name="dercond")
+  subroutine dercond(lo, hi, &
+                     cond, u_lo, u_hi, nd, &
+                     state, d_lo, d_hi, nc, &
+                     domlo, domhi, delta) bind(C, name="dercond")
     !
     ! This routine will calculate the thermal conductivity
     !
 
-    use amrex_constants_module, only : ZERO
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: ZERO
     use meth_params_module, only: diffuse_cutoff_density, diffuse_cutoff_density_hi, &
                                   URHO, UEINT, UTEMP, UFS, UFX
     use eos_type_module, only: eos_input_re, eos_t
     use eos_module, only: eos
-    use network, only : nspec, naux
-    use conductivity_module, only : conductivity
-    use amrex_fort_module, only : rt => amrex_real
+    use network, only: nspec, naux
+    use conductivity_module, only: conductivity
 
     implicit none
 
-    integer, intent(in), value :: nd, nc
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3)
-    integer, intent(in) :: d_lo(3), d_hi(3)
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: u_lo(3), u_hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3)
     real(rt), intent(inout) :: cond(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
-    real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt), intent(in   ) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer,  intent(in   ), value :: nd, nc
 
-    integer          :: i, j, k
+    integer :: i, j, k
 
     type(eos_t) :: eos_state
     real(rt) :: multiplier
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -1303,37 +1306,40 @@ contains
   end subroutine dercond
 
 
-  subroutine derdiffcoeff(diff,u_lo,u_hi,nd, &
-                             state,d_lo,d_hi,nc, &
-                             lo,hi,domlo,domhi,delta) bind(C, name="derdiffcoeff")
+  subroutine derdiffcoeff(lo, hi, &
+                          diff, u_lo, u_hi, nd, &
+                          state, d_lo, d_hi, nc, &
+                          domlo, domhi, delta) bind(C, name="derdiffcoeff")
     !
     ! This routine will calculate the thermal conductivity
     !
 
-    use amrex_constants_module, only : ZERO
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: ZERO
     use meth_params_module, only: diffuse_cutoff_density, diffuse_cutoff_density_hi, &
                                   URHO, UEINT, UTEMP, UFS, UFX
     use eos_type_module, only: eos_input_re, eos_t
     use eos_module, only: eos
-    use network, only : nspec, naux
-    use conductivity_module, only : conductivity
-    use amrex_fort_module, only : rt => amrex_real
+    use network, only: nspec, naux
+    use conductivity_module, only: conductivity
 
     implicit none
 
-    integer, intent(in), value :: nd, nc
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3)
-    integer, intent(in) :: d_lo(3), d_hi(3)
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: u_lo(3), u_hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3)
     real(rt), intent(inout) :: diff(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),nd)
-    real(rt), intent(in) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    real(rt), intent(in   ) :: state(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+    integer,  intent(in   ), value :: nd, nc
 
-    integer          :: i, j, k
+    integer :: i, j, k
 
     type(eos_t) :: eos_state
     real(rt) :: multiplier
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

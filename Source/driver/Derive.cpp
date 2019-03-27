@@ -206,11 +206,12 @@ extern "C"
                     const int* level, const int* grid_no)
     {
 
-        dercond(der, ARLIM_3D(der_lo), ARLIM_3D(der_hi), *nvar,
-                data, ARLIM_3D(data_lo), ARLIM_3D(data_hi), *ncomp,
-                ARLIM_3D(lo), ARLIM_3D(hi),
-                ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-                ZFILL(delta));
+#pragma gpu
+        dercond(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
+                data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
+                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
+                AMREX_REAL_ANYD(delta));
 
     }
 
@@ -223,11 +224,12 @@ extern "C"
                          const int* level, const int* grid_no)
     {
 
-        derdiffcoeff(der, ARLIM_3D(der_lo), ARLIM_3D(der_hi), *nvar,
-                     data, ARLIM_3D(data_lo), ARLIM_3D(data_hi), *ncomp,
-                     ARLIM_3D(lo), ARLIM_3D(hi),
-                     ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-                     ZFILL(delta));
+#pragma gpu
+        derdiffcoeff(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                     der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
+                     data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
+                     AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
+                     AMREX_REAL_ANYD(delta));
 
     }
 
