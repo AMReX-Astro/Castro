@@ -573,38 +573,26 @@ Castro::checkPoint(const std::string& dir,
                    VisMF::How     how,
                    bool dump_old_default)
 {
-    
-#ifdef AMREX_USE_CUDA
-    for (int s = 0; s < num_state_type; ++s) {
-        if (dump_old && state[s].hasOldData()) {
-            MultiFab& old_MF = get_old_data(s);
-            for (MFIter mfi(old_MF); mfi.isValid(); ++mfi) {
-                old_MF.prefetchToHost(mfi);
-            }
-        }
-	MultiFab& new_MF = get_new_data(s);
-        for (MFIter mfi(new_MF); mfi.isValid(); ++mfi) {
-            new_MF.prefetchToHost(mfi);
-        }
-    }
-#endif
+
+  for (int s = 0; s < num_state_type; ++s) {
+      if (dump_old && state[s].hasOldData()) {
+          MultiFab& old_MF = get_old_data(s);
+          amrex::prefetchToHost(old_MF);
+      }
+      MultiFab& new_MF = get_new_data(s);
+      amrex::prefetchToHost(new_MF);
+  }
 
   AmrLevel::checkPoint(dir, os, how, dump_old);
 
-#ifdef AMREX_USE_CUDA
-    for (int s = 0; s < num_state_type; ++s) {
-        if (dump_old && state[s].hasOldData()) {
-            MultiFab& old_MF = get_old_data(s);
-            for (MFIter mfi(old_MF); mfi.isValid(); ++mfi) {
-                old_MF.prefetchToDevice(mfi);
-            }
-        }
-	MultiFab& new_MF = get_new_data(s);
-        for (MFIter mfi(new_MF); mfi.isValid(); ++mfi) {
-            new_MF.prefetchToDevice(mfi);
-        }
-    }
-#endif
+  for (int s = 0; s < num_state_type; ++s) {
+      if (dump_old && state[s].hasOldData()) {
+          MultiFab& old_MF = get_old_data(s);
+          amrex::prefetchToDevice(old_MF);
+      }
+      MultiFab& new_MF = get_new_data(s);
+      amrex::prefetchToDevice(new_MF);
+  }
 
 #ifdef RADIATION
   if (do_radiation) {
@@ -1333,11 +1321,7 @@ Castro::plotFileOutput(const std::string& dir,
     }
 #endif
 
-#ifdef AMREX_USE_CUDA
-    for (MFIter mfi(plotMF); mfi.isValid(); ++mfi) {
-        plotMF.prefetchToHost(mfi);
-    }
-#endif
+    amrex::prefetchToHost(plotMF);
 
     //
     // Use the Full pathname when naming the MultiFab.
