@@ -3,6 +3,7 @@
 #include <Castro.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_bc_fill_nd_F.H>
+#include <Castro_bc_ext_fill_nd.H>
 #include <Castro_generic_fill.H>
 #include <Castro_generic_fill_F.H>
 
@@ -32,7 +33,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, Castro::numState(), lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, Castro::numState());
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -42,6 +44,12 @@ extern "C"
                 adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
                 AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                 AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+
+#ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
+#endif
+
+        ca_ext_fill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, dx, xlo, time, bc_f);
 
 #ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
@@ -61,7 +69,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -71,6 +80,12 @@ extern "C"
                 adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
                 AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                 AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+
+#ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
+#endif
+
+        ca_ext_denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, dx, xlo, time, bc_f);
 
 #ifdef AMREX_USE_CUDA
         clean_bc(bc_f);
@@ -91,7 +106,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -103,6 +119,7 @@ extern "C"
                     AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
@@ -120,7 +137,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -132,6 +150,7 @@ extern "C"
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
@@ -149,7 +168,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -161,6 +181,7 @@ extern "C"
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
@@ -178,7 +199,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -190,6 +212,7 @@ extern "C"
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
@@ -209,7 +232,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -221,6 +245,7 @@ extern "C"
                    AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
@@ -238,7 +263,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -250,6 +276,7 @@ extern "C"
                  AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
@@ -267,7 +294,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -279,6 +307,7 @@ extern "C"
                  AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
@@ -296,7 +325,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -308,6 +338,7 @@ extern "C"
                  AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
@@ -327,7 +358,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -339,6 +371,7 @@ extern "C"
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
@@ -358,7 +391,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -370,6 +404,7 @@ extern "C"
                 AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
