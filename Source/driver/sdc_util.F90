@@ -780,14 +780,14 @@ contains
              ! compute the integral (without the dt).  Note that each of these is over
              ! dt/2
              if (m_start == 0) then
-                integral(:) = ONE/24.0_rt * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                integral(:) = ONE/12.0_rt * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
                                              EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
                                              (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
 
              else if (m_start == 1) then
-                integral(:) = ONE/24.0_rt * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                integral(:) = ONE/12.0_rt * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
                                              EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
                                              FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
