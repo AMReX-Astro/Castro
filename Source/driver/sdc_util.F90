@@ -930,10 +930,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             ! TODO: we should do a more smart initial guess (for the
-             ! Newton case) -- see the second-order version
-
-             U_new(i,j,k,:) = U_old(i,j,k,:)
+             ! we come in with U_new being a guess for the updated solution
 
              call sdc_solve(dt_m, U_old(i,j,k,:), U_new(i,j,k,:), C(i,j,k,:), sdc_iteration)
 
