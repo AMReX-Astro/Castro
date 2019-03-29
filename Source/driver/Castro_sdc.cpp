@@ -69,16 +69,18 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
 
       const Box& bx = mfi.tilebox();
 
-      ca_sdc_compute_initial_guess(BL_TO_FORTRAN_BOX(bx)
+      ca_sdc_compute_initial_guess(BL_TO_FORTRAN_BOX(bx),
                                    BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
                                    BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
                                    BL_TO_FORTRAN_3D((*A_old[m_start])[mfi]),
                                    BL_TO_FORTRAN_3D((*R_old[m_start])[mfi]),
+                                   BL_TO_FORTRAN_3D(S_new[mfi]),
                                    &dt_m, &sdc_iteration);
 
 
     }
 
+    const Real cur_time = state[State_Type].curTime();
     expand_state(Sburn, cur_time, -1, 2);
 
   }
@@ -143,7 +145,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
       // an average in Sburn
       ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
                           BL_TO_FORTRAN_FAB(Sburn[mfi]),
-                          BL_TO_FORTRAN_FAB(U_new_center))
+                          BL_TO_FORTRAN_FAB(U_new_center));
 
       ca_sdc_update_centers_o4(BL_TO_FORTRAN_BOX(bx1), &dt_m,
                                BL_TO_FORTRAN_3D(U_center),

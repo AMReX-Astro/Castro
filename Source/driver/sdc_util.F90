@@ -803,6 +803,52 @@ contains
 
   end subroutine ca_sdc_compute_C4
 
+  subroutine ca_sdc_compute_initial_guess(lo, hi, &
+                                          U_old, Uo_lo, Uo_hi, &
+                                          U_new, Un_lo, Un_hi, &
+                                          A_old, a_lo, a_hi, &
+                                          R_old, r_lo, r_hi, &
+                                          U_guess, Ug_lo, Ug_hi, &
+                                          dt_m, sdc_iteration) bind(C, name="ca_sdc_compute_initial_guess")
+    ! compute the initial guess for the Newton solve
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : ONE, HALF, TWO, FIVE, EIGHT
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: Uo_lo(3), Uo_hi(3)
+    integer, intent(in) :: Un_lo(3), Un_hi(3)
+    integer, intent(in) :: a_lo(3), a_hi(3)
+    integer, intent(in) :: r_lo(3), r_hi(3)
+    integer, intent(in) :: Ug_lo(3), Ug_hi(3)
+
+    real(rt), intent(in) :: U_old(Uo_lo(1):Uo_hi(1), Uo_lo(2):Uo_hi(2), Uo_lo(3):Uo_hi(3), NVAR)
+    real(rt), intent(in) :: U_new(Un_lo(1):Un_hi(1), Un_lo(2):Un_hi(2), Un_lo(3):Un_hi(3), NVAR)
+    real(rt), intent(in) :: A_old(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3), NVAR)
+    real(rt), intent(in) :: R_old(r_lo(1):r_hi(1), r_lo(2):r_hi(2), r_lo(3):r_hi(3), NVAR)
+    real(rt), intent(inout) :: U_guess(Ug_lo(1):Ug_hi(1), Ug_lo(2):Ug_hi(2), Ug_lo(3):Ug_hi(3), NVAR)
+    real(rt), intent(in) :: dt_m
+    integer, intent(in) :: sdc_iteration
+    integer :: i, j, k
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (sdc_iteration == 0) then
+                U_guess(i,j,k,:) = U_old(i,j,k,:) + dt_m * A_old(i,j,k,:) + dt_m * R_old(i,j,k,:)
+             else
+                U_guess(i,j,k,:) = U_new(i,j,k,:)
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_sdc_compute_initial_guess
+
 
   subroutine ca_sdc_update_o2(lo, hi, dt_m, &
                               k_m, kmlo, kmhi, &
