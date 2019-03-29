@@ -62,7 +62,7 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
 
 # In Modules/TwoMoment
   ca_F90EXE_sources += TwoMoment_ClosureModule.F90
-  ca_f90EXE_sources += TwoMoment_PositivityLimiterModule.f90
+  ca_F90EXE_sources += TwoMoment_PositivityLimiterModule.F90
   ca_F90EXE_sources += TwoMoment_DiscretizationModule_Streaming.F90
   ca_F90EXE_sources += TwoMoment_BoundaryConditionsModule.F90
   ca_F90EXE_sources += TwoMoment_UtilitiesModule.F90
