@@ -247,11 +247,11 @@ contains
     nFineX_local(3) = 1
 #endif
 
-    print *,'CRSE LO ', crse_lo(:)
-    print *,'CRSE HI ', crse_hi(:)
+    ! print *,'CRSE LO ', crse_lo(:)
+    ! print *,'CRSE HI ', crse_hi(:)
 
-    print *,'FINE LO ', fine_lo(:)
-    print *,'FINE HI ', fine_hi(:)
+    ! print *,'FINE LO ', fine_lo(:)
+    ! print *,'FINE HI ', fine_hi(:)
 
     if ( nvar .ne. nNodesE * nE * nCR ) &
        call amrex_error("Mismatch of nvar with nNodesE*nE*nCR in dg_coarsen")
