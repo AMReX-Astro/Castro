@@ -1,16 +1,8 @@
 module advection_util_module
 
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
-
-  private
-
-  public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
-       limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, avisc, &
-       scale_flux, apply_av, ca_construct_hydro_update_cuda
-#ifdef RADIATION
-  public apply_av_rad, scale_rad_flux
-#endif
 
 contains
 

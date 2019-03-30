@@ -6,10 +6,6 @@ module trace_plm_module
 
   implicit none
 
-  private
-
-  public trace_plm
-
 contains
 
   subroutine trace_plm(lo, hi, &
