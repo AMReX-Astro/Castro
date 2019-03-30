@@ -4,6 +4,7 @@ module tagging_module
   implicit none
 
   real(rt), save ::    denerr,   dengrad, dengrad_rel
+  real(rt), save ::    ye_err,   ye_grad, ye_grad_rel
   real(rt), save ::    enterr,   entgrad, entgrad_rel
   real(rt), save ::    velerr,   velgrad, velgrad_rel
   real(rt), save ::   temperr,  tempgrad, tempgrad_rel
@@ -12,6 +13,7 @@ module tagging_module
   real(rt), save ::   enucerr
 
   integer, save ::  max_denerr_lev,   max_dengrad_lev, max_dengrad_rel_lev
+  integer, save ::  max_ye_err_lev,   max_ye_grad_lev, max_ye_grad_rel_lev
   integer, save ::  max_enterr_lev,   max_entgrad_lev, max_entgrad_rel_lev
   integer, save ::  max_velerr_lev,   max_velgrad_lev, max_velgrad_rel_lev
   integer, save ::  max_temperr_lev,  max_tempgrad_lev, max_tempgrad_rel_lev
@@ -258,6 +260,86 @@ contains
 
   end subroutine ca_denerror
 
+  subroutine ca_ye_error(tag,taglo,taghi, &
+                         set,clear, &
+                         ye,yelo,yehi, &
+                         lo,hi,nd,domlo,domhi, &
+                         delta,xlo,problo,time,level) &
+                         bind(C, name="ca_ye_error")
+     !
+     ! This routine will tag high error cells based on Ye
+     !
+
+    use prob_params_module, only: dg
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
+    integer, intent(in) :: set, clear, nd, level
+    integer, intent(in) :: taglo(3), taghi(3)
+    integer, intent(in) :: yelo(3), yehi(3)
+    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
+    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in) :: ye(yelo(1):yehi(1),yelo(2):yehi(2),yelo(3):yehi(3),nd)
+    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
+
+    real(rt)         :: ax, ay, az
+    integer          :: i, j, k
+
+    !     Tag on regions of high Ye
+    if (level .lt. max_ye_err_lev) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                if (ye(i,j,k,1) .ge. ye_err) then
+                   tag(i,j,k) = set
+                endif
+             enddo
+          enddo
+       enddo
+    endif
+
+    !     Tag on regions of high Ye gradient
+    if (level .lt. max_ye_grad_lev) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                ax = ABS(ye(i+1*dg(1),j,k,1) - ye(i,j,k,1))
+                ay = ABS(ye(i,j+1*dg(2),k,1) - ye(i,j,k,1))
+                az = ABS(ye(i,j,k+1*dg(3),1) - ye(i,j,k,1))
+                ax = MAX(ax,ABS(ye(i,j,k,1) - ye(i-1*dg(1),j,k,1)))
+                ay = MAX(ay,ABS(ye(i,j,k,1) - ye(i,j-1*dg(2),k,1)))
+                az = MAX(az,ABS(ye(i,j,k,1) - ye(i,j,k-1*dg(3),1)))
+
+                if (MAX(ax,ay,az) .ge. ye_grad) then
+                   tag(i,j,k) = set
+                endif
+             enddo
+          enddo
+       enddo
+    endif
+
+    !     Tag on regions of high Ye gradient
+    if (level .lt. max_ye_grad_rel_lev) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                ax = ABS(ye(i+1*dg(1),j,k,1) - ye(i,j,k,1))
+                ay = ABS(ye(i,j+1*dg(2),k,1) - ye(i,j,k,1))
+                az = ABS(ye(i,j,k+1*dg(3),1) - ye(i,j,k,1))
+                ax = MAX(ax,ABS(ye(i,j,k,1) - ye(i-1*dg(1),j,k,1)))
+                ay = MAX(ay,ABS(ye(i,j,k,1) - ye(i,j-1*dg(2),k,1)))
+                az = MAX(az,ABS(ye(i,j,k,1) - ye(i,j,k-1*dg(3),1)))
+
+                if (MAX(ax,ay,az) .ge. ABS(ye_grad_rel * ye(i,j,k,1))) then
+                   tag(i,j,k) = set
+                endif
+             enddo
+          enddo
+       enddo
+    endif
+
+  end subroutine ca_ye_error
 
   subroutine ca_temperror(tag,taglo,taghi, &
                           set,clear, &

@@ -962,6 +962,8 @@ subroutine ca_get_tagging_params(name, namlen) &
   namelist /tagging/ &
        denerr, dengrad, dengrad_rel, &
        max_denerr_lev, max_dengrad_lev, max_dengrad_rel_lev, &
+       ye_err, ye_grad, ye_grad_rel, &
+       max_ye_err_lev, max_ye_grad_lev, max_ye_grad_rel_lev, &
        enterr, entgrad, entgrad_rel, &
        max_enterr_lev, max_entgrad_lev, max_entgrad_rel_lev, &
        velerr, velgrad, velgrad_rel, &

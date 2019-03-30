@@ -75,7 +75,7 @@ contains
 
     ! loop over coarse grid under fine region...
 #if (AMREX_SPACEDIM == 2)
-    do kc = 0, 0
+    do kc = crse_lo(3), crse_hi(3)
 #elif (AMREX_SPACEDIM == 3)
     do kc = cblo(3), cbhi(3), 2
 #endif
@@ -247,6 +247,12 @@ contains
     nFineX_local(3) = 1
 #endif
 
+    print *,'CRSE LO ', crse_lo(:)
+    print *,'CRSE HI ', crse_hi(:)
+
+    print *,'FINE LO ', fine_lo(:)
+    print *,'FINE HI ', fine_hi(:)
+
     if ( nvar .ne. nNodesE * nE * nCR ) &
        call amrex_error("Mismatch of nvar with nNodesE*nE*nCR in dg_coarsen")
 #if (AMREX_SPACEDIM == 2)
@@ -260,7 +266,7 @@ contains
     ! loop over coarse grid -- note that we must skip here because we need to construct an intermediate
     !      array at half of this resolution
 #if (AMREX_SPACEDIM == 2)
-    do kc = 1,1
+    do kc = crse_lo(3), crse_hi(3)
 #elif (AMREX_SPACEDIM == 3)
     do kc = cblo(3), cbhi(3), 2
 #endif

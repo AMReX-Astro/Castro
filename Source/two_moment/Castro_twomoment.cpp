@@ -161,9 +161,6 @@ Castro::average_down_thornado_data(const MultiFab& S_fine, MultiFab& S_crse, int
 
         std::cout << "FINE BA " << S_fine.boxArray() << std::endl;
         std::cout << "CRSE BA " << S_crse.boxArray() << std::endl;
-
-        std::cout << "FINE nCOMP " << S_fine.nComp() << std::endl;
-        std::cout << "CRSE nCOMP " << S_crse.nComp() << std::endl;
         
         //
         // Coarsen() the fine stuff on processors owning the fine data.
