@@ -271,7 +271,7 @@ void RadSolve::levelACoeffs(int level,
   }
 }
 
-void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int igroup, 
+void RadSolve::levelSPas(int level, Array<MultiFab, BL_SPACEDIM>& lambda, int igroup, 
 			 int lo_bc[3], int hi_bc[3])
 {
   const BoxArray& grids = parent->boxArray(level);
@@ -324,7 +324,7 @@ void RadSolve::levelSPas(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda, int ig
 }
 
 void RadSolve::levelBCoeffs(int level,
-                            Tuple<MultiFab, BL_SPACEDIM>& lambda,
+                            Array<MultiFab, BL_SPACEDIM>& lambda,
                             MultiFab& kappa_r, int kcomp,
                             Real c, int lamcomp)
 {
@@ -367,7 +367,7 @@ void RadSolve::levelBCoeffs(int level,
   } // -->> over dimension
 }
 
-void RadSolve::levelDCoeffs(int level, Tuple<MultiFab, BL_SPACEDIM>& lambda,
+void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
 			    MultiFab& vel, MultiFab& dcf)
 {
     BL_PROFILE("RadSolve::levelDCoeffs");
@@ -502,7 +502,7 @@ void RadSolve::levelSolve(int level,
   }
 }
 
-void RadSolve::levelFluxFaceToCenter(int level, const Tuple<MultiFab, BL_SPACEDIM>& Flux,
+void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, BL_SPACEDIM>& Flux,
 				     MultiFab& flx, int iflx)
 {
     int nflx = flx.nComp();
@@ -537,7 +537,7 @@ void RadSolve::levelFluxFaceToCenter(int level, const Tuple<MultiFab, BL_SPACEDI
 }
 
 void RadSolve::levelFlux(int level,
-                         Tuple<MultiFab, BL_SPACEDIM>& Flux,
+                         Array<MultiFab, BL_SPACEDIM>& Flux,
                          MultiFab& Er, int igroup)
 {
   BL_PROFILE("RadSolve::levelFlux");
@@ -608,7 +608,7 @@ void RadSolve::levelFlux(int level,
 
 void RadSolve::levelFluxReg(int level,
                             FluxRegister* flux_in, FluxRegister* flux_out,
-                            const Tuple<MultiFab, BL_SPACEDIM>& Flux,
+                            const Array<MultiFab, BL_SPACEDIM>& Flux,
                             int igroup)
 {
   BL_PROFILE("RadSolve::levelFluxReg");
@@ -643,7 +643,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   const Real* dx = parent->Geom(level).CellSize();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
-  Tuple<MultiFab, BL_SPACEDIM> Dterm_face;
+  Array<MultiFab, BL_SPACEDIM> Dterm_face;
   for (int idim=0; idim<BL_SPACEDIM; idim++) {
       Dterm_face[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
   }

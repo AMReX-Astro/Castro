@@ -15,7 +15,7 @@ extern "C"
 #endif
 
 #ifdef AMREX_USE_CUDA
-    static void set_bc_launch_config(const int* lo, const int* hi, const int* domlo, const int* domhi)
+    static void set_bc_launch_config()
     {
         amrex::Gpu::Device::setNumThreadsMin(Castro::minBCThreads(0), Castro::minBCThreads(1), Castro::minBCThreads(2));
     }
@@ -27,10 +27,8 @@ extern "C"
 
     // Return a pointer to bc valid for use in Fortran. For the CPU this is a no-op.
 
-    static int* prepare_bc(const int* bc, const int nvar, const int* lo, const int* hi, const int* domlo, const int* domhi)
+    static int* prepare_bc(const int* bc, const int nvar)
     {
-        set_bc_launch_config(lo, hi, domlo, domhi);
-
         int* bc_f = (int*) amrex::The_Arena()->alloc(AMREX_SPACEDIM * 2 * nvar * sizeof(int));
         AMREX_GPU_SAFE_CALL(cudaMemcpyAsync(bc_f, bc, AMREX_SPACEDIM * 2 * nvar * sizeof(int), cudaMemcpyHostToDevice, amrex::Gpu::Device::cudaStream()));
         return bc_f;
@@ -40,8 +38,6 @@ extern "C"
     {
         amrex::Gpu::Device::streamSynchronize();
         amrex::The_Arena()->free(bc_f);
-
-        clean_bc_launch_config();
     }
 #endif
 

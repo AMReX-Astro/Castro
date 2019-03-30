@@ -26,12 +26,10 @@ module riemann_module
 
   implicit none
 
-  private
-
-  public :: riemanncg, riemannus, hllc, cmpflx, cmpflx_plus_godunov, riemann_state
-
   real(rt), parameter :: smallu = 1.e-12_rt
   real(rt), parameter :: small = 1.e-8_rt
+
+  private :: smallu, small
 
 contains
 

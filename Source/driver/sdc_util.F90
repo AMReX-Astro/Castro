@@ -33,7 +33,9 @@ contains
     ! satisfies the nonlinear function
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
-         sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe, sdc_use_analytic_jac
+                                   sdc_order, sdc_solver, &
+                                   sdc_solver_tol, sdc_solver_relax_factor, &
+                                   sdc_solve_for_rhoe, sdc_use_analytic_jac
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
@@ -66,6 +68,7 @@ contains
     real(rt) :: rwork(lrw)
     integer :: iwork(liw)
     real(rt) :: time
+    real(rt) :: tol
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
@@ -80,7 +83,6 @@ contains
     integer :: m, n
 
     real(rt) :: err
-    real(rt), parameter :: tol = 1.e-5_rt
     integer, parameter :: MAX_ITER = 100
     integer :: iter
 
@@ -104,6 +106,9 @@ contains
     else
        call amrex_error("invalid sdc_solver")
     endif
+
+    ! the tolerance we are solving to may depend on the iteration
+    tol = sdc_solver_tol / sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
 
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
@@ -244,7 +249,7 @@ contains
        endif
 
        call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
-                  1, sdc_solver_tol, 1.e-100_rt, &
+                  1, tol, 1.e-100_rt, &
                   1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
 
        if (istate < 0) then
@@ -741,7 +746,7 @@ contains
     ! note: this 'C' is cell-averages
 
     use meth_params_module, only : NVAR
-    use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT, TWELFTH
+    use amrex_constants_module, only : ONE, HALF, TWO, FIVE, EIGHT
 
     implicit none
 
@@ -772,18 +777,19 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             ! compute the integral (without the dt)
+             ! compute the integral (without the dt).  Note that each of these is over
+             ! dt/2
              if (m_start == 0) then
-                integral(:) = TWELFTH * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
-                                         EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
-                                         (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+                integral(:) = ONE/12.0_rt * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                             EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
+                                             (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
 
              else if (m_start == 1) then
-                integral(:) = TWELFTH * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
-                                         EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
-                                         FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+                integral(:) = ONE/12.0_rt * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                             EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                                             FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
 
@@ -898,7 +904,10 @@ contains
                                       C, C_lo, C_hi, &
                                       sdc_iteration) &
                                       bind(C, name="ca_sdc_update_centers_o4")
-    ! update k_m to k_n via advection -- this is a fourth-order accurate update
+    ! update U_old to U_new on cell-centers.  This is an implicit
+    ! solve because of reactions.  Here U_old corresponds to time node
+    ! m and U_new is node m+1.  dt_m is the timestep between m and
+    ! m+1, which is dt_m = dt/2.
 
     use meth_params_module, only : NVAR
 
@@ -917,7 +926,6 @@ contains
 
     integer :: i, j, k
 
-    ! now consider the reacting system
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)

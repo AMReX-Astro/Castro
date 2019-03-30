@@ -10,10 +10,6 @@ module trace_ppm_module
 
   implicit none
 
-  private
-
-  public trace_ppm
-
 contains
 
   subroutine trace_ppm(lo, hi, &

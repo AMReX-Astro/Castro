@@ -160,6 +160,7 @@ module meth_params_module
   integer,  allocatable, save :: sdc_order
   integer,  allocatable, save :: sdc_solver
   real(rt), allocatable, save :: sdc_solver_tol
+  real(rt), allocatable, save :: sdc_solver_relax_factor
   integer,  allocatable, save :: sdc_solve_for_rhoe
   integer,  allocatable, save :: sdc_use_analytic_jac
   real(rt), allocatable, save :: cfl
@@ -246,6 +247,7 @@ attributes(managed) :: mol_order
 attributes(managed) :: sdc_order
 attributes(managed) :: sdc_solver
 attributes(managed) :: sdc_solver_tol
+attributes(managed) :: sdc_solver_relax_factor
 attributes(managed) :: sdc_solve_for_rhoe
 attributes(managed) :: sdc_use_analytic_jac
 attributes(managed) :: cfl
@@ -357,6 +359,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(sdc_order) &
   !$acc create(sdc_solver) &
   !$acc create(sdc_solver_tol) &
+  !$acc create(sdc_solver_relax_factor) &
   !$acc create(sdc_solve_for_rhoe) &
   !$acc create(sdc_use_analytic_jac) &
   !$acc create(cfl) &
@@ -497,14 +500,6 @@ contains
     allocate(rot_axis)
     rot_axis = 3;
 #endif
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0d0;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
     allocate(difmag)
     difmag = 0.1d0;
     allocate(small_dens)
@@ -599,6 +594,8 @@ contains
     sdc_solver = 1;
     allocate(sdc_solver_tol)
     sdc_solver_tol = 1.d-6;
+    allocate(sdc_solver_relax_factor)
+    sdc_solver_relax_factor = 1.0d0;
     allocate(sdc_solve_for_rhoe)
     sdc_solve_for_rhoe = 1;
     allocate(sdc_use_analytic_jac)
@@ -637,6 +634,14 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0d0;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
 
     call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
@@ -654,11 +659,6 @@ contains
     call pp%query("rot_source_type", rot_source_type)
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
-#endif
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -707,6 +707,7 @@ contains
     call pp%query("sdc_order", sdc_order)
     call pp%query("sdc_solver", sdc_solver)
     call pp%query("sdc_solver_tol", sdc_solver_tol)
+    call pp%query("sdc_solver_relax_factor", sdc_solver_relax_factor)
     call pp%query("sdc_solve_for_rhoe", sdc_solve_for_rhoe)
     call pp%query("sdc_use_analytic_jac", sdc_use_analytic_jac)
     call pp%query("cfl", cfl)
@@ -726,6 +727,11 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
     call amrex_parmparse_destroy(pp)
 
 
@@ -744,19 +750,20 @@ contains
     !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
     !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
     !$acc device(hse_reflect_vels, mol_order, sdc_order) &
-    !$acc device(sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe) &
-    !$acc device(sdc_use_analytic_jac, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_X_threshold, do_react) &
-    !$acc device(react_T_min, react_T_max, react_rho_min) &
-    !$acc device(react_rho_max, disable_shock_burning, T_guess) &
-    !$acc device(diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac) &
-    !$acc device(do_grav, grav_source_type, do_rotation) &
-    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
-    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
-    !$acc device(do_acc, grown_factor, track_grid_losses) &
-    !$acc device(const_grav, get_g_from_phi)
+    !$acc device(sdc_solver, sdc_solver_tol, sdc_solver_relax_factor) &
+    !$acc device(sdc_solve_for_rhoe, sdc_use_analytic_jac, cfl) &
+    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
+    !$acc device(do_react, react_T_min, react_T_max) &
+    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
+    !$acc device(T_guess, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
+    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
+    !$acc device(do_rotation, rot_period, rot_period_dot) &
+    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+    !$acc device(rot_axis, use_point_mass, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
+    !$acc device(track_grid_losses, const_grav) &
+    !$acc device(get_g_from_phi)
 
 
 #ifdef GRAVITY
@@ -994,6 +1001,9 @@ contains
     end if
     if (allocated(sdc_solver_tol)) then
         deallocate(sdc_solver_tol)
+    end if
+    if (allocated(sdc_solver_relax_factor)) then
+        deallocate(sdc_solver_relax_factor)
     end if
     if (allocated(sdc_solve_for_rhoe)) then
         deallocate(sdc_solve_for_rhoe)

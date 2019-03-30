@@ -30,7 +30,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1, lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, 1);
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -42,6 +43,7 @@ extern "C"
                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }
@@ -59,7 +61,8 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, Castro::numState(), lo, hi, domlo, domhi);
+        int* bc_f = prepare_bc(bc, Castro::numState());
+        set_bc_launch_config();
 #else
         const int* bc_f = bc;
 #endif
@@ -71,6 +74,7 @@ extern "C"
                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), bc_f);
 
 #ifdef AMREX_USE_CUDA
+        clean_bc_launch_config();
         clean_bc(bc_f);
 #endif
     }

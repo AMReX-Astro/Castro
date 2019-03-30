@@ -173,8 +173,7 @@ contains
     ! done here is only local to this tile.
 
     do n = 1, NQSRC
-       if (minval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n)) == ZERO .and. &
-           maxval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n)) == ZERO) then
+       if (maxval(abs(srcQ(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n))) == ZERO) then
           source_nonzero(n) = .false.
        else
           source_nonzero(n) = .true.
