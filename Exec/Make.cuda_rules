@@ -6,9 +6,9 @@ $(objEXETempDir)/Castro_generic_fill.o: Castro_generic_fill.cpp
 	@echo Compiling $(<F)
 	@if [ !-d $(objExeTempDir) ]; then mkdir -p $(objEXETempDir); fi
 ifeq ($(cap_registers),1)
-	$(SILENT) $(CCACHE) $(CXX) $(patsubst -maxrregcount=$(CUDA_MAXREGCOUNT), -maxrregcount=128, $(CXXFLAGS)) $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_generic_fill.o
+	$(SILENT) $(CCACHE) $(CXX) $(patsubst -maxrregcount=$(CUDA_MAXREGCOUNT), -maxrregcount=128, $(CXXFLAGS)) $(CPPFLAGS) $(includes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_generic_fill.o
 else
-	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_generic_fill.o
+	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(includes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_generic_fill.o
 endif
 
 $(objEXETempDir)/generic_fill.o: generic_fill.F90
@@ -29,9 +29,9 @@ $(objEXETempDir)/Castro_bc_fill_nd.o: Castro_bc_fill_nd.cpp
 	@echo Compiling $(<F)
 	@if [ !-d $(objExeTempDir) ]; then mkdir -p $(objEXETempDir); fi
 ifeq ($(cap_registers),1)
-	$(SILENT) $(CCACHE) $(CXX) $(patsubst -maxrregcount=$(CUDA_MAXREGCOUNT), -maxrregcount=128, $(CXXFLAGS)) $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_bc_fill_nd.o
+	$(SILENT) $(CCACHE) $(CXX) $(patsubst -maxrregcount=$(CUDA_MAXREGCOUNT), -maxrregcount=128, $(CXXFLAGS)) $(CPPFLAGS) $(includes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_bc_fill_nd.o
 else
-	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_bc_fill_nd.o
+	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(includes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_bc_fill_nd.o
 endif
 
 $(objEXETempDir)/bc_fill_nd.o: bc_fill_nd.F90
