@@ -20,6 +20,8 @@ contains
 
     real(rt) :: dist2, exponent
 
+    !$gpu
+
     if (dim == 1 .and. coord_type == 2) then
        ! Handle spherical coordinates
        exponent = 3.0_rt / 2.0_rt

@@ -6,6 +6,7 @@
 
 #ifdef AMREX_USE_CUDA
 #include <cuda_runtime_api.h>
+#include <AMReX_Arena.H>
 #endif
 
 #ifdef __cplusplus
@@ -30,15 +31,15 @@ extern "C"
     {
         set_bc_launch_config(lo, hi, domlo, domhi);
 
-        int* bc_f;
-        AMREX_GPU_SAFE_CALL(cudaMalloc((void**) &bc_f, AMREX_SPACEDIM * 2 * nvar * sizeof(int)));
-        AMREX_GPU_SAFE_CALL(cudaMemcpy(bc_f, bc, AMREX_SPACEDIM * 2 * nvar * sizeof(int), cudaMemcpyHostToDevice));
+        int* bc_f = (int*) amrex::The_Arena()->alloc(AMREX_SPACEDIM * 2 * nvar * sizeof(int));
+        AMREX_GPU_SAFE_CALL(cudaMemcpyAsync(bc_f, bc, AMREX_SPACEDIM * 2 * nvar * sizeof(int), cudaMemcpyHostToDevice, amrex::Gpu::Device::cudaStream()));
         return bc_f;
     }
 
     static void clean_bc(int* bc_f)
     {
-        AMREX_GPU_SAFE_CALL(cudaFree((void*) bc_f));
+        amrex::Gpu::Device::streamSynchronize();
+        amrex::The_Arena()->free(bc_f);
 
         clean_bc_launch_config();
     }

@@ -1021,29 +1021,50 @@ Castro::initData ()
 #ifdef AMREX_USE_CUDA
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
+#ifdef GPU_COMPATIBLE_PROBLEM
+           // Prefetch data to the device to avoid page faults while we're initializing.
+           S_new.prefetchToDevice(mfi);
+#else
            // Prefetch data to the host (and then back to the device at the end)
            // to avoid expensive page faults while the initialization is done.
            S_new.prefetchToHost(mfi);
+#endif
        }
 #endif
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 	  RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
+          const Real* prob_lo = geom.ProbLo();
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
 
 #ifdef AMREX_DIMENSION_AGNOSTIC
+
+#ifdef GPU_COMPATIBLE_PROBLEM
+
+#pragma gpu
+          ca_initdata(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                      BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                      AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+
+#else
+
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
           (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
   	   BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
   	   ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
+
+#endif
+
 #else
+
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
   	  (level, cur_time, lo, hi, ns,
   	   BL_TO_FORTRAN(S_new[mfi]), dx,
   	   gridloc.lo(), gridloc.hi());
+
 #endif
 
 #ifdef HYBRID_MOMENTUM
@@ -1052,20 +1073,28 @@ Castro::initData ()
           //
           ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_ANYD(S_new[mfi]));
 #endif
-          //
-          // Verify that the sum of (rho X)_i = rho at every cell
-          //
-          ca_check_initial_species(AMREX_ARLIM_3D(lo), AMREX_ARLIM_3D(hi),
-                                   BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 
-       enforce_consistent_e(S_new);
-
 #ifdef AMREX_USE_CUDA
+#ifndef GPU_COMPATIBLE_PROBLEM
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
            S_new.prefetchToDevice(mfi);
        }
 #endif
+#endif
+
+       // Verify that the sum of (rho X)_i = rho at every cell
+
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+           const Box& bx = mfi.validbox();
+#pragma gpu
+           ca_check_initial_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                    BL_TO_FORTRAN_ANYD(S_new[mfi]));
+       }
+
+       // Enforce that the total and internal energies are consistent.
+
+       enforce_consistent_e(S_new);
 
        // thus far, we assume that all initialization has worked on cell-centers
        // (to second-order, these are cell-averages, so we're done in that case).
@@ -2850,7 +2879,8 @@ Castro::enforce_consistent_e (MultiFab& S)
         const int* lo      = box.loVect();
         const int* hi      = box.hiVect();
 
-        ca_enforce_consistent_e(ARLIM_3D(lo), ARLIM_3D(hi), BL_TO_FORTRAN_ANYD(S[mfi]));
+#pragma gpu
+        ca_enforce_consistent_e(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S[mfi]));
     }
 }
 
@@ -3265,7 +3295,7 @@ Castro::extern_init ()
 }
 
 void
-Castro::reset_internal_energy(MultiFab& S_new)
+Castro::reset_internal_energy(MultiFab& S_new, int ng)
 {
 
     BL_PROFILE("Castro::reset_internal_energy()");
@@ -3279,8 +3309,6 @@ Castro::reset_internal_energy(MultiFab& S_new)
 	old_state.define(S_new.boxArray(), S_new.DistributionMap(), S_new.nComp(), 0);
         MultiFab::Copy(old_state, S_new, 0, 0, S_new.nComp(), 0);
     }
-
-    int ng = S_new.nGrow();
 
     // Ensure (rho e) isn't too small or negative
 #ifdef _OPENMP
@@ -3405,9 +3433,9 @@ Castro::computeTemp(int is_new, int ng)
   }
 
   if (mol_order == 4 || sdc_order == 4) {
-    reset_internal_energy(Stemp);
+    reset_internal_energy(Stemp, ng);
   } else {
-    reset_internal_energy(State);
+    reset_internal_energy(State, ng);
   }
 
 
@@ -3513,9 +3541,7 @@ Castro::computeTemp(MultiFab& State, int ng)
     amrex::Error("this version of computeTemp does not work for 4th order -- you shouldn't have gotten here");
   }
 
-  BL_PROFILE("Castro::computeTemp()");
-
-  reset_internal_energy(State);
+  reset_internal_energy(State, ng);
 
 #ifdef RADIATION
   FArrayBox temp;

@@ -30,7 +30,7 @@ extern "C"
                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                AMREX_REAL_ANYD(delta));
 
     }
 
@@ -48,7 +48,7 @@ extern "C"
                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                 AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                 AMREX_REAL_ANYD(delta));
 
     }
 
@@ -66,7 +66,7 @@ extern "C"
                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                 AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                 AMREX_REAL_ANYD(delta));
 
     }
 
@@ -84,7 +84,7 @@ extern "C"
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                  AMREX_REAL_ANYD(delta));
 
     }
 
@@ -102,7 +102,7 @@ extern "C"
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                  AMREX_REAL_ANYD(delta));
 
     }
 
@@ -120,7 +120,7 @@ extern "C"
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                   AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                   AMREX_REAL_ANYD(delta));
 
     }
 
@@ -138,7 +138,7 @@ extern "C"
                       data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                       AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                       AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                      AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                      AMREX_REAL_ANYD(delta));
 
     }
 
@@ -156,7 +156,7 @@ extern "C"
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                  AMREX_REAL_ANYD(delta));
 
     }
 
@@ -174,7 +174,7 @@ extern "C"
                       data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                       AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                       AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                      AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                      AMREX_REAL_ANYD(delta));
 
     }
 
@@ -192,7 +192,7 @@ extern "C"
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                   AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                   AMREX_REAL_ANYD(delta));
 
     }
 
@@ -210,7 +210,7 @@ extern "C"
                 data, ARLIM_3D(data_lo), ARLIM_3D(data_hi), *ncomp,
                 ARLIM_3D(lo), ARLIM_3D(hi),
                 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-                ZFILL(delta), ZFILL(xlo));
+                ZFILL(delta));
 
     }
 
@@ -227,7 +227,7 @@ extern "C"
                      data, ARLIM_3D(data_lo), ARLIM_3D(data_hi), *ncomp,
                      ARLIM_3D(lo), ARLIM_3D(hi),
                      ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-                     ZFILL(delta), ZFILL(xlo));
+                     ZFILL(delta));
 
     }
 
@@ -244,7 +244,7 @@ extern "C"
                     data, ARLIM_3D(data_lo), ARLIM_3D(data_hi), *ncomp,
                     ARLIM_3D(lo), ARLIM_3D(hi),
                     ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-                    ZFILL(delta), ZFILL(xlo));
+                    ZFILL(delta));
 
     }
 #endif
@@ -264,7 +264,7 @@ extern "C"
                          data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                          AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                          AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                         AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                         AMREX_REAL_ANYD(delta));
 
     }
 #endif
@@ -283,7 +283,7 @@ extern "C"
                data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-               AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+               AMREX_REAL_ANYD(delta));
 
     }
 
@@ -301,7 +301,7 @@ extern "C"
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                  AMREX_REAL_ANYD(delta));
 
     }
 
@@ -319,7 +319,7 @@ extern "C"
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                   AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                   AMREX_REAL_ANYD(delta));
 
     }
 
@@ -337,7 +337,7 @@ extern "C"
                      data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                      AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                      AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                     AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                     AMREX_REAL_ANYD(delta));
 
     }
 
@@ -355,7 +355,7 @@ extern "C"
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                  AMREX_REAL_ANYD(delta));
 
     }
 
@@ -373,7 +373,7 @@ extern "C"
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                   AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                   AMREX_REAL_ANYD(delta));
 
     }
 
@@ -391,7 +391,7 @@ extern "C"
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                   AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                   AMREX_REAL_ANYD(delta));
 
     }
 
@@ -409,7 +409,7 @@ extern "C"
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                   AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                   AMREX_REAL_ANYD(delta));
 
     }
 
@@ -427,7 +427,7 @@ extern "C"
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                  AMREX_REAL_ANYD(delta));
 
     }
 
@@ -458,7 +458,7 @@ extern "C"
                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                AMREX_REAL_ANYD(delta));
 
     }
 
@@ -477,7 +477,7 @@ extern "C"
                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                AMREX_REAL_ANYD(delta));
 
     }
 
@@ -495,7 +495,7 @@ extern "C"
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                   AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                   AMREX_REAL_ANYD(delta));
 
     }
 
@@ -513,7 +513,7 @@ extern "C"
                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                AMREX_REAL_ANYD(delta));
 
     }
 
@@ -531,7 +531,7 @@ extern "C"
                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                 AMREX_REAL_ANYD(delta), AMREX_REAL_ANYD(xlo));
+                 AMREX_REAL_ANYD(delta));
 
     }
 

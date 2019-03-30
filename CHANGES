@@ -1,5 +1,14 @@
 # changes since the last release
 
+  -- The runtime parameter castro.fix_mass_flux has been removed: it is not
+     clear what the use case is, and it had no test suite coverage. (#572)
+
+  -- Fixed a bug introduced in August 2015 that resulted in incorrect
+     real bounds being passed to ca_initdata after a restart for problems
+     using a grown domain. This would have resulted in incorrect initialization
+     for problems using the grown restart capability if their initialization
+     depended on the position on the grid. (#566)
+
   -- Using point-mass gravity no longer requires USE_POINTMASS = TRUE
      in your makefile; USE_GRAV = TRUE is sufficient. However, to
      compensate for this, you must now include castro.use_point_mass = 1

@@ -6,7 +6,7 @@ module interpolate_module
 contains
 
 
-  function interpolate(r, npts_model, model_r, model_var, iloc)
+  function interpolate(r, npts_model, model_r, model_var, iloc) result(interp)
     ! given the array of model coordinates (model_r), and variable (model_var),
     ! find the value of model_var at point r (var_r) using linear interpolation.
     ! Eventually, we can do something fancier here.
@@ -16,11 +16,13 @@ contains
     integer         , intent(in   ) :: npts_model
     real(rt)        , intent(in   ) :: model_r(npts_model), model_var(npts_model)
     integer, intent(in), optional   :: iloc
-    real(rt)                        :: interpolate
+    real(rt)                        :: interp
 
     ! Local variables
     integer                         :: id
     real(rt)                        :: slope,minvar,maxvar
+
+    !$gpu
 
     !     find the location in the coordinate array where we want to interpolate
     if (present(iloc)) then
@@ -32,48 +34,48 @@ contains
     if (id .eq. 1) then
 
        slope = (model_var(id+1) - model_var(id))/(model_r(id+1) - model_r(id))
-       interpolate = slope*(r - model_r(id)) + model_var(id)
+       interp = slope*(r - model_r(id)) + model_var(id)
 
-       ! safety check to make sure interpolate lies within the bounding points
+       ! safety check to make sure interp lies within the bounding points
        minvar = min(model_var(id+1),model_var(id))
        maxvar = max(model_var(id+1),model_var(id))
-       interpolate = max(interpolate,minvar)
-       interpolate = min(interpolate,maxvar)
+       interp = max(interp,minvar)
+       interp = min(interp,maxvar)
 
     else if (id .eq. npts_model) then
 
        slope = (model_var(id) - model_var(id-1))/(model_r(id) - model_r(id-1))
-       interpolate = slope*(r - model_r(id)) + model_var(id)
+       interp = slope*(r - model_r(id)) + model_var(id)
 
-       ! safety check to make sure interpolate lies within the bounding points
+       ! safety check to make sure interp lies within the bounding points
        minvar = min(model_var(id),model_var(id-1))
        maxvar = max(model_var(id),model_var(id-1))
-       interpolate = max(interpolate,minvar)
-       interpolate = min(interpolate,maxvar)
+       interp = max(interp,minvar)
+       interp = min(interp,maxvar)
 
     else
 
        if (r .ge. model_r(id)) then
 
           slope = (model_var(id+1) - model_var(id))/(model_r(id+1) - model_r(id))
-          interpolate = slope*(r - model_r(id)) + model_var(id)
+          interp = slope*(r - model_r(id)) + model_var(id)
 
-          ! ! safety check to make sure interpolate lies within the bounding points
+          ! ! safety check to make sure interp lies within the bounding points
           ! minvar = min(model_var(id+1),model_var(id))
           ! maxvar = max(model_var(id+1),model_var(id))
-          ! interpolate = max(interpolate,minvar)
-          ! interpolate = min(interpolate,maxvar)
+          ! interp = max(interp,minvar)
+          ! interp = min(interp,maxvar)
 
        else
 
           slope = (model_var(id) - model_var(id-1))/(model_r(id) - model_r(id-1))
-          interpolate = slope*(r - model_r(id)) + model_var(id)
+          interp = slope*(r - model_r(id)) + model_var(id)
 
-          ! ! safety check to make sure interpolate lies within the bounding points
+          ! ! safety check to make sure interp lies within the bounding points
           ! minvar = min(model_var(id),model_var(id-1))
           ! maxvar = max(model_var(id),model_var(id-1))
-          ! interpolate = max(interpolate,minvar)
-          ! interpolate = min(interpolate,maxvar)
+          ! interp = max(interp,minvar)
+          ! interp = min(interp,maxvar)
 
        end if
 
@@ -83,13 +85,13 @@ contains
 
 
 
-  subroutine interpolate_sub(interpolate, r, npts_model, model_r, model_var, iloc)
+  subroutine interpolate_sub(interp, r, npts_model, model_r, model_var, iloc)
     ! given the array of model coordinates (model_r), and variable (model_var),
     ! find the value of model_var at point r (var_r) using linear interpolation.
     ! Eventually, we can do something fancier here.
 
     use amrex_fort_module, only : rt => amrex_real
-    real(rt)        , intent(  out) :: interpolate
+    real(rt)        , intent(  out) :: interp
     real(rt)        , intent(in   ) :: r
     integer         , intent(in   ) :: npts_model
     real(rt)        , intent(in   ) :: model_r(npts_model), model_var(npts_model)
@@ -111,48 +113,48 @@ contains
     if (id .eq. 1) then
 
        slope = (model_var(id+1) - model_var(id))/(model_r(id+1) - model_r(id))
-       interpolate = slope*(r - model_r(id)) + model_var(id)
+       interp = slope*(r - model_r(id)) + model_var(id)
 
-       ! safety check to make sure interpolate lies within the bounding points
+       ! safety check to make sure interp lies within the bounding points
        minvar = min(model_var(id+1),model_var(id))
        maxvar = max(model_var(id+1),model_var(id))
-       interpolate = max(interpolate,minvar)
-       interpolate = min(interpolate,maxvar)
+       interp = max(interp,minvar)
+       interp = min(interp,maxvar)
 
     else if (id .eq. npts_model) then
 
        slope = (model_var(id) - model_var(id-1))/(model_r(id) - model_r(id-1))
-       interpolate = slope*(r - model_r(id)) + model_var(id)
+       interp = slope*(r - model_r(id)) + model_var(id)
 
-       ! safety check to make sure interpolate lies within the bounding points
+       ! safety check to make sure interp lies within the bounding points
        minvar = min(model_var(id),model_var(id-1))
        maxvar = max(model_var(id),model_var(id-1))
-       interpolate = max(interpolate,minvar)
-       interpolate = min(interpolate,maxvar)
+       interp = max(interp,minvar)
+       interp = min(interp,maxvar)
 
     else
 
        if (r .ge. model_r(id)) then
 
           slope = (model_var(id+1) - model_var(id))/(model_r(id+1) - model_r(id))
-          interpolate = slope*(r - model_r(id)) + model_var(id)
+          interp = slope*(r - model_r(id)) + model_var(id)
 
-          ! ! safety check to make sure interpolate lies within the bounding points
+          ! ! safety check to make sure interp lies within the bounding points
           ! minvar = min(model_var(id+1),model_var(id))
           ! maxvar = max(model_var(id+1),model_var(id))
-          ! interpolate = max(interpolate,minvar)
-          ! interpolate = min(interpolate,maxvar)
+          ! interp = max(interp,minvar)
+          ! interp = min(interp,maxvar)
 
        else
 
           slope = (model_var(id) - model_var(id-1))/(model_r(id) - model_r(id-1))
-          interpolate = slope*(r - model_r(id)) + model_var(id)
+          interp = slope*(r - model_r(id)) + model_var(id)
 
-          ! ! safety check to make sure interpolate lies within the bounding points
+          ! ! safety check to make sure interp lies within the bounding points
           ! minvar = min(model_var(id),model_var(id-1))
           ! maxvar = max(model_var(id),model_var(id-1))
-          ! interpolate = max(interpolate,minvar)
-          ! interpolate = min(interpolate,maxvar)
+          ! interp = max(interp,minvar)
+          ! interp = min(interp,maxvar)
 
        end if
 
@@ -241,19 +243,21 @@ contains
 
 
 
-  function locate(x, n, xs)
+  function locate(x, n, xs) result(loc)
 
     use amrex_fort_module, only : rt => amrex_real
     integer, intent(in) :: n
     real(rt)        , intent(in) :: x, xs(n)
-    integer :: locate
+    integer :: loc
 
     integer :: ilo, ihi, imid
 
+    !$gpu
+
     if (x .le. xs(1)) then
-       locate = 1
+       loc = 1
     else if (x .gt. xs(n-1)) then
-       locate = n
+       loc = n
     else
 
        ilo = 1
@@ -268,7 +272,7 @@ contains
           end if
        end do
 
-       locate = ihi
+       loc = ihi
 
     end if
 

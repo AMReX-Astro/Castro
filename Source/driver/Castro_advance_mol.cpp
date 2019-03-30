@@ -90,13 +90,15 @@ Castro::do_advance_mol (Real time,
 
     // we pass in the stage time here
     if (mol_order == 4) {
+      // time here is the stage time
       do_old_sources(old_source, sources_for_hydro, time, dt, amr_iteration, amr_ncycle);
 
-      // fill the ghost cells for the sources
-      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
+      // fill the ghost cells for the sources -- we are storing these
+      // in the "old" time slot of Source_Type, so we should only use
+      // that date -- note this is not multilevel save
+      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
 
-      // Note: this filled the ghost cells for us, so we can now convert to
-      // cell averages.  This loop cannot be tiled.
+      // Convert to cell averages.  This loop cannot be tiled.
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
         ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
@@ -104,15 +106,8 @@ Castro::do_advance_mol (Real time,
 
       }
 
-      // now that we redid these, redo the ghost fill
-      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
-
     } else {
       do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
-
-      // The individual source terms only calculate the source on the valid domain.
-      // FillPatch to get valid data in the ghost zones.
-      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
 
     }
 #endif
