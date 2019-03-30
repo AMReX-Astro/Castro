@@ -15,8 +15,8 @@
 
   ye_err = 1e14
   ye_grad = 0.01
-  max_ye_err_lev = 1000
-  max_ye_grad_lev = -1
+  max_ye_err_lev = -1000
+  max_ye_grad_lev = 1000
   max_ye_grad_rel_lev = -1
 
 /
