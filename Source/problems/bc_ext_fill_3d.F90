@@ -14,10 +14,6 @@ module bc_ext_fill_module
 
   include 'AMReX_bc_types.fi'
 
-  private
-
-  public :: ext_fill, ext_denfill
-
 contains
 
   ! this module contains different routines for filling the
