@@ -3811,11 +3811,9 @@ Castro::expand_state(MultiFab& S, Real time, int ng)
 {
   BL_PROFILE("Castro::expand_state()");
 
-  // S is the multifab we are filling with State_Type StateData.
+  BL_ASSERT(S.nGrow() >= ng);
 
   AmrLevel::FillPatch(*this, S, ng, time, State_Type, 0, NUM_STATE);
-
-  BL_ASSERT(S.nGrow() >= ng);
 }
 
 
