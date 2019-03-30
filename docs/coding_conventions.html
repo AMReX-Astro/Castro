@@ -258,6 +258,9 @@ zones in the calculation, include them in your box using
 checked.</li>
 <li>Use the <code class="docutils literal notranslate"><span class="pre">only</span></code> clause in module <code class="docutils literal notranslate"><span class="pre">use</span></code> statements to explicitly
 make clear what is being accessed.</li>
+<li>In a module, there should be no “top-level” <code class="docutils literal notranslate"><span class="pre">use</span></code> statements (with
+the exception of getting access to the <code class="docutils literal notranslate"><span class="pre">rt</span></code> type).  Instead each
+function / subroutine in the module  should use what it needs directly.</li>
 <li>New Fortran files should have the .F90 file extension, not the .f90
 file extension, so that they can be preprocessed.</li>
 </ul>
