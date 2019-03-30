@@ -112,7 +112,7 @@ Castro::advance (Real time,
 
                 MultiFab& S_new = get_new_data(State_Type);
 
-                clean_state(S_new, S_new.nGrow());
+                clean_state(S_new, state[State_Type].curTime(), S_new.nGrow());
 
                 // Compute the reactive source term for use in the next iteration.
 
@@ -247,7 +247,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
       expand_state(Sborder, prev_time, NUM_GROW);
-      clean_state(Sborder, NUM_GROW);
+      clean_state(Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == MethodOfLines) {
 
@@ -260,7 +260,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real prev_time = state[State_Type].prevTime();
 	expand_state(Sborder, prev_time, NUM_GROW);
-        clean_state(Sborder, NUM_GROW);
+        clean_state(Sborder, prev_time, NUM_GROW);
 
       } else {
 
@@ -279,12 +279,12 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	  MultiFab::Saxpy(S_new, dt*a_mol[mol_iteration][i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
         // not sure if this is needed
-        clean_state(S_new, S_new.nGrow());
+	const Real new_time = state[State_Type].curTime();
+        clean_state(S_new, new_time, S_new.nGrow());
 
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
-	const Real new_time = state[State_Type].curTime();
 	expand_state(Sborder, new_time, NUM_GROW);
-        clean_state(Sborder, NUM_GROW);
+        clean_state(Sborder, new_time, NUM_GROW);
 
       }
 
@@ -469,7 +469,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
     MultiFab& S_old = get_old_data(State_Type);
-    clean_state(S_old, S_old.nGrow());
+    clean_state(S_old, time, S_old.nGrow());
 
     // Initialize the previous state data container now, so that we can
     // always ask if it has valid data.

@@ -1198,19 +1198,11 @@ public:
 ///
 /// Compute the current temperature
 ///
-/// @param is_new   do we use the old or new StateData?
-/// @param ng number of ghost cells
-///
-    void computeTemp (int is_new, int ng);
-
-
-///
-/// Compute the current temperature
-///
 /// @param state    the state to operate on
+/// @param time     current time
 /// @param ng       number of ghost cells
 ///
-    void computeTemp(amrex::MultiFab& state, int ng);
+    void computeTemp(amrex::MultiFab& state, amrex::Real time, int ng);
 
 
 ///
@@ -2003,9 +1995,10 @@ protected:
 /// value of ::enforce_min_density.
 ///
 /// @param state    State data
+/// @param time     current time
 /// @param ng       number of ghost cells
 ///
-    amrex::Real clean_state (amrex::MultiFab& state, int ng);
+    amrex::Real clean_state (amrex::MultiFab& state, amrex::Real time, int ng);
 
 ///
 /// Average new state from ``level+1`` down to ``level``
