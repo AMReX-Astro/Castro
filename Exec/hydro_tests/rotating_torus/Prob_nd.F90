@@ -1,12 +1,14 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use amrex_constants_module
+  use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
   use fundamental_constants_module, only: Gconst
   use actual_eos_module, only: K_const, gamma_const, polytrope_index
-  use probdata_module
+  use probdata_module, only: density_maximum_radius, inner_radius, outer_radius, ambient_density, torus_width, torus_center
   use prob_params_module, only: center
   use meth_params_module, only: point_mass
+#ifdef ROTATION
   use rotation_frequency_module, only: get_omega
+#endif
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none 
@@ -21,7 +23,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer, parameter :: maxlen = 127
   character :: probin*(maxlen)
 
-  real(rt)         :: omega(3)
+  real(rt) :: omega(3)
   
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -33,7 +35,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   read(untin,fortin)
   close(unit=untin)
 
+#ifdef ROTATION
   omega = get_omega(ZERO)
+#else
+  ! Provide a dummy value so that we can compile without rotation.
+  omega = [ZERO, ZERO, TWO * M_PI]
+#endif
 
   ! Figure out R_0, the maximum pressure radius.
   
@@ -57,15 +64,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_lo,state_hi, &
                        dx,xlo,xhi)
 
-  use amrex_constants_module
+  use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
   use fundamental_constants_module, only: Gconst
-  use probdata_module
+  use probdata_module, only: density_maximum_radius, inner_radius, outer_radius, ambient_density
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use actual_eos_module, only: polytrope_index, K_const
   use network, only: nspec
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, point_mass, do_rotation
+#ifdef ROTATION
   use rotation_frequency_module, only: get_omega
+#endif
   use math_module, only: cross_product
   use prob_params_module, only: center
   use castro_util_module, only: position
@@ -88,7 +97,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   real(rt)         :: omega(3)
 
+#ifdef ROTATION
   omega = get_omega(time)
+#else
+  omega = [ZERO, ZERO, TWO * M_PI]
+#endif
 
   ! Rotating torus of Papaloizou and Pringle (1984), MNRAS, 208, 721.
   ! http://adsabs.harvard.edu/abs/1985MNRAS.213..799P

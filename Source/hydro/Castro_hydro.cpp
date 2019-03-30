@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_hydro_F.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -11,6 +12,8 @@ void
 Castro::cons_to_prim(const Real time)
 {
 
+    BL_PROFILE("Castro::cons_to_prim()");
+    
 #ifdef RADIATION
     AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
 
@@ -123,8 +126,11 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
 void
 Castro::cons_to_prim_fourth(const Real time)
 {
-  // convert the conservative state cell averages to primitive cell
-  // averages with 4th order accuracy
+
+    BL_PROFILE("Castro::cons_to_prim_fourth()");
+    
+    // convert the conservative state cell averages to primitive cell
+    // averages with 4th order accuracy
 
     MultiFab& S_new = get_new_data(State_Type);
 
@@ -209,6 +215,8 @@ Castro::cons_to_prim_fourth(const Real time)
 void
 Castro::check_for_cfl_violation(const Real dt)
 {
+
+    BL_PROFILE("Castro::check_for_cfl_violation()");
 
     Real courno = -1.0e+200;
 

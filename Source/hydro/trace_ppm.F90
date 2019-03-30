@@ -1,7 +1,7 @@
-! These routines do the characteristic tracing under the parabolic
-! profiles in each zone to the edge / half-time.
-
 module trace_ppm_module
+  !
+  ! These routines do the characteristic tracing under the parabolic
+  ! profiles in each zone to the edge / half-time.
 
   use prob_params_module, only : dg
   use amrex_error_module
@@ -9,10 +9,6 @@ module trace_ppm_module
   use amrex_constants_module, only : ZERO, HALF, ONE
 
   implicit none
-
-  private
-
-  public trace_ppm
 
 contains
 
@@ -32,13 +28,12 @@ contains
 #endif
                        vlo, vhi, domlo, domhi, &
                        dx, dt)
-
     ! here, lo and hi are the range we loop over -- this can include ghost cells
     ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, NQSRC, ppm_predict_gammae, &
-                                   ppm_temp_fix, QU, QV, QW, npassive, qpass_map, fix_mass_flux
+                                   ppm_temp_fix, QU, QV, QW, npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
     implicit none
@@ -85,16 +80,7 @@ contains
     real(rt) :: un
     integer :: ipassive, n, i, j, k
 
-#if AMREX_SPACEDIM == 1
-    logical :: fix_mass_flux_lo, fix_mass_flux_hi
-
     !$gpu
-
-    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (lo(1) == domlo(1))
-    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (hi(1) == domhi(1))
-#endif
 
     ! the passive stuff is the same regardless of the tracing
     do ipassive = 1, npassive
@@ -147,10 +133,6 @@ contains
 
              end do
 
-#if AMREX_SPACEDIM == 1
-             if (fix_mass_flux_hi) qp(vhi(1)+1,j,k,n) = q(vhi(1)+1,j,k,n)
-             if (fix_mass_flux_lo) qm(vlo(1),j,k,n) = q(vlo(1)-1,j,k,n)
-#endif
           end do
        end do
 
@@ -238,8 +220,7 @@ contains
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-                                   ppm_reference_eigenvectors, &
-                                   fix_mass_flux
+                                   ppm_reference_eigenvectors
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
     implicit none
@@ -322,8 +303,6 @@ contains
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
 
-    logical :: fix_mass_flux_lo, fix_mass_flux_hi
-
 #ifndef AMREX_USE_CUDA
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
@@ -334,13 +313,6 @@ contains
     !$gpu
 
     hdt = HALF * dt
-
-#if AMREX_SPACEDIM == 1
-    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (vlo(1) == domlo(1))
-    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (vhi(1) == domhi(1))
-#endif
 
     !=========================================================================
     ! PPM CODE
@@ -639,23 +611,6 @@ contains
              end if
 #endif
 
-#if (AMREX_SPACEDIM == 1)
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_lo) then
-                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
-             end if
-
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_hi) then
-                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(vhi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
-                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
-             end if
-#endif
           end do
        end do
     end do
@@ -685,8 +640,7 @@ contains
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-                                   ppm_reference_eigenvectors, &
-                                   fix_mass_flux
+                                   ppm_reference_eigenvectors
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 
     implicit none
@@ -772,8 +726,6 @@ contains
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
     real(rt) :: tau_s
 
-    logical :: fix_mass_flux_lo, fix_mass_flux_hi
-
 #ifndef AMREX_USE_CUDA
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
@@ -784,13 +736,6 @@ contains
     !$gpu
 
     hdt = HALF * dt
-
-#if AMREX_SPACEDIM == 1
-    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (vlo(1) == domlo(1))
-    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (vhi(1) == domhi(1))
-#endif
 
     !=========================================================================
     ! PPM CODE
@@ -1111,23 +1056,6 @@ contains
              endif
 #endif
 
-#if (AMREX_SPACEDIM == 1)
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_lo) then
-                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
-             end if
-
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_hi) then
-                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(vhi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
-                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
-             end if
-#endif
           end do
        end do
     end do
@@ -1157,8 +1085,7 @@ contains
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFS, QFX, &
                                    small_dens, small_pres, &
                                    ppm_type, &
-                                   ppm_reference_eigenvectors, &
-                                   fix_mass_flux
+                                   ppm_reference_eigenvectors
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
@@ -1251,8 +1178,6 @@ contains
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
     real(rt) :: tau_s
 
-    logical :: fix_mass_flux_lo, fix_mass_flux_hi
-
 #ifndef AMREX_USE_CUDA
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
@@ -1263,13 +1188,6 @@ contains
     !$gpu
 
     hdt = HALF * dt
-
-#if AMREX_SPACEDIM == 1
-    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (vlo(1) == domlo(1))
-    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (vhi(1) == domhi(1))
-#endif
 
 
     !=========================================================================
@@ -1642,23 +1560,6 @@ contains
              endif
 #endif
 
-#if (AMREX_SPACEDIM == 1)
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_lo) then
-                qm(vlo(1),j,k,QRHO  ) = q(domlo(1)-1,j,k,QRHO)
-                qm(vlo(1),j,k,QUN   ) = q(domlo(1)-1,j,k,QUN )
-                qm(vlo(1),j,k,QPRES ) = q(domlo(1)-1,j,k,QPRES)
-                qm(vlo(1),j,k,QREINT) = q(domlo(1)-1,j,k,QREINT)
-             end if
-
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_hi) then
-                qp(vhi(1)+1,j,k,QRHO  ) = q(domhi(1)+1,j,k,QRHO)
-                qp(vhi(1)+1,j,k,QUN   ) = q(domhi(1)+1,j,k,QUN  )
-                qp(vhi(1)+1,j,k,QPRES ) = q(domhi(1)+1,j,k,QPRES)
-                qp(vhi(1)+1,j,k,QREINT) = q(domhi(1)+1,j,k,QREINT)
-             end if
-#endif
           end do
        end do
     end do

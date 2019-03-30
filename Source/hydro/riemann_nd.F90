@@ -26,12 +26,10 @@ module riemann_module
 
   implicit none
 
-  private
-
-  public :: riemanncg, riemannus, hllc, cmpflx, cmpflx_plus_godunov, riemann_state
-
   real(rt), parameter :: smallu = 1.e-12_rt
   real(rt), parameter :: small = 1.e-8_rt
+
+  private :: smallu, small
 
 contains
 
@@ -274,23 +272,7 @@ contains
 
 
 
-  !> @brief just compute the hydrodynamic state on the interfaces
-  !! don't compute the fluxes
-  !!
-  !! @param[in] qpd_lo integer
-  !! @param[in] q_lo integer
-  !! @param[in] qa_lo integer
-  !! @param[in] idir integer
-  !! @param[in] lo integer
-  !! @param[in] domlo integer
-  !! @param[in] nc integer
-  !! @param[in] comp integer
-  !! @param[in] compute_gammas logical
-  !! @param[inout] qm real(rt)
-  !! @param[inout] qp real(rt)
-  !! @param[inout] qint real(rt)
-  !! @param[in] qaux real(rt)
-  !!
+
   subroutine riemann_state(qm, qm_lo, qm_hi, &
                            qp, qp_lo, qp_hi, nc, comp, &
                            qint, q_lo, q_hi, &
@@ -299,6 +281,8 @@ contains
 #endif
                            qaux, qa_lo, qa_hi, &
                            idir, lo, hi, domlo, domhi, compute_gammas)
+    ! just compute the hydrodynamic state on the interfaces
+    ! don't compute the fluxes
 
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
@@ -475,31 +459,18 @@ contains
 
 
 
-  !> @brief this implements the approximate Riemann solver of Colella & Glaz
-  !! (1985)
-  !!
-  !! this version is dimension agnostic -- for 1- and 2-d, set kc,
-  !! kflux, and k3d to 0
-  !!
-  !! @param[in] qpd_lo integer
-  !! @param[in] qa_lo integer
-  !! @param[in] q_lo integer
-  !! @param[in] idir integer
-  !! @param[in] lo integer
-  !! @param[in] domlo integer
-  !! @param[in] nc integer
-  !! @param[in] comp integer
-  !! @param[in] ql real(rt)
-  !! @param[in] qr real(rt)
-  !! @param[in] qaux real(rt)
-  !! @param[inout] qint real(rt)
-  !!
+
   subroutine riemanncg(ql, ql_lo, ql_hi, &
                        qr, qr_lo, qr_hi, nc, comp, &
                        qaux, qa_lo, qa_hi, &
                        qint, q_lo, q_hi, &
                        idir, lo, hi, &
                        domlo, domhi)
+    ! this implements the approximate Riemann solver of Colella & Glaz
+    ! (1985)
+    !
+    ! this version is dimension agnostic -- for 1- and 2-d, set kc,
+    ! kflux, and k3d to 0
 
     use amrex_error_module
 #ifndef AMREX_USE_CUDA
@@ -1095,11 +1066,6 @@ contains
   end subroutine riemanncg
 
 
-  !> @brief Colella, Glaz, and Ferguson solver
-  !!
-  !! this is a 2-shock solver that uses a very simple approximation for the
-  !! star state, and carries an auxiliary jump condition for (rho e) to
-  !! deal with a real gas
   subroutine riemannus(ql, ql_lo, ql_hi, &
                        qr, qr_lo, qr_hi, nc, comp, &
                        qaux, qa_lo, qa_hi, &
@@ -1109,6 +1075,11 @@ contains
 #endif
                        idir, lo, hi, &
                        domlo, domhi, compute_interface_gamma)
+    ! Colella, Glaz, and Ferguson solver
+    !
+    ! this is a 2-shock solver that uses a very simple approximation for the
+    ! star state, and carries an auxiliary jump condition for (rho e) to
+    ! deal with a real gas
 
     use prob_params_module, only : physbc_lo, physbc_hi, &
                                    Symmetry, SlipWall, NoSlipWall
@@ -1653,28 +1624,6 @@ contains
   end subroutine riemannus
 
 
-  !> @brief this is an implementation of the HLLC solver described in Toro's
-  !! book.  it uses the simplest estimate of the wave speeds, since
-  !! those should work for a general EOS.  We also initially do the
-  !! CGF Riemann construction to get pstar and ustar, since we'll
-  !! need to know the pressure and velocity on the interface for the
-  !! pdV term in the internal energy update.
-  !!
-  !! @param[in] qpd_lo integer
-  !! @param[in] qa_lo integer
-  !! @param[in] uflx_lo integer
-  !! @param[in] q_lo integer
-  !! @param[in] idir integer
-  !! @param[in] lo integer
-  !! @param[in] domlo integer
-  !! @param[in] nc integer
-  !! @param[in] comp integer
-  !! @param[in] ql real(rt)
-  !! @param[in] qr real(rt)
-  !! @param[in] qaux real(rt)
-  !! @param[inout] uflx real(rt)
-  !! @param[inout] qgdnv real(rt)
-  !!
   subroutine HLLC(ql, ql_lo, ql_hi, &
                   qr, qr_lo, qr_hi, nc, comp, &
                   qaux, qa_lo, qa_hi, &
@@ -1682,6 +1631,12 @@ contains
                   qint, q_lo, q_hi, &
                   idir, lo, hi, &
                   domlo, domhi)
+    ! this is an implementation of the HLLC solver described in Toro's
+    ! book.  it uses the simplest estimate of the wave speeds, since
+    ! those should work for a general EOS.  We also initially do the
+    ! CGF Riemann construction to get pstar and ustar, since we'll
+    ! need to know the pressure and velocity on the interface for the
+    ! pdV term in the internal energy update.
 
     use prob_params_module, only : physbc_lo, physbc_hi, &
          Symmetry, SlipWall, NoSlipWall

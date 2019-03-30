@@ -10,6 +10,8 @@ using namespace amrex;
 void
 Castro::apply_source_to_state(MultiFab& target_state, MultiFab& source, Real dt, int ng)
 {
+    BL_PROFILE("Castro::apply_source_to_state()");
+
     AMREX_ASSERT(source.nGrow() >= ng);
     AMREX_ASSERT(target_state.nGrow() >= ng);
 
@@ -46,9 +48,21 @@ Castro::source_flag(int src)
 	else
 	    return false;
 
+    case thermo_src:
+        if (time_integration_method == MethodOfLines ||
+            time_integration_method == SpectralDeferredCorrections)
+          return true;
+        else
+          return false;
+
 #ifdef DIFFUSION
     case diff_src:
-	return true;
+        if (diffuse_temp) {
+            return true;
+        }
+        else {
+            return false;
+        }
 #endif
 
 #ifdef HYBRID_MOMENTUM
@@ -92,11 +106,6 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_in, Real time, Real dt,
 
     for (int n = 0; n < num_src; ++n)
         construct_old_source(n, source, state_in, time, dt, amr_iteration, amr_ncycle);
-
-    // The individual source terms only calculate the source on the valid domain.
-    // FillPatch to get valid data in the ghost zones.
-
-    AmrLevel::FillPatch(*this, source, source.nGrow(), time, Source_Type, 0, NUM_STATE);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -175,6 +184,8 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
 void
 Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::construct_old_source()");
+    
     BL_ASSERT(src >= 0 && src < num_src);
 
     switch(src) {
@@ -226,6 +237,8 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real
 void
 Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
+    BL_PROFILE("Castro::construct_new_source()");
+
     BL_ASSERT(src >= 0 && src < num_src);
 
     switch(src) {
@@ -297,6 +310,8 @@ Vector<Real>
 Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
 {
 
+  BL_PROFILE("Castro::evaluate_source_change()");
+    
   Vector<Real> update(source.nComp(), 0.0);
 
   // Create a temporary array which will hold a single component
@@ -390,6 +405,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 void
 Castro::sum_of_sources(MultiFab& source)
 {
+  BL_PROFILE("Castro::sum_of_sources()");
 
   // this computes advective_source + 1/2 (old source + new source)
   //
@@ -419,6 +435,9 @@ Castro::sum_of_sources(MultiFab& source)
 void
 Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
 {
+
+    BL_PROFILE("Castro::get_react_source_prim()");
+
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 

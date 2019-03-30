@@ -35,7 +35,7 @@ C++
 C++ to Fortran
 ==============
 
-* All C to Fortran interfaces should use the ISO C binding.  The 
+* All C to Fortran interfaces should use the ISO C binding.  The
   Fortran subroutine should use
 
   .. code:: fortran
@@ -66,18 +66,25 @@ Fortran
 * Use the ``only`` clause in module ``use`` statements to explicitly
   make clear what is being accessed.
 
+* In a module, there should be no "top-level" ``use`` statements (with
+  the exception of getting access to the ``rt`` type).  Instead each
+  function / subroutine in the module  should use what it needs directly.
+
+* New Fortran files should have the .F90 file extension, not the .f90
+  file extension, so that they can be preprocessed.
+
 
 Documentation
 =============
 
-A routines should use Doxygen style comments.
+C++ routines should use Doxygen style comments.
 
 * C++ functions should be documented in the header file using the style:
 
   .. code:: c++
 
      ///
-     /// Description of the function 
+     /// Description of the function
      ///
      /// @param bar       Brief description of the variable
      ///
@@ -90,16 +97,22 @@ A routines should use Doxygen style comments.
 
      int var; ///< Brief description after the variable
 
+Fortran functions should use Sphinx style comments
+
 * Fortran functions should be documented by placing a comment block
-  before their definition using the style:
+  immediately after their prototype (i.e. `without` a line in betwen ) using the style:
 
   .. code:: fortran
 
-     !> @brief Description of the function
-     !!
-     !! @param bar      Brief description of the variable
      subroutine foo(bar)
+       ! Description of the function
+
+       use some_module
+
+       implicit none
+
+       integer, intent(inout) :: bar   ! Brief description of bar
        ...
 
   Documentation for modules should be similarly formatted, with the comment block again
-  coming `before` the module definition.
+  coming `immediately` after the module definition.

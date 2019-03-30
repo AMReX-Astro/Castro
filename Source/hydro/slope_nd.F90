@@ -4,10 +4,6 @@ module slope_module
 
   implicit none
 
-  private
-
-  public uslope, pslope
-
 contains
 
   ! :::

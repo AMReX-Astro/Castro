@@ -1,0 +1,2 @@
+ca_F90EXE_sources += dustcollapse_util.F90
+CEXE_headers += Sedov_F.H

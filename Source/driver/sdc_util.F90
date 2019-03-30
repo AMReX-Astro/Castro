@@ -25,7 +25,6 @@ contains
 
 #ifdef REACTIONS
   subroutine sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
-
     ! the purpose of this function is to solve the system
     ! U - dt R(U) = U_old + dt C
 
@@ -34,14 +33,15 @@ contains
     ! satisfies the nonlinear function
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
-         sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe, sdc_use_analytic_jac
+                                   sdc_order, sdc_solver, &
+                                   sdc_solver_tol, sdc_solver_relax_factor, &
+                                   sdc_solve_for_rhoe, sdc_use_analytic_jac
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
     use extern_probin_module, only : SMALL_X_SAFE
     use network, only : nspec, nspec_evolve
     use rpar_sdc_module
-
 
     implicit none
 
@@ -68,6 +68,7 @@ contains
     real(rt) :: rwork(lrw)
     integer :: iwork(liw)
     real(rt) :: time
+    real(rt) :: tol
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
@@ -82,7 +83,6 @@ contains
     integer :: m, n
 
     real(rt) :: err
-    real(rt), parameter :: tol = 1.e-5_rt
     integer, parameter :: MAX_ITER = 100
     integer :: iter
 
@@ -106,6 +106,9 @@ contains
     else
        call amrex_error("invalid sdc_solver")
     endif
+
+    ! the tolerance we are solving to may depend on the iteration
+    tol = sdc_solver_tol / sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
 
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
@@ -180,6 +183,7 @@ contains
        U_react(nspec_evolve+1) = U_old(UEINT)
     endif
 
+#if (INTEGRATOR == 0)
     if (solver == NEWTON_SOLVE) then
        ! do a simple Newton solve
 
@@ -199,6 +203,7 @@ contains
           endif
 
           f_rhs(:) = -f(:)
+
           call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f_rhs, 0)
 
           dU_react(:) = f_rhs(:)
@@ -244,7 +249,7 @@ contains
        endif
 
        call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
-                  1, sdc_solver_tol, 1.e-100_rt, &
+                  1, tol, 1.e-100_rt, &
                   1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
 
        if (istate < 0) then
@@ -252,6 +257,7 @@ contains
        endif
 
     endif
+#endif
 
     ! update the full U_new
     ! if we updated total energy, then correct internal, or vice versa
@@ -269,7 +275,6 @@ contains
 
 
   subroutine f_ode(n, t, U, dUdt, rpar, ipar)
-
     ! this is the righthand side for the ODE system that we will use
     ! with VODE
 
@@ -321,7 +326,6 @@ contains
   end subroutine f_ode
 
   subroutine jac_ode(n, time, U, ml, mu, Jac, nrowpd, rpar, ipar)
-
     ! this is the Jacobian function for use with VODE
 
     use amrex_constants_module, only : ZERO, ONE
@@ -406,7 +410,6 @@ contains
   end subroutine jac_ode
 
   subroutine f_sdc(n, U, f, iflag, rpar)
-
     ! this is used by the Newton solve to compute the Jacobian via differencing
 
     use rpar_sdc_module
@@ -464,7 +467,6 @@ contains
   end subroutine f_sdc
 
   subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, rpar)
-
     ! this is used with the Newton solve and returns f and the Jacobian
 
     use rpar_sdc_module
@@ -620,7 +622,6 @@ contains
                                         A_0_old, A0lo, A0hi, &
                                         A_1_old, A1lo, A1hi, &
                                         m_start) bind(C, name="ca_sdc_update_advection_o2")
-
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
     use meth_params_module, only : NVAR
@@ -666,7 +667,6 @@ contains
                                         A_1_old, A1lo, A1hi, &
                                         A_2_old, A2lo, A2hi, &
                                         m_start) bind(C, name="ca_sdc_update_advection_o4")
-
     ! update k_m to k_n via advection -- this is a second-order accurate update
     ! dt is the total timestep from n to n+1
 
@@ -725,7 +725,7 @@ contains
        enddo
 
     else
-       call amrex_error("error in ca_sdc_update_advection_o4 -- shouldn't be here")
+       call amrex_error("error in ca_sdc_update_advection_o4 -- should not be here")
     endif
 
   end subroutine ca_sdc_update_advection_o4
@@ -742,12 +742,11 @@ contains
                                R_2_old, R2lo, R2hi, &
                                C, Clo, Chi, &
                                m_start) bind(C, name="ca_sdc_compute_C4")
-
     ! compute the 'C' term for the 4th-order solve with reactions
     ! note: this 'C' is cell-averages
 
     use meth_params_module, only : NVAR
-    use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT, TWELFTH
+    use amrex_constants_module, only : ONE, HALF, TWO, FIVE, EIGHT
 
     implicit none
 
@@ -778,23 +777,24 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             ! compute the integral (without the dt)
+             ! compute the integral (without the dt).  Note that each of these is over
+             ! dt/2
              if (m_start == 0) then
-                integral(:) = TWELFTH * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
-                                         EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
-                                         (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+                integral(:) = ONE/12.0_rt * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                             EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
+                                             (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
 
              else if (m_start == 1) then
-                integral(:) = TWELFTH * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
-                                         EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
-                                         FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+                integral(:) = ONE/12.0_rt * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                             EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                                             FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
 
              else
-                call amrex_error("error in ca_sdc_compute_C4 -- shouldn't be here")
+                call amrex_error("error in ca_sdc_compute_C4 -- should not be here")
              endif
 
           enddo
@@ -814,7 +814,6 @@ contains
                               R_1_old, R1lo, R1hi, &
                               sdc_iteration, &
                               m_start) bind(C, name="ca_sdc_update_o2")
-
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
     use meth_params_module, only : NVAR
@@ -905,8 +904,10 @@ contains
                                       C, C_lo, C_hi, &
                                       sdc_iteration) &
                                       bind(C, name="ca_sdc_update_centers_o4")
-
-    ! update k_m to k_n via advection -- this is a fourth-order accurate update
+    ! update U_old to U_new on cell-centers.  This is an implicit
+    ! solve because of reactions.  Here U_old corresponds to time node
+    ! m and U_new is node m+1.  dt_m is the timestep between m and
+    ! m+1, which is dt_m = dt/2.
 
     use meth_params_module, only : NVAR
 
@@ -925,7 +926,6 @@ contains
 
     integer :: i, j, k
 
-    ! now consider the reacting system
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -950,7 +950,6 @@ contains
                                         C, C_lo, C_hi, &
                                         R_new, R_lo, R_hi) &
                                         bind(C, name="ca_sdc_conservative_update")
-
     ! given <U>_old, <R>_new, and <C>, compute <U>_new
 
     use meth_params_module, only : NVAR
@@ -1026,6 +1025,7 @@ contains
                                      state, s_lo, s_hi, &
                                      R_store, rs_lo, rs_hi) &
                                      bind(C, name="ca_store_reaction_state")
+     ! copy the data from the last node's reactive source to the state data
 
     use meth_params_module, only : NVAR, URHO, UEDEN, UFS
     use network, only : nspec
@@ -1043,7 +1043,7 @@ contains
 
     integer :: i, j, k
 
-    ! copy the data from the last node's reactive source to the state data
+
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

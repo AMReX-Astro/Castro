@@ -407,10 +407,12 @@ public:
                                 int  amr_iteration,
                                 int  amr_ncycle);
 
+#ifndef AMREX_USE_CUDA
     amrex::Real do_advance_sdc (amrex::Real time,
                                 amrex::Real dt,
                                 int  amr_iteration,
                                 int  amr_ncycle);
+#endif
 
 ///
 /// Should we retry advancing the simulation? By default, we
@@ -943,6 +945,20 @@ public:
 ///
     virtual void post_init (amrex::Real stop_time) override;
 
+#ifdef GRAVITY
+#ifdef ROTATION
+///
+/// Initialize a model using the self-consistent field method.
+///
+    void scf_relaxation();
+
+///
+/// Perform the Hachisu SCF method.
+///
+    void do_hscf_solve();
+#endif
+#endif
+
 ///
 /// Do work after restart with ``grown_factor`` > 1
 ///
@@ -1044,6 +1060,8 @@ public:
 			 int                dcomp) override;
 
     static int numGrow();
+
+    static int numState();
 
 #ifdef REACTIONS
 ///
@@ -1171,8 +1189,9 @@ public:
 /// Reset the internal energy
 ///
 /// @param State    Current state
+/// @param ng       number of ghost cells
 ///
-    void reset_internal_energy (amrex::MultiFab& State);
+    void reset_internal_energy (amrex::MultiFab& State, int ng);
 
 
 
@@ -1497,8 +1516,15 @@ public:
 ///
     amrex::Real locSquaredSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
-#ifdef POINTMASS
+#ifdef GRAVITY
+///
+/// Are we using point mass gravity?
+///
     int using_point_mass ();
+
+///
+/// Return the value of the point mass.
+///
     amrex::Real get_point_mass ();
 #endif
 
@@ -1597,11 +1623,35 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
+#ifndef AMREX_USE_CUDA
     void do_sdc_update(int m1, int m2, amrex::Real dt);
+#endif
 
 #ifdef REACTIONS
-    void construct_old_react_source(amrex::MultiFab& U_state, amrex::MultiFab& R_source);
+/// Take an input conserved state U_state, evaluate the instantaneous
+/// reaction rates, and store the result in R_source/
+///
+/// Special consideration is needed for fourth_order accuracy:
+///
+///  * If we come in with U_state representing an average
+///    (input_is_average = true), then, for fourth_order, we will
+///    convert U_state to cell-centers (consuming one ghost cell),
+///    burn on the cell-centers (including one ghost cell) and then
+///    average back to cell-centers (consuming another ghosst cell).
+///    This requires >= 2 ghost cells for U_state, which we assume
+///    are valid.
+///
+///  * If we come in with U_state representing cell centers
+///    (input_is_average = false), then we just return R_source
+///    at the cell-centers.
+///
+    void construct_old_react_source(amrex::MultiFab& U_state,
+                                    amrex::MultiFab& R_source,
+                                    const bool input_is_average);
 #endif
+
+// Hydrodynamics
+#include <Castro_hydro.H>
 
 #ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
@@ -1670,6 +1720,15 @@ public:
 ///     non-integer number.
 ///
     static amrex::Real num_zones_advanced;
+
+#ifdef AMREX_USE_CUDA
+///
+/// Minimum CUDA threadblock size for BC fills.
+///
+    static int numBCThreadsMin[3];
+
+    static int minBCThreads(int dir) { return numBCThreadsMin[dir]; }
+#endif
 
 protected:
 
@@ -1997,8 +2056,7 @@ protected:
     void write_center ();
 #endif
 
-#ifdef POINTMASS
-
+#ifdef GRAVITY
 ///
 /// @param time     current time
 /// @param dt       timestep
@@ -2022,11 +2080,6 @@ protected:
 /// Keep track of which AMR iteration we're on.
 ///
     int iteration;
-
-    //
-    // Hydrodynamics
-    //
-#include <Castro_hydro.H>
 
     //
     // Static data members.
@@ -2111,7 +2164,6 @@ protected:
     static amrex::AmrTracerParticleContainer* TracerPC;
 #endif
 
-
 ///
 /// Name of the probin file and its length.
 ///
@@ -2166,6 +2218,13 @@ Castro::numGrow()
 }
 
 inline
+int
+Castro::numState()
+{
+    return NUM_STATE;
+}
+
+inline
 amrex::MultiFab*
 Castro::Area ()
 {
@@ -2217,7 +2276,7 @@ Castro::get_output_at_completion()
     return output_at_completion;
 }
 
-#ifdef POINTMASS
+#ifdef GRAVITY
 inline
 amrex::Real
 Castro::get_point_mass ()
@@ -2232,6 +2291,5 @@ Castro::using_point_mass ()
     return use_point_mass;
 }
 #endif
-
 
 #endif /*_Castro_H_*/

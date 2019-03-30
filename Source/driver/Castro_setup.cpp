@@ -4,6 +4,15 @@
 #include <AMReX_ParmParse.H>
 #include "Castro.H"
 #include "Castro_F.H"
+#ifdef AMREX_DIMENSION_AGNOSTIC
+#include "Castro_bc_fill_nd_F.H"
+#include "Castro_bc_fill_nd.H"
+#else
+#include "Castro_bc_fill_F.H"
+#include "Castro_bc_fill.H"
+#endif
+#include "Castro_generic_fill_F.H"
+#include "Castro_generic_fill.H"
 #include <Derive_F.H>
 #include "Derive.H"
 #ifdef RADIATION
@@ -677,7 +686,7 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  if (time_integration_method == SpectralDeferredCorrections && fourth_order == 1) {
+  if (time_integration_method == SpectralDeferredCorrections && (mol_order == 4 || sdc_order == 4)) {
 
     // we are doing 4th order reactive SDC.  We need 2 ghost cells here
     SDC_Source_Type = desc_lst.size();
@@ -1032,6 +1041,33 @@ Castro::variableSetUp ()
   source_names[rot_src] = "rotation";
 #endif
 
+#ifdef AMREX_USE_CUDA
+  // Set the minimum number of threads needed per
+  // threadblock to do BC fills with CUDA. We will
+  // force this to be 8. The reason is that it is
+  // not otherwise guaranteed for our thread blocks
+  // to be aligned with the grid in such a way that
+  // the synchronization logic in amrex_filccn works
+  // out. We need at least NUM_GROW + 1 threads in a
+  // block for CTU. If we used this minimum of 5, we
+  // would hit cases where this doesn't work since
+  // our blocking_factor is usually a power of 2, and
+  // the thread blocks would not be aligned to guarantee
+  // that the threadblocks containing the ghost zones
+  // contained all of the ghost zones, as well as the
+  // required interior zone. And for reflecting BCs,
+  // we need NUM_GROW * 2 == 8 threads anyway. This logic
+  // then requires that blocking_factor be a multiple
+  // of 8. It is a little wasteful for MOL/SDC and for
+  // problems that only have outflow BCs, but the BC
+  // fill is not the expensive part of the algorithm
+  // for our production science problems anyway, so
+  // we ignore this extra cost in favor of safety.
+
+  for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+      numBCThreadsMin[dim] = 8;
+  }
+#endif
 
   // method of lines Butcher tableau
   if (mol_order == 1) {

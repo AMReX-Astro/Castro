@@ -20,6 +20,7 @@
 using std::string;
 using namespace amrex;
 
+#ifndef AMREX_USE_CUDA
 Real
 Castro::do_advance_sdc (Real time,
                         Real dt,
@@ -82,9 +83,46 @@ Castro::do_advance_sdc (Real time,
 #endif
 
     if (apply_sources()) {
+#ifndef AMREX_USE_CUDA
+      if (sdc_order == 4) {
+        // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
+        // we'll reuse sources_for_hydro for this memory buffer at the moment
 
-      // we pass in the stage time here
-      do_old_sources(old_source, Sborder, node_time, dt, amr_iteration, amr_ncycle);
+        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+          const Box& gbx = mfi.growntilebox(1);
+          ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
+                              BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                              BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]));
+
+        }
+
+        // we pass in the stage time here
+        do_old_sources(old_source, sources_for_hydro, node_time, dt, amr_iteration, amr_ncycle);
+
+        // fill the ghost cells for the sources -- note since we have
+        // not defined the new_source yet, we either need to copy this
+        // into new_source for the time-interpolation in the ghost
+        // fill to make sense, or so long as we are not multilevel,
+        // just use the old time (prev_time) in the fill instead of
+        // the node time (time)
+        AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
+
+        // Now convert to cell averages.  This loop cannot be tiled.
+        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+          const Box& bx = mfi.tilebox();
+          ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
+                                  BL_TO_FORTRAN_FAB(old_source[mfi]));
+        }
+
+      } else {
+        do_old_sources(old_source, Sborder, node_time, dt, amr_iteration, amr_ncycle);
+      }
+
+      // note: we don't need a FillPatch on the sources, since they
+      // are only used in the valid box in the conservative flux
+      // update construction
+
+#endif
 
       // hack: copy the source to the new data too, so fillpatch doesn't have to
       // worry about time
@@ -108,7 +146,7 @@ Castro::do_advance_sdc (Real time,
     // will be used to advance us to the next node the new time
 
     // Construct the primitive variables.
-    if (fourth_order) {
+    if (sdc_order == 4) {
       cons_to_prim_fourth(time);
     } else {
       cons_to_prim(time);
@@ -144,7 +182,14 @@ Castro::do_advance_sdc (Real time,
     // if this is the first node of a new iteration, then we need
     // to compute and store the old reactive source
     if (m == 0 && sdc_iteration == 0) {
-      construct_old_react_source(Sborder, *(R_old[0]));
+      // we'll burn in one ghost cell to allow us to do 4th order
+      // averaging as needed.  Put the old state in Sburn and
+      // FillPatch
+      MultiFab::Copy(S_new, *(k_new[0]), 0, 0, S_new.nComp(), 0);
+      // do we need to clean?
+      expand_state(Sburn, cur_time, -1, 2);
+      bool input_is_average = true;
+      construct_old_react_source(Sburn, *(R_old[0]), input_is_average);
 
       // copy to the other nodes -- since the state is the same on all
       // nodes for sdc_iteration == 0
@@ -182,11 +227,11 @@ Castro::do_advance_sdc (Real time,
   // m = 0, since that state never changes.
 
   for (int m = 1; m < SDC_NODES; ++m) {
-    // use a temporary storage
     // TODO: do we need a clean state here?
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
-    expand_state(Sborder, cur_time, Sborder.nGrow());
-    construct_old_react_source(Sborder, *(R_old[m]));
+    expand_state(Sburn, cur_time, 2);
+    bool input_is_average = true;
+    construct_old_react_source(Sburn, *(R_old[m]), input_is_average);
   }
 #endif
 
@@ -208,14 +253,15 @@ Castro::do_advance_sdc (Real time,
   expand_state(Sborder, prev_time, Sborder.nGrow());
   clean_state(Sborder, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+  AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
 
   expand_state(Sborder, cur_time, Sborder.nGrow());
   clean_state(Sborder, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
-
+  AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
 
   finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
   return dt;
 }
-
+#endif
