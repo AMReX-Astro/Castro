@@ -7,7 +7,7 @@ amr.max_level       = 1
 amr.n_cell          = 96 96 96 
 amr.max_grid_size   = 48
 
-max_step = 10
+#max_step = 10
 
 castro.max_dt = 1.e-5
 
@@ -54,7 +54,7 @@ castro.riemann_solver = 1
 castro.allow_negative_energy = 0
 
 # TIME STEP CONTROL
-castro.cfl            = 0.1    # cfl number for hyperbolic system
+castro.cfl            = 0.5    # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1    # scale back initial timestep
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
