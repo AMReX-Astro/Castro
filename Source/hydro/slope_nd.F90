@@ -66,7 +66,11 @@ contains
                    dcen = FOURTH * (dlftp1 + drgtp1)
                    dsgn = sign(ONE, dcen)
                    slop = min(abs(dlftp1), abs(drgtp1))
-                   dlim = merge(slop, ZERO, dlftp1*drgtp1 >= ZERO)
+                   if (dlftp1*drgtp1 >= ZERO) then
+                      dlim = slop
+                   else
+                      dlim = ZERO
+                   end if
                    dfp1 = dsgn*min(dlim, abs(dcen))
 
                    ! df at i-1
@@ -75,7 +79,11 @@ contains
                    dcen = FOURTH * (dlftm1 + drgtm1)
                    dsgn = sign(ONE, dcen)
                    slop = min(abs(dlftm1), abs(drgtm1))
-                   dlim = merge(slop, ZERO, dlftm1*drgtm1 >= ZERO)
+                   if (dlftm1*drgtm1 >= ZERO) then
+                      dlim = slop
+                   else
+                      dlim = ZERO
+                   end if
                    dfm1 = dsgn*min(dlim, abs(dcen))
 
                    ! Now compute limited fourth order slopes at i
@@ -84,7 +92,11 @@ contains
                    dcen = FOURTH * (dlft + drgt)
                    dsgn = sign(ONE, dcen)
                    slop = min(abs(dlft), abs(drgt))
-                   dlim = merge(slop, ZERO, dlft*drgt >= ZERO)
+                   if (dlft*drgt >= ZERO) then
+                      dlim = slop
+                   else
+                      dlim = ZERO
+                   end if
 
                    dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
                    dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
@@ -109,7 +121,11 @@ contains
                    dcen = FOURTH * (dlftp1 + drgtp1)
                    dsgn = sign(ONE, dcen)
                    slop = min(abs(dlftp1), abs(drgtp1))
-                   dlim = merge(slop, ZERO, dlftp1*drgtp1 >= ZERO)
+                   if (dlftp1*drgtp1 >= ZERO) then
+                      dlim = slop
+                   else
+                      dlim = ZERO
+                   end if
                    dfp1 = dsgn*min(dlim, abs(dcen))
 
                    ! df at j-1
@@ -118,7 +134,11 @@ contains
                    dcen = FOURTH * (dlftm1 + drgtm1)
                    dsgn = sign(ONE, dcen)
                    slop = min(abs(dlftm1), abs(drgtm1))
-                   dlim = merge(slop, ZERO, dlftm1*drgtm1 >= ZERO)
+                   if (dlftm1*drgtm1 >= ZERO) then
+                      dlim = slop
+                   else
+                      dlim = ZERO
+                   end if
                    dfm1 = dsgn*min(dlim, abs(dcen))
 
                    ! Now compute limited fourth order slopes at j
@@ -127,7 +147,11 @@ contains
                    dcen = FOURTH * (dlft + drgt)
                    dsgn = sign(ONE, dcen)
                    slop = min(abs(dlft), abs(drgt))
-                   dlim = merge(slop, ZERO, dlft*drgt >= ZERO)
+                   if (dlft*drgt >= ZERO) then
+                      dlim = slop
+                   else
+                      dlim = ZERO
+                   end if
 
                    dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
                    dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
@@ -153,7 +177,11 @@ contains
                    dcen = FOURTH * (dlftp1 + drgtp1)
                    dsgn = sign(ONE, dcen)
                    slop = min(abs(dlftp1), abs(drgtp1))
-                   dlim = merge(slop, ZERO, dlftp1*drgtp1 >= ZERO)
+                   if (dlftp1*drgtp1 >= ZERO) then
+                      dlim = slop
+                   else
+                      dlim = ZERO
+                   end if
                    dfp1 = dsgn*min(dlim, abs(dcen))
 
                    ! df at k-1
@@ -162,7 +190,11 @@ contains
                    dcen = FOURTH * (dlftm1 + drgtm1)
                    dsgn = sign(ONE, dcen)
                    slop = min(abs(dlftm1), abs(drgtm1))
-                   dlim = merge(slop, ZERO, dlftm1*drgtm1 >= ZERO)
+                   if (dlftm1*drgtm1 >= ZERO) then
+                      dlim = slop
+                   else
+                      dlim = ZERO
+                   end if
                    dfm1 = dsgn*min(dlim, abs(dcen))
 
                    ! Now compute limited fourth order slopes at k
@@ -171,7 +203,11 @@ contains
                    dcen = FOURTH * (dlft + drgt)
                    dsgn = sign(ONE, dcen)
                    slop = min(abs(dlft), abs(drgt))
-                   dlim = merge(slop, ZERO, dlft*drgt >= ZERO)
+                   if (dlft*drgt >= ZERO) then
+                      dlim = slop
+                   else
+                      dlim = ZERO
+                   end if
 
                    dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
                    dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
@@ -256,7 +292,11 @@ contains
 
                    dcen = HALF*(dlftp1 + drgtp1)
                    dsgn = sign(ONE, dcen)
-                   dlim = merge(TWO * min(abs(dlftp1), abs(drgtp1)), ZERO, dlftp1*drgtp1 >= ZERO)
+                   if (dlftp1*drgtp1 >= ZERO) then
+                      dlim = TWO * min(abs(dlftp1), abs(drgtp1))
+                   else
+                      dlim = ZERO
+                   end if
                    dfp1 = dsgn*min(dlim, abs(dcen))
 
                    ! df at i-1
@@ -271,7 +311,11 @@ contains
 
                    dcen = HALF*(dlftm1 + drgtm1)
                    dsgn = sign(ONE, dcen)
-                   dlim = merge(TWO * min(abs(dlftm1), abs(drgtm1)), ZERO, dlftm1*drgtm1 >= ZERO)
+                   if (dlftm1*drgtm1 >= ZERO) then
+                      dlim = TWO * min(abs(dlftm1), abs(drgtm1))
+                   else
+                      dlim = ZERO
+                   end if
                    dfm1 = dsgn*min(dlim, abs(dcen))
 
                    ! Now limited fourth order slopes at i
@@ -279,7 +323,11 @@ contains
                    drgt = dlftp1
                    dcen = HALF*(dlft + drgt)
                    dsgn = sign(ONE, dcen)
-                   dlim = merge(TWO * min(abs(dlft), abs(drgt)), ZERO, dlft*drgt >= ZERO)
+                   if (dlft*drgt >= ZERO) then
+                      dlim = TWO * min(abs(dlft), abs(drgt))
+                   else
+                      dlim = ZERO
+                   end if
 
                    dp1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
                    dq(i,j,k,QPRES) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
@@ -311,7 +359,11 @@ contains
 
                    dcen = HALF*(dlftp1 + drgtp1)
                    dsgn = sign(ONE, dcen)
-                   dlim = merge(TWO * min(abs(dlftp1), abs(drgtp1)), ZERO, dlftp1*drgtp1 >= ZERO)
+                   if (dlftp1*drgtp1 >= ZERO) then
+                      dlim = TWO * min(abs(dlftp1), abs(drgtp1))
+                   else
+                      dlim = ZERO
+                   end if
                    dfp1 = dsgn*min(dlim, abs(dcen))
 
                    ! df at j-1
@@ -326,7 +378,11 @@ contains
 
                    dcen = HALF*(dlftm1 + drgtm1)
                    dsgn = sign(ONE, dcen)
-                   dlim = merge(TWO * min(abs(dlftm1), abs(drgtm1)), ZERO, dlftm1*drgtm1 >= ZERO)
+                   if (dlftm1*drgtm1 >= ZERO) then
+                      dlim = TWO * min(abs(dlftm1), abs(drgtm1))
+                   else
+                      dlim = ZERO
+                   end if
                    dfm1 = dsgn*min(dlim, abs(dcen))
 
                    ! Now limited fourth order slopes at j
@@ -335,7 +391,11 @@ contains
 
                    dcen = HALF*(dlft+drgt)
                    dsgn = sign(ONE, dcen)
-                   dlim = merge(TWO * min(abs(dlft), abs(drgt)), ZERO, dlft*drgt >= ZERO)
+                   if (dlft*drgt >= ZERO) then
+                      dlim = TWO * min(abs(dlft), abs(drgt))
+                   else
+                      dlim = ZERO
+                   end if
 
                    dp1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
                    dq(i,j,k,QPRES) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
@@ -367,7 +427,11 @@ contains
 
                    dcen = HALF*(dlftp1 + drgtp1)
                    dsgn = sign(ONE, dcen)
-                   dlim = merge(TWO * min(abs(dlftp1), abs(drgtp1)), ZERO, dlftp1*drgtp1 >= ZERO)
+                   if (dlftp1*drgtp1 >= ZERO) then
+                      dlim = TWO * min(abs(dlftp1), abs(drgtp1))
+                   else
+                      dlim = ZERO
+                   end if
                    dfp1 = dsgn*min(dlim, abs(dcen))
 
                    ! df at k-1
@@ -382,7 +446,11 @@ contains
 
                    dcen = HALF*(dlftm1 + drgtm1)
                    dsgn = sign(ONE, dcen)
-                   dlim = merge(TWO * min( abs(dlftm1), abs(drgtm1) ), ZERO, dlftm1*drgtm1 >= ZERO)
+                   if (dlftm1*drgtm1 >= ZERO) then
+                      dlim = TWO * min(abs(dlftm1), abs(drgtm1))
+                   else
+                      dlim = ZERO
+                   end if
                    dfm1 = dsgn*min(dlim, abs(dcen))
 
                    ! now limited fourth order slopes at k
@@ -391,7 +459,11 @@ contains
 
                    dcen = HALF*(dlft+drgt)
                    dsgn = sign(ONE, dcen)
-                   dlim = merge(TWO * min(abs(dlft), abs(drgt)), ZERO, dlft*drgt >= ZERO)
+                   if (dlft*drgt >= ZERO) then
+                      dlim = TWO * min(abs(dlft), abs(drgt))
+                   else
+                      dlim = ZERO
+                   end if
 
                    dp1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
                    dq(i,j,k,QPRES) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))

@@ -308,7 +308,11 @@ contains
                     (idir == 3 .and. k >= vlo(3))) then
 
                    un = q(i,j,k,QUN)
-                   spzero = merge(-ONE, un*dtdx, un >= ZERO)
+                   if (un >= ZERO) then
+                      spzero = -ONE
+                   else
+                      spzero = un*dtdx
+                   end if
                    acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n)
                    qp(i,j,k,n) = q(i,j,k,n) + acmprght
                    if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*srcQ(i,j,k,n)
@@ -316,7 +320,11 @@ contains
 
                 ! Left state
                 un = q(i,j,k,QUN)
-                spzero = merge(un*dtdx, ONE, un >= ZERO)
+                if (un >= ZERO) then
+                   spzero = un*dtdx
+                else
+                   spzero = ONE
+                end if
                 acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
 
                 if (idir == 1 .and. i <= vhi(1)) then
