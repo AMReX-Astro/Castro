@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
 	const auto w = 24;
 
 	// write the header
-	slicefile << std::setw(w) << "x" << std::setw(w) << "density" << std::setw(w) << "velocity" << std::setw(w) << "pressure" << std::setw(w) << "int. energy" << std::endl;
+	slicefile << "# " << std::setw(w) << "x" << std::setw(w) << "density" << std::setw(w) << "velocity" << std::setw(w) << "pressure" << std::setw(w) << "int. energy" << std::endl;
 
 	// write the data in columns
 	const auto SMALL = 1.e-20;
