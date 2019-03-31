@@ -187,8 +187,8 @@ Castro::do_advance_ctu(Real time,
     // since the hydro source only works on the valid zones.
 
     if (S_new.nGrow() > 0) {
-      expand_state(S_new, cur_time, S_new.nGrow());
-      clean_state(S_new, cur_time, S_new.nGrow());
+        clean_state(S_new, cur_time, 0);
+        expand_state(S_new, cur_time, S_new.nGrow());
     }
 
     // Do the second half of the reactions.
