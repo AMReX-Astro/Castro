@@ -187,7 +187,8 @@ Castro::do_advance_sdc (Real time,
       // FillPatch
       MultiFab::Copy(S_new, *(k_new[0]), 0, 0, S_new.nComp(), 0);
       // do we need to clean?
-      expand_state(Sburn, cur_time, -1, 2);
+      expand_state(Sburn, cur_time, 2);
+      clean_state(Sburn, cur_time, 2);
       bool input_is_average = true;
       construct_old_react_source(Sburn, *(R_old[0]), input_is_average);
 
@@ -230,6 +231,7 @@ Castro::do_advance_sdc (Real time,
     // TODO: do we need a clean state here?
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
     expand_state(Sburn, cur_time, 2);
+    clean_state(Sburn, cur_time, 2);
     bool input_is_average = true;
     construct_old_react_source(Sburn, *(R_old[m]), input_is_average);
   }
