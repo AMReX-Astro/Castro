@@ -249,6 +249,8 @@ int main(int argc, char* argv[])
 		        << std::setw(w) << vars_bin[isv[idx_obs] + (rad_comp+i+1)*nbins] / dnu_groups[i] << std::endl;
 	}
 
+	slicefile.close();
+
 	// destroy timer for profiling
 	BL_PROFILE_VAR_STOP(pmain);
 
