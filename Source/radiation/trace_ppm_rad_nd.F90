@@ -306,11 +306,35 @@ contains
 
                 alphar(:) = der(:) - dptot/csq*hr
 
-                alpham = merge(ZERO, -alpham, un-cc > ZERO)
-                alphap = merge(ZERO, -alphap, un+cc > ZERO)
-                alpha0r = merge(ZERO, -alpha0r, un > ZERO)
-                alphar(:) = merge(ZERO, -alphar(:), un > ZERO)
-                alpha0e_g = merge(ZERO, -alpha0e_g, un > ZERO)
+                if (un-cc > ZERO) then
+                   alpham = ZERO
+                else
+                   alpham = -alpham
+                end if
+
+                if (un+cc > ZERO) then
+                   alphap = ZERO
+                else
+                   alphap = -alphap
+                end if
+
+                if (un > ZERO) then
+                   alpha0r = ZERO
+                else
+                   alpha0r = -alpha0r
+                end if
+
+                if (un > ZERO) then
+                   alphar(:) = ZERO
+                else
+                   alphar(:) = -alphar(:)
+                end if
+
+                if (un > ZERO) then
+                   alpha0e_g = ZERO
+                else
+                   alpha0e_g = -alpha0e_g
+                end if
 
 
                 ! The final interface states are just
@@ -452,11 +476,35 @@ contains
 
                 alphar(:) = der(:) - dptot/csq*hr
 
-                alpham = merge(-alpham, ZERO, un-cc > ZERO)
-                alphap = merge(-alphap, ZERO, un+cc > ZERO)
-                alpha0r = merge(-alpha0r, ZERO, un > ZERO)
-                alphar(:) = merge(-alphar(:), ZERO, un > ZERO)
-                alpha0e_g = merge(-alpha0e_g, ZERO, un > ZERO)
+                if (un-cc > ZERO) then
+                   alpham = -alpham
+                else
+                   alpham = ZERO
+                end if
+
+                if (un+cc > ZERO) then
+                   alphap = -alphap
+                else
+                   alphap = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alpha0r = -alpha0r
+                else
+                   alpha0r = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alphar(:) = -alphar(:)
+                else
+                   alphar(:) = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alpha0e_g = -alpha0e_g
+                else
+                   alpha0e_g = ZERO
+                end if
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
@@ -678,22 +726,38 @@ contains
                    ! wave, so no projection is needed.  Since we are not
                    ! projecting, the reference state doesn't matter
 
-                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,2,n), un > ZERO)
+                   if (un > ZERO) then
+                      qp(i,j,k,n) = q(i,j,k,n)
+                   else
+                      qp(i,j,k,n) = Im(i,j,k,2,n)
+                   end if
                    if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,2,n)
                 endif
 
                 ! Minus state on face i+1
                 if (idir == 1 .and. i <= vhi(1)) then
                    un = q(i,j,k,QUN)
-                   qm(i+1,j,k,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (un > ZERO) then
+                      qm(i+1,j,k,n) = Ip(i,j,k,2,n)
+                   else
+                      qm(i+1,j,k,n) = q(i,j,k,n)
+                   end if
                    if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 else if (idir == 2 .and. j <= vhi(2)) then
                    un = q(i,j,k,QUN)
-                   qm(i,j+1,k,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (un > ZERO) then
+                      qm(i,j+1,k,n) = Ip(i,j,k,2,n)
+                   else
+                      qm(i,j+1,k,n) = q(i,j,k,n)
+                   end if
                    if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 else if (idir == 3 .and. k <= vhi(3)) then
                    un = q(i,j,k,QUN)
-                   qm(i,j,k+1,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (un > ZERO) then
+                      qm(i,j,k+1,n) = Ip(i,j,k,2,n)
+                   else
+                      qm(i,j,k+1,n) = q(i,j,k,n)
+                   end if
                    if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 endif
 
