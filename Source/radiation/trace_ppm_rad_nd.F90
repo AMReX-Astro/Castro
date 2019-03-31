@@ -327,7 +327,7 @@ contains
                 if (un > ZERO) then
                    alphar(:) = ZERO
                 else
-                   alphar(:) -alphar(:)
+                   alphar(:) = -alphar(:)
                 end if
 
                 if (un > ZERO) then
