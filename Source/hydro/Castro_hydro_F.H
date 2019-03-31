@@ -601,6 +601,14 @@ extern "C"
                          const BL_FORT_FAB_ARG_3D(R_2),
                          BL_FORT_FAB_ARG_3D(C),
                          const int* m_start);
+
+  void ca_sdc_compute_initial_guess(const int* lo, const int* hi,
+                                    const BL_FORT_FAB_ARG_3D(U_old),
+                                    const BL_FORT_FAB_ARG_3D(U_new),
+                                    const BL_FORT_FAB_ARG_3D(A_old),
+                                    const BL_FORT_FAB_ARG_3D(R_old),
+                                    BL_FORT_FAB_ARG_3D(U_guess),
+                                    const amrex::Real* dt_m, const int* sdc_iteration);
 #endif
 #endif
 
