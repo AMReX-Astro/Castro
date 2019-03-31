@@ -326,13 +326,6 @@ void GetInputArgs ( const int argc, char** argv,
 
 	Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
 	Print() << "slicefile = \"" << slcfile << "\"" << std::endl;
-#if (AMREX_SPACEDIM >= 2)
-	Print() << "xctr = " << xctr << std::endl;
-	Print() << "yctr = " << yctr << std::endl;
-#endif
-#if (AMREX_SPACEDIM == 3)
-	Print() << "zctr = " << zctr << std::endl;
-#endif
 	Print() << std::endl;
 }
 
@@ -387,6 +380,7 @@ void PrintHelp ()
 	Print() << "\nusage: executable_name args"
 	        << "\nargs [-p|--pltfile]     plotfile : plot file directory (required)"
 	        << "\n     [-s|--slicefile] slice file : slice file          (required)"
+#if AMREX_SPACEDIM == 2
 	        << "\n     [--sphr]          spherical : spherical problem"
 #endif
 	        << "\n\n" << std::endl;
