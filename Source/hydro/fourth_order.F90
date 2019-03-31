@@ -448,24 +448,30 @@ contains
     endif
 
     do n = 1, nc
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
 
-                lap = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
+       if (maxval(abs(U(U_lo(1)-1:U_hi(1)+1, U_lo(2)-dg(2):U_hi(2)+dg(2), U_lo(3)-dg(3):U_hi(3)+dg(3), n))) == ZERO) then
+          U_cc(U_cc_lo(1):U_cc_hi(1), U_cc_lo(2):U_cc_hi(2), U_cc_lo(3):U_cc_hi(3), n) = &
+               U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), n)
+       else
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
+
+                   lap = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
 #if AMREX_SPACEDIM >= 2
-                lap = lap + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
+                   lap = lap + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
 #endif
 #if AMREX_SPACEDIM == 3
-                lap = lap + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
+                   lap = lap + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
 #endif
 
-                U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap
+                   U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap
 
-             enddo
-          enddo
-       enddo
-    enddo
+                end do
+             end do
+          end do
+       end if
+    end do
 
   end subroutine ca_make_cell_center
 
@@ -487,31 +493,32 @@ contains
 
     integer :: i, j, k, n
 
-    real(rt), pointer :: lap(:,:,:,:)
+    real(rt), pointer :: lap(:,:,:)
 
-    call bl_allocate(lap, lo, hi, nc)
+    call bl_allocate(lap, lo, hi)
 
     do n = 1, nc
+
+       if (maxval(abs(U(U_lo(1)-1:U_hi(1)+1, U_lo(2)-dg(2):U_hi(2)+dg(2), U_lo(3)-dg(3):U_hi(3)+dg(3), n))) == ZERO) cycle
+
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                lap(i,j,k,n) = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
+                lap(i,j,k) = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
 #if AMREX_SPACEDIM >= 2
-                lap(i,j,k,n) = lap(i,j,k,n) + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
+                lap(i,j,k) = lap(i,j,k) + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
 #endif
 #if AMREX_SPACEDIM == 3
-                lap(i,j,k,n) = lap(i,j,k,n) + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
+                lap(i,j,k) = lap(i,j,k) + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
 #endif
              enddo
           enddo
        enddo
-    enddo
 
-    do n = 1, nc
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                U(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap(i,j,k,n)
+                U(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap(i,j,k)
              enddo
           enddo
        enddo
@@ -615,35 +622,36 @@ contains
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
 
     integer :: i, j, k, n
-    real(rt), pointer :: lap(:,:,:,:)
+    real(rt), pointer :: lap(:,:,:)
 
-    call bl_allocate(lap, lo, hi, nc)
+    call bl_allocate(lap, lo, hi)
 
     do n = 1, nc
+
+       if (maxval(abs(q(q_lo(1)-1:q_hi(1)+1, q_lo(2)-dg(2):q_hi(2)+dg(2), q_lo(3)-dg(3):q_hi(3)+dg(3), n))) == ZERO) cycle
+
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                lap(i,j,k,n) = q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n)
+                lap(i,j,k) = q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n)
 #if AMREX_SPACEDIM >= 2
-                lap(i,j,k,n) = lap(i,j,k,n) + q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n)
+                lap(i,j,k) = lap(i,j,k) + q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n)
 #endif
 #if AMREX_SPACEDIM == 3
-                lap(i,j,k,n) = lap(i,j,k,n) + q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n)
+                lap(i,j,k) = lap(i,j,k) + q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n)
 #endif
-             enddo
-          enddo
-       enddo
-    enddo
+             end do
+          end do
+       end do
 
-    do n = 1, nc
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap(i,j,k,n)
-             enddo
-          enddo
-       enddo
-    enddo
+                q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap(i,j,k)
+             end do
+          end do
+       end do
+    end do
 
     call bl_deallocate(lap)
 
@@ -671,6 +679,8 @@ contains
     real(rt), pointer :: lap(:,:,:)
 
     call bl_allocate(lap, lo, hi)
+
+    if (maxval(abs(q(q_lo(1)-1:q_hi(1)+1, q_lo(2)-dg(2):q_hi(2)+dg(2), q_lo(3)-dg(3):q_hi(3)+dg(3), ncomp+1))) == ZERO) return
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
