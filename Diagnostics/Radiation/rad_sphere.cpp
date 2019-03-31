@@ -25,7 +25,6 @@ void Print_Help() {
 
 int main(int argc, char* argv[])
 {
-
 	amrex::Initialize(argc, argv, false);
 
 	// timer for profiling
