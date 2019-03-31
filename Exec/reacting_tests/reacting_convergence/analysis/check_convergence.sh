@@ -18,5 +18,5 @@ RichardsonConvergenceTest2d.gnu.sandybridge.ex coarFile=react_converge_128_sdc_p
 
 RichardsonConvergenceTest2d.gnu.sandybridge.ex coarFile=react_converge_64_sdc4_plt00301 mediFile=react_converge_128_sdc4_plt00601 fineFile=react_converge_256_sdc4_plt01201 > convergence.2d.lo.sdc4.out
 
-RichardsonConvergenceTest2d.gnu.sandybridge.ex coarFile=react_converge_128_sdc4_plt00601 mediFile=react_converge_256_sdc4_plt01201 fineFile=react_converge_256_sdc4_plt02401 > convergence.2d.hi.sdc4.out
+RichardsonConvergenceTest2d.gnu.sandybridge.ex coarFile=react_converge_128_sdc4_plt00601 mediFile=react_converge_256_sdc4_plt01201 fineFile=react_converge_512_sdc4_plt02401 > convergence.2d.hi.sdc4.out
 
