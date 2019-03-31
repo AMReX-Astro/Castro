@@ -255,7 +255,7 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     }
 
-    clean_state(state, time, state.nGrow());
+    clean_state(state, time + 0.5 * dt, state.nGrow());
 
 }
 
