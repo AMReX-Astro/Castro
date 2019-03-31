@@ -37,28 +37,27 @@ vpathdir += $(AMREX_HOME)/Src/Extern/amrdata
 include $(CASTRO_HOME)/Exec/Make.Castro
 
 ifeq ($(MAKECMDGOALS),rad_sphere.ex)
-  CEXE_SOURCES += rad_sphere.cpp
+  CEXE_sources += rad_sphere.cpp
 endif
 
 ifeq ($(MAKECMDGOALS),gaussian_pulse.ex)
-  CEXE_SOURCES += gaussian_pulse.cpp
+  CEXE_sources += gaussian_pulse.cpp
 endif
 
 ifeq ($(MAKECMDGOALS),lgt_frnt1d.ex)
-  CEXE_SOURCES += lgt_frnt1d.cpp
+  CEXE_sources += lgt_frnt1d.cpp
 endif
 
 ifeq ($(MAKECMDGOALS),rad_shock.ex)
-  CEXE_SOURCES += rad_shock.cpp
-
+  CEXE_sources += rad_shock.cpp
 endif
 
 ifeq ($(MAKECMDGOALS),rad_source.ex)
-  CEXE_SOURCES += rad_source.cpp
+  CEXE_sources += rad_source.cpp
 endif
 
 ifeq ($(MAKECMDGOALS),rhd_shocktube.ex)
-  CEXE_SOURCES += rhd_shocktube.cpp
+  CEXE_sources += rhd_shocktube.cpp
 endif
 
 gaussian_pulse.ex: $(objForExecs)
