@@ -380,7 +380,7 @@ void PrintHelp ()
 	Print() << "\nusage: executable_name args"
 	        << "\nargs [-p|--pltfile]     plotfile : plot file directory (required)"
 	        << "\n     [-s|--slicefile] slice file : slice file          (required)"
-#if AMREX_SPACEDIM == 2
+#if AMREX_SPACEDIM >= 2
 	        << "\n     [--sphr]          spherical : spherical problem"
 #endif
 	        << "\n\n" << std::endl;
