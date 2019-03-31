@@ -1,5 +1,9 @@
 # changes since the last release
 
+  -- The parameters castro.grav_source_type and castro.rot_source_type have
+     been removed, and the previous default values (4 in each case, corresponding
+     to the conservative energy formulation) are now the only choice.
+
   -- The runtime parameter castro.fix_mass_flux has been removed: it is not
      clear what the use case is, and it had no test suite coverage. (#572)
 

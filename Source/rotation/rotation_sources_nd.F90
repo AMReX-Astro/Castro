@@ -13,7 +13,7 @@ contains
                      source,src_lo,src_hi,vol,vol_lo,vol_hi, &
                      dx,dt,time) bind(C, name="ca_rsrc")
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN
     use prob_params_module, only: center
     use amrex_constants_module
     use castro_util_module, only: position ! function
@@ -84,37 +84,15 @@ contains
              endif
 #endif
 
-             ! Kinetic energy source: this is v . the momentum source.
-             ! We don't apply in the case of the conservative energy
-             ! formulation.
+             ! The conservative energy formulation does not strictly require
+             ! any energy source-term here, because it depends only on the
+             ! fluid motions from the hydrodynamical fluxes which we will only
+             ! have when we get to the 'corrector' step. Nevertheless we add a
+             ! predictor energy source term in the way that the other methods
+             ! do, for consistency. We will fully subtract this predictor value
+             ! during the corrector step, so that the final result is correct.
 
-             if (rot_source_type == 1 .or. rot_source_type == 2) then
-
-                SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
-
-             else if (rot_source_type .eq. 3) then
-
-                new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-                SrE = new_ke - old_ke
-
-             else if (rot_source_type .eq. 4) then
-
-                ! The conservative energy formulation does not strictly require
-                ! any energy source-term here, because it depends only on the
-                ! fluid motions from the hydrodynamical fluxes which we will only
-                ! have when we get to the 'corrector' step. Nevertheless we add a
-                ! predictor energy source term in the way that the other methods
-                ! do, for consistency. We will fully subtract this predictor value
-                ! during the corrector step, so that the final result is correct.
-                ! Here we use the same approach as rot_source_type == 2.
-
-                SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
-
-             else
-#ifndef AMREX_USE_GPU
-                call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
-#endif
-             end if
+             SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              src(UEDEN) = src(UEDEN) + SrE
 
@@ -151,7 +129,7 @@ contains
     ! be called directly from C++.
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type, &
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
                                   implicit_rotation_update, rotation_include_coriolis, state_in_rotating_frame
     use prob_params_module, only: center, dg
     use amrex_constants_module
@@ -225,13 +203,6 @@ contains
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
     real(rt)         :: snew(NVAR)
-
-    ! Rotation source options for how to add the work to (rho E):
-    ! rot_source_type =
-    ! 1: Standard version ("does work")
-    ! 2: Modification of type 1 that updates the momentum before constructing the energy corrector
-    ! 3: Puts all rotational work into KE, not (rho e)
-    ! 4: Conservative energy formulation
 
     ! Note that the time passed to this function
     ! is the new time at time-level n+1.
@@ -374,82 +345,47 @@ contains
 
              ! Correct energy
 
-             if (rot_source_type == 1) then
+             ! First, subtract the predictor step we applied earlier.
 
-                ! If rot_source_type == 1, then we calculated SrEcorr before updating the velocities.
+             SrEcorr = - SrE_old
 
-                SrEcorr = HALF * (SrE_new - SrE_old)
+             ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
+             ! the change in the rotational potential energy, rho * phi.
+             ! This must be true for the total energy, rho * E_gas + rho * phi, to be conserved.
+             ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
+             ! There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
+             ! it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
+             ! (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
+             ! change multiplied by the difference between these two potentials.
+             ! This is a generalization of the cell-centered approach implemented in
+             ! the other source options, which effectively are equal to
+             ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
+             ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
 
-             else if (rot_source_type == 2) then
+             ! Note that in the hydrodynamics step, the fluxes used here were already
+             ! multiplied by dA and dt, so dividing by the cell volume is enough to
+             ! get the density change (flux * dt * dA / dV). We then divide by dt
+             ! so that we get the source term and not the actual update, which will
+             ! be applied later by multiplying by dt.
 
-                ! For this source type, we first update the momenta
-                ! before we calculate the energy source term.
+             SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
+                                                 flux1(i+1*dg(1),j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
+                                                 flux2(i,j        ,k) * (phi(i,j,k) - phi(i,j-dg(2),k)) - &
+                                                 flux2(i,j+1*dg(2),k) * (phi(i,j,k) - phi(i,j+dg(2),k)) + &
+                                                 flux3(i,j,k        ) * (phi(i,j,k) - phi(i,j,k-dg(3))) - &
+                                                 flux3(i,j,k+1*dg(3)) * (phi(i,j,k) - phi(i,j,k+dg(3))) ) / vol(i,j,k)
 
-                vnew = snew(UMX:UMZ) * rhoninv
-                Sr_new = rhon * rotational_acceleration(loc, vnew, time)
-                SrE_new = dot_product(vnew, Sr_new)
+             ! Correct for the time rate of change of the potential, which acts
+             ! purely as a source term. This is only necessary for this source type;
+             ! it is captured automatically for the others since the time rate of change
+             ! of omega also appears in the velocity source term.
 
-                SrEcorr = HALF * (SrE_new - SrE_old)
+             Sr_old = - rhoo * cross_product(domegadt_old, loc)
+             Sr_new = - rhon * cross_product(domegadt_new, loc)
 
-             else if (rot_source_type == 3) then
+             vnew = snew(UMX:UMZ) * rhoninv
 
-                ! Instead of calculating the energy source term explicitly,
-                ! we simply update the kinetic energy.
-
-                new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-                SrEcorr = new_ke - old_ke
-
-             else if (rot_source_type == 4) then
-
-                ! Conservative energy update
-
-                ! First, subtract the predictor step we applied earlier.
-
-                SrEcorr = - SrE_old
-
-                ! The change in the gas energy is equal in magnitude to, and opposite in sign to,
-                ! the change in the rotational potential energy, rho * phi.
-                ! This must be true for the total energy, rho * E_gas + rho * phi, to be conserved.
-                ! Consider as an example the zone interface i+1/2 in between zones i and i + 1.
-                ! There is an amount of mass drho_{i+1/2} leaving the zone. From this zone's perspective
-                ! it starts with a potential phi_i and leaves the zone with potential phi_{i+1/2} =
-                ! (1/2) * (phi_{i-1}+phi_{i}). Therefore the new rotational energy is equal to the mass
-                ! change multiplied by the difference between these two potentials.
-                ! This is a generalization of the cell-centered approach implemented in
-                ! the other source options, which effectively are equal to
-                ! SrEcorr = - drho(i,j,k) * phi(i,j,k),
-                ! where drho(i,j,k) = HALF * (unew(i,j,k,URHO) - uold(i,j,k,URHO)).
-
-                ! Note that in the hydrodynamics step, the fluxes used here were already
-                ! multiplied by dA and dt, so dividing by the cell volume is enough to
-                ! get the density change (flux * dt * dA / dV). We then divide by dt
-                ! so that we get the source term and not the actual update, which will
-                ! be applied later by multiplying by dt.
-
-                SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                                    flux1(i+1*dg(1),j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                    flux2(i,j        ,k) * (phi(i,j,k) - phi(i,j-dg(2),k)) - &
-                                                    flux2(i,j+1*dg(2),k) * (phi(i,j,k) - phi(i,j+dg(2),k)) + &
-                                                    flux3(i,j,k        ) * (phi(i,j,k) - phi(i,j,k-dg(3))) - &
-                                                    flux3(i,j,k+1*dg(3)) * (phi(i,j,k) - phi(i,j,k+dg(3))) ) / vol(i,j,k)
-
-                ! Correct for the time rate of change of the potential, which acts
-                ! purely as a source term. This is only necessary for this source type;
-                ! it is captured automatically for the others since the time rate of change
-                ! of omega also appears in the velocity source term.
-
-                Sr_old = - rhoo * cross_product(domegadt_old, loc)
-                Sr_new = - rhon * cross_product(domegadt_new, loc)
-
-                vnew = snew(UMX:UMZ) * rhoninv
-
-                SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new))
-
-             else
-#ifndef AMREX_USE_GPU
-                call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
-#endif
-             end if
+             SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new))
 
              src(UEDEN) = SrEcorr
 

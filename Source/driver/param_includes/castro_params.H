@@ -19,7 +19,6 @@ static int rotation_include_centrifugal;
 static int rotation_include_coriolis;
 static int rotation_include_domegadt;
 static int state_in_rotating_frame;
-static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
 #endif
@@ -109,7 +108,6 @@ static int disable_shock_burning;
 static amrex::Real T_guess;
 static int do_grav;
 static int moving_center;
-static int grav_source_type;
 static int do_rotation;
 static int do_acc;
 static int bndry_func_thread_safe;

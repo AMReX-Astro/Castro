@@ -19,7 +19,6 @@ int         Castro::rotation_include_centrifugal = 1;
 int         Castro::rotation_include_coriolis = 1;
 int         Castro::rotation_include_domegadt = 1;
 int         Castro::state_in_rotating_frame = 1;
-int         Castro::rot_source_type = 4;
 int         Castro::implicit_rotation_update = 1;
 int         Castro::rot_axis = 3;
 #endif
@@ -109,7 +108,6 @@ int         Castro::disable_shock_burning = 0;
 amrex::Real Castro::T_guess = 1.e8;
 int         Castro::do_grav = -1;
 int         Castro::moving_center = 0;
-int         Castro::grav_source_type = 4;
 int         Castro::do_rotation = -1;
 int         Castro::do_acc = -1;
 int         Castro::bndry_func_thread_safe = 1;

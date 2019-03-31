@@ -178,7 +178,6 @@ module meth_params_module
   real(rt), allocatable, save :: diffuse_cutoff_density_hi
   real(rt), allocatable, save :: diffuse_cond_scale_fac
   integer,  allocatable, save :: do_grav
-  integer,  allocatable, save :: grav_source_type
   integer,  allocatable, save :: do_rotation
   real(rt), allocatable, save :: rot_period
   real(rt), allocatable, save :: rot_period_dot
@@ -186,7 +185,6 @@ module meth_params_module
   integer,  allocatable, save :: rotation_include_coriolis
   integer,  allocatable, save :: rotation_include_domegadt
   integer,  allocatable, save :: state_in_rotating_frame
-  integer,  allocatable, save :: rot_source_type
   integer,  allocatable, save :: implicit_rotation_update
   integer,  allocatable, save :: rot_axis
   integer,  allocatable, save :: use_point_mass
@@ -271,7 +269,6 @@ attributes(managed) :: diffuse_cutoff_density_hi
 attributes(managed) :: diffuse_cond_scale_fac
 #endif
 attributes(managed) :: do_grav
-attributes(managed) :: grav_source_type
 attributes(managed) :: do_rotation
 #ifdef ROTATION
 attributes(managed) :: rot_period
@@ -290,9 +287,6 @@ attributes(managed) :: rotation_include_domegadt
 #endif
 #ifdef ROTATION
 attributes(managed) :: state_in_rotating_frame
-#endif
-#ifdef ROTATION
-attributes(managed) :: rot_source_type
 #endif
 #ifdef ROTATION
 attributes(managed) :: implicit_rotation_update
@@ -383,7 +377,6 @@ attributes(managed) :: get_g_from_phi
   !$acc create(diffuse_cond_scale_fac) &
 #endif
   !$acc create(do_grav) &
-  !$acc create(grav_source_type) &
   !$acc create(do_rotation) &
 #ifdef ROTATION
   !$acc create(rot_period) &
@@ -402,9 +395,6 @@ attributes(managed) :: get_g_from_phi
 #endif
 #ifdef ROTATION
   !$acc create(state_in_rotating_frame) &
-#endif
-#ifdef ROTATION
-  !$acc create(rot_source_type) &
 #endif
 #ifdef ROTATION
   !$acc create(implicit_rotation_update) &
@@ -493,8 +483,6 @@ contains
     rotation_include_domegadt = 1;
     allocate(state_in_rotating_frame)
     state_in_rotating_frame = 1;
-    allocate(rot_source_type)
-    rot_source_type = 4;
     allocate(implicit_rotation_update)
     implicit_rotation_update = 1;
     allocate(rot_axis)
@@ -624,8 +612,6 @@ contains
     T_guess = 1.d8;
     allocate(do_grav)
     do_grav = -1;
-    allocate(grav_source_type)
-    grav_source_type = 4;
     allocate(do_rotation)
     do_rotation = -1;
     allocate(do_acc)
@@ -656,7 +642,6 @@ contains
     call pp%query("rotation_include_coriolis", rotation_include_coriolis)
     call pp%query("rotation_include_domegadt", rotation_include_domegadt)
     call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-    call pp%query("rot_source_type", rot_source_type)
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
 #endif
@@ -722,7 +707,6 @@ contains
     call pp%query("disable_shock_burning", disable_shock_burning)
     call pp%query("T_guess", T_guess)
     call pp%query("do_grav", do_grav)
-    call pp%query("grav_source_type", grav_source_type)
     call pp%query("do_rotation", do_rotation)
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
@@ -756,14 +740,12 @@ contains
     !$acc device(do_react, react_T_min, react_T_max) &
     !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
     !$acc device(T_guess, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
-    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, use_point_mass, point_mass) &
-    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
-    !$acc device(track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(diffuse_cond_scale_fac, do_grav, do_rotation) &
+    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
+    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
+    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
+    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
+    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
 
 
 #ifdef GRAVITY
@@ -1056,9 +1038,6 @@ contains
     if (allocated(do_grav)) then
         deallocate(do_grav)
     end if
-    if (allocated(grav_source_type)) then
-        deallocate(grav_source_type)
-    end if
     if (allocated(do_rotation)) then
         deallocate(do_rotation)
     end if
@@ -1079,9 +1058,6 @@ contains
     end if
     if (allocated(state_in_rotating_frame)) then
         deallocate(state_in_rotating_frame)
-    end if
-    if (allocated(rot_source_type)) then
-        deallocate(rot_source_type)
     end if
     if (allocated(implicit_rotation_update)) then
         deallocate(implicit_rotation_update)

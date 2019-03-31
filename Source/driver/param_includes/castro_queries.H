@@ -19,7 +19,6 @@ pp.query("rotation_include_centrifugal", rotation_include_centrifugal);
 pp.query("rotation_include_coriolis", rotation_include_coriolis);
 pp.query("rotation_include_domegadt", rotation_include_domegadt);
 pp.query("state_in_rotating_frame", state_in_rotating_frame);
-pp.query("rot_source_type", rot_source_type);
 pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
 #endif
@@ -109,7 +108,6 @@ pp.query("disable_shock_burning", disable_shock_burning);
 pp.query("T_guess", T_guess);
 pp.query("do_grav", do_grav);
 pp.query("moving_center", moving_center);
-pp.query("grav_source_type", grav_source_type);
 pp.query("do_rotation", do_rotation);
 pp.query("do_acc", do_acc);
 pp.query("bndry_func_thread_safe", bndry_func_thread_safe);

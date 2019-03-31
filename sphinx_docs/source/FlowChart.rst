@@ -370,9 +370,7 @@ In the code, the objective is to evolve the state from the old time,
          \gb^n = -\nabla\phi^n, \qquad
                \Delta\phi^n = 4\pi G\rho^n,
 
-      The construction of the form of the gravity source for the
-      momentum and energy equation is dependent on the parameter
-      ``castro.grav_source_type``. Full details of the gravity
+      Full details of the gravity
       solver are given in Chapter \ `[ch:gravity] <#ch:gravity>`__.
 
 
@@ -381,9 +379,7 @@ In the code, the objective is to evolve the state from the old time,
       We compute the rotational potential (for use in the energy update)
       and the rotational acceleration (for use in the momentum
       equation). This includes the Coriolis and centrifugal terms in a
-      constant-angular-velocity co-rotating frame. The form of the
-      rotational source that is constructed then depends on the
-      parameter ``castro.rot_source_type``. More details are
+      constant-angular-velocity co-rotating frame. More details are
       given in Chapter \ `[ch:rotation] <#ch:rotation>`__.
 
    The source terms here are evaluated using the post-burn state,

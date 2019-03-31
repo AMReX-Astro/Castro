@@ -21,7 +21,7 @@ contains
 #ifndef AMREX_USE_CUDA
     use amrex_error_module, only: amrex_error
 #endif
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN
     use castro_util_module, only: position ! function
     use prob_params_module, only: center
 #ifdef HYBRID_MOMENTUM
@@ -83,13 +83,6 @@ contains
     Sr(dim) = const_grav
 #endif
 
-    ! Gravitational source options for how to add the work to (rho E):
-    ! grav_source_type =
-    ! 1: Original version ("does work")
-    ! 2: Modification of type 1 that updates the momentum before constructing the energy corrector
-    ! 3: Puts all gravitational work into KE, not (rho e)
-    ! 4: Conservative energy formulation
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -120,37 +113,15 @@ contains
              snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
 #endif
 
-             if (grav_source_type == 1 .or. grav_source_type == 2) then
+             ! The conservative energy formulation does not strictly require
+             ! any energy source-term here, because it depends only on the
+             ! fluid motions from the hydrodynamical fluxes which we will only
+             ! have when we get to the 'corrector' step. Nevertheless we add a
+             ! predictor energy source term in the way that the other methods
+             ! do, for consistency. We will fully subtract this predictor value
+             ! during the corrector step, so that the final result is correct.
 
-                ! Src = rho u dot g, evaluated with all quantities at t^n
-
-                SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
-
-             else if (grav_source_type .eq. 3) then
-
-                new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoInv
-                SrE = new_ke - old_ke
-
-             else if (grav_source_type .eq. 4) then
-
-                ! The conservative energy formulation does not strictly require
-                ! any energy source-term here, because it depends only on the
-                ! fluid motions from the hydrodynamical fluxes which we will only
-                ! have when we get to the 'corrector' step. Nevertheless we add a
-                ! predictor energy source term in the way that the other methods
-                ! do, for consistency. We will fully subtract this predictor value
-                ! during the corrector step, so that the final result is correct.
-                ! Here we use the same approach as grav_source_type == 2.
-
-                SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
-
-#ifndef AMREX_USE_CUDA
-             else
-
-                call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
-#endif
-
-             end if
+             SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              src(UEDEN) = SrE
 
@@ -194,7 +165,7 @@ contains
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
-                                  grav_source_type, gravity_type_int, get_g_from_phi
+                                  gravity_type_int, get_g_from_phi
     use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
@@ -290,13 +261,6 @@ contains
 
     hdtInv = HALF / dt
 
-    ! Gravitational source options for how to add the work to (rho E):
-    ! grav_source_type =
-    ! 1: Original version ("does work")
-    ! 2: Modification of type 1 that updates the U before constructing SrEcorr
-    ! 3: Puts all gravitational work into KE, not (rho e)
-    ! 4: Conservative gravity approach (discussed in first white dwarf merger paper).
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -353,151 +317,118 @@ contains
 
              ! Correct energy
 
-             if (grav_source_type .eq. 1) then
+             ! First, subtract the predictor step we applied earlier.
 
-                ! If grav_source_type == 1, then we calculated SrEcorr before updating the velocities.
+             SrEcorr = - SrE_old
 
-                SrEcorr = HALF * (SrE_new - SrE_old)
-
-             else if (grav_source_type .eq. 2) then
-
-                ! For this source type, we first update the momenta
-                ! before we calculate the energy source term.
-
-                vnew = snew(UMX:UMZ) * rhoninv
-                SrE_new = dot_product(vnew, Sr_new)
-
-                SrEcorr = HALF * (SrE_new - SrE_old)
-
-             else if (grav_source_type .eq. 3) then
-
-                ! Instead of calculating the energy source term explicitly,
-                ! we simply update the kinetic energy.
-
-                new_ke = HALF * sum(snew(UMX:UMZ)**2) * rhoninv
-                SrEcorr = new_ke - old_ke
-
-             else if (grav_source_type .eq. 4) then
-
-                ! First, subtract the predictor step we applied earlier.
-
-                SrEcorr = - SrE_old
-
-                ! For an explanation of this approach, see wdmerger paper I.
-                ! The main idea is that we are evaluating the change of the
-                ! potential energy at zone edges and applying that in an equal
-                ! and opposite sense to the gas energy. The physics is described
-                ! in Section 2.4; the particular form of the equation we are using
-                ! is found in Appendix B, as it provides the best numerical conservation
-                ! properties when using AMR.
+             ! For an explanation of this approach, see wdmerger paper I.
+             ! The main idea is that we are evaluating the change of the
+             ! potential energy at zone edges and applying that in an equal
+             ! and opposite sense to the gas energy. The physics is described
+             ! in Section 2.4; the particular form of the equation we are using
+             ! is found in Appendix B, as it provides the best numerical conservation
+             ! properties when using AMR.
 
 #ifdef SELF_GRAVITY
-                if (gravity_type_int == 2 .or. (gravity_type_int == 1 .and. get_g_from_phi == 1) ) then ! Poisson and monopole, respectively
+             if (gravity_type_int == 2 .or. (gravity_type_int == 1 .and. get_g_from_phi == 1) ) then ! Poisson and monopole, respectively
 
-                   ! For our purposes, we want the time-level n+1/2 phi because we are
-                   ! using fluxes evaluated at that time. To second order we can
-                   ! average the new and old potentials.
+                ! For our purposes, we want the time-level n+1/2 phi because we are
+                ! using fluxes evaluated at that time. To second order we can
+                ! average the new and old potentials.
 
-                   phi = HALF * (pnew(i,j,k) + pold(i,j,k))
-                   phixl = HALF * (pnew(i-1*dg(1),j,k) + pold(i-1*dg(1),j,k))
-                   phixr = HALF * (pnew(i+1*dg(1),j,k) + pold(i+1*dg(1),j,k))
-                   phiyl = HALF * (pnew(i,j-1*dg(2),k) + pold(i,j-1*dg(2),k))
-                   phiyr = HALF * (pnew(i,j+1*dg(2),k) + pold(i,j+1*dg(2),k))
-                   phizl = HALF * (pnew(i,j,k-1*dg(3)) + pold(i,j,k-1*dg(3)))
-                   phizr = HALF * (pnew(i,j,k+1*dg(3)) + pold(i,j,k+1*dg(3)))
+                phi = HALF * (pnew(i,j,k) + pold(i,j,k))
+                phixl = HALF * (pnew(i-1*dg(1),j,k) + pold(i-1*dg(1),j,k))
+                phixr = HALF * (pnew(i+1*dg(1),j,k) + pold(i+1*dg(1),j,k))
+                phiyl = HALF * (pnew(i,j-1*dg(2),k) + pold(i,j-1*dg(2),k))
+                phiyr = HALF * (pnew(i,j+1*dg(2),k) + pold(i,j+1*dg(2),k))
+                phizl = HALF * (pnew(i,j,k-1*dg(3)) + pold(i,j,k-1*dg(3)))
+                phizr = HALF * (pnew(i,j,k+1*dg(3)) + pold(i,j,k+1*dg(3)))
 
-                   ! We need to perform the following hack to deal with the fact that
-                   ! the potential is defined on cell edges, not cell centers, for ghost
-                   ! zones. We redefine the boundary zone values as equal to the adjacent
-                   ! cell minus the original value. Then later when we do the adjacent zone
-                   ! minus the boundary zone, we'll get the boundary value, which is what we want.
-                   ! We don't need to reset this at the end because phi is a temporary array.
-                   ! Note that this is needed for Poisson gravity only; the other gravity methods
-                   ! generally define phi on cell centers even outside the domain.
-                   ! Note also that we do not want to apply it on symmetry boundaries,
-                   ! because in that case the value in the ghost zone is the cell-centered value.
-                   ! We also want to skip the corners, because the potential is undefined there.
+                ! We need to perform the following hack to deal with the fact that
+                ! the potential is defined on cell edges, not cell centers, for ghost
+                ! zones. We redefine the boundary zone values as equal to the adjacent
+                ! cell minus the original value. Then later when we do the adjacent zone
+                ! minus the boundary zone, we'll get the boundary value, which is what we want.
+                ! We don't need to reset this at the end because phi is a temporary array.
+                ! Note that this is needed for Poisson gravity only; the other gravity methods
+                ! generally define phi on cell centers even outside the domain.
+                ! Note also that we do not want to apply it on symmetry boundaries,
+                ! because in that case the value in the ghost zone is the cell-centered value.
+                ! We also want to skip the corners, because the potential is undefined there.
 
-                   if (gravity_type_int == 2) then ! Poisson
+                if (gravity_type_int == 2) then ! Poisson
 
-                      if (i .eq. domlo(1) .and. physbc_lo(1) .ne. Symmetry) then
-                         phixl = phi - phixl
-                      endif
-                      if (i .eq. domhi(1) .and. physbc_hi(1) .ne. Symmetry) then
-                         phixr = phi - phixr
-                      endif
-                      if (j .eq. domlo(2) .and. physbc_lo(2) .ne. Symmetry) then
-                         phiyl = phi - phiyl
-                      endif
-                      if (j .eq. domhi(2) .and. physbc_hi(2) .ne. Symmetry) then
-                         phiyr = phi - phiyr
-                      endif
-                      if (k .eq. domlo(3) .and. physbc_lo(3) .ne. Symmetry) then
-                         phizl = phi - phizl
-                      endif
-                      if (k .eq. domhi(3) .and. physbc_hi(3) .ne. Symmetry) then
-                         phizr = phi - phizr
-                      endif
+                   if (i .eq. domlo(1) .and. physbc_lo(1) .ne. Symmetry) then
+                      phixl = phi - phixl
+                   endif
+                   if (i .eq. domhi(1) .and. physbc_hi(1) .ne. Symmetry) then
+                      phixr = phi - phixr
+                   endif
+                   if (j .eq. domlo(2) .and. physbc_lo(2) .ne. Symmetry) then
+                      phiyl = phi - phiyl
+                   endif
+                   if (j .eq. domhi(2) .and. physbc_hi(2) .ne. Symmetry) then
+                      phiyr = phi - phiyr
+                   endif
+                   if (k .eq. domlo(3) .and. physbc_lo(3) .ne. Symmetry) then
+                      phizl = phi - phizl
+                   endif
+                   if (k .eq. domhi(3) .and. physbc_hi(3) .ne. Symmetry) then
+                      phizr = phi - phizr
+                   endif
 
-                   end if
-
-                   SrEcorr = SrEcorr + (ONE / dt) * ((flux1(i        ,j,k) * HALF * (phixl + phi) - &
-                                                      flux1(i+1*dg(1),j,k) * HALF * (phixr + phi) + &
-                                                      flux2(i,j        ,k) * HALF * (phiyl + phi) - &
-                                                      flux2(i,j+1*dg(2),k) * HALF * (phiyr + phi) + &
-                                                      flux3(i,j,k        ) * HALF * (phizl + phi) - &
-                                                      flux3(i,j,k+1*dg(3)) * HALF * (phizr + phi)) / vol(i,j,k) - &
-                                                      (rhon - rhoo) * phi)
-
-                else
-
-                   ! However, at present phi is usually only actually filled for Poisson gravity.
-                   ! Here's an alternate version that only requires the use of the
-                   ! gravitational acceleration. It relies on the concept that, to second order,
-                   ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
-
-                   ! Construct the time-averaged edge-centered gravity.
-
-                   g(:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
-
-                   gxl = HALF * (g(1) + HALF * (gnew(i-1*dg(1),j,k,1) + gold(i-1*dg(1),j,k,1)))
-                   gxr = HALF * (g(1) + HALF * (gnew(i+1*dg(1),j,k,1) + gold(i+1*dg(1),j,k,1)))
-
-                   gyl = HALF * (g(2) + HALF * (gnew(i,j-1*dg(2),k,2) + gold(i,j-1*dg(2),k,2)))
-                   gyr = HALF * (g(2) + HALF * (gnew(i,j+1*dg(2),k,2) + gold(i,j+1*dg(2),k,2)))
-
-                   gzl = HALF * (g(3) + HALF * (gnew(i,j,k-1*dg(3),3) + gold(i,j,k-1*dg(3),3)))
-                   gzr = HALF * (g(3) + HALF * (gnew(i,j,k+1*dg(3),3) + gold(i,j,k+1*dg(3),3)))
-
-                   SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k) * gxl * dx(1) + &
-                                                  flux1(i+1*dg(1),j,k) * gxr * dx(1) + &
-                                                  flux2(i,j        ,k) * gyl * dx(2) + &
-                                                  flux2(i,j+1*dg(2),k) * gyr * dx(2) + &
-                                                  flux3(i,j,k        ) * gzl * dx(3) + &
-                                                  flux3(i,j,k+1*dg(3)) * gzr * dx(3) ) / vol(i,j,k)
-
-                endif
-#else
-                ! For constant gravity, the only contribution is from the dimension that the gravity points in.
-
-                if (dim .eq. 1) then
-                   SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k) * const_grav * dx(1) + &
-                                                       flux1(i+1*dg(1),j,k) * const_grav * dx(1) ) / vol(i,j,k)
-                else if (dim .eq. 2) then
-                   SrEcorr = SrEcorr + (HALF / dt) * ( flux2(i,j        ,k) * const_grav * dx(2) + &
-                                                       flux2(i,j+1*dg(2),k) * const_grav * dx(2) ) / vol(i,j,k)
-                else if (dim .eq. 3) then
-                   SrEcorr = SrEcorr + (HALF / dt) * ( flux3(i,j,k        ) * const_grav * dx(3) + &
-                                                       flux3(i,j,k+1*dg(3)) * const_grav * dx(3) ) / vol(i,j,k)
                 end if
-#endif
 
-#ifndef AMREX_USE_CUDA
+                SrEcorr = SrEcorr + (ONE / dt) * ((flux1(i        ,j,k) * HALF * (phixl + phi) - &
+                                                   flux1(i+1*dg(1),j,k) * HALF * (phixr + phi) + &
+                                                   flux2(i,j        ,k) * HALF * (phiyl + phi) - &
+                                                   flux2(i,j+1*dg(2),k) * HALF * (phiyr + phi) + &
+                                                   flux3(i,j,k        ) * HALF * (phizl + phi) - &
+                                                   flux3(i,j,k+1*dg(3)) * HALF * (phizr + phi)) / vol(i,j,k) - &
+                                                   (rhon - rhoo) * phi)
+
              else
 
-                call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
-#endif
+                ! However, at present phi is usually only actually filled for Poisson gravity.
+                ! Here's an alternate version that only requires the use of the
+                ! gravitational acceleration. It relies on the concept that, to second order,
+                ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
+
+                ! Construct the time-averaged edge-centered gravity.
+
+                g(:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
+
+                gxl = HALF * (g(1) + HALF * (gnew(i-1*dg(1),j,k,1) + gold(i-1*dg(1),j,k,1)))
+                gxr = HALF * (g(1) + HALF * (gnew(i+1*dg(1),j,k,1) + gold(i+1*dg(1),j,k,1)))
+
+                gyl = HALF * (g(2) + HALF * (gnew(i,j-1*dg(2),k,2) + gold(i,j-1*dg(2),k,2)))
+                gyr = HALF * (g(2) + HALF * (gnew(i,j+1*dg(2),k,2) + gold(i,j+1*dg(2),k,2)))
+
+                gzl = HALF * (g(3) + HALF * (gnew(i,j,k-1*dg(3),3) + gold(i,j,k-1*dg(3),3)))
+                gzr = HALF * (g(3) + HALF * (gnew(i,j,k+1*dg(3),3) + gold(i,j,k+1*dg(3),3)))
+
+                SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k) * gxl * dx(1) + &
+                                               flux1(i+1*dg(1),j,k) * gxr * dx(1) + &
+                                               flux2(i,j        ,k) * gyl * dx(2) + &
+                                               flux2(i,j+1*dg(2),k) * gyr * dx(2) + &
+                                               flux3(i,j,k        ) * gzl * dx(3) + &
+                                               flux3(i,j,k+1*dg(3)) * gzr * dx(3) ) / vol(i,j,k)
+
+             endif
+#else
+             ! For constant gravity, the only contribution is from the dimension that the gravity points in.
+
+             if (dim .eq. 1) then
+                SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k) * const_grav * dx(1) + &
+                                                    flux1(i+1*dg(1),j,k) * const_grav * dx(1) ) / vol(i,j,k)
+             else if (dim .eq. 2) then
+                SrEcorr = SrEcorr + (HALF / dt) * ( flux2(i,j        ,k) * const_grav * dx(2) + &
+                                                    flux2(i,j+1*dg(2),k) * const_grav * dx(2) ) / vol(i,j,k)
+             else if (dim .eq. 3) then
+                SrEcorr = SrEcorr + (HALF / dt) * ( flux3(i,j,k        ) * const_grav * dx(3) + &
+                                                    flux3(i,j,k+1*dg(3)) * const_grav * dx(3) ) / vol(i,j,k)
              end if
+#endif
 
              src(UEDEN) = SrEcorr
 

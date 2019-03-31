@@ -14,7 +14,6 @@ jobInfoFile << (Castro::rotation_include_centrifugal == 1 ? "    " : "[*] ") << 
 jobInfoFile << (Castro::rotation_include_coriolis == 1 ? "    " : "[*] ") << "castro.rotation_include_coriolis = " << Castro::rotation_include_coriolis << std::endl;
 jobInfoFile << (Castro::rotation_include_domegadt == 1 ? "    " : "[*] ") << "castro.rotation_include_domegadt = " << Castro::rotation_include_domegadt << std::endl;
 jobInfoFile << (Castro::state_in_rotating_frame == 1 ? "    " : "[*] ") << "castro.state_in_rotating_frame = " << Castro::state_in_rotating_frame << std::endl;
-jobInfoFile << (Castro::rot_source_type == 4 ? "    " : "[*] ") << "castro.rot_source_type = " << Castro::rot_source_type << std::endl;
 jobInfoFile << (Castro::implicit_rotation_update == 1 ? "    " : "[*] ") << "castro.implicit_rotation_update = " << Castro::implicit_rotation_update << std::endl;
 jobInfoFile << (Castro::rot_axis == 3 ? "    " : "[*] ") << "castro.rot_axis = " << Castro::rot_axis << std::endl;
 #endif
@@ -104,7 +103,6 @@ jobInfoFile << (Castro::disable_shock_burning == 0 ? "    " : "[*] ") << "castro
 jobInfoFile << (Castro::T_guess == 1.e8 ? "    " : "[*] ") << "castro.T_guess = " << Castro::T_guess << std::endl;
 jobInfoFile << (Castro::do_grav == -1 ? "    " : "[*] ") << "castro.do_grav = " << Castro::do_grav << std::endl;
 jobInfoFile << (Castro::moving_center == 0 ? "    " : "[*] ") << "castro.moving_center = " << Castro::moving_center << std::endl;
-jobInfoFile << (Castro::grav_source_type == 4 ? "    " : "[*] ") << "castro.grav_source_type = " << Castro::grav_source_type << std::endl;
 jobInfoFile << (Castro::do_rotation == -1 ? "    " : "[*] ") << "castro.do_rotation = " << Castro::do_rotation << std::endl;
 jobInfoFile << (Castro::do_acc == -1 ? "    " : "[*] ") << "castro.do_acc = " << Castro::do_acc << std::endl;
 jobInfoFile << (Castro::bndry_func_thread_safe == 1 ? "    " : "[*] ") << "castro.bndry_func_thread_safe = " << Castro::bndry_func_thread_safe << std::endl;
