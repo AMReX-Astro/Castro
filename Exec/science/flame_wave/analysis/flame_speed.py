@@ -5,7 +5,6 @@ import pandas as pd
 from scipy.stats import linregress
 
 import matplotlib as mpl
-mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 def measure_and_plot(rad, t, stab_ind):
@@ -28,7 +27,6 @@ def measure_and_plot(rad, t, stab_ind):
             
         slopes["col"] = m
         
-    plt.savefig("radii.png")
     return slopes
 
 if __name__ == "__main__":
