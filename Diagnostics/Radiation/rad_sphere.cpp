@@ -175,6 +175,8 @@ int main(int argc, char* argv[])
 
 	auto isv = sort_indexes(coords);
 
+    Print() << "coords_min = " << coords[0] << " coords_max = " << coords[cnt-1] << std::endl;
+
 	// open the group file and read in the group information
 	std::ifstream group_file;
 	group_file.open(groupfile);
@@ -222,9 +224,10 @@ int main(int argc, char* argv[])
 	auto idx_obs = -1;
 
 	for (auto i = 0; i < cnt; i++) {
-		if (radius >= vars_bin[isv[i] * (nvars+1)] && radius < vars_bin[isv[i+1] * (nvars+1)])
+		if (radius >= vars_bin[isv[i]] && radius < vars_bin[isv[i+1]]) {
 			idx_obs = i;
-		break;
+		    break;
+        }
 	}
 
 	if (idx_obs == -1) Abort("ERROR: radius not found in domain");
@@ -245,8 +248,8 @@ int main(int argc, char* argv[])
 	for (auto i = 0; i < ngroups; i++) {
 		slicefile << std::setw(15) << varNames[rad_comp+i]
 		          << std::setw(w) << nu_groups[i]
-		          << std::setw(w) << vars_bin[isv[idx_obs] * (nvars+1) + (rad_comp+i+1)]
-		          << std::setw(w) << vars_bin[isv[idx_obs] * (nvars+1) + (rad_comp+i+1)] / dnu_groups[i] << std::endl;
+		          << std::setw(w) << vars_bin[isv[idx_obs] + (rad_comp+i+1) * nbins]
+		          << std::setw(w) << vars_bin[isv[idx_obs] + (rad_comp+i+1) * nbins] / dnu_groups[i] << std::endl;
 	}
 
 	slicefile.close();
