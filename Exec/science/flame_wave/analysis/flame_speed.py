@@ -8,6 +8,12 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 def measure_and_plot(rad, t, stab_ind):
+    """
+    Plots front_location vs. time on the current pyplot figure, as well as any
+    reasonable linear fits. *stab_ind* should give an index for which the flame
+    front has stabilized, and the slope obtained from linear regression will yield
+    an accurate measurement of the front speed.
+    """
     
     slopes = dict()
     
@@ -37,9 +43,9 @@ if __name__ == "__main__":
         t = pd.read_csv(sys.argv[2], sep="\s+")
         stab_ind = int(sys.argv[3])
         
-    except:
+    except (ValueError, IndexError):
         
-        print("Usage: ./flame_speed.py radii.dat times.dat starting_index")
+        print("Usage: ./fit_speed.py radii.dat times.dat starting_index")
     
     plt.style.use("seaborn")
     measure_and_plot(rad, t, stab_ind)

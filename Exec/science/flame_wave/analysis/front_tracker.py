@@ -6,19 +6,23 @@ import yt
 from yt.units import cm
 import numpy as np
 
+# Set this to control where the script outputs the data files
+output_dir = "front_tracking"
+
 tf = lambda file: yt.load(file.rstrip('/'))
 ts = list(map(tf, sys.argv[1:]))
-
-output_dir = "front_tracking"
 
 if not os.path.isdir(output_dir):
     
     os.mkdir(output_dir)
     
 class Metrics:
+    """ Class for defining different measurements of the position of the flame front. """
     
+    # These are the measurements to output
     metric_names = ["one_percent", "one_tenth_percent"]
     
+    # Stores the global <enuc> maximum across all data files
     global_max = None
     
     def __init__(self, frb):
@@ -38,6 +42,7 @@ class Metrics:
         
     @property
     def ten_percent(self):
+        """ Where column averaged enuc reaches 10% of the global max. """
         
         if self._ten_percent is None:
             
@@ -48,6 +53,7 @@ class Metrics:
         
     @property
     def five_percent(self):
+        """ Where column averaged enuc reaches 5% of the global max. """
         
         if self._five_percent is None:
             
@@ -58,6 +64,7 @@ class Metrics:
         
     @property
     def one_percent(self):
+        """ Where column averaged enuc reaches 1% of the global max. """
         
         if self._one_percent is None:
             
@@ -68,6 +75,7 @@ class Metrics:
         
     @property
     def one_tenth_percent(self):
+        """ Where column averaged enuc reaches 0.1% of the global max. """
         
         if self._one_tenth_percent is None:
             
@@ -78,10 +86,12 @@ class Metrics:
         
     @property
     def all(self):
+        """ Returns all metrics that should be output to the data files. """
         
         return map(lambda name: getattr(self, name), self.metric_names)
     
 def get_window_parameters(ds, axis, width=None, center='c'):
+    """ Some parameters controlling the frb window. """
     
     width = ds.coordinates.sanitize_width(axis, width, None)
     center, display_center = ds.coordinates.sanitize_center(center, axis)
@@ -94,7 +104,7 @@ def get_window_parameters(ds, axis, width=None, center='c'):
     return bounds, center, display_center
     
 def get_width(ds, xlim=None, ylim=None, zlim=None):
-    """ Get the width of the plot. """
+    """ Get the width of the frb. """
 
     if xlim is None: xlim = ds.domain_left_edge[0], ds.domain_right_edge[0]
     else: xlim = xlim[0] * cm, xlim[1] * cm
@@ -116,7 +126,7 @@ def get_width(ds, xlim=None, ylim=None, zlim=None):
     return xwidth, ywidth, zwidth
     
 def get_center(ds, xlim=None, ylim=None, zlim=None):
-    """ Get the coordinates of the center of the plot. """
+    """ Get the coordinates of the center of the frb. """
 
     if xlim is None: xlim = ds.domain_left_edge[0], ds.domain_right_edge[0]
     else: xlim = xlim[0] * cm, xlim[1] * cm
@@ -138,6 +148,7 @@ def get_center(ds, xlim=None, ylim=None, zlim=None):
     return xctr, yctr, zctr
     
 def make_metrics(ds):
+    """ Generates an frb from a dataset, and returns the corresponding Metrics object. """
     
     axis = "theta"
     origin = "native"
@@ -160,13 +171,19 @@ def make_metrics(ds):
     return Metrics(frb)
     
 def set_max(metrics):
+    """ Sets the global maximum given an iterable of metrics. """
     
     Metrics.global_max = max(map(lambda obj: obj.max_avg_burn, metrics))
-    
+
+# Compute front location as a function of time    
 times = np.array([ds.current_time for ds in ts])
 metrics = list(map(make_metrics, ts))
 set_max(metrics)
 radii = np.array([tuple(obj.all) for obj in metrics])
+
+#####################
+# Output data files #
+#####################
 
 if len(radii) > 2:
     
