@@ -1771,28 +1771,14 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro11computeTempEii">
-<span id="_CPPv3N6Castro11computeTempEii"></span><span id="_CPPv2N6Castro11computeTempEii"></span><span id="Castro::computeTemp__i.i"></span><span class="target" id="classCastro_1a9bd4c97254ff3d138cdb71bb9dacfd81"></span>void <code class="descname">computeTemp</code><span class="sig-paren">(</span>int <em>is_new</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Compute the current temperature</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: do we use the old or new StateData? </li>
-<li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro11computeTempERN5amrex8MultiFabEi">
-<span id="_CPPv3N6Castro11computeTempERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro11computeTempERN5amrex8MultiFabEi"></span><span id="Castro::computeTemp__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a92a4dbb41b8ed26a3af29efe9d961a82"></span>void <code class="descname">computeTemp</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N6Castro11computeTempERN5amrex8MultiFabEN5amrex4RealEi">
+<span id="_CPPv3N6Castro11computeTempERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro11computeTempERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::computeTemp__amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a129c45dd9257a56855e6b70d010bee43"></span>void <code class="descname">computeTemp</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Compute the current temperature</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">state</span></code>: the state to operate on </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 <li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
 </dd>
@@ -2276,13 +2262,14 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro11hybrid_syncERN5amrex8MultiFabE">
-<span id="_CPPv3N6Castro11hybrid_syncERN5amrex8MultiFabE"></span><span id="_CPPv2N6Castro11hybrid_syncERN5amrex8MultiFabE"></span><span id="Castro::hybrid_sync__amrex::MultiFabR"></span><span class="target" id="classCastro_1ad349cf582cbaab3959a6adc6f27c31e2"></span>void <code class="descname">hybrid_sync</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N6Castro11hybrid_syncERN5amrex8MultiFabEi">
+<span id="_CPPv3N6Castro11hybrid_syncERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro11hybrid_syncERN5amrex8MultiFabEi"></span><span id="Castro::hybrid_sync__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a854e3e6495d67dfb4773c83064a99ec4"></span>void <code class="descname">hybrid_sync</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Update state to account for hybrid advection</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </li>
+<li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: Number of ghost cells </li>
 </ul>
 </dd>
 </dl>
@@ -2322,17 +2309,14 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEii">
-<span id="_CPPv3N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEii"></span><span id="_CPPv2N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEii"></span><span id="Castro::expand_state__amrex::MultiFabR.amrex::Real.i.i"></span><span class="target" id="classCastro_1aa857abb6df443b5c78f507aa10182e0a"></span>void <code class="descname">expand_state</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>S</em>, amrex::Real <em>time</em>, int <em>iclean</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Fill a version of the state with <code class="docutils literal notranslate"><span class="pre">ng</span></code> ghost zones from the state data.</p>
-<p>S is the multifab we are filling with <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code>, including a ghost cell fill at the end. Before we do the fill, we do a <code class="docutils literal notranslate"><span class="pre">clean_state</span></code> on the <code class="docutils literal notranslate"><span class="pre">State_Type</span> <span class="pre">data</span></code><p>. iclean = 0 means clean the “old” time data, iclean = 1 means clean the “new time</p>
-<p>data”, and iclean = 2 means clean both the old and new time data (in case we are interpolating in time). For any other value, no cleaning is done </p>
-<dl class="docutils">
+<dt id="_CPPv4N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEi">
+<span id="_CPPv3N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::expand_state__amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a7252c7c657f96170a61a4fd2d86ea006"></span>void <code class="descname">expand_state</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>S</em>, amrex::Real <em>time</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Fill a version of the state with <code class="docutils literal notranslate"><span class="pre">ng</span></code> ghost zones from the state data. After we do the fill, optionally clean the data using the iclean parameter.</p>
+<p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">S</span></code>: MultiFab to be filled </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">iclean</span></code>: What data do we clean? </li>
 <li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
 </dd>
@@ -2834,15 +2818,14 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro19enforce_min_densityERN5amrex8MultiFabERN5amrex8MultiFabEi">
-<span id="_CPPv3N6Castro19enforce_min_densityERN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro19enforce_min_densityERN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="Castro::enforce_min_density__amrex::MultiFabR.amrex::MultiFabR.i"></span><span class="target" id="classCastro_1aa431a6e04aa5b0395219efaee25edfa0"></span>amrex::Real <code class="descname">enforce_min_density</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>S_old</em>, amrex::MultiFab &amp;<em>S_new</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>This routine sets the density in <code class="docutils literal notranslate"><span class="pre">S_new</span></code> to be larger than the density floor. Note that it will operate everywhere on <code class="docutils literal notranslate"><span class="pre">S_new</span></code>, including ghost zones. <code class="docutils literal notranslate"><span class="pre">S_old</span></code> is present so that, after the hydro call, we know what the old density was so that we have a reference for comparison. If you are calling it elsewhere and there’s no meaningful reference state, just pass in the same MultiFab twice.</p>
+<dt id="_CPPv4N6Castro19enforce_min_densityERN5amrex8MultiFabEi">
+<span id="_CPPv3N6Castro19enforce_min_densityERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro19enforce_min_densityERN5amrex8MultiFabEi"></span><span id="Castro::enforce_min_density__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a10ef3bc30b3c84c0c6d7d33b8052a80d"></span>amrex::Real <code class="descname">enforce_min_density</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>This routine sets the density in <code class="docutils literal notranslate"><span class="pre">state</span></code> to be larger than the density floor. Note that it will operate everywhere on <code class="docutils literal notranslate"><span class="pre">state</span></code>, including ghost zones.</p>
 <p>The return value is the the negative fractional change in the state that has the largest magnitude. If there is no reference state, this is meaningless.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">S_old</span></code>: Old state </li>
-<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: New state </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: state </li>
 <li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
 </dd>
@@ -2851,45 +2834,15 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro11clean_stateEiRN5amrex8MultiFabEi">
-<span id="_CPPv3N6Castro11clean_stateEiRN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro11clean_stateEiRN5amrex8MultiFabEi"></span><span id="Castro::clean_state__i.amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a2a0b963664730ba786665afd796fe856"></span>amrex::Real <code class="descname">clean_state</code><span class="sig-paren">(</span>int <em>is_new</em>, amrex::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Given <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> state data, perform a number of cleaning steps to make sure the data is sensible. The return value is the same as the return value of enforce_min_density.</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: do we use new (0) or old (1) data? </li>
-<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: State data </li>
-<li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro11clean_stateEii">
-<span id="_CPPv3N6Castro11clean_stateEii"></span><span id="_CPPv2N6Castro11clean_stateEii"></span><span id="Castro::clean_state__i.i"></span><span class="target" id="classCastro_1abc72feb53eacd90112acf32c1b696c6f"></span>amrex::Real <code class="descname">clean_state</code><span class="sig-paren">(</span>int <em>is_new</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Given <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> state data, perform a number of cleaning steps to make sure the data is sensible. The return value is the same as the return value of enforce_min_density.</p>
-<p>this is the “preferred” clean_state interface  it will work directly on the StateData. <code class="docutils literal notranslate"><span class="pre">is_new</span></code>=0 means the old data is used, <code class="docutils literal notranslate"><span class="pre">is_new</span></code>=1 means the new data is used.</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: do we use new (0) or old (1) data? </li>
-<li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro11clean_stateERN5amrex8MultiFabE">
-<span id="_CPPv3N6Castro11clean_stateERN5amrex8MultiFabE"></span><span id="_CPPv2N6Castro11clean_stateERN5amrex8MultiFabE"></span><span id="Castro::clean_state__amrex::MultiFabR"></span><span class="target" id="classCastro_1a8ccf88b2c60a098dbc63bd8f2480149f"></span>amrex::Real <code class="descname">clean_state</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N6Castro11clean_stateERN5amrex8MultiFabEN5amrex4RealEi">
+<span id="_CPPv3N6Castro11clean_stateERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro11clean_stateERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::clean_state__amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a5a82c395d7e9df56c59e0b65543674f5"></span>amrex::Real <code class="descname">clean_state</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Given <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> state data, perform a number of cleaning steps to make sure the data is sensible. The return value is the same as the return value of ::enforce_min_density.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">state</span></code>: State data </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
+<li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </li>
 </ul>
 </dd>
 </dl>

@@ -251,7 +251,7 @@
 <p class="rubric">Subroutines and functions</p>
 <dl class="subroutine">
 <dt id="f/advection_util_module/ca_enforce_minimum_density">
-<em class="property">subroutine  </em><code class="descclassname">advection_util_module/</code><code class="descname">ca_enforce_minimum_density</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>uin</em>, <em>uin_lo</em>, <em>uin_hi</em>, <em>uout</em>, <em>uout_lo</em>, <em>uout_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em>, <em>frac_change</em>, <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#f/advection_util_module/ca_enforce_minimum_density" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">advection_util_module/</code><code class="descname">ca_enforce_minimum_density</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>state</em>, <em>s_lo</em>, <em>s_hi</em>, <em>frac_change</em>, <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#f/advection_util_module/ca_enforce_minimum_density" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -259,15 +259,9 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>uin</strong> (uin_hi(1)-(uin_lo(1))+1, uin_hi(2)-(uin_lo(2))+1, uin_hi(3)-(uin_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>uin_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>uin_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>uout</strong> (uout_hi(1)-(uout_lo(1))+1,uout_hi(2)-(uout_lo(2))+1,uout_hi(3)-(uout_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>uout_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>uout_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>vol</strong> (vol_hi(1)-(vol_lo(1))+1, vol_hi(2)-(vol_lo(2))+1, vol_hi(3)-(vol_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>vol_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>vol_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>frac_change</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>verbose</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 </ul>
@@ -285,7 +279,7 @@
 
 <dl class="subroutine">
 <dt id="f/advection_util_module/reset_to_small_state">
-<em class="property">subroutine  </em><code class="descclassname">advection_util_module/</code><code class="descname">reset_to_small_state</code><span class="sig-paren">(</span><em>old_state</em>, <em>new_state</em>, <em>idx</em>, <em>lo</em>, <em>hi</em>, <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#f/advection_util_module/reset_to_small_state" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">advection_util_module/</code><code class="descname">reset_to_small_state</code><span class="sig-paren">(</span><em>state</em>, <em>idx</em>, <em>lo</em>, <em>hi</em>, <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#f/advection_util_module/reset_to_small_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>If no neighboring zones are above small_dens, our only recourse
 is to set the density equal to small_dens, and the temperature
 equal to small_temp. We set the velocities to zero,
@@ -295,8 +289,7 @@ though any choice here would be arbitrary.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>old_state</strong> (nvar)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>new_state</strong> (nvar)<em> [</em><em>real</em><em>]</em></li>
+<li><strong>state</strong> (nvar)<em> [</em><em>real</em><em>]</em></li>
 <li><strong>idx</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
@@ -319,14 +312,13 @@ though any choice here would be arbitrary.</p>
 
 <dl class="subroutine">
 <dt id="f/advection_util_module/reset_to_zone_state">
-<em class="property">subroutine  </em><code class="descclassname">advection_util_module/</code><code class="descname">reset_to_zone_state</code><span class="sig-paren">(</span><em>old_state</em>, <em>new_state</em>, <em>input_state</em>, <em>idx</em>, <em>lo</em>, <em>hi</em>, <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#f/advection_util_module/reset_to_zone_state" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">advection_util_module/</code><code class="descname">reset_to_zone_state</code><span class="sig-paren">(</span><em>state</em>, <em>input_state</em>, <em>idx</em>, <em>lo</em>, <em>hi</em>, <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#f/advection_util_module/reset_to_zone_state" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>old_state</strong> (nvar)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>new_state</strong> (nvar)<em> [</em><em>real</em><em>]</em></li>
+<li><strong>state</strong> (nvar)<em> [</em><em>real</em><em>]</em></li>
 <li><strong>input_state</strong> (nvar)<em> [</em><em>real</em><em>]</em></li>
 <li><strong>idx</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>

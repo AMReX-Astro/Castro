@@ -151,8 +151,7 @@ namespace: ``castro``
 | ``density_reset_method``               | Which method to use when resetting a negative/small     | 1             |
 |                                        | density 1 = Reset to characteristics of adjacent zone   |               |
 |                                        | with largest density 2 = Use average of all adjacent    |               |
-|                                        | zones for all state variables 3 = Reset to the original |               |
-|                                        | zone state before the hydro update                      |               |
+|                                        | zones for all state variables                           |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``allow_small_energy``                 | Whether or not to allow the internal energy to be less  | 1             |
 |                                        | than the internal energy corresponding to small_temp    |               |
