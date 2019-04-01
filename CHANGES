@@ -1,3 +1,16 @@
+# changes since the last release
+
+  -- density_reset_method == 3 (which, in the event of a density reset,
+     reset to the density at the beginning of the timestep) no longer
+     exists. (#538)
+
+  -- The behavior of use_retry = 1 with retry_neg_dens_factor changed
+     slightly since we now choose the retry timestep based on the difference
+     between the (incorrect) negative density and the density it was
+     reset to, rather than the old density at the beginning of the step.
+     It still does a similar type of timestep limiting, but quantitatively
+     the timesteps it chooses will be different. (#538)
+
 # 19.04
 
   -- The runtime parameter castro.fix_mass_flux has been removed: it is not

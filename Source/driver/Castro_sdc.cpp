@@ -81,7 +81,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
     }
 
     const Real cur_time = state[State_Type].curTime();
-    expand_state(Sburn, cur_time, -1, 2);
+    expand_state(Sburn, cur_time, 2);
 
   }
 #endif

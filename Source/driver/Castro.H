@@ -1198,19 +1198,11 @@ public:
 ///
 /// Compute the current temperature
 ///
-/// @param is_new   do we use the old or new StateData?
-/// @param ng number of ghost cells
-///
-    void computeTemp (int is_new, int ng);
-
-
-///
-/// Compute the current temperature
-///
 /// @param state    the state to operate on
+/// @param time     current time
 /// @param ng       number of ghost cells
 ///
-    void computeTemp(amrex::MultiFab& state, int ng);
+    void computeTemp(amrex::MultiFab& state, amrex::Real time, int ng);
 
 
 ///
@@ -1567,8 +1559,9 @@ public:
 /// Update state to account for hybrid advection
 ///
 /// @param state    Current state
+/// @param ng       Number of ghost cells
 ///
-    void hybrid_sync(amrex::MultiFab& state);
+    void hybrid_sync(amrex::MultiFab& state, int ng);
 #endif
 
 
@@ -1593,24 +1586,13 @@ public:
 
 ///
 /// Fill a version of the state with ``ng`` ghost zones from the state data.
-///
-/// S is the multifab we are filling with ``State_Type`` ``StateData``,
-/// including a ghost cell fill at the end.  Before we do the fill,
-/// we do a ``clean_state`` on the ``State_Type data``.  iclean = 0 means
-/// clean the "old" time data, iclean = 1 means clean the "new time
-/// data", and iclean = 2 means clean both the old and new time data
-/// (in case we are interpolating in time).  For any other value, no
-/// cleaning is done
-
-// note: we don't clean ghost cells here, since we are doing a fill
-// right afterwards
+/// After we do the fill, optionally clean the data using the iclean parameter.
 ///
 /// @param S        MultiFab to be filled
 /// @param time     current time
-/// @param iclean   What data do we clean?
 /// @param ng       number of ghost cells
 ///
-    void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
+    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
 #ifdef SELF_GRAVITY
 
@@ -1996,47 +1978,16 @@ protected:
     void enforce_consistent_e (amrex::MultiFab& S);
 
 ///
-/// This routine sets the density in ``S_new`` to be larger than the density floor.
-/// Note that it will operate everywhere on ``S_new``, including ghost zones.
-/// ``S_old`` is present so that, after the hydro call, we know what the old density
-/// was so that we have a reference for comparison. If you are calling it elsewhere
-/// and there's no meaningful reference state, just pass in the same MultiFab twice.
+/// This routine sets the density in ``state`` to be larger than the density floor.
+/// Note that it will operate everywhere on ``state``, including ghost zones.
 ///
 /// The return value is the the negative fractional change in the state that has the
 /// largest magnitude. If there is no reference state, this is meaningless.
 ///
-/// @param S_old        Old state
-/// @param S_new        New state
+/// @param state        state
 /// @param ng           number of ghost cells
 ///
-    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
-
-///
-/// Given ``State_Type`` state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
-/// value of enforce_min_density.
-///
-/// @param is_new   do we use new (0) or old (1) data?
-/// @param state    State data
-/// @param ng       number of ghost cells
-///
-    amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
-
-///
-/// Given ``State_Type`` state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
-/// value of enforce_min_density.
-///
-/// this is the "preferred" clean_state interface -- it will work
-/// directly on the StateData.  ``is_new``=0 means the old data is used,
-/// ``is_new``=1 means the new data is used.
-///
-///
-/// @param is_new   do we use new (0) or old (1) data?
-/// @param ng       number of ghost cells
-///
-    amrex::Real clean_state (int is_new, int ng);
-
+    amrex::Real enforce_min_density (amrex::MultiFab& state, int ng);
 
 ///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
@@ -2044,8 +1995,10 @@ protected:
 /// value of ::enforce_min_density.
 ///
 /// @param state    State data
+/// @param time     current time
+/// @param ng       number of ghost cells
 ///
-    amrex::Real clean_state (amrex::MultiFab& state);
+    amrex::Real clean_state (amrex::MultiFab& state, amrex::Real time, int ng);
 
 ///
 /// Average new state from ``level+1`` down to ``level``

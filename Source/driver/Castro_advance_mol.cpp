@@ -176,14 +176,14 @@ Castro::do_advance_mol (Real time,
     MultiFab::Saxpy(S_new, dt*b_mol[i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
   // define the temperature now
-  int is_new=1;
-  clean_state(is_new, S_new.nGrow());
+  clean_state(S_new, cur_time, S_new.nGrow());
 
   // If the state has ghost zones, sync them up now
   // since the hydro source only works on the valid zones.
 
   if (S_new.nGrow() > 0) {
-    expand_state(S_new, cur_time, 1, S_new.nGrow());
+      clean_state(S_new, cur_time, 0);
+      expand_state(S_new, cur_time, S_new.nGrow());
   }
 
 #ifndef AMREX_USE_CUDA
@@ -200,11 +200,13 @@ Castro::do_advance_mol (Real time,
   // note: we need to have ghost cells here cause some sources (in
   // particular pdivU) need them.  Perhaps it would be easier to just
   // always require State_Type to have 1 ghost cell?
-  expand_state(Sborder, prev_time, 0, Sborder.nGrow());
+  clean_state(S_old, prev_time, 0);
+  expand_state(Sborder, prev_time, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
   AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
 
-  expand_state(Sborder, cur_time, 1, Sborder.nGrow());
+  clean_state(S_new, cur_time, 0);
+  expand_state(Sborder, cur_time, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
   AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
 
