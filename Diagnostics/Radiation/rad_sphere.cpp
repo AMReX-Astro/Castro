@@ -25,7 +25,6 @@ void Print_Help() {
 
 int main(int argc, char* argv[])
 {
-
 	amrex::Initialize(argc, argv, false);
 
 	// timer for profiling
@@ -72,8 +71,8 @@ int main(int argc, char* argv[])
 	}
 
 	Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
-	Print() <<   "groupfile = \"" << groupfile << "\"" << std::endl;
-	Print() << 		"radius = " << radius << std::endl;
+	Print() << "groupfile = \"" << groupfile << "\"" << std::endl;
+	Print() << "radius = " << radius << std::endl;
 	Print() << std::endl;
 
 	// Start dataservices
@@ -233,17 +232,24 @@ int main(int argc, char* argv[])
 	// output all the radiation energies
 	const auto w = 28;
 
-	Print() << std::setw(15) << "group name"
+	std::ofstream slicefile;
+	slicefile.open("rad_sphere.out");
+	slicefile.setf(std::ios::scientific);
+	slicefile.precision(12);
+
+	slicefile << std::setw(15) << "# group name"
 	        << std::setw(w) << "group center energy"
 	        << std::setw(w) << "E_rad(nu)*dnu (erg/cm^3)"
 	        << std::setw(w) << "E_rad(nu) (erg/cm^3/Hz)" << std::endl;
 
 	for (auto i = 0; i < ngroups; i++) {
-		Print() << std::setw(15) << varNames[rad_comp+i]
+		slicefile << std::setw(15) << varNames[rad_comp+i]
 		        << std::setw(w) << nu_groups[i]
 		        << std::setw(w) << vars_bin[isv[idx_obs] + (rad_comp+i+1)*nbins]
 		        << std::setw(w) << vars_bin[isv[idx_obs] + (rad_comp+i+1)*nbins] / dnu_groups[i] << std::endl;
 	}
+
+	slicefile.close();
 
 	// destroy timer for profiling
 	BL_PROFILE_VAR_STOP(pmain);

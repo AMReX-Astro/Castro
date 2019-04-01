@@ -10,10 +10,6 @@ module trace_ppm_module
 
   implicit none
 
-  private
-
-  public trace_ppm
-
 contains
 
   subroutine trace_ppm(lo, hi, &
@@ -115,7 +111,11 @@ contains
                    ! wave, so no projection is needed.  Since we are not
                    ! projecting, the reference state doesn't matter
 
-                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,2,n), un > ZERO)
+                   if (un > ZERO) then
+                      qp(i,j,k,n) = q(i,j,k,n)
+                   else
+                      qp(i,j,k,n) = Im(i,j,k,2,n)
+                   end if
                    if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,2,n)
 
                 end if
@@ -123,15 +123,27 @@ contains
                 ! Minus state on face i+1
                 if (idir == 1 .and. i <= vhi(1)) then
                    un = q(i,j,k,QU-1+idir)
-                   qm(i+1,j,k,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (un > ZERO) then
+                      qm(i+1,j,k,n) = Ip(i,j,k,2,n)
+                   else
+                      qm(i+1,j,k,n) = q(i,j,k,n)
+                   end if
                    if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 else if (idir == 2 .and. j <= vhi(2)) then
                    un = q(i,j,k,QU-1+idir)
-                   qm(i,j+1,k,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (un > ZERO) then
+                      qm(i,j+1,k,n) = Ip(i,j,k,2,n)
+                   else
+                      qm(i,j+1,k,n) = q(i,j,k,n)
+                   end if
                    if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 else if (idir == 3 .and. k <= vhi(3)) then
                    un = q(i,j,k,QU-1+idir)
-                   qm(i,j,k+1,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (un > ZERO) then
+                      qm(i,j,k+1,n) = Ip(i,j,k,2,n)
+                   else
+                      qm(i,j,k+1,n) = q(i,j,k,n)
+                   end if
                    if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 end if
 
@@ -451,10 +463,29 @@ contains
                 alpha0r = drho - dptot/csq_ev
                 alpha0e_g = drhoe_g - dptot*h_g_ev  ! note h_g has a 1/c**2 in it
 
-                alpham = merge(ZERO, -alpham, un-cc > ZERO)
-                alphap = merge(ZERO, -alphap, un+cc > ZERO)
-                alpha0r = merge(ZERO, -alpha0r, un > ZERO)
-                alpha0e_g = merge(ZERO, -alpha0e_g, un > ZERO)
+                if (un-cc > ZERO) then
+                   alpham = ZERO
+                else
+                   alpham = -alpham
+                end if
+
+                if (un+cc > ZERO) then
+                   alphap = ZERO
+                else
+                   alphap = -alphap
+                end if
+
+                if (un > ZERO) then
+                   alpha0r = ZERO
+                else
+                   alpha0r = -alpha0r
+                end if
+
+                if (un > ZERO) then
+                   alpha0e_g = ZERO
+                else
+                   alpha0e_g = -alpha0e_g
+                end if
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
@@ -541,10 +572,29 @@ contains
                 alpha0r = drho - dptot/csq_ev
                 alpha0e_g = drhoe_g - dptot*h_g_ev  ! h_g has a 1/c**2 in it
 
-                alpham = merge(-alpham, ZERO, un-cc > ZERO)
-                alphap = merge(-alphap, ZERO, un+cc > ZERO)
-                alpha0r = merge(-alpha0r, ZERO, un > ZERO)
-                alpha0e_g = merge(-alpha0e_g, ZERO, un > ZERO)
+                if (un-cc > ZERO) then
+                   alpham = -alpham
+                else
+                   alpham = ZERO
+                end if
+
+                if (un+cc > ZERO) then
+                   alphap = -alphap
+                else
+                   alphap = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alpha0r = -alpha0r
+                else
+                   alpha0r = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alpha0e_g = -alpha0e_g
+                else
+                   alpha0e_g = ZERO
+                end if
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
@@ -878,10 +928,29 @@ contains
                 gfactor = (game - ONE)*(game - gam_g)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
-                alpham = merge(ZERO, -alpham, un-cc > ZERO)
-                alphap = merge(ZERO, -alphap, un+cc > ZERO)
-                alpha0r = merge(ZERO, -alpha0r, un > ZERO)
-                alpha0e_g = merge(ZERO, -alpha0e_g, un > ZERO)
+                if (un-cc > ZERO) then
+                   alpham = ZERO
+                else
+                   alpham = -alpham
+                end if
+
+                if (un+cc > ZERO) then
+                   alphap = ZERO
+                else
+                   alphap = -alphap
+                end if
+
+                if (un > ZERO) then
+                   alpha0r = ZERO
+                else
+                   alpha0r = -alpha0r
+                end if
+
+                if (un > ZERO) then
+                   alpha0e_g = ZERO
+                else
+                   alpha0e_g = -alpha0e_g
+                end if
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
@@ -974,10 +1043,29 @@ contains
                 gfactor = (game - ONE)*(game - gam_g)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
-                alpham = merge(-alpham, ZERO, un-cc > ZERO)
-                alphap = merge(-alphap, ZERO, un+cc > ZERO)
-                alpha0r = merge(-alpha0r, ZERO, un > ZERO)
-                alpha0e_g = merge(-alpha0e_g, ZERO, un > ZERO)
+                if (un-cc > ZERO) then
+                   alpham = -alpham
+                else
+                   alpham = ZERO
+                end if
+
+                if (un+cc > ZERO) then
+                   alphap = -alphap
+                else
+                   alphap = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alpha0r = -alpha0r
+                else
+                   alpha0r = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alpha0e_g = -alpha0e_g
+                else
+                   alpha0e_g = ZERO
+                end if
 
 
                 ! The final interface states are just
@@ -1355,9 +1443,23 @@ contains
                 ! not used, but needed to prevent bad invalid ops
                 alpha0e_g = ZERO
 
-                alpham = merge(ZERO, -alpham, un-cc > ZERO)
-                alphap = merge(ZERO, -alphap, un+cc > ZERO)
-                alpha0r = merge(ZERO, -alpha0r, un > ZERO)
+                if (un-cc > ZERO) then
+                   alpham = ZERO
+                else
+                   alpham = -alpham
+                end if
+
+                if (un+cc > ZERO) then
+                   alphap = ZERO
+                else
+                   alphap = -alphap
+                end if
+
+                if (un > ZERO) then
+                   alpha0r = ZERO
+                else
+                   alpha0r = -alpha0r
+                end if
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
@@ -1472,9 +1574,23 @@ contains
                 ! not used, but needed to prevent bad invalid ops
                 alpha0e_g = ZERO
 
-                alpham = merge(-alpham, ZERO, un-cc > ZERO)
-                alphap = merge(-alphap, ZERO, un+cc > ZERO)
-                alpha0r = merge(-alpha0r, ZERO, un > ZERO)
+                if (un-cc > ZERO) then
+                   alpham = -alpham
+                else
+                   alpham = ZERO
+                end if
+
+                if (un+cc > ZERO) then
+                   alphap = -alphap
+                else
+                   alphap = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alpha0r = -alpha0r
+                else
+                   alpha0r = ZERO
+                end if
 
 
                 ! The final interface states are just
