@@ -1,0 +1,3 @@
+ca_F90EXE_sources += radiation_util.F90
+CEXE_headers += Radiation_F.H
+CEXE_headers += Radiation_utils.H

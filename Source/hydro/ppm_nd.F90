@@ -1,6 +1,5 @@
 module ppm_module
-
-
+  !
   ! this does the parabolic reconstruction on a variable and the (optional)
   ! integration under the characteristic domain of the parabola
 
@@ -11,43 +10,28 @@ module ppm_module
 
   implicit none
 
-  private
-
-  public ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
-
 contains
 
-
-  !> @brief this routine does the reconstruction of the zone data into
-  !! parabola.  The loops are over zone centers and for zone center,
-  !! it will compute the left and right values of the parabola and
-  !! store these in the qm and qp arrays.  If put_on_edges = 0, then
-  !! this storage is done by zone so the parabola information for a
-  !! zone can then be used in ppm_int_profile to compute the
-  !! integrals.  If put_on_edges = 1, then we copy this information
-  !! to the appropriate edges, such that qm(i,j,k,1) is the left
-  !! state on the i-1/2 interface.  This is used for method-of-lines
-  !! integration methods.
-  !!
-  !! here s has nc components and we reconstruct component n
-  !!
-  !! we store the result in the arrays qm and qp, in component nq out
-  !! of ncq components
-  !! @param[in] lo integer
-  !! @param[in] s_lo integer
-  !! @param[in] f_lo integer
-  !! @param[in] qm_lo integer
-  !! @param[in] qp_lo integer
-  !! @param[in] s real(rt)
-  !! @param[in] flatn real(rt)
-  !! @param[inout] qm real(rt)
-  !! @param[inout] qp real(rt)
-  !!
   subroutine ca_ppm_reconstruct(lo, hi, put_on_edges, idir, &
                                 s, s_lo, s_hi, nc, nstart, nend, &
                                 flatn, f_lo, f_hi, &
                                 qm, qm_lo, qm_hi, &
                                 qp, qp_lo, qp_hi, ncq, nqstart, nqend) bind(c, name='ca_ppm_reconstruct')
+    ! this routine does the reconstruction of the zone data into
+    ! parabola.  The loops are over zone centers and for zone center,
+    ! it will compute the left and right values of the parabola and
+    ! store these in the qm and qp arrays.  If put_on_edges = 0, then
+    ! this storage is done by zone so the parabola information for a
+    ! zone can then be used in ppm_int_profile to compute the
+    ! integrals.  If put_on_edges = 1, then we copy this information
+    ! to the appropriate edges, such that qm(i,j,k,1) is the left
+    ! state on the i-1/2 interface.  This is used for method-of-lines
+    ! integration methods.
+    !
+    ! here s has nc components and we reconstruct component n
+    !
+    ! we store the result in the arrays qm and qp, in component nq out
+    ! of ncq components
 
 
 
@@ -101,7 +85,7 @@ contains
     end if
 
     if (nend - nstart /= nqend - nqstart) then
-       call amrex_error("Number of components don't match in ca_ppm_reconstruct")
+       call amrex_error("Number of components do not match in ca_ppm_reconstruct")
     end if
 #endif
 
@@ -112,9 +96,9 @@ contains
           n = nstart + ic
           nq = nqstart + ic
 
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          !!!!!!!!!!!!!!!!!!!!
           ! x-direction
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          !!!!!!!!!!!!!!!!!!!!
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
@@ -222,9 +206,9 @@ contains
           n = nstart + ic
           nq = nqstart + ic
 
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          !!!!!!!!!!!!!!!!!!!!
           ! y-direction
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          !!!!!!!!!!!!!!!!!!!!
 
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
@@ -335,9 +319,9 @@ contains
           n = nstart + ic
           nq = nqstart + ic
 
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          !!!!!!!!!!!!!!!!!!!!
           ! z-direction
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          !!!!!!!!!!!!!!!!!!!!
 
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
@@ -447,26 +431,6 @@ contains
 
 
 
-  !>
-  !! @param[in] s_lo integer
-  !! @param[in] ncomp integer
-  !! @param[in] n integer
-  !! @param[in] icomp integer
-  !! @param[in] ic integer
-  !! @param[in] qd_lo integer
-  !! @param[in] qa_lo integer
-  !! @param[in] sd_lo integer
-  !! @param[in] I_lo integer
-  !! @param[in] lo integer
-  !! @param[in] s real(rt)
-  !! @param[in] q real(rt)
-  !! @param[in] qaux real(rt)
-  !! @param[in] sm_in real(rt)
-  !! @param[in] sp_in real(rt)
-  !! @param[inout] Ip real(rt)
-  !! @param[inout] Im real(rt)
-  !! @param[in] dx real(rt)
-  !!
   subroutine ppm_int_profile(lo, hi, idir, &
                              s, s_lo, s_hi, ncomp, n, &
                              q, qd_lo, qd_hi, &
@@ -523,9 +487,9 @@ contains
 
     if (idir == 1) then
 
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       !!!!!!!!!!!!!!!!!!!!
        ! x-direction
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       !!!!!!!!!!!!!!!!!!!!
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -593,9 +557,9 @@ contains
 
     else if (idir == 2) then
 
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       !!!!!!!!!!!!!!!!!!!!
        ! y-direction
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       !!!!!!!!!!!!!!!!!!!!
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -655,9 +619,9 @@ contains
        end do
 
     else
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       !!!!!!!!!!!!!!!!!!!!
        ! z-direction
-       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       !!!!!!!!!!!!!!!!!!!!
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -721,23 +685,16 @@ contains
 
 
 
-  !> @brief temperature-based PPM -- if desired, take the Ip(T)/Im(T)
-  !! constructed above and use the EOS to overwrite Ip(p)/Im(p)
-  !! get an edge-based gam1 here if we didn't get it from the EOS
-  !! call above (for ppm_temp_fix = 1)
-  !!
-  !! @param[in] lo integer
-  !! @param[in] I_lo integer
-  !! @param[inout] Ip real(rt)
-  !! @param[inout] Im real(rt)
-  !! @param[inout] Ip_gc real(rt)
-  !! @param[inout] Im_gc real(rt)
-  !!
+
   subroutine ppm_reconstruct_with_eos(lo, hi, idir, &
                                       Ip, Ip_lo, Ip_hi, &
                                       Im, Im_lo, Im_hi, &
                                       Ip_gc, Ipg_lo, Ipg_hi, &
                                       Im_gc, Img_lo, Img_hi)
+    ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
+    ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
+    ! get an edge-based gam1 here if we didn't get it from the EOS
+    ! call above (for ppm_temp_fix = 1)
 
     use meth_params_module, only : NQ, QRHO, QTEMP, QPRES, QREINT, QFS, QFX, small_temp
     use eos_type_module, only : eos_t, eos_input_rt

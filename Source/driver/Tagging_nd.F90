@@ -38,30 +38,7 @@ module tagging_module
 
 contains
 
-  ! All tagging subroutines in this file must be threadsafe because
-  ! they are called inside OpenMP parallel regions.
 
-  ! ::: -----------------------------------------------------------
-  ! ::: INPUTS/OUTPUTS:
-  ! ::: 
-  ! ::: tag      <=  integer tag array
-  ! ::: lo,hi     => index extent of work region
-  ! ::: set       => integer value to tag cell for refinement
-  ! ::: clear     => integer value to untag cell
-  ! ::: temp      => temperature array
-  ! ::: np        => number of components in temp array (should be 1)
-  ! ::: domlo,hi  => index extent of problem domain
-  ! ::: delta     => cell spacing
-  ! ::: xlo       => physical location of lower left hand
-  ! :::              corner of work region
-  ! ::: problo    => phys loc of lower left corner of prob domain
-  ! ::: time      => problem evolution time
-  ! ::: level     => refinement level of this array
-  ! ::: -----------------------------------------------------------
-
-  ! ::: -----------------------------------------------------------
-  ! ::: This routine will tag high error cells based on the Laplacian.
-  ! ::: -----------------------------------------------------------
 
   subroutine ca_laplac_error(tag,taglo,taghi, &
                              set,clear, &
@@ -69,6 +46,30 @@ contains
                              lo,hi,nd,domlo,domhi, &
                              delta,xlo,problo,time,level) &
                              bind(C, name="ca_laplac_error")
+     ! All tagging subroutines in this file must be threadsafe because
+     ! they are called inside OpenMP parallel regions.
+
+     !
+     ! INPUTS/OUTPUTS:
+     !
+     ! tag      <=  integer tag array
+     ! lo,hi     => index extent of work region
+     ! set       => integer value to tag cell for refinement
+     ! clear     => integer value to untag cell
+     ! temp      => temperature array
+     ! np        => number of components in temp array (should be 1)
+     ! domlo,hi  => index extent of problem domain
+     ! delta     => cell spacing
+     ! xlo       => physical location of lower left hand
+     !              corner of work region
+     ! problo    => phys loc of lower left corner of prob domain
+     ! time      => problem evolution time
+     ! level     => refinement level of this array
+     !
+
+     !
+     ! This routine will tag high error cells based on the Laplacian.
+     !
 
     use prob_params_module, only: dg, dim
     use amrex_fort_module, only : rt => amrex_real
@@ -113,7 +114,7 @@ contains
        do k=lo(3)-1*dg(3),hi(3)+1*dg(3)
           do j=lo(2)-1*dg(2),hi(2)+1*dg(2)
              do i=lo(1)-1*dg(1),hi(1)+1*dg(1)
-                delu(i,j,k,2)  =     var(i,j+1*dg(2),k)  -     var(i,j-1*dg(2),k) 
+                delu(i,j,k,2)  =     var(i,j+1*dg(2),k)  -     var(i,j-1*dg(2),k)
                 delua(i,j,k,2) = abs(var(i,j+1*dg(2),k)) + abs(var(i,j-1*dg(2),k))
              end do
           end do
@@ -196,9 +197,6 @@ contains
 
   end subroutine ca_laplac_error
 
-  ! ::: -----------------------------------------------------------
-  ! ::: This routine will tag high error cells based on the density
-  ! ::: -----------------------------------------------------------
 
   subroutine ca_denerror(tag,taglo,taghi, &
                          set,clear, &
@@ -206,6 +204,9 @@ contains
                          lo,hi,nd,domlo,domhi, &
                          delta,xlo,problo,time,level) &
                          bind(C, name="ca_denerror")
+     !
+     ! This routine will tag high error cells based on the density
+     !
 
     use prob_params_module, only: dg
     use amrex_fort_module, only : rt => amrex_real
@@ -257,9 +258,6 @@ contains
 
   end subroutine ca_denerror
 
-  ! ::: -----------------------------------------------------------
-  ! ::: This routine will tag high error cells based on the temperature
-  ! ::: -----------------------------------------------------------
 
   subroutine ca_temperror(tag,taglo,taghi, &
                           set,clear, &
@@ -267,6 +265,9 @@ contains
                           lo,hi,np,domlo,domhi, &
                           delta,xlo,problo,time,level) &
                           bind(C, name="ca_temperror")
+  !
+  ! This routine will tag high error cells based on the temperature
+  !
 
     use prob_params_module, only: dg
     use amrex_fort_module, only : rt => amrex_real
@@ -318,9 +319,6 @@ contains
 
   end subroutine ca_temperror
 
-  ! ::: -----------------------------------------------------------
-  ! ::: This routine will tag high error cells based on the pressure
-  ! ::: -----------------------------------------------------------
 
   subroutine ca_presserror(tag,taglo,taghi, &
                            set,clear, &
@@ -328,6 +326,9 @@ contains
                            lo,hi,np,domlo,domhi, &
                            delta,xlo,problo,time,level) &
                            bind(C, name="ca_presserror")
+   !
+   ! This routine will tag high error cells based on the pressure
+   !
 
     use prob_params_module, only: dg
     use amrex_fort_module, only : rt => amrex_real
@@ -379,9 +380,6 @@ contains
 
   end subroutine ca_presserror
 
-  ! ::: -----------------------------------------------------------
-  ! ::: This routine will tag high error cells based on the velocity
-  ! ::: -----------------------------------------------------------
 
   subroutine ca_velerror(tag,taglo,taghi, &
                          set,clear, &
@@ -389,6 +387,9 @@ contains
                          lo,hi,nv,domlo,domhi, &
                          delta,xlo,problo,time,level) &
                          bind(C, name="ca_velerror")
+    !
+    ! This routine will tag high error cells based on the velocity
+    !
 
     use prob_params_module, only: dg
     use amrex_fort_module, only : rt => amrex_real
@@ -440,9 +441,6 @@ contains
 
   end subroutine ca_velerror
 
-  ! ::: -----------------------------------------------------------
-  ! ::: This routine will tag high error cells based on the radiation
-  ! ::: -----------------------------------------------------------
 
   subroutine ca_raderror(tag,taglo,taghi, &
                          set,clear, &
@@ -450,6 +448,9 @@ contains
                          lo,hi,nr,domlo,domhi, &
                          delta,xlo,problo,time,level) &
                          bind(C, name="ca_raderror")
+    !
+    ! This routine will tag high error cells based on the radiation
+    !
 
     use prob_params_module, only: dg
     use amrex_fort_module, only : rt => amrex_real
@@ -501,9 +502,6 @@ contains
 
   end subroutine ca_raderror
 
-  ! ::: -----------------------------------------------------------
-  ! ::: This routine will tag high error cells based on the entropy
-  ! ::: -----------------------------------------------------------
 
   subroutine ca_enterror(tag,taglo,taghi, &
                          set,clear, &
@@ -511,6 +509,9 @@ contains
                          lo,hi,nr,domlo,domhi, &
                          delta,xlo,problo,time,level) &
                          bind(C, name="ca_enterror")
+    !
+    ! This routine will tag high error cells based on the entropy
+    !
 
     use prob_params_module, only: dg
     use amrex_fort_module, only : rt => amrex_real
@@ -563,12 +564,6 @@ contains
   end subroutine ca_enterror
 
 #ifdef REACTIONS
-  ! ::: -----------------------------------------------------------
-  ! ::: This routine will tag cells based on the sound crossing time
-  ! ::: relative to the nuclear energy injection timescale.
-  ! ::: At present we tag for maximal refinement since this
-  ! ::: criterion is necessary for numerical burning stability.
-  ! ::: -----------------------------------------------------------
 
   subroutine ca_nucerror(tag,taglo,taghi, &
                          set,clear, &
@@ -576,6 +571,12 @@ contains
                          lo,hi,nr,domlo,domhi, &
                          delta,xlo,problo,time,level) &
                          bind(C, name="ca_nucerror")
+    !
+    ! This routine will tag cells based on the sound crossing time
+    ! relative to the nuclear energy injection timescale.
+    ! At present we tag for maximal refinement since this
+    ! criterion is necessary for numerical burning stability.
+    !
 
     use amrex_fort_module, only : rt => amrex_real
 
@@ -616,17 +617,16 @@ contains
   end subroutine ca_nucerror
 
 
-  ! ::: -----------------------------------------------------------
-  ! ::: This routine will tag high error cells based on the nuclear
-  ! ::: energy generation rate
-  ! ::: -----------------------------------------------------------
-
   subroutine ca_enucerror(tag,taglo,taghi, &
                           set,clear, &
                           enuc,enuclo,enuchi, &
                           lo,hi,nd,domlo,domhi, &
                           delta,xlo,problo,time,level) &
                           bind(C, name="ca_enucerror")
+    !
+    ! This routine will tag high error cells based on the nuclear
+    ! energy generation rate
+    !
 
     use prob_params_module, only: dg
     use amrex_fort_module, only : rt => amrex_real

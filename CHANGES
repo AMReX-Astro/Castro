@@ -1,5 +1,52 @@
 # changes since the last release
 
+  -- The runtime parameter castro.fix_mass_flux has been removed: it is not
+     clear what the use case is, and it had no test suite coverage. (#572)
+
+  -- Fixed a bug introduced in August 2015 that resulted in incorrect
+     real bounds being passed to ca_initdata after a restart for problems
+     using a grown domain. This would have resulted in incorrect initialization
+     for problems using the grown restart capability if their initialization
+     depended on the position on the grid. (#566)
+
+  -- Using point-mass gravity no longer requires USE_POINTMASS = TRUE
+     in your makefile; USE_GRAV = TRUE is sufficient. However, to
+     compensate for this, you must now include castro.use_point_mass = 1
+     in your inputs file to enable the point mass. This input parameter
+     already existed, but was defaulted to 1 since it only mattered
+     if the compile flag was enabled. Now the default is 0.
+
+  -- Also, a couple bugs in the point-mass gravity have been fixed.
+     The algorithm was not correct in 1D and 2D, and this has been
+     resolved. And the point mass value was not being preserved across
+     restarts, which is an issue if you're using point_mass_fix_solution
+     to update the point mass value as mass accretes to the center of
+     the domain. This has been fixed as well.
+
+  -- fixed a bug in the source term to (rho e) evolution when using
+     MOL or the new SDC integration (#543, #545) and also no longer
+     recompute the source terms after reflux for these methods (#549)
+
+  -- Dimension agnostic problem setups have had the interface to the
+     physical boundary conditions changed (hypfill, denfill, etc.).
+     If your problem is dimension agnostic, please consult the new
+     interfaces in Source/problems/bc_fill_nd.F90 to understand how
+     to convert your problem. The changes are that (1) the "ca_" prefixes
+     have been removed from the subroutine names, (2) the "time" parameter
+     is passed by value, and (3) the (lo, hi) indices that are the target
+     region to update the boundaries on are explicitly passed in as
+     the first two arguments. (#546)
+
+  -- removed the code to extrapolate diffusion terms to ghost cells
+     as it is no longer necessary (#532)
+
+  -- we remove enthalpy diffusion (there were no known applications of
+     this) and species and velocity diffusion (they were 1-d only).
+     None of these routines were regularly tested.  (#534)
+
+  -- the problem diagnostics in Castro/Diagnostics have been converted to
+     C++ to remain compatible with the AMReX build system.  
+
 # 19.03
 
   -- Fixed a minor long-standing bug in the simplified SDC implementation

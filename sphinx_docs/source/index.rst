@@ -42,6 +42,7 @@ https://github.com/amrex-astro/Castro
    EOSNetwork
    AMR
    ConvertCheckpoint
+   self_consistent_field
    MAESTRO_restart
    Verification
 
@@ -54,12 +55,13 @@ https://github.com/amrex-astro/Castro
    .. namespacelist
 
 .. toctree::
+   :caption: References
 
-   references
+   zreferences
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
+.. * :ref:`modindex`
 * :ref:`search`

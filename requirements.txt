@@ -1,6 +1,7 @@
-Sphinx
+Sphinx<2.0
 sphinx_rtd_theme
 breathe
 sphinxcontrib_bibtex
 numpydoc
 more_itertools
+git+git://github.com/VACUMM/sphinx-fortran.git

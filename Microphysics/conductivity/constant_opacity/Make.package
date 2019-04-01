@@ -1,3 +1,2 @@
-f90EXE_sources += constant_conductive_opacity.f90
-
+F90EXE_sources += constant_conductive_opacity.F90
 

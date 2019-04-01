@@ -1,0 +1,266 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step  = 200000     # maximum timestep
+max_step  = 100000	     # maximum timestep
+stop_time = 1.e-6
+
+geometry.is_periodic = 0 0 0
+
+geometry.coord_sys = 0  # 0 => cart, 1 => RZ, 2 => Spherical
+
+geometry.prob_lo   =   0.02 0.0 0.0
+geometry.prob_hi   =   0.10 0.0 0.0
+
+amr.n_cell   =  16 1 1
+
+# REFINEMENT / REGRIDDING
+amr.max_level       = 0       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 # how often to regrid
+amr.blocking_factor = 4       # block factor in grid generation
+amr.max_grid_size    = 256
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+amr.n_proper        = 1       # default value
+amr.grid_eff        = 0.7     # what constitutes an efficient grid
+
+# CHECKPOINT FILES
+amr.check_file      = chk     # root name of checkpoint file
+amr.check_int       = 1000    # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_file       = plt_heating_mg_
+amr.plot_int        = 25      # number of timesteps between plot files
+#amr.plot_int        = 1000    # number of timesteps between plot files
+amr.derive_plot_vars = ALL
+
+# PROBIN FILENAME
+amr.probin_file     = probin-heating
+
+# VERBOSITY
+amr.v = 1
+amr.grid_log        = grdlog   # name of grid logging file
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  2    4    4
+castro.hi_bc       =  2    4    4
+
+# WHICH PHYSICS
+castro.do_grav        = 0
+#castro.do_hydro       = 1
+castro.do_hydro       = 0
+castro.do_radiation   = 1
+castro.do_reflux      = 1        # 1 => do refluxing
+castro.do_react       = 0        # reactions?
+
+# hydro cutoff parameters
+castro.small_dens     = 1.e-10
+
+# TIME STEP CONTROL
+#castro.cfl            = 0.5     # cfl number for hyperbolic system
+castro.cfl            = 5000.0     # cfl number for hyperbolic system
+castro.init_shrink    = 1.0     # scale back initial timestep
+castro.change_max     = 1.025
+castro.initial_dt     = 1.e-16
+castro.dt_cutoff      = 1.e-20  # level 0 timestep below which we halt
+#castro.fixed_dt       = 1.e-11
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v = 1
+
+# ------------------  INPUTS TO RADIATION CLASS  -------------------
+
+##### SolverType #####
+# 0: single group diffusion w/o coupling to hydro
+# 5: SGFLD       6: MGFLD
+radiation.SolverType = 5
+
+radiation.do_multilevel_init = 0 # multilevel solve to start each coarse step?
+radiation.do_multilevel_sync = 9 # multilevel sync at end of each coarse step?
+radiation.quasi_steady_start = 0 # use solver to initialize at first timestep?
+
+# MULTIGROUP OPTIONS
+radiation.do_multigroup = 1
+radiation.ngroups = 128
+
+
+# RADIATION TOLERANCES
+radiation.reltol  = 1.e-6 # relative tolerance for implicit update loop
+radiation.abstol  = 1.e-6 # absolute tolerance for implicit update loop
+radiation.maxiter = 50    # return after numiter iterations if not converged
+
+# RADIATION TIME ADVANCE PARAMETERS
+# theta = 0.5 is Crank-Nicholson, theta = 1 = backward Euler.
+radiation.theta   = 1.0   # time-centering parameter
+
+# RADIATION LIMITER
+radiation.limiter = 0     # 0 = no limiter
+                          # 2 = correct form of Lev-Pom limiter
+
+# how many times during an iteration do we update the limiter, planck
+# and rosseland mean opacities?  Large values mean keep updating until
+# convergence.
+radiation.update_limiter        = 1000
+radiation.update_planck         = 1000
+radiation.update_rosseland      = 1000
+
+radiation.do_sync               = 1
+radiation.linear_sync           = 1
+
+# RADIATION VERBOSITY
+radiation.v               = 2    # verbosity
+radiation.do_timing       = 0    # time numerical kernels
+
+
+# RADIATION PROBLEM-SPECIFIC STUFF
+radiation.do_rad_sphere   = 1    # we'll use the group structure from the radiating sphere problem
+
+# We set radiation boundary conditions directly since they do not
+# correspond neatly to the physical boundary conditions used for the fluid.
+# The choices are:
+# 101 = LO_DIRICHLET           103 = LO_REFLECT_ODD
+# 102 = LO_NEUMANN             104 = LO_MARSHAK
+
+radiation.lo_bc     = 102 101 101
+radiation.hi_bc     = 102 101 101
+
+# For each boundary, we can specify either a constant boundary value
+# or use a Fortran function FORT_RADBNDRY to specify values that vary
+# in space and time.
+
+# If bcflag is 0 then bcval is used, otherwise FORT_RADBNDRY used:
+
+radiation.lo_bcflag = 0 0 0
+radiation.hi_bcflag = 0 0 0
+
+# bcval is interpreted differently depending on the boundary condition
+# 101 = LO_DIRICHLET        bcval is Dirichlet value of rad energy density
+# 102 = LO_NEUMANN          bcval is inward flux of rad energy
+# 103 = LO_REFLECT_ODD      bcval is ignored (equivalent to inhom Dirichlet)
+# 104 = LO_MARSHAK          bcval is incident flux
+
+radiation.lo_bcval = 0.0 0.0 0.0
+radiation.hi_bcval = 0.0 0.0 0.0
+
+
+# Power-law opacities are represented as:
+#
+#    const_kappa * (rho**m) * (temp**(-n)) * (nu**(p))
+#
+# Since the formula is both nonphysical and singular, prop_temp_floor
+# provides a floor for the temperature used in the power-law computation.
+# (Specific heat c_v follows the same convention.)
+
+radiation.const_c_v     =  2.065e8   # c_v = k_B/(A m_p)  1/(gamma - 1)
+
+# Planck mean opacity (appears in the source term -- see Howell and
+# Greenough, Eq. 1)
+radiation.const_kappa_p =  4.e-8
+radiation.kappa_p_exp_m =  0.0
+radiation.kappa_p_exp_n =  0.0
+radiation.kappa_p_exp_p =  0.0
+
+# Rosseland mean opacity (appears in the diffusion term -- see Howell and
+# Greenough, Eq. 1)
+radiation.const_kappa_r =  1000.0  ! set to a high value for solver stability
+radiation.kappa_r_exp_m =  0.0
+radiation.kappa_r_exp_n =  0.0
+radiation.kappa_r_exp_p =  0.0
+
+
+radiation.prop_temp_floor = 0.0 0.0
+
+# In case the advection scheme leaves a cell with a negative internal
+# energy, and thus temperature, this floor value will be used for
+# computing emission and properties.  It can be overridden by
+# prop_temp_floor if a higher temperature is required for properties
+# to be meaningful.  It does not affect conservation.
+
+radiation.temp_floor    = -1.e-20
+
+# As kappa_r becomes low the Marshak boundary condition becomes
+# ill-conditioned.  The following floor is enforced regardless of the
+# mechanism used to set kappa_r.  (In an ideal code this floor would
+# be nondimensionalized using a characteristic length (domain size?).
+# In the present implementation the Marshak b.c. includes a factor of
+# delta x which can cause ill-conditioning if delta x is not O(1).)
+
+radiation.kappa_r_floor = 1.e-5
+
+# ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
+
+# radsolve sets parameters for the single-level and multilevel linear
+# solvers, and provides the interface between these solvers and the
+# radiation class.  The bbmg solver does not exist in the current
+# parallel version of the code.  The solver_flag parameters determine
+# which of the various solver options from the hypre library will be used.
+
+radsolve.use_bbmg          = 0   # required, do not change
+radsolve.use_hypre_level   = 1   # required, do not change
+
+# solver flag values <  100 use HypreABec, support symmetric matrices only
+# solver flag values >= 100 use HypreMultiABec, support nonsymmetric matrices
+# 0     SMG
+# 1     PFMG
+# 100   AMG
+# 102   GMRES using ParCSR interface
+# 103   GMRES using SStruct interface
+# 104   GMRES using AMG as preconditioner
+
+radsolve.level_solver_flag = 0   # can be any supported hypre solver flag
+
+# if use_hypre_multilevel == 0, use CompSolver with an internal hypre
+#    level solver determined by multilevel_solver_flag.
+# if use_hypre_multilevel == 1, use HypreMultiABec directly,
+#    multilevel_solver_flag must then be >= 100.
+
+radsolve.use_hypre_multilevel   = 0
+radsolve.multilevel_solver_flag = 0
+
+radsolve.use_hypre_nonsymmetric_terms = 0  # for testing only
+
+radsolve.reltol     = 1.0e-11 # relative tolerance
+radsolve.abstol     = 0.0     # absolute tolerance (often not necessary)
+radsolve.maxiter    = 200     # linear solver iteration limit
+
+radsolve.v = 1      # verbosity
+
+hmabec.kdim    = 5  # number of stored vectors when GMRES is used
+hmabec.bho     = 1  # use higher-order nonsymmetric boundary discretizations
+hmabec.verbose = 2  # verbosity for HypreMultiABec solvers
+habec.verbose  = 2  # verbosity for HypreABec solvers
+habec.verbose_threshold = 3  # verbosity threshold for HypreABec solvers
+habec.pfmg_relax_type = 1
+
+# additional parameters for CompSolver (used when use_hypre_multilevel == 0)
+radsolve.use_harmonic_avg   = 0
+radsolve.multilevel_version = 2
+radsolve.bottomnumiter      = 10   # iteration limit for bottom solver
+radsolve.bottomtol          = 1.e-2
+radsolve.secondtol          = 1.e-13
+radsolve.presmooth          = -1
+radsolve.postsmooth         = -1
+
+# Select form of FAB output: default is NATIVE
+#
+#   ASCII  (this is very slow)
+#   NATIVE (native binary form on machine -- the default)
+#   IEEE32 (useful if you want 32bit files when running in double precision)
+#   8BIT   (eight-bit run-length-encoded)
+#
+fab.format = NATIVE
+#
+# Initializes distribution strategy from ParmParse.
+#
+# ParmParse options are:
+#
+#   DistributionMapping.strategy = ROUNDROBIN
+#   DistributionMapping.strategy = KNAPSACK
+#
+# The default strategy is ROUNDROBIN.
+#
+DistributionMapping.strategy = ROUNDROBIN
+DistributionMapping.strategy = KNAPSACK

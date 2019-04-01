@@ -144,7 +144,6 @@ contains
                          flux3,f3_lo,f3_hi, &
                          dx,dt,time, &
                          vol,vol_lo,vol_hi) bind(C, name="ca_corrrsrc")
-
     ! Corrector step for the rotation source terms. This is applied
     ! after the hydrodynamics update to fix the time-level n
     ! prediction and add the time-level n+1 data.  This subroutine
