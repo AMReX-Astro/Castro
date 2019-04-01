@@ -11,6 +11,8 @@
      It still does a similar type of timestep limiting, but quantitatively
      the timesteps it chooses will be different. (#538)
 
+# 19.04
+
   -- The runtime parameter castro.fix_mass_flux has been removed: it is not
      clear what the use case is, and it had no test suite coverage. (#572)
 
@@ -56,7 +58,7 @@
      None of these routines were regularly tested.  (#534)
 
   -- the problem diagnostics in Castro/Diagnostics have been converted to
-     C++ to remain compatible with the AMReX build system.  
+     C++ to remain compatible with the AMReX build system.
 
 # 19.03
 
@@ -515,7 +517,7 @@
      with EOS_DIR and NETWORK_DIR
 
   -- we no longer get the compositional derivatives as part of the EOS
-     call.  If you need this functionality, you need to set the 
+     call.  If you need this functionality, you need to set the
      preprocessor variable (in Fortran), EXTRA_THERMO
 
   -- you can now use a system's BLAS routines, instead of compiling
