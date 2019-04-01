@@ -69,13 +69,12 @@ def process(castro_dir, plotfile):
             if line.strip().startswith("#"):
                 continue
             _, group_energy, e_rad, _ = line.strip().split()
-            print(group_energy, e_rad)
-            group.append(group_energy)
-            rad_energy.append(e_rad)
+            group.append(float(group_energy))
+            rad_energy.append(float(e_rad))
 
     # 3. make the plot
-    #plt.plot(analytic_data[:,1], analytic_data[:,2])
-    plt.scatter(group, rad_energy, marker="+", color="r")
+    plt.plot(analytic_data[:,1], analytic_data[:,2])
+    plt.scatter(np.array(group), np.array(rad_energy), marker="+", color="r")
 
     plt.xlabel(r"group center (Hz)")
     plt.ylabel(r"group radiation energy density (erg/cm$^3$/Hz)")
