@@ -1,12 +1,12 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 500000
 
-stop_time    = 5.e-2
+stop_time    = 5.e-3
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 0   
+geometry.is_periodic = 0
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 0   
+geometry.prob_lo     = 0
 geometry.prob_hi     = 8.192e4
 amr.n_cell           = 1024
 
@@ -15,8 +15,8 @@ amr.n_cell           = 1024
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  3 
-castro.hi_bc       =  2 
+castro.lo_bc       =  3
+castro.hi_bc       =  2
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -49,7 +49,7 @@ amr.data_log          = "toy_flame.log"
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 4 4  2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
@@ -69,4 +69,3 @@ amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
 amr.probin_file = probin.sdc
-
