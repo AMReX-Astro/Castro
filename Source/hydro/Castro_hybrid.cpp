@@ -61,7 +61,7 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 
 
 void
-Castro::hybrid_sync(MultiFab& state)
+Castro::hybrid_sync(MultiFab& state, int ng)
 {
 
     BL_PROFILE("Castro::hybrid_sync()");
@@ -73,7 +73,7 @@ Castro::hybrid_sync(MultiFab& state)
 #endif
         for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
 
-	    const Box& bx = mfi.tilebox();
+	    const Box& bx = mfi.growntilebox(ng);
 
 	    ca_hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
 
