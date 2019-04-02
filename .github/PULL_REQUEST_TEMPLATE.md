@@ -17,3 +17,5 @@ and fill in the following fields as best you can. -->
 - [ ] test suite needs to be run on this PR
 - [ ] this PR will change answers in the test suite
 - [ ] all functions have docstrings as per the coding conventions
+- [ ] the `CHANGES` file has been updated
+- [ ] if appropriate, this change is described in the docs
