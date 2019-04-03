@@ -14,6 +14,10 @@ void
 Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 {
 
+#ifdef RADIATION
+  amrex::Abort("Error: radiation not supported for the MOL hydro source term");
+#else
+
   BL_PROFILE("Castro::construct_mol_hydro_source()");
 
 
@@ -498,5 +502,5 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
     }
 
-
+#endif // radiation
 }
