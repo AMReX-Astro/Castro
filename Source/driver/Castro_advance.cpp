@@ -112,8 +112,7 @@ Castro::advance (Real time,
 
                 MultiFab& S_new = get_new_data(State_Type);
 
-                int is_new=1;
-                clean_state(is_new, S_new.nGrow());
+                clean_state(S_new, state[State_Type].curTime(), S_new.nGrow());
 
                 // Compute the reactive source term for use in the next iteration.
 
@@ -243,11 +242,14 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // zones. So we use a FillPatch using the state data to give us
     // Sborder, which does have ghost zones.
 
+    MultiFab& S_old = get_old_data(State_Type);
+
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
-      expand_state(Sborder, prev_time, 0, NUM_GROW);
+      clean_state(S_old, prev_time, 0);
+      expand_state(Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == MethodOfLines) {
 
@@ -259,7 +261,8 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	// first MOL stage
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real prev_time = state[State_Type].prevTime();
-	expand_state(Sborder, prev_time, 0, NUM_GROW);
+        clean_state(S_old, prev_time, 0);
+	expand_state(Sborder, prev_time, NUM_GROW);
 
       } else {
 
@@ -278,12 +281,12 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	  MultiFab::Saxpy(S_new, dt*a_mol[mol_iteration][i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
         // not sure if this is needed
-        int is_new=1;
-        clean_state(is_new, S_new.nGrow());
+	const Real new_time = state[State_Type].curTime();
+        clean_state(S_new, new_time, S_new.nGrow());
 
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
-	const Real new_time = state[State_Type].curTime();
-	expand_state(Sborder, new_time, 1, NUM_GROW);
+        clean_state(S_new, new_time, 0);
+	expand_state(Sborder, new_time, NUM_GROW);
 
       }
 
@@ -467,9 +470,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // trusted to respect the consistency between certain state variables
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
-    int is_new=0;
     MultiFab& S_old = get_old_data(State_Type);
-    clean_state(is_new, S_old.nGrow());
+    clean_state(S_old, time, S_old.nGrow());
 
     // Initialize the previous state data container now, so that we can
     // always ask if it has valid data.

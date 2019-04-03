@@ -70,7 +70,8 @@ Castro::do_advance_sdc (Real time,
     // FillPatch so it only pulls from the new MF -- this will not
     // work for multilevel.
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
-    expand_state(Sborder, cur_time, 1, NUM_GROW);
+    clean_state(S_new, cur_time, 0);
+    expand_state(Sborder, cur_time, NUM_GROW);
 
     // Construct the "old-time" sources from Sborder.  Since we are
     // working from Sborder, this will actually evaluate the sources
@@ -186,7 +187,7 @@ Castro::do_advance_sdc (Real time,
       // FillPatch
       MultiFab::Copy(S_new, *(k_new[0]), 0, 0, S_new.nComp(), 0);
       // do we need to clean?
-      expand_state(Sburn, cur_time, -1, 2);
+      expand_state(Sburn, cur_time, 2);
       bool input_is_average = true;
       construct_old_react_source(Sburn, *(R_old[0]), input_is_average);
 
@@ -228,8 +229,7 @@ Castro::do_advance_sdc (Real time,
   for (int m = 1; m < SDC_NODES; ++m) {
     // TODO: do we need a clean state here?
     MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
-    // do we need to clean?
-    expand_state(Sburn, cur_time, -1, 2);
+    expand_state(Sburn, cur_time, 2);
     bool input_is_average = true;
     construct_old_react_source(Sburn, *(R_old[m]), input_is_average);
   }
@@ -250,11 +250,13 @@ Castro::do_advance_sdc (Real time,
   // note: we need to have ghost cells here cause some sources (in
   // particular pdivU) need them.  Perhaps it would be easier to just
   // always require State_Type to have 1 ghost cell?
-  expand_state(Sborder, prev_time, 0, Sborder.nGrow());
+  clean_state(S_old, prev_time, 0);
+  expand_state(Sborder, prev_time, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
   AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
 
-  expand_state(Sborder, cur_time, 1, Sborder.nGrow());
+  clean_state(S_new, cur_time, 0);
+  expand_state(Sborder, cur_time, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
   AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
 
