@@ -1,36 +1,39 @@
 ! advection routines in support of method of lines integration
 !
 subroutine ca_mol_single_stage(lo, hi, time, &
-     domlo, domhi, &
-     stage_weight, &
-     uin, uin_lo, uin_hi, &
-     uout, uout_lo, uout_hi, &
-     q, q_lo, q_hi, &
-     qaux, qa_lo, qa_hi, &
-     srcU, srU_lo, srU_hi, &
-     update, updt_lo, updt_hi, &
-     update_flux, uf_lo, uf_hi, &
-     dx, dt, &
-     flux1, flux1_lo, flux1_hi, &
+                               domlo, domhi, &
+                               stage_weight, &
+                               uin, uin_lo, uin_hi, &
+                               uout, uout_lo, uout_hi, &
+                               q, q_lo, q_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               srcU, srU_lo, srU_hi, &
+                               update, updt_lo, updt_hi, &
+                               update_flux, uf_lo, uf_hi, &
+                               dx, dt, &
+                               flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
-     flux2, flux2_lo, flux2_hi, &
+                               flux2, flux2_lo, flux2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-     flux3, flux3_lo, flux3_hi, &
+                               flux3, flux3_lo, flux3_hi, &
 #endif
-     area1, area1_lo, area1_hi, &
+                               area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-     area2, area2_lo, area2_hi, &
+                               area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-     area3, area3_lo, area3_hi, &
+                               area3, area3_lo, area3_hi, &
 #endif
 #if AMREX_SPACEDIM < 3
-     pradial, p_lo, p_hi, &
-     dloga, dloga_lo, dloga_hi, &
+                               pradial, p_lo, p_hi, &
+                               dloga, dloga_lo, dloga_hi, &
 #endif
-     vol, vol_lo, vol_hi, &
-     verbose) bind(C, name="ca_mol_single_stage")
+                               vol, vol_lo, vol_hi, &
+                               verbose) bind(C, name="ca_mol_single_stage")
+  ! compute the advective term given from the input state represented
+  ! by uin and q, and store the result in update.  Here update is
+  ! -div{F(U)} + S, where S is the source terms
 
   use amrex_error_module
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
