@@ -146,18 +146,20 @@ Castro::do_advance_sdc (Real time,
     // will be used to advance us to the next node the new time
 
     // Construct the primitive variables.
-    if (sdc_order == 4) {
-      cons_to_prim_fourth(time);
-    } else {
-      cons_to_prim(time);
+    if (do_hydro) {
+      if (sdc_order == 4) {
+        cons_to_prim_fourth(time);
+      } else {
+        cons_to_prim(time);
+      }
+
+      // Check for CFL violations.
+      check_for_cfl_violation(dt);
+
+      // If we detect one, return immediately.
+      if (cfl_violation)
+        return dt;
     }
-
-    // Check for CFL violations.
-    check_for_cfl_violation(dt);
-
-    // If we detect one, return immediately.
-    if (cfl_violation)
-      return dt;
 
     // construct the update for the current stage -- this fills
     // A_new[m] with the righthand side for this stage.  Note, for m =
