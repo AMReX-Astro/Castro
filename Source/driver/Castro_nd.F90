@@ -211,37 +211,75 @@ end subroutine ca_get_aux_names
 
 
 
-subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
+subroutine ca_get_nqc_src(nqc_src_in) bind(C, name="ca_get_nqc_src")
     !
-    ! Binds to C function `ca_get_nqsrc`
+    ! Binds to C function `ca_get_nqc_src`
 
-  use meth_params_module, only: NQSRC
+  use meth_params_module, only: NQC_SRC
 
   implicit none
 
-  integer, intent(inout) :: nqsrc_in
+  integer, intent(inout) :: nqc_src_in
 
-  nqsrc_in = NQSRC
+  nqc_src_in = NQC_SRC
 
-end subroutine ca_get_nqsrc
+end subroutine ca_get_nqc_src
 
-
-
-subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
+subroutine ca_get_nqp_src(nqp_src_in) bind(C, name="ca_get_nqp_src")
     !
-    ! Binds to C function `ca_get_nq`
+    ! Binds to C function `ca_get_nqp_src`
 
-  use meth_params_module, only: NQ
+  use meth_params_module, only: NQP_SRC
 
   implicit none
 
-  integer, intent(inout) :: nq_in
+  integer, intent(inout) :: nqc_srp_in
 
-  nq_in = NQ
+  nqp_src_in = NQP_SRC
 
-end subroutine ca_get_nq
+end subroutine ca_get_nqp_src
 
+subroutine ca_get_nqc(nqc_in) bind(C, name="ca_get_nqc")
+    !
+    ! Binds to C function `ca_get_nqc`
 
+  use meth_params_module, only: NQC
+
+  implicit none
+
+  integer, intent(inout) :: nqc_in
+
+  nqc_in = NQC
+
+end subroutine ca_get_nqc
+
+subroutine ca_get_nqp(nqp_in) bind(C, name="ca_get_nqp")
+    !
+    ! Binds to C function `ca_get_nqp`
+
+  use meth_params_module, only: NQP
+
+  implicit none
+
+  integer, intent(inout) :: nqp_in
+
+  nqp_in = NQP
+
+end subroutine ca_get_nqp
+
+subroutine ca_get_nqr(nqr_in) bind(C, name="ca_get_nqr")
+    !
+    ! Binds to C function `ca_get_nqr`
+
+  use meth_params_module, only: NQR
+
+  implicit none
+
+  integer, intent(inout) :: nqr_in
+
+  nqr_in = NQR
+
+end subroutine ca_get_nqr
 
 subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
     !

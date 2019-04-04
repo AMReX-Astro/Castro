@@ -499,16 +499,29 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Allocate space for the primitive variables.
 
-    q.define(grids, dmap, NQ, NUM_GROW);
-    q.setVal(0.0);
+    q_core.define(grids, dmap, NQC, NUM_GROW);
+    q_core.setVal(0.0);
+
+    q_pass.define(grids, dmap, NQP, NUM_GROW);
+    q_pass.setVal(0.0);
+
+#ifdef
+    q_rad.define(grids, dmap, NQR, NUM_GROW);
+    q_rad.setVal(0.0);
+#endif
+
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
 
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      src_q.define(grids, dmap, NQSRC, NUM_GROW);
+      q_core_src.define(grids, dmap, NQC_SRC, NUM_GROW);
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      q_pass_src.define(grids, dmap, NQP_SRC, NUM_GROW);
+#endif
     }
 
     if (mol_order == 4 || sdc_order == 4) {
-      q_bar.define(grids, dmap, NQ, NUM_GROW);
+      q_core_bar.define(grids, dmap, NQC, NUM_GROW);
+      q_pass_bar.define(grids, dmap, NQP, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
     }
 

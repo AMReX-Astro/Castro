@@ -30,13 +30,14 @@ extern "C"
 
   void ca_get_aux_names(int* aux_names,  const int* iaux, int* len);
 
-  void ca_get_nqsrc(int* nqsrc);
+  void ca_get_nqc_src(int* nqc_src);
+  void ca_get_nqp_src(int* nqp_src);
 
-  void ca_get_nq(int* nq);
+  void ca_get_nqc(int* nqc);
+  void ca_get_nqp(int* nqp);
+  void ca_get_nqr(int* nqr);
 
   void ca_get_nqaux(int* nqaux);
-
-  void ca_get_nqsrc(int* nqsrc);
 
   void ca_get_ngdnv(int* ngdnv);
 

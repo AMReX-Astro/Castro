@@ -1685,9 +1685,12 @@ public:
 ///
 /// variable counts
 ///
-    static int       NQSRC;
     static int       NQAUX;
-    static int       NQ;
+    static int       NQC;
+    static int       NQC_SRC;
+    static int       NQP;
+    static int       NQP_SRC;
+    static int       NQR;
     static int       NGDNV;
 
 
@@ -1768,13 +1771,16 @@ protected:
 ///
 /// The primitive variable state array.
 ///
-    amrex::MultiFab q;
+    amrex::MultiFab q_core;
+    amrex::MultiFab q_pass;
+    amrex::MultiFab q_rad;
 
 
 ///
 /// we need a second version when doing fourth order
 ///
-    amrex::MultiFab q_bar;
+    amrex::MultiFab q_core_bar;
+    amrex::MultiFab q_pass_bar;
 
 
 ///
@@ -1787,7 +1793,8 @@ protected:
 ///
 /// The source terms in primitive form.
 ///
-    amrex::MultiFab src_q;
+    amrex::MultiFab q_core_src;
+    amrex::MultiFab q_prim_src;
 
 
 ///

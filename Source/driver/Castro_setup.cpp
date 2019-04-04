@@ -240,21 +240,19 @@ Castro::variableSetUp ()
                        GDPRES, GDGAME);
 
   // Get the number of primitive variables from Fortran.
-  ca_get_nqsrc(&NQSRC);
+  ca_get_nqc(&NQC);
+  ca_get_nqp(&NQP);
+  ca_get_nqr(&NQR);
 
   // and the auxiliary variables
   ca_get_nqaux(&NQAUX);
 
   // and the number of primitive variable source terms
-  ca_get_nqsrc(&NQSRC);
+  ca_get_nqc_src(&NQC_SRC);
+  ca_get_nqp_src(&NQP_SRC);
 
   // initialize the Godunov state array used in hydro
   ca_get_ngdnv(&NGDNV);
-
-  // NQ will be used to dimension the primitive variable state
-  // vector it will include the "pure" hydrodynamical variables +
-  // any radiation variables
-  ca_get_nq(&NQ);
 
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
