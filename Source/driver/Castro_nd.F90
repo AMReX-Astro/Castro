@@ -677,24 +677,6 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 
   ! Transverse velocities
 
-  if (dm == 1) then
-     upass_map(1) = UMY
-     qpass_map(1) = QV
-
-     upass_map(2) = UMZ
-     qpass_map(2) = QW
-
-     npassive = 2
-
-  else if (dm == 2) then
-     upass_map(1) = UMZ
-     qpass_map(1) = QW
-
-     npassive = 1
-  else
-     npassive = 0
-  endif
-
   do iadv = 1, nadv
      upass_map(npassive + iadv) = UFA + iadv - 1
      qpass_map(npassive + iadv) = QFA + iadv - 1

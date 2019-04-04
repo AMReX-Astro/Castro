@@ -409,25 +409,30 @@ contains
 
 
   subroutine ca_ctoprim(lo, hi, &
-       uin, uin_lo, uin_hi, &
+                        uin, uin_lo, uin_hi, &
 #ifdef RADIATION
-       Erin, Erin_lo, Erin_hi, &
-       lam, lam_lo, lam_hi, &
+                        Erin, Erin_lo, Erin_hi, &
+                        lam, lam_lo, lam_hi, &
 #endif
-       q,     q_lo,   q_hi, &
-       qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
+                        q_core, qc_lo, qc_hi, &
+                        q_pass, qp_lo, qp_hi, &
+#ifdef RADIATION
+                        q_rad, qr_lo, qr_hi, &
+#endif
+                        qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
+    ! convert the conservative state variables to their primitive form.
 
     use actual_network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, &
-         UEDEN, UEINT, UTEMP, &
-         QRHO, QU, QV, QW, &
-         QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-         NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
+                                   UEDEN, UEINT, UTEMP, &
+                                   QRHO, QU, QV, QW, &
+                                   QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
+                                   NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
-         QCG, QGAMCG, QLAMS, &
-         QPTOT, QRAD, QRADHI, QREITOT, &
+                                   QCG, QGAMCG, QLAMS, &
+                                   QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
          npassive, upass_map, qpass_map, dual_energy_eta1, &
          small_dens
@@ -453,7 +458,11 @@ contains
     integer, intent(in) :: Erin_lo(3), Erin_hi(3)
     integer, intent(in) :: lam_lo(3), lam_hi(3)
 #endif
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qc_lo(3), qc_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
     real(rt)        , intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
@@ -462,7 +471,11 @@ contains
     real(rt)        , intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
 #endif
 
-    real(rt)        , intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt)        , intent(inout) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
+    real(rt)        , intent(inout) :: q_pass(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
+#ifdef RADIATION
+    real(rt)        , intent(inout) :: q_rad(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQR)
+#endif
     real(rt)        , intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt)        , parameter :: small = 1.e-8_rt
@@ -500,12 +513,12 @@ contains
 #endif
           do i = lo(1), hi(1)
 
-             q(i,j,k,QRHO) = uin(i,j,k,URHO)
-             rhoinv = ONE/q(i,j,k,QRHO)
+             q_core(i,j,k,QRHO) = uin(i,j,k,URHO)
+             rhoinv = ONE/q_core(i,j,k,QRHO)
 
              vel = uin(i,j,k,UMX:UMZ) * rhoinv
 
-             q(i,j,k,QU:QW) = vel
+             q_core(i,j,k,QU:QW) = vel
 
              ! Get the internal energy, which we'll use for
              ! determining the pressure.  We use a dual energy
@@ -515,12 +528,12 @@ contains
              ! of the separately updated internal energy equation.
              ! Otherwise, we'll set e = E - K.
 
-             kineng = HALF * q(i,j,k,QRHO) * (q(i,j,k,QU)**2 + q(i,j,k,QV)**2 + q(i,j,k,QW)**2)
+             kineng = HALF * q_core(i,j,k,QRHO) * sum(q_core(i,j,k,QU:UW)**2)
 
              if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .gt. dual_energy_eta1) then
-                q(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv
+                q_core(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv
              else
-                q(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv
+                q_core(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv
              endif
 
              ! If we're advecting in the rotating reference frame,
@@ -528,14 +541,14 @@ contains
 
 #ifdef ROTATION
              if (do_rotation == 1 .and. state_in_rotating_frame /= 1) then
-                vel = q(i,j,k,QU:QW)
+                vel = q_core(i,j,k,QU:QW)
                 call inertial_to_rotational_velocity([i, j, k], amr_time, vel)
              endif
 #endif
 
-             q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
+             q_core(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
 #ifdef RADIATION
-             q(i,j,k,qrad:qradhi) = Erin(i,j,k,:)
+             q_rad(i,j,k,qrad:qradhi) = Erin(i,j,k,:)
 #endif
 
           enddo
@@ -549,7 +562,7 @@ contains
        do k = lo(3),hi(3)
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
-                q(i,j,k,iq) = uin(i,j,k,n)/q(i,j,k,QRHO)
+                q_pass(i,j,k,iq) = uin(i,j,k,n)/q_core(i,j,k,QRHO)
              enddo
           enddo
        enddo
@@ -560,19 +573,19 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             eos_state % T   = q(i,j,k,QTEMP )
-             eos_state % rho = q(i,j,k,QRHO  )
-             eos_state % e   = q(i,j,k,QREINT)
-             eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
-             eos_state % aux = q(i,j,k,QFX:QFX+naux-1)
+             eos_state % T   = q_core(i,j,k,QTEMP )
+             eos_state % rho = q_core(i,j,k,QRHO  )
+             eos_state % e   = q_core(i,j,k,QREINT)
+             eos_state % xn  = q_core(i,j,k,QFS:QFS+nspec-1)
+             eos_state % aux = q_core(i,j,k,QFX:QFX+naux-1)
 
              call eos(eos_input_re, eos_state)
 
-             q(i,j,k,QTEMP)  = eos_state % T
-             q(i,j,k,QREINT) = eos_state % e * q(i,j,k,QRHO)
-             q(i,j,k,QPRES)  = eos_state % p
-             q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
-             q(i,j,k,QGC) = eos_state % gam1
+             q_core(i,j,k,QTEMP)  = eos_state % T
+             q_core(i,j,k,QREINT) = eos_state % e * q_core(i,j,k,QRHO)
+             q_core(i,j,k,QPRES)  = eos_state % p
+             q_core(i,j,k,QGAME)  = q_core(i,j,k,QPRES) / q_core(i,j,k,QREINT) + ONE
+             q_core(i,j,k,QGC) = eos_state % gam1
 
              qaux(i,j,k,QDPDR)  = eos_state % dpdr_e
              qaux(i,j,k,QDPDE)  = eos_state % dpde
@@ -581,10 +594,10 @@ contains
              qaux(i,j,k,QGAMCG)   = eos_state % gam1
              qaux(i,j,k,QCG)      = eos_state % cs
 
-             call compute_ptot_ctot(lam(i,j,k,:), q(i,j,k,:), qaux(i,j,k,QCG), &
-                  ptot, ctot, gamc_tot)
+             call compute_ptot_ctot(lam(i,j,k,:), q_core(i,j,k,:), qaux(i,j,k,QCG), &
+                                    ptot, ctot, gamc_tot)
 
-             q(i,j,k,QPTOT) = ptot
+             q_rad(i,j,k,QPTOT) = ptot
 
              qaux(i,j,k,QC)    = ctot
              qaux(i,j,k,QGAMC) = gamc_tot
@@ -593,7 +606,7 @@ contains
                 qaux(i,j,k,QLAMS+g) = lam(i,j,k,g)
              enddo
 
-             q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qradhi))
+             q_rad(i,j,k,qreitot) = q_core(i,j,k,QREINT) + sum(q_rad(i,j,k,qrad:qradhi))
 #else
              qaux(i,j,k,QGAMC)  = eos_state % gam1
              qaux(i,j,k,QC   )  = eos_state % cs
@@ -608,85 +621,97 @@ contains
 
 
   subroutine ca_srctoprim(lo, hi, &
-       q,     q_lo,   q_hi, &
-       qaux, qa_lo,  qa_hi, &
-       src, src_lo, src_hi, &
-       srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
+                          q_core, qc_lo, qc_hi, &
+                          q_pass, qp_lo, qp_hi, &
+                          qaux, qa_lo,  qa_hi, &
+                          src, src_lo, src_hi, &
+                          q_core_src, qcs_lo, qcs_hi &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                         ,q_pass_src, qps_lo, qps_hi &
+#endif
+                         ) bind(c,name='ca_srctoprim')
+    ! convert the source terms to the conservative state to their primitive state
+    ! analogues.
 
     use actual_network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
-         NQSRC, QRHO, QU, QV, QW, NQ, &
-         QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
-         npassive, upass_map, qpass_map
+                                   NQSRC, QRHO, QU, QV, QW, NQ, &
+                                   QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
+                                   npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: qa_lo(3),   qa_hi(3)
-    integer, intent(in) :: src_lo(3), src_hi(3)
-    integer, intent(in) :: srQ_lo(3), srQ_hi(3)
+    integer, intent(in) :: qc_lo(3), qc_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: src_lo93) src_hi(3)
+    integer, intent(in) :: qcs_lo(3), qcs_hi(3)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    integer, intent(in) :: qps_lo(3), qps_hi(3)
+#endif
 
-    real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt)        , intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt)        , intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-    real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),NQSRC)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    real(rt), intent(in   ) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
+    real(rt), intent(in   ) :: q_pass(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
+    real(rt), intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt), intent(inout) :: q_core_src(qcs_lo(1):qcs_hi(1),qcs_lo(2):qcs_hi(2),qcs_lo(3):qcs_hi(3),NQC_SRC)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    real(rt), intent(inout) :: q_pass_src(qps_lo(1):qps_hi(1),qps_lo(2):qps_hi(2),qps_lo(3):qps_hi(3),NQP_SRC)
+#endif
 
-    integer          :: i, j, k
-    integer          :: n, iq, ipassive
-    real(rt)         :: rhoinv
+    integer :: i, j, k
+    integer :: n, iq, ipassive
+    real(rt) :: rhoinv
 
     !$gpu
 
-    srcQ(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
+    q_core_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    q_pass_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
+#endif
 
     ! compute srcQ terms
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             rhoinv = ONE / q(i,j,k,QRHO)
+             rhoinv = ONE / q_core(i,j,k,QRHO)
 
-             srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
-             srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv
-             srcQ(i,j,k,QV    ) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv
-             srcQ(i,j,k,QW    ) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv
-             srcQ(i,j,k,QREINT) = src(i,j,k,UEINT)
-             srcQ(i,j,k,QPRES ) = qaux(i,j,k,QDPDE)*(srcQ(i,j,k,QREINT) - &
-                  q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoinv + &
-                  qaux(i,j,k,QDPDR)*srcQ(i,j,k,QRHO)
+             q_core_src(i,j,k,QRHO  ) = src(i,j,k,URHO)
+             q_core_src(i,j,k,QU    ) = (src(i,j,k,UMX) - q_core(i,j,k,QU) * q_core_src(i,j,k,QRHO)) * rhoinv
+             q_core_src(i,j,k,QV    ) = (src(i,j,k,UMY) - q_cpre(i,j,k,QV) * q_core_src(i,j,k,QRHO)) * rhoinv
+             q_core_src(i,j,k,QW    ) = (src(i,j,k,UMZ) - q_core(i,j,k,QW) * q_core_src(i,j,k,QRHO)) * rhoinv
+             q_core_src(i,j,k,QREINT) = src(i,j,k,UEINT)
+             q_core_src(i,j,k,QPRES ) = qaux(i,j,k,QDPDE)*(q_core_src(i,j,k,QREINT) - &
+                  q_core(i,j,k,QREINT)*q_core_src(i,j,k,QRHO)*rhoinv) * rhoinv + &
+                  qaux(i,j,k,QDPDR)*q_core_src(i,j,k,QRHO)
 
           enddo
        enddo
     enddo
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
     do ipassive = 1, npassive
        n = upass_map(ipassive)
        iq = qpass_map(ipassive)
 
-       ! we already accounted for velocities above
-       if (iq == QU .or. iq == QV .or. iq == QW) cycle
-
-       ! we may not be including the ability to have species sources,
-       ! so check to make sure that we are < NQSRC
-       if (iq > NQSRC) cycle
-
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                srcQ(i,j,k,iq) = ( src(i,j,k,n) - q(i,j,k,iq) * srcQ(i,j,k,QRHO) ) / &
-                     q(i,j,k,QRHO)
+                q_pass_src(i,j,k,iq) = (src(i,j,k,n) - q_pass(i,j,k,iq) * q_core_src(i,j,k,QRHO)) / &
+                     q_core_src(i,j,k,QRHO)
              enddo
           enddo
        enddo
 
     enddo
+#endif
 
   end subroutine ca_srctoprim
-
-
 
 
   function dflux(u, q, dir, idx) result(flux)

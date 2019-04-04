@@ -45,7 +45,11 @@ Castro::cons_to_prim(const Real time)
                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),
                    BL_TO_FORTRAN_ANYD(lamborder[mfi]),
 #endif
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(q_core[mfi]),
+                   BL_TO_FORTRAN_ANYD(q_pass[mfi]),
+#ifdef RADIATION
+                   BL_TO_FORTRAN_ANYD(q_rad[mfi]),
+#endif
                    BL_TO_FORTRAN_ANYD(qaux[mfi]));
 
         // Convert the source terms expressed as sources to the conserved state to those
