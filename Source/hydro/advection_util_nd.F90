@@ -270,12 +270,11 @@ contains
 
 
   subroutine ca_compute_cfl(lo, hi, &
-       q, q_lo, q_hi, &
-       qaux, qa_lo, qa_hi, &
-       dt, dx, courno, verbose) &
-       bind(C, name = "ca_compute_cfl")
+                            q_core, qc_lo, qc_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            dt, dx, courno, verbose) &
+                            bind(C, name = "ca_compute_cfl")
     ! Compute running max of Courant number over grids
-    !
 
     use amrex_constants_module, only: ZERO, ONE
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, time_integration_method
@@ -288,7 +287,7 @@ contains
     integer,  intent(in   ) :: q_lo(3), q_hi(3)
     integer,  intent(in   ) :: qa_lo(3), qa_hi(3)
 
-    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in   ) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
     real(rt), intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in   ), value :: dt
     real(rt), intent(in   ) :: dx(3)
@@ -323,9 +322,9 @@ contains
        do j = lo(2),hi(2)
           do i = lo(1),hi(1)
 
-             courx = ( qaux(i,j,k,QC) + abs(q(i,j,k,QU)) ) * dtdx
-             coury = ( qaux(i,j,k,QC) + abs(q(i,j,k,QV)) ) * dtdy
-             courz = ( qaux(i,j,k,QC) + abs(q(i,j,k,QW)) ) * dtdz
+             courx = ( qaux(i,j,k,QC) + abs(q_core(i,j,k,QU)) ) * dtdx
+             coury = ( qaux(i,j,k,QC) + abs(q_core(i,j,k,QV)) ) * dtdy
+             courz = ( qaux(i,j,k,QC) + abs(q_core(i,j,k,QW)) ) * dtdz
 
              courmx = max( courmx, courx )
              courmy = max( courmy, coury )
@@ -343,8 +342,8 @@ contains
                       print *, "Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl"
                       print *,'>>> ... (u+c) * dt / dx > 1 ', courx
                       print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                      print *,'>>> ... u, c                ', q(i,j,k,QU), qaux(i,j,k,QC)
-                      print *,'>>> ... density             ', q(i,j,k,QRHO)
+                      print *,'>>> ... u, c                ', q_core(i,j,k,QU), qaux(i,j,k,QC)
+                      print *,'>>> ... density             ', q_core(i,j,k,QRHO)
                    end if
 
                    if (coury .gt. ONE) then
@@ -352,8 +351,8 @@ contains
                       print *, "Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl"
                       print *,'>>> ... (v+c) * dt / dx > 1 ', coury
                       print *,'>>> ... at cell (i,j,k)   : ', i,j,k
-                      print *,'>>> ... v, c                ', q(i,j,k,QV), qaux(i,j,k,QC)
-                      print *,'>>> ... density             ', q(i,j,k,QRHO)
+                      print *,'>>> ... v, c                ', q_core(i,j,k,QV), qaux(i,j,k,QC)
+                      print *,'>>> ... density             ', q_core(i,j,k,QRHO)
                    end if
 
                    if (courz .gt. ONE) then
@@ -361,8 +360,8 @@ contains
                       print *, "Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl"
                       print *,'>>> ... (w+c) * dt / dx > 1 ', courz
                       print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                      print *,'>>> ... w, c                ', q(i,j,k,QW), qaux(i,j,k,QC)
-                      print *,'>>> ... density             ', q(i,j,k,QRHO)
+                      print *,'>>> ... w, c                ', q_core(i,j,k,QW), qaux(i,j,k,QC)
+                      print *,'>>> ... density             ', q_core(i,j,k,QRHO)
                    end if
 
                 end if
@@ -387,8 +386,8 @@ contains
                       print *,'   '
                       print *, "Warning:: advection_util_nd.F90 :: CFL violation in compute_cfl"
                       print *,'>>> ... at cell (i,j,k)   : ', i, j, k
-                      print *,'>>> ... u,v,w, c            ', q(i,j,k,QU), q(i,j,k,QV), q(i,j,k,QW), qaux(i,j,k,QC)
-                      print *,'>>> ... density             ', q(i,j,k,QRHO)
+                      print *,'>>> ... u,v,w, c            ', q_core(i,j,k,QU), q_core(i,j,k,QV), q_core(i,j,k,QW), qaux(i,j,k,QC)
+                      print *,'>>> ... density             ', q_core(i,j,k,QRHO)
                    endif
 
                 end if

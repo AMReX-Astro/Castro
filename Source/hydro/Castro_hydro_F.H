@@ -8,20 +8,39 @@ extern "C"
 {
 #endif
 
-  void ca_ctoprim(const int* lo, const int* hi,
-	          const amrex::Real* u, const int* u_lo, const int* u_hi,
+  ///
+  /// Convert the conservative state U to the primitive state, q_core,
+  /// q_pass, q_rad
+  ///
+  void ca_ctoprim
+    (const int* lo, const int* hi,
+     const amrex::Real* U, const int* u_lo, const int* u_hi,
 #ifdef RADIATION
-		  const amrex::Real* Er, const int* Er_lo, const int* Er_hi,
-		  const amrex::Real* lam, const int* lam_lo, const int* lam_hi,
+     const amrex::Real* Er, const int* Er_lo, const int* Er_hi,
+     const amrex::Real* lam, const int* lam_lo, const int* lam_hi,
 #endif
-		  amrex::Real* q, const int* q_lo, const int* q_hi,
-		  amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
+     amrex::Real* q_core, const int* qc_lo, const int* qc_hi,
+     amrex::Real* q_pass, const int* qp_lo, const int* qp_hi,
+#ifdef RADIATION
+     amrex::Real* q_rad, const int* qr_lo, const int* qr_hi,
+#endif
+     amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
 
-  void ca_srctoprim(const int* lo,   const int* hi,
-		    const amrex::Real* q,   const int* q_lo,   const int* q_hi,
-		    const amrex::Real* qaux, const int* qa_lo, const int* qa_hi,
-		    const amrex::Real* src, const int* src_lo, const int* src_hi,
-		          amrex::Real* srQ, const int* srQ_lo, const int* srQ_hi);
+  ///
+  /// Convert the conservative source terms to their primitive
+  /// variable equivalents
+  ///
+  void ca_srctoprim
+     (const int* lo, const int* hi,
+      const amrex::Real* q_core, const int* qc_lo, const int* qc_hi,
+      const amrex::Real* q_pass, const int* qp_lo, const int* qp_hi,
+      const amrex::Real* qaux, const int* qa_lo, const int* qa_hi,
+      const amrex::Real* src, const int* src_lo, const int* src_hi,
+      amrex::Real* q_core_src, const int* qcs_lo, const int* qcs_hi
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+     ,amrex::Real* q_pass_src, const int* qps_lo, const int* qps_hi
+#endif
+      );
 
   void ca_compute_cfl(const int* lo, const int* hi,
                       const BL_FORT_FAB_ARG_ANYD(q),

@@ -13,7 +13,7 @@ Castro::cons_to_prim(const Real time)
 {
 
     BL_PROFILE("Castro::cons_to_prim()");
-    
+
 #ifdef RADIATION
     AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
 
@@ -54,13 +54,19 @@ Castro::cons_to_prim(const Real time)
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
-        if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (time_integration_method == CornerTransportUpwind ||
+            time_integration_method == SimplifiedSpectralDeferredCorrections) {
 #pragma gpu
             ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
-                         BL_TO_FORTRAN_ANYD(q[mfi]),
+                         BL_TO_FORTRAN_ANYD(q_core[mfi]),
+                         BL_TO_FORTRAN_ANYD(q_pass[mfi]),
                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
                          BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
-                         BL_TO_FORTRAN_ANYD(src_q[mfi]));
+                         BL_TO_FORTRAN_ANYD(q_core_src[mfi])
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                        ,BL_TO_FORTRAN_ANYD(q_pass_src[mfi])
+#endif
+                         );
         }
 
 #ifndef RADIATION
@@ -120,7 +126,8 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),
                    BL_TO_FORTRAN_ANYD(lamborder[mfi]),
 #endif
-		   BL_TO_FORTRAN_ANYD(q[mfi]),
+		   BL_TO_FORTRAN_ANYD(q_core[mfi]),
+        	   BL_TO_FORTRAN_ANYD(q_pass[mfi]),
 		   BL_TO_FORTRAN_ANYD(qaux[mfi]));
 
     }
@@ -132,7 +139,7 @@ Castro::cons_to_prim_fourth(const Real time)
 {
 
     BL_PROFILE("Castro::cons_to_prim_fourth()");
-    
+
     // convert the conservative state cell averages to primitive cell
     // averages with 4th order accuracy
 
@@ -167,7 +174,8 @@ Castro::cons_to_prim_fourth(const Real time)
       // ghost cells.
       ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(q_bar[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_core_bar[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_pass_bar[mfi]),
                  BL_TO_FORTRAN_ANYD(qaux_bar[mfi]));
 
       // this is what we should construct the flattening coefficient
@@ -178,16 +186,10 @@ Castro::cons_to_prim_fourth(const Real time)
       // cells.
       ca_ctoprim(BL_TO_FORTRAN_BOX(qbxm1),
                  BL_TO_FORTRAN_ANYD(U_cc),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_core[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_pass[mfi]),
                  BL_TO_FORTRAN_ANYD(qaux[mfi]));
     }
-
-
-    // check for NaNs
-#ifndef AMREX_USE_CUDA
-    check_for_nan(q);
-    check_for_nan(q_bar);
-#endif
 
 
 #ifdef _OPENMP
@@ -202,8 +204,12 @@ Castro::cons_to_prim_fourth(const Real time)
       // we need here
 
       ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
-                             BL_TO_FORTRAN_FAB(q[mfi]),
-                             BL_TO_FORTRAN_FAB(q_bar[mfi]));
+                             BL_TO_FORTRAN_FAB(q_core[mfi]),
+                             BL_TO_FORTRAN_FAB(q_core_bar[mfi]));
+
+      ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
+                             BL_TO_FORTRAN_FAB(q_pass[mfi]),
+                             BL_TO_FORTRAN_FAB(q_pass_bar[mfi]));
 
       // not sure if we need to convert qaux this way, or if we can
       // just evaluate it (we may not need qaux at all actually)
@@ -237,7 +243,7 @@ Castro::check_for_cfl_violation(const Real dt)
 
 #pragma gpu
         ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(q_core[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
                        dt, AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MAX(&courno), print_fortran_warnings);
 

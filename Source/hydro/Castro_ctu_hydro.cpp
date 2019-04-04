@@ -146,7 +146,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #else
 #pragma gpu
         ca_uflatten(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                    BL_TO_FORTRAN_ANYD(q[mfi]),
+                    BL_TO_FORTRAN_ANYD(q_core[mfi]),
                     BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
 #endif
       } else {
