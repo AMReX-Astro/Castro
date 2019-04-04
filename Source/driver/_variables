@@ -23,7 +23,7 @@
 
 
 # the core primitive variable state
-@set: primitive NQC
+@set: primitive_core NQC
    density                QRHO         QRHO      NQC_SRC                                   1                 None
    x-velocity             QU           QU        NQC_SRC                                   1                 None
    y-velocity             QV           QV        NQC_SRC                                   1                 None
@@ -39,14 +39,14 @@
 
 
 # the passive primitive variable state
-@set: primitive NQP
+@set: primitive_pass NQP
    advected               QFA          QFA       (NQP_SRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)      None
    species                QFS          QFS       (NQP_SRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)    None
    auxiliary              QFX          QFX       (NQP_SRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)      None
 
 
 # the radiation primitive variable state
-@set: primitive NQR
+@set: primitive_rad NQR
    total-pressure         QPTOT        QPTOT     None                                    1                 RADIATION
    total-reint            QREITOT      QREITOT   None                                    1                 RADIATION
    radiation              QRAD         QRAD      None                                  (ngroups, NGROUPS)  RADIATION

@@ -122,8 +122,12 @@ class Index(object):
         """get the C++ code that sets the variable index and increments the
         counters"""
 
-        if self.iset == "primitive":
-            counter = "qcnt"
+        if self.iset == "primitive_core":
+            counter = "qc_cnt"
+        elif self.iset == "primitive_pass":
+            counter = "qp_cnt"
+        elif self.iset == "primitive_rad":
+            counter = "qr_cnt"
         elif self.iset == "godunov":
             counter = "gcnt"
         else:
@@ -350,7 +354,7 @@ def doit(variables_file, odir, defines, nadv,
                 # it may be the case that the variable that defines
                 # the count is 0 (e.g. for nadv).  We need to
                 # initialize it specially then.
-                if s in ["conserved", "primitive", "godunov"]:
+                if s in ["conserved", "godunov"] or s.startswith("primitive"):
                     sub += i.get_set_string(val, set_default=0)
                 else:
                     sub += i.get_set_string(val)
@@ -386,11 +390,20 @@ def doit(variables_file, odir, defines, nadv,
         for c in conserved_indices:
             f.write(c.get_cxx_set_string())
 
-    primitive_indices = [q for q in indices if q.iset == "primitive" and q.cxx_var is not None]
-
     with open(os.path.join(odir, "set_primitive.H"), "w") as f:
-        f.write("  int qcnt = 0;\n")
-        for p in primitive_indices:
+        prim_core_indices = [q for q in indices if q.iset == "primitive_core" and q.cxx_var is not None]
+        f.write("  int qc_cnt = 0;\n")
+        for p in prim_core_indices:
+            f.write(p.get_cxx_set_string())
+
+        prim_pass_indices = [q for q in indices if q.iset == "primitive_pass" and q.cxx_var is not None]
+        f.write("  int qp_cnt = 0;\n")
+        for p in prim_pass_indices:
+            f.write(p.get_cxx_set_string())
+
+        prim_rad_indices = [q for q in indices if q.iset == "primitive_rad" and q.cxx_var is not None]
+        f.write("  int qr_cnt = 0;\n")
+        for p in prim_rad_indices:
             f.write(p.get_cxx_set_string())
 
     godunov_indices = [q for q in indices if q.iset == "godunov" and q.cxx_var is not None]

@@ -505,7 +505,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q_pass.define(grids, dmap, NQP, NUM_GROW);
     q_pass.setVal(0.0);
 
-#ifdef
+#ifdef RADIATION
     q_rad.define(grids, dmap, NQR, NUM_GROW);
     q_rad.setVal(0.0);
 #endif
@@ -621,15 +621,24 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     hydro_source.clear();
 
-    q.clear();
+    q_core.clear();
+    q_pass.clear();
+#ifdef RADIATION
+    q_rad.clear();
+#endif
+
     qaux.clear();
 
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      src_q.clear();
+      q_core_src.clear();
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      q_pass_src.clear();
+#endif
     }
 
     if (mol_order == 4 || sdc_order == 4) {
-      q_bar.clear();
+      q_core_bar.clear();
+      q_pass_bar.clear();
       qaux_bar.clear();
     }
 
