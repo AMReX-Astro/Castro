@@ -81,26 +81,49 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc;
     FArrayBox sm, sp;
     FArrayBox shk;
-    FArrayBox qxm, qxp;
+
+    FArrayBox qxm_core, qxp_core;
+    FArrayBox qxm_pass, qxp_pass;
+#ifdef RADIATION
+    FArrayBox qxm_rad, qxp_rad;
+#endif
+
 #if AMREX_SPACEDIM >= 2
-    FArrayBox qym, qyp;
+    FArrayBox qym_core, qyp_core;
+    FArrayBox qym_pass, qyp_pass;
+#ifdef RADIATION
+    FArrayBox qym_rad, qyp_rad;
 #endif
+#endif
+
 #if AMREX_SPACEDIM == 3
-    FArrayBox qzm, qzp;
+    FArrayBox qzm_core, qzp_core;
+    FArrayBox qzm_pass, qzp_pass;
+#ifdef RADIATION
+    FArrayBox qzm_rad, qzp_rad;
 #endif
+#endif
+
     FArrayBox div;
     FArrayBox q_int;
 #ifdef RADIATION
     FArrayBox lambda_int;
 #endif
+
 #if AMREX_SPACEDIM >= 2
     FArrayBox ftmp1, ftmp2;
 #ifdef RADIATION
     FArrayBox rftmp1, rftmp2;
 #endif
     FArrayBox qgdnvtmp1, qgdnvtmp2;
-    FArrayBox ql, qr;
+
+    FArrayBox ql_core, qr_core;
+    FArrayBox ql_pass, qr_pass;
+#ifdef RADIATION
+    FArrayBox ql_rad, qr_rad;
 #endif
+#endif
+
     FArrayBox flux[AMREX_SPACEDIM], qe[AMREX_SPACEDIM];
 #ifdef RADIATION
     FArrayBox rad_flux[AMREX_SPACEDIM];
@@ -109,12 +132,42 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox pradial;
 #endif
 #if AMREX_SPACEDIM == 3
-    FArrayBox qmyx, qpyx;
-    FArrayBox qmzx, qpzx;
-    FArrayBox qmxy, qpxy;
-    FArrayBox qmzy, qpzy;
-    FArrayBox qmxz, qpxz;
-    FArrayBox qmyz, qpyz;
+    FArrayBox qmyx_core, qpyx_core;
+    FArrayBox qmyx_pass, qpyx_pass;
+#ifdef RADIATION
+    FArrayBox qmyx_rad, qpyx_rad;
+#endif
+
+    FArrayBox qmzx_core, qpzx_core;
+    FArrayBox qmzx_pass, qpzx_pass;
+#ifdef RADIATION
+    FArrayBox qmzx_rad, qpzx_rad;
+#endif
+
+    FArrayBox qmxy_core, qpxy_core;
+    FArrayBox qmxy_pass, qpxy_pass;
+#ifdef RADIATION
+    FArrayBox qmxy_rad, qpxy_rad;
+#endif
+
+    FArrayBox qmzy_core, qpzy_core;
+    FArrayBox qmzy_pass, qpzy_pass;
+#ifdef RADIATION
+    FArrayBox qmzy_rad, qpzy_rad;
+#endif
+
+    FArrayBox qmxz_core, qpxz_core;
+    FArrayBox qmxz_pass, qpxz_pass;
+#ifdef RADIATION
+    FArrayBox qmxz_rad, qpxz_rad;
+#endif
+
+    FArrayBox qmyz_core, qpyz_core;
+    FArrayBox qmyz_pass, qpyz_pass;
+#ifdef RADIATION
+    FArrayBox qmyz_rad, qpyz_rad;
+#endif
+
 #endif
     FArrayBox pdivu;
 
@@ -167,26 +220,86 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       shk.resize(obx, 1);
       Elixir elix_shk = shk.elixir();
 
-      qxm.resize(obx, NQ);
-      Elixir elix_qxm = qxm.elixir();
+      // qxm
 
-      qxp.resize(obx, NQ);
-      Elixir elix_qxp = qxp.elixir();
+      qxm_core.resize(obx, NQC);
+      Elixir elix_qxm_core = qxm_core.elixir();
+
+      qxm_pass.resize(obx, NQP);
+      Elixir elix_qxm_pass = qxm_pass.elixir();
+
+#ifdef RADIATION
+      qxm_rad.resize(obx, NQR);
+      Elixir elix_qxm_rad = qxm_rad.elixir();
+#endif
+
+      // qxp
+
+      qxp_core.resize(obx, NQC);
+      Elixir elix_qxp_core = qxp_core.elixir();
+
+      qxp_pass.resize(obx, NQP);
+      Elixir elix_qxp_pass = qxp_pass.elixir();
+
+#ifdef RADIATION
+      qxp_rad.resize(obx, NQR);
+      Elixir elix_qxp_rad = qxp_rad.elixir();
+#endif
 
 #if AMREX_SPACEDIM >= 2
-      qym.resize(obx, NQ);
-      Elixir elix_qym = qym.elixir();
+      // qym
 
-      qyp.resize(obx, NQ);
-      Elixir elix_qyp = qyp.elixir();
+      qym_core.resize(obx, NQC);
+      Elixir elix_qym_core = qym_core.elixir();
+
+      qym_pass.resize(obx, NQP);
+      Elixir elix_qym_pass = qym_pass.elixir();
+
+#ifdef RADIATION
+      qym_rad.resize(obx, NQR);
+      Elixir elix_qym_rad = qym_rad.elixir();
+#endif
+
+      // qyp
+
+      qyp_core.resize(obx, NQC);
+      Elixir elix_qyp_core = qyp_core.elixir();
+
+      qyp_pass.resize(obx, NQP);
+      Elixir elix_qyp_pass = qyp_pass.elixir();
+
+#ifdef RADIATION
+      qyp_rad.resize(obx, NQR);
+      Elixir elix_qyp_rad = qyp_rad.elixir();
+#endif
 #endif
 
 #if AMREX_SPACEDIM == 3
-      qzm.resize(obx, NQ);
-      Elixir elix_qzm = qzm.elixir();
+      // qzm
 
-      qzp.resize(obx, NQ);
-      Elixir elix_qzp = qzp.elixir();
+      qzm_core.resize(obx, NQC);
+      Elixir elix_qzm_core = qzm_core.elixir();
+
+      qzm_pass.resize(obx, NQP);
+      Elixir elix_qzm_pass = qzm_pass.elixir();
+
+#ifdef RADIATION
+      qzm_rad.resize(obx, NQR);
+      Elixir elix_qzm_rad = qzm_rad.elixir();
+#endif
+
+      // qzp
+
+      qzp_core.resize(obx, NQC);
+      Elixir elix_qzp_core = qzp_core.elixir();
+
+      qzp_pass.resize(obx, NQP);
+      Elixir elix_qzp_pass = qzp_pass.elixir();
+
+#ifdef RADIATION
+      qzp_rad.resize(obx, NQR);
+      Elixir elix_qzp_rad = qzp_rad.elixir();
+#endif
 #endif
 
       if (ppm_type == 0) {
