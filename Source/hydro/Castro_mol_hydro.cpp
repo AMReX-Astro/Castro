@@ -169,8 +169,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           flatn.resize(obx, 1);
           Elixir elix_flatn = flatn.elixir();
 
+          Array4<Real> const flatn_arr = flatn.array();
+
           if (first_order_hydro == 1) {
-            flatn.setVal(0.0, obx);
+            AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
           } else if (use_flattening == 1) {
 #pragma gpu
             ca_uflatten
@@ -178,7 +180,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                BL_TO_FORTRAN_ANYD(q[mfi]),
                BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
           } else {
-            flatn.setVal(1.0, obx);
+            AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
           }
 
           // get the interface states and shock variable
