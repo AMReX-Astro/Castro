@@ -1130,9 +1130,9 @@ contains
 
 
   subroutine ca_shock(lo, hi, &
-       q, qd_lo, qd_hi, &
-       shk, s_lo, s_hi, &
-       dx) bind(C, name="ca_shock")
+                      q, qd_lo, qd_hi, &
+                      shk, s_lo, s_hi, &
+                      dx) bind(C, name="ca_shock")
     ! This is a basic multi-dimensional shock detection algorithm.
     ! This implementation follows Flash, which in turn follows
     ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
@@ -1141,7 +1141,7 @@ contains
     ! Woodward (1984)
     !
 
-    use meth_params_module, only : QPRES, QU, QV, QW, NQ
+    use meth_params_module, only : QPRES, QU, QV, QW, NQC
     use prob_params_module, only : coord_type
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_error_module
@@ -1153,7 +1153,7 @@ contains
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     real(rt), intent(in) :: dx(3)
-    real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt), intent(in) :: q_core(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQC)
     real(rt), intent(inout) :: shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
     integer :: i, j, k
@@ -1188,12 +1188,12 @@ contains
              ! construct div{U}
              if (coord_type == 0) then
                 ! Cartesian
-                div_u = HALF*(q(i+1,j,k,QU) - q(i-1,j,k,QU))*dxinv
+                div_u = HALF*(q_core(i+1,j,k,QU) - q_core(i-1,j,k,QU))*dxinv
 #if (AMREX_SPACEDIM >= 2)
-                div_u = div_u + HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))*dyinv
+                div_u = div_u + HALF*(q_core(i,j+1,k,QV) - q_core(i,j-1,k,QV))*dyinv
 #endif
 #if (AMREX_SPACEDIM == 3)
-                div_u = div_u + HALF*(q(i,j,k+1,QW) - q(i,j,k-1,QW))*dzinv
+                div_u = div_u + HALF*(q_core(i,j,k+1,QW) - q_core(i,j,k-1,QW))*dzinv
 #endif
              elseif (coord_type == 1) then
                 ! r-z
@@ -1202,11 +1202,11 @@ contains
                 rp = dble(i + 1 + HALF)*dx(1)
 
 #if (AMREX_SPACEDIM == 1)
-                div_u = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1))
+                div_u = HALF*(rp*q_core(i+1,j,k,QU) - rm*q_core(i-1,j,k,QU))/(rc*dx(1))
 #endif
 #if (AMREX_SPACEDIM == 2)
-                div_u = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1)) + &
-                     HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))/dx(2)
+                div_u = HALF*(rp*q_core(i+1,j,k,QU) - rm*q_core(i-1,j,k,QU))/(rc*dx(1)) + &
+                     HALF*(q_core(i,j+1,k,QV) - q_core(i,j-1,k,QV))/dx(2)
 #endif
 
              elseif (coord_type == 2) then
@@ -1215,7 +1215,7 @@ contains
                 rm = dble(i - 1 + HALF)*dx(1)
                 rp = dble(i + 1 + HALF)*dx(1)
 
-                div_u = HALF*(rp**2*q(i+1,j,k,QU) - rm**2*q(i-1,j,k,QU))/(rc**2*dx(1))
+                div_u = HALF*(rp**2*q_core(i+1,j,k,QU) - rm**2*q_core(i-1,j,k,QU))/(rc**2*dx(1))
 
 #ifndef AMREX_USE_CUDA
              else
@@ -1225,21 +1225,21 @@ contains
 
 
              ! find the pre- and post-shock pressures in each direction
-             if (q(i+1,j,k,QPRES) - q(i-1,j,k,QPRES) < ZERO) then
-                px_pre  = q(i+1,j,k,QPRES)
-                px_post = q(i-1,j,k,QPRES)
+             if (q_core(i+1,j,k,QPRES) - q_core(i-1,j,k,QPRES) < ZERO) then
+                px_pre  = q_core(i+1,j,k,QPRES)
+                px_post = q_core(i-1,j,k,QPRES)
              else
-                px_pre  = q(i-1,j,k,QPRES)
-                px_post = q(i+1,j,k,QPRES)
+                px_pre  = q_core(i-1,j,k,QPRES)
+                px_post = q_core(i+1,j,k,QPRES)
              endif
 
 #if (AMREX_SPACEDIM >= 2)
-             if (q(i,j+1,k,QPRES) - q(i,j-1,k,QPRES) < ZERO) then
-                py_pre  = q(i,j+1,k,QPRES)
-                py_post = q(i,j-1,k,QPRES)
+             if (q_core(i,j+1,k,QPRES) - q_core(i,j-1,k,QPRES) < ZERO) then
+                py_pre  = q_core(i,j+1,k,QPRES)
+                py_post = q_core(i,j-1,k,QPRES)
              else
-                py_pre  = q(i,j-1,k,QPRES)
-                py_post = q(i,j+1,k,QPRES)
+                py_pre  = q_core(i,j-1,k,QPRES)
+                py_post = q_core(i,j+1,k,QPRES)
              endif
 #else
              py_pre = ZERO
@@ -1247,12 +1247,12 @@ contains
 #endif
 
 #if (AMREX_SPACEDIM == 3)
-             if (q(i,j,k+1,QPRES) - q(i,j,k-1,QPRES) < ZERO) then
-                pz_pre  = q(i,j,k+1,QPRES)
-                pz_post = q(i,j,k-1,QPRES)
+             if (q_core(i,j,k+1,QPRES) - q_core(i,j,k-1,QPRES) < ZERO) then
+                pz_pre  = q_core(i,j,k+1,QPRES)
+                pz_post = q_core(i,j,k-1,QPRES)
              else
-                pz_pre  = q(i,j,k-1,QPRES)
-                pz_post = q(i,j,k+1,QPRES)
+                pz_pre  = q_core(i,j,k-1,QPRES)
+                pz_post = q_core(i,j,k+1,QPRES)
              endif
 #else
              pz_pre = ZERO
@@ -1260,14 +1260,14 @@ contains
 #endif
 
              ! use compression to create unit vectors for the shock direction
-             e_x = (q(i+1,j,k,QU) - q(i-1,j,k,QU))**2
+             e_x = (q_core(i+1,j,k,QU) - q_core(i-1,j,k,QU))**2
 #if (AMREX_SPACEDIM >= 2)
-             e_y = (q(i,j+1,k,QV) - q(i,j-1,k,QV))**2
+             e_y = (q_core(i,j+1,k,QV) - q_core(i,j-1,k,QV))**2
 #else
              e_y = ZERO
 #endif
 #if (AMREX_SPACEDIM == 3)
-             e_z = (q(i,j,k+1,QW) - q(i,j,k-1,QW))**2
+             e_z = (q_core(i,j,k+1,QW) - q_core(i,j,k-1,QW))**2
 #else
              e_z = ZERO
 #endif
@@ -1307,8 +1307,8 @@ contains
 
 
   subroutine divu(lo, hi, &
-       q, q_lo, q_hi, &
-       dx, div, div_lo, div_hi) bind(C, name='divu')
+                  q, q_lo, q_hi, &
+                  dx, div, div_lo, div_hi) bind(C, name='divu')
     ! this computes the *node-centered* divergence
     !
 

@@ -25,7 +25,7 @@ contains
     ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, QC, &
+    use meth_params_module, only : NQC, NQAUX, NQC_SRC, QRHO, QU, QV, QW, QC, &
                                    QREINT, QPRES, &
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type
@@ -49,18 +49,18 @@ contains
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQ)
+    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQC)
 
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQC)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQC)
 
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
+    real(rt), intent(in) :: q_core_src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQC_SRC)
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
@@ -179,13 +179,13 @@ contains
                 qp(i,j,k,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright
 
                 ! add the source terms 
-                qp(i,j,k,QRHO  ) = qp(i,j,k,QRHO  ) + HALF*dt*srcQ(i,j,k,QRHO)
+                qp(i,j,k,QRHO  ) = qp(i,j,k,QRHO  ) + HALF*dt*q_core_src(i,j,k,QRHO)
                 qp(i,j,k,QRHO  ) = max(small_dens, qp(i,j,k,QRHO))
-                qp(i,j,k,QUN   ) = qp(i,j,k,QUN   ) + HALF*dt*srcQ(i,j,k,QUN)
-                qp(i,j,k,QUT   ) = qp(i,j,k,QUT   ) + HALF*dt*srcQ(i,j,k,QUT)
-                qp(i,j,k,QUTT  ) = qp(i,j,k,QUTT  ) + HALF*dt*srcQ(i,j,k,QUTT)
-                qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
-                qp(i,j,k,QPRES ) = qp(i,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
+                qp(i,j,k,QUN   ) = qp(i,j,k,QUN   ) + HALF*dt*q_core_src(i,j,k,QUN)
+                qp(i,j,k,QUT   ) = qp(i,j,k,QUT   ) + HALF*dt*q_core_src(i,j,k,QUT)
+                qp(i,j,k,QUTT  ) = qp(i,j,k,QUTT  ) + HALF*dt*q_core_src(i,j,k,QUTT)
+                qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + HALF*dt*q_core_src(i,j,k,QREINT)
+                qp(i,j,k,QPRES ) = qp(i,j,k,QPRES ) + HALF*dt*q_core_src(i,j,k,QPRES)
 
              end if
 
@@ -220,12 +220,12 @@ contains
                 qm(i+1,j,k,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
 
                 ! add the source terms
-                qm(i+1,j,k,QRHO) = max(small_dens, qm(i+1,j,k,QRHO) + HALF*dt*srcQ(i,j,k,QRHO))
-                qm(i+1,j,k,QUN) = qm(i+1,j,k,QUN) + HALF*dt*srcQ(i,j,k,QUN)
-                qm(i+1,j,k,QUT) = qm(i+1,j,k,QUT) + HALF*dt*srcQ(i,j,k,QUT)
-                qm(i+1,j,k,QUTT) = qm(i+1,j,k,QUTT) + HALF*dt*srcQ(i,j,k,QUTT)
-                qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
-                qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
+                qm(i+1,j,k,QRHO) = max(small_dens, qm(i+1,j,k,QRHO) + HALF*dt*q_core_src(i,j,k,QRHO))
+                qm(i+1,j,k,QUN) = qm(i+1,j,k,QUN) + HALF*dt*q_core_src(i,j,k,QUN)
+                qm(i+1,j,k,QUT) = qm(i+1,j,k,QUT) + HALF*dt*q_core_src(i,j,k,QUT)
+                qm(i+1,j,k,QUTT) = qm(i+1,j,k,QUTT) + HALF*dt*q_core_src(i,j,k,QUTT)
+                qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + HALF*dt*q_core_src(i,j,k,QREINT)
+                qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES ) + HALF*dt*q_core_src(i,j,k,QPRES)
 
              else if (idir == 2 .and. j <= vhi(2)) then
                 qm(i,j+1,k,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
@@ -236,12 +236,12 @@ contains
                 qm(i,j+1,k,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
 
                 ! add the source terms
-                qm(i,j+1,k,QRHO) = max(small_dens, qm(i,j+1,k,QRHO) + HALF*dt*srcQ(i,j,k,QRHO))
-                qm(i,j+1,k,QUN) = qm(i,j+1,k,QUN) + HALF*dt*srcQ(i,j,k,QUN)
-                qm(i,j+1,k,QUT) = qm(i,j+1,k,QUT) + HALF*dt*srcQ(i,j,k,QUT)
-                qm(i,j+1,k,QUTT) = qm(i,j+1,k,QUTT) + HALF*dt*srcQ(i,j,k,QUTT)
-                qm(i,j+1,k,QREINT) = qm(i,j+1,k,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
-                qm(i,j+1,k,QPRES) = qm(i,j+1,k,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
+                qm(i,j+1,k,QRHO) = max(small_dens, qm(i,j+1,k,QRHO) + HALF*dt*q_core_src(i,j,k,QRHO))
+                qm(i,j+1,k,QUN) = qm(i,j+1,k,QUN) + HALF*dt*q_core_src(i,j,k,QUN)
+                qm(i,j+1,k,QUT) = qm(i,j+1,k,QUT) + HALF*dt*q_core_src(i,j,k,QUT)
+                qm(i,j+1,k,QUTT) = qm(i,j+1,k,QUTT) + HALF*dt*q_core_src(i,j,k,QUTT)
+                qm(i,j+1,k,QREINT) = qm(i,j+1,k,QREINT) + HALF*dt*q_core_src(i,j,k,QREINT)
+                qm(i,j+1,k,QPRES) = qm(i,j+1,k,QPRES ) + HALF*dt*q_core_src(i,j,k,QPRES)
 
              else if (idir == 3 .and. k <= vhi(3)) then
                 qm(i,j,k+1,QRHO) = max(small_dens, rho_ref + apleft + amleft + azrleft)
@@ -252,12 +252,12 @@ contains
                 qm(i,j,k+1,QREINT) = rhoe_ref + (apleft + amleft)*enth*csq + azeleft
 
                 ! add the source terms
-                qm(i,j,k+1,QRHO) = max(small_dens, qm(i,j,k+1,QRHO) + HALF*dt*srcQ(i,j,k,QRHO))
-                qm(i,j,k+1,QUN) = qm(i,j,k+1,QUN) + HALF*dt*srcQ(i,j,k,QUN)
-                qm(i,j,k+1,QUT) = qm(i,j,k+1,QUT) + HALF*dt*srcQ(i,j,k,QUT)
-                qm(i,j,k+1,QUTT) = qm(i,j,k+1,QUTT) + HALF*dt*srcQ(i,j,k,QUTT)
-                qm(i,j,k+1,QREINT) = qm(i,j,k+1,QREINT) + HALF*dt*srcQ(i,j,k,QREINT)
-                qm(i,j,k+1,QPRES) = qm(i,j,k+1,QPRES ) + HALF*dt*srcQ(i,j,k,QPRES)
+                qm(i,j,k+1,QRHO) = max(small_dens, qm(i,j,k+1,QRHO) + HALF*dt*q_core_src(i,j,k,QRHO))
+                qm(i,j,k+1,QUN) = qm(i,j,k+1,QUN) + HALF*dt*q_core_src(i,j,k,QUN)
+                qm(i,j,k+1,QUT) = qm(i,j,k+1,QUT) + HALF*dt*q_core_src(i,j,k,QUT)
+                qm(i,j,k+1,QUTT) = qm(i,j,k+1,QUTT) + HALF*dt*q_core_src(i,j,k,QUTT)
+                qm(i,j,k+1,QREINT) = qm(i,j,k+1,QREINT) + HALF*dt*q_core_src(i,j,k,QREINT)
+                qm(i,j,k+1,QPRES) = qm(i,j,k+1,QPRES ) + HALF*dt*q_core_src(i,j,k,QPRES)
 
              endif
 
@@ -290,13 +290,70 @@ contains
        end do
     end do
 
+  end subroutine trace_plm
+
+  subroutine trace_plm_passive(lo, hi, &
+                               idir, q_pass, qp_lo, qp_hi, &
+                               q_core, qc_lo, qc_hi, &
+                               dq_pass, dqp_lo, dqp_hi, &
+                               qm_pass, qmp_lo, qmp_hi, &
+                               qp_pass, qpp_lo, qpp_hi, &
+                               q_pass_src, qps_lo, qps_hi, &
+                               vlo, vhi, domlo, domhi, &
+                               dx, dt)
+
+
+    use network, only : nspec, naux
+    use meth_params_module, only : NQC, NQP, NQP_SRC, QU, QV, QW, &
+                                   npassive, qpass_map
+    use amrex_constants_module
+    use amrex_fort_module, only : rt => amrex_real
+
+    implicit none
+
+    integer, intent(in) :: idir
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qc_lo(3), qc_hi(3)
+    integer, intent(in) :: dqp_lo(3), dqp_hi(3)
+    integer, intent(in) :: qmp_lo(3), qmp_hi(3)
+    integer, intent(in) :: qpp_lo(3), qpp_hi(3)
+    integer, intent(in) :: qps_lo(3), qps_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
+    integer, intent(in) :: domlo(3), domhi(3)
+
+    real(rt), intent(in) :: q_pass(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
+    real(rt), intent(in) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
+
+    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQP)
+
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQP)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
+    real(rt), intent(in) ::  q_pass_src(qps_lo(1):qps_hi(1),qps_lo(2):qps_hi(2),qps_lo(3):qps_hi(3),NQP_SRC)
+    real(rt), intent(in) :: dx(3), dt
+
+    ! Local variables
+    integer :: i, j, k, n, ipassive
+
+    real(rt) :: dtdx
+    real(rt) :: spzero, acmpright, acmpleft
+
+    integer :: QUN
+
+    !$gpu
+
+    dtdx = dt/dx(idir)
+
+    if (idir == 1) then
+       QUN = QU
+    else if (idir == 2) then
+       QUN = QV
+    else if (idir == 3) then
+       QUN = QW
+    endif
+
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
-
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  But we already dealt with all 3 velocity
-       ! components above, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -307,35 +364,43 @@ contains
                     (idir == 2 .and. j >= vlo(2)) .or. &
                     (idir == 3 .and. k >= vlo(3))) then
 
-                   un = q(i,j,k,QUN)
+                   un = q_pass(i,j,k,QUN)
                    if (un >= ZERO) then
                       spzero = -ONE
                    else
                       spzero = un*dtdx
                    end if
-                   acmprght = HALF*(-ONE - spzero)*dq(i,j,k,n)
-                   qp(i,j,k,n) = q(i,j,k,n) + acmprght
-                   if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*srcQ(i,j,k,n)
+                   acmprght = HALF*(-ONE - spzero)*dq_pass(i,j,k,n)
+                   qp_pass(i,j,k,n) = q_pass(i,j,k,n) + acmprght
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qp_pass(i,j,k,n) = qp_pass(i,j,k,n) + HALF*dt*q_pass_src(i,j,k,n)
+#endif
                 endif
 
                 ! Left state
-                un = q(i,j,k,QUN)
+                un = q_pass(i,j,k,QUN)
                 if (un >= ZERO) then
                    spzero = un*dtdx
                 else
                    spzero = ONE
                 end if
-                acmpleft = HALF*(ONE - spzero )*dq(i,j,k,n)
+                acmpleft = HALF*(ONE - spzero )*dq_pass(i,j,k,n)
 
                 if (idir == 1 .and. i <= vhi(1)) then
-                   qm(i+1,j,k,n) = q(i,j,k,n) + acmpleft
-                   if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*srcQ(i,j,k,n)
+                   qm_pass(i+1,j,k,n) = q_pass(i,j,k,n) + acmpleft
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qm_pass(i+1,j,k,n) = qm_pass(i+1,j,k,n) + HALF*dt*q_pass_src(i,j,k,n)
+#endif
                 else if (idir == 2 .and. j <= vhi(2)) then
-                   qm(i,j+1,k,n) = q(i,j,k,n) + acmpleft
-                   if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*srcQ(i,j,k,n)
+                   qm_pass(i,j+1,k,n) = q_pass(i,j,k,n) + acmpleft
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qm_pass(i,j+1,k,n) = qm_pass(i,j+1,k,n) + HALF*dt*q_pass_src(i,j,k,n)
+#endif
                 else if (idir == 3 .and. k <= vhi(3)) then
-                   qm(i,j,k+1,n) = q(i,j,k,n) + acmpleft
-                   if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*srcQ(i,j,k,n)
+                   qm_pass(i,j,k+1,n) = q_pass(i,j,k,n) + acmpleft
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qm_pass(i,j,k+1,n) = qm_pass(i,j,k+1,n) + HALF*dt*q_pass_src(i,j,k,n)
+#endif
                 endif
              enddo
 
@@ -344,6 +409,6 @@ contains
 
     end do
 
-  end subroutine trace_plm
+  end subroutine trace_plm_passive
 
 end module trace_plm_module

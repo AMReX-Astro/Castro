@@ -313,21 +313,32 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #pragma gpu
         ctu_plm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                        AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(q_core[mfi]),
+                       BL_TO_FORTRAN_ANYD(q_pass[mfi]),
                        BL_TO_FORTRAN_ANYD(flatn),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                       BL_TO_FORTRAN_ANYD(q_core_src[mfi]),
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                       BL_TO_FORTRAN_ANYD(q_pass_src[mfi]),
+#endif
                        BL_TO_FORTRAN_ANYD(shk),
-                       BL_TO_FORTRAN_ANYD(dq),
-                       BL_TO_FORTRAN_ANYD(qxm),
-                       BL_TO_FORTRAN_ANYD(qxp),
+                       BL_TO_FORTRAN_ANYD(dq_core),
+                       BL_TO_FORTRAN_ANYD(dq_pass),
+                       BL_TO_FORTRAN_ANYD(qxm_core),
+                       BL_TO_FORTRAN_ANYD(qxm_pass),
+                       BL_TO_FORTRAN_ANYD(qxp_core),
+                       BL_TO_FORTRAN_ANYD(qxp_pass),
 #if AMREX_SPACEDIM >= 2
-                       BL_TO_FORTRAN_ANYD(qym),
-                       BL_TO_FORTRAN_ANYD(qyp),
+                       BL_TO_FORTRAN_ANYD(qym_core),
+                       BL_TO_FORTRAN_ANYD(qym_pass),
+                       BL_TO_FORTRAN_ANYD(qyp_core),
+                       BL_TO_FORTRAN_ANYD(qyp_pass),
 #endif
 #if AMREX_SPACEDIM == 3
-                       BL_TO_FORTRAN_ANYD(qzm),
-                       BL_TO_FORTRAN_ANYD(qzp),
+                       BL_TO_FORTRAN_ANYD(qzm_core),
+                       BL_TO_FORTRAN_ANYD(qzm_pass),
+                       BL_TO_FORTRAN_ANYD(qzp_core),
+                       BL_TO_FORTRAN_ANYD(qzp_pass),
 #endif
                        AMREX_REAL_ANYD(dx), dt,
 #if (AMREX_SPACEDIM < 3)
