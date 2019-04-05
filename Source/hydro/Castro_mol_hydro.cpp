@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_hydro_F.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -7,17 +8,18 @@
 
 using namespace amrex;
 
+///
+/// Construct the hydrodynamic source at the specified time
+/// (essentially the flux divergence).  This source is suitable for
+/// method of lines or SDC integration.  The output, as a MultiFab
+/// is stored in A_update, which comes through the argument list.
+///
 void
 Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 {
 
   BL_PROFILE("Castro::construct_mol_hydro_source()");
 
-  // this constructs the hydrodynamic source (essentially the flux
-  // divergence) using method of lines integration.  The output, as a
-
-  // update to the state, is stored in the multifab A_update, which is
-  // passed in
 
   const Real strt_time = ParallelDescriptor::second();
 
@@ -40,8 +42,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   const Real *dx = geom.CellSize();
 
   MultiFab& S_new = get_new_data(State_Type);
-
-  //MultiFab& k_stage = *k_mol[mol_iteration];
 
 #ifdef RADIATION
   MultiFab& Er_new = get_new_data(Rad_Type);
@@ -79,7 +79,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     int priv_nstep_fsp = -1;
 #endif
     // The fourth order stuff cannot do tiling because of the Laplacian corrections
-    for (MFIter mfi(S_new, (fourth_order) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, (mol_order == 4 || sdc_order == 4) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	const Box& bx  = mfi.tilebox();
 
@@ -123,7 +123,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 	  pradial.resize(amrex::surroundingNodes(bx,0),1);
 	}
 #endif
-        if (fourth_order) {
+        if (mol_order == 4 || sdc_order == 4) {
           ca_fourth_single_stage
             (ARLIM_3D(lo), ARLIM_3D(hi), &time, ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              &stage_weight,
@@ -219,6 +219,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #else
   // CUDA version
   // TODO: add radiation
+
+  MultiFab& k_stage = *k_mol[mol_iteration];
 
 #ifndef RADIATION
 

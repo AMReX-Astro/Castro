@@ -1,5 +1,6 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
+  use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use probdata_module
   use amrex_error_module
   use amrex_constants_module
@@ -11,17 +12,15 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer :: init, namlen
   integer :: name(namlen)
-  real(rt)         :: problo(2), probhi(2)
+  real(rt) :: problo(2), probhi(2)
 
-  real(rt)        , allocatable :: ql(:,:,:), qr(:,:,:)
-  real(rt)        , allocatable :: gamcl(:,:), gamcr(:,:)
-  real(rt)        , allocatable :: cav(:,:), smallc(:,:)
-  real(rt)        , allocatable :: uflx(:,:,:), qint(:,:,:), qaux(:,:,:)
+  real(rt), pointer :: ql(:,:,:,:), qr(:,:,:,:)
+  real(rt), pointer :: qint(:,:,:,:), qaux(:,:,:,:)
 
-  integer :: ilo, ihi, jlo, jhi
+  integer :: lo(3), hi(3), loa(3), hia(3)
   integer :: idir
 
-  integer :: untin,i
+  integer :: untin, i
 
   namelist /fortin/ rho_l, u_l, p_l, re_l, gc_l, &
                     rho_r, u_r, p_r, re_r, gc_r, &
@@ -62,57 +61,49 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   close(unit=untin)
 
   ! call the Riemann solver
-  ilo = 1
-  ihi = 1
-  jlo = 1
-  jhi = 1
+  lo(:) = [1, 1, 0]
+  hi(:) = [1, 1, 0]
 
+  loa(:) = [0, 1, 0]
+  hia(:) = [1, 1, 0]
 
-  allocate(ql(ilo:ihi, jlo:jhi, NQ))
-  allocate(qr(ilo:ihi, jlo:jhi, NQ))
+  call bl_allocate(ql, lo, hi, NQ)
+  call bl_allocate(qr, lo, hi, NQ)
 
   ! Riemann indexes i-1 in qaux
-  allocate(qaux(ilo-1:ihi, jlo:jhi, NQAUX))
-
-  allocate(gamcl(ilo:ihi, jlo:jhi))
-  allocate(gamcr(ilo:ihi, jlo:jhi))
-
-  allocate(cav(ilo:ihi, jlo:jhi))
-  allocate(smallc(ilo:ihi, jlo:jhi))
-
-  allocate(uflx(ilo:ihi, jlo:jhi, NVAR))
-  allocate(qint(ilo:ihi, jlo:jhi, ngdnv))    ! should be ngdnv, but this is larger
+  call bl_allocate(qaux, loa, hia, NQAUX)
+  call bl_allocate(qint, lo, hi, NQ)
 
   ! set the Riemann arrays
-  ql(:,:,:) = ZERO
-  ql(ilo:ihi, jlo:jhi, QRHO) = rho_l
-  ql(ilo:ihi, jlo:jhi, QU) = u_l
-  ql(ilo:ihi, jlo:jhi, QPRES) = p_l
-  ql(ilo:ihi, jlo:jhi, QREINT) = re_l
+  ql(:,:,:,:) = ZERO
+  ql(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), QRHO) = rho_l
+  ql(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), QU) = u_l
+  ql(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), QPRES) = p_l
+  ql(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), QREINT) = re_l
 
-  qaux(:,:,:) = ZERO
+  qaux(:,:,:,:) = ZERO
 
-  qaux(ilo-1,:,QGAMC) = gc_l
+  qaux(lo(1)-1,:,:,QGAMC) = gc_l
 
-  qr(:,:,:) = ZERO
-  qr(ilo:ihi, jlo:jhi, QRHO) = rho_r
-  qr(ilo:ihi, jlo:jhi, QU) = u_r
-  qr(ilo:ihi, jlo:jhi, QPRES) = p_r
-  qr(ilo:ihi, jlo:jhi, QREINT) = re_r
+  qr(:,:,:,:) = ZERO
+  qr(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), QRHO) = rho_r
+  qr(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), QU) = u_r
+  qr(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), QPRES) = p_r
+  qr(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), QREINT) = re_r
 
-  qaux(ilo,:,QGAMC) = gc_r
+  qaux(lo(1),:,:,QGAMC) = gc_r
 
-  qaux(:,:,QC) = cav_s
+  qaux(:,:,:,QC) = cav_s
 
   ! call the Riemann solver
   idir = 1
 
-  call riemanncg(ql, qr, [ilo, jlo, 0], [ihi, jhi, 0],  &
-                 qaux, [ilo-1, jlo, 0], [ihi, jhi, 0], &
-                 uflx, [ilo, jlo, 0], [ihi, jhi, 0], &
-                 qint, [ilo, jlo, 0], [ihi, jhi, 0], &
-                 idir, ilo, ihi-1, jlo, jhi, 0, 0, 0, &
-                 [ilo-1, jlo-1, 0], [ihi+1, jhi+1, 0])
+  call riemanncg(ql, lo, hi, &
+                 qr, lo, hi, 1, 1, &
+                 qaux, loa, hia, &
+                 qint, lo, hi, &
+                 idir, lo, hi, &
+                 [lo(1)-1, lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0])
 
   ! we're done -- abort the code
   call amrex_error("done with Riemann")

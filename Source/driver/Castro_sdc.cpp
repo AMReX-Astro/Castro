@@ -1,10 +1,15 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_hydro_F.H"
 
 using namespace amrex;
 
 void
-Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
+Castro::do_sdc_update(int m_start, int m_end, Real dt) {
+
+  BL_PROFILE("Castro::do_sdc_update()");
+
+  // NOTE: dt here is the full dt not the dt between time nodes
 
   // this routine needs to do the update from time node m to m+1
   //
@@ -23,9 +28,9 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 #ifdef REACTIONS
   // SDC_Source_Type is only defined for 4th order
   MultiFab tmp;
-  MultiFab& C_source = (fourth_order == 1) ? get_new_data(SDC_Source_Type) : tmp;
+  MultiFab& C_source = (sdc_order == 4) ? get_new_data(SDC_Source_Type) : tmp;
 
-  if (fourth_order == 1) {
+  if (sdc_order == 4) {
 
     // for 4th order reacting flow, we need to create the "source" C
     // as averages and then convert it to cell centers.  The cell-center
@@ -52,6 +57,32 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
     AmrLevel::FillPatch(*this, C_source, C_source.nGrow(), time,
                         SDC_Source_Type, 0, NUM_STATE);
 
+
+    // we'll also construct an initial guess for the nonlinear solve,
+    // and store this in the Sburn MultiFab.  We'll use S_new as the
+    // staging place so we can do a FillPatch
+    MultiFab& S_new = get_new_data(State_Type);
+
+    Real dt_m = dt/2.0;
+
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.tilebox();
+
+      ca_sdc_compute_initial_guess(BL_TO_FORTRAN_BOX(bx),
+                                   BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
+                                   BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
+                                   BL_TO_FORTRAN_3D((*A_old[m_start])[mfi]),
+                                   BL_TO_FORTRAN_3D((*R_old[m_start])[mfi]),
+                                   BL_TO_FORTRAN_3D(S_new[mfi]),
+                                   &dt_m, &sdc_iteration);
+
+
+    }
+
+    const Real cur_time = state[State_Type].curTime();
+    expand_state(Sburn, cur_time, 2);
+
   }
 #endif
 
@@ -71,7 +102,11 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 #ifdef REACTIONS
     // advection + reactions
     if (sdc_order == 2) {
-      ca_sdc_update_o2(BL_TO_FORTRAN_BOX(bx), &dt_m,
+
+      // second order SDC reaction update -- we don't care about
+      // the difference between cell-centers and averages
+
+      ca_sdc_update_o2(BL_TO_FORTRAN_BOX(bx), &dt,
                        BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
                        BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
                        BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
@@ -82,6 +117,12 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                        &sdc_iteration,
                        &m_start);
     } else {
+
+      // the timestep from m to m+1
+      Real dt_m = dt/2.0;
+
+      // fourth order SDC reaction update -- we need to respect the
+      // difference between cell-centers and averages
 
       // convert the starting U to cell-centered on a fab-by-fab basis
       // -- including one ghost cell
@@ -99,6 +140,13 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
       // solve for the updated cell-center U using our cell-centered C -- we
       // need to do this with one ghost cell
       U_new_center.resize(bx1, NUM_STATE);
+
+      // initialize U_new with our guess for the new state, stored as
+      // an average in Sburn
+      ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
+                          BL_TO_FORTRAN_FAB(Sburn[mfi]),
+                          BL_TO_FORTRAN_FAB(U_new_center));
+
       ca_sdc_update_centers_o4(BL_TO_FORTRAN_BOX(bx1), &dt_m,
                                BL_TO_FORTRAN_3D(U_center),
                                BL_TO_FORTRAN_3D(U_new_center),
@@ -112,8 +160,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                              BL_TO_FORTRAN_3D(U_new_center),
                              BL_TO_FORTRAN_3D(R_new));
 
-      ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
-                                   BL_TO_FORTRAN_FAB(R_new));
+      ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
+                              BL_TO_FORTRAN_FAB(R_new));
 
       // now do the conservative update using this <R> to get <U>
       // We'll also need to pass in <C>
@@ -127,7 +175,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 #else
     // pure advection
     if (sdc_order == 2) {
-      ca_sdc_update_advection_o2(BL_TO_FORTRAN_BOX(bx), &dt_m,
+      ca_sdc_update_advection_o2(BL_TO_FORTRAN_BOX(bx), &dt,
                                  BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
                                  BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
                                  BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
@@ -135,7 +183,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
                                  BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
                                  &m_start);
     } else {
-      ca_sdc_update_advection_o4(BL_TO_FORTRAN_BOX(bx), &dt_m,
+      ca_sdc_update_advection_o4(BL_TO_FORTRAN_BOX(bx), &dt,
                                  BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
                                  BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
                                  BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
@@ -153,23 +201,56 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt_m) {
 #ifdef REACTIONS
 void
 Castro::construct_old_react_source(amrex::MultiFab& U_state,
-                                   amrex::MultiFab& R_source) {
+                                   amrex::MultiFab& R_source,
+                                   const bool input_is_average) {
 
-  // this routine simply fills R_source with the reactive source from
-  // state U_state.  Note: it is required that U_state have atleast 2
-  // valid ghost cells for 4th order.
+  BL_PROFILE("Castro::construct_old_react_source()");
 
-  // at this point, k_new has not yet been updated, so it represents
-  // the state at the SDC nodes from the previous iteration
-  for (MFIter mfi(U_state); mfi.isValid(); ++mfi) {
+  if (sdc_order == 4 && input_is_average) {
+    // we have cell-averages
+    // Note: we cannot tile these operations
 
-    const Box& bx = mfi.tilebox();
+    FArrayBox U_center;
+    FArrayBox R_center;
 
-    // construct the reactive source term
-    ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
-                           BL_TO_FORTRAN_3D(U_state[mfi]),
-                           BL_TO_FORTRAN_3D(R_source[mfi]));
+    for (MFIter mfi(U_state); mfi.isValid(); ++mfi) {
 
+      const Box& bx = mfi.tilebox();
+      const Box& obx = mfi.growntilebox(1);
+
+      // Convert to centers
+      U_center.resize(obx, NUM_STATE);
+      ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
+                          BL_TO_FORTRAN_FAB(U_state[mfi]),
+                          BL_TO_FORTRAN_FAB(U_center));
+
+      // burn, including one ghost cell
+      R_center.resize(obx, NUM_STATE);
+      ca_instantaneous_react(BL_TO_FORTRAN_BOX(obx),
+                             BL_TO_FORTRAN_3D(U_center),
+                             BL_TO_FORTRAN_3D(R_center));
+
+      // convert R to averages (in place)
+      ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
+                              BL_TO_FORTRAN_FAB(R_center));
+
+      // copy this to the center
+      R_source[mfi].copy(R_center, bx, 0, bx, 0, NUM_STATE);
+    }
+
+  } else {
+    // we are cell-centers
+
+    for (MFIter mfi(U_state); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.tilebox();
+
+      // construct the reactive source term
+      ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
+                             BL_TO_FORTRAN_3D(U_state[mfi]),
+                             BL_TO_FORTRAN_3D(R_source[mfi]));
+
+    }
   }
 }
 #endif

@@ -30,7 +30,7 @@ NaN.  For optimized code, the same can be done by setting::
 
 in the ``GNUmakefile``.  To capture the NaNs, use the runtime parameter::
 
-   amr.fpe_trap_invalid=1
+   amrex.fpe_trap_invalid=1
 
 
 Valgrind

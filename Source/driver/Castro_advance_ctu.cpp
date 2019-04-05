@@ -19,12 +19,12 @@ Castro::do_advance_ctu(Real time,
                        int  amr_ncycle)
 {
 
-  // this routine will advance the old state data (called S_old here)
-  // to the new time, for a single level.  The new data is called
-  // S_new here.  The update includes reactions (if we are not doing
-  // SDC), hydro, and the source terms.
+    // this routine will advance the old state data (called S_old here)
+    // to the new time, for a single level.  The new data is called
+    // S_new here.  The update includes reactions (if we are not doing
+    // SDC), hydro, and the source terms.
 
-    BL_PROFILE("Castro::do_advance()");
+    BL_PROFILE("Castro::do_advance_ctu()");
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
@@ -93,16 +93,17 @@ Castro::do_advance_ctu(Real time,
     if (apply_sources()) {
 
       do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
-
-      int is_new=1;
-      apply_source_to_state(is_new, S_new, old_source, dt, S_new.nGrow());
+      apply_source_to_state(S_new, old_source, dt, 0);
+      clean_state(S_new, cur_time, 0);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
       // in case we have already started with some source
       // terms (e.g. the source term predictor, or the SDC source).
 
-      AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+      if (do_hydro) {
+          AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+      }
 
     } else {
       old_source.setVal(0.0, NUM_GROW);
@@ -126,22 +127,13 @@ Castro::do_advance_ctu(Real time,
           return dt;
 
       construct_ctu_hydro_source(time, dt);
-      int is_new=1;
-      apply_source_to_state(is_new, S_new, hydro_source, dt);
-
+      apply_source_to_state(S_new, hydro_source, dt, 0);
+      clean_state(S_new, cur_time, 0);
     }
 
 
     // Sync up state after old sources and hydro source.
-    int is_new=1;
-    frac_change = clean_state(is_new, Sborder, S_new.nGrow());
-
-    // If the state has ghost zones, sync them up now
-    // since the hydro source only works on the valid zones.
-
-    if (S_new.nGrow() > 0) {
-      expand_state(S_new, cur_time, 1, S_new.nGrow());
-    }
+    frac_change = clean_state(S_new, cur_time, 0);
 
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
@@ -182,14 +174,21 @@ Castro::do_advance_ctu(Real time,
     if (apply_sources()) {
 
       do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
-
-      int is_new=1;
-      apply_source_to_state(is_new, S_new, new_source, dt, S_new.nGrow());
+      apply_source_to_state(S_new, new_source, dt, 0);
+      clean_state(S_new, cur_time, 0);
 
     } else {
 
       new_source.setVal(0.0, NUM_GROW);
 
+    }
+
+    // If the state has ghost zones, sync them up now
+    // since the hydro source only works on the valid zones.
+
+    if (S_new.nGrow() > 0) {
+        clean_state(S_new, cur_time, 0);
+        expand_state(S_new, cur_time, S_new.nGrow());
     }
 
     // Do the second half of the reactions.
@@ -219,7 +218,7 @@ Castro::do_advance_ctu(Real time,
 bool
 Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle)
 {
-    BL_PROFILE("Castro::retry_advance()");
+    BL_PROFILE("Castro::retry_advance_ctu()");
 
     Real dt_sub = 1.e200;
 
@@ -274,7 +273,13 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
     // Do the retry if the suggested timestep is smaller than the actual one.
     // A user-specified tolerance parameter can be used here to prevent
-    // retries that are caused by small differences.
+    // retries that are caused by small differences. Note that we are going
+    // to intentionally ignore the actual suggested subcycle, and just go with
+    // retry_subcycle_factor * the current timestep. The reason is that shrinking
+    // the timestep by that factor will substantially change the evolution, and it
+    // could be enough to get the simulation to become sane again. If this is the
+    // case, we end up saving a lot of timesteps relative to the potentially very
+    // small timestep recommended by the above limiters.
 
     if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle) || burn_success != 1) {
 
@@ -303,7 +308,9 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
         // Reset the source term predictor.
 
-        sources_for_hydro.setVal(0.0, NUM_GROW);
+        if (do_hydro) {
+            sources_for_hydro.setVal(0.0, NUM_GROW);
+        }
 
         // Clear the contribution to the fluxes from this step.
 
@@ -443,7 +450,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // Reset the source term predictor.
             // This must come before the swap.
 
-            sources_for_hydro.setVal(0.0, NUM_GROW);
+            if (do_hydro) {
+                sources_for_hydro.setVal(0.0, NUM_GROW);
+            }
 
             if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1)
                 apply_source_term_predictor();

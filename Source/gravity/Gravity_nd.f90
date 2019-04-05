@@ -24,15 +24,11 @@ contains
   ! ::
 
 
-
-  !> @brief Returns the gravitational constant, G
-  !!
-  !! @note Binds to C function ``get_grav_const``
-  !!
-  !! @param[inout] Gconst_out real(rt)
-  !!
   subroutine get_grav_const(Gconst_out) bind(C, name="get_grav_const")
-
+    ! Returns the gravitational constant, G
+    !
+    ! .. note::
+    !    Binds to C function ``get_grav_const``
 
     use fundamental_constants_module, only: Gconst
 
@@ -47,20 +43,11 @@ contains
   ! :: ----------------------------------------------------------
   ! ::
 
-
-  !> @brief Given a radial mass distribution, this computes the gravitational
-  !! acceleration as a function of radius by computing the mass enclosed
-  !! in successive spherical shells.
-  !!
-  !! @param[in] mass    radial mass distribution
-  !! @param[in] den
-  !! @param[inout] grav    gravitational acceleration as a function of radius
-  !! @param[in] max_radius
-  !! @param[in] dr
-  !! @param[in] numpts_1d
-  !!
   subroutine ca_integrate_grav (mass,den,grav,max_radius,dr,numpts_1d) &
        bind(C, name="ca_integrate_grav")
+    ! Given a radial mass distribution, this computes the gravitational
+    ! acceleration as a function of radius by computing the mass enclosed
+    ! in successive spherical shells.
 
     use fundamental_constants_module, only : Gconst
     use amrex_constants_module
@@ -68,9 +55,9 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer , intent(in   ) :: numpts_1d
-    real(rt), intent(in   ) :: mass(0:numpts_1d-1)
+    real(rt), intent(in   ) :: mass(0:numpts_1d-1)   ! radial mass distribution
     real(rt), intent(in   ) ::  den(0:numpts_1d-1)
-    real(rt), intent(inout) :: grav(0:numpts_1d-1)
+    real(rt), intent(inout) :: grav(0:numpts_1d-1)   ! gravitational acceleration as a function of radius
     real(rt), intent(in   ) :: max_radius,dr
 
     integer          :: i
@@ -140,51 +127,43 @@ contains
   ! :: ----------------------------------------------------------
   ! ::
 
-
-  !> @brief Integrates radial mass elements of a spherically symmetric
-  !! mass distribution to calculate both the gravitational acceleration,
-  !! grav, and the gravitational potential, phi. Here the mass variable
-  !! gives the mass contained in each radial shell.
-  !!
-  !! The convention in Castro for Poisson's equation is
-  !!
-  !!     laplacian(phi) = 4*pi*G*rho
-  !!
-  !! The gravitational acceleration is then
-  !! \f[
-  !!     g(r) = -G M(r) / r^2
-  !! \f]
-  !! where \f$M(r)\f$ is the mass interior to radius r.
-  !!
-  !! The strategy for calculating the potential is to calculate the potential
-  !! at the boundary assuming all the mass is enclosed:
-  !! \f[
-  !!     \phi(R) = -G M / R
-  !! \f]
-  !! Then, the potential in all other zones can be found using
-  !! \f[
-  !!     \frac{d(\phi)}{dr} = g   \; \Rightarrow \;
-  !!     \phi(r < R) = \phi(R) - \int(g \dr)
-  !! \f]
-  !!
-  !! @param[in] mass    radial mass distribution
-  !! @param[inout] grav radial gravitational acceleration
-  !! @param[in] dr      radial cell spacing
-  !! @param[in] numpts_1d   number of points in radial direction
-  !! @param[inout] phi      radial gravitational potential
-  !!
   subroutine ca_integrate_phi (mass,grav,phi,dr,numpts_1d) &
        bind(C, name="ca_integrate_phi")
+    ! Integrates radial mass elements of a spherically symmetric
+    ! mass distribution to calculate both the gravitational acceleration,
+    ! grav, and the gravitational potential, phi. Here the mass variable
+    ! gives the mass contained in each radial shell.
+    !
+    ! The convention in Castro for Poisson's equation is
+    !
+    !     laplacian(phi) = 4*pi*G*rho
+    !
+    ! The gravitational acceleration is then
+    ! \f[
+    !     g(r) = -G M(r) / r^2
+    ! \f]
+    ! where \f$M(r)\f$ is the mass interior to radius r.
+    !
+    ! The strategy for calculating the potential is to calculate the potential
+    ! at the boundary assuming all the mass is enclosed:
+    ! \f[
+    !     \phi(R) = -G M / R
+    ! \f]
+    ! Then, the potential in all other zones can be found using
+    ! \f[
+    !     \frac{d(\phi)}{dr} = g   \; \Rightarrow \;
+    !     \phi(r < R) = \phi(R) - \int(g \dr)
+    ! \f]
 
     use fundamental_constants_module, only : Gconst
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
-    integer , intent(in   ) :: numpts_1d
-    real(rt), intent(in   ) :: mass(0:numpts_1d-1)
-    real(rt), intent(inout) :: grav(0:numpts_1d-1)
-    real(rt), intent(inout) :: phi(0:numpts_1d-1)
-    real(rt), intent(in   ) :: dr
+    integer , intent(in   ) :: numpts_1d   ! number of points in radial direction
+    real(rt), intent(in   ) :: mass(0:numpts_1d-1)   ! radial mass distribution
+    real(rt), intent(inout) :: grav(0:numpts_1d-1)   ! radial gravitational acceleration
+    real(rt), intent(inout) :: phi(0:numpts_1d-1)   ! radial gravitational potential
+    real(rt), intent(in   ) :: dr   ! radial cell spacing
 
     real(rt)         :: gravBC, phiBC
     integer          :: i
@@ -213,18 +192,9 @@ contains
   ! :: ----------------------------------------------------------
   ! ::
 
-
-  !> @brief Same as ca_integrate_grav above, but includes general relativistic effects.
-  !!
-  !! @param[in] rho
-  !! @param[in] mass
-  !! @param[in] pressure
-  !! @param[in] dr
-  !! @param[in] numpts_1d
-  !! @param[inout] grav
-  !!
   subroutine ca_integrate_gr_grav (rho,mass,pres,grav,dr,numpts_1d) &
        bind(C, name="ca_integrate_gr_grav")
+    ! Same as ca_integrate_grav above, but includes general relativistic effects.
 
     use fundamental_constants_module, only : Gconst, c_light
     use amrex_constants_module
@@ -283,12 +253,12 @@ contains
        end if
        grav(i) = -Gconst * mass_encl / rc**2
 
-       !!       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       !!       This adds the post-Newtonian correction
-       !!       Added by Ken Chen, 6/9 2010
-       !!       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       !       !!!!!!!!!!!!!!!!!!!!!!!!!
+       !       This adds the post-Newtonian correction
+       !       Added by Ken Chen, 6/9 2010
+       !       !!!!!!!!!!!!!!!!!!!!!!!!!
 
-       !!       Tolman-Oppenheimer-Volkoff(TOV) case
+       !       Tolman-Oppenheimer-Volkoff(TOV) case
 
        if (rho(i) .gt. 0.e0_rt) then
           P =  pres(i)
@@ -302,9 +272,9 @@ contains
           grav(i) = grav(i)*ga*gb*gc
        end if
 
-       !!       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       !!       This ends the post-Newtonian correction
-       !!       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       !       !!!!!!!!!!!!!!!!!!!!!!!!!
+       !       This ends the post-Newtonian correction
+       !       !!!!!!!!!!!!!!!!!!!!!!!!!
 
     enddo
 
@@ -314,20 +284,15 @@ contains
   ! :: ----------------------------------------------------------
   ! ::
 
-
-  !> @brief If any of the boundaries are symmetric, we need to account for the mass that is assumed
-  !! to lie on the opposite side of the symmetric axis. If the center in any direction
-  !! coincides with the boundary, then we can simply double the mass as a result of that reflection.
-  !! Otherwise, we need to do a more general solve. We include a logical that is set to true
-  !! if any boundary is symmetric, so that we can avoid unnecessary function calls.
-  !!
-  !! @note Binds to C function ``init_multipole_gravity``
-  !!
-  !! @param[in] lnum integer
-  !! @param[in] lo_bc integer
-  !!
   subroutine init_multipole_gravity(lnum, lo_bc, hi_bc) bind(C,name="init_multipole_gravity")
-
+    ! If any of the boundaries are symmetric, we need to account for the mass that is assumed
+    ! to lie on the opposite side of the symmetric axis. If the center in any direction
+    ! coincides with the boundary, then we can simply double the mass as a result of that reflection.
+    ! Otherwise, we need to do a more general solve. We include a logical that is set to true
+    ! if any boundary is symmetric, so that we can avoid unnecessary function calls.
+    !
+    ! .. note::
+    !    Binds to C function ``init_multipole_gravity``
 
     use amrex_constants_module
     use prob_params_module, only: coord_type, Symmetry, problo, probhi, center, dim
@@ -734,7 +699,7 @@ contains
     ! to be stable for the reasonably low values of l we care about in a simulation:
     ! (l-m)P_l^m(x) = x(2l-1)P_{l-1}^m(x) - (l+m-1)P_{l-2}^m(x).
     ! This uses the following two expressions as initial conditions:
-    ! P_m^m(x) = (-1)^m (2m-1)!! (1-x^2)^(m/2)
+    ! P_m^m(x) = (-1)^m (2m-1)! (1-x^2)^(m/2)
     ! P_{m+1}^m(x) = x (2m+1) P_m^m (x)
 
     do m = 1, lnum
@@ -798,25 +763,6 @@ contains
   end subroutine fill_legendre_arrays
 
 
-
-
-  !>
-  !! @param[in] lnum integer
-  !! @param[in] npts integer
-  !! @param[in] nlo integer
-  !! @param[in] index integer
-  !! @param[in] x real(rt)
-  !! @param[in] y real(rt)
-  !! @param[in] z real(rt)
-  !! @param[in] problo real(rt)
-  !! @param[in] rho real(rt)
-  !! @param[in] vol real(rt)
-  !! @param[in] doSymmetricAddLo logical
-  !! @param[inout] qL0 real(rt)
-  !! @param[inout] qLC real(rt)
-  !! @param[inout] qU0 real(rt)
-  !! @param[inout] qUC real(rt)
-  !!
   subroutine multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
        x, y, z, problo, probhi, &
        rho, vol, &
@@ -927,21 +873,6 @@ contains
   end subroutine multipole_symmetric_add
 
 
-
-
-  !>
-  !! @param[in] lnum integer
-  !! @param[in] npts integer
-  !! @param[in] nlo integer
-  !! @param[in] index integer
-  !! @param[in] cosTheta real(rt)
-  !! @param[in] phiAngle real(rt)
-  !! @param[in] r real(rt)
-  !! @param[in] rho real(rt)
-  !! @param[in] vol real(rt)
-  !! @param[inout] qL0 real(rt)
-  !! @param[inout] qU0 real(rt)
-  !!
   subroutine multipole_add(cosTheta, phiAngle, r, rho, vol, &
        qL0, qLC, qLS, qU0, qUC, qUS, &
        lnum, npts, nlo, index, do_parity)

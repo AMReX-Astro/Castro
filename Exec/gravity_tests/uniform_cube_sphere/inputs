@@ -10,6 +10,7 @@ amr.n_cell           =  16   16   16
 
 amr.max_level        = 0
 amr.ref_ratio        = 2 2 2 2 2 2 2 2 2 2 2
+# we are not doing hydro, so there is no reflux and we don't need an error buffer
 amr.n_error_buf      = 0 0 0 0 0 0 0 0 0 0 0
 amr.blocking_factor  = 2
 amr.max_grid_size    = 8

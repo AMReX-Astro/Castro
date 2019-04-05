@@ -75,13 +75,13 @@ Castro::do_advance_mol (Real time,
   if (apply_sources()) {
 
 #ifndef AMREX_USE_CUDA
-    if (fourth_order) {
+    if (mol_order == 4) {
       // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
       // we'll reuse sources_for_hydro for this memory buffer at the moment
 
       for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.tilebox();
-        ca_make_cell_center(BL_TO_FORTRAN_BOX(bx),
+        const Box& gbx = mfi.growntilebox(1);
+        ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
                             BL_TO_FORTRAN_FAB(Sborder[mfi]),
                             BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]));
 
@@ -89,11 +89,16 @@ Castro::do_advance_mol (Real time,
     }
 
     // we pass in the stage time here
-    if (fourth_order) {
+    if (mol_order == 4) {
+      // time here is the stage time
       do_old_sources(old_source, sources_for_hydro, time, dt, amr_iteration, amr_ncycle);
 
-      // Note: this filled the ghost cells for us, so we can now convert to
-      // cell averages.  This loop cannot be tiled.
+      // fill the ghost cells for the sources -- we are storing these
+      // in the "old" time slot of Source_Type, so we should only use
+      // that date -- note this is not multilevel save
+      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
+
+      // Convert to cell averages.  This loop cannot be tiled.
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
         ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
@@ -101,11 +106,9 @@ Castro::do_advance_mol (Real time,
 
       }
 
-      // now that we redid these, redo the ghost fill
-      AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), time, Source_Type, 0, NUM_STATE);
-
     } else {
       do_old_sources(old_source, Sborder, time, dt, amr_iteration, amr_ncycle);
+
     }
 #endif
 
@@ -134,7 +137,7 @@ Castro::do_advance_mol (Real time,
   if (do_hydro)
     {
       // Construct the primitive variables.
-      if (fourth_order) {
+      if (mol_order == 4) {
 #ifndef AMREX_USE_CUDA
         cons_to_prim_fourth(time);
 #endif
@@ -173,14 +176,14 @@ Castro::do_advance_mol (Real time,
     MultiFab::Saxpy(S_new, dt*b_mol[i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
   // define the temperature now
-  int is_new=1;
-  clean_state(is_new, S_new.nGrow());
+  clean_state(S_new, cur_time, S_new.nGrow());
 
   // If the state has ghost zones, sync them up now
   // since the hydro source only works on the valid zones.
 
   if (S_new.nGrow() > 0) {
-    expand_state(S_new, cur_time, 1, S_new.nGrow());
+      clean_state(S_new, cur_time, 0);
+      expand_state(S_new, cur_time, S_new.nGrow());
   }
 
 #ifndef AMREX_USE_CUDA
@@ -197,12 +200,15 @@ Castro::do_advance_mol (Real time,
   // note: we need to have ghost cells here cause some sources (in
   // particular pdivU) need them.  Perhaps it would be easier to just
   // always require State_Type to have 1 ghost cell?
-  expand_state(Sborder, prev_time, 0, Sborder.nGrow());
+  clean_state(S_old, prev_time, 0);
+  expand_state(Sborder, prev_time, Sborder.nGrow());
   do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+  AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
 
-  expand_state(Sborder, cur_time, 1, Sborder.nGrow());
+  clean_state(S_new, cur_time, 0);
+  expand_state(Sborder, cur_time, Sborder.nGrow());
   do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
-
+  AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
 
   // Do the second half of the reactions.
 

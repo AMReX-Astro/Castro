@@ -1,10 +1,16 @@
 module bc_ext_fill_module
+    ! this module contains different routines for filling the
+    ! hydrodynamics boundary conditions
+
+    ! .. note::
+    !    the hydrostatic boundary conditions here rely on
+    !    constant gravity
 
   use amrex_constants_module, only: ZERO, HALF
-  use amrex_error_module
+#ifndef AMREX_USE_CUDA
+  use amrex_error_module, only: amrex_error
+#endif
   use amrex_fort_module, only: rt => amrex_real
-  use amrex_filcc_module, only: amrex_filccn
-  use interpolate_module, only: interpolate_sub
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
@@ -15,19 +21,10 @@ module bc_ext_fill_module
 
   include 'AMReX_bc_types.fi'
 
-  private
-
-  public :: ext_fill, ext_denfill
-
 contains
 
-  ! this module contains different routines for filling the
-  ! hydrodynamics boundary conditions
 
-  ! NOTE: the hydrostatic boundary conditions here rely on
-  ! constant gravity
-
-  subroutine ext_fill(adv, adv_lo, adv_hi, &
+  subroutine ext_fill(lo, hi, adv, adv_lo, adv_hi, &
                       domlo, domhi, delta, xlo, time, bc) &
                       bind(C, name="ext_fill")
 
@@ -36,14 +33,19 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
     use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
+    use interpolate_module, only: interpolate_sub
+    use amrex_filcc_module, only: amrex_filccn
 
-    integer, intent(in) :: adv_lo(3), adv_hi(3)
-    integer, intent(in) :: bc(dim,2,NVAR)
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
+    integer,  intent(in   ) :: bc(dim,2,NVAR)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
+    real(rt), intent(in   ), value :: time
 
     integer :: i, j, k, q, n, iter, m, d, joff, koff
+    integer :: jmin, jmax, kmin, kmax
     real(rt) :: y, z
     real(rt) :: dens_above, dens_base, temp_above
     real(rt) :: pres_above, p_want, pres_zone, A
@@ -55,14 +57,16 @@ contains
 
     type (eos_t) :: eos_state
 
+    !$gpu
+
     do n = 1, NVAR
 
 #ifndef AMREX_USE_CUDA
-       if (bc(1,1,n) == EXT_DIR .and. xl_ext == EXT_HSE .and. adv_lo(1) < domlo(1)) then
+       if (bc(1,1,n) == EXT_DIR .and. xl_ext == EXT_HSE .and. lo(1) < domlo(1)) then
           call amrex_error("ERROR: HSE boundaries not implemented for -x BC")
        endif
 
-       if (bc(1,2,n) == EXT_DIR .and. xr_ext == EXT_HSE .and. adv_hi(1) > domhi(1)) then
+       if (bc(1,2,n) == EXT_DIR .and. xr_ext == EXT_HSE .and. hi(1) > domhi(1)) then
           call amrex_error("ERROR: HSE boundaries not implemented for +x BC, d")
        end if
 #endif
@@ -73,14 +77,14 @@ contains
        !-------------------------------------------------------------------------
 
        ! YLO
-       if (bc(2,1,n) == EXT_DIR .and. adv_lo(2) < domlo(2)) then
+       if (bc(2,1,n) == EXT_DIR .and. lo(2) < domlo(2)) then
 
           if (yl_ext == EXT_HSE) then
 
              ! we will fill all the variables when we consider URHO
              if (n == URHO) then
-                do k = adv_lo(3), adv_hi(3)
-                   do i = adv_lo(1), adv_hi(1)
+                do k = lo(3), hi(3)
+                   do i = lo(1), hi(1)
                       ! we are integrating along a column at constant i.
                       ! Make sure that our starting state is well-defined
                       dens_above = adv(i,domlo(2),k,URHO)
@@ -122,7 +126,16 @@ contains
                       pres_above = eos_state%p
 
                       ! integrate downward
-                      do j = domlo(2)-1, adv_lo(2), -1
+                      jmin = adv_lo(2)
+                      jmax = domlo(2)-1
+#ifdef AMREX_USE_CUDA
+                      ! For CUDA, this should only be one thread doing the work:
+                      ! we'll arbitrary choose the zone with index domlo(2) - 1.
+                      if (hi(2) /= jmax) then
+                         jmax = jmin - 1
+                      end if
+#endif
+                      do j = jmax, jmin, -1
                          y = problo(2) + delta(2)*(dble(j) + HALF)
 
                          ! HSE integration to get density, pressure
@@ -242,12 +255,19 @@ contains
 
           elseif (yl_ext == EXT_INTERP) then
 
-             do j = domlo(2)-1, adv_lo(2), -1
+             jmin = adv_lo(2)
+             jmax = domlo(2)-1
+#ifdef AMREX_USE_CUDA
+             if (hi(2) /= jmax) then
+                jmax = jmin - 1
+             end if
+#endif
+             do j = jmax, jmin, -1
                 y = problo(2) + delta(2)*(dble(j)+HALF)
 
-                do k = adv_lo(3), adv_hi(3)
+                do k = lo(3), hi(3)
 
-                   do i = adv_lo(1), adv_hi(1)
+                   do i = lo(1), hi(1)
                       ! set all the variables even though we're testing on URHO
                       if (n == URHO) then
 
@@ -295,7 +315,7 @@ contains
 
 
        ! YHI
-       if (bc(2,2,n) == EXT_DIR .and. adv_hi(2) > domhi(2)) then
+       if (bc(2,2,n) == EXT_DIR .and. hi(2) > domhi(2)) then
 
           if (yr_ext == EXT_HSE) then
 #ifndef AMREX_USE_CUDA
@@ -305,11 +325,18 @@ contains
           elseif (yr_ext == EXT_INTERP) then
              ! interpolate thermodynamics from initial model
 
-             do j = domhi(2)+1, adv_hi(2)
+             jmin = domhi(2)+1
+             jmax = adv_hi(2)
+#ifdef AMREX_USE_CUDA
+             if (lo(2) /= jmin) then
+                jmin = jmax + 1
+             end if
+#endif
+             do j = jmin, jmax
                 y = problo(2) + delta(2)*(dble(j) + HALF)
 
-                do k = adv_lo(3), adv_hi(3)
-                   do i = adv_lo(1), adv_hi(1)
+                do k = lo(3), hi(3)
+                   do i = lo(1), hi(1)
 
                       ! set all the variables even though we're testing on URHO
                       if (n == URHO) then
@@ -365,14 +392,14 @@ contains
        !-------------------------------------------------------------------------
 
        ! ZLO
-       if (bc(3,1,n) == EXT_DIR .and. adv_lo(3) < domlo(3)) then
+       if (bc(3,1,n) == EXT_DIR .and. lo(3) < domlo(3)) then
 
           if (zl_ext == EXT_HSE) then
 
              ! we will fill all the variables when we consider URHO
              if (n == URHO) then
-                do j= adv_lo(2), adv_hi(2)
-                   do i = adv_lo(1), adv_hi(1)
+                do j= lo(2), hi(2)
+                   do i = lo(1), hi(1)
                       ! we are integrating along a column at constant i.
                       ! Make sure that our starting state is well-defined
                       dens_above = adv(i,j,domlo(3),URHO)
@@ -414,7 +441,14 @@ contains
                       pres_above = eos_state%p
 
                       ! integrate downward
-                      do k = domlo(3)-1, adv_lo(3), -1
+                      kmin = adv_lo(3)
+                      kmax = domlo(3) - 1
+#ifdef AMREX_USE_CUDA
+                      if (hi(3) /= kmax) then
+                         kmax = kmin - 1
+                      end if
+#endif
+                      do k = kmax, kmin, -1
                          z = problo(3) + delta(3)*(dble(k) + HALF)
 
                          ! HSE integration to get density, pressure
@@ -534,12 +568,19 @@ contains
 
           elseif (zl_ext == EXT_INTERP) then
 
-             do k = domlo(3)-1, adv_lo(3), -1
+             kmin = adv_lo(3)
+             kmax = domlo(3) - 1
+#ifdef AMREX_USE_CUDA
+             if (hi(3) /= kmax) then
+                kmax = kmin - 1
+             end if
+#endif
+             do k = kmax, kmin, -1
                 z = problo(3) + delta(3)*(dble(k)+HALF)
 
-                do j = adv_lo(2), adv_hi(2)
+                do j = lo(2), hi(2)
 
-                   do i = adv_lo(1), adv_hi(1)
+                   do i = lo(1), hi(1)
                       ! set all the variables even though we're testing on URHO
                       if (n == URHO) then
 
@@ -586,7 +627,7 @@ contains
        endif
 
        ! ZHI
-       if (bc(3,2,n) == EXT_DIR .and. adv_hi(3) > domhi(3)) then
+       if (bc(3,2,n) == EXT_DIR .and. hi(3) > domhi(3)) then
 
           if (zr_ext == EXT_HSE) then
 #ifndef AMREX_USE_CUDA
@@ -596,11 +637,18 @@ contains
           elseif (zr_ext == EXT_INTERP) then
              ! interpolate thermodynamics from initial model
 
-             do k = domhi(3)+1, adv_hi(3)
+             kmin = domhi(3) + 1
+             kmax = adv_hi(3)
+#ifdef AMREX_USE_CUDA
+             if (lo(3) /= kmin) then
+                kmin = kmax + 1
+             end if
+#endif
+             do k = kmin, kmax
                 z = problo(3) + delta(3)*(dble(k) + HALF)
 
-                do j = adv_lo(2),adv_hi(2)
-                   do i = adv_lo(1), adv_hi(1)
+                do j = lo(2),hi(2)
+                   do i = lo(1), hi(1)
 
                       ! set all the variables even though we're testing on URHO
                       if (n == URHO) then
@@ -653,26 +701,33 @@ contains
   end subroutine ext_fill
 
 
-  subroutine ext_denfill(adv, adv_lo, adv_hi, &
+  subroutine ext_denfill(lo, hi, adv, adv_lo, adv_hi, &
                          domlo, domhi, delta, xlo, time, bc) &
                          bind(C, name="ext_denfill")
 
-    use prob_params_module, only : problo
-    use interpolate_module
-    use model_parser_module
-    use amrex_error_module
+    use prob_params_module, only: problo
+    use model_parser_module, only: npts_model, model_r, model_state, idens_model
+#ifndef AMREX_USE_CUDA
+    use amrex_error_module, only: amrex_error
+#endif
+    use interpolate_module, only: interpolate_sub
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
-    integer, intent(in) :: adv_lo(3), adv_hi(3)
-    integer, intent(in) :: bc(dim,2)
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3), xlo(3), time
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
+    integer,  intent(in   ) :: bc(dim,2)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+    real(rt), intent(in   ), value :: time
 
     integer :: i, j, k
+    integer :: jmin, jmax, kmin, kmax
     real(rt) :: y, z
 
+    !$gpu
 
     ! Note: this function should not be needed, technically, but is
     ! provided to filpatch because there are many times in the algorithm
@@ -682,23 +737,32 @@ contains
 
 #ifndef AMREX_USE_CUDA
     ! XLO
-    if ( bc(1,1) == EXT_DIR .and. adv_lo(1) < domlo(1)) then
-       call amrex_error("We shoundn't be here (xlo denfill)")
+    if ( bc(1,1) == EXT_DIR .and. lo(1) < domlo(1)) then
+       call amrex_error("We should not be here (xlo denfill)")
     end if
 
     ! XHI
-    if ( bc(1,2) == EXT_DIR .and. adv_hi(1) > domhi(1)) then
-       call amrex_error("We shoundn't be here (xhi denfill)")
+    if ( bc(1,2) == EXT_DIR .and. hi(1) > domhi(1)) then
+       call amrex_error("We should not be here (xhi denfill)")
     endif
 #endif
 
 #if AMREX_SPACEDIM >= 2
     ! YLO
-    if ( bc(2,1) == EXT_DIR .and. adv_lo(2) < domlo(2)) then
-       do j = adv_lo(2), domlo(2)-1
+    if ( bc(2,1) == EXT_DIR .and. lo(2) < domlo(2)) then
+       jmin = adv_lo(2)
+       jmax = domlo(2)-1
+#ifdef AMREX_USE_CUDA
+       ! For CUDA, this should only be one thread doing the work:
+       ! we'll arbitrary choose the zone with index domlo(2) - 1.
+       if (hi(2) /= jmax) then
+          jmax = jmin - 1
+       end if
+#endif
+       do j = jmin, jmax
           y = problo(2) + delta(2)*(dble(j) + HALF)
-          do k = adv_lo(3), adv_hi(3)
-             do i = adv_lo(1), adv_hi(1)
+          do k = lo(3), hi(3)
+             do i = lo(1), hi(1)
                 call interpolate_sub(adv(i,j,k), y,npts_model,model_r,model_state(:,idens_model))
              end do
           end do
@@ -706,11 +770,18 @@ contains
     end if
 
     ! YHI
-    if ( bc(2,2) == EXT_DIR .and. adv_hi(2) > domhi(2)) then
-       do j = domhi(2)+1, adv_hi(2)
+    if ( bc(2,2) == EXT_DIR .and. hi(2) > domhi(2)) then
+       jmin = domhi(2)+1
+       jmax = adv_hi(2)
+#ifdef AMREX_USE_CUDA
+       if (lo(2) /= jmin) then
+          jmin = jmax + 1
+       end if
+#endif
+       do j = jmin, jmax
           y = problo(2) + delta(2)*(dble(j)+ HALF)
-          do k = adv_lo(3), adv_hi(3)
-             do i = adv_lo(1), adv_hi(1)
+          do k = lo(3), hi(3)
+             do i = lo(1), hi(1)
                 call interpolate_sub(adv(i,j,k), y,npts_model,model_r,model_state(:,idens_model))
              end do
           end do
@@ -720,11 +791,18 @@ contains
 
 #if AMREX_SPACEDIM == 3
     ! ZLO
-    if ( bc(3,1) == EXT_DIR .and. adv_lo(3) < domlo(3)) then
-       do k = adv_lo(3), domlo(3)-1
+    if ( bc(3,1) == EXT_DIR .and. lo(3) < domlo(3)) then
+       kmin = adv_lo(3)
+       kmax = domlo(3)-1
+#ifdef AMREX_USE_CUDA
+       if (hi(3) /= kmax) then
+          kmax = kmin - 1
+       end if
+#endif
+       do k = kmin, kmax
           z = problo(3) + delta(3)*(dble(k) + HALF)
-          do j = adv_lo(2), adv_hi(2)
-             do i = adv_lo(1), adv_hi(1)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 call interpolate_sub(adv(i,j,k), z,npts_model,model_r,model_state(:,idens_model))
              end do
           end do
@@ -732,11 +810,18 @@ contains
     end if
 
     ! ZHI
-    if ( bc(3,2) == EXT_DIR .and. adv_hi(3) > domhi(3)) then
-       do k = domhi(3)+1, adv_hi(3)
+    if ( bc(3,2) == EXT_DIR .and. hi(3) > domhi(3)) then
+       kmin = domhi(3)+1
+       kmax = adv_hi(3)
+#ifdef AMREX_USE_CUDA
+       if (lo(3) /= kmin) then
+          kmin = kmax + 1
+       end if
+#endif
+       do k = kmin, kmax
           z = problo(3) + delta(3)*(dble(k)+ HALF)
-          do j = adv_lo(2), adv_hi(2)
-             do i = adv_lo(1), adv_hi(1)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
                 call interpolate_sub(adv(i,j,k), z,npts_model,model_r,model_state(:,idens_model))
              end do
           end do

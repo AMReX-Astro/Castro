@@ -1,0 +1,29 @@
+Test the implementation of the source terms in the gray radiation
+solver.  This does the "relaxation to thermal equilibrium" test as
+described in Swesty and Myra (2009) (originally described in Turner
+and Stone, 2001).
+
+The gas energy equation as solved in Castro takes the form:
+
+d(rho E)/dt + div . (rho U E + U p) = - kappa_p c (E_r - a T^4)
+
+(see Howell and Greenough, 2003, Eq. 7.  We use the substitution
+4 sigma = a c)
+
+Swesty and Myra write e to be gas energy density (in Castro, we
+would write this as rho*e, where e is the specific energy).
+
+There is no hydrodynamics, but the matter and radiation are coupled
+through the source term.
+
+The problem starts off with a uniform radiation field and density, and
+uses a constant opacity.  The initial radiation field is out of
+balance with the gas temperature/energy.  An analytic solution for the
+radiation energy is provided in Swesty and Myra, eq. 83 and 84.
+
+
+This is a gray problem, but should also work the same for multigroup
+radiation -- since each group couples to the gas energy equation,
+the gas energy will see the effect of all of the radiation groups,
+and therefore, in the limit of enough groups, should approximate
+the gray problem.

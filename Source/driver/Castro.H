@@ -407,10 +407,12 @@ public:
                                 int  amr_iteration,
                                 int  amr_ncycle);
 
+#ifndef AMREX_USE_CUDA
     amrex::Real do_advance_sdc (amrex::Real time,
                                 amrex::Real dt,
                                 int  amr_iteration,
                                 int  amr_ncycle);
+#endif
 
 ///
 /// Should we retry advancing the simulation? By default, we
@@ -943,6 +945,20 @@ public:
 ///
     virtual void post_init (amrex::Real stop_time) override;
 
+#ifdef GRAVITY
+#ifdef ROTATION
+///
+/// Initialize a model using the self-consistent field method.
+///
+    void scf_relaxation();
+
+///
+/// Perform the Hachisu SCF method.
+///
+    void do_hscf_solve();
+#endif
+#endif
+
 ///
 /// Do work after restart with ``grown_factor`` > 1
 ///
@@ -1044,6 +1060,8 @@ public:
 			 int                dcomp) override;
 
     static int numGrow();
+
+    static int numState();
 
 #ifdef REACTIONS
 ///
@@ -1171,27 +1189,20 @@ public:
 /// Reset the internal energy
 ///
 /// @param State    Current state
+/// @param ng       number of ghost cells
 ///
-    void reset_internal_energy (amrex::MultiFab& State);
+    void reset_internal_energy (amrex::MultiFab& State, int ng);
 
-
-
-///
-/// Compute the current temperature
-///
-/// @param is_new   do we use the old or new StateData?
-/// @param ng number of ghost cells
-///
-    void computeTemp (int is_new, int ng);
 
 
 ///
 /// Compute the current temperature
 ///
 /// @param state    the state to operate on
+/// @param time     current time
 /// @param ng       number of ghost cells
 ///
-    void computeTemp(amrex::MultiFab& state, int ng);
+    void computeTemp(amrex::MultiFab& state, amrex::Real time, int ng);
 
 
 ///
@@ -1497,8 +1508,15 @@ public:
 ///
     amrex::Real locSquaredSum (const std::string& name, amrex::Real time, int idir, bool local=false);
 
-#ifdef POINTMASS
+#ifdef GRAVITY
+///
+/// Are we using point mass gravity?
+///
     int using_point_mass ();
+
+///
+/// Return the value of the point mass.
+///
     amrex::Real get_point_mass ();
 #endif
 
@@ -1541,8 +1559,9 @@ public:
 /// Update state to account for hybrid advection
 ///
 /// @param state    Current state
+/// @param ng       Number of ghost cells
 ///
-    void hybrid_sync(amrex::MultiFab& state);
+    void hybrid_sync(amrex::MultiFab& state, int ng);
 #endif
 
 
@@ -1557,35 +1576,23 @@ public:
 ///
 /// Add source terms to ``state``
 ///
-/// @param is_new   do we use new (0) or old (1) data?
 /// @param state    State
 /// @param source   Source terms
 /// @param dt       timestep
 /// @param ng       number of ghost cells
 ///
-    void apply_source_to_state (int is_new, amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng = 0);
+    void apply_source_to_state (amrex::MultiFab& state, amrex::MultiFab& source, amrex::Real dt, int ng);
 
 
 ///
 /// Fill a version of the state with ``ng`` ghost zones from the state data.
-///
-/// S is the multifab we are filling with ``State_Type`` ``StateData``,
-/// including a ghost cell fill at the end.  Before we do the fill,
-/// we do a ``clean_state`` on the ``State_Type data``.  iclean = 0 means
-/// clean the "old" time data, iclean = 1 means clean the "new time
-/// data", and iclean = 2 means clean both the old and new time data
-/// (in case we are interpolating in time).  For any other value, no
-/// cleaning is done
-
-// note: we don't clean ghost cells here, since we are doing a fill
-// right afterwards
+/// After we do the fill, optionally clean the data using the iclean parameter.
 ///
 /// @param S        MultiFab to be filled
 /// @param time     current time
-/// @param iclean   What data do we clean?
 /// @param ng       number of ghost cells
 ///
-    void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
+    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
 #ifdef SELF_GRAVITY
 
@@ -1608,11 +1615,35 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
+#ifndef AMREX_USE_CUDA
     void do_sdc_update(int m1, int m2, amrex::Real dt);
+#endif
 
 #ifdef REACTIONS
-    void construct_old_react_source(amrex::MultiFab& U_state, amrex::MultiFab& R_source);
+/// Take an input conserved state U_state, evaluate the instantaneous
+/// reaction rates, and store the result in R_source/
+///
+/// Special consideration is needed for fourth_order accuracy:
+///
+///  * If we come in with U_state representing an average
+///    (input_is_average = true), then, for fourth_order, we will
+///    convert U_state to cell-centers (consuming one ghost cell),
+///    burn on the cell-centers (including one ghost cell) and then
+///    average back to cell-centers (consuming another ghosst cell).
+///    This requires >= 2 ghost cells for U_state, which we assume
+///    are valid.
+///
+///  * If we come in with U_state representing cell centers
+///    (input_is_average = false), then we just return R_source
+///    at the cell-centers.
+///
+    void construct_old_react_source(amrex::MultiFab& U_state,
+                                    amrex::MultiFab& R_source,
+                                    const bool input_is_average);
 #endif
+
+// Hydrodynamics
+#include <Castro_hydro.H>
 
 #ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
@@ -1681,6 +1712,15 @@ public:
 ///     non-integer number.
 ///
     static amrex::Real num_zones_advanced;
+
+#ifdef AMREX_USE_CUDA
+///
+/// Minimum CUDA threadblock size for BC fills.
+///
+    static int numBCThreadsMin[3];
+
+    static int minBCThreads(int dir) { return numBCThreadsMin[dir]; }
+#endif
 
 protected:
 
@@ -1938,47 +1978,16 @@ protected:
     void enforce_consistent_e (amrex::MultiFab& S);
 
 ///
-/// This routine sets the density in ``S_new`` to be larger than the density floor.
-/// Note that it will operate everywhere on ``S_new``, including ghost zones.
-/// ``S_old`` is present so that, after the hydro call, we know what the old density
-/// was so that we have a reference for comparison. If you are calling it elsewhere
-/// and there's no meaningful reference state, just pass in the same MultiFab twice.
+/// This routine sets the density in ``state`` to be larger than the density floor.
+/// Note that it will operate everywhere on ``state``, including ghost zones.
 ///
 /// The return value is the the negative fractional change in the state that has the
 /// largest magnitude. If there is no reference state, this is meaningless.
 ///
-/// @param S_old        Old state
-/// @param S_new        New state
+/// @param state        state
 /// @param ng           number of ghost cells
 ///
-    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
-
-///
-/// Given ``State_Type`` state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
-/// value of enforce_min_density.
-///
-/// @param is_new   do we use new (0) or old (1) data?
-/// @param state    State data
-/// @param ng       number of ghost cells
-///
-    amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
-
-///
-/// Given ``State_Type`` state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
-/// value of enforce_min_density.
-///
-/// this is the "preferred" clean_state interface -- it will work
-/// directly on the StateData.  ``is_new``=0 means the old data is used,
-/// ``is_new``=1 means the new data is used.
-///
-///
-/// @param is_new   do we use new (0) or old (1) data?
-/// @param ng       number of ghost cells
-///
-    amrex::Real clean_state (int is_new, int ng);
-
+    amrex::Real enforce_min_density (amrex::MultiFab& state, int ng);
 
 ///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
@@ -1986,8 +1995,10 @@ protected:
 /// value of ::enforce_min_density.
 ///
 /// @param state    State data
+/// @param time     current time
+/// @param ng       number of ghost cells
 ///
-    amrex::Real clean_state (amrex::MultiFab& state);
+    amrex::Real clean_state (amrex::MultiFab& state, amrex::Real time, int ng);
 
 ///
 /// Average new state from ``level+1`` down to ``level``
@@ -2038,8 +2049,7 @@ protected:
     void write_center ();
 #endif
 
-#ifdef POINTMASS
-
+#ifdef GRAVITY
 ///
 /// @param time     current time
 /// @param dt       timestep
@@ -2063,11 +2073,6 @@ protected:
 /// Keep track of which AMR iteration we're on.
 ///
     int iteration;
-
-    //
-    // Hydrodynamics
-    //
-#include <Castro_hydro.H>
 
     //
     // Static data members.
@@ -2152,7 +2157,6 @@ protected:
     static amrex::AmrTracerParticleContainer* TracerPC;
 #endif
 
-
 ///
 /// Name of the probin file and its length.
 ///
@@ -2207,6 +2211,13 @@ Castro::numGrow()
 }
 
 inline
+int
+Castro::numState()
+{
+    return NUM_STATE;
+}
+
+inline
 amrex::MultiFab*
 Castro::Area ()
 {
@@ -2258,7 +2269,7 @@ Castro::get_output_at_completion()
     return output_at_completion;
 }
 
-#ifdef POINTMASS
+#ifdef GRAVITY
 inline
 amrex::Real
 Castro::get_point_mass ()
@@ -2273,6 +2284,5 @@ Castro::using_point_mass ()
     return use_point_mass;
 }
 #endif
-
 
 #endif /*_Castro_H_*/

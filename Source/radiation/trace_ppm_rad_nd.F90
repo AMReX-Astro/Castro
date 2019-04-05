@@ -38,8 +38,7 @@ contains
                                    small_dens, small_pres, &
                                    ppm_type, &
                                    ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map, &
-                                   fix_mass_flux
+                                   npassive, qpass_map
     use rad_params_module, only : ngroups
     use amrex_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
@@ -132,20 +131,12 @@ contains
 
     real(rt) :: er_foo
 
-    logical :: fix_mass_flux_lo, fix_mass_flux_hi
-    
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
        call amrex_error("Error:: trace_ppm_rad_nd.f90 :: tracexy_ppm_rad")
     end if
 
     hdt = HALF * dt
-
-
-    fix_mass_flux_lo = (fix_mass_flux == 1) .and. (physbc_lo(1) == Outflow) &
-         .and. (vlo(1) == domlo(1))
-    fix_mass_flux_hi = (fix_mass_flux == 1) .and. (physbc_hi(1) == Outflow) &
-         .and. (vhi(1) == domhi(1))
 
 
     !=========================================================================
@@ -315,11 +306,35 @@ contains
 
                 alphar(:) = der(:) - dptot/csq*hr
 
-                alpham = merge(ZERO, -alpham, un-cc > ZERO)
-                alphap = merge(ZERO, -alphap, un+cc > ZERO)
-                alpha0r = merge(ZERO, -alpha0r, un > ZERO)
-                alphar(:) = merge(ZERO, -alphar(:), un > ZERO)
-                alpha0e_g = merge(ZERO, -alpha0e_g, un > ZERO)
+                if (un-cc > ZERO) then
+                   alpham = ZERO
+                else
+                   alpham = -alpham
+                end if
+
+                if (un+cc > ZERO) then
+                   alphap = ZERO
+                else
+                   alphap = -alphap
+                end if
+
+                if (un > ZERO) then
+                   alpha0r = ZERO
+                else
+                   alpha0r = -alpha0r
+                end if
+
+                if (un > ZERO) then
+                   alphar(:) = ZERO
+                else
+                   alphar(:) = -alphar(:)
+                end if
+
+                if (un > ZERO) then
+                   alpha0e_g = ZERO
+                else
+                   alpha0e_g = -alpha0e_g
+                end if
 
 
                 ! The final interface states are just
@@ -461,11 +476,35 @@ contains
 
                 alphar(:) = der(:) - dptot/csq*hr
 
-                alpham = merge(-alpham, ZERO, un-cc > ZERO)
-                alphap = merge(-alphap, ZERO, un+cc > ZERO)
-                alpha0r = merge(-alpha0r, ZERO, un > ZERO)
-                alphar(:) = merge(-alphar(:), ZERO, un > ZERO)
-                alpha0e_g = merge(-alpha0e_g, ZERO, un > ZERO)
+                if (un-cc > ZERO) then
+                   alpham = -alpham
+                else
+                   alpham = ZERO
+                end if
+
+                if (un+cc > ZERO) then
+                   alphap = -alphap
+                else
+                   alphap = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alpha0r = -alpha0r
+                else
+                   alpha0r = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alphar(:) = -alphar(:)
+                else
+                   alphar(:) = ZERO
+                end if
+
+                if (un > ZERO) then
+                   alpha0e_g = -alpha0e_g
+                else
+                   alpha0e_g = ZERO
+                end if
 
                 ! The final interface states are just
                 ! q_s = q_ref - sum (l . dq) r
@@ -649,29 +688,6 @@ contains
              endif
 #endif
 
-#if (AMREX_SPACEDIM == 1)
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_lo) then
-                qm(vlo(1),j,k,QRHO   ) = q(domlo(1)-1,j,k,QRHO)
-                qm(vlo(1),j,k,QUN     ) = q(domlo(1)-1,j,k,QUN  )
-                qm(vlo(1),j,k,QPRES  ) = q(domlo(1)-1,j,k,QPRES)
-                qm(vlo(1),j,k,QREINT ) = q(domlo(1)-1,j,k,QREINT)
-                qm(vlo(1),j,k,qrad:qradhi) = q(domlo(1)-1,j,k,qrad:qradhi)
-                qm(vlo(1),j,k,qptot  ) = q(domlo(1)-1,j,k,qptot)
-                qm(vlo(1),j,k,qreitot) = q(domlo(1)-1,j,k,qreitot)
-             end if
-
-             ! Enforce constant mass flux rate if specified
-             if (fix_mass_flux_hi) then
-                qp(vhi(1)+1,j,k,QRHO   ) = q(domhi(1)+1,j,k,QRHO)
-                qp(vhi(1)+1,j,k,QUN     ) = q(domhi(1)+1,j,k,QUN  )
-                qp(vhi(1)+1,j,k,QPRES  ) = q(domhi(1)+1,j,k,QPRES)
-                qp(vhi(1)+1,j,k,QREINT ) = q(domhi(1)+1,j,k,QREINT)
-                qp(vhi(1)+1,j,k,qrad:qradhi) = q(domhi(1)+1,j,k,qrad:qradhi)
-                qp(vhi(1)+1,j,k,qptot  ) = q(domhi(1)+1,j,k,qptot)
-                qp(vhi(1)+1,j,k,qreitot) = q(domhi(1)+1,j,k,qreitot)
-             end if
-#endif
           end do
        end do
     end do
@@ -710,31 +726,43 @@ contains
                    ! wave, so no projection is needed.  Since we are not
                    ! projecting, the reference state doesn't matter
 
-                   qp(i,j,k,n) = merge(q(i,j,k,n), Im(i,j,k,2,n), un > ZERO)
+                   if (un > ZERO) then
+                      qp(i,j,k,n) = q(i,j,k,n)
+                   else
+                      qp(i,j,k,n) = Im(i,j,k,2,n)
+                   end if
                    if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,2,n)
                 endif
 
                 ! Minus state on face i+1
                 if (idir == 1 .and. i <= vhi(1)) then
                    un = q(i,j,k,QUN)
-                   qm(i+1,j,k,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (un > ZERO) then
+                      qm(i+1,j,k,n) = Ip(i,j,k,2,n)
+                   else
+                      qm(i+1,j,k,n) = q(i,j,k,n)
+                   end if
                    if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 else if (idir == 2 .and. j <= vhi(2)) then
                    un = q(i,j,k,QUN)
-                   qm(i,j+1,k,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (un > ZERO) then
+                      qm(i,j+1,k,n) = Ip(i,j,k,2,n)
+                   else
+                      qm(i,j+1,k,n) = q(i,j,k,n)
+                   end if
                    if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 else if (idir == 3 .and. k <= vhi(3)) then
                    un = q(i,j,k,QUN)
-                   qm(i,j,k+1,n) = merge(Ip(i,j,k,2,n), q(i,j,k,n), un > ZERO)
+                   if (un > ZERO) then
+                      qm(i,j,k+1,n) = Ip(i,j,k,2,n)
+                   else
+                      qm(i,j,k+1,n) = q(i,j,k,n)
+                   end if
                    if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,2,n)
                 endif
 
              end do
 
-#if (AMREX_SPACEDIM == 1)
-             if (fix_mass_flux_hi) qp(vhi(1)+1,j,k,n) = q(vhi(1)+1,j,k,n)
-             if (fix_mass_flux_lo) qm(vlo(1),j,k,n) = q(vlo(1)-1,j,k,n)
-#endif
           end do
        end do
     end do

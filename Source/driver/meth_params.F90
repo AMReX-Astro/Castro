@@ -53,6 +53,11 @@ module meth_params_module
   integer, save, allocatable :: GDLAMS, GDERADS
 #endif
 
+  ! Numerical values corresponding to the gravity types
+#ifdef GRAVITY
+  integer, save, allocatable :: gravity_type_int
+#endif
+
   integer         , save :: numpts_1d
 
   real(rt)        , save, allocatable :: outflow_data_old(:,:)
@@ -87,6 +92,9 @@ module meth_params_module
 #ifdef RADIATION
   attributes(managed) :: GDLAMS, GDERADS
 #endif
+#ifdef GRAVITY
+  attributes(managed) :: gravity_type_int
+#endif
   attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
 
@@ -112,7 +120,6 @@ module meth_params_module
   real(rt), allocatable, save :: small_ener
   integer,  allocatable, save :: do_hydro
   integer,  allocatable, save :: time_integration_method
-  integer,  allocatable, save :: fourth_order
   integer,  allocatable, save :: limit_fourth_order
   integer,  allocatable, save :: use_reconstructed_gamma1
   integer,  allocatable, save :: hybrid_hydro
@@ -134,7 +141,6 @@ module meth_params_module
   real(rt), allocatable, save :: dual_energy_eta1
   real(rt), allocatable, save :: dual_energy_eta2
   integer,  allocatable, save :: use_pslope
-  integer,  allocatable, save :: fix_mass_flux
   integer,  allocatable, save :: limit_fluxes_on_small_dens
   integer,  allocatable, save :: density_reset_method
   integer,  allocatable, save :: allow_small_energy
@@ -154,6 +160,7 @@ module meth_params_module
   integer,  allocatable, save :: sdc_order
   integer,  allocatable, save :: sdc_solver
   real(rt), allocatable, save :: sdc_solver_tol
+  real(rt), allocatable, save :: sdc_solver_relax_factor
   integer,  allocatable, save :: sdc_solve_for_rhoe
   integer,  allocatable, save :: sdc_use_analytic_jac
   real(rt), allocatable, save :: cfl
@@ -200,7 +207,6 @@ attributes(managed) :: small_pres
 attributes(managed) :: small_ener
 attributes(managed) :: do_hydro
 attributes(managed) :: time_integration_method
-attributes(managed) :: fourth_order
 attributes(managed) :: limit_fourth_order
 attributes(managed) :: use_reconstructed_gamma1
 attributes(managed) :: hybrid_hydro
@@ -222,7 +228,6 @@ attributes(managed) :: transverse_reset_rhoe
 attributes(managed) :: dual_energy_eta1
 attributes(managed) :: dual_energy_eta2
 attributes(managed) :: use_pslope
-attributes(managed) :: fix_mass_flux
 attributes(managed) :: limit_fluxes_on_small_dens
 attributes(managed) :: density_reset_method
 attributes(managed) :: allow_small_energy
@@ -242,6 +247,7 @@ attributes(managed) :: mol_order
 attributes(managed) :: sdc_order
 attributes(managed) :: sdc_solver
 attributes(managed) :: sdc_solver_tol
+attributes(managed) :: sdc_solver_relax_factor
 attributes(managed) :: sdc_solve_for_rhoe
 attributes(managed) :: sdc_use_analytic_jac
 attributes(managed) :: cfl
@@ -294,13 +300,13 @@ attributes(managed) :: implicit_rotation_update
 #ifdef ROTATION
 attributes(managed) :: rot_axis
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
 attributes(managed) :: use_point_mass
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
 attributes(managed) :: point_mass
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
 attributes(managed) :: point_mass_fix_solution
 #endif
 attributes(managed) :: do_acc
@@ -319,7 +325,6 @@ attributes(managed) :: get_g_from_phi
   !$acc create(small_ener) &
   !$acc create(do_hydro) &
   !$acc create(time_integration_method) &
-  !$acc create(fourth_order) &
   !$acc create(limit_fourth_order) &
   !$acc create(use_reconstructed_gamma1) &
   !$acc create(hybrid_hydro) &
@@ -341,7 +346,6 @@ attributes(managed) :: get_g_from_phi
   !$acc create(dual_energy_eta1) &
   !$acc create(dual_energy_eta2) &
   !$acc create(use_pslope) &
-  !$acc create(fix_mass_flux) &
   !$acc create(limit_fluxes_on_small_dens) &
   !$acc create(density_reset_method) &
   !$acc create(allow_small_energy) &
@@ -355,6 +359,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(sdc_order) &
   !$acc create(sdc_solver) &
   !$acc create(sdc_solver_tol) &
+  !$acc create(sdc_solver_relax_factor) &
   !$acc create(sdc_solve_for_rhoe) &
   !$acc create(sdc_use_analytic_jac) &
   !$acc create(cfl) &
@@ -407,13 +412,13 @@ attributes(managed) :: get_g_from_phi
 #ifdef ROTATION
   !$acc create(rot_axis) &
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
   !$acc create(use_point_mass) &
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
   !$acc create(point_mass) &
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
   !$acc create(point_mass_fix_solution) &
 #endif
   !$acc create(do_acc) &
@@ -495,14 +500,6 @@ contains
     allocate(rot_axis)
     rot_axis = 3;
 #endif
-#ifdef POINTMASS
-    allocate(use_point_mass)
-    use_point_mass = 1;
-    allocate(point_mass)
-    point_mass = 0.0d0;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
     allocate(difmag)
     difmag = 0.1d0;
     allocate(small_dens)
@@ -517,8 +514,6 @@ contains
     do_hydro = -1;
     allocate(time_integration_method)
     time_integration_method = 0;
-    allocate(fourth_order)
-    fourth_order = 0;
     allocate(limit_fourth_order)
     limit_fourth_order = 1;
     allocate(use_reconstructed_gamma1)
@@ -561,8 +556,6 @@ contains
     dual_energy_eta2 = 1.0d-4;
     allocate(use_pslope)
     use_pslope = 1;
-    allocate(fix_mass_flux)
-    fix_mass_flux = 0;
     allocate(limit_fluxes_on_small_dens)
     limit_fluxes_on_small_dens = 0;
     allocate(density_reset_method)
@@ -601,6 +594,8 @@ contains
     sdc_solver = 1;
     allocate(sdc_solver_tol)
     sdc_solver_tol = 1.d-6;
+    allocate(sdc_solver_relax_factor)
+    sdc_solver_relax_factor = 1.0d0;
     allocate(sdc_solve_for_rhoe)
     sdc_solve_for_rhoe = 1;
     allocate(sdc_use_analytic_jac)
@@ -639,6 +634,14 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0d0;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
 
     call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
@@ -657,11 +660,6 @@ contains
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
 #endif
-#ifdef POINTMASS
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
-#endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
     call pp%query("small_temp", small_temp)
@@ -669,7 +667,6 @@ contains
     call pp%query("small_ener", small_ener)
     call pp%query("do_hydro", do_hydro)
     call pp%query("time_integration_method", time_integration_method)
-    call pp%query("fourth_order", fourth_order)
     call pp%query("limit_fourth_order", limit_fourth_order)
     call pp%query("use_reconstructed_gamma1", use_reconstructed_gamma1)
     call pp%query("hybrid_hydro", hybrid_hydro)
@@ -691,7 +688,6 @@ contains
     call pp%query("dual_energy_eta1", dual_energy_eta1)
     call pp%query("dual_energy_eta2", dual_energy_eta2)
     call pp%query("use_pslope", use_pslope)
-    call pp%query("fix_mass_flux", fix_mass_flux)
     call pp%query("limit_fluxes_on_small_dens", limit_fluxes_on_small_dens)
     call pp%query("density_reset_method", density_reset_method)
     call pp%query("allow_small_energy", allow_small_energy)
@@ -711,6 +707,7 @@ contains
     call pp%query("sdc_order", sdc_order)
     call pp%query("sdc_solver", sdc_solver)
     call pp%query("sdc_solver_tol", sdc_solver_tol)
+    call pp%query("sdc_solver_relax_factor", sdc_solver_relax_factor)
     call pp%query("sdc_solve_for_rhoe", sdc_solve_for_rhoe)
     call pp%query("sdc_use_analytic_jac", sdc_use_analytic_jac)
     call pp%query("cfl", cfl)
@@ -730,6 +727,11 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
     call amrex_parmparse_destroy(pp)
 
 
@@ -737,31 +739,48 @@ contains
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
     !$acc device(small_pres, small_ener, do_hydro) &
-    !$acc device(time_integration_method, fourth_order, limit_fourth_order) &
-    !$acc device(use_reconstructed_gamma1, hybrid_hydro, ppm_type) &
-    !$acc device(ppm_temp_fix, ppm_predict_gammae, ppm_reference_eigenvectors) &
-    !$acc device(plm_iorder, hybrid_riemann, riemann_solver) &
-    !$acc device(cg_maxiter, cg_tol, cg_blend) &
-    !$acc device(use_eos_in_riemann, use_flattening, transverse_use_eos) &
-    !$acc device(transverse_reset_density, transverse_reset_rhoe, dual_energy_eta1) &
-    !$acc device(dual_energy_eta2, use_pslope, fix_mass_flux) &
-    !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_small_energy) &
-    !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
-    !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
-    !$acc device(mol_order, sdc_order, sdc_solver) &
-    !$acc device(sdc_solver_tol, sdc_solve_for_rhoe, sdc_use_analytic_jac) &
-    !$acc device(cfl, dtnuc_e, dtnuc_X) &
-    !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
-    !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, T_guess, diffuse_cutoff_density) &
-    !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
-    !$acc device(grav_source_type, do_rotation, rot_period) &
-    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
-    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
-    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(time_integration_method, limit_fourth_order, use_reconstructed_gamma1) &
+    !$acc device(hybrid_hydro, ppm_type, ppm_temp_fix) &
+    !$acc device(ppm_predict_gammae, ppm_reference_eigenvectors, plm_iorder) &
+    !$acc device(hybrid_riemann, riemann_solver, cg_maxiter) &
+    !$acc device(cg_tol, cg_blend, use_eos_in_riemann) &
+    !$acc device(use_flattening, transverse_use_eos, transverse_reset_density) &
+    !$acc device(transverse_reset_rhoe, dual_energy_eta1, dual_energy_eta2) &
+    !$acc device(use_pslope, limit_fluxes_on_small_dens, density_reset_method) &
+    !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
+    !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
+    !$acc device(hse_reflect_vels, mol_order, sdc_order) &
+    !$acc device(sdc_solver, sdc_solver_tol, sdc_solver_relax_factor) &
+    !$acc device(sdc_solve_for_rhoe, sdc_use_analytic_jac, cfl) &
+    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
+    !$acc device(do_react, react_T_min, react_T_max) &
+    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
+    !$acc device(T_guess, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
+    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
+    !$acc device(do_rotation, rot_period, rot_period_dot) &
+    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+    !$acc device(rot_axis, use_point_mass, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
+    !$acc device(track_grid_losses, const_grav) &
+    !$acc device(get_g_from_phi)
 
+
+#ifdef GRAVITY
+    ! Set the gravity type integer
+
+    allocate(gravity_type_int)
+
+    if (gravity_type == "ConstantGrav") then
+       gravity_type_int = 0
+    else if (gravity_type == "MonopoleGrav") then
+       gravity_type_int = 1
+    else if (gravity_type == "PoissonGrav") then
+       gravity_type_int = 2
+    else
+       call amrex_error("Unknown gravity type")
+    end if
+#endif
 
     ! now set the external BC flags
     select case (xl_ext_bc_type)
@@ -863,9 +882,6 @@ contains
     if (allocated(time_integration_method)) then
         deallocate(time_integration_method)
     end if
-    if (allocated(fourth_order)) then
-        deallocate(fourth_order)
-    end if
     if (allocated(limit_fourth_order)) then
         deallocate(limit_fourth_order)
     end if
@@ -929,9 +945,6 @@ contains
     if (allocated(use_pslope)) then
         deallocate(use_pslope)
     end if
-    if (allocated(fix_mass_flux)) then
-        deallocate(fix_mass_flux)
-    end if
     if (allocated(limit_fluxes_on_small_dens)) then
         deallocate(limit_fluxes_on_small_dens)
     end if
@@ -988,6 +1001,9 @@ contains
     end if
     if (allocated(sdc_solver_tol)) then
         deallocate(sdc_solver_tol)
+    end if
+    if (allocated(sdc_solver_relax_factor)) then
+        deallocate(sdc_solver_relax_factor)
     end if
     if (allocated(sdc_solve_for_rhoe)) then
         deallocate(sdc_solve_for_rhoe)

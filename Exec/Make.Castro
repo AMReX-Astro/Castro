@@ -41,24 +41,6 @@ ifeq ($(USE_CUDA),TRUE)
   DEFINES += -DEXTRA_THERMO
 endif
 
-# backwards compatibility
-ifdef Network_dir
-  ifndef NETWORK_DIR
-    NETWORK_DIR := $(Network_dir)
-  endif
-endif
-
-ifdef EOS_dir
-  ifndef EOS_DIR
-    EOS_DIR := $(EOS_dir)
-  endif
-endif
-
-ifdef Conductivity_dir
-  ifndef CONDUCTIVITY_DIR
-    CONDUCTIVITY_DIR := $(Conductivity_dir)
-  endif
-endif
 
 EBASE = Castro
 
@@ -84,6 +66,21 @@ endif
 
 ifeq ($(USE_CUDA),TRUE)
   USE_GPU_PRAGMA = TRUE
+  DEFINES += -DCUDA
+endif
+
+# Allow a problem to specify that we want to initialize
+# on the GPU if we're using CUDA. This is a subset of
+# dimension agnostic problems, and it requires a different
+# interface to initdata, so we want to define this even
+# if we're not using CUDA.
+
+ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
+  ifeq ($(DIMENSION_AGNOSTIC),TRUE)
+    DEFINES += -DGPU_COMPATIBLE_PROBLEM
+  else
+    $(error GPU_COMPATIBLE_PROBLEM is only supported if DIMENSION_AGNOSTIC=TRUE)
+  endif
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
@@ -116,7 +113,7 @@ USE_MLMG = FALSE
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/driver/param_includes \
            Source/hydro Source/problems Source/sources \
-           constants Util/model_parser
+           Source/scf constants Util/model_parser
 else
   Bdirs := constants
 endif
@@ -138,10 +135,6 @@ endif
 
 ifeq ($(USE_GR), TRUE)
   DEFINES += -DGR_GRAV
-endif
-
-ifeq ($(USE_POINTMASS), TRUE)
-   DEFINES += -DPOINTMASS
 endif
 
 ifeq ($(USE_REACT), TRUE)
@@ -356,6 +349,14 @@ ifeq ($(USE_EXTRA_THERMO), TRUE)
 endif
 
 
+ifeq ($(USE_REACT), TRUE)
+  ifeq ($(USE_CUDA), TRUE)
+    ifneq ($(INTEGRATOR_DIR), VODE90)
+      $(error Only the VODE90 integrator supports GPUs currently, please change INTEGRATOR_DIR)
+    endif
+  endif
+endif
+
 #------------------------------------------------------------------------------
 # external libraries
 #------------------------------------------------------------------------------
@@ -497,6 +498,14 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 #------------------------------------------------------------------------------
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
+
+ifeq ($(USE_CUDA),TRUE)
+ifeq ($(USE_GPU_PRAGMA), TRUE)
+
+include $(TOP)/Exec/Make.cuda_rules
+
+endif
+endif
 
 clean::
 	$(SILENT) $(RM) extern.F90

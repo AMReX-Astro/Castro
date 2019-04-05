@@ -112,8 +112,7 @@ Castro::advance (Real time,
 
                 MultiFab& S_new = get_new_data(State_Type);
 
-                int is_new=1;
-                clean_state(is_new, S_new.nGrow());
+                clean_state(S_new, state[State_Type].curTime(), S_new.nGrow());
 
                 // Compute the reactive source term for use in the next iteration.
 
@@ -131,8 +130,8 @@ Castro::advance (Real time,
 
         }
 
-    }
 #endif // AMREX_USE_CUDA
+    }
 
     // Optionally kill the job at this point, if we've detected a violation.
 
@@ -160,7 +159,7 @@ Castro::advance (Real time,
 #endif
 #endif
 
-#ifdef POINTMASS
+#ifdef GRAVITY
     // Update the point mass.
     if (use_point_mass)
         pointmass_update(time, dt);
@@ -211,8 +210,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       get_old_data(Rad_Type).setVal(0.0);
       get_new_data(Rad_Type).setVal(0.0);
     }
-    get_old_data(State_Type).setBndry(0.0);
-    get_new_data(State_Type).setBndry(0.0);
 #endif
 
     // Reset the grid loss tracking.
@@ -245,11 +242,14 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // zones. So we use a FillPatch using the state data to give us
     // Sborder, which does have ghost zones.
 
+    MultiFab& S_old = get_old_data(State_Type);
+
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       // for the CTU unsplit method, we always start with the old state
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
       const Real prev_time = state[State_Type].prevTime();
-      expand_state(Sborder, prev_time, 0, NUM_GROW);
+      clean_state(S_old, prev_time, 0);
+      expand_state(Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == MethodOfLines) {
 
@@ -261,7 +261,8 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	// first MOL stage
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real prev_time = state[State_Type].prevTime();
-	expand_state(Sborder, prev_time, 0, NUM_GROW);
+        clean_state(S_old, prev_time, 0);
+	expand_state(Sborder, prev_time, NUM_GROW);
 
       } else {
 
@@ -280,12 +281,12 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	  MultiFab::Saxpy(S_new, dt*a_mol[mol_iteration][i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
         // not sure if this is needed
-        int is_new=1;
-        clean_state(is_new, S_new.nGrow());
+	const Real new_time = state[State_Type].curTime();
+        clean_state(S_new, new_time, S_new.nGrow());
 
 	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
-	const Real new_time = state[State_Type].curTime();
-	expand_state(Sborder, new_time, 1, NUM_GROW);
+        clean_state(S_new, new_time, 0);
+	expand_state(Sborder, new_time, NUM_GROW);
 
       }
 
@@ -469,9 +470,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // trusted to respect the consistency between certain state variables
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
-    int is_new=0;
     MultiFab& S_old = get_old_data(State_Type);
-    clean_state(is_new, S_old.nGrow());
+    clean_state(S_old, time, S_old.nGrow());
 
     // Initialize the previous state data container now, so that we can
     // always ask if it has valid data.
@@ -507,7 +507,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       src_q.define(grids, dmap, NQSRC, NUM_GROW);
     }
 
-    if (fourth_order) {
+    if (mol_order == 4 || sdc_order == 4) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
     }
@@ -549,6 +549,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       }
 
 #ifdef REACTIONS
+      // for the temporary storage of the reaction terms
+      Sburn.define(grids, dmap, NUM_STATE, 2);
+
       R_old.resize(SDC_NODES);
       for (int n = 0; n < SDC_NODES; ++n) {
 	R_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
@@ -612,7 +615,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       src_q.clear();
     }
 
-    if (fourth_order) {
+    if (mol_order == 4 || sdc_order == 4) {
       q_bar.clear();
       qaux_bar.clear();
     }
@@ -638,6 +641,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       A_old.clear();
 #ifdef REACTIONS
       R_old.clear();
+      Sburn.clear();
 #endif
     }
 

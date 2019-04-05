@@ -10,6 +10,7 @@ using namespace amrex;
 void
 Castro::strang_react_first_half(Real time, Real dt)
 {
+    BL_PROFILE("Castro::strang_react_first_half()");
 
     // Sanity check: should only be in here if we're doing CTU or MOL.
 
@@ -145,7 +146,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     // Ensure consistency in internal energy and recompute temperature.
 
-    clean_state(state);
+    clean_state(state, time, state.nGrow());
 
 }
 
@@ -154,6 +155,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 void
 Castro::strang_react_second_half(Real time, Real dt)
 {
+    BL_PROFILE("Castro::strang_react_second_half()");
 
     // Sanity check: should only be in here if we're doing CTU or MOL.
 
@@ -253,8 +255,7 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     }
 
-    int is_new = 1;
-    clean_state(is_new, state.nGrow());
+    clean_state(state, time + 0.5 * dt, state.nGrow());
 
 }
 
@@ -286,7 +287,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(s, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(s, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
 	const Box& bx = mfi.growntilebox(ngrow);

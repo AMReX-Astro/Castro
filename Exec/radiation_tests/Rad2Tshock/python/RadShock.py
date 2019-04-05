@@ -251,9 +251,10 @@ def TwoTShock(P0=1.0e-4, gamma=5./3., sigma=1.0e6, kappa=1., M0=2):
         M = append(Mpre[0:ilast+1], Mrel[irel:])
         v = append(vpre[0:ilast+1], vrel[irel:])
         rho = append(rhopre[0:ilast+1], rhorel[irel:])
-        plot(x, T)
-        plot(x, theta)
-        plot(x, rho)
+        plot(x, T, label="T")
+        plot(x, theta, label ="theta")
+        plot(x, rho, label="rho")
+        legend()
 ##        plot(xpre,Tpre)
 ##        plot(xrel,Trel)
 ##        plot(xpre,thetapre)
@@ -301,7 +302,7 @@ if __name__ == "__main__":
     gamma = 5./3.
     sigma = 1.0e6
     kappa = 1.
-    M0 = 2.
+    M0 = 2.0
 
     for o, a in opts:
 	if o == "--P0":

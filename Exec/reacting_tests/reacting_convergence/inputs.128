@@ -43,6 +43,7 @@ amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 256
 
 # CHECKPOINT FILES
+amr.checkpoint_files_output = 0
 amr.check_file      = react_converge_128_chk   # root name of checkpoint file
 amr.check_int       = 100       # number of timesteps between checkpoints
 

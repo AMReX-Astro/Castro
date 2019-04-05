@@ -1,3 +1,12 @@
+#ifndef _Castro_hydro_F_H_
+#define _Castro_hydro_F_H_
+#include <AMReX_BLFort.H>
+
+#ifdef __cplusplus
+#include <AMReX.H>
+extern "C"
+{
+#endif
 
   void ca_ctoprim(const int* lo, const int* hi,
 	          const amrex::Real* u, const int* u_lo, const int* u_hi,
@@ -530,6 +539,7 @@
      const BL_FORT_FAB_ARG_3D(volume),
      const int&  verbose);
 
+#ifndef AMREX_USE_CUDA
   void ca_sdc_update_advection_o2
     (const int* lo, const int* hi,
      const amrex::Real* time,
@@ -591,4 +601,19 @@
                          const BL_FORT_FAB_ARG_3D(R_2),
                          BL_FORT_FAB_ARG_3D(C),
                          const int* m_start);
+
+  void ca_sdc_compute_initial_guess(const int* lo, const int* hi,
+                                    const BL_FORT_FAB_ARG_3D(U_old),
+                                    const BL_FORT_FAB_ARG_3D(U_new),
+                                    const BL_FORT_FAB_ARG_3D(A_old),
+                                    const BL_FORT_FAB_ARG_3D(R_old),
+                                    BL_FORT_FAB_ARG_3D(U_guess),
+                                    const amrex::Real* dt_m, const int* sdc_iteration);
+#endif
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
