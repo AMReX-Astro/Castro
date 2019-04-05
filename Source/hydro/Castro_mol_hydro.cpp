@@ -266,8 +266,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM <= 2
           if (!Geometry::IsCartesian()) {
             pradial.resize(xbx, 1);
-            Elixir elix_pradial = pradial.elixir();
           }
+          Elixir elix_pradial = pradial.elixir();
 #endif
 
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
