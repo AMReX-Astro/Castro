@@ -77,7 +77,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
     FArrayBox flatg;
 #endif
-    FArrayBox dq;
+    FArrayBox dq_core, dq_pass;
     FArrayBox Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc;
     FArrayBox sm, sp;
     FArrayBox shk;
@@ -304,8 +304,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       if (ppm_type == 0) {
 
-        dq.resize(obx, NQ);
-        Elixir elix_dq = dq.elixir();
+        dq_core.resize(obx, NQC);
+        Elixir elix_dq_core = dq_core.elixir();
+
+        dq_pass.resize(obx, NQP);
+        Elixir elix_dq_pass = dq_pass.elixir();
 
 #pragma gpu
         ctu_plm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
@@ -334,6 +337,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       } else {
 
+        // first the core and radiation variables
         Ip.resize(obx, 3*NQ);
         Elixir elix_Ip = Ip.elixir();
 
