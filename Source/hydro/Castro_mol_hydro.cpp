@@ -14,6 +14,10 @@ void
 Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 {
 
+#ifdef RADIATION
+  amrex::Abort("Error: radiation not supported for the MOL hydro source term");
+#else
+
   BL_PROFILE("Castro::construct_mol_hydro_source()");
 
 
@@ -167,8 +171,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             flatn.resize(obx, 1);
             Elixir elix_flatn = flatn.elixir();
 
+            Array4<Real> const flatn_arr = flatn.array();
+
             if (first_order_hydro == 1) {
-            flatn.setVal(0.0, obx);
+              AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
             } else if (use_flattening == 1) {
 #pragma gpu
               ca_uflatten
@@ -176,7 +182,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
             } else {
-              flatn.setVal(1.0, obx);
+              AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
             }
           }
 
@@ -267,8 +273,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM <= 2
           if (!Geometry::IsCartesian()) {
             pradial.resize(xbx, 1);
-            Elixir elix_pradial = pradial.elixir();
           }
+          Elixir elix_pradial = pradial.elixir();
 #endif
 
           if (do_hydro) {
@@ -337,16 +343,27 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  BL_TO_FORTRAN_ANYD(flux[idir]));
 
             }
+
           } else {
             // we are not doing hydro, so simply zero out the fluxes
             for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
               const Box& nbx = amrex::surroundingNodes(bx, idir);
               const Box& gbx = amrex::grow(nbx, 1);
 
-              flux[idir].setVal(0.0, gbx, 0, NUM_STATE);
-              qe[idir].setVal(0.0, gbx, 0, NGDNV);
+              Array4<Real> const flux_arr = (flux[idir]).array();
+              Array4<Real> const qe_arr = (qe[idir]).array();
+
+              AMREX_HOST_DEVICE_FOR_4D(gbx, NUM_STATE, i, j, k, n,
+                                       {
+                                         flux_arr(i,j,k,n) = 0.e0;
+                                       });
+
+              AMREX_HOST_DEVICE_FOR_4D(gbx, NGDNV, i, j, k, n,
+                                       {
+                                         qe(i,j,k,n) = 0.e0;
+                                       });
             }
-          }
+          } // end do_hydro
 
           // do the conservative update -- and store the shock variable
 #pragma gpu
@@ -516,5 +533,5 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
     }
 
-
+#endif // radiation
 }
