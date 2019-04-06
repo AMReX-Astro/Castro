@@ -360,7 +360,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               AMREX_HOST_DEVICE_FOR_4D(gbx, NGDNV, i, j, k, n,
                                        {
-                                         qe(i,j,k,n) = 0.e0;
+                                         qe_arr(i,j,k,n) = 0.e0;
                                        });
             }
           } // end do_hydro
