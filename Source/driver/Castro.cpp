@@ -391,6 +391,14 @@ Castro::read_params ()
     }
 #endif
 
+    // CUDA MOL has a bug that is currently not understood. It is disabled
+    // until this issue can be resolved.
+#ifdef AMREX_USE_CUDA
+    if (time_integration_method == MethodOfLines) {
+        amrex::Error("CUDA MOL is currently disabled.");
+    }
+#endif
+
     // Simplified SDC currently requires USE_SDC to be defined.
     // Also, if we have USE_SDC defined, we can't use the other
     // time integration_methods, because only the SDC burner
