@@ -34,11 +34,22 @@ module riemann_module
 contains
 
   subroutine cmpflx_plus_godunov(lo, hi, &
-                                 qm, qm_lo, qm_hi, &
-                                 qp, qp_lo, qp_hi, nc, comp, &
-                                 flx, flx_lo, flx_hi, &
-                                 qint, q_lo, q_hi, &
+                                 qm_core, qmc_lo, qmc_hi, &
+                                 qm_pass, qmp_lo, qmp_hi, &
 #ifdef RADIATION
+                                 qm_rad, qmr_lo, qmr_hi, &
+#endif
+                                 qp_core, qpc_lo, qpc_hi, &
+                                 qp_pass, qpp_lo, qpp_hi, &
+#ifdef RADIATION
+                                 qp_rad, qpr_lo, qpr_hi, &
+#endif
+                                 nc, comp, &
+                                 flx, flx_lo, flx_hi, &
+                                 qint_core, qc_lo, qc_hi, &
+                                 qint_pass, qp_lo, qp_hi, &
+#ifdef RADIATION
+                                 qint_rad, qr_lo, qr_hi, &
                                  rflx, rflx_lo, rflx_hi, &
                                  lambda_int, li_lo, li_hi, &
 #endif

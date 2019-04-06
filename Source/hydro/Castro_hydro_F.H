@@ -68,7 +68,6 @@ extern "C"
   void ctu_consup
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(Sborder),
-     const BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(shk),
      BL_FORT_FAB_ARG_3D(S_new),
      BL_FORT_FAB_ARG_3D(hydro_source),
@@ -138,11 +137,22 @@ extern "C"
 
   void cmpflx_plus_godunov
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(ql),
-     const BL_FORT_FAB_ARG_3D(qr), const int nc, const int comp,
-     BL_FORT_FAB_ARG_3D(flux),
-     BL_FORT_FAB_ARG_3D(q_int),
+     const BL_FORT_FAB_ARG_3D(ql_core),
+     const BL_FORT_FAB_ARG_3D(ql_pass),
 #ifdef RADIATION
+     const BL_FORT_FAB_ARG_3D(ql_rad),
+#endif
+     const BL_FORT_FAB_ARG_3D(qr_core),
+     const BL_FORT_FAB_ARG_3D(qr_pass),
+#ifdef RADIATION
+     const BL_FORT_FAB_ARG_3D(qr_pass),
+#endif
+     const int nc, const int comp,
+     BL_FORT_FAB_ARG_3D(flux),
+     BL_FORT_FAB_ARG_3D(q_int_core),
+     BL_FORT_FAB_ARG_3D(q_int_pass),
+#ifdef RADIATION
+     BL_FORT_FAB_ARG_3D(q_int_rad),
      BL_FORT_FAB_ARG_3D(radflux),
      BL_FORT_FAB_ARG_3D(lambda_int),
 #endif
@@ -308,9 +318,13 @@ extern "C"
       BL_FORT_FAB_ARG_3D(Im_core),
       BL_FORT_FAB_ARG_3D(Im_pass),
       BL_FORT_FAB_ARG_3D(Ip_core_src),
+#ifdef PRIM_SPECIES_HAVE_SOURCES
       BL_FORT_FAB_ARG_3D(Ip_pass_src),
+#endif
       BL_FORT_FAB_ARG_3D(Im_core_src),
+#ifdef PRIM_SPECIES_HAVE_SOURCES
       BL_FORT_FAB_ARG_3D(Im_pass_src),
+#endif
       BL_FORT_FAB_ARG_3D(Ip_gc),
       BL_FORT_FAB_ARG_3D(Im_gc),
       BL_FORT_FAB_ARG_3D(sm),

@@ -106,8 +106,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
     FArrayBox div;
-    FArrayBox q_int;
+    FArrayBox q_int_core;
+    FArrayBox q_int_pass;
 #ifdef RADIATION
+    FArrayBox q_int_rad;
     FArrayBox lambda_int;
 #endif
 
@@ -443,14 +445,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // compute divu -- we'll use this later when doing the artifical viscosity
 #pragma gpu
       divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-           BL_TO_FORTRAN_ANYD(q[mfi]),
+           BL_TO_FORTRAN_ANYD(q_core[mfi]),
            AMREX_REAL_ANYD(dx),
            BL_TO_FORTRAN_ANYD(div));
 
-      q_int.resize(obx, NQ);
-      Elixir elix_q_int = q_int.elixir();
+      q_int_core.resize(obx, NQC);
+      Elixir elix_q_int_core = q_int_core.elixir();
+
+      q_int_pass.resize(obx, NQP);
+      Elixir elix_q_int_pass = q_int_pass.elixir();
 
 #ifdef RADIATION
+      q_int_rad.resize(obx, NQR);
+      Elixir elix_q_int_rad = q_int_rad.elixir();
+
       lambda_int.resize(obx, Radiation::nGroups);
       Elixir elix_lambda_int = lambda_int.elixir();
 #endif
@@ -502,11 +510,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM == 1
 #pragma gpu
       cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qxm),
-                          BL_TO_FORTRAN_ANYD(qxp), 1, 1,
-                          BL_TO_FORTRAN_ANYD(flux[0]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qxm_core),
+                          BL_TO_FORTRAN_ANYD(qxm_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qxm_rad),
+#endif
+                          BL_TO_FORTRAN_ANYD(qxp_core),
+                          BL_TO_FORTRAN_ANYD(qxp_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qxp_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(flux[0]),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rad_flux[0]),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -540,11 +559,28 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       qgdnvtmp2.resize(obx, NGDNV);
       Elixir elix_qgdnvtmp2 = qgdnvtmp2.elixir();
 
-      ql.resize(obx, NQ);
-      Elixir elix_ql = ql.elixir();
+      ql_core.resize(obx, NQC);
+      Elixir elix_ql_core = ql_core.elixir();
 
-      qr.resize(obx, NQ);
-      Elixir elix_qr = qr.elixir();
+      ql_pass.resize(obx, NQP);
+      Elixir elix_ql_pass = ql_pass.elixir();
+
+#ifdef RADIATION
+      ql_rad.resize(obx, NQR);
+      Elixir elix_ql_rad = ql_rad.elixir();
+#endif
+
+      qr_core.resize(obx, NQC);
+      Elixir elix_qr_core = qr_core.elixir();
+
+      qr_pass.resize(obx, NQP);
+      Elixir elix_qr_pass = qr_pass.elixir();
+
+#ifdef RADIATION
+      qr_rad.resize(obx, NQR);
+      Elixir elix_qr_rad = qr_rad.elixir();
+#endif
+
 #endif
 
 
@@ -1219,7 +1255,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                   (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                    idir_f,
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(q_core[mfi]),
                    BL_TO_FORTRAN_ANYD(volume[mfi]),
                    BL_TO_FORTRAN_ANYD(flux[idir]),
                    BL_TO_FORTRAN_ANYD(area[idir][mfi]),
@@ -1242,7 +1278,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #pragma gpu
       ctu_consup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(shk),
                  BL_TO_FORTRAN_ANYD(S_new[mfi]),
                  BL_TO_FORTRAN_ANYD(hydro_source[mfi]),

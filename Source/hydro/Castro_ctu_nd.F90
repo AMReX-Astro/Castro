@@ -713,7 +713,6 @@ contains
 
   subroutine ctu_consup(lo, hi, &
                         uin, uin_lo, uin_hi, &
-                        q, q_lo, q_hi, &
                         shk,  sk_lo, sk_hi, &
                         uout, uout_lo, uout_hi, &
                         update, updt_lo, updt_hi, &
@@ -811,7 +810,6 @@ contains
 #endif
 
     real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: shk(sk_lo(1):sk_hi(1),sk_lo(2):sk_hi(2),sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)

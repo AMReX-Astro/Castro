@@ -713,15 +713,15 @@ contains
   end subroutine ca_srctoprim
 
 
-  function dflux(u, q, dir, idx) result(flux)
+  function dflux(u, q_core, dir, idx) result(flux)
     ! Given a conservative state and its corresponding primitive state, calculate the
     ! corresponding flux in a given direction.
     !
 
     use amrex_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
-         NQ, QU, QPRES, &
-         npassive, upass_map
+                                  NQC, QU, QPRES, &
+                                  npassive, upass_map
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only: compute_hybrid_flux
     use meth_params_module, only: NGDNV, GDRHO, GDU, GDW, GDPRES, QRHO, QW
@@ -731,12 +731,12 @@ contains
     implicit none
 
     integer :: dir, idx(3)
-    real(rt)         :: u(NVAR), q(NQ), flux(NVAR)
+    real(rt) :: u(NVAR), q_core(NQC), flux(NVAR)
 
-    real(rt)         :: v_adv
+    real(rt) :: v_adv
     integer :: ipassive, n
 #ifdef HYBRID_MOMENTUM
-    real(rt)         :: qgdnv(NGDNV)
+    real(rt) :: qgdnv(NGDNV)
     logical :: cell_centered
 #endif
 
@@ -749,13 +749,13 @@ contains
 
     ! Determine the advection speed based on the flux direction.
 
-    v_adv = q(QU + dir - 1)
+    v_adv = q_core(QU + dir - 1)
 
     ! Core quantities (density, momentum, energy).
 
     flux(URHO) = u(URHO) * v_adv
     flux(UMX:UMZ) = u(UMX:UMZ) * v_adv
-    flux(UEDEN) = (u(UEDEN) + q(QPRES)) * v_adv
+    flux(UEDEN) = (u(UEDEN) + q_core(QPRES)) * v_adv
     flux(UEINT) = u(UEINT) * v_adv
 
     ! Optionally include the pressure term in the momentum flux.
@@ -763,7 +763,7 @@ contains
     ! the pressure term in a conservative form.
 
     if (mom_flux_has_p(dir)%comp(UMX+dir-1)) then
-       flux(UMX + dir - 1) = flux(UMX + dir - 1) + q(QPRES)
+       flux(UMX + dir - 1) = flux(UMX + dir - 1) + q_core(QPRES)
     endif
 
     ! Hybrid flux.
@@ -771,9 +771,9 @@ contains
 #ifdef HYBRID_MOMENTUM
     ! Create a temporary edge-based q for this routine.
     qgdnv(:) = ZERO
-    qgdnv(GDRHO) = q(QRHO)
-    qgdnv(GDU:GDW) = q(QU:QW)
-    qgdnv(GDPRES) = q(QPRES)
+    qgdnv(GDRHO) = q_core(QRHO)
+    qgdnv(GDU:GDW) = q_core(QU:QW)
+    qgdnv(GDPRES) = q_core(QPRES)
     cell_centered = .true.
     call compute_hybrid_flux(qgdnv, flux, dir, idx, cell_centered)
 #endif
@@ -791,13 +791,13 @@ contains
 
 
   subroutine limit_hydro_fluxes_on_small_dens(lo, hi, &
-       idir, &
-       u, u_lo, u_hi, &
-       q, q_lo, q_hi, &
-       vol, vol_lo, vol_hi, &
-       flux, flux_lo, flux_hi, &
-       area, area_lo, area_hi, &
-       dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
+                                              idir, &
+                                              u, u_lo, u_hi, &
+                                              q_core, q_lo, q_hi, &
+                                              vol, vol_lo, vol_hi, &
+                                              flux, flux_lo, flux_hi, &
+                                              area, area_lo, area_hi, &
+                                              dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
     ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
     ! "Positivity-preserving method for high-order conservative schemes solving
     ! compressible Euler equations." It has been modified to enforce not only positivity
@@ -812,7 +812,7 @@ contains
     !
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
-    use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
+    use meth_params_module, only: NVAR, NQC, URHO, small_dens, cfl
     use prob_params_module, only: dim
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
 
@@ -829,7 +829,7 @@ contains
     real(rt), intent(in), value :: dt
 
     real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
     real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
     real(rt), intent(in   ) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
@@ -837,7 +837,7 @@ contains
     integer  :: i, j, k
 
     real(rt) :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta, thetap, thetam, alpha, flux_coef
-    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ)
+    real(rt) :: uL(NVAR), uR(NVAR), qL(NQC), qR(NQC)
 
     real(rt), parameter :: density_floor_tolerance = 1.1_rt
     real(rt) :: density_floor
@@ -883,8 +883,8 @@ contains
 
                 uL = u(i-1,j,k,:)
                 uR = u(i  ,j,k,:)
-                qL = q(i-1,j,k,:)
-                qR = q(i  ,j,k,:)
+                qL = q_core(i-1,j,k,:)
+                qR = q_core(i  ,j,k,:)
                 fluxL = dflux(uL, qL, idir, [i-1, j, k])
                 fluxR = dflux(uR, qR, idir, [i  , j, k])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i-1,j,k,:) - u(i,j,k,:)))
@@ -988,8 +988,8 @@ contains
 
                 uL = u(i,j-1,k,:)
                 uR = u(i,j  ,k,:)
-                qL = q(i,j-1,k,:)
-                qR = q(i,j  ,k,:)
+                qL = q_core(i,j-1,k,:)
+                qR = q_core(i,j  ,k,:)
                 fluxL = dflux(uL, qL, idir, [i, j-1, k])
                 fluxR = dflux(uR, qR, idir, [i, j  , k])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j-1,k,:) - u(i,j,k,:)))
@@ -1066,8 +1066,8 @@ contains
 
                 uL = u(i,j,k-1,:)
                 uR = u(i,j,k  ,:)
-                qL = q(i,j,k-1,:)
-                qR = q(i,j,k  ,:)
+                qL = q_core(i,j,k-1,:)
+                qR = q_core(i,j,k  ,:)
                 fluxL = dflux(uL, qL, idir, [i, j, k-1])
                 fluxR = dflux(uR, qR, idir, [i, j, k-1])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j,k-1,:) - u(i,j,k,:)))
@@ -1307,7 +1307,7 @@ contains
 
 
   subroutine divu(lo, hi, &
-                  q, q_lo, q_hi, &
+                  q_core, q_lo, q_hi, &
                   dx, div, div_lo, div_hi) bind(C, name='divu')
     ! this computes the *node-centered* divergence
     !
@@ -1324,7 +1324,7 @@ contains
     integer, intent(in) :: div_lo(3), div_hi(3)
     real(rt), intent(in) :: dx(3)
     real(rt), intent(inout) :: div(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: q_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
 
     integer  :: i, j, k
     real(rt) :: ux, vy, wz, dxinv, dyinv, dzinv
@@ -1350,7 +1350,7 @@ contains
 
 #if AMREX_SPACEDIM == 1
              if (coord_type == 0) then
-                div(i,j,k) = (q(i,j,k,QU) - q(i-1*dg(1),j,k,QU)) * dxinv
+                div(i,j,k) = (q_core(i,j,k,QU) - q_core(i-1*dg(1),j,k,QU)) * dxinv
 
              else if (coord_type == 1) then
                 ! axisymmetric
@@ -1361,7 +1361,7 @@ contains
                    rr = (dble(i)+HALF) * dx(1) + problo(1)
                    rc = (dble(i)     ) * dx(1) + problo(1)
 
-                   div(i,j,k) = (rr*q(i,j,k,QU) - rl*q(i-1*dg(1),j,k,QU)) * dxinv / rc
+                   div(i,j,k) = (rr*q_core(i,j,k,QU) - rl*q_core(i-1*dg(1),j,k,QU)) * dxinv / rc
                 endif
              else
                 ! spherical
@@ -1372,7 +1372,7 @@ contains
                    rr = (dble(i)+HALF) * dx(1) + problo(1)
                    rc = (dble(i)     ) * dx(1) + problo(1)
 
-                   div(i,j,k) = (rr**2*q(i,j,k,QU) - rl**2*q(i-1*dg(1),j,k,QU)) * dxinv / rc**2
+                   div(i,j,k) = (rr**2*q_core(i,j,k,QU) - rl**2*q_core(i-1*dg(1),j,k,QU)) * dxinv / rc**2
                 endif
 
              endif
@@ -1381,8 +1381,8 @@ contains
 
 #if AMREX_SPACEDIM == 2
              if (coord_type == 0) then
-                ux = HALF*(q(i,j,k,QU) - q(i-1*dg(1),j        ,k,QU) + q(i        ,j-1*dg(2),k,QU) - q(i-1*dg(1),j-1*dg(2),k,QU)) * dxinv
-                vy = HALF*(q(i,j,k,QV) - q(i        ,j-1*dg(2),k,QV) + q(i-1*dg(1),j        ,k,QV) - q(i-1*dg(1),j-1*dg(2),k,QV)) * dyinv
+                ux = HALF*(q_core(i,j,k,QU) - q_core(i-1*dg(1),j        ,k,QU) + q_core(i        ,j-1*dg(2),k,QU) - q_core(i-1*dg(1),j-1*dg(2),k,QU)) * dxinv
+                vy = HALF*(q_core(i,j,k,QV) - q_core(i        ,j-1*dg(2),k,QV) + q_core(i-1*dg(1),j        ,k,QV) - q_core(i-1*dg(1),j-1*dg(2),k,QV)) * dyinv
 
              else
 
@@ -1396,15 +1396,15 @@ contains
                    rc = (dble(i)     ) * dx(1) + problo(1)
 
                    ! These are transverse averages in the y-direction
-                   ul = HALF * (q(i-1*dg(1),j,k,QU) + q(i-1*dg(1),j-1*dg(2),k,QU))
-                   ur = HALF * (q(i        ,j,k,QU) + q(i        ,j-1*dg(2),k,QU))
+                   ul = HALF * (q_core(i-1*dg(1),j,k,QU) + q_core(i-1*dg(1),j-1*dg(2),k,QU))
+                   ur = HALF * (q_core(i        ,j,k,QU) + q_core(i        ,j-1*dg(2),k,QU))
 
                    ! Take 1/r d/dr(r*u)
                    ux = (rr*ur - rl*ul) * dxinv / rc
 
                    ! These are transverse averages in the x-direction
-                   vb = HALF * (q(i,j-1*dg(2),k,QV) + q(i-1*dg(1),j-1*dg(2),k,QV))
-                   vt = HALF * (q(i,j        ,k,QV) + q(i-1*dg(1),j        ,k,QV))
+                   vb = HALF * (q_core(i,j-1*dg(2),k,QV) + q_core(i-1*dg(1),j-1*dg(2),k,QV))
+                   vt = HALF * (q_core(i,j        ,k,QV) + q_core(i-1*dg(1),j        ,k,QV))
 
                    vy = (vt - vb) * dyinv
 
@@ -1417,22 +1417,22 @@ contains
 
 #if AMREX_SPACEDIM == 3
              ux = FOURTH*( &
-                  + q(i        ,j        ,k        ,QU) - q(i-1*dg(1),j        ,k        ,QU) &
-                  + q(i        ,j        ,k-1*dg(3),QU) - q(i-1*dg(1),j        ,k-1*dg(3),QU) &
-                  + q(i        ,j-1*dg(2),k        ,QU) - q(i-1*dg(1),j-1*dg(2),k        ,QU) &
-                  + q(i        ,j-1*dg(2),k-1*dg(3),QU) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QU) ) * dxinv
+                  + q_core(i        ,j        ,k        ,QU) - q_core(i-1*dg(1),j        ,k        ,QU) &
+                  + q_core(i        ,j        ,k-1*dg(3),QU) - q_core(i-1*dg(1),j        ,k-1*dg(3),QU) &
+                  + q_core(i        ,j-1*dg(2),k        ,QU) - q_core(i-1*dg(1),j-1*dg(2),k        ,QU) &
+                  + q_core(i        ,j-1*dg(2),k-1*dg(3),QU) - q_core(i-1*dg(1),j-1*dg(2),k-1*dg(3),QU) ) * dxinv
 
              vy = FOURTH*( &
-                  + q(i        ,j        ,k        ,QV) - q(i        ,j-1*dg(2),k        ,QV) &
-                  + q(i        ,j        ,k-1*dg(3),QV) - q(i        ,j-1*dg(2),k-1*dg(3),QV) &
-                  + q(i-1*dg(1),j        ,k        ,QV) - q(i-1*dg(1),j-1*dg(2),k        ,QV) &
-                  + q(i-1*dg(1),j        ,k-1*dg(3),QV) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QV) ) * dyinv
+                  + q_core(i        ,j        ,k        ,QV) - q_core(i        ,j-1*dg(2),k        ,QV) &
+                  + q_core(i        ,j        ,k-1*dg(3),QV) - q_core(i        ,j-1*dg(2),k-1*dg(3),QV) &
+                  + q_core(i-1*dg(1),j        ,k        ,QV) - q_core(i-1*dg(1),j-1*dg(2),k        ,QV) &
+                  + q_core(i-1*dg(1),j        ,k-1*dg(3),QV) - q_core(i-1*dg(1),j-1*dg(2),k-1*dg(3),QV) ) * dyinv
 
              wz = FOURTH*( &
-                  + q(i        ,j        ,k        ,QW) - q(i        ,j        ,k-1*dg(3),QW) &
-                  + q(i        ,j-1*dg(2),k        ,QW) - q(i        ,j-1*dg(2),k-1*dg(3),QW) &
-                  + q(i-1*dg(1),j        ,k        ,QW) - q(i-1*dg(1),j        ,k-1*dg(3),QW) &
-                  + q(i-1*dg(1),j-1*dg(2),k        ,QW) - q(i-1*dg(1),j-1*dg(2),k-1*dg(3),QW) ) * dzinv
+                  + q_core(i        ,j        ,k        ,QW) - q_core(i        ,j        ,k-1*dg(3),QW) &
+                  + q_core(i        ,j-1*dg(2),k        ,QW) - q_core(i        ,j-1*dg(2),k-1*dg(3),QW) &
+                  + q_core(i-1*dg(1),j        ,k        ,QW) - q_core(i-1*dg(1),j        ,k-1*dg(3),QW) &
+                  + q_core(i-1*dg(1),j-1*dg(2),k        ,QW) - q_core(i-1*dg(1),j-1*dg(2),k-1*dg(3),QW) ) * dzinv
 
              div(i,j,k) = ux + vy + wz
 #endif
