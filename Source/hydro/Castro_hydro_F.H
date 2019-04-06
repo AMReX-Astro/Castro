@@ -294,28 +294,42 @@ extern "C"
   void ctu_ppm_states
      (const int* lo, const int* hi,
       const int* vlo, const int* vhi,
-      const BL_FORT_FAB_ARG_3D(q),
+      const BL_FORT_FAB_ARG_3D(q_core),
+      const BL_FORT_FAB_ARG_3D(q_pass),
       const BL_FORT_FAB_ARG_3D(flatn),
       const BL_FORT_FAB_ARG_3D(qaux),
-      const BL_FORT_FAB_ARG_3D(srcQ),
+      const BL_FORT_FAB_ARG_3D(q_core_src),
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      const BL_FORT_FAB_ARG_3D(q_pass_src),
+#endif
       const BL_FORT_FAB_ARG_3D(shk),
-      BL_FORT_FAB_ARG_3D(Ip),
-      BL_FORT_FAB_ARG_3D(Im),
-      BL_FORT_FAB_ARG_3D(Ip_src),
-      BL_FORT_FAB_ARG_3D(Im_src),
+      BL_FORT_FAB_ARG_3D(Ip_core),
+      BL_FORT_FAB_ARG_3D(Ip_pass),
+      BL_FORT_FAB_ARG_3D(Im_core),
+      BL_FORT_FAB_ARG_3D(Im_pass),
+      BL_FORT_FAB_ARG_3D(Ip_core_src),
+      BL_FORT_FAB_ARG_3D(Ip_pass_src),
+      BL_FORT_FAB_ARG_3D(Im_core_src),
+      BL_FORT_FAB_ARG_3D(Im_pass_src),
       BL_FORT_FAB_ARG_3D(Ip_gc),
       BL_FORT_FAB_ARG_3D(Im_gc),
       BL_FORT_FAB_ARG_3D(sm),
       BL_FORT_FAB_ARG_3D(sp),
-      BL_FORT_FAB_ARG_3D(qxm),
-      BL_FORT_FAB_ARG_3D(qxp),
+      BL_FORT_FAB_ARG_3D(qxm_core),
+      BL_FORT_FAB_ARG_3D(qxm_pass),
+      BL_FORT_FAB_ARG_3D(qxp_core),
+      BL_FORT_FAB_ARG_3D(qxp_pass),
 #if AMREX_SPACEDIM >= 2
-      BL_FORT_FAB_ARG_3D(qym),
-      BL_FORT_FAB_ARG_3D(qyp),
+      BL_FORT_FAB_ARG_3D(qym_core),
+      BL_FORT_FAB_ARG_3D(qym_pass),
+      BL_FORT_FAB_ARG_3D(qyp_core),
+      BL_FORT_FAB_ARG_3D(qyp_pass),
 #endif
 #if AMREX_SPACEDIM == 3
-      BL_FORT_FAB_ARG_3D(qzm),
-      BL_FORT_FAB_ARG_3D(qzp),
+      BL_FORT_FAB_ARG_3D(qzm_core),
+      BL_FORT_FAB_ARG_3D(qzm_pass),
+      BL_FORT_FAB_ARG_3D(qzp_core),
+      BL_FORT_FAB_ARG_3D(qzp_pass),
 #endif
       const amrex::Real* dx, const amrex::Real dt,
 #if AMREX_SPACEDIM < 3
@@ -332,7 +346,7 @@ extern "C"
       const BL_FORT_FAB_ARG_3D(qaux),
       const BL_FORT_FAB_ARG_3D(q_core_src),
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-      const BL_FORT_FAB_ARG_3D(q_prim_src),
+      const BL_FORT_FAB_ARG_3D(q_pass_src),
 #endif
       const BL_FORT_FAB_ARG_3D(shk),
       BL_FORT_FAB_ARG_3D(dq_core),

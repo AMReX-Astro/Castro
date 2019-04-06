@@ -78,7 +78,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox flatg;
 #endif
     FArrayBox dq_core, dq_pass;
-    FArrayBox Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc;
+    FArrayBox Ip_core, Im_core, Ip_core_src, Im_core_src, Ip_gc, Im_gc;
+    FArrayBox Ip_pass, Im_pass, Ip_pass_src, Im_pass_src;
     FArrayBox sm, sp;
     FArrayBox shk;
 
@@ -349,17 +350,29 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       } else {
 
         // first the core and radiation variables
-        Ip.resize(obx, 3*NQ);
-        Elixir elix_Ip = Ip.elixir();
+        Ip_core.resize(obx, 3*NQC);
+        Elixir elix_Ip_core = Ip_core.elixir();
 
-        Im.resize(obx, 3*NQ);
-        Elixir elix_Im = Im.elixir();
+        Ip_pass.resize(obx, 3*NQP);
+        Elixir elix_Ip_pass = Ip_pass.elixir();
 
-        Ip_src.resize(obx, 3*NQSRC);
-        Elixir elix_Ip_src = Ip_src.elixir();
+        Im_core.resize(obx, 3*NQC);
+        Elixir elix_Im_core = Im_core.elixir();
 
-        Im_src.resize(obx, 3*NQSRC);
-        Elixir elix_Im_src = Im_src.elixir();
+        Im_pass.resize(obx, 3*NQP);
+        Elixir elix_Im_pass = Im_pass.elixir();
+
+        Ip_core_src.resize(obx, 3*NQC_SRC);
+        Elixir elix_Ip_core_src = Ip_core_src.elixir();
+
+        Ip_pass_src.resize(obx, 3*NQP_SRC);
+        Elixir elix_Ip_pass_src = Ip_pass_src.elixir();
+
+        Im_core_src.resize(obx, 3*NQC_SRC);
+        Elixir elix_Im_core_src = Im_core_src.elixir();
+
+        Im_pass_src.resize(obx, 3*NQP_SRC);
+        Elixir elix_Im_pass_src = Im_pass_src.elixir();
 
         Ip_gc.resize(obx, 3);
         Elixir elix_Ip_gc = Ip_gc.elixir();
@@ -376,28 +389,46 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #pragma gpu
         ctu_ppm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                        AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(q_core[mfi]),
+                       BL_TO_FORTRAN_ANYD(q_pass[mfi]),
                        BL_TO_FORTRAN_ANYD(flatn),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                       BL_TO_FORTRAN_ANYD(q_core_src[mfi]),
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                       BL_TO_FORTRAN_ANYD(q_pass_src[mfi]),
+#endif
                        BL_TO_FORTRAN_ANYD(shk),
-                       BL_TO_FORTRAN_ANYD(Ip),
-                       BL_TO_FORTRAN_ANYD(Im),
-                       BL_TO_FORTRAN_ANYD(Ip_src),
-                       BL_TO_FORTRAN_ANYD(Im_src),
+                       BL_TO_FORTRAN_ANYD(Ip_core),
+                       BL_TO_FORTRAN_ANYD(Ip_pass),
+                       BL_TO_FORTRAN_ANYD(Im_core),
+                       BL_TO_FORTRAN_ANYD(Im_pass),
+                       BL_TO_FORTRAN_ANYD(Ip_core_src),
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                       BL_TO_FORTRAN_ANYD(Ip_pass_src),
+#endif
+                       BL_TO_FORTRAN_ANYD(Im_core_src),
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                       BL_TO_FORTRAN_ANYD(Im_pass_src),
+#endif
                        BL_TO_FORTRAN_ANYD(Ip_gc),
                        BL_TO_FORTRAN_ANYD(Im_gc),
                        BL_TO_FORTRAN_ANYD(sm),
                        BL_TO_FORTRAN_ANYD(sp),
-                       BL_TO_FORTRAN_ANYD(qxm),
-                       BL_TO_FORTRAN_ANYD(qxp),
+                       BL_TO_FORTRAN_ANYD(qxm_core),
+                       BL_TO_FORTRAN_ANYD(qxm_pass),
+                       BL_TO_FORTRAN_ANYD(qxp_core),
+                       BL_TO_FORTRAN_ANYD(qxp_pass),
 #if AMREX_SPACEDIM >= 2
-                       BL_TO_FORTRAN_ANYD(qym),
-                       BL_TO_FORTRAN_ANYD(qyp),
+                       BL_TO_FORTRAN_ANYD(qym_core),
+                       BL_TO_FORTRAN_ANYD(qym_pass),
+                       BL_TO_FORTRAN_ANYD(qyp_core),
+                       BL_TO_FORTRAN_ANYD(qyp_pass),
 #endif
 #if AMREX_SPACEDIM == 3
-                       BL_TO_FORTRAN_ANYD(qzm),
-                       BL_TO_FORTRAN_ANYD(qzp),
+                       BL_TO_FORTRAN_ANYD(qzm_core),
+                       BL_TO_FORTRAN_ANYD(qzm_pass),
+                       BL_TO_FORTRAN_ANYD(qzp_core),
+                       BL_TO_FORTRAN_ANYD(qzp_pass),
 #endif
                        AMREX_REAL_ANYD(dx), dt,
 #if (AMREX_SPACEDIM < 3)
