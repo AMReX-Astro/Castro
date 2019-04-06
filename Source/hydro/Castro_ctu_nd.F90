@@ -12,28 +12,46 @@ contains
 
   subroutine ctu_ppm_states(lo, hi, &
                             vlo, vhi, &
-                            q, qd_lo, qd_hi, &
+                            q_core, qc_lo, qc_hi, &
+                            q_pass, qp_lo, qp_hi, &
                             flatn, f_lo, f_hi, &
                             qaux, qa_lo, qa_hi, &
-                            srcQ, src_lo, src_hi, &
+                            q_core_src, qcs_lo, qcs_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                            q_pass_src, qps_lo, qps_hi, &
+#endif
                             shk, sk_lo, sk_hi, &
-                            Ip, Ip_lo, Ip_hi, &
-                            Im, Im_lo, Im_hi, &
-                            Ip_src, Ips_lo, Ips_hi, &
-                            Im_src, Ims_lo, Ims_hi, &
+                            Ip_core, Ipc_lo, Ipc_hi, &
+                            Ip_pass, Ipp_lo, Ipp_hi, &
+                            Im_core, Imc_lo, Imc_hi, &
+                            Im_pass, Imp_lo, Imp_hi, &
+                            Ip_core_src, Ipsc_lo, Ipsc_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                            Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+#endif
+                            Im_core_src, Imsc_lo, Imsc_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                            Im_pass_src, Imsp_lo, Imsp_hi, &
+#endif
                             Ip_gc, Ipg_lo, Ipg_hi, &
                             Im_gc, Img_lo, Img_hi, &
                             sm, sm_lo, sm_hi, &
                             sp, sp_lo, sp_hi, &
-                            qxm, qxm_lo, qxm_hi, &
-                            qxp, qxp_lo, qxp_hi, &
+                            qxm_core, qxmc_lo, qxmc_hi, &
+                            qxm_pass, qxmp_lo, qxmp_hi, &
+                            qxp_core, qxpc_lo, qxpc_hi, &
+                            qxp_pass, qxpp_lo, qxpp_hi, &
 #if AMREX_SPACEDIM >= 2
-                            qym, qym_lo, qym_hi, &
-                            qyp, qyp_lo, qyp_hi, &
+                            qym_core, qymc_lo, qymc_hi, &
+                            qym_pass, qymp_lo, qymp_hi, &
+                            qyp_core, qypc_lo, qypc_hi, &
+                            qyp_pass, qypp_lo, qypp_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                            qzm, qzm_lo, qzm_hi, &
-                            qzp, qzp_lo, qzp_hi, &
+                            qzm_core, qzmc_lo, qzmc_hi, &
+                            qzm_pass, qzmp_lo, qzmp_hi, &
+                            qzp_core, qzpc_lo, qzpc_hi, &
+                            qzp_pass, qzpp_lo, qzpp_hi, &
 #endif
                             dx, dt, &
 #if AMREX_SPACEDIM < 3
