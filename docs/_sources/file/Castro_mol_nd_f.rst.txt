@@ -1,8 +1,18 @@
 Castro_mol_nd.F90
 =================
 
-ca\_mol\_single\_stage subroutine
----------------------------------
+ca\_mol\_plm\_reconstruct subroutine
+------------------------------------
 
-.. f:autosubroutine:: ca_mol_single_stage
+.. f:autosubroutine:: ca_mol_plm_reconstruct
+
+ca\_mol\_ppm\_reconstruct subroutine
+------------------------------------
+
+.. f:autosubroutine:: ca_mol_ppm_reconstruct
+
+ca\_mol\_consup subroutine
+--------------------------
+
+.. f:autosubroutine:: ca_mol_consup
 
