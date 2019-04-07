@@ -4,8 +4,8 @@
   T_fuel = 5.e7
 
   T_ash = 4.e9
-  
-  pert_frac = 0.2d0
+
+  pert_frac = 0.1d0
   pert_delta = 0.05d0
 
 /
@@ -29,11 +29,11 @@
   sponge_upper_density = 5.0d-8
   sponge_lower_density = 1.0d-8
   sponge_timescale     = 1.0d-6
-  
+
 /
 
 &extern
   rtol_spec = 1.d-10
   atol_spec = 1.d-10
-  
+
 /

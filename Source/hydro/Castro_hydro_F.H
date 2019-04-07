@@ -490,12 +490,10 @@ extern "C"
 
   void ca_mol_consup
     (const int* lo, const int* hi,
-     const amrex::Real stage_weight,
      const BL_FORT_FAB_ARG_3D(statein),
      BL_FORT_FAB_ARG_3D(stateout),
      const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update),
-     BL_FORT_FAB_ARG_3D(update_flux),
      const amrex::Real* dx, const amrex::Real dt,
      BL_FORT_FAB_ARG_3D(flux1),
 #if AMREX_SPACEDIM >= 2
@@ -524,7 +522,6 @@ extern "C"
     (const int* lo, const int* hi,
      const amrex::Real* time,
      const int* domlo, const int* domhi,
-     const amrex::Real *stage_weight,
      const BL_FORT_FAB_ARG_3D(statein),
      BL_FORT_FAB_ARG_3D(stateout),
      BL_FORT_FAB_ARG_3D(q),
@@ -533,7 +530,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(qaux_bar),
      const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update),
-     BL_FORT_FAB_ARG_3D(update_flux),
      const amrex::Real* dx, const amrex::Real* dt,
      BL_FORT_FAB_ARG_3D(flux1),
 #if AMREX_SPACEDIM >= 2

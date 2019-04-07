@@ -1,7 +1,7 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 500000
 
-stop_time    = 2.5e-4
+stop_time    = 2.0e-4
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0
@@ -64,7 +64,7 @@ amr.check_int       = 1000       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt        # root name of plotfile
-amr.plot_per        = 2.e-5
+amr.plot_per        = 1.e-5
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME

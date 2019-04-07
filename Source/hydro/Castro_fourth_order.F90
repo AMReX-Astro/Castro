@@ -1,7 +1,6 @@
 ! advection routines in support of method of lines integration
 !
 subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
-                                  stage_weight, &
                                   uin, uin_lo, uin_hi, &
                                   uout, uout_lo, uout_hi, &
                                   q, q_lo, q_hi, &
@@ -10,28 +9,27 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                   qaux_bar, qa_bar_lo, qa_bar_hi, &
                                   srcU, srU_lo, srU_hi, &
                                   update, updt_lo, updt_hi, &
-                                  update_flux, uf_lo, uf_hi, &
                                   dx, dt, &
                                   flx, flx_lo, flx_hi, &
 #if AMREX_SPACEDIM >= 2
-     fly, fly_lo, fly_hi, &
+                                  fly, fly_lo, fly_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-     flz, flz_lo, flz_hi, &
+                                  flz, flz_lo, flz_hi, &
 #endif
-     area1, area1_lo, area1_hi, &
+                                  area1, area1_lo, area1_hi, &
 #if AMREX_SPACEDIM >= 2
-     area2, area2_lo, area2_hi, &
+                                  area2, area2_lo, area2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-     area3, area3_lo, area3_hi, &
+                                  area3, area3_lo, area3_hi, &
 #endif
 #if AMREX_SPACEDIM < 3
-     pradial, p_lo, p_hi, &
-     dloga, dloga_lo, dloga_hi, &
+                                  pradial, p_lo, p_hi, &
+                                  dloga, dloga_lo, dloga_hi, &
 #endif
-     vol, vol_lo, vol_hi, &
-     verbose) bind(C, name="ca_fourth_single_stage")
+                                  vol, vol_lo, vol_hi, &
+                                  verbose) bind(C, name="ca_fourth_single_stage")
 
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use meth_params_module, only : NQ, NVAR, NGDNV, NQAUX, GDPRES, &
@@ -63,7 +61,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   integer, intent(in) :: lo(3), hi(3), verbose
   integer, intent(in) ::  domlo(3), domhi(3)
-  real(rt), intent(in) :: stage_weight
   integer, intent(in) :: uin_lo(3), uin_hi(3)
   integer, intent(in) :: uout_lo(3), uout_hi(3)
   integer, intent(in) :: q_lo(3), q_hi(3)
@@ -72,7 +69,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   integer, intent(in) :: qa_bar_lo(3), qa_bar_hi(3)
   integer, intent(in) :: srU_lo(3), srU_hi(3)
   integer, intent(in) :: updt_lo(3), updt_hi(3)
-  integer, intent(in) :: uf_lo(3), uf_hi(3)
   integer, intent(in) :: flx_lo(3), flx_hi(3)
   integer, intent(in) :: area1_lo(3), area1_hi(3)
 #if AMREX_SPACEDIM >= 2
@@ -97,7 +93,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   real(rt), intent(inout) :: qaux_bar(qa_bar_lo(1):qa_bar_hi(1), qa_bar_lo(2):qa_bar_hi(2), qa_bar_lo(3):qa_bar_hi(3), NQAUX)
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
   real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
-  real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
   real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1), flx_lo(2):flx_hi(2), flx_lo(3):flx_hi(3), NVAR)
   real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
 #if AMREX_SPACEDIM >= 2
@@ -658,10 +653,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                  endif
               endif
 #endif
-
-              ! for storage
-              update_flux(i,j,k,n) = update_flux(i,j,k,n) + &
-                   stage_weight * update(i,j,k,n)
 
               update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
 
