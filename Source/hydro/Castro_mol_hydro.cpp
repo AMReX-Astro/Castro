@@ -31,13 +31,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     }
   }
 
-  // we'll add each stage's contribution to -div{F(U)} as we compute them
-  // (I don't think we need hydro_source anymore)
-  if ((time_integration_method == MethodOfLines && mol_iteration == 0) ||
-      (time_integration_method == SpectralDeferredCorrections && current_sdc_node == 0)) {
-    hydro_source.setVal(0.0);
-  }
-
 
   const Real *dx = geom.CellSize();
 
@@ -86,7 +79,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 	// the output of this will be stored in the correct stage MF
 	FArrayBox &source_out = A_update[mfi];
-	FArrayBox &source_hydro_only = hydro_source[mfi];
 
 	FArrayBox& vol = volume[mfi];
 
@@ -115,7 +107,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           ca_fourth_single_stage
             (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), &time,
              ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-             &stage_weight,
              BL_TO_FORTRAN_ANYD(statein),
              BL_TO_FORTRAN_ANYD(stateout),
              BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -124,7 +115,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
              BL_TO_FORTRAN_ANYD(source_in),
              BL_TO_FORTRAN_ANYD(source_out),
-             BL_TO_FORTRAN_ANYD(source_hydro_only),
              ZFILL(dx), &dt,
              BL_TO_FORTRAN_ANYD(flux[0]),
 #if AMREX_SPACEDIM >= 2
@@ -340,12 +330,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #pragma gpu
           ca_mol_consup
             (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-             stage_weight,
              BL_TO_FORTRAN_ANYD(statein),
              BL_TO_FORTRAN_ANYD(stateout),
              BL_TO_FORTRAN_ANYD(source_in),
              BL_TO_FORTRAN_ANYD(source_out),
-             BL_TO_FORTRAN_ANYD(source_hydro_only),
              AMREX_REAL_ANYD(dx), dt,
              BL_TO_FORTRAN_ANYD(flux[0]),
 #if AMREX_SPACEDIM >= 2

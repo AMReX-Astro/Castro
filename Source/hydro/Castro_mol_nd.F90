@@ -280,12 +280,10 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
 end subroutine ca_mol_ppm_reconstruct
 
 subroutine ca_mol_consup(lo, hi, &
-                         stage_weight, &
                          uin, uin_lo, uin_hi, &
                          uout, uout_lo, uout_hi, &
                          srcU, srU_lo, srU_hi, &
                          update, updt_lo, updt_hi, &
-                         update_flux, uf_lo, uf_hi, &
                          dx, dt, &
                          flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
@@ -330,12 +328,10 @@ subroutine ca_mol_consup(lo, hi, &
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
-  real(rt), intent(in), value :: stage_weight
   integer, intent(in) :: uin_lo(3), uin_hi(3)
   integer, intent(in) :: uout_lo(3), uout_hi(3)
   integer, intent(in) :: srU_lo(3), srU_hi(3)
   integer, intent(in) :: updt_lo(3), updt_hi(3)
-  integer, intent(in) :: uf_lo(3), uf_hi(3)
   integer, intent(in) :: flux1_lo(3), flux1_hi(3)
   integer, intent(in) :: area1_lo(3), area1_hi(3)
   integer, intent(in) :: q1_lo(3), q1_hi(3)
@@ -356,7 +352,6 @@ subroutine ca_mol_consup(lo, hi, &
   real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR)
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
   real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
-  real(rt), intent(inout) :: update_flux(uf_lo(1):uf_hi(1), uf_lo(2):uf_hi(2), uf_lo(3):uf_hi(3), NVAR)
 
   real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
   real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
@@ -422,9 +417,6 @@ subroutine ca_mol_consup(lo, hi, &
 #endif
 
               ! for storage
-              update_flux(i,j,k,n) = update_flux(i,j,k,n) + &
-                   stage_weight * update(i,j,k,n)
-
               update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
 
            enddo
