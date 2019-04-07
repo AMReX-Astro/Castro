@@ -237,7 +237,7 @@
 <h2>ca_fourth_single_stage subroutine<a class="headerlink" href="#ca-fourth-single-stage-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
 <dt id="f/_/ca_fourth_single_stage">
-<em class="property">subroutine  </em><code class="descname">ca_fourth_single_stage</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>time</em>, <em>domlo</em>, <em>domhi</em>, <em>stage_weight</em>, <em>uin</em>, <em>uin_lo</em>, <em>uin_hi</em>, <em>uout</em>, <em>uout_lo</em>, <em>uout_hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>q_bar</em>, <em>q_bar_lo</em>, <em>q_bar_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>qaux_bar</em>, <em>qa_bar_lo</em>, <em>qa_bar_hi</em>, <em>srcu</em>, <em>sru_lo</em>, <em>sru_hi</em>, <em>update</em>, <em>updt_lo</em>, <em>updt_hi</em>, <em>update_flux</em>, <em>uf_lo</em>, <em>uf_hi</em>, <em>dx</em>, <em>dt</em>, <em>flx</em>, <em>flx_lo</em>, <em>flx_hi</em>, <em>fly</em>, <em>fly_lo</em>, <em>fly_hi</em>, <em>flz</em>, <em>flz_lo</em>, <em>flz_hi</em>, <em>area1</em>, <em>area1_lo</em>, <em>area1_hi</em>, <em>area2</em>, <em>area2_lo</em>, <em>area2_hi</em>, <em>area3</em>, <em>area3_lo</em>, <em>area3_hi</em>, <em>pradial</em>, <em>p_lo</em>, <em>p_hi</em>, <em>dloga</em>, <em>dloga_lo</em>, <em>dloga_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em>, <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_fourth_single_stage" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descname">ca_fourth_single_stage</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>time</em>, <em>domlo</em>, <em>domhi</em>, <em>uin</em>, <em>uin_lo</em>, <em>uin_hi</em>, <em>uout</em>, <em>uout_lo</em>, <em>uout_hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>q_bar</em>, <em>q_bar_lo</em>, <em>q_bar_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>qaux_bar</em>, <em>qa_bar_lo</em>, <em>qa_bar_hi</em>, <em>srcu</em>, <em>sru_lo</em>, <em>sru_hi</em>, <em>update</em>, <em>updt_lo</em>, <em>updt_hi</em>, <em>dx</em>, <em>dt</em>, <em>flx</em>, <em>flx_lo</em>, <em>flx_hi</em>, <em>fly</em>, <em>fly_lo</em>, <em>fly_hi</em>, <em>flz</em>, <em>flz_lo</em>, <em>flz_hi</em>, <em>area1</em>, <em>area1_lo</em>, <em>area1_hi</em>, <em>area2</em>, <em>area2_lo</em>, <em>area2_hi</em>, <em>area3</em>, <em>area3_lo</em>, <em>area3_hi</em>, <em>pradial</em>, <em>p_lo</em>, <em>p_hi</em>, <em>dloga</em>, <em>dloga_lo</em>, <em>dloga_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em>, <em>verbose</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_fourth_single_stage" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -248,7 +248,6 @@
 <li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>stage_weight</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>uin</strong> (uin_hi(1)-(uin_lo(1))+1,uin_hi(2)-(uin_lo(2))+1,uin_hi(3)-(uin_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>uin_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>uin_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
@@ -273,9 +272,6 @@
 <li><strong>update</strong> (updt_hi(1)-(updt_lo(1))+1,updt_hi(2)-(updt_lo(2))+1,updt_hi(3)-(updt_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>updt_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>updt_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>update_flux</strong> (uf_hi(1)-(uf_lo(1))+1,uf_hi(2)-(uf_lo(2))+1,uf_hi(3)-(uf_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>uf_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>uf_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>flx</strong> (flx_hi(1)-(flx_lo(1))+1,flx_hi(2)-(flx_lo(2))+1,flx_hi(3)-(flx_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
