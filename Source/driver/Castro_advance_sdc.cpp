@@ -115,7 +115,9 @@ Castro::do_advance_sdc (Real time,
         }
 
       } else {
-        do_old_sources(old_source, Sborder, node_time, dt, amr_iteration, amr_ncycle);
+        // there is a ghost cell fill hidden in diffusion, so we need
+        // to pass in the time associate with Sborder
+        do_old_sources(old_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
       }
 
       // note: we don't need a FillPatch on the sources, since they
@@ -146,18 +148,20 @@ Castro::do_advance_sdc (Real time,
     // will be used to advance us to the next node the new time
 
     // Construct the primitive variables.
-    if (sdc_order == 4) {
-      cons_to_prim_fourth(time);
-    } else {
-      cons_to_prim(time);
+    if (do_hydro) {
+      if (sdc_order == 4) {
+        cons_to_prim_fourth(time);
+      } else {
+        cons_to_prim(time);
+      }
+
+      // Check for CFL violations.
+      check_for_cfl_violation(dt);
+
+      // If we detect one, return immediately.
+      if (cfl_violation)
+        return dt;
     }
-
-    // Check for CFL violations.
-    check_for_cfl_violation(dt);
-
-    // If we detect one, return immediately.
-    if (cfl_violation)
-      return dt;
 
     // construct the update for the current stage -- this fills
     // A_new[m] with the righthand side for this stage.  Note, for m =
