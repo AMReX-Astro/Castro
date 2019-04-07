@@ -53,11 +53,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     // longer needed (only relevant for the asynchronous case, usually on GPUs).
 
     FArrayBox flatn;
-    FArrayBox dq;
+    FArrayBox dq_core, dq_pass;
     FArrayBox shk;
-    FArrayBox qm, qp;
+    FArrayBox qm_core, qp_core;
+    FArrayBox qm_pass, qp_pass;
     FArrayBox div;
-    FArrayBox q_int;
+    FArrayBox q_int_core, q_int_pass;
     FArrayBox flux[AMREX_SPACEDIM];
     FArrayBox qe[AMREX_SPACEDIM];
 #if AMREX_SPACEDIM <= 2
@@ -171,7 +172,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #pragma gpu
               ca_uflatten
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_core[mfi]),
                  BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
             } else {
               AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
@@ -208,12 +209,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #pragma gpu
               ca_mol_plm_reconstruct
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_core[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_pass[mfi]),
                  BL_TO_FORTRAN_ANYD(flatn),
                  BL_TO_FORTRAN_ANYD(shk),
-                 BL_TO_FORTRAN_ANYD(dq),
-                 BL_TO_FORTRAN_ANYD(qm),
-                 BL_TO_FORTRAN_ANYD(qp),
+                 BL_TO_FORTRAN_ANYD(dq_core),
+                 BL_TO_FORTRAN_ANYD(dq_pass),
+                 BL_TO_FORTRAN_ANYD(qm_core),
+                 BL_TO_FORTRAN_ANYD(qm_pass),
+                 BL_TO_FORTRAN_ANYD(qp_core),
+                 BL_TO_FORTRAN_ANYD(qp_pass),
                  AMREX_REAL_ANYD(dx));
 
             } else {
@@ -221,12 +226,23 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #pragma gpu
               ca_mol_ppm_reconstruct
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_core[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_pass[mfi]),
                  BL_TO_FORTRAN_ANYD(flatn),
                  BL_TO_FORTRAN_ANYD(shk),
-                 BL_TO_FORTRAN_ANYD(qm),
-                 BL_TO_FORTRAN_ANYD(qp),
+                 BL_TO_FORTRAN_ANYD(qm_core),
+                 BL_TO_FORTRAN_ANYD(qm_pass),
+                 BL_TO_FORTRAN_ANYD(qp_core),
+                 BL_TO_FORTRAN_ANYD(qp_pass),
                  AMREX_REAL_ANYD(dx));
+            }
+
+            if (ppm_temp_fix == 1) {
+              ca_mol_thermo_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                                   BL_TO_FORTRAN_ANYD(qm_core),
+                                   BL_TO_FORTRAN_ANYD(qm_pass),
+                                   BL_TO_FORTRAN_ANYD(qp_core),
+                                   BL_TO_FORTRAN_ANYD(qp_pass));
             }
 
           }
@@ -246,8 +262,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           const Box& gzbx = amrex::grow(zbx, 1);
 #endif
 
-          q_int.resize(obx, NQ);
-          Elixir elix_q_int = q_int.elixir();
+          q_int_core.resize(obx, NQC);
+          Elixir elix_q_int_core = q_int_core.elixir();
+
+          q_int_pass.resize(obx, NQP);
+          Elixir elix_q_int_pass = q_int_pass.elixir();
 
           flux[0].resize(gxbx, NUM_STATE);
           Elixir elix_flux_x = flux[0].elixir();
@@ -289,10 +308,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #pragma gpu
               cmpflx_plus_godunov
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(qm),
-                 BL_TO_FORTRAN_ANYD(qp), AMREX_SPACEDIM, idir_f,
+                 BL_TO_FORTRAN_ANYD(qm_core),
+                 BL_TO_FORTRAN_ANYD(qm_pass),
+                 BL_TO_FORTRAN_ANYD(qp_core),
+                 BL_TO_FORTRAN_ANYD(qp_pass),
+                 AMREX_SPACEDIM, idir_f,
                  BL_TO_FORTRAN_ANYD(flux[idir]),
-                 BL_TO_FORTRAN_ANYD(q_int),
+                 BL_TO_FORTRAN_ANYD(q_int_core),
+                 BL_TO_FORTRAN_ANYD(q_int_pass),
                  BL_TO_FORTRAN_ANYD(qe[idir]),
                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
                  BL_TO_FORTRAN_ANYD(shk),
@@ -330,7 +353,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                   (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                    idir_f,
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(q_core[mfi]),
                    BL_TO_FORTRAN_ANYD(volume[mfi]),
                    BL_TO_FORTRAN_ANYD(flux[idir]),
                    BL_TO_FORTRAN_ANYD(area[idir][mfi]),

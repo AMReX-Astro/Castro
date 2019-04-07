@@ -2,16 +2,20 @@
 !
 
 subroutine ca_mol_plm_reconstruct(lo, hi, &
-                                  q, q_lo, q_hi, &
+                                  q_core, qc_lo, qc_hi, &
+                                  q_pass, qp_lo, qp_hi, &
                                   flatn, fl_lo, fl_hi, &
                                   shk, shk_lo, shk_hi, &
-                                  dq, dq_lo, dq_hi, &
-                                  qm, qm_lo, qm_hi, &
-                                  qp, qp_lo, qp_hi, &
+                                  dq_core, dqc_lo, dqc_hi, &
+                                  dq_pass, dqp_lo, dqp_hi, &
+                                  qm_core, qmc_lo, qmc_hi, &
+                                  qm_pass, qmp_lo, qmp_hi, &
+                                  qp_core, qpc_lo, qpc_hi, &
+                                  qp_pass, qpp_lo, qpp_hi, &
                                   dx) bind(C, name="ca_mol_plm_reconstruct")
 
   use amrex_error_module
-  use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
+  use meth_params_module, only : NQC, NQP, NVAR, NGDNV, GDPRES, &
                                  UTEMP, USHK, UMX, &
                                  use_flattening, QPRES, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
@@ -20,34 +24,38 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
   use slope_module, only : uslope
   use amrex_fort_module, only : rt => amrex_real
-  use eos_type_module, only : eos_t, eos_input_rt
-  use eos_module, only : eos
-  use network, only : nspec, naux
   use prob_params_module, only : dg, coord_type
   use advection_util_module, only : ca_shock
 
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: q_lo(3), q_hi(3)
+  integer, intent(in) :: qc_lo(3), qc_hi(3)
+  integer, intent(in) :: qp_lo(3), qp_hi(3)
   integer, intent(in) :: fl_lo(3), fl_hi(3)
   integer, intent(in) :: shk_lo(3), shk_hi(3)
-  integer, intent(in) :: dq_lo(3), dq_hi(3)
-  integer, intent(in) :: qm_lo(3), qm_hi(3)
-  integer, intent(in) :: qp_lo(3), qp_hi(3)
+  integer, intent(in) :: dqc_lo(3), dqc_hi(3)
+  integer, intent(in) :: dqp_lo(3), dqp_hi(3)
+  integer, intent(in) :: qm_core_lo(3), qm_core_hi(3)
+  integer, intent(in) :: qm_pass_lo(3), qm_pass_hi(3)
+  integer, intent(in) :: qp_core_lo(3), qp_core_hi(3)
+  integer, intent(in) :: qp_pass_lo(3), qp_pass_hi(3)
 
-  real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
+  real(rt), intent(inout) :: q_core(qc_lo(1):qc_hi(1), qc_lo(2):qc_hi(2), qc_lo(3):qc_hi(3), NQC)
+  real(rt), intent(inout) :: q_pass(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQP)
   real(rt), intent(in) :: flatn(fl_lo(1):fl_hi(1), fl_lo(2):fl_hi(2), fl_lo(3):fl_hi(3))
   real(rt), intent(inout) :: shk(shk_lo(1):shk_hi(1), shk_lo(2):shk_hi(2), shk_lo(3):shk_hi(3))
-  real(rt), intent(inout) :: dq(dq_lo(1):dq_hi(1), dq_lo(2):dq_hi(2), dq_lo(3):dq_hi(3), NQ)
-  real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ, AMREX_SPACEDIM)
-  real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: dq_core(dqc_lo(1):dqc_hi(1), dqc_lo(2):dqc_hi(2), dqc_lo(3):dqc_hi(3), NQC)
+  real(rt), intent(inout) :: dq_pass(dqp_lo(1):dqp_hi(1), dqp_lo(2):dqp_hi(2), dqp_lo(3):dqp_hi(3), NQP)
+  real(rt), intent(inout) :: qm_core(qmc_lo(1):qmc_hi(1), qmc_lo(2):qmc_hi(2), qmc_lo(3):qmc_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qm_pass(qmp_lo(1):qmp_hi(1), qmp_lo(2):qmp_hi(2), qmp_lo(3):qmp_hi(3), NQP, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qp_core(qpc_lo(1):qpc_hi(1), qpc_lo(2):qpc_hi(2), qpc_lo(3):qpc_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1), qpp_lo(2):qpp_hi(2), qpp_lo(3):qpp_hi(3), NQP, AMREX_SPACEDIM)
   real(rt), intent(in) :: dx(3)
 
 
   integer :: idir, i, j, k, n
   logical :: compute_shock
-  type (eos_t) :: eos_state
 
   !$gpu
 
@@ -59,7 +67,7 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
 
   if (hybrid_riemann == 1 .or. compute_shock) then
      call ca_shock(lo, hi, &
-                   q, q_lo, q_hi, &
+                   q_core, qc_lo, qc_hi, &
                    shk, shk_lo, shk_hi, &
                    dx)
   else
@@ -68,16 +76,19 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
 
   do idir = 1, AMREX_SPACEDIM
 
-     do n = 1, NQ
+
+     ! core variables
+
+     do n = 1, NQC
         ! piecewise linear slopes
         call uslope(lo, hi, idir, &
-                    q, q_lo, q_hi, n, &
+                    q_core, qc_lo, qc_hi, n, &
                     flatn, fl_lo, fl_hi, &
-                    dq, dq_lo, dq_hi)
+                    dq_core, dqc_lo, dqc_hi)
 
      end do
 
-     do n = 1, NQ
+     do n = 1, NQC
 
         ! for each slope, fill the two adjacent edge states
         if (idir == 1) then
@@ -86,10 +97,10 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
                  do i = lo(1), hi(1)
 
                     ! left state at i+1/2 interface
-                    qm(i+1,j,k,n,1) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+                    qm_core(i+1,j,k,n,1) = q_core(i,j,k,n) + HALF*dq_core(i,j,k,n)
 
                     ! right state at i-1/2 interface
-                    qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                    qp_core(i,j,k,n,1) = q_core(i,j,k,n) - HALF*dq_core(i,j,k,n)
 
                  end do
               end do
@@ -102,10 +113,10 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
                  do i = lo(1), hi(1)
 
                     ! left state at j+1/2 interface
-                    qm(i,j+1,k,n,2) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+                    qm_core(i,j+1,k,n,2) = q_core(i,j,k,n) + HALF*dq_core(i,j,k,n)
 
                     ! right state at j-1/2 interface
-                    qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                    qp_core(i,j,k,n,2) = q_core(i,j,k,n) - HALF*dq_core(i,j,k,n)
 
                  end do
               end do
@@ -120,10 +131,10 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
                  do i = lo(1), hi(1)
 
                     ! left state at k+1/2 interface
-                    qm(i,j,k+1,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+                    qm_core(i,j,k+1,n,3) = q_core(i,j,k,n) + HALF*dq_core(i,j,k,n)
 
                     ! right state at k-1/2 interface
-                    qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                    qp_core(i,j,k,n,3) = q_core(i,j,k,n) - HALF*dq_core(i,j,k,n)
 
                  end do
               end do
@@ -132,53 +143,85 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
 
         end if
      end do
-  end do
 
-  ! use T to define p
-  if (ppm_temp_fix == 1) then
-     do idir = 1, AMREX_SPACEDIM
-        do k = lo(3), hi(3)
-           do j = lo(2), hi(2)
-              do i = lo(1), hi(1)
+     ! passive variables
 
-                 eos_state%rho    = qp(i,j,k,QRHO,idir)
-                 eos_state%T      = qp(i,j,k,QTEMP,idir)
-                 eos_state%xn(:)  = qp(i,j,k,QFS:QFS-1+nspec,idir)
-                 eos_state%aux(:) = qp(i,j,k,QFX:QFX-1+naux,idir)
+     do n = 1, NQP
+        ! piecewise linear slopes
+        call uslope(lo, hi, idir, &
+                    q_pass, qp_lo, qp_hi, n, &
+                    flatn, fl_lo, fl_hi, &
+                    dq_pass, dqp_lo, dqp_hi)
 
-                 call eos(eos_input_rt, eos_state)
+     end do
 
-                 qp(i,j,k,QPRES,idir) = eos_state%p
-                 qp(i,j,k,QREINT,idir) = qp(i,j,k,QRHO,idir)*eos_state%e
-                 ! should we try to do something about Gamma_! on interface?
+     do n = 1, NQP
 
-                 eos_state%rho    = qm(i,j,k,QRHO,idir)
-                 eos_state%T      = qm(i,j,k,QTEMP,idir)
-                 eos_state%xn(:)  = qm(i,j,k,QFS:QFS-1+nspec,idir)
-                 eos_state%aux(:) = qm(i,j,k,QFX:QFX-1+naux,idir)
+        ! for each slope, fill the two adjacent edge states
+        if (idir == 1) then
+           do k = lo(3), hi(3)
+              do j = lo(2), hi(2)
+                 do i = lo(1), hi(1)
 
-                 call eos(eos_input_rt, eos_state)
+                    ! left state at i+1/2 interface
+                    qm_pass(i+1,j,k,n,1) = q_pass(i,j,k,n) + HALF*dq_pass(i,j,k,n)
 
-                 qm(i,j,k,QPRES,idir) = eos_state%p
-                 qm(i,j,k,QREINT,idir) = qm(i,j,k,QRHO,idir)*eos_state%e
-                 ! should we try to do something about Gamma_! on interface?
+                    ! right state at i-1/2 interface
+                    qp_pass(i,j,k,n,1) = q_pass(i,j,k,n) - HALF*dq_pass(i,j,k,n)
 
+                 end do
               end do
            end do
-        end do
-     end do
-  end if
 
+#if BL_SPACEDIM >= 2
+        else if (idir == 2) then
+           do k = lo(3), hi(3)
+              do j = lo(2), hi(2)
+                 do i = lo(1), hi(1)
+
+                    ! left state at j+1/2 interface
+                    qm_pass(i,j+1,k,n,2) = q_pass(i,j,k,n) + HALF*dq_pass(i,j,k,n)
+
+                    ! right state at j-1/2 interface
+                    qp_pass(i,j,k,n,2) = q_pass(i,j,k,n) - HALF*dq_pass(i,j,k,n)
+
+                 end do
+              end do
+           end do
+#endif
+
+#if BL_SPACEDIM == 3
+        else
+
+           do k = lo(3), hi(3)
+              do j = lo(2), hi(2)
+                 do i = lo(1), hi(1)
+
+                    ! left state at k+1/2 interface
+                    qm_pass(i,j,k+1,n,3) = q_pass(i,j,k,n) + HALF*dq_pass(i,j,k,n)
+
+                    ! right state at k-1/2 interface
+                    qp_pass(i,j,k,n,3) = q_pass(i,j,k,n) - HALF*dq_pass(i,j,k,n)
+
+                 end do
+              end do
+           end do
+#endif
+
+        end if
+
+     end do
+  end do
 
 end subroutine ca_mol_plm_reconstruct
 
-subroutine ca_mol_ppm_reconstruct(lo, hi, &
-                                  q, q_lo, q_hi, &
-                                  flatn, fl_lo, fl_hi, &
-                                  shk, shk_lo, shk_hi, &
-                                  qm, qm_lo, qm_hi, &
-                                  qp, qp_lo, qp_hi, &
-                                  dx) bind(C, name="ca_mol_ppm_reconstruct")
+
+subroutine ca_mol_thermo_states(lo, hi, &
+                                qm_core, qmc_lo, qmc_hi, &
+                                qm_pass, qmp_lo, qmp_hi, &
+                                qp_core, qpc_lo, qpc_hi, &
+                                qp_pass, qpp_lo, qpp_hi) &
+                                bind(C, name="ca_mol_thermo_states")
 
   use amrex_error_module
   use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
@@ -188,33 +231,112 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
                                  first_order_hydro, hybrid_riemann, &
                                  ppm_temp_fix
   use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-  use ppm_module, only : ca_ppm_reconstruct
   use amrex_fort_module, only : rt => amrex_real
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec, naux
+  use prob_params_module, only : dg, coord_type
+
+  implicit none
+
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: qmc_lo(3), qmc_hi(3)
+  integer, intent(in) :: qmp_lo(3), qmp_hi(3)
+  integer, intent(in) :: qpc_lo(3), qpc_hi(3)
+  integer, intent(in) :: qpp_lo(3), qpp_hi(3)
+
+  real(rt), intent(inout) :: qm_core(qmc_lo(1):qmc_hi(1), qmc_lo(2):qmc_hi(2), qmc_lo(3):qmc_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qm_pass(qmp_lo(1):qmp_hi(1), qmp_lo(2):qmp_hi(2), qmp_lo(3):qmp_hi(3), NQP, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qp_core(qpc_lo(1):qpc_hi(1), qpc_lo(2):qpc_hi(2), qpc_lo(3):qpc_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1), qpp_lo(2):qpp_hi(2), qpp_lo(3):qpp_hi(3), NQP, AMREX_SPACEDIM)
+
+
+  integer :: idir, i, j, k, n
+   type (eos_t) :: eos_state
+
+  !$gpu
+
+  do idir = 1, AMREX_SPACEDIM
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+
+              eos_state%rho    = qp(i,j,k,QRHO,idir)
+              eos_state%T      = qp(i,j,k,QTEMP,idir)
+              eos_state%xn(:)  = qp(i,j,k,QFS:QFS-1+nspec,idir)
+              eos_state%aux(:) = qp(i,j,k,QFX:QFX-1+naux,idir)
+
+              call eos(eos_input_rt, eos_state)
+
+              qp(i,j,k,QPRES,idir) = eos_state%p
+              qp(i,j,k,QREINT,idir) = qp(i,j,k,QRHO,idir)*eos_state%e
+              ! should we try to do something about Gamma_! on interface?
+
+              eos_state%rho    = qm(i,j,k,QRHO,idir)
+              eos_state%T      = qm(i,j,k,QTEMP,idir)
+              eos_state%xn(:)  = qm(i,j,k,QFS:QFS-1+nspec,idir)
+              eos_state%aux(:) = qm(i,j,k,QFX:QFX-1+naux,idir)
+
+              call eos(eos_input_rt, eos_state)
+
+              qm(i,j,k,QPRES,idir) = eos_state%p
+              qm(i,j,k,QREINT,idir) = qm(i,j,k,QRHO,idir)*eos_state%e
+              ! should we try to do something about Gamma_! on interface?
+
+           end do
+        end do
+     end do
+  end do
+
+end subroutine ca_mol_thermo_states
+
+subroutine ca_mol_ppm_reconstruct(lo, hi, &
+                                  q_core, qc_lo, qc_hi, &
+                                  q_pass, qp_lo, qp_hi, &
+                                  flatn, fl_lo, fl_hi, &
+                                  shk, shk_lo, shk_hi, &
+                                  qm_core, qmc_lo, qmc_hi, &
+                                  qm_pass, qmp_lo, qmp_hi, &
+                                  qp_core, qpc_lo, qpc_hi, &
+                                  qp_pass, qpp_lo, qpp_hi, &
+                                  dx) bind(C, name="ca_mol_ppm_reconstruct")
+
+  use amrex_error_module
+  use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
+                                 UTEMP, USHK, UMX, &
+                                 use_flattening, QPRES, &
+                                 QTEMP, QFS, QFX, QREINT, QRHO, &
+                                 first_order_hydro, hybrid_riemann
+  use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
+  use ppm_module, only : ca_ppm_reconstruct
+  use amrex_fort_module, only : rt => amrex_real
   use prob_params_module, only : dg, coord_type
   use advection_util_module, only : ca_shock
 
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: q_lo(3), q_hi(3)
+  integer, intent(in) :: qc_lo(3), qc_hi(3)
+  integer, intent(in) :: qp_lo(3), qp_hi(3)
   integer, intent(in) :: fl_lo(3), fl_hi(3)
   integer, intent(in) :: shk_lo(3), shk_hi(3)
-  integer, intent(in) :: qm_lo(3), qm_hi(3)
-  integer, intent(in) :: qp_lo(3), qp_hi(3)
+  integer, intent(in) :: qmc_lo(3), qmc_hi(3)
+  integer, intent(in) :: qmp_lo(3), qmp_hi(3)
+  integer, intent(in) :: qpc_lo(3), qpc_hi(3)
+  integer, intent(in) :: qpp_lo(3), qpp_hi(3)
 
-  real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
+  real(rt), intent(inout) :: q_core(qc_lo(1):qc_hi(1), qc_lo(2):qc_hi(2), qc_lo(3):qc_hi(3), NQC)
+  real(rt), intent(inout) :: q_pass(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQP)
   real(rt), intent(in) :: flatn(fl_lo(1):fl_hi(1), fl_lo(2):fl_hi(2), fl_lo(3):fl_hi(3))
   real(rt), intent(inout) :: shk(shk_lo(1):shk_hi(1), shk_lo(2):shk_hi(2), shk_lo(3):shk_hi(3))
-  real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ, AMREX_SPACEDIM)
-  real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qm_core(qmc_lo(1):qmc_hi(1), qmc_lo(2):qmc_hi(2), qmc_lo(3):qmc_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qm_pass(qmp_lo(1):qmp_hi(1), qmp_lo(2):qmp_hi(2), qmp_lo(3):qmp_hi(3), NQP, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qp_core(qpc_lo(1):qpc_hi(1), qpc_lo(2):qpc_hi(2), qpc_lo(3):qpc_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1), qpp_lo(2):qpp_hi(2), qpp_lo(3):qpp_hi(3), NQP, AMREX_SPACEDIM)
   real(rt), intent(in) :: dx(3)
 
   integer :: idir, i, j, k, n
   logical :: compute_shock
-  type (eos_t) :: eos_state
 
   !$gpu
 
@@ -226,7 +348,7 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
 
   if (hybrid_riemann == 1 .or. compute_shock) then
      call ca_shock(lo, hi, &
-                   q, q_lo, q_hi, &
+                   q_core, qc_lo, qc_hi, &
                    shk, shk_lo, shk_hi, &
                    dx)
   else
@@ -236,46 +358,17 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
 
   do idir = 1, AMREX_SPACEDIM
      call ca_ppm_reconstruct(lo, hi, 1, idir, &
-                             q, q_lo, q_hi, NQ, 1, NQ, &
+                             q_core, qc_lo, qc_hi, NQC, 1, NQC, &
                              flatn, fl_lo, fl_hi, &
-                             qm, qm_lo, qm_hi, &
-                             qp, qp_lo, qp_hi, NQ, 1, NQ)
+                             qm_core, qmc_lo, qmc_hi, &
+                             qp_core, qpc_lo, qpc_hi, NQC, 1, NQC)
+
+     call ca_ppm_reconstruct(lo, hi, 1, idir, &
+                             q_pass, qp_lo, qp_hi, NQP, 1, NQP, &
+                             flatn, fl_lo, fl_hi, &
+                             qm_pass, qmp_lo, qmp_hi, &
+                             qp_pass, qpp_lo, qpp_hi, NQP, 1, NQP)
   end do
-
-  ! use T to define p
-  if (ppm_temp_fix == 1) then
-     do idir = 1, AMREX_SPACEDIM
-        do k = lo(3), hi(3)
-           do j = lo(2), hi(2)
-              do i = lo(1), hi(1)
-
-                 eos_state%rho    = qp(i,j,k,QRHO,idir)
-                 eos_state%T      = qp(i,j,k,QTEMP,idir)
-                 eos_state%xn(:)  = qp(i,j,k,QFS:QFS-1+nspec,idir)
-                 eos_state%aux(:) = qp(i,j,k,QFX:QFX-1+naux,idir)
-
-                 call eos(eos_input_rt, eos_state)
-
-                 qp(i,j,k,QPRES,idir) = eos_state%p
-                 qp(i,j,k,QREINT,idir) = qp(i,j,k,QRHO,idir)*eos_state%e
-                 ! should we try to do something about Gamma_! on interface?
-
-                 eos_state%rho    = qm(i,j,k,QRHO,idir)
-                 eos_state%T      = qm(i,j,k,QTEMP,idir)
-                 eos_state%xn(:)  = qm(i,j,k,QFS:QFS-1+nspec,idir)
-                 eos_state%aux(:) = qm(i,j,k,QFX:QFX-1+naux,idir)
-
-                 call eos(eos_input_rt, eos_state)
-
-                 qm(i,j,k,QPRES,idir) = eos_state%p
-                 qm(i,j,k,QREINT,idir) = qm(i,j,k,QRHO,idir)*eos_state%e
-                 ! should we try to do something about Gamma_! on interface?
-
-              end do
-           end do
-        end do
-     end do
-  end if
 
 end subroutine ca_mol_ppm_reconstruct
 

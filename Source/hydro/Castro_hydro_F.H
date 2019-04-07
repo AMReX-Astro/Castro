@@ -471,22 +471,36 @@ extern "C"
 
   void ca_mol_plm_reconstruct
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(q_core),
+     BL_FORT_FAB_ARG_3D(q_pass),
      const BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(shk),
-     BL_FORT_FAB_ARG_3D(dq),
-     BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp),
+     BL_FORT_FAB_ARG_3D(dq_core),
+     BL_FORT_FAB_ARG_3D(dq_pass),
+     BL_FORT_FAB_ARG_3D(qm_core),
+     BL_FORT_FAB_ARG_3D(qm_pass),
+     BL_FORT_FAB_ARG_3D(qp_core),
+     BL_FORT_FAB_ARG_3D(qp_pass),
      const amrex::Real* dx);
 
   void ca_mol_ppm_reconstruct
     (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(q_core),
+     BL_FORT_FAB_ARG_3D(q_pass),
      const BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(shk),
-     BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp),
+     BL_FORT_FAB_ARG_3D(qm_core),
+     BL_FORT_FAB_ARG_3D(qm_pass),
+     BL_FORT_FAB_ARG_3D(qp_core),
+     BL_FORT_FAB_ARG_3D(qp_pass),
      const amrex::Real* dx);
+
+  void ca_mol_thermo_states
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(qm_core),
+     BL_FORT_FAB_ARG_3D(qm_pass),
+     BL_FORT_FAB_ARG_3D(qp_core),
+     BL_FORT_FAB_ARG_3D(qp_pass));
 
   void ca_mol_consup
     (const int* lo, const int* hi,
