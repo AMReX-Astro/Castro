@@ -1,13 +1,13 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 500000
 
-stop_time    = 5.e-4
+stop_time    = 2.0e-4
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0
-geometry.prob_hi     = 8.192e4
+geometry.prob_hi     = 1.6384e5
 amr.n_cell           = 1024
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -64,7 +64,7 @@ amr.check_int       = 1000       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt        # root name of plotfile
-amr.plot_per        = 2.e-5
+amr.plot_per        = 1.e-5
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
