@@ -109,8 +109,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
              BL_TO_FORTRAN_ANYD(statein),
              BL_TO_FORTRAN_ANYD(stateout),
-             BL_TO_FORTRAN_ANYD(q[mfi]),
-             BL_TO_FORTRAN_ANYD(q_bar[mfi]),
+             BL_TO_FORTRAN_ANYD(q_core[mfi]),
+             BL_TO_FORTRAN_ANYD(q_pass[mfi]),
+             BL_TO_FORTRAN_ANYD(q_core_bar[mfi]),
+             BL_TO_FORTRAN_ANYD(q_pass_bar[mfi]),
              BL_TO_FORTRAN_ANYD(qaux[mfi]),
              BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
              BL_TO_FORTRAN_ANYD(source_in),
@@ -153,7 +155,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 #pragma gpu
             divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
+                 BL_TO_FORTRAN_ANYD(q_core[mfi]),
                  AMREX_REAL_ANYD(dx),
                  BL_TO_FORTRAN_ANYD(div));
 
@@ -181,18 +183,27 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           shk.resize(obx, 1);
           Elixir elix_shk = shk.elixir();
 
-          qm.resize(tbx, NQ*AMREX_SPACEDIM);
-          Elixir elix_qm = qm.elixir();
+          qm_core.resize(tbx, NQC*AMREX_SPACEDIM);
+          Elixir elix_qm_core = qm_core.elixir();
 
-          qp.resize(tbx, NQ*AMREX_SPACEDIM);
-          Elixir elix_qp = qp.elixir();
+          qm_pass.resize(tbx, NQP*AMREX_SPACEDIM);
+          Elixir elix_qm_pass = qm_pass.elixir();
+
+          qp_core.resize(tbx, NQC*AMREX_SPACEDIM);
+          Elixir elix_qp_core = qp_core.elixir();
+
+          qp_pass.resize(tbx, NQP*AMREX_SPACEDIM);
+          Elixir elix_qp_pass = qp_pass.elixir();
 
           if (do_hydro) {
 
             if (ppm_type == 0) {
 
-              dq.resize(obx, NQ);
-              Elixir elix_dq = dq.elixir();
+              dq_core.resize(obx, NQC);
+              Elixir elix_dq_core = dq_core.elixir();
+
+              dq_pass.resize(obx, NQP);
+              Elixir elix_dq_pass = dq_pass.elixir();
 
 #pragma gpu
               ca_mol_plm_reconstruct
