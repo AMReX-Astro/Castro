@@ -3,20 +3,22 @@
 from __future__ import print_function
 
 import argparse
+import sys
+
+import numpy as np
+from cycler import cycler
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
+
 import yt
-import sys
-import numpy as np
-from cycler import cycler
 
 ## Define RGBA to HEX
 def rgba_to_hex(rgba):
     r = int(rgba[0]*255.0)
     g = int(rgba[1]*255.0)
     b = int(rgba[2]*255.0)
-    return '#{:02X}{:02X}{:02X}'.format(r,g,b)
+    return '#{:02X}{:02X}{:02X}'.format(r, g, b)
 
 def get_Te_profile(plotfile):
 
@@ -35,7 +37,7 @@ def get_Te_profile(plotfile):
     return time, x_coord, temp, enuc
 
 
-def doit(pprefix, nums, skip, limitlabels):
+def doit(prefix, nums, skip, limitlabels):
 
     f = plt.figure()
     f.set_size_inches(7.0, 9.0)
@@ -44,15 +46,15 @@ def doit(pprefix, nums, skip, limitlabels):
     ax_e = f.add_subplot(212)
 
     # Get set of colors to use and apply to plot
-    numplots = int( len(nums) / skip )
+    numplots = int(len(nums) / skip)
     cm = plt.get_cmap('nipy_spectral')
     clist = [cm(0.95*i/numplots) for i in range(numplots + 1)]
     hexclist = [rgba_to_hex(ci) for ci in clist]
     ax_T.set_prop_cycle(cycler('color', hexclist))
     ax_e.set_prop_cycle(cycler('color', hexclist))
-    
+
     if limitlabels > 1:
-        skiplabels = int( numplots / limitlabels )
+        skiplabels = int(numplots / limitlabels)
     elif limitlabels < 0:
         print("Illegal value for limitlabels: %.0f" % limitlabels)
         sys.exit()
@@ -66,15 +68,15 @@ def doit(pprefix, nums, skip, limitlabels):
 
         time, x, T, enuc = get_Te_profile(pfile)
 
-        if ( index % skiplabels == 0):
+        if index % skiplabels == 0:
             ax_T.plot(x, T, label="t = {:6.4g} s".format(time))
-        else: 
+        else:
             ax_T.plot(x, T)
 
         ax_e.plot(x, enuc)
 
         index = index + 1
-        
+
     ax_T.legend(frameon=False)
     ax_T.set_ylabel("T (K)")
 
@@ -83,7 +85,7 @@ def doit(pprefix, nums, skip, limitlabels):
     ax_e.set_xlabel("x (cm)")
 
     f.savefig("flame.png")
-    
+
 
 if __name__ == "__main__":
 
@@ -98,7 +100,7 @@ if __name__ == "__main__":
 
     args = p.parse_args()
 
-    prefix = args.plotfiles[0].split("plt")[0] + "plt"
+    plot_prefix = args.plotfiles[0].split("plt")[0] + "plt"
     plot_nums = sorted([p.split("plt")[1] for p in args.plotfiles], key=int)
 
-    doit(prefix, plot_nums, args.skip, args.limitlabels)
+    doit(plot_prefix, plot_nums, args.skip, args.limitlabels)
