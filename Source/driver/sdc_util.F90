@@ -34,7 +34,8 @@ contains
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
                                    sdc_order, sdc_solver, &
-                                   sdc_solver_tol, sdc_solver_relax_factor, &
+                                   sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener, &
+                                   sdc_solver_relax_factor, &
                                    sdc_solve_for_rhoe, sdc_use_analytic_jac
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
@@ -68,7 +69,8 @@ contains
     real(rt) :: rwork(lrw)
     integer :: iwork(liw)
     real(rt) :: time
-    real(rt) :: tol
+    real(rt) :: tol_dens, tol_spec, tol_ener, relax_fac
+    real(rt) :: tol(0:nspec_evolve+1)
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
@@ -82,7 +84,8 @@ contains
 
     integer :: m, n
 
-    real(rt) :: err
+    real(rt) :: err_dens, err_spec, err_ener
+
     integer, parameter :: MAX_ITER = 100
     integer :: iter
 
@@ -108,7 +111,10 @@ contains
     endif
 
     ! the tolerance we are solving to may depend on the iteration
-    tol = sdc_solver_tol / sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
+    relax_fac = sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
+    tol_dens = sdc_solver_tol_dens / relax_fac
+    tol_spec = sdc_solver_tol_spec / relax_fac
+    tol_ener = sdc_solver_tol_ener / relax_fac
 
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
@@ -187,7 +193,9 @@ contains
     if (solver == NEWTON_SOLVE) then
        ! do a simple Newton solve
 
-       err = 1.e30_rt
+       err_dens = 1.e30_rt
+       err_spec = 1.e30_rt
+       err_ener = 1.e30_rt
 
        ! iterative loop
        iter = 0
@@ -210,13 +218,14 @@ contains
 
           U_react(:) = U_react(:) + dU_react(:)
 
-          ! construct the norm of the correction -- only worry about
-          ! species here, and use some protection against divide by 0
+          ! construct the norm of the correction
           w(:) = abs(dU_react(:)/(U_react(:) + SMALL_X_SAFE))
 
-          err = sqrt(sum(w(1:nspec_evolve)**2))
+          err_dens = abs(w(0))
+          err_spec = sqrt(sum(w(1:nspec_evolve)**2))
+          err_ener = abs(w(nspec_evolve+1))
 
-          if (err < tol) then
+          if (err_dens < tol_dens .and. err_spec < tol_spec .and. err_ener < tol_ener) then
              converged = .true.
           endif
 
@@ -248,8 +257,12 @@ contains
           imode = MF_NUMERICAL_JAC
        endif
 
+       tol(0) = tol_dens
+       tol(1:nspec_evolve) = tol_spec
+       tol(nspec_evolve+1) = tol_ener
+
        call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
-                  1, tol, 1.e-100_rt, &
+                  3, tol, 1.e-100_rt, &
                   1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
 
        if (istate < 0) then
