@@ -126,9 +126,15 @@ Castro::do_advance_sdc (Real time,
           do_old_sources(old_source, Sborder, node_time, dt, amr_iteration, amr_ncycle);
         }
 
-        // note: we don't need a FillPatch on the sources, since they
-        // are only used in the valid box in the conservative flux
-        // update construction
+      } else {
+        // there is a ghost cell fill hidden in diffusion, so we need
+        // to pass in the time associate with Sborder
+        do_old_sources(old_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
+      }
+
+      // note: we don't need a FillPatch on the sources, since they
+      // are only used in the valid box in the conservative flux
+      // update construction
 
 #endif
 
@@ -143,7 +149,9 @@ Castro::do_advance_sdc (Real time,
       // Now compute the advective term for the current node -- this
       // will be used to advance us to the next node the new time
 
-      // Construct the primitive variables.
+
+    // Construct the primitive variables.
+    if (do_hydro) {
       if (sdc_order == 4) {
         cons_to_prim_fourth(time);
       } else {
@@ -156,6 +164,7 @@ Castro::do_advance_sdc (Real time,
       // If we detect one, return immediately.
       if (cfl_violation)
         return dt;
+    }
 
       // construct the update for the current stage -- this fills
       // A_new[m] with the righthand side for this stage.

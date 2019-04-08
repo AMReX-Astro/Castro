@@ -492,9 +492,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 
     // This array holds the hydrodynamics update.
-
-    hydro_source.define(grids,dmap,NUM_STATE,0);
-
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      hydro_source.define(grids,dmap,NUM_STATE,0);
+    }
 
 
     // Allocate space for the primitive variables.
@@ -606,7 +606,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     Real cur_time = state[State_Type].curTime();
 
-    hydro_source.clear();
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      hydro_source.clear();
+    }
 
     q.clear();
     qaux.clear();
