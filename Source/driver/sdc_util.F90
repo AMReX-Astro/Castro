@@ -931,7 +931,6 @@ contains
              ! reevaluating the reactions and then doing the full step update
              call single_zone_react_source(U_new, R_full, i, j, k, burn_state)
 
-             ! redo the update of the momenta to reduce accumulation of roundoff
              U_new(:) = U_old(:) + dt_m * R_full(:) + dt_m * C(:)
 
              ! copy back to k_n
