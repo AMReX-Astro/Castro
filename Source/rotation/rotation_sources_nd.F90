@@ -56,6 +56,10 @@ contains
 
     !$gpu
 
+    Sr(:) = ZERO
+    src(:) = ZERO
+    snew(:) = ZERO
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -237,6 +241,12 @@ contains
     ! is the new time at time-level n+1.
 
     !$gpu
+
+    Sr_old(:) = ZERO
+    Sr_new(:) = ZERO
+    Srcorr(:) = ZERO
+    src(:) = ZERO
+    snew(:) = ZERO
 
     omega_old = get_omega(time-dt)
     omega_new = get_omega(time   )
