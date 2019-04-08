@@ -160,7 +160,7 @@ contains
     ! This is analogous to the conversion of linear momentum to hybrid momentum.
 
     mom(1) = mom(1) - source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
-    mom(2) = mom(2) + source(2) * loc(2) - source(2) * loc(1)
+    mom(2) = mom(2) + source(1) * loc(2) - source(2) * loc(1)
     mom(3) = mom(3) + source(3)
 
   end subroutine add_hybrid_momentum_source
@@ -181,7 +181,7 @@ contains
     ! This is analogous to the conversion of linear momentum to hybrid momentum.
 
     mom(1) = -source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
-    mom(2) =  source(2) * loc(2) - source(2) * loc(1)
+    mom(2) =  source(1) * loc(2) - source(2) * loc(1)
     mom(3) =  source(3)
 
   end subroutine set_hybrid_momentum_source

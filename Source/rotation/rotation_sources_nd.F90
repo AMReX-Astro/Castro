@@ -19,10 +19,10 @@ contains
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP, state_in_rotating_frame
-    use hybrid_advection_module, only: add_hybrid_momentum_source
+    use hybrid_advection_module, only: set_hybrid_momentum_source
 #endif
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -56,6 +56,10 @@ contains
 
     !$gpu
 
+    Sr(:) = ZERO
+    src(:) = ZERO
+    snew(:) = ZERO
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -78,7 +82,7 @@ contains
 
 #ifdef HYBRID_MOMENTUM
              if (state_in_rotating_frame == 1) then
-                call add_hybrid_momentum_source(loc, src(UMR:UMP), Sr)
+                call set_hybrid_momentum_source(loc, src(UMR:UMP), Sr)
 
                 snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
              endif
@@ -162,10 +166,10 @@ contains
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only : UMR, UMP
-    use hybrid_advection_module, only: add_hybrid_momentum_source
+    use hybrid_advection_module, only: set_hybrid_momentum_source
 #endif
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -237,6 +241,12 @@ contains
     ! is the new time at time-level n+1.
 
     !$gpu
+
+    Sr_old(:) = ZERO
+    Sr_new(:) = ZERO
+    Srcorr(:) = ZERO
+    src(:) = ZERO
+    snew(:) = ZERO
 
     omega_old = get_omega(time-dt)
     omega_new = get_omega(time   )
@@ -366,7 +376,7 @@ contains
              ! inertial frame; see wdmerger paper III.
 
              if (state_in_rotating_frame == 1) then
-                call add_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
+                call set_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
 
                 snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
              endif
