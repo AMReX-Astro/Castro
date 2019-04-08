@@ -19,10 +19,10 @@ contains
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP, state_in_rotating_frame
-    use hybrid_advection_module, only: add_hybrid_momentum_source
+    use hybrid_advection_module, only: set_hybrid_momentum_source
 #endif
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -78,7 +78,7 @@ contains
 
 #ifdef HYBRID_MOMENTUM
              if (state_in_rotating_frame == 1) then
-                call add_hybrid_momentum_source(loc, src(UMR:UMP), Sr)
+                call set_hybrid_momentum_source(loc, src(UMR:UMP), Sr)
 
                 snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
              endif
@@ -162,10 +162,10 @@ contains
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only : UMR, UMP
-    use hybrid_advection_module, only: add_hybrid_momentum_source
+    use hybrid_advection_module, only: set_hybrid_momentum_source
 #endif
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -366,7 +366,7 @@ contains
              ! inertial frame; see wdmerger paper III.
 
              if (state_in_rotating_frame == 1) then
-                call add_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
+                call set_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
 
                 snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
              endif
