@@ -253,12 +253,12 @@ Castro::do_advance_sdc (Real time,
 
     // TODO: we also need to make these 4th order!
     clean_state(S_old, prev_time, 0);
-    expand_state(Sborder, prev_time, 0, Sborder.nGrow());
+    expand_state(Sborder, prev_time, Sborder.nGrow());
     do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
     AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
 
     clean_state(S_new, cur_time, 0);
-    expand_state(Sborder, cur_time, 1, Sborder.nGrow());
+    expand_state(Sborder, cur_time, Sborder.nGrow());
     do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
     AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
   }
