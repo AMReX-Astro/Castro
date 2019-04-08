@@ -75,6 +75,7 @@ jobInfoFile << (Castro::sdc_solver == 1 ? "    " : "[*] ") << "castro.sdc_solver
 jobInfoFile << (Castro::sdc_solver_tol_dens == 1.e-6 ? "    " : "[*] ") << "castro.sdc_solver_tol_dens = " << Castro::sdc_solver_tol_dens << std::endl;
 jobInfoFile << (Castro::sdc_solver_tol_spec == 1.e-6 ? "    " : "[*] ") << "castro.sdc_solver_tol_spec = " << Castro::sdc_solver_tol_spec << std::endl;
 jobInfoFile << (Castro::sdc_solver_tol_ener == 1.e-6 ? "    " : "[*] ") << "castro.sdc_solver_tol_ener = " << Castro::sdc_solver_tol_ener << std::endl;
+jobInfoFile << (Castro::sdc_solver_atol == 1.e-10 ? "    " : "[*] ") << "castro.sdc_solver_atol = " << Castro::sdc_solver_atol << std::endl;
 jobInfoFile << (Castro::sdc_solver_relax_factor == 1.0 ? "    " : "[*] ") << "castro.sdc_solver_relax_factor = " << Castro::sdc_solver_relax_factor << std::endl;
 jobInfoFile << (Castro::sdc_solve_for_rhoe == 1 ? "    " : "[*] ") << "castro.sdc_solve_for_rhoe = " << Castro::sdc_solve_for_rhoe << std::endl;
 jobInfoFile << (Castro::sdc_use_analytic_jac == 1 ? "    " : "[*] ") << "castro.sdc_use_analytic_jac = " << Castro::sdc_use_analytic_jac << std::endl;

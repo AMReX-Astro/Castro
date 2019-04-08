@@ -35,6 +35,7 @@ contains
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
                                    sdc_order, sdc_solver, &
                                    sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener, &
+                                   sdc_solver_atol, &
                                    sdc_solver_relax_factor, &
                                    sdc_solve_for_rhoe, sdc_use_analytic_jac
     use amrex_constants_module, only : ZERO, HALF, ONE
@@ -70,7 +71,7 @@ contains
     integer :: iwork(liw)
     real(rt) :: time
     real(rt) :: tol_dens, tol_spec, tol_ener, relax_fac
-    real(rt) :: tol(0:nspec_evolve+1)
+    real(rt) :: rtol(0:nspec_evolve+1), atol(0:nspec_evolve+1)
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
@@ -257,12 +258,22 @@ contains
           imode = MF_NUMERICAL_JAC
        endif
 
-       tol(0) = tol_dens
-       tol(1:nspec_evolve) = tol_spec
-       tol(nspec_evolve+1) = tol_ener
+       ! relative tolerances
+       rtol(0) = tol_dens
+       rtol(1:nspec_evolve) = tol_spec
+       rtol(nspec_evolve+1) = tol_ener
+
+       ! absolute tolerances
+       atol(0) = sdc_solver_atol * U_old(URHO)
+       atol(1:nspec_evolve) = sdc_solver_atol * U_old(URHO)   ! this way, atol is the minimum x
+       if (sdc_solve_for_rhoe == 1) then
+          atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEINT)
+       else
+          atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEDEN)
+       endif
 
        call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
-                  3, tol, 1.e-100_rt, &
+                  4, rtol, atol, &
                   1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
 
        if (istate < 0) then

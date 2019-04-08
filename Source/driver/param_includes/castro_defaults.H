@@ -80,6 +80,7 @@ int         Castro::sdc_solver = 1;
 amrex::Real Castro::sdc_solver_tol_dens = 1.e-6;
 amrex::Real Castro::sdc_solver_tol_spec = 1.e-6;
 amrex::Real Castro::sdc_solver_tol_ener = 1.e-6;
+amrex::Real Castro::sdc_solver_atol = 1.e-10;
 amrex::Real Castro::sdc_solver_relax_factor = 1.0;
 int         Castro::sdc_solve_for_rhoe = 1;
 int         Castro::sdc_use_analytic_jac = 1;

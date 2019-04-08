@@ -80,6 +80,7 @@ static int sdc_solver;
 static amrex::Real sdc_solver_tol_dens;
 static amrex::Real sdc_solver_tol_spec;
 static amrex::Real sdc_solver_tol_ener;
+static amrex::Real sdc_solver_atol;
 static amrex::Real sdc_solver_relax_factor;
 static int sdc_solve_for_rhoe;
 static int sdc_use_analytic_jac;
