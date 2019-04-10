@@ -449,28 +449,23 @@ contains
 
     do n = 1, nc
 
-       if (maxval(abs(U(U_lo(1)-1:U_hi(1)+1, U_lo(2)-dg(2):U_hi(2)+dg(2), U_lo(3)-dg(3):U_hi(3)+dg(3), n))) == ZERO) then
-          U_cc(U_cc_lo(1):U_cc_hi(1), U_cc_lo(2):U_cc_hi(2), U_cc_lo(3):U_cc_hi(3), n) = &
-               U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), n)
-       else
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-                do i = lo(1), hi(1)
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-                   lap = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
+                lap = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
 #if AMREX_SPACEDIM >= 2
-                   lap = lap + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
+                lap = lap + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
 #endif
 #if AMREX_SPACEDIM == 3
-                   lap = lap + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
+                lap = lap + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
 #endif
 
-                   U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap
+                U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap
 
-                end do
              end do
           end do
-       end if
+       end do
     end do
 
   end subroutine ca_make_cell_center
