@@ -298,7 +298,7 @@ subroutine wdcom(rho,  r_lo, r_hi, &
                  m_p, m_s) bind(C,name='wdcom')
 
   use amrex_constants_module, only: HALF, ZERO, ONE, TWO
-  use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, Symmetry, coord_type
+  use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, Symmetry, coord_type, dim
   use castro_util_module, only: position
 
   implicit none
@@ -327,7 +327,7 @@ subroutine wdcom(rho,  r_lo, r_hi, &
   double precision, intent(inout) :: vel_s_x, vel_s_y, vel_s_z
   double precision, intent(inout) :: m_p, m_s
 
-  integer          :: i, j, k
+  integer          :: i, j, k, d
   double precision :: r(3), rSymmetric(3), dm, dmSymmetric, momSymmetric(3)
 
   ! Add to the COM locations and velocities of the primary and secondary
@@ -353,8 +353,16 @@ subroutine wdcom(rho,  r_lo, r_hi, &
            ! done for us in the definition of the zone volume.
 
            rSymmetric = r
-           rSymmetric = merge(rSymmetric + (problo - rSymmetric), rSymmetric, physbc_lo(:) .eq. Symmetry)
-           rSymmetric = merge(rSymmetric + (rSymmetric - probhi), rSymmetric, physbc_hi(:) .eq. Symmetry)
+
+           do d = 1, dim
+              if (physbc_lo(d) .eq. Symmetry) then
+                 if (d == 1 .and. coord_type /= 0) cycle
+                 rSymmetric = rSymmetric + (problo(d) - rSymmetric)
+              end if
+              if (physbc_hi(d) .eq. Symmetry) then
+                 rSymmetric = rSymmetric + (rSymmetric - probhi(d))
+              end if
+           end do
 
            dm = rho(i,j,k) * vol(i,j,k)
 
