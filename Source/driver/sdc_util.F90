@@ -55,6 +55,7 @@ contains
 
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
     real(rt) :: w(0:nspec_evolve+1)
+    real(rt) :: atol_spec(nspec_evolve)
 
     real(rt) :: rpar(0:n_rpar-1)
     integer :: ipar
@@ -219,11 +220,16 @@ contains
 
           U_react(:) = U_react(:) + dU_react(:)
 
+          atol_spec(:) = merge(abs(dU_react(1:nspec_evolve)), ZERO, &
+                               abs(dU_react(1:nspec_evolve)) > sdc_solver_atol * U_react(0))
+
           ! construct the norm of the correction
-          w(:) = abs(dU_react(:)/(U_react(:) + SMALL_X_SAFE))
+          w(0) = abs(dU_react(0)/(U_react(0) + SMALL_X_SAFE))
+          w(1:nspec_evolve) = abs(atol_spec(1:nspec_evolve)/(U_react(1:nspec_evolve) + SMALL_X_SAFE))
+          w(nspec_evolve+1) = abs(dU_react(nspec_evolve+1)/(U_react(nspec_evolve+1) + SMALL_X_SAFE))
 
           err_dens = abs(w(0))
-          err_spec = sqrt(sum(w(1:nspec_evolve)**2))
+          err_spec = maxval(w(1:nspec_evolve))
           err_ener = abs(w(nspec_evolve+1))
 
           if (err_dens < tol_dens .and. err_spec < tol_spec .and. err_ener < tol_ener) then
@@ -234,6 +240,7 @@ contains
        enddo
 
        if (.not. converged) then
+          print *, "errors: ", err_dens, err_spec, err_ener
           call amrex_error("did not converge in SDC")
        endif
 
