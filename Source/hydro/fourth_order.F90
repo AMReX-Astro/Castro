@@ -494,8 +494,6 @@ contains
 
     do n = 1, nc
 
-       if (maxval(abs(U(U_lo(1)-1:U_hi(1)+1, U_lo(2)-dg(2):U_hi(2)+dg(2), U_lo(3)-dg(3):U_hi(3)+dg(3), n))) == ZERO) cycle
-
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -623,8 +621,6 @@ contains
 
     do n = 1, nc
 
-       if (maxval(abs(q(q_lo(1)-1:q_hi(1)+1, q_lo(2)-dg(2):q_hi(2)+dg(2), q_lo(3)-dg(3):q_hi(3)+dg(3), n))) == ZERO) cycle
-
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -674,8 +670,6 @@ contains
     real(rt), pointer :: lap(:,:,:)
 
     call bl_allocate(lap, lo, hi)
-
-    if (maxval(abs(q(q_lo(1)-1:q_hi(1)+1, q_lo(2)-dg(2):q_hi(2)+dg(2), q_lo(3)-dg(3):q_hi(3)+dg(3), ncomp+1))) == ZERO) return
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
