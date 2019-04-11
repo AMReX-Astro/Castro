@@ -44,8 +44,8 @@ castro.rotational_period = 0.0005
 castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
-castro.diffuse_cutoff_density_hi = 5.e4
-castro.diffuse_cutoff_density = 2.e4
+castro.diffuse_cutoff_density = 5.e4
+#castro.diffuse_cutoff_density = 2.e4
 
 castro.diffuse_cond_scale_fac = 10.0
 
