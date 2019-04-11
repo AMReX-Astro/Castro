@@ -216,6 +216,8 @@ hse_interp_temp              int           0                  y
 # reflect? or outflow?
 hse_reflect_vels             int           0                  y
 
+# fills physical domain boundaries with the ambient state
+fill_ambient_bc              int           0                  y
 
 # integration order for MOL integration
 # 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK

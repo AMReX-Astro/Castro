@@ -74,6 +74,7 @@ pp.query("zr_ext_bc_type", zr_ext_bc_type);
 pp.query("hse_zero_vels", hse_zero_vels);
 pp.query("hse_interp_temp", hse_interp_temp);
 pp.query("hse_reflect_vels", hse_reflect_vels);
+pp.query("fill_ambient_bc", fill_ambient_bc);
 pp.query("mol_order", mol_order);
 pp.query("sdc_order", sdc_order);
 pp.query("sdc_solver", sdc_solver);

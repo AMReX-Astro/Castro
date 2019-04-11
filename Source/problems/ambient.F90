@@ -17,7 +17,7 @@ contains
     ! Return an EOS state corresponding to the ambient_state.
 
     use eos_type_module, only: eos_t
-    use meth_params_module, only: URHO, UTEMP, UFS
+    use meth_params_module, only: URHO, UTEMP, UEINT, UFS
     use network, only: nspec
 
     implicit none
@@ -26,6 +26,7 @@ contains
 
     eos_state%rho = ambient_state(URHO)
     eos_state%T   = ambient_state(UTEMP)
+    eos_state%e   = ambient_state(UEINT)
     eos_state%xn  = ambient_state(UFS:UFS+nspec-1)
 
   end subroutine get_ambient_eos

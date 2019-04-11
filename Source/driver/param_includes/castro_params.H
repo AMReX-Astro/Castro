@@ -74,6 +74,7 @@ static std::string zr_ext_bc_type;
 static int hse_zero_vels;
 static int hse_interp_temp;
 static int hse_reflect_vels;
+static int fill_ambient_bc;
 static int mol_order;
 static int sdc_order;
 static int sdc_solver;

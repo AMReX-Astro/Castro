@@ -14,11 +14,11 @@ contains
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
     use amrex_filcc_module, only: amrex_filccn
-    use bc_ext_fill_module, only: ext_fill
+    use meth_params_module, only: fill_ambient_bc
+    use ambient_module, only: ambient_state
+    use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap
 
     implicit none
-
-    include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
@@ -28,9 +28,28 @@ contains
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
     real(rt), intent(in   ), value :: time
 
+    integer :: i, j, k
+
     !$gpu
 
     call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
+
+    if (fill_ambient_bc == 1) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                if ((i < domlo(1) .and. (bc(1,1,1) == amrex_bc_foextrap .or. bc(1,1,1) == amrex_bc_hoextrap)) .or. &
+                    (i > domhi(1) .and. (bc(1,2,1) == amrex_bc_foextrap .or. bc(1,2,1) == amrex_bc_hoextrap)) .or. &
+                    (j < domlo(2) .and. (bc(2,1,1) == amrex_bc_foextrap .or. bc(2,1,1) == amrex_bc_hoextrap)) .or. &
+                    (j > domhi(2) .and. (bc(2,2,1) == amrex_bc_foextrap .or. bc(2,2,1) == amrex_bc_hoextrap)) .or. &
+                    (k < domlo(3) .and. (bc(3,1,1) == amrex_bc_foextrap .or. bc(3,1,1) == amrex_bc_hoextrap)) .or. &
+                    (k > domhi(3) .and. (bc(3,2,1) == amrex_bc_foextrap .or. bc(3,2,1) == amrex_bc_hoextrap))) then
+                   adv(i,j,k,:) = ambient_state(:)
+                end if
+             end do
+          end do
+       end do
+    end if
 
   end subroutine hypfill
 
@@ -39,13 +58,11 @@ contains
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
     use amrex_filcc_module, only: amrex_filccn
-#ifndef AMREX_USE_CUDA
-    use bc_ext_fill_module, only: ext_denfill
-#endif
+    use meth_params_module, only: fill_ambient_bc, URHO
+    use ambient_module, only: ambient_state
+    use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap
 
     implicit none
-
-    include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
@@ -55,9 +72,28 @@ contains
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
     real(rt), intent(in   ), value :: time
 
+    integer :: i, j, k
+
     !$gpu
 
     call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
+
+    if (fill_ambient_bc == 1) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                if ((i < domlo(1) .and. (bc(1,1) == amrex_bc_foextrap .or. bc(1,1) == amrex_bc_hoextrap)) .or. &
+                    (i > domhi(1) .and. (bc(1,2) == amrex_bc_foextrap .or. bc(1,2) == amrex_bc_hoextrap)) .or. &
+                    (j < domlo(2) .and. (bc(2,1) == amrex_bc_foextrap .or. bc(2,1) == amrex_bc_hoextrap)) .or. &
+                    (j > domhi(2) .and. (bc(2,2) == amrex_bc_foextrap .or. bc(2,2) == amrex_bc_hoextrap)) .or. &
+                    (k < domlo(3) .and. (bc(3,1) == amrex_bc_foextrap .or. bc(3,1) == amrex_bc_hoextrap)) .or. &
+                    (k > domhi(3) .and. (bc(3,2) == amrex_bc_foextrap .or. bc(3,2) == amrex_bc_hoextrap))) then
+                   adv(i,j,k) = ambient_state(URHO)
+                end if
+             end do
+          end do
+       end do
+    end if
 
   end subroutine denfill
 

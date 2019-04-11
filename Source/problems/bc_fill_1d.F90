@@ -14,10 +14,11 @@ contains
   subroutine hypfill(adv, adv_l1, adv_h1, domlo, domhi, delta, xlo, time, bc)
 
     use amrex_filcc_module, only: amrex_filccn
+    use meth_params_module, only: fill_ambient_bc
+    use ambient_module, only: ambient_state
+    use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap
 
     implicit none
-
-    include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: adv_l1, adv_h1
     integer,  intent(in   ) :: bc(1,2,NVAR)
@@ -26,6 +27,7 @@ contains
     real(rt), intent(inout) :: adv(adv_l1:adv_h1,NVAR)
 
     integer  :: lo(3), hi(3)
+    integer  :: i
 
     lo(1) = adv_l1
     lo(2) = 0
@@ -35,6 +37,15 @@ contains
     hi(3) = 0
 
     call amrex_filccn(lo, hi, adv, lo, hi, NVAR, domlo, domhi, delta, xlo, bc)
+
+    if (fill_ambient_bc == 1) then
+       do i = lo(1), hi(1)
+          if ((i < domlo(1) .and. (bc(1,1,1) == amrex_bc_foextrap .or. bc(1,1,1) == amrex_bc_hoextrap)) .or. &
+              (i > domhi(1) .and. (bc(1,2,1) == amrex_bc_foextrap .or. bc(1,2,1) == amrex_bc_hoextrap))) then
+             adv(i,URHO) = ambient_state(i,URHO)
+          end if
+       end do
+    end if
 
   end subroutine hypfill
 
@@ -57,10 +68,11 @@ contains
   subroutine denfill(adv, adv_l1, adv_h1, domlo, domhi, delta, xlo, time, bc)
 
     use amrex_filcc_module, only: amrex_filccn
+    use meth_params_module, only: fill_ambient_bc, URHO
+    use ambient_module, only: ambient_state
+    use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap
 
     implicit none
-
-    include 'AMReX_bc_types.fi'
 
     integer,  intent(in   ) :: adv_l1, adv_h1
     integer,  intent(in   ) :: bc(1,2)
@@ -69,6 +81,7 @@ contains
     real(rt), intent(inout) :: adv(adv_l1:adv_h1)
 
     integer :: lo(3), hi(3)
+    integer :: i
 
     lo(1) = adv_l1
     lo(2) = 0
@@ -78,6 +91,15 @@ contains
     hi(3) = 0
 
     call amrex_filccn(lo, hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+    if (fill_ambient_bc == 1) then
+       do i = lo(1), hi(1)
+          if ((i < domlo(1) .and. (bc(1,1) == amrex_bc_foextrap .or. bc(1,1) == amrex_bc_hoextrap)) .or. &
+              (i > domhi(1) .and. (bc(1,2) == amrex_bc_foextrap .or. bc(1,2) == amrex_bc_hoextrap))) then
+             adv(i) = ambient_state(URHO)
+          end if
+       end do
+    end if
 
   end subroutine denfill
 
