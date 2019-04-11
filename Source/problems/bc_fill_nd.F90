@@ -38,12 +38,17 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if ((i < domlo(1) .and. (bc(1,1,1) == amrex_bc_foextrap .or. bc(1,1,1) == amrex_bc_hoextrap)) .or. &
-                    (i > domhi(1) .and. (bc(1,2,1) == amrex_bc_foextrap .or. bc(1,2,1) == amrex_bc_hoextrap)) .or. &
-                    (j < domlo(2) .and. (bc(2,1,1) == amrex_bc_foextrap .or. bc(2,1,1) == amrex_bc_hoextrap)) .or. &
-                    (j > domhi(2) .and. (bc(2,2,1) == amrex_bc_foextrap .or. bc(2,2,1) == amrex_bc_hoextrap)) .or. &
-                    (k < domlo(3) .and. (bc(3,1,1) == amrex_bc_foextrap .or. bc(3,1,1) == amrex_bc_hoextrap)) .or. &
-                    (k > domhi(3) .and. (bc(3,2,1) == amrex_bc_foextrap .or. bc(3,2,1) == amrex_bc_hoextrap))) then
+                if ((i < domlo(1) .and. (bc(1,1,1) == amrex_bc_foextrap .or. bc(1,1,1) == amrex_bc_hoextrap))  &
+                    .or. (i > domhi(1) .and. (bc(1,2,1) == amrex_bc_foextrap .or. bc(1,2,1) == amrex_bc_hoextrap))  &
+#if AMREX_SPACEDIM >= 2
+                    .or. (j < domlo(2) .and. (bc(2,1,1) == amrex_bc_foextrap .or. bc(2,1,1) == amrex_bc_hoextrap)) &
+                    .or. (j > domhi(2) .and. (bc(2,2,1) == amrex_bc_foextrap .or. bc(2,2,1) == amrex_bc_hoextrap)) &
+#endif
+#if AMREX_SPACEDIM == 3
+                    .or. (k < domlo(3) .and. (bc(3,1,1) == amrex_bc_foextrap .or. bc(3,1,1) == amrex_bc_hoextrap)) &
+                    .or. (k > domhi(3) .and. (bc(3,2,1) == amrex_bc_foextrap .or. bc(3,2,1) == amrex_bc_hoextrap)) &
+#endif
+                    ) then
                    adv(i,j,k,:) = ambient_state(:)
                 end if
              end do
@@ -82,12 +87,17 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if ((i < domlo(1) .and. (bc(1,1) == amrex_bc_foextrap .or. bc(1,1) == amrex_bc_hoextrap)) .or. &
-                    (i > domhi(1) .and. (bc(1,2) == amrex_bc_foextrap .or. bc(1,2) == amrex_bc_hoextrap)) .or. &
-                    (j < domlo(2) .and. (bc(2,1) == amrex_bc_foextrap .or. bc(2,1) == amrex_bc_hoextrap)) .or. &
-                    (j > domhi(2) .and. (bc(2,2) == amrex_bc_foextrap .or. bc(2,2) == amrex_bc_hoextrap)) .or. &
-                    (k < domlo(3) .and. (bc(3,1) == amrex_bc_foextrap .or. bc(3,1) == amrex_bc_hoextrap)) .or. &
-                    (k > domhi(3) .and. (bc(3,2) == amrex_bc_foextrap .or. bc(3,2) == amrex_bc_hoextrap))) then
+                if ((i < domlo(1) .and. (bc(1,1) == amrex_bc_foextrap .or. bc(1,1) == amrex_bc_hoextrap)) &
+                    .or. (i > domhi(1) .and. (bc(1,2) == amrex_bc_foextrap .or. bc(1,2) == amrex_bc_hoextrap)) &
+#if AMREX_SPACEDIM >= 2
+                    .or. (j < domlo(2) .and. (bc(2,1) == amrex_bc_foextrap .or. bc(2,1) == amrex_bc_hoextrap)) &
+                    .or. (j > domhi(2) .and. (bc(2,2) == amrex_bc_foextrap .or. bc(2,2) == amrex_bc_hoextrap)) &
+#endif
+#if AMREX_SPACEDIM == 3
+                    .or. (k < domlo(3) .and. (bc(3,1) == amrex_bc_foextrap .or. bc(3,1) == amrex_bc_hoextrap)) &
+                    .or. (k > domhi(3) .and. (bc(3,2) == amrex_bc_foextrap .or. bc(3,2) == amrex_bc_hoextrap)) &
+#endif
+                   ) then
                    adv(i,j,k) = ambient_state(URHO)
                 end if
              end do
