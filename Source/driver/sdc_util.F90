@@ -100,14 +100,21 @@ contains
 
     if (sdc_solver == 1) then
        solver = NEWTON_SOLVE
+       num_attempts = 1
     else if (sdc_solver == 2) then
        solver = VODE_SOLVE
+       num_attempts = 1
     else if (sdc_solver == 3) then
        if (sdc_iteration == 0) then
           solver = VODE_SOLVE
        else
           solver = NEWTON_SOLVE
        endif
+       num_attempts = 1
+    else if (sdc_solver == 4) then
+       ! this will try Newton, but if it fails it will retry with VODE
+       solver = NEWTON_SOLVE
+       num_attempts = 2
     else
        call amrex_error("invalid sdc_solver")
     endif
