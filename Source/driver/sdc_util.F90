@@ -256,7 +256,7 @@ contains
              if (sdc_solver == 4) then
                 ! we didn't converge, so let's try VODE next
                 solver = VODE_SOLVE
-                continue
+                cycle
              endif
 
              print *, "errors: ", err_dens, err_spec, err_ener
