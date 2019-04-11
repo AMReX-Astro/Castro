@@ -1292,6 +1292,10 @@ contains
                    dF(3) = ZERO
                 end if
 
+             else if (coord_type .eq. 1) then
+
+                dF(1) = ZERO
+
              end if
 
              if (pmask(i,j,k) > ZERO) then

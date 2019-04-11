@@ -1084,7 +1084,7 @@ Castro::update_relaxation(Real time, Real dt) {
             const int* lo  = box.loVect();
             const int* hi  = box.hiVect();
 
-            sum_force_on_stars(lo, hi,
+            sum_force_on_stars(ARLIM_3D(lo), ARLIM_3D(hi),
                                BL_TO_FORTRAN_ANYD((*rot_force[lev])[mfi]),
                                BL_TO_FORTRAN_ANYD(S_new[mfi]),
                                BL_TO_FORTRAN_ANYD(vol[mfi]),
