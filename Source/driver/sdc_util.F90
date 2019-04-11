@@ -93,7 +93,7 @@ contains
 
     integer, parameter :: NEWTON_SOLVE = 1
     integer, parameter :: VODE_SOLVE = 2
-    integer :: solver
+    integer :: solver, num_attempts, iattempt
 
     integer, parameter :: MF_ANALYTIC_JAC = 21, MF_NUMERICAL_JAC = 22
     integer :: imode
@@ -125,177 +125,190 @@ contains
     tol_spec = sdc_solver_tol_spec / relax_fac
     tol_ener = sdc_solver_tol_ener / relax_fac
 
-    ! update the momenta for this zone -- they don't react
-    U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
+    do iattempt = 1, num_attempts
 
-    ! update the non-reacting species
-    U_new(UFS+nspec_evolve:UFS-1+nspec) = U_old(UFS+nspec_evolve:UFS-1+nspec) + &
-         dt_m * C(UFS+nspec_evolve:UFS-1+nspec)
+       ! update the momenta for this zone -- they don't react
+       U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
 
-    ! now only save the subset that participates in the nonlinear
-    ! solve -- note: we include the old state in f_source
+       ! update the non-reacting species
+       U_new(UFS+nspec_evolve:UFS-1+nspec) = U_old(UFS+nspec_evolve:UFS-1+nspec) + &
+            dt_m * C(UFS+nspec_evolve:UFS-1+nspec)
 
-    ! load rpar
-    if (solver == NEWTON_SOLVE) then
+       ! now only save the subset that participates in the nonlinear
+       ! solve -- note: we include the old state in f_source
 
-       ! for the Jacobian solve, we are solving
-       !   f(U) = U - dt R(U) - U_old - dt C = 0
-       ! we define f_source = U_old + dt C so we are solving
-       !   f(U) = U - dt R(U) - f_source = 0
+       ! load rpar
+       if (solver == NEWTON_SOLVE) then
 
-       f_source(0) = U_old(URHO) + dt_m * C(URHO)
-       f_source(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve) + dt_m * C(UFS:UFS-1+nspec_evolve)
-       if (sdc_solve_for_rhoe == 1) then
-          f_source(nspec_evolve+1) = U_old(UEINT) + dt_m * C(UEINT)
+          ! for the Jacobian solve, we are solving
+          !   f(U) = U - dt R(U) - U_old - dt C = 0
+          ! we define f_source = U_old + dt C so we are solving
+          !   f(U) = U - dt R(U) - f_source = 0
+
+          f_source(0) = U_old(URHO) + dt_m * C(URHO)
+          f_source(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve) + dt_m * C(UFS:UFS-1+nspec_evolve)
+          if (sdc_solve_for_rhoe == 1) then
+             f_source(nspec_evolve+1) = U_old(UEINT) + dt_m * C(UEINT)
+          else
+             f_source(nspec_evolve+1) = U_old(UEDEN) + dt_m * C(UEDEN)
+          endif
+
+          rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = f_source(:)
+          rpar(irp_dt) = dt_m
+          rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
        else
-          f_source(nspec_evolve+1) = U_old(UEDEN) + dt_m * C(UEDEN)
+
+          ! if we are solving the system as an ODE, then we
+          ! are solving
+          !    dU/dt = R(U) + C
+          ! so we simply pass in C
+          C_react(0) = C(URHO)
+          C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
+          C_react(nspec_evolve+1) = C(UEINT)
+
+          rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = C_react(:)
+          rpar(irp_dt) = dt_m
+          rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
        endif
 
-       rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = f_source(:)
-       rpar(irp_dt) = dt_m
-       rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
-    else
-
-       ! if we are solving the system as an ODE, then we
-       ! are solving
-       !    dU/dt = R(U) + C
-       ! so we simply pass in C
-       C_react(0) = C(URHO)
-       C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
-       C_react(nspec_evolve+1) = C(UEINT)
-
-       rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = C_react(:)
-       rpar(irp_dt) = dt_m
-       rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
-    endif
-
-    ! we should be able to do an update for this somehow?
-    if (sdc_solve_for_rhoe == 1) then
-       rpar(irp_evar) = U_new(UEDEN)
-    else
-       rpar(irp_evar) = U_new(UEINT)
-    endif
-
-    rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = &
-         U_new(UFS+nspec_evolve:UFS-1+nspec)
-
-    ! store the subset for the nonlinear solve
-    if (solver == NEWTON_SOLVE) then
-
-       ! Newton solve -- we use an initial guess if possible
-       U_react(0) = U_new(URHO)
-       U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
+       ! we should be able to do an update for this somehow?
        if (sdc_solve_for_rhoe == 1) then
-          U_react(nspec_evolve+1) = U_new(UEINT)
+          rpar(irp_evar) = U_new(UEDEN)
        else
-          U_react(nspec_evolve+1) = U_new(UEDEN)
+          rpar(irp_evar) = U_new(UEINT)
        endif
-    else
 
-       ! VODE ODE solve -- we only consider (rho e), not (rho E)
-       U_react(0) = U_old(URHO)
-       U_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve)
-       U_react(nspec_evolve+1) = U_old(UEINT)
-    endif
+       rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = &
+            U_new(UFS+nspec_evolve:UFS-1+nspec)
+
+       ! store the subset for the nonlinear solve
+       if (solver == NEWTON_SOLVE) then
+
+          ! Newton solve -- we use an initial guess if possible
+          U_react(0) = U_new(URHO)
+          U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
+          if (sdc_solve_for_rhoe == 1) then
+             U_react(nspec_evolve+1) = U_new(UEINT)
+          else
+             U_react(nspec_evolve+1) = U_new(UEDEN)
+          endif
+       else
+
+          ! VODE ODE solve -- we only consider (rho e), not (rho E)
+          U_react(0) = U_old(URHO)
+          U_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve)
+          U_react(nspec_evolve+1) = U_old(UEINT)
+       endif
 
 #if (INTEGRATOR == 0)
-    if (solver == NEWTON_SOLVE) then
-       ! do a simple Newton solve
+       if (solver == NEWTON_SOLVE) then
+          ! do a simple Newton solve
 
-       err_dens = 1.e30_rt
-       err_spec = 1.e30_rt
-       err_ener = 1.e30_rt
+          err_dens = 1.e30_rt
+          err_spec = 1.e30_rt
+          err_ener = 1.e30_rt
 
-       ! iterative loop
-       iter = 0
-       converged = .false.
-       do while (.not. converged .and. iter < MAX_ITER)
+          ! iterative loop
+          iter = 0
+          converged = .false.
+          do while (.not. converged .and. iter < MAX_ITER)
 
-          call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, rpar)
+             call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, rpar)
 
-          ! solve the linear system: Jac dU_react = -f
-          call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
-          if (info /= 0) then
-             call amrex_error("singular matrix")
+             ! solve the linear system: Jac dU_react = -f
+             call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
+             if (info /= 0) then
+                call amrex_error("singular matrix")
+             endif
+
+             f_rhs(:) = -f(:)
+
+             call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f_rhs, 0)
+
+             dU_react(:) = f_rhs(:)
+
+             U_react(:) = U_react(:) + dU_react(:)
+
+             atol_spec(:) = merge(abs(dU_react(1:nspec_evolve)), ZERO, &
+                                  abs(dU_react(1:nspec_evolve)) > sdc_solver_atol * U_react(0))
+
+             ! construct the norm of the correction
+             w(0) = abs(dU_react(0)/(U_react(0) + SMALL_X_SAFE))
+             w(1:nspec_evolve) = abs(atol_spec(1:nspec_evolve)/(U_react(1:nspec_evolve) + SMALL_X_SAFE))
+             w(nspec_evolve+1) = abs(dU_react(nspec_evolve+1)/(U_react(nspec_evolve+1) + SMALL_X_SAFE))
+
+             err_dens = abs(w(0))
+             err_spec = maxval(w(1:nspec_evolve))
+             err_ener = abs(w(nspec_evolve+1))
+
+             if (err_dens < tol_dens .and. err_spec < tol_spec .and. err_ener < tol_ener) then
+                converged = .true.
+             endif
+
+             iter = iter + 1
+          enddo
+
+          if (converged) then
+             exit
           endif
 
-          f_rhs(:) = -f(:)
+          if (.not. converged) then
+             if (sdc_solver == 4) then
+                ! we didn't converge, so let's try VODE next
+                solver = VODE_SOLVE
+                continue
+             endif
 
-          call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f_rhs, 0)
-
-          dU_react(:) = f_rhs(:)
-
-          U_react(:) = U_react(:) + dU_react(:)
-
-          atol_spec(:) = merge(abs(dU_react(1:nspec_evolve)), ZERO, &
-                               abs(dU_react(1:nspec_evolve)) > sdc_solver_atol * U_react(0))
-
-          ! construct the norm of the correction
-          w(0) = abs(dU_react(0)/(U_react(0) + SMALL_X_SAFE))
-          w(1:nspec_evolve) = abs(atol_spec(1:nspec_evolve)/(U_react(1:nspec_evolve) + SMALL_X_SAFE))
-          w(nspec_evolve+1) = abs(dU_react(nspec_evolve+1)/(U_react(nspec_evolve+1) + SMALL_X_SAFE))
-
-          err_dens = abs(w(0))
-          err_spec = maxval(w(1:nspec_evolve))
-          err_ener = abs(w(nspec_evolve+1))
-
-          if (err_dens < tol_dens .and. err_spec < tol_spec .and. err_ener < tol_ener) then
-             converged = .true.
+             print *, "errors: ", err_dens, err_spec, err_ener
+             call amrex_error("did not converge in SDC")
           endif
 
-          iter = iter + 1
-       enddo
+       else if (solver == VODE_SOLVE) then
 
-       if (.not. converged) then
-          print *, "errors: ", err_dens, err_spec, err_ener
-          call amrex_error("did not converge in SDC")
+          ! use VODE to do the solve
+
+          istate = 1
+          iopt = 1
+
+          iwork(:) = 0
+
+          ! set the maximum number of steps allowed -- the VODE default is 500
+          iwork(6) = 25000
+
+          rwork(:) = ZERO
+          time = ZERO
+
+          if (sdc_use_analytic_jac == 1) then
+             imode = MF_ANALYTIC_JAC
+          else
+             imode = MF_NUMERICAL_JAC
+          endif
+
+          ! relative tolerances
+          rtol(0) = tol_dens
+          rtol(1:nspec_evolve) = tol_spec
+          rtol(nspec_evolve+1) = tol_ener
+
+          ! absolute tolerances
+          atol(0) = sdc_solver_atol * U_old(URHO)
+          atol(1:nspec_evolve) = sdc_solver_atol * U_old(URHO)   ! this way, atol is the minimum x
+          if (sdc_solve_for_rhoe == 1) then
+             atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEINT)
+          else
+             atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEDEN)
+          endif
+
+          call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
+                     4, rtol, atol, &
+                     1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
+
+          if (istate < 0) then
+             call amrex_error("vode termination poorly, istate = ", istate)
+          endif
+
        endif
-
-    else if (solver == VODE_SOLVE) then
-
-       ! use VODE to do the solve
-
-       istate = 1
-       iopt = 1
-
-       iwork(:) = 0
-
-       ! set the maximum number of steps allowed -- the VODE default is 500
-       iwork(6) = 25000
-
-       rwork(:) = ZERO
-       time = ZERO
-
-       if (sdc_use_analytic_jac == 1) then
-          imode = MF_ANALYTIC_JAC
-       else
-          imode = MF_NUMERICAL_JAC
-       endif
-
-       ! relative tolerances
-       rtol(0) = tol_dens
-       rtol(1:nspec_evolve) = tol_spec
-       rtol(nspec_evolve+1) = tol_ener
-
-       ! absolute tolerances
-       atol(0) = sdc_solver_atol * U_old(URHO)
-       atol(1:nspec_evolve) = sdc_solver_atol * U_old(URHO)   ! this way, atol is the minimum x
-       if (sdc_solve_for_rhoe == 1) then
-          atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEINT)
-       else
-          atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEDEN)
-       endif
-
-       call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
-                  4, rtol, atol, &
-                  1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
-
-       if (istate < 0) then
-          call amrex_error("vode termination poorly, istate = ", istate)
-       endif
-
-    endif
 #endif
+    end do
 
     ! update the full U_new
     ! if we updated total energy, then correct internal, or vice versa
