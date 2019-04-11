@@ -3,7 +3,7 @@
 #PBS -N fw_b1010_slow
 #PBS -j oe
 #PBS -q batch
-#PBS -l walltime=04:00:00,nodes=128
+#PBS -l walltime=04:00:00,nodes=144
 
 
 export PSC_OMP_AFFINITY=FALSE
@@ -14,9 +14,9 @@ cd $PBS_O_WORKDIR
 
 # run the compression script to tar up the plot and checkpoint files
 # as they are created.
-#./process.titan &
-#PID=$!
-#trap 'kill -s TERM $PID' EXIT TERM HUP XCPU KILL
+./process.titan &
+PID=$!
+trap 'kill -s TERM $PID' EXIT TERM HUP XCPU KILL
 
 function find_chk_file {
     # find_chk_file takes a single argument -- the wildcard pattern
@@ -71,6 +71,6 @@ fi
 #   This can boost performance by preventing costly remote memory I/O, though
 #   it also restricts the amount of memory available to MPI tasks.
 
-aprun -n 2048 -S 8 -d 1 ./Castro2d.cray.interlagos.MPI.ex inputs.boost_10_10_slow ${restartString}
+aprun -n 2304 -S 8 -d 1 ./Castro2d.cray.interlagos.MPI.ex inputs.boost_10_10_slow ${restartString}
 
 rm -f process.pid
