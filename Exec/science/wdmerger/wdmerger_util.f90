@@ -427,7 +427,7 @@ contains
 
   subroutine binary_setup
 
-    use meth_params_module, only: rot_period, point_mass, URHO, UFS
+    use meth_params_module, only: rot_period, point_mass, URHO, UEINT, UEDEN, UFS
     use network, only: nspec
     use initial_model_module, only: initialize_model, establish_hse
     use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
@@ -437,7 +437,9 @@ contains
     use problem_io_module, only: ioproc
     use amrex_error_module, only: amrex_error
     use fundamental_constants_module, only: Gconst, c_light
-    use ambient_module, only: ambient_state
+    use ambient_module, only: ambient_state, get_ambient_eos
+    use eos_type_module, only: eos_input_rt, eos_t
+    use eos_module, only: eos
 
     implicit none
 
@@ -447,6 +449,8 @@ contains
     integer :: lev
 
     double precision :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
+
+    type(eos_t) :: ambient_eos_state
 
     omega = get_omega(ZERO)
 
@@ -556,6 +560,15 @@ contains
        ambient_state(UFS:UFS+nspec-1) = model_P % envelope_comp
 
     endif
+
+    ! We have completed (rho, T, xn) for the ambient state, so we can call the EOS.
+
+    call get_ambient_eos(ambient_eos_state)
+
+    call eos(eos_input_rt, ambient_eos_state)
+
+    ambient_state(UEINT) = ambient_state(URHO) * ambient_eos_state%e
+    ambient_state(UEDEN) = ambient_state(UEINT)
 
 
 
