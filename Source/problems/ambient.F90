@@ -1,7 +1,6 @@
 module ambient_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use meth_params_module, only: NVAR
 
   implicit none
 
@@ -9,7 +8,11 @@ module ambient_module
   ! that will be used for filling material in regions that
   ! are not of interest, like at the edges of the domain.
 
-  real(rt) :: ambient_state(NVAR)
+  real(rt), allocatable :: ambient_state(:)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: ambient_state
+#endif
 
 contains
 

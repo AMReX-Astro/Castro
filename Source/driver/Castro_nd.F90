@@ -1207,7 +1207,7 @@ subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_para
   use ambient_module, only: ambient_state
   use amrex_error_module, only: amrex_error
   use amrex_fort_module, only: rt => amrex_real
-  use meth_params_module, only: URHO, UTEMP, small_dens, small_temp
+  use meth_params_module, only: NVAR, URHO, UTEMP, small_dens, small_temp
   use amrex_constants_module, only: ZERO
 
   implicit none
@@ -1253,6 +1253,8 @@ subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_para
   endif
 
   close (unit=un)
+
+  allocate(ambient_state(NVAR))
 
   ambient_state(:) = ZERO
   ambient_state(URHO)  = ambient_dens
