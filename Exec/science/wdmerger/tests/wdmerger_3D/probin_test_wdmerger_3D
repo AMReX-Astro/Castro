@@ -1,8 +1,8 @@
 &fortin 
-  mass_P = 0.64
-  mass_S = 0.64
+  mass_P = 0.90
+  mass_S = 0.90
 
-  problem = 3
+  problem = 2
 
   roche_radius_factor = 1.1d0
 
@@ -15,9 +15,6 @@
   stellar_density_threshold = 1.0d0
  
   smallu = 1.0d-12
-
-  relaxation_damping_factor = 1.0d-1
-  radial_damping_factor = -1.0d0
 /
 
 &ambient
