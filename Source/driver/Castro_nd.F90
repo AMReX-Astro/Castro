@@ -1220,13 +1220,13 @@ subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_para
   integer, parameter :: maxlen = 256
   character (len=maxlen) :: probin
 
-  real(rt) :: ambient_dens, ambient_temp
+  real(rt) :: ambient_density, ambient_temp
 
-  namelist /ambient/ ambient_dens, ambient_temp
+  namelist /ambient/ ambient_density, ambient_temp
 
   ! Set namelist defaults
 
-  ambient_dens = small_dens
+  ambient_density = small_dens
   ambient_temp = small_temp
 
   ! create the filename
@@ -1257,7 +1257,7 @@ subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_para
   allocate(ambient_state(NVAR))
 
   ambient_state(:) = ZERO
-  ambient_state(URHO)  = ambient_dens
+  ambient_state(URHO)  = ambient_density
   ambient_state(UTEMP) = ambient_temp
 
 end subroutine ca_get_ambient_params
