@@ -1201,6 +1201,67 @@ subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_para
 end subroutine ca_deallocate_sponge_params
 #endif
 
+subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_params")
+    ! Initialize the ambient parameters
+
+  use ambient_module, only: ambient_state
+  use amrex_error_module, only: amrex_error
+  use amrex_fort_module, only: rt => amrex_real
+  use meth_params_module, only: URHO, UTEMP, small_dens, small_temp
+  use amrex_constants_module, only: ZERO
+
+  implicit none
+
+  integer, intent(in) :: namlen
+  integer, intent(in) :: name(namlen)
+
+  integer :: un, i, status
+
+  integer, parameter :: maxlen = 256
+  character (len=maxlen) :: probin
+
+  real(rt) :: ambient_dens, ambient_temp
+
+  namelist /ambient/ ambient_dens, ambient_temp
+
+  ! Set namelist defaults
+
+  ambient_dens = small_dens
+  ambient_temp = small_temp
+
+  ! create the filename
+  if (namlen > maxlen) then
+     call amrex_error('probin file name too long')
+  endif
+
+  do i = 1, namlen
+     probin(i:i) = char(name(i))
+  end do
+
+  ! read in the namelist
+  un = 9
+  open (unit=un, file=probin(1:namlen), form='formatted', status='old')
+  read (unit=un, nml=ambient, iostat=status)
+
+  if (status < 0) then
+     ! the namelist does not exist, so we just go with the defaults
+     continue
+
+  else if (status > 0) then
+     ! some problem in the namelist
+     call amrex_error('ERROR: problem in the ambient namelist')
+  endif
+
+  close (unit=un)
+
+  ambient_state(:) = ZERO
+  ambient_state(URHO)  = ambient_dens
+  ambient_state(UTEMP) = ambient_temp
+
+end subroutine ca_get_ambient_params
+
+
+
 #ifdef GRAVITY
 
 subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')

@@ -54,6 +54,7 @@
      use castro_util_module, only: position
      use rotation_frequency_module, only: get_omega
      use wdmerger_util_module, only: inertial_velocity
+     use ambient_module, only: get_ambient_eos
 
      implicit none
 
@@ -81,7 +82,7 @@
      ! inside the primary or secondary (in which case interpolate from the respective model)
      ! or if we are in an ambient zone.
 
-     call get_ambient(ambient_state)
+     call get_ambient_eos(ambient_state)
 
      omega = get_omega(time)
 

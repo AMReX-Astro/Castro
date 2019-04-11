@@ -36,3 +36,4 @@ endif
 ca_f90EXE_sources += problem_derive_nd.f90
 ca_f90EXE_sources += Problem.f90
 
+ca_F90EXE_sources += ambient.F90

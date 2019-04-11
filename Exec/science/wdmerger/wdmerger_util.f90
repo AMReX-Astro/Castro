@@ -182,7 +182,9 @@ contains
 
   subroutine set_small
 
-    use meth_params_module, only: small_temp, small_pres, small_dens, small_ener
+    use meth_params_module, only: small_temp, small_pres, small_dens, small_ener, UFS
+    use ambient_module, only: ambient_state
+    use network, only: nspec
 
     implicit none
 
@@ -192,7 +194,7 @@ contains
 
     eos_state % rho = small_dens
     eos_state % T   = small_temp
-    eos_state % xn  = ambient_comp
+    eos_state % xn  = ambient_state(UFS:UFS+nspec-1)
 
     call eos(eos_input_rt, eos_state)
 
@@ -200,28 +202,6 @@ contains
     small_ener = eos_state % e
 
   end subroutine set_small
-
-
-
-  ! Returns the ambient state
-
-  subroutine get_ambient(ambient_state)
-
-    implicit none
-
-    type (eos_t) :: ambient_state
-
-    ! Define ambient state, using a composition that is an 
-    ! even mixture of the primary and secondary composition, 
-    ! and then call the EOS to get internal energy and pressure.
-
-    ambient_state % rho = ambient_density
-    ambient_state % T   = ambient_temp
-    ambient_state % xn  = ambient_comp
-
-    call eos(eos_input_rt, ambient_state)
-
-  end subroutine get_ambient
 
 
 
@@ -447,7 +427,8 @@ contains
 
   subroutine binary_setup
 
-    use meth_params_module, only: rot_period, point_mass
+    use meth_params_module, only: rot_period, point_mass, URHO, UFS
+    use network, only: nspec
     use initial_model_module, only: initialize_model, establish_hse
     use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
     use rotation_frequency_module, only: get_omega
@@ -456,6 +437,7 @@ contains
     use problem_io_module, only: ioproc
     use amrex_error_module, only: amrex_error
     use fundamental_constants_module, only: Gconst, c_light
+    use ambient_module, only: ambient_state
 
     implicit none
 
@@ -500,8 +482,8 @@ contains
     call initialize_model(model_P, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
     call initialize_model(model_S, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
 
-    model_P % min_density = ambient_density
-    model_S % min_density = ambient_density
+    model_P % min_density = ambient_state(URHO)
+    model_S % min_density = ambient_state(URHO)
 
     model_P % central_temp = stellar_temp
     model_S % central_temp = stellar_temp
@@ -567,11 +549,11 @@ contains
 
        endif
 
-       ambient_comp = (model_P % envelope_comp + model_S % envelope_comp) / 2
+       ambient_state(UFS:UFS+nspec-1) = (model_P % envelope_comp + model_S % envelope_comp) / 2
 
     else
 
-       ambient_comp = model_P % envelope_comp
+       ambient_state(UFS:UFS+nspec-1) = model_P % envelope_comp
 
     endif
 
@@ -936,52 +918,6 @@ contains
     vel = (TWO * Gconst * mass / distance)**HALF
 
   end subroutine freefall_velocity
-
-
-
-  ! Given a zone state, fill it with ambient material.
-
-  subroutine fill_ambient(state, loc, time)
-
-    use amrex_constants_module, only: ZERO
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UTEMP, UEINT, UEDEN, UFS, do_rotation
-    use network, only: nspec
-    use rotation_frequency_module, only: get_omega
-    use math_module, only: cross_product
-
-    implicit none
-
-    double precision :: state(NVAR)
-    double precision :: loc(3), time
-
-    type (eos_t) :: ambient_state
-    double precision :: omega(3)
-
-    omega = get_omega(time)
-
-    call get_ambient(ambient_state)
-
-    state(URHO) = ambient_state % rho
-    state(UTEMP) = ambient_state % T
-    state(UFS:UFS-1+nspec) = ambient_state % rho * ambient_state % xn(:)                 
-
-    ! If we're in the inertial frame, give the material the rigid-body rotation speed.
-    ! Otherwise set it to zero.
-
-    if ( (do_rotation .ne. 1) .and. (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3) ) then
-
-       state(UMX:UMZ) = state(URHO) * cross_product(omega, loc)
-
-    else
-
-       state(UMX:UMZ) = ZERO
-
-    endif
-
-    state(UEINT) = ambient_state % rho * ambient_state % e
-    state(UEDEN) = state(UEINT) + HALF * sum(state(UMX:UMZ)**2) / state(URHO)
-
-  end subroutine fill_ambient
 
 
 

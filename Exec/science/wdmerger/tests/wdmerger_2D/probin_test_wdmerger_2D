@@ -6,10 +6,7 @@
 
   roche_radius_factor = 1.0d0
 
-  ambient_density = 1.0d-4
-
   stellar_temp = 1.0d7
-  ambient_temp = 1.0d7
 
   orbital_eccentricity = 0.0d0
   orbital_angle = 0.0d0
@@ -18,6 +15,13 @@
   stellar_density_threshold = 1.0d0
  
   smallu = 1.0d-12
+/
+
+&ambient
+
+  ambient_density = 1.0d-4
+  ambient_temp = 1.0d7
+
 /
 
 &tagging 

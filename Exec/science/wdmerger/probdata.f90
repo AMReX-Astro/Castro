@@ -20,14 +20,6 @@ module probdata_module
 
 
 
-  ! Ambient medium
-
-  double precision, save :: ambient_density = 1.0d-4
-  double precision, save :: ambient_temp = 1.0d7
-  double precision, save :: ambient_comp(nspec)
-
-
-
   ! Smallest allowed velocity on the grid
 
   double precision, save :: smallu = ZERO
@@ -268,9 +260,7 @@ module probdata_module
        relaxation_density_cutoff, &
        initial_radial_velocity_factor, &
        radial_damping_factor, &
-       ambient_density, &
        stellar_temp, &
-       ambient_temp, &
        max_he_wd_mass, &
        max_hybrid_wd_mass, hybrid_wd_he_shell_mass, &
        max_co_wd_mass, &
