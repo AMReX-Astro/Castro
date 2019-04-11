@@ -1,0 +1,76 @@
+#!/bin/bash
+#PBS -A ast106
+#PBS -N fw_b1010_slow
+#PBS -j oe
+#PBS -q batch
+#PBS -l walltime=04:00:00,nodes=128
+
+
+export PSC_OMP_AFFINITY=FALSE
+export OMP_NUM_THREADS=1
+
+
+cd $PBS_O_WORKDIR
+
+# run the compression script to tar up the plot and checkpoint files
+# as they are created.
+#./process.titan &
+#PID=$!
+#trap 'kill -s TERM $PID' EXIT TERM HUP XCPU KILL
+
+function find_chk_file {
+    # find_chk_file takes a single argument -- the wildcard pattern
+    # for checkpoint files to look through
+    chk=$1
+
+    # find the latest 2 restart files.  This way if the latest didn't
+    # complete we fall back to the previous one.
+    temp_files=$(find . -type d -name "${chk}" -print | sort | tail -2)
+    for f in ${temp_files}
+    do
+        # the Header is the last thing written -- check if it's there, otherwise,
+        # fall back to the second-to-last check file written
+        if [ ! -f ${f}/Header ]; then
+            restartFile=""
+        else
+            restartFile="${f}"
+        fi
+    done
+
+}
+
+# here, we'll rely on restartFile being global
+
+# look for 7-digit chk files
+find_chk_file "*chk???????"
+
+if [ "${restartFile}" = "" ]; then
+    # look for 6-digit chk files
+    find_chk_file "*chk??????"
+fi
+
+if [ "${restartFile}" = "" ]; then
+    # look for 5-digit chk files
+    find_chk_file "*chk?????"
+fi
+
+# restartString will be empty if no chk files are found -- i.e. new run
+if [ "${restartFile}" = "" ]; then
+    restartString=""
+else
+    restartString="amr.restart=${restartFile}"
+    echo "Restarting with: " ${restartString}
+fi
+
+# Titan has 18688 physical nodes, each of which has 16 cores and 2 NUMA nodes
+#
+# -n  is the total number of MPI tasks (should be nodes*-S*2)
+# -S  is the number of MPI tasks per NUMA node
+# -d  is the number of OpenMP threads per MPI task (must match OMP_NUM_THREADS)
+# -ss forces MPI tasks to only allocate memory in their local NUMA node.
+#   This can boost performance by preventing costly remote memory I/O, though
+#   it also restricts the amount of memory available to MPI tasks.
+
+aprun -n 2048 -S 8 -d 1 ./Castro2d.cray.interlagos.MPI.ex inputs.boost_10_10_slow ${restartString}
+
+rm -f process.pid
