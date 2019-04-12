@@ -323,7 +323,7 @@ contains
     real(rt), intent(in) :: t
     real(rt), intent(in) :: U(0:n-1)
     real(rt), intent(out) :: dUdt(0:n-1)
-    real(rt), intent(in) :: rpar(0:n_rpar-1)
+    real(rt), intent(inout) :: rpar(0:n_rpar-1)
     integer, intent(in) :: ipar
 
     real(rt) :: U_full(nvar),  R_full(nvar)
@@ -347,6 +347,9 @@ contains
     U_full(UTEMP) = rpar(irp_temp)
 
     call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
+
+    ! update our temperature for next time
+    rpar(irp_temp) = burn_state % T
 
     R_react(0) = R_full(URHO)
     R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
