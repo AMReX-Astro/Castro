@@ -19,10 +19,14 @@ module rpar_sdc_module
   ! evar is the other energy variable (rho e if we are solving for rho E, and vice versa)
   integer, parameter :: irp_evar = irp_mom + 3
 
-  ! the unevolved species -- note: unevolved here means not reacting
-  integer, parameter :: irp_spec = irp_evar + 1
+  ! the temperature -- used as a guess in the EOS
+  integer, parameter :: irp_temp = irp_evar + 1
 
-  integer, parameter :: n_rpar = nspec_evolve + 7 + (nspec - nspec_evolve)
+  ! the unevolved species -- note: unevolved here means not reacting
+  integer, parameter :: irp_spec = irp_temp + 1  ! nspec - nspec_evolve components
+
+  integer, parameter :: n_rpar = nspec_evolve + 8 + (nspec - nspec_evolve)
+
 
 end module rpar_sdc_module
 
@@ -183,6 +187,9 @@ contains
           rpar(irp_dt) = dt_m
           rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
        endif
+
+       ! temperature will be used as an initial guess in the EOS
+       rpar(irp_temp) = U_old(UTEMP)
 
        ! we should be able to do an update for this somehow?
        if (sdc_solve_for_rhoe == 1) then
@@ -353,7 +360,7 @@ contains
     real(rt), intent(in) :: t
     real(rt), intent(in) :: U(0:n-1)
     real(rt), intent(out) :: dUdt(0:n-1)
-    real(rt), intent(in) :: rpar(0:n_rpar-1)
+    real(rt), intent(inout) :: rpar(0:n_rpar-1)
     integer, intent(in) :: ipar
 
     real(rt) :: U_full(nvar),  R_full(nvar)
@@ -372,10 +379,14 @@ contains
     U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
     U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
 
-    ! we'll get the temperature here, so just initialize it to something
-    U_full(UTEMP) = 1.e4_rt
+    ! initialize the temperature -- a better value will be found when we do the EOS
+    ! call in single_zone_react_source
+    U_full(UTEMP) = rpar(irp_temp)
 
     call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
+
+    ! update our temperature for next time
+    rpar(irp_temp) = burn_state % T
 
     R_react(0) = R_full(URHO)
     R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
@@ -431,7 +442,7 @@ contains
     ! returned by single_zone_react_source, since it is
     ! more consistent T from e
     eos_state % rho = U_full(URHO)
-    eos_state % T = 1.e6_rt   ! initial guess
+    eos_state % T = rpar(irp_temp)   ! initial guess
     eos_state % xn(:) = U_full(UFS:UFS-1+nspec)/U_full(URHO)
     eos_state % e = U_full(UEINT)/U_full(URHO)  !(U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
 
@@ -589,7 +600,7 @@ contains
     ! returned by single_zone_react_source, since it is
     ! more consistent T from e
     eos_state % rho = U_full(URHO)
-    eos_state % T = 1.e6_rt   ! initial guess
+    eos_state % T = rpar(irp_temp)   ! initial guess
     eos_state % xn(:) = U_full(UFS:UFS-1+nspec)/U_full(URHO)
     eos_state % e = U_full(UEINT)/U_full(URHO)  !(U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
 
