@@ -3,11 +3,24 @@ module rpar_sdc_module
   use network, only : nspec, nspec_evolve
   implicit none
 
-  integer, parameter :: irp_f_source = 0  ! nspec_evolve + 2 components
+  ! rpar is the storage array that is passed into the righthand side of the ODE integrator
+
+  ! f_source is function we are zeroing.  There are nspec_evolve + 2
+  ! components (density and energy), since those are the unknowns for
+  ! the nonlinear system
+  integer, parameter :: irp_f_source = 0
+
+  ! dt is the timestep (1 component)
   integer, parameter :: irp_dt = irp_f_source + nspec_evolve + 2
-  integer, parameter :: irp_mom = irp_dt + 1    ! 3 components
+
+  ! mom is the momentum (3 components)
+  integer, parameter :: irp_mom = irp_dt + 1
+
+  ! evar is the other energy variable (rho e if we are solving for rho E, and vice versa)
   integer, parameter :: irp_evar = irp_mom + 3
-  integer, parameter :: irp_spec = irp_evar + 1  ! nspec - nspec_evolve components
+
+  ! the unevolved species -- note: unevolved here means not reacting
+  integer, parameter :: irp_spec = irp_evar + 1
 
   integer, parameter :: n_rpar = nspec_evolve + 7 + (nspec - nspec_evolve)
 
