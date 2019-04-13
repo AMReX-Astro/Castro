@@ -135,8 +135,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // compute the flattening coefficient
 
+      Array4<Real> const flatn_arr = flatn.array();
+
       if (first_order_hydro == 1) {
-        flatn.setVal(0.0, obx);
+        AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
       } else if (use_flattening == 1) {
 #ifdef RADIATION
         ca_rad_flatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
@@ -150,7 +152,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                     BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
 #endif
       } else {
-        flatn.setVal(1.0, obx);
+        AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
       }
 
       const Box& xbx = amrex::surroundingNodes(bx, 0);
