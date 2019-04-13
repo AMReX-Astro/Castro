@@ -2691,6 +2691,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    Real dt_advance = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
             Real dt_amr = parent->dtLevel(lev); // The full timestep expected by the Amr class.
 
+            ca_set_amr_info(lev, -1, -1, time, dt_advance);
+
             if (getLevel(lev).apply_sources()) {
 
                 getLevel(lev).apply_source_to_state(S_new, source, -dt_advance, 0);
