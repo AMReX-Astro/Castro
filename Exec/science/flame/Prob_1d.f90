@@ -195,20 +195,20 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   xn_fuel(:) = xn_fuel(:)/sum(xn_fuel(:))
   xn_ash(:) = xn_ash(:)/sum(xn_ash(:))
 
-  eos_state%rho = rho_fuel
-  eos_state%T = T_fuel
-  eos_state%xn(:) = xn_fuel(:)
+  eos_state % rho = rho_fuel
+  eos_state % T = T_fuel
+  eos_state % xn(:) = xn_fuel(:)
 
   call eos(eos_input_rt, eos_state)
 
-  e_fuel = eos_state%e
-  p_fuel = eos_state%p
+  e_fuel = eos_state % e
+  p_fuel = eos_state % p
 
   ! compute the ash state -- this should be hot but in pressure equilibrium
-  eos_state%rho = rho_fuel  ! initial guess
-  eos_state%p = p_fuel      ! pressure equilibrum
-  eos_state%T = T_ash
-  eos_state%xn(:) = xn_ash(:)
+  eos_state % rho = rho_fuel  ! initial guess
+  eos_state % p = p_fuel      ! pressure equilibrum
+  eos_state % T = T_ash
+  eos_state % xn(:) = xn_ash(:)
 
   call eos(eos_input_tp, eos_state)
 
@@ -231,22 +231,24 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,UTEMP) = T_ash
         state(i,UFS:UFS-1+nspec) = rho_ash*xn_ash(:)
 
-     elseif (xx > x_int .and. xx < x_int + pert_width) then
+     else if (xx > x_int .and. xx < x_int + pert_width) then
 
-        ! linearly interpolate
+        ! linearly interpolate T, X, and find the rho that keeps us isobaric
+
         f = (xx - x_int)/pert_width
-        eos_state%T = (ONE-f)*T_ash + f*T_fuel
-        eos_state%rho = (ONE-f)*rho_ash + f*rho_fuel
-        eos_state%xn(:) = (ONE-f)*xn_ash(:) + f*xn_fuel(:)
-        
-        call eos(eos_input_rt, eos_state)
+        eos_state % T = (ONE-f)*T_ash + f*T_fuel
+        eos_state % rho = (ONE-f)*rho_ash + f*rho_fuel
+        eos_state % xn(:) = (ONE-f)*xn_ash(:) + f*xn_fuel(:)
+        eos_state % p = p_fuel
 
-        state(i,URHO ) = eos_state%rho
+        call eos(eos_input_tp, eos_state)
+
+        state(i,URHO ) = eos_state % rho
         state(i,UMX:UMZ) = ZERO
-        state(i,UEDEN) = eos_state%rho*eos_state%e
-        state(i,UEINT) = eos_state%rho*eos_state%e
-        state(i,UTEMP) = eos_state%T
-        state(i,UFS:UFS-1+nspec) = eos_state%rho*eos_state%xn(:)
+        state(i,UEDEN) = eos_state % rho * eos_state % e
+        state(i,UEINT) = eos_state % rho * eos_state % e
+        state(i,UTEMP) = eos_state % T
+        state(i,UFS:UFS-1+nspec) = eos_state % rho * eos_state % xn(:)
 
      else
 
@@ -257,8 +259,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         state(i,UEINT) = rho_fuel*e_fuel
         state(i,UTEMP) = T_fuel
         state(i,UFS:UFS-1+nspec) = rho_fuel*xn_fuel(:)
-     endif
+     end if
 
-  enddo
+  end do
 
 end subroutine ca_initdata
