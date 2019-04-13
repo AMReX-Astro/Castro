@@ -238,6 +238,12 @@ contains
              ! solve the linear system: Jac dU_react = -f
              call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
              if (info /= 0) then
+                if (sdc_solver == 4) then
+                   ! we were singular, so let's try VODE next
+                   solver = VODE_SOLVE
+                   cycle
+                endif
+
                 call amrex_error("singular matrix")
              endif
 
