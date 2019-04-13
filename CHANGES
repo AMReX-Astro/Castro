@@ -6,7 +6,7 @@
      hybrid momentum) were being calculated incorrectly. This caused
      some strange effects in AMR simulations with rotation, such as
      binary star orbits getting wider with time and drifting relative
-     to the system center of mass. This has now been fixed.
+     to the system center of mass. This has now been fixed. (#599)
 
   -- density_reset_method == 3 (which, in the event of a density reset,
      reset to the density at the beginning of the timestep) no longer
