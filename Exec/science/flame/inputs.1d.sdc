@@ -38,7 +38,7 @@ castro.diffuse_cutoff_density = 1.e-2
 
 
 # TIME STEP CONTROL
-castro.cfl            = 0.6     # cfl number for hyperbolic system
+castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 castro.dt_cutoff      = 1.e-15  # level 0 timestep below which we halt
