@@ -49,18 +49,17 @@ module probdata_module
   ! Method for determining the initial problem setup.
   !
   ! 0 = Collision; distance determined by a multiple of the secondary WD radius
-  ! 1 = Keplerian orbit; distance determined by the rotation period
-  ! 2 = Keplerian orbit; distance set so that the secondary exactly fills its Roche lobe radius
+  ! 1 = Keplerian orbit; distance determined by Roche radius (or rotation period)
   ! 4 = Free-fall; distance determined by a multiple of the secondary WD radius
   ! 5 = Tidal disruption event; distance determined by a multiple of the WD tidal radius
 
-  integer, save :: problem = 2
+  integer, save :: problem = 1
 
 
 
   ! If we're automatically determining the initial distance based on the Roche lobe
-  ! radii for problem 2, this is the sizing factor we use. We set the default value
-  ! to be a large enough distance so that the system is close to stable.
+  ! radii for the merger problem, this is the sizing factor we use. Negative means
+  ! that we set the initial distance using the user-selected rotation period.
 
   double precision, save :: roche_radius_factor = 1.0d0
 

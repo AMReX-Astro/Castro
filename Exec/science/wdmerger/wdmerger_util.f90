@@ -133,7 +133,7 @@ contains
     ! If we're doing a relaxation, we need to reset the relaxation_is_done parameter.
     ! This will be reset as appropriate from the checkpoint if we're performing a restart.
 
-    if (problem .eq. 2 .and. relaxation_damping_factor > ZERO) then
+    if (problem .eq. 1 .and. relaxation_damping_factor > ZERO) then
        relaxation_is_done = 0
     end if
 
@@ -653,15 +653,15 @@ contains
           center_P_initial(axis_2) = center_P_initial(axis_2) - collision_offset
           center_S_initial(axis_2) = center_S_initial(axis_2) + collision_offset
 
-       else if (problem == 1 .or. problem == 2) then
+       else if (problem == 1) then
 
-          if (problem == 1) then
+          if (roche_radius_factor < ZERO) then
 
              ! Determine the orbital distance based on the rotational period.
 
              a = -ONE
 
-          else if (problem == 2) then
+          else
 
              ! Set the orbital distance, then calculate the rotational period.
 
@@ -969,7 +969,7 @@ contains
     ! If we're in the inertial frame, give the material the rigid-body rotation speed.
     ! Otherwise set it to zero.
 
-    if ( (do_rotation .ne. 1) .and. (problem .eq. 1 .or. problem .eq. 2) ) then
+    if (do_rotation /= 1 .and. problem == 1) then
 
        state(UMX:UMZ) = state(URHO) * cross_product(omega, loc)
 
