@@ -195,20 +195,20 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   xn_fuel(:) = xn_fuel(:)/sum(xn_fuel(:))
   xn_ash(:) = xn_ash(:)/sum(xn_ash(:))
 
-  eos_state%rho = rho_fuel
-  eos_state%T = T_fuel
-  eos_state%xn(:) = xn_fuel(:)
+  eos_state % rho = rho_fuel
+  eos_state % T = T_fuel
+  eos_state % xn(:) = xn_fuel(:)
 
   call eos(eos_input_rt, eos_state)
 
-  e_fuel = eos_state%e
-  p_fuel = eos_state%p
+  e_fuel = eos_state % e
+  p_fuel = eos_state % p
 
   ! compute the ash state -- this should be hot but in pressure equilibrium
-  eos_state%rho = rho_fuel  ! initial guess
-  eos_state%p = p_fuel      ! pressure equilibrum
-  eos_state%T = T_ash
-  eos_state%xn(:) = xn_ash(:)
+  eos_state % rho = rho_fuel  ! initial guess
+  eos_state % p = p_fuel      ! pressure equilibrum
+  eos_state % T = T_ash
+  eos_state % xn(:) = xn_ash(:)
 
   call eos(eos_input_tp, eos_state)
 
@@ -221,44 +221,20 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   do i = lo(1), hi(1)
      xx = problo(1) + delta(1)*(dble(i) + 0.5e0_rt)
 
-     if (xx <= x_int) then
+     ! blend the fuel and ash state, keeping the pressure constant
+     eos_state % rho = (rho_ash - rho_fuel) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + rho_fuel
+     eos_state % T = (T_ash - T_fuel) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + T_fuel
+     eos_state % xn(:) = (xn_ash(:) - xn_fuel(:)) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + xn_fuel(:)
+     eos_state % p = p_fuel
 
-        ! ash
-        state(i,URHO ) = rho_ash
-        state(i,UMX:UMZ) = ZERO
-        state(i,UEDEN) = rho_ash*e_ash
-        state(i,UEINT) = rho_ash*e_ash
-        state(i,UTEMP) = T_ash
-        state(i,UFS:UFS-1+nspec) = rho_ash*xn_ash(:)
+     call eos(eos_input_tp, eos_state)
 
-     elseif (xx > x_int .and. xx < x_int + pert_width) then
-
-        ! linearly interpolate
-        f = (xx - x_int)/pert_width
-        eos_state%T = (ONE-f)*T_ash + f*T_fuel
-        eos_state%rho = (ONE-f)*rho_ash + f*rho_fuel
-        eos_state%xn(:) = (ONE-f)*xn_ash(:) + f*xn_fuel(:)
-        
-        call eos(eos_input_rt, eos_state)
-
-        state(i,URHO ) = eos_state%rho
-        state(i,UMX:UMZ) = ZERO
-        state(i,UEDEN) = eos_state%rho*eos_state%e
-        state(i,UEINT) = eos_state%rho*eos_state%e
-        state(i,UTEMP) = eos_state%T
-        state(i,UFS:UFS-1+nspec) = eos_state%rho*eos_state%xn(:)
-
-     else
-
-        ! fuel
-        state(i,URHO ) = rho_fuel
-        state(i,UMX:UMZ) = ZERO
-        state(i,UEDEN) = rho_fuel*e_fuel
-        state(i,UEINT) = rho_fuel*e_fuel
-        state(i,UTEMP) = T_fuel
-        state(i,UFS:UFS-1+nspec) = rho_fuel*xn_fuel(:)
-     endif
-
-  enddo
+     state(i,URHO ) = eos_state % rho
+     state(i,UMX:UMZ) = ZERO
+     state(i,UEDEN) = eos_state % rho * eos_state % e
+     state(i,UEINT) = eos_state % rho * eos_state % e
+     state(i,UTEMP) = eos_state % T
+     state(i,UFS:UFS-1+nspec) = eos_state % rho * eos_state % xn(:)
+  end do
 
 end subroutine ca_initdata

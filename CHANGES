@@ -11,6 +11,12 @@
      It still does a similar type of timestep limiting, but quantitatively
      the timesteps it chooses will be different. (#538)
 
+  -- A sign error was fixed in the hybrid_hydro angular momentum
+     algorithm This addresses issue #462.  During commmit 0f09693, a
+     change in signs was introduced in add_hybrid_momentum_sources,
+     which should be analogous to linear_to_hybrid (#594)
+
+
 # 19.04
 
   -- The runtime parameter castro.fix_mass_flux has been removed: it is not

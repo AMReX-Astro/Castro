@@ -34,7 +34,9 @@ contains
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
                                    sdc_order, sdc_solver, &
-                                   sdc_solver_tol, sdc_solver_relax_factor, &
+                                   sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener, &
+                                   sdc_solver_atol, &
+                                   sdc_solver_relax_factor, &
                                    sdc_solve_for_rhoe, sdc_use_analytic_jac
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
@@ -53,6 +55,7 @@ contains
 
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
     real(rt) :: w(0:nspec_evolve+1)
+    real(rt) :: atol_spec(nspec_evolve)
 
     real(rt) :: rpar(0:n_rpar-1)
     integer :: ipar
@@ -68,7 +71,8 @@ contains
     real(rt) :: rwork(lrw)
     integer :: iwork(liw)
     real(rt) :: time
-    real(rt) :: tol
+    real(rt) :: tol_dens, tol_spec, tol_ener, relax_fac
+    real(rt) :: rtol(0:nspec_evolve+1), atol(0:nspec_evolve+1)
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
@@ -82,7 +86,8 @@ contains
 
     integer :: m, n
 
-    real(rt) :: err
+    real(rt) :: err_dens, err_spec, err_ener
+
     integer, parameter :: MAX_ITER = 100
     integer :: iter
 
@@ -108,7 +113,10 @@ contains
     endif
 
     ! the tolerance we are solving to may depend on the iteration
-    tol = sdc_solver_tol / sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
+    relax_fac = sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
+    tol_dens = sdc_solver_tol_dens / relax_fac
+    tol_spec = sdc_solver_tol_spec / relax_fac
+    tol_ener = sdc_solver_tol_ener / relax_fac
 
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
@@ -187,7 +195,9 @@ contains
     if (solver == NEWTON_SOLVE) then
        ! do a simple Newton solve
 
-       err = 1.e30_rt
+       err_dens = 1.e30_rt
+       err_spec = 1.e30_rt
+       err_ener = 1.e30_rt
 
        ! iterative loop
        iter = 0
@@ -210,13 +220,19 @@ contains
 
           U_react(:) = U_react(:) + dU_react(:)
 
-          ! construct the norm of the correction -- only worry about
-          ! species here, and use some protection against divide by 0
-          w(:) = abs(dU_react(:)/(U_react(:) + SMALL_X_SAFE))
+          atol_spec(:) = merge(abs(dU_react(1:nspec_evolve)), ZERO, &
+                               abs(dU_react(1:nspec_evolve)) > sdc_solver_atol * U_react(0))
 
-          err = sqrt(sum(w(1:nspec_evolve)**2))
+          ! construct the norm of the correction
+          w(0) = abs(dU_react(0)/(U_react(0) + SMALL_X_SAFE))
+          w(1:nspec_evolve) = abs(atol_spec(1:nspec_evolve)/(U_react(1:nspec_evolve) + SMALL_X_SAFE))
+          w(nspec_evolve+1) = abs(dU_react(nspec_evolve+1)/(U_react(nspec_evolve+1) + SMALL_X_SAFE))
 
-          if (err < tol) then
+          err_dens = abs(w(0))
+          err_spec = maxval(w(1:nspec_evolve))
+          err_ener = abs(w(nspec_evolve+1))
+
+          if (err_dens < tol_dens .and. err_spec < tol_spec .and. err_ener < tol_ener) then
              converged = .true.
           endif
 
@@ -224,6 +240,7 @@ contains
        enddo
 
        if (.not. converged) then
+          print *, "errors: ", err_dens, err_spec, err_ener
           call amrex_error("did not converge in SDC")
        endif
 
@@ -248,8 +265,22 @@ contains
           imode = MF_NUMERICAL_JAC
        endif
 
+       ! relative tolerances
+       rtol(0) = tol_dens
+       rtol(1:nspec_evolve) = tol_spec
+       rtol(nspec_evolve+1) = tol_ener
+
+       ! absolute tolerances
+       atol(0) = sdc_solver_atol * U_old(URHO)
+       atol(1:nspec_evolve) = sdc_solver_atol * U_old(URHO)   ! this way, atol is the minimum x
+       if (sdc_solve_for_rhoe == 1) then
+          atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEINT)
+       else
+          atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEDEN)
+       endif
+
        call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
-                  1, tol, 1.e-100_rt, &
+                  4, rtol, atol, &
                   1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
 
        if (istate < 0) then

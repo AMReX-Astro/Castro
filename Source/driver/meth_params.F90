@@ -160,7 +160,10 @@ module meth_params_module
   integer,  allocatable, save :: mol_order
   integer,  allocatable, save :: sdc_order
   integer,  allocatable, save :: sdc_solver
-  real(rt), allocatable, save :: sdc_solver_tol
+  real(rt), allocatable, save :: sdc_solver_tol_dens
+  real(rt), allocatable, save :: sdc_solver_tol_spec
+  real(rt), allocatable, save :: sdc_solver_tol_ener
+  real(rt), allocatable, save :: sdc_solver_atol
   real(rt), allocatable, save :: sdc_solver_relax_factor
   integer,  allocatable, save :: sdc_solve_for_rhoe
   integer,  allocatable, save :: sdc_use_analytic_jac
@@ -248,7 +251,10 @@ attributes(managed) :: fill_ambient_bc
 attributes(managed) :: mol_order
 attributes(managed) :: sdc_order
 attributes(managed) :: sdc_solver
-attributes(managed) :: sdc_solver_tol
+attributes(managed) :: sdc_solver_tol_dens
+attributes(managed) :: sdc_solver_tol_spec
+attributes(managed) :: sdc_solver_tol_ener
+attributes(managed) :: sdc_solver_atol
 attributes(managed) :: sdc_solver_relax_factor
 attributes(managed) :: sdc_solve_for_rhoe
 attributes(managed) :: sdc_use_analytic_jac
@@ -361,7 +367,10 @@ attributes(managed) :: get_g_from_phi
   !$acc create(mol_order) &
   !$acc create(sdc_order) &
   !$acc create(sdc_solver) &
-  !$acc create(sdc_solver_tol) &
+  !$acc create(sdc_solver_tol_dens) &
+  !$acc create(sdc_solver_tol_spec) &
+  !$acc create(sdc_solver_tol_ener) &
+  !$acc create(sdc_solver_atol) &
   !$acc create(sdc_solver_relax_factor) &
   !$acc create(sdc_solve_for_rhoe) &
   !$acc create(sdc_use_analytic_jac) &
@@ -597,8 +606,14 @@ contains
     sdc_order = 2;
     allocate(sdc_solver)
     sdc_solver = 1;
-    allocate(sdc_solver_tol)
-    sdc_solver_tol = 1.d-6;
+    allocate(sdc_solver_tol_dens)
+    sdc_solver_tol_dens = 1.d-6;
+    allocate(sdc_solver_tol_spec)
+    sdc_solver_tol_spec = 1.d-6;
+    allocate(sdc_solver_tol_ener)
+    sdc_solver_tol_ener = 1.d-6;
+    allocate(sdc_solver_atol)
+    sdc_solver_atol = 1.d-10;
     allocate(sdc_solver_relax_factor)
     sdc_solver_relax_factor = 1.0d0;
     allocate(sdc_solve_for_rhoe)
@@ -712,7 +727,10 @@ contains
     call pp%query("mol_order", mol_order)
     call pp%query("sdc_order", sdc_order)
     call pp%query("sdc_solver", sdc_solver)
-    call pp%query("sdc_solver_tol", sdc_solver_tol)
+    call pp%query("sdc_solver_tol_dens", sdc_solver_tol_dens)
+    call pp%query("sdc_solver_tol_spec", sdc_solver_tol_spec)
+    call pp%query("sdc_solver_tol_ener", sdc_solver_tol_ener)
+    call pp%query("sdc_solver_atol", sdc_solver_atol)
     call pp%query("sdc_solver_relax_factor", sdc_solver_relax_factor)
     call pp%query("sdc_solve_for_rhoe", sdc_solve_for_rhoe)
     call pp%query("sdc_use_analytic_jac", sdc_use_analytic_jac)
@@ -756,7 +774,8 @@ contains
     !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
     !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
     !$acc device(hse_reflect_vels, fill_ambient_bc, mol_order) &
-    !$acc device(sdc_order, sdc_solver, sdc_solver_tol) &
+    !$acc device(sdc_order, sdc_solver, sdc_solver_tol_dens) &
+    !$acc device(sdc_solver_tol_spec, sdc_solver_tol_ener, sdc_solver_atol) &
     !$acc device(sdc_solver_relax_factor, sdc_solve_for_rhoe, sdc_use_analytic_jac) &
     !$acc device(cfl, dtnuc_e, dtnuc_X) &
     !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
@@ -1007,8 +1026,17 @@ contains
     if (allocated(sdc_solver)) then
         deallocate(sdc_solver)
     end if
-    if (allocated(sdc_solver_tol)) then
-        deallocate(sdc_solver_tol)
+    if (allocated(sdc_solver_tol_dens)) then
+        deallocate(sdc_solver_tol_dens)
+    end if
+    if (allocated(sdc_solver_tol_spec)) then
+        deallocate(sdc_solver_tol_spec)
+    end if
+    if (allocated(sdc_solver_tol_ener)) then
+        deallocate(sdc_solver_tol_ener)
+    end if
+    if (allocated(sdc_solver_atol)) then
+        deallocate(sdc_solver_atol)
     end if
     if (allocated(sdc_solver_relax_factor)) then
         deallocate(sdc_solver_relax_factor)
