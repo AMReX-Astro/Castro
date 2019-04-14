@@ -108,7 +108,7 @@ contains
        call amrex_error("The free-fall/collision problem does not make sense in a rotating reference frame.")
     endif
 
-    if (problem .eq. 5 .and. do_rotation .eq. 1) then
+    if (problem .eq. 2 .and. do_rotation .eq. 1) then
        call amrex_error("The TDE problem does not make sense in a rotating reference frame.")
     end if
 
@@ -135,7 +135,7 @@ contains
 
     ! TDE sanity checks
 
-    if (problem .eq. 5) then
+    if (problem .eq. 2) then
 
        ! We must have a BH point mass defined.
 
@@ -716,7 +716,7 @@ contains
 
     else
 
-       if (problem == 5) then
+       if (problem == 2) then
 
           ! The tidal radius is given by (M_BH / M_WD)^(1/3) * R_WD.
 
