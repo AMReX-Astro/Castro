@@ -137,7 +137,8 @@ contains
 
 
   subroutine ca_corrrsrc(lo,hi,domlo,domhi, &
-                         phi,p_lo,p_hi, &
+                         phi_old,po_lo,po_hi, &
+                         phi_new,pn_lo,pn_hi, &
                          rold,ro_lo,ro_hi, &
                          rnew,rn_lo,rn_hi, &
                          uold,uo_lo,uo_hi, &
@@ -175,7 +176,8 @@ contains
     integer          :: lo(3), hi(3)
     integer          :: domlo(3), domhi(3)
 
-    integer          :: p_lo(3),p_hi(3)
+    integer          :: po_lo(3),po_hi(3)
+    integer          :: pn_lo(3),pn_hi(3)
     integer          :: ro_lo(3),ro_hi(3)
     integer          :: rn_lo(3),rn_hi(3)
     integer          :: uo_lo(3),uo_hi(3)
@@ -188,7 +190,8 @@ contains
 
     ! Time centered rotational potential
 
-    real(rt)         :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt)         :: phi_old(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
+    real(rt)         :: phi_new(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
 
     ! Old and new time rotational acceleration
 
@@ -225,6 +228,8 @@ contains
     real(rt)         :: dt_omega_matrix(3,3), dt_omega(3), new_mom(3)
 
     real(rt)         :: src(NVAR)
+
+    real(rt)         :: phi, phixl, phixr, phiyl, phiyr, phizl, phizr
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
@@ -436,12 +441,20 @@ contains
                 ! so that we get the source term and not the actual update, which will
                 ! be applied later by multiplying by dt.
 
-                SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                                    flux1(i+1*dg(1),j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                    flux2(i,j        ,k) * (phi(i,j,k) - phi(i,j-dg(2),k)) - &
-                                                    flux2(i,j+1*dg(2),k) * (phi(i,j,k) - phi(i,j+dg(2),k)) + &
-                                                    flux3(i,j,k        ) * (phi(i,j,k) - phi(i,j,k-dg(3))) - &
-                                                    flux3(i,j,k+1*dg(3)) * (phi(i,j,k) - phi(i,j,k+dg(3))) ) / vol(i,j,k)
+                phi = HALF * (phi_new(i,j,k) + phi_old(i,j,k))
+                phixl = HALF * (phi_new(i-1*dg(1),j,k) + phi_old(i-1*dg(1),j,k))
+                phixr = HALF * (phi_new(i+1*dg(1),j,k) + phi_old(i+1*dg(1),j,k))
+                phiyl = HALF * (phi_new(i,j-1*dg(2),k) + phi_old(i,j-1*dg(2),k))
+                phiyr = HALF * (phi_new(i,j+1*dg(2),k) + phi_old(i,j+1*dg(2),k))
+                phizl = HALF * (phi_new(i,j,k-1*dg(3)) + phi_old(i,j,k-1*dg(3)))
+                phizr = HALF * (phi_new(i,j,k+1*dg(3)) + phi_old(i,j,k+1*dg(3)))
+
+                SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k) * (phi - phixl) - &
+                                                    flux1(i+1*dg(1),j,k) * (phi - phixr) + &
+                                                    flux2(i,j        ,k) * (phi - phiyl) - &
+                                                    flux2(i,j+1*dg(2),k) * (phi - phiyr) + &
+                                                    flux3(i,j,k        ) * (phi - phizl) - &
+                                                    flux3(i,j,k+1*dg(3)) * (phi - phizr) ) / vol(i,j,k)
 
                 ! Correct for the time rate of change of the potential, which acts
                 ! purely as a source term. This is only necessary for this source type;
