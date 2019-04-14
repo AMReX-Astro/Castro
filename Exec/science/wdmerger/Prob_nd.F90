@@ -166,7 +166,7 @@
               dist_P = sum((loc - center_P_initial)**2)**HALF
               dist_S = sum((loc - center_S_initial)**2)**HALF
 
-              if (.not. (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3 .or. problem .eq. 6)) then
+              if (.not. (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3)) then
 
                  if (dist_P < model_P % radius) then
                     state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + vel_P(:) * state(i,j,k,URHO)
@@ -179,7 +179,7 @@
               ! If we're in the inertial reference frame, use rigid body rotation with velocity omega x r.
 
               if ( ( (do_rotation .ne. 1) .or. ( (do_rotation .eq. 1) .and. (state_in_rotating_frame .ne. 1) ) ) .and. &
-                   (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3 .or. problem .eq. 6) ) then
+                   (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3) ) then
 
                  rot_loc = loc
 

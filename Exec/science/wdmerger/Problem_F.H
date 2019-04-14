@@ -81,6 +81,8 @@ extern "C"
 				   const int* lo, const int* hi,
 				   const amrex::Real* time);
 
+  void get_relaxation_cutoff_time(amrex::Real* relaxation_cutoff_time);
+
   void check_relaxation(BL_FORT_FAB_ARG_3D(state),
 			BL_FORT_FAB_ARG_3D(phieff),
 			const int* lo, const int* hi,

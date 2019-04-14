@@ -116,12 +116,6 @@ contains
        call amrex_error("The TDE problem does not make sense in a rotating reference frame.")
     end if
 
-    ! For problem 6, we shouldn't be using the radial damping.
-
-    if (problem .eq. 6 .and. radial_damping_factor > ZERO) then
-       call amrex_error("Problem 6 does not use a radial damping term.")
-    end if
-
     ! Make sure we have a sensible eccentricity.
 
     if (orbital_eccentricity >= 1.0) then
@@ -138,7 +132,7 @@ contains
 
     ! Disable the Coriolis term if we're doing a relaxation.
 
-    if (problem .eq. 3 .or. problem .eq. 6) then
+    if (problem .eq. 3) then
        rotation_include_coriolis = 0
     endif
 
@@ -658,7 +652,7 @@ contains
           center_P_initial(axis_2) = center_P_initial(axis_2) - collision_offset
           center_S_initial(axis_2) = center_S_initial(axis_2) + collision_offset
 
-       else if (problem == 1 .or. problem == 2 .or. problem == 3 .or. problem == 6) then
+       else if (problem == 1 .or. problem == 2 .or. problem == 3) then
 
           if (problem == 1) then
 
@@ -666,7 +660,7 @@ contains
 
              a = -ONE
 
-          else if (problem == 2 .or. problem == 3 .or. problem == 6) then
+          else if (problem == 2 .or. problem == 3) then
 
              ! Set the orbital distance, then calculate the rotational period.
 
@@ -974,7 +968,7 @@ contains
     ! If we're in the inertial frame, give the material the rigid-body rotation speed.
     ! Otherwise set it to zero.
 
-    if ( (do_rotation .ne. 1) .and. (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3 .or. problem .eq. 6) ) then
+    if ( (do_rotation .ne. 1) .and. (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3) ) then
 
        state(UMX:UMZ) = state(URHO) * cross_product(omega, loc)
 

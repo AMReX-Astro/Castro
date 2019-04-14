@@ -54,7 +54,6 @@ module probdata_module
   ! 3 = Problem 2 with an initial relaxation step that terminates when the L1 Lagrange point starts to overflow
   ! 4 = Free-fall; distance determined by a multiple of the secondary WD radius
   ! 5 = Tidal disruption event; distance determined by a multiple of the WD tidal radius
-  ! 6 = Problem 3 but the initial relaxation step terminates after a determined amount of time
 
   integer, save :: problem = 2
 
@@ -65,6 +64,11 @@ module probdata_module
   ! to be a large enough distance so that the system is close to stable.
 
   double precision, save :: roche_radius_factor = 2.0d0
+
+  ! When using a relaxation cutoff based on how much simulation time has passed,
+  ! this is the number of dynamical timescales to wait. Negative means disabled.
+
+  double precision, save :: relaxation_cutoff_time = -1.d0
 
 
 
@@ -267,6 +271,7 @@ module probdata_module
        interp_temp, &
        relaxation_damping_factor, &
        relaxation_density_cutoff, &
+       relaxation_cutoff_time, &
        initial_radial_velocity_factor, &
        radial_damping_factor, &
        ambient_density, &

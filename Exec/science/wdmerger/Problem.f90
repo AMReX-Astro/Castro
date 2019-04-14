@@ -1009,6 +1009,23 @@ end subroutine set_job_status
 
 
 
+! Get the relaxation_cutoff_time parameter.
+
+subroutine get_relaxation_cutoff_time(relaxation_cutoff_time_in) bind(C,name='get_relaxation_cutoff_time')
+
+  use amrex_fort_module, only: rt => amrex_real
+  use probdata_module, only: relaxation_cutoff_time
+
+  implicit none
+
+  real(rt), intent(inout) :: relaxation_cutoff_time_in
+
+  relaxation_cutoff_time_in = relaxation_cutoff_time
+
+end subroutine get_relaxation_cutoff_time
+
+
+
 ! Gets whether the relaxation is done.
 
 subroutine get_relaxation_status(relaxation_status) bind(C,name='get_relaxation_status')

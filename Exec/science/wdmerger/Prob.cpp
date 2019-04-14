@@ -988,7 +988,7 @@ Castro::update_relaxation(Real time, Real dt) {
     // Check to make sure whether we should be doing the relaxation here.
     // Update the relaxation conditions if we are not stopping.
 
-    if ((problem != 3 && problem != 6) || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
+    if (problem != 3 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
 
     // Reconstruct the rotation force at the old and new times.
     // For the old time we can simply use the old state data; for
@@ -1135,81 +1135,78 @@ Castro::update_relaxation(Real time, Real dt) {
     // over levels as above.
 
     // For problem 3, we're going to turn the relaxation off when we've
-    // reached the L1 Lagrange point. For problem 6, we're going to turn
-    // the relaxation off after some amount of time has elapsed (it is
-    // assumed that there is no radial drift here).
+    // reached the L1 Lagrange point.
 
-    if (problem == 3) {
+    Real L1[3] = { -1.0e200 };
+    Real L2[3] = { -1.0e200 };
+    Real L3[3] = { -1.0e200 };
 
-        Real L1[3] = { -1.0e200 };
-        Real L2[3] = { -1.0e200 };
-        Real L3[3] = { -1.0e200 };
+    // First, calculate the location of the L1 Lagrange point.
 
-        // First, calculate the location of the L1 Lagrange point.
+    get_lagrange_points(mass_p, mass_s, com_p, com_s, L1, L2, L3);
 
-        get_lagrange_points(mass_p, mass_s, com_p, com_s, L1, L2, L3);
+    // Then, figure out the effective potential corresponding to that
+    // Lagrange point.
 
-        // Then, figure out the effective potential corresponding to that
-        // Lagrange point.
+    Real potential = 0.0;
 
-        Real potential = 0.0;
-
-        auto mfphieff = derive("phiEff", time, 0);
+    auto mfphieff = derive("phiEff", time, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:potential)
 #endif
-        for (MFIter mfi(*mfphieff,true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(*mfphieff,true); mfi.isValid(); ++mfi) {
 
-            const Box& box = mfi.tilebox();
+        const Box& box = mfi.tilebox();
 
-            const int* lo  = box.loVect();
-            const int* hi  = box.hiVect();
+        const int* lo  = box.loVect();
+        const int* hi  = box.hiVect();
 
-            get_critical_roche_potential(BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
-                                         lo, hi, L1, &potential);
+        get_critical_roche_potential(BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
+                                     lo, hi, L1, &potential);
 
-        }
+    }
 
-        amrex::ParallelDescriptor::ReduceRealSum(potential);
+    amrex::ParallelDescriptor::ReduceRealSum(potential);
 
-        // Now cycle through the grids and determine if any zones
-        // have crossed the density threshold outside the critical surface.
+    // Now cycle through the grids and determine if any zones
+    // have crossed the density threshold outside the critical surface.
 
-        MultiFab& S_new = get_new_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
 
-        int is_done = 0;
+    int is_done = 0;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:is_done)
 #endif
-        for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
 
-            const Box& box  = mfi.tilebox();
+        const Box& box  = mfi.tilebox();
 
-            const int* lo   = box.loVect();
-            const int* hi   = box.hiVect();
+        const int* lo   = box.loVect();
+        const int* hi   = box.hiVect();
 
-            check_relaxation(BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                             BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
-                             ARLIM_3D(lo),ARLIM_3D(hi),
-                             &potential,&is_done);
-
-        }
-
-        amrex::ParallelDescriptor::ReduceIntSum(is_done);
-
-        if (is_done > 0) {
-            relaxation_is_done = 1;
-        }
+        check_relaxation(BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                         BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
+                         ARLIM_3D(lo),ARLIM_3D(hi),
+                         &potential,&is_done);
 
     }
-    else if (problem == 6) {
 
-        if (time > 100.0 * std::max(t_ff_p, t_ff_s)) {
-            relaxation_is_done = 1;
-        }
+    amrex::ParallelDescriptor::ReduceIntSum(is_done);
 
+    if (is_done > 0) {
+        relaxation_is_done = 1;
+    }
+
+    // We can also turn off the relaxation if we've passed
+    // a certain number of dynamical timescales.
+
+    Real relaxation_cutoff_time;
+    get_relaxation_cutoff_time(&relaxation_cutoff_time);
+
+    if (relaxation_cutoff_time > 0.0 && time > relaxation_cutoff_time * std::max(t_ff_p, t_ff_s)) {
+        relaxation_is_done = 1;
     }
 
     if (relaxation_is_done > 0) {
