@@ -448,6 +448,7 @@ contains
     endif
 
     do n = 1, nc
+
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -462,10 +463,10 @@ contains
 
                 U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap
 
-             enddo
-          enddo
-       enddo
-    enddo
+             end do
+          end do
+       end do
+    end do
 
   end subroutine ca_make_cell_center
 
@@ -487,31 +488,30 @@ contains
 
     integer :: i, j, k, n
 
-    real(rt), pointer :: lap(:,:,:,:)
+    real(rt), pointer :: lap(:,:,:)
 
-    call bl_allocate(lap, lo, hi, nc)
+    call bl_allocate(lap, lo, hi)
 
     do n = 1, nc
+
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                lap(i,j,k,n) = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
+                lap(i,j,k) = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
 #if AMREX_SPACEDIM >= 2
-                lap(i,j,k,n) = lap(i,j,k,n) + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
+                lap(i,j,k) = lap(i,j,k) + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
 #endif
 #if AMREX_SPACEDIM == 3
-                lap(i,j,k,n) = lap(i,j,k,n) + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
+                lap(i,j,k) = lap(i,j,k) + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
 #endif
              enddo
           enddo
        enddo
-    enddo
 
-    do n = 1, nc
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                U(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap(i,j,k,n)
+                U(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap(i,j,k)
              enddo
           enddo
        enddo
@@ -615,35 +615,34 @@ contains
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
 
     integer :: i, j, k, n
-    real(rt), pointer :: lap(:,:,:,:)
+    real(rt), pointer :: lap(:,:,:)
 
-    call bl_allocate(lap, lo, hi, nc)
+    call bl_allocate(lap, lo, hi)
 
     do n = 1, nc
+
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                lap(i,j,k,n) = q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n)
+                lap(i,j,k) = q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n)
 #if AMREX_SPACEDIM >= 2
-                lap(i,j,k,n) = lap(i,j,k,n) + q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n)
+                lap(i,j,k) = lap(i,j,k) + q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n)
 #endif
 #if AMREX_SPACEDIM == 3
-                lap(i,j,k,n) = lap(i,j,k,n) + q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n)
+                lap(i,j,k) = lap(i,j,k) + q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n)
 #endif
-             enddo
-          enddo
-       enddo
-    enddo
+             end do
+          end do
+       end do
 
-    do n = 1, nc
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap(i,j,k,n)
-             enddo
-          enddo
-       enddo
-    enddo
+                q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap(i,j,k)
+             end do
+          end do
+       end do
+    end do
 
     call bl_deallocate(lap)
 

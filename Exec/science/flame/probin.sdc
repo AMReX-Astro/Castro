@@ -5,8 +5,8 @@
 
   T_ash = 4.e9
 
-  pert_frac = 0.1d0
-  pert_delta = 0.05d0
+  pert_frac = 0.15d0
+  pert_delta = 0.02d0
 
 /
 

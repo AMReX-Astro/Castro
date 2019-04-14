@@ -376,13 +376,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               Array4<Real> const flux_arr = (flux[idir]).array();
               Array4<Real> const qe_arr = (qe[idir]).array();
+              const int nstate = NUM_STATE;
 
-              AMREX_HOST_DEVICE_FOR_4D(gbx, NUM_STATE, i, j, k, n,
+              AMREX_HOST_DEVICE_FOR_4D(gbx, nstate, i, j, k, n,
                                        {
                                          flux_arr(i,j,k,n) = 0.e0;
                                        });
 
-              AMREX_HOST_DEVICE_FOR_4D(gbx, NGDNV, i, j, k, n,
+              const int ncomp = NGDNV;
+
+              AMREX_HOST_DEVICE_FOR_4D(gbx, ncomp, i, j, k, n,
                                        {
                                          qe_arr(i,j,k,n) = 0.e0;
                                        });
