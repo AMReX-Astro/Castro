@@ -63,10 +63,6 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
 
-    MultiFab phi_center;
-    phi_center.define(grids, dmap, 1, 1);
-    phi_center.setVal(0.0, 1);
-
     // Fill the rotation data.
 
     if (!do_rotation) {
@@ -79,10 +75,6 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
     }
 
     fill_rotation_field(phirot_new, rot_new, state_new, time);
-
-    // Calculate time-centered rotational potential
-    MultiFab::Saxpy(phi_center, 0.5, phirot_old, 0, 0, 1, 1);
-    MultiFab::Saxpy(phi_center, 0.5, phirot_new, 0, 0, 1, 1);
 
     // Now do corrector part of rotation source term update
 
@@ -101,7 +93,8 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
 #pragma gpu
             ca_corrrsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                         AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                        BL_TO_FORTRAN_ANYD(phi_center[mfi]),
+                        BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
+                        BL_TO_FORTRAN_ANYD(phirot_new[mfi]),
                         BL_TO_FORTRAN_ANYD(rot_old[mfi]),
                         BL_TO_FORTRAN_ANYD(rot_new[mfi]),
                         BL_TO_FORTRAN_ANYD(state_old[mfi]),
