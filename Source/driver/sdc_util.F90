@@ -111,27 +111,35 @@ contains
     integer, parameter :: NEWTON_SOLVE = 1
     integer, parameter :: VODE_SOLVE = 2
     integer :: solver, num_attempts, iattempt
+    integer :: max_newton_iter
 
     integer, parameter :: MF_ANALYTIC_JAC = 21, MF_NUMERICAL_JAC = 22
     integer :: imode
 
     if (sdc_solver == 1) then
        solver = NEWTON_SOLVE
+       max_newton_iter = MAX_ITER
        num_attempts = 1
+
     else if (sdc_solver == 2) then
        solver = VODE_SOLVE
        num_attempts = 1
+
     else if (sdc_solver == 3) then
        if (sdc_iteration == 0) then
           solver = VODE_SOLVE
        else
           solver = NEWTON_SOLVE
+          max_newton_iter = MAX_ITER
        endif
        num_attempts = 1
+
     else if (sdc_solver == 4) then
        ! this will try Newton, but if it fails it will retry with VODE
        solver = NEWTON_SOLVE
+       max_newton_iter = 3
        num_attempts = 2
+
     else
        call amrex_error("invalid sdc_solver")
     endif
@@ -214,7 +222,9 @@ contains
           endif
        else
 
-          ! VODE ODE solve -- we only consider (rho e), not (rho E)
+          ! VODE ODE solve -- we only consider (rho e), not (rho E).
+          ! This is because at present we do not have a method of
+          ! updating the velocities during the multistep integration
           U_react(0) = U_old(URHO)
           U_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve)
           U_react(nspec_evolve+1) = U_old(UEINT)
@@ -231,7 +241,7 @@ contains
           ! iterative loop
           iter = 0
           converged = .false.
-          do while (.not. converged .and. iter < MAX_ITER)
+          do while (.not. converged .and. iter < max_newton_iter)
 
              call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, rpar)
 
