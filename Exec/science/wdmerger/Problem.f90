@@ -157,7 +157,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
 
 
-  if (problem .eq. 3) then
+  if (problem .eq. 2) then
 
      open (unit=un, file=trim(dir)//"/Rotation", status="old", IOSTAT = stat)
 
@@ -235,7 +235,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
   else
 
-     if (problem == 3) then
+     if (problem == 2) then
         call amrex_error("Error: no Relaxation file found in the checkpoint.")
      endif
 

@@ -21,10 +21,11 @@
 
   interp_temp = T
 
-  relaxation_damping_factor = 1.0d-1
+  relaxation_damping_factor = -1.0d-1
   relaxation_density_cutoff = 1.0d3
+  relaxation_cutoff_time = -1.0d2
 
-  radial_damping_factor = 1.0d3
+  radial_damping_factor = -1.0d3
   initial_radial_velocity_factor = -1.0d-3
 
   ambient_density = 1.0d-4

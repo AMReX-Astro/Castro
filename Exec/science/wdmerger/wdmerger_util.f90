@@ -132,9 +132,16 @@ contains
 
     ! Disable the Coriolis term if we're doing a relaxation.
 
-    if (problem .eq. 3) then
+    if (problem .eq. 2 .and. relaxation_damping_factor > ZERO) then
        rotation_include_coriolis = 0
     endif
+
+    ! If we're doing a relaxation, we need to reset the relaxation_is_done parameter.
+    ! This will be reset as appropriate from the checkpoint if we're performing a restart.
+
+    if (problem .eq. 2 .and. relaxation_damping_factor > ZERO) then
+       relaxation_is_done = 0
+    end if
 
     ! TDE sanity checks
 
@@ -652,7 +659,7 @@ contains
           center_P_initial(axis_2) = center_P_initial(axis_2) - collision_offset
           center_S_initial(axis_2) = center_S_initial(axis_2) + collision_offset
 
-       else if (problem == 1 .or. problem == 2 .or. problem == 3) then
+       else if (problem == 1 .or. problem == 2) then
 
           if (problem == 1) then
 
@@ -660,7 +667,7 @@ contains
 
              a = -ONE
 
-          else if (problem == 2 .or. problem == 3) then
+          else if (problem == 2) then
 
              ! Set the orbital distance, then calculate the rotational period.
 
@@ -968,7 +975,7 @@ contains
     ! If we're in the inertial frame, give the material the rigid-body rotation speed.
     ! Otherwise set it to zero.
 
-    if ( (do_rotation .ne. 1) .and. (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3) ) then
+    if ( (do_rotation .ne. 1) .and. (problem .eq. 1 .or. problem .eq. 2) ) then
 
        state(UMX:UMZ) = state(URHO) * cross_product(omega, loc)
 

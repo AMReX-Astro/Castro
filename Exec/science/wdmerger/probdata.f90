@@ -51,7 +51,6 @@ module probdata_module
   ! 0 = Collision; distance determined by a multiple of the secondary WD radius
   ! 1 = Keplerian orbit; distance determined by the rotation period
   ! 2 = Keplerian orbit; distance set so that the secondary exactly fills its Roche lobe radius
-  ! 3 = Problem 2 with an initial relaxation step that terminates when the L1 Lagrange point starts to overflow
   ! 4 = Free-fall; distance determined by a multiple of the secondary WD radius
   ! 5 = Tidal disruption event; distance determined by a multiple of the WD tidal radius
 
@@ -60,15 +59,10 @@ module probdata_module
 
 
   ! If we're automatically determining the initial distance based on the Roche lobe
-  ! radii for problem 3, this is the sizing factor we use. We set the default value
+  ! radii for problem 2, this is the sizing factor we use. We set the default value
   ! to be a large enough distance so that the system is close to stable.
 
-  double precision, save :: roche_radius_factor = 2.0d0
-
-  ! When using a relaxation cutoff based on how much simulation time has passed,
-  ! this is the number of dynamical timescales to wait. Negative means disabled.
-
-  double precision, save :: relaxation_cutoff_time = -1.d0
+  double precision, save :: roche_radius_factor = 1.0d0
 
 
 
@@ -231,15 +225,16 @@ module probdata_module
 
 
 
-  ! Relaxation parameters for problem 3
+  ! Relaxation parameters
 
-  double precision, save :: relaxation_damping_factor = 1.0d-1
+  double precision, save :: relaxation_damping_factor = -1.0d-1
   double precision, save :: relaxation_density_cutoff = 1.0d3
-  integer,          save :: relaxation_is_done = 0
+  double precision, save :: relaxation_cutoff_time = -1.d0
+  integer,          save :: relaxation_is_done = 1
 
-  ! Radial damping parameters for problem 3
+  ! Radial damping parameters
 
-  double precision, save :: radial_damping_factor = 1.0d3
+  double precision, save :: radial_damping_factor = -1.0d3
   double precision, save :: initial_radial_velocity_factor = -1.0d-3
 
   ! Distance (in kpc) used for calculation of the gravitational wave amplitude

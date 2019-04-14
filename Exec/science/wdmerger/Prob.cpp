@@ -70,7 +70,7 @@ Castro::problem_post_timestep()
 
     wd_update(time, dt);
 
-    // If we are doing problem 3, which has an initial relaxation step,
+    // If we are doing problem 2 with an initial relaxation step,
     // perform any post-timestep updates to assist with the relaxation, then
     // determine whether the criterion for terminating the relaxation
     // has been satisfied.
@@ -620,7 +620,7 @@ void Castro::problem_post_init() {
 
   // If we're doing an initial relaxation step, ensure that we are not subcycling.
 
-  if (problem == 3 && !relaxation_is_done && parent->subCycle() && parent->finestLevel() > 0)
+  if (problem == 2 && !relaxation_is_done && parent->subCycle() && parent->finestLevel() > 0)
       amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
 
   // Update the rotational period; some problems change this from what's in the inputs parameters.
@@ -988,7 +988,7 @@ Castro::update_relaxation(Real time, Real dt) {
     // Check to make sure whether we should be doing the relaxation here.
     // Update the relaxation conditions if we are not stopping.
 
-    if (problem != 3 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
+    if (problem != 2 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
 
     // Reconstruct the rotation force at the old and new times.
     // For the old time we can simply use the old state data; for
@@ -1134,7 +1134,7 @@ Castro::update_relaxation(Real time, Real dt) {
     // coarse grid but if we wanted more accuracy we could do a loop
     // over levels as above.
 
-    // For problem 3, we're going to turn the relaxation off when we've
+    // For problem 2, we're going to turn the relaxation off when we've
     // reached the L1 Lagrange point.
 
     Real L1[3] = { -1.0e200 };
