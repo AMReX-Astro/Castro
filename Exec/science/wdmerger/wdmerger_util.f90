@@ -130,12 +130,6 @@ contains
 
     orbital_angle = orbital_angle * M_PI / 180.0
 
-    ! Disable the Coriolis term if we're doing a relaxation.
-
-    if (problem .eq. 2 .and. relaxation_damping_factor > ZERO) then
-       rotation_include_coriolis = 0
-    endif
-
     ! If we're doing a relaxation, we need to reset the relaxation_is_done parameter.
     ! This will be reset as appropriate from the checkpoint if we're performing a restart.
 
@@ -1164,7 +1158,6 @@ contains
 
     use problem_io_module, only: ioproc
     use sponge_module, only: sponge_timescale
-    use meth_params_module, only: rotation_include_coriolis
 
     implicit none
 
@@ -1172,7 +1165,6 @@ contains
 
     relaxation_damping_factor = -ONE
     sponge_timescale = -ONE
-    rotation_include_coriolis = 1
 
     ! If we got a valid simulation time, print to the log when we stopped.
 
