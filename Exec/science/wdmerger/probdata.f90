@@ -51,9 +51,10 @@ module probdata_module
   ! 0 = Collision; distance determined by a multiple of the secondary WD radius
   ! 1 = Keplerian orbit; distance determined by the rotation period
   ! 2 = Keplerian orbit; distance set so that the secondary exactly fills its Roche lobe radius
-  ! 3 = Problem 2 with an initial relaxation step
+  ! 3 = Problem 2 with an initial relaxation step that terminates when the L1 Lagrange point starts to overflow
   ! 4 = Free-fall; distance determined by a multiple of the secondary WD radius
   ! 5 = Tidal disruption event; distance determined by a multiple of the WD tidal radius
+  ! 6 = Problem 3 but the initial relaxation step terminates after a determined amount of time
 
   integer, save :: problem = 2
 

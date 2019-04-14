@@ -228,9 +228,19 @@ sdc_order                    int           2                  y
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
 sdc_solver                   int           1                  y
 
-# which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for iteration 0;
-# Newton for later iterations
-sdc_solver_tol               Real          1.e-6              y
+# relative tolerance for the nonlinear solve on rho with SDC
+sdc_solver_tol_dens           Real          1.e-6              y
+
+# relative tolerance for the nonlinear solve on rho X_k with SDC
+sdc_solver_tol_spec           Real          1.e-6              y
+
+# relative tolerance for the nonlinear solve on (rho e) or (rho E) with SDC
+sdc_solver_tol_ener           Real          1.e-6              y
+
+# absolute tolerance for species with SDC (this will be multiplied by
+# the current rho in the zone to define the absolute tolerance on (rho
+# X)).
+sdc_solver_atol               Real          1.e-10              y
 
 # factor by which to reduce the SDC solver tol for each iteration before the last
 # (e.g., for iteration k out of kmax iterations, the tol is
