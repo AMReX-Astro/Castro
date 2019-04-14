@@ -98,18 +98,14 @@ contains
 
     ! Safety check: we can't run most problems in one dimension.
 
-    if (dim .eq. 1 .and. (.not. (problem .eq. 0 .or. problem .eq. 4))) then
+    if (dim .eq. 1 .and. problem /= 0) then
        call amrex_error("Can only run a collision or freefall in 1D. Exiting.")
     endif
 
     ! Don't do a collision, free-fall, or TDE in a rotating reference frame.
 
     if (problem .eq. 0 .and. do_rotation .eq. 1) then
-       call amrex_error("The collision problem does not make sense in a rotating reference frame.")
-    endif
-
-    if (problem .eq. 4 .and. do_rotation .eq. 1) then
-       call amrex_error("The free-fall problem does not make sense in a rotating reference frame.")
+       call amrex_error("The free-fall/collision problem does not make sense in a rotating reference frame.")
     endif
 
     if (problem .eq. 5 .and. do_rotation .eq. 1) then
@@ -621,18 +617,23 @@ contains
 
        ! Set up the stellar distances and velocities according to the problem choice
 
-       if (problem == 0 .or. problem == 4) then
+       if (problem == 0) then
 
           collision_separation = collision_separation * model_S % radius
 
-          if (problem == 0) then
+          if (collision_velocity < 0.0d0) then
 
              call freefall_velocity(mass_P + mass_S, collision_separation, v_ff)
 
              vel_P(axis_1) =  (mass_P / (mass_S + mass_P)) * v_ff
              vel_S(axis_1) = -(mass_S / (mass_S + mass_P)) * v_ff
 
-          endif
+          else
+
+             vel_P(axis_1) =  collision_velocity
+             vel_S(axis_1) = -collision_velocity
+
+          end if
 
           r_P_initial = -(mass_P / (mass_S + mass_P)) * collision_separation
           r_S_initial =  (mass_S / (mass_S + mass_P)) * collision_separation

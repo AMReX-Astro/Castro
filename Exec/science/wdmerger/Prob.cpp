@@ -865,24 +865,6 @@ void Castro::check_to_stop(Real time, bool dump) {
 
           }
 
-      } else if (problem == 4) {
-
-	// We can work out the stopping time using the formula
-	// t_freefall = rotational_period / (4 * sqrt(2)).
-	// We'll stop 90% of the way there because that's about
-	// when the stars start coming into contact, and the
-	// assumption of spherically symmetric stars breaks down.
-
-	Real stopping_time = 0.90 * rotational_period / (4.0 * std::sqrt(2));
-
-	if (time >= stopping_time) {
-
-	  jobDoneStatus = 1;
-
-	  set_job_status(&jobDoneStatus);
-
-	}
-
       }
 
     }

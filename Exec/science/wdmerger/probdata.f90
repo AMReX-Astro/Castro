@@ -50,7 +50,6 @@ module probdata_module
   !
   ! 0 = Collision; distance determined by a multiple of the secondary WD radius
   ! 1 = Keplerian orbit; distance determined by Roche radius (or rotation period)
-  ! 4 = Free-fall; distance determined by a multiple of the secondary WD radius
   ! 5 = Tidal disruption event; distance determined by a multiple of the WD tidal radius
 
   integer, save :: problem = 1
@@ -76,6 +75,12 @@ module probdata_module
   ! units of the primary's initial radius.
 
   double precision, save :: collision_impact_parameter = 0.0d0
+
+  ! For a collision, the initial velocity of the WDs toward
+  ! each other. If this is negative, the velocity will
+  ! be set according to free-fall from an infinite distance.
+
+  double precision, save :: collision_velocity = -1.0d0
 
 
 
@@ -259,6 +264,7 @@ module probdata_module
        problem, &
        collision_separation, &
        collision_impact_parameter, &
+       collision_velocity, &
        tde_separation, &
        tde_beta, &
        tde_initial_velocity, &
