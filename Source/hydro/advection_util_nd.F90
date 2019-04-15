@@ -530,6 +530,7 @@ contains
              if (do_rotation == 1 .and. state_in_rotating_frame /= 1) then
                 vel = q(i,j,k,QU:QW)
                 call inertial_to_rotational_velocity([i, j, k], amr_time, vel)
+                q(i,j,k,QU:QW) = vel
              endif
 #endif
 

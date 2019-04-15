@@ -8,9 +8,9 @@
 
   nsub = 4
 
-  problem = 2
+  problem = 1
 
-  roche_radius_factor = 2.0d0
+  roche_radius_factor = 1.0d0
 
   collision_separation = 4.0d0
   collision_impact_parameter = 0.0d0
@@ -21,10 +21,11 @@
 
   interp_temp = T
 
-  relaxation_damping_factor = 1.0d-1
+  relaxation_damping_factor = -1.0d-1
   relaxation_density_cutoff = 1.0d3
+  relaxation_cutoff_time = -1.0d2
 
-  radial_damping_factor = 1.0d3
+  radial_damping_factor = -1.0d3
   initial_radial_velocity_factor = -1.0d-3
 
   stellar_temp = 1.0d7
