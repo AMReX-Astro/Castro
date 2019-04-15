@@ -3367,7 +3367,11 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
   }
 
   if (mol_order == 4 || sdc_order == 4) {
-    reset_internal_energy(Stemp, ng);
+    // we need to enforce minimum density here, since the conversion
+    // from cell-average to centers could have made rho < 0 near steep
+    // gradients
+    enforce_min_density(Stemp, Stemp.nGrow());
+    reset_internal_energy(Stemp, Stemp.nGrow());
   } else {
     reset_internal_energy(State, ng);
   }
