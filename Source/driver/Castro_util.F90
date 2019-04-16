@@ -464,6 +464,42 @@ contains
 
 
 
+  subroutine ca_clamp_ambient_temp(lo, hi, &
+                                   u_old, uo_lo, uo_hi, &
+                                   u_new, un_lo, un_hi) &
+                                   bind(c,name='ca_clamp_ambient_temp')
+    ! Clamp the temperature so the ambient material doesn't heat up
+
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: NVAR, URHO, UTEMP
+    use ambient_module, only: ambient_state
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: uo_lo(3), uo_hi(3)
+    integer,  intent(in   ) :: un_lo(3), un_hi(3)
+    real(rt), intent(in   ) :: u_old(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
+    real(rt), intent(inout) :: u_new(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (u_old(i,j,k,URHO) <= 1.01d0 * ambient_state(URHO)) then
+                u_new(i,j,k,UTEMP) = ambient_state(UTEMP)
+             end if
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_clamp_ambient_temp
+
 
 
   function position_to_index(loc) result(index)

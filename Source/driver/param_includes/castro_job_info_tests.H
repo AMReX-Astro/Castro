@@ -70,6 +70,7 @@ jobInfoFile << (Castro::hse_zero_vels == 0 ? "    " : "[*] ") << "castro.hse_zer
 jobInfoFile << (Castro::hse_interp_temp == 0 ? "    " : "[*] ") << "castro.hse_interp_temp = " << Castro::hse_interp_temp << std::endl;
 jobInfoFile << (Castro::hse_reflect_vels == 0 ? "    " : "[*] ") << "castro.hse_reflect_vels = " << Castro::hse_reflect_vels << std::endl;
 jobInfoFile << (Castro::fill_ambient_bc == 0 ? "    " : "[*] ") << "castro.fill_ambient_bc = " << Castro::fill_ambient_bc << std::endl;
+jobInfoFile << (Castro::clamp_ambient_temp == 0 ? "    " : "[*] ") << "castro.clamp_ambient_temp = " << Castro::clamp_ambient_temp << std::endl;
 jobInfoFile << (Castro::mol_order == 2 ? "    " : "[*] ") << "castro.mol_order = " << Castro::mol_order << std::endl;
 jobInfoFile << (Castro::sdc_order == 2 ? "    " : "[*] ") << "castro.sdc_order = " << Castro::sdc_order << std::endl;
 jobInfoFile << (Castro::sdc_solver == 1 ? "    " : "[*] ") << "castro.sdc_solver = " << Castro::sdc_solver << std::endl;
