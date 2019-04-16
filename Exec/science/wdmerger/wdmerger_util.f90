@@ -98,28 +98,18 @@ contains
 
     ! Safety check: we can't run most problems in one dimension.
 
-    if (dim .eq. 1 .and. (.not. (problem .eq. 0 .or. problem .eq. 4))) then
+    if (dim .eq. 1 .and. problem /= 0) then
        call amrex_error("Can only run a collision or freefall in 1D. Exiting.")
     endif
 
     ! Don't do a collision, free-fall, or TDE in a rotating reference frame.
 
     if (problem .eq. 0 .and. do_rotation .eq. 1) then
-       call amrex_error("The collision problem does not make sense in a rotating reference frame.")
+       call amrex_error("The free-fall/collision problem does not make sense in a rotating reference frame.")
     endif
 
-    if (problem .eq. 4 .and. do_rotation .eq. 1) then
-       call amrex_error("The free-fall problem does not make sense in a rotating reference frame.")
-    endif
-
-    if (problem .eq. 5 .and. do_rotation .eq. 1) then
+    if (problem .eq. 2 .and. do_rotation .eq. 1) then
        call amrex_error("The TDE problem does not make sense in a rotating reference frame.")
-    end if
-
-    ! For problem 6, we shouldn't be using the radial damping.
-
-    if (problem .eq. 6 .and. radial_damping_factor > ZERO) then
-       call amrex_error("Problem 6 does not use a radial damping term.")
     end if
 
     ! Make sure we have a sensible eccentricity.
@@ -136,15 +126,16 @@ contains
 
     orbital_angle = orbital_angle * M_PI / 180.0
 
-    ! Disable the Coriolis term if we're doing a relaxation.
+    ! If we're doing a relaxation, we need to reset the relaxation_is_done parameter.
+    ! This will be reset as appropriate from the checkpoint if we're performing a restart.
 
-    if (problem .eq. 3 .or. problem .eq. 6) then
-       rotation_include_coriolis = 0
-    endif
+    if (problem .eq. 1 .and. relaxation_damping_factor > ZERO) then
+       relaxation_is_done = 0
+    end if
 
     ! TDE sanity checks
 
-    if (problem .eq. 5) then
+    if (problem .eq. 2) then
 
        ! We must have a BH point mass defined.
 
@@ -626,18 +617,23 @@ contains
 
        ! Set up the stellar distances and velocities according to the problem choice
 
-       if (problem == 0 .or. problem == 4) then
+       if (problem == 0) then
 
           collision_separation = collision_separation * model_S % radius
 
-          if (problem == 0) then
+          if (collision_velocity < 0.0d0) then
 
              call freefall_velocity(mass_P + mass_S, collision_separation, v_ff)
 
              vel_P(axis_1) =  (mass_P / (mass_S + mass_P)) * v_ff
              vel_S(axis_1) = -(mass_S / (mass_S + mass_P)) * v_ff
 
-          endif
+          else
+
+             vel_P(axis_1) =  collision_velocity
+             vel_S(axis_1) = -collision_velocity
+
+          end if
 
           r_P_initial = -(mass_P / (mass_S + mass_P)) * collision_separation
           r_S_initial =  (mass_S / (mass_S + mass_P)) * collision_separation
@@ -658,15 +654,15 @@ contains
           center_P_initial(axis_2) = center_P_initial(axis_2) - collision_offset
           center_S_initial(axis_2) = center_S_initial(axis_2) + collision_offset
 
-       else if (problem == 1 .or. problem == 2 .or. problem == 3 .or. problem == 6) then
+       else if (problem == 1) then
 
-          if (problem == 1) then
+          if (roche_radius_factor < ZERO) then
 
              ! Determine the orbital distance based on the rotational period.
 
              a = -ONE
 
-          else if (problem == 2 .or. problem == 3 .or. problem == 6) then
+          else
 
              ! Set the orbital distance, then calculate the rotational period.
 
@@ -720,7 +716,7 @@ contains
 
     else
 
-       if (problem == 5) then
+       if (problem == 2) then
 
           ! The tidal radius is given by (M_BH / M_WD)^(1/3) * R_WD.
 
@@ -974,7 +970,7 @@ contains
     ! If we're in the inertial frame, give the material the rigid-body rotation speed.
     ! Otherwise set it to zero.
 
-    if ( (do_rotation .ne. 1) .and. (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3 .or. problem .eq. 6) ) then
+    if (do_rotation /= 1 .and. problem == 1) then
 
        state(UMX:UMZ) = state(URHO) * cross_product(omega, loc)
 
@@ -1163,7 +1159,6 @@ contains
 
     use problem_io_module, only: ioproc
     use sponge_module, only: sponge_timescale
-    use meth_params_module, only: rotation_include_coriolis
 
     implicit none
 
@@ -1171,7 +1166,6 @@ contains
 
     relaxation_damping_factor = -ONE
     sponge_timescale = -ONE
-    rotation_include_coriolis = 1
 
     ! If we got a valid simulation time, print to the log when we stopped.
 
