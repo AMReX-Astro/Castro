@@ -496,6 +496,14 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(volume),
      const int&  verbose);
 
+  void ca_mol_diffusive_flux
+    (const int* lo, const int* hi,
+     const int idir,
+     const BL_FORT_FAB_ARG_3D(U),
+     const BL_FORT_FAB_ARG_3D(cond),
+     BL_FORT_FAB_ARG_3D(flux),
+     const amrex::Real* dx);
+
 #ifndef AMREX_USE_CUDA
   void ca_sdc_update_advection_o2
     (const int* lo, const int* hi,

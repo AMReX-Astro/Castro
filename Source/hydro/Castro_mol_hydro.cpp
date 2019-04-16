@@ -53,6 +53,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     // longer needed (only relevant for the asynchronous case, usually on GPUs).
 
     FArrayBox flatn;
+    FArrayBox cond;
     FArrayBox dq;
     FArrayBox shk;
     FArrayBox qm, qp;
@@ -357,6 +358,30 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                                        });
             }
           } // end do_hydro
+
+          // add a diffusive flux
+          cond.resize(obx, 1);
+          Elixir elix_cond = cond.elixir();
+
+          ca_fill_temp_cond
+            (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+             BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+             BL_TO_FORTRAN_ANYD(cond));
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+            int idir_f = idir + 1;
+
+            ca_mol_diffusive_flux
+              (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+               idir_f,
+               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+               BL_TO_FORTRAN_ANYD(cond),
+               BL_TO_FORTRAN_ANYD(flux[idir]),
+               AMREX_REAL_ANYD(dx));
+
+          }
 
           // do the conservative update -- and store the shock variable
 #pragma gpu
