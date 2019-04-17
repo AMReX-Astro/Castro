@@ -100,9 +100,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           }
 
 #if (AMREX_SPACEDIM <= 2)
-          if (!Geometry::IsCartesian()) {
-            pradial.resize(amrex::surroundingNodes(bx,0),1);
-          }
+          pradial.resize(amrex::surroundingNodes(bx,0),1);
 #endif
 
           ca_fourth_single_stage
