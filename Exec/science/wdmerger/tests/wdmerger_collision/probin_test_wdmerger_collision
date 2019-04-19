@@ -17,6 +17,8 @@
 
   max_tagging_radius = 0.75d0
   stellar_density_threshold = 1.0d0
+
+  collision_velocity = -1.0d0
  
   smallu = 1.0d-12
 /

@@ -42,7 +42,7 @@
 
        ! First do any relaxation source terms.
 
-       if (problem == 3 .and. relaxation_damping_factor > ZERO) then
+       if (problem == 1 .and. relaxation_damping_factor > ZERO) then
 
           ! The relevant dynamical timescale for determining this source term timescale should be
           ! the smaller of the two WD timescales. Generally this should be the primary, but we'll
@@ -97,7 +97,7 @@
 
        ! Now do the radial drift source terms.
 
-       if (problem == 3 .and. radial_damping_factor > ZERO) then
+       if (problem == 1 .and. radial_damping_factor > ZERO) then
 
           ! For this source term, the relevant dynamical timescale is the larger of the two.
 

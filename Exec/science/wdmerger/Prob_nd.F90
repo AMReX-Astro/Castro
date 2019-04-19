@@ -166,7 +166,7 @@
               dist_P = sum((loc - center_P_initial)**2)**HALF
               dist_S = sum((loc - center_S_initial)**2)**HALF
 
-              if (.not. (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3 .or. problem .eq. 6)) then
+              if (problem /= 1) then
 
                  if (dist_P < model_P % radius) then
                     state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + vel_P(:) * state(i,j,k,URHO)
@@ -178,8 +178,7 @@
 
               ! If we're in the inertial reference frame, use rigid body rotation with velocity omega x r.
 
-              if ( ( (do_rotation .ne. 1) .or. ( (do_rotation .eq. 1) .and. (state_in_rotating_frame .ne. 1) ) ) .and. &
-                   (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3 .or. problem .eq. 6) ) then
+              if ( ( (do_rotation .ne. 1) .or. ( (do_rotation .eq. 1) .and. (state_in_rotating_frame .ne. 1) ) ) .and. (problem == 1) ) then
 
                  rot_loc = loc
 
@@ -216,7 +215,7 @@
               ! We're only going to impart this velocity to the stars themselves, so that we prevent
               ! artificial infall in the ambient regions.
 
-              if (problem .eq. 3 .and. initial_radial_velocity_factor > ZERO) then
+              if (problem == 1 .and. initial_radial_velocity_factor > ZERO) then
 
                  if (dist_P < model_P % radius .or. dist_P < model_S % radius) then
 
