@@ -157,7 +157,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
 
 
-  if (problem .eq. 3) then
+  if (problem == 1) then
 
      open (unit=un, file=trim(dir)//"/Rotation", status="old", IOSTAT = stat)
 
@@ -235,7 +235,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
   else
 
-     if (problem == 3) then
+     if (problem == 1) then
         call amrex_error("Error: no Relaxation file found in the checkpoint.")
      endif
 
@@ -1006,6 +1006,23 @@ subroutine set_job_status(jobDoneStatus) bind(C,name='set_job_status')
   endif
 
 end subroutine set_job_status
+
+
+
+! Get the relaxation_cutoff_time parameter.
+
+subroutine get_relaxation_cutoff_time(relaxation_cutoff_time_in) bind(C,name='get_relaxation_cutoff_time')
+
+  use amrex_fort_module, only: rt => amrex_real
+  use probdata_module, only: relaxation_cutoff_time
+
+  implicit none
+
+  real(rt), intent(inout) :: relaxation_cutoff_time_in
+
+  relaxation_cutoff_time_in = relaxation_cutoff_time
+
+end subroutine get_relaxation_cutoff_time
 
 
 

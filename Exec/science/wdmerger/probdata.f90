@@ -49,21 +49,18 @@ module probdata_module
   ! Method for determining the initial problem setup.
   !
   ! 0 = Collision; distance determined by a multiple of the secondary WD radius
-  ! 1 = Keplerian orbit; distance determined by the rotation period
-  ! 2 = Keplerian orbit; distance set so that the secondary exactly fills its Roche lobe radius
-  ! 3 = Problem 2 with an initial relaxation step
-  ! 4 = Free-fall; distance determined by a multiple of the secondary WD radius
+  ! 1 = Keplerian orbit; distance determined by Roche radius (or rotation period)
   ! 5 = Tidal disruption event; distance determined by a multiple of the WD tidal radius
 
-  integer, save :: problem = 2
+  integer, save :: problem = 1
 
 
 
   ! If we're automatically determining the initial distance based on the Roche lobe
-  ! radii for problem 3, this is the sizing factor we use. We set the default value
-  ! to be a large enough distance so that the system is close to stable.
+  ! radii for the merger problem, this is the sizing factor we use. Negative means
+  ! that we set the initial distance using the user-selected rotation period.
 
-  double precision, save :: roche_radius_factor = 2.0d0
+  double precision, save :: roche_radius_factor = 1.0d0
 
 
 
@@ -78,6 +75,12 @@ module probdata_module
   ! units of the primary's initial radius.
 
   double precision, save :: collision_impact_parameter = 0.0d0
+
+  ! For a collision, the initial velocity of the WDs toward
+  ! each other. If this is negative, the velocity will
+  ! be set according to free-fall from an infinite distance.
+
+  double precision, save :: collision_velocity = -1.0d0
 
 
 
@@ -226,15 +229,16 @@ module probdata_module
 
 
 
-  ! Relaxation parameters for problem 3
+  ! Relaxation parameters
 
-  double precision, save :: relaxation_damping_factor = 1.0d-1
+  double precision, save :: relaxation_damping_factor = -1.0d-1
   double precision, save :: relaxation_density_cutoff = 1.0d3
-  integer,          save :: relaxation_is_done = 0
+  double precision, save :: relaxation_cutoff_time = -1.d0
+  integer,          save :: relaxation_is_done = 1
 
-  ! Radial damping parameters for problem 3
+  ! Radial damping parameters
 
-  double precision, save :: radial_damping_factor = 1.0d3
+  double precision, save :: radial_damping_factor = -1.0d3
   double precision, save :: initial_radial_velocity_factor = -1.0d-3
 
   ! Distance (in kpc) used for calculation of the gravitational wave amplitude
@@ -260,12 +264,14 @@ module probdata_module
        problem, &
        collision_separation, &
        collision_impact_parameter, &
+       collision_velocity, &
        tde_separation, &
        tde_beta, &
        tde_initial_velocity, &
        interp_temp, &
        relaxation_damping_factor, &
        relaxation_density_cutoff, &
+       relaxation_cutoff_time, &
        initial_radial_velocity_factor, &
        radial_damping_factor, &
        ambient_density, &

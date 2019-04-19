@@ -391,6 +391,14 @@ Castro::read_params ()
     }
 #endif
 
+    // CUDA MOL has a bug that is currently not understood. It is disabled
+    // until this issue can be resolved.
+#ifdef AMREX_USE_CUDA
+    if (time_integration_method == MethodOfLines) {
+        amrex::Error("CUDA MOL is currently disabled.");
+    }
+#endif
+
     // Simplified SDC currently requires USE_SDC to be defined.
     // Also, if we have USE_SDC defined, we can't use the other
     // time integration_methods, because only the SDC burner
@@ -1297,82 +1305,95 @@ Castro::estTimeStep (Real dt_old)
 
     Real estdt_hydro = max_dt / cfl;
 
-#ifdef DIFFUSION
-    if (do_hydro or diffuse_temp)
-#else
     if (do_hydro)
-#endif
     {
 
 #ifdef RADIATION
-      if (Radiation::rad_hydro_combined) {
+        if (Radiation::rad_hydro_combined) {
 
-	  // Compute radiation + hydro limited timestep.
+            // Compute radiation + hydro limited timestep.
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:estdt_hydro)
 #endif
-        {
-          Real dt = max_dt / cfl;
-
-          const MultiFab& radMF = get_new_data(Rad_Type);
-          FArrayBox gPr;
-
-          for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi)
             {
-              const Box& tbox = mfi.tilebox();
-              const Box& vbox = mfi.validbox();
+                Real dt = max_dt / cfl;
 
-              gPr.resize(tbox);
-              radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
+                const MultiFab& radMF = get_new_data(Rad_Type);
+                FArrayBox gPr;
 
-              ca_estdt_rad(tbox.loVect(),tbox.hiVect(),
-                           BL_TO_FORTRAN(stateMF[mfi]),
-                           BL_TO_FORTRAN(gPr),
-                           dx,&dt);
+                for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi)
+                {
+                    const Box& tbox = mfi.tilebox();
+                    const Box& vbox = mfi.validbox();
+
+                    gPr.resize(tbox);
+                    radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
+
+                    ca_estdt_rad(tbox.loVect(),tbox.hiVect(),
+                                 BL_TO_FORTRAN(stateMF[mfi]),
+                                 BL_TO_FORTRAN(gPr),
+                                 dx,&dt);
+                }
+                estdt_hydro = std::min(estdt_hydro, dt);
             }
-          estdt_hydro = std::min(estdt_hydro, dt);
+
         }
-
-      }
-      else
-      {
+        else
+        {
 #endif
-
-	  // Compute hydro-limited timestep.
-	if (do_hydro)
-	  {
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:estdt_hydro)
 #endif
-	    {
-	      Real dt = max_dt / cfl;
+            {
+                Real dt = max_dt / cfl;
 
-	      for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
-		{
-		  const Box& box = mfi.tilebox();
+                for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+                {
+                    const Box& box = mfi.tilebox();
 
 #pragma gpu
-		  ca_estdt(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-			   BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-			   AMREX_REAL_ANYD(dx),
-                           AMREX_MFITER_REDUCE_MIN(&dt));
-		}
-              estdt_hydro = std::min(estdt_hydro, dt);
+                    ca_estdt(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
+                             BL_TO_FORTRAN_ANYD(stateMF[mfi]),
+                             AMREX_REAL_ANYD(dx),
+                             AMREX_MFITER_REDUCE_MIN(&dt));
+                }
+                estdt_hydro = std::min(estdt_hydro, dt);
             }
-	  }
+
+#ifdef RADIATION
+        }
+#endif
+
+        ParallelDescriptor::ReduceRealMin(estdt_hydro);
+        estdt_hydro *= cfl;
+        if (verbose) {
+            amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
+        }
+
+        // Determine if this is more restrictive than the maximum timestep limiting
+
+        if (estdt_hydro < estdt) {
+            limiter = "hydro";
+            estdt = estdt_hydro;
+        }
+
+    }
 
 #ifdef DIFFUSION
-	// Diffusion-limited timestep
-	// Note that the diffusion uses the same CFL safety factor
-	// as the main hydrodynamics timestep limiter.
-	if (diffuse_temp)
-	{
+    // Diffusion-limited timestep
+    // Note that the diffusion uses the same CFL safety factor
+    // as the main hydrodynamics timestep limiter.
+
+    Real estdt_diffusion = max_dt / cfl;
+
+    if (diffuse_temp)
+    {
 #ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_hydro)
+#pragma omp parallel reduction(min:estdt_diffusion)
 #endif
-          {
+        {
             Real dt = max_dt / cfl;
 
             for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
@@ -1384,27 +1405,23 @@ Castro::estTimeStep (Real dt_old)
                                         BL_TO_FORTRAN_ANYD(stateMF[mfi]),
                                         AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
             }
-            estdt_hydro = std::min(estdt_hydro, dt);
-          }
-	}
-#endif  // diffusion
-
-#ifdef RADIATION
-      }
-#endif
-
-       ParallelDescriptor::ReduceRealMin(estdt_hydro);
-       estdt_hydro *= cfl;
-       if (verbose && ParallelDescriptor::IOProcessor())
-           std::cout << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
-
-       // Determine if this is more restrictive than the maximum timestep limiting
-
-       if (estdt_hydro < estdt) {
-	 limiter = "hydro";
-	 estdt = estdt_hydro;
-       }
+            estdt_diffusion = std::min(estdt_diffusion, dt);
+        }
     }
+
+    ParallelDescriptor::ReduceRealMin(estdt_diffusion);
+    estdt_diffusion *= cfl;
+    if (verbose) {
+        amrex::Print() << "...estimated diffusion-limited timestep at level " << level << ": " << estdt_diffusion << std::endl;
+    }
+
+    // Determine if this is more restrictive than the hydro limiting
+
+    if (estdt_diffusion < estdt) {
+        limiter = "diffusion";
+        estdt = estdt_diffusion;
+    }
+#endif  // diffusion
 
 #ifdef REACTIONS
     MultiFab& S_new = get_new_data(State_Type);
@@ -1420,51 +1437,52 @@ Castro::estTimeStep (Real dt_old)
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:estdt_burn)
 #endif
-      {
-        Real dt = max_dt;
+        {
+            Real dt = max_dt;
 
-        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-          {
-            const Box& box = mfi.validbox();
+            for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+            {
+                const Box& box = mfi.validbox();
 
-            if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
+                if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
 
-              MultiFab& S_old = get_old_data(State_Type);
-              MultiFab& R_old = get_old_data(Reactions_Type);
+                    MultiFab& S_old = get_old_data(State_Type);
+                    MultiFab& R_old = get_old_data(Reactions_Type);
 
-              ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-                               BL_TO_FORTRAN_ANYD(S_old[mfi]),
-                               BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                               BL_TO_FORTRAN_ANYD(R_old[mfi]),
-                               BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                               ZFILL(dx),&dt_old,&dt);
+                    ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+                                     BL_TO_FORTRAN_ANYD(S_old[mfi]),
+                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                                     BL_TO_FORTRAN_ANYD(R_old[mfi]),
+                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
+                                     ZFILL(dx),&dt_old,&dt);
 
-            } else {
+                } else {
 
-              ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
-                               BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                               BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                               BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                               BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                               ZFILL(dx),&dt_old,&dt);
+                    ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
+                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
+                                     ZFILL(dx),&dt_old,&dt);
+
+                }
 
             }
+            estdt_burn = std::min(estdt_burn,dt);
+        }
 
-          }
-        estdt_burn = std::min(estdt_burn,dt);
-      }
+        ParallelDescriptor::ReduceRealMin(estdt_burn);
 
-      ParallelDescriptor::ReduceRealMin(estdt_burn);
+        if (verbose && estdt_burn < max_dt) {
+            amrex::Print() << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
+        }
 
-      if (verbose && ParallelDescriptor::IOProcessor() && estdt_burn < max_dt)
-        std::cout << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
+        // Determine if this is more restrictive than the hydro limiting
 
-      // Determine if this is more restrictive than the hydro limiting
-
-      if (estdt_burn < estdt) {
-        limiter = "burning";
-        estdt = estdt_burn;
-      }
+        if (estdt_burn < estdt) {
+            limiter = "burning";
+            estdt = estdt_burn;
+        }
     }
 #endif
 
@@ -1472,8 +1490,9 @@ Castro::estTimeStep (Real dt_old)
     if (do_radiation) radiation->EstTimeStep(estdt, level);
 #endif
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-      std::cout << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n';
+    if (verbose) {
+        amrex::Print() << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n';
+    }
 
     return estdt;
 }
