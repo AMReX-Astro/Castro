@@ -1,5 +1,12 @@
 # changes since the last release
 
+  -- The velocity calculated for the interface in the Riemann solve for
+     the CGF/CG Riemann solvers can no longer exceed the speed of light.
+     The parameter castro.riemann_speed_limit can be set to control the
+     speed limit applied in the Riemann solver -- this is useful for
+     preventing unphysically large velocities from being created at
+     shock fronts or near large density gradients.
+
   -- density_reset_method == 3 (which, in the event of a density reset,
      reset to the density at the beginning of the timestep) no longer
      exists. (#538)
