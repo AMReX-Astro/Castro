@@ -670,19 +670,23 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 1
-                if (n == UMX) then
-                   update(i,j,k,UMX) = update(i,j,k,UMX) - &
-                        ( qx_avg(i+1,j,k,QPRES) - qx_avg(i,j,k,QPRES) ) / dx(1)
-                end if
+                if (do_hydro == 1) then
+                   if (n == UMX) then
+                      update(i,j,k,UMX) = update(i,j,k,UMX) - &
+                           ( qx_avg(i+1,j,k,QPRES) - qx_avg(i,j,k,QPRES) ) / dx(1)
+                   end if
+                endif
 #endif
 
 #if AMREX_SPACEDIM == 2
-                if (n == UMX) then
-                   ! add the pressure source term for axisymmetry
-                   if (coord_type > 0) then
-                      update(i,j,k,n) = update(i,j,k,n) - (qx_avg(i+1,j,k,QPRES) - qx_avg(i,j,k,QPRES))/ dx(1)
+                if (do_hydro == 1) then
+                   if (n == UMX) then
+                      ! add the pressure source term for axisymmetry
+                      if (coord_type > 0) then
+                         update(i,j,k,n) = update(i,j,k,n) - (qx_avg(i+1,j,k,QPRES) - qx_avg(i,j,k,QPRES))/ dx(1)
+                      end if
                    end if
-                end if
+                endif
 #endif
 
                 update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
@@ -846,12 +850,10 @@ contains
              call conducteos(eos_input_re, eos_state)
 
              if (idir == 1) then
-                print *, "here!", eos_state % conductivity, F(i,j,k,UEINT), q(i,j,k,:)
                 dTdx = (-q(i+1,j,k,QTEMP) + 15*q(i,j,k,QTEMP) - &
                         15*q(i-1,j,k,QTEMP) + q(i-2,j,k,QTEMP))/(12.0_rt * dx(1))
                 F(i,j,k,UEINT) = F(i,j,k,UEINT) - eos_state % conductivity * dTdx
                 F(i,j,k,UEDEN) = F(i,j,k,UEDEN) - eos_state % conductivity * dTdx
-                print *, F(i,j,k,UEINT)
              else
                 call amrex_error("add_diffusive_flux not yet implemented here")
 
