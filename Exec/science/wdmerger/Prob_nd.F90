@@ -64,6 +64,7 @@
      double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
      double precision :: loc(3), omega(3), vel(3)
+     double precision :: rot_loc(3), cap_radius
      double precision :: dist_P, dist_S
      double precision :: cosTheta, sinTheta, R_prp, mag_vel
 
@@ -152,7 +153,7 @@
         enddo
      enddo
 
-     !$OMP PARALLEL DO PRIVATE(i, j, k, loc, vel, dist_P, dist_S)
+     !$OMP PARALLEL DO PRIVATE(i, j, k, loc, vel, dist_P, dist_S, rot_loc, cap_radius)
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
@@ -165,7 +166,7 @@
               dist_P = sum((loc - center_P_initial)**2)**HALF
               dist_S = sum((loc - center_S_initial)**2)**HALF
 
-              if (.not. (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3)) then
+              if (problem /= 1) then
 
                  if (dist_P < model_P % radius) then
                     state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + vel_P(:) * state(i,j,k,URHO)
@@ -176,16 +177,35 @@
               endif
 
               ! If we're in the inertial reference frame, use rigid body rotation with velocity omega x r.
-              ! In 2D we have to be careful, though: the third coordinate is an angular
-              ! coordinate, whose unit vector is tangent to the unit circle, so we should
-              ! have the same velocity everywhere along that coordinate to begin with.
 
-              if ( ( (do_rotation .ne. 1) .or. ( (do_rotation .eq. 1) .and. (state_in_rotating_frame .ne. 1) ) ) .and. &
-                   (problem .eq. 1 .or. problem .eq. 2 .or. problem .eq. 3) ) then
+              if ( ( (do_rotation .ne. 1) .or. ( (do_rotation .eq. 1) .and. (state_in_rotating_frame .ne. 1) ) ) .and. (problem == 1) ) then
 
-                 vel = cross_product(omega, loc)
+                 rot_loc = loc
+
+                 ! At large enough distances from the center, our rigid body rotation formula gives
+                 ! meaningless results, and this is enough to be an issue for the problem sizes of
+                 ! interest. We don't want the stars to be plowing through ambient material, though.
+                 ! So we need a solution for the ambient material that satisfies both criteria. Our
+                 ! solution is to set a cap on the radius used in calculating the rotation velocity:
+                 ! the material around the stars will be rotating at the same speed, avoiding unwanted
+                 ! numerical effects, but the material near the domain boundaries will still have a
+                 ! reasonable velocity. We'll arbitrarily apply the cap at some multiple of the larger
+                 ! of the two stellar radii.
+
+                 if (state(i,j,k,URHO) < 1.1d0 * ambient_state % rho) then
+
+                    cap_radius = 1.25d0 * max(model_P % radius + abs(center_P_initial(axis_1)), model_S % radius + abs(center_S_initial(axis_1)))
+                    rot_loc(:) = min(cap_radius, abs(rot_loc(:))) * sign(ONE, rot_loc(:))
+
+                 endif
+
+                 vel = cross_product(omega, rot_loc)
 
                  state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + state(i,j,k,URHO) * vel(:)
+
+                 ! In 2D we have to be careful: the third coordinate is an angular
+                 ! coordinate, whose unit vector is tangent to the unit circle, so we should
+                 ! have the same velocity everywhere along that coordinate to begin with.
 
                  if (dim .eq. 2) state(i,j,k,UMZ) = abs(state(i,j,k,UMZ))
 
@@ -195,7 +215,7 @@
               ! We're only going to impart this velocity to the stars themselves, so that we prevent
               ! artificial infall in the ambient regions.
 
-              if (problem .eq. 3 .and. initial_radial_velocity_factor > ZERO) then
+              if (problem == 1 .and. initial_radial_velocity_factor > ZERO) then
 
                  if (dist_P < model_P % radius .or. dist_P < model_S % radius) then
 
@@ -210,19 +230,6 @@
                     state(i,j,k,UMX+axis_2-1) = state(i,j,k,UMX+axis_2-1) - initial_radial_velocity_factor * sinTheta * mag_vel
 
                  endif
-
-              endif
-
-              ! Zero out any velocities that have been generated in ambient density material.
-              ! At large enough distances our rigid body rotation formula above gives meaningless
-              ! results, and this is enough to be an issue for the problem sizes of interest.
-              ! So in the inertial frame the stars will be plowing through the ambient material
-              ! whereas in the rotating frame they will be at rest with respect to the ambient fluid.
-              ! The ambient density should be low enough that this is not an important effect.
-
-              if (state(i,j,k,URHO) < 1.1d0 * ambient_state % rho) then
-
-                 state(i,j,k,UMX:UMZ) = ZERO
 
               endif
 

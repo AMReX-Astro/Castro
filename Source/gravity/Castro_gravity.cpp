@@ -28,8 +28,10 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
     // Do level solve at beginning of time step in order to compute the
     // difference between the multilevel and the single level solutions.
+    // Note that we don't need to do this solve for single-level runs,
+    // since the solution at the end of the last timestep won't have changed.
 
-    if (gravity->get_gravity_type() == "PoissonGrav")
+    if (gravity->get_gravity_type() == "PoissonGrav" && parent->finestLevel() > 0)
     {
 
 	// Create a copy of the current (composite) data on this level.

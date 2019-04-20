@@ -35,7 +35,7 @@ contains
     use amrex_constants_module,  only: ZERO, HALF, ONE
 #ifdef HYBRID_MOMENTUM
     use meth_params_module,   only: UMR, UMP
-    use hybrid_advection_module, only: add_hybrid_momentum_source
+    use hybrid_advection_module, only: set_hybrid_momentum_source
 #endif
     use amrex_fort_module, only : rt => amrex_real
 
@@ -62,9 +62,9 @@ contains
     real(rt) :: src(NVAR)
     real(rt) :: local_state(NVAR)
 
-    src(:) = ZERO
-
     !$gpu
+
+    src(:) = ZERO
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dble(k + HALF) * dx(3) - center(3)
@@ -89,7 +89,7 @@ contains
              src(UEDEN) = SrE
 
 #ifdef HYBRID_MOMENTUM
-             call add_hybrid_momentum_source(r, src(UMR:UMP), src(UMX:UMZ))
+             call set_hybrid_momentum_source(r, src(UMR:UMP), src(UMX:UMZ))
 #endif
 
              ! Add terms to the source array.

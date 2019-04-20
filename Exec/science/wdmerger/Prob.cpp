@@ -70,7 +70,7 @@ Castro::problem_post_timestep()
 
     wd_update(time, dt);
 
-    // If we are doing problem 3, which has an initial relaxation step,
+    // If we are doing the merger problem with an initial relaxation step,
     // perform any post-timestep updates to assist with the relaxation, then
     // determine whether the criterion for terminating the relaxation
     // has been satisfied.
@@ -620,7 +620,7 @@ void Castro::problem_post_init() {
 
   // If we're doing an initial relaxation step, ensure that we are not subcycling.
 
-  if (problem == 3 && !relaxation_is_done && parent->subCycle() && parent->finestLevel() > 0)
+  if (problem == 1 && !relaxation_is_done && parent->subCycle() && parent->finestLevel() > 0)
       amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
 
   // Update the rotational period; some problems change this from what's in the inputs parameters.
@@ -865,24 +865,6 @@ void Castro::check_to_stop(Real time, bool dump) {
 
           }
 
-      } else if (problem == 4) {
-
-	// We can work out the stopping time using the formula
-	// t_freefall = rotational_period / (4 * sqrt(2)).
-	// We'll stop 90% of the way there because that's about
-	// when the stars start coming into contact, and the
-	// assumption of spherically symmetric stars breaks down.
-
-	Real stopping_time = 0.90 * rotational_period / (4.0 * std::sqrt(2));
-
-	if (time >= stopping_time) {
-
-	  jobDoneStatus = 1;
-
-	  set_job_status(&jobDoneStatus);
-
-	}
-
       }
 
     }
@@ -988,7 +970,7 @@ Castro::update_relaxation(Real time, Real dt) {
     // Check to make sure whether we should be doing the relaxation here.
     // Update the relaxation conditions if we are not stopping.
 
-    if (problem != 3 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
+    if (problem != 1 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
 
     // Reconstruct the rotation force at the old and new times.
     // For the old time we can simply use the old state data; for
@@ -1084,7 +1066,7 @@ Castro::update_relaxation(Real time, Real dt) {
             const int* lo  = box.loVect();
             const int* hi  = box.hiVect();
 
-            sum_force_on_stars(lo, hi,
+            sum_force_on_stars(ARLIM_3D(lo), ARLIM_3D(hi),
                                BL_TO_FORTRAN_ANYD((*rot_force[lev])[mfi]),
                                BL_TO_FORTRAN_ANYD(S_new[mfi]),
                                BL_TO_FORTRAN_ANYD(vol[mfi]),
@@ -1134,6 +1116,9 @@ Castro::update_relaxation(Real time, Real dt) {
     // coarse grid but if we wanted more accuracy we could do a loop
     // over levels as above.
 
+    // For the merger problem, we're going to turn the relaxation off
+    // when we've reached the L1 Lagrange point.
+
     Real L1[3] = { -1.0e200 };
     Real L2[3] = { -1.0e200 };
     Real L3[3] = { -1.0e200 };
@@ -1154,13 +1139,13 @@ Castro::update_relaxation(Real time, Real dt) {
 #endif
     for (MFIter mfi(*mfphieff,true); mfi.isValid(); ++mfi) {
 
-	const Box& box = mfi.tilebox();
+        const Box& box = mfi.tilebox();
 
-	const int* lo  = box.loVect();
-	const int* hi  = box.hiVect();
+        const int* lo  = box.loVect();
+        const int* hi  = box.hiVect();
 
-	get_critical_roche_potential(BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
-				     lo, hi, L1, &potential);
+        get_critical_roche_potential(BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
+                                     lo, hi, L1, &potential);
 
     }
 
@@ -1178,29 +1163,37 @@ Castro::update_relaxation(Real time, Real dt) {
 #endif
     for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
 
-	const Box& box  = mfi.tilebox();
+        const Box& box  = mfi.tilebox();
 
-	const int* lo   = box.loVect();
-	const int* hi   = box.hiVect();
+        const int* lo   = box.loVect();
+        const int* hi   = box.hiVect();
 
-	check_relaxation(BL_TO_FORTRAN_ANYD(S_new[mfi]),
-			 BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
-			 ARLIM_3D(lo),ARLIM_3D(hi),
-			 &potential,&is_done);
+        check_relaxation(BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                         BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
+                         ARLIM_3D(lo),ARLIM_3D(hi),
+                         &potential,&is_done);
 
     }
 
     amrex::ParallelDescriptor::ReduceIntSum(is_done);
 
     if (is_done > 0) {
-	relaxation_is_done = 1;
-	set_relaxation_status(&relaxation_is_done);
+        relaxation_is_done = 1;
     }
 
-    if (relaxation_is_done) {
+    // We can also turn off the relaxation if we've passed
+    // a certain number of dynamical timescales.
 
+    Real relaxation_cutoff_time;
+    get_relaxation_cutoff_time(&relaxation_cutoff_time);
+
+    if (relaxation_cutoff_time > 0.0 && time > relaxation_cutoff_time * std::max(t_ff_p, t_ff_s)) {
+        relaxation_is_done = 1;
+    }
+
+    if (relaxation_is_done > 0) {
+	set_relaxation_status(&relaxation_is_done);
 	turn_off_relaxation(&time);
-
     }
 
 }
