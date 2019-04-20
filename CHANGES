@@ -1,5 +1,12 @@
 # changes since the last release
 
+  -- The velocity calculated for the interface in the Riemann solve for
+     the CGF/CG Riemann solvers can no longer exceed the speed of light.
+     The parameter castro.riemann_speed_limit can be set to control the
+     speed limit applied in the Riemann solver -- this is useful for
+     preventing unphysically large velocities from being created at
+     shock fronts or near large density gradients.
+
   -- The algorithm for recalculating source terms after an AMR reflux
      did not set some data needed to correctly calculate positions on
      the fine levels, so position-dependent source terms (rotation,
@@ -23,11 +30,6 @@
      algorithm This addresses issue #462.  During commmit 0f09693, a
      change in signs was introduced in add_hybrid_momentum_sources,
      which should be analogous to linear_to_hybrid (#594)
-
-  -- The algorithm for recalculating source terms after an AMR reflux
-     did not set some data needed to correctly calculate positions on
-     the fine levels, so position-dependent source terms (rotation,
-     hybrid momentum) were being calculated incorrectly. (#599)
 
 # 19.04
 
