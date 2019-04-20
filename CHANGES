@@ -7,6 +7,14 @@
      preventing unphysically large velocities from being created at
      shock fronts or near large density gradients.
 
+  -- The algorithm for recalculating source terms after an AMR reflux
+     did not set some data needed to correctly calculate positions on
+     the fine levels, so position-dependent source terms (rotation,
+     hybrid momentum) were being calculated incorrectly. This caused
+     some strange effects in AMR simulations with rotation, such as
+     binary star orbits getting wider with time and drifting relative
+     to the system center of mass. This has now been fixed. (#599)
+
   -- density_reset_method == 3 (which, in the event of a density reset,
      reset to the density at the beginning of the timestep) no longer
      exists. (#538)
@@ -22,7 +30,6 @@
      algorithm This addresses issue #462.  During commmit 0f09693, a
      change in signs was introduced in add_hybrid_momentum_sources,
      which should be analogous to linear_to_hybrid (#594)
-
 
 # 19.04
 
