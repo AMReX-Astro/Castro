@@ -24,6 +24,10 @@
      change in signs was introduced in add_hybrid_momentum_sources,
      which should be analogous to linear_to_hybrid (#594)
 
+  -- The algorithm for recalculating source terms after an AMR reflux
+     did not set some data needed to correctly calculate positions on
+     the fine levels, so position-dependent source terms (rotation,
+     hybrid momentum) were being calculated incorrectly. (#599)
 
 # 19.04
 
