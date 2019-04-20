@@ -88,14 +88,16 @@ contains
     ! that has radial and angular components.
 
     use amrex_constants_module, only: ZERO
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
-    real(rt)        , intent(in) :: loc(3), mom_in(3)
-    real(rt)         :: mom_out(3)
+    real(rt), intent(in) :: loc(3), mom_in(3)
+    real(rt) :: mom_out(3)
 
-    real(rt)         :: R
+    real(rt) :: R
+
+    !$gpu
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
@@ -176,6 +178,8 @@ contains
 
     real(rt) :: R
 
+    !$gpu
+
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
     ! This is analogous to the conversion of linear momentum to hybrid momentum.
@@ -191,11 +195,13 @@ contains
   subroutine compute_hybrid_flux(state, flux, idir, idx, cell_centered)
 
     use meth_params_module, only: NVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, UMR, UML, UMP
+#ifndef AMREX_USE_CUDA
     use amrex_error_module, only: amrex_error
+#endif
     use prob_params_module, only: center
-    use castro_util_module, only: position
-
+    use castro_util_module, only: position ! function
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     real(rt)         :: state(NGDNV)
@@ -208,6 +214,8 @@ contains
 
     real(rt)         :: u_adv
     logical :: cc
+
+    !$gpu
 
     cc = .false.
 
@@ -275,10 +283,10 @@ contains
 
     use meth_params_module, only: NVAR, NGDNV, GDPRES, UMR
     use prob_params_module, only: center, dx_level
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
     use amrinfo_module, only: amr_level
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
@@ -294,6 +302,8 @@ contains
 
     integer          :: i, j, k
     real(rt)         :: loc(3), R, dx(3)
+
+    !$gpu
 
     dx = dx_level(:,amr_level)
 
