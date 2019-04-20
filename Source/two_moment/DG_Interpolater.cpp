@@ -39,18 +39,18 @@ DG_Interpolater::CoarseBox (const Box& fine,
 }
 
 void
-DG_Interpolater::interp (const FArrayBox& crse,
-                         int              crse_comp,
-                         FArrayBox&       fine,
-                         int              fine_comp,
-                         int              ncomp,
-                         const Box&       fine_region,
-                         const IntVect&   ratio,
-                         const Geometry&  crse_geom,
-                         const Geometry&  fine_geom,
-                         Vector<BCRec>&   bcr,
-                         int              actual_comp,
-                         int              actual_state)
+DG_Interpolater::interp (const FArrayBox&     crse,
+                         int                  crse_comp,
+                         FArrayBox&           fine,
+                         int                  fine_comp,
+                         int                  ncomp,
+                         const Box&           fine_region,
+                         const IntVect&       ratio,
+                         const Geometry&      crse_geom,
+                         const Geometry&      fine_geom,
+                         Vector<BCRec> const& bcr,
+                         int                  actual_comp,
+                         int                  actual_state)
 {
     BL_PROFILE("DG_Interpolater::interp()");
     BL_ASSERT(bcr.size() >= ncomp);
