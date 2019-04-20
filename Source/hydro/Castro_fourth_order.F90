@@ -296,10 +296,6 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   ! solve the Riemann problems -- we just require the interface state
   ! at this point
 
-  ! TODO: we should explicitly compute a gamma with this state, since
-  ! we cannot get away with the first-order construction that we pull
-  ! from qaux in the Riemann solver
-
   call riemann_state(qxm, q_lo, q_hi, &
                      qxp, q_lo, q_hi, 1, 1, &
                      qx_avg, q_lo, q_hi, &
