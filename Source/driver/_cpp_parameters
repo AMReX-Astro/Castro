@@ -129,6 +129,10 @@ cg_blend                     int           2                  y
 # thermodynamic consistency?
 use_eos_in_riemann           int           0                  y
 
+# Limit the Riemann velocity used for flux construction to
+# this speed limit.
+riemann_speed_limit          Real          2.99792458e10      y
+
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
 use_flattening               int           1                  y

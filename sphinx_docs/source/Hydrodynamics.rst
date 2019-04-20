@@ -946,6 +946,17 @@ solver. The first two are both
 two-shock approximate solvers, but differ in how they approximate
 the thermodynamics in the “star” region.
 
+.. index:: castro.riemann_speed_limit
+
+.. note::
+
+   These Riemann solvers are for Newtonian hydrodynamics, however, we enforce
+   that the interface velocity cannot exceed the speed of light in both the
+   Colella & Glaz and Colella, Glaz, & Ferguson solvers.  This excessive speed
+   usually is a sign of low density regions and density resets or the flux limiter
+   kicking in.  This behavior can be changed with the ``castro.riemann_speed_limit``
+   parameter.
+
 Inputs from the edge state prediction are :math:`\rho_{L/R}, u_{L/R},
 v_{L/R}, p_{L/R}`, and :math:`(\rho e)_{L/R}` (:math:`v` represents all of the
 transverse velocity components). We also compute :math:`\Gamma \equiv d\log
