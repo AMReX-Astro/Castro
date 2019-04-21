@@ -2671,7 +2671,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
                                  const amrex::MultiFab* const crse_bcdata,
                                  amrex::Real rel_eps, amrex::Real abs_eps)
 {
-    BL_PROFILE("Gravity::acutal_solve_with_mlmg()");
+    BL_PROFILE("Gravity::actual_solve_with_mlmg()");
 
     Real final_resnorm = -1.0;
 
