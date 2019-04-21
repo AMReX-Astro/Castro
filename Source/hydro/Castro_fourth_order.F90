@@ -320,13 +320,15 @@ contains
           flx_avg(:,:,:,:) = ZERO
        end if
 
-       is_avg = 1
-       call add_diffusive_flux([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
-                               [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                               q, q_lo, q_hi, &
-                               qx_avg, q_lo, q_hi, &
-                               flx_avg, q_lo, q_hi, &
-                               dx, 1, is_avg)
+       if (diffuse_temp == 1) then
+          is_avg = 1
+          call add_diffusive_flux([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
+                                  [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
+                                  q, q_lo, q_hi, &
+                                  qx_avg, q_lo, q_hi, &
+                                  flx_avg, q_lo, q_hi, &
+                                  dx, 1, is_avg)
+       end if
 
 #if AMREX_SPACEDIM >= 2
        call riemann_state(qym, q_lo, q_hi, &
@@ -348,13 +350,15 @@ contains
           fly_avg(:,:,:,:) = ZERO
        end if
 
-       is_avg = 1
-       call add_diffusive_flux([lo(1)-1, lo(2), lo(3)-dg(3)], &
-                               [hi(1)+1, hi(2)+1, hi(3)+dg(3)], &
-                               q, q_lo, q_hi, &
-                               qy_avg, q_lo, q_hi, &
-                               fly_avg, q_lo, q_hi, &
-                               dx, 2, is_avg)
+       if (diffuse_temp == 1) then
+          is_avg = 1
+          call add_diffusive_flux([lo(1)-1, lo(2), lo(3)-dg(3)], &
+                                  [hi(1)+1, hi(2)+1, hi(3)+dg(3)], &
+                                  q, q_lo, q_hi, &
+                                  qy_avg, q_lo, q_hi, &
+                                  fly_avg, q_lo, q_hi, &
+                                  dx, 2, is_avg)
+       end if
 
 #endif
 
@@ -378,14 +382,15 @@ contains
           flz_avg(:,:,:,:) = ZERO
        end if
 
-       is_avg = 1
-       call add_diffusive_flux([lo(1)-1, lo(2)-1, lo(3)], &
-                               [hi(1)+1, hi(2)+1, hi(3)+1], &
-                               q, q_lo, q_hi, &
-                               qz_avg, q_lo, q_hi, &
-                               flz_avg, q_lo, q_hi, &
-                               dx, 3, is_avg)
-
+       if (diffuse_temp == 1) then
+          is_avg = 1
+          call add_diffusive_flux([lo(1)-1, lo(2)-1, lo(3)], &
+                                  [hi(1)+1, hi(2)+1, hi(3)+1], &
+                                  q, q_lo, q_hi, &
+                                  qz_avg, q_lo, q_hi, &
+                                  flz_avg, q_lo, q_hi, &
+                                  dx, 3, is_avg)
+       end if
 #endif
 
 
@@ -473,27 +478,37 @@ contains
 
 #endif
 
+       if (do_hydro == 1) then
 
-       ! compute face-centered fluxes
-       ! these will be stored in flx, fly, flz
-       call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
-                           qx, q_lo, q_hi, &
-                           flx, flx_lo, flx_hi, &
-                           1)
+          ! compute face-centered fluxes
+          ! these will be stored in flx, fly, flz
+          call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+                               qx, q_lo, q_hi, &
+                               flx, flx_lo, flx_hi, &
+                               1)
 
 #if AMREX_SPACEDIM >= 2
-       call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
-                           qy, q_lo, q_hi, &
-                           fly, fly_lo, fly_hi, &
-                           2)
+          call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
+                               qy, q_lo, q_hi, &
+                               fly, fly_lo, fly_hi, &
+                               2)
 #endif
 
 #if AMREX_SPACEDIM == 3
-       call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
-                           qz, q_lo, q_hi, &
-                           flz, flz_lo, flz_hi, &
-                           3)
+          call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
+                              qz, q_lo, q_hi, &
+                              flz, flz_lo, flz_hi, &
+                              3)
 #endif
+       end if
+
+       if (diffuse_temp == 1) then
+
+          ! we need temperature at cell-centers
+
+          ! add the diffusive flux to the face-centered fluxes
+
+       end if
 
        call bl_deallocate(qx)
 #if AMREX_SPACEDIM >= 2
