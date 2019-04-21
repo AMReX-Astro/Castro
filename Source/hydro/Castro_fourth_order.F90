@@ -320,12 +320,13 @@ contains
           flx_avg(:,:,:,:) = ZERO
        end if
 
+       is_avg = 1
        call add_diffusive_flux([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
                                [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                                q, q_lo, q_hi, &
                                qx_avg, q_lo, q_hi, &
                                flx_avg, q_lo, q_hi, &
-                               dx, 1)
+                               dx, 1, is_avg)
 
 #if AMREX_SPACEDIM >= 2
        call riemann_state(qym, q_lo, q_hi, &
@@ -342,6 +343,19 @@ contains
                            qy_avg, q_lo, q_hi, &
                            fly_avg, q_lo, q_hi, &
                            2)
+
+       if (do_hydro == 0) then
+          fly_avg(:,:,:,:) = ZERO
+       end if
+
+       is_avg = 1
+       call add_diffusive_flux([lo(1)-1, lo(2), lo(3)-dg(3)], &
+                               [hi(1)+1, hi(2)+1, hi(3)+dg(3)], &
+                               q, q_lo, q_hi, &
+                               qy_avg, q_lo, q_hi, &
+                               fly_avg, q_lo, q_hi, &
+                               dx, 2, is_avg)
+
 #endif
 
 #if AMREX_SPACEDIM == 3
@@ -359,6 +373,19 @@ contains
                            qz_avg, q_lo, q_hi, &
                            flz_avg, q_lo, q_hi, &
                            3)
+
+       if (do_hydro == 0) then
+          flz_avg(:,:,:,:) = ZERO
+       end if
+
+       is_avg = 1
+       call add_diffusive_flux([lo(1)-1, lo(2)-1, lo(3)], &
+                               [hi(1)+1, hi(2)+1, hi(3)+1], &
+                               q, q_lo, q_hi, &
+                               qz_avg, q_lo, q_hi, &
+                               flz_avg, q_lo, q_hi, &
+                               dx, 3, is_avg)
+
 #endif
 
 
@@ -813,7 +840,7 @@ contains
                                 q, q_lo, q_hi, &
                                 qint, qi_lo, qi_hi, &
                                 F, F_lo, F_hi, &
-                                dx, idir)
+                                dx, idir, is_avg)
     ! add the diffusive flux to the energy fluxes
     !
 
@@ -837,6 +864,7 @@ contains
     real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
     integer, intent(in) :: lo(3), hi(3)
     real(rt), intent(in) :: dx(3)
+    integer, intent(in) :: is_avg
 
     integer :: i, j, k
 
@@ -855,16 +883,49 @@ contains
              call conducteos(eos_input_re, eos_state)
 
              if (idir == 1) then
-                dTdx = (-q(i+1,j,k,QTEMP) + 15*q(i,j,k,QTEMP) - &
+
+                if (is_avg == 0) then
+                   ! we are working with the cell-center state
+                   dTdx = (-q(i+1,j,k,QTEMP) + 27*q(i,j,k,QTEMP) - &
+                        27*q(i-1,j,k,QTEMP) + q(i-2,j,k,QTEMP))/(24.0_rt * dx(1))
+
+                else
+                   ! we are working with the cell-average state
+                   dTdx = (-q(i+1,j,k,QTEMP) + 15*q(i,j,k,QTEMP) - &
                         15*q(i-1,j,k,QTEMP) + q(i-2,j,k,QTEMP))/(12.0_rt * dx(1))
-                !dTdx = (-q(i+1,j,k,QTEMP) + 27*q(i,j,k,QTEMP) - &
-                !     27*q(i-1,j,k,QTEMP) + q(i-2,j,k,QTEMP))/(24.0_rt * dx(1))
-                F(i,j,k,UEINT) = F(i,j,k,UEINT) - eos_state % conductivity * dTdx
-                F(i,j,k,UEDEN) = F(i,j,k,UEDEN) - eos_state % conductivity * dTdx
+                end if
+
+             else if (idir == 2)
+
+                if (is_avg == 0) then
+                   ! we are working with the cell-center state
+                   dTdx = (-q(i,j+1,k,QTEMP) + 27*q(i,j,k,QTEMP) - &
+                        27*q(i,j-1,k,QTEMP) + q(i,j-2,k,QTEMP))/(24.0_rt * dx(2))
+
+                else
+                   ! we are working with the cell-average state
+                   dTdx = (-q(i,j+1,k,QTEMP) + 15*q(i,j,k,QTEMP) - &
+                        15*q(i,j-1,k,QTEMP) + q(i,j-2,k,QTEMP))/(12.0_rt * dx(2))
+                end if
+
              else
-                call amrex_error("add_diffusive_flux not yet implemented here")
+
+                if (is_avg == 0) then
+                   ! we are working with the cell-center state
+                   dTdx = (-q(i,j,k+1,QTEMP) + 27*q(i,j,k,QTEMP) - &
+                        27*q(i,j,k-1,QTEMP) + q(i,j,k-2,QTEMP))/(24.0_rt * dx(3))
+
+                else
+                   ! we are working with the cell-average state
+                   dTdx = (-q(i,j,k+1,QTEMP) + 15*q(i,j,k,QTEMP) - &
+                        15*q(i,j,k-1,QTEMP) + q(i,j,k-2,QTEMP))/(12.0_rt * dx(3))
+                end if
 
              endif
+
+             F(i,j,k,UEINT) = F(i,j,k,UEINT) - eos_state % conductivity * dTdx
+             F(i,j,k,UEDEN) = F(i,j,k,UEDEN) - eos_state % conductivity * dTdx
+
           end do
        end do
     end do
