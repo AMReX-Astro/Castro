@@ -182,9 +182,10 @@ contains
 #endif
 
     call bl_allocate(qx_avg, q_lo, q_hi, NQ)
-    call bl_allocate(qx, q_lo, q_hi, NQ)
     call bl_allocate(flx_avg, q_lo, q_hi, NVAR)
 #if AMREX_SPACEDIM >= 2
+    call bl_allocate(qx, q_lo, q_hi, NQ)
+
     call bl_allocate(qy_avg, q_lo, q_hi, NQ)
     call bl_allocate(qy, q_lo, q_hi, NQ)
     call bl_allocate(fly_avg, q_lo, q_hi, NVAR)
@@ -779,6 +780,7 @@ contains
             qx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),QPRES) * dt
     end if
 #endif
+
     call bl_deallocate(avisx)
 #if BL_SPACEDIM >= 2
     call bl_deallocate(avisy)
@@ -789,6 +791,7 @@ contains
 
     call bl_deallocate(qx_avg)
     call bl_deallocate(flx_avg)
+
 #if AMREX_SPACEDIM >= 2
     call bl_deallocate(qy_avg)
     call bl_deallocate(fly_avg)
