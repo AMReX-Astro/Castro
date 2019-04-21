@@ -1575,21 +1575,21 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 	    {
 	        const Box& bx = mfi.tilebox();
 
-		ca_compute_multipole_moments(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		                             ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
-					     ZFILL(dx),BL_TO_FORTRAN_ANYD(source[mfi]),
+		ca_compute_multipole_moments(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+		                             AMREX_ARLIM_ANYD(domain.loVect()), AMREX_ARLIM_ANYD(domain.hiVect()),
+					     AMREX_ZFILL(dx), BL_TO_FORTRAN_ANYD(source[mfi]),
 					     BL_TO_FORTRAN_ANYD((*volume[lev])[mfi]),
-					     &lnum,
+					     lnum,
 #ifdef _OPENMP
 					     priv_qL0[tid]->dataPtr(),
 					     priv_qLC[tid]->dataPtr(),priv_qLS[tid]->dataPtr(),
 					     priv_qU0[tid]->dataPtr(),
 					     priv_qUC[tid]->dataPtr(),priv_qUS[tid]->dataPtr(),
 #else
-					     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
-					     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
+					     qL0.dataPtr(), qLC.dataPtr(), qLS.dataPtr(),
+					     qU0.dataPtr(), qUC.dataPtr(), qUS.dataPtr(),
 #endif
-					     &npts,&boundary_only);
+					     npts, boundary_only);
 	}
 
 #ifdef _OPENMP
@@ -1659,14 +1659,40 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
     // Now, do a global reduce over all processes.
 
+    if (!ParallelDescriptor::UseGpuAwareMpi()) {
+        qL0.prefetchToHost();
+        qLC.prefetchToHost();
+        qLS.prefetchToHost();
+    }
+
     ParallelDescriptor::ReduceRealSum(qL0.dataPtr(),boxq0.numPts());
     ParallelDescriptor::ReduceRealSum(qLC.dataPtr(),boxqC.numPts());
     ParallelDescriptor::ReduceRealSum(qLS.dataPtr(),boxqS.numPts());
 
+    if (!ParallelDescriptor::UseGpuAwareMpi()) {
+        qL0.prefetchToDevice();
+        qLC.prefetchToDevice();
+        qLS.prefetchToDevice();
+    }
+
     if (boundary_only != 1) {
+
+      if (!ParallelDescriptor::UseGpuAwareMpi()) {
+          qU0.prefetchToHost();
+          qUC.prefetchToHost();
+          qUS.prefetchToHost();
+      }
+
       ParallelDescriptor::ReduceRealSum(qU0.dataPtr(),boxq0.numPts());
       ParallelDescriptor::ReduceRealSum(qUC.dataPtr(),boxqC.numPts());
       ParallelDescriptor::ReduceRealSum(qUS.dataPtr(),boxqS.numPts());
+
+      if (!ParallelDescriptor::UseGpuAwareMpi()) {
+          qU0.prefetchToDevice();
+          qUC.prefetchToDevice();
+          qUS.prefetchToDevice();
+      }
+
     }
 
     // Finally, construct the boundary conditions using the
@@ -1682,13 +1708,14 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     for (MFIter mfi(phi,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-        ca_put_multipole_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			     ARLIM_3D(domain.loVect()), ARLIM_3D(domain.hiVect()),
-			     ZFILL(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
-			     &lnum,
-			     qL0.dataPtr(),qLC.dataPtr(),qLS.dataPtr(),
-			     qU0.dataPtr(),qUC.dataPtr(),qUS.dataPtr(),
-			     &npts,&boundary_only);
+
+        ca_put_multipole_phi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+			     AMREX_ARLIM_ANYD(domain.loVect()), AMREX_ARLIM_ANYD(domain.hiVect()),
+			     AMREX_ZFILL(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
+			     lnum,
+			     qL0.dataPtr(), qLC.dataPtr(), qLS.dataPtr(),
+			     qU0.dataPtr(), qUC.dataPtr(), qUS.dataPtr(),
+			     npts, boundary_only);
     }
 
     if (verbose)

@@ -1,21 +1,21 @@
 module gravity_module
 
-  use amrex_error_module
-  use amrex_fort_module, only : rt => amrex_real
+  use amrex_fort_module, only: rt => amrex_real
+
   implicit none
 
   public
 
   ! Data for the multipole gravity
 
-  real(rt)        , save :: volumeFactor, parityFactor
-  real(rt)        , save :: edgeTolerance = 1.0e-2_rt
-  real(rt)        , save :: rmax
-  logical,          save :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
-  logical,          save :: doReflectionLo(3), doReflectionHi(3)
-  integer,          save :: lnum_max
-  real(rt)        , allocatable, save :: factArray(:,:)
-  real(rt)        , allocatable, save :: parity_q0(:), parity_qC_qS(:,:)
+  real(rt), allocatable :: volumeFactor, parityFactor
+  real(rt), parameter :: edgeTolerance = 1.0e-2_rt
+  real(rt), allocatable :: rmax
+  logical,  allocatable :: doSymmetricAddLo(:), doSymmetricAddHi(:), doSymmetricAdd
+  logical,  allocatable :: doReflectionLo(:), doReflectionHi(:)
+  integer,  allocatable :: lnum_max
+  real(rt), allocatable :: factArray(:,:)
+  real(rt), allocatable :: parity_q0(:), parity_qC_qS(:,:)
 
 contains
 
@@ -32,7 +32,6 @@ contains
 
     use fundamental_constants_module, only: Gconst
 
-    use amrex_fort_module, only : rt => amrex_real
     real(rt), intent(inout) :: Gconst_out
 
     Gconst_out = Gconst
@@ -52,7 +51,6 @@ contains
     use fundamental_constants_module, only : Gconst
     use amrex_constants_module
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer , intent(in   ) :: numpts_1d
     real(rt), intent(in   ) :: mass(0:numpts_1d-1)   ! radial mass distribution
@@ -157,7 +155,6 @@ contains
 
     use fundamental_constants_module, only : Gconst
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer , intent(in   ) :: numpts_1d   ! number of points in radial direction
     real(rt), intent(in   ) :: mass(0:numpts_1d-1)   ! radial mass distribution
@@ -199,7 +196,6 @@ contains
     use fundamental_constants_module, only : Gconst, c_light
     use amrex_constants_module
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
     integer , intent(in   ) :: numpts_1d
     real(rt), intent(in   ) ::  rho(0:numpts_1d-1)
@@ -297,21 +293,31 @@ contains
     use amrex_constants_module
     use prob_params_module, only: coord_type, Symmetry, problo, probhi, center, dim
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer, intent(in) :: lnum, lo_bc(3), hi_bc(3)
 
     integer :: b, l, m
 
+    allocate(volumeFactor)
+    allocate(parityFactor)
+
     volumeFactor = ONE
     parityFactor = ONE
+
+    allocate(doSymmetricAddLo(3))
+    allocate(doSymmetricAddHi(3))
 
     doSymmetricAddLo(:) = .false.
     doSymmetricAddHi(:) = .false.
 
+    allocate(doSymmetricAdd)
+
     doSymmetricAdd      = .false.
 
+    allocate(doReflectionLo(3))
+    allocate(doReflectionHi(3))
+    
     doReflectionLo(:)   = .false.
     doReflectionHi(:)   = .false.
 
@@ -340,6 +346,8 @@ contains
     enddo
 
     ! Compute pre-factors now to save computation time, for qC and qS
+
+    allocate(lnum_max)
 
     lnum_max = lnum
 
@@ -406,22 +414,27 @@ contains
     ! possible NaN issues from having numbers that are too large for real(rt)        .
     ! We will put the rmax factor back in at the end of ca_put_multipole_phi.
 
+    allocate(rmax)
+
     rmax = HALF * maxval(probhi(1:dim) - problo(1:dim)) * sqrt(dble(dim))
 
   end subroutine init_multipole_gravity
 
 
 
-  subroutine ca_put_multipole_phi (lo,hi,domlo,domhi,dx, &
-       phi,p_lo,p_hi, &
-       lnum,qL0,qLC,qLS,qU0,qUC,qUS, &
-       npts,boundary_only) &
-       bind(C, name="ca_put_multipole_phi")
+  subroutine ca_put_multipole_phi (lo, hi, domlo, domhi, dx, &
+                                   phi, p_lo, p_hi, &
+                                   lnum, &
+                                   qL0, qLC, qLS, qU0, qUC, qUS, &
+                                   npts, boundary_only) &
+                                   bind(C, name="ca_put_multipole_phi")
 
+#ifndef AMREX_USE_CUDA
+    use amrex_error_module, only: amrex_error
+#endif
     use prob_params_module, only: problo, center, dim, coord_type
     use fundamental_constants_module, only: Gconst
     use amrex_constants_module
-    use amrex_fort_module, only : rt => amrex_real
 
     implicit none
 
@@ -429,18 +442,18 @@ contains
     integer , intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: dx(3)
 
-    integer , intent(in   ) :: lnum, npts, boundary_only
+    integer , intent(in   ), value :: lnum, npts, boundary_only
     real(rt), intent(in   ) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
     real(rt), intent(in   ) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
     integer , intent(in   ) :: p_lo(3), p_hi(3)
     real(rt), intent(inout) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
 
-    integer          :: i, j, k
-    integer          :: l, m, n, nlo
-    real(rt)         :: x, y, z, r, cosTheta, phiAngle
-    real(rt)         :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
-    real(rt)         :: r_L, r_U
+    integer  :: i, j, k
+    integer  :: l, m, n, nlo
+    real(rt) :: x, y, z, r, cosTheta, phiAngle
+    real(rt) :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+    real(rt) :: r_L, r_U
 
     ! If we're using this to construct boundary values, then only use
     ! the outermost bin.
@@ -451,9 +464,11 @@ contains
        nlo = 0
     endif
 
+#ifndef AMREX_USE_CUDA
     if (lnum > lnum_max) then
-       call amrex_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
+       call amrex_error("Error: ca_put_multipole_phi: requested more multipole moments than we allocated data for.")
     endif
+#endif
 
     do k = lo(3), hi(3)
        if (k .gt. domhi(3)) then
@@ -562,36 +577,39 @@ contains
 
 
 
-  subroutine ca_compute_multipole_moments (lo,hi,domlo,domhi, &
-       dx,rho,r_lo,r_hi, &
-       vol,v_lo,v_hi, &
-       lnum,qL0,qLC,qLS,qU0,qUC,qUS, &
-       npts,boundary_only) &
-       bind(C, name="ca_compute_multipole_moments")
+  subroutine ca_compute_multipole_moments(lo, hi, domlo, domhi, &
+                                          dx, rho, r_lo, r_hi, &
+                                          vol, v_lo, v_hi, &
+                                          lnum, &
+                                          qL0, qLC, qLS, qU0, qUC, qUS, &
+                                          npts, boundary_only) &
+                                          bind(C, name="ca_compute_multipole_moments")
 
+#ifndef AMREX_USE_CUDA
+    use amrex_error_module, only: amrex_error
+#endif
     use prob_params_module, only: problo, center, probhi, dim, coord_type
     use amrex_constants_module
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer , intent(in   ) :: lo(3),hi(3)
-    integer , intent(in   ) :: domlo(3),domhi(3)
+    integer , intent(in   ) :: lo(3), hi(3)
+    integer , intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: dx(3)
-    integer , intent(in   ) :: boundary_only, npts, lnum
+    integer , intent(in   ), value :: boundary_only, npts, lnum
 
     real(rt), intent(inout) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
     real(rt), intent(inout) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
-    integer          :: r_lo(3), r_hi(3)
-    integer          :: v_lo(3), v_hi(3)
-    real(rt)         :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt)         :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
-    integer          :: i, j, k
-    integer          :: nlo, index
+    integer  :: i, j, k
+    integer  :: nlo, index
 
-    real(rt)         :: x, y, z, r, drInv, cosTheta, phiAngle
+    real(rt) :: x, y, z, r, drInv, cosTheta, phiAngle
 
     ! If we're using this to construct boundary values, then only fill
     ! the outermost bin.
@@ -608,9 +626,11 @@ contains
 
     ! Sanity check
 
+#ifndef AMREX_USE_CUDA
     if (lnum > lnum_max) then
        call amrex_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
     endif
+#endif
 
     do k = lo(3), hi(3)
        z = ( problo(3) + (dble(k)+HALF) * dx(3) - center(3) ) / rmax
@@ -636,7 +656,7 @@ contains
              ! Now, compute the multipole moments.
 
              call multipole_add(cosTheta, phiAngle, r, rho(i,j,k), vol(i,j,k) / rmax**3, &
-                  qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index, .true.)
+                                qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index, .true.)
 
              ! Now add in contributions if we have any symmetric boundaries in 3D.
              ! The symmetric boundary in 2D axisymmetric is handled separately.
@@ -644,10 +664,10 @@ contains
              if ( doSymmetricAdd ) then
 
                 call multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
-                     x, y, z, problo, probhi, &
-                     rho(i,j,k), vol(i,j,k) / rmax**3, &
-                     qL0, qLC, qLS, qU0, qUC, qUS, &
-                     lnum, npts, nlo, index)
+                                             x, y, z, problo, probhi, &
+                                             rho(i,j,k), vol(i,j,k) / rmax**3, &
+                                             qL0, qLC, qLS, qU0, qUC, qUS, &
+                                             lnum, npts, nlo, index)
 
              endif
 
@@ -663,11 +683,10 @@ contains
 
     use amrex_constants_module
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: n, i
-    real(rt)         :: factorial
+    real(rt) :: factorial
 
     factorial = ONE
 
@@ -683,13 +702,12 @@ contains
 
     use amrex_constants_module
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     integer :: lnum
     integer :: l, m, n
-    real(rt)         :: x
-    real(rt)         :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+    real(rt) :: x
+    real(rt) :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
 
     legPolyArr(:)        = ZERO
     assocLegPolyArr(:,:) = ZERO
@@ -764,32 +782,31 @@ contains
 
 
   subroutine multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
-       x, y, z, problo, probhi, &
-       rho, vol, &
-       qU0, qUC, qUS, qL0, qLC, qLS, &
-       lnum, npts, nlo, index)
+                                     x, y, z, problo, probhi, &
+                                     rho, vol, &
+                                     qU0, qUC, qUS, qL0, qLC, qLS, &
+                                     lnum, npts, nlo, index)
 
     use prob_params_module, only: center
     use amrex_constants_module
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer,          intent(in) :: lnum, npts, nlo, index
-    real(rt)        , intent(in) :: x, y, z
-    real(rt)        , intent(in) :: problo(3), probhi(3)
-    real(rt)        , intent(in) :: rho, vol
+    integer,  intent(in) :: lnum, npts, nlo, index
+    real(rt), intent(in) :: x, y, z
+    real(rt), intent(in) :: problo(3), probhi(3)
+    real(rt), intent(in) :: rho, vol
 
-    logical,          intent(in) :: doSymmetricAddLo(3), doSymmetricAddHi(3)
+    logical,  intent(in) :: doSymmetricAddLo(3), doSymmetricAddHi(3)
 
-    real(rt)        , intent(inout) :: qL0(0:lnum,0:npts-1)
-    real(rt)        , intent(inout) :: qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+    real(rt), intent(inout) :: qL0(0:lnum,0:npts-1)
+    real(rt), intent(inout) :: qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
 
-    real(rt)        , intent(inout) :: qU0(0:lnum,0:npts-1)
-    real(rt)        , intent(inout) :: qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
+    real(rt), intent(inout) :: qU0(0:lnum,0:npts-1)
+    real(rt), intent(inout) :: qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
-    real(rt)         :: cosTheta, phiAngle, r
-    real(rt)         :: xLo, yLo, zLo, xHi, yHi, zHi
+    real(rt) :: cosTheta, phiAngle, r
+    real(rt) :: xLo, yLo, zLo, xHi, yHi, zHi
 
     xLo = ( TWO * (problo(1) - center(1)) ) / rmax - x
     xHi = ( TWO * (probhi(1) - center(1)) ) / rmax - x
@@ -874,29 +891,29 @@ contains
 
 
   subroutine multipole_add(cosTheta, phiAngle, r, rho, vol, &
-       qL0, qLC, qLS, qU0, qUC, qUS, &
-       lnum, npts, nlo, index, do_parity)
+                           qL0, qLC, qLS, qU0, qUC, qUS, &
+                           lnum, npts, nlo, index, do_parity)
 
     use amrex_constants_module, only: ONE
+    use amrex_fort_module, only: amrex_add
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer,          intent(in)    :: lnum, npts, nlo, index
-    real(rt)        , intent(in)    :: cosTheta, phiAngle, r, rho, vol
+    integer,  intent(in)    :: lnum, npts, nlo, index
+    real(rt), intent(in)    :: cosTheta, phiAngle, r, rho, vol
 
-    real(rt)        , intent(inout) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
-    real(rt)        , intent(inout) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
+    real(rt), intent(inout) :: qL0(0:lnum,0:npts-1), qLC(0:lnum,0:lnum,0:npts-1), qLS(0:lnum,0:lnum,0:npts-1)
+    real(rt), intent(inout) :: qU0(0:lnum,0:npts-1), qUC(0:lnum,0:lnum,0:npts-1), qUS(0:lnum,0:lnum,0:npts-1)
 
     logical, optional, intent(in)   :: do_parity
 
     integer :: l, m, n
 
-    real(rt)         :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+    real(rt) :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
 
-    real(rt)         :: rho_r_L, rho_r_U
+    real(rt) :: rho_r_L, rho_r_U
 
-    real(rt)         :: p0(0:lnum), pCS(0:lnum,0:lnum)
+    real(rt) :: p0(0:lnum), pCS(0:lnum,0:lnum)
 
     call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
 
