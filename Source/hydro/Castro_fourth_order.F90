@@ -536,100 +536,102 @@ contains
        flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = flx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:)
 #endif
 
+       if (do_hydro == 1) then
 
-       ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
-       call avisc(lo, hi, &
-                  q_bar, q_bar_lo, q_bar_hi, &
-                  qaux_bar, qa_bar_lo, qa_bar_hi, &
-                  dx, avisx, lo, hi+dg, 1)
+          ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
+          call avisc(lo, hi, &
+                     q_bar, q_bar_lo, q_bar_hi, &
+                     qaux_bar, qa_bar_lo, qa_bar_hi, &
+                     dx, avisx, lo, hi+dg, 1)
 
 #if BL_SPACEDIM >= 2
-       call avisc(lo, hi, &
-                  q_bar, q_bar_lo, q_bar_hi, &
-                  qaux_bar, qa_bar_lo, qa_bar_hi, &
-                  dx, avisy, lo, hi+dg, 2)
+          call avisc(lo, hi, &
+                     q_bar, q_bar_lo, q_bar_hi, &
+                     qaux_bar, qa_bar_lo, qa_bar_hi, &
+                     dx, avisy, lo, hi+dg, 2)
 #endif
 
 #if BL_SPACEDIM == 3
-       call avisc(lo, hi, &
-                  q_bar, q_bar_lo, q_bar_hi, &
-                  qaux_bar, qa_bar_lo, qa_bar_hi, &
-                  dx, avisz, lo, hi+dg, 3)
+          call avisc(lo, hi, &
+                     q_bar, q_bar_lo, q_bar_hi, &
+                     qaux_bar, qa_bar_lo, qa_bar_hi, &
+                     dx, avisz, lo, hi+dg, 3)
 #endif
 
-       ! avisc_coefficient is the coefficent we use.  The McCorquodale &
-       ! Colella paper suggest alpha = 0.3, but our other hydro solvers use
-       ! a coefficient on the divergence that defaults to 0.1, so we
-       ! normalize to that value, to allow for adjustments
-       avisc_coeff = alpha * (difmag / 0.1_rt)
+          ! avisc_coefficient is the coefficent we use.  The McCorquodale &
+          ! Colella paper suggest alpha = 0.3, but our other hydro solvers use
+          ! a coefficient on the divergence that defaults to 0.1, so we
+          ! normalize to that value, to allow for adjustments
+          avisc_coeff = alpha * (difmag / 0.1_rt)
 
-       do n = 1, NVAR
+          do n = 1, NVAR
 
-          if ( n == UTEMP ) then
-             flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+             if ( n == UTEMP ) then
+                flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
 #if AMREX_SPACEDIM >= 2
-             fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+                fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
 #endif
 #if AMREX_SPACEDIM == 3
-             flz(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
+                flz(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
 #endif
 
 #ifdef SHOCK_VAR
-          else if ( n == USHK ) then
-             flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+             else if ( n == USHK ) then
+                flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
 #if AMREX_SPACEDIM >= 2
-             fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+                fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
 #endif
 #if AMREX_SPACEDIM == 3
-             flz(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
+                flz(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
 #endif
 #endif
 
-          else
+             else
 
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-                   do i = lo(1), hi(1)+1
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)+1
 
-                      flx(i,j,k,n) = flx(i,j,k,n) + &
-                           avisc_coeff * avisx(i,j,k) * (uin(i,j,k,n) - uin(i-1,j,k,n))
+                         flx(i,j,k,n) = flx(i,j,k,n) + &
+                              avisc_coeff * avisx(i,j,k) * (uin(i,j,k,n) - uin(i-1,j,k,n))
+                      end do
                    end do
                 end do
-             end do
 #if AMREX_SPACEDIM >= 2
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)+1
-                   do i = lo(1), hi(1)
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)+1
+                      do i = lo(1), hi(1)
 
-                      fly(i,j,k,n) = fly(i,j,k,n) + &
-                           avisc_coeff * avisy(i,j,k) * (uin(i,j,k,n) - uin(i,j-1,k,n))
+                         fly(i,j,k,n) = fly(i,j,k,n) + &
+                              avisc_coeff * avisy(i,j,k) * (uin(i,j,k,n) - uin(i,j-1,k,n))
+                      end do
                    end do
                 end do
-             end do
 #endif
 #if AMREX_SPACEDIM == 3
-             do k = lo(3), hi(3)+1
-                do j = lo(2), hi(2)
-                   do i = lo(1), hi(1)
+                do k = lo(3), hi(3)+1
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
 
-                      flz(i,j,k,n) = flz(i,j,k,n) + &
-                           avisc_coeff * avisz(i,j,k) * (uin(i,j,k,n) - uin(i,j,k-1,n))
+                         flz(i,j,k,n) = flz(i,j,k,n) + &
+                              avisc_coeff * avisz(i,j,k) * (uin(i,j,k,n) - uin(i,j,k-1,n))
+                      end do
                    end do
                 end do
-             end do
 #endif
-          end if
+             end if
 
-       end do
+          end do
 
-       call normalize_species_fluxes(flx_lo, flx_hi, flx, flx_lo, flx_hi)
+          call normalize_species_fluxes(flx_lo, flx_hi, flx, flx_lo, flx_hi)
 #if AMREX_SPACEDIM >= 2
-       call normalize_species_fluxes(fly_lo, fly_hi, fly, fly_lo, fly_hi)
+          call normalize_species_fluxes(fly_lo, fly_hi, fly, fly_lo, fly_hi)
 #endif
 #if AMREX_SPACEDIM == 3
-       call normalize_species_fluxes(flz_lo, flz_hi, flz, flz_lo, flz_hi)
+          call normalize_species_fluxes(flz_lo, flz_hi, flz, flz_lo, flz_hi)
 #endif
 
+       endif
 !    else
 !       ! no do hydro
 !       flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = ZERO
@@ -852,6 +854,8 @@ contains
              if (idir == 1) then
                 dTdx = (-q(i+1,j,k,QTEMP) + 15*q(i,j,k,QTEMP) - &
                         15*q(i-1,j,k,QTEMP) + q(i-2,j,k,QTEMP))/(12.0_rt * dx(1))
+                !dTdx = (-q(i+1,j,k,QTEMP) + 27*q(i,j,k,QTEMP) - &
+                !     27*q(i-1,j,k,QTEMP) + q(i-2,j,k,QTEMP))/(24.0_rt * dx(1))
                 F(i,j,k,UEINT) = F(i,j,k,UEINT) - eos_state % conductivity * dTdx
                 F(i,j,k,UEDEN) = F(i,j,k,UEDEN) - eos_state % conductivity * dTdx
              else
