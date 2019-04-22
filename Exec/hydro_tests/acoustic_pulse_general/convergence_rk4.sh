@@ -1,11 +1,19 @@
 #!/bin/bash
 
-mpiexec -n 8 ./Castro2d.gnu.MPI.ex inputs.2d.64 castro.fourth_order=1 castro.mol_order=4 castro.time_integration_method=1
-mpiexec -n 8 ./Castro2d.gnu.MPI.ex inputs.2d.128 castro.fourth_order=1 castro.mol_order=4 castro.time_integration_method=1
-mpiexec -n 8 ./Castro2d.gnu.MPI.ex inputs.2d.256 castro.fourth_order=1 castro.mol_order=4 castro.time_integration_method=1
-mpiexec -n 8 ./Castro2d.gnu.MPI.ex inputs.2d.512 castro.fourth_order=1 castro.mol_order=4 castro.time_integration_method=1
+# echo the commands
+set -x
 
-RichardsonConvergenceTest2d.gnu.ex coarFile=acoustic_pulse_64_plt00201 mediFile=acoustic_pulse_128_plt00401 fineFile=acoustic_pulse_256_plt00801 mediError=med.out coarError=coar.out > convergence.1.out
-RichardsonConvergenceTest2d.gnu.ex coarFile=acoustic_pulse_128_plt00401 mediFile=acoustic_pulse_256_plt00801 fineFile=acoustic_pulse_512_plt01601 mediError=med.out coarError=coar.out > convergence.2.out
+DIM=2
+EXEC=./Castro${DIM}d.gnu.MPI.ex
+
+RUNPARAMS="castro.mol_order=4 castro.time_integration_method=1"
+
+mpiexec -n 4 ${EXEC} inputs.2d.64 ${RUNPARAMS} amr.plot_file=acoustic_pulse_64_rk4_plt &> 64.out
+mpiexec -n 4 ${EXEC} inputs.2d.128 ${RUNPARAMS} amr.plot_file=acoustic_pulse_128_rk4_plt &> 128.out
+mpiexec -n 4 ${EXEC} inputs.2d.256 ${RUNPARAMS} amr.plot_file=acoustic_pulse_256_rk4_plt &> 256.out
+mpiexec -n 4 ${EXEC} inputs.2d.512 ${RUNPARAMS} amr.plot_file=acoustic_pulse_512_rk4_plt &> 512.out
+
+RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=acoustic_pulse_64_rk4_plt00201 mediFile=acoustic_pulse_128_rk4_plt00401 fineFile=acoustic_pulse_256_rk4_plt00801 > convergence.${DIM}d.lo.rk4.out
+RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=acoustic_pulse_128_rk4_plt00401 mediFile=acoustic_pulse_256_rk4_plt00801 fineFile=acoustic_pulse_512_rk4_plt01601 > convergence.${DIM}d.hi.rk4.out
 
 
