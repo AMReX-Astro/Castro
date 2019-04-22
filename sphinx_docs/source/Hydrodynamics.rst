@@ -577,6 +577,8 @@ There are four major steps in the hydrodynamics update:
 
 #. Doing the conservative update
 
+.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species, castro.spherical_star, castro.show_center_of_mass
+
 Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
 runtime parameters for hydrodynamics:
@@ -590,13 +592,7 @@ runtime parameters for hydrodynamics:
 -  ``castro.do_sponge``: call the sponge routine
    after the solution update (0 or 1; default: 0)
 
-   The purpose of the sponge is to damp velocities outside of a star, to
-   prevent them from dominating the timestep constraint. The sponge parameters
-   are set in your ``probin`` file, in the ``&sponge`` namelist. You can sponge either
-   on radius from the center (using ``sponge_lower_radius`` and
-   ``sponge_upper_radius``) or on density (using ``sponge_lower_density``
-   and ``sponge_upper_density``). The timescale of the damping is
-   set through ``sponge_timescale``.
+   See :ref:`sponge_section` for more details on the sponge.
 
 -  ``castro.normalize_species``: enforce that :math:`\sum_i X_i = 1`
    (0 or 1; default: 0)
@@ -611,6 +607,8 @@ runtime parameters for hydrodynamics:
    implementing the boundary conditions.
 
 -  ``castro.show_center_of_mass``: (0 or 1; default: 0)
+
+.. index:: castro.small_dens, castro.small_temp, castro.small_pres
 
 Several floors are imposed on the thermodynamic quantities to prevet unphysical
 behavior:
