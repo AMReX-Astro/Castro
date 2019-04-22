@@ -320,6 +320,7 @@ contains
           flx_avg(:,:,:,:) = ZERO
        end if
 
+#ifdef DIFFUSION
        if (diffuse_temp == 1) then
           is_avg = 1
           call add_diffusive_flux([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
@@ -329,6 +330,7 @@ contains
                                   flx_avg, q_lo, q_hi, &
                                   dx, 1, is_avg)
        end if
+#endif
 
 #if AMREX_SPACEDIM >= 2
        call riemann_state(qym, q_lo, q_hi, &
@@ -350,6 +352,7 @@ contains
           fly_avg(:,:,:,:) = ZERO
        end if
 
+#ifdef DIFFUSION
        if (diffuse_temp == 1) then
           is_avg = 1
           call add_diffusive_flux([lo(1)-1, lo(2), lo(3)-dg(3)], &
@@ -359,7 +362,7 @@ contains
                                   fly_avg, q_lo, q_hi, &
                                   dx, 2, is_avg)
        end if
-
+#endif
 #endif
 
 #if AMREX_SPACEDIM == 3
@@ -382,6 +385,7 @@ contains
           flz_avg(:,:,:,:) = ZERO
        end if
 
+#ifdef DIFFUSION
        if (diffuse_temp == 1) then
           is_avg = 1
           call add_diffusive_flux([lo(1)-1, lo(2)-1, lo(3)], &
@@ -391,6 +395,7 @@ contains
                                   flz_avg, q_lo, q_hi, &
                                   dx, 3, is_avg)
        end if
+#endif
 #endif
 
 
@@ -502,6 +507,7 @@ contains
 #endif
        end if
 
+#ifdef DIFFUSION
        if (diffuse_temp == 1) then
 
           ! we need temperature at cell-centers
@@ -509,6 +515,7 @@ contains
           ! add the diffusive flux to the face-centered fluxes
 
        end if
+#endif
 
        call bl_deallocate(qx)
 #if AMREX_SPACEDIM >= 2
@@ -850,7 +857,7 @@ contains
 #endif
   end subroutine ca_fourth_single_stage
 
-
+#ifdef DIFFUSION
   subroutine add_diffusive_flux(lo, hi, &
                                 q, q_lo, q_hi, &
                                 qint, qi_lo, qi_hi, &
@@ -946,5 +953,6 @@ contains
     end do
 
   end subroutine add_diffusive_flux
+#endif
 
 end module fourth_order_hydro

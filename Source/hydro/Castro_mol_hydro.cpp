@@ -361,6 +361,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           cond.resize(obx, 1);
           Elixir elix_cond = cond.elixir();
 
+#ifdef DIFFUSION
           ca_fill_temp_cond
             (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
              BL_TO_FORTRAN_ANYD(Sborder[mfi]),
@@ -380,6 +381,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                AMREX_REAL_ANYD(dx));
 
           }
+#endif
 
           // do the conservative update -- and store the shock variable
 #pragma gpu
