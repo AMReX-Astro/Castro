@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Gravity_nd.f90 &mdash; Castro actual_flame_wave
+  <title>Gravity_nd.F90 &mdash; Castro actual_flame_wave
  documentation</title>
   
 
@@ -113,6 +113,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
@@ -135,7 +136,7 @@
 <li class="toctree-l3"><a class="reference internal" href="Gravity_1d_f.html">Gravity_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Gravity_2d_f.html">Gravity_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Gravity_3d_f.html">Gravity_3d.f90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Gravity_nd.f90</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Gravity_nd.F90</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#f/gravity_module">gravity_module</a></li>
 </ul>
 </li>
@@ -209,7 +210,7 @@
         
           <li><a href="../gravity_files.html">Gravity</a> &raquo;</li>
         
-      <li>Gravity_nd.f90</li>
+      <li>Gravity_nd.F90</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -229,7 +230,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="gravity-nd-f90">
-<h1>Gravity_nd.f90<a class="headerlink" href="#gravity-nd-f90" title="Permalink to this headline">¶</a></h1>
+<h1>Gravity_nd.F90<a class="headerlink" href="#gravity-nd-f90" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="f/gravity_module">
 <span id="gravity-module"></span><h2>gravity_module<a class="headerlink" href="#f/gravity_module" title="Permalink to this headline">¶</a></h2>
 <p class="rubric">Quick access</p>
@@ -245,86 +246,85 @@
 </table>
 <p class="rubric">Needed modules</p>
 <ul class="simple">
-<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_error_module</span></code></li>
 <li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
 </ul>
 <p class="rubric">Variables</p>
 <ul>
 <li><dl class="variable">
 <dt id="f/gravity_module/doreflectionhi">
-<code class="descclassname">gravity_module/</code><code class="descname">doreflectionhi</code> (3)<em> [</em><em>logical</em><em>,</em><em>public/save</em><em>]</em><a class="headerlink" href="#f/gravity_module/doreflectionhi" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">doreflectionhi</code> (*)<em> [</em><em>logical</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/doreflectionhi" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/doreflectionlo">
-<code class="descclassname">gravity_module/</code><code class="descname">doreflectionlo</code> (3)<em> [</em><em>logical</em><em>,</em><em>public/save</em><em>]</em><a class="headerlink" href="#f/gravity_module/doreflectionlo" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">doreflectionlo</code> (*)<em> [</em><em>logical</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/doreflectionlo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/dosymmetricadd">
-<code class="descclassname">gravity_module/</code><code class="descname">dosymmetricadd</code><em> [</em><em>logical</em><em>,</em><em>public/save</em><em>]</em><a class="headerlink" href="#f/gravity_module/dosymmetricadd" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">dosymmetricadd</code><em> [</em><em>logical</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/dosymmetricadd" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/dosymmetricaddhi">
-<code class="descclassname">gravity_module/</code><code class="descname">dosymmetricaddhi</code> (3)<em> [</em><em>logical</em><em>,</em><em>public/save</em><em>]</em><a class="headerlink" href="#f/gravity_module/dosymmetricaddhi" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">dosymmetricaddhi</code> (*)<em> [</em><em>logical</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/dosymmetricaddhi" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/dosymmetricaddlo">
-<code class="descclassname">gravity_module/</code><code class="descname">dosymmetricaddlo</code> (3)<em> [</em><em>logical</em><em>,</em><em>public/save</em><em>]</em><a class="headerlink" href="#f/gravity_module/dosymmetricaddlo" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">dosymmetricaddlo</code> (*)<em> [</em><em>logical</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/dosymmetricaddlo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/edgetolerance">
-<code class="descclassname">gravity_module/</code><code class="descname">edgetolerance</code><em> [</em><em>real</em><em>,</em><em>public/save/optional/default=1.0e-2_rt</em><em>]</em><a class="headerlink" href="#f/gravity_module/edgetolerance" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">edgetolerance</code><em> [</em><em>real</em><em>,</em><em>public/parameter/optional/default=1.0e-2_rt</em><em>]</em><a class="headerlink" href="#f/gravity_module/edgetolerance" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/factarray">
-<code class="descclassname">gravity_module/</code><code class="descname">factarray</code> (*,*)<em> [</em><em>real</em><em>,</em><em>public/save/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/factarray" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">factarray</code> (*,*)<em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/factarray" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/lnum_max">
-<code class="descclassname">gravity_module/</code><code class="descname">lnum_max</code><em> [</em><em>integer</em><em>,</em><em>public/save</em><em>]</em><a class="headerlink" href="#f/gravity_module/lnum_max" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">lnum_max</code><em> [</em><em>integer</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/lnum_max" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/parity_q0">
-<code class="descclassname">gravity_module/</code><code class="descname">parity_q0</code> (*)<em> [</em><em>real</em><em>,</em><em>public/save/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/parity_q0" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">parity_q0</code> (*)<em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/parity_q0" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/parity_qc_qs">
-<code class="descclassname">gravity_module/</code><code class="descname">parity_qc_qs</code> (*,*)<em> [</em><em>real</em><em>,</em><em>public/save/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/parity_qc_qs" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">parity_qc_qs</code> (*,*)<em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/parity_qc_qs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/parityfactor">
-<code class="descclassname">gravity_module/</code><code class="descname">parityfactor</code><em> [</em><em>real</em><em>,</em><em>public/save</em><em>]</em><a class="headerlink" href="#f/gravity_module/parityfactor" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">parityfactor</code><em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/parityfactor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/rmax">
-<code class="descclassname">gravity_module/</code><code class="descname">rmax</code><em> [</em><em>real</em><em>,</em><em>public/save</em><em>]</em><a class="headerlink" href="#f/gravity_module/rmax" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">rmax</code><em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/rmax" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/gravity_module/volumefactor">
-<code class="descclassname">gravity_module/</code><code class="descname">volumefactor</code><em> [</em><em>real</em><em>,</em><em>public/save</em><em>]</em><a class="headerlink" href="#f/gravity_module/volumefactor" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">gravity_module/</code><code class="descname">volumefactor</code><em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/volumefactor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
@@ -344,7 +344,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gconst_out</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>)</td>
 </tr>
 </tbody>
 </table>
@@ -372,7 +372,7 @@ in successive spherical shells.</p>
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>numpts_1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(mass)</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -420,7 +420,7 @@ phi(r &lt; R) = phi(R) - int(g dr)</div></blockquote>
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>numpts_1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(mass)</em><em>]</em> :: number of points in radial direction</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>)</p>
 </td>
 </tr>
 </tbody>
@@ -447,7 +447,7 @@ phi(r &lt; R) = phi(R) - int(g dr)</div></blockquote>
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>numpts_1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(rho)</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">c_light()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">c_light()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -477,7 +477,7 @@ if any boundary is symmetric, so that we can avoid unnecessary function calls.</
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/symmetry" title="f/prob_params_module/symmetry"><code class="xref f f-func docutils literal notranslate"><span class="pre">symmetry()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/probhi" title="f/prob_params_module/probhi"><code class="xref f f-func docutils literal notranslate"><span class="pre">probhi()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/symmetry" title="f/prob_params_module/symmetry"><code class="xref f f-func docutils literal notranslate"><span class="pre">symmetry()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/probhi" title="f/prob_params_module/probhi"><code class="xref f f-func docutils literal notranslate"><span class="pre">probhi()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>)</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/factorial" title="f/gravity_module/factorial"><code class="xref f f-func docutils literal notranslate"><span class="pre">factorial()</span></code></a></p>
@@ -509,15 +509,15 @@ if any boundary is symmetric, so that we can avoid unnecessary function calls.</
 <li><strong>qu0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>quc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qus</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>npts</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
-<li><strong>boundary_only</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>npts</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>boundary_only</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=(shape(ql0,0)-1)</em><em>]</em></p>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in,value/optional/default=(shape(ql0,0)-1)</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_error_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">amrex_error()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/fill_legendre_arrays" title="f/gravity_module/fill_legendre_arrays"><code class="xref f f-func docutils literal notranslate"><span class="pre">fill_legendre_arrays()</span></code></a></p>
@@ -540,27 +540,27 @@ if any boundary is symmetric, so that we can avoid unnecessary function calls.</
 <li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rho</strong> (r_hi(1)-(r_lo(1))+1,r_hi(2)-(r_lo(2))+1,r_hi(3)-(r_lo(3))+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>r_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>r_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>vol</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
+<li><strong>rho</strong> (r_hi(1)-(r_lo(1))+1,r_hi(2)-(r_lo(2))+1,r_hi(3)-(r_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>ql0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>qlc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>qls</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>qu0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>quc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>qus</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>npts</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
-<li><strong>boundary_only</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>npts</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>boundary_only</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=(shape(ql0,0)-1)</em><em>]</em></p>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in,value/optional/default=(shape(ql0,0)-1)</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/probhi" title="f/prob_params_module/probhi"><code class="xref f f-func docutils literal notranslate"><span class="pre">probhi()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_error_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">amrex_error()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/probhi" title="f/prob_params_module/probhi"><code class="xref f f-func docutils literal notranslate"><span class="pre">probhi()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/multipole_add" title="f/gravity_module/multipole_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_add()</span></code></a>, <a class="reference internal" href="#f/gravity_module/multipole_symmetric_add" title="f/gravity_module/multipole_symmetric_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_symmetric_add()</span></code></a></p>
@@ -581,7 +581,7 @@ if any boundary is symmetric, so that we can avoid unnecessary function calls.</
 </tr>
 <tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><strong>factorial</strong><em> [</em><em>real</em><em>]</em></td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></td>
 </tr>
 <tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><a class="reference internal" href="#f/gravity_module/init_multipole_gravity" title="f/gravity_module/init_multipole_gravity"><code class="xref f f-func docutils literal notranslate"><span class="pre">init_multipole_gravity()</span></code></a></td>
 </tr>
@@ -606,7 +606,7 @@ if any boundary is symmetric, so that we can avoid unnecessary function calls.</
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>optional/default=(len(legpolyarr)-1)</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/ca_put_multipole_phi" title="f/gravity_module/ca_put_multipole_phi"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_multipole_phi()</span></code></a>, <a class="reference internal" href="#f/gravity_module/multipole_add" title="f/gravity_module/multipole_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_add()</span></code></a></p>
@@ -648,7 +648,7 @@ if any boundary is symmetric, so that we can avoid unnecessary function calls.</
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=(shape(qu0,0)-1)</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/gravity_module/ca_compute_multipole_moments" title="f/gravity_module/ca_compute_multipole_moments"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_multipole_moments()</span></code></a></p>
@@ -690,7 +690,7 @@ if any boundary is symmetric, so that we can avoid unnecessary function calls.</
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=(shape(ql0,0)-1)</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">amrex_add()</span></code>)</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/gravity_module/ca_compute_multipole_moments" title="f/gravity_module/ca_compute_multipole_moments"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_multipole_moments()</span></code></a>, <a class="reference internal" href="#f/gravity_module/multipole_symmetric_add" title="f/gravity_module/multipole_symmetric_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_symmetric_add()</span></code></a></p>

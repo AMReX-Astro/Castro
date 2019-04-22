@@ -139,6 +139,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
@@ -883,7 +884,7 @@ h &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; h \\
 <li>Solving the Riemann problem</li>
 <li>Doing the conservative update</li>
 </ol>
-<p>Each of these steps has a variety of runtime parameters that
+<p id="index-0">Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
 runtime parameters for hydrodynamics:</p>
 <ul>
@@ -895,13 +896,7 @@ source term (0 or 1; default 0)</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.do_sponge</span></code>: call the sponge routine
 after the solution update (0 or 1; default: 0)</p>
-<p>The purpose of the sponge is to damp velocities outside of a star, to
-prevent them from dominating the timestep constraint. The sponge parameters
-are set in your <code class="docutils literal notranslate"><span class="pre">probin</span></code> file, in the <code class="docutils literal notranslate"><span class="pre">&amp;sponge</span></code> namelist. You can sponge either
-on radius from the center (using <code class="docutils literal notranslate"><span class="pre">sponge_lower_radius</span></code> and
-<code class="docutils literal notranslate"><span class="pre">sponge_upper_radius</span></code>) or on density (using <code class="docutils literal notranslate"><span class="pre">sponge_lower_density</span></code>
-and <code class="docutils literal notranslate"><span class="pre">sponge_upper_density</span></code>). The timescale of the damping is
-set through <code class="docutils literal notranslate"><span class="pre">sponge_timescale</span></code>.</p>
+<p>See <a class="reference internal" href="sponge.html#sponge-section"><span class="std std-ref">Sponge</span></a> for more details on the sponge.</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.normalize_species</span></code>: enforce that <span class="math notranslate nohighlight">\(\sum_i X_i = 1\)</span>
 (0 or 1; default: 0)</p>
@@ -917,7 +912,7 @@ implementing the boundary conditions.</p>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.show_center_of_mass</span></code>: (0 or 1; default: 0)</p>
 </li>
 </ul>
-<p>Several floors are imposed on the thermodynamic quantities to prevet unphysical
+<p id="index-1">Several floors are imposed on the thermodynamic quantities to prevet unphysical
 behavior:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">castro.small_dens</span></code>: (Real; default: -1.e20)</li>
@@ -1166,7 +1161,7 @@ s_{R,i-\myhalf} &amp;= s_i - \chi_i\sum_{k:\lambda_k &lt; 0}\lb_k\cdot\left[s_i-
 framework, the details follow exactly as given in Section 4.2.1 in
 Miller &amp; Colella, except for the details of the Riemann solver,
 which are given below.</p>
-<p id="index-0">For the reconstruction of the interface states, the following apply:</p>
+<p id="index-2">For the reconstruction of the interface states, the following apply:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">castro.ppm_type</span></code> : use piecewise linear vs PPM algorithm (0 or 1;
 default: 1).  A value of 1 is the standard piecewise parabolic
@@ -1214,7 +1209,7 @@ manuscript by Colella, Glaz, &amp; Ferguson, and an HLLC
 solver. The first two are both
 two-shock approximate solvers, but differ in how they approximate
 the thermodynamics in the “star” region.</p>
-<div class="admonition note" id="index-1">
+<div class="admonition note" id="index-3">
 <p class="first admonition-title">Note</p>
 <p class="last">These Riemann solvers are for Newtonian hydrodynamics, however, we enforce
 that the interface velocity cannot exceed the speed of light in both the
@@ -1356,7 +1351,7 @@ solution, effectively time-centering the source term.</p>
 </div>
 <div class="section" id="temperature-fixes">
 <span id="sec-ppm-temp-fix"></span><h2>Temperature Fixes<a class="headerlink" href="#temperature-fixes" title="Permalink to this headline">¶</a></h2>
-<p id="index-2">There are a number of experimental options for improving the behavior
+<p id="index-4">There are a number of experimental options for improving the behavior
 of the temperature in the reconstruction and interface state
 prediction. The options are controlled by <code class="docutils literal notranslate"><span class="pre">castro.ppm_temp_fix</span></code>,
 which takes values:</p>
