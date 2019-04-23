@@ -46,6 +46,7 @@ jobInfoFile << (Castro::cg_maxiter == 12 ? "    " : "[*] ") << "castro.cg_maxite
 jobInfoFile << (Castro::cg_tol == 1.0e-5 ? "    " : "[*] ") << "castro.cg_tol = " << Castro::cg_tol << std::endl;
 jobInfoFile << (Castro::cg_blend == 2 ? "    " : "[*] ") << "castro.cg_blend = " << Castro::cg_blend << std::endl;
 jobInfoFile << (Castro::use_eos_in_riemann == 0 ? "    " : "[*] ") << "castro.use_eos_in_riemann = " << Castro::use_eos_in_riemann << std::endl;
+jobInfoFile << (Castro::riemann_speed_limit == 2.99792458e10 ? "    " : "[*] ") << "castro.riemann_speed_limit = " << Castro::riemann_speed_limit << std::endl;
 jobInfoFile << (Castro::use_flattening == 1 ? "    " : "[*] ") << "castro.use_flattening = " << Castro::use_flattening << std::endl;
 jobInfoFile << (Castro::transverse_use_eos == 0 ? "    " : "[*] ") << "castro.transverse_use_eos = " << Castro::transverse_use_eos << std::endl;
 jobInfoFile << (Castro::transverse_reset_density == 1 ? "    " : "[*] ") << "castro.transverse_reset_density = " << Castro::transverse_reset_density << std::endl;

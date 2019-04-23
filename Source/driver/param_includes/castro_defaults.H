@@ -51,6 +51,7 @@ int         Castro::cg_maxiter = 12;
 amrex::Real Castro::cg_tol = 1.0e-5;
 int         Castro::cg_blend = 2;
 int         Castro::use_eos_in_riemann = 0;
+amrex::Real Castro::riemann_speed_limit = 2.99792458e10;
 int         Castro::use_flattening = 1;
 int         Castro::transverse_use_eos = 0;
 int         Castro::transverse_reset_density = 1;

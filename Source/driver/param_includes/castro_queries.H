@@ -51,6 +51,7 @@ pp.query("cg_maxiter", cg_maxiter);
 pp.query("cg_tol", cg_tol);
 pp.query("cg_blend", cg_blend);
 pp.query("use_eos_in_riemann", use_eos_in_riemann);
+pp.query("riemann_speed_limit", riemann_speed_limit);
 pp.query("use_flattening", use_flattening);
 pp.query("transverse_use_eos", transverse_use_eos);
 pp.query("transverse_reset_density", transverse_reset_density);
