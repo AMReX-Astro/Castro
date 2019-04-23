@@ -167,7 +167,7 @@ Castro::cons_to_prim_fourth(const Real time)
          &dens_change, verbose);
 
       // and ensure that the internal energy is positive
-      ca_reset_internal_e(AMREX_INT_ANYD(qbxm1.loVect()), AMREX_INT_ANYD(qbxm1.hiVect()),
+      ca_reset_internal_e(AMREX_ARLIM_ANYD(qbxm1.loVect()), AMREX_ARLIM_ANYD(qbxm1.hiVect()),
                           BL_TO_FORTRAN_ANYD(U_cc),
                           print_fortran_warnings);
 

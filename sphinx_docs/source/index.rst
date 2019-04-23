@@ -37,6 +37,7 @@ https://github.com/amrex-astro/Castro
    gravity
    diffusion
    rotation
+   sponge
    radiation
    Particles
    EOSNetwork
