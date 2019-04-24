@@ -264,6 +264,7 @@ contains
 
     if (.not. converged) then
        print *, "errors: ", err_dens, err_spec, err_ener
+       print *, "tols:   ", tol_dens, tol_spec, tol_ener
        call amrex_error("did not converge in SDC")
     endif
 
