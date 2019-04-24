@@ -157,9 +157,9 @@ contains
 
     ! the tolerance we are solving to may depend on the iteration
     relax_fac = sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
-    tol_dens = sdc_solver_tol_dens / relax_fac
-    tol_spec = sdc_solver_tol_spec / relax_fac
-    tol_ener = sdc_solver_tol_ener / relax_fac
+    tol_dens = sdc_solver_tol_dens * relax_fac
+    tol_spec = sdc_solver_tol_spec * relax_fac
+    tol_ener = sdc_solver_tol_ener * relax_fac
 
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
@@ -352,9 +352,9 @@ contains
 
     ! the tolerance we are solving to may depend on the iteration
     relax_fac = sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
-    tol_dens = sdc_solver_tol_dens / relax_fac
-    tol_spec = sdc_solver_tol_spec / relax_fac
-    tol_ener = sdc_solver_tol_ener / relax_fac
+    tol_dens = sdc_solver_tol_dens * relax_fac
+    tol_spec = sdc_solver_tol_spec * relax_fac
+    tol_ener = sdc_solver_tol_ener * relax_fac
 
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
