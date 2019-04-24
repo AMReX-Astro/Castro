@@ -178,6 +178,7 @@ module meth_params_module
   real(rt), allocatable, save :: react_rho_max
   integer,  allocatable, save :: disable_shock_burning
   real(rt), allocatable, save :: T_guess
+  integer,  allocatable, save :: diffuse_temp
   real(rt), allocatable, save :: diffuse_cutoff_density
   real(rt), allocatable, save :: diffuse_cutoff_density_hi
   real(rt), allocatable, save :: diffuse_cond_scale_fac
@@ -269,6 +270,9 @@ attributes(managed) :: react_rho_min
 attributes(managed) :: react_rho_max
 attributes(managed) :: disable_shock_burning
 attributes(managed) :: T_guess
+#ifdef DIFFUSION
+attributes(managed) :: diffuse_temp
+#endif
 #ifdef DIFFUSION
 attributes(managed) :: diffuse_cutoff_density
 #endif
@@ -386,6 +390,9 @@ attributes(managed) :: get_g_from_phi
   !$acc create(disable_shock_burning) &
   !$acc create(T_guess) &
 #ifdef DIFFUSION
+  !$acc create(diffuse_temp) &
+#endif
+#ifdef DIFFUSION
   !$acc create(diffuse_cutoff_density) &
 #endif
 #ifdef DIFFUSION
@@ -485,6 +492,8 @@ contains
 
 
 #ifdef DIFFUSION
+    allocate(diffuse_temp)
+    diffuse_temp = 0;
     allocate(diffuse_cutoff_density)
     diffuse_cutoff_density = -1.d200;
     allocate(diffuse_cutoff_density_hi)
@@ -665,6 +674,7 @@ contains
 
     call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
+    call pp%query("diffuse_temp", diffuse_temp)
     call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
     call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
     call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
@@ -780,14 +790,15 @@ contains
     !$acc device(cfl, dtnuc_e, dtnuc_X) &
     !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
     !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, T_guess, diffuse_cutoff_density) &
-    !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
-    !$acc device(grav_source_type, do_rotation, rot_period) &
-    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
-    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
-    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(disable_shock_burning, T_guess, diffuse_temp) &
+    !$acc device(diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac) &
+    !$acc device(do_grav, grav_source_type, do_rotation) &
+    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
+    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
+    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
+    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
 #ifdef GRAVITY
@@ -1079,6 +1090,9 @@ contains
     end if
     if (allocated(T_guess)) then
         deallocate(T_guess)
+    end if
+    if (allocated(diffuse_temp)) then
+        deallocate(diffuse_temp)
     end if
     if (allocated(diffuse_cutoff_density)) then
         deallocate(diffuse_cutoff_density)

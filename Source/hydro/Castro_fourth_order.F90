@@ -43,7 +43,11 @@ contains
                                    use_flattening, QPRES, NQAUX, &
                                    QTEMP, QFS, QFX, QREINT, QRHO, QGAME, QGC, &
                                    first_order_hydro, difmag, hybrid_riemann, &
-                                   limit_fluxes_on_small_dens, ppm_temp_fix, do_hydro
+                                   limit_fluxes_on_small_dens, ppm_temp_fix, &
+#ifdef DIFFUSION
+                                   diffuse_temp, &
+#endif
+                                   do_hydro
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens, ca_shock, &
                                       normalize_species_fluxes, avisc
 
@@ -152,6 +156,7 @@ contains
 
     real(rt) :: lap
     integer :: i, j, k, n, m
+    integer :: is_avg
 
     type (eos_t) :: eos_state
 
@@ -913,7 +918,7 @@ contains
                         15*q(i-1,j,k,QTEMP) + q(i-2,j,k,QTEMP))/(12.0_rt * dx(1))
                 end if
 
-             else if (idir == 2)
+             else if (idir == 2) then
 
                 if (is_avg == 0) then
                    ! we are working with the cell-center state
