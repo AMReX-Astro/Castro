@@ -42,6 +42,55 @@ contains
 
 #ifdef REACTIONS
   subroutine sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
+    ! this is the main interface to solving the discretized nonlinear
+    ! reaction update.  It either directly calls the Newton method or first
+    ! tries VODE and then does the Newton update.
+
+    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
+                                   sdc_order, sdc_solver, &
+                                   sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener, &
+                                   sdc_solver_atol, &
+                                   sdc_solver_relax_factor, &
+                                   sdc_solve_for_rhoe, sdc_use_analytic_jac
+    use amrex_constants_module, only : ZERO, HALF, ONE
+    use burn_type_module, only : burn_t
+    use react_util_module
+    use extern_probin_module, only : SMALL_X_SAFE
+    use network, only : nspec, nspec_evolve
+    use rpar_sdc_module
+
+    implicit none
+
+    real(rt), intent(in) :: dt_m
+    real(rt), intent(in) :: U_old(NVAR)
+    real(rt), intent(inout) :: U_new(NVAR)
+    real(rt), intent(in) :: C(NVAR)
+    integer, intent(in) :: sdc_iteration
+
+    integer, parameter :: NEWTON_SOLVE = 1
+    integer, parameter :: VODE_SOLVE = 2
+
+    if (sdc_solver == NEWTON_SOLVE) then
+       ! we are going to assume we already have a good guess for the
+       ! solving in U_new and just pass the solve onto the main Newton
+       ! solve
+       call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration)
+
+    else if (sdc_solver == VODE_SOLVE) then
+       ! we will first use VODE to find an initial guess and then pass
+       ! that onto the Newton solve to ensure we satisfy the correct
+       ! discretized equation
+       call sdc_vode_predict(dt_m, U_old, U_new, C, sdc_iteration)
+
+       ! now U_new is the update that VODE predicts, so we will use
+       ! that as the initial guess to the Newton solve
+       call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration)
+
+    end if
+
+  end subroutine sdc_solve
+
+  subroutine sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration)
     ! the purpose of this function is to solve the system
     ! U - dt R(U) = U_old + dt C using a Newton solve.
     !
@@ -49,7 +98,7 @@ contains
     ! returned with the value that satisfies the nonlinear function
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
-                                   sdc_order, sdc_solver, &
+                                   sdc_order, &
                                    sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener, &
                                    sdc_solver_atol, &
                                    sdc_solver_relax_factor, &
@@ -173,6 +222,8 @@ contains
 
     ! iterative loop
     iter = 0
+    max_newton_iter = MAX_ITER
+
     converged = .false.
     do while (.not. converged .and. iter < max_newton_iter)
 
@@ -230,7 +281,7 @@ contains
        U_new(UEINT) = U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
     endif
 
-  end subroutine sdc_solve
+  end subroutine sdc_newton_solve
 
 
   subroutine sdc_vode_predict(dt_m, U_old, U_new, C, sdc_iteration)
@@ -240,7 +291,7 @@ contains
     ! to the Newton solve on the real system.
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
-                                   sdc_order, sdc_solver, &
+                                   sdc_order, &
                                    sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener, &
                                    sdc_solver_atol, &
                                    sdc_solver_relax_factor, &
@@ -539,7 +590,7 @@ contains
     ! this is used by the Newton solve to compute the Jacobian via differencing
 
     use rpar_sdc_module
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT, sdc_solve_for_rhoe
+    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT, UTEMP, sdc_solve_for_rhoe
     use network, only : nspec, nspec_evolve
     use burn_type_module
     use react_util_module
@@ -551,7 +602,7 @@ contains
     real(rt), intent(in)  :: U(0:n-1)
     real(rt), intent(out) :: f(0:n-1)
     integer, intent(inout) :: iflag  !! leave this untouched
-    real(rt), intent(in) :: rpar(0:n_rpar-1)
+    real(rt), intent(inout) :: rpar(0:n_rpar-1)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
     real(rt) :: R_react(0:n-1), f_source(0:n-1)
@@ -578,7 +629,13 @@ contains
     dt_m = rpar(irp_dt)
     f_source(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
 
+    ! initial guess for T
+    U_full(UTEMP) = rpar(irp_temp)
+
     call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
+
+    ! update guess for next time
+    rpar(irp_temp) = U_full(UTEMP)
 
     R_react(0) = R_full(URHO)
     R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
@@ -613,7 +670,7 @@ contains
     real(rt), intent(out) :: f(0:n-1)
     real(rt), intent(out) :: Jac(0:ldjac-1,0:n-1)
     integer, intent(inout) :: iflag  !! leave this untouched
-    real(rt), intent(in) :: rpar(0:n_rpar-1)
+    real(rt), intent(inout) :: rpar(0:n_rpar-1)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
     real(rt) :: R_react(0:n-1), f_source(0:n-1)
@@ -669,6 +726,8 @@ contains
     else
        R_react(nspec_evolve+1) = R_full(UEDEN)
     endif
+
+    f(:) = U(:) - dt_m * R_react(:) - f_source(:)
 
     if (sdc_use_analytic_jac == 1) then
 
@@ -731,12 +790,10 @@ contains
 
           call f_sdc(n, U_pert, f_pert, iflag, rpar)
 
-          Jac(:, ncol) = (f_pert(:) - f(:))/(U_pert(:) - U(:))
+          Jac(:, ncol) = (f_pert(:) - f(:))/(U_pert(ncol) - U(ncol))
        enddo
 
     endif
-
-    f(:) = U(:) - dt_m * R_react(:) - f_source(:)
 
   end subroutine f_sdc_jac
 #endif
