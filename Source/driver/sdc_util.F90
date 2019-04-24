@@ -211,10 +211,6 @@ contains
        iter = iter + 1
     enddo
 
-    if (converged) then
-       exit
-    endif
-
     if (.not. converged) then
        print *, "errors: ", err_dens, err_spec, err_ener
        call amrex_error("did not converge in SDC")
@@ -388,6 +384,7 @@ contains
     if (istate < 0) then
        call amrex_error("vode termination poorly, istate = ", istate)
     endif
+#endif
 
     ! update the full U_new
     ! if we updated total energy, then correct internal, or vice versa
