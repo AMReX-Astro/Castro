@@ -47,11 +47,7 @@ contains
     ! tries VODE and then does the Newton update.
 
     use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
-                                   sdc_order, sdc_solver, &
-                                   sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener, &
-                                   sdc_solver_atol, &
-                                   sdc_solver_relax_factor, &
-                                   sdc_solve_for_rhoe, sdc_use_analytic_jac
+                                   sdc_solver
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
@@ -102,7 +98,7 @@ contains
                                    sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener, &
                                    sdc_solver_atol, &
                                    sdc_solver_relax_factor, &
-                                   sdc_solve_for_rhoe, sdc_use_analytic_jac
+                                   sdc_solve_for_rhoe
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
@@ -655,7 +651,7 @@ contains
 
     use rpar_sdc_module
     use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP, &
-         sdc_solve_for_rhoe, sdc_use_analytic_jac
+         sdc_solve_for_rhoe
     use network, only : nspec, nspec_evolve
     use burn_type_module
     use react_util_module
@@ -730,71 +726,48 @@ contains
 
     f(:) = U(:) - dt_m * R_react(:) - f_source(:)
 
-    if (sdc_use_analytic_jac == 1) then
+    ! get dRdw -- this may do a numerical approxiation or use the
+    ! network's analytic Jac
+    call single_zone_jac(U_full, burn_state, dRdw)
 
-       ! get dRdw
-       call single_zone_jac(U_full, burn_state, dRdw)
+    ! construct dwdU
+    dwdU(:, :) = ZERO
 
-       ! construct dwdU
-       dwdU(:, :) = ZERO
+    ! the density row
+    dwdU(0, 0) = ONE
 
-       ! the density row
-       dwdU(0, 0) = ONE
+    ! the X_k rows
+    do m = 1, nspec_evolve
+       dwdU(m,0) = -U(m)/U(0)**2
+       dwdU(m,m) = ONE/U(0)
+    enddo
 
-       ! the X_k rows
-       do m = 1, nspec_evolve
-          dwdU(m,0) = -U(m)/U(0)**2
-          dwdU(m,m) = ONE/U(0)
-       enddo
-
-       ! now the T row -- this depends on whether we are evolving (rho E) or (rho e)
-       denom = ONE/(eos_state % rho * eos_state % dedT)
-       if (sdc_solve_for_rhoe == 1) then
-          dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
-                                          eos_state % rho * eos_state % dedr - eos_state % e)
-       else
-          dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
-                                          eos_state % rho * eos_state % dedr - eos_state % e + &
-                                          HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho**2)
-       endif
-
-       do m = 1, nspec_evolve
-          dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
-       enddo
-
-       dwdU(nspec_evolve+1, nspec_evolve+1) = denom
-
-       ! construct the Jacobian -- we can get most of the
-       ! terms from the network itself, but we do not rely on
-       ! it having derivative wrt density
-       Jac(:, :) = ZERO
-       do m = 0, nspec_evolve+1
-          Jac(m, m) = ONE
-       enddo
-
-       Jac(:,:) = Jac(:,:) - dt_m * matmul(dRdw, dwdU)
-
+    ! now the T row -- this depends on whether we are evolving (rho E) or (rho e)
+    denom = ONE/(eos_state % rho * eos_state % dedT)
+    if (sdc_solve_for_rhoe == 1) then
+       dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
+                                       eos_state % rho * eos_state % dedr - eos_state % e)
     else
-
-       ! numerical Jacobian via forward differencing.  We already have
-       ! the reference state, R_react
-
-       do ncol = 0, n-1
-
-          ! each column means perturbing with respect to a different variable
-          U_pert(:) = U(:)
-          if (U_pert(ncol) == ZERO) then
-             U_pert(ncol) = eps
-          else
-             U_pert(ncol) = U_pert(ncol)*(ONE + eps)
-          endif
-
-          call f_sdc(n, U_pert, f_pert, iflag, rpar)
-
-          Jac(:, ncol) = (f_pert(:) - f(:))/(U_pert(ncol) - U(ncol))
-       enddo
-
+       dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
+                                       eos_state % rho * eos_state % dedr - eos_state % e + &
+                                       HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho**2)
     endif
+
+    do m = 1, nspec_evolve
+       dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
+    enddo
+
+    dwdU(nspec_evolve+1, nspec_evolve+1) = denom
+
+    ! construct the Jacobian -- we can get most of the
+    ! terms from the network itself, but we do not rely on
+    ! it having derivative wrt density
+    Jac(:, :) = ZERO
+    do m = 0, nspec_evolve+1
+       Jac(m, m) = ONE
+    enddo
+
+    Jac(:,:) = Jac(:,:) - dt_m * matmul(dRdw, dwdU)
 
   end subroutine f_sdc_jac
 #endif

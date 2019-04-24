@@ -82,9 +82,11 @@ contains
 
     use burn_type_module, only : burn_t, net_ienuc, net_itemp
     use network, only : nspec, nspec_evolve, aion, aion_inv
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
+                                   sdc_use_analytic_jac
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
+    use numerical_jac_module
 
     implicit none
 
@@ -98,7 +100,11 @@ contains
     ! for computing a numerical derivative
     real(rt) :: eps = 1.e-8_rt
 
-    call actual_jac(burn_state)
+    if (sdc_use_analytic_jac == 0) then
+       call numerical_jac(burn_state)
+    else
+       call actual_jac(burn_state)
+    endif
 
     ! The Jacobian from the nets is in terms of dYdot/dY, but we want
     ! it was dXdot/dX, so convert here.
