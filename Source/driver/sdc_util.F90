@@ -65,6 +65,7 @@ contains
 
     integer, parameter :: NEWTON_SOLVE = 1
     integer, parameter :: VODE_SOLVE = 2
+    integer, parameter :: HYBRID_SOLVE = 3
 
     if (sdc_solver == NEWTON_SOLVE) then
        ! we are going to assume we already have a good guess for the
@@ -77,6 +78,17 @@ contains
        ! that onto the Newton solve to ensure we satisfy the correct
        ! discretized equation
        call sdc_vode_predict(dt_m, U_old, U_new, C, sdc_iteration)
+
+       ! now U_new is the update that VODE predicts, so we will use
+       ! that as the initial guess to the Newton solve
+       call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration)
+
+    else if (sdc_solver == HYBRID_SOLVE) then
+       ! if it is the first iteration, we will use VODE to predict
+       ! the solution.  Otherwise, we will use Newton.
+       if (sdc_iteration == 0) then
+          call sdc_vode_predict(dt_m, U_old, U_new, C, sdc_iteration)
+       endif
 
        ! now U_new is the update that VODE predicts, so we will use
        ! that as the initial guess to the Newton solve
