@@ -1,34 +1,39 @@
-! Derive momentum, given input vector of the grid momenta.
+! Derive momentum, given the grid momenta.
 
-subroutine ca_derinertialmomentumx(p,p_lo,p_hi,ncomp_p, &
-                                   u,u_lo,u_hi,ncomp_u, &
-                                   lo,hi,domlo,domhi, &
-                                   dx,xlo,time,dt,bc,level,grid_no) &
-                                   bind(C,name='ca_derinertialmomentumx')
+subroutine derinertialmomentumx(p, p_lo, p_hi, ncomp_p, &
+                                u, u_lo, u_hi, ncomp_u, &
+                                lo, hi, domlo, domhi, &
+                                dx, time) &
+                                bind(C, name='derinertialmomentumx')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: HALF
-  use wdmerger_util_module, only: inertial_velocity
-  use prob_params_module, only: center
+  use wdmerger_util_module, only: inertial_velocity ! function
+  use prob_params_module, only: problo, center
 
   implicit none
 
-  integer          :: p_lo(3), p_hi(3), ncomp_p ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: p_lo(3), p_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_p ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 4
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), vel(3), mom(3), rho
+  integer  :: i, j, k
+  real(rt) :: loc(3), vel(3), mom(3), rho
+
+  !$gpu
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
            rho = u(i,j,k,1)
            vel = u(i,j,k,2:4) / rho
@@ -39,41 +44,46 @@ subroutine ca_derinertialmomentumx(p,p_lo,p_hi,ncomp_p, &
      enddo
   enddo
 
-end subroutine ca_derinertialmomentumx
+end subroutine derinertialmomentumx
 
 
 
-! Derive momentum, given input vector of the grid momenta.
+! Derive momentum, given the grid momenta.
 
-subroutine ca_derinertialmomentumy(p,p_lo,p_hi,ncomp_p, &
-                                   u,u_lo,u_hi,ncomp_u, &
-                                   lo,hi,domlo,domhi, &
-                                   dx,xlo,time,dt,bc,level,grid_no) &
-                                   bind(C,name='ca_derinertialmomentumy')
+subroutine derinertialmomentumy(p, p_lo, p_hi, ncomp_p, &
+                                u, u_lo, u_hi, ncomp_u, &
+                                lo, hi, domlo, domhi, &
+                                dx, time) &
+                                bind(C, name='derinertialmomentumy')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: HALF
-  use wdmerger_util_module, only: inertial_velocity
-  use prob_params_module, only: center
+  use wdmerger_util_module, only: inertial_velocity ! function
+  use prob_params_module, only: problo, center
 
   implicit none
 
-  integer          :: p_lo(3), p_hi(3), ncomp_p ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: p_lo(3), p_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_p ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 4
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), vel(3), mom(3), rho
+  integer  :: i, j, k
+  real(rt) :: loc(3), vel(3), mom(3), rho
+
+  !$gpu
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
            rho = u(i,j,k,1)
            vel = u(i,j,k,2:4) / rho
@@ -84,41 +94,46 @@ subroutine ca_derinertialmomentumy(p,p_lo,p_hi,ncomp_p, &
      enddo
   enddo
 
-end subroutine ca_derinertialmomentumy
+end subroutine derinertialmomentumy
 
 
 
-! Derive momentum, given input vector of the grid momenta.
+! Derive momentum, given the grid momenta.
 
-subroutine ca_derinertialmomentumz(p,p_lo,p_hi,ncomp_p, &
-                                   u,u_lo,u_hi,ncomp_u, &
-                                   lo,hi,domlo,domhi, &
-                                   dx,xlo,time,dt,bc,level,grid_no) &
-                                   bind(C,name='ca_derinertialmomentumz')
+subroutine derinertialmomentumz(p, p_lo, p_hi, ncomp_p, &
+                                u, u_lo, u_hi, ncomp_u, &
+                                lo, hi, domlo, domhi, &
+                                dx, time) &
+                                bind(C, name='derinertialmomentumz')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: HALF
-  use wdmerger_util_module, only: inertial_velocity
-  use prob_params_module, only: center
+  use wdmerger_util_module, only: inertial_velocity ! function
+  use prob_params_module, only: problo, center
 
   implicit none
 
-  integer          :: p_lo(3), p_hi(3), ncomp_p ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: p_lo(3), p_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_p ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 4
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), vel(3), mom(3), rho
+  integer  :: i, j, k
+  real(rt) :: loc(3), vel(3), mom(3), rho
+
+  !$gpu
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
            rho = u(i,j,k,1)
            vel = u(i,j,k,2:4) / rho
@@ -129,46 +144,53 @@ subroutine ca_derinertialmomentumz(p,p_lo,p_hi,ncomp_p, &
      enddo
   enddo
 
-end subroutine ca_derinertialmomentumz
+end subroutine derinertialmomentumz
 
 
 
-! Derive angular momentum, given input vector of the grid momenta.
+! Derive angular momentum, given the grid momenta.
 
-subroutine ca_derinertialangmomx(L,L_lo,L_hi,ncomp_L, &
-                                 u,u_lo,u_hi,ncomp_u, &
-                                 lo,hi,domlo,domhi, &
-                                 dx,xlo,time,dt,bc,level,grid_no) &
-                                 bind(C,name='ca_derinertialangmomx')
+subroutine derinertialangmomx(L, L_lo, L_hi, ncomp_L, &
+                              u, u_lo, u_hi, ncomp_u, &
+                              lo, hi, domlo, domhi, &
+                              dx, time) &
+                              bind(C, name='derinertialangmomx')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: HALF
-  use math_module, only: cross_product
-  use wdmerger_util_module, only: inertial_velocity
-  use prob_params_module, only: center
+  use math_module, only: cross_product ! function
+  use wdmerger_util_module, only: inertial_velocity ! function
+  use prob_params_module, only: problo, center
 
   implicit none
 
-  integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: L_lo(3), L_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_L ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 4
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), vel(3), ang_mom(3), rho
+  integer  :: i, j, k
+  real(rt) :: loc(3), vel(3), mom(3), ang_mom(3), rho
+
+  !$gpu
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
            rho = u(i,j,k,1)
            vel = u(i,j,k,2:4) / rho
-           ang_mom = cross_product(loc, rho * inertial_velocity(loc, vel, time))
+           mom = rho * inertial_velocity(loc, vel, time)
+
+           ang_mom = cross_product(loc, mom)
 
            L(i,j,k,1) = ang_mom(1)
 
@@ -176,44 +198,50 @@ subroutine ca_derinertialangmomx(L,L_lo,L_hi,ncomp_L, &
      enddo
   enddo
 
-end subroutine ca_derinertialangmomx
+end subroutine derinertialangmomx
 
 
 
-subroutine ca_derinertialangmomy(L,L_lo,L_hi,ncomp_L, &
-                                 u,u_lo,u_hi,ncomp_u, &
-                                 lo,hi,domlo,domhi, &
-                                 dx,xlo,time,dt,bc,level,grid_no) &
-                                 bind(C,name='ca_derinertialangmomy')
+subroutine derinertialangmomy(L, L_lo, L_hi, ncomp_L, &
+                              u, u_lo, u_hi, ncomp_u, &
+                              lo, hi, domlo, domhi, &
+                              dx, time) &
+                              bind(C, name='derinertialangmomy')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: HALF
-  use math_module, only: cross_product
-  use wdmerger_util_module, only: inertial_velocity
-  use prob_params_module, only: center
+  use math_module, only: cross_product ! function
+  use wdmerger_util_module, only: inertial_velocity ! function
+  use prob_params_module, only: problo, center
 
   implicit none
 
-  integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: L_lo(3), L_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_L ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 4
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), vel(3), ang_mom(3), rho
+  integer  :: i, j, k
+  real(rt) :: loc(3), vel(3), mom(3), ang_mom(3), rho
+
+  !$gpu
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
            rho = u(i,j,k,1)
            vel = u(i,j,k,2:4) / rho
-           ang_mom = cross_product(loc, rho * inertial_velocity(loc, vel, time))          
+           mom = rho * inertial_velocity(loc, vel, time)
+           ang_mom = cross_product(loc, mom)
 
            L(i,j,k,1) = ang_mom(2)
 
@@ -221,44 +249,50 @@ subroutine ca_derinertialangmomy(L,L_lo,L_hi,ncomp_L, &
      enddo
   enddo
 
-end subroutine ca_derinertialangmomy
+end subroutine derinertialangmomy
 
 
 
-subroutine ca_derinertialangmomz(L,L_lo,L_hi,ncomp_L, &
-                                 u,u_lo,u_hi,ncomp_u, &
-                                 lo,hi,domlo,domhi, &
-                                 dx,xlo,time,dt,bc,level,grid_no) &
-                                 bind(C,name='ca_derinertialangmomz')
+subroutine derinertialangmomz(L, L_lo, L_hi, ncomp_L, &
+                              u, u_lo, u_hi, ncomp_u, &
+                              lo, hi, domlo, domhi, &
+                              dx, time) &
+                              bind(C, name='derinertialangmomz')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: HALF
-  use math_module, only: cross_product
-  use wdmerger_util_module, only: inertial_velocity
-  use prob_params_module, only: center
+  use math_module, only: cross_product ! function
+  use wdmerger_util_module, only: inertial_velocity ! function
+  use prob_params_module, only: problo, center
 
   implicit none
 
-  integer          :: L_lo(3), L_hi(3), ncomp_L ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: L_lo(3), L_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: L(L_lo(1):L_hi(1),L_lo(2):L_hi(2),L_lo(3):L_hi(3),ncomp_L)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_L ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 4
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), vel(3), ang_mom(3), rho
+  integer  :: i, j, k
+  real(rt) :: loc(3), vel(3), mom(3), ang_mom(3), rho
+
+  !$gpu
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
            rho = u(i,j,k,1)
            vel = u(i,j,k,2:4) / rho
-           ang_mom = cross_product(loc, rho * inertial_velocity(loc, vel, time))
+           mom = rho * inertial_velocity(loc, vel, time)
+           ang_mom = cross_product(loc, mom)
 
            L(i,j,k,1) = ang_mom(3)
 
@@ -266,43 +300,49 @@ subroutine ca_derinertialangmomz(L,L_lo,L_hi,ncomp_L, &
      enddo
   enddo
 
-end subroutine ca_derinertialangmomz
+end subroutine derinertialangmomz
 
 
 
-! Derive radial momentum, given input vector of the grid momenta.
+! Derive radial momentum, given the grid momenta.
 
-subroutine ca_derinertialradmomx(R,R_lo,R_hi,ncomp_R, &
-                                 u,u_lo,u_hi,ncomp_u, &
-                                 lo,hi,domlo,domhi, &
-                                 dx,xlo,time,dt,bc,level,grid_no) &
-                                 bind(C,name='ca_derinertialradmomx')
+subroutine derinertialradmomx(R, R_lo, R_hi, ncomp_R, &
+                              u, u_lo, u_hi, ncomp_u, &
+                              lo, hi, domlo, domhi, &
+                              dx, time) &
+                              bind(C, name='derinertialradmomx')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: HALF, ONE
-  use wdmerger_util_module, only: inertial_velocity
-  use prob_params_module, only: center
+  use wdmerger_util_module, only: inertial_velocity ! function
+  use prob_params_module, only: problo, center
 
   implicit none
 
-  integer          :: R_lo(3), R_hi(3), ncomp_R ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: R(R_lo(1):R_hi(1),R_lo(2):R_hi(2),R_lo(3):R_hi(3),ncomp_R)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: R_lo(3), R_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: R(R_lo(1):R_hi(1),R_lo(2):R_hi(2),R_lo(3):R_hi(3),ncomp_R)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_R ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 4
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), mom(3), radInv
+  integer  :: i, j, k
+  real(rt) :: loc(3), mom(3), radInv
+
+  !$gpu
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-           mom = inertial_velocity(loc, u(i,j,k,2:4), time)
+           mom = u(i,j,k,2:4)
+           mom = inertial_velocity(loc, mom, time)
 
            radInv = ONE / sqrt( loc(2)**2 + loc(3)**2 )
 
@@ -312,41 +352,47 @@ subroutine ca_derinertialradmomx(R,R_lo,R_hi,ncomp_R, &
      enddo
   enddo
 
-end subroutine ca_derinertialradmomx
+end subroutine derinertialradmomx
 
 
 
-subroutine ca_derinertialradmomy(R,R_lo,R_hi,ncomp_R, &
-                                 u,u_lo,u_hi,ncomp_u, &
-                                 lo,hi,domlo,domhi, &
-                                 dx,xlo,time,dt,bc,level,grid_no) &
-                                 bind(C,name='ca_derinertialradmomy')
+subroutine derinertialradmomy(R, R_lo, R_hi, ncomp_R, &
+                              u, u_lo, u_hi, ncomp_u, &
+                              lo, hi, domlo, domhi, &
+                              dx, time) &
+                              bind(C, name='derinertialradmomy')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: HALF, ONE
-  use wdmerger_util_module, only: inertial_velocity
-  use prob_params_module, only: center
+  use wdmerger_util_module, only: inertial_velocity ! function
+  use prob_params_module, only: problo, center
 
   implicit none
 
-  integer          :: R_lo(3), R_hi(3), ncomp_R ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: R(R_lo(1):R_hi(1),R_lo(2):R_hi(2),R_lo(3):R_hi(3),ncomp_R)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: R_lo(3), R_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: R(R_lo(1):R_hi(1),R_lo(2):R_hi(2),R_lo(3):R_hi(3),ncomp_R)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_R ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 4
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), mom(3), radInv
+  integer  :: i, j, k
+  real(rt) :: loc(3), mom(3), radInv
+
+  !$gpu
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-           mom = inertial_velocity(loc, u(i,j,k,2:4), time)
+           mom = u(i,j,k,2:4)
+           mom = inertial_velocity(loc, mom, time)
 
            radInv = ONE / sqrt( loc(1)**2 + loc(3)**2 )
 
@@ -356,41 +402,47 @@ subroutine ca_derinertialradmomy(R,R_lo,R_hi,ncomp_R, &
      enddo
   enddo
 
-end subroutine ca_derinertialradmomy
+end subroutine derinertialradmomy
 
 
 
-subroutine ca_derinertialradmomz(R,R_lo,R_hi,ncomp_R, &
-                                 u,u_lo,u_hi,ncomp_u, &
-                                 lo,hi,domlo,domhi, &
-                                 dx,xlo,time,dt,bc,level,grid_no) &
-                                 bind(C,name='ca_derinertialradmomz')
+subroutine derinertialradmomz(R, R_lo, R_hi, ncomp_R, &
+                              u, u_lo, u_hi, ncomp_u, &
+                              lo, hi, domlo, domhi, &
+                              dx, time) &
+                              bind(C, name='derinertialradmomz')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: HALF, ONE
-  use wdmerger_util_module, only: inertial_velocity
-  use prob_params_module, only: center
+  use wdmerger_util_module, only: inertial_velocity ! function
+  use prob_params_module, only: problo, center
 
   implicit none
 
-  integer          :: R_lo(3), R_hi(3), ncomp_R ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 4
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: R(R_lo(1):R_hi(1),R_lo(2):R_hi(2),R_lo(3):R_hi(3),ncomp_R)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: R_lo(3), R_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: R(R_lo(1):R_hi(1),R_lo(2):R_hi(2),R_lo(3):R_hi(3),ncomp_R)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_R ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 4
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), mom(3), radInv
+  integer  :: i, j, k
+  real(rt) :: loc(3), mom(3), radInv
+
+  !$gpu
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3) - center(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2) - center(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1) - center(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
-           mom = inertial_velocity(loc, u(i,j,k,2:4), time)
+           mom = u(i,j,k,2:4)
+           mom = inertial_velocity(loc, mom, time)
 
            radInv = ONE / sqrt( loc(1)**2 + loc(2)**2 )
 
@@ -400,28 +452,34 @@ subroutine ca_derinertialradmomz(R,R_lo,R_hi,ncomp_R, &
      enddo
   enddo
 
-end subroutine ca_derinertialradmomz
+end subroutine derinertialradmomz
 
 
 
 ! Derive the effective potential phiEff = phiGrav + phiRot
 
-subroutine ca_derphieff(phi,phi_lo,phi_hi,ncomp_phi, &
-                        u,u_lo,u_hi,ncomp_u, &
-                        lo,hi,domlo,domhi, &
-                        dx,xlo,time,dt,bc,level,grid_no) bind(C,name='ca_derphieff')
+subroutine derphieff(phi, phi_lo, phi_hi, ncomp_phi, &
+                     u, u_lo, u_hi, ncomp_u, &
+                     lo, hi, domlo, domhi, &
+                     dx, time) bind(C, name='derphieff')
+
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
-  integer          :: phi_lo(3), phi_hi(3), ncomp_phi ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 2
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3),ncomp_phi)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3),ncomp_phi)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_phi ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 2
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
+  integer :: i, j, k
+
+  !$gpu
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
@@ -433,7 +491,7 @@ subroutine ca_derphieff(phi,phi_lo,phi_hi,ncomp_phi, &
      enddo
   enddo
 
-end subroutine ca_derphieff
+end subroutine derphieff
 
 
 
@@ -442,27 +500,33 @@ end subroutine ca_derphieff
 ! The u array contains the rotational potential, so we only need to calculate
 ! the gravitational potential from the point-mass.
 
-subroutine ca_derphieffpm_p(phi,phi_lo,phi_hi,ncomp_phi, &
-                            u,u_lo,u_hi,ncomp_u, &
-                            lo,hi,domlo,domhi, &
-                            dx,xlo,time,dt,bc,level,grid_no) bind(C,name='ca_derphieffpm_p')
+subroutine derphieffpm_p(phi, phi_lo, phi_hi, ncomp_phi, &
+                         u, u_lo, u_hi, ncomp_u, &
+                         lo, hi, domlo, domhi, &
+                         dx, time) bind(C,name='derphieffpm_p')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, HALF
   use probdata_module, only: mass_P, com_P
   use fundamental_constants_module, only: Gconst
+  use prob_params_module, only: problo
 
   implicit none
 
-  integer          :: phi_lo(3), phi_hi(3), ncomp_phi ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 1
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3),ncomp_phi)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3),ncomp_phi)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_phi ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 1
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), r
+  integer  :: i, j, k
+  real(rt) :: loc(3), r
+
+  !$gpu
 
   phi(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
@@ -471,11 +535,11 @@ subroutine ca_derphieffpm_p(phi,phi_lo,phi_hi,ncomp_phi, &
   if (mass_P == ZERO) return
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1)
 
            r = sqrt( sum( (loc - com_P)**2 ) )
 
@@ -485,33 +549,39 @@ subroutine ca_derphieffpm_p(phi,phi_lo,phi_hi,ncomp_phi, &
      enddo
   enddo
 
-end subroutine ca_derphieffpm_p
+end subroutine derphieffpm_p
 
 
 
 ! Same as above, but for the secondary.
 
-subroutine ca_derphieffpm_s(phi,phi_lo,phi_hi,ncomp_phi, &
-                            u,u_lo,u_hi,ncomp_u, &
-                            lo,hi,domlo,domhi, &
-                            dx,xlo,time,dt,bc,level,grid_no) bind(C,name='ca_derphieffpm_s')
+subroutine derphieffpm_s(phi, phi_lo, phi_hi, ncomp_phi, &
+                         u, u_lo, u_hi, ncomp_u, &
+                         lo, hi, domlo, domhi, &
+                         dx, time) bind(C,name='derphieffpm_s')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, HALF
   use probdata_module, only: mass_S, com_S
   use fundamental_constants_module, only: Gconst
+  use prob_params_module, only: problo
 
   implicit none
 
-  integer          :: phi_lo(3), phi_hi(3), ncomp_phi ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 1
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3),ncomp_phi)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3),ncomp_phi)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_phi ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 1
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), r
+  integer  :: i, j, k
+  real(rt) :: loc(3), r
+
+  !$gpu
 
   phi(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
@@ -520,11 +590,11 @@ subroutine ca_derphieffpm_s(phi,phi_lo,phi_hi,ncomp_phi, &
   if (mass_S == ZERO) return
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1)
 
            r = sqrt( sum( (loc - com_S)**2 ) )
 
@@ -534,29 +604,33 @@ subroutine ca_derphieffpm_s(phi,phi_lo,phi_hi,ncomp_phi, &
      enddo
   enddo
 
-end subroutine ca_derphieffpm_s
+end subroutine derphieffpm_s
 
 
 
-subroutine ca_derrhophiGrav(rhophi,p_lo,p_hi,nk, &
-                            dat,d_lo,d_hi,nc, &
-                            lo,hi,domlo,domhi,delta, &
-                            xlo,time,dt,bc,level,grid_no) &
-                            bind(C, name="ca_derrhophiGrav")
+subroutine derrhophiGrav(rhophi, p_lo, p_hi, nk, &
+                         dat, d_lo, d_hi, nc, &
+                         lo, hi, domlo, domhi, &
+                         dx, time) &
+                         bind(C, name="derrhophiGrav")
+
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
-  integer          :: lo(3), hi(3)
-  integer          :: p_lo(3), p_hi(3), nk
-  integer          :: d_lo(3), d_hi(3), nc
-  integer          :: domlo(3), domhi(3)
-  integer          :: bc(3,2,nc)
-  double precision :: delta(3), xlo(3), time, dt
-  double precision :: rhophi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),nk)
-  double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-  integer          :: level, grid_no
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: p_lo(3), p_hi(3)
+  integer,  intent(in   ) :: d_lo(3), d_hi(3)
+  integer,  intent(in   ) :: domlo(3), domhi(3)
+  real(rt), intent(inout) :: rhophi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),nk)
+  real(rt), intent(in   ) ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: nk, nc
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
+  integer :: i, j, k
+
+  !$gpu
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
@@ -566,29 +640,33 @@ subroutine ca_derrhophiGrav(rhophi,p_lo,p_hi,nk, &
      end do
   end do
 
-end subroutine ca_derrhophiGrav
+end subroutine derrhophiGrav
 
 
 
-subroutine ca_derrhophiRot(rhophi,p_lo,p_hi,nk, &
-                           dat,d_lo,d_hi,nc, &
-                           lo,hi,domlo,domhi,delta, &
-                           xlo,time,dt,bc,level,grid_no) &
-                           bind(C, name="ca_derrhophiRot")
+subroutine derrhophiRot(rhophi, p_lo, p_hi, nk, &
+                        dat, d_lo, d_hi, nc, &
+                        lo, hi, domlo, domhi, &
+                        dx, time) &
+                        bind(C, name="derrhophiRot")
+
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
-  integer          :: lo(3), hi(3)
-  integer          :: p_lo(3), p_hi(3), nk
-  integer          :: d_lo(3), d_hi(3), nc
-  integer          :: domlo(3), domhi(3)
-  integer          :: bc(3,2,nc)
-  double precision :: delta(3), xlo(3), time, dt
-  double precision :: rhophi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),nk)
-  double precision ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-  integer          :: level, grid_no
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: p_lo(3), p_hi(3)
+  integer,  intent(in   ) :: d_lo(3), d_hi(3)
+  integer,  intent(in   ) :: domlo(3), domhi(3)
+  real(rt), intent(inout) :: rhophi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),nk)
+  real(rt), intent(in   ) ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: nk, nc
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
+  integer :: i, j, k
+
+  !$gpu
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
@@ -598,7 +676,7 @@ subroutine ca_derrhophiRot(rhophi,p_lo,p_hi,nk, &
      end do
   end do
 
-end subroutine ca_derrhophiRot
+end subroutine derrhophiRot
 
 
 
@@ -609,27 +687,33 @@ end subroutine ca_derrhophiRot
 ! The convention will be that the mask is positive (1) for zones inside the
 ! star and negative (-1) for zones outside the star.
 
-subroutine ca_derprimarymask(mask,mask_lo,mask_hi,ncomp_mask, &
-                             u,u_lo,u_hi,ncomp_u, &
-                             lo,hi,domlo,domhi, &
-                             dx,xlo,time,dt,bc,level,grid_no) bind(C,name='ca_derprimarymask')
+subroutine derprimarymask(mask, mask_lo, mask_hi, ncomp_mask, &
+                          u, u_lo, u_hi, ncomp_u, &
+                          lo, hi, domlo, domhi, &
+                          dx, time) bind(C, name='derprimarymask')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, HALF, ONE
   use probdata_module, only: mass_P, com_P, mass_S, com_S, stellar_density_threshold
   use fundamental_constants_module, only: Gconst
+  use prob_params_module, only: problo
 
   implicit none
 
-  integer          :: mask_lo(3), mask_hi(3), ncomp_mask ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 2 (density, rotational potential)
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: mask(mask_lo(1):mask_hi(1),mask_lo(2):mask_hi(2),mask_lo(3):mask_hi(3),ncomp_mask)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: mask_lo(3), mask_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: mask(mask_lo(1):mask_hi(1),mask_lo(2):mask_hi(2),mask_lo(3):mask_hi(3),ncomp_mask)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_mask ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 2 (density, rotational potential)
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), r_P, r_S, phi_P, phi_S
+  integer  :: i, j, k
+  real(rt) :: loc(3), r_P, r_S, phi_P, phi_S
+
+  !$gpu
 
   ! By default, assume we're not inside the star.
 
@@ -640,11 +724,11 @@ subroutine ca_derprimarymask(mask,mask_lo,mask_hi,ncomp_mask, &
   if (mass_P == ZERO) return
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1)
 
            ! Ignore zones whose density is too low.
 
@@ -664,33 +748,39 @@ subroutine ca_derprimarymask(mask,mask_lo,mask_hi,ncomp_mask, &
      enddo
   enddo
 
-end subroutine ca_derprimarymask
+end subroutine derprimarymask
 
 
 
 ! Same as above, but for the secondary.
 
-subroutine ca_dersecondarymask(mask,mask_lo,mask_hi,ncomp_mask, &
-                               u,u_lo,u_hi,ncomp_u, &
-                               lo,hi,domlo,domhi, &
-                               dx,xlo,time,dt,bc,level,grid_no) bind(C,name='ca_dersecondarymask')
+subroutine dersecondarymask(mask, mask_lo, mask_hi, ncomp_mask, &
+                            u, u_lo, u_hi, ncomp_u, &
+                            lo, hi, domlo, domhi, &
+                            dx, time) bind(C, name='dersecondarymask')
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, HALF, ONE
   use probdata_module, only: mass_P, com_P, mass_S, com_S, stellar_density_threshold
   use fundamental_constants_module, only: Gconst
+  use prob_params_module, only: problo
 
   implicit none
 
-  integer          :: mask_lo(3), mask_hi(3), ncomp_mask ! == 1
-  integer          :: u_lo(3), u_hi(3), ncomp_u ! == 2 (density, rotational potential)
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  double precision :: mask(mask_lo(1):mask_hi(1),mask_lo(2):mask_hi(2),mask_lo(3):mask_hi(3),ncomp_mask)
-  double precision :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  double precision :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ) :: mask_lo(3), mask_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: mask(mask_lo(1):mask_hi(1),mask_lo(2):mask_hi(2),mask_lo(3):mask_hi(3),ncomp_mask)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+  integer,  intent(in   ), value :: ncomp_mask ! == 1
+  integer,  intent(in   ), value :: ncomp_u ! == 2 (density, rotational potential)
+  real(rt), intent(in   ), value :: time
 
-  integer          :: i, j, k
-  double precision :: loc(3), r_P, r_S, phi_P, phi_S
+  integer  :: i, j, k
+  real(rt) :: loc(3), r_P, r_S, phi_P, phi_S
+
+  !$gpu
 
   ! By default, assume we're not inside the star.
 
@@ -701,11 +791,11 @@ subroutine ca_dersecondarymask(mask,mask_lo,mask_hi,ncomp_mask, &
   if (mass_S == ZERO) return
 
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + (dble(k - lo(3)) + HALF) * dx(3)
+     loc(3) = problo(3) + (dble(k) + HALF) * dx(3)
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + (dble(j - lo(2)) + HALF) * dx(2)
+        loc(2) = problo(2) + (dble(j) + HALF) * dx(2)
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + (dble(i - lo(1)) + HALF) * dx(1)
+           loc(1) = problo(1) + (dble(i) + HALF) * dx(1)
 
            ! Ignore zones whose density is too low.
 
@@ -725,4 +815,4 @@ subroutine ca_dersecondarymask(mask,mask_lo,mask_hi,ncomp_mask, &
      enddo
   enddo
 
-end subroutine ca_dersecondarymask
+end subroutine dersecondarymask

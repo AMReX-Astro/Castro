@@ -50,7 +50,66 @@ contains
 
     integer :: untin
 
+    allocate(mass_P)
+    allocate(mass_S)
+
+    mass_P = ONE
+    mass_S = ONE
+
+    allocate(com_P(3))
+    allocate(com_S(3))
+
+    allocate(stellar_density_threshold)
+    stellar_density_threshold = 1.0d0
+
     ! Read namelist to override the module defaults.
+
+    namelist /fortin/ &
+       mass_P, mass_S, &
+       central_density_P, central_density_S, &
+       nsub, &
+       roche_radius_factor, &
+       problem, &
+       collision_separation, &
+       collision_impact_parameter, &
+       collision_velocity, &
+       tde_separation, &
+       tde_beta, &
+       tde_initial_velocity, &
+       interp_temp, &
+       relaxation_damping_factor, &
+       relaxation_density_cutoff, &
+       relaxation_cutoff_time, &
+       initial_radial_velocity_factor, &
+       radial_damping_factor, &
+       ambient_density, &
+       stellar_temp, &
+       ambient_temp, &
+       max_he_wd_mass, &
+       max_hybrid_wd_mass, hybrid_wd_he_shell_mass, &
+       max_co_wd_mass, &
+       co_wd_he_shell_mass, &
+       hybrid_wd_c_frac, hybrid_wd_o_frac, &
+       co_wd_c_frac, co_wd_o_frac, &
+       onemg_wd_o_frac, onemg_wd_ne_frac, onemg_wd_mg_frac, &
+       orbital_eccentricity, orbital_angle, &
+       axis_1, axis_2, axis_3, &
+       max_stellar_tagging_level, &
+       max_temperature_tagging_level, &
+       max_center_tagging_level, &
+       stellar_density_threshold, &
+       temperature_tagging_threshold, &
+       center_tagging_radius, &
+       max_tagging_radius, &
+       roche_tagging_factor, &
+       bulk_velx, bulk_vely, bulk_velz, &
+       smallu, &
+       center_fracx, center_fracy, center_fracz, &
+       initial_model_dx, &
+       initial_model_npts, &
+       initial_model_mass_tol, &
+       initial_model_hse_tol, &
+       gw_dist
 
     untin = 9 
     open(untin,file=probin,form='formatted',status='old')
@@ -1069,8 +1128,8 @@ contains
   function inertial_velocity(loc, vel, time) result (vel_i)
 
     use meth_params_module, only: do_rotation, state_in_rotating_frame
-    use rotation_frequency_module, only: get_omega
-    use math_module, only: cross_product
+    use rotation_frequency_module, only: get_omega ! function
+    use math_module, only: cross_product ! function
 
     implicit none
 
@@ -1078,6 +1137,8 @@ contains
     double precision :: omega(3)
 
     double precision :: vel_i(3)
+
+    !$gpu
 
     omega = get_omega(time)
 
