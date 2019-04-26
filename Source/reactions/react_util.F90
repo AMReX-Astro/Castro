@@ -101,17 +101,24 @@ contains
     real(rt) :: eps = 1.e-8_rt
 
     if (sdc_use_analytic_jac == 0) then
+       ! note the numerical Jacobian will be returned in terms of X
        call numerical_jac(burn_state)
     else
        call actual_jac(burn_state)
+
+       ! The Jacobian from the nets is in terms of dYdot/dY, but we want
+       ! it was dXdot/dX, so convert here.
+       do n = 1, nspec_evolve
+          burn_state % jac(n,:) = burn_state % jac(n,:) * aion(n)
+          burn_state % jac(:,n) = burn_state % jac(:,n) * aion_inv(n)
+       enddo
+
     endif
 
-    ! The Jacobian from the nets is in terms of dYdot/dY, but we want
-    ! it was dXdot/dX, so convert here.
-    do n = 1, nspec_evolve
-       burn_state % jac(n,:) = burn_state % jac(n,:) * aion(n)
-       burn_state % jac(:,n) = burn_state % jac(:,n) * aion_inv(n)
-    enddo
+    ! at this point, our Jacobian should be entirely in terms of X,
+    ! not Y.  Let's now fix the rhs terms themselves to be in terms of
+    ! dX/dt and not dY/dt.
+    burn_state % ydot(1:nspec_evolve) = burn_state % ydot(1:nspec_evolve) * aion(1:nspec_evolve)
 
     ! Our jacobian, dR/dw has the form:
     !
@@ -134,6 +141,9 @@ contains
 
     call actual_rhs(burn_state_pert)
 
+    ! make the rates dX/dt and not dY/dt
+    burn_state_pert % ydot(1:nspec_evolve) = burn_state_pert % ydot(1:nspec_evolve) * aion(1:nspec_evolve)
+
     ! fill the column of dRdw corresponding to the derivative
     ! with respect to rho
     do m = 1, nspec_evolve
@@ -153,7 +163,7 @@ contains
 
        do m = 1, nspec_evolve
           ! d( d(rho X_m)/dt)/dX_n
-          dRdw(m, n) = state(URHO) * aion(m) * burn_state % jac(m, n)
+          dRdw(m, n) = state(URHO) * burn_state % jac(m, n)
        enddo
 
        ! d( d(rho E)/dt)/dX_n
