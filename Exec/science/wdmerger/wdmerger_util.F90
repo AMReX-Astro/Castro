@@ -41,27 +41,213 @@ contains
 
   subroutine read_namelist
 
-    use amrex_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, THREE, M_PI, FOUR, SIX, EIGHT
     use meth_params_module
     use prob_params_module, only: dim, coord_type
     use problem_io_module, only: probin
     use amrex_error_module, only: amrex_error
+    use network, only: nspec
 
     implicit none
 
     integer :: untin
 
+    ! Allocate parameters and set defaults.
+
     allocate(mass_P)
     allocate(mass_S)
+    allocate(central_density_P)
+    allocate(central_density_S)
+    allocate(stellar_temp)
+    allocate(primary_envelope_mass)
+    allocate(secondary_envelope_mass)
+    allocate(primary_envelope_comp(nspec))
+    allocate(secondary_envelope_comp(nspec))
 
     mass_P = ONE
     mass_S = ONE
+    central_density_P = -ONE
+    central_density_S = -ONE
+    stellar_temp = 1.0e7_rt
+
+    allocate(ambient_density)
+    allocate(ambient_temp)
+    allocate(ambient_comp(nspec))
+
+    ambient_density = 1.0e-4_rt
+    ambient_temp = 1.0e7_rt
+
+    allocate(smallu)
+
+    smallu = ZERO
+
+    allocate(nsub)
+    allocate(interp_temp)
+
+    nsub = 1
+    interp_temp = .true.
+
+    allocate(problem)
+
+    problem = 1
+
+    allocate(roche_radius_factor)
+
+    roche_radius_factor = ONE
+
+    allocate(collision_separation)
+    allocate(collision_impact_parameter)
+    allocate(collision_velocity)
+
+    collision_separation = FOUR
+    collision_impact_parameter = ZERO
+    collision_velocity = -ONE
+
+    allocate(tde_separation)
+    allocate(tde_beta)
+    allocate(tde_initial_velocity)
+    allocate(tde_tidal_radius)
+    allocate(tde_schwarzschild_radius)
+    allocate(tde_pericenter_radius)
+
+    tde_separation = EIGHT
+    tde_beta = SIX
+    tde_initial_velocity = 1
+
+    allocate(r_P_initial)
+    allocate(r_S_initial)
+    allocate(a)
+    allocate(center_P_initial(3))
+    allocate(center_S_initial(3))
+    allocate(orbital_eccentricity)
+    allocate(orbital_angle)
+
+    orbital_eccentricity = ZERO
+    orbital_angle = ZERO
+
+    allocate(axis_1)
+    allocate(axis_2)
+    allocate(axis_3)
+    allocate(center_fracx)
+    allocate(center_fracy)
+    allocate(center_fracz)
+    allocate(bulk_velx)
+    allocate(bulk_vely)
+    allocate(bulk_velz)
+    allocate(init)
+    allocate(single_star)
+
+    axis_1 = 1
+    axis_2 = 2
+    axis_3 = 3
+
+    center_fracx = HALF
+    center_fracy = HALF
+    center_fracz = HALF
+
+    bulk_velx = ZERO
+    bulk_vely = ZERO
+    bulk_velz = ZERO
+
+    allocate(model_P)
+    allocate(model_S)
+    allocate(initial_model_dx)
+    allocate(initial_model_npts)
+    allocate(initial_model_mass_tol)
+    allocate(initial_model_hse_tol)
+
+    initial_model_dx = 6.25e5_rt
+    initial_model_npts = 4096
+    initial_model_mass_tol = 1.e-6_rt
+    initial_model_hse_tol = 1.e-10_rt
+    
+    allocate(max_he_wd_mass)
+    allocate(max_hybrid_wd_mass)
+    allocate(hybrid_wd_he_shell_mass)
+    allocate(max_co_wd_mass)
+    allocate(co_wd_he_shell_mass)
+    allocate(hybrid_wd_c_frac)
+    allocate(hybrid_wd_o_frac)
+    allocate(co_wd_c_frac)
+    allocate(co_wd_o_frac)
+    allocate(onemg_wd_o_frac)
+    allocate(onemg_wd_ne_frac)
+    allocate(onemg_wd_mg_frac)
+
+    max_he_wd_mass = 0.45e0_rt
+    max_hybrid_wd_mass = 0.6e0_rt
+    hybrid_wd_he_shell_mass = 0.1e0_rt
+    max_co_wd_mass = 1.05e0_rt
+    co_wd_he_shell_mass = 0.0e0_rt
+
+    hybrid_wd_c_frac = 0.50e0_rt
+    hybrid_wd_o_frac = 0.50e0_rt
+
+    co_wd_c_frac = 0.40e0_rt
+    co_wd_o_frac = 0.60e0_rt
+
+    onemg_wd_o_frac  = 0.60e0_rt
+    onemg_wd_ne_frac = 0.35e0_rt
+    onemg_wd_mg_frac = 0.05e0_rt
+
+    allocate(max_stellar_tagging_level)
+    allocate(max_temperature_tagging_level)
+    allocate(max_center_tagging_level)
+    allocate(stellar_density_threshold)
+    allocate(temperature_tagging_threshold)
+    allocate(center_tagging_radius)
+    allocate(max_tagging_radius)
+    allocate(roche_tagging_factor)
+    
+    max_stellar_tagging_level = 20
+    max_temperature_tagging_level = 20
+    max_center_tagging_level = 20
+    stellar_density_threshold = ONE
+    temperature_tagging_threshold = 5.0e8_rt
+    center_tagging_radius = 0.0e0_rt
+    max_tagging_radius = 0.75e0_rt
+    roche_tagging_factor = 2.0e0_rt
 
     allocate(com_P(3))
     allocate(com_S(3))
+    allocate(vel_P(3))
+    allocate(vel_S(3))
 
-    allocate(stellar_density_threshold)
-    stellar_density_threshold = 1.0d0
+    allocate(roche_rad_P)
+    allocate(roche_rad_S)
+
+    allocate(relaxation_damping_factor)
+    allocate(relaxation_density_cutoff)
+    allocate(relaxation_cutoff_time)
+    allocate(relaxation_is_done)
+    allocate(radial_damping_factor)
+    allocate(initial_radial_velocity_factor)
+
+    relaxation_damping_factor = -1.0e-1_rt
+    relaxation_density_cutoff = 1.0e3_rt
+    relaxation_cutoff_time = -1.e0_rt
+    relaxation_is_done = 1
+    radial_damping_factor = -1.0e3_rt
+    initial_radial_velocity_factor = -1.0e-3_rt
+
+    allocate(gw_dist)
+
+    gw_dist = 10.0e0_rt
+
+    allocate(t_ff_P)
+    allocate(t_ff_S)
+
+    allocate(T_global_max)
+    allocate(rho_global_max)
+    allocate(ts_te_global_max)
+
+    allocate(jobIsDone)
+    allocate(signalJobIsNotDone)
+
+    jobIsDone = .false.
+    signalJobIsNotDone = .false.
+
+
 
     ! Read namelist to override the module defaults.
 
