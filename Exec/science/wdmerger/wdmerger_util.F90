@@ -52,6 +52,53 @@ contains
 
     integer :: untin
 
+    namelist /fortin/ &
+       mass_P, mass_S, &
+       central_density_P, central_density_S, &
+       nsub, &
+       roche_radius_factor, &
+       problem, &
+       collision_separation, &
+       collision_impact_parameter, &
+       collision_velocity, &
+       tde_separation, &
+       tde_beta, &
+       tde_initial_velocity, &
+       interp_temp, &
+       relaxation_damping_factor, &
+       relaxation_density_cutoff, &
+       relaxation_cutoff_time, &
+       initial_radial_velocity_factor, &
+       radial_damping_factor, &
+       ambient_density, &
+       stellar_temp, &
+       ambient_temp, &
+       max_he_wd_mass, &
+       max_hybrid_wd_mass, hybrid_wd_he_shell_mass, &
+       max_co_wd_mass, &
+       co_wd_he_shell_mass, &
+       hybrid_wd_c_frac, hybrid_wd_o_frac, &
+       co_wd_c_frac, co_wd_o_frac, &
+       onemg_wd_o_frac, onemg_wd_ne_frac, onemg_wd_mg_frac, &
+       orbital_eccentricity, orbital_angle, &
+       axis_1, axis_2, axis_3, &
+       max_stellar_tagging_level, &
+       max_temperature_tagging_level, &
+       max_center_tagging_level, &
+       stellar_density_threshold, &
+       temperature_tagging_threshold, &
+       center_tagging_radius, &
+       max_tagging_radius, &
+       roche_tagging_factor, &
+       bulk_velx, bulk_vely, bulk_velz, &
+       smallu, &
+       center_fracx, center_fracy, center_fracz, &
+       initial_model_dx, &
+       initial_model_npts, &
+       initial_model_mass_tol, &
+       initial_model_hse_tol, &
+       gw_dist
+
     ! Allocate parameters and set defaults.
 
     allocate(mass_P)
@@ -160,7 +207,7 @@ contains
     initial_model_npts = 4096
     initial_model_mass_tol = 1.e-6_rt
     initial_model_hse_tol = 1.e-10_rt
-    
+
     allocate(max_he_wd_mass)
     allocate(max_hybrid_wd_mass)
     allocate(hybrid_wd_he_shell_mass)
@@ -198,7 +245,7 @@ contains
     allocate(center_tagging_radius)
     allocate(max_tagging_radius)
     allocate(roche_tagging_factor)
-    
+
     max_stellar_tagging_level = 20
     max_temperature_tagging_level = 20
     max_center_tagging_level = 20
@@ -251,54 +298,7 @@ contains
 
     ! Read namelist to override the module defaults.
 
-    namelist /fortin/ &
-       mass_P, mass_S, &
-       central_density_P, central_density_S, &
-       nsub, &
-       roche_radius_factor, &
-       problem, &
-       collision_separation, &
-       collision_impact_parameter, &
-       collision_velocity, &
-       tde_separation, &
-       tde_beta, &
-       tde_initial_velocity, &
-       interp_temp, &
-       relaxation_damping_factor, &
-       relaxation_density_cutoff, &
-       relaxation_cutoff_time, &
-       initial_radial_velocity_factor, &
-       radial_damping_factor, &
-       ambient_density, &
-       stellar_temp, &
-       ambient_temp, &
-       max_he_wd_mass, &
-       max_hybrid_wd_mass, hybrid_wd_he_shell_mass, &
-       max_co_wd_mass, &
-       co_wd_he_shell_mass, &
-       hybrid_wd_c_frac, hybrid_wd_o_frac, &
-       co_wd_c_frac, co_wd_o_frac, &
-       onemg_wd_o_frac, onemg_wd_ne_frac, onemg_wd_mg_frac, &
-       orbital_eccentricity, orbital_angle, &
-       axis_1, axis_2, axis_3, &
-       max_stellar_tagging_level, &
-       max_temperature_tagging_level, &
-       max_center_tagging_level, &
-       stellar_density_threshold, &
-       temperature_tagging_threshold, &
-       center_tagging_radius, &
-       max_tagging_radius, &
-       roche_tagging_factor, &
-       bulk_velx, bulk_vely, bulk_velz, &
-       smallu, &
-       center_fracx, center_fracy, center_fracz, &
-       initial_model_dx, &
-       initial_model_npts, &
-       initial_model_mass_tol, &
-       initial_model_hse_tol, &
-       gw_dist
-
-    untin = 9 
+    untin = 9
     open(untin,file=probin,form='formatted',status='old')
     read(untin,fortin)
     close(unit=untin)
@@ -450,11 +450,16 @@ contains
 
   subroutine get_ambient(ambient_state)
 
+    use eos_type_module, only: eos_input_rt
+    use eos_module, only: eos
+
     implicit none
 
     type (eos_t) :: ambient_state
 
-    ! Define ambient state, using a composition that is an 
+    !$gpu
+
+    ! Define ambient state, using a composition that is an
     ! even mixture of the primary and secondary composition, 
     ! and then call the EOS to get internal energy and pressure.
 
@@ -1679,7 +1684,7 @@ contains
                 if (physbc_lo(3) .eq. Symmetry) then
                    dmSymmetric = TWO * dmSymmetric
                    momSymmetric = TWO * momSymmetric
-                end if              
+                end if
 
              end if
 
@@ -1840,12 +1845,12 @@ contains
                 rhoInv = ZERO
              endif
 
-             ! Account for rotation, if there is any. These will leave 
+             ! Account for rotation, if there is any. These will leave
              ! r and vel and changed, if not.
 
              pos = inertial_rotation(r, time)
 
-             ! For constructing the velocity in the inertial frame, we need to 
+             ! For constructing the velocity in the inertial frame, we need to
              ! account for the fact that we have rotated the system already, so that 
              ! the r in omega x r is actually the position in the inertial frame, and 
              ! not the usual position in the rotating frame. It has to be on physical 
@@ -2044,9 +2049,9 @@ contains
        delta(i,i) = ONE
     enddo
 
-    ! Unit vector for the wave is simply the distance 
+    ! Unit vector for the wave is simply the distance
     ! vector to the observer normalized by the total distance.
-    ! We are going to repeat this process by looking along 
+    ! We are going to repeat this process by looking along
     ! all three coordinate axes.
 
     do dir = 1, 3
