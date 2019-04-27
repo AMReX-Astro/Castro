@@ -45,7 +45,7 @@
      use probdata_module
      use wdmerger_util_module
      use prob_params_module, only: center, dim
-     use eos_module
+     use eos_type_module, only: eos_t
      use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
                                    UEDEN, UEINT, UFS, do_rotation, state_in_rotating_frame
      use network, only: nspec

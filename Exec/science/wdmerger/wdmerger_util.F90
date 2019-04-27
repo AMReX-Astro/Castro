@@ -47,6 +47,7 @@ contains
     use problem_io_module, only: probin
     use amrex_error_module, only: amrex_error
     use network, only: nspec
+    use fundamental_constants_module, only: M_solar
 
     implicit none
 
@@ -426,6 +427,8 @@ contains
   subroutine set_small
 
     use meth_params_module, only: small_temp, small_pres, small_dens, small_ener
+    use eos_type_module, only: eos_t, eos_input_rt
+    use eos_module, only: eos
 
     implicit none
 
@@ -450,7 +453,7 @@ contains
 
   subroutine get_ambient(ambient_state)
 
-    use eos_type_module, only: eos_input_rt
+    use eos_type_module, only: eos_t, eos_input_rt
     use eos_module, only: eos
 
     implicit none
@@ -480,6 +483,7 @@ contains
     use extern_probin_module, only: small_x
     use network, only: network_species_index
     use amrex_error_module, only: amrex_error
+    use amrex_constants_module, only: ZERO, ONE
 
     implicit none
 
@@ -703,7 +707,8 @@ contains
     use binary_module, only: get_roche_radii
     use problem_io_module, only: ioproc
     use amrex_error_module, only: amrex_error
-    use fundamental_constants_module, only: Gconst, c_light
+    use fundamental_constants_module, only: Gconst, c_light, AU, M_solar
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO
 
     implicit none
 
@@ -1196,11 +1201,13 @@ contains
 
   subroutine fill_ambient(state, loc, time)
 
-    use amrex_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UTEMP, UEINT, UEDEN, UFS, do_rotation
     use network, only: nspec
     use rotation_frequency_module, only: get_omega
     use math_module, only: cross_product
+    use eos_type_module, only: eos_input_rt, eos_t
+    use eos_module, only: eos
 
     implicit none
 
@@ -1412,6 +1419,7 @@ contains
 
   subroutine turn_off_relaxation(time) bind(C,name='turn_off_relaxation')
 
+    use amrex_constants_module, only: ONE
     use problem_io_module, only: ioproc
     use sponge_module, only: sponge_timescale
 
