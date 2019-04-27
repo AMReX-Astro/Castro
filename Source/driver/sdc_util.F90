@@ -453,6 +453,9 @@ contains
     U_new(UEINT) = U_react(nspec_evolve+1)
     U_new(UEDEN) = U_new(UEINT) + HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
 
+    ! keep our temperature guess
+    U_new(UTEMP) = rpar(ipr_temp)
+
   end subroutine sdc_vode_predict
 
 
