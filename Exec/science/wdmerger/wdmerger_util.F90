@@ -19,6 +19,7 @@ contains
 
     integer :: init_in
 
+    allocate(init)
     init = init_in
 
     ! Read in the namelist to set problem parameters.
@@ -182,7 +183,6 @@ contains
     allocate(bulk_velx)
     allocate(bulk_vely)
     allocate(bulk_velz)
-    allocate(init)
     allocate(single_star)
 
     axis_1 = 1
