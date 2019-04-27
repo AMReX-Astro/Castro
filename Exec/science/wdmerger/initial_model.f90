@@ -4,6 +4,7 @@
 
 module initial_model_module
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module
   use amrex_error_module, only: amrex_error
   use eos_module, only: eos
@@ -18,26 +19,26 @@ module initial_model_module
 
      ! Physical characteristics
 
-     double precision :: mass = ZERO
-     double precision :: envelope_mass = ZERO
-     double precision :: central_density = ZERO
-     double precision :: central_temp = ZERO
-     double precision :: min_density = ZERO
-     double precision :: radius = ZERO
+     real(rt) :: mass = ZERO
+     real(rt) :: envelope_mass = ZERO
+     real(rt) :: central_density = ZERO
+     real(rt) :: central_temp = ZERO
+     real(rt) :: min_density = ZERO
+     real(rt) :: radius = ZERO
 
      ! Composition
 
-     double precision :: core_comp(nspec) = ZERO
-     double precision :: envelope_comp(nspec) = ZERO
+     real(rt) :: core_comp(nspec) = ZERO
+     real(rt) :: envelope_comp(nspec) = ZERO
 
      ! Model storage
 
-     double precision :: dx
-     integer          :: npts
-     double precision :: mass_tol, hse_tol
+     real(rt) :: dx
+     integer  :: npts
+     real(rt) :: mass_tol, hse_tol
 
-     double precision, allocatable :: r(:), rl(:), rr(:)
-     double precision, allocatable :: M_enclosed(:), g(:)
+     real(rt), allocatable :: r(:), rl(:), rr(:)
+     real(rt), allocatable :: M_enclosed(:), g(:)
      type (eos_t), allocatable :: state(:)
 
   end type initial_model
@@ -50,7 +51,7 @@ contains
 
     type (initial_model) :: model
     integer :: npts
-    double precision :: dx, mass_tol, hse_tol
+    real(rt) :: dx, mass_tol, hse_tol
 
     integer :: i
 
@@ -90,9 +91,9 @@ contains
 
     integer :: i, icutoff
 
-    double precision :: rho_c, rho_c_old, drho_c, mass, mass_old, radius
+    real(rt) :: rho_c, rho_c_old, drho_c, mass, mass_old, radius
 
-    double precision :: p_want, rho_avg, rho, drho
+    real(rt) :: p_want, rho_avg, rho, drho
 
     integer :: max_hse_iter = 250, max_mass_iter
 
@@ -302,18 +303,18 @@ contains
 
     implicit none
 
-    double precision,  intent(in   ) :: rho(npts)
-    double precision,  intent(in   ) :: T(npts)
-    double precision,  intent(in   ) :: xn(npts, nspec)
-    double precision,  intent(in   ) :: r(npts), star_radius
-    integer,           intent(in   ) :: npts
-    double precision,  intent(in   ) :: loc(3), dx(3)
-    type (eos_t),      intent(inout) :: state
-    integer, optional, intent(in   ) :: nsub_in
+    real(rt),     intent(in   ) :: rho(npts)
+    real(rt),     intent(in   ) :: T(npts)
+    real(rt),     intent(in   ) :: xn(npts, nspec)
+    real(rt),     intent(in   ) :: r(npts), star_radius
+    integer,      intent(in   ) :: npts
+    real(rt),     intent(in   ) :: loc(3), dx(3)
+    type (eos_t), intent(inout) :: state
+    integer,      intent(in   ), optional :: nsub_in
     
-    integer :: i, j, k, n
-    integer :: nsub
-    double precision :: x, y, z, dist
+    integer  :: i, j, k, n
+    integer  :: nsub
+    real(rt) :: x, y, z, dist
 
     if (present(nsub_in)) then
        nsub = nsub_in

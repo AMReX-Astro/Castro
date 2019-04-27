@@ -2,12 +2,13 @@
 
      use problem_io_module, only: initialize_io
      use wdmerger_util_module, only: initialize_problem
+     use amrex_fort_module, only: rt => amrex_real
 
      implicit none
 
-     integer :: init, namlen
-     integer :: name(namlen)
-     double precision :: problo(3), probhi(3)
+     integer  :: init, namlen
+     integer  :: name(namlen)
+     real(rt) :: problo(3), probhi(3)
 
      call initialize_io(name, namlen)
      call initialize_problem(init)
@@ -40,6 +41,7 @@
                           state,state_lo,state_hi, &
                           dx,xlo,xhi)
 
+     use amrex_fort_module, only: rt => amrex_real
      use probdata_module
      use wdmerger_util_module
      use prob_params_module, only: center, dim
@@ -57,25 +59,25 @@
 
      implicit none
 
-     integer          :: level, nscal
-     integer          :: lo(3), hi(3)
-     integer          :: state_lo(3), state_hi(3)
-     double precision :: xlo(3), xhi(3), time, dx(3)
-     double precision :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+     integer  :: level, nscal
+     integer  :: lo(3), hi(3)
+     integer  :: state_lo(3), state_hi(3)
+     real(rt) :: xlo(3), xhi(3), time, dx(3)
+     real(rt) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-     double precision :: loc(3), omega(3), vel(3)
-     double precision :: rot_loc(3), cap_radius
-     double precision :: dist_P, dist_S
-     double precision :: cosTheta, sinTheta, R_prp, mag_vel
+     real(rt) :: loc(3), omega(3), vel(3)
+     real(rt) :: rot_loc(3), cap_radius
+     real(rt) :: dist_P, dist_S
+     real(rt) :: cosTheta, sinTheta, R_prp, mag_vel
 
      type (eos_t) :: zone_state, ambient_state
 
      integer :: i, j, k, n
 
-     double precision :: rho_P(model_P % npts), rho_S(model_S % npts)
-     double precision :: T_P(model_P % npts), T_S(model_S % npts)
-     double precision :: xn_P(model_P % npts, nspec), xn_S(model_S % npts, nspec)
-     double precision :: r_P(model_P % npts), r_S(model_S % npts)
+     real(rt) :: rho_P(model_P % npts), rho_S(model_S % npts)
+     real(rt) :: T_P(model_P % npts), T_S(model_S % npts)
+     real(rt) :: xn_P(model_P % npts, nspec), xn_S(model_S % npts, nspec)
+     real(rt) :: r_P(model_P % npts), r_S(model_S % npts)
 
      ! Loop through the zones and set the zone state depending on whether we are
      ! inside the primary or secondary (in which case interpolate from the respective model)

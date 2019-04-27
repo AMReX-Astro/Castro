@@ -4,12 +4,13 @@
                            new_state,ns_lo,ns_hi,&
                            src,src_lo,src_hi,problo,dx,time,dt)
 
-       use meth_params_module,  only: NVAR, URHO, UMX, UMZ, UEDEN
-       use prob_params_module,  only: center
+       use amrex_fort_module, only: rt => amrex_real
+       use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN
+       use prob_params_module, only: center
        use amrex_constants_module, only: ZERO, HALF, ONE, TWO
-       use probdata_module,     only: problem, relaxation_damping_factor, radial_damping_factor, &
-                                      t_ff_P, t_ff_S, axis_1, axis_2, axis_3
-       use castro_util_module,  only: position
+       use probdata_module, only: problem, relaxation_damping_factor, radial_damping_factor, &
+                                  t_ff_P, t_ff_S, axis_1, axis_2, axis_3
+       use castro_util_module, only: position
        use wdmerger_util_module, only: inertial_velocity
 #ifdef HYBRID_MOMENTUM
        use hybrid_advection_module, only: linear_to_hybrid
@@ -18,22 +19,22 @@
 
        implicit none
 
-       integer          :: lo(3),hi(3)
-       integer          :: os_lo(3),os_hi(3)
-       integer          :: ns_lo(3),ns_hi(3)
-       integer          :: src_lo(3),src_hi(3)
-       double precision :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)
-       double precision :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)
-       double precision :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-       double precision :: problo(3),dx(3),time,dt
+       integer  :: lo(3),hi(3)
+       integer  :: os_lo(3),os_hi(3)
+       integer  :: ns_lo(3),ns_hi(3)
+       integer  :: src_lo(3),src_hi(3)
+       real(rt) :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)
+       real(rt) :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)
+       real(rt) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+       real(rt) :: problo(3),dx(3),time,dt
 
        ! Local variables
 
-       double precision :: relaxation_damping_timescale, radial_damping_timescale
-       double precision :: dynamical_timescale, damping_factor
-       double precision :: loc(3), R_prp, sinTheta, cosTheta, v_rad, Sr(3)
-       integer          :: i, j, k
-       double precision :: new_mom(3), old_mom(3), rhoInv
+       real(rt) :: relaxation_damping_timescale, radial_damping_timescale
+       real(rt) :: dynamical_timescale, damping_factor
+       real(rt) :: loc(3), R_prp, sinTheta, cosTheta, v_rad, Sr(3)
+       integer  :: i, j, k
+       real(rt) :: new_mom(3), old_mom(3), rhoInv
 
        ! Note that this function exists in a tiling region so we should only 
        ! modify the zones between lo and hi. 
