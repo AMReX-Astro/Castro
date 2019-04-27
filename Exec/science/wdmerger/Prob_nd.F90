@@ -81,8 +81,9 @@
      r_P = model_P % r
      r_S = model_S % r
 
-     !$OMP PARALLEL DO PRIVATE(i, j, k, loc, pos) &
-     !$OMP PRIVATE(dist_P, dist_S, zone_state)
+     !$OMP PARALLEL DO PRIVATE(i, j, k, loc, vel, pos, mom) &
+     !$OMP PRIVATE(dist_P, dist_S, zone_state) &
+     !$OMP PRIVATE(rot_loc, cap_radius)
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
@@ -118,35 +119,20 @@
               state(i,j,k,UEINT) = zone_state % e * zone_state % rho
               state(i,j,k,UEDEN) = zone_state % e * zone_state % rho
               state(i,j,k,UFS:UFS+nspec-1) = zone_state % rho * zone_state % xn
-           enddo
-        enddo
-     enddo
-     !$OMP END PARALLEL DO
 
-     ! Set the velocities in each direction equal to the bulk
-     ! velocity of the system. By default this is zero so that
-     ! the system is at rest in our reference frame.
+              ! Set the velocities in each direction equal to the bulk
+              ! velocity of the system. By default this is zero so that
+              ! the system is at rest in our reference frame.
 
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
               state(i,j,k,UMX) = state(i,j,k,URHO) * (bulk_velx + smallu)
               state(i,j,k,UMY) = state(i,j,k,URHO) * (bulk_vely + smallu)
               state(i,j,k,UMZ) = state(i,j,k,URHO) * (bulk_velz + smallu)
-           enddo
-        enddo
-     enddo
 
-     !$OMP PARALLEL DO PRIVATE(i, j, k, loc, vel, mom, dist_P, dist_S, rot_loc, cap_radius)
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-
-              loc = position(i,j,k) - center
+              loc = loc - center
 
               ! Add any additional velocity imparted to the stars, usually
               ! from an eccentric orbit or from a collision calculation.
-              
+
               dist_P = sum((loc - center_P_initial)**2)**HALF
               dist_S = sum((loc - center_S_initial)**2)**HALF
 
@@ -220,21 +206,13 @@
 
               endif
 
-           enddo
-        enddo
-     enddo
-     !$OMP END PARALLEL DO
-
-     ! Add corresponding kinetic energy from the velocity on the grid.
-
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
+              ! Add corresponding kinetic energy from the velocity on the grid.
 
               state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + HALF * sum(state(i,j,k,UMX:UMZ)**2) / state(i,j,k,URHO)
 
            enddo
         enddo
      enddo
+     !$OMP END PARALLEL DO
 
    end subroutine ca_initdata
