@@ -1,5 +1,7 @@
 # changes since the last release
 
+  -- problem_derive_nd.f90 has been renamed to problem_derive_nd.F90.
+
   -- The velocity calculated for the interface in the Riemann solve for
      the CGF/CG Riemann solvers can no longer exceed the speed of light.
      The parameter castro.riemann_speed_limit can be set to control the
