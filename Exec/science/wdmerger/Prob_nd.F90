@@ -16,27 +16,7 @@
    end subroutine amrex_probinit
 
 
-   ! ::: -----------------------------------------------------------
-   ! ::: This routine is called at problem setup time and is used
-   ! ::: to initialize data on each grid.  
-   ! ::: 
-   ! ::: NOTE:  all arrays have one cell of ghost zones surrounding
-   ! :::        the grid interior.  Values in these cells need not
-   ! :::        be set here.
-   ! ::: 
-   ! ::: INPUTS/OUTPUTS:
-   ! ::: 
-   ! ::: level     => amr level of grid
-   ! ::: time      => time at which to init data             
-   ! ::: lo,hi     => index limits of grid interior (cell centered)
-   ! ::: nstate    => number of state components.  You should know
-   ! :::		   this already!
-   ! ::: state     <=  Scalar array
-   ! ::: delta     => cell size
-   ! ::: xlo,xhi   => physical locations of lower left and upper
-   ! :::              right hand corner of grid.  (does not include
-   ! :::		   ghost region).
-   ! ::: -----------------------------------------------------------
+
    subroutine ca_initdata(level,time,lo,hi,nscal, &
                           state,state_lo,state_hi, &
                           dx,xlo,xhi)
@@ -65,7 +45,7 @@
      real(rt) :: xlo(3), xhi(3), time, dx(3)
      real(rt) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-     real(rt) :: loc(3), omega(3), vel(3)
+     real(rt) :: loc(3), pos(3), omega(3), vel(3), mom(3)
      real(rt) :: rot_loc(3), cap_radius
      real(rt) :: dist_P, dist_S
      real(rt) :: cosTheta, sinTheta, R_prp, mag_vel
@@ -101,7 +81,7 @@
      r_P = model_P % r
      r_S = model_S % r
 
-     !$OMP PARALLEL DO PRIVATE(i, j, k, loc) &
+     !$OMP PARALLEL DO PRIVATE(i, j, k, loc, pos) &
      !$OMP PRIVATE(dist_P, dist_S, zone_state)
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
@@ -124,9 +104,11 @@
               ! just need to make sure we catch it.
 
               if (mass_P > ZERO .and. (dist_P < model_P % radius .or. (model_P % radius <= maxval(dx) .and. dist_P < maxval(dx)))) then
-                 call interpolate_3d_from_1d(rho_P, T_P, xn_P, r_P, model_P % npts, loc - center_P_initial, model_P % radius, dx, zone_state, nsub)
+                 pos = loc - center_P_initial
+                 call interpolate_3d_from_1d(rho_P, T_P, xn_P, r_P, model_P % npts, pos, model_P % radius, dx, zone_state, nsub)
               else if (mass_S > ZERO .and. (dist_S < model_S % radius .or. (model_S % radius <= maxval(dx) .and. dist_S < maxval(dx)))) then
-                 call interpolate_3d_from_1d(rho_S, T_S, xn_S, r_S, model_S % npts, loc - center_S_initial, model_S % radius, dx, zone_state, nsub)
+                 pos = loc - center_S_initial
+                 call interpolate_3d_from_1d(rho_S, T_S, xn_S, r_S, model_S % npts, pos, model_S % radius, dx, zone_state, nsub)
               else
                  zone_state = ambient_state
               endif
@@ -155,7 +137,7 @@
         enddo
      enddo
 
-     !$OMP PARALLEL DO PRIVATE(i, j, k, loc, vel, dist_P, dist_S, rot_loc, cap_radius)
+     !$OMP PARALLEL DO PRIVATE(i, j, k, loc, vel, mom, dist_P, dist_S, rot_loc, cap_radius)
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
@@ -171,9 +153,11 @@
               if (problem /= 1) then
 
                  if (dist_P < model_P % radius) then
-                    state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + vel_P(:) * state(i,j,k,URHO)
+                    mom = vel_P * state(i,j,k,URHO)
+                    state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + mom
                  else if (dist_S < model_S % radius) then
-                    state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + vel_S(:) * state(i,j,k,URHO)
+                    mom = vel_S * state(i,j,k,URHO)
+                    state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + mom
                  endif
 
               endif
@@ -203,7 +187,8 @@
 
                  vel = cross_product(omega, rot_loc)
 
-                 state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + state(i,j,k,URHO) * vel(:)
+                 mom = state(i,j,k,URHO) * vel(:)
+                 state(i,j,k,UMX:UMZ) = state(i,j,k,UMX:UMZ) + mom
 
                  ! In 2D we have to be careful: the third coordinate is an angular
                  ! coordinate, whose unit vector is tangent to the unit circle, so we should
