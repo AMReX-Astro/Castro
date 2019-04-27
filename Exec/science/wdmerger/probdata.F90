@@ -1,5 +1,6 @@
 module probdata_module
 
+  use amrex_fort_module, only: rt => amrex_real
   use network, only: nspec, network_species_index
   use eos_type_module, only: eos_t, eos_input_rt
   use eos_module, only: eos
@@ -10,14 +11,17 @@ module probdata_module
   ! Initial stellar properties
   ! Note that the envelope mass is included within the total mass of the star
 
-  double precision, save :: mass_P = ONE
-  double precision, save :: mass_S = ONE
+  real(rt), allocatable :: mass_P
+  real(rt), allocatable :: mass_S
   double precision, save :: central_density_P = -ONE
   double precision, save :: central_density_S = -ONE
   double precision, save :: stellar_temp = 1.0d7
   double precision, save :: primary_envelope_mass, secondary_envelope_mass
   double precision, save :: primary_envelope_comp(nspec), secondary_envelope_comp(nspec)
 
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: mass_P, mass_S
+#endif
 
 
   ! Ambient medium
@@ -210,18 +214,26 @@ module probdata_module
   integer,          save :: max_stellar_tagging_level = 20
   integer,          save :: max_temperature_tagging_level = 20
   integer,          save :: max_center_tagging_level = 20
-  double precision, save :: stellar_density_threshold = 1.0d0
+  real(rt), allocatable :: stellar_density_threshold
   double precision, save :: temperature_tagging_threshold = 5.0d8
   double precision, save :: center_tagging_radius = 0.0d0
   double precision, save :: max_tagging_radius = 0.75d0
   double precision, save :: roche_tagging_factor = 2.0d0
 
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: stellar_density_threshold
+#endif
+
 
 
   ! Stores the center of mass location of the stars throughout the run
 
-  double precision, save :: com_P(3), com_S(3)
+  real(rt), allocatable :: com_P(:), com_S(:)
   double precision, save :: vel_P(3), vel_S(3)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: com_P, com_S
+#endif
 
   ! Stores the effective Roche radii
 
@@ -254,56 +266,6 @@ module probdata_module
 
   double precision, save :: T_global_max, rho_global_max, ts_te_global_max
 
-
-
-  namelist /fortin/ &
-       mass_P, mass_S, &
-       central_density_P, central_density_S, &
-       nsub, &
-       roche_radius_factor, &
-       problem, &
-       collision_separation, &
-       collision_impact_parameter, &
-       collision_velocity, &
-       tde_separation, &
-       tde_beta, &
-       tde_initial_velocity, &
-       interp_temp, &
-       relaxation_damping_factor, &
-       relaxation_density_cutoff, &
-       relaxation_cutoff_time, &
-       initial_radial_velocity_factor, &
-       radial_damping_factor, &
-       ambient_density, &
-       stellar_temp, &
-       ambient_temp, &
-       max_he_wd_mass, &
-       max_hybrid_wd_mass, hybrid_wd_he_shell_mass, &
-       max_co_wd_mass, &
-       co_wd_he_shell_mass, &
-       hybrid_wd_c_frac, hybrid_wd_o_frac, &
-       co_wd_c_frac, co_wd_o_frac, &
-       onemg_wd_o_frac, onemg_wd_ne_frac, onemg_wd_mg_frac, &
-       orbital_eccentricity, orbital_angle, &
-       axis_1, axis_2, axis_3, &
-       max_stellar_tagging_level, &
-       max_temperature_tagging_level, &
-       max_center_tagging_level, &
-       stellar_density_threshold, &
-       temperature_tagging_threshold, &
-       center_tagging_radius, &
-       max_tagging_radius, &
-       roche_tagging_factor, &
-       bulk_velx, bulk_vely, bulk_velz, &
-       smallu, &
-       center_fracx, center_fracy, center_fracz, &
-       initial_model_dx, &
-       initial_model_npts, &
-       initial_model_mass_tol, &
-       initial_model_hse_tol, &
-       gw_dist
-
-
   ! Stores whether we assert that the simulation has completed.
 
   logical, save :: jobIsDone = .false.
@@ -313,5 +275,5 @@ module probdata_module
 
   integer, parameter :: num_previous_ener_timesteps = 5
   double precision :: total_ener_array(num_previous_ener_timesteps)
-
+  
 end module probdata_module

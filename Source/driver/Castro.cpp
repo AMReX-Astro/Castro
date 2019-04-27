@@ -1057,13 +1057,6 @@ Castro::initData ()
   	   gridloc.lo(), gridloc.hi());
 
 #endif
-
-	  // Generate the initial hybrid momenta based on this user data.
-
-#ifdef HYBRID_MOMENTUM
-	  ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_ANYD(S_new[mfi]));
-#endif
-
        }
 
 #ifdef AMREX_USE_CUDA
@@ -1072,6 +1065,19 @@ Castro::initData ()
            S_new.prefetchToDevice(mfi);
        }
 #endif
+#endif
+
+#ifdef HYBRID_MOMENTUM
+       // Generate the initial hybrid momenta based on this user data.
+
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+           const Box& box = mfi.validbox();
+           const int* lo  = box.loVect();
+           const int* hi  = box.hiVect();
+
+#pragma gpu
+           ca_init_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
+       }
 #endif
 
        // Verify that the sum of (rho X)_i = rho at every cell
@@ -2694,6 +2700,8 @@ Castro::reflux(int crse_level, int fine_level)
 	    Real dt_advance = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
             Real dt_amr = parent->dtLevel(lev); // The full timestep expected by the Amr class.
 
+            ca_set_amr_info(lev, -1, -1, time, dt_advance);
+
             if (getLevel(lev).apply_sources()) {
 
                 getLevel(lev).apply_source_to_state(S_new, source, -dt_advance, 0);
@@ -3370,7 +3378,11 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
   }
 
   if (mol_order == 4 || sdc_order == 4) {
-    reset_internal_energy(Stemp, ng);
+    // we need to enforce minimum density here, since the conversion
+    // from cell-average to centers could have made rho < 0 near steep
+    // gradients
+    enforce_min_density(Stemp, Stemp.nGrow());
+    reset_internal_energy(Stemp, Stemp.nGrow());
   } else {
     reset_internal_energy(State, ng);
   }

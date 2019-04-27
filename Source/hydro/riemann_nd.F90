@@ -492,7 +492,7 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-    use meth_params_module, only : cg_maxiter, cg_tol, cg_blend
+    use meth_params_module, only : cg_maxiter, cg_tol, cg_blend, riemann_speed_limit
 #ifndef AMREX_USE_CUDA
     use riemann_util_module, only : pstar_bisection
 #endif
@@ -1047,6 +1047,9 @@ contains
              ! Compute fluxes, order as conserved state (not q)
              qint(i,j,k,iu) = u_adv
 
+             ! Enforce that the velocity should not exceed a given limit.
+             qint(i,j,k,iu) = min(abs(qint(i,j,k,iu)), riemann_speed_limit) * sign(ONE, qint(i,j,k,iu))
+
              ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
              qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(qint(i,j,k,QGAME) - ONE)
 
@@ -1097,7 +1100,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec
-    use meth_params_module, only: T_guess
+    use meth_params_module, only: T_guess, riemann_speed_limit
 
     implicit none
 
@@ -1611,6 +1614,9 @@ contains
              u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
              qint(i,j,k,iu) = u_adv
+
+             ! Enforce that the velocity should not exceed a given limit.
+             qint(i,j,k,iu) = min(abs(qint(i,j,k,iu)), riemann_speed_limit) * sign(ONE, qint(i,j,k,iu))
 
              ! passively advected quantities
              do ipassive = 1, npassive
