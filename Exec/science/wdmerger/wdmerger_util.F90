@@ -1636,7 +1636,7 @@ contains
 
     integer  :: i, j, k, l, m
     real(rt) :: r(3), pos(3), vel(3), g(3), rhoInv, dm
-    real(rt) :: dQtt(3,3)
+    real(rt) :: dQtt(3,3), dQ
 
     !$gpu
 
@@ -1729,8 +1729,12 @@ contains
     do l = 1, 3
        do m = 1, 3
 
-          call amrex_add(Qtt(l,m), HALF * dQtt(l,m) + HALF * dQtt(m,l))
-          call amrex_add(Qtt(l,l), -THIRD * dQtt(m,m))
+          dQ = HALF * dQtt(l,m) + HALF * dQtt(m,l)
+          if (l == m) then
+             dQ = dQ - THIRD * dQtt(m,m)
+          end if
+
+          call amrex_add(Qtt(l,m), dQ)
 
        enddo
     enddo
