@@ -7,29 +7,27 @@ module initial_model_module
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module
   use amrex_error_module, only: amrex_error
-  use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use network, only: nspec
   use model_parser_module, only: itemp_model, idens_model, ipres_model, ispec_model
   use fundamental_constants_module, only: Gconst, M_solar
-  use interpolate_module, only: interpolate
   use meth_params_module, only: small_temp
 
   type :: initial_model
 
      ! Physical characteristics
 
-     real(rt) :: mass = ZERO
-     real(rt) :: envelope_mass = ZERO
-     real(rt) :: central_density = ZERO
-     real(rt) :: central_temp = ZERO
-     real(rt) :: min_density = ZERO
-     real(rt) :: radius = ZERO
+     real(rt) :: mass
+     real(rt) :: envelope_mass
+     real(rt) :: central_density
+     real(rt) :: central_temp
+     real(rt) :: min_density
+     real(rt) :: radius
 
      ! Composition
 
-     real(rt) :: core_comp(nspec) = ZERO
-     real(rt) :: envelope_comp(nspec) = ZERO
+     real(rt), allocatable :: core_comp(:)
+     real(rt), allocatable :: envelope_comp(:)
 
      ! Model storage
 
@@ -42,7 +40,7 @@ module initial_model_module
      type (eos_t), allocatable :: state(:)
 
   end type initial_model
-  
+
 contains
 
   subroutine initialize_model(model, dx, npts, mass_tol, hse_tol)
@@ -54,6 +52,19 @@ contains
     real(rt) :: dx, mass_tol, hse_tol
 
     integer :: i
+
+    model % mass = ZERO
+    model % envelope_mass = ZERO
+    model % central_density = ZERO
+    model % central_temp = ZERO
+    model % min_density = ZERO
+    model % radius = ZERO
+
+    allocate(model % core_comp(nspec))
+    allocate(model % envelope_comp(nspec))
+
+    model % core_comp(:) = ZERO
+    model % envelope_comp(:) = ZERO
 
     model % dx = dx
     model % npts = npts
@@ -81,6 +92,8 @@ contains
 
   subroutine establish_hse(model)
 
+    use eos_module, only: eos
+
     implicit none
 
     ! Arguments
@@ -103,7 +116,7 @@ contains
 
     ! Note that if central_density > 0, then this initial model generator will use it in calculating
     ! the model. If mass is also provided in this case, we assume it is an estimate used for the purpose of 
-    ! determining the envelope mass boundary. 
+    ! determining the envelope mass boundary.
 
     ! Check to make sure we've specified at least one of them.
 
@@ -111,10 +124,10 @@ contains
        call amrex_error('Error: Must specify either mass or central density in the initial model generator.')
     endif
 
-    ! If we are specifying the mass, then we don't know what WD central density 
-    ! will give the desired total mass, so we need to do a secant iteration 
-    ! over central density. rho_c_old is the 'old' guess for the central 
-    ! density and rho_c is the current guess.  After two loops, we can 
+    ! If we are specifying the mass, then we don't know what WD central density
+    ! will give the desired total mass, so we need to do a secant iteration
+    ! over central density. rho_c_old is the 'old' guess for the central
+    ! density and rho_c is the current guess.  After two loops, we can
     ! start estimating the density required to yield our desired mass.
 
     ! If instead we are specifying the central density, then we only need to do a 
@@ -270,14 +283,14 @@ contains
           endif
 
           ! Do a secant iteration:
-          ! M_tot = M(rho_c) + dM/drho |_rho_c x drho + ...        
+          ! M_tot = M(rho_c) + dM/drho |_rho_c x drho + ...
 
           drho_c = (model % mass - mass) / ( (mass  - mass_old) / (rho_c - rho_c_old) )
 
           rho_c_old = rho_c
           rho_c = min(1.1d0 * rho_c_old, max((rho_c + drho_c), 0.9d0 * rho_c_old))
 
-       endif     
+       endif
 
        mass_old = mass
 
@@ -301,6 +314,9 @@ contains
 
   subroutine interpolate_3d_from_1d(rho, T, xn, r, npts, loc, star_radius, dx, state, nsub_in)
 
+    use interpolate_module, only: interpolate ! function
+    use eos_module, only: eos
+
     implicit none
 
     real(rt),     intent(in   ) :: rho(npts)
@@ -311,18 +327,20 @@ contains
     real(rt),     intent(in   ) :: loc(3), dx(3)
     type (eos_t), intent(inout) :: state
     integer,      intent(in   ), optional :: nsub_in
-    
+
     integer  :: i, j, k, n
     integer  :: nsub
     real(rt) :: x, y, z, dist
+
+    !$gpu
 
     if (present(nsub_in)) then
        nsub = nsub_in
     else
        nsub = 1
     endif
-    
-    state % rho = ZERO 
+
+    state % rho = ZERO
     state % p   = ZERO
     state % T   = ZERO
     state % xn  = ZERO
@@ -380,7 +398,7 @@ contains
     ! Complete the thermodynamics.
 
     call eos(eos_input_rt, state)
-                    
+
   end subroutine interpolate_3d_from_1d
-  
+
 end module initial_model_module
