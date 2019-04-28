@@ -48,7 +48,7 @@ contains
                     (j > domhi(2) .and. (bc(2,2,1) == amrex_bc_foextrap .or. bc(2,2,1) == amrex_bc_hoextrap)) .or. &
                     (k < domlo(3) .and. (bc(3,1,1) == amrex_bc_foextrap .or. bc(3,1,1) == amrex_bc_hoextrap)) .or. &
                     (k > domhi(3) .and. (bc(3,2,1) == amrex_bc_foextrap .or. bc(3,2,1) == amrex_bc_hoextrap))) then
-                   adv(i,j,k,URHO) = ambient_state(i,j,k,URHO)
+                   adv(i,j,k,URHO) = ambient_state(URHO)
                 end if
              end do
           end do
