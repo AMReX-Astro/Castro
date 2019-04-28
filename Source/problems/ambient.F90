@@ -27,6 +27,8 @@ contains
 
     type(eos_t), intent(inout) :: eos_state
 
+    !$gpu
+
     eos_state%rho = ambient_state(URHO)
     eos_state%T   = ambient_state(UTEMP)
     eos_state%e   = ambient_state(UEINT)
