@@ -12,86 +12,103 @@ module initial_model_module
   use model_parser_module, only: itemp_model, idens_model, ipres_model, ispec_model
   use fundamental_constants_module, only: Gconst, M_solar
   use meth_params_module, only: small_temp
-
-  type :: initial_model
-
-     ! Physical characteristics
-
-     real(rt) :: mass
-     real(rt) :: envelope_mass
-     real(rt) :: central_density
-     real(rt) :: central_temp
-     real(rt) :: min_density
-     real(rt) :: radius
-
-     ! Composition
-
-     real(rt), allocatable :: core_comp(:)
-     real(rt), allocatable :: envelope_comp(:)
-
-     ! Model storage
-
-     real(rt) :: dx
-     integer  :: npts
-     real(rt) :: mass_tol, hse_tol
-
-     real(rt), allocatable :: r(:), rl(:), rr(:)
-     real(rt), allocatable :: M_enclosed(:), g(:)
-     type (eos_t), allocatable :: state(:)
-
-  end type initial_model
+  use probdata_module
 
 contains
 
-  subroutine initialize_model(model, rho, T, xn, r, dx, npts, mass_tol, hse_tol)
+  subroutine initialize_model(primary, dx, npts, mass_tol, hse_tol)
 
     implicit none
 
-    type (initial_model),  intent(inout) :: model
-    real(rt), allocatable, intent(inout) :: rho(:), T(:), xn(:,:), r(:)
-    integer,               intent(in   ) :: npts
-    real(rt),              intent(in   ) :: dx, mass_tol, hse_tol
+    logical,  intent(in   ) :: primary
+    integer,  intent(in   ) :: npts
+    real(rt), intent(in   ) :: dx, mass_tol, hse_tol
 
     integer :: i
 
-    model % mass = ZERO
-    model % envelope_mass = ZERO
-    model % central_density = ZERO
-    model % central_temp = ZERO
-    model % min_density = ZERO
-    model % radius = ZERO
+    if (primary) then
 
-    allocate(model % core_comp(nspec))
-    allocate(model % envelope_comp(nspec))
+       model_P % mass = ZERO
+       model_P % envelope_mass = ZERO
+       model_P % central_density = ZERO
+       model_P % central_temp = ZERO
+       model_P % min_density = ZERO
+       model_P % radius = ZERO
 
-    model % core_comp(:) = ZERO
-    model % envelope_comp(:) = ZERO
+       allocate(model_P % core_comp(nspec))
+       allocate(model_P % envelope_comp(nspec))
 
-    model % dx = dx
-    model % npts = npts
-    model % mass_tol = mass_tol
-    model % hse_tol = hse_tol
+       model_P % core_comp(:) = ZERO
+       model_P % envelope_comp(:) = ZERO
 
-    allocate(model % r(npts))
-    allocate(model % rl(npts))
-    allocate(model % rr(npts))
-    allocate(model % M_enclosed(npts))
-    allocate(model % g(npts))
-    allocate(model % state(npts))
+       model_P % dx = dx
+       model_P % npts = npts
+       model_P % mass_tol = mass_tol
+       model_P % hse_tol = hse_tol
 
-    allocate(rho(npts))
-    allocate(T(npts))
-    allocate(xn(npts,nspec))
-    allocate(r(npts))
+       allocate(model_P % r(npts))
+       allocate(model_P % rl(npts))
+       allocate(model_P % rr(npts))
+       allocate(model_P % M_enclosed(npts))
+       allocate(model_P % g(npts))
+       allocate(model_P % state(npts))
 
-    do i = 1, npts
+       allocate(rho_P(npts))
+       allocate(T_P(npts))
+       allocate(xn_P(npts,nspec))
+       allocate(r_P(npts))
 
-       model % rl(i) = (dble(i) - ONE)*dx
-       model % rr(i) = (dble(i)      )*dx
-       model % r(i)  = HALF*(model % rl(i) + model % rr(i))
-       r(i) = model % r(i)
+       do i = 1, npts
 
-    enddo
+          model_P % rl(i) = (dble(i) - ONE)*dx
+          model_P % rr(i) = (dble(i)      )*dx
+          model_P % r(i)  = HALF*(model_P % rl(i) + model_P % rr(i))
+          r_P(i) = model_P % r(i)
+
+       end do
+
+    else
+
+       model_S % mass = ZERO
+       model_S % envelope_mass = ZERO
+       model_S % central_density = ZERO
+       model_S % central_temp = ZERO
+       model_S % min_density = ZERO
+       model_S % radius = ZERO
+
+       allocate(model_S % core_comp(nspec))
+       allocate(model_S % envelope_comp(nspec))
+
+       model_S % core_comp(:) = ZERO
+       model_S % envelope_comp(:) = ZERO
+
+       model_S % dx = dx
+       model_S % npts = npts
+       model_S % mass_tol = mass_tol
+       model_S % hse_tol = hse_tol
+
+       allocate(model_S % r(npts))
+       allocate(model_S % rl(npts))
+       allocate(model_S % rr(npts))
+       allocate(model_S % M_enclosed(npts))
+       allocate(model_S % g(npts))
+       allocate(model_S % state(npts))
+
+       allocate(rho_S(npts))
+       allocate(T_S(npts))
+       allocate(xn_S(npts,nspec))
+       allocate(r_S(npts))
+
+       do i = 1, npts
+
+          model_S % rl(i) = (dble(i) - ONE)*dx
+          model_S % rr(i) = (dble(i)      )*dx
+          model_S % r(i)  = HALF*(model_S % rl(i) + model_S % rr(i))
+          r_S(i) = model_S % r(i)
+
+       end do
+
+    end if
 
   end subroutine initialize_model
 

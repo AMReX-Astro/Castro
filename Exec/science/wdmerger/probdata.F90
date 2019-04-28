@@ -1,8 +1,36 @@
 module probdata_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use initial_model_module, only: initial_model
+  use eos_type_module, only: eos_t
 
+  type :: initial_model
+
+     ! Physical characteristics
+
+     real(rt) :: mass
+     real(rt) :: envelope_mass
+     real(rt) :: central_density
+     real(rt) :: central_temp
+     real(rt) :: min_density
+     real(rt) :: radius
+
+     ! Composition
+
+     real(rt), allocatable :: core_comp(:)
+     real(rt), allocatable :: envelope_comp(:)
+
+     ! Model storage
+
+     real(rt) :: dx
+     integer  :: npts
+     real(rt) :: mass_tol, hse_tol
+
+     real(rt), allocatable :: r(:), rl(:), rr(:)
+     real(rt), allocatable :: M_enclosed(:), g(:)
+     type (eos_t), allocatable :: state(:)
+
+  end type initial_model
+  
   ! Initial stellar properties
   ! Note that the envelope mass is included within the total mass of the star
 

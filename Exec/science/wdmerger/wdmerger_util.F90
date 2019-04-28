@@ -750,8 +750,8 @@ contains
 
     ! Allocate arrays to hold the stellar models.
 
-    call initialize_model(model_P, rho_P, T_P, xn_P, r_P, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
-    call initialize_model(model_S, rho_S, T_S, xn_S, r_S, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
+    call initialize_model(.true.,  initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
+    call initialize_model(.false., initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
 
     model_P % min_density = ambient_density
     model_S % min_density = ambient_density
