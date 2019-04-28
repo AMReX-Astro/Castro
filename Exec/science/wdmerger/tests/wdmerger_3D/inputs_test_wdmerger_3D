@@ -33,6 +33,9 @@ castro.hard_cfl_limit = 0			   # Whether to abort a simulation if the CFL criter
 castro.lo_bc = 2 2 2                               # Boundary conditions on lo x, y, and z edges
 castro.hi_bc = 2 2 2                               # Boundary conditions on hi x, y, and z edges
 
+castro.fill_ambient_bc = 1
+castro.clamp_ambient_temp = 1
+
 ############################################################################################ 
 # Resolution, gridding and AMR
 ############################################################################################
