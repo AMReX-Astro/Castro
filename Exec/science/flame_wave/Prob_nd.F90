@@ -103,6 +103,12 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   read(untin,fortin)
   close(unit=untin)
 
+  ! check to make sure that small_dens is less than low_density_cutoff
+  ! if not, funny things can happen above the atmosphere
+  if (small_dens >= 0.99_rt * low_density_cutoff) then
+     call amrex_error("ERROR: small_dens should be set lower than low_density_cutoff")
+  end if
+
   ! get the species indices
   species_defined = .true.
   ifuel1 = network_species_index(trim(fuel1_name))
