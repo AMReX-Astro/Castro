@@ -177,7 +177,8 @@
                     cosTheta = loc(axis_1) / R_prp
                     sinTheta = loc(axis_2) / R_prp
 
-                    vel = inertial_velocity(loc, state(i,j,k,UMX:UMZ), time)
+                    vel = state(i,j,k,UMX:UMZ)
+                    vel = inertial_velocity(loc, vel, time)
                     mag_vel = sqrt( sum( vel**2 ) )
 
                     state(i,j,k,UMX+axis_1-1) = state(i,j,k,UMX+axis_1-1) - initial_radial_velocity_factor * cosTheta * mag_vel
