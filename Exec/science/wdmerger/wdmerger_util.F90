@@ -1607,7 +1607,7 @@ contains
                    vel_s_x, vel_s_y, vel_s_z, &
                    m_p, m_s) bind(C,name='wdcom')
 
-    use amrex_fort_module, only: amrex_add
+    use amrex_fort_module, only: amrex_reduce_add
     use amrex_constants_module, only: HALF, ZERO, ONE, TWO
     use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, Symmetry, coord_type
     use castro_util_module, only: position ! function
@@ -1698,27 +1698,27 @@ contains
 
              if (pmask(i,j,k) > ZERO) then
 
-                call amrex_add(m_p, dmSymmetric)
+                call amrex_reduce_add(m_p, dmSymmetric)
 
-                call amrex_add(com_p_x, dmSymmetric * rSymmetric(1))
-                call amrex_add(com_p_y, dmSymmetric * rSymmetric(2))
-                call amrex_add(com_p_z, dmSymmetric * rSymmetric(3))
+                call amrex_reduce_add(com_p_x, dmSymmetric * rSymmetric(1))
+                call amrex_reduce_add(com_p_y, dmSymmetric * rSymmetric(2))
+                call amrex_reduce_add(com_p_z, dmSymmetric * rSymmetric(3))
 
-                call amrex_add(vel_p_x, momSymmetric(1) * vol(i,j,k))
-                call amrex_add(vel_p_y, momSymmetric(2) * vol(i,j,k))
-                call amrex_add(vel_p_z, momSymmetric(3) * vol(i,j,k))
+                call amrex_reduce_add(vel_p_x, momSymmetric(1) * vol(i,j,k))
+                call amrex_reduce_add(vel_p_y, momSymmetric(2) * vol(i,j,k))
+                call amrex_reduce_add(vel_p_z, momSymmetric(3) * vol(i,j,k))
 
              else if (smask(i,j,k) > ZERO) then
 
-                call amrex_add(m_s, dmSymmetric)
+                call amrex_reduce_add(m_s, dmSymmetric)
 
-                call amrex_add(com_s_x, dmSymmetric * rSymmetric(1))
-                call amrex_add(com_s_y, dmSymmetric * rSymmetric(2))
-                call amrex_add(com_s_z, dmSymmetric * rSymmetric(3))
+                call amrex_reduce_add(com_s_x, dmSymmetric * rSymmetric(1))
+                call amrex_reduce_add(com_s_y, dmSymmetric * rSymmetric(2))
+                call amrex_reduce_add(com_s_z, dmSymmetric * rSymmetric(3))
 
-                call amrex_add(vel_s_x, momSymmetric(1) * vol(i,j,k))
-                call amrex_add(vel_s_y, momSymmetric(2) * vol(i,j,k))
-                call amrex_add(vel_s_z, momSymmetric(3) * vol(i,j,k))
+                call amrex_reduce_add(vel_s_x, momSymmetric(1) * vol(i,j,k))
+                call amrex_reduce_add(vel_s_y, momSymmetric(2) * vol(i,j,k))
+                call amrex_reduce_add(vel_s_z, momSymmetric(3) * vol(i,j,k))
 
              endif
 
@@ -1745,7 +1745,7 @@ contains
                                         bind(C, name='ca_volumeindensityboundary')
 
     use amrex_constants_module, only: ZERO
-    use amrex_fort_module, only: amrex_add
+    use amrex_fort_module, only: amrex_reduce_add
 
     implicit none
 
@@ -1774,11 +1774,11 @@ contains
 
                 if (pmask(i,j,k) > ZERO) then
 
-                   call amrex_add(volp, vol(i,j,k))
+                   call amrex_reduce_add(volp, vol(i,j,k))
 
                 else if (smask(i,j,k) > ZERO) then
 
-                   call amrex_add(vols, vol(i,j,k))
+                   call amrex_reduce_add(vols, vol(i,j,k))
 
                 endif
 
@@ -1804,7 +1804,7 @@ contains
                                           vol, vo_lo, vo_hi, &
                                           lo, hi, dx, time, Qtt) bind(C,name='quadrupole_tensor_double_dot')
 
-    use amrex_fort_module, only: amrex_add
+    use amrex_fort_module, only: amrex_reduce_add
     use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
     use prob_params_module, only: center, dim
     use castro_util_module, only: position ! function
@@ -1933,7 +1933,7 @@ contains
              dQ = dQ - THIRD * dQtt(m,m)
           end if
 
-          call amrex_add(Qtt(l,m), dQ)
+          call amrex_reduce_add(Qtt(l,m), dQ)
 
        enddo
     enddo
