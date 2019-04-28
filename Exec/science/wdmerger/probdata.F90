@@ -1,40 +1,72 @@
 module probdata_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use network, only: nspec, network_species_index
-  use eos_type_module, only: eos_t, eos_input_rt
-  use eos_module, only: eos
-  use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, THREE, M_PI, FOUR
-  use fundamental_constants_module, only: Gconst, M_solar, AU
-  use initial_model_module, only: initial_model
+  use eos_type_module, only: eos_t
 
+  type :: initial_model
+
+     ! Physical characteristics
+
+     real(rt) :: mass
+     real(rt) :: envelope_mass
+     real(rt) :: central_density
+     real(rt) :: central_temp
+     real(rt) :: min_density
+     real(rt) :: radius
+
+     ! Composition
+
+     real(rt), allocatable :: core_comp(:)
+     real(rt), allocatable :: envelope_comp(:)
+
+     ! Model storage
+
+     real(rt) :: dx
+     integer  :: npts
+     real(rt) :: mass_tol, hse_tol
+
+     real(rt), allocatable :: r(:), rl(:), rr(:)
+     real(rt), allocatable :: M_enclosed(:), g(:)
+     type (eos_t), allocatable :: state(:)
+
+  end type initial_model
+  
   ! Initial stellar properties
   ! Note that the envelope mass is included within the total mass of the star
 
-  real(rt), allocatable :: mass_P
-  real(rt), allocatable :: mass_S
-  double precision, save :: central_density_P = -ONE
-  double precision, save :: central_density_S = -ONE
-  double precision, save :: stellar_temp = 1.0d7
-  double precision, save :: primary_envelope_mass, secondary_envelope_mass
-  double precision, save :: primary_envelope_comp(nspec), secondary_envelope_comp(nspec)
+  real(rt), allocatable :: mass_P, mass_S
+  real(rt), allocatable :: central_density_P, central_density_S
+  real(rt), allocatable :: stellar_temp
+  real(rt), allocatable :: primary_envelope_mass, secondary_envelope_mass
+  real(rt), allocatable :: primary_envelope_comp(:), secondary_envelope_comp(:)
 
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: mass_P, mass_S
+  attributes(managed) :: central_density_P, central_density_S
+  attributes(managed) :: stellar_temp
+  attributes(managed) :: primary_envelope_mass, secondary_envelope_mass
+  attributes(managed) :: primary_envelope_comp, secondary_envelope_comp
 #endif
+
 
 
   ! Ambient medium
 
-  double precision, save :: ambient_density = 1.0d-4
-  double precision, save :: ambient_temp = 1.0d7
-  double precision, save :: ambient_comp(nspec)
+  real(rt), allocatable :: ambient_density, ambient_temp, ambient_comp(:)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: ambient_density, ambient_temp, ambient_comp
+#endif
 
 
 
   ! Smallest allowed velocity on the grid
 
-  double precision, save :: smallu = ZERO
+  real(rt), allocatable :: smallu
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: smallu
+#endif
 
 
 
@@ -42,11 +74,15 @@ module probdata_module
 
   ! Number of sub-grid-scale zones to use
 
-  integer, save :: nsub = 1
+  integer, allocatable :: nsub
 
   ! Default to interpolation that preserves temperature; otherwise, use pressure
 
-  logical, save :: interp_temp = .true.
+  logical, allocatable :: interp_temp
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: nsub, interp_temp
+#endif
 
 
 
@@ -56,7 +92,11 @@ module probdata_module
   ! 1 = Keplerian orbit; distance determined by Roche radius (or rotation period)
   ! 5 = Tidal disruption event; distance determined by a multiple of the WD tidal radius
 
-  integer, save :: problem = 1
+  integer, allocatable :: problem
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: problem
+#endif
 
 
 
@@ -64,7 +104,11 @@ module probdata_module
   ! radii for the merger problem, this is the sizing factor we use. Negative means
   ! that we set the initial distance using the user-selected rotation period.
 
-  double precision, save :: roche_radius_factor = 1.0d0
+  real(rt), allocatable :: roche_radius_factor
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: roche_radius_factor
+#endif
 
 
 
@@ -73,18 +117,22 @@ module probdata_module
   ! For a collision, number of (secondary) WD radii to 
   ! separate the WDs by.
 
-  double precision, save :: collision_separation = 4.0d0
+  real(rt), allocatable :: collision_separation
 
   ! For a collision, the impact parameter measured in
   ! units of the primary's initial radius.
 
-  double precision, save :: collision_impact_parameter = 0.0d0
+  real(rt), allocatable :: collision_impact_parameter
 
   ! For a collision, the initial velocity of the WDs toward
   ! each other. If this is negative, the velocity will
   ! be set according to free-fall from an infinite distance.
 
-  double precision, save :: collision_velocity = -1.0d0
+  real(rt), allocatable :: collision_velocity
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: collision_separation, collision_impact_parameter, collision_velocity
+#endif
 
 
 
@@ -92,71 +140,89 @@ module probdata_module
 
   ! For a TDE, number of WD tidal radii to separate the WD and BH.
 
-  double precision, save :: tde_separation = 8.0d0
+  real(rt), allocatable :: tde_separation
 
   ! For a TDE, the parameter beta: the ratio of the tidal radius to
   ! the Schwarzschild radius of the BH.
 
-  double precision, save :: tde_beta = 6.0d0
+  real(rt), allocatable :: tde_beta
 
   ! For a TDE, should we give the star an initial kick of velocity
   ! corresponding to its parabolic orbit? By default we will, but
   ! this option exists so we can test for HSE.
 
-  integer, save :: tde_initial_velocity = 1
+  integer, allocatable :: tde_initial_velocity
 
-  double precision, save :: tde_tidal_radius
-  double precision, save :: tde_schwarzschild_radius
-  double precision, save :: tde_pericenter_radius
+  real(rt), allocatable :: tde_tidal_radius
+  real(rt), allocatable :: tde_schwarzschild_radius
+  real(rt), allocatable :: tde_pericenter_radius
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: tde_separation, tde_beta, tde_initial_velocity
+  attributes(managed) :: tde_tidal_radius, tde_schwarzschild_radius, tde_pericenter_radius
+#endif
 
 
 
   ! Binary orbit properties
 
-  double precision, save :: r_P_initial, r_S_initial, a
-  double precision, save :: center_P_initial(3), center_S_initial(3)
-  double precision, save :: orbital_eccentricity = 0.0d0
-  double precision, save :: orbital_angle = 0.0d0
+  real(rt), allocatable :: r_P_initial, r_S_initial, a
+  real(rt), allocatable :: center_P_initial(:), center_S_initial(:)
+  real(rt), allocatable :: orbital_eccentricity, orbital_angle
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: r_P_initial, r_S_initial, a
+  attributes(managed) :: center_P_initial, center_S_initial
+  attributes(managed) :: orbital_eccentricity, orbital_angle
+#endif
 
 
 
   ! Axis is in orbital plane; we measure angle with respect to this axis. Normally the x axis.
 
-  integer, save :: axis_1 = 1
+  integer, allocatable :: axis_1
 
   ! Perpendicular axis in the orbital plane. Normally the y axis.
 
-  integer, save :: axis_2 = 2
+  integer, allocatable :: axis_2
 
   ! Perpendicular to both other axes. Normally the z axis and also the rotation axis.
 
-  integer, save :: axis_3 = 3
+  integer, allocatable :: axis_3
 
   ! Location of the physical center of the problem, as a fraction of domain size
 
-  double precision, save :: center_fracx = HALF
-  double precision, save :: center_fracy = HALF
-  double precision, save :: center_fracz = HALF
+  real(rt), allocatable :: center_fracx, center_fracy, center_fracz
 
   ! Bulk system motion
 
-  double precision, save :: bulk_velx = ZERO
-  double precision, save :: bulk_vely = ZERO
-  double precision, save :: bulk_velz = ZERO
+  real(rt), allocatable :: bulk_velx, bulk_vely, bulk_velz
 
   ! Whether we're doing an initialization or a restart
 
-  integer, save :: init
+  integer, allocatable :: init
 
   ! Are we doing a single star simulation?
 
-  logical, save :: single_star
+  logical, allocatable :: single_star
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: axis_1, axis_2, axis_3
+  attributes(managed) :: center_fracx, center_fracy, center_fracz
+  attributes(managed) :: bulk_velx, bulk_vely, bulk_velz
+  attributes(managed) :: init
+  attributes(managed) :: single_star
+#endif
 
 
 
   ! 1D initial models
 
-  type (initial_model) :: model_P, model_S
+  type (initial_model), allocatable :: model_P, model_S
+  real(rt), allocatable :: rho_P(:), rho_S(:)
+  real(rt), allocatable :: T_P(:), T_S(:)
+  real(rt), allocatable :: xn_P(:,:), xn_S(:,:)
+  real(rt), allocatable :: r_P(:), r_S(:)
 
   ! For the grid spacing for our model, we'll use 
   ! 6.25 km. No simulation we do is likely to have a resolution
@@ -166,21 +232,31 @@ module probdata_module
   ! grid points, the size of the 1D domain will be 2.56e9 cm,
   ! which is larger than any reasonable mass white dwarf.
 
-  double precision, save :: initial_model_dx = 6.25d5
-  integer, save          :: initial_model_npts = 4096
+  real(rt), allocatable :: initial_model_dx
+  integer,  allocatable :: initial_model_npts
 
   ! initial_model_mass_tol is tolerance used for getting the total WD mass 
   ! equal to the desired mass. It can be reasonably small, since there
   ! will always be a central density value that can give the desired
   ! WD mass on the grid we use.
 
-  double precision, save :: initial_model_mass_tol = 1.d-6
+  real(rt), allocatable :: initial_model_mass_tol
 
   ! hse_tol is the tolerance used when iterating over a zone to force
   ! it into HSE by adjusting the current density (and possibly
   ! temperature).  hse_tol should be very small (~ 1.e-10).
 
-  double precision, save :: initial_model_hse_tol = 1.d-10
+  real(rt), allocatable :: initial_model_hse_tol
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: model_P, model_S
+  attributes(managed) :: rho_P, rho_S
+  attributes(managed) :: T_P, T_S
+  attributes(managed) :: xn_P, xn_S
+  attributes(managed) :: r_P, r_S
+  attributes(managed) :: initial_model_dx, initial_model_npts
+  attributes(managed) :: initial_model_mass_tol, initial_model_hse_tol
+#endif
 
 
 
@@ -192,36 +268,52 @@ module probdata_module
   ! with slightly more oxygen than carbon; and above that are 
   ! ONeMg WDs. All masses are in solar masses.
 
-  double precision, save :: max_he_wd_mass = 0.45d0
-  double precision, save :: max_hybrid_wd_mass = 0.6d0
-  double precision, save :: hybrid_wd_he_shell_mass = 0.1d0
-  double precision, save :: max_co_wd_mass = 1.05d0
-  double precision, save :: co_wd_he_shell_mass = 0.0d0
+  real(rt), allocatable :: max_he_wd_mass
+  real(rt), allocatable :: max_hybrid_wd_mass
+  real(rt), allocatable :: hybrid_wd_he_shell_mass
+  real(rt), allocatable :: max_co_wd_mass
+  real(rt), allocatable :: co_wd_he_shell_mass
 
-  double precision, save :: hybrid_wd_c_frac = 0.50d0
-  double precision, save :: hybrid_wd_o_frac = 0.50d0
+  real(rt), allocatable :: hybrid_wd_c_frac
+  real(rt), allocatable :: hybrid_wd_o_frac
 
-  double precision, save :: co_wd_c_frac = 0.40d0
-  double precision, save :: co_wd_o_frac = 0.60d0
+  real(rt), allocatable :: co_wd_c_frac
+  real(rt), allocatable :: co_wd_o_frac
 
-  double precision, save :: onemg_wd_o_frac  = 0.60d0
-  double precision, save :: onemg_wd_ne_frac = 0.35d0
-  double precision, save :: onemg_wd_mg_frac = 0.05d0
+  real(rt), allocatable :: onemg_wd_o_frac
+  real(rt), allocatable :: onemg_wd_ne_frac
+  real(rt), allocatable :: onemg_wd_mg_frac
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: max_he_wd_mass, max_hybrid_wd_mass, hybrid_wd_he_shell_mass
+  attributes(managed) :: max_co_wd_mass, co_wd_he_shell_mass
+  attributes(managed) :: hybrid_wd_c_frac, hybrid_wd_o_frac
+  attributes(managed) :: co_wd_c_frac, co_wd_o_frac
+  attributes(managed) :: onemg_wd_o_frac, onemg_wd_ne_frac, onemg_wd_mg_frac
+#endif
+
 
 
   ! Tagging criteria
 
-  integer,          save :: max_stellar_tagging_level = 20
-  integer,          save :: max_temperature_tagging_level = 20
-  integer,          save :: max_center_tagging_level = 20
+  integer,  allocatable :: max_stellar_tagging_level
+  integer,  allocatable :: max_temperature_tagging_level
+  integer,  allocatable :: max_center_tagging_level
   real(rt), allocatable :: stellar_density_threshold
-  double precision, save :: temperature_tagging_threshold = 5.0d8
-  double precision, save :: center_tagging_radius = 0.0d0
-  double precision, save :: max_tagging_radius = 0.75d0
-  double precision, save :: roche_tagging_factor = 2.0d0
+  real(rt), allocatable :: temperature_tagging_threshold
+  real(rt), allocatable :: center_tagging_radius
+  real(rt), allocatable :: max_tagging_radius
+  real(rt), allocatable :: roche_tagging_factor
 
 #ifdef AMREX_USE_CUDA
+  attributes(managed) :: max_stellar_tagging_level
+  attributes(managed) :: max_temperature_tagging_level
+  attributes(managed) :: max_center_tagging_level
   attributes(managed) :: stellar_density_threshold
+  attributes(managed) :: temperature_tagging_threshold
+  attributes(managed) :: center_tagging_radius
+  attributes(managed) :: max_tagging_radius
+  attributes(managed) :: roche_tagging_factor
 #endif
 
 
@@ -229,51 +321,86 @@ module probdata_module
   ! Stores the center of mass location of the stars throughout the run
 
   real(rt), allocatable :: com_P(:), com_S(:)
-  double precision, save :: vel_P(3), vel_S(3)
+  real(rt), allocatable :: vel_P(:), vel_S(:)
 
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: com_P, com_S
+  attributes(managed) :: vel_P, vel_S
 #endif
 
   ! Stores the effective Roche radii
 
-  double precision, save :: roche_rad_P, roche_rad_S
+  real(rt), allocatable :: roche_rad_P, roche_rad_S
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: roche_rad_P, roche_rad_S
+#endif
 
 
 
   ! Relaxation parameters
 
-  double precision, save :: relaxation_damping_factor = -1.0d-1
-  double precision, save :: relaxation_density_cutoff = 1.0d3
-  double precision, save :: relaxation_cutoff_time = -1.d0
-  integer,          save :: relaxation_is_done = 1
+  real(rt), allocatable :: relaxation_damping_factor
+  real(rt), allocatable :: relaxation_density_cutoff
+  real(rt), allocatable :: relaxation_cutoff_time
+  integer,  allocatable :: relaxation_is_done
 
   ! Radial damping parameters
 
-  double precision, save :: radial_damping_factor = -1.0d3
-  double precision, save :: initial_radial_velocity_factor = -1.0d-3
+  real(rt), allocatable :: radial_damping_factor
+  real(rt), allocatable :: initial_radial_velocity_factor
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: relaxation_damping_factor, relaxation_density_cutoff, relaxation_cutoff_time, relaxation_is_done
+  attributes(managed) :: radial_damping_factor, initial_radial_velocity_factor
+#endif
+
+
 
   ! Distance (in kpc) used for calculation of the gravitational wave amplitude
   ! (this wil be calculated along all three coordinate axes).
 
-  double precision, save :: gw_dist = 10.0d0
+  real(rt), allocatable :: gw_dist
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: gw_dist
+#endif
+
+
 
   ! Current value of the dynamical timescale for each star
 
-  double precision, save :: t_ff_P, t_ff_S
+  real(rt), allocatable :: t_ff_P, t_ff_S
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: t_ff_P, t_ff_S
+#endif
+
+
 
   ! Global extrema
 
-  double precision, save :: T_global_max, rho_global_max, ts_te_global_max
+  real(rt), allocatable :: T_global_max, rho_global_max, ts_te_global_max
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: T_global_max, rho_global_max, ts_te_global_max
+#endif
+
+
 
   ! Stores whether we assert that the simulation has completed.
 
-  logical, save :: jobIsDone = .false.
-  logical, save :: signalJobIsNotDone = .false.
+  logical, allocatable :: jobIsDone
+  logical, allocatable :: signalJobIsNotDone
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: jobIsDone
+  attributes(managed) :: signalJobIsNotDone
+#endif
 
   ! Auxiliary data for determining whether the job is done.
 
   integer, parameter :: num_previous_ener_timesteps = 5
-  double precision :: total_ener_array(num_previous_ener_timesteps)
-  
+  real(rt) :: total_ener_array(num_previous_ener_timesteps)
+
 end module probdata_module
