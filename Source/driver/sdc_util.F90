@@ -454,7 +454,7 @@ contains
     U_new(UEDEN) = U_new(UEINT) + HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
 
     ! keep our temperature guess
-    U_new(UTEMP) = rpar(ipr_temp)
+    U_new(UTEMP) = rpar(irp_temp)
 
   end subroutine sdc_vode_predict
 
