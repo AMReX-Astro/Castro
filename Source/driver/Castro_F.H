@@ -490,6 +490,16 @@ extern "C"
   void ca_setgroup(const int& igroup);
 #endif
 
+#ifdef AMREX_DIMENSION_AGNOSTIC
+  void ca_ext_src
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(old_state),
+     const BL_FORT_FAB_ARG_3D(new_state),
+     BL_FORT_FAB_ARG_3D(ext_src),
+     const amrex::Real* prob_lo, const amrex::Real* dx,
+     const amrex::Real time, const amrex::Real dt);
+#endif
+
 /* hydrodynamics */
 #include <Castro_hydro_F.H>
 
@@ -561,15 +571,7 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
 #endif
 #endif
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
-BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(old_state),
-     const BL_FORT_FAB_ARG_3D(new_state),
-     BL_FORT_FAB_ARG_3D(ext_src),
-     const amrex::Real* prob_lo, const amrex::Real* dx,
-     const amrex::Real* time, const amrex::Real* dt);
-#else
+#ifndef AMREX_DIMENSION_AGNOSTIC
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG(old_state),

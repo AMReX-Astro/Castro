@@ -68,12 +68,13 @@ Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& stat
         const Box& bx = mfi.tilebox();
 
 #ifdef AMREX_DIMENSION_AGNOSTIC
-        BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-	  (ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu
+        ca_ext_src
+	  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 	   BL_TO_FORTRAN_ANYD(state_old[mfi]),
 	   BL_TO_FORTRAN_ANYD(state_new[mfi]),
 	   BL_TO_FORTRAN_ANYD(ext_src[mfi]),
-	   ZFILL(prob_lo),ZFILL(dx),&time,&dt);
+	   AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
 #else
 	BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
 	  (bx.loVect(), bx.hiVect(),
