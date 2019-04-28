@@ -1,5 +1,12 @@
 # changes since the last release
 
+  -- The dimension agnostic version of the external source term in
+     ext_src_nd.F90 has been updated to use the ISO C binding interface,
+     and two parameters, time and dt, are now passed by value -- see
+     Source/sources/ext_src_nd.F90 for the new interface.
+
+  -- problem_derive_nd.f90 has been renamed to problem_derive_nd.F90.
+
   -- The velocity calculated for the interface in the Riemann solve for
      the CGF/CG Riemann solvers can no longer exceed the speed of light.
      The parameter castro.riemann_speed_limit can be set to control the

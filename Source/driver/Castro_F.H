@@ -422,15 +422,15 @@ extern "C"
 
   void ca_sumlocmass
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int& idir);
+     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir);
 
   void ca_sumlocmass2d
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int& idir1, const int& idir2);
+     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir1, const int idir2);
 
   void ca_sumlocsquaredmass
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int& idir);
+     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir);
 
   void ca_sumproduct
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(f1), const BL_FORT_FAB_ARG_3D(f2),
@@ -494,6 +494,16 @@ extern "C"
 
 #ifdef NEUTRINO
   void ca_setgroup(const int& igroup);
+#endif
+
+#ifdef AMREX_DIMENSION_AGNOSTIC
+  void ca_ext_src
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(old_state),
+     const BL_FORT_FAB_ARG_3D(new_state),
+     BL_FORT_FAB_ARG_3D(ext_src),
+     const amrex::Real* prob_lo, const amrex::Real* dx,
+     const amrex::Real time, const amrex::Real dt);
 #endif
 
 /* hydrodynamics */
@@ -567,15 +577,7 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
 #endif
 #endif
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
-BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(old_state),
-     const BL_FORT_FAB_ARG_3D(new_state),
-     BL_FORT_FAB_ARG_3D(ext_src),
-     const amrex::Real* prob_lo, const amrex::Real* dx,
-     const amrex::Real* time, const amrex::Real* dt);
-#else
+#ifndef AMREX_DIMENSION_AGNOSTIC
 BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG(old_state),

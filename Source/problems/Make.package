@@ -4,6 +4,7 @@ FEXE_headers += Problem_F.H
 CEXE_headers += Problem.H
 CEXE_headers += Problem_Derives.H
 CEXE_headers += Problem_Derive.H
+CEXE_sources += Problem_Derive.cpp
 FEXE_headers += Problem_Derive_F.H
 
 CEXE_headers += Castro_prob_err_list.H
@@ -33,7 +34,7 @@ else
   CEXE_sources += Castro_bc_ext_fill_nd.cpp
 endif
 
-ca_f90EXE_sources += problem_derive_nd.f90
+ca_F90EXE_sources += problem_derive_nd.F90
 ca_f90EXE_sources += Problem.f90
 
 ca_F90EXE_sources += ambient.F90
