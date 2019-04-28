@@ -750,8 +750,8 @@ contains
 
     ! Allocate arrays to hold the stellar models.
 
-    call initialize_model(model_P, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
-    call initialize_model(model_S, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
+    call initialize_model(model_P, rho_P, T_P, xn_P, r_P, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
+    call initialize_model(model_S, rho_S, T_S, xn_S, r_S, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
 
     model_P % min_density = ambient_density
     model_S % min_density = ambient_density
@@ -781,7 +781,7 @@ contains
 
        model_P % central_density = central_density_P
 
-       call establish_hse(model_P)
+       call establish_hse(model_P, rho_P, T_P, xn_P, r_P)
 
        call set_wd_composition(model_P)
 
@@ -809,7 +809,7 @@ contains
 
           model_S % central_density = central_density_S
 
-          call establish_hse(model_S)
+          call establish_hse(model_S, rho_S, T_S, xn_S, r_S)
 
           call set_wd_composition(model_S)
 
@@ -835,7 +835,7 @@ contains
 
     ! Generate primary and secondary WD models.
 
-    call establish_hse(model_P)
+    call establish_hse(model_P, rho_P, T_P, xn_P, r_P)
 
     if (ioproc .and. init == 1) then
 
@@ -855,7 +855,7 @@ contains
 
     if (.not. single_star) then
 
-       call establish_hse(model_S)
+       call establish_hse(model_S, rho_S, T_S, xn_S, r_S)
 
        if (ioproc .and. init == 1) then
           write (*,1002) model_S % mass / M_solar, model_S % central_density, model_S % radius

@@ -191,6 +191,10 @@ module probdata_module
   ! 1D initial models
 
   type (initial_model), allocatable :: model_P, model_S
+  real(rt), allocatable :: rho_P(:), rho_S(:)
+  real(rt), allocatable :: T_P(:), T_S(:)
+  real(rt), allocatable :: xn_P(:,:), xn_S(:,:)
+  real(rt), allocatable :: r_P(:), r_S(:)
 
   ! For the grid spacing for our model, we'll use 
   ! 6.25 km. No simulation we do is likely to have a resolution
@@ -218,6 +222,10 @@ module probdata_module
 
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: model_P, model_S
+  attributes(managed) :: rho_P, rho_S
+  attributes(managed) :: T_P, T_S
+  attributes(managed) :: xn_P, xn_S
+  attributes(managed) :: r_P, r_S
   attributes(managed) :: initial_model_dx, initial_model_npts
   attributes(managed) :: initial_model_mass_tol, initial_model_hse_tol
 #endif

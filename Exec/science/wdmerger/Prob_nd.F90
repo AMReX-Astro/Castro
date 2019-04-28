@@ -52,12 +52,7 @@
 
      type (eos_t) :: zone_state, ambient_state
 
-     integer :: i, j, k, n
-
-     real(rt) :: rho_P(model_P % npts), rho_S(model_S % npts)
-     real(rt) :: T_P(model_P % npts), T_S(model_S % npts)
-     real(rt) :: xn_P(model_P % npts, nspec), xn_S(model_S % npts, nspec)
-     real(rt) :: r_P(model_P % npts), r_S(model_S % npts)
+     integer :: i, j, k
 
      ! Loop through the zones and set the zone state depending on whether we are
      ! inside the primary or secondary (in which case interpolate from the respective model)
@@ -66,20 +61,6 @@
      call get_ambient(ambient_state)
 
      omega = get_omega(time)
-
-     rho_P = model_P % state(:) % rho
-     rho_S = model_S % state(:) % rho
-
-     T_P = model_P % state(:) % T
-     T_S = model_S % state(:) % T
-
-     do n = 1, nspec
-        xn_P(:,n) = model_P % state(:) % xn(n)
-        xn_S(:,n) = model_S % state(:) % xn(n)
-     enddo
-
-     r_P = model_P % r
-     r_S = model_S % r
 
      !$OMP PARALLEL DO PRIVATE(i, j, k, loc, vel, pos, mom) &
      !$OMP PRIVATE(dist_P, dist_S, zone_state) &

@@ -43,13 +43,14 @@ module initial_model_module
 
 contains
 
-  subroutine initialize_model(model, dx, npts, mass_tol, hse_tol)
+  subroutine initialize_model(model, rho, T, xn, r, dx, npts, mass_tol, hse_tol)
 
     implicit none
 
-    type (initial_model) :: model
-    integer :: npts
-    real(rt) :: dx, mass_tol, hse_tol
+    type (initial_model),  intent(inout) :: model
+    real(rt), allocatable, intent(inout) :: rho(:), T(:), xn(:,:), r(:)
+    integer,               intent(in   ) :: npts
+    real(rt),              intent(in   ) :: dx, mass_tol, hse_tol
 
     integer :: i
 
@@ -78,11 +79,17 @@ contains
     allocate(model % g(npts))
     allocate(model % state(npts))
 
+    allocate(rho(npts))
+    allocate(T(npts))
+    allocate(xn(npts,nspec))
+    allocate(r(npts))
+
     do i = 1, npts
 
        model % rl(i) = (dble(i) - ONE)*dx
        model % rr(i) = (dble(i)      )*dx
        model % r(i)  = HALF*(model % rl(i) + model % rr(i))
+       r(i) = model % r(i)
 
     enddo
 
@@ -90,7 +97,7 @@ contains
 
 
 
-  subroutine establish_hse(model)
+  subroutine establish_hse(model, rho, T, xn, r)
 
     use eos_module, only: eos
 
@@ -98,15 +105,19 @@ contains
 
     ! Arguments
 
-    type (initial_model) :: model
+    type (initial_model), intent(inout) :: model
+    real(rt), intent(inout) :: rho(model % npts)
+    real(rt), intent(inout) :: T(model % npts)
+    real(rt), intent(inout) :: xn(model % npts, nspec)
+    real(rt), intent(inout) :: r(model % npts)
 
     ! Local variables
 
-    integer :: i, icutoff
+    integer :: i, icutoff, n
 
     real(rt) :: rho_c, rho_c_old, drho_c, mass, mass_old, radius
 
-    real(rt) :: p_want, rho_avg, rho, drho
+    real(rt) :: p_want, rho_avg, drho
 
     integer :: max_hse_iter = 250, max_mass_iter
 
@@ -164,19 +175,28 @@ contains
        ! We start at the center of the WD and integrate outward.  Initialize
        ! the central conditions.
 
-       model % state(1) % T    = model % central_temp
-       model % state(1) % rho  = rho_c
-       model % state(1) % xn   = model % core_comp
+       T(1)    = model % central_temp
+       rho(1)  = rho_c
+       xn(1,:) = model % core_comp
+
+       model % state(1) % rho  = rho(1)
+       model % state(1) % T    = T(1)
+       model % state(1) % xn   = xn(1,:)
 
        call eos(eos_input_rt, model % state(1))
 
        ! Make the initial guess be completely uniform.
 
        model % state(:) = model % state(1)
+       rho(:) = rho(1)
+       T(:)   = T(1)
+       do n = 1, nspec
+          xn(:,n) = xn(1,n)
+       end do
 
        ! Keep track of the mass enclosed below the current zone.
 
-       model % M_enclosed(1) = FOUR3RD * M_PI * (model % rr(1)**3 - model % rl(1)**3) * model % state(1) % rho
+       model % M_enclosed(1) = FOUR3RD * M_PI * (model % rr(1)**3 - model % rl(1)**3) * rho(1)
 
        !-------------------------------------------------------------------------
        ! HSE solve
@@ -185,12 +205,14 @@ contains
 
           ! As the initial guess for the density, use the underlying zone.
 
-          model % state(i) % rho = model % state(i-1) % rho
+          rho(i) = rho(i-1)
 
           if (model % mass > ZERO .and. model % M_enclosed(i-1) .ge. model % mass - model % envelope_mass) then
-             model % state(i) % xn = model % envelope_comp
+             xn(i,:) = model % envelope_comp
+             model % state(i) % xn = xn(i,:)
           else
-             model % state(i) % xn = model % core_comp
+             xn(i,:) = model % core_comp
+             model % state(i) % xn = xn(i,:)
           endif
 
           model % g(i) = -Gconst * model % M_enclosed(i-1) / model % rl(i)**2
@@ -207,7 +229,7 @@ contains
           do hse_iter = 1, max_hse_iter
 
              if (fluff) then
-                model % state(i) % rho = model % min_density
+                rho(i) = model % min_density
                 exit
              endif
 
@@ -217,24 +239,22 @@ contains
              ! We difference HSE about the interface between the current
              ! zone and the one just inside.
 
-             rho_avg = HALF * (model % state(i) % rho + model % state(i-1) % rho)
+             rho_avg = HALF * (rho(i) + rho(i-1))
              p_want = model % state(i-1) % p + model % dx * rho_avg * model % g(i)
 
              call eos(eos_input_rt, model % state(i))
 
              drho = (p_want - model % state(i) % p) / (model % state(i) % dpdr - HALF * model % dx * model % g(i))
-             rho = model % state(i) % rho
 
-             rho = max(0.9 * rho, min(rho + drho, 1.1 * rho))
+             rho(i) = max(0.9 * rho(i), min(rho(i) + drho, 1.1 * rho(i)))
+             model % state(i) % rho = rho(i)
 
-             model % state(i) % rho = rho
-
-             if (rho < model % min_density) then
+             if (rho(i) < model % min_density) then
                 icutoff = i
                 fluff = .TRUE.
              endif
 
-             if (abs(drho) < model % hse_tol * rho) then
+             if (abs(drho) < model % hse_tol * rho(i)) then
                 converged_hse = .TRUE.
                 exit
              endif
@@ -244,9 +264,9 @@ contains
           if (.NOT. converged_hse .and. (.NOT. fluff)) then
 
              print *, 'Error: zone', i, ' did not converge in init_hse().'
-             print *, model % state(i) % rho, model % state (i) % T
+             print *, rho(i), T(i)
              print *, p_want, model % state(i) % p
-             print *, drho, model % hse_tol * model % state(i) % rho
+             print *, drho, model % hse_tol * rho(i)
              call amrex_error('Error: HSE non-convergence.')
 
           endif
@@ -258,7 +278,7 @@ contains
           ! Discretize the mass enclose as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
 
           model % M_enclosed(i) = model % M_enclosed(i-1) + &
-                                  FOUR3RD * M_PI * model % state(i) % rho * model % dx * &
+                                  FOUR3RD * M_PI * rho(i) * model % dx * &
                                   (model % rr(i)**2 + model % rl(i) * model % rr(i) + model % rl(i)**2)
 
        enddo  ! End loop over zones
@@ -300,7 +320,7 @@ contains
        call amrex_error("ERROR: WD mass did not converge.")
     endif
 
-    model % central_density = model % state(1) % rho
+    model % central_density = rho(1)
     model % radius = radius
     model % mass = mass
 
