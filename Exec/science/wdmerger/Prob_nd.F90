@@ -17,9 +17,9 @@
 
 
 
-   subroutine ca_initdata(level,time,lo,hi,nscal, &
-                          state,state_lo,state_hi, &
-                          dx,xlo,xhi)
+   subroutine ca_initdata(lo, hi, &
+                          state, state_lo, state_hi, &
+                          dx, problo) bind(C, name='ca_initdata')
 
      use amrex_fort_module, only: rt => amrex_real
      use probdata_module
@@ -32,18 +32,18 @@
      use amrex_constants_module
      use model_parser_module, only: idens_model, itemp_model, ipres_model, ispec_model
      use initial_model_module, only: interpolate_3d_from_1d
-     use math_module, only: cross_product
-     use castro_util_module, only: position
-     use rotation_frequency_module, only: get_omega
-     use wdmerger_util_module, only: inertial_velocity
+     use math_module, only: cross_product ! function
+     use castro_util_module, only: position ! function
+     use rotation_frequency_module, only: get_omega ! function
+     use wdmerger_util_module, only: inertial_velocity ! function
+     use wdmerger_util_module, only: get_ambient ! function
 
      implicit none
 
-     integer  :: level, nscal
-     integer  :: lo(3), hi(3)
-     integer  :: state_lo(3), state_hi(3)
-     real(rt) :: xlo(3), xhi(3), time, dx(3)
-     real(rt) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+     integer,  intent(in   ) :: lo(3), hi(3)
+     integer,  intent(in   ) :: state_lo(3), state_hi(3)
+     real(rt), intent(in   ) :: dx(3), problo(3)
+     real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
      real(rt) :: loc(3), pos(3), omega(3), vel(3), mom(3)
      real(rt) :: rot_loc(3), cap_radius
@@ -53,6 +53,10 @@
      type (eos_t) :: zone_state, ambient_state
 
      integer :: i, j, k
+
+     real(rt) :: time = ZERO
+
+     !$gpu
 
      ! Loop through the zones and set the zone state depending on whether we are
      ! inside the primary or secondary (in which case interpolate from the respective model)
