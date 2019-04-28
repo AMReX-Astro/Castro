@@ -1,5 +1,6 @@
 module wdmerger_util_module
 
+  use amrex_fort_module, only: rt => amrex_real
   use probdata_module
 
   implicit none
@@ -18,6 +19,7 @@ contains
 
     integer :: init_in
 
+    allocate(init)
     init = init_in
 
     ! Read in the namelist to set problem parameters.
@@ -40,19 +42,264 @@ contains
 
   subroutine read_namelist
 
-    use amrex_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, THREE, M_PI, FOUR, SIX, EIGHT
     use meth_params_module
     use prob_params_module, only: dim, coord_type
     use problem_io_module, only: probin
     use amrex_error_module, only: amrex_error
+    use network, only: nspec
+    use fundamental_constants_module, only: M_solar
 
     implicit none
 
     integer :: untin
 
+    namelist /fortin/ &
+       mass_P, mass_S, &
+       central_density_P, central_density_S, &
+       nsub, &
+       roche_radius_factor, &
+       problem, &
+       collision_separation, &
+       collision_impact_parameter, &
+       collision_velocity, &
+       tde_separation, &
+       tde_beta, &
+       tde_initial_velocity, &
+       interp_temp, &
+       relaxation_damping_factor, &
+       relaxation_density_cutoff, &
+       relaxation_cutoff_time, &
+       initial_radial_velocity_factor, &
+       radial_damping_factor, &
+       ambient_density, &
+       stellar_temp, &
+       ambient_temp, &
+       max_he_wd_mass, &
+       max_hybrid_wd_mass, hybrid_wd_he_shell_mass, &
+       max_co_wd_mass, &
+       co_wd_he_shell_mass, &
+       hybrid_wd_c_frac, hybrid_wd_o_frac, &
+       co_wd_c_frac, co_wd_o_frac, &
+       onemg_wd_o_frac, onemg_wd_ne_frac, onemg_wd_mg_frac, &
+       orbital_eccentricity, orbital_angle, &
+       axis_1, axis_2, axis_3, &
+       max_stellar_tagging_level, &
+       max_temperature_tagging_level, &
+       max_center_tagging_level, &
+       stellar_density_threshold, &
+       temperature_tagging_threshold, &
+       center_tagging_radius, &
+       max_tagging_radius, &
+       roche_tagging_factor, &
+       bulk_velx, bulk_vely, bulk_velz, &
+       smallu, &
+       center_fracx, center_fracy, center_fracz, &
+       initial_model_dx, &
+       initial_model_npts, &
+       initial_model_mass_tol, &
+       initial_model_hse_tol, &
+       gw_dist
+
+    ! Allocate parameters and set defaults.
+
+    allocate(mass_P)
+    allocate(mass_S)
+    allocate(central_density_P)
+    allocate(central_density_S)
+    allocate(stellar_temp)
+    allocate(primary_envelope_mass)
+    allocate(secondary_envelope_mass)
+    allocate(primary_envelope_comp(nspec))
+    allocate(secondary_envelope_comp(nspec))
+
+    mass_P = ONE
+    mass_S = ONE
+    central_density_P = -ONE
+    central_density_S = -ONE
+    stellar_temp = 1.0e7_rt
+
+    allocate(ambient_density)
+    allocate(ambient_temp)
+    allocate(ambient_comp(nspec))
+
+    ambient_density = 1.0e-4_rt
+    ambient_temp = 1.0e7_rt
+
+    allocate(smallu)
+
+    smallu = ZERO
+
+    allocate(nsub)
+    allocate(interp_temp)
+
+    nsub = 1
+    interp_temp = .true.
+
+    allocate(problem)
+
+    problem = 1
+
+    allocate(roche_radius_factor)
+
+    roche_radius_factor = ONE
+
+    allocate(collision_separation)
+    allocate(collision_impact_parameter)
+    allocate(collision_velocity)
+
+    collision_separation = FOUR
+    collision_impact_parameter = ZERO
+    collision_velocity = -ONE
+
+    allocate(tde_separation)
+    allocate(tde_beta)
+    allocate(tde_initial_velocity)
+    allocate(tde_tidal_radius)
+    allocate(tde_schwarzschild_radius)
+    allocate(tde_pericenter_radius)
+
+    tde_separation = EIGHT
+    tde_beta = SIX
+    tde_initial_velocity = 1
+
+    allocate(r_P_initial)
+    allocate(r_S_initial)
+    allocate(a)
+    allocate(center_P_initial(3))
+    allocate(center_S_initial(3))
+    allocate(orbital_eccentricity)
+    allocate(orbital_angle)
+
+    orbital_eccentricity = ZERO
+    orbital_angle = ZERO
+
+    allocate(axis_1)
+    allocate(axis_2)
+    allocate(axis_3)
+    allocate(center_fracx)
+    allocate(center_fracy)
+    allocate(center_fracz)
+    allocate(bulk_velx)
+    allocate(bulk_vely)
+    allocate(bulk_velz)
+    allocate(single_star)
+
+    axis_1 = 1
+    axis_2 = 2
+    axis_3 = 3
+
+    center_fracx = HALF
+    center_fracy = HALF
+    center_fracz = HALF
+
+    bulk_velx = ZERO
+    bulk_vely = ZERO
+    bulk_velz = ZERO
+
+    allocate(model_P)
+    allocate(model_S)
+    allocate(initial_model_dx)
+    allocate(initial_model_npts)
+    allocate(initial_model_mass_tol)
+    allocate(initial_model_hse_tol)
+
+    initial_model_dx = 6.25e5_rt
+    initial_model_npts = 4096
+    initial_model_mass_tol = 1.e-6_rt
+    initial_model_hse_tol = 1.e-10_rt
+
+    allocate(max_he_wd_mass)
+    allocate(max_hybrid_wd_mass)
+    allocate(hybrid_wd_he_shell_mass)
+    allocate(max_co_wd_mass)
+    allocate(co_wd_he_shell_mass)
+    allocate(hybrid_wd_c_frac)
+    allocate(hybrid_wd_o_frac)
+    allocate(co_wd_c_frac)
+    allocate(co_wd_o_frac)
+    allocate(onemg_wd_o_frac)
+    allocate(onemg_wd_ne_frac)
+    allocate(onemg_wd_mg_frac)
+
+    max_he_wd_mass = 0.45e0_rt
+    max_hybrid_wd_mass = 0.6e0_rt
+    hybrid_wd_he_shell_mass = 0.1e0_rt
+    max_co_wd_mass = 1.05e0_rt
+    co_wd_he_shell_mass = 0.0e0_rt
+
+    hybrid_wd_c_frac = 0.50e0_rt
+    hybrid_wd_o_frac = 0.50e0_rt
+
+    co_wd_c_frac = 0.40e0_rt
+    co_wd_o_frac = 0.60e0_rt
+
+    onemg_wd_o_frac  = 0.60e0_rt
+    onemg_wd_ne_frac = 0.35e0_rt
+    onemg_wd_mg_frac = 0.05e0_rt
+
+    allocate(max_stellar_tagging_level)
+    allocate(max_temperature_tagging_level)
+    allocate(max_center_tagging_level)
+    allocate(stellar_density_threshold)
+    allocate(temperature_tagging_threshold)
+    allocate(center_tagging_radius)
+    allocate(max_tagging_radius)
+    allocate(roche_tagging_factor)
+
+    max_stellar_tagging_level = 20
+    max_temperature_tagging_level = 20
+    max_center_tagging_level = 20
+    stellar_density_threshold = ONE
+    temperature_tagging_threshold = 5.0e8_rt
+    center_tagging_radius = 0.0e0_rt
+    max_tagging_radius = 0.75e0_rt
+    roche_tagging_factor = 2.0e0_rt
+
+    allocate(com_P(3))
+    allocate(com_S(3))
+    allocate(vel_P(3))
+    allocate(vel_S(3))
+
+    allocate(roche_rad_P)
+    allocate(roche_rad_S)
+
+    allocate(relaxation_damping_factor)
+    allocate(relaxation_density_cutoff)
+    allocate(relaxation_cutoff_time)
+    allocate(relaxation_is_done)
+    allocate(radial_damping_factor)
+    allocate(initial_radial_velocity_factor)
+
+    relaxation_damping_factor = -1.0e-1_rt
+    relaxation_density_cutoff = 1.0e3_rt
+    relaxation_cutoff_time = -1.e0_rt
+    relaxation_is_done = 1
+    radial_damping_factor = -1.0e3_rt
+    initial_radial_velocity_factor = -1.0e-3_rt
+
+    allocate(gw_dist)
+
+    gw_dist = 10.0e0_rt
+
+    allocate(t_ff_P)
+    allocate(t_ff_S)
+
+    allocate(T_global_max)
+    allocate(rho_global_max)
+    allocate(ts_te_global_max)
+
+    allocate(jobIsDone)
+    allocate(signalJobIsNotDone)
+
+    jobIsDone = .false.
+    signalJobIsNotDone = .false.
+
+
+
     ! Read namelist to override the module defaults.
 
-    untin = 9 
+    untin = 9
     open(untin,file=probin,form='formatted',status='old')
     read(untin,fortin)
     close(unit=untin)
@@ -180,6 +427,8 @@ contains
   subroutine set_small
 
     use meth_params_module, only: small_temp, small_pres, small_dens, small_ener
+    use eos_type_module, only: eos_t, eos_input_rt
+    use eos_module, only: eos
 
     implicit none
 
@@ -204,11 +453,16 @@ contains
 
   subroutine get_ambient(ambient_state)
 
+    use eos_type_module, only: eos_t, eos_input_rt
+    use eos_module, only: eos
+
     implicit none
 
     type (eos_t) :: ambient_state
 
-    ! Define ambient state, using a composition that is an 
+    !$gpu
+
+    ! Define ambient state, using a composition that is an
     ! even mixture of the primary and secondary composition, 
     ! and then call the EOS to get internal energy and pressure.
 
@@ -229,6 +483,7 @@ contains
     use extern_probin_module, only: small_x
     use network, only: network_species_index
     use amrex_error_module, only: amrex_error
+    use amrex_constants_module, only: ZERO, ONE
 
     implicit none
 
@@ -323,7 +578,7 @@ contains
 
     implicit none
 
-    double precision :: temp_mass
+    real(rt) :: temp_mass
 
     ! We want the primary WD to be more massive. If what we're calling
     ! the primary is less massive, switch the stars.
@@ -350,10 +605,10 @@ contains
 
     implicit none
 
-    double precision, intent(inout) :: P_com(3), S_com(3)
-    double precision, intent(inout) :: P_vel(3), S_vel(3)
-    double precision, intent(inout) :: P_mass, S_mass
-    double precision, intent(inout) :: P_t_ff, S_t_ff
+    real(rt), intent(inout) :: P_com(3), S_com(3)
+    real(rt), intent(inout) :: P_vel(3), S_vel(3)
+    real(rt), intent(inout) :: P_mass, S_mass
+    real(rt), intent(inout) :: P_t_ff, S_t_ff
 
     P_com = com_P
     S_com = com_S
@@ -381,12 +636,12 @@ contains
 
     implicit none
 
-    double precision, intent(in) :: P_com(3), S_com(3)
-    double precision, intent(in) :: P_vel(3), S_vel(3)
-    double precision, intent(in) :: P_mass, S_mass
-    double precision, intent(in) :: P_t_ff, S_t_ff
+    real(rt), intent(in) :: P_com(3), S_com(3)
+    real(rt), intent(in) :: P_vel(3), S_vel(3)
+    real(rt), intent(in) :: P_mass, S_mass
+    real(rt), intent(in) :: P_t_ff, S_t_ff
 
-    double precision :: r
+    real(rt) :: r
 
     r = ZERO
 
@@ -452,16 +707,17 @@ contains
     use binary_module, only: get_roche_radii
     use problem_io_module, only: ioproc
     use amrex_error_module, only: amrex_error
-    use fundamental_constants_module, only: Gconst, c_light
+    use fundamental_constants_module, only: Gconst, c_light, AU, M_solar
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO
 
     implicit none
 
-    double precision :: v_ff, collision_offset
-    double precision :: omega(3)
+    real(rt) :: v_ff, collision_offset
+    real(rt) :: omega(3)
 
     integer :: lev
 
-    double precision :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
+    real(rt) :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
 
     omega = get_omega(ZERO)
 
@@ -494,8 +750,8 @@ contains
 
     ! Allocate arrays to hold the stellar models.
 
-    call initialize_model(model_P, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
-    call initialize_model(model_S, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
+    call initialize_model(.true.,  initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
+    call initialize_model(.false., initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
 
     model_P % min_density = ambient_density
     model_S % min_density = ambient_density
@@ -525,7 +781,7 @@ contains
 
        model_P % central_density = central_density_P
 
-       call establish_hse(model_P)
+       call establish_hse(model_P, rho_P, T_P, xn_P, r_P)
 
        call set_wd_composition(model_P)
 
@@ -553,7 +809,7 @@ contains
 
           model_S % central_density = central_density_S
 
-          call establish_hse(model_S)
+          call establish_hse(model_S, rho_S, T_S, xn_S, r_S)
 
           call set_wd_composition(model_S)
 
@@ -579,7 +835,7 @@ contains
 
     ! Generate primary and secondary WD models.
 
-    call establish_hse(model_P)
+    call establish_hse(model_P, rho_P, T_P, xn_P, r_P)
 
     if (ioproc .and. init == 1) then
 
@@ -599,7 +855,7 @@ contains
 
     if (.not. single_star) then
 
-       call establish_hse(model_S)
+       call establish_hse(model_S, rho_S, T_S, xn_S, r_S)
 
        if (ioproc .and. init == 1) then
           write (*,1002) model_S % mass / M_solar, model_S % central_density, model_S % radius
@@ -824,14 +1080,14 @@ contains
 
     implicit none
 
-    double precision, intent(in   ) :: mass_1, mass_2, eccentricity, phi, radius_1, radius_2
-    double precision, intent(inout) :: period, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p
+    real(rt), intent(in   ) :: mass_1, mass_2, eccentricity, phi, radius_1, radius_2
+    real(rt), intent(inout) :: period, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p
 
-    double precision :: length
+    real(rt) :: length
 
-    double precision :: mu, M ! Reduced mass, total mass
-    double precision :: r     ! Position
-    double precision :: v_r, v_phi ! Radial and azimuthal velocity
+    real(rt) :: mu, M ! Reduced mass, total mass
+    real(rt) :: r     ! Position
+    real(rt) :: v_r, v_phi ! Radial and azimuthal velocity
 
     ! Definitions of total and reduced mass
 
@@ -932,8 +1188,8 @@ contains
 
     implicit none
 
-    double precision, intent(in   ) :: mass, distance
-    double precision, intent(inout) :: vel
+    real(rt), intent(in   ) :: mass, distance
+    real(rt), intent(inout) :: vel
 
     vel = (TWO * Gconst * mass / distance)**HALF
 
@@ -945,19 +1201,21 @@ contains
 
   subroutine fill_ambient(state, loc, time)
 
-    use amrex_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UTEMP, UEINT, UEDEN, UFS, do_rotation
     use network, only: nspec
     use rotation_frequency_module, only: get_omega
     use math_module, only: cross_product
+    use eos_type_module, only: eos_input_rt, eos_t
+    use eos_module, only: eos
 
     implicit none
 
-    double precision :: state(NVAR)
-    double precision :: loc(3), time
+    real(rt) :: state(NVAR)
+    real(rt) :: loc(3), time
 
     type (eos_t) :: ambient_state
-    double precision :: omega(3)
+    real(rt) :: omega(3)
 
     omega = get_omega(time)
 
@@ -994,16 +1252,18 @@ contains
   function inertial_rotation(vec, time) result(vec_i)
 
     use amrex_constants_module, only: ZERO
-    use rotation_frequency_module, only: get_omega
+    use rotation_frequency_module, only: get_omega ! function
     use meth_params_module, only: do_rotation, rot_period, rot_period_dot
 
     implicit none
 
-    double precision :: vec(3), time
+    real(rt), intent(in) :: vec(3), time
 
-    double precision :: vec_i(3)
+    real(rt) :: vec_i(3)
 
-    double precision :: omega(3), theta(3), rot_matrix(3,3)
+    real(rt) :: omega(3), theta(3), rot_matrix(3,3)
+
+    !$gpu
 
 
     ! To get the angle, we integrate omega over the time of the
@@ -1069,15 +1329,17 @@ contains
   function inertial_velocity(loc, vel, time) result (vel_i)
 
     use meth_params_module, only: do_rotation, state_in_rotating_frame
-    use rotation_frequency_module, only: get_omega
-    use math_module, only: cross_product
+    use rotation_frequency_module, only: get_omega ! function
+    use math_module, only: cross_product ! function
 
     implicit none
 
-    double precision :: loc(3), vel(3), time
-    double precision :: omega(3)
+    real(rt) :: loc(3), vel(3), time
+    real(rt) :: omega(3)
 
-    double precision :: vel_i(3)
+    real(rt) :: vel_i(3)
+
+    !$gpu
 
     omega = get_omega(time)
 
@@ -1097,8 +1359,8 @@ contains
 
     implicit none
 
-    double precision, intent(in   ) :: loc(3), vel(3), time
-    double precision, intent(inout) :: inertial_vel(3)
+    real(rt), intent(in   ) :: loc(3), vel(3), time
+    real(rt), intent(inout) :: inertial_vel(3)
 
     inertial_vel = inertial_velocity(loc, vel, time)
 
@@ -1121,15 +1383,15 @@ contains
 
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: s_lo(3), s_hi(3)
-    integer          :: p_lo(3), p_hi(3)
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    double precision :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-    double precision :: potential
-    integer          :: is_done
+    integer  :: lo(3), hi(3)
+    integer  :: s_lo(3), s_hi(3)
+    integer  :: p_lo(3), p_hi(3)
+    real(rt) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt) :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt) :: potential
+    integer  :: is_done
 
-    integer          :: i, j, k
+    integer  :: i, j, k
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -1157,12 +1419,13 @@ contains
 
   subroutine turn_off_relaxation(time) bind(C,name='turn_off_relaxation')
 
+    use amrex_constants_module, only: ONE
     use problem_io_module, only: ioproc
     use sponge_module, only: sponge_timescale
 
     implicit none
 
-    double precision :: time
+    real(rt) :: time
 
     relaxation_damping_factor = -ONE
     sponge_timescale = -ONE
@@ -1248,14 +1511,14 @@ contains
     integer :: pm_lo(3), pm_hi(3)
     integer :: sm_lo(3), sm_hi(3)
 
-    double precision :: force(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3), NVAR)
-    double precision :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3), NVAR)
-    double precision :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
-    double precision :: pmask(pm_lo(1):pm_hi(1),pm_lo(2):pm_hi(2),pm_lo(3):pm_hi(3))
-    double precision :: smask(sm_lo(1):sm_hi(1),sm_lo(2):sm_hi(2),sm_lo(3):sm_hi(3))
+    real(rt) :: force(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3), NVAR)
+    real(rt) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3), NVAR)
+    real(rt) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt) :: pmask(pm_lo(1):pm_hi(1),pm_lo(2):pm_hi(2),pm_lo(3):pm_hi(3))
+    real(rt) :: smask(sm_lo(1):sm_hi(1),sm_lo(2):sm_hi(2),sm_lo(3):sm_hi(3))
 
-    double precision :: fpx, fpy, fpz, fsx, fsy, fsz, dF(3)
-    double precision :: dt
+    real(rt) :: fpx, fpy, fpz, fsx, fsy, fsz, dF(3)
+    real(rt) :: dt
 
     integer :: i, j, k
 
@@ -1317,5 +1580,834 @@ contains
     enddo
 
   end subroutine sum_force_on_stars
+
+
+
+  ! Return the mass-weighted center of mass and velocity
+  ! for the primary and secondary, for a given FAB.
+  ! Since this will rely on a sum over processors,
+  ! we should only add to the relevant variables
+  ! in anticipation of a MPI reduction, and not
+  ! overwrite them. Note that ultimately what we
+  ! are doing here is to use an old guess at the
+  ! effective potential of the primary and secondary
+  ! to generate a new estimate.
+
+  subroutine wdcom(rho,  r_lo, r_hi, &
+                   xmom, px_lo, px_hi, &
+                   ymom, py_lo, py_hi, &
+                   zmom, pz_lo, pz_hi, &
+                   pmask, pm_lo, pm_hi, &
+                   smask, sm_lo, sm_hi, &
+                   vol,  vo_lo, vo_hi, &
+                   lo, hi, dx, time, &
+                   com_p_x, com_p_y, com_p_z, &
+                   com_s_x, com_s_y, com_s_z, &
+                   vel_p_x, vel_p_y, vel_p_z, &
+                   vel_s_x, vel_s_y, vel_s_z, &
+                   m_p, m_s) bind(C,name='wdcom')
+
+    use amrex_fort_module, only: amrex_add
+    use amrex_constants_module, only: HALF, ZERO, ONE, TWO
+    use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, Symmetry, coord_type
+    use castro_util_module, only: position ! function
+
+    implicit none
+
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: px_lo(3), px_hi(3)
+    integer,  intent(in   ) :: py_lo(3), py_hi(3)
+    integer,  intent(in   ) :: pz_lo(3), pz_hi(3)
+    integer,  intent(in   ) :: pm_lo(3), pm_hi(3)
+    integer,  intent(in   ) :: sm_lo(3), sm_hi(3)
+    integer,  intent(in   ) :: vo_lo(3), vo_hi(3)
+
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: xmom(px_lo(1):px_hi(1),px_lo(2):px_hi(2),px_lo(3):px_hi(3))
+    real(rt), intent(in   ) :: ymom(py_lo(1):py_hi(1),py_lo(2):py_hi(2),py_lo(3):py_hi(3))
+    real(rt), intent(in   ) :: zmom(pz_lo(1):pz_hi(1),pz_lo(2):pz_hi(2),pz_lo(3):pz_hi(3))
+    real(rt), intent(in   ) :: pmask(pm_lo(1):pm_hi(1),pm_lo(2):pm_hi(2),pm_lo(3):pm_hi(3))
+    real(rt), intent(in   ) :: smask(sm_lo(1):sm_hi(1),sm_lo(2):sm_hi(2),sm_lo(3):sm_hi(3))
+    real(rt), intent(in   ) :: vol(vo_lo(1):vo_hi(1),vo_lo(2):vo_hi(2),vo_lo(3):vo_hi(3))
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(inout) :: com_p_x, com_p_y, com_p_z
+    real(rt), intent(inout) :: com_s_x, com_s_y, com_s_z
+    real(rt), intent(inout) :: vel_p_x, vel_p_y, vel_p_z
+    real(rt), intent(inout) :: vel_s_x, vel_s_y, vel_s_z
+    real(rt), intent(inout) :: m_p, m_s
+    real(rt), intent(in   ), value :: time
+
+    integer  :: i, j, k
+    real(rt) :: r(3), rSymmetric(3), dm, dmSymmetric, momSymmetric(3)
+
+    !$gpu
+
+    ! Add to the COM locations and velocities of the primary and secondary
+    ! depending on which potential dominates, ignoring unbound material.
+    ! Note that in this routine we actually are
+    ! summing mass-weighted quantities for the COM and the velocity; 
+    ! we will account for this at the end of the calculation in 
+    ! post_timestep() by dividing by the mass.
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! Our convention is that the COM locations for the WDs are 
+             ! absolute positions on the grid, not relative to the center.
+
+             r = position(i,j,k)
+
+             ! We account for symmetric boundaries in this sum as usual,
+             ! by adding to the position the locations that would exist
+             ! on the opposite side of the symmetric boundary. Note that
+             ! in axisymmetric coordinates, some of this work is already
+             ! done for us in the definition of the zone volume.
+
+             rSymmetric = r
+             rSymmetric = merge(rSymmetric + (problo - rSymmetric), rSymmetric, physbc_lo(:) .eq. Symmetry)
+             rSymmetric = merge(rSymmetric + (rSymmetric - probhi), rSymmetric, physbc_hi(:) .eq. Symmetry)
+
+             dm = rho(i,j,k) * vol(i,j,k)
+
+             dmSymmetric = dm
+             momSymmetric(1) = xmom(i,j,k)
+             momSymmetric(2) = ymom(i,j,k)
+             momSymmetric(3) = zmom(i,j,k)
+
+             if (coord_type .eq. 0) then
+
+                if (physbc_lo(1) .eq. Symmetry) then
+                   dmSymmetric = TWO * dmSymmetric
+                   momSymmetric = TWO * momSymmetric
+                end if
+
+                if (physbc_lo(2) .eq. Symmetry) then
+                   dmSymmetric = TWO * dmSymmetric
+                   momSymmetric = TWO * momSymmetric
+                end if
+
+                if (physbc_lo(3) .eq. Symmetry) then
+                   dmSymmetric = TWO * dmSymmetric
+                   momSymmetric = TWO * momSymmetric
+                end if
+
+             end if
+
+             if (pmask(i,j,k) > ZERO) then
+
+                call amrex_add(m_p, dmSymmetric)
+
+                call amrex_add(com_p_x, dmSymmetric * rSymmetric(1))
+                call amrex_add(com_p_y, dmSymmetric * rSymmetric(2))
+                call amrex_add(com_p_z, dmSymmetric * rSymmetric(3))
+
+                call amrex_add(vel_p_x, momSymmetric(1) * vol(i,j,k))
+                call amrex_add(vel_p_y, momSymmetric(2) * vol(i,j,k))
+                call amrex_add(vel_p_z, momSymmetric(3) * vol(i,j,k))
+
+             else if (smask(i,j,k) > ZERO) then
+
+                call amrex_add(m_s, dmSymmetric)
+
+                call amrex_add(com_s_x, dmSymmetric * rSymmetric(1))
+                call amrex_add(com_s_y, dmSymmetric * rSymmetric(2))
+                call amrex_add(com_s_z, dmSymmetric * rSymmetric(3))
+
+                call amrex_add(vel_s_x, momSymmetric(1) * vol(i,j,k))
+                call amrex_add(vel_s_y, momSymmetric(2) * vol(i,j,k))
+                call amrex_add(vel_s_z, momSymmetric(3) * vol(i,j,k))
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine wdcom
+
+
+
+  ! This function uses the known center of mass of the two white dwarfs,
+  ! and given a density cutoff, computes the total volume of all zones
+  ! whose density is greater or equal to that density cutoff.
+  ! We also impose a distance requirement so that we only look
+  ! at zones within the Roche lobe of the white dwarf.
+
+  subroutine ca_volumeindensityboundary(rho, r_lo, r_hi, &
+                                        pmask, pm_lo, pm_hi, &
+                                        smask, sm_lo, sm_hi, &
+                                        vol, v_lo, v_hi, &
+                                        lo, hi, dx, &
+                                        volp, vols, rho_cutoff) &
+                                        bind(C, name='ca_volumeindensityboundary')
+
+    use amrex_constants_module, only: ZERO
+    use amrex_fort_module, only: amrex_add
+
+    implicit none
+
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: pm_lo(3), pm_hi(3)
+    integer,  intent(in   ) :: sm_lo(3), sm_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: pmask(pm_lo(1):pm_hi(1),pm_lo(2):pm_hi(2),pm_lo(3):pm_hi(3))
+    real(rt), intent(in   ) :: smask(sm_lo(1):sm_hi(1),sm_lo(2):sm_hi(2),sm_lo(3):sm_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(inout) :: volp, vols
+    real(rt), intent(in   ), value :: rho_cutoff
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (rho(i,j,k) > rho_cutoff) then
+
+                if (pmask(i,j,k) > ZERO) then
+
+                   call amrex_add(volp, vol(i,j,k))
+
+                else if (smask(i,j,k) > ZERO) then
+
+                   call amrex_add(vols, vol(i,j,k))
+
+                endif
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_volumeindensityboundary
+
+
+
+  ! Calculate the second time derivative of the quadrupole moment tensor,
+  ! according to the formula in Equation 6.5 of Blanchet, Damour and Schafer 1990.
+  ! It involves integrating the mass distribution and then taking the symmetric 
+  ! trace-free part of the tensor. We can do the latter operation here since the 
+  ! integral is a linear operator and each part of the domain contributes independently.
+
+  subroutine quadrupole_tensor_double_dot(rho, r_lo, r_hi, &
+                                          xmom, px_lo, px_hi, ymom, py_lo, py_hi, zmom, pz_lo, pz_hi, &
+                                          gravx, gx_lo, gx_hi, gravy, gy_lo, gy_hi, gravz, gz_lo, gz_hi, &
+                                          vol, vo_lo, vo_hi, &
+                                          lo, hi, dx, time, Qtt) bind(C,name='quadrupole_tensor_double_dot')
+
+    use amrex_fort_module, only: amrex_add
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
+    use prob_params_module, only: center, dim
+    use castro_util_module, only: position ! function
+
+    implicit none
+
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: px_lo(3), px_hi(3)
+    integer,  intent(in   ) :: py_lo(3), py_hi(3)
+    integer,  intent(in   ) :: pz_lo(3), pz_hi(3)
+    integer,  intent(in   ) :: gx_lo(3), gx_hi(3)
+    integer,  intent(in   ) :: gy_lo(3), gy_hi(3)
+    integer,  intent(in   ) :: gz_lo(3), gz_hi(3)
+    integer,  intent(in   ) :: vo_lo(3), vo_hi(3)
+
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: xmom(px_lo(1):px_hi(1),px_lo(2):px_hi(2),px_lo(3):px_hi(3))
+    real(rt), intent(in   ) :: ymom(py_lo(1):py_hi(1),py_lo(2):py_hi(2),py_lo(3):py_hi(3))
+    real(rt), intent(in   ) :: zmom(pz_lo(1):pz_hi(1),pz_lo(2):pz_hi(2),pz_lo(3):pz_hi(3))
+    real(rt), intent(in   ) :: gravx(gx_lo(1):gx_hi(1),gx_lo(2):gx_hi(2),gx_lo(3):gx_hi(3))
+    real(rt), intent(in   ) :: gravy(gy_lo(1):gy_hi(1),gy_lo(2):gy_hi(2),gy_lo(3):gy_hi(3))
+    real(rt), intent(in   ) :: gravz(gz_lo(1):gz_hi(1),gz_lo(2):gz_hi(2),gz_lo(3):gz_hi(3))
+    real(rt), intent(in   ) :: vol(vo_lo(1):vo_hi(1),vo_lo(2):vo_hi(2),vo_lo(3):vo_hi(3))
+    integer,  intent(in   ) :: lo(3), hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: time
+    real(rt), intent(inout) :: Qtt(3,3)
+
+    integer  :: i, j, k, l, m
+    real(rt) :: r(3), pos(3), vel(3), g(3), rhoInv, dm
+    real(rt) :: dQtt(3,3), dQ
+
+    !$gpu
+
+    dQtt(:,:) = ZERO
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             r = position(i,j,k) - center
+
+             if (rho(i,j,k) > ZERO) then
+                rhoInv = ONE / rho(i,j,k)
+             else
+                rhoInv = ZERO
+             endif
+
+             ! Account for rotation, if there is any. These will leave
+             ! r and vel and changed, if not.
+
+             pos = inertial_rotation(r, time)
+
+             ! For constructing the velocity in the inertial frame, we need to
+             ! account for the fact that we have rotated the system already, so that 
+             ! the r in omega x r is actually the position in the inertial frame, and 
+             ! not the usual position in the rotating frame. It has to be on physical 
+             ! grounds, because for binary orbits where the stars aren't moving, that 
+             ! r never changes, and so the contribution from rotation would never change.
+             ! But it must, since the motion vector of the stars changes in the inertial 
+             ! frame depending on where we are in the orbit.
+
+             vel(1) = xmom(i,j,k) * rhoInv
+             vel(2) = ymom(i,j,k) * rhoInv
+             vel(3) = zmom(i,j,k) * rhoInv
+
+             vel = inertial_velocity(pos, vel, time)
+
+             g(1) = gravx(i,j,k)
+             g(2) = gravy(i,j,k)
+             g(3) = gravz(i,j,k)
+
+             ! We need to rotate the gravitational field to be consistent with the rotated position.
+
+             g = inertial_rotation(g, time)
+
+             ! Absorb the factor of 2 outside the integral into the zone mass, for efficiency.
+
+             dm = TWO * rho(i,j,k) * vol(i,j,k)
+
+             if (dim .eq. 3) then
+
+                do m = 1, 3
+                   do l = 1, 3
+                      dQtt(l,m) = dQtt(l,m) + dM * (vel(l) * vel(m) + pos(l) * g(m))
+                   enddo
+                enddo
+
+             else
+
+                ! For axisymmetric coordinates we need to be careful here.
+                ! We want to calculate the quadrupole tensor in terms of
+                ! Cartesian coordinates but our coordinates are cylindrical (R, z).
+                ! What we can do is to first express the Cartesian coordinates
+                ! as (x, y, z) = (R cos(phi), R sin(phi), z). Then we can integrate
+                ! out the phi coordinate for each component. The off-diagonal components
+                ! all then vanish automatically. The on-diagonal components xx and yy
+                ! pick up a factor of cos**2(phi) which when integrated from (0, 2*pi)
+                ! yields pi. Note that we're going to choose that the cylindrical z axis
+                ! coincides with the Cartesian x-axis, which is our default choice.
+
+                ! We also need to then divide by the volume by 2*pi since
+                ! it has already been integrated out.
+
+                dm = dm / (TWO * M_PI)
+
+                dQtt(1,1) = dQtt(1,1) + dm * (TWO * M_PI) * (vel(2)**2 + pos(2) * g(2))
+                dQtt(2,2) = dQtt(2,2) + dm * M_PI * (vel(1)**2 + pos(1) * g(1))
+                dQtt(3,3) = dQtt(3,3) + dm * M_PI * (vel(1)**2 + pos(1) * g(1))
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+    ! Now take the symmetric trace-free part of the quadrupole moment.
+    ! The operator is defined in Equation 6.7 of Blanchet et al. (1990):
+    ! STF(A^{ij}) = 1/2 A^{ij} + 1/2 A^{ji} - 1/3 delta^{ij} sum_{k} A^{kk}.
+
+    do l = 1, 3
+       do m = 1, 3
+
+          dQ = HALF * dQtt(l,m) + HALF * dQtt(m,l)
+          if (l == m) then
+             dQ = dQ - THIRD * dQtt(m,m)
+          end if
+
+          call amrex_add(Qtt(l,m), dQ)
+
+       enddo
+    enddo
+
+  end subroutine quadrupole_tensor_double_dot
+
+
+
+  ! Determine the critical Roche potential at the Lagrange point L1.
+  ! We will use a tri-linear interpolation that gets a contribution
+  ! from all the zone centers that bracket the Lagrange point.
+
+  subroutine get_critical_roche_potential(phiEff,p_lo,p_hi,lo,hi,L1,potential) &
+                                          bind(C,name='get_critical_roche_potential')
+
+    use amrex_constants_module, only: ZERO, HALF, ONE
+    use castro_util_module, only: position
+    use prob_params_module, only: dim, dx_level
+    use amrinfo_module, only: amr_level
+
+    implicit none
+
+    integer  :: lo(3), hi(3)
+    integer  :: p_lo(3), p_hi(3)
+    real(rt) :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt) :: L1(3), potential
+
+    real(rt) :: r(3), dx(3)
+    integer  :: i, j, k
+
+    dx = dx_level(:,amr_level)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             r = position(i,j,k) - L1
+
+             ! Scale r by dx (in dimensions we're actually simulating).
+
+             r(1:dim) = r(1:dim) / dx(1:dim)
+             r(dim+1:3) = ZERO
+
+             ! We want a contribution from this zone if it is
+             ! less than one zone width away from the Lagrange point.
+
+             if (sum(r**2) < ONE) then
+
+                potential = potential + product(ONE - abs(r)) * phiEff(i,j,k)
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine get_critical_roche_potential
+
+
+
+  ! Given state data in the rotating frame, transform it to the inertial frame.
+
+  subroutine transform_to_inertial_frame(state, s_lo, s_hi, lo, hi, time) &
+                                         bind(C,name='transform_to_inertial_frame')
+
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ
+    use castro_util_module, only: position
+
+    implicit none
+
+    integer  :: lo(3), hi(3)
+    integer  :: s_lo(3), s_hi(3)
+    real(rt) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt) :: time
+
+    real(rt) :: loc(3), vel(3)
+    integer  :: i, j, k
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             loc = position(i,j,k)
+             vel = state(i,j,k,UMX:UMZ) / state(i,j,k,URHO)
+
+             state(i,j,k,UMX:UMZ) = state(i,j,k,URHO) * inertial_velocity(loc, vel, time)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine transform_to_inertial_frame
+
+
+
+  ! Given the above quadrupole tensor, calculate the strain tensor.
+
+  subroutine gw_strain_tensor(h_plus_1, h_cross_1, h_plus_2, h_cross_2, h_plus_3, h_cross_3, Qtt, time) &
+                              bind(C,name='gw_strain_tensor')
+
+    use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+    use fundamental_constants_module, only: Gconst, c_light, parsec
+    use probdata_module, only: gw_dist, axis_1, axis_2, axis_3
+    use prob_params_module, only: dim
+
+    implicit none
+
+    real(rt), intent(inout) :: h_plus_1, h_cross_1, h_plus_2, h_cross_2, h_plus_3, h_cross_3
+    real(rt), intent(in   ) :: Qtt(3,3)
+    real(rt), intent(in   ) :: time
+
+    integer  :: i, j, k, l, dir
+    real(rt) :: h(3,3), proj(3,3,3,3), delta(3,3), n(3), r
+    real(rt) :: dist(3)
+
+    ! Standard Kronecker delta.
+
+    delta(:,:) = ZERO
+
+    do i = 1, 3
+       delta(i,i) = ONE
+    enddo
+
+    ! Unit vector for the wave is simply the distance
+    ! vector to the observer normalized by the total distance.
+    ! We are going to repeat this process by looking along
+    ! all three coordinate axes.
+
+    do dir = 1, 3
+
+       dist(:) = ZERO
+       dist(dir) = gw_dist
+
+       r = sqrt(sum(dist**2))
+
+       n(:) = dist(:) / r
+
+       h = ZERO
+
+       ! Projection operator onto the unit vector n.
+
+       do l = 1, 3
+          do k = 1, 3
+             do j = 1, 3
+                do i = 1, 3
+                   proj(i,j,k,l) = (delta(i,k) - n(i) * n(k)) * (delta(j,l) - n(j) * n(l)) &
+                                 - HALF * (delta(i,j) - n(i) * n(j)) * (delta(k,l) - n(k) * n(l))
+                enddo
+             enddo
+          enddo
+       enddo
+
+       ! Now we can calculate the strain tensor.
+
+       do l = 1, 3
+          do k = 1, 3
+             do j = 1, 3
+                do i = 1, 3
+                   h(i,j) = h(i,j) + proj(i,j,k,l) * Qtt(k,l)
+                enddo
+             enddo
+          enddo
+       enddo
+
+       ! Finally multiply by the coefficients.
+
+       r = r * parsec * 1d3 ! Convert from kpc to cm.
+
+       h(:,:) = h(:,:) * TWO * Gconst / (c_light**4 * r)
+
+       if (dim .eq. 3) then
+
+          ! If rot_axis == 3, then h_+ = h_{11} = -h_{22} and h_x = h_{12} = h_{21}.
+          ! Analogous statements hold along the other axes.
+
+          ! We are adding here so that this calculation makes sense on multiple levels.
+
+          if (dir .eq. axis_1) then
+
+             h_plus_1  = h_plus_1  + h(axis_2,axis_2)
+             h_cross_1 = h_cross_1 + h(axis_2,axis_3)
+
+          else if (dir .eq. axis_2) then
+
+             h_plus_2  = h_plus_2  + h(axis_3,axis_3)
+             h_cross_2 = h_cross_2 + h(axis_3,axis_1)
+
+          else if (dir .eq. axis_3) then
+
+             h_plus_3  = h_plus_3  + h(axis_1,axis_1)
+             h_cross_3 = h_cross_3 + h(axis_1,axis_2)
+
+          endif
+
+       else
+
+          ! In 2D axisymmetric coordinates, enforce that axis_1 is the x-axis,
+          ! axis_2 is the y-axis, and axis_3 is the z-axis.
+
+          if (dir .eq. 1) then
+
+             h_plus_1  = h_plus_1  + h(2,2)
+             h_cross_1 = h_cross_1 + h(2,3)
+
+          else if (dir .eq. 2) then
+
+             h_plus_2  = h_plus_2  + h(3,3)
+             h_cross_2 = h_cross_2 + h(3,1)
+
+          else if (dir .eq. 3) then
+
+             h_plus_3  = h_plus_3  + h(1,1)
+             h_cross_3 = h_cross_3 + h(1,2)
+
+          endif
+
+       endif
+
+    enddo
+
+  end subroutine gw_strain_tensor
+
+
+
+  subroutine update_center(time) bind(C,name='update_center')
+
+    use amrex_constants_module, only: ZERO
+    use amrex_error_module, only: amrex_error
+    use probdata_module, only: bulk_velx, bulk_vely, bulk_velz, &
+                               center_fracx, center_fracy, center_fracz
+    use prob_params_module, only: center, problo, probhi, dim
+
+    implicit none
+
+    real(rt), intent(in) :: time
+
+    ! Determine the original location of the center.
+
+    if (dim .eq. 3) then
+
+       center(1) = problo(1) + center_fracx * (probhi(1) - problo(1))
+       center(2) = problo(2) + center_fracy * (probhi(2) - problo(2))
+       center(3) = problo(3) + center_fracz * (probhi(3) - problo(3))
+
+    else if (dim .eq. 2) then
+
+       center(1) = problo(1)
+       center(2) = problo(2) + center_fracz * (probhi(2) - problo(2))
+       center(3) = ZERO
+
+    else if (dim .eq. 1) then
+
+       center(1) = problo(1) + center_fracx * (probhi(1) - problo(1))
+       center(2) = ZERO
+       center(3) = ZERO
+
+    else
+
+       call amrex_error("Error: unknown dim in subroutine update_center.")
+
+    endif
+
+    ! Now update using the time passed since the beginning of the simulation.
+
+    center(1) = center(1) + bulk_velx * time
+    center(2) = center(2) + bulk_vely * time
+    center(3) = center(3) + bulk_velz * time
+
+  end subroutine update_center
+
+
+
+  ! Updates the CASTRO rotational period.
+
+  subroutine set_period(period) bind(C,name='set_period')
+
+    use meth_params_module, only: rot_period
+
+    implicit none
+
+    real(rt) :: period
+
+    rot_period = period
+
+  end subroutine set_period
+
+
+
+  ! Returns the CASTRO rotational period.
+
+  subroutine get_period(period) bind(C,name='get_period')
+
+    use meth_params_module, only: rot_period
+
+    implicit none
+
+    real(rt) :: period
+
+    period = rot_period
+
+  end subroutine get_period
+
+
+
+  ! Returns the CASTRO rotation frequency vector.
+
+  subroutine get_omega_vec(omega_in, time) bind(C,name='get_omega_vec')
+
+    use rotation_frequency_module, only: get_omega
+
+    implicit none
+
+    real(rt), intent(inout) :: omega_in(3)
+    real(rt), intent(in   ), value :: time
+
+    omega_in = get_omega(time)
+
+  end subroutine get_omega_vec
+
+
+
+  ! Updates the global extrema.
+
+  subroutine set_extrema(T_max, rho_max, ts_te_max) bind(C,name='set_extrema')
+
+    use probdata_module, only: T_global_max, rho_global_max, ts_te_global_max
+
+    implicit none
+
+    real(rt), intent(in) :: T_max, rho_max, ts_te_max
+
+    T_global_max     = T_max
+    rho_global_max   = rho_max
+    ts_te_global_max = ts_te_max
+
+  end subroutine set_extrema
+
+
+
+  ! Retrieves the global extrema.
+
+  subroutine get_extrema(T_max, rho_max, ts_te_max) bind(C,name='get_extrema')
+
+    use probdata_module, only: T_global_max, rho_global_max, ts_te_global_max
+
+    implicit none
+
+    real(rt), intent(inout) :: T_max, rho_max, ts_te_max
+
+    T_max     = T_global_max
+    rho_max   = rho_global_max
+    ts_te_max = ts_te_global_max
+
+  end subroutine get_extrema
+
+
+
+  ! Returns whether the simulation is done.
+
+  subroutine get_job_status(jobDoneStatus) bind(C,name='get_job_status')
+
+    use probdata_module, only: jobIsDone
+
+    implicit none
+
+    integer, intent(inout) :: jobDoneStatus
+
+    if (jobIsDone) then
+       jobDoneStatus = 1
+    else
+       jobDoneStatus = 0
+    endif
+
+  end subroutine get_job_status
+
+
+
+  ! Sets whether the simulation is done.
+
+  subroutine set_job_status(jobDoneStatus) bind(C,name='set_job_status')
+
+    use probdata_module, only: jobIsDone
+
+    implicit none
+
+    integer, intent(in) :: jobDoneStatus
+
+    if (jobDoneStatus == 1) then
+       jobIsDone = .true.
+    else
+       jobIsDone = .false.
+    endif
+
+  end subroutine set_job_status
+
+
+
+  ! Get the relaxation_cutoff_time parameter.
+
+  subroutine get_relaxation_cutoff_time(relaxation_cutoff_time_in) bind(C,name='get_relaxation_cutoff_time')
+
+    use amrex_fort_module, only: rt => amrex_real
+    use probdata_module, only: relaxation_cutoff_time
+
+    implicit none
+
+    real(rt), intent(inout) :: relaxation_cutoff_time_in
+
+    relaxation_cutoff_time_in = relaxation_cutoff_time
+
+  end subroutine get_relaxation_cutoff_time
+
+
+
+  ! Gets whether the relaxation is done.
+
+  subroutine get_relaxation_status(relaxation_status) bind(C,name='get_relaxation_status')
+
+    use probdata_module, only: relaxation_is_done
+
+    implicit none
+
+    integer, intent(inout) :: relaxation_status
+
+    relaxation_status = relaxation_is_done
+
+  end subroutine get_relaxation_status
+
+
+
+  ! Sets whether the relaxation is done.
+
+  subroutine set_relaxation_status(relaxation_status) bind(C,name='set_relaxation_status')
+
+    use probdata_module, only: relaxation_is_done
+
+    implicit none
+
+    integer, intent(in) :: relaxation_status
+
+    relaxation_is_done = relaxation_status
+
+  end subroutine set_relaxation_status
+
+
+
+  ! Retrieve the total energy array.
+
+  subroutine get_total_ener_array(ener_array_in) bind(C,name='get_total_ener_array')
+
+    use probdata_module, only: num_previous_ener_timesteps, total_ener_array
+
+    implicit none
+
+    real(rt), intent(inout) :: ener_array_in(num_previous_ener_timesteps)
+
+    ener_array_in(:) = total_ener_array(:)
+
+  end subroutine get_total_ener_array
+
+
+
+  ! Set the total energy array.
+
+  subroutine set_total_ener_array(ener_array_in) bind(C,name='set_total_ener_array')
+
+    use probdata_module, only: num_previous_ener_timesteps, total_ener_array
+
+    implicit none
+
+    real(rt), intent(in) :: ener_array_in(num_previous_ener_timesteps)
+
+    total_ener_array(:) = ener_array_in(:)
+
+  end subroutine set_total_ener_array
 
 end module wdmerger_util_module

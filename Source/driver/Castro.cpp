@@ -1054,13 +1054,6 @@ Castro::initData ()
   	   gridloc.lo(), gridloc.hi());
 
 #endif
-
-	  // Generate the initial hybrid momenta based on this user data.
-
-#ifdef HYBRID_MOMENTUM
-	  ca_init_hybrid_momentum(lo, hi, BL_TO_FORTRAN_ANYD(S_new[mfi]));
-#endif
-
        }
 
 #ifdef AMREX_USE_CUDA
@@ -1069,6 +1062,19 @@ Castro::initData ()
            S_new.prefetchToDevice(mfi);
        }
 #endif
+#endif
+
+#ifdef HYBRID_MOMENTUM
+       // Generate the initial hybrid momenta based on this user data.
+
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+           const Box& box = mfi.validbox();
+           const int* lo  = box.loVect();
+           const int* hi  = box.hiVect();
+
+#pragma gpu
+           ca_init_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
+       }
 #endif
 
        // Verify that the sum of (rho X)_i = rho at every cell

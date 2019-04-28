@@ -5,133 +5,101 @@ extern "C"
 {
 #endif
 
-  void ca_derinertialmomentumx(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-			       const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			       const int* lo, const int* hi,
-			       const int* domain_lo, const int* domain_hi,
-			       const amrex::Real* delta, const amrex::Real* xlo,
-			       const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-			       const int* level, const int* grid_no);
+  void derinertialmomentumx(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                            const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                            const int* lo, const int* hi,
+                            const int* domain_lo, const int* domain_hi,
+                            const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derinertialmomentumy(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-			       const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			       const int* lo, const int* hi,
-			       const int* domain_lo, const int* domain_hi,
-			       const amrex::Real* delta, const amrex::Real* xlo,
-			       const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-			       const int* level, const int* grid_no);
+  void derinertialmomentumy(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                            const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                            const int* lo, const int* hi,
+                            const int* domain_lo, const int* domain_hi,
+                            const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derinertialmomentumz(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-			       const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			       const int* lo, const int* hi,
-			       const int* domain_lo, const int* domain_hi,
-			       const amrex::Real* delta, const amrex::Real* xlo,
-			       const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-			       const int* level, const int* grid_no);
+  void derinertialmomentumz(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                            const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                            const int* lo, const int* hi,
+                            const int* domain_lo, const int* domain_hi,
+                            const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derinertialangmomx(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-			     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			     const int* lo, const int* hi,
-			     const int* domain_lo, const int* domain_hi,
-			     const amrex::Real* delta, const amrex::Real* xlo,
-			     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-			     const int* level, const int* grid_no);
+  void derinertialangmomx(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                          const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                          const int* lo, const int* hi,
+                          const int* domain_lo, const int* domain_hi,
+                          const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derinertialangmomy(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-			     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			     const int* lo, const int* hi,
-			     const int* domain_lo, const int* domain_hi,
-			     const amrex::Real* delta, const amrex::Real* xlo,
-			     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-			     const int* level, const int* grid_no);
+  void derinertialangmomy(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                          const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                          const int* lo, const int* hi,
+                          const int* domain_lo, const int* domain_hi,
+                          const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derinertialangmomz(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-			     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			     const int* lo, const int* hi,
-			     const int* domain_lo, const int* domain_hi,
-			     const amrex::Real* delta, const amrex::Real* xlo,
-			     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-			     const int* level, const int* grid_no);
+  void derinertialangmomz(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                          const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                          const int* lo, const int* hi,
+                          const int* domain_lo, const int* domain_hi,
+                          const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derinertialradmomx(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-			     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			     const int* lo, const int* hi,
-			     const int* domain_lo, const int* domain_hi,
-			     const amrex::Real* delta, const amrex::Real* xlo,
-			     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-			     const int* level, const int* grid_no);
+  void derinertialradmomx(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                          const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                          const int* lo, const int* hi,
+                          const int* domain_lo, const int* domain_hi,
+                          const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derinertialradmomy(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-			     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			     const int* lo, const int* hi,
-			     const int* domain_lo, const int* domain_hi,
-			     const amrex::Real* delta, const amrex::Real* xlo,
-			     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-			     const int* level, const int* grid_no);
+  void derinertialradmomy(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                          const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                          const int* lo, const int* hi,
+                          const int* domain_lo, const int* domain_hi,
+                          const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derinertialradmomz(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-			     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			     const int* lo, const int* hi,
-			     const int* domain_lo, const int* domain_hi,
-			     const amrex::Real* delta, const amrex::Real* xlo,
-			     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-			     const int* level, const int* grid_no);
+  void derinertialradmomz(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                          const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                          const int* lo, const int* hi,
+                          const int* domain_lo, const int* domain_hi,
+                          const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derphieff(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-		    const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-		    const int* lo, const int* hi,
-		    const int* domain_lo, const int* domain_hi,
-		    const amrex::Real* delta, const amrex::Real* xlo,
-		    const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
-		    const int* level, const int* grid_no);
+  void derphieff(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                 const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                 const int* lo, const int* hi,
+                 const int* domain_lo, const int* domain_hi,
+                 const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derphieffpm_p(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-                        const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			const int* lo, const int* hi,
-			const int* domain_lo, const int* domain_hi,
-			const amrex::Real* delta, const amrex::Real* xlo,
-			const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
-			const int* level, const int* grid_no);
+  void derphieffpm_p(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                     const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                     const int* lo, const int* hi,
+                     const int* domain_lo, const int* domain_hi,
+                     const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derphieffpm_s(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-                        const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			const int* lo, const int* hi,
-			const int* domain_lo, const int* domain_hi,
-			const amrex::Real* delta, const amrex::Real* xlo,
-			const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
-			const int* level, const int* grid_no);
+  void derphieffpm_s(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                     const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                     const int* lo, const int* hi,
+                     const int* domain_lo, const int* domain_hi,
+                     const amrex::Real* dx, const amrex::Real time);
 
-  void ca_derrhophiGrav(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-                        const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
+  void derrhophiGrav(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                     const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                     const int* lo, const int* hi,
+                     const int* domain_lo, const int* domain_hi,
+                     const amrex::Real* dx, const amrex::Real time);
+
+  void derrhophiRot(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                    const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                    const int* lo, const int* hi,
+                    const int* domain_lo, const int* domain_hi,
+                    const amrex::Real* dx, const amrex::Real time);
+
+  void derprimarymask(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                      const BL_FORT_FAB_ARG_3D(data), const int ncomp,
+                      const int* lo, const int* hi,
+                      const int* domain_lo, const int* domain_hi,
+                      const amrex::Real* dx, const amrex::Real time);
+
+  void dersecondarymask(BL_FORT_FAB_ARG_3D(der), const int nvar,
+                        const BL_FORT_FAB_ARG_3D(data), const int ncomp,
                         const int* lo, const int* hi,
                         const int* domain_lo, const int* domain_hi,
-                        const amrex::Real* delta, const amrex::Real* xlo,
-                        const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
-                        const int* level, const int* grid_no);
-
-  void ca_derrhophiRot(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-                       const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-                       const int* lo, const int* hi,
-                       const int* domain_lo, const int* domain_hi,
-                       const amrex::Real* delta, const amrex::Real* xlo,
-                       const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
-                       const int* level, const int* grid_no);
-
-  void ca_derprimarymask(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-                         const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			 const int* lo, const int* hi,
-			 const int* domain_lo, const int* domain_hi,
-			 const amrex::Real* delta, const amrex::Real* xlo,
-			 const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
-			 const int* level, const int* grid_no);
-
-  void ca_dersecondarymask(BL_FORT_FAB_ARG_3D(der),const int* nvar,
-			   const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-			   const int* lo, const int* hi,
-			   const int* domain_lo, const int* domain_hi,
-			   const amrex::Real* delta, const amrex::Real* xlo,
-			   const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
-			   const int* level, const int* grid_no);
+                        const amrex::Real* dx, const amrex::Real time);
 
 #ifdef __cplusplus
 }
