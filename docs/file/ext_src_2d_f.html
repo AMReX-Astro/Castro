@@ -237,7 +237,7 @@
 <p>This is also used in the first pass of the conservative update
 (adding dt * S there).</p>
 <p>Next we correct the source terms in the conservative update to
-:p real time [in]: center them.  Here we call ext_src(old, new), and then
+:p real time [in,value]: center them.  Here we call ext_src(old, new), and then
 in time_center_source_terms we subtract off 1/2 of the first S
 and add 1/2 of the new S.</p>
 <p>Therefore, to get a properly time-centered source, generally
@@ -257,12 +257,12 @@ second call.</p>
 <li><strong>new_state</strong> (ns_hi(1)-(ns_lo(1))+1,ns_hi(2)-(ns_lo(2))+1,ns_hi(3)-(ns_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>ns_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>ns_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>src</strong> (src_hi(1)-(src_lo(1))+1,src_hi(2)-(src_lo(2))+1,src_hi(3)-(src_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>src</strong> (src_hi(1)-(src_lo(1))+1,src_hi(2)-(src_lo(2))+1,src_hi(3)-(src_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>src_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>src_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>problo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
 </ul>
 </td>
 </tr>
