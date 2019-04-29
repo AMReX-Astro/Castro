@@ -248,6 +248,7 @@ contains
 
              if (fluff) then
                 rho(i) = model % min_density
+                model % state(i) % rho = model % min_density
                 exit
              endif
 
