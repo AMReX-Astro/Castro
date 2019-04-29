@@ -202,7 +202,7 @@ Castro::wd_update (Real time, Real dt)
 	  const int* lo   = box.loVect();
 	  const int* hi   = box.hiVect();
 
-#pragma gpu box
+#pragma gpu box(box)
 	  wdcom(BL_TO_FORTRAN_ANYD(fabrho),
 		BL_TO_FORTRAN_ANYD(fabxmom),
 		BL_TO_FORTRAN_ANYD(fabymom),
@@ -405,7 +405,7 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 	  const int* lo   = box.loVect();
 	  const int* hi   = box.hiVect();
 
-#pragma gpu box
+#pragma gpu box(box)
 	  ca_volumeindensityboundary(BL_TO_FORTRAN_ANYD(fab),
 		                     BL_TO_FORTRAN_ANYD(fabpmask),
 				     BL_TO_FORTRAN_ANYD(fabsmask),
@@ -509,7 +509,7 @@ Castro::gwstrain (Real time,
 	    const int* lo   = box.loVect();
 	    const int* hi   = box.hiVect();
 
-#pragma gpu box
+#pragma gpu box(box)
 	    quadrupole_tensor_double_dot(BL_TO_FORTRAN_ANYD((*mfrho)[mfi]),
 					 BL_TO_FORTRAN_ANYD((*mfxmom)[mfi]),
 					 BL_TO_FORTRAN_ANYD((*mfymom)[mfi]),

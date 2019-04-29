@@ -1575,7 +1575,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 	    {
 	        const Box& bx = mfi.tilebox();
 
-#pragma gpu bx
+#pragma gpu box(bx)
 		ca_compute_multipole_moments(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		                             AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
 					     AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(source[mfi]),

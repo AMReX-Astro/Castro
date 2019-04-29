@@ -1262,7 +1262,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       if (track_grid_losses == 1) {
 
-#pragma gpu bx
+#pragma gpu box(bx)
           ca_track_grid_losses(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                BL_TO_FORTRAN_ANYD(flux[0]),
 #if AMREX_SPACEDIM >= 2
