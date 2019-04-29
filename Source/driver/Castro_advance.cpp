@@ -62,7 +62,7 @@ Castro::advance (Real time,
 #ifndef AMREX_USE_CUDA
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
-      for (int iter = 0; iter < sdc_order; ++iter) {
+      for (int iter = 0; iter < sdc_order+sdc_extra; ++iter) {
 	sdc_iteration = iter;
 	dt_new = do_advance_sdc(time, dt, amr_iteration, amr_ncycle);
       }

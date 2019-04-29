@@ -77,6 +77,7 @@ int         Castro::hse_interp_temp = 0;
 int         Castro::hse_reflect_vels = 0;
 int         Castro::mol_order = 2;
 int         Castro::sdc_order = 2;
+int         Castro::sdc_extra = 0;
 int         Castro::sdc_solver = 1;
 amrex::Real Castro::sdc_solver_tol_dens = 1.e-6;
 amrex::Real Castro::sdc_solver_tol_spec = 1.e-6;

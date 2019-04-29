@@ -233,7 +233,7 @@ Castro::do_advance_sdc (Real time,
   }
 #endif
 
-  if (sdc_iteration == sdc_order-1) {
+  if (sdc_iteration == sdc_order+sdc_extra-1) {
 
     // store the new solution
     MultiFab::Copy(S_new, *(k_new[SDC_NODES-1]), 0, 0, S_new.nComp(), 0);
