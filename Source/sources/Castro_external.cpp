@@ -68,7 +68,7 @@ Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& stat
         const Box& bx = mfi.tilebox();
 
 #ifdef AMREX_DIMENSION_AGNOSTIC
-#pragma gpu
+#pragma gpu box(bx)
         ca_ext_src
 	  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 	   BL_TO_FORTRAN_ANYD(state_old[mfi]),

@@ -223,6 +223,7 @@ contains
           ! As the initial guess for the density, use the underlying zone.
 
           rho(i) = rho(i-1)
+          model % state(i) % rho = model % state(i-1) % rho
 
           if (model % mass > ZERO .and. model % M_enclosed(i-1) .ge. model % mass - model % envelope_mass) then
              xn(i,:) = model % envelope_comp
@@ -247,6 +248,7 @@ contains
 
              if (fluff) then
                 rho(i) = model % min_density
+                model % state(i) % rho = model % min_density
                 exit
              endif
 

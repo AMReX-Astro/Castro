@@ -36,7 +36,7 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state, Real ti
     for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-#pragma gpu
+#pragma gpu box(bx)
         ca_rsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                 AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                 BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
@@ -90,7 +90,7 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
         {
             const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
             ca_corrrsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                         AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                         BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
@@ -130,7 +130,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
     {
 
         const Box& bx = mfi.growntilebox(ng);
-#pragma gpu
+#pragma gpu box(bx)
         ca_fill_rotational_potential(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                      BL_TO_FORTRAN_ANYD(phi[mfi]),
                                      AMREX_REAL_ANYD(dx),time);
@@ -151,7 +151,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
     {
 
         const Box& bx = mfi.growntilebox(ng);
-#pragma gpu
+#pragma gpu box(bx)
         ca_fill_rotational_acceleration(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                         BL_TO_FORTRAN_ANYD(rot[mfi]),
                                         BL_TO_FORTRAN_ANYD(state[mfi]),

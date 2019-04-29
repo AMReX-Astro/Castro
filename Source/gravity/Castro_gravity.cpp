@@ -246,7 +246,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
     {
 	const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
 	ca_gsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
 		BL_TO_FORTRAN_ANYD(state[mfi]),
@@ -286,7 +286,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 	{
 	    const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
 	    ca_corrgsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
 			BL_TO_FORTRAN_ANYD(state_old[mfi]),
