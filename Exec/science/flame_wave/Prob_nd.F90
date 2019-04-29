@@ -16,6 +16,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
                              max_hse_tagging_level, max_base_tagging_level, x_refine_distance
   use network, only: nspec, network_species_index
   use prob_params_module, only : center
+  use meth_params_module, only : small_dens
 
   implicit none
 
