@@ -52,7 +52,7 @@ Castro::fill_thermo_source (Real time, Real dt,
 
       const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
       ca_thermo_src(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                     BL_TO_FORTRAN_ANYD(state_old[mfi]),
                     BL_TO_FORTRAN_ANYD(state_new[mfi]),
