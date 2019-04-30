@@ -15,7 +15,7 @@ amr.n_cell           = 1024
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  3
+castro.lo_bc       =  2
 castro.hi_bc       =  2
 
 # WHICH PHYSICS

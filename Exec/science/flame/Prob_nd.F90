@@ -23,11 +23,11 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt)         :: lambda_f, v_f
 
   namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel, T_ash, &
-       fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
-       ash1_name, ash2_name, ash3_name, ash4_name, &
-       X_fuel1, X_fuel2, X_fuel3, X_fuel4, X_ash1, X_ash2, X_ash3, X_ash4
+                    fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
+                    ash1_name, ash2_name, ash3_name, ash4_name, &
+                    X_fuel1, X_fuel2, X_fuel3, X_fuel4, X_ash1, X_ash2, X_ash3, X_ash4
 
-  ! Build "probin" filename -- the name of file containing 
+  ! Build "probin" filename -- the name of file containing
   ! fortin namelist.
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -46,7 +46,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   rho_fuel = ONE
   T_fuel = ONE
   T_ash = ONE
-  
+
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin, fortin)
@@ -76,8 +76,9 @@ end subroutine amrex_probinit
 ! :::              right hand corner of grid.  (does not include
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
-subroutine ca_initdata(level,time,lo,hi,nscal, &
-                      state,state_l1,state_h1,delta,xlo,xhi)
+subroutine ca_initdata(level, time, lo, hi, nscal, &
+                       state, s_lo, s_hi, &
+                       delta, xlo, xhi)
 
   use network, only: nspec, network_species_index
   use probdata_module
@@ -88,21 +89,21 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use amrex_constants_module
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
-  integer level, nscal
-  integer lo(1), hi(1)
-  integer state_l1,state_h1
-  real(rt)         state(state_l1:state_h1,NVAR)
-  real(rt)         time, delta(1)
-  real(rt)         xlo(1), xhi(1)
+  integer,  intent(in   ) :: level, nscal
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: s_lo(3), s_hi(3)
+  real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
+  real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
 
-  real(rt)         xx, x_int, L, f, pert_width
-  integer i
+  real(rt) :: xx, x_int, L, f, pert_width
+  integer :: i, j, k
 
-  real(rt)         :: e_fuel, p_fuel
-  real(rt)         :: rho_ash, e_ash
-  real(rt)         :: xn_fuel(nspec), xn_ash(nspec)
+  real(rt) :: e_fuel, p_fuel
+  real(rt) :: rho_ash, e_ash
+  real(rt) :: xn_fuel(nspec), xn_ash(nspec)
 
   type (eos_t) :: eos_state
 
@@ -148,7 +149,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   if (iash1 < 0 .and. iash2 < 0 .and. iash3 < 0 .and. iash4 < 0) then
      call amrex_error("no valid ash state defined")
   endif
-  
+
 
   L = probhi(1) - problo(1)
   x_int = problo(1) + pert_frac*L
@@ -215,26 +216,26 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   rho_ash = eos_state % rho
   e_ash = eos_state % e
 
-  !print *, 'fuel: ', rho_fuel, T_fuel, xn_fuel
-  !print *, 'ash: ', rho_ash, T_ash, xn_ash
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+           xx = problo(1) + delta(1)*(dble(i) + 0.5e0_rt)
 
-  do i = lo(1), hi(1)
-     xx = problo(1) + delta(1)*(dble(i) + 0.5e0_rt)
+           ! blend the fuel and ash state, keeping the pressure constant
+           eos_state % rho = (rho_ash - rho_fuel) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + rho_fuel
+           eos_state % T = (T_ash - T_fuel) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + T_fuel
+           eos_state % xn(:) = (xn_ash(:) - xn_fuel(:)) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + xn_fuel(:)
+           eos_state % p = p_fuel
 
-     ! blend the fuel and ash state, keeping the pressure constant
-     eos_state % rho = (rho_ash - rho_fuel) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + rho_fuel
-     eos_state % T = (T_ash - T_fuel) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + T_fuel
-     eos_state % xn(:) = (xn_ash(:) - xn_fuel(:)) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + xn_fuel(:)
-     eos_state % p = p_fuel
+           call eos(eos_input_tp, eos_state)
 
-     call eos(eos_input_tp, eos_state)
-
-     state(i,URHO ) = eos_state % rho
-     state(i,UMX:UMZ) = ZERO
-     state(i,UEDEN) = eos_state % rho * eos_state % e
-     state(i,UEINT) = eos_state % rho * eos_state % e
-     state(i,UTEMP) = eos_state % T
-     state(i,UFS:UFS-1+nspec) = eos_state % rho * eos_state % xn(:)
+           state(i,j,k,URHO ) = eos_state % rho
+           state(i,j,k,UMX:UMZ) = ZERO
+           state(i,j,k,UEDEN) = eos_state % rho * eos_state % e
+           state(i,j,k,UEINT) = eos_state % rho * eos_state % e
+           state(i,j,k,UTEMP) = eos_state % T
+           state(i,j,k,UFS:UFS-1+nspec) = eos_state % rho * eos_state % xn(:)
+        end do
+     end do
   end do
-
 end subroutine ca_initdata
