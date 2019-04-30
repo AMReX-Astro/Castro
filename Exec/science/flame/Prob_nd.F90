@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amrex_probinit")
 
   use eos_module
   use eos_type_module
@@ -11,16 +11,18 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer init, namlen
-  integer name(namlen)
-  real(rt)         problo(1), probhi(1)
-  real(rt)         xn(nspec)
+  integer :: init, namlen
+  integer :: name(namlen)
+  real(rt) :: problo(3), probhi(3)
+  real(rt) :: xn(nspec)
 
-  integer untin,i
+  integer untin, i
 
   type (eos_t) :: eos_state
 
-  real(rt)         :: lambda_f, v_f
+  real(rt) :: lambda_f, v_f
+
+  integer :: ifuel1, iash1, ifuel2, iash2, ifuel3, iash3, ifuel4, iash4
 
   namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel, T_ash, &
                     fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
@@ -52,62 +54,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   read(untin, fortin)
   close(untin)
 
-end subroutine amrex_probinit
-
-
-! ::: -----------------------------------------------------------
-! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.
-! :::
-! ::: NOTE:  all arrays have one cell of ghost zones surrounding
-! :::        the grid interior.  Values in these cells need not
-! :::        be set here.
-! :::
-! ::: INPUTS/OUTPUTS:
-! :::
-! ::: level     => amr level of grid
-! ::: time      => time at which to init data
-! ::: lo,hi     => index limits of grid interior (cell centered)
-! ::: nstate    => number of state components.  You should know
-! :::		   this already!
-! ::: state     <=  Scalar array
-! ::: delta     => cell size
-! ::: xlo,xhi   => physical locations of lower left and upper
-! :::              right hand corner of grid.  (does not include
-! :::		   ghost region).
-! ::: -----------------------------------------------------------
-subroutine ca_initdata(level, time, lo, hi, nscal, &
-                       state, s_lo, s_hi, &
-                       delta, xlo, xhi)
-
-  use network, only: nspec, network_species_index
-  use probdata_module
-  use prob_params_module, only: problo, probhi
-  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, UFS
-  use eos_type_module
-  use eos_module
-  use amrex_constants_module
-  use amrex_error_module
-  use amrex_fort_module, only : rt => amrex_real
-
-  implicit none
-
-  integer,  intent(in   ) :: level, nscal
-  integer,  intent(in   ) :: lo(3), hi(3)
-  integer,  intent(in   ) :: s_lo(3), s_hi(3)
-  real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
-  real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
-
-  real(rt) :: xx, x_int, L, f, pert_width
-  integer :: i, j, k
-
-  real(rt) :: e_fuel, p_fuel
-  real(rt) :: rho_ash, e_ash
-  real(rt) :: xn_fuel(nspec), xn_ash(nspec)
-
-  type (eos_t) :: eos_state
-
-  integer :: ifuel1, iash1, ifuel2, iash2, ifuel3, iash3, ifuel4, iash4
 
   ! defaults
   fuel1_name = "helium-4"
@@ -149,12 +95,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   if (iash1 < 0 .and. iash2 < 0 .and. iash3 < 0 .and. iash4 < 0) then
      call amrex_error("no valid ash state defined")
   endif
-
-
-  L = probhi(1) - problo(1)
-  x_int = problo(1) + pert_frac*L
-
-  pert_width = pert_delta*L
 
   ! fuel state
   xn_fuel(:) = ZERO
@@ -215,6 +155,62 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   rho_ash = eos_state % rho
   e_ash = eos_state % e
+
+end subroutine amrex_probinit
+
+
+! ::: -----------------------------------------------------------
+! ::: This routine is called at problem setup time and is used
+! ::: to initialize data on each grid.
+! :::
+! ::: NOTE:  all arrays have one cell of ghost zones surrounding
+! :::        the grid interior.  Values in these cells need not
+! :::        be set here.
+! :::
+! ::: INPUTS/OUTPUTS:
+! :::
+! ::: level     => amr level of grid
+! ::: time      => time at which to init data
+! ::: lo,hi     => index limits of grid interior (cell centered)
+! ::: nstate    => number of state components.  You should know
+! :::		   this already!
+! ::: state     <=  Scalar array
+! ::: delta     => cell size
+! ::: xlo,xhi   => physical locations of lower left and upper
+! :::              right hand corner of grid.  (does not include
+! :::		   ghost region).
+! ::: -----------------------------------------------------------
+subroutine ca_initdata(level, time, lo, hi, nscal, &
+                       state, s_lo, s_hi, &
+                       delta, xlo, xhi)
+
+  use probdata_module
+  use prob_params_module, only: problo, probhi
+  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, UFS
+  use eos_type_module
+  use eos_module
+  use amrex_constants_module
+  use amrex_error_module
+  use amrex_fort_module, only : rt => amrex_real
+
+  implicit none
+
+  integer,  intent(in   ) :: level, nscal
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: s_lo(3), s_hi(3)
+  real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
+  real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
+
+  real(rt) :: xx, x_int, L, f, pert_width
+  integer :: i, j, k
+
+  type (eos_t) :: eos_state
+
+
+  L = probhi(1) - problo(1)
+  x_int = problo(1) + pert_frac*L
+
+  pert_width = pert_delta*L
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
