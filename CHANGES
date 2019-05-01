@@ -1,4 +1,4 @@
-# changes since the last release
+# 19.05
 
   -- The dimension agnostic version of the external source term in
      ext_src_nd.F90 has been updated to use the ISO C binding interface,
