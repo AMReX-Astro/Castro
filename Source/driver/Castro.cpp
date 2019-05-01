@@ -2899,10 +2899,11 @@ Castro::enforce_min_density (MultiFab& state, int ng)
 
 	const Box& bx = mfi.growntilebox(ng);
 
+#pragma gpu
 	ca_enforce_minimum_density
-            (AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(state[mfi]),
-             &dens_change, verbose);
+             AMREX_MFITER_REDUCE_MIN(&dens_change), verbose);
 
     }
 
@@ -3882,11 +3883,7 @@ Castro::clean_state(MultiFab& state, Real time, int ng) {
 
     // Enforce a minimum density.
 
-#ifndef AMREX_USE_CUDA
     Real frac_change = enforce_min_density(state, ng);
-#else
-    Real frac_change = 1.e200;
-#endif
 
     // Ensure all species are normalized.
 
