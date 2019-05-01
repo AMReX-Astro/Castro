@@ -447,7 +447,6 @@ contains
 #endif
 
     ! update the full U_new
-    ! if we updated total energy, then correct internal, or vice versa
     U_new(URHO) = U_react(0)
     U_new(UFS:UFS-1+nspec_evolve) = U_react(1:nspec_evolve)
     U_new(UEINT) = U_react(nspec_evolve+1)
