@@ -198,16 +198,138 @@
   <div class="section" id="sponge">
 <span id="sponge-section"></span><h1>Sponge<a class="headerlink" href="#sponge" title="Permalink to this headline">¶</a></h1>
 <p>Castro uses a sponge source term to damp velocities in regions where
-we are not interested in the dynamics.  Often these are buffer regions
+we are not interested in the dynamics, to prevent them from
+dominating the timestep constraint.  Often these are buffer regions
 between the domain of interest and the boundary conditions.</p>
+<p>The sponge parameters are set in your <code class="docutils literal notranslate"><span class="pre">probin</span></code> file, in the
+<code class="docutils literal notranslate"><span class="pre">&amp;sponge</span></code> namelist.  The timescale of the damping is set through
+<code class="docutils literal notranslate"><span class="pre">sponge_timescale</span></code>.</p>
+<p>The sponge value, <span class="math notranslate nohighlight">\(f_\mathrm{sponge}\)</span> is computed as described below
+and then the sponge factor, <span class="math notranslate nohighlight">\(f\)</span> is computed as:</p>
+<div class="math notranslate nohighlight">
+\[f = - \left [ 1 - \frac{1}{1 + \alpha f_\mathrm{sponge}}\right ]\]</div>
+<p>for an implicit update or</p>
+<div class="math notranslate nohighlight">
+\[f = -\alpha f_\mathrm{sponge}\]</div>
+<p id="index-0">for an explicit update.  This choice is controlled by
+<code class="docutils literal notranslate"><span class="pre">sponge_implicit</span></code>.  Here, <span class="math notranslate nohighlight">\(\alpha\)</span> is constructed from the
+<code class="docutils literal notranslate"><span class="pre">sponge_timescale</span></code> parameter, <span class="math notranslate nohighlight">\(t_\mathrm{sponge}\)</span> as:</p>
+<div class="math notranslate nohighlight">
+\[\alpha = \frac{\Delta t}{t_\mathrm{sponge}}\]</div>
+<p>The sponge source is then added to the momentum and total energy equations.</p>
+<p>The general sponge parameters are:</p>
 <blockquote>
-<div>The purpose of the sponge is to damp velocities outside of a star, to
-prevent them from dominating the timestep constraint. The sponge parameters
-are set in your <code class="docutils literal notranslate"><span class="pre">probin</span></code> file, in the <code class="docutils literal notranslate"><span class="pre">&amp;sponge</span></code> namelist. You can sponge either
-on radius from the center (using <code class="docutils literal notranslate"><span class="pre">sponge_lower_radius</span></code> and
-<code class="docutils literal notranslate"><span class="pre">sponge_upper_radius</span></code>) or on density (using <code class="docutils literal notranslate"><span class="pre">sponge_lower_density</span></code>
-and <code class="docutils literal notranslate"><span class="pre">sponge_upper_density</span></code>). The timescale of the damping is
-set through <code class="docutils literal notranslate"><span class="pre">sponge_timescale</span></code>.</div></blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="52%" />
+<col width="48%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">variable</th>
+<th class="head">runtime parameter</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(f_\mathrm{lower}\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_factor</span></code></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(f_\mathrm{upper}\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_factor</span></code></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>There are three sponges, each controlled by different runtime parameters:</p>
+<blockquote>
+<div><ul>
+<li><p class="first"><strong>radial sponge</strong> : The radial sponge operates beyond some radius
+(define in terms of the <code class="docutils literal notranslate"><span class="pre">center(:)</span></code> position for the problem).
+It takes the form:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}f_\mathrm{sponge} = \left \{
+      \begin{array}{cc}
+              f_\mathrm{lower}   &amp; r &lt; r_\mathrm{lower} \\
+              f_\mathrm{lower} + \frac{f_\mathrm{upper} - f_\mathrm{lower}}{2}
+                   \left [ 1 - \cos \left ( \frac{\pi (r - r_\mathrm{lower})}{\Delta r} \right ) \right ]  &amp; r_\mathrm{lower} \le r &lt; r_\mathrm{upper} \\
+              f_\mathrm{upper} &amp; r \ge r_\mathrm{upper}
+      \end{array} \right .\end{split}\]</div>
+<p>The parameters controlling the various quantities here are:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="52%" />
+<col width="48%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">variable</th>
+<th class="head">runtime parameter</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(r_\mathrm{lower}\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_radius</span></code></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(r_\mathrm{upper}\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_radius</span></code></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>and <span class="math notranslate nohighlight">\(\Delta r = r_\mathrm{upper} - r_\mathrm{lower}\)</span> .</p>
+</li>
+<li><p class="first"><strong>density sponge</strong> : The density sponge turns on based on density
+thresholds.  At high densities, we usually care about the
+dynamics, so we will want the sponge off, but as the density
+lowers, we gradually turn on the sponge.  It takes the form:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}f_\mathrm{sponge} = \left \{
+      \begin{array}{cc}
+              f_\mathrm{lower}   &amp; \rho &gt; \rho_\mathrm{upper} \\
+              f_\mathrm{lower} + \frac{f_\mathrm{upper} - f_\mathrm{lower}}{2}
+                   \left [ 1 - \cos \left ( \frac{\pi (\rho - \rho_\mathrm{upper})}{\Delta \rho} \right ) \right ]  &amp; \rho_\mathrm{upper} \ge \rho &gt; \rho_\mathrm{lower} \\
+              f_\mathrm{upper} &amp; \rho &lt; \rho_\mathrm{lower}
+      \end{array} \right .\end{split}\]</div>
+<p>The parameters controlling the various quantities here are:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="52%" />
+<col width="48%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">variable</th>
+<th class="head">runtime parameter</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\rho_\mathrm{lower}\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_density</span></code></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\rho_\mathrm{upper}\)</span></td>
+<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_density</span></code></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>and <span class="math notranslate nohighlight">\(\Delta \rho = \rho_\mathrm{upper} - \rho_\mathrm{lower}\)</span> .</p>
+</li>
+<li><p class="first"><strong>pressure sponge</strong> : The pressure sponge is just like the density sponge,
+except it is keyed on pressure.  It takes the form:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}f_\mathrm{sponge} = \left \{
+      \begin{array}{cc}
+              f_\mathrm{lower}   &amp; p &gt; p_\mathrm{upper} \\
+              f_\mathrm{lower} + \frac{f_\mathrm{upper} - f_\mathrm{lower}}{2}
+                   \left [ 1 - \cos \left ( \frac{\pi (p - p_\mathrm{upper})}{\Delta p} \right ) \right ]  &amp; p_\mathrm{upper} \ge p \ge p_\mathrm{lower} \\
+              f_\mathrm{upper} &amp; \rho &lt; \rho_\mathrm{lower}
+      \end{array} \right .\end{split}\]</div>
+<p>The parameters controlling the various quantities here are:</p>
+<blockquote>
+<div></div></blockquote>
+<p>and <span class="math notranslate nohighlight">\(\Delta p = p_\mathrm{upper} - p_\mathrm{lower}\)</span> .</p>
+</li>
+</ul>
+</div></blockquote>
 </div>
 
 
