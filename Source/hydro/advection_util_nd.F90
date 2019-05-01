@@ -16,7 +16,7 @@ contains
 #ifndef AMREX_USE_GPU
     use amrex_error_module, only: amrex_error
 #endif
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real, amrex_min
 
     implicit none
 
@@ -159,7 +159,7 @@ contains
                 ! Store the maximum (negative) fractional change in the density from this reset.
 
                 if (old_rho < ZERO) then
-                   frac_change = min(frac_change, (state(i,j,k,URHO) - old_rho) / old_rho)
+                   call amrex_min(frac_change, (state(i,j,k,URHO) - old_rho) / old_rho)
                 end if
 
              end if
