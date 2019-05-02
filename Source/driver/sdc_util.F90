@@ -81,7 +81,7 @@ contains
 
        ! now U_new is the update that VODE predicts, so we will use
        ! that as the initial guess to the Newton solve
-       call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration)
+       !call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration)
 
     else if (sdc_solver == HYBRID_SOLVE) then
        ! if it is the first iteration, we will use VODE to predict
