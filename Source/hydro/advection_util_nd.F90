@@ -16,7 +16,7 @@ contains
 #ifndef AMREX_USE_GPU
     use amrex_error_module, only: amrex_error
 #endif
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real, amrex_min
 
     implicit none
 
@@ -31,8 +31,10 @@ contains
     integer  :: ii, jj, kk
     integer  :: i_set, j_set, k_set
     real(rt) :: max_dens, old_rho
-    real(rt) :: unew(NVAR)
+    real(rt) :: uold(NVAR), unew(NVAR)
     integer  :: num_positive_zones
+
+    !$gpu
 
     max_dens = ZERO
 
@@ -86,13 +88,18 @@ contains
 
                       ! We could not find any nearby zones with sufficient density.
 
-                      call reset_to_small_state(state(i,j,k,:), [i, j, k], lo, hi, verbose)
+                      uold = state(i,j,k,:)
+                      call reset_to_small_state(uold, [i, j, k], lo, hi, verbose)
+                      state(i,j,k,:) = uold
 
                    else
 
+                      uold = state(i,j,k,:)
                       unew = state(i_set,j_set,k_set,:)
 
-                      call reset_to_zone_state(state(i,j,k,:), unew(:), [i, j, k], lo, hi, verbose)
+                      call reset_to_zone_state(uold, unew, [i, j, k], lo, hi, verbose)
+
+                      state(i,j,k,:) = uold
 
                    endif
 
@@ -127,13 +134,18 @@ contains
 
                       ! We could not find any nearby zones with sufficient density.
 
-                      call reset_to_small_state(state(i,j,k,:), [i, j, k], lo, hi, verbose)
+                      uold = state(i,j,k,:)
+                      call reset_to_small_state(uold, [i, j, k], lo, hi, verbose)
+                      state(i,j,k,:) = uold
 
                    else
 
+                      uold = state(i,j,k,:)
                       unew(:) = unew(:) / num_positive_zones
 
-                      call reset_to_zone_state(state(i,j,k,:), unew(:), [i, j, k], lo, hi, verbose)
+                      call reset_to_zone_state(uold, unew, [i, j, k], lo, hi, verbose)
+
+                      state(i,j,k,:) = uold
 
                    endif
 
@@ -147,7 +159,7 @@ contains
                 ! Store the maximum (negative) fractional change in the density from this reset.
 
                 if (old_rho < ZERO) then
-                   frac_change = min(frac_change, (state(i,j,k,URHO) - old_rho) / old_rho)
+                   call amrex_min(frac_change, (state(i,j,k,URHO) - old_rho) / old_rho)
                 end if
 
              end if
@@ -189,6 +201,8 @@ contains
 #ifdef HYBRID_MOMENTUM
     real(rt)         :: loc(3)
 #endif
+
+    !$gpu
 
 #ifndef AMREX_USE_CUDA
     if (verbose .gt. 0) then
@@ -245,6 +259,8 @@ contains
 
     real(rt) :: state(NVAR), input_state(NVAR)
     integer  :: idx(3), lo(3), hi(3), verbose
+
+    !$gpu
 
 #ifndef AMREX_USE_CUDA
     if (verbose .gt. 0) then
