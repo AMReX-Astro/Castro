@@ -1,0 +1,97 @@
+#!/bin/bash
+#SBATCH -J react_conv
+#SBATCH -A m3018
+#SBATCH -N 1
+#SBATCH -p debug
+#SBATCH -t 00:30:00
+
+# -N = number of nodes = # of MPI * number of threads / 24 (cores / node)
+
+export OMP_NUM_THREADS=1
+
+
+slack_job_start.py "starting flame problem @ NERSC" @michael
+
+export CASTRO_EXEC=./Castro1d.intel.sandybridge.MPI.ex
+
+# Edison has 2 Intel "IvyBridge" processors each with 12 cores.  Each processor
+# connects to 1/2 of the node's memory, and is called a NUMA node.  So there
+# are 2 NUMA nodes per Edison node.
+
+# -n is the number of MPI tasks
+# -c sets the number of OMP threads per MPI -- this should be the same as OMP_NUM_THREADS
+
+
+function find_chk_file {
+    # find_chk_file takes a single argument -- the wildcard pattern
+    # for checkpoint files to look through
+    chk=$1
+
+    # find the latest 2 restart files.  This way if the latest didn't
+    # complete we fall back to the previous one.
+    temp_files=$(find . -type d -name "${chk}" -print | sort | tail -2)
+    for f in ${temp_files}
+    do
+        # the Header is the last thing written -- check if it's there, otherwise,
+        # fall back to the second-to-last check file written
+        if [ ! -f ${f}/Header ]; then
+                restartFile=""
+                else
+                restartFile="${f}"
+                fi
+    done
+
+}
+
+GLOBAL_PARAMS="
+stop_time=2.25e-4
+geometry.prob_hi=245760.0
+amr.check_int=100"
+
+NEEDED_FILES="
+${CASTRO_EXEC}
+inputs.1d.sdc
+probin.sdc
+helm_table.dat"
+
+NZONES="
+3072
+6144
+12288
+24576"
+
+
+# SDC-2
+RUNPARAMS="
+castro.time_integration_method=2
+castro.sdc_order=2
+castro.ppm_type=0
+castro.sdc_solve_for_rhoe=1
+castro.sdc_solver_tol_dens=1.e-10
+castro.sdc_solver_tol_spec=1.e-10
+castro.sdc_solver_tol_ener=1.e-5
+castro.sdc_solver_atol=1.e-10
+castro.sdc_solver=2
+castro.sdc_use_analytic_jac=1"
+
+for nz in ${NZONES}
+do
+    rdir=flame_${nz}_sdc2
+    if [ ! -d ${rdir} ]; then
+        mkdir ${rdir}
+    fi
+    if [ ! -f ${rdir}/run_done ]; then
+        cd ${rdir}
+        for nf in ${NEEDED_FILES}
+        do
+            if [ ! -f ${nf} ]; then
+                cp ../${nf} .
+            fi
+        done
+        find_chk_file "*chk?????"
+        srun -n 24 -c ${OMP_NUM_THREADS} ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${RUNPARAMS} ${GLOBAL_PARAMS} ${restartString} &> run.out
+        touch run_done
+        cd ..
+    fi
+done
+
