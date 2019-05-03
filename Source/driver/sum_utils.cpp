@@ -78,7 +78,7 @@ Castro::volWgtSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-#pragma gpu
+#pragma gpu box(box)
 	ca_summass(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    BL_TO_FORTRAN_ANYD(fab),
 		   AMREX_REAL_ANYD(dx),
@@ -128,7 +128,7 @@ Castro::volWgtSquaredSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-#pragma gpu
+#pragma gpu box(box)
 	ca_sumsquared(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(fab),
 		      AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum));
     }
@@ -175,7 +175,7 @@ Castro::locWgtSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-#pragma gpu
+#pragma gpu box(box)
 	ca_sumlocmass(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(fab),
 		      AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum), idir);
 
@@ -224,7 +224,7 @@ Castro::locWgtSum2D (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-#pragma gpu
+#pragma gpu box(box)
 	ca_sumlocmass2d(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(fab),
 			AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum), idir1, idir2);
     }
@@ -259,7 +259,7 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-#pragma gpu
+#pragma gpu box(box)
 	ca_summass(AMREX_INT_ANYD(lo),AMREX_INT_ANYD(hi),BL_TO_FORTRAN_N_ANYD(fab,comp),
 		   AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
                    AMREX_MFITER_REDUCE_SUM(&sum));
@@ -351,7 +351,7 @@ Castro::volWgtSumOneSide (const std::string& name,
 
         if ( doSum ) {
 
-#pragma gpu
+#pragma gpu box(box)
           ca_summass(AMREX_INT_ANYD(loFinal),AMREX_INT_ANYD(hiFinal),BL_TO_FORTRAN_ANYD(fab),
 		     AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
                      AMREX_MFITER_REDUCE_SUM(&sum));
@@ -446,7 +446,7 @@ Castro::locWgtSumOneSide (const std::string& name,
 
         if ( doSum ) {
 
-#pragma gpu
+#pragma gpu box(box)
           ca_sumlocmass(AMREX_INT_ANYD(loFinal), AMREX_INT_ANYD(hiFinal), BL_TO_FORTRAN_ANYD(fab),
 			AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum), idir);
 
@@ -495,7 +495,7 @@ Castro::volProductSum (const std::string& name1,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-#pragma gpu
+#pragma gpu box(box)
 	ca_sumproduct(AMREX_INT_ANYD(lo),AMREX_INT_ANYD(hi),BL_TO_FORTRAN_ANYD(fab1),
 		      BL_TO_FORTRAN_ANYD(fab2),AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
                       AMREX_MFITER_REDUCE_SUM(&sum));
@@ -538,7 +538,7 @@ Castro::locSquaredSum (const std::string& name,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-#pragma gpu
+#pragma gpu box(box)
 	ca_sumlocsquaredmass(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(fab),
 			     AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum), idir);
     }

@@ -11,6 +11,7 @@ contains
                               set,clear,&
                               dx,problo,time,level) bind(C,name='set_problem_tags')
 
+    use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, TWO
     use meth_params_module, only: NVAR, URHO, UTEMP
     use prob_params_module, only: center, probhi, dim, Symmetry, physbc_lo, physbc_hi, &
@@ -28,21 +29,19 @@ contains
 
     implicit none
 
-    integer          :: lo(3),hi(3)
-    integer          :: state_lo(3),state_hi(3)
-    integer          :: tag_lo(3),tag_hi(3)
-    double precision :: state(state_lo(1):state_hi(1), &
-                        state_lo(2):state_hi(2), &
-                        state_lo(3):state_hi(3),NVAR)
-    integer          :: tag(tag_lo(1):tag_hi(1),tag_lo(2):tag_hi(2),tag_lo(3):tag_hi(3))
-    double precision :: problo(3),dx(3),time
-    integer          :: level,set,clear
+    integer  :: lo(3),hi(3)
+    integer  :: state_lo(3),state_hi(3)
+    integer  :: tag_lo(3),tag_hi(3)
+    real(rt) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    integer  :: tag(tag_lo(1):tag_hi(1),tag_lo(2):tag_hi(2),tag_lo(3):tag_hi(3))
+    real(rt) :: problo(3),dx(3),time
+    integer  :: level,set,clear
 
-    integer          :: i, j, k, n
-    double precision :: loc(3), r, r_P, r_S
+    integer  :: i, j, k, n
+    real(rt) :: loc(3), r, r_P, r_S
 
-    logical          :: outer_boundary_test(3)
-    integer          :: boundary_buf(3), idx(3)
+    logical  :: outer_boundary_test(3)
+    integer  :: boundary_buf(3), idx(3)
 
     do k = lo(3), hi(3)
        loc(3) = problo(3) + (dble(k) + HALF) * dx(3)

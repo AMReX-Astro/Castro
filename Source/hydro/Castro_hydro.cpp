@@ -38,7 +38,7 @@ Castro::cons_to_prim(const Real time)
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
-#pragma gpu
+#pragma gpu box(qbx)
         ca_ctoprim(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
 #ifdef RADIATION
@@ -56,7 +56,7 @@ Castro::cons_to_prim(const Real time)
         // expressed as sources for the primitive state.
         if (time_integration_method == CornerTransportUpwind ||
             time_integration_method == SimplifiedSpectralDeferredCorrections) {
-#pragma gpu
+#pragma gpu box(qbx)
             ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
                          BL_TO_FORTRAN_ANYD(q_core[mfi]),
                          BL_TO_FORTRAN_ANYD(q_pass[mfi]),
@@ -253,7 +253,7 @@ Castro::check_for_cfl_violation(const Real dt)
 
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
                        BL_TO_FORTRAN_ANYD(q_core[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),

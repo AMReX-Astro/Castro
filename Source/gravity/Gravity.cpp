@@ -1575,7 +1575,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 	    {
 	        const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
 		ca_compute_multipole_moments(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		                             AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
 					     AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(source[mfi]),
@@ -1710,7 +1710,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     {
         const Box& bx = mfi.growntilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_put_multipole_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			     AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
 			     AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
@@ -2128,7 +2128,7 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
     {
         const Box& bx = mfi.growntilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         pm_add_to_grav(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                        point_mass, BL_TO_FORTRAN_ANYD(phi[mfi]),
                        BL_TO_FORTRAN_ANYD(grav_vector[mfi]),

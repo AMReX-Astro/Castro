@@ -1035,7 +1035,7 @@ Castro::initData ()
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
-#pragma gpu
+#pragma gpu box(box)
           ca_initdata(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                       BL_TO_FORTRAN_ANYD(S_new[mfi]),
                       AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
@@ -1075,7 +1075,7 @@ Castro::initData ()
            const int* lo  = box.loVect();
            const int* hi  = box.hiVect();
 
-#pragma gpu
+#pragma gpu box(box)
            ca_init_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 #endif
@@ -1084,7 +1084,7 @@ Castro::initData ()
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
            const Box& bx = mfi.validbox();
-#pragma gpu
+#pragma gpu box(bx)
            ca_check_initial_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                     BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
@@ -1362,7 +1362,7 @@ Castro::estTimeStep (Real dt_old)
                 {
                     const Box& box = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(box)
                     ca_estdt(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
                              BL_TO_FORTRAN_ANYD(stateMF[mfi]),
                              AMREX_REAL_ANYD(dx),
@@ -1409,7 +1409,7 @@ Castro::estTimeStep (Real dt_old)
             {
                 const Box& box = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(box)
                 ca_estdt_temp_diffusion(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
                                         BL_TO_FORTRAN_ANYD(stateMF[mfi]),
                                         AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
@@ -2845,7 +2845,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
     {
        const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu
+#pragma gpu box(bx)
        ca_normalize_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                             BL_TO_FORTRAN_ANYD(S_new[mfi]));
     }
@@ -2866,7 +2866,7 @@ Castro::enforce_consistent_e (MultiFab& S)
         const int* lo      = box.loVect();
         const int* hi      = box.hiVect();
 
-#pragma gpu
+#pragma gpu box(box)
         ca_enforce_consistent_e(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S[mfi]));
     }
 }
@@ -2902,10 +2902,11 @@ Castro::enforce_min_density (MultiFab& state, int ng)
 
 	const Box& bx = mfi.growntilebox(ng);
 
+#pragma gpu
 	ca_enforce_minimum_density
-            (AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(state[mfi]),
-             &dens_change, verbose);
+             AMREX_MFITER_REDUCE_MIN(&dens_change), verbose);
 
     }
 
@@ -3281,7 +3282,7 @@ Castro::reset_internal_energy(MultiFab& S_new, int ng)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_reset_internal_e(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			    BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			    print_fortran_warnings);
@@ -3425,7 +3426,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
           ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(Stemp[mfi]));
         } else {
-#pragma gpu
+#pragma gpu box(bx)
           ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(State[mfi]));
         }
@@ -3885,11 +3886,7 @@ Castro::clean_state(MultiFab& state, Real time, int ng) {
 
     // Enforce a minimum density.
 
-#ifndef AMREX_USE_CUDA
     Real frac_change = enforce_min_density(state, ng);
-#else
-    Real frac_change = 1.e200;
-#endif
 
     // Ensure all species are normalized.
 
