@@ -2,8 +2,8 @@
 #SBATCH -J react_conv
 #SBATCH -A m3018
 #SBATCH -N 1
-#SBATCH -p debug
-#SBATCH -t 00:30:00
+#SBATCH -p regular
+#SBATCH -t 06:00:00
 
 # -N = number of nodes = # of MPI * number of threads / 24 (cores / node)
 
@@ -45,6 +45,7 @@ function find_chk_file {
 
 GLOBAL_PARAMS="
 stop_time=2.25e-4
+castro.dtnuc_e=0.25
 geometry.prob_hi=245760.0
 amr.check_int=100"
 
@@ -88,10 +89,64 @@ do
                 cp ../${nf} .
             fi
         done
+
         find_chk_file "*chk?????"
-        srun -n 24 -c ${OMP_NUM_THREADS} ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${RUNPARAMS} ${GLOBAL_PARAMS} ${restartString} &> run.out
+        # restartString will be empty if no chk files are found -- i.e. new run
+        if [ "${restartFile}" = "" ]; then
+            restartString=""
+        else
+            restartString="amr.restart=${restartFile}"
+        fi
+
+        srun -n 24 -c ${OMP_NUM_THREADS} ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${RUNPARAMS} amr.n_cell=${nz} ${GLOBAL_PARAMS} ${restartString} &> run.out
         touch run_done
         cd ..
     fi
 done
+
+
+
+# SDC-4
+RUNPARAMS="
+castro.sdc_order=4
+castro.time_integration_method=2
+castro.sdc_solve_for_rhoe=1
+castro.sdc_solver_tol_dens=1.e-8
+castro.sdc_solver_tol_spec=1.e-8
+castro.sdc_solver_tol_ener=1.e-6
+castro.sdc_solver_atol=1.e-10
+castro.sdc_solver=2
+castro.sdc_use_analytic_jac=0
+castro.sdc_solver_relax_factor=5"
+
+
+for nz in ${NZONES}
+do
+    rdir=flame_${nz}_sdc4
+    if [ ! -d ${rdir} ]; then
+        mkdir ${rdir}
+    fi
+    if [ ! -f ${rdir}/run_done ]; then
+        cd ${rdir}
+        for nf in ${NEEDED_FILES}
+        do
+            if [ ! -f ${nf} ]; then
+                cp ../${nf} .
+            fi
+        done
+
+        find_chk_file "*chk?????"
+        # restartString will be empty if no chk files are found -- i.e. new run
+        if [ "${restartFile}" = "" ]; then
+            restartString=""
+        else
+            restartString="amr.restart=${restartFile}"
+        fi
+
+        srun -n 24 -c ${OMP_NUM_THREADS} ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${RUNPARAMS} amr.n_cell=${nz} ${GLOBAL_PARAMS} ${restartString} &> run.out
+        touch run_done
+        cd ..
+    fi
+done
+
 
