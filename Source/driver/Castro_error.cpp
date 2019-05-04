@@ -59,7 +59,7 @@ Castro::ErrorSetUp ()
 
 #ifdef RADIATION
     if (do_radiation && !Radiation::do_multigroup) {
-      err_list_names.add("rad");
+      err_list_names.push_back("rad");
       err_list_ng.push_back(1);
     }
 #endif
