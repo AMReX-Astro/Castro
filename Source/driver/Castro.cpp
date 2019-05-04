@@ -3130,19 +3130,19 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
                             AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
                             tagval, clearval, time, level);
             }
-            else if (err_list_names[j] == "pressure") {
-                ca_presserror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                              tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
-                              dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
-                              AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                              tagval, clearval, time, level);
-            }
             else if (err_list_names[j] == "Temp") {
                 ca_temperror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
                              tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
                              dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
                              AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
                              tagval, clearval, time, level);
+            }
+            else if (err_list_names[j] == "pressure") {
+                ca_presserror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+                              tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
+                              dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
+                              AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
+                              tagval, clearval, time, level);
             }
             //
             // Now update the tags in the TagBox.
