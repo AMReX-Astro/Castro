@@ -27,34 +27,47 @@ Castro::ErrorSetUp ()
 //  err_list.add("density",2,ErrorRec::Special,ca_laplac_error);
 //  err_list.add("pressure",2,ErrorRec::Special,ca_laplac_error);
 
-    err_list.add("density",1,ErrorRec::Special,ca_denerror);
-    err_list.add("Temp",1,ErrorRec::Special,ca_temperror);
-    err_list.add("pressure",1,ErrorRec::Special,ca_presserror);
-    err_list.add("x_velocity",1,ErrorRec::Special,ca_velerror);
+    err_list_names.push_back("density");
+    err_list_ng.push_back(1);
+
+    err_list_names.push_back("Temp");
+    err_list_ng.push_back(1);
+
+    err_list_names.push_back("pressure");
+    err_list_ng.push_back(1);
+
+    err_list_names.push_back("x_velocity");
+    err_list_ng.push_back(1);
+
 #if (BL_SPACEDIM >= 2)
-    err_list.add("y_velocity",1,ErrorRec::Special,ca_velerror);
-#endif
-#if (BL_SPACEDIM == 3)
-    err_list.add("z_velocity",1,ErrorRec::Special,ca_velerror);
+    err_list_names.push_back("y_velocity");
+    err_list_ng.push_back(1);
 #endif
 
-//   err_list.add("entropy",1,ErrorRec::Special,ca_enterror);
+#if (BL_SPACEDIM == 3)
+    err_list_names.push_back("z_velocity");
+    err_list_ng.push_back(1);
+#endif
 
 #ifdef REACTIONS
-    err_list.add("t_sound_t_enuc",0,ErrorRec::Special,ca_nucerror);
-    err_list.add("enuc",0,ErrorRec::Special,ca_enucerror);
+    err_list_names.push_back("t_sound_t_enuc");
+    err_list_ng.push_back(0);
+
+    err_list_names.push_back("enuc");
+    err_list_ng.push_back(0);
 #endif
 
 #ifdef RADIATION
     if (do_radiation && !Radiation::do_multigroup) {
-      err_list.add("rad",1,ErrorRec::Special,ca_raderror);
+      err_list_names.add("rad");
+      err_list_ng.push_back(1);
     }
 #endif
 
     // Save the number of built-in functions; this will help us
     // distinguish between those, and the ones the user is about to add.
 
-    num_err_list_default = err_list.size();
+    num_err_list_default = err_list_names.size();
 
 #include <Castro_prob_err_list.H>
 

@@ -2085,7 +2085,8 @@ protected:
 
     static bool      signalStopJob;
     static int       radius_grow;
-    static amrex::ErrorList err_list;
+    static std::vector<std::string> err_list_names;
+    static std::vector<int> err_list_ng;
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;

@@ -51,7 +51,8 @@ using namespace amrex;
 
 bool         Castro::signalStopJob = false;
 
-ErrorList    Castro::err_list;
+std::vector<std::string> Castro::err_list_names;
+std::vector<int> Castro::err_list_ng;
 int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
@@ -2005,7 +2006,7 @@ Castro::check_for_post_regrid (Real time)
 
 	tags.setVal(TagBox::CLEAR);
 
-	for (int i = 0; i < err_list.size(); ++i)
+	for (int i = 0; i < err_list_names.size(); ++i)
             apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
 
         apply_problem_tags(tags, TagBox::CLEAR, TagBox::SET, time);
@@ -2997,7 +2998,7 @@ Castro::errorEst (TagBoxArray& tags,
 
     problem_pre_tagging_hook(tags, clearval, tagval, t);
 
-    for (int j = num_err_list_default; j < err_list.size(); j++)
+    for (int j = num_err_list_default; j < err_list_names.size(); j++)
         apply_tagging_func(tags, clearval, tagval, t, j);
 
     // Now we'll tag any user-specified zones using the full state array.
@@ -3081,7 +3082,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
     const Real* dx        = geom.CellSize();
     const Real* prob_lo   = geom.ProbLo();
 
-    auto mf = derive(err_list[j].name(), time, err_list[j].nGrow());
+    auto mf = derive(err_list_names[j], time, err_list_ng[j]);
 
     BL_ASSERT(mf);
 
@@ -3100,9 +3101,6 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
             // tile box
             const Box&  tilebx  = mfi.tilebox();
 
-            // physical tile box
-            const RealBox& pbx  = RealBox(tilebx,geom.CellSize(),geom.ProbLo());
-
             //fab box
             const Box&  datbox  = datfab.box();
 
@@ -3118,17 +3116,32 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
             const int*  lo      = tlo;
             const int*  hi      = thi;
             //
-            const Real* xlo     = pbx.lo();
-            //
             Real*       dat     = datfab.dataPtr();
             const int*  dlo     = datbox.loVect();
             const int*  dhi     = datbox.hiVect();
             const int   ncomp   = datfab.nComp();
 
-            err_list[j].errFunc()(tptr, tlo, thi, &tagval,
-                                  &clearval, dat, dlo, dhi,
-                                  lo,hi, &ncomp, domain_lo, domain_hi,
-                                  dx, xlo, prob_lo, &time, &level);
+            if (err_list_names[j] == "density") {
+                ca_denerror(lo, hi,
+                            tptr, tlo, thi,
+                            dat, dlo, dhi, ncomp,
+                            dx, prob_lo,
+                            tagval, clearval, time, level);
+            }
+            else if (err_list_names[j] == "pressure") {
+                ca_presserror(lo, hi,
+                              tptr, tlo, thi,
+                              dat, dlo, dhi, ncomp,
+                              dx, prob_lo,
+                              tagval, clearval, time, level);
+            }
+            else if (err_list_names[j] == "Temp") {
+                ca_temperror(lo, hi,
+                             tptr, tlo, thi,
+                             dat, dlo, dhi, ncomp,
+                             dx, prob_lo,
+                             tagval, clearval, time, level);
+            }
             //
             // Now update the tags in the TagBox.
             //

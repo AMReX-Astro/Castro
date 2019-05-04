@@ -198,31 +198,32 @@ contains
   end subroutine ca_laplac_error
 
 
-  subroutine ca_denerror(tag,taglo,taghi, &
-                         set,clear, &
-                         den,denlo,denhi, &
-                         lo,hi,nd,domlo,domhi, &
-                         delta,xlo,problo,time,level) &
+  subroutine ca_denerror(lo, hi, &
+                         tag, taglo, taghi, &
+                         den, denlo, denhi, nd, &
+                         delta, problo, &
+                         set, clear, time, level) &
                          bind(C, name="ca_denerror")
      !
      ! This routine will tag high error cells based on the density
      !
 
     use prob_params_module, only: dg
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
-    integer, intent(in) :: set, clear, nd, level
-    integer, intent(in) :: taglo(3), taghi(3)
-    integer, intent(in) :: denlo(3), denhi(3)
-    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
-    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt), intent(in) :: den(denlo(1):denhi(1),denlo(2):denhi(2),denlo(3):denhi(3),nd)
-    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: taglo(3), taghi(3)
+    integer,  intent(in   ) :: denlo(3), denhi(3)
+    integer,  intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in   ) :: den(denlo(1):denhi(1),denlo(2):denhi(2),denlo(3):denhi(3),nd)
+    real(rt), intent(in   ) :: delta(3), problo(3)
+    integer,  intent(in   ), value :: set, clear, nd, level
+    real(rt), intent(in   ), value :: time
 
-    real(rt)         :: ax, ay, az
-    integer          :: i, j, k
+    real(rt) :: ax, ay, az
+    integer  :: i, j, k
 
     !     Tag on regions of high density
     if (level .lt. max_denerr_lev) then
@@ -259,11 +260,11 @@ contains
   end subroutine ca_denerror
 
 
-  subroutine ca_temperror(tag,taglo,taghi, &
-                          set,clear, &
-                          temp,templo,temphi, &
-                          lo,hi,np,domlo,domhi, &
-                          delta,xlo,problo,time,level) &
+  subroutine ca_temperror(lo, hi, &
+                          tag, taglo, taghi, &
+                          temp, templo, temphi, np, &
+                          delta, problo, &
+                          set, clear, time, level) &
                           bind(C, name="ca_temperror")
   !
   ! This routine will tag high error cells based on the temperature
@@ -274,16 +275,17 @@ contains
 
     implicit none
 
-    integer, intent(in) :: set, clear, np, level
-    integer, intent(in) :: taglo(3), taghi(3)
-    integer, intent(in) :: templo(3), temphi(3)
-    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
-    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt), intent(in) :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
-    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: taglo(3), taghi(3)
+    integer,  intent(in   ) :: templo(3), temphi(3)
+    integer,  intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in   ) :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
+    real(rt), intent(in   ) :: delta(3), problo(3)
+    integer,  intent(in   ), value :: set, clear, np, level
+    real(rt), intent(in   ), value :: time
 
-    real(rt)         :: ax, ay, az
-    integer          :: i, j, k
+    real(rt) :: ax, ay, az
+    integer  :: i, j, k
 
     !     Tag on regions of high temperature
     if (level .lt. max_temperr_lev) then
@@ -320,31 +322,32 @@ contains
   end subroutine ca_temperror
 
 
-  subroutine ca_presserror(tag,taglo,taghi, &
-                           set,clear, &
-                           press,presslo,presshi, &
-                           lo,hi,np,domlo,domhi, &
-                           delta,xlo,problo,time,level) &
+  subroutine ca_presserror(lo, hi, &
+                           tag, taglo, taghi, &
+                           press, presslo, presshi, np, &
+                           delta, problo, &
+                           set, clear, time, level) &
                            bind(C, name="ca_presserror")
    !
    ! This routine will tag high error cells based on the pressure
    !
 
     use prob_params_module, only: dg
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
-    integer, intent(in) :: set, clear, np, level
-    integer, intent(in) :: taglo(3), taghi(3)
-    integer, intent(in) :: presslo(3), presshi(3)
-    integer, intent(in) :: lo(3), hi(3), domlo(3), domhi(3)
-    integer, intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt), intent(in) :: press(presslo(1):presshi(1),presslo(2):presshi(2),presslo(3):presshi(3),np)
-    real(rt), intent(in) :: delta(3), xlo(3), problo(3), time
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: taglo(3), taghi(3)
+    integer,  intent(in   ) :: presslo(3), presshi(3)
+    integer,  intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt), intent(in   ) :: press(presslo(1):presshi(1),presslo(2):presshi(2),presslo(3):presshi(3),np)
+    real(rt), intent(in   ) :: delta(3), problo(3)
+    integer,  intent(in   ), value :: set, clear, np, level
+    real(rt), intent(in   ), value :: time
 
-    real(rt)         :: ax, ay, az
-    integer          :: i, j, k
+    real(rt) :: ax, ay, az
+    integer  :: i, j, k
 
     !     Tag on regions of high pressure
     if (level .lt. max_presserr_lev) then
