@@ -69,6 +69,4 @@ Castro::ErrorSetUp ()
 
     num_err_list_default = err_list_names.size();
 
-#include <Castro_prob_err_list.H>
-
 }

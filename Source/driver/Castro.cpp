@@ -2995,19 +2995,9 @@ Castro::errorEst (TagBoxArray& tags,
 	apply_tagging_func(tags, clearval, tagval, t, j);
     }
 
-    // Now apply the user-specified tagging functions.
-    // Include problem-specific hooks before and after.
-
-    problem_pre_tagging_hook(tags, clearval, tagval, t);
-
-    for (int j = num_err_list_default; j < err_list_names.size(); j++)
-        apply_tagging_func(tags, clearval, tagval, t, j);
-
     // Now we'll tag any user-specified zones using the full state array.
 
     apply_problem_tags(tags, clearval, tagval, time);
-
-    problem_post_tagging_hook(tags, clearval, tagval, t);
 }
 
 
