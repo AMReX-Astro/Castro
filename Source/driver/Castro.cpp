@@ -3039,11 +3039,11 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 	    const int*  thi     = tilebx.hiVect();
 
 #ifdef AMREX_DIMENSION_AGNOSTIC
-	    set_problem_tags(ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
-                             tptr, ARLIM_3D(tlo), ARLIM_3D(thi),
+	    set_problem_tags(AMREX_ARLIM_ANYD(tilebx.loVect()), AMREX_ARLIM_ANYD(tilebx.hiVect()),
+                             tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
 			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-			     &tagval, &clearval,
-			     ZFILL(dx), ZFILL(prob_lo), &time, &level);
+			     AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
+                             tagval, clearval, time, level);
 #else
 	    set_problem_tags(tilebx.loVect(), tilebx.hiVect(),
                              tptr, ARLIM(tlo), ARLIM(thi),

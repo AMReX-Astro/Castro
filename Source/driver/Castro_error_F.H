@@ -70,9 +70,9 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_IFAB_ARG_3D(tag),
      const BL_FORT_FAB_ARG_3D(state),
-     const int* tagval, const int* clearval,
      const amrex::Real* dx, const amrex::Real* problo,
-     const amrex::Real* time, const int* level);
+     const int tagval, const int clearval,
+     const amrex::Real time, const int level);
 #else
   void set_problem_tags
     (const int* lo, const int* hi,
