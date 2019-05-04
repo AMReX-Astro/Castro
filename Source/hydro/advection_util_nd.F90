@@ -66,8 +66,8 @@ contains
                       do jj = -1, 1
                          do ii = -1, 1
 
-                            if (i+ii >= lo(1) .and. j+jj >= lo(2) .and. k+kk >= lo(3) .and. &
-                                i+ii <= hi(1) .and. j+jj <= hi(2) .and. k+kk <= hi(3)) then
+                            if (i+ii >= s_lo(1) .and. j+jj >= s_lo(2) .and. k+kk >= s_lo(3) .and. &
+                                i+ii <= s_hi(1) .and. j+jj <= s_hi(2) .and. k+kk <= s_hi(3)) then
 
                                if (state(i+ii,j+jj,k+kk,URHO) .gt. max_dens) then
 
@@ -183,9 +183,9 @@ contains
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, small_temp, small_dens, npassive, upass_map
     use eos_type_module, only: eos_t, eos_input_rt
     use eos_module, only: eos
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only: linear_to_hybrid
+    use hybrid_advection_module, only: linear_to_hybrid ! function
     use meth_params_module, only: UMR, UMP
 #endif
 
