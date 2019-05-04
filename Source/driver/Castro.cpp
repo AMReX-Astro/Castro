@@ -3144,6 +3144,39 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
                               AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
                               tagval, clearval, time, level);
             }
+            else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
+                ca_velerror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+                            tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
+                            dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
+                            AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
+                            tagval, clearval, time, level);
+            }
+#ifdef REACTION
+            else if (err_list_names[j] == "t_sound_t_enuc") {
+                ca_nucerror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+                            tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
+                            dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
+                            AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
+                            tagval, clearval, time, level);
+            }
+            else if (err_list_names[j] == "enuc") {
+                ca_enucerror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+                             tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
+                             dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
+                             AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
+                             tagval, clearval, time, level);
+            }
+#endif
+#ifdef RADIATION
+            else if (err_list_names[j] == "rad") {
+                ca_raderror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+                            tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
+                            dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
+                            AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
+                            tagval, clearval, time, level);
+            }
+#endif
+
             //
             // Now update the tags in the TagBox.
             //
