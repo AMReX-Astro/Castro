@@ -2006,8 +2006,9 @@ Castro::check_for_post_regrid (Real time)
 
 	tags.setVal(TagBox::CLEAR);
 
-	for (int i = 0; i < err_list_names.size(); ++i)
+	for (int i = 0; i < err_list_names.size(); ++i) {
             apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
+        }
 
         apply_problem_tags(tags, TagBox::CLEAR, TagBox::SET, time);
 
@@ -2990,8 +2991,9 @@ Castro::errorEst (TagBoxArray& tags,
 
     // Apply each of the specified tagging functions.
 
-    for (int j = 0; j < num_err_list_default; j++)
+    for (int j = 0; j < num_err_list_default; j++) {
 	apply_tagging_func(tags, clearval, tagval, t, j);
+    }
 
     // Now apply the user-specified tagging functions.
     // Include problem-specific hooks before and after.
@@ -3122,24 +3124,24 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
             const int   ncomp   = datfab.nComp();
 
             if (err_list_names[j] == "density") {
-                ca_denerror(lo, hi,
-                            tptr, tlo, thi,
-                            dat, dlo, dhi, ncomp,
-                            dx, prob_lo,
+                ca_denerror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+                            tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
+                            dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
+                            AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
                             tagval, clearval, time, level);
             }
             else if (err_list_names[j] == "pressure") {
-                ca_presserror(lo, hi,
-                              tptr, tlo, thi,
-                              dat, dlo, dhi, ncomp,
-                              dx, prob_lo,
+                ca_presserror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+                              tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
+                              dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
+                              AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
                               tagval, clearval, time, level);
             }
             else if (err_list_names[j] == "Temp") {
-                ca_temperror(lo, hi,
-                             tptr, tlo, thi,
-                             dat, dlo, dhi, ncomp,
-                             dx, prob_lo,
+                ca_temperror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+                             tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
+                             dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
+                             AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
                              tagval, clearval, time, level);
             }
             //
