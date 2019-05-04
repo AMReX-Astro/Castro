@@ -3027,8 +3027,6 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 #pragma omp parallel
 #endif
     {
-        Vector<int>  itags;
-
 	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
 	{
 	    // tile box
@@ -3036,33 +3034,33 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 
             TagBox&     tagfab  = tags[mfi];
 
-	    // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
-	    // So we are going to get a temporary integer array.
-	    tagfab.get_itags(itags, tilebx);
-
             // data pointer and index space
-	    int*        tptr    = itags.dataPtr();
+	    char*       tptr    = tagfab.dataPtr();
 	    const int*  tlo     = tilebx.loVect();
 	    const int*  thi     = tilebx.hiVect();
 
 #ifdef AMREX_DIMENSION_AGNOSTIC
+#ifdef GPU_COMPATIBLE_PROBLEM
+#pragma gpu
+	    set_problem_tags(AMREX_INT_ANYD(tilebx.loVect()), AMREX_INT_ANYD(tilebx.hiVect()),
+                             tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
+			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
+			     AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                             char(tagval), char(clearval), time, level);
+#else
 	    set_problem_tags(AMREX_ARLIM_ANYD(tilebx.loVect()), AMREX_ARLIM_ANYD(tilebx.hiVect()),
                              tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
 			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			     AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                             tagval, clearval, time, level);
+                             char(tagval), char(clearval), time, level);
+#endif
 #else
 	    set_problem_tags(tilebx.loVect(), tilebx.hiVect(),
                              tptr, ARLIM(tlo), ARLIM(thi),
 			     BL_TO_FORTRAN(S_new[mfi]),
-			     &tagval, &clearval,
-		             dx, prob_lo, &time, &level);
+                             dx, problo,
+			     char(tagval), char(clearval), time, level);
 #endif
-
-	    //
-	    // Now update the tags in the TagBox.
-	    //
-            tagfab.tags_and_untags(itags, tilebx);
 	}
     }
 
@@ -3089,8 +3087,6 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
 #pragma omp parallel
 #endif
     {
-        Vector<int>  itags;
-
         for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
         {
             // FABs
@@ -3103,12 +3099,8 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
             //fab box
             const Box&  datbox  = datfab.box();
 
-            // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
-            // So we are going to get a temporary integer array.
-            tagfab.get_itags(itags, tilebx);
-
             // data pointer and index space
-            int*        tptr    = itags.dataPtr();
+            char*       tptr    = tagfab.dataPtr();
             const int*  tlo     = tilebx.loVect();
             const int*  thi     = tilebx.hiVect();
             //
@@ -3121,63 +3113,65 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
             const int   ncomp   = datfab.nComp();
 
             if (err_list_names[j] == "density") {
-                ca_denerror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                            tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
-                            dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
-                            AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                            tagval, clearval, time, level);
+#pragma gpu
+                ca_denerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                            tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
+                            dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
+                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                            char(tagval), char(clearval), time, level);
             }
             else if (err_list_names[j] == "Temp") {
-                ca_temperror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                             tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
-                             dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
-                             AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                             tagval, clearval, time, level);
+#pragma gpu
+                ca_temperror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                             tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
+                             dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
+                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                             char(tagval), char(clearval), time, level);
             }
             else if (err_list_names[j] == "pressure") {
-                ca_presserror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                              tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
-                              dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
-                              AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                              tagval, clearval, time, level);
+#pragma gpu
+                ca_presserror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                              tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
+                              dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
+                              AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                              char(tagval), char(clearval), time, level);
             }
             else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
-                ca_velerror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                            tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
-                            dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
-                            AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                            tagval, clearval, time, level);
+#pragma gpu
+                ca_velerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                            tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
+                            dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
+                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                            char(tagval), char(clearval), time, level);
             }
 #ifdef REACTION
             else if (err_list_names[j] == "t_sound_t_enuc") {
-                ca_nucerror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                            tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
-                            dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
-                            AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                            tagval, clearval, time, level);
+#pragma gpu
+                ca_nucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                            tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
+                            dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
+                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                            char(tagval), char(clearval), time, level);
             }
             else if (err_list_names[j] == "enuc") {
-                ca_enucerror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                             tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
-                             dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
-                             AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                             tagval, clearval, time, level);
+#pragma gpu
+                ca_enucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                             tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
+                             dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
+                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                             char(tagval), char(clearval), time, level);
             }
 #endif
 #ifdef RADIATION
             else if (err_list_names[j] == "rad") {
-                ca_raderror(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                            tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
-                            dat, AMREX_ARLIM_ANYD(dlo), AMREX_ARLIM_ANYD(dhi), ncomp,
-                            AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                            tagval, clearval, time, level);
+#pragma gpu
+                ca_raderror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                            tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
+                            dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
+                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                            char(tagval), char(clearval), time, level);
             }
 #endif
-
-            //
-            // Now update the tags in the TagBox.
-            //
-            tagfab.tags_and_untags(itags, tilebx);
         }
     }
 
