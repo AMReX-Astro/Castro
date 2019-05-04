@@ -3,38 +3,57 @@ module tagging_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  real(rt), save ::    denerr,   dengrad, dengrad_rel
-  real(rt), save ::    enterr,   entgrad, entgrad_rel
-  real(rt), save ::    velerr,   velgrad, velgrad_rel
-  real(rt), save ::   temperr,  tempgrad, tempgrad_rel
-  real(rt), save ::  presserr, pressgrad, pressgrad_rel
-  real(rt), save ::    raderr,   radgrad, radgrad_rel
-  real(rt), save ::   enucerr
+  real(rt), allocatable ::    denerr,   dengrad, dengrad_rel
+  real(rt), allocatable ::    enterr,   entgrad, entgrad_rel
+  real(rt), allocatable ::    velerr,   velgrad, velgrad_rel
+  real(rt), allocatable ::   temperr,  tempgrad, tempgrad_rel
+  real(rt), allocatable ::  presserr, pressgrad, pressgrad_rel
+  real(rt), allocatable ::    raderr,   radgrad, radgrad_rel
+  real(rt), allocatable ::   enucerr
 
-  integer, save ::  max_denerr_lev,   max_dengrad_lev, max_dengrad_rel_lev
-  integer, save ::  max_enterr_lev,   max_entgrad_lev, max_entgrad_rel_lev
-  integer, save ::  max_velerr_lev,   max_velgrad_lev, max_velgrad_rel_lev
-  integer, save ::  max_temperr_lev,  max_tempgrad_lev, max_tempgrad_rel_lev
-  integer, save ::  max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev
-  integer, save ::  max_raderr_lev,   max_radgrad_lev, max_radgrad_rel_lev
-  integer, save ::  max_enucerr_lev
+  integer, allocatable ::  max_denerr_lev,   max_dengrad_lev, max_dengrad_rel_lev
+  integer, allocatable ::  max_velerr_lev,   max_velgrad_lev, max_velgrad_rel_lev
+  integer, allocatable ::  max_temperr_lev,  max_tempgrad_lev, max_tempgrad_rel_lev
+  integer, allocatable ::  max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev
+  integer, allocatable ::  max_raderr_lev,   max_radgrad_lev, max_radgrad_rel_lev
+  integer, allocatable ::  max_enucerr_lev
 
   ! limit the zone size based on how much the burning can change the
   ! internal energy of a zone. The zone size on the finest level must
   ! be smaller than dxnuc * c_s * (e/ \dot{e}) where c_s is the sound
   ! speed.  This ensures that the sound-crossing time is smaller than
   ! the nuclear energy injection timescale.
-  real(rt), save :: dxnuc_min
+  real(rt), allocatable :: dxnuc_min
 
   ! Disable limiting based on dxnuc above this threshold. This allows
   !  zones that have already ignited or are about to ignite to be
   !  de-refined.
-  real(rt), save :: dxnuc_max
+  real(rt), allocatable :: dxnuc_max
 
   ! Disable limiting based on dxnuc above this AMR level.
-  integer, save :: max_dxnuc_lev
+  integer, allocatable :: max_dxnuc_lev
 
   public
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) ::    denerr,   dengrad, dengrad_rel
+  attributes(managed) ::    velerr,   velgrad, velgrad_rel
+  attributes(managed) ::   temperr,  tempgrad, tempgrad_rel
+  attributes(managed) ::  presserr, pressgrad, pressgrad_rel
+  attributes(managed) ::    raderr,   radgrad, radgrad_rel
+  attributes(managed) ::   enucerr
+
+  attributes(managed) ::  max_denerr_lev,   max_dengrad_lev, max_dengrad_rel_lev
+  attributes(managed) ::  max_velerr_lev,   max_velgrad_lev, max_velgrad_rel_lev
+  attributes(managed) ::  max_temperr_lev,  max_tempgrad_lev, max_tempgrad_rel_lev
+  attributes(managed) ::  max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev
+  attributes(managed) ::  max_raderr_lev,   max_radgrad_lev, max_radgrad_rel_lev
+  attributes(managed) ::  max_enucerr_lev
+
+  attributes(managed) :: dxnuc_min
+  attributes(managed) :: dxnuc_max
+  attributes(managed) :: max_dxnuc_lev
+#endif
 
 contains
 
@@ -486,42 +505,6 @@ contains
     lev = max_dengrad_rel_lev
 
   end subroutine get_max_dengrad_rel_lev
-
-
-
-  subroutine get_max_enterr_lev(lev) bind(c, name='get_max_enterr_lev')
-
-    implicit none
-
-    integer, intent(out) :: lev
-
-    lev = max_enterr_lev
-
-  end subroutine get_max_enterr_lev
-
-
-
-  subroutine get_max_entgrad_lev(lev) bind(c, name='get_max_entgrad_lev')
-
-    implicit none
-
-    integer, intent(out) :: lev
-
-    lev = max_entgrad_lev
-
-  end subroutine get_max_entgrad_lev
-
-
-
-  subroutine get_max_entgrad_rel_lev(lev) bind(c, name='get_max_entgrad_rel_lev')
-
-    implicit none
-
-    integer, intent(out) :: lev
-
-    lev = max_entgrad_rel_lev
-
-  end subroutine get_max_entgrad_rel_lev
 
 
 
