@@ -13,6 +13,7 @@ contains
                               set, clear, time, level) &
                               bind(C,name='set_problem_tags')
 
+    use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, TWO
     use meth_params_module, only: NVAR, URHO, UTEMP
     use prob_params_module, only: center, probhi, dim, Symmetry, physbc_lo, physbc_hi, &

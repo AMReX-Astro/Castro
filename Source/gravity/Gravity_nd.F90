@@ -17,6 +17,16 @@ module gravity_module
   real(rt), allocatable :: factArray(:,:)
   real(rt), allocatable :: parity_q0(:), parity_qC_qS(:,:)
 
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: volumeFactor, parityFactor
+  attributes(managed) :: rmax
+  attributes(managed) :: doSymmetricAddLo, doSymmetricAddHi, doSymmetricAdd
+  attributes(managed) :: doReflectionLo, doReflectionHi
+  attributes(managed) :: lnum_max
+  attributes(managed) :: factArray
+  attributes(managed) :: parity_q0, parity_qC_qS
+#endif
+
 contains
 
   ! ::
@@ -452,8 +462,12 @@ contains
     integer  :: i, j, k
     integer  :: l, m, n, nlo
     real(rt) :: x, y, z, r, cosTheta, phiAngle
-    real(rt) :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+    real(rt) :: legPolyL, legPolyL1, legPolyL2
+    real(rt) :: assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2
     real(rt) :: r_L, r_U
+    real(rt) :: rmax_cubed
+
+    !$gpu
 
     ! If we're using this to construct boundary values, then only use
     ! the outermost bin.
@@ -469,6 +483,8 @@ contains
        call amrex_error("Error: ca_put_multipole_phi: requested more multipole moments than we allocated data for.")
     endif
 #endif
+
+    rmax_cubed = rmax**3
 
     do k = lo(3), hi(3)
        if (k .gt. domhi(3)) then
@@ -531,33 +547,35 @@ contains
 
                 phi(i,j,k) = ZERO
 
-                ! First, calculate the Legendre polynomials.
-
-                legPolyArr(:) = ZERO
-                assocLegPolyArr(:,:) = ZERO
-
-                call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
-
-                ! We want to undo the volume scaling; tack that onto the polynomial arrays.
-
-                legPolyArr = legPolyArr * rmax**3
-                assocLegPolyArr = assocLegPolyArr * rmax**3
-
-                ! Now compute the potentials on the ghost cells.
+                ! Compute the potentials on the ghost cells.
 
                 do n = nlo, npts-1
 
                    do l = 0, lnum
 
-                      r_L = r**dble( l  )
+                      call calcLegPolyL(l, legPolyL, legPolyL1, legPolyL2, cosTheta)
+
                       r_U = r**dble(-l-1)
 
-                      phi(i,j,k) = phi(i,j,k) + qL0(l,n) * legPolyArr(l) * r_U
+                      ! Make sure we undo the volume scaling here.
 
-                      do m = 1, l
+                      phi(i,j,k) = phi(i,j,k) + qL0(l,n) * legPolyL * r_U * rmax_cubed
+
+                   end do
+
+                   do m = 1, lnum
+                      do l = 1, lnum
+
+                         if (m > l) continue
+
+                         call calcAssocLegPolyLM(l, m, assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2, cosTheta)
+
+                         r_U = r**dble(-l-1)
+
+                         ! Make sure we undo the volume scaling here.
 
                          phi(i,j,k) = phi(i,j,k) + (qLC(l,m,n) * cos(m * phiAngle) + qLS(l,m,n) * sin(m * phiAngle)) * &
-                              assocLegPolyArr(l,m) * r_U
+                                                   assocLegPolyLM * r_U * rmax_cubed
 
                       enddo
 
@@ -610,6 +628,9 @@ contains
     integer  :: nlo, index
 
     real(rt) :: x, y, z, r, drInv, cosTheta, phiAngle
+    real(rt) :: rmax_cubed_inv
+
+    !$gpu
 
     ! If we're using this to construct boundary values, then only fill
     ! the outermost bin.
@@ -631,6 +652,8 @@ contains
        call amrex_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
     endif
 #endif
+
+    rmax_cubed_inv = ONE / rmax**3
 
     do k = lo(3), hi(3)
        z = ( problo(3) + (dble(k)+HALF) * dx(3) - center(3) ) / rmax
@@ -655,7 +678,7 @@ contains
 
              ! Now, compute the multipole moments.
 
-             call multipole_add(cosTheta, phiAngle, r, rho(i,j,k), vol(i,j,k) / rmax**3, &
+             call multipole_add(cosTheta, phiAngle, r, rho(i,j,k), vol(i,j,k) * rmax_cubed_inv, &
                                 qL0, qLC, qLS, qU0, qUC, qUS, lnum, npts, nlo, index, .true.)
 
              ! Now add in contributions if we have any symmetric boundaries in 3D.
@@ -665,7 +688,7 @@ contains
 
                 call multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
                                              x, y, z, problo, probhi, &
-                                             rho(i,j,k), vol(i,j,k) / rmax**3, &
+                                             rho(i,j,k), vol(i,j,k) * rmax_cubed_inv, &
                                              qL0, qLC, qLS, qU0, qUC, qUS, &
                                              lnum, npts, nlo, index)
 
@@ -679,40 +702,42 @@ contains
 
 
 
-  function factorial(n)
+  function factorial(n) result(fact)
 
-    use amrex_constants_module
+    use amrex_constants_module, only: ONE
 
     implicit none
 
     integer :: n, i
-    real(rt) :: factorial
+    real(rt) :: fact
 
-    factorial = ONE
+    !$gpu
+
+    fact = ONE
 
     do i = 2, n
-       factorial = factorial * dble(i)
+       fact = fact * dble(i)
     enddo
 
   end function factorial
 
 
 
-  subroutine fill_legendre_arrays(legPolyArr, assocLegPolyArr, x, lnum)
+  subroutine calcAssocLegPolyLM(l, m, assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2, x)
 
-    use amrex_constants_module
+    use amrex_constants_module, only: ONE, TWO
 
     implicit none
 
-    integer :: lnum
-    integer :: l, m, n
-    real(rt) :: x
-    real(rt) :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+    integer,  intent(in   ) :: l, m
+    real(rt), intent(inout) :: assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2
+    real(rt), intent(in   ) :: x
 
-    legPolyArr(:)        = ZERO
-    assocLegPolyArr(:,:) = ZERO
+    integer :: n
 
-    ! First we'll do the associated Legendre polynomials. There are a number of
+    !$gpu
+
+    ! Calculate the associated Legendre polynomials. There are a number of
     ! recurrence relations, but many are unstable. We'll use one that is known
     ! to be stable for the reasonably low values of l we care about in a simulation:
     ! (l-m)P_l^m(x) = x(2l-1)P_{l-1}^m(x) - (l+m-1)P_{l-2}^m(x).
@@ -720,65 +745,73 @@ contains
     ! P_m^m(x) = (-1)^m (2m-1)! (1-x^2)^(m/2)
     ! P_{m+1}^m(x) = x (2m+1) P_m^m (x)
 
-    do m = 1, lnum
+    if (l == m) then
 
        ! P_m^m
 
-       assocLegPolyArr(m,m) = (-1)**m * ( (ONE - x) * (ONE + x) )**(dble(m)/TWO)
-
-       ! Multiply by the double factorial term
+       assocLegPolyLM = (-1)**m * ((ONE - x) * (ONE + x))**(dble(m)/TWO)
 
        do n = (2*m-1), 3, -2
 
-          assocLegPolyArr(m,m) = assocLegPolyArr(m,m) * n
+          assocLegPolyLM = assocLegPolyLM * n
 
-       enddo
+       end do
+
+    else if (l == m + 1) then
 
        ! P_{m+1}^m
-       ! We need to be careful at m = lnum, because we could reference a non-existent array subscript.
 
-       if ( m < lnum ) then
+       assocLegPolyLM1 = assocLegPolyLM
+       assocLegPolyLM  = x * (2*m + 1) * assocLegPolyLM1
 
-          assocLegPolyArr(m+1,m) = x * (2*m + 1) * assocLegPolyArr(m,m)
+    else
 
-       endif
+       assocLegPolyLM2 = assocLegPolyLM1
+       assocLegPolyLM1 = assocLegPolyLM
+       assocLegPolyLM  = (x * (2*l - 1) * assocLegPolyLM1 - (l + m - 1) * assocLegPolyLM2) / (l-m)
 
-       ! All other l
-       ! The loop will automatically be avoided if we're close to lnum here.
+    end if
 
-       do l = m+2, lnum
-
-          assocLegPolyArr(l,m) = (x * (2*l - 1) * assocLegPolyArr(l-1,m) - (l + m - 1) * assocLegPolyArr(l-2,m) ) / (l-m)
-
-       enddo
-
-    enddo
+  end subroutine calcAssocLegPolyLM
 
 
-    ! Now we'll do the normal Legendre polynomials. We use a stable recurrence relation:
-    ! (l+1) P_{l+1}(x) = (2l+1) x P_l(x) - l P_{l-1}(x). This uses initial conditions:
+
+  subroutine calcLegPolyL(l, legPolyL, legPolyL1, legPolyL2, x)
+
+    use amrex_constants_module, only: ONE
+
+    implicit none
+
+    integer,  intent(in   ) :: l
+    real(rt), intent(inout) :: legPolyL, legPolyL1, legPolyL2
+    real(rt), intent(in   ) :: x
+
+    !$gpu
+
+    ! Calculate the Legendre polynomials. We use a stable recurrence relation:
+    ! (l+1) P_{l+1}(x) = (2l+1) x P_l(x) - l P_{l-1}(x).
+    ! This uses initial conditions:
     ! P_0(x) = 1
     ! P_1(x) = x
 
-    do l = 0, lnum
+    if (l == 0) then
 
-       if ( l == 0 ) then
+       legPolyL = ONE
 
-          legPolyArr(0) = ONE
+    elseif (l == 1) then
 
-       elseif ( l == 1 ) then
+       legPolyL1 = legPolyL
+       legPolyL  = x
 
-          legPolyArr(1) = x
+    else
 
-       else
+       legPolyL2 = legPolyL1
+       legPolyL1 = legPolyL
+       legPolyL  = ((2*l - 1) * x * legPolyL1 - (l-1) * legPolyL2) / l
 
-          legPolyArr(l) = ( (2*l - 1) * x * legPolyArr(l-1) - (l-1) * legPolyArr(l-2) ) / l
+    end if
 
-       endif
-
-    enddo
-
-  end subroutine fill_legendre_arrays
+  end subroutine calcLegPolyL
 
 
   subroutine multipole_symmetric_add(doSymmetricAddLo, doSymmetricAddHi, &
@@ -807,6 +840,8 @@ contains
 
     real(rt) :: cosTheta, phiAngle, r
     real(rt) :: xLo, yLo, zLo, xHi, yHi, zHi
+
+    !$gpu
 
     xLo = ( TWO * (problo(1) - center(1)) ) / rmax - x
     xHi = ( TWO * (probhi(1) - center(1)) ) / rmax - x
@@ -895,7 +930,7 @@ contains
                            lnum, npts, nlo, index, do_parity)
 
     use amrex_constants_module, only: ONE
-    use amrex_fort_module, only: amrex_add
+    use amrex_fort_module, only: amrex_reduce_add
 
     implicit none
 
@@ -909,54 +944,102 @@ contains
 
     integer :: l, m, n
 
-    real(rt) :: legPolyArr(0:lnum), assocLegPolyArr(0:lnum,0:lnum)
+    real(rt) :: legPolyL, legPolyL1, legPolyL2
+    real(rt) :: assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2
 
     real(rt) :: rho_r_L, rho_r_U
 
-    real(rt) :: p0(0:lnum), pCS(0:lnum,0:lnum)
+    real(rt) :: dQ
 
-    call fill_legendre_arrays(legPolyArr, assocLegPolyArr, cosTheta, lnum)
+    logical :: parity
 
-    ! Absorb factorial terms into associated Legendre polynomials
+    !$gpu
 
-    assocLegPolyArr = assocLegPolyArr * factArray
-
-    p0 = ONE
-    pCS = ONE
+    parity = .false.
 
     if (present(do_parity)) then
-       if (do_parity) then
-          p0 = parity_q0
-          pCS = parity_qC_qS
-       endif
+       parity = do_parity
     endif
 
     do n = nlo, npts-1
 
        do l = 0, lnum
 
-          rho_r_L = rho * (r ** dble( l  ))
-          rho_r_U = rho * (r ** dble(-l-1))
+          call calcLegPolyL(l, legPolyL, legPolyL1, legPolyL2, cosTheta)
 
           if (index .le. n) then
-             qL0(l,n) = qL0(l,n) + legPolyArr(l) * rho_r_L * vol * volumeFactor * p0(l)
-          else
-             qU0(l,n) = qU0(l,n) + legPolyArr(l) * rho_r_U * vol * volumeFactor * p0(l)
-          endif
 
-          do m = 1, l
+             rho_r_L = rho * (r ** dble( l  ))
+
+             dQ = legPolyL * rho_r_L * vol * volumeFactor
+             if (parity) then
+                dQ = dQ * parity_q0(l)
+             end if
+
+             call amrex_reduce_add(qL0(l,n), dQ)
+
+          else
+
+             rho_r_U = rho * (r ** dble(-l-1))
+
+             dQ = legPolyL * rho_r_U * vol * volumeFactor
+             if (parity) then
+                dQ = dQ * parity_q0(l)
+             end if
+             call amrex_reduce_add(qU0(l,n), dQ)
+
+          end if
+
+       end do
+
+       ! For the associated Legendre polynomial loop, we loop over m and then l.
+       ! It means that we have to recompute rho_r_L or rho_r_U again, but the
+       ! recursion relation we use for the polynomials depends on l being the
+       ! innermost loop index.
+
+       do m = 1, lnum
+          do l = 1, lnum
+
+             if (m > l) continue
+
+             call calcAssocLegPolyLM(l, m, assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2, cosTheta)
 
              if (index .le. n) then
-                qLC(l,m,n) = qLC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_L * vol * pCS(l,m)
-                qLS(l,m,n) = qLS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_L * vol * pCS(l,m)
+
+                rho_r_L = rho * (r ** dble( l  ))
+
+                dQ = assocLegPolyLM * cos(m * phiAngle) * rho_r_L * vol * factArray(l,m)
+                if (parity) then
+                   dQ = dQ * parity_qC_qS(l,m)
+                end if
+                call amrex_reduce_add(qLC(l,m,n), dQ)
+
+                dQ = assocLegPolyLM * sin(m * phiAngle) * rho_r_L * vol * factArray(l,m)
+                if (parity) then
+                   dQ = dQ * parity_qC_qS(l,m)
+                end if
+                call amrex_reduce_add(qLS(l,m,n), dQ)
+
              else
-                qUC(l,m,n) = qUC(l,m,n) + assocLegPolyArr(l,m) * cos(m * phiAngle) * rho_r_U * vol * pCS(l,m)
-                qUS(l,m,n) = qUS(l,m,n) + assocLegPolyArr(l,m) * sin(m * phiAngle) * rho_r_U * vol * pCS(l,m)
-             endif
 
-          enddo
+                rho_r_U = rho * (r ** dble(-l-1))
 
-       enddo
+                dQ = assocLegPolyLM * cos(m * phiAngle) * rho_r_U * vol * factArray(l,m)
+                if (parity) then
+                   dQ = dQ * parity_qC_qS(l,m)
+                end if
+                call amrex_reduce_add(qUC(l,m,n), dQ)
+
+                dQ = assocLegPolyLM * sin(m * phiAngle) * rho_r_U * vol * factArray(l,m)
+                if (parity) then
+                   dQ = dQ * parity_qC_qS(l,m)
+                end if
+                call amrex_reduce_add(qUS(l,m,n), dQ)
+
+             end if
+
+          end do
+       end do
 
     enddo
 

@@ -23,7 +23,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_sponge(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                   BL_TO_FORTRAN_ANYD(state[mfi]),
                   BL_TO_FORTRAN_ANYD(source[mfi]),
@@ -55,7 +55,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_sponge(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                   BL_TO_FORTRAN_ANYD(state_old[mfi]),
                   BL_TO_FORTRAN_ANYD(source[mfi]),
@@ -75,7 +75,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_sponge(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                   BL_TO_FORTRAN_ANYD(state_new[mfi]),
                   BL_TO_FORTRAN_ANYD(source[mfi]),

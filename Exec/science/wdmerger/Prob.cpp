@@ -58,6 +58,8 @@ void
 Castro::problem_post_timestep()
 {
 
+    BL_PROFILE("Castro::problem_post_timestep()");
+
     if (level != 0) return;
 
     int finest_level = parent->finestLevel();
@@ -200,6 +202,7 @@ Castro::wd_update (Real time, Real dt)
 	  const int* lo   = box.loVect();
 	  const int* hi   = box.hiVect();
 
+#pragma gpu box(box)
 	  wdcom(BL_TO_FORTRAN_ANYD(fabrho),
 		BL_TO_FORTRAN_ANYD(fabxmom),
 		BL_TO_FORTRAN_ANYD(fabymom),
@@ -207,13 +210,13 @@ Castro::wd_update (Real time, Real dt)
 		BL_TO_FORTRAN_ANYD(fabpmask),
 		BL_TO_FORTRAN_ANYD(fabsmask),
 		BL_TO_FORTRAN_ANYD(vol),
-		ARLIM_3D(lo),ARLIM_3D(hi),
-		ZFILL(dx),&time,
-		&com_p_x, &com_p_y, &com_p_z,
-		&com_s_x, &com_s_y, &com_s_z,
-		&vel_p_x, &vel_p_y, &vel_p_z,
-		&vel_s_x, &vel_s_y, &vel_s_z,
-		&mp, &ms);
+		AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+		AMREX_REAL_ANYD(dx), time,
+		AMREX_MFITER_REDUCE_SUM(&com_p_x), AMREX_MFITER_REDUCE_SUM(&com_p_y), AMREX_MFITER_REDUCE_SUM(&com_p_z),
+		AMREX_MFITER_REDUCE_SUM(&com_s_x), AMREX_MFITER_REDUCE_SUM(&com_s_y), AMREX_MFITER_REDUCE_SUM(&com_s_z),
+                AMREX_MFITER_REDUCE_SUM(&vel_p_x), AMREX_MFITER_REDUCE_SUM(&vel_p_y), AMREX_MFITER_REDUCE_SUM(&vel_p_z),
+                AMREX_MFITER_REDUCE_SUM(&vel_s_x), AMREX_MFITER_REDUCE_SUM(&vel_s_y), AMREX_MFITER_REDUCE_SUM(&vel_s_z),
+		AMREX_MFITER_REDUCE_SUM(&mp), AMREX_MFITER_REDUCE_SUM(&ms));
 	}
 
     }
@@ -398,21 +401,20 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
           FArrayBox& fabsmask = (*mfsmask)[mfi];
           FArrayBox& vol      = c_lev.volume[mfi];
 
-	  Real sp = 0.0;
-	  Real ss = 0.0;
-
 	  const Box& box  = mfi.tilebox();
 	  const int* lo   = box.loVect();
 	  const int* hi   = box.hiVect();
 
+#pragma gpu box(box)
 	  ca_volumeindensityboundary(BL_TO_FORTRAN_ANYD(fab),
 		                     BL_TO_FORTRAN_ANYD(fabpmask),
 				     BL_TO_FORTRAN_ANYD(fabsmask),
 				     BL_TO_FORTRAN_ANYD(vol),
-				     ARLIM_3D(lo),ARLIM_3D(hi),
-				     ZFILL(dx),&sp,&ss,&rho_cutoff);
-	  vp += sp;
-	  vs += ss;
+				     AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+				     AMREX_REAL_ANYD(dx),
+                                     AMREX_MFITER_REDUCE_SUM(&vp), AMREX_MFITER_REDUCE_SUM(&vs),
+                                     rho_cutoff);
+
       }
 
       vol_p += vp;
@@ -507,6 +509,7 @@ Castro::gwstrain (Real time,
 	    const int* lo   = box.loVect();
 	    const int* hi   = box.hiVect();
 
+#pragma gpu box(box)
 	    quadrupole_tensor_double_dot(BL_TO_FORTRAN_ANYD((*mfrho)[mfi]),
 					 BL_TO_FORTRAN_ANYD((*mfxmom)[mfi]),
 					 BL_TO_FORTRAN_ANYD((*mfymom)[mfi]),
@@ -515,12 +518,14 @@ Castro::gwstrain (Real time,
 					 BL_TO_FORTRAN_ANYD((*mfgravy)[mfi]),
 					 BL_TO_FORTRAN_ANYD((*mfgravz)[mfi]),
 					 BL_TO_FORTRAN_ANYD(volume[mfi]),
-					 ARLIM_3D(lo),ARLIM_3D(hi),ZFILL(dx),&time,
+					 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                                         AMREX_REAL_ANYD(dx), time,
 #ifdef _OPENMP
-					 priv_Qtt[tid]->dataPtr());
+					 priv_Qtt[tid]->dataPtr()
 #else
-	                                 Qtt.dataPtr());
+	                                 Qtt.dataPtr()
 #endif
+                                         );
         }
     }
 

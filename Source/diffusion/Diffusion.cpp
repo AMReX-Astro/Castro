@@ -89,7 +89,7 @@ Diffusion::weight_cc(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_weight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		     BL_TO_FORTRAN_ANYD(cc[mfi]),
                      AMREX_REAL_ANYD(dx), coord_type);
@@ -108,7 +108,7 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_unweight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		       BL_TO_FORTRAN_ANYD(cc[mfi]),
                        AMREX_REAL_ANYD(dx), coord_type);

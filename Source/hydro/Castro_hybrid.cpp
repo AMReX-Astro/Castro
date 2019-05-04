@@ -49,7 +49,8 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 
     const Box& bx = mfi.tilebox();
 
-    ca_hybrid_hydro_source(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu box(bx)
+    ca_hybrid_hydro_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			   BL_TO_FORTRAN_ANYD(state[mfi]),
 			   BL_TO_FORTRAN_ANYD(sources[mfi]),
                            mult_factor);
@@ -75,7 +76,8 @@ Castro::hybrid_sync(MultiFab& state, int ng)
 
 	    const Box& bx = mfi.growntilebox(ng);
 
-	    ca_hybrid_update(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
+#pragma gpu box(bx)
+	    ca_hybrid_update(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
 
 	}
 

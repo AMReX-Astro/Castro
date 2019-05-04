@@ -151,7 +151,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           if (do_hydro) {
 
-#pragma gpu
+#pragma gpu box(obx)
             divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  AMREX_REAL_ANYD(dx),
@@ -166,7 +166,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             if (first_order_hydro == 1) {
               AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
             } else if (use_flattening == 1) {
-#pragma gpu
+#pragma gpu box(obx)
               ca_uflatten
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -194,7 +194,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               dq.resize(obx, NQ);
               Elixir elix_dq = dq.elixir();
 
-#pragma gpu
+#pragma gpu box(obx)
               ca_mol_plm_reconstruct
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -207,7 +207,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             } else {
 
-#pragma gpu
+#pragma gpu box(obx)
               ca_mol_ppm_reconstruct
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -275,7 +275,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               int idir_f = idir + 1;
 
-#pragma gpu
+#pragma gpu box(nbx)
               cmpflx_plus_godunov
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  BL_TO_FORTRAN_ANYD(qm),
@@ -304,7 +304,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
               // apply artificial viscosity
-#pragma gpu
+#pragma gpu box(nbx)
               apply_av
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  idir_f, AMREX_REAL_ANYD(dx),
@@ -314,7 +314,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               // apply the density flux limiter
               if (limit_fluxes_on_small_dens == 1) {
-#pragma gpu
+#pragma gpu box(nbx)
                 limit_hydro_fluxes_on_small_dens
                   (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                    idir_f,
@@ -327,7 +327,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               }
 
               // ensure that the species fluxes are normalized
-#pragma gpu
+#pragma gpu box(nbx)
               normalize_species_fluxes
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  BL_TO_FORTRAN_ANYD(flux[idir]));
@@ -359,9 +359,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           } // end do_hydro
 
           // do the conservative update -- and store the shock variable
-#pragma gpu
+#pragma gpu box(bx)
           ca_mol_consup
-            (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(statein),
              BL_TO_FORTRAN_ANYD(stateout),
              BL_TO_FORTRAN_ANYD(source_in),
@@ -401,7 +401,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-#pragma gpu
+#pragma gpu box(nbx)
             scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
 #if AMREX_SPACEDIM == 1
                        BL_TO_FORTRAN_ANYD(qe[idir]),
