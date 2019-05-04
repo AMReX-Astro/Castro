@@ -30,15 +30,16 @@ function find_chk_file {
     # find the latest 2 restart files.  This way if the latest didn't
     # complete we fall back to the previous one.
     temp_files=$(find . -type d -name "${chk}" -print | sort | tail -2)
+    restartFile=""
     for f in ${temp_files}
     do
         # the Header is the last thing written -- check if it's there, otherwise,
         # fall back to the second-to-last check file written
         if [ ! -f ${f}/Header ]; then
-                restartFile=""
-                else
-                restartFile="${f}"
-                fi
+            restartFile=""
+        else
+            restartFile="${f}"
+        fi
     done
 
 }
