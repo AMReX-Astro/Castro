@@ -140,7 +140,7 @@ contains
 
     real(rt) :: time
     real(rt) :: tol_dens, tol_spec, tol_ener, relax_fac
-    real(rt) :: rtol(0:nspec_evolve+1), atol(0:nspec_evolve+1)
+    real(rt) :: rtol(0:nspec_evolve+1), atol(0:nspec_evolve+1), eps_tot(0:nspec_evolve+1)
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
@@ -154,7 +154,7 @@ contains
 
     integer :: m, n
 
-    real(rt) :: err_dens, err_spec, err_ener
+    real(rt) :: err, eta, eta_max
 
     integer, parameter :: MAX_ITER = 100
     integer :: iter
@@ -224,14 +224,11 @@ contains
 #if (INTEGRATOR == 0)
     ! do a simple Newton solve
 
-    err_dens = 1.e30_rt
-    err_spec = 1.e30_rt
-    err_ener = 1.e30_rt
-
     ! iterative loop
     iter = 0
     max_newton_iter = MAX_ITER
 
+    err = 1.e30_rt
     converged = .false.
     do while (.not. converged .and. iter < max_newton_iter)
 
@@ -249,21 +246,31 @@ contains
 
        dU_react(:) = f_rhs(:)
 
+       ! how much of dU_react should we apply?  We don't want species
+       ! going negative.  Here, the 1/2 is a safety factor
+       eta = ONE
+       do n = 1, nspec_evolve
+          if (dU_react(n) >= ZERO) cycle
+
+          ! dU_react will make this species density smaller -- let's
+          ! make sure it won't go negative
+          ! U_new = U_old + eta dU_react > 0
+          eta_max = abs(U_react(n)/dU_react(n))  ! this should be positive, but we take abs just in case
+          eta = min(eta, eta_max)
+       end do
+       eta = max(eta, 0.1_rt)
+       dU_react(:) = eta * dU_react(:)
+
        U_react(:) = U_react(:) + dU_react(:)
 
-       atol_spec(:) = merge(abs(dU_react(1:nspec_evolve)), ZERO, &
-                            abs(dU_react(1:nspec_evolve)) > sdc_solver_atol * U_react(0))
+       eps_tot(0) = tol_dens * abs(U_react(0)) + sdc_solver_atol
+       eps_tot(1:nspec_evolve) = tol_spec * abs(U_react(1:nspec_evolve)) + sdc_solver_atol
+       eps_tot(nspec_evolve+1) = tol_ener * abs(U_react(nspec_evolve+1)) + sdc_solver_atol
 
-       ! construct the norm of the correction
-       w(0) = abs(dU_react(0)/(U_react(0) + SMALL_X_SAFE))
-       w(1:nspec_evolve) = abs(atol_spec(1:nspec_evolve)/(U_react(1:nspec_evolve) + SMALL_X_SAFE))
-       w(nspec_evolve+1) = abs(dU_react(nspec_evolve+1)/(U_react(nspec_evolve+1) + SMALL_X_SAFE))
+       ! compute the norm of the weighted error, where the weights are 1/eps_tot
+       err = sqrt(sum((dU_react/eps_tot)**2)/(nspec_evolve+2))
 
-       err_dens = abs(w(0))
-       err_spec = maxval(w(1:nspec_evolve))
-       err_ener = abs(w(nspec_evolve+1))
-
-       if (err_dens < tol_dens .and. err_spec < tol_spec .and. err_ener < tol_ener) then
+       if (err < ONE) then
           converged = .true.
        endif
 
@@ -271,8 +278,11 @@ contains
     enddo
 
     if (.not. converged) then
-       print *, "errors: ", err_dens, err_spec, err_ener
-       print *, "tols:   ", tol_dens, tol_spec, tol_ener
+       print *, "dens: ", U_react(0), dU_react(0), eps_tot(0)
+       do n = 1, nspec_evolve
+          print *, "spec: ", n, U_react(n), dU_react(n), eps_tot(n)
+       end do
+       print *, "enuc: ", U_react(nspec_evolve+1), dU_react(nspec_evolve+1), eps_tot(nspec_evolve+1)
        call amrex_error("did not converge in SDC")
     endif
 
