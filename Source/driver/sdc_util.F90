@@ -27,6 +27,15 @@ module rpar_sdc_module
 
   integer, parameter :: n_rpar = nspec_evolve + 8 + (nspec - nspec_evolve)
 
+  ! error codes
+  integer, parameter :: NEWTON_SUCCESS = 0
+  integer, parameter :: SINGULAR_MATRIX = -1
+  integer, parameter :: CONVERGENCE_FAILURE = -2
+
+  ! solvers
+  integer, parameter :: NEWTON_SOLVE = 1
+  integer, parameter :: VODE_SOLVE = 2
+  integer, parameter :: HYBRID_SOLVE = 3
 
 end module rpar_sdc_module
 
@@ -63,42 +72,57 @@ contains
     real(rt), intent(in) :: C(NVAR)
     integer, intent(in) :: sdc_iteration
 
-    integer, parameter :: NEWTON_SOLVE = 1
-    integer, parameter :: VODE_SOLVE = 2
-    integer, parameter :: HYBRID_SOLVE = 3
+    real(rt) :: dt_sub
+    real(rt) :: U_begin(NVAR)
+    integer :: ierr, nsub, isub
+    integer, parameter :: MAX_NSUB=64
 
     if (sdc_solver == NEWTON_SOLVE) then
        ! we are going to assume we already have a good guess for the
        ! solving in U_new and just pass the solve onto the main Newton
        ! solve
-       call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration)
+       call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, ierr)
+
+       if (ierr /= NEWTON_SUCCESS) then
+          ! subdivide the timestep and do multiple Newtons
+          nsub = 2
+          U_begin(:) = U_old(:)
+          do while (nsub < MAX_NSUB .and. ierr /= NEWTON_SUCCESS)
+             dt_sub = dt_m / nsub
+             do isub = 1, nsub
+                call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
+                U_begin(:) = U_new(:)
+             end do
+             nsub = nsub * 2
+          end do
+       end if
+
+       if (ierr /= NEWTON_SUCCESS) then
+          call amrex_error("Newton subcycling failed in sdc_solve")
+       end if
 
     else if (sdc_solver == VODE_SOLVE) then
-       ! we will first use VODE to find an initial guess and then pass
-       ! that onto the Newton solve to ensure we satisfy the correct
-       ! discretized equation
-       call sdc_vode_predict(dt_m, U_old, U_new, C, sdc_iteration)
-
-       ! now U_new is the update that VODE predicts, so we will use
-       ! that as the initial guess to the Newton solve
-       !call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration)
+       ! use VODE to do the solution
+       call sdc_vode_solve(dt_m, U_old, U_new, C, sdc_iteration)
 
     else if (sdc_solver == HYBRID_SOLVE) then
        ! if it is the first iteration, we will use VODE to predict
        ! the solution.  Otherwise, we will use Newton.
        if (sdc_iteration == 0) then
-          call sdc_vode_predict(dt_m, U_old, U_new, C, sdc_iteration)
+          call sdc_vode_solve(dt_m, U_old, U_new, C, sdc_iteration)
        endif
 
        ! now U_new is the update that VODE predicts, so we will use
        ! that as the initial guess to the Newton solve
-       call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration)
-
+       call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, ierr)
+       if (ierr /= NEWTON_SUCCESS) then
+          call amrex_error("Newton failure in sdc_solve")
+       end if
     end if
 
   end subroutine sdc_solve
 
-  subroutine sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration)
+  subroutine sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, ierr)
     ! the purpose of this function is to solve the system
     ! U - dt R(U) = U_old + dt C using a Newton solve.
     !
@@ -125,6 +149,7 @@ contains
     real(rt), intent(inout) :: U_new(NVAR)
     real(rt), intent(in) :: C(NVAR)
     integer, intent(in) :: sdc_iteration
+    integer, intent(out) :: ierr
 
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
     real(rt) :: w(0:nspec_evolve+1)
@@ -154,7 +179,7 @@ contains
 
     integer :: m, n
 
-    real(rt) :: err, eta, eta_max
+    real(rt) :: err, eta, eta_max, sum_rhoX
 
     integer, parameter :: MAX_ITER = 100
     integer :: iter
@@ -162,6 +187,8 @@ contains
     integer :: max_newton_iter
 
     integer :: imode
+
+    ierr = NEWTON_SUCCESS
 
     ! the tolerance we are solving to may depend on the iteration
     relax_fac = sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
@@ -237,7 +264,8 @@ contains
        ! solve the linear system: Jac dU_react = -f
        call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
        if (info /= 0) then
-          call amrex_error("singular matrix")
+          ierr = SINGULAR_MATRIX
+          return
        endif
 
        f_rhs(:) = -f(:)
@@ -258,7 +286,7 @@ contains
           eta_max = abs(U_react(n)/dU_react(n))  ! this should be positive, but we take abs just in case
           eta = min(eta, eta_max)
        end do
-       eta = max(eta, 0.1_rt)
+       eta = max(eta, 1.e-5_rt)
        dU_react(:) = eta * dU_react(:)
 
        U_react(:) = U_react(:) + dU_react(:)
@@ -278,12 +306,13 @@ contains
     enddo
 
     if (.not. converged) then
-       print *, "dens: ", U_react(0), dU_react(0), eps_tot(0)
-       do n = 1, nspec_evolve
-          print *, "spec: ", n, U_react(n), dU_react(n), eps_tot(n)
-       end do
-       print *, "enuc: ", U_react(nspec_evolve+1), dU_react(nspec_evolve+1), eps_tot(nspec_evolve+1)
-       call amrex_error("did not converge in SDC")
+       !print *, "dens: ", U_react(0), dU_react(0), eps_tot(0), abs(dU_react(0))/eps_tot(0)
+       !do n = 1, nspec_evolve
+       !   print *, "spec: ", n, U_react(n), dU_react(n), eps_tot(n), abs(dU_react(n))/eps_tot(n)
+       !end do
+       !print *, "enuc: ", U_react(nspec_evolve+1), dU_react(nspec_evolve+1), eps_tot(nspec_evolve+1), dU_react(nspec_evolve+1)/eps_tot(nspec_evolve+1)
+       ierr = CONVERGENCE_FAILURE
+       return
     endif
 
 #endif
@@ -303,7 +332,7 @@ contains
   end subroutine sdc_newton_solve
 
 
-  subroutine sdc_vode_predict(dt_m, U_old, U_new, C, sdc_iteration)
+  subroutine sdc_vode_solve(dt_m, U_old, U_new, C, sdc_iteration)
     ! the purpose of this function is to solve the system the
     ! approximate system dU/dt = R + C using the VODE ODE integrator.
     ! the solution we get here will then be used as the initial guess
@@ -465,7 +494,7 @@ contains
     ! keep our temperature guess
     U_new(UTEMP) = rpar(irp_temp)
 
-  end subroutine sdc_vode_predict
+  end subroutine sdc_vode_solve
 
 
   subroutine f_ode(n, t, U, dUdt, rpar, ipar)
