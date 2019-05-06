@@ -277,16 +277,16 @@ contains
        ! how much of dU_react should we apply?  We don't want species
        ! going negative.  Here, the 1/2 is a safety factor
        eta = ONE
-       do n = 1, nspec_evolve
-          if (dU_react(n) >= ZERO) cycle
+       ! do n = 1, nspec_evolve
+       !    if (dU_react(n) >= ZERO) cycle
 
-          ! dU_react will make this species density smaller -- let's
-          ! make sure it won't go negative
-          ! U_new = U_old + eta dU_react > 0
-          eta_max = abs(U_react(n)/dU_react(n))  ! this should be positive, but we take abs just in case
-          eta = min(eta, eta_max)
-       end do
-       eta = max(eta, 1.e-5_rt)
+       !    ! dU_react will make this species density smaller -- let's
+       !    ! make sure it won't go negative
+       !    ! U_new = U_old + eta dU_react > 0
+       !    eta_max = abs(U_react(n)/dU_react(n))  ! this should be positive, but we take abs just in case
+       !    eta = min(eta, eta_max)
+       ! end do
+       ! eta = max(eta, 1.e-5_rt)
        dU_react(:) = eta * dU_react(:)
 
        U_react(:) = U_react(:) + dU_react(:)
