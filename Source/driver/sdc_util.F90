@@ -115,6 +115,21 @@ contains
        ! now U_new is the update that VODE predicts, so we will use
        ! that as the initial guess to the Newton solve
        call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, ierr)
+
+       if (ierr /= NEWTON_SUCCESS) then
+          ! subdivide the timestep and do multiple Newtons
+          nsub = 2
+          U_begin(:) = U_old(:)
+          do while (nsub < MAX_NSUB .and. ierr /= NEWTON_SUCCESS)
+             dt_sub = dt_m / nsub
+             do isub = 1, nsub
+                call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
+                U_begin(:) = U_new(:)
+             end do
+             nsub = nsub * 2
+          end do
+       end if
+
        if (ierr /= NEWTON_SUCCESS) then
           call amrex_error("Newton failure in sdc_solve")
        end if
