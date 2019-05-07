@@ -335,7 +335,8 @@ contains
        U_react(:) = U_react(:) + dU_react(:)
 
        eps_tot(0) = tol_dens * abs(U_react(0)) + sdc_solver_atol
-       eps_tot(1:nspec_evolve) = tol_spec * abs(U_react(1:nspec_evolve)) + sdc_solver_atol
+       ! for species, atol is the mass fraction limit, so we multiply by density to get a partial density limit
+       eps_tot(1:nspec_evolve) = tol_spec * abs(U_react(1:nspec_evolve)) + sdc_solver_atol * abs(U_react(0))
        eps_tot(nspec_evolve+1) = tol_ener * abs(U_react(nspec_evolve+1)) + sdc_solver_atol
 
        ! compute the norm of the weighted error, where the weights are 1/eps_tot
