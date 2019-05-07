@@ -72,10 +72,8 @@ contains
     real(rt), intent(in) :: C(NVAR)
     integer, intent(in) :: sdc_iteration
 
-    real(rt) :: dt_sub
-    real(rt) :: U_begin(NVAR)
-    integer :: ierr, nsub, isub
-    integer, parameter :: MAX_NSUB=64
+    integer :: ierr
+
 
     if (sdc_solver == NEWTON_SOLVE) then
        ! we are going to assume we already have a good guess for the
@@ -84,19 +82,10 @@ contains
        call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, ierr)
 
        if (ierr /= NEWTON_SUCCESS) then
-          ! subdivide the timestep and do multiple Newtons
-          nsub = 2
-          U_begin(:) = U_old(:)
-          do while (nsub < MAX_NSUB .and. ierr /= NEWTON_SUCCESS)
-             dt_sub = dt_m / nsub
-             do isub = 1, nsub
-                call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
-                U_begin(:) = U_new(:)
-             end do
-             nsub = nsub * 2
-          end do
+          call sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
        end if
 
+       ! still failing?
        if (ierr /= NEWTON_SUCCESS) then
           call amrex_error("Newton subcycling failed in sdc_solve")
        end if
@@ -117,25 +106,64 @@ contains
        call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, ierr)
 
        if (ierr /= NEWTON_SUCCESS) then
-          ! subdivide the timestep and do multiple Newtons
-          nsub = 2
-          U_begin(:) = U_old(:)
-          do while (nsub < MAX_NSUB .and. ierr /= NEWTON_SUCCESS)
-             dt_sub = dt_m / nsub
-             do isub = 1, nsub
-                call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
-                U_begin(:) = U_new(:)
-             end do
-             nsub = nsub * 2
-          end do
+          call sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
        end if
 
+       ! still failing?
        if (ierr /= NEWTON_SUCCESS) then
           call amrex_error("Newton failure in sdc_solve")
        end if
     end if
 
   end subroutine sdc_solve
+
+  subroutine sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
+
+    use meth_params_module, only : NVAR, URHO, UFS
+    use amrex_constants_module, only : ZERO, HALF, ONE
+    use extern_probin_module, only : SMALL_X_SAFE
+    use network, only : nspec, nspec_evolve
+    use rpar_sdc_module
+
+    implicit none
+
+    real(rt), intent(in) :: dt_m
+    real(rt), intent(in) :: U_old(NVAR)
+    real(rt), intent(inout) :: U_new(NVAR)
+    real(rt), intent(in) :: C(NVAR)
+    integer, intent(in) :: sdc_iteration
+    integer, intent(inout) :: ierr
+
+    integer :: isub, nsub
+    real(rt) :: dt_sub
+    real(rt) :: U_begin(NVAR)
+    integer :: n
+    real(rt) :: sum_rhoX
+
+    integer, parameter :: MAX_NSUB = 64
+
+    ! subdivide the timestep and do multiple Newtons
+    nsub = 2
+    ierr = CONVERGENCE_FAILURE
+    U_begin(:) = U_old(:)
+    do while (nsub < MAX_NSUB .and. ierr /= NEWTON_SUCCESS)
+       dt_sub = dt_m / nsub
+       do isub = 1, nsub
+          call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
+          U_begin(:) = U_new(:)
+
+          ! normalize species
+          do n = 1, nspec
+             U_begin(UFS-1+n) = max(ZERO, U_begin(UFS-1+n))
+          end do
+          sum_rhoX = sum(U_begin(UFS:UFS-1+nspec))
+          U_begin(UFS:UFS-1+nspec) = U_begin(UFS:UFS-1+nspec) * U_begin(URHO)/sum_rhoX
+
+       end do
+       nsub = nsub * 2
+    end do
+
+  end subroutine sdc_newton_subdivide
 
   subroutine sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, ierr)
     ! the purpose of this function is to solve the system
