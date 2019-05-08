@@ -20,6 +20,8 @@
   pert_frac = 0.3d0
   pert_delta = 0.02d0
 
+  v_inflow = -1.e6
+
 /
 
 &tagging

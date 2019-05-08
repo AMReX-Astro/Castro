@@ -229,9 +229,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            state(i,j,k,URHO ) = eos_state % rho
            state(i,j,k,UMX:UMZ) = ZERO
            state(i,j,k,UMX) = eos_state % rho * v_inflow
-           state(i,j,k,UEDEN) = eos_state % rho * eos_state % e
-           state(i,j,k,UEINT) = eos_state % rho * eos_state % e + &
+           state(i,j,k,UEDEN) = eos_state % rho * eos_state % e + &
                 HALF * eos_state % rho * v_inflow**2
+           state(i,j,k,UEINT) = eos_state % rho * eos_state % e
            state(i,j,k,UTEMP) = eos_state % T
            state(i,j,k,UFS:UFS-1+nspec) = eos_state % rho * eos_state % xn(:)
         end do
