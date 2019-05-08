@@ -1,23 +1,23 @@
 &fortin
 
-  rho_fuel = 2.d7
+  rho_fuel = 5.d6
   T_fuel = 5.e7
 
-  T_ash = 4.2e9
+  T_ash = 2.5e9
 
   ash1_name = "silicon-28"
-  X_ash1 = 0.57
+  X_ash1 = 0.25
 
   ash2_name = "sulfur-32"
-  X_ash2 = 0.30
+  X_ash2 = 0.25
 
   ash3_name = "argon-36"
-  X_ash3 = 0.08
+  X_ash3 = 0.25
 
   ash4_name = "calcium-40"
-  X_ash4 = 0.05
+  X_ash4 = 0.25
 
-  pert_frac = 0.15d0
+  pert_frac = 0.3d0
   pert_delta = 0.02d0
 
 /
