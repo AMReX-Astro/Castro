@@ -17,10 +17,10 @@
   ash4_name = "calcium-40"
   X_ash4 = 0.25
 
-  pert_frac = 0.3d0
+  pert_frac = 0.5d0
   pert_delta = 0.02d0
 
-  v_inflow = -1.e6
+  v_inflow = -1.e5
 
 /
 
