@@ -24,7 +24,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   integer :: ifuel1, iash1, ifuel2, iash2, ifuel3, iash3, ifuel4, iash4
 
-  namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel, T_ash, &
+  namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel, T_ash, v_inflow, &
                     fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
                     ash1_name, ash2_name, ash3_name, ash4_name, &
                     X_fuel1, X_fuel2, X_fuel3, X_fuel4, X_ash1, X_ash2, X_ash3, X_ash4
@@ -48,6 +48,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   rho_fuel = ONE
   T_fuel = ONE
   T_ash = ONE
+  v_inflow = ZERO
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -227,8 +228,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            state(i,j,k,URHO ) = eos_state % rho
            state(i,j,k,UMX:UMZ) = ZERO
+           state(i,j,k,UMX) = eos_state % rho * v_inflow
            state(i,j,k,UEDEN) = eos_state % rho * eos_state % e
-           state(i,j,k,UEINT) = eos_state % rho * eos_state % e
+           state(i,j,k,UEINT) = eos_state % rho * eos_state % e + &
+                HALF * eos_state % rho * v_inflow**2
            state(i,j,k,UTEMP) = eos_state % T
            state(i,j,k,UFS:UFS-1+nspec) = eos_state % rho * eos_state % xn(:)
         end do

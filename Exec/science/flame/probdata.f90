@@ -19,4 +19,6 @@ module probdata_module
   character(len=32), save :: ash1_name, ash2_name, ash3_name, ash4_name
   real(rt), save :: X_ash1, X_ash2, X_ash3, X_ash4
 
+  real(rt), save :: v_inflow
+
 end module probdata_module
