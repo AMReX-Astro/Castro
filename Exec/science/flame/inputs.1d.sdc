@@ -1,7 +1,7 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 500000
 
-stop_time    = 1.5e-3
+stop_time    = 5.e-4
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0
