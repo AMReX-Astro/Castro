@@ -45,9 +45,7 @@ function find_chk_file {
 }
 
 GLOBAL_PARAMS="
-stop_time=2.25e-4
 castro.dtnuc_e=0.25
-geometry.prob_hi=245760.0
 amr.check_int=100"
 
 NEEDED_FILES="
@@ -57,53 +55,10 @@ probin.sdc
 helm_table.dat"
 
 NZONES="
-3072
-6144
-12288
-24576"
-
-
-# SDC-2
-RUNPARAMS="
-castro.time_integration_method=2
-castro.sdc_order=2
-castro.ppm_type=0
-castro.sdc_solve_for_rhoe=1
-castro.sdc_solver_tol_dens=1.e-10
-castro.sdc_solver_tol_spec=1.e-10
-castro.sdc_solver_tol_ener=1.e-5
-castro.sdc_solver_atol=1.e-10
-castro.sdc_solver=2
-castro.sdc_use_analytic_jac=1"
-
-for nz in ${NZONES}
-do
-    rdir=flame_${nz}_sdc2
-    if [ ! -d ${rdir} ]; then
-        mkdir ${rdir}
-    fi
-    if [ ! -f ${rdir}/run_done ]; then
-        cd ${rdir}
-        for nf in ${NEEDED_FILES}
-        do
-            if [ ! -f ${nf} ]; then
-                cp ../${nf} .
-            fi
-        done
-
-        find_chk_file "*chk?????"
-        # restartString will be empty if no chk files are found -- i.e. new run
-        if [ "${restartFile}" = "" ]; then
-            restartString=""
-        else
-            restartString="amr.restart=${restartFile}"
-        fi
-
-        srun -n 24 -c ${OMP_NUM_THREADS} ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${RUNPARAMS} amr.n_cell=${nz} ${GLOBAL_PARAMS} ${restartString} &> run.out
-        touch run_done
-        cd ..
-    fi
-done
+1024
+2048
+4096
+16384"
 
 
 
@@ -116,7 +71,7 @@ castro.sdc_solver_tol_dens=1.e-8
 castro.sdc_solver_tol_spec=1.e-8
 castro.sdc_solver_tol_ener=1.e-6
 castro.sdc_solver_atol=1.e-10
-castro.sdc_solver=2
+castro.sdc_solver=3
 castro.sdc_use_analytic_jac=0
 castro.sdc_solver_relax_factor=5"
 
@@ -150,4 +105,48 @@ do
     fi
 done
 
+
+
+
+# SDC-2
+RUNPARAMS="
+castro.time_integration_method=2
+castro.sdc_order=2
+castro.ppm_type=0
+castro.sdc_solve_for_rhoe=1
+castro.sdc_solver_tol_dens=1.e-8
+castro.sdc_solver_tol_spec=1.e-8
+castro.sdc_solver_tol_ener=1.e-6
+castro.sdc_solver_atol=1.e-10
+castro.sdc_solver=3
+castro.sdc_use_analytic_jac=1"
+
+for nz in ${NZONES}
+do
+    rdir=flame_${nz}_sdc2
+    if [ ! -d ${rdir} ]; then
+        mkdir ${rdir}
+    fi
+    if [ ! -f ${rdir}/run_done ]; then
+        cd ${rdir}
+        for nf in ${NEEDED_FILES}
+        do
+            if [ ! -f ${nf} ]; then
+                cp ../${nf} .
+            fi
+        done
+
+        find_chk_file "*chk?????"
+        # restartString will be empty if no chk files are found -- i.e. new run
+        if [ "${restartFile}" = "" ]; then
+            restartString=""
+        else
+            restartString="amr.restart=${restartFile}"
+        fi
+
+        srun -n 24 -c ${OMP_NUM_THREADS} ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${RUNPARAMS} amr.n_cell=${nz} ${GLOBAL_PARAMS} ${restartString} &> run.out
+        touch run_done
+        cd ..
+    fi
+done
 
