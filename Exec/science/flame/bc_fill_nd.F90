@@ -32,6 +32,7 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: i, j, k
+    real(rt) :: vel
 
     !$gpu
 
@@ -49,7 +50,12 @@ contains
 
                       !adv(i,UMX) = adv(domhi(1),UMX)
                       adv(i,j,k,URHO)  = rho_fuel
-                      adv(i,j,k,UMX)   = rho_fuel * v_inflow
+                      if (v_inflow >= ZERO) then
+                         vel = max(adv(i,j,k,UMX)/adv(i,j,k,URHO), ZERO)
+                      else
+                         vel = v_inflow
+                      end if
+                      adv(i,j,k,UMX)   = rho_fuel * vel
                       adv(i,j,k,UMY)   = ZERO
                       adv(i,j,k,UMZ)   = ZERO
                       adv(i,j,k,UTEMP) = T_fuel
