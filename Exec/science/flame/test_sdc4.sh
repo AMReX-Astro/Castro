@@ -14,11 +14,11 @@ castro.sdc_solver_tol_dens=1.e-8
 castro.sdc_solver_tol_spec=1.e-8
 castro.sdc_solver_tol_ener=1.e-6
 castro.sdc_solver_atol=1.e-10
-castro.sdc_solver=3
-castro.sdc_use_analytic_jac=0
+castro.sdc_solver=1
+castro.sdc_use_analytic_jac=1
 castro.sdc_solver_relax_factor=5"
 
-mpiexec -n 16 ${EXEC} inputs.1d.sdc ${RUNPARAMS} amr.n_cell=2048 castro.dtnuc_e=0.25 stop_time=1.5e-3 #amrex.fpe_trap_invalid=1
+mpiexec -n 16 ${EXEC} inputs.1d.sdc ${RUNPARAMS} amr.n_cell=2048 #amrex.fpe_trap_invalid=1
 #castro.init_shrink=0.01 castro.cfl=0.1
 # max_step=25 
 

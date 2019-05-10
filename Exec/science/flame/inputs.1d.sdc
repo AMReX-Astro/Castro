@@ -7,7 +7,7 @@ stop_time    = 5.e-4
 geometry.is_periodic = 0
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0
-geometry.prob_hi     = 1.024e4
+geometry.prob_hi     = 2048.0
 amr.n_cell           = 1024
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -38,7 +38,7 @@ castro.diffuse_cutoff_density = 1.e-2
 
 
 # TIME STEP CONTROL
-castro.cfl            = 0.5     # cfl number for hyperbolic system
+castro.cfl            = 0.75    # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 castro.dt_cutoff      = 1.e-15  # level 0 timestep below which we halt
@@ -66,7 +66,7 @@ amr.check_int       = 10000       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt        # root name of plotfile
-amr.plot_per        = 2.e-5
+amr.plot_per        = 5.e-6
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
