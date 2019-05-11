@@ -20,7 +20,7 @@
   pert_frac = 0.6d0
   pert_delta = 0.03d0
 
-  v_inflow = -1.e5
+  v_inflow = 0.0d0
 
 /
 

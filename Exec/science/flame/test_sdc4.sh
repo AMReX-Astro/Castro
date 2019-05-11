@@ -18,7 +18,7 @@ castro.sdc_solver=1
 castro.sdc_use_analytic_jac=1
 castro.sdc_solver_relax_factor=5"
 
-mpiexec -n 16 ${EXEC} inputs.1d.sdc ${RUNPARAMS} amr.n_cell=2048 #amrex.fpe_trap_invalid=1
+mpiexec -n 16 ${EXEC} inputs.1d.sdc ${RUNPARAMS} amr.n_cell=8192 #amrex.fpe_trap_invalid=1
 #castro.init_shrink=0.01 castro.cfl=0.1
 # max_step=25 
 
