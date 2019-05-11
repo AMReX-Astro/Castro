@@ -89,7 +89,7 @@ contains
                       ! We could not find any nearby zones with sufficient density.
 
                       uold = state(i,j,k,:)
-                      call reset_to_small_state(uold, [i, j, k], lo, hi, verbose)
+                      call reset_to_small_state(uold, [i, j, k], s_lo, s_hi, verbose)
                       state(i,j,k,:) = uold
 
                    else
@@ -97,7 +97,7 @@ contains
                       uold = state(i,j,k,:)
                       unew = state(i_set,j_set,k_set,:)
 
-                      call reset_to_zone_state(uold, unew, [i, j, k], lo, hi, verbose)
+                      call reset_to_zone_state(uold, unew, [i, j, k], s_lo, s_hi, verbose)
 
                       state(i,j,k,:) = uold
 
@@ -114,8 +114,8 @@ contains
                       do jj = -1, 1
                          do ii = -1, 1
 
-                            if (i+ii >= lo(1) .and. j+jj >= lo(2) .and. k+kk >= lo(3) .and. &
-                                i+ii <= hi(1) .and. j+jj <= hi(2) .and. k+kk <= hi(3)) then
+                            if (i+ii >= s_lo(1) .and. j+jj >= s_lo(2) .and. k+kk >= s_lo(3) .and. &
+                                i+ii <= s_hi(1) .and. j+jj <= s_hi(2) .and. k+kk <= s_hi(3)) then
 
                                if (state(i+ii,j+jj,k+kk,URHO) .ge. small_dens) then
 
@@ -135,7 +135,7 @@ contains
                       ! We could not find any nearby zones with sufficient density.
 
                       uold = state(i,j,k,:)
-                      call reset_to_small_state(uold, [i, j, k], lo, hi, verbose)
+                      call reset_to_small_state(uold, [i, j, k], s_lo, s_hi, verbose)
                       state(i,j,k,:) = uold
 
                    else
@@ -143,7 +143,7 @@ contains
                       uold = state(i,j,k,:)
                       unew(:) = unew(:) / num_positive_zones
 
-                      call reset_to_zone_state(uold, unew, [i, j, k], lo, hi, verbose)
+                      call reset_to_zone_state(uold, unew, [i, j, k], s_lo, s_hi, verbose)
 
                       state(i,j,k,:) = uold
 
