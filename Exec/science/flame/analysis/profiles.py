@@ -37,7 +37,7 @@ def get_Te_profile(plotfile):
     return time, x_coord, temp, enuc
 
 
-def doit(prefix, nums, skip, limitlabels, xmax):
+def doit(prefix, nums, skip, limitlabels, xmin, xmax):
 
     f = plt.figure()
     f.set_size_inches(7.0, 9.0)
@@ -81,7 +81,7 @@ def doit(prefix, nums, skip, limitlabels, xmax):
     ax_T.set_ylabel("T (K)")
 
     if xmax > 0:
-        ax_T.set_xlim(0, xmax)
+        ax_T.set_xlim(xmin, xmax)
 
     ax_e.set_yscale("log")
     ax_e.set_ylabel(r"$S_\mathrm{nuc}$ (erg/g/s)")
@@ -91,7 +91,7 @@ def doit(prefix, nums, skip, limitlabels, xmax):
     ax_e.set_ylim(1.e-10*cur_lims[-1], cur_lims[-1])
 
     if xmax > 0:
-        ax_e.set_xlim(0, xmax)
+        ax_e.set_xlim(xmin, xmax)
 
     f.savefig("flame.png")
 
@@ -102,6 +102,8 @@ if __name__ == "__main__":
 
     p.add_argument("--skip", type=int, default=10,
                    help="interval between plotfiles")
+    p.add_argument("--xmin", type=float, default=0,
+                   help="minimum x-coordinate to show")
     p.add_argument("--xmax", type=float, default=-1,
                    help="maximum x-coordinate to show")
     p.add_argument("plotfiles", type=str, nargs="+",
@@ -114,4 +116,4 @@ if __name__ == "__main__":
     plot_prefix = args.plotfiles[0].split("plt")[0] + "plt"
     plot_nums = sorted([p.split("plt")[1] for p in args.plotfiles], key=int)
 
-    doit(plot_prefix, plot_nums, args.skip, args.limitlabels, args.xmax)
+    doit(plot_prefix, plot_nums, args.skip, args.limitlabels, args.xmin, args.xmax)
