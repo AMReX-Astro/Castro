@@ -20,7 +20,7 @@ extern "C"
      char* tag, const int* tag_lo, const int* tag_hi,
      BL_FORT_FAB_ARG_3D(vel), const int ncomp,
      const amrex::Real* dx, const amrex::Real* problo,
-     const int tagval, const int clearval,
+     const char tagval, const char clearval,
      const amrex::Real time, const int level);
 
   void ca_temperror
@@ -28,7 +28,7 @@ extern "C"
      char* tag, const int* tag_lo, const int* tag_hi,
      BL_FORT_FAB_ARG_3D(temp), const int ncomp,
      const amrex::Real* dx, const amrex::Real* problo,
-     const int tagval, const int clearval,
+     const char tagval, const char clearval,
      const amrex::Real time, const int level);
 
   void ca_presserror
@@ -36,7 +36,7 @@ extern "C"
      char* tag, const int* tag_lo, const int* tag_hi,
      BL_FORT_FAB_ARG_3D(press), const int ncomp,
      const amrex::Real* dx, const amrex::Real* problo,
-     const int tagval, const int clearval,
+     const char tagval, const char clearval,
      const amrex::Real time, const int level);
 
   void ca_nucerror
@@ -44,7 +44,7 @@ extern "C"
      char* tag, const int* tag_lo, const int* tag_hi,
      BL_FORT_FAB_ARG_3D(state), const int ncomp,
      const amrex::Real* dx, const amrex::Real* problo,
-     const int tagval, const int clearval,
+     const char tagval, const char clearval,
      const amrex::Real time, const int level);
 
   void ca_enucerror
@@ -52,7 +52,7 @@ extern "C"
      char* tag, const int* tag_lo, const int* tag_hi,
      BL_FORT_FAB_ARG_3D(state), const int ncomp,
      const amrex::Real* dx, const amrex::Real* problo,
-     const int tagval, const int clearval,
+     const char tagval, const char clearval,
      const amrex::Real time, const int level);
 
 #ifdef RADIATION
@@ -61,7 +61,7 @@ extern "C"
      char* tag, const int* tag_lo, const int* tag_hi,
      BL_FORT_FAB_ARG_3D(rad), const int ncomp,
      const amrex::Real* dx, const amrex::Real* problo,
-     const int tagval, const int clearval,
+     const char tagval, const char clearval,
      const amrex::Real time, const int level);
 #endif
 
@@ -71,7 +71,7 @@ extern "C"
      char* tag, const int* tag_lo, const int* tag_hi,
      const BL_FORT_FAB_ARG_3D(state),
      const amrex::Real* dx, const amrex::Real* problo,
-     const int tagval, const int clearval,
+     const char tagval, const char clearval,
      const amrex::Real time, const int level);
 #else
   void set_problem_tags
@@ -79,7 +79,7 @@ extern "C"
      char* tag, const int* tag_lo, const int* tag_hi,
      const BL_FORT_FAB_ARG(state),
      const amrex::Real* dx, const amrex::Real* problo,
-     const int tagval, const int clearval,
+     const char tagval, const char clearval,
      const amrex::Real time, const int level);
 #endif
 
