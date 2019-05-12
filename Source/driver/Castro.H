@@ -997,42 +997,20 @@ public:
 /// Apply the ::set_problem_tags routine.
 ///
 /// @param tags         TagBoxArray of tags
-/// @param clearval
-/// @param setval
 /// @param time         current time
 ///
-    void apply_problem_tags (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time);
+    void apply_problem_tags (amrex::TagBoxArray& tags, amrex::Real time);
 
 
 ///
 /// Apply a given tagging function.
 ///
 /// @param tags         TagBoxArray of tags
-/// @param clearval
-/// @param setval
 /// @param time         current time
 /// @param j            integer
 ///
-    void apply_tagging_func (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time, int j);
+    void apply_tagging_func (amrex::TagBoxArray& tags, amrex::Real time, int j);
 
-
-///
-/// Hooks for problem-specific operations before and after applying custom tagging.
-///
-/// @param tags     TagBoxArray of tags
-/// @param clearval
-/// @param tagval
-/// @param time     current time
-///
-    void problem_pre_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
-
-///
-/// @param tags     TagBoxArray of tags
-/// @param clearval
-/// @param tagval
-/// @param time     current time
-///
-    void problem_post_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
 ///
 /// Returns a MultiFab containing the derived data for this level.

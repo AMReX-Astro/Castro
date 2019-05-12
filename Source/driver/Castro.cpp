@@ -2013,10 +2013,10 @@ Castro::check_for_post_regrid (Real time)
 	tags.setVal(TagBox::CLEAR);
 
 	for (int i = 0; i < err_list_names.size(); ++i) {
-            apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
+            apply_tagging_func(tags, time, i);
         }
 
-        apply_problem_tags(tags, TagBox::CLEAR, TagBox::SET, time);
+        apply_problem_tags(tags, time);
 
 	// Globally collate the tags.
 
@@ -2999,21 +2999,18 @@ Castro::errorEst (TagBoxArray& tags,
     // Apply each of the specified tagging functions.
 
     for (int j = 0; j < num_err_list_default; j++) {
-	apply_tagging_func(tags, clearval, tagval, t, j);
+	apply_tagging_func(tags, t, j);
     }
 
     // Now we'll tag any user-specified zones using the full state array.
 
-    apply_problem_tags(tags, clearval, tagval, time);
+    apply_problem_tags(tags, time);
 }
 
 
 
 void
-Castro::apply_problem_tags (TagBoxArray& tags,
-                            int          clearval,
-                            int          tagval,
-                            Real         time)
+Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 {
 
     BL_PROFILE("Castro::apply_problem_tags()");
@@ -3039,6 +3036,9 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 	    const int*  tlo     = tilebx.loVect();
 	    const int*  thi     = tilebx.hiVect();
 
+            const char tagval   = TagBox::SET;
+            const char clearval = TagBox::CLEAR;
+
 #ifdef AMREX_DIMENSION_AGNOSTIC
 #ifdef GPU_COMPATIBLE_PROBLEM
 #pragma gpu
@@ -3046,20 +3046,20 @@ Castro::apply_problem_tags (TagBoxArray& tags,
                              tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
 			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			     AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                             char(tagval), char(clearval), time, level);
+                             tagval, clearval, time, level);
 #else
 	    set_problem_tags(AMREX_ARLIM_ANYD(tilebx.loVect()), AMREX_ARLIM_ANYD(tilebx.hiVect()),
                              tptr, AMREX_ARLIM_ANYD(tlo), AMREX_ARLIM_ANYD(thi),
 			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			     AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                             char(tagval), char(clearval), time, level);
+                             tagval, clearval, time, level);
 #endif
 #else
 	    set_problem_tags(tilebx.loVect(), tilebx.hiVect(),
                              tptr, ARLIM(tlo), ARLIM(thi),
 			     BL_TO_FORTRAN(S_new[mfi]),
                              dx, problo,
-			     char(tagval), char(clearval), time, level);
+			     tagval, clearval, time, level);
 #endif
 	}
     }
@@ -3069,7 +3069,7 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 
 
 void
-Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real time, int j)
+Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 {
 
     BL_PROFILE("Castro::apply_tagging_func()");
@@ -3112,13 +3112,16 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
             const int*  dhi     = datbox.hiVect();
             const int   ncomp   = datfab.nComp();
 
+            const char tagval   = TagBox::SET;
+            const char clearval = TagBox::CLEAR;
+
             if (err_list_names[j] == "density") {
 #pragma gpu
                 ca_denerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                             tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
                             dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                            char(tagval), char(clearval), time, level);
+                            tagval, clearval, time, level);
             }
             else if (err_list_names[j] == "Temp") {
 #pragma gpu
@@ -3126,7 +3129,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
                              tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
                              dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
                              AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                             char(tagval), char(clearval), time, level);
+                             tagval, clearval, time, level);
             }
             else if (err_list_names[j] == "pressure") {
 #pragma gpu
@@ -3134,7 +3137,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
                               tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
                               dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
                               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                              char(tagval), char(clearval), time, level);
+                              tagval, clearval, time, level);
             }
             else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
 #pragma gpu
@@ -3142,7 +3145,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
                             tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
                             dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                            char(tagval), char(clearval), time, level);
+                            tagval, clearval, time, level);
             }
 #ifdef REACTION
             else if (err_list_names[j] == "t_sound_t_enuc") {
@@ -3151,7 +3154,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
                             tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
                             dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                            char(tagval), char(clearval), time, level);
+                            tagval, clearval, time, level);
             }
             else if (err_list_names[j] == "enuc") {
 #pragma gpu
@@ -3159,7 +3162,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
                              tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
                              dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
                              AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                             char(tagval), char(clearval), time, level);
+                             tagval, clearval, time, level);
             }
 #endif
 #ifdef RADIATION
@@ -3169,7 +3172,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
                             tptr, AMREX_INT_ANYD(tlo), AMREX_INT_ANYD(thi),
                             dat, AMREX_INT_ANYD(dlo), AMREX_INT_ANYD(dhi), ncomp,
                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                            char(tagval), char(clearval), time, level);
+                            tagval, clearval, time, level);
             }
 #endif
         }
