@@ -66,7 +66,8 @@ amr.check_int       = 10000       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt        # root name of plotfile
-amr.plot_per        = 1.e-6
+amr.plot_per        = 5.e-7
+castro.plot_per_is_exact = 1
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
