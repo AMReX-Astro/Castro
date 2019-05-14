@@ -7,7 +7,7 @@ stop_time    = 5.e-4
 geometry.is_periodic = 0
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0
-geometry.prob_hi     = 2048.0
+geometry.prob_hi     = 1024.0
 amr.n_cell           = 1024
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -66,7 +66,7 @@ amr.check_int       = 10000       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt        # root name of plotfile
-amr.plot_per        = 2.e-6
+amr.plot_per        = 1.e-6
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
