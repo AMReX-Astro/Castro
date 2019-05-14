@@ -16,7 +16,7 @@ castro.sdc_solver_tol_ener=1.e-6
 castro.sdc_solver_atol=1.e-10
 castro.sdc_solver=1
 castro.sdc_use_analytic_jac=1
-castro.sdc_solver_relax_factor=5"
+castro.sdc_solver_relax_factor=1"
 
 mpiexec -n 16 ${EXEC} inputs.1d.sdc ${RUNPARAMS} amr.n_cell=8192 #amrex.fpe_trap_invalid=1
 #castro.init_shrink=0.01 castro.cfl=0.1
