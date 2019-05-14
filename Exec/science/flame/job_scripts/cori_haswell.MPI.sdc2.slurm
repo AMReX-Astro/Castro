@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=react_conv
+#SBATCH --job-name=fsdc2
 #SBATCH --account=m3018
 #SBATCH --nodes=1
 #SBATCH --qos=regular
@@ -56,47 +56,9 @@ NZONES="
 8192"
 
 
-# Strang
+# SDC-2
 RUNPARAMS="
-castro.time_integration_method=0
-castro.ppm_type=1"
-
-
-for nz in ${NZONES}
-do
-    rdir=flame_${nz}_strang
-    if [ ! -d ${rdir} ]; then
-        mkdir ${rdir}
-    fi
-    if [ ! -f ${rdir}/run_done ]; then
-        cd ${rdir}
-        for nf in ${NEEDED_FILES}
-        do
-            if [ ! -f ${nf} ]; then
-                cp ../${nf} .
-            fi
-        done
-
-        find_chk_file "*chk?????"
-        # restartString will be empty if no chk files are found -- i.e. new run
-        if [ "${restartFile}" = "" ]; then
-            restartString=""
-        else
-            restartString="amr.restart=${restartFile}"
-        fi
-
-        slack_job_start.py "starting ${rdir} ${restartFile}" @michael
-        srun ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${RUNPARAMS} amr.n_cell=${nz} ${GLOBAL_PARAMS} ${restartString} &> run.out
-        touch run_done
-        cd ..
-    fi
-done
-
-
-
-# SDC-4
-RUNPARAMS="
-castro.sdc_order=4
+castro.sdc_order=2
 castro.time_integration_method=2
 castro.sdc_solve_for_rhoe=1
 castro.sdc_solver_tol_dens=1.e-8
@@ -110,7 +72,7 @@ castro.sdc_solver_relax_factor=1"
 
 for nz in ${NZONES}
 do
-    rdir=flame_${nz}_sdc4
+    rdir=flame_${nz}_sdc2
     if [ ! -d ${rdir} ]; then
         mkdir ${rdir}
     fi
