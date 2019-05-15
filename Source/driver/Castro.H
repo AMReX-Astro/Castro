@@ -1794,7 +1794,7 @@ protected:
 /// The source terms in primitive form.
 ///
     amrex::MultiFab q_core_src;
-    amrex::MultiFab q_prim_src;
+    amrex::MultiFab q_pass_src;
 
 
 ///
