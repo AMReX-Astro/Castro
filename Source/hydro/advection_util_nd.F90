@@ -1587,7 +1587,7 @@ contains
     ! update
     !
 
-    use meth_params_module, only : NQ, GDPRES, GDU, GDV, GDW
+    use meth_params_module, only : NGDNV, GDPRES, GDU, GDV, GDW
     use amrex_constants_module, only : HALF
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1600,18 +1600,18 @@ contains
 
     integer, intent(in) :: q1_lo(3), q1_hi(3)
     integer, intent(in) :: a1_lo(3), a1_hi(3)
-    real(rt), intent(in) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NQ)
+    real(rt), intent(in) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
     real(rt), intent(in) :: area1(a1_lo(1):a1_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #if AMREX_SPACEDIM >= 2
     integer, intent(in) :: q2_lo(3), q2_hi(3)
     integer, intent(in) :: a2_lo(3), a2_hi(3)
-    real(rt), intent(in) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
+    real(rt), intent(in) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
     real(rt), intent(in) :: area2(a2_lo(1):a2_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #endif
 #if AMREX_SPACEDIM == 3
     integer, intent(in) :: q3_lo(3), q3_hi(3)
     integer, intent(in) :: a3_lo(3), a3_hi(3)
-    real(rt), intent(in) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NQ)
+    real(rt), intent(in) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
     real(rt), intent(in) :: area3(a3_lo(1):a3_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #endif
     integer, intent(in) :: v_lo(3), v_hi(3)
