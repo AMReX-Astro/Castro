@@ -281,8 +281,10 @@ contains
 
           ! temperature-based PPM
           call ppm_reconstruct_with_eos(lo, hi, idir, &
-                                        Ip, Ip_lo, Ip_hi, &
-                                        Im, Im_lo, Im_hi, &
+                                        Ip_core, Ipc_lo, Ipc_hi, &
+                                        Im_core, Imc_lo, Imc_hi, &
+                                        Ip_pass, Ipp_lo, Ipp_hi, &
+                                        Im_pass, Imp_lo, Imp_hi, &
                                         Ip_gc, Ipg_lo, Ipg_hi, &
                                         Im_gc, Img_lo, Img_hi)
 

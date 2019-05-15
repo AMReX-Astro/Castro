@@ -687,8 +687,10 @@ contains
 
 
   subroutine ppm_reconstruct_with_eos(lo, hi, idir, &
-                                      Ip, Ip_lo, Ip_hi, &
-                                      Im, Im_lo, Im_hi, &
+                                      Ip_core, Ipc_lo, Ipc_hi, &
+                                      Im_core, Imc_lo, Imc_hi, &
+                                      Ip_pass, Ipp_lo, Ipp_hi, &
+                                      Im_pass, Imp_lo, Imp_hi, &
                                       Ip_gc, Ipg_lo, Ipg_hi, &
                                       Im_gc, Img_lo, Img_hi)
     ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
@@ -696,20 +698,24 @@ contains
     ! get an edge-based gam1 here if we didn't get it from the EOS
     ! call above (for ppm_temp_fix = 1)
 
-    use meth_params_module, only : NQ, QRHO, QTEMP, QPRES, QREINT, QFS, QFX, small_temp
+    use meth_params_module, only : NQC, NQP, QRHO, QTEMP, QPRES, QREINT, QFS, QFX, small_temp
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use network, only : nspec, naux
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in), value :: idir
-    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
-    integer, intent(in) :: Im_lo(3), Im_hi(3)
+    integer, intent(in) :: Ipc_lo(3), Ipc_hi(3)
+    integer, intent(in) :: Imc_lo(3), Imc_hi(3)
+    integer, intent(in) :: Ipp_lo(3), Ipp_hi(3)
+    integer, intent(in) :: Imp_lo(3), Imp_hi(3)
     integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
     integer, intent(in) :: Img_lo(3), Img_hi(3)
 
-     real(rt), intent(inout) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3, NQ)
-    real(rt), intent(inout) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3, NQ)
+    real(rt), intent(inout) :: Ip_core(Ipc_lo(1):Ipc_hi(1),Ipc_lo(2):Ipc_hi(2),Ipc_lo(3):Ipc_hi(3),1:3, NQC)
+    real(rt), intent(inout) :: Im_core(Imc_lo(1):Imc_hi(1),Imc_lo(2):Imc_hi(2),Imc_lo(3):Imc_hi(3),1:3, NQC)
+    real(rt), intent(inout) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),1:3, NQP)
+    real(rt), intent(inout) :: Im_pass(Imp_lo(1):Imp_hi(1),Imp_lo(2):Imp_hi(2),Imp_lo(3):Imp_hi(3),1:3, NQP)
     real(rt), intent(inout) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3, 1)
     real(rt), intent(inout) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3, 1)
 
@@ -724,29 +730,29 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                eos_state % rho = Ip(i,j,k,iwave,QRHO)
-                eos_state % T   = max(Ip(i,j,k,iwave,QTEMP), small_temp)
+                eos_state % rho = Ip_core(i,j,k,iwave,QRHO)
+                eos_state % T   = max(Ip_core(i,j,k,iwave,QTEMP), small_temp)
 
-                eos_state % xn  = Ip(i,j,k,iwave,QFS:QFS+nspec-1)
-                eos_state % aux = Ip(i,j,k,iwave,QFX:QFX+naux-1)
+                eos_state % xn  = Ip_pass(i,j,k,iwave,QFS:QFS+nspec-1)
+                eos_state % aux = Ip_pass(i,j,k,iwave,QFX:QFX+naux-1)
 
                 call eos(eos_input_rt, eos_state)
 
-                Ip(i,j,k,iwave,QPRES)  = eos_state % p
-                Ip(i,j,k,iwave,QREINT) = Ip(i,j,k,iwave,QRHO) * eos_state % e
+                Ip_core(i,j,k,iwave,QPRES)  = eos_state % p
+                Ip_core(i,j,k,iwave,QREINT) = Ip_core(i,j,k,iwave,QRHO) * eos_state % e
                 Ip_gc(i,j,k,iwave,1)   = eos_state % gam1
 
 
-                eos_state % rho = Im(i,j,k,iwave,QRHO)
-                eos_state % T   = max(Im(i,j,k,iwave,QTEMP), small_temp)
+                eos_state % rho = Im_core(i,j,k,iwave,QRHO)
+                eos_state % T   = max(Im_core(i,j,k,iwave,QTEMP), small_temp)
 
-                eos_state % xn  = Im(i,j,k,iwave,QFS:QFS+nspec-1)
-                eos_state % aux = Im(i,j,k,iwave,QFX:QFX+naux-1)
+                eos_state % xn  = Im_pass(i,j,k,iwave,QFS:QFS+nspec-1)
+                eos_state % aux = Im_pass(i,j,k,iwave,QFX:QFX+naux-1)
 
                 call eos(eos_input_rt, eos_state)
 
-                Im(i,j,k,iwave,QPRES)  = eos_state % p
-                Im(i,j,k,iwave,QREINT) = Im(i,j,k,iwave,QRHO) * eos_state % e
+                Im_core(i,j,k,iwave,QPRES)  = eos_state % p
+                Im_core(i,j,k,iwave,QREINT) = Im_core(i,j,k,iwave,QRHO) * eos_state % e
                 Im_gc(i,j,k,iwave,1)   = eos_state % gam1
              end do
           end do
