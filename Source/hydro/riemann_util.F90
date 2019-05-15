@@ -150,15 +150,18 @@ contains
 
 
 
-  subroutine HLL(ql, qr, cl, cr, idir, f)
+  subroutine HLL(ql_core, qr_core, &
+                 ql_pass, qr_pass, &
+                 cl, cr, idir, f)
 
-    use meth_params_module, only : NQ, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
-         URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-         npassive, upass_map, qpass_map
+    use meth_params_module, only : NQC, NQP, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
+                                   URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
+                                   npassive, upass_map, qpass_map
     use prob_params_module, only : mom_flux_has_p
 
     use amrex_fort_module, only : rt => amrex_real
-    real(rt), intent(in) :: ql(NQ), qr(NQ), cl, cr
+    real(rt), intent(in) :: ql_core(NQC), qr_core(NQC), &
+                            ql_pass(NQP), qr_pass(NQP), cl, cr
     real(rt), intent(inout) :: f(NVAR)
     integer, intent(in) :: idir
 
@@ -205,8 +208,8 @@ contains
 
     end select
 
-    rhol_sqrt = sqrt(ql(QRHO))
-    rhor_sqrt = sqrt(qr(QRHO))
+    rhol_sqrt = sqrt(ql_core(QRHO))
+    rhor_sqrt = sqrt(qr_core(QRHO))
 
     rhod = ONE/(rhol_sqrt + rhor_sqrt)
 
@@ -216,19 +219,19 @@ contains
     ! E88, eq. 5.6, 5.7 that assumes gamma falls between 1
     ! and 5/3
     cavg = sqrt( (rhol_sqrt*cl**2 + rhor_sqrt*cr**2)*rhod + &
-         HALF*rhol_sqrt*rhor_sqrt*rhod**2*(qr(ivel) - ql(ivel))**2 )
+         HALF*rhol_sqrt*rhor_sqrt*rhod**2*(qr_core(ivel) - ql_core(ivel))**2 )
 
 
     ! Roe eigenvalues (E91, eq. 5.3b)
-    uavg = (rhol_sqrt*ql(ivel) + rhor_sqrt*qr(ivel))*rhod
+    uavg = (rhol_sqrt*ql_core(ivel) + rhor_sqrt*qr_core(ivel))*rhod
 
     a1 = uavg - cavg
     a4 = uavg + cavg
 
 
     ! signal speeds (E91, eq. 4.5)
-    bl = min(a1, ql(ivel) - cl)
-    br = max(a4, qr(ivel) + cr)
+    bl = min(a1, ql_core(ivel) - cl)
+    br = max(a4, qr_core(ivel) + cr)
 
     bm = min(ZERO, bl)
     bp = max(ZERO, br)
@@ -245,53 +248,53 @@ contains
     ! region
 
     ! density flux
-    fl_tmp = ql(QRHO)*ql(ivel)
-    fr_tmp = qr(QRHO)*qr(ivel)
+    fl_tmp = ql_core(QRHO)*ql_core(ivel)
+    fr_tmp = qr_core(QRHO)*qr_core(ivel)
 
-    f(URHO) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO) - ql(QRHO))
+    f(URHO) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr_core(QRHO) - ql_core(QRHO))
 
 
     ! normal momentum flux.  Note for 1-d and 2-d non cartesian
     ! r-coordinate, we leave off the pressure term and handle that
     ! separately in the update, to accommodate different geometries
-    fl_tmp = ql(QRHO)*ql(ivel)**2
-    fr_tmp = qr(QRHO)*qr(ivel)**2
+    fl_tmp = ql_core(QRHO)*ql_core(ivel)**2
+    fr_tmp = qr_core(QRHO)*qr_core(ivel)**2
     if (mom_flux_has_p(idir)%comp(UMX-1+idir)) then
-       fl_tmp = fl_tmp + ql(QPRES)
-       fr_tmp = fr_tmp + qr(QPRES)
+       fl_tmp = fl_tmp + ql_core(QPRES)
+       fr_tmp = fr_tmp + qr_core(QPRES)
     endif
 
-    f(imom) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivel) - ql(QRHO)*ql(ivel))
+    f(imom) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr_core(QRHO)*qr_core(ivel) - ql_core(QRHO)*ql_core(ivel))
 
 
     ! transverse momentum flux
-    fl_tmp = ql(QRHO)*ql(ivel)*ql(ivelt)
-    fr_tmp = qr(QRHO)*qr(ivel)*qr(ivelt)
+    fl_tmp = ql_core(QRHO)*ql_core(ivel)*ql_core(ivelt)
+    fr_tmp = qr_core(QRHO)*qr_core(ivel)*qr_core(ivelt)
 
-    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(ivelt) - ql(QRHO)*ql(ivelt))
+    f(imomt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr_core(QRHO)*qr_core(ivelt) - ql_core(QRHO)*ql_core(ivelt))
 
 
-    fl_tmp = ql(QRHO)*ql(ivel)*ql(iveltt)
-    fr_tmp = qr(QRHO)*qr(ivel)*qr(iveltt)
+    fl_tmp = ql_core(QRHO)*ql_core(ivel)*ql_core(iveltt)
+    fr_tmp = qr_core(QRHO)*qr_core(ivel)*qr_core(iveltt)
 
-    f(imomtt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(iveltt) - ql(QRHO)*ql(iveltt))
+    f(imomtt) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr_core(QRHO)*qr_core(iveltt) - ql_core(QRHO)*ql_core(iveltt))
 
 
     ! total energy flux
-    rhoEl = ql(QREINT) + HALF*ql(QRHO)*(ql(ivel)**2 + ql(ivelt)**2 + ql(iveltt)**2)
-    fl_tmp = ql(ivel)*(rhoEl + ql(QPRES))
+    rhoEl = ql_core(QREINT) + HALF*ql_core(QRHO)*(ql_core(ivel)**2 + ql_core(ivelt)**2 + ql_core(iveltt)**2)
+    fl_tmp = ql_core(ivel)*(rhoEl + ql_core(QPRES))
 
-    rhoEr = qr(QREINT) + HALF*qr(QRHO)*(qr(ivel)**2 + qr(ivelt)**2 + qr(iveltt)**2)
-    fr_tmp = qr(ivel)*(rhoEr + qr(QPRES))
+    rhoEr = qr_core(QREINT) + HALF*qr_core(QRHO)*(qr_core(ivel)**2 + qr_core(ivelt)**2 + qr_core(iveltt)**2)
+    fr_tmp = qr_core(ivel)*(rhoEr + qr_core(QPRES))
 
     f(UEDEN) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl)
 
 
     ! eint flux
-    fl_tmp = ql(QREINT)*ql(ivel)
-    fr_tmp = qr(QREINT)*qr(ivel)
+    fl_tmp = ql_core(QREINT)*ql_core(ivel)
+    fr_tmp = qr_core(QREINT)*qr_core(ivel)
 
-    f(UEINT) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QREINT) - ql(QREINT))
+    f(UEINT) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr_core(QREINT) - ql_core(QREINT))
 
 
     ! passively-advected scalar fluxes
@@ -299,42 +302,42 @@ contains
        n  = upass_map(ipassive)
        nqs = qpass_map(ipassive)
 
-       fl_tmp = ql(QRHO)*ql(nqs)*ql(ivel)
-       fr_tmp = qr(QRHO)*qr(nqs)*qr(ivel)
+       fl_tmp = ql_core(QRHO)*ql_pass(nqs)*ql_core(ivel)
+       fr_tmp = qr_core(QRHO)*qr_core(nqs)*qr_core(ivel)
 
-       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr(QRHO)*qr(nqs) - ql(QRHO)*ql(nqs))
+       f(n) = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr_core(QRHO)*qr_core(nqs) - ql_core(QRHO)*ql_pass(nqs))
     enddo
 
   end subroutine HLL
 
 
 
-  pure subroutine cons_state(q, U)
+  pure subroutine cons_state(q_core, q_pass, U)
 
-    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QREINT, &
-         NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+    use meth_params_module, only: NQC, NQP, QRHO, QU, QV, QW, QREINT, &
+                                  NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
 #ifdef SHOCK_VAR
-         USHK, &
+                                  USHK, &
 #endif
-         npassive, upass_map, qpass_map
+                                  npassive, upass_map, qpass_map
 
-    real(rt)        , intent(in)  :: q(NQ)
+    real(rt)        , intent(in)  :: q_core(NQC), q_pass(NQP)
     real(rt)        , intent(out) :: U(NVAR)
 
     integer :: ipassive, n, nqs
 
     !$gpu
 
-    U(URHO) = q(QRHO)
+    U(URHO) = q_core(QRHO)
 
     ! since we advect all 3 velocity components regardless of dimension, this
     ! will be general
-    U(UMX)  = q(QRHO)*q(QU)
-    U(UMY)  = q(QRHO)*q(QV)
-    U(UMZ)  = q(QRHO)*q(QW)
+    U(UMX)  = q_core(QRHO)*q_core(QU)
+    U(UMY)  = q_core(QRHO)*q_core(QV)
+    U(UMZ)  = q_core(QRHO)*q_core(QW)
 
-    U(UEDEN) = q(QREINT) + HALF*q(QRHO)*(q(QU)**2 + q(QV)**2 + q(QW)**2)
-    U(UEINT) = q(QREINT)
+    U(UEDEN) = q_core(QREINT) + HALF*q_core(QRHO)*(q_core(QU)**2 + q_core(QV)**2 + q_core(QW)**2)
+    U(UEINT) = q_core(QREINT)
 
     ! we don't care about T here, but initialize it to make NaN
     ! checking happy
@@ -347,60 +350,60 @@ contains
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nqs = qpass_map(ipassive)
-       U(n) = q(QRHO)*q(nqs)
+       U(n) = q_core(QRHO)*q_pass(nqs)
     enddo
 
   end subroutine cons_state
 
 
 
-  pure subroutine HLLC_state(idir, S_k, S_c, q, U)
+  pure subroutine HLLC_state(idir, S_k, S_c, q_core, q_pass, U)
 
-    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QREINT, QPRES, &
-         NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
+    use meth_params_module, only: NQC, NQP, QRHO, QU, QV, QW, QREINT, QPRES, &
+                                  NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
 #ifdef SHOCK_VAR
-         USHK, &
+                                  USHK, &
 #endif
-         npassive, upass_map, qpass_map
+                                  npassive, upass_map, qpass_map
 
     integer, intent(in) :: idir
     real(rt), intent(in)  :: S_k, S_c
-    real(rt), intent(in)  :: q(NQ)
+    real(rt), intent(in)  :: q_core(NQC), q_pass(NQP)
     real(rt), intent(out) :: U(NVAR)
 
-    real(rt)         :: hllc_factor, u_k
+    real(rt) :: hllc_factor, u_k
     integer :: ipassive, n, nqs
 
     !$gpu
 
     if (idir == 1) then
-       u_k = q(QU)
+       u_k = q_core(QU)
     elseif (idir == 2) then
-       u_k = q(QV)
+       u_k = q_core(QV)
     elseif (idir == 3) then
-       u_k = q(QW)
+       u_k = q_core(QW)
     endif
 
-    hllc_factor = q(QRHO)*(S_k - u_k)/(S_k - S_c)
+    hllc_factor = q_core(QRHO)*(S_k - u_k)/(S_k - S_c)
     U(URHO) = hllc_factor
     if (idir == 1) then
        U(UMX)  = hllc_factor*S_c
-       U(UMY)  = hllc_factor*q(QV)
-       U(UMZ)  = hllc_factor*q(QW)
+       U(UMY)  = hllc_factor*q_core(QV)
+       U(UMZ)  = hllc_factor*q_core(QW)
     elseif (idir == 2) then
-       U(UMX)  = hllc_factor*q(QU)
+       U(UMX)  = hllc_factor*q_core(QU)
        U(UMY)  = hllc_factor*S_c
-       U(UMZ)  = hllc_factor*q(QW)
+       U(UMZ)  = hllc_factor*q_core(QW)
     elseif (idir == 3) then
-       U(UMX)  = hllc_factor*q(QU)
-       U(UMY)  = hllc_factor*q(QV)
+       U(UMX)  = hllc_factor*q_core(QU)
+       U(UMY)  = hllc_factor*q_core(QV)
        U(UMZ)  = hllc_factor*S_c
     endif
 
-    U(UEDEN) = hllc_factor*(q(QREINT)/q(QRHO) + &
-         HALF*(q(QU)**2 + q(QV)**2 + q(QW)**2) + &
-         (S_c - u_k)*(S_c + q(QPRES)/(q(QRHO)*(S_k - u_k))))
-    U(UEINT) = hllc_factor*q(QREINT)/q(QRHO)
+    U(UEDEN) = hllc_factor*(q_core(QREINT)/q_core(QRHO) + &
+         HALF*(q_core(QU)**2 + q_core(QV)**2 + q_core(QW)**2) + &
+         (S_c - u_k)*(S_c + q_core(QPRES)/(q_core(QRHO)*(S_k - u_k))))
+    U(UEINT) = hllc_factor*q_core(QREINT)/q_core(QRHO)
 
     U(UTEMP) = ZERO  ! we don't evolve T
 
@@ -411,14 +414,15 @@ contains
     do ipassive = 1, npassive
        n  = upass_map(ipassive)
        nqs = qpass_map(ipassive)
-       U(n) = hllc_factor*q(nqs)
+       U(n) = hllc_factor*q_pass(nqs)
     enddo
 
   end subroutine HLLC_state
 
 
   subroutine compute_flux_q(lo, hi, &
-                            qint, q_lo, q_hi, &
+                            qint_core, q_lo, q_hi, &
+                            qint_pass, qip_lo, qip_hi, &
                             F, F_lo, F_hi, &
 #ifdef RADIATION
                             lambda, l_lo, l_hi, &
@@ -429,7 +433,7 @@ contains
     !
 
     use prob_params_module, only : mom_flux_has_p
-    use meth_params_module, only : NQ, NVAR, NQAUX, &
+    use meth_params_module, only : NQC, NQP, NVAR, NQAUX, &
                                    URHO, UMX, UMY, UMZ, &
                                    UEDEN, UEINT, UTEMP, &
 #ifdef SHOCK_VAR
@@ -460,13 +464,15 @@ contains
 
     integer, intent(in) :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qip_lo(3), qip_hi(3)
     integer, intent(in) :: F_lo(3), F_hi(3)
 #ifdef RADIATION
     integer, intent(in) :: l_lo(3), l_hi(3)
     integer, intent(in) :: rF_lo(3), rF_hi(3)
 #endif
 
-    real(rt), intent(in) :: qint(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
+    real(rt), intent(in) :: qint_core(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQC)
+    real(rt), intent(in) :: qint_pass(qip_lo(1):qip_hi(1), qip_lo(2):qip_hi(2), qip_lo(3):qip_hi(3), NQP)
     real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
 #ifdef RADIATION
     real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
@@ -476,7 +482,7 @@ contains
     integer, intent(in) :: lo(3), hi(3)
 
     integer :: iu, iv1, iv2, im1, im2, im3
-    integer :: g, n, ipassive, nqp
+    integer :: g, n, ipassive, np
     real(rt) :: u_adv, rhoetot, rhoeint
     real(rt) :: eddf, f1
     integer :: i, j, k
@@ -524,37 +530,37 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             u_adv = qint(i,j,k,iu)
+             u_adv = qint_core(i,j,k,iu)
 
              ! if we are enforcing the EOS, then take rho, p, and X, and
              ! compute rhoe
              if (do_eos) then
-                eos_state % rho = qint(i,j,k,QRHO)
-                eos_state % p = qint(i,j,k,QPRES)
-                eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)
+                eos_state % rho = qint_core(i,j,k,QRHO)
+                eos_state % p = qint_core(i,j,k,QPRES)
+                eos_state % xn(:) = qint_pass(i,j,k,QFS:QFS-1+nspec)
                 eos_state % T = 100.0  ! initial guess
                 call eos(eos_input_rp, eos_state)
-                rhoeint = qint(i,j,k,QRHO) * eos_state % e
+                rhoeint = qint_core(i,j,k,QRHO) * eos_state % e
              else
-                rhoeint = qint(i,j,k,QREINT)
+                rhoeint = qint_core(i,j,k,QREINT)
              endif
 
              ! Compute fluxes, order as conserved state (not q)
-             F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv
+             F(i,j,k,URHO) = qint_core(i,j,k,QRHO)*u_adv
 
-             F(i,j,k,im1) = F(i,j,k,URHO)*qint(i,j,k,iu)
+             F(i,j,k,im1) = F(i,j,k,URHO)*qint_core(i,j,k,iu)
              if (mom_flux_has_p(idir) % comp(im1)) then
-                F(i,j,k,im1) = F(i,j,k,im1) + qint(i,j,k,QPRES)
+                F(i,j,k,im1) = F(i,j,k,im1) + qint_core(i,j,k,QPRES)
              endif
-             F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1)
-             F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2)
+             F(i,j,k,im2) = F(i,j,k,URHO)*qint_core(i,j,k,iv1)
+             F(i,j,k,im3) = F(i,j,k,URHO)*qint_core(i,j,k,iv2)
 
              rhoetot = rhoeint + &
-                  HALF*qint(i,j,k,QRHO)*(qint(i,j,k,iu)**2 + &
-                  qint(i,j,k,iv1)**2 + &
-                  qint(i,j,k,iv2)**2)
+                  HALF*qint_core(i,j,k,QRHO)*(qint_core(i,j,k,iu)**2 + &
+                                              qint_core(i,j,k,iv1)**2 + &
+                                              qint_core(i,j,k,iv2)**2)
 
-             F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES))
+             F(i,j,k,UEDEN) = u_adv*(rhoetot + qint_core(i,j,k,QPRES))
              F(i,j,k,UEINT) = u_adv*rhoeint
 
              F(i,j,k,UTEMP) = ZERO
@@ -567,11 +573,11 @@ contains
                 do g=0,ngroups-1
                    eddf = Edd_factor(lambda(i,j,k,g))
                    f1 = 0.5e0_rt*(1.e0_rt-eddf)
-                   rF(i,j,k,g) = (1.e0_rt + f1) * qint(i,j,k,QRAD+g) * u_adv
+                   rF(i,j,k,g) = (1.e0_rt + f1) * qint_rad(i,j,k,QRAD+g) * u_adv
                 end do
              else ! type 2
                 do g=0,ngroups-1
-                   rF(i,j,k,g) = qint(i,j,k,QRAD+g) * u_adv
+                   rF(i,j,k,g) = qint_rad(i,j,k,QRAD+g) * u_adv
                 end do
              end if
 #endif
@@ -579,23 +585,23 @@ contains
              ! passively advected quantities
              do ipassive = 1, npassive
                 n  = upass_map(ipassive)
-                nqp = qpass_map(ipassive)
+                np = qpass_map(ipassive)
 
-                F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp)
+                F(i,j,k,n) = F(i,j,k,URHO)*qint_pass(i,j,k,np)
              end do
 
 #ifdef HYBRID_MOMENTUM
 
              ! the hybrid routine uses the Godunov indices, not the full NQ state
-             qgdnv_zone(GDRHO) = qint(i,j,k,QRHO)
-             qgdnv_zone(GDU) = qint(i,j,k,QU)
-             qgdnv_zone(GDV) = qint(i,j,k,QV)
-             qgdnv_zone(GDW) = qint(i,j,k,QW)
-             qgdnv_zone(GDPRES) = qint(i,j,k,QPRES)
-             qgdnv_zone(GDGAME) = qint(i,j,k,QGAME)
+             qgdnv_zone(GDRHO) = qint_core(i,j,k,QRHO)
+             qgdnv_zone(GDU) = qint_core(i,j,k,QU)
+             qgdnv_zone(GDV) = qint_core(i,j,k,QV)
+             qgdnv_zone(GDW) = qint_core(i,j,k,QW)
+             qgdnv_zone(GDPRES) = qint_core(i,j,k,QPRES)
+             qgdnv_zone(GDGAME) = qint_core(i,j,k,QGAME)
 #ifdef RADIATION
              qgdnv_zone(GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
-             qgdnv_zone(GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
+             qgdnv_zone(GDERADS:GDERADS-1+ngroups) = qint_rad(i,j,k,QRAD:QRAD-1+ngroups)
 #endif
 
              F_zone(:) = F(i,j,k,:)
@@ -611,8 +617,10 @@ contains
 
 
   subroutine ca_store_godunov_state(lo, hi, &
-                                    qint, qi_lo, qi_hi, &
+                                    qint_core, qi_lo, qi_hi, &
+                                    qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
+                                    qint_rad, qir_lo, qir_hi, &
                                     lambda, l_lo, l_hi, &
 #endif
                                     qgdnv, qg_lo, qg_hi) bind(C, name="ca_store_godunov_state")
@@ -620,7 +628,10 @@ contains
     ! variable) over to a smaller subset of size NGDNV for use later in the
     ! hydro advancement.
 
-    use meth_params_module, only : NQ, NVAR, NQAUX, &
+    use meth_params_module, only : NQC, NQP, NVAR, NQAUX, &
+#ifdef RADIATION
+                                   NQR, &
+#endif
                                    URHO, &
                                    QRHO, QU, QV, QW, &
                                    QPRES, QGAME, &
@@ -636,10 +647,14 @@ contains
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: qi_lo(3), qi_hi(3)
+    integer, intent(in) :: qip_lo(3), qip_hi(3)
     integer, intent(in) :: qg_lo(3), qg_hi(3)
-    real(rt), intent(in) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NQ)
+    real(rt), intent(in) :: qint_core(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NQC)
+    real(rt), intent(in) :: qint_pass(qip_lo(1):qip_hi(1), qip_lo(2):qip_hi(2), qip_lo(3):qip_hi(3), NQP)
 #ifdef RADIATION
     integer, intent(in) :: l_lo(3), l_hi(3)
+    integer, intent(in) :: qir_lo(3), qir_hi(3)
+    real(rt), intent(in) :: qint_rad(qir_lo(1):qir_hi(1), qir_lo(2):qir_hi(2), qir_lo(3):qir_hi(3), NQR)
     real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
 #endif
     real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
@@ -653,15 +668,15 @@ contains
           do i = lo(1), hi(1)
 
              ! the hybrid routine uses the Godunov indices, not the full NQ state
-             qgdnv(i,j,k,GDRHO) = qint(i,j,k,QRHO)
-             qgdnv(i,j,k,GDU) = qint(i,j,k,QU)
-             qgdnv(i,j,k,GDV) = qint(i,j,k,QV)
-             qgdnv(i,j,k,GDW) = qint(i,j,k,QW)
-             qgdnv(i,j,k,GDPRES) = qint(i,j,k,QPRES)
-             qgdnv(i,j,k,GDGAME) = qint(i,j,k,QGAME)
+             qgdnv(i,j,k,GDRHO) = qint_core(i,j,k,QRHO)
+             qgdnv(i,j,k,GDU) = qint_core(i,j,k,QU)
+             qgdnv(i,j,k,GDV) = qint_core(i,j,k,QV)
+             qgdnv(i,j,k,GDW) = qint_core(i,j,k,QW)
+             qgdnv(i,j,k,GDPRES) = qint_core(i,j,k,QPRES)
+             qgdnv(i,j,k,GDGAME) = qint_core(i,j,k,QGAME)
 #ifdef RADIATION
              qgdnv(i,j,k,GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
-             qgdnv(i,j,k,GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
+             qgdnv(i,j,k,GDERADS:GDERADS-1+ngroups) = qint_rad(i,j,k,QRAD:QRAD-1+ngroups)
 #endif
 
           end do

@@ -121,8 +121,10 @@ contains
                 idir, domlo, domhi)
 
     call ca_store_godunov_state(lo, hi, &
-                                qint, q_lo, q_hi, &
+                                qint_core, q_lo, q_hi, &
+                                qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
+                                qint_rad, qir_lo, qir_hi, &
                                 lambda_int, li_lo, li_hi, &
 #endif
                                 qgdnv, qg_lo, qg_hi)
@@ -1985,7 +1987,7 @@ contains
                 call cons_state(q_core_zone, q_pass_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
-                call HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state)
+                call HLLC_state(idir, S_r, S_c, q_core_zone, q_pass_zone, U_hllc_state)
 
                 ! correct the flux
                 F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
@@ -1997,7 +1999,7 @@ contains
                 call cons_state(q_core_zone, q_pass_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pl, F_state)
 
-                call HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state)
+                call HLLC_state(idir, S_l, S_c, q_core_zone, q_pass_zone, U_hllc_state)
 
                 ! correct the flux
                 F_state(:) = F_state(:) + S_l*(U_hllc_state(:) - U_state(:))
