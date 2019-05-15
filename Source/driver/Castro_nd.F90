@@ -229,13 +229,19 @@ subroutine ca_get_nqp_src(nqp_src_in) bind(C, name="ca_get_nqp_src")
     !
     ! Binds to C function `ca_get_nqp_src`
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
   use meth_params_module, only: NQP_SRC
+#endif
 
   implicit none
 
-  integer, intent(inout) :: nqc_srp_in
+  integer, intent(inout) :: nqp_src_in
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
   nqp_src_in = NQP_SRC
+#else
+  nqp_src_in = -1
+#endif
 
 end subroutine ca_get_nqp_src
 
@@ -267,6 +273,7 @@ subroutine ca_get_nqp(nqp_in) bind(C, name="ca_get_nqp")
 
 end subroutine ca_get_nqp
 
+#ifdef RADIATION
 subroutine ca_get_nqr(nqr_in) bind(C, name="ca_get_nqr")
     !
     ! Binds to C function `ca_get_nqr`
@@ -280,6 +287,7 @@ subroutine ca_get_nqr(nqr_in) bind(C, name="ca_get_nqr")
   nqr_in = NQR
 
 end subroutine ca_get_nqr
+#endif
 
 subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
     !
@@ -672,7 +680,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   ! easy indexing for the passively advected quantities.  This lets us
   ! loop over all groups (advected, species, aux) in a single loop.
   ! Note: these sizes are the maximum size we expect for passives.
-  allocate(qpass_map(NQ))
+  allocate(qpass_map(NQP))
   allocate(upass_map(NVAR))
 
   ! Transverse velocities

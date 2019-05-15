@@ -9,7 +9,14 @@ module meth_params_module
 
   use amrex_error_module
   use amrex_fort_module, only: rt => amrex_real
-  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQC, NQC_SRC, NQP, NQP_SRC, NQR
+  use state_sizes_module, only : nadv, NVAR, NQC, NQC_SRC, NQP, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                                 NQP_SRC, &
+#endif
+#ifdef RAdIATION
+                                 NQR, &
+#endif
+                                 NQAUX, NGDNV
 
   implicit none
 

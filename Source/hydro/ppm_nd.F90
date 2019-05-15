@@ -441,7 +441,7 @@ contains
                              Im, Im_lo, Im_hi, icomp, ic, &
                              dx, dt)
 
-    use meth_params_module, only : NQAUX, QC, NQ, QU, QV, QW
+    use meth_params_module, only : NQAUX, NQC, QC, QU, QV, QW
 
     implicit none
 
@@ -458,7 +458,7 @@ contains
     integer, intent(in), value :: idir
 
     real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3), NQ)
+    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3), NQC)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3), NQAUX)
     real(rt), intent(in) :: sm_in( sm_lo(1): sm_hi(1), sm_lo(2): sm_hi(2), sm_lo(3): sm_hi(3), AMREX_SPACEDIM)
     real(rt), intent(in) :: sp_in( sp_lo(1): sp_hi(1), sp_lo(2): sp_hi(2), sp_lo(3): sp_hi(3), AMREX_SPACEDIM)
