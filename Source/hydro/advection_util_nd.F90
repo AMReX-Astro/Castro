@@ -300,7 +300,7 @@ contains
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: q_lo(3), q_hi(3)
+    integer,  intent(in   ) :: qc_lo(3), qc_hi(3)
     integer,  intent(in   ) :: qa_lo(3), qa_hi(3)
 
     real(rt), intent(in   ) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
@@ -543,7 +543,7 @@ contains
              ! of the separately updated internal energy equation.
              ! Otherwise, we'll set e = E - K.
 
-             kineng = HALF * q_core(i,j,k,QRHO) * sum(q_core(i,j,k,QU:UW)**2)
+             kineng = HALF * q_core(i,j,k,QRHO) * sum(q_core(i,j,k,QU:QW)**2)
 
              if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .gt. dual_energy_eta1) then
                 q_core(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv
@@ -701,7 +701,7 @@ contains
 
              q_core_src(i,j,k,QRHO  ) = src(i,j,k,URHO)
              q_core_src(i,j,k,QU    ) = (src(i,j,k,UMX) - q_core(i,j,k,QU) * q_core_src(i,j,k,QRHO)) * rhoinv
-             q_core_src(i,j,k,QV    ) = (src(i,j,k,UMY) - q_cpre(i,j,k,QV) * q_core_src(i,j,k,QRHO)) * rhoinv
+             q_core_src(i,j,k,QV    ) = (src(i,j,k,UMY) - q_core(i,j,k,QV) * q_core_src(i,j,k,QRHO)) * rhoinv
              q_core_src(i,j,k,QW    ) = (src(i,j,k,UMZ) - q_core(i,j,k,QW) * q_core_src(i,j,k,QRHO)) * rhoinv
              q_core_src(i,j,k,QREINT) = src(i,j,k,UEINT)
              q_core_src(i,j,k,QPRES ) = qaux(i,j,k,QDPDE)*(q_core_src(i,j,k,QREINT) - &
@@ -1149,7 +1149,7 @@ contains
 
 
   subroutine ca_shock(lo, hi, &
-                      q, qd_lo, qd_hi, &
+                      q_core, qd_lo, qd_hi, &
                       shk, s_lo, s_hi, &
                       dx) bind(C, name="ca_shock")
     ! This is a basic multi-dimensional shock detection algorithm.
@@ -1464,13 +1464,14 @@ contains
 
 
   subroutine avisc(lo, hi, &
-       q, q_lo, q_hi, &
-       qaux, qa_lo, qa_hi, &
-       dx, avis, a_lo, a_hi, idir)
+                   q, q_lo, q_hi, &
+                   qaux, qa_lo, qa_hi, &
+                   dx, avis, a_lo, a_hi, idir)
+
     ! this computes the *face-centered* artifical viscosity using the
     ! 4th order expression from McCorquodale & Colella (Eq. 35)
 
-    use meth_params_module, only : QU, QV, QW, QC, NQ, NQAUX
+    use meth_params_module, only : QU, QV, QW, QC, NQC, NQAUX
     use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
     use prob_params_module, only : dg, coord_type, problo
     use amrex_fort_module, only : rt => amrex_real
@@ -1483,7 +1484,7 @@ contains
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: idir
     real(rt), intent(in) :: dx(3)
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(inout) :: avis(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
 
