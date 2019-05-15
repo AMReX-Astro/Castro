@@ -293,7 +293,7 @@ contains
     ! Compute running max of Courant number over grids
 
     use amrex_constants_module, only: ZERO, ONE
-    use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, time_integration_method
+    use meth_params_module, only: NQC, QRHO, QU, QV, QW, QC, NQAUX, time_integration_method
     use prob_params_module, only: dim
     use amrex_fort_module, only : rt => amrex_real, amrex_max
 
@@ -444,9 +444,9 @@ contains
                                    UEDEN, UEINT, UTEMP, &
                                    QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                   NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
+                                   NQC, NQP, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
-                                   QCG, QGAMCG, QLAMS, &
+                                   NQR, QCG, QGAMCG, QLAMS, &
                                    QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
          npassive, upass_map, qpass_map, dual_energy_eta1, &
@@ -651,8 +651,11 @@ contains
 
     use actual_network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
-                                   NQSRC, QRHO, QU, QV, QW, NQ, &
+                                   NQC_SRC, QRHO, QU, QV, QW, NQC, NQP, &
                                    QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                                   NQP_SRC, &
+#endif
                                    npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
@@ -663,13 +666,12 @@ contains
     integer, intent(in) :: qc_lo(3), qc_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: src_lo93) src_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: qcs_lo(3), qcs_hi(3)
 #ifdef PRIM_SPECIES_HAVE_SOURCES
     integer, intent(in) :: qps_lo(3), qps_hi(3)
 #endif
 
-#ifdef PRIM_SPECIES_HAVE_SOURCES
     real(rt), intent(in   ) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
     real(rt), intent(in   ) :: q_pass(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
     real(rt), intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
@@ -846,7 +848,7 @@ contains
     real(rt), intent(in), value :: dt
 
     real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
+    real(rt), intent(in   ) :: q_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
     real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
     real(rt), intent(in   ) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
@@ -1329,7 +1331,7 @@ contains
     ! this computes the *node-centered* divergence
     !
 
-    use meth_params_module, only : QU, QV, QW, NQ
+    use meth_params_module, only : QU, QV, QW, NQC
     use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
     use prob_params_module, only : dg, coord_type, problo
     use amrex_fort_module, only : rt => amrex_real
@@ -1568,18 +1570,18 @@ contains
 
 
   subroutine calc_pdivu(lo, hi, &
-       q1, q1_lo, q1_hi, &
-       area1, a1_lo, a1_hi, &
+                        q1, q1_lo, q1_hi, &
+                        area1, a1_lo, a1_hi, &
 #if AMREX_SPACEDIM >= 2
-       q2, q2_lo, q2_hi, &
-       area2, a2_lo, a2_hi, &
+                        q2, q2_lo, q2_hi, &
+                        area2, a2_lo, a2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       q3, q3_lo, q3_hi, &
-       area3, a3_lo, a3_hi, &
+                        q3, q3_lo, q3_hi, &
+                        area3, a3_lo, a3_hi, &
 #endif
-       vol, v_lo, v_hi, &
-       dx, pdivu, div_lo, div_hi)
+                        vol, v_lo, v_hi, &
+                        dx, pdivu, div_lo, div_hi)
     ! this computes the cell-centered p div(U) term from the
     ! edge-centered Godunov state.  This is used in the internal energy
     ! update

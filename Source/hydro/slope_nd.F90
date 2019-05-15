@@ -11,7 +11,7 @@ contains
   ! :::
 
   subroutine uslope(lo, hi, idir, &
-                    q, qd_lo, qd_hi, n, &
+                    q, qd_lo, qd_hi, n, ncomp, &
                     flatn, f_lo, f_hi, &
                     dq, qpd_lo, qpd_hi)
 
@@ -26,9 +26,9 @@ contains
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
     integer, intent(in) :: n
 
-    real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),ncomp)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(inout) :: dq(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
+    real(rt), intent(inout) :: dq(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),ncomp)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in), value :: idir
 

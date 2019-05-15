@@ -600,14 +600,14 @@ contains
        do n = 1, NQC
           if (.not. reconstruct_state(n)) cycle
           call uslope(lo, hi, idir, &
-                      q_core, qc_lo, qc_hi, n, &
+                      q_core, qc_lo, qc_hi, n, NQC, &
                       flatn, f_lo, f_hi, &
                       dq_core, dqc_lo, dqc_hi)
        end do
 
        do n = 1, NQP
           call uslope(lo, hi, idir, &
-                      q_pass, qp_lo, qp_hi, n, &
+                      q_pass, qp_lo, qp_hi, n, NQP, &
                       flatn, f_lo, f_hi, &
                       dp_pass, dqp_lo, dqp_hi)
        end do
