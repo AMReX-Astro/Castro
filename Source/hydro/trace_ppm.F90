@@ -55,16 +55,30 @@ contains
     implicit none
 
     integer, intent(in) :: idir
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: qc_lo(3), qc_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
+
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
-    integer, intent(in) :: Im_lo(3), Im_hi(3)
-    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
-    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
+
+    integer, intent(in) :: Icp_lo(3), Icp_hi(3)
+    integer, intent(in) :: Icm_lo(3), Icm_hi(3)
+    integer, intent(in) :: Ipp_lo(3), Ipp_hi(3)
+    integer, intent(in) :: Ipm_lo(3), Ipm_hi(3)
+
+    integer, intent(in) :: Icps_lo(3), Icps_hi(3)
+    integer, intent(in) :: Icms_lo(3), Icms_hi(3)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    integer, intent(in) :: Ipps_lo(3), Ipps_hi(3)
+    integer, intent(in) :: Ipms_lo(3), Ipms_hi(3)
+#endif
+
     integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
     integer, intent(in) :: Img_lo(3), Img_hi(3)
+
+    integer, intent(in) :: qcm_lo(3), qcm_hi(3)
+    integer, intent(in) :: qcp_lo(3), qcp_hi(3)
+    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
+    integer, intent(in) :: qpp_lo(3), qpp_hi(3)
 
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
@@ -73,20 +87,30 @@ contains
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
+    real(rt), intent(in) :: q_pass(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
 
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Ip_core(Icp_lo(1):Icp_hi(1),Icp_lo(2):Icp_hi(2),Icp_lo(3):Icp_hi(3),1:3,NQC)
+    real(rt), intent(in) :: Im_core(Icm_lo(1):Icm_hi(1),Icm_lo(2):Icm_hi(2),Icm_lo(3):Icm_hi(3),1:3,NQC)
+    real(rt), intent(in) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),1:3,NQP)
+    real(rt), intent(in) :: Im_pass(Ipm_lo(1):Ipm_hi(1),Ipm_lo(2):Ipm_hi(2),Ipm_lo(3):Ipm_hi(3),1:3,NQP)
+
+    real(rt), intent(in) :: Ip_core_src(Icsp_lo(1):Icsp_hi(1),Icsp_lo(2):Icsp_hi(2),Icsp_lo(3):Icsp_hi(3),1:3,NQC_SRC)
+    real(rt), intent(in) :: Im_core_src(Icsm_lo(1):Icsm_hi(1),Icsm_lo(2):Icsm_hi(2),Icsm_lo(3):Icsm_hi(3),1:3,NQC_SRC)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    real(rt), intent(in) :: Ip_pass_src(Ipsp_lo(1):Ipsp_hi(1),Ipsp_lo(2):Ipsp_hi(2),Ipsp_lo(3):Ipsp_hi(3),1:3,NQP_SRC)
+    real(rt), intent(in) :: Im_pass_src(Ipsm_lo(1):Ipsm_hi(1),Ipsm_lo(2):Ipsm_hi(2),Ipsm_lo(3):Ipsm_hi(3),1:3,NQP_SRC)
+#endif
 
     real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
     real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
 
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(inout) :: qm_core(qcm_lo(1):qcm_hi(1),qcm_lo(2):qcm_hi(2),qcm_lo(3):qcm_hi(3),NQC)
+    real(rt), intent(inout) :: qp_core(qcp_lo(1):qcp_hi(1),qcp_lo(2):qcp_hi(2),qcp_lo(3):qcp_hi(3),NQC)
+    real(rt), intent(inout) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP)
+    real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP)
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
@@ -102,11 +126,6 @@ contains
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
 
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  We will deal with all 3 velocity
-       ! components below, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
-
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -116,7 +135,7 @@ contains
                     (idir == 2 .and. j >= vlo(2)) .or. &
                     (idir == 3 .and. k >= vlo(3))) then
 
-                   un = q(i,j,k,QU-1+idir)
+                   un = q_core(i,j,k,QU-1+idir)
 
                    ! We have
                    !
@@ -128,39 +147,49 @@ contains
                    ! projecting, the reference state doesn't matter
 
                    if (un > ZERO) then
-                      qp(i,j,k,n) = q(i,j,k,n)
+                      qp_pass(i,j,k,n) = q_pass(i,j,k,n)
                    else
-                      qp(i,j,k,n) = Im(i,j,k,2,n)
+                      qp_pass(i,j,k,n) = Im_pass(i,j,k,2,n)
                    end if
-                   if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,2,n)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qp_pass(i,j,k,n) = qp_pass(i,j,k,n) + HALF*dt*Im_pass_src(i,j,k,2,n)
+#endif
 
                 end if
 
                 ! Minus state on face i+1
                 if (idir == 1 .and. i <= vhi(1)) then
-                   un = q(i,j,k,QU-1+idir)
+                   un = q_core(i,j,k,QU-1+idir)
                    if (un > ZERO) then
-                      qm(i+1,j,k,n) = Ip(i,j,k,2,n)
+                      qm_pass(i+1,j,k,n) = Ip_pass(i,j,k,2,n)
                    else
-                      qm(i+1,j,k,n) = q(i,j,k,n)
+                      qm_pass(i+1,j,k,n) = q_pass(i,j,k,n)
                    end if
-                   if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qm_pass(i+1,j,k,n) = qm_pass(i+1,j,k,n) + HALF*dt*Ip_pass_src(i,j,k,2,n)
+#endif
+
                 else if (idir == 2 .and. j <= vhi(2)) then
-                   un = q(i,j,k,QU-1+idir)
+                   un = q_core(i,j,k,QU-1+idir)
                    if (un > ZERO) then
-                      qm(i,j+1,k,n) = Ip(i,j,k,2,n)
+                      qm_pass(i,j+1,k,n) = Ip_pass(i,j,k,2,n)
                    else
-                      qm(i,j+1,k,n) = q(i,j,k,n)
+                      qm_pass(i,j+1,k,n) = q_pass(i,j,k,n)
                    end if
-                   if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qm_pass(i,j+1,k,n) = qm_pass(i,j+1,k,n) + HALF*dt*Ip_pass_src(i,j,k,2,n)
+#endif
+
                 else if (idir == 3 .and. k <= vhi(3)) then
-                   un = q(i,j,k,QU-1+idir)
+                   un = q_core(i,j,k,QU-1+idir)
                    if (un > ZERO) then
-                      qm(i,j,k+1,n) = Ip(i,j,k,2,n)
+                      qm_pass(i,j,k+1,n) = Ip_pass(i,j,k,2,n)
                    else
-                      qm(i,j,k+1,n) = q(i,j,k,n)
+                      qm_pass(i,j,k+1,n) = q_pass(i,j,k,n)
                    end if
-                   if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,2,n)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qm_pass(i,j,k+1,n) = qm_pass(i,j,k+1,n) + HALF*dt*Ip_pass_src(i,j,k,2,n)
+#endif
                 end if
 
              end do
