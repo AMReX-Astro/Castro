@@ -24,7 +24,7 @@ contains
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: qpd_lo(3), qpd_hi(3)
-    integer, intent(in) :: n
+    integer, intent(in) :: n, ncomp
 
     real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),ncomp)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
@@ -232,7 +232,7 @@ contains
                     src, src_lo, src_hi, &
                     dx)
 
-    use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQC, NQSRC, plm_iorder
+    use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQC, NQC_SRC, plm_iorder
     use amrex_constants_module, only : ZERO, FOURTH, FOUR3RD, HALF, TWO, ONE, SIXTH
 
     use amrex_fort_module, only : rt => amrex_real
@@ -247,8 +247,8 @@ contains
 
     real(rt), intent(in) :: q_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(inout) :: dq(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
-    real(rt), intent(in) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
+    real(rt), intent(inout) :: dq(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQC)
+    real(rt), intent(in) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQC_SRC)
     real(rt), intent(in) :: dx(3)
 
     integer :: i, j, k

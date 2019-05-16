@@ -17,7 +17,7 @@ contains
 #if AMREX_SPACEDIM < 3
                        dloga, dloga_lo, dloga_hi, &
 #endif
-                       SrcQ, src_lo, src_hi, &
+                       q_core_src, src_lo, src_hi, &
                        vlo, vhi, domlo, domhi, &
                        dx, dt)
 
@@ -298,13 +298,18 @@ contains
                                dq_pass, dqp_lo, dqp_hi, &
                                qm_pass, qmp_lo, qmp_hi, &
                                qp_pass, qpp_lo, qpp_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
                                q_pass_src, qps_lo, qps_hi, &
+#endif
                                vlo, vhi, domlo, domhi, &
                                dx, dt)
 
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQC, NQP, NQP_SRC, QU, QV, QW, &
+    use meth_params_module, only : NQC, NQP, QU, QV, QW, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                                   NQP_SRC, &
+#endif
                                    npassive, qpass_map
     use amrex_constants_module
     use amrex_fort_module, only : rt => amrex_real
@@ -317,7 +322,9 @@ contains
     integer, intent(in) :: dqp_lo(3), dqp_hi(3)
     integer, intent(in) :: qmp_lo(3), qmp_hi(3)
     integer, intent(in) :: qpp_lo(3), qpp_hi(3)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
     integer, intent(in) :: qps_lo(3), qps_hi(3)
+#endif
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
@@ -325,11 +332,13 @@ contains
     real(rt), intent(in) :: q_pass(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
     real(rt), intent(in) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
 
-    real(rt), intent(in) ::  dq(dq_lo(1):dq_hi(1),dq_lo(2):dq_hi(2),dq_lo(3):dq_hi(3),NQP)
+    real(rt), intent(in) ::  dq_pass(dqp_lo(1):dqp_hi(1),dqp_lo(2):dqp_hi(2),dqp_lo(3):dqp_hi(3),NQP)
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQP)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
     real(rt), intent(in) ::  q_pass_src(qps_lo(1):qps_hi(1),qps_lo(2):qps_hi(2),qps_lo(3):qps_hi(3),NQP_SRC)
+#endif
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
@@ -371,9 +380,9 @@ contains
                       spzero = un*dtdx
                    end if
                    acmprght = HALF*(-ONE - spzero)*dq_pass(i,j,k,n)
-                   qp_pass(i,j,k,n) = q_pass(i,j,k,n) + acmprght
+                   qp(i,j,k,n) = q_pass(i,j,k,n) + acmprght
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qp_pass(i,j,k,n) = qp_pass(i,j,k,n) + HALF*dt*q_pass_src(i,j,k,n)
+                   qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*q_pass_src(i,j,k,n)
 #endif
                 endif
 
@@ -387,19 +396,19 @@ contains
                 acmpleft = HALF*(ONE - spzero )*dq_pass(i,j,k,n)
 
                 if (idir == 1 .and. i <= vhi(1)) then
-                   qm_pass(i+1,j,k,n) = q_pass(i,j,k,n) + acmpleft
+                   qm(i+1,j,k,n) = q_pass(i,j,k,n) + acmpleft
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qm_pass(i+1,j,k,n) = qm_pass(i+1,j,k,n) + HALF*dt*q_pass_src(i,j,k,n)
+                   qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*q_pass_src(i,j,k,n)
 #endif
                 else if (idir == 2 .and. j <= vhi(2)) then
-                   qm_pass(i,j+1,k,n) = q_pass(i,j,k,n) + acmpleft
+                   qm(i,j+1,k,n) = q_pass(i,j,k,n) + acmpleft
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qm_pass(i,j+1,k,n) = qm_pass(i,j+1,k,n) + HALF*dt*q_pass_src(i,j,k,n)
+                   qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*q_pass_src(i,j,k,n)
 #endif
                 else if (idir == 3 .and. k <= vhi(3)) then
-                   qm_pass(i,j,k+1,n) = q_pass(i,j,k,n) + acmpleft
+                   qm(i,j,k+1,n) = q_pass(i,j,k,n) + acmpleft
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qm_pass(i,j,k+1,n) = qm_pass(i,j,k+1,n) + HALF*dt*q_pass_src(i,j,k,n)
+                   qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*q_pass_src(i,j,k,n)
 #endif
                 endif
              enddo
