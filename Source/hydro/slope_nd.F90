@@ -15,7 +15,7 @@ contains
                     flatn, f_lo, f_hi, &
                     dq, qpd_lo, qpd_hi)
 
-    use meth_params_module, only: NQ, plm_iorder
+    use meth_params_module, only: plm_iorder
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, FOUR3RD, FOURTH, SIXTH
 
     use amrex_fort_module, only : rt => amrex_real
@@ -226,13 +226,13 @@ contains
   ! :::
 
   subroutine pslope(lo, hi, idir, &
-                    q, q_lo, q_hi, &
+                    q_core, q_lo, q_hi, &
                     flatn, f_lo, f_hi, &
                     dq, qpd_lo, qpd_hi, &
                     src, src_lo, src_hi, &
                     dx)
 
-    use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQ, NQSRC, plm_iorder
+    use meth_params_module, only : QRHO, QPRES, QU, QV, QW, NQC, NQSRC, plm_iorder
     use amrex_constants_module, only : ZERO, FOURTH, FOUR3RD, HALF, TWO, ONE, SIXTH
 
     use amrex_fort_module, only : rt => amrex_real
@@ -245,7 +245,7 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in), value :: idir
 
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in) :: q_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
     real(rt), intent(inout) :: dq(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     real(rt), intent(in) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
@@ -281,14 +281,14 @@ contains
                    ! First compute Fromm slopes
 
                    ! df at i+1
-                   dlftp1 = q(i+1,j,k,QPRES) - q(i,j,k,QPRES)
-                   drgtp1 = q(i+2,j,k,QPRES) - q(i+1,j,k,QPRES)
+                   dlftp1 = q_core(i+1,j,k,QPRES) - q_core(i,j,k,QPRES)
+                   drgtp1 = q_core(i+2,j,k,QPRES) - q_core(i+1,j,k,QPRES)
 
                    ! Subtract off (rho * acceleration) so as not to limit that part of the slope
                    dlftp1 = dlftp1 - FOURTH * &
-                        (q(i+1,j,k,QRHO) + q(i,j,k,QRHO)) * (src(i+1,j,k,QU)+src(i,j,k,QU))*dx(1)
+                        (q_core(i+1,j,k,QRHO) + q_core(i,j,k,QRHO)) * (src(i+1,j,k,QU)+src(i,j,k,QU))*dx(1)
                    drgtp1 = drgtp1 - FOURTH * &
-                        (q(i+1,j,k,QRHO) + q(i+2,j,k,QRHO)) * (src(i+1,j,k,QU)+src(i+2,j,k,QU))*dx(1)
+                        (q_core(i+1,j,k,QRHO) + q_core(i+2,j,k,QRHO)) * (src(i+1,j,k,QU)+src(i+2,j,k,QU))*dx(1)
 
                    dcen = HALF*(dlftp1 + drgtp1)
                    dsgn = sign(ONE, dcen)
@@ -300,14 +300,14 @@ contains
                    dfp1 = dsgn*min(dlim, abs(dcen))
 
                    ! df at i-1
-                   dlftm1 = q(i-1,j,k,QPRES) - q(i-2,j,k,QPRES)
-                   drgtm1 = q(i,j,k,QPRES) - q(i-1,j,k,QPRES)
+                   dlftm1 = q_core(i-1,j,k,QPRES) - q_core(i-2,j,k,QPRES)
+                   drgtm1 = q_core(i,j,k,QPRES) - q_core(i-1,j,k,QPRES)
 
                    ! Subtract off (rho * acceleration) so as not to limit that part of the slope
                    dlftm1 = dlftm1 - FOURTH * &
-                        (q(i-1,j,k,QRHO) + q(i-2,j,k,QRHO)) * (src(i-1,j,k,QU)+src(i-2,j,k,QU))*dx(1)
+                        (q_core(i-1,j,k,QRHO) + q_core(i-2,j,k,QRHO)) * (src(i-1,j,k,QU)+src(i-2,j,k,QU))*dx(1)
                    drgtm1 = drgtm1 - FOURTH * &
-                        (q(i-1,j,k,QRHO) + q(i,j,k,QRHO)) * (src(i-1,j,k,QU)+src(i,j,k,QU))*dx(1)
+                        (q_core(i-1,j,k,QRHO) + q_core(i,j,k,QRHO)) * (src(i-1,j,k,QU)+src(i,j,k,QU))*dx(1)
 
                    dcen = HALF*(dlftm1 + drgtm1)
                    dsgn = sign(ONE, dcen)
@@ -331,7 +331,7 @@ contains
 
                    dp1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
                    dq(i,j,k,QPRES) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
-                   dq(i,j,k,QPRES) = dq(i,j,k,QPRES) + q(i,j,k,QRHO)*src(i,j,k,QU)*dx(1)
+                   dq(i,j,k,QPRES) = dq(i,j,k,QPRES) + q_core(i,j,k,QRHO)*src(i,j,k,QU)*dx(1)
 
                 end do
              end do
@@ -348,14 +348,14 @@ contains
                    ! First compute Fromm slopes
 
                    ! dt at j+1
-                   dlftp1 = q(i,j+1,k,QPRES) - q(i,j,k,QPRES)
-                   drgtp1 = q(i,j+2,k,QPRES) - q(i,j+1,k,QPRES)
+                   dlftp1 = q_core(i,j+1,k,QPRES) - q_core(i,j,k,QPRES)
+                   drgtp1 = q_core(i,j+2,k,QPRES) - q_core(i,j+1,k,QPRES)
 
                    ! Subtract off (rho * acceleration) so as not to limit that part of the slope
                    dlftp1 = dlftp1 - FOURTH * &
-                        (q(i,j+1,k,QRHO) + q(i,j,k,QRHO)) * (src(i,j+1,k,QV)+src(i,j,k,QV))*dx(2)
+                        (q_core(i,j+1,k,QRHO) + q_core(i,j,k,QRHO)) * (src(i,j+1,k,QV)+src(i,j,k,QV))*dx(2)
                    drgtp1 = drgtp1 - FOURTH * &
-                        (q(i,j+1,k,QRHO) + q(i,j+2,k,QRHO)) * (src(i,j+1,k,QV)+src(i,j+2,k,QV))*dx(2)
+                        (q_core(i,j+1,k,QRHO) + q_core(i,j+2,k,QRHO)) * (src(i,j+1,k,QV)+src(i,j+2,k,QV))*dx(2)
 
                    dcen = HALF*(dlftp1 + drgtp1)
                    dsgn = sign(ONE, dcen)
@@ -367,14 +367,14 @@ contains
                    dfp1 = dsgn*min(dlim, abs(dcen))
 
                    ! df at j-1
-                   dlftm1 = q(i,j-1,k,QPRES) - q(i,j-2,k,QPRES)
-                   drgtm1 = q(i,j,k,QPRES) - q(i,j-1,k,QPRES)
+                   dlftm1 = q_core(i,j-1,k,QPRES) - q_core(i,j-2,k,QPRES)
+                   drgtm1 = q_core(i,j,k,QPRES) - q_core(i,j-1,k,QPRES)
 
                    ! Subtract off (rho * acceleration) so as not to limit that part of the slope
                    dlftm1 = dlftm1 - FOURTH * &
-                        (q(i,j-1,k,QRHO) + q(i,j-2,k,QRHO)) * (src(i,j-1,k,QV)+src(i,j-2,k,QV))*dx(2)
+                        (q_core(i,j-1,k,QRHO) + q_core(i,j-2,k,QRHO)) * (src(i,j-1,k,QV)+src(i,j-2,k,QV))*dx(2)
                    drgtm1 = drgtm1 - FOURTH * &
-                        (q(i,j-1,k,QRHO) + q(i,j,k,QRHO)) * (src(i,j-1,k,QV)+src(i,j,k,QV))*dx(2)
+                        (q_core(i,j-1,k,QRHO) + q_core(i,j,k,QRHO)) * (src(i,j-1,k,QV)+src(i,j,k,QV))*dx(2)
 
                    dcen = HALF*(dlftm1 + drgtm1)
                    dsgn = sign(ONE, dcen)
@@ -399,7 +399,7 @@ contains
 
                    dp1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
                    dq(i,j,k,QPRES) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
-                   dq(i,j,k,QPRES) = dq(i,j,k,QPRES) + q(i,j,k,QRHO)*src(i,j,k,QV)*dx(2)
+                   dq(i,j,k,QPRES) = dq(i,j,k,QPRES) + q_core(i,j,k,QRHO)*src(i,j,k,QV)*dx(2)
                 end do
              end do
           end do
@@ -416,14 +416,14 @@ contains
                    ! First compute Fromm slopes
 
                    ! df at k+1
-                   dlftp1 = q(i,j,k+1,QPRES) - q(i,j,k,QPRES)
-                   drgtp1 = q(i,j,k+2,QPRES) - q(i,j,k+1,QPRES)
+                   dlftp1 = q_core(i,j,k+1,QPRES) - q_core(i,j,k,QPRES)
+                   drgtp1 = q_core(i,j,k+2,QPRES) - q_core(i,j,k+1,QPRES)
 
                    ! Subtract off (rho * acceleration)
                    dlftp1 = dlftp1 - FOURTH * &
-                        (q(i,j,k+1,QRHO) + q(i,j,k,QRHO)) * (src(i,j,k+1,QW)+src(i,j,k,QW))*dx(3)
+                        (q_core(i,j,k+1,QRHO) + q_core(i,j,k,QRHO)) * (src(i,j,k+1,QW)+src(i,j,k,QW))*dx(3)
                    drgtp1 = drgtp1 - FOURTH * &
-                        (q(i,j,k+1,QRHO) + q(i,j,k+2,QRHO)) * (src(i,j,k+1,QW)+src(i,j,k+2,QW))*dx(3)
+                        (q_core(i,j,k+1,QRHO) + q_core(i,j,k+2,QRHO)) * (src(i,j,k+1,QW)+src(i,j,k+2,QW))*dx(3)
 
                    dcen = HALF*(dlftp1 + drgtp1)
                    dsgn = sign(ONE, dcen)
@@ -435,14 +435,14 @@ contains
                    dfp1 = dsgn*min(dlim, abs(dcen))
 
                    ! df at k-1
-                   dlftm1 = q(i,j,k-1,QPRES) - q(i,j,k-2,QPRES)
-                   drgtm1 = q(i,j,k,QPRES) - q(i,j,k-1,QPRES)
+                   dlftm1 = q_core(i,j,k-1,QPRES) - q_core(i,j,k-2,QPRES)
+                   drgtm1 = q_core(i,j,k,QPRES) - q_core(i,j,k-1,QPRES)
 
                    ! Subtract off (rho * acceleration)
                    dlftm1 = dlftm1 - FOURTH * &
-                        (q(i,j,k-1,QRHO) + q(i,j,k-2,QRHO)) * (src(i,j,k-1,QW)+src(i,j,k-2,QW))*dx(3)
+                        (q_core(i,j,k-1,QRHO) + q_core(i,j,k-2,QRHO)) * (src(i,j,k-1,QW)+src(i,j,k-2,QW))*dx(3)
                    drgtm1 = drgtm1 - FOURTH * &
-                        (q(i,j,k-1,QRHO) + q(i,j,k,QRHO)) * (src(i,j,k-1,QW)+src(i,j,k,QW))*dx(3)
+                        (q_core(i,j,k-1,QRHO) + q_core(i,j,k,QRHO)) * (src(i,j,k-1,QW)+src(i,j,k,QW))*dx(3)
 
                    dcen = HALF*(dlftm1 + drgtm1)
                    dsgn = sign(ONE, dcen)
@@ -467,7 +467,7 @@ contains
 
                    dp1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
                    dq(i,j,k,QPRES) = flatn(i,j,k)*dsgn*min(dlim, abs(dp1))
-                   dq(i,j,k,QPRES) = dq(i,j,k,QPRES) + q(i,j,k,QRHO)*src(i,j,k,QW)*dx(3)
+                   dq(i,j,k,QPRES) = dq(i,j,k,QPRES) + q_core(i,j,k,QRHO)*src(i,j,k,QW)*dx(3)
                 end do
              end do
           end do

@@ -2,7 +2,7 @@ module riemann_module
 
   use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module
-  use meth_params_module, only : NQ, NVAR, NQAUX, &
+  use meth_params_module, only : NQC, NQP, NVAR, NQAUX, &
                                  URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UFX, UTEMP, &
                                  QRHO, QU, QV, QW, &
@@ -11,7 +11,7 @@ module riemann_module
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
 
 #ifdef RADIATION
-                                 qrad, qradhi, qptot, qreitot, &
+                                 NQR, qrad, qradhi, qptot, qreitot, &
                                  GDERADS, QGAMCG, QLAMS, QREITOT, &
 #endif
                                  npassive, upass_map, qpass_map, &
@@ -34,22 +34,20 @@ module riemann_module
 contains
 
   subroutine cmpflx_plus_godunov(lo, hi, &
-                                 qm_core, qmc_lo, qmc_hi, &
-                                 qm_pass, qmp_lo, qmp_hi, &
-#ifdef RADIATION
-                                 qm_rad, qmr_lo, qmr_hi, &
-#endif
-                                 qp_core, qpc_lo, qpc_hi, &
+                                 qm_core, qcm_lo, qcm_hi, &
+                                 qp_core, qcp_lo, qcp_hi, &
+                                 qm_pass, qpm_lo, qpm_hi, &
                                  qp_pass, qpp_lo, qpp_hi, &
 #ifdef RADIATION
-                                 qp_rad, qpr_lo, qpr_hi, &
+                                 qm_rad, qrm_lo, qrm_hi, &
+                                 qp_rad, qrp_lo, qrp_hi, &
 #endif
                                  nc, comp, &
                                  flx, flx_lo, flx_hi, &
-                                 qint_core, qc_lo, qc_hi, &
-                                 qint_pass, qp_lo, qp_hi, &
+                                 qint_core, qic_lo, qic_hi, &
+                                 qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
-                                 qint_rad, qr_lo, qr_hi, &
+                                 qint_rad, qir_lo, qir_hi, &
                                  rflx, rflx_lo, rflx_hi, &
                                  lambda_int, li_lo, li_hi, &
 #endif
@@ -74,10 +72,13 @@ contains
 
     integer, intent(in) :: lo(3), hi(3)
 
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
-    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qcm_lo(3), qcm_hi(3)
+    integer, intent(in) :: qcp_lo(3), qcp_hi(3)
+    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
+    integer, intent(in) :: qpp_lo(3), qpp_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qic_lo(3), qic_hi(3)
+    integer, intent(in) :: qip_lo(3), qip_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: qg_lo(3), qg_hi(3)
@@ -87,13 +88,24 @@ contains
     integer, intent(in) :: domlo(3),domhi(3)
     integer, intent(in), value :: nc, comp
 
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
+    real(rt), intent(inout) :: qm_core(qcm_lo(1):qcm_hi(1),qcm_lo(2):qcm_hi(2),qcm_lo(3):qcm_hi(3),NQC,nc)
+    real(rt), intent(inout) :: qp_core(qcp_lo(1):qcp_hi(1),qcp_lo(2):qcp_hi(2),qcp_lo(3):qcp_hi(3),NQC,nc)
+    real(rt), intent(inout) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP,nc)
+    real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP,nc)
 
     real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qint_core(qic_lo(1):qic_hi(1),qic_lo(2):qic_hi(2),qic_lo(3):qic_hi(3),NQC)
+    real(rt), intent(inout) :: qint_pass(qip_lo(1):qip_hi(1),qip_lo(2):qip_hi(2),qip_lo(3):qip_hi(3),NQP)
 
 #ifdef RADIATION
+    integer, intent(in) :: qrm_lo(3), qrm_hi(3)
+    integer, intent(in) :: qrp_lo(3), qrp_hi(3)
+    integer, intent(in) :: qir_lo(3), qir_hi(3)
+
+    real(rt), intent(inout) :: qm_rad(qrm_lo(1):qrm_hi(1),qrm_lo(2):qrm_hi(2),qrm_lo(3):qrm_hi(3),NQR,nc)
+    real(rt), intent(inout) :: qp_rad(qrp_lo(1):qrp_hi(1),qrp_lo(2):qrp_hi(2),qrp_lo(3):qrp_hi(3),NQR,nc)
+    real(rt), intent(inout) :: qint_rad(qir_lo(1):qir_hi(1),qir_lo(2):qir_hi(2),qir_lo(3):qir_hi(3),NQR)
+
     integer, intent(in) :: rflx_lo(3), rflx_hi(3)
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
     integer, intent(in) :: li_lo(3), li_hi(3)
@@ -108,10 +120,13 @@ contains
     !$gpu
 
     call cmpflx(lo, hi, &
-                qm, qm_lo, qm_hi, &
-                qp, qp_lo, qp_hi, nc, comp, &
+                qm_core, qcm_lo, qcm_hi, &
+                qp_core, qcp_lo, qcp_hi, nc, comp, &
+                qm_pass, qpm_lo, qpm_hi, &
+                qp_pass, qpp_lo, qpp_hi, &
                 flx, flx_lo, flx_hi, &
-                qint, q_lo, q_hi, &
+                qint_core, qic_lo, qic_hi, &
+                qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
                 rflx, rflx_lo, rflx_hi, &
                 lambda_int, li_lo, li_hi, &
@@ -121,7 +136,7 @@ contains
                 idir, domlo, domhi)
 
     call ca_store_godunov_state(lo, hi, &
-                                qint_core, q_lo, q_hi, &
+                                qint_core, qic_lo, qic_hi, &
                                 qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
                                 qint_rad, qir_lo, qir_hi, &
@@ -134,10 +149,10 @@ contains
   subroutine cmpflx(lo, hi, &
                     qm_core, qm_lo, qm_hi, &
                     qp_core, qp_lo, qp_hi, nc, comp, &
-                    qm_pass, qmp_lo, qmp_hi, &
+                    qm_pass, qpm_lo, qpm_hi, &
                     qp_pass, qpp_lo, qpp_hi, &
                     flx, flx_lo, flx_hi, &
-                    qint_core, q_lo, q_hi, &
+                    qint_core, qic_lo, qic_hi, &
                     qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
                     rflx, rflx_lo, rflx_hi, &
@@ -165,10 +180,11 @@ contains
 
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: qmp_lo(3), qmp_hi(3)
+    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
     integer, intent(in) :: qpp_lo(3), qpp_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qic_lo(3), qic_hi(3)
+    integer, intent(in) :: qip_lo(3), qip_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: s_lo(3), s_hi(3)
 
@@ -180,11 +196,11 @@ contains
     real(rt), intent(inout) :: qm_core(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQC,nc)
     real(rt), intent(inout) :: qp_core(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQC,nc)
 
-    real(rt), intent(inout) :: qm_pass(qmp_lo(1):qmp_hi(1),qmp_lo(2):qmp_hi(2),qmp_lo(3):qmp_hi(3),NQP,nc)
+    real(rt), intent(inout) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP,nc)
     real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP,nc)
 
     real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
+    real(rt), intent(inout) :: qint_core(qic_lo(1):qic_hi(1),qic_lo(2):qic_hi(2),qic_lo(3):qic_hi(3),NQC)
     real(rt), intent(inout) :: qint_pass(qip_lo(1):qip_hi(1),qip_lo(2):qip_hi(2),qip_lo(3):qip_hi(3),NQP)
 
 #ifdef RADIATION
@@ -197,7 +213,8 @@ contains
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
-    real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
+    real(rt) :: ql_core_zone(NQC), qr_core_zone(NQC), flx_zone(NVAR)
+    real(rt) :: ql_pass_zone(NQP), qr_pass_zone(NQP)
 
     ! local variables
 
@@ -215,9 +232,9 @@ contains
 
        call riemann_state(qm_core, qm_lo, qm_hi, &
                           qp_core, qp_lo, qp_hi, nc, comp, &
-                          qm_pass, qmp_lo, qmp_hi, &
+                          qm_pass, qpm_lo, qpm_hi, &
                           qp_pass, qpp_lo, qpp_hi, &
-                          qint_core, q_lo, q_hi, &
+                          qint_core, qic_lo, qic_hi, &
                           qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
                           lambda_int, q_lo, q_hi, &
@@ -227,7 +244,7 @@ contains
                           domlo, domhi, .false.)
 
        call compute_flux_q(lo, hi, &
-                           qint_core, q_lo, q_hi, &
+                           qint_core, qic_lo, qic_hi, &
                            qint_pass, qip_lo, qip_hi, &
                            flx, flx_lo, flx_hi, &
 #ifdef RADIATION
@@ -240,11 +257,11 @@ contains
        ! HLLC
        call HLLC(qm_core, qm_lo, qm_hi, &
                  qp_core, qp_lo, qp_hi, nc, comp, &
-                 qm_pass, qmp_lo, qmp_hi, &
+                 qm_pass, qpm_lo, qpm_hi, &
                  qp_pass, qpp_lo, qpp_hi, &
                  qaux, qa_lo, qa_hi, &
                  flx, flx_lo, flx_hi, &
-                 qint_core, q_lo, q_hi, &
+                 qint_core, qic_lo, qic_hi, &
                  qint_pass, qip_lo, qip_hi, &
                  idir, lo, hi, &
                  domlo, domhi)
@@ -311,7 +328,7 @@ contains
                            qp_core, qp_lo, qp_hi, nc, comp, &
                            qm_pass, qmp_lo, qmp_hi, &
                            qp_pass, qpp_lo, qpp_hi, &
-                           qint_core, q_lo, q_hi, &
+                           qint_core, qic_lo, qic_hi, &
                            qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
                            lambda_int, l_lo, l_hi, &
@@ -335,7 +352,7 @@ contains
     integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: qmp_lo(3), qmp_hi(3)
     integer, intent(in) :: qpp_lo(3), qpp_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qic_lo(3), qic_hi(3)
     integer, intent(in) :: qip_lo(3), qip_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
@@ -355,8 +372,8 @@ contains
     real(rt), intent(inout) :: qm_pass(qmp_lo(1):qmp_hi(1),qmp_lo(2):qmp_hi(2),qmp_lo(3):qmp_hi(3),NQP,nc)
     real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP,nc)
 
-    real(rt), intent(inout) :: qint_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
-    real(rt), intent(inout) :: qint_pass(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQP)
+    real(rt), intent(inout) :: qint_core(qic_lo(1):qic_hi(1),qic_lo(2):qic_hi(2),qic_lo(3):qic_hi(3),NQC)
+    real(rt), intent(inout) :: qint_pass(qip_lo(1):qip_hi(1),qip_lo(2):qip_hi(2),qip_lo(3):qip_hi(3),NQP)
 #ifdef RADIATION
     integer, intent(in) :: l_lo(3), l_hi(3)
     real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
@@ -470,7 +487,7 @@ contains
                       qm_pass, qmp_lo, qmp_hi, &
                       qp_pass, qpp_lo, qpp_hi, &
                       qaux, qa_lo, qa_hi, &
-                      qint_core, q_lo, q_hi, &
+                      qint_core, qic_lo, qic_hi, &
                       qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
                       lambda_int, q_lo, q_hi, &
@@ -487,7 +504,7 @@ contains
                       qm_pass, qmp_lo, qmp_hi, &
                       qp_pass, qpp_lo, qpp_hi, &
                       qaux, qa_lo, qa_hi, &
-                      qint_core, q_lo, q_hi, &
+                      qint_core, qic_lo, qic_hi, &
                       qint_pass, qip_lo, qip_hi, &
                       idir, lo, hi, &
                       domlo, domhi)
@@ -514,7 +531,7 @@ contains
                        ql_pass, qlp_lo, qlp_hi, &
                        qr_pass, qrp_lo, qrp_hi, &
                        qaux, qa_lo, qa_hi, &
-                       qint_core, q_lo, q_hi, &
+                       qint_core, qic_lo, qic_hi, &
                        qint_pass, qip_lo, qip_hi, &
                        idir, lo, hi, &
                        domlo, domhi)
@@ -546,7 +563,7 @@ contains
     integer, intent(in) :: qlp_lo(3), qlp_hi(3)
     integer, intent(in) :: qrp_lo(3), qrp_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qic_lo(3), qic_hi(3)
     integer, intent(in) :: qip_lo(3), qip_hi(3)
     integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
@@ -560,8 +577,8 @@ contains
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(inout) :: qint_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(inout) :: qint_pass(qip_lo(1):qip_hi(1),qip_lo(2):qip_hi(2),qip_lo(3):qip_hi(3),NQ)
+    real(rt), intent(inout) :: qint_core(qic_lo(1):qic_hi(1),qic_lo(2):qic_hi(2),qic_lo(3):qic_hi(3),NQC)
+    real(rt), intent(inout) :: qint_pass(qip_lo(1):qip_hi(1),qip_lo(2):qip_hi(2),qip_lo(3):qip_hi(3),NQP)
 
     integer :: i, j, k
     integer :: n, nqp, ipassive
@@ -1136,7 +1153,7 @@ contains
                        qr_rad, qrr_lo, qrr_hi, &
 #endif
                        qaux, qa_lo, qa_hi, &
-                       qint_core, q_lo, q_hi, &
+                       qint_core, qic_lo, qic_hi, &
                        qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
                        qint_rad, qir_lo, qir_hi, &
@@ -1164,7 +1181,7 @@ contains
     integer, intent(in) :: qlp_lo(3), qlp_hi(3)
     integer, intent(in) :: qrp_lo(3), qrp_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qic_lo(3), qic_hi(3)
     integer, intent(in) :: qip_lo(3), qip_hi(3)
     integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3),domhi(3)
@@ -1190,8 +1207,8 @@ contains
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(inout) :: qint_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
-    real(rt), intent(inout) :: qint_pass(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQP)
+    real(rt), intent(inout) :: qint_core(qic_lo(1):qic_hi(1),qic_lo(2):qic_hi(2),qic_lo(3):qic_hi(3),NQC)
+    real(rt), intent(inout) :: qint_pass(qip_lo(1):qip_hi(1),qip_lo(2):qip_hi(2),qip_lo(3):qip_hi(3),NQP)
 #ifdef RADIATION
     real(rt), intent(inout) :: qint_rad(qir_lo(1):qir_hi(1),qir_lo(2):qir_hi(2),qir_lo(3):qir_hi(3),NQR)
     real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
@@ -1498,16 +1515,16 @@ contains
              ! we can already deal with the transverse velocities -- they
              ! only jump across the contact
              if (ustar > ZERO) then
-                qint(i,j,k,iv1) = v1l
-                qint(i,j,k,iv2) = v2l
+                qint_core(i,j,k,iv1) = v1l
+                qint_core(i,j,k,iv2) = v2l
 
              else if (ustar < ZERO) then
-                qint(i,j,k,iv1) = v1r
-                qint(i,j,k,iv2) = v2r
+                qint_core(i,j,k,iv1) = v1r
+                qint_core(i,j,k,iv2) = v2r
 
              else
-                qint(i,j,k,iv1) = HALF*(v1l+v1r)
-                qint(i,j,k,iv2) = HALF*(v2l+v2r)
+                qint_core(i,j,k,iv1) = HALF*(v1l+v1r)
+                qint_core(i,j,k,iv2) = HALF*(v2l+v2r)
              endif
 
 
@@ -1712,11 +1729,11 @@ contains
 
   subroutine HLLC(ql_core, ql_lo, ql_hi, &
                   qr_core, qr_lo, qr_hi, nc, comp, &
-                  ql_pass, qlp_lo, qlp_hi, &
-                  qr_pass, qrp_lo, qrp_hi, &
+                  ql_pass, qpl_lo, qpl_hi, &
+                  qr_pass, qpr_lo, qpr_hi, &
                   qaux, qa_lo, qa_hi, &
                   uflx, uflx_lo, uflx_hi, &
-                  qint_core, q_lo, q_hi, &
+                  qint_core, qic_lo, qic_hi, &
                   qint_pass, qip_lo, qip_hi, &
                   idir, lo, hi, &
                   domlo, domhi)
@@ -1734,27 +1751,27 @@ contains
 
     integer, intent(in) :: ql_lo(3), ql_hi(3)
     integer, intent(in) :: qr_lo(3), qr_hi(3)
-    integer, intent(in) :: qlp_lo(3), qlp_hi(3)
-    integer, intent(in) :: qrp_lo(3), qrp_hi(3)
+    integer, intent(in) :: qpl_lo(3), qpl_hi(3)
+    integer, intent(in) :: qpr_lo(3), qpr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: uflx_lo(3), uflx_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: qic_lo(3), qic_hi(3)
     integer, intent(in) :: qip_lo(3), qip_hi(3)
     integer, intent(in) :: idir, lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
     integer, intent(in) :: nc, comp
 
-    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQC,nc)
-    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQC,nc)
-    real(rt), intent(in) :: qlp(qlp_lo(1):qlp_hi(1),qlp_lo(2):qlp_hi(2),qlp_lo(3):qlp_hi(3),NQP,nc)
-    real(rt), intent(in) :: qrp(qrp_lo(1):qrp_hi(1),qrp_lo(2):qrp_hi(2),qrp_lo(3):qrp_hi(3),NQP,nc)
+    real(rt), intent(in) :: ql_core(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQC,nc)
+    real(rt), intent(in) :: qr_core(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQC,nc)
+    real(rt), intent(in) :: ql_pass(qpl_lo(1):qpl_hi(1),qpl_lo(2):qpl_hi(2),qpl_lo(3):qpl_hi(3),NQP,nc)
+    real(rt), intent(in) :: qr_pass(qpr_lo(1):qpr_hi(1),qpr_lo(2):qpr_hi(2),qpr_lo(3):qpr_hi(3),NQP,nc)
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
+    real(rt), intent(inout) :: qint_core(qic_lo(1):qic_hi(1),qic_lo(2):qic_hi(2),qic_lo(3):qic_hi(3),NQC)
     real(rt), intent(inout) :: qint_pass(qip_lo(1):qip_hi(1),qip_lo(2):qip_hi(2),qip_lo(3):qip_hi(3),NQP)
 
     integer :: i, j, k
@@ -1947,9 +1964,9 @@ contains
              rgdnv = frac*rstar + (ONE - frac)*ro
              regdnv = frac*estar + (ONE - frac)*reo
 
-             qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
-             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
-             qint(i,j,k,QGAME) = qint(i,j,k,QPRES)/regdnv + ONE
+             qint_core(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
+             qint_core(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
+             qint_core(i,j,k,QGAME) = qint_core(i,j,k,QPRES)/regdnv + ONE
 
 
              ! now we do the HLLC construction
