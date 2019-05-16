@@ -293,10 +293,11 @@ contains
   end subroutine trace_plm
 
   subroutine trace_plm_passive(lo, hi, &
-                               idir, q_pass, qp_lo, qp_hi, &
+                               idir, &
+                               q_pass, qp_lo, qp_hi, &
                                q_core, qc_lo, qc_hi, &
                                dq_pass, dqp_lo, dqp_hi, &
-                               qm_pass, qmp_lo, qmp_hi, &
+                               qm_pass, qpm_lo, qpm_hi, &
                                qp_pass, qpp_lo, qpp_hi, &
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                                q_pass_src, qps_lo, qps_hi, &
@@ -320,7 +321,7 @@ contains
     integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: qc_lo(3), qc_hi(3)
     integer, intent(in) :: dqp_lo(3), dqp_hi(3)
-    integer, intent(in) :: qmp_lo(3), qmp_hi(3)
+    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
     integer, intent(in) :: qpp_lo(3), qpp_hi(3)
 #ifdef PRIM_SPECIES_HAVE_SOURCES
     integer, intent(in) :: qps_lo(3), qps_hi(3)
@@ -334,8 +335,8 @@ contains
 
     real(rt), intent(in) ::  dq_pass(dqp_lo(1):dqp_hi(1),dqp_lo(2):dqp_hi(2),dqp_lo(3):dqp_hi(3),NQP)
 
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQP)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
+    real(rt), intent(inout) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP)
+    real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP)
 #ifdef PRIM_SPECIES_HAVE_SOURCES
     real(rt), intent(in) ::  q_pass_src(qps_lo(1):qps_hi(1),qps_lo(2):qps_hi(2),qps_lo(3):qps_hi(3),NQP_SRC)
 #endif
@@ -345,7 +346,8 @@ contains
     integer :: i, j, k, n, ipassive
 
     real(rt) :: dtdx
-    real(rt) :: spzero, acmpright, acmpleft
+    real(rt) :: spzero, acmprght, acmpleft
+    real(rt) :: un
 
     integer :: QUN
 
@@ -373,21 +375,21 @@ contains
                     (idir == 2 .and. j >= vlo(2)) .or. &
                     (idir == 3 .and. k >= vlo(3))) then
 
-                   un = q_pass(i,j,k,QUN)
+                   un = q_core(i,j,k,QUN)
                    if (un >= ZERO) then
                       spzero = -ONE
                    else
                       spzero = un*dtdx
                    end if
                    acmprght = HALF*(-ONE - spzero)*dq_pass(i,j,k,n)
-                   qp(i,j,k,n) = q_pass(i,j,k,n) + acmprght
+                   qp_pass(i,j,k,n) = q_pass(i,j,k,n) + acmprght
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*q_pass_src(i,j,k,n)
+                   qp_pass(i,j,k,n) = qp_pass(i,j,k,n) + HALF*dt*q_pass_src(i,j,k,n)
 #endif
                 endif
 
                 ! Left state
-                un = q_pass(i,j,k,QUN)
+                un = q_core(i,j,k,QUN)
                 if (un >= ZERO) then
                    spzero = un*dtdx
                 else
@@ -396,19 +398,19 @@ contains
                 acmpleft = HALF*(ONE - spzero )*dq_pass(i,j,k,n)
 
                 if (idir == 1 .and. i <= vhi(1)) then
-                   qm(i+1,j,k,n) = q_pass(i,j,k,n) + acmpleft
+                   qm_pass(i+1,j,k,n) = q_pass(i,j,k,n) + acmpleft
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*q_pass_src(i,j,k,n)
+                   qm_pass(i+1,j,k,n) = qm_pass(i+1,j,k,n) + HALF*dt*q_pass_src(i,j,k,n)
 #endif
                 else if (idir == 2 .and. j <= vhi(2)) then
-                   qm(i,j+1,k,n) = q_pass(i,j,k,n) + acmpleft
+                   qm_pass(i,j+1,k,n) = q_pass(i,j,k,n) + acmpleft
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*q_pass_src(i,j,k,n)
+                   qm_pass(i,j+1,k,n) = qm_pass(i,j+1,k,n) + HALF*dt*q_pass_src(i,j,k,n)
 #endif
                 else if (idir == 3 .and. k <= vhi(3)) then
-                   qm(i,j,k+1,n) = q_pass(i,j,k,n) + acmpleft
+                   qm_pass(i,j,k+1,n) = q_pass(i,j,k,n) + acmpleft
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*q_pass_src(i,j,k,n)
+                   qm_pass(i,j,k+1,n) = qm_pass(i,j,k+1,n) + HALF*dt*q_pass_src(i,j,k,n)
 #endif
                 endif
              enddo
