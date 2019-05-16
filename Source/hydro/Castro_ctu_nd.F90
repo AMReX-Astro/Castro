@@ -14,6 +14,9 @@ contains
                             vlo, vhi, &
                             q_core, qc_lo, qc_hi, &
                             q_pass, qp_lo, qp_hi, &
+#ifdef RADIATION
+                            q_rad, qr_lo, qr_hi, &
+#endif
                             flatn, f_lo, f_hi, &
                             qaux, qa_lo, qa_hi, &
                             q_core_src, qcs_lo, qcs_hi, &
@@ -21,37 +24,51 @@ contains
                             q_pass_src, qps_lo, qps_hi, &
 #endif
                             shk, sk_lo, sk_hi, &
-                            Ip_core, Ipc_lo, Ipc_hi, &
+                            Ip_core, Icp_lo, Icp_hi, &
+                            Im_core, Icm_lo, Icm_hi, &
                             Ip_pass, Ipp_lo, Ipp_hi, &
-                            Im_core, Imc_lo, Imc_hi, &
-                            Im_pass, Imp_lo, Imp_hi, &
-                            Ip_core_src, Ipsc_lo, Ipsc_hi, &
+                            Im_pass, Ipm_lo, Ipm_hi, &
+#ifdef RADIATION
+                            Ip_rad, Irp_lo, Irp_hi, &
+                            Im_rad, Irm_lo, Irm_hi, &
+#endif
+                            Ip_core_src, Icsp_lo, Icsp_hi, &
+                            Im_core_src, Icsm_lo, Icsm_hi, &
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                             Ip_pass_src, Ipsp_lo, Ipsp_hi, &
-#endif
-                            Im_core_src, Imsc_lo, Imsc_hi, &
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-                            Im_pass_src, Imsp_lo, Imsp_hi, &
+                            Im_pass_src, Ipsm_lo, Ipsm_hi, &
 #endif
                             Ip_gc, Ipg_lo, Ipg_hi, &
                             Im_gc, Img_lo, Img_hi, &
                             sm, sm_lo, sm_hi, &
                             sp, sp_lo, sp_hi, &
-                            qxm_core, qxmc_lo, qxmc_hi, &
-                            qxm_pass, qxmp_lo, qxmp_hi, &
-                            qxp_core, qxpc_lo, qxpc_hi, &
+                            qxm_core, qxcm_lo, qxcm_hi, &
+                            qxp_core, qxcp_lo, qxcp_hi, &
+                            qxm_pass, qxpm_lo, qxpm_hi, &
                             qxp_pass, qxpp_lo, qxpp_hi, &
+#ifdef RADIATION
+                            qxm_rad, qxrm_lo, qxrm_hi, &
+                            qxp_rad, qxrp_lo, qxrp_hi, &
+#endif
 #if AMREX_SPACEDIM >= 2
-                            qym_core, qymc_lo, qymc_hi, &
-                            qym_pass, qymp_lo, qymp_hi, &
-                            qyp_core, qypc_lo, qypc_hi, &
+                            qym_core, qycm_lo, qycm_hi, &
+                            qyp_core, qycp_lo, qycp_hi, &
+                            qym_pass, qypm_lo, qypm_hi, &
                             qyp_pass, qypp_lo, qypp_hi, &
+#ifdef RADIATION
+                            qym_rad, qyrm_lo, qyrm_hi, &
+                            qyp_rad, qyrp_lo, qyrp_hi, &
+#endif
 #endif
 #if AMREX_SPACEDIM == 3
-                            qzm_core, qzmc_lo, qzmc_hi, &
-                            qzm_pass, qzmp_lo, qzmp_hi, &
-                            qzp_core, qzpc_lo, qzpc_hi, &
+                            qzm_core, qzcm_lo, qzcm_hi, &
+                            qzp_core, qzcp_lo, qzcp_hi, &
+                            qzm_pass, qzpm_lo, qzpm_hi, &
                             qzp_pass, qzpp_lo, qzpp_hi, &
+#ifdef RADIATION
+                            qzm_rad, qzrm_lo, qzrm_hi, &
+                            qzp_rad, qzrp_lo, qzrp_hi, &
+#endif
 #endif
                             dx, dt, &
 #if AMREX_SPACEDIM < 3
@@ -63,7 +80,13 @@ contains
     ! and doing characteristic tracing.  We do not apply the
     ! transverse terms here.
 
-    use meth_params_module, only : NQSRC, NQ, NVAR, &
+    use meth_params_module, only : NQC_SRC, NQC, NQP, NVAR, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                                   NQP_SRC, &
+#endif
+#ifdef RADIATION
+                                   NQR, &
+#endif
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
@@ -85,6 +108,7 @@ contains
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: qc_lo(3), qc_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: qcs_lo(3), qcs_hi(3)
@@ -92,37 +116,52 @@ contains
     integer, intent(in) :: qps_lo(3), qps_hi(3)
 #endif
     integer, intent(in) :: sk_lo(3), sk_hi(3)
-    integer, intent(in) :: Ipc_lo(3), Ipc_hi(3)
+    integer, intent(in) :: Icp_lo(3), Icp_hi(3)
+    integer, intent(in) :: Icm_lo(3), Icm_hi(3)
     integer, intent(in) :: Ipp_lo(3), Ipp_hi(3)
-    integer, intent(in) :: Imc_lo(3), Imc_hi(3)
-    integer, intent(in) :: Imp_lo(3), Imp_hi(3)
-    integer, intent(in) :: Ipsc_lo(3), Ipsc_hi(3)
+    integer, intent(in) :: Ipm_lo(3), Ipm_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: Irp_lo(3), Irp_hi(3)
+    integer, intent(in) :: Irm_lo(3), Irm_hi(3)
+#endif
+    integer, intent(in) :: Icsp_lo(3), Icsp_hi(3)
+    integer, intent(in) :: Icsm_lo(3), Icsm_hi(3)
 #ifdef PRIM_SPECIES_HAVE_SOURCES
     integer, intent(in) :: Ipsp_lo(3), Ipsp_hi(3)
-#endif
-    integer, intent(in) :: Imsc_lo(3), Imsc_hi(3)
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-    integer, intent(in) :: Imsp_lo(3), Imsp_hi(3)
+    integer, intent(in) :: Ipsm_lo(3), Ipsm_hi(3)
 #endif
     integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
     integer, intent(in) :: Img_lo(3), Img_hi(3)
     integer, intent(in) :: sm_lo(3), sm_hi(3)
     integer, intent(in) :: sp_lo(3), sp_hi(3)
-    integer, intent(in) :: qxmc_lo(3), qxmc_hi(3)
-    integer, intent(in) :: qxmp_lo(3), qxmp_hi(3)
-    integer, intent(in) :: qxpc_lo(3), qxpc_hi(3)
+
+    integer, intent(in) :: qxcm_lo(3), qxcm_hi(3)
+    integer, intent(in) :: qxcp_lo(3), qxcp_hi(3)
+    integer, intent(in) :: qxpm_lo(3), qxpm_hi(3)
     integer, intent(in) :: qxpp_lo(3), qxpp_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qxrm_lo(3), qxrm_hi(3)
+    integer, intent(in) :: qxrp_lo(3), qxrp_hi(3)
+#endif
 #if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: qymc_lo(3), qymc_hi(3)
-    integer, intent(in) :: qymp_lo(3), qymp_hi(3)
-    integer, intent(in) :: qypc_lo(3), qypc_hi(3)
+    integer, intent(in) :: qycm_lo(3), qycm_hi(3)
+    integer, intent(in) :: qycp_lo(3), qycp_hi(3)
+    integer, intent(in) :: qypm_lo(3), qypm_hi(3)
     integer, intent(in) :: qypp_lo(3), qypp_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qyrm_lo(3), qyrm_hi(3)
+    integer, intent(in) :: qyrp_lo(3), qyrp_hi(3)
+#endif
 #endif
 #if AMREX_SPACEDIM == 3
-    integer, intent(in) :: qzmc_lo(3), qzmc_hi(3)
-    integer, intent(in) :: qzmp_lo(3), qzmp_hi(3)
-    integer, intent(in) :: qzpc_lo(3), qzpc_hi(3)
+    integer, intent(in) :: qzcm_lo(3), qzcm_hi(3)
+    integer, intent(in) :: qzcp_lo(3), qzcp_hi(3)
+    integer, intent(in) :: qzpm_lo(3), qzpm_hi(3)
     integer, intent(in) :: qzpp_lo(3), qzpp_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qzrm_lo(3), qzrm_hi(3)
+    integer, intent(in) :: qzrp_lo(3), qzrp_hi(3)
+#endif
 #endif
 #if AMREX_SPACEDIM < 3
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
@@ -133,6 +172,9 @@ contains
 
     real(rt), intent(in) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)   ! input state, primitives
     real(rt), intent(in) :: q_pass(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)   ! input state, primitives
+#ifdef RADIATION
+    real(rt), intent(in) :: q_rad(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQR)   ! input state, primitives
+#endif
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)   ! auxiliary hydro data
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))   ! flattening parameter
     real(rt), intent(in) ::  q_core_src(qcs_lo(1):qcs_hi(1),qcs_lo(2):qcs_hi(2),qcs_lo(3):qcs_hi(3),NQC_SRC)   ! primitive variable source
@@ -140,17 +182,17 @@ contains
     real(rt), intent(in) ::  q_prim_src(qps_lo(1):qps_hi(1),qps_lo(2):qps_hi(2),qps_lo(3):qps_hi(3),NQP_SRC)   ! primitive variable source
 #endif
     real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
-    real(rt), intent(inout) :: Ip_core(Ipc_lo(1):Ipc_hi(1),Ipc_lo(2):Ipc_hi(2),Ipc_lo(3):Ipc_hi(3),1:3,NQC)
+    real(rt), intent(inout) :: Ip_core(Icp_lo(1):Icp_hi(1),Icp_lo(2):Icp_hi(2),Icp_lo(3):Icp_hi(3),1:3,NQC)
+    real(rt), intent(inout) :: Im_core(Icm_lo(1):Icm_hi(1),Icm_lo(2):Icm_hi(2),Icm_lo(3):Icm_hi(3),1:3,NQC)
     real(rt), intent(inout) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),1:3,NQP)
-    real(rt), intent(inout) :: Im_core(Imc_lo(1):Imc_hi(1),Imc_lo(2):Imc_hi(2),Imc_lo(3):Imc_hi(3),1:3,NQC)
-    real(rt), intent(inout) :: Im_pass(Imp_lo(1):Imp_hi(1),Imp_lo(2):Imp_hi(2),Imp_lo(3):Imp_hi(3),1:3,NQP)
-    real(rt), intent(inout) :: Ip_core_src(Ipsc_lo(1):Ipsc_hi(1),Ipsc_lo(2):Ipsc_hi(2),Ipsc_lo(3):Ipsc_hi(3),1:3,NQC_SRC)
+    real(rt), intent(inout) :: Im_pass(Ipm_lo(1):Ipm_hi(1),Ipm_lo(2):Ipm_hi(2),Ipm_lo(3):Ipm_hi(3),1:3,NQP)
+
+    real(rt), intent(inout) :: Ip_core_src(Icsp_lo(1):Icsp_hi(1),Icsp_lo(2):Icsp_hi(2),Icsp_lo(3):Icsp_hi(3),1:3,NQC_SRC)
+    real(rt), intent(inout) :: Im_core_src(Icsm_lo(1):Icsm_hi(1),Icsm_lo(2):Icsm_hi(2),Icsm_lo(3):Icsm_hi(3),1:3,NQC_SRC)
+
 #ifdef PRIM_SPECIES_HAVE_SOURCES
     real(rt), intent(inout) :: Ip_pass_src(Ipsp_lo(1):Ipsp_hi(1),Ipsp_lo(2):Ipsp_hi(2),Ipsp_lo(3):Ipsp_hi(3),1:3,NQP_SRC)
-#endif
-    real(rt), intent(inout) :: Im_core_src(Imsc_lo(1):Imsc_hi(1),Imsc_lo(2):Imsc_hi(2),Imsc_lo(3):Imsc_hi(3),1:3,NQC_SRC)
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-    real(rt), intent(inout) :: Im_pass_src(Imsp_lo(1):Imsp_hi(1),Imsp_lo(2):Imsp_hi(2),Imsp_lo(3):Imsp_hi(3),1:3,NQP_SRC)
+    real(rt), intent(inout) :: Im_pass_src(Ipsm_lo(1):Ipsm_hi(1),Ipsm_lo(2):Ipsm_hi(2),Ipsm_lo(3):Ipsm_hi(3),1:3,NQP_SRC)
 #endif
     real(rt), intent(inout) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
     real(rt), intent(inout) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
@@ -158,20 +200,20 @@ contains
     real(rt), intent(inout) :: sm(sm_lo(1):sm_hi(1), sm_lo(2):sm_hi(2), sm_lo(3):sm_hi(3))
     real(rt), intent(inout) :: sp(sp_lo(1):sp_hi(1), sp_lo(2):sp_hi(2), sp_lo(3):sp_hi(3))
 
-    real(rt), intent(inout) :: qxm_core(qxmc_lo(1):qxmc_hi(1), qxmc_lo(2):qxmc_hi(2), qxmc_lo(3):qxmc_hi(3), NQC)
-    real(rt), intent(inout) :: qxm_pass(qxmp_lo(1):qxmp_hi(1), qxmp_lo(2):qxmp_hi(2), qxmp_lo(3):qxmp_hi(3), NQP)
-    real(rt), intent(inout) :: qxp_core(qxpc_lo(1):qxpc_hi(1), qxpc_lo(2):qxpc_hi(2), qxpc_lo(3):qxpc_hi(3), NQC)
+    real(rt), intent(inout) :: qxm_core(qxcm_lo(1):qxcm_hi(1), qxcm_lo(2):qxcm_hi(2), qxcm_lo(3):qxcm_hi(3), NQC)
+    real(rt), intent(inout) :: qxm_pass(qxpm_lo(1):qxpm_hi(1), qxpm_lo(2):qxpm_hi(2), qxpm_lo(3):qxpm_hi(3), NQP)
+    real(rt), intent(inout) :: qxp_core(qxcp_lo(1):qxcp_hi(1), qxcp_lo(2):qxcp_hi(2), qxcp_lo(3):qxcp_hi(3), NQC)
     real(rt), intent(inout) :: qxp_pass(qxpp_lo(1):qxpp_hi(1), qxpp_lo(2):qxpp_hi(2), qxpp_lo(3):qxpp_hi(3), NQP)
 #if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: qym_core(qymc_lo(1):qymc_hi(1), qymc_lo(2):qymc_hi(2), qymc_lo(3):qymc_hi(3), NQC)
-    real(rt), intent(inout) :: qym_pass(qymp_lo(1):qymp_hi(1), qymp_lo(2):qymp_hi(2), qymp_lo(3):qymp_hi(3), NQP)
-    real(rt), intent(inout) :: qyp_core(qypc_lo(1):qypc_hi(1), qypc_lo(2):qypc_hi(2), qypc_lo(3):qypc_hi(3), NQC)
+    real(rt), intent(inout) :: qym_core(qycm_lo(1):qycm_hi(1), qycm_lo(2):qycm_hi(2), qycm_lo(3):qycm_hi(3), NQC)
+    real(rt), intent(inout) :: qym_pass(qypm_lo(1):qypm_hi(1), qypm_lo(2):qypm_hi(2), qypm_lo(3):qypm_hi(3), NQP)
+    real(rt), intent(inout) :: qyp_core(qycp_lo(1):qycp_hi(1), qycp_lo(2):qycp_hi(2), qycp_lo(3):qycp_hi(3), NQC)
     real(rt), intent(inout) :: qyp_pass(qypp_lo(1):qypp_hi(1), qypp_lo(2):qypp_hi(2), qypp_lo(3):qypp_hi(3), NQP)
 #endif
 #if AMREX_SPACEDIM == 3
-    real(rt), intent(inout) :: qzm_core(qzmc_lo(1):qzmc_hi(1), qzmc_lo(2):qzmc_hi(2), qzmc_lo(3):qzmc_hi(3), NQC)
-    real(rt), intent(inout) :: qzm_pass(qzmp_lo(1):qzmp_hi(1), qzmp_lo(2):qzmp_hi(2), qzmp_lo(3):qzmp_hi(3), NQP)
-    real(rt), intent(inout) :: qzp_core(qzpc_lo(1):qzpc_hi(1), qzpc_lo(2):qzpc_hi(2), qzpc_lo(3):qzpc_hi(3), NQC)
+    real(rt), intent(inout) :: qzm_core(qzcm_lo(1):qzcm_hi(1), qzcm_lo(2):qzcm_hi(2), qzcm_lo(3):qzcm_hi(3), NQC)
+    real(rt), intent(inout) :: qzm_pass(qzpm_lo(1):qzpm_hi(1), qzpm_lo(2):qzpm_hi(2), qzpm_lo(3):qzpm_hi(3), NQP)
+    real(rt), intent(inout) :: qzp_core(qzcp_lo(1):qzcp_hi(1), qzcp_lo(2):qzcp_hi(2), qzcp_lo(3):qzcp_hi(3), NQC)
     real(rt), intent(inout) :: qzp_pass(qzpp_lo(1):qzpp_hi(1), qzpp_lo(2):qzpp_hi(2), qzpp_lo(3):qzpp_hi(3), NQP)
 #endif
 #if AMREX_SPACEDIM < 3
@@ -241,24 +283,63 @@ contains
        do n = 1, NQ
           if (.not. reconstruct_state(n)) cycle
 
+          ! core primitive variables
           call ca_ppm_reconstruct(lo, hi, 0, idir, &
-                                  q, qd_lo, qd_hi, NQ, n, n, &
+                                  q_core, qc_lo, qc_hi, NQC, n, n, &
                                   flatn, f_lo, f_hi, &
                                   sm, sm_lo, sm_hi, &
                                   sp, sp_lo, sp_hi, &
                                   1, 1, 1)
 
           call ppm_int_profile(lo, hi, idir, &
-                               q, qd_lo, qd_hi, NQ, n, &
-                               q, qd_lo, qd_hi, &
+                               q_core, qc_lo, qc_hi, NQC, n, &
+                               q_core, qc_lo, qc_hi, &
                                qaux, qa_lo, qa_hi, &
                                sm, sm_lo, sm_hi, &
                                sp, sp_lo, sp_hi, &
-                               Ip, Ip_lo, Ip_hi, &
-                               Im, Im_lo, Im_hi, NQ, n, &
+                               Ip_core, Icp_lo, Icp_hi, &
+                               Im_core, Icm_lo, Icm_hi, NQC, n, &
+                               dx, dt)
+
+
+          ! passives
+          call ca_ppm_reconstruct(lo, hi, 0, idir, &
+                                  q_pass, qp_lo, qp_hi, NQP, n, n, &
+                                  flatn, f_lo, f_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  1, 1, 1)
+
+          call ppm_int_profile(lo, hi, idir, &
+                               q_pass, qp_lo, qp_hi, NQP, n, &
+                               q_core, qc_lo, qc_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sm, sm_lo, sm_hi, &
+                               sp, sp_lo, sp_hi, &
+                               Ip_pass, Ipp_lo, Ipp_hi, &
+                               Im_pass, Ipm_lo, Ipm_hi, NQP, n, &
+                               dx, dt)
+
+#ifdef RADIATION
+          ! radiation
+          call ca_ppm_reconstruct(lo, hi, 0, idir, &
+                                  q_rad, qr_lo, qr_hi, NQR, n, n, &
+                                  flatn, f_lo, f_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  1, 1, 1)
+
+          call ppm_int_profile(lo, hi, idir, &
+                               q_rad, qr_lo, qr_hi, NQR, n, &
+                               q_core, qc_lo, qc_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sm, sm_lo, sm_hi, &
+                               sp, sp_lo, sp_hi, &
+                               Ip_rad, Irp_lo, Irp_hi, &
+                               Im_rad, Irm_lo, Irm_hi, NQR, n, &
                                dx, dt)
        end do
-
+#endif
 
        if (ppm_temp_fix /= 1) then
           call ca_ppm_reconstruct(lo, hi, 0, idir, &
@@ -270,7 +351,7 @@ contains
 
           call ppm_int_profile(lo, hi, idir, &
                                qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                               q, qd_lo, qd_hi, &
+                               q_core, qc_lo, qc_hi, &
                                qaux, qa_lo, qa_hi, &
                                sm, sm_lo, sm_hi, &
                                sp, sp_lo, sp_hi, &
@@ -323,14 +404,27 @@ contains
 #ifdef RADIATION
        if (idir == 1) then
           call trace_ppm_rad(lo, hi, &
-                             1, q, qd_lo, qd_hi, &
+                             1, &
+                            q_core, qc_lo, qc_hi, &
+                             q_pass, qp_lo, qp_hi, &
+                             q_rad, qr_lo, qr_hi, &
                              qaux, qa_lo, qa_hi, &
-                             Ip, Ip_lo, Ip_hi, &
-                             Im, Im_lo, Im_hi, &
-                             Ip_src, Ips_lo, Ips_hi, &
-                             Im_src, Ims_lo, Ims_hi, &
-                             qxm, qxm_lo, qxm_hi, &
-                             qxp, qxp_lo, qxp_hi, &
+                             Ip_core, Ip_lo, Ip_hi, &
+                             Im_core, Im_lo, Im_hi, &
+                             Ip_pass, Ipp_lo, Ipp_hi, &
+                             Im_pass, Ipm_lo, Ipm_hi, &
+                             Ip_rad, Irp_lo, Irp_hi, &
+                             Im_rad, Irm_lo, Irm_hi, &
+                             Ip_core_src, Icsp_lo, Icsp_hi, &
+                             Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                             Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                             Im_pass_src, Ipsm_lo, Ipsm_hi, &
+#endif
+                             qxm_core, qxm_lo, qxm_hi, &
+                             qxp_core, qxp_lo, qxp_hi, &
+                             qxm_pass, qxpm_lo, qxpm_hi, &
+                             qxp_pass, qxpp_lo, qxpp_hi, &
 #if AMREX_SPACEDIM <= 2
                              dloga, dloga_lo, dloga_hi, &
 #endif
@@ -340,14 +434,27 @@ contains
 #if AMREX_SPACEDIM >= 2
        else if (idir == 2) then
           call trace_ppm_rad(lo, hi, &
-                             2, q, qd_lo, qd_hi, &
+                             2, &
+                             q_core, qc_lo, qc_hi, &
+                             q_pass, qp_lo, qp_hi, &
+                             q_rad, qr_lo, qr_hi, &
                              qaux, qa_lo, qa_hi, &
-                             Ip, Ip_lo, Ip_hi, &
-                             Im, Im_lo, Im_hi, &
-                             Ip_src, Ips_lo, Ips_hi, &
-                             Im_src, Ims_lo, Ims_hi, &
-                             qym, qym_lo, qym_hi, &
-                             qyp, qyp_lo, qyp_hi, &
+                             Ip_core, Ip_lo, Ip_hi, &
+                             Im_core, Im_lo, Im_hi, &
+                             Ip_pass, Ipp_lo, Ipp_hi, &
+                             Im_pass, Ipm_lo, Ipm_hi, &
+                             Ip_rad, Irp_lo, Irp_hi, &
+                             Im_rad, Irm_lo, Irm_hi, &
+                             Ip_core_src, Icsp_lo, Icsp_hi, &
+                             Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                             Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                             Im_pass_src, Ipsm_lo, Ipsm_hi, &
+#endif
+                             qym_core, qym_lo, qym_hi, &
+                             qyp_core, qyp_lo, qyp_hi, &
+                             qym_pass, qypm_lo, qypm_hi, &
+                             qyp_pass, qypp_lo, qypp_hi, &
 #if AMREX_SPACEDIM == 2
                              dloga, dloga_lo, dloga_hi, &
 #endif
@@ -358,14 +465,27 @@ contains
 #if AMREX_SPACEDIM == 3
        else
           call trace_ppm_rad(lo, hi, &
-                             3, q, qd_lo, qd_hi, &
+                             3, &
+                             q_core, qc_lo, qc_hi, &
+                             q_pass, qp_lo, qp_hi, &
+                             q_rad, qr_lo, qr_hi, &
                              qaux, qa_lo, qa_hi, &
-                             Ip, Ip_lo, Ip_hi, &
-                             Im, Im_lo, Im_hi, &
-                             Ip_src, Ips_lo, Ips_hi, &
-                             Im_src, Ims_lo, Ims_hi, &
-                             qzm, qzm_lo, qzm_hi, &
-                             qzp, qzp_lo, qzp_hi, &
+                             Ip_core, Ip_lo, Ip_hi, &
+                             Im_core, Im_lo, Im_hi, &
+                             Ip_pass, Ipp_lo, Ipp_hi, &
+                             Im_pass, Ipm_lo, Ipm_hi, &
+                             Ip_rad, Irp_lo, Irp_hi, &
+                             Im_rad, Irm_lo, Irm_hi, &
+                             Ip_core_src, Icsp_lo, Icsp_hi, &
+                             Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                             Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                             Im_pass_src, Ipsm_lo, Ipsm_hi, &
+#endif
+                             qzm_core, qzm_lo, qzm_hi, &
+                             qzp_core, qzp_lo, qzp_hi, &
+                             qzm_pass, qzpm_lo, qzpm_hi, &
+                             qzp_pass, qzpp_lo, qzpp_hi, &
                              vlo, vhi, domlo, domhi, &
                              dx, dt)
 #endif
@@ -374,16 +494,26 @@ contains
        ! hydro (no radiation)
        if (idir == 1) then
           call trace_ppm(lo, hi, &
-                         1, q, qd_lo, qd_hi, &
+                         1, &
+                         q_core, qc_lo, qc_hi, &
+                         q_pass, qp_lo, qp_hi, &
                          qaux, qa_lo, qa_hi, &
-                         Ip, Ip_lo, Ip_hi, &
-                         Im, Im_lo, Im_hi, &
-                         Ip_src, Ips_lo, Ips_hi, &
-                         Im_src, Ims_lo, Ims_hi, &
+                         Ip_core, Icp_lo, Icp_hi, &
+                         Im_core, Icm_lo, Icm_hi, &
+                         Ip_pass, Ipp_lo, Ipp_hi, &
+                         Im_pass, Ipm_lo, Ipm_hi, &
+                         Ip_core_src, Icsp_lo, Icsp_hi, &
+                         Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                         Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                         Im_pass_src, Ipsm_lo, Ipsm_hi, &
+#endif
                          Ip_gc, Ipg_lo, Ipg_hi, &
                          Im_gc, Img_lo, Img_hi, &
-                         qxm, qxm_lo, qxm_hi, &
-                         qxp, qxp_lo, qxp_hi, &
+                         qxm_core, qxcm_lo, qxcm_hi, &
+                         qxp_core, qxcp_lo, qxcp_hi, &
+                         qxm_pass, qxpm_lo, qxpm_hi, &
+                         qxp_pass, qxpp_lo, qxpp_hi, &
 #if AMREX_SPACEDIM <= 2
                          dloga, dloga_lo, dloga_hi, &
 #endif
@@ -393,16 +523,27 @@ contains
 #if AMREX_SPACEDIM >= 2
        else if (idir == 2) then
           call trace_ppm(lo, hi, &
-                         2, q, qd_lo, qd_hi, &
+                         2, &
+                         q_core, qc_lo, qc_hi, &
+                         q_pass, qp_lo, qp_hi, &
                          qaux, qa_lo, qa_hi, &
-                         Ip, Ip_lo, Ip_hi, &
-                         Im, Im_lo, Im_hi, &
-                         Ip_src, Ips_lo, Ips_hi, &
-                         Im_src, Ims_lo, Ims_hi, &
+                         Ip_core, Icp_lo, Icp_hi, &
+                         Im_core, Icm_lo, Icm_hi, &
+                         Ip_pass, Ipp_lo, Ipp_hi, &
+                         Im_pass, Ipm_lo, Ipm_hi, &
+                         Ip_core_src, Icsp_lo, Icsp_hi, &
+                         Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                         Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                         Im_pass_src, Ipsm_lo, Ipsm_hi, &
+#endif
                          Ip_gc, Ipg_lo, Ipg_hi, &
                          Im_gc, Img_lo, Img_hi, &
-                         qym, qym_lo, qym_hi, &
-                         qyp, qyp_lo, qyp_hi, &
+
+                         qym_core, qycm_lo, qycm_hi, &
+                         qyp_core, qycp_lo, qycp_hi, &
+                         qym_pass, qypm_lo, qypm_hi, &
+                         qyp_pass, qypp_lo, qypp_hi, &
 #if AMREX_SPACEDIM == 2
                          dloga, dloga_lo, dloga_hi, &
 #endif
@@ -413,16 +554,27 @@ contains
 #if AMREX_SPACEDIM == 3
        else
           call trace_ppm(lo, hi, &
-                         3, q, qd_lo, qd_hi, &
+                         3, &
+                         q_core, qc_lo, qc_hi, &
+                         q_pass, qp_lo, qp_hi, &
                          qaux, qa_lo, qa_hi, &
-                         Ip, Ip_lo, Ip_hi, &
-                         Im, Im_lo, Im_hi, &
-                         Ip_src, Ips_lo, Ips_hi, &
-                         Im_src, Ims_lo, Ims_hi, &
+                         Ip_core, Icp_lo, Icp_hi, &
+                         Im_core, Icm_lo, Icm_hi, &
+                         Ip_pass, Ipp_lo, Ipp_hi, &
+                         Im_pass, Ipm_lo, Ipm_hi, &
+                         Ip_core_src, Icsp_lo, Icsp_hi, &
+                         Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                         Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                         Im_pass_src, Ipsm_lo, Ipsm_hi, &
+#endif
                          Ip_gc, Ipg_lo, Ipg_hi, &
                          Im_gc, Img_lo, Img_hi, &
-                         qzm, qzm_lo, qzm_hi, &
-                         qzp, qzp_lo, qzp_hi, &
+
+                         qzm_core, qzcm_lo, qzcm_hi, &
+                         qzp_core, qzcp_lo, qzcp_hi, &
+                         qzm_pass, qzpm_lo, qzpm_hi, &
+                         qzp_pass, qzpp_lo, qzpp_hi, &
                          vlo, vhi, domlo, domhi, &
                          dx, dt)
 #endif
@@ -628,7 +780,8 @@ contains
 
        if (idir == 1) then
           call trace_plm(lo, hi, &
-                         1, q_core, qc_lo, qc_hi, &
+                         1, &
+                         q_core, qc_lo, qc_hi, &
                          qaux, qa_lo, qa_hi, &
                          dq_core, dqc_lo, dqc_hi, &
                          qxm_core, qxmc_lo, qxmc_hi, &
@@ -641,7 +794,8 @@ contains
                          dx, dt)
 
           call trace_plm_passive(lo, hi, &
-                                 1, q_pass, qp_lo, qp_hi, &
+                                 1, &
+                                 q_pass, qp_lo, qp_hi, &
                                  q_core, qc_lo, qc_hi, &
                                  dq_pass, dqp_lo, dqp_hi, &
                                  qxm_pass, qxmp_lo, qxmp_hi, &
@@ -655,7 +809,8 @@ contains
 #if AMREX_SPACEDIM >= 2
        else if (idir == 2) then
           call trace_plm(lo, hi, &
-                         2, q, qd_lo, qd_hi, &
+                         2, &
+                         q_core, qc_lo, qc_hi, &
                          qaux, qa_lo, qa_hi, &
                          dq, dq_lo, dq_hi, &
                          qym, qym_lo, qym_hi, &
@@ -668,7 +823,8 @@ contains
                          dx, dt)
 
           call trace_plm_passive(lo, hi, &
-                                 2, q_pass, qp_lo, qp_hi, &
+                                 2, &
+                                 q_pass, qp_lo, qp_hi, &
                                  q_core, qc_lo, qc_hi, &
                                  dq_pass, dqp_lo, dqp_hi, &
                                  qym_pass, qymp_lo, qymp_hi, &
@@ -684,7 +840,8 @@ contains
 #if AMREX_SPACEDIM == 3
        else
           call trace_plm(lo, hi, &
-                         3, q, qd_lo, qd_hi, &
+                         3, &
+                         q_core, qd_lo, qd_hi, &
                          qaux, qa_lo, qa_hi, &
                          dq, dq_lo, dq_hi, &
                          qzm, qzm_lo, qzm_hi, &
@@ -694,7 +851,8 @@ contains
                          dx, dt)
 
           call trace_plm_passive(lo, hi, &
-                                 3, q_pass, qp_lo, qp_hi, &
+                                 3, &
+                                 q_pass, qp_lo, qp_hi, &
                                  q_core, qc_lo, qc_hi, &
                                  dq_pass, dqp_lo, dqp_hi, &
                                  qzm_pass, qzmp_lo, qzmp_hi, &

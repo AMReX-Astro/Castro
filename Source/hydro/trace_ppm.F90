@@ -13,16 +13,26 @@ module trace_ppm_module
 contains
 
   subroutine trace_ppm(lo, hi, &
-                       idir, q, qd_lo, qd_hi, &
+                       idir, &
+                       q_core, qc_lo, qc_hi, &
+                       q_pass, qp_lo, qp_hi, &
                        qaux, qa_lo, qa_hi, &
-                       Ip, Ip_lo, Ip_hi, &
-                       Im, Im_lo, Im_hi, &
-                       Ip_src, Ips_lo, Ips_hi, &
-                       Im_src, Ims_lo, Ims_hi, &
+                       Ip_core, Icp_lo, Icp_hi, &
+                       Im_core, Icm_lo, Icm_hi, &
+                       Ip_pass, Ipp_lo, Ipp_hi, &
+                       Im_pass, Ipm_lo, Ipm_hi, &
+                       Ip_core_src, Icsp_lo, Icsp_hi, &
+                       Im_core_src, Icms_lo, Icms_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                       Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                       Im_pass_src, Ipms_lo, Ipms_hi, &
+#endif
                        Ip_gc, Ipg_lo, Ipg_hi, &
                        Im_gc, Img_lo, Img_hi, &
-                       qm, qm_lo, qm_hi, &
-                       qp, qp_lo, qp_hi, &
+                       qm_core, qcm_lo, qcm_hi, &
+                       qp_core, qcp_lo, qcp_hi, &
+                       qm_pass, qpm_lo, qpm_hi, &
+                       qp_pass, qpp_lo, qpp_hi, &
 #if (AMREX_SPACEDIM < 3)
                        dloga, dloga_lo, dloga_hi, &
 #endif
@@ -32,7 +42,13 @@ contains
     ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, NQSRC, ppm_predict_gammae, &
+    use meth_params_module, only : NQC, NQAUX, NQC_SRC, NQP, ppm_predict_gammae, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                                   NQP_SRC, &
+#endif
+#ifdef RADIATION
+                                   NQR, &
+#endif
                                    ppm_temp_fix, QU, QV, QW, npassive, qpass_map
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
 

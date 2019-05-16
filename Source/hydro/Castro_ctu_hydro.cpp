@@ -80,6 +80,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox dq_core, dq_pass;
     FArrayBox Ip_core, Im_core, Ip_core_src, Im_core_src, Ip_gc, Im_gc;
     FArrayBox Ip_pass, Im_pass, Ip_pass_src, Im_pass_src;
+#ifdef RADIATION
+    FArrayBox Ip_rad, Im_rad;
+#endif
     FArrayBox sm, sp;
     FArrayBox shk;
 
