@@ -8,9 +8,9 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
                                   shk, shk_lo, shk_hi, &
                                   dq_core, dqc_lo, dqc_hi, &
                                   dq_pass, dqp_lo, dqp_hi, &
-                                  qm_core, qmc_lo, qmc_hi, &
-                                  qm_pass, qmp_lo, qmp_hi, &
-                                  qp_core, qpc_lo, qpc_hi, &
+                                  qm_core, qcm_lo, qcm_hi, &
+                                  qp_core, qcp_lo, qcp_hi, &
+                                  qm_pass, qpm_lo, qpm_hi, &
                                   qp_pass, qpp_lo, qpp_hi, &
                                   dx) bind(C, name="ca_mol_plm_reconstruct")
 
@@ -36,10 +36,11 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
   integer, intent(in) :: shk_lo(3), shk_hi(3)
   integer, intent(in) :: dqc_lo(3), dqc_hi(3)
   integer, intent(in) :: dqp_lo(3), dqp_hi(3)
-  integer, intent(in) :: qm_core_lo(3), qm_core_hi(3)
-  integer, intent(in) :: qm_pass_lo(3), qm_pass_hi(3)
-  integer, intent(in) :: qp_core_lo(3), qp_core_hi(3)
-  integer, intent(in) :: qp_pass_lo(3), qp_pass_hi(3)
+
+  integer, intent(in) :: qcm_lo(3), qcm_hi(3)
+  integer, intent(in) :: qcp_lo(3), qcp_hi(3)
+  integer, intent(in) :: qpm_lo(3), qpm_hi(3)
+  integer, intent(in) :: qpp_lo(3), qpp_hi(3)
 
   real(rt), intent(inout) :: q_core(qc_lo(1):qc_hi(1), qc_lo(2):qc_hi(2), qc_lo(3):qc_hi(3), NQC)
   real(rt), intent(inout) :: q_pass(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQP)
@@ -47,9 +48,10 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
   real(rt), intent(inout) :: shk(shk_lo(1):shk_hi(1), shk_lo(2):shk_hi(2), shk_lo(3):shk_hi(3))
   real(rt), intent(inout) :: dq_core(dqc_lo(1):dqc_hi(1), dqc_lo(2):dqc_hi(2), dqc_lo(3):dqc_hi(3), NQC)
   real(rt), intent(inout) :: dq_pass(dqp_lo(1):dqp_hi(1), dqp_lo(2):dqp_hi(2), dqp_lo(3):dqp_hi(3), NQP)
-  real(rt), intent(inout) :: qm_core(qmc_lo(1):qmc_hi(1), qmc_lo(2):qmc_hi(2), qmc_lo(3):qmc_hi(3), NQC, AMREX_SPACEDIM)
-  real(rt), intent(inout) :: qm_pass(qmp_lo(1):qmp_hi(1), qmp_lo(2):qmp_hi(2), qmp_lo(3):qmp_hi(3), NQP, AMREX_SPACEDIM)
-  real(rt), intent(inout) :: qp_core(qpc_lo(1):qpc_hi(1), qpc_lo(2):qpc_hi(2), qpc_lo(3):qpc_hi(3), NQC, AMREX_SPACEDIM)
+
+  real(rt), intent(inout) :: qm_core(qcm_lo(1):qcm_hi(1), qcm_lo(2):qcm_hi(2), qcm_lo(3):qcm_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qp_core(qcp_lo(1):qcp_hi(1), qcp_lo(2):qcp_hi(2), qcp_lo(3):qcp_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qm_pass(qpm_lo(1):qpm_hi(1), qpm_lo(2):qpm_hi(2), qpm_lo(3):qpm_hi(3), NQP, AMREX_SPACEDIM)
   real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1), qpp_lo(2):qpp_hi(2), qpp_lo(3):qpp_hi(3), NQP, AMREX_SPACEDIM)
   real(rt), intent(in) :: dx(3)
 
@@ -82,7 +84,7 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
      do n = 1, NQC
         ! piecewise linear slopes
         call uslope(lo, hi, idir, &
-                    q_core, qc_lo, qc_hi, n, &
+                    q_core, qc_lo, qc_hi, n, NQC, &
                     flatn, fl_lo, fl_hi, &
                     dq_core, dqc_lo, dqc_hi)
 
@@ -149,7 +151,7 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
      do n = 1, NQP
         ! piecewise linear slopes
         call uslope(lo, hi, idir, &
-                    q_pass, qp_lo, qp_hi, n, &
+                    q_pass, qp_lo, qp_hi, n, NQP, &
                     flatn, fl_lo, fl_hi, &
                     dq_pass, dqp_lo, dqp_hi)
 
@@ -218,13 +220,13 @@ end subroutine ca_mol_plm_reconstruct
 
 subroutine ca_mol_thermo_states(lo, hi, &
                                 qm_core, qmc_lo, qmc_hi, &
-                                qm_pass, qmp_lo, qmp_hi, &
                                 qp_core, qpc_lo, qpc_hi, &
+                                qm_pass, qmp_lo, qmp_hi, &
                                 qp_pass, qpp_lo, qpp_hi) &
                                 bind(C, name="ca_mol_thermo_states")
 
   use amrex_error_module
-  use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
+  use meth_params_module, only : NQC, NQP, NVAR, NGDNV, GDPRES, &
                                  UTEMP, USHK, UMX, &
                                  use_flattening, QPRES, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
@@ -261,26 +263,26 @@ subroutine ca_mol_thermo_states(lo, hi, &
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)
 
-              eos_state%rho    = qp(i,j,k,QRHO,idir)
-              eos_state%T      = qp(i,j,k,QTEMP,idir)
-              eos_state%xn(:)  = qp(i,j,k,QFS:QFS-1+nspec,idir)
-              eos_state%aux(:) = qp(i,j,k,QFX:QFX-1+naux,idir)
+              eos_state%rho    = qp_core(i,j,k,QRHO,idir)
+              eos_state%T      = qp_core(i,j,k,QTEMP,idir)
+              eos_state%xn(:)  = qp_pass(i,j,k,QFS:QFS-1+nspec,idir)
+              eos_state%aux(:) = qp_pass(i,j,k,QFX:QFX-1+naux,idir)
 
               call eos(eos_input_rt, eos_state)
 
-              qp(i,j,k,QPRES,idir) = eos_state%p
-              qp(i,j,k,QREINT,idir) = qp(i,j,k,QRHO,idir)*eos_state%e
+              qp_core(i,j,k,QPRES,idir) = eos_state%p
+              qp_core(i,j,k,QREINT,idir) = qp_core(i,j,k,QRHO,idir)*eos_state%e
               ! should we try to do something about Gamma_! on interface?
 
-              eos_state%rho    = qm(i,j,k,QRHO,idir)
-              eos_state%T      = qm(i,j,k,QTEMP,idir)
-              eos_state%xn(:)  = qm(i,j,k,QFS:QFS-1+nspec,idir)
-              eos_state%aux(:) = qm(i,j,k,QFX:QFX-1+naux,idir)
+              eos_state%rho    = qm_core(i,j,k,QRHO,idir)
+              eos_state%T      = qm_core(i,j,k,QTEMP,idir)
+              eos_state%xn(:)  = qm_pass(i,j,k,QFS:QFS-1+nspec,idir)
+              eos_state%aux(:) = qm_pass(i,j,k,QFX:QFX-1+naux,idir)
 
               call eos(eos_input_rt, eos_state)
 
-              qm(i,j,k,QPRES,idir) = eos_state%p
-              qm(i,j,k,QREINT,idir) = qm(i,j,k,QRHO,idir)*eos_state%e
+              qm_core(i,j,k,QPRES,idir) = eos_state%p
+              qm_core(i,j,k,QREINT,idir) = qm_core(i,j,k,QRHO,idir)*eos_state%e
               ! should we try to do something about Gamma_! on interface?
 
            end do
@@ -295,14 +297,14 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
                                   q_pass, qp_lo, qp_hi, &
                                   flatn, fl_lo, fl_hi, &
                                   shk, shk_lo, shk_hi, &
-                                  qm_core, qmc_lo, qmc_hi, &
-                                  qm_pass, qmp_lo, qmp_hi, &
-                                  qp_core, qpc_lo, qpc_hi, &
+                                  qm_core, qcm_lo, qcm_hi, &
+                                  qp_core, qcp_lo, qcp_hi, &
+                                  qm_pass, qpm_lo, qpm_hi, &
                                   qp_pass, qpp_lo, qpp_hi, &
                                   dx) bind(C, name="ca_mol_ppm_reconstruct")
 
   use amrex_error_module
-  use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
+  use meth_params_module, only : NQC, NQP, NVAR, NGDNV, GDPRES, &
                                  UTEMP, USHK, UMX, &
                                  use_flattening, QPRES, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
@@ -320,18 +322,18 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
   integer, intent(in) :: qp_lo(3), qp_hi(3)
   integer, intent(in) :: fl_lo(3), fl_hi(3)
   integer, intent(in) :: shk_lo(3), shk_hi(3)
-  integer, intent(in) :: qmc_lo(3), qmc_hi(3)
-  integer, intent(in) :: qmp_lo(3), qmp_hi(3)
-  integer, intent(in) :: qpc_lo(3), qpc_hi(3)
+  integer, intent(in) :: qcm_lo(3), qcm_hi(3)
+  integer, intent(in) :: qcp_lo(3), qcp_hi(3)
+  integer, intent(in) :: qpm_lo(3), qpm_hi(3)
   integer, intent(in) :: qpp_lo(3), qpp_hi(3)
 
   real(rt), intent(inout) :: q_core(qc_lo(1):qc_hi(1), qc_lo(2):qc_hi(2), qc_lo(3):qc_hi(3), NQC)
   real(rt), intent(inout) :: q_pass(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQP)
   real(rt), intent(in) :: flatn(fl_lo(1):fl_hi(1), fl_lo(2):fl_hi(2), fl_lo(3):fl_hi(3))
   real(rt), intent(inout) :: shk(shk_lo(1):shk_hi(1), shk_lo(2):shk_hi(2), shk_lo(3):shk_hi(3))
-  real(rt), intent(inout) :: qm_core(qmc_lo(1):qmc_hi(1), qmc_lo(2):qmc_hi(2), qmc_lo(3):qmc_hi(3), NQC, AMREX_SPACEDIM)
-  real(rt), intent(inout) :: qm_pass(qmp_lo(1):qmp_hi(1), qmp_lo(2):qmp_hi(2), qmp_lo(3):qmp_hi(3), NQP, AMREX_SPACEDIM)
-  real(rt), intent(inout) :: qp_core(qpc_lo(1):qpc_hi(1), qpc_lo(2):qpc_hi(2), qpc_lo(3):qpc_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qm_core(qcm_lo(1):qcm_hi(1), qcm_lo(2):qcm_hi(2), qcm_lo(3):qcm_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qp_core(qcp_lo(1):qcp_hi(1), qcp_lo(2):qcp_hi(2), qcp_lo(3):qcp_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qm_pass(qpm_lo(1):qpm_hi(1), qpm_lo(2):qpm_hi(2), qpm_lo(3):qpm_hi(3), NQP, AMREX_SPACEDIM)
   real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1), qpp_lo(2):qpp_hi(2), qpp_lo(3):qpp_hi(3), NQP, AMREX_SPACEDIM)
   real(rt), intent(in) :: dx(3)
 
@@ -360,13 +362,13 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
      call ca_ppm_reconstruct(lo, hi, 1, idir, &
                              q_core, qc_lo, qc_hi, NQC, 1, NQC, &
                              flatn, fl_lo, fl_hi, &
-                             qm_core, qmc_lo, qmc_hi, &
-                             qp_core, qpc_lo, qpc_hi, NQC, 1, NQC)
+                             qm_core, qcm_lo, qcm_hi, &
+                             qp_core, qcp_lo, qcp_hi, NQC, 1, NQC)
 
      call ca_ppm_reconstruct(lo, hi, 1, idir, &
                              q_pass, qp_lo, qp_hi, NQP, 1, NQP, &
                              flatn, fl_lo, fl_hi, &
-                             qm_pass, qmp_lo, qmp_hi, &
+                             qm_pass, qpm_lo, qpm_hi, &
                              qp_pass, qpp_lo, qpp_hi, NQP, 1, NQP)
   end do
 
@@ -402,7 +404,7 @@ subroutine ca_mol_consup(lo, hi, &
                          vol, vol_lo, vol_hi) bind(C, name="ca_mol_consup")
 
   use amrex_error_module
-  use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
+  use meth_params_module, only : NVAR, NGDNV, GDPRES, &
                                  UTEMP, USHK, UMX, &
                                  use_flattening, QPRES, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
