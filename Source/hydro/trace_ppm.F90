@@ -203,16 +203,24 @@ contains
     if (ppm_temp_fix < 3) then
        if (ppm_predict_gammae == 0) then
           call trace_ppm_rhoe(lo, hi, &
-                              idir, q, qd_lo, qd_hi, &
+                              idir, &
+                              q_core, qc_lo, qc_hi, &
+                              q_pass, qp_lo, qp_hi, &
                               qaux, qa_lo, qa_hi, &
-                              Ip, Ip_lo, Ip_hi, &
-                              Im, Im_lo, Im_hi, &
-                              Ip_src, Ips_lo, Ips_hi, &
-                              Im_src, Ims_lo, Ims_hi, &
+                              Ip_core, Icp_lo, Icp_hi, &
+                              Im_core, Icm_lo, Icm_hi, &
+                              Ip_pass, Ipp_lo, Ipp_hi, &
+                              Im_pass, Ipm_lo, Ipm_hi, &
+                              Ip_core_src, Icsp_lo, Icsp_hi, &
+                              Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                              Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                              Im_pass_src, Ipms_lo, Ipms_hi, &
+#endif
                               Ip_gc, Ipg_lo, Ipg_hi, &
                               Im_gc, Img_lo, Img_hi, &
-                              qm, qm_lo, qm_hi, &
-                              qp, qp_lo, qp_hi, &
+                              qm_core, qcm_lo, qcm_hi, &
+                              qp_core, qcp_lo, qcp_hi, &
 #if (AMREX_SPACEDIM < 3)
                               dloga, dloga_lo, dloga_hi, &
 #endif
@@ -220,16 +228,24 @@ contains
                               dx, dt)
        else
           call trace_ppm_gammae(lo, hi, &
-                                idir, q, qd_lo, qd_hi, &
+                                idir, &
+                                q_core, qc_lo, qc_hi, &
+                                q_pass, qp_lo, qp_hi, &
                                 qaux, qa_lo, qa_hi, &
-                                Ip, Ip_lo, Ip_hi, &
-                                Im, Im_lo, Im_hi, &
-                                Ip_src, Ips_lo, Ips_hi, &
-                                Im_src, Ims_lo, Ims_hi, &
+                                Ip_core, Icp_lo, Icp_hi, &
+                                Im_core, Icm_lo, Icm_hi, &
+                                Ip_pass, Ipp_lo, Ipp_hi, &
+                                Im_pass, Ipm_lo, Ipm_hi, &
+                                Ip_core_src, Icsp_lo, Icsp_hi, &
+                                Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                                Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                                Im_pass_src, Ipms_lo, Ipms_hi, &
+#endif
                                 Ip_gc, Ipg_lo, Ipg_hi, &
                                 Im_gc, Img_lo, Img_hi, &
-                                qm, qm_lo, qm_hi, &
-                                qp, qp_lo, qp_hi, &
+                                qm_core, qcm_lo, qcm_hi, &
+                                qp_core, qcp_lo, qcp_hi, &
 #if (AMREX_SPACEDIM < 3)
                                 dloga, dloga_lo, dloga_hi, &
 #endif
@@ -238,16 +254,26 @@ contains
        end if
     else
        call trace_ppm_temp(lo, hi, &
-                           idir, q, qd_lo, qd_hi, &
+                           idir, &
+                           q_core, qc_lo, qc_hi, &
+                           q_pass, qp_lo, qp_hi, &
                            qaux, qa_lo, qa_hi, &
-                           Ip, Ip_lo, Ip_hi, &
-                           Im, Im_lo, Im_hi, &
-                           Ip_src, Ips_lo, Ips_hi, &
-                           Im_src, Ims_lo, Ims_hi, &
+                           Ip_core, Icp_lo, Icp_hi, &
+                           Im_core, Icm_lo, Icm_hi, &
+                           Ip_pass, Ipp_lo, Ipp_hi, &
+                           Im_pass, Ipm_lo, Ipm_hi, &
+                           Ip_core_src, Icsp_lo, Icsp_hi, &
+                           Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                           Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                           Im_pass_src, Ipms_lo, Ipms_hi, &
+#endif
                            Ip_gc, Ipg_lo, Ipg_hi, &
                            Im_gc, Img_lo, Img_hi, &
-                           qm, qm_lo, qm_hi, &
-                           qp, qp_lo, qp_hi, &
+                           qm_core, qcm_lo, qcm_hi, &
+                           qp_core, qcp_lo, qcp_hi, &
+                           qm_pass, qpm_lo, qpm_hi, &
+                           qp_pass, qpp_lo, qpp_hi, &
 #if (AMREX_SPACEDIM < 3)
                            dloga, dloga_lo, dloga_hi, &
 #endif
@@ -269,17 +295,15 @@ contains
                             Ip_pass, Ipp_lo, Ipp_hi, &
                             Im_pass, Ipm_lo, Ipm_hi, &
                             Ip_core_src, Icsp_lo, Icsp_hi, &
-                            Im_core_src, Icms_lo, Icms_hi, &
+                            Im_core_src, Icsm_lo, Icsm_hi, &
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                             Ip_pass_src, Ipsp_lo, Ipsp_hi, &
-                            Im_pass_src, Ipms_lo, Ipms_hi, &
+                            Im_pass_src, Ipsm_lo, Ipsm_hi, &
 #endif
                             Ip_gc, Ipg_lo, Ipg_hi, &
                             Im_gc, Img_lo, Img_hi, &
                             qm_core, qcm_lo, qcm_hi, &
                             qp_core, qcp_lo, qcp_hi, &
-                            qm_pass, qpm_lo, qpm_hi, &
-                            qp_pass, qpp_lo, qpp_hi, &
 #if (AMREX_SPACEDIM < 3)
                             dloga, dloga_lo, dloga_hi, &
 #endif
@@ -311,11 +335,11 @@ contains
     integer, intent(in) :: Ipp_lo(3), Ipp_hi(3)
     integer, intent(in) :: Ipm_lo(3), Ipm_hi(3)
 
-    integer, intent(in) :: Icps_lo(3), Icps_hi(3)
-    integer, intent(in) :: Icms_lo(3), Icms_hi(3)
+    integer, intent(in) :: Icsp_lo(3), Icsp_hi(3)
+    integer, intent(in) :: Icsm_lo(3), Icsm_hi(3)
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-    integer, intent(in) :: Ipps_lo(3), Ipps_hi(3)
-    integer, intent(in) :: Ipms_lo(3), Ipms_hi(3)
+    integer, intent(in) :: Ipsp_lo(3), Ipsp_hi(3)
+    integer, intent(in) :: Ipsm_lo(3), Ipsm_hi(3)
 #endif
 
     integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
@@ -323,8 +347,6 @@ contains
 
     integer, intent(in) :: qcm_lo(3), qcm_hi(3)
     integer, intent(in) :: qcp_lo(3), qcp_hi(3)
-    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
-    integer, intent(in) :: qpp_lo(3), qpp_hi(3)
 
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
@@ -356,8 +378,6 @@ contains
 
     real(rt), intent(inout) :: qm_core(qcm_lo(1):qcm_hi(1),qcm_lo(2):qcm_hi(2),qcm_lo(3):qcm_hi(3),NQC)
     real(rt), intent(inout) :: qp_core(qcp_lo(1):qcp_hi(1),qcp_lo(2):qcp_hi(2),qcp_lo(3):qcp_hi(3),NQC)
-    real(rt), intent(inout) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP)
-    real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP)
 
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
@@ -461,17 +481,17 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             rho = q(i,j,k,QRHO)
+             rho = q_core(i,j,k,QRHO)
 
              cc = qaux(i,j,k,QC)
              csq = cc**2
 
-             un = q(i,j,k,QUN)
-             ut = q(i,j,k,QUT)
-             utt = q(i,j,k,QUTT)
+             un = q_core(i,j,k,QUN)
+             ut = q_core(i,j,k,QUT)
+             utt = q_core(i,j,k,QUTT)
 
-             p = q(i,j,k,QPRES)
-             rhoe_g = q(i,j,k,QREINT)
+             p = q_core(i,j,k,QPRES)
+             rhoe_g = q_core(i,j,k,QREINT)
              h_g = ( (p + rhoe_g)/rho)/csq
 
              gam_g = qaux(i,j,k,QGAMC)
@@ -489,11 +509,11 @@ contains
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
                 ! Woodward use
-                rho_ref  = Im(i,j,k,1,QRHO)
-                un_ref    = Im(i,j,k,1,QUN)
+                rho_ref  = Im_core(i,j,k,1,QRHO)
+                un_ref    = Im_core(i,j,k,1,QUN)
 
-                p_ref    = Im(i,j,k,1,QPRES)
-                rhoe_g_ref = Im(i,j,k,1,QREINT)
+                p_ref    = Im_core(i,j,k,1,QPRES)
+                rhoe_g_ref = Im_core(i,j,k,1,QREINT)
 
                 gam_g_ref  = Im_gc(i,j,k,1,1)
 
@@ -513,15 +533,15 @@ contains
 
 
                 ! we also add the sources here so they participate in the tracing
-                dum = un_ref - Im(i,j,k,1,QUN) - hdt*Im_src(i,j,k,1,QUN)
-                dptotm = p_ref - Im(i,j,k,1,QPRES) - hdt*Im_src(i,j,k,1,QPRES)
+                dum = un_ref - Im_core(i,j,k,1,QUN) - hdt*Im_core_src(i,j,k,1,QUN)
+                dptotm = p_ref - Im_core(i,j,k,1,QPRES) - hdt*Im_core_src(i,j,k,1,QPRES)
 
-                drho = rho_ref - Im(i,j,k,2,QRHO) - hdt*Im_src(i,j,k,2,QRHO)
-                dptot = p_ref - Im(i,j,k,2,QPRES) - hdt*Im_src(i,j,k,2,QPRES)
-                drhoe_g = rhoe_g_ref - Im(i,j,k,2,QREINT) - hdt*Im_src(i,j,k,2,QREINT)
+                drho = rho_ref - Im_core(i,j,k,2,QRHO) - hdt*Im_core_src(i,j,k,2,QRHO)
+                dptot = p_ref - Im_core(i,j,k,2,QPRES) - hdt*Im_core_src(i,j,k,2,QPRES)
+                drhoe_g = rhoe_g_ref - Im_core(i,j,k,2,QREINT) - hdt*Im_core_src(i,j,k,2,QREINT)
 
-                dup = un_ref - Im(i,j,k,3,QUN) - hdt*Im_src(i,j,k,3,QUN)
-                dptotp = p_ref - Im(i,j,k,3,QPRES) - hdt*Im_src(i,j,k,3,QPRES)
+                dup = un_ref - Im_core(i,j,k,3,QUN) - hdt*Im_core_src(i,j,k,3,QUN)
+                dptotp = p_ref - Im_core(i,j,k,3,QPRES) - hdt*Im_core_src(i,j,k,3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -576,10 +596,10 @@ contains
                 ! The final interface states are just
                 ! q_s = q_ref - sum(l . dq) r
                 ! note that the a{mpz}right as defined above have the minus already
-                qp(i,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                qp(i,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                qp_core(i,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
+                qp_core(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
+                qp_core(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
+                qp_core(i,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
 
                 ! Transverse velocities -- there's no projection here, so
@@ -589,8 +609,8 @@ contains
                 ! Recall that I already takes the limit of the parabola
                 ! in the event that the wave is not moving toward the
                 ! interface
-                qp(i,j,k,QUT) = Im(i,j,k,2,QUT) + hdt*Im_src(i,j,k,2,QUT)
-                qp(i,j,k,QUTT) = Im(i,j,k,2,QUTT) + hdt*Im_src(i,j,k,2,QUTT)
+                qp_core(i,j,k,QUT) = Im_core(i,j,k,2,QUT) + hdt*Im_core_src(i,j,k,2,QUT)
+                qp_core(i,j,k,QUTT) = Im_core(i,j,k,2,QUTT) + hdt*Im_core_src(i,j,k,2,QUTT)
 
              end if
 
@@ -604,11 +624,11 @@ contains
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,3,QRHO)
-                un_ref    = Ip(i,j,k,3,QUN)
+                rho_ref  = Ip_core(i,j,k,3,QRHO)
+                un_ref    = Ip_core(i,j,k,3,QUN)
 
-                p_ref    = Ip(i,j,k,3,QPRES)
-                rhoe_g_ref = Ip(i,j,k,3,QREINT)
+                p_ref    = Ip_core(i,j,k,3,QPRES)
+                rhoe_g_ref = Ip_core(i,j,k,3,QREINT)
 
                 gam_g_ref  = Ip_gc(i,j,k,3,1)
 
@@ -623,15 +643,15 @@ contains
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
 
-                dum = un_ref - Ip(i,j,k,1,QUN) - hdt*Ip_src(i,j,k,1,QUN)
-                dptotm  = p_ref - Ip(i,j,k,1,QPRES) - hdt*Ip_src(i,j,k,1,QPRES)
+                dum = un_ref - Ip_core(i,j,k,1,QUN) - hdt*Ip_core_src(i,j,k,1,QUN)
+                dptotm  = p_ref - Ip_core(i,j,k,1,QPRES) - hdt*Ip_core_src(i,j,k,1,QPRES)
 
-                drho = rho_ref - Ip(i,j,k,2,QRHO) - hdt*Ip_src(i,j,k,2,QRHO)
-                dptot = p_ref - Ip(i,j,k,2,QPRES) - hdt*Ip_src(i,j,k,2,QPRES)
-                drhoe_g = rhoe_g_ref - Ip(i,j,k,2,QREINT) - hdt*Ip_src(i,j,k,2,QREINT)
+                drho = rho_ref - Ip_core(i,j,k,2,QRHO) - hdt*Ip_core_src(i,j,k,2,QRHO)
+                dptot = p_ref - Ip_core(i,j,k,2,QPRES) - hdt*Ip_core_src(i,j,k,2,QPRES)
+                drhoe_g = rhoe_g_ref - Ip_core(i,j,k,2,QREINT) - hdt*Ip_core_src(i,j,k,2,QREINT)
 
-                dup = un_ref - Ip(i,j,k,3,QUN) - hdt*Ip_src(i,j,k,3,QUN)
-                dptotp = p_ref - Ip(i,j,k,3,QPRES) - hdt*Ip_src(i,j,k,3,QPRES)
+                dup = un_ref - Ip_core(i,j,k,3,QUN) - hdt*Ip_core_src(i,j,k,3,QUN)
+                dptotp = p_ref - Ip_core(i,j,k,3,QPRES) - hdt*Ip_core_src(i,j,k,3,QPRES)
 
                 ! Optionally use the reference state in evaluating the
                 ! eigenvectors
@@ -686,34 +706,34 @@ contains
                 ! q_s = q_ref - sum (l . dq) r
                 ! note that the a{mpz}left as defined above have the minus already
                 if (idir == 1) then
-                   qm(i+1,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                   qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                   qm_core(i+1,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
+                   qm_core(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
+                   qm_core(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
+                   qm_core(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i+1,j,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i+1,j,k,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i+1,j,k,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 else if (idir == 2) then
-                   qm(i,j+1,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                   qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                   qm_core(i,j+1,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
+                   qm_core(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
+                   qm_core(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
+                   qm_core(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i,j+1,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i,j+1,k,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i,j+1,k,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 else if (idir == 3) then
-                   qm(i,j,k+1,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                   qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                   qm_core(i,j,k+1,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
+                   qm_core(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
+                   qm_core(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
+                   qm_core(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i,j,k+1,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i,j,k+1,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i,j,k+1,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
                 endif
 
              end if
@@ -734,18 +754,18 @@ contains
 
                 if (i <= vhi(1)) then
 
-                   qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
-                   qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
-                   qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
-                   qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
+                   qm_core(i+1,j,k,QRHO) = qm_core(i+1,j,k,QRHO) + sourcr
+                   qm_core(i+1,j,k,QRHO) = max(qm_core(i+1,j,k,QRHO), small_dens)
+                   qm_core(i+1,j,k,QPRES) = qm_core(i+1,j,k,QPRES) + sourcp
+                   qm_core(i+1,j,k,QREINT) = qm_core(i+1,j,k,QREINT) + source
                 end if
 
                 if (i >= vlo(1)) then
 
-                   qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
-                   qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
-                   qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
-                   qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source
+                   qp_core(i,j,k,QRHO) = qp_core(i,j,k,QRHO) + sourcr
+                   qp_core(i,j,k,QRHO) = max(qp_core(i,j,k,QRHO), small_dens)
+                   qp_core(i,j,k,QPRES) = qp_core(i,j,k,QPRES) + sourcp
+                   qp_core(i,j,k,QREINT) = qp_core(i,j,k,QREINT) + source
                 end if
 
              end if
@@ -760,16 +780,23 @@ contains
 
   subroutine trace_ppm_gammae(lo, hi, &
                               idir, &
-                              q, qd_lo, qd_hi, &
+                              q_core, qc_lo, qc_hi, &
+                              q_pass, qp_lo, qp_hi, &
                               qaux, qa_lo, qa_hi, &
-                              Ip, Ip_lo, Ip_hi, &
-                              Im, Im_lo, Im_hi, &
-                              Ip_src, Ips_lo, Ips_hi, &
-                              Im_src, Ims_lo, Ims_hi, &
+                              Ip_core, Icp_lo, Icp_hi, &
+                              Im_core, Icm_lo, Icm_hi, &
+                              Ip_pass, Ipp_lo, Ipp_hi, &
+                              Im_pass, Ipm_lo, Ipm_hi, &
+                              Ip_core_src, Icsp_lo, Icsp_hi, &
+                              Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                              Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                              Im_pass_src, Ipsm_lo, Ipsm_hi, &
+#endif
                               Ip_gc, Ipg_lo, Ipg_hi, &
                               Im_gc, Img_lo, Img_hi, &
-                              qm, qm_lo, qm_hi, &
-                              qp, qp_lo, qp_hi, &
+                              qm_core, qcm_lo, qcm_hi, &
+                              qp_core, qcp_lo, qcp_hi, &
 #if (AMREX_SPACEDIM < 3)
                               dloga, dloga_lo, dloga_hi, &
 #endif
@@ -790,16 +817,29 @@ contains
     implicit none
 
     integer, intent(in) :: idir
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qc_lo(3), qc_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
+
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
-    integer, intent(in) :: Im_lo(3), Im_hi(3)
-    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
-    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
+
+    integer, intent(in) :: Icp_lo(3), Icp_hi(3)
+    integer, intent(in) :: Icm_lo(3), Icm_hi(3)
+    integer, intent(in) :: Ipp_lo(3), Ipp_hi(3)
+    integer, intent(in) :: Ipm_lo(3), Ipm_hi(3)
+
+    integer, intent(in) :: Icsp_lo(3), Icsp_hi(3)
+    integer, intent(in) :: Icsm_lo(3), Icsm_hi(3)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    integer, intent(in) :: Ipsp_lo(3), Ipsp_hi(3)
+    integer, intent(in) :: Ipsm_lo(3), Ipsm_hi(3)
+#endif
+
     integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
     integer, intent(in) :: Img_lo(3), Img_hi(3)
+
+    integer, intent(in) :: qcm_lo(3), qcm_hi(3)
+    integer, intent(in) :: qcp_lo(3), qcp_hi(3)
+
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
@@ -807,20 +847,29 @@ contains
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
+    real(rt), intent(in) :: q_pass(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
 
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Ip_core(Icp_lo(1):Icp_hi(1),Icp_lo(2):Icp_hi(2),Icp_lo(3):Icp_hi(3),1:3,NQC)
+    real(rt), intent(in) :: Im_core(Icm_lo(1):Icm_hi(1),Icm_lo(2):Icm_hi(2),Icm_lo(3):Icm_hi(3),1:3,NQC)
+    real(rt), intent(in) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),1:3,NQP)
+    real(rt), intent(in) :: Im_pass(Ipm_lo(1):Ipm_hi(1),Ipm_lo(2):Ipm_hi(2),Ipm_lo(3):Ipm_hi(3),1:3,NQP)
+
+    real(rt), intent(in) :: Ip_core_src(Icsp_lo(1):Icsp_hi(1),Icsp_lo(2):Icsp_hi(2),Icsp_lo(3):Icsp_hi(3),1:3,NQC_SRC)
+    real(rt), intent(in) :: Im_core_src(Icsm_lo(1):Icsm_hi(1),Icsm_lo(2):Icsm_hi(2),Icsm_lo(3):Icsm_hi(3),1:3,NQC_SRC)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    real(rt), intent(in) :: Ip_pass_src(Ipsp_lo(1):Ipsp_hi(1),Ipsp_lo(2):Ipsp_hi(2),Ipsp_lo(3):Ipsp_hi(3),1:3,NQP_SRC)
+    real(rt), intent(in) :: Im_pass_src(Ipsm_lo(1):Ipsm_hi(1),Ipsm_lo(2):Ipsm_hi(2),Ipsm_lo(3):Ipsm_hi(3),1:3,NQP_SRC)
+#endif
 
     real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
     real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
 
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(inout) :: qm_core(qcm_lo(1):qcm_hi(1),qcm_lo(2):qcm_hi(2),qcm_lo(3):qcm_hi(3),NQC)
+    real(rt), intent(inout) :: qp_core(qcp_lo(1):qcp_hi(1),qcp_lo(2):qcp_hi(2),qcp_lo(3):qcp_hi(3),NQC)
+
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
@@ -928,21 +977,21 @@ contains
 
              gfactor = ONE ! to help compiler resolve ANTI dependence
 
-             rho = q(i,j,k,QRHO)
+             rho = q_core(i,j,k,QRHO)
 
              cc = qaux(i,j,k,QC)
              csq = cc**2
              Clag = rho*cc
 
-             un = q(i,j,k,QUN)
-             ut = q(i,j,k,QUT)
-             utt = q(i,j,k,QUTT)
+             un = q_core(i,j,k,QUN)
+             ut = q_core(i,j,k,QUT)
+             utt = q_core(i,j,k,QUTT)
 
-             p = q(i,j,k,QPRES)
-             rhoe_g = q(i,j,k,QREINT)
+             p = q_core(i,j,k,QPRES)
+             rhoe_g = q_core(i,j,k,QREINT)
 
              gam_g = qaux(i,j,k,QGAMC)
-             game = q(i,j,k,QGAME)
+             game = q_core(i,j,k,QGAME)
 
 
              !-------------------------------------------------------------------
@@ -957,16 +1006,16 @@ contains
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
                 ! Woodward use
-                rho_ref  = Im(i,j,k,1,QRHO)
-                un_ref    = Im(i,j,k,1,QUN)
+                rho_ref  = Im_core(i,j,k,1,QRHO)
+                un_ref    = Im_core(i,j,k,1,QUN)
 
-                p_ref    = Im(i,j,k,1,QPRES)
-                rhoe_g_ref = Im(i,j,k,1,QREINT)
+                p_ref    = Im_core(i,j,k,1,QPRES)
+                rhoe_g_ref = Im_core(i,j,k,1,QREINT)
 
-                tau_ref  = ONE/Im(i,j,k,1,QRHO)
+                tau_ref  = ONE/Im_core(i,j,k,1,QRHO)
 
                 gam_g_ref  = Im_gc(i,j,k,1,1)
-                game_ref = Im(i,j,k,1,QGAME)
+                game_ref = Im_core(i,j,k,1,QGAME)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -978,20 +1027,20 @@ contains
 
 
                 ! we also add the sources here so they participate in the tracing
-                dum = un_ref - Im(i,j,k,1,QUN) - hdt*Im_src(i,j,k,1,QUN)
-                dptotm = p_ref - Im(i,j,k,1,QPRES) - hdt*Im_src(i,j,k,1,QPRES)
+                dum = un_ref - Im_core(i,j,k,1,QUN) - hdt*Im_core_src(i,j,k,1,QUN)
+                dptotm = p_ref - Im_core(i,j,k,1,QPRES) - hdt*Im_core_src(i,j,k,1,QPRES)
 
-                dptot = p_ref - Im(i,j,k,2,QPRES) - hdt*Im_src(i,j,k,2,QPRES)
+                dptot = p_ref - Im_core(i,j,k,2,QPRES) - hdt*Im_core_src(i,j,k,2,QPRES)
 
                 ! we are treating tau as 1/rho, but we could have reconstructed
                 ! it separately
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtaum = tau_ref - ONE/Im(i,j,k,1,QRHO) + hdt*Im_src(i,j,k,1,QRHO)/Im(i,j,k,1,QRHO)**2
-                dtau  = tau_ref - ONE/Im(i,j,k,2,QRHO) + hdt*Im_src(i,j,k,2,QRHO)/Im(i,j,k,2,QRHO)**2
-                dtaup = tau_ref - ONE/Im(i,j,k,3,QRHO) + hdt*Im_src(i,j,k,3,QRHO)/Im(i,j,k,3,QRHO)**2
+                dtaum = tau_ref - ONE/Im_core(i,j,k,1,QRHO) + hdt*Im_core_src(i,j,k,1,QRHO)/Im_core(i,j,k,1,QRHO)**2
+                dtau  = tau_ref - ONE/Im_core(i,j,k,2,QRHO) + hdt*Im_core_src(i,j,k,2,QRHO)/Im_core(i,j,k,2,QRHO)**2
+                dtaup = tau_ref - ONE/Im_core(i,j,k,3,QRHO) + hdt*Im_core_src(i,j,k,3,QRHO)/Im_core(i,j,k,3,QRHO)**2
 
-                dup = un_ref - Im(i,j,k,3,QUN) - hdt*Im_src(i,j,k,3,QUN)
-                dptotp = p_ref - Im(i,j,k,3,QPRES) - hdt*Im_src(i,j,k,3,QPRES)
+                dup = un_ref - Im_core(i,j,k,3,QUN) - hdt*Im_core_src(i,j,k,3,QUN)
+                dptotp = p_ref - Im_core(i,j,k,3,QPRES) - hdt*Im_core_src(i,j,k,3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -1014,7 +1063,7 @@ contains
                 alphap = HALF*(-dup - dptotp*(ONE/Clag_ev))*(ONE/Clag_ev)
                 alpha0r = dtau + dptot*(ONE/Clag_ev)**2
 
-                dge   = game_ref - Im(i,j,k,2,QGAME)
+                dge   = game_ref - Im_core(i,j,k,2,QGAME)
                 gfactor = (game - ONE)*(game - gam_g)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
@@ -1046,13 +1095,13 @@ contains
                 ! q_s = q_ref - sum(l . dq) r
                 ! note that the a{mpz}right as defined above have the minus already
                 tau_s = tau_ref + alphap + alpham + alpha0r
-                qp(i,j,k,QRHO) = max(small_dens, ONE/tau_s)
+                qp_core(i,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                qp(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                qp(i,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                qp_core(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                qp_core(i,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
 
-                qp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                qp(i,j,k,QREINT) = qp(i,j,k,QPRES )/(qp(i,j,k,QGAME) - ONE)
+                qp_core(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                qp_core(i,j,k,QREINT) = qp_core(i,j,k,QPRES )/(qp_core(i,j,k,QGAME) - ONE)
 
 
                 ! Transverse velocities -- there's no projection here, so
@@ -1062,8 +1111,8 @@ contains
                 ! Recall that I already takes the limit of the parabola
                 ! in the event that the wave is not moving toward the
                 ! interface
-                qp(i,j,k,QUT) = Im(i,j,k,2,QUT) + hdt*Im_src(i,j,k,2,QUT)
-                qp(i,j,k,QUTT) = Im(i,j,k,2,QUTT) + hdt*Im_src(i,j,k,2,QUTT)
+                qp_core(i,j,k,QUT) = Im_core(i,j,k,2,QUT) + hdt*Im_core_src(i,j,k,2,QUT)
+                qp_core(i,j,k,QUTT) = Im_core(i,j,k,2,QUTT) + hdt*Im_core_src(i,j,k,2,QUTT)
 
              end if
 
@@ -1077,16 +1126,16 @@ contains
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,3,QRHO)
-                un_ref    = Ip(i,j,k,3,QUN)
+                rho_ref  = Ip_core(i,j,k,3,QRHO)
+                un_ref    = Ip_core(i,j,k,3,QUN)
 
-                p_ref    = Ip(i,j,k,3,QPRES)
-                rhoe_g_ref = Ip(i,j,k,3,QREINT)
+                p_ref    = Ip_core(i,j,k,3,QPRES)
+                rhoe_g_ref = Ip_core(i,j,k,3,QREINT)
 
-                tau_ref  = ONE/Ip(i,j,k,3,QRHO)
+                tau_ref  = ONE/Ip_core(i,j,k,3,QRHO)
 
                 gam_g_ref  = Ip_gc(i,j,k,3,1)
-                game_ref = Ip(i,j,k,3,QGAME)
+                game_ref = Ip_core(i,j,k,3,QGAME)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -1097,18 +1146,18 @@ contains
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
 
-                dum = un_ref - Ip(i,j,k,1,QUN) - hdt*Ip_src(i,j,k,1,QUN)
-                dptotm  = p_ref - Ip(i,j,k,1,QPRES) - hdt*Ip_src(i,j,k,1,QPRES)
+                dum = un_ref - Ip_core(i,j,k,1,QUN) - hdt*Ip_core_src(i,j,k,1,QUN)
+                dptotm  = p_ref - Ip_core(i,j,k,1,QPRES) - hdt*Ip_core_src(i,j,k,1,QPRES)
 
-                dptot = p_ref - Ip(i,j,k,2,QPRES) - hdt*Ip_src(i,j,k,2,QPRES)
+                dptot = p_ref - Ip_core(i,j,k,2,QPRES) - hdt*Ip_core_src(i,j,k,2,QPRES)
 
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtaum = tau_ref - ONE/Ip(i,j,k,1,QRHO) + hdt*Ip_src(i,j,k,1,QRHO)/Ip(i,j,k,1,QRHO)**2
-                dtau = tau_ref - ONE/Ip(i,j,k,2,QRHO) + hdt*Ip_src(i,j,k,2,QRHO)/Ip(i,j,k,2,QRHO)**2
-                dtaup = tau_ref - ONE/Ip(i,j,k,3,QRHO) + hdt*Ip_src(i,j,k,3,QRHO)/Ip(i,j,k,3,QRHO)**2
+                dtaum = tau_ref - ONE/Ip_core(i,j,k,1,QRHO) + hdt*Ip_core_src(i,j,k,1,QRHO)/Ip_core(i,j,k,1,QRHO)**2
+                dtau = tau_ref - ONE/Ip_core(i,j,k,2,QRHO) + hdt*Ip_core_src(i,j,k,2,QRHO)/Ip_core(i,j,k,2,QRHO)**2
+                dtaup = tau_ref - ONE/Ip_core(i,j,k,3,QRHO) + hdt*Ip_core_src(i,j,k,3,QRHO)/Ip_core(i,j,k,3,QRHO)**2
 
-                dup = un_ref - Ip(i,j,k,3,QUN) - hdt*Ip_src(i,j,k,3,QUN)
-                dptotp = p_ref - Ip(i,j,k,3,QPRES) - hdt*Ip_src(i,j,k,3,QPRES)
+                dup = un_ref - Ip_core(i,j,k,3,QUN) - hdt*Ip_core_src(i,j,k,3,QUN)
+                dptotp = p_ref - Ip_core(i,j,k,3,QPRES) - hdt*Ip_core_src(i,j,k,3,QPRES)
 
                 ! Optionally use the reference state in evaluating the
                 ! eigenvectors
@@ -1129,7 +1178,7 @@ contains
                 alphap = HALF*(-dup - dptotp*(ONE/Clag_ev))*(ONE/Clag_ev)
                 alpha0r = dtau + dptot*(ONE/Clag_ev)**2
 
-                dge = game_ref - Ip(i,j,k,2,QGAME)
+                dge = game_ref - Ip_core(i,j,k,2,QGAME)
                 gfactor = (game - ONE)*(game - gam_g)
                 alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
 
@@ -1163,45 +1212,45 @@ contains
                 ! note that the a{mpz}left as defined above have the minus already
                 if (idir == 1) then
                    tau_s = tau_ref + alphap + alpham + alpha0r
-                   qm(i+1,j,k,QRHO) = max(small_dens, ONE/tau_s)
+                   qm_core(i+1,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                   qm_core(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm_core(i+1,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
 
-                   qm(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qm(i+1,j,k,QREINT) = qm(i+1,j,k,QPRES )/(qm(i+1,j,k,QGAME) - ONE)
+                   qm_core(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm_core(i+1,j,k,QREINT) = qm_core(i+1,j,k,QPRES )/(qm_core(i+1,j,k,QGAME) - ONE)
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i+1,j,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i+1,j,k,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i+1,j,k,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 else if (idir == 2) then
                    tau_s = tau_ref + alphap + alpham + alpha0r
-                   qm(i,j+1,k,QRHO) = max(small_dens, ONE/tau_s)
+                   qm_core(i,j+1,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                   qm_core(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm_core(i,j+1,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
 
-                   qm(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qm(i,j+1,k,QREINT) = qm(i,j+1,k,QPRES )/(qm(i,j+1,k,QGAME) - ONE)
+                   qm_core(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm_core(i,j+1,k,QREINT) = qm_core(i,j+1,k,QPRES )/(qm_core(i,j+1,k,QGAME) - ONE)
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i,j+1,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i,j+1,k,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i,j+1,k,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 else if (idir == 3) then
                    tau_s = tau_ref + alphap + alpham + alpha0r
-                   qm(i,j,k+1,QRHO) = max(small_dens, ONE/tau_s)
+                   qm_core(i,j,k+1,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                   qm_core(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm_core(i,j,k+1,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
 
-                   qm(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
-                   qm(i,j,k+1,QREINT) = qm(i,j,k+1,QPRES )/(qm(i,j,k+1,QGAME) - ONE)
+                   qm_core(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm_core(i,j,k+1,QREINT) = qm_core(i,j,k+1,QPRES )/(qm_core(i,j,k+1,QGAME) - ONE)
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i,j,k+1,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i,j,k+1,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i,j,k+1,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 end if
              end if
@@ -1222,17 +1271,17 @@ contains
                 source = sourcp*h_g
 
                 if (i <= vhi(1)) then
-                   qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
-                   qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
-                   qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
-                   qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
+                   qm_core(i+1,j,k,QRHO) = qm_core(i+1,j,k,QRHO) + sourcr
+                   qm_core(i+1,j,k,QRHO) = max(qm_core(i+1,j,k,QRHO), small_dens)
+                   qm_core(i+1,j,k,QPRES) = qm_core(i+1,j,k,QPRES) + sourcp
+                   qm_core(i+1,j,k,QREINT) = qm_core(i+1,j,k,QREINT) + source
                 end if
 
                 if (i >= vlo(1)) then
-                   qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
-                   qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
-                   qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
-                   qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source
+                   qp_core(i,j,k,QRHO) = qp_core(i,j,k,QRHO) + sourcr
+                   qp_core(i,j,k,QRHO) = max(qp_core(i,j,k,QRHO), small_dens)
+                   qp_core(i,j,k,QPRES) = qp_core(i,j,k,QPRES) + sourcp
+                   qp_core(i,j,k,QREINT) = qp_core(i,j,k,QREINT) + source
                 end if
 
              endif
@@ -1246,16 +1295,26 @@ contains
 
 
   subroutine trace_ppm_temp(lo, hi, &
-                            idir, q, qd_lo, qd_hi, &
+                            idir, &
+                            q_core, qc_lo, qc_hi, &
+                            q_pass, qp_lo, qp_hi, &
                             qaux, qa_lo, qa_hi, &
-                            Ip, Ip_lo, Ip_hi, &
-                            Im, Im_lo, Im_hi, &
-                            Ip_src, Ips_lo, Ips_hi, &
-                            Im_src, Ims_lo, Ims_hi, &
+                            Ip_core, Icp_lo, Icp_hi, &
+                            Im_core, Icm_lo, Icm_hi, &
+                            Ip_pass, Ipp_lo, Ipp_hi, &
+                            Im_pass, Ipm_lo, Ipm_hi, &
+                            Ip_core_src, Icsp_lo, Icsp_hi, &
+                            Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                            Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                            Im_pass_src, Ipsm_lo, Ipsm_hi, &
+#endif
                             Ip_gc, Ipg_lo, Ipg_hi, &
                             Im_gc, Img_lo, Img_hi, &
-                            qm, qm_lo, qm_hi, &
-                            qp, qp_lo, qp_hi, &
+                            qm_core, qcm_lo, qcm_hi, &
+                            qp_core, qcp_lo, qcp_hi, &
+                            qm_pass, qpm_lo, qpm_hi, &
+                            qp_pass, qpp_lo, qpp_hi, &
 #if (AMREX_SPACEDIM < 3)
                             dloga, dloga_lo, dloga_hi, &
 #endif
@@ -1278,16 +1337,30 @@ contains
     implicit none
 
     integer, intent(in) :: idir
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qc_lo(3), qc_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
+
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
-    integer, intent(in) :: Im_lo(3), Im_hi(3)
-    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
-    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
+
+    integer, intent(in) :: Icp_lo(3), Icp_hi(3)
+    integer, intent(in) :: Icm_lo(3), Icm_hi(3)
+    integer, intent(in) :: Ipp_lo(3), Ipp_hi(3)
+    integer, intent(in) :: Ipm_lo(3), Ipm_hi(3)
+
+    integer, intent(in) :: Icsp_lo(3), Icsp_hi(3)
+    integer, intent(in) :: Icsm_lo(3), Icsm_hi(3)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    integer, intent(in) :: Ipsp_lo(3), Ipsp_hi(3)
+    integer, intent(in) :: Ipsm_lo(3), Ipsm_hi(3)
+#endif
+
     integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
     integer, intent(in) :: Img_lo(3), Img_hi(3)
+
+    integer, intent(in) :: qcm_lo(3), qcm_hi(3)
+    integer, intent(in) :: qcp_lo(3), qcp_hi(3)
+    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
+    integer, intent(in) :: qpp_lo(3), qpp_hi(3)
 
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
@@ -1296,20 +1369,31 @@ contains
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(in) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
+    real(rt), intent(in) :: q_pass(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
 
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Ip_core(Icp_lo(1):Icp_hi(1),Icp_lo(2):Icp_hi(2),Icp_lo(3):Icp_hi(3),1:3,NQC)
+    real(rt), intent(in) :: Im_core(Icm_lo(1):Icm_hi(1),Icm_lo(2):Icm_hi(2),Icm_lo(3):Icm_hi(3),1:3,NQC)
+    real(rt), intent(in) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),1:3,NQP)
+    real(rt), intent(in) :: Im_pass(Ipm_lo(1):Ipm_hi(1),Ipm_lo(2):Ipm_hi(2),Ipm_lo(3):Ipm_hi(3),1:3,NQP)
+
+    real(rt), intent(in) :: Ip_core_src(Icsp_lo(1):Icsp_hi(1),Icsp_lo(2):Icsp_hi(2),Icsp_lo(3):Icsp_hi(3),1:3,NQC_SRC)
+    real(rt), intent(in) :: Im_core_src(Icsm_lo(1):Icsm_hi(1),Icsm_lo(2):Icsm_hi(2),Icsm_lo(3):Icsm_hi(3),1:3,NQC_SRC)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    real(rt), intent(in) :: Ip_pass_src(Ipsp_lo(1):Ipsp_hi(1),Ipsp_lo(2):Ipsp_hi(2),Ipsp_lo(3):Ipsp_hi(3),1:3,NQP_SRC)
+    real(rt), intent(in) :: Im_pass_src(Ipsm_lo(1):Ipsm_hi(1),Ipsm_lo(2):Ipsm_hi(2),Ipsm_lo(3):Ipsm_hi(3),1:3,NQP_SRC)
+#endif
 
     real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
     real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
 
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(inout) :: qm_core(qcm_lo(1):qcm_hi(1),qcm_lo(2):qcm_hi(2),qcm_lo(3):qcm_hi(3),NQC)
+    real(rt), intent(inout) :: qp_core(qcp_lo(1):qcp_hi(1),qcp_lo(2):qcp_hi(2),qcp_lo(3):qcp_hi(3),NQC)
+    real(rt), intent(in) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP)
+    real(rt), intent(in) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP)
+
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
@@ -1422,22 +1506,22 @@ contains
 
              gfactor = ONE ! to help compiler resolve ANTI dependence
 
-             rho = q(i,j,k,QRHO)
+             rho = q_core(i,j,k,QRHO)
 
              cc = qaux(i,j,k,QC)
              csq = cc**2
              Clag = rho*cc
 
-             un = q(i,j,k,QUN)
-             ut = q(i,j,k,QUT)
-             utt = q(i,j,k,QUTT)
+             un = q_core(i,j,k,QUN)
+             ut = q_core(i,j,k,QUT)
+             utt = q_core(i,j,k,QUTT)
 
-             p = q(i,j,k,QPRES)
-             rhoe_g = q(i,j,k,QREINT)
-             temp = q(i,j,k,QTEMP)
+             p = q_core(i,j,k,QPRES)
+             rhoe_g = q_core(i,j,k,QREINT)
+             temp = q_core(i,j,k,QTEMP)
 
              gam_g = qaux(i,j,k,QGAMC)
-             game = q(i,j,k,QGAME)
+             game = q_core(i,j,k,QGAME)
 
 
              !-------------------------------------------------------------------
@@ -1452,16 +1536,16 @@ contains
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
                 ! Woodward use
-                rho_ref  = Im(i,j,k,1,QRHO)
-                un_ref    = Im(i,j,k,1,QUN)
+                rho_ref  = Im_core(i,j,k,1,QRHO)
+                un_ref    = Im_core(i,j,k,1,QUN)
 
-                p_ref    = Im(i,j,k,1,QPRES)
-                temp_ref = Im(i,j,k,1,QTEMP)
+                p_ref    = Im_core(i,j,k,1,QPRES)
+                temp_ref = Im_core(i,j,k,1,QTEMP)
 
-                tau_ref  = ONE/Im(i,j,k,1,QRHO)
+                tau_ref  = ONE/Im_core(i,j,k,1,QRHO)
 
                 gam_g_ref  = Im_gc(i,j,k,1,1)
-                game_ref = Im(i,j,k,1,QGAME)
+                game_ref = Im_core(i,j,k,1,QGAME)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -1476,26 +1560,26 @@ contains
 
 
                 ! we also add the sources here so they participate in the tracing
-                dum = un_ref - Im(i,j,k,1,QUN) - hdt*Im_src(i,j,k,1,QUN)
-                dptotm = p_ref - Im(i,j,k,1,QPRES) - hdt*Im_src(i,j,k,1,QPRES)
+                dum = un_ref - Im_core(i,j,k,1,QUN) - hdt*Im_core_src(i,j,k,1,QUN)
+                dptotm = p_ref - Im_core(i,j,k,1,QPRES) - hdt*Im_core_src(i,j,k,1,QPRES)
 
-                drho = rho_ref - Im(i,j,k,2,QRHO) - hdt*Im_src(i,j,k,2,QRHO)
-                dptot = p_ref - Im(i,j,k,2,QPRES) - hdt*Im_src(i,j,k,2,QPRES)
+                drho = rho_ref - Im_core(i,j,k,2,QRHO) - hdt*Im_core_src(i,j,k,2,QRHO)
+                dptot = p_ref - Im_core(i,j,k,2,QPRES) - hdt*Im_core_src(i,j,k,2,QPRES)
 
                 ! TODO: need to figure sources for this out...
-                dTm = temp_ref - Im(i,j,k,1,QTEMP)
-                dT0 = temp_ref - Im(i,j,k,2,QTEMP)
-                dTp = temp_ref - Im(i,j,k,3,QTEMP)
+                dTm = temp_ref - Im_core(i,j,k,1,QTEMP)
+                dT0 = temp_ref - Im_core(i,j,k,2,QTEMP)
+                dTp = temp_ref - Im_core(i,j,k,3,QTEMP)
 
                 ! we are treating tau as 1/rho, but we could have reconstructed
                 ! it separately
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtaum = tau_ref - ONE/Im(i,j,k,1,QRHO) + hdt*Im_src(i,j,k,1,QRHO)/Im(i,j,k,1,QRHO)**2
-                dtau  = tau_ref - ONE/Im(i,j,k,2,QRHO) + hdt*Im_src(i,j,k,2,QRHO)/Im(i,j,k,2,QRHO)**2
-                dtaup = tau_ref - ONE/Im(i,j,k,3,QRHO) + hdt*Im_src(i,j,k,3,QRHO)/Im(i,j,k,3,QRHO)**2
+                dtaum = tau_ref - ONE/Im_core(i,j,k,1,QRHO) + hdt*Im_core_src(i,j,k,1,QRHO)/Im_core(i,j,k,1,QRHO)**2
+                dtau  = tau_ref - ONE/Im_core(i,j,k,2,QRHO) + hdt*Im_core_src(i,j,k,2,QRHO)/Im_core(i,j,k,2,QRHO)**2
+                dtaup = tau_ref - ONE/Im_core(i,j,k,3,QRHO) + hdt*Im_core_src(i,j,k,3,QRHO)/Im_core(i,j,k,3,QRHO)**2
 
-                dup = un_ref - Im(i,j,k,3,QUN) - hdt*Im_src(i,j,k,3,QUN)
-                dptotp = p_ref - Im(i,j,k,3,QPRES) - hdt*Im_src(i,j,k,3,QPRES)
+                dup = un_ref - Im_core(i,j,k,3,QUN) - hdt*Im_core_src(i,j,k,3,QUN)
+                dptotp = p_ref - Im_core(i,j,k,3,QPRES) - hdt*Im_core_src(i,j,k,3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -1521,8 +1605,8 @@ contains
                 ! eos to get some thermodynamics
                 eos_state%T = temp_ev
                 eos_state%rho = rho_ev
-                eos_state%xn(:) = q(i,j,k,QFS:QFS-1+nspec)
-                eos_state%aux(:) = q(i,j,k,QFX:QFX-1+naux)
+                eos_state%xn(:) = q_pass(i,j,k,QFS:QFS-1+nspec)
+                eos_state%aux(:) = q_pass(i,j,k,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
@@ -1558,14 +1642,14 @@ contains
                 ! q_s = q_ref - sum(l . dq) r
                 ! note that the a{mpz}right as defined above have the minus already
                 tau_s = tau_ref + alphap + alpham + alpha0r
-                qp(i,j,k,QRHO) = max(small_dens, ONE/tau_s)
+                qp_core(i,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                qp(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                qp(i,j,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                qp_core(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                qp_core(i,j,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                      rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
                 ! we defer getting the pressure until later, once we do the species
-                qp(i,j,k,QPRES) = small_pres ! just to make it defined
+                qp_core(i,j,k,QPRES) = small_pres ! just to make it defined
 
                 ! Transverse velocities -- there's no projection here, so
                 ! we don't need a reference state.  We only care about
@@ -1574,8 +1658,8 @@ contains
                 ! Recall that I already takes the limit of the parabola
                 ! in the event that the wave is not moving toward the
                 ! interface
-                qp(i,j,k,QUT) = Im(i,j,k,2,QUT) + hdt*Im_src(i,j,k,2,QUT)
-                qp(i,j,k,QUTT) = Im(i,j,k,2,QUTT) + hdt*Im_src(i,j,k,2,QUTT)
+                qp_core(i,j,k,QUT) = Im_core(i,j,k,2,QUT) + hdt*Im_core_src(i,j,k,2,QUT)
+                qp_core(i,j,k,QUTT) = Im_core(i,j,k,2,QUTT) + hdt*Im_core_src(i,j,k,2,QUTT)
 
              end if
 
@@ -1589,16 +1673,16 @@ contains
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,3,QRHO)
-                un_ref    = Ip(i,j,k,3,QUN)
+                rho_ref  = Ip_core(i,j,k,3,QRHO)
+                un_ref    = Ip_core(i,j,k,3,QUN)
 
-                p_ref    = Ip(i,j,k,3,QPRES)
-                temp_ref = Ip(i,j,k,3,QTEMP)
+                p_ref    = Ip_core(i,j,k,3,QPRES)
+                temp_ref = Ip_core(i,j,k,3,QTEMP)
 
-                tau_ref  = ONE/Ip(i,j,k,3,QRHO)
+                tau_ref  = ONE/Ip_core(i,j,k,3,QRHO)
 
                 gam_g_ref  = Ip_gc(i,j,k,3,1)
-                game_ref = Ip(i,j,k,3,QGAME)
+                game_ref = Ip_core(i,j,k,3,QGAME)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -1611,23 +1695,23 @@ contains
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
 
-                dum = un_ref - Ip(i,j,k,1,QUN) - hdt*Ip_src(i,j,k,1,QUN)
-                dptotm  = p_ref - Ip(i,j,k,1,QPRES) - hdt*Ip_src(i,j,k,1,QPRES)
+                dum = un_ref - Ip_core(i,j,k,1,QUN) - hdt*Ip_core_src(i,j,k,1,QUN)
+                dptotm  = p_ref - Ip_core(i,j,k,1,QPRES) - hdt*Ip_core_src(i,j,k,1,QPRES)
 
-                drho = rho_ref - Ip(i,j,k,2,QRHO) - hdt*Ip_src(i,j,k,2,QRHO)
-                dptot = p_ref - Ip(i,j,k,2,QPRES) - hdt*Ip_src(i,j,k,2,QPRES)
+                drho = rho_ref - Ip_core(i,j,k,2,QRHO) - hdt*Ip_core_src(i,j,k,2,QRHO)
+                dptot = p_ref - Ip_core(i,j,k,2,QPRES) - hdt*Ip_core_src(i,j,k,2,QPRES)
 
-                dTm = temp_ref - Ip(i,j,k,1,QTEMP)
-                dT0 = temp_ref - Ip(i,j,k,2,QTEMP)
-                dTp = temp_ref - Ip(i,j,k,3,QTEMP)
+                dTm = temp_ref - Ip_core(i,j,k,1,QTEMP)
+                dT0 = temp_ref - Ip_core(i,j,k,2,QTEMP)
+                dTp = temp_ref - Ip_core(i,j,k,3,QTEMP)
 
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtaum = tau_ref - ONE/Ip(i,j,k,1,QRHO) + hdt*Ip_src(i,j,k,1,QRHO)/Ip(i,j,k,1,QRHO)**2
-                dtau = tau_ref - ONE/Ip(i,j,k,2,QRHO) + hdt*Ip_src(i,j,k,2,QRHO)/Ip(i,j,k,2,QRHO)**2
-                dtaup = tau_ref - ONE/Ip(i,j,k,3,QRHO) + hdt*Ip_src(i,j,k,3,QRHO)/Ip(i,j,k,3,QRHO)**2
+                dtaum = tau_ref - ONE/Ip_core(i,j,k,1,QRHO) + hdt*Ip_core_src(i,j,k,1,QRHO)/Ip_core(i,j,k,1,QRHO)**2
+                dtau = tau_ref - ONE/Ip_core(i,j,k,2,QRHO) + hdt*Ip_core_src(i,j,k,2,QRHO)/Ip_core(i,j,k,2,QRHO)**2
+                dtaup = tau_ref - ONE/Ip_core(i,j,k,3,QRHO) + hdt*Ip_core_src(i,j,k,3,QRHO)/Ip_core(i,j,k,3,QRHO)**2
 
-                dup = un_ref - Ip(i,j,k,3,QUN) - hdt*Ip_src(i,j,k,3,QUN)
-                dptotp = p_ref - Ip(i,j,k,3,QPRES) - hdt*Ip_src(i,j,k,3,QPRES)
+                dup = un_ref - Ip_core(i,j,k,3,QUN) - hdt*Ip_core_src(i,j,k,3,QUN)
+                dptotp = p_ref - Ip_core(i,j,k,3,QPRES) - hdt*Ip_core_src(i,j,k,3,QPRES)
 
                 ! Optionally use the reference state in evaluating the
                 ! eigenvectors
@@ -1652,8 +1736,8 @@ contains
                 ! eos to get some thermodynamics
                 eos_state%T = temp_ev
                 eos_state%rho = rho_ev
-                eos_state%xn(:) = q(i,j,k,QFS:QFS-1+nspec)
-                eos_state%aux(:) = q(i,j,k,QFX:QFX-1+naux)
+                eos_state%xn(:) = q_pass(i,j,k,QFS:QFS-1+nspec)
+                eos_state%aux(:) = q_pass(i,j,k,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
@@ -1691,51 +1775,51 @@ contains
                 ! note that the a{mpz}left as defined above have the minus already
                 if (idir == 1) then
                    tau_s = tau_ref + alphap + alpham + alpha0r
-                   qm(i+1,j,k,QRHO) = max(small_dens, ONE/tau_s)
+                   qm_core(i+1,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i+1,j,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                   qm_core(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm_core(i+1,j,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                         rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
                    ! we defer getting the pressure until later, once
                    ! we do the species
-                   qm(i+1,j,k,QPRES) = small_pres ! just to make it defined
+                   qm_core(i+1,j,k,QPRES) = small_pres ! just to make it defined
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i+1,j,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i+1,j,k,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i+1,j,k,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 else if (idir == 2) then
                    tau_s = tau_ref + alphap + alpham + alpha0r
-                   qm(i,j+1,k,QRHO) = max(small_dens, ONE/tau_s)
+                   qm_core(i,j+1,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j+1,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                   qm_core(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm_core(i,j+1,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                         rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
                    ! we defer getting the pressure until later, once
                    ! we do the species
-                   qm(i,j+1,k,QPRES) = small_pres ! just to make it defined
+                   qm_core(i,j+1,k,QPRES) = small_pres ! just to make it defined
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i,j+1,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i,j+1,k,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i,j+1,k,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 else if (idir == 3) then
                    tau_s = tau_ref + alphap + alpham + alpha0r
-                   qm(i,j,k+1,QRHO) = max(small_dens, ONE/tau_s)
+                   qm_core(i,j,k+1,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j,k+1,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
+                   qm_core(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ev
+                   qm_core(i,j,k+1,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
                         rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
 
                    ! we defer getting the pressure until later, once
                    ! we do the species
-                   qm(i,j,k+1,QPRES) = small_pres ! just to make it defined
+                   qm_core(i,j,k+1,QPRES) = small_pres ! just to make it defined
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i,j,k+1,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i,j,k+1,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i,j,k+1,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 endif
 
@@ -1757,17 +1841,17 @@ contains
                 source = sourcp*h_g
 
                 if (i <= vhi(1)) then
-                   qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr
-                   qm(i+1,j,k,QRHO) = max(qm(i+1,j,k,QRHO), small_dens)
-                   qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp
-                   qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
+                   qm_core(i+1,j,k,QRHO) = qm_core(i+1,j,k,QRHO) + sourcr
+                   qm_core(i+1,j,k,QRHO) = max(qm_core(i+1,j,k,QRHO), small_dens)
+                   qm_core(i+1,j,k,QPRES) = qm_core(i+1,j,k,QPRES) + sourcp
+                   qm_core(i+1,j,k,QREINT) = qm_core(i+1,j,k,QREINT) + source
                 end if
 
                 if (i >= vlo(1)) then
-                   qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr
-                   qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
-                   qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp
-                   qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source
+                   qp_core(i,j,k,QRHO) = qp_core(i,j,k,QRHO) + sourcr
+                   qp_core(i,j,k,QRHO) = max(qp_core(i,j,k,QRHO), small_dens)
+                   qp_core(i,j,k,QPRES) = qp_core(i,j,k,QPRES) + sourcp
+                   qp_core(i,j,k,QREINT) = qp_core(i,j,k,QREINT) + source
                 end if
 
              endif
@@ -1787,57 +1871,57 @@ contains
                  (idir == 3 .and. k >= vlo(3))) then
 
                 ! plus face
-                eos_state%T     = qp(i,j,k,QTEMP)
-                eos_state%rho   = qp(i,j,k,QRHO)
-                eos_state%xn(:) = qp(i,j,k,QFS:QFS-1+nspec)
-                eos_state%aux(:) = qp(i,j,k,QFX:QFX-1+naux)
+                eos_state%T     = qp_core(i,j,k,QTEMP)
+                eos_state%rho   = qp_core(i,j,k,QRHO)
+                eos_state%xn(:) = qp_pass(i,j,k,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qp_pass(i,j,k,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
-                qp(i,j,k,QPRES) = eos_state%p
-                qp(i,j,k,QREINT) = qp(i,j,k,QRHO)*eos_state%e
+                qp_core(i,j,k,QPRES) = eos_state%p
+                qp_core(i,j,k,QREINT) = qp_core(i,j,k,QRHO)*eos_state%e
 
-                qp(i,j,k,QPRES) = max(qp(i,j,k,QPRES), small_pres)
+                qp_core(i,j,k,QPRES) = max(qp_core(i,j,k,QPRES), small_pres)
              end if
 
              if (idir == 1 .and. i <= vhi(1)) then
 
                 ! minus face
-                eos_state%T     = qm(i+1,j,k,QTEMP)
-                eos_state%rho   = qm(i+1,j,k,QRHO)
-                eos_state%xn(:) = qm(i+1,j,k,QFS:QFS-1+nspec)
-                eos_state%aux(:) = qm(i+1,j,k,QFX:QFX-1+naux)
+                eos_state%T     = qm_core(i+1,j,k,QTEMP)
+                eos_state%rho   = qm_core(i+1,j,k,QRHO)
+                eos_state%xn(:) = qm_pass(i+1,j,k,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qm_pass(i+1,j,k,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
-                qm(i+1,j,k,QPRES) = max(small_pres, eos_state%p)
-                qm(i+1,j,k,QREINT) = qm(i+1,j,k,QRHO)*eos_state%e
+                qm_core(i+1,j,k,QPRES) = max(small_pres, eos_state%p)
+                qm_core(i+1,j,k,QREINT) = qm_core(i+1,j,k,QRHO)*eos_state%e
 
              else if (idir == 2 .and. j <= vhi(2)) then
 
                 ! minus face
-                eos_state%T     = qm(i,j+1,k,QTEMP)
-                eos_state%rho   = qm(i,j+1,k,QRHO)
-                eos_state%xn(:) = qm(i,j+1,k,QFS:QFS-1+nspec)
-                eos_state%aux(:) = qm(i,j+1,k,QFX:QFX-1+naux)
+                eos_state%T     = qm_core(i,j+1,k,QTEMP)
+                eos_state%rho   = qm_core(i,j+1,k,QRHO)
+                eos_state%xn(:) = qm_pass(i,j+1,k,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qm_pass(i,j+1,k,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
-                qm(i,j+1,k,QPRES) = max(small_pres, eos_state%p)
-                qm(i,j+1,k,QREINT) = qm(i,j+1,k,QRHO)*eos_state%e
+                qm_core(i,j+1,k,QPRES) = max(small_pres, eos_state%p)
+                qm_core(i,j+1,k,QREINT) = qm_core(i,j+1,k,QRHO)*eos_state%e
 
              else if (idir == 3 .and. k <= vhi(3)) then
 
                 ! minus face
-                eos_state%T     = qm(i,j,k+1,QTEMP)
-                eos_state%rho   = qm(i,j,k+1,QRHO)
-                eos_state%xn(:) = qm(i,j,k+1,QFS:QFS-1+nspec)
-                eos_state%aux(:) = qm(i,j,k+1,QFX:QFX-1+naux)
+                eos_state%T     = qm_core(i,j,k+1,QTEMP)
+                eos_state%rho   = qm_core(i,j,k+1,QRHO)
+                eos_state%xn(:) = qm_pass(i,j,k+1,QFS:QFS-1+nspec)
+                eos_state%aux(:) = qm_pass(i,j,k+1,QFX:QFX-1+naux)
 
                 call eos(eos_input_rt, eos_state)
 
-                qm(i,j,k+1,QPRES) = max(small_pres, eos_state%p)
-                qm(i,j,k+1,QREINT) = qm(i,j,k+1,QRHO)*eos_state%e
+                qm_core(i,j,k+1,QPRES) = max(small_pres, eos_state%p)
+                qm_core(i,j,k+1,QREINT) = qm_core(i,j,k+1,QRHO)*eos_state%e
 
              end if
 
