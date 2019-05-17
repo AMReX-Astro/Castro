@@ -42,7 +42,7 @@ def process(castro_exec_dir, plotfile):
     os.system("./{} -s {} {}".format(os.path.basename(analysis_routine), "sod_slice.out", plotfile))
 
 
-    analytic = castro_exec_dir + "Exec/hydro_tests/Sod/Verification/sod-exact.out"
+    analytic = os.path.join(castro_exec_dir, "Exec/hydro_tests/Sod/Verification/sod-exact.out")
     analytic_data = np.loadtxt(analytic)
 
     # need to be more flexible with the data from the simulations, as the
@@ -87,7 +87,7 @@ def process(castro_exec_dir, plotfile):
     plt.subplot(414)
 
     plt.plot(analytic_data[:,0], analytic_data[:,4])
-    plt.scatter(data["x"], data["rhoe"]/data["rho"], marker="+", color="r")
+    plt.scatter(data["x"], data["rho_e"]/data["density"], marker="+", color="r")
 
     plt.xlabel("x")
     plt.ylabel("internal energy")
