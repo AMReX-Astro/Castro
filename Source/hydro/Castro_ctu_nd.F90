@@ -668,7 +668,7 @@ contains
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
                                    plm_iorder, use_pslope, hybrid_riemann
-    use trace_plm_module, only : trace_plm
+    use trace_plm_module, only : trace_plm, trace_plm_passive
     use slope_module, only : uslope, pslope
     use advection_util_module, only : ca_shock
     use prob_params_module, only : dg

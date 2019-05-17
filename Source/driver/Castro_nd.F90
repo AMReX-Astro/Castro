@@ -657,18 +657,22 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 
   call ca_set_auxiliary_indices()
 
-  call ca_set_primitive_indices( &
+  call ca_set_primitive_core_indices( &
 #ifdef MHD
        QMAGX_in, QMAGY_in, QMAGZ_in, &
-#endif
-#ifdef RADIATION
-       QPTOT_in, QREITOT_in, QRAD_in, &
 #endif
        QRHO_in, &
        QU_in, QV_in, QW_in, &
        QGAME_in, QGC_in, QPRES_in, QREINT_in, &
-       QTEMP_in, &
+       QTEMP_in)
+
+  call ca_set_primitive_pass_indices( &
        QFA_in, QFS_in, QFX_in)
+
+#ifdef RADIATION
+  call ca_set_primitive_rad_indices( &
+       QPTOT_in, QREITOT_in, QRAD_in)
+#endif
 
   ! sanity check
 #ifndef AMREX_USE_CUDA

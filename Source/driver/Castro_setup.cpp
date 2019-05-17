@@ -242,7 +242,9 @@ Castro::variableSetUp ()
   // Get the number of primitive variables from Fortran.
   ca_get_nqc(&NQC);
   ca_get_nqp(&NQP);
+#ifdef RADIATION
   ca_get_nqr(&NQR);
+#endif
 
   // and the auxiliary variables
   ca_get_nqaux(&NQAUX);

@@ -35,7 +35,9 @@ extern "C"
 
   void ca_get_nqc(int* nqc);
   void ca_get_nqp(int* nqp);
+#ifdef RADIATION
   void ca_get_nqr(int* nqr);
+#endif
 
   void ca_get_nqaux(int* nqaux);
 
