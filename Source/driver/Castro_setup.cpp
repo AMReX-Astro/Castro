@@ -592,23 +592,48 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      for (int i = 0; i < NQSRC; ++i) {
-          char buf[64];
-          sprintf(buf, "sdc_react_source_%d", i);
-          set_scalar_bc(bc,phys_bc);
 
-          // Replace inflow BCs with FOEXTRAP.
+    // core primitive variables
+    for (int i = 0; i < NQC_SRC; ++i) {
+      char buf[64];
+      sprintf(buf, "sdc_react_source_core_%d", i);
+      set_scalar_bc(bc, phys_bc);
 
-          for (int j = 0; j < AMREX_SPACEDIM; ++j) {
-              if (bc.lo(j) == EXT_DIR)
-                  bc.setLo(j, FOEXTRAP);
+      // Replace inflow BCs with FOEXTRAP.
 
-              if (bc.hi(j) == EXT_DIR)
-                  bc.setHi(j, FOEXTRAP);
-          }
+      for (int j = 0; j < AMREX_SPACEDIM; ++j) {
+        if (bc.lo(j) == EXT_DIR)
+          bc.setLo(j, FOEXTRAP);
 
-          desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
+        if (bc.hi(j) == EXT_DIR)
+          bc.setHi(j, FOEXTRAP);
       }
+
+      desc_lst.setComponent(Simplified_SDC_React_Core_Type, i, std::string(buf),
+                            bc, BndryFunc(ca_generic_single_fill));
+    }
+
+    // passive primitive variables
+    for (int i = 0; i < NQP_SRC; ++i) {
+      char buf[64];
+      sprintf(buf, "sdc_react_source_pass_%d", i);
+      set_scalar_bc(bc, phys_bc);
+
+      // Replace inflow BCs with FOEXTRAP.
+
+      for (int j = 0; j < AMREX_SPACEDIM; ++j) {
+        if (bc.lo(j) == EXT_DIR)
+          bc.setLo(j, FOEXTRAP);
+
+        if (bc.hi(j) == EXT_DIR)
+          bc.setHi(j, FOEXTRAP);
+      }
+
+      desc_lst.setComponent(Simplified_SDC_React_Pass_Type, i, std::string(buf),
+                            bc, BndryFunc(ca_generic_single_fill));
+    }
+
+
   }
 #endif
 

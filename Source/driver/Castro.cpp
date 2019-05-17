@@ -628,8 +628,11 @@ Castro::Castro (Amr&            papa,
    // Initialize reactions source term to zero.
 
    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-       MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
-       react_src_new.setVal(0.0, NUM_GROW);
+       MultiFab& react_src_core_new = get_new_data(Simplified_SDC_React_Core_Type);
+       react_src_core_new.setVal(0.0, NUM_GROW);
+
+       MultiFab& react_src_pass_new = get_new_data(Simplified_SDC_React_Pass_Type);
+       react_src_pass_new.setVal(0.0, NUM_GROW);
    }
 #endif
 
@@ -995,8 +998,11 @@ Castro::initData ()
 
 #ifdef REACTIONS
    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-       MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
-       react_src_new.setVal(0.0, NUM_GROW);
+       MultiFab& react_src_core_new = get_new_data(Simplified_SDC_React_Core_Type);
+       react_src_core_new.setVal(0.0, NUM_GROW);
+
+       MultiFab& react_src_pass_new = get_new_data(Simplified_SDC_React_Pass_Type);
+       react_src_pass_new.setVal(0.0, NUM_GROW);
    }
 #endif
 
@@ -2820,7 +2826,8 @@ Castro::avgDown ()
 
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      avgDown(Simplified_SDC_React_Type);
+      avgDown(Simplified_SDC_React_Core_Type);
+      avgDown(Simplified_SDC_React_Pass_Type);
   }
 #endif
 
@@ -3538,7 +3545,7 @@ Castro::swap_state_time_levels(const Real dt)
 
 #ifdef REACTIONS
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-            if (k == Simplified_SDC_React_Type) {
+            if (k == Simplified_SDC_React_Core_Type || k == Simplified_SDC_React_Pass_Type) {
                 state[k].swapTimeLevels(0.0);
             }
         }
