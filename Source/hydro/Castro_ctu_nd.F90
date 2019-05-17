@@ -631,19 +631,19 @@ contains
                             dq_core, dqc_lo, dqc_hi, &
                             dq_pass, dqp_lo, dqp_hi, &
                             qxm_core, qxmc_lo, qxmc_hi, &
-                            qxm_pass, qxmp_lo, qxmp_hi, &
                             qxp_core, qxpc_lo, qxpc_hi, &
+                            qxm_pass, qxmp_lo, qxmp_hi, &
                             qxp_pass, qxpp_lo, qxpp_hi, &
 #if AMREX_SPACEDIM >= 2
                             qym_core, qymc_lo, qymc_hi, &
-                            qym_pass, qymp_lo, qymp_hi, &
                             qyp_core, qypc_lo, qypc_hi, &
+                            qym_pass, qymp_lo, qymp_hi, &
                             qyp_pass, qypp_lo, qypp_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
                             qzm_core, qzmc_lo, qzmc_hi, &
-                            qzm_pass, qzmp_lo, qzmp_hi, &
                             qzp_core, qzpc_lo, qzpc_hi, &
+                            qzm_pass, qzmp_lo, qzmp_hi, &
                             qzp_pass, qzpp_lo, qzpp_hi, &
 #endif
                             dx, dt, &

@@ -333,19 +333,19 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(dq_core),
                        BL_TO_FORTRAN_ANYD(dq_pass),
                        BL_TO_FORTRAN_ANYD(qxm_core),
-                       BL_TO_FORTRAN_ANYD(qxm_pass),
                        BL_TO_FORTRAN_ANYD(qxp_core),
+                       BL_TO_FORTRAN_ANYD(qxm_pass),
                        BL_TO_FORTRAN_ANYD(qxp_pass),
 #if AMREX_SPACEDIM >= 2
                        BL_TO_FORTRAN_ANYD(qym_core),
-                       BL_TO_FORTRAN_ANYD(qym_pass),
                        BL_TO_FORTRAN_ANYD(qyp_core),
+                       BL_TO_FORTRAN_ANYD(qym_pass),
                        BL_TO_FORTRAN_ANYD(qyp_pass),
 #endif
 #if AMREX_SPACEDIM == 3
                        BL_TO_FORTRAN_ANYD(qzm_core),
-                       BL_TO_FORTRAN_ANYD(qzm_pass),
                        BL_TO_FORTRAN_ANYD(qzp_core),
+                       BL_TO_FORTRAN_ANYD(qzm_pass),
                        BL_TO_FORTRAN_ANYD(qzp_pass),
 #endif
                        AMREX_REAL_ANYD(dx), dt,
@@ -372,14 +372,16 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         Ip_core_src.resize(obx, 3*NQC_SRC);
         Elixir elix_Ip_core_src = Ip_core_src.elixir();
 
-        Ip_pass_src.resize(obx, 3*NQP_SRC);
-        Elixir elix_Ip_pass_src = Ip_pass_src.elixir();
-
         Im_core_src.resize(obx, 3*NQC_SRC);
         Elixir elix_Im_core_src = Im_core_src.elixir();
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+        Ip_pass_src.resize(obx, 3*NQP_SRC);
+        Elixir elix_Ip_pass_src = Ip_pass_src.elixir();
+
         Im_pass_src.resize(obx, 3*NQP_SRC);
         Elixir elix_Im_pass_src = Im_pass_src.elixir();
+#endif
 
         Ip_gc.resize(obx, 3);
         Elixir elix_Ip_gc = Ip_gc.elixir();
@@ -398,6 +400,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                        BL_TO_FORTRAN_ANYD(q_core[mfi]),
                        BL_TO_FORTRAN_ANYD(q_pass[mfi]),
+#ifdef RADIATION
+                       BL_TO_FORTRAN_ANYD(q_rad[mfi]),
+#endif
                        BL_TO_FORTRAN_ANYD(flatn),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
                        BL_TO_FORTRAN_ANYD(q_core_src[mfi]),
@@ -406,15 +411,17 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                        BL_TO_FORTRAN_ANYD(shk),
                        BL_TO_FORTRAN_ANYD(Ip_core),
-                       BL_TO_FORTRAN_ANYD(Ip_pass),
                        BL_TO_FORTRAN_ANYD(Im_core),
+                       BL_TO_FORTRAN_ANYD(Ip_pass),
                        BL_TO_FORTRAN_ANYD(Im_pass),
-                       BL_TO_FORTRAN_ANYD(Ip_core_src),
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-                       BL_TO_FORTRAN_ANYD(Ip_pass_src),
+#ifdef RADIATION
+                       BL_TO_FORTRAN_ANYD(Ip_rad),
+                       BL_TO_FORTRAN_ANYD(Im_rad),
 #endif
+                       BL_TO_FORTRAN_ANYD(Ip_core_src),
                        BL_TO_FORTRAN_ANYD(Im_core_src),
 #ifdef PRIM_SPECIES_HAVE_SOURCES
+                       BL_TO_FORTRAN_ANYD(Ip_pass_src),
                        BL_TO_FORTRAN_ANYD(Im_pass_src),
 #endif
                        BL_TO_FORTRAN_ANYD(Ip_gc),
@@ -422,20 +429,32 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(sm),
                        BL_TO_FORTRAN_ANYD(sp),
                        BL_TO_FORTRAN_ANYD(qxm_core),
-                       BL_TO_FORTRAN_ANYD(qxm_pass),
                        BL_TO_FORTRAN_ANYD(qxp_core),
+                       BL_TO_FORTRAN_ANYD(qxm_pass),
                        BL_TO_FORTRAN_ANYD(qxp_pass),
+#ifdef RADIATION
+                       BL_TO_FORTRAN_ANYD(qxm_rad),
+                       BL_TO_FORTRAN_ANYD(qxp_rad),
+#endif
 #if AMREX_SPACEDIM >= 2
                        BL_TO_FORTRAN_ANYD(qym_core),
-                       BL_TO_FORTRAN_ANYD(qym_pass),
                        BL_TO_FORTRAN_ANYD(qyp_core),
+                       BL_TO_FORTRAN_ANYD(qym_pass),
                        BL_TO_FORTRAN_ANYD(qyp_pass),
+#ifdef RADIATION
+                       BL_TO_FORTRAN_ANYD(qym_rad),
+                       BL_TO_FORTRAN_ANYD(qyp_rad),
+#endif
 #endif
 #if AMREX_SPACEDIM == 3
                        BL_TO_FORTRAN_ANYD(qzm_core),
                        BL_TO_FORTRAN_ANYD(qzm_pass),
                        BL_TO_FORTRAN_ANYD(qzp_core),
                        BL_TO_FORTRAN_ANYD(qzp_pass),
+#ifdef RADIATION
+                       BL_TO_FORTRAN_ANYD(qzp_rad),
+                       BL_TO_FORTRAN_ANYD(qzp_rad),
+#endif
 #endif
                        AMREX_REAL_ANYD(dx), dt,
 #if (AMREX_SPACEDIM < 3)
@@ -516,13 +535,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #pragma gpu box(xbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qxm_core),
+                          BL_TO_FORTRAN_ANYD(qxp_core),
+                          BL_TO_FORTRAN_ANYD(qxp_pass),
                           BL_TO_FORTRAN_ANYD(qxm_pass),
 #ifdef RADIATION
                           BL_TO_FORTRAN_ANYD(qxm_rad),
-#endif
-                          BL_TO_FORTRAN_ANYD(qxp_core),
-                          BL_TO_FORTRAN_ANYD(qxp_pass),
-#ifdef RADIATION
                           BL_TO_FORTRAN_ANYD(qxp_rad),
 #endif
                           1, 1,
