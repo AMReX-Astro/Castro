@@ -14,7 +14,8 @@
 /// @param qaux     MultiFab of auxiliary variables
 /// @param time     Current time
 ///
-    void cons_to_prim(amrex::MultiFab& u, amrex::MultiFab& q, amrex::MultiFab& qaux, const amrex::Real time);
+    void cons_to_prim(amrex::MultiFab& u, amrex::MultiFab& q_core, amrex::MultiFab& q_pass,
+                      amrex::MultiFab& qaux, const amrex::Real time);
 
 ///
 /// convert the conservative state cell averages to primitive cell

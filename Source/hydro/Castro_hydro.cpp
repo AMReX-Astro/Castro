@@ -90,16 +90,18 @@ Castro::cons_to_prim(const Real time)
 
 // Convert a MultiFab with conservative state data u to a primitive MultiFab q.
 void
-Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
+Castro::cons_to_prim(MultiFab& u, MultiFab& q_core_tmp, MultiFab& q_pass_tmp, MultiFab& qaux, Real time)
 {
 
     BL_PROFILE("Castro::cons_to_prim()");
 
     BL_ASSERT(u.nComp() == NUM_STATE);
-    BL_ASSERT(q.nComp() == NQ);
-    BL_ASSERT(u.nGrow() >= q.nGrow());
+    BL_ASSERT(q_core_tmp.nComp() == NQC);
+    BL_ASSERT(q_pass_tmp.nComp() == NQP);
+    BL_ASSERT(u.nGrow() >= q_core_tmp.nGrow());
+    BL_ASSERT(u.nGrow() >= q_pass_tmp.nGrow());
 
-    int ng = q.nGrow();
+    int ng = q_core_tmp.nGrow();
 
 #ifdef RADIATION
     AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
@@ -126,8 +128,8 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),
                    BL_TO_FORTRAN_ANYD(lamborder[mfi]),
 #endif
-		   BL_TO_FORTRAN_ANYD(q_core[mfi]),
-        	   BL_TO_FORTRAN_ANYD(q_pass[mfi]),
+		   BL_TO_FORTRAN_ANYD(q_core_tmp[mfi]),
+        	   BL_TO_FORTRAN_ANYD(q_pass_tmp[mfi]),
 		   BL_TO_FORTRAN_ANYD(qaux[mfi]));
 
     }
