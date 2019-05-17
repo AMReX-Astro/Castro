@@ -3,8 +3,10 @@
 subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                   uin, uin_lo, uin_hi, &
                                   uout, uout_lo, uout_hi, &
-                                  q, q_lo, q_hi, &
-                                  q_bar, q_bar_lo, q_bar_hi, &
+                                  q_core, qc_lo, qc_hi, &
+                                  q_pass, qp_lo, qp_hi, &
+                                  q_core_bar, qc_bar_lo, qc_bar_hi, &
+                                  q_pass_bar, qp_bar_lo, qp_bar_hi, &
                                   qaux, qa_lo, qa_hi, &
                                   qaux_bar, qa_bar_lo, qa_bar_hi, &
                                   srcU, srU_lo, srU_hi, &
@@ -32,12 +34,12 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
                                   verbose) bind(C, name="ca_fourth_single_stage")
 
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
-  use meth_params_module, only : NQ, NVAR, NGDNV, NQAUX, GDPRES, &
-       UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
-       use_flattening, QPRES, NQAUX, &
-       QTEMP, QFS, QFX, QREINT, QRHO, QGAME, QGC, &
-       first_order_hydro, difmag, hybrid_riemann, &
-       limit_fluxes_on_small_dens, ppm_temp_fix, do_hydro
+  use meth_params_module, only : NQC, NQP, NVAR, NGDNV, NQAUX, GDPRES, &
+                                 UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
+                                 use_flattening, QPRES, NQAUX, &
+                                 QTEMP, QFS, QFX, QREINT, QRHO, QGAME, QGC, &
+                                 first_order_hydro, difmag, hybrid_riemann, &
+                                 limit_fluxes_on_small_dens, ppm_temp_fix, do_hydro
   use advection_util_module, only : limit_hydro_fluxes_on_small_dens, ca_shock, &
                                     normalize_species_fluxes, avisc
 
@@ -63,8 +65,10 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   integer, intent(in) ::  domlo(3), domhi(3)
   integer, intent(in) :: uin_lo(3), uin_hi(3)
   integer, intent(in) :: uout_lo(3), uout_hi(3)
-  integer, intent(in) :: q_lo(3), q_hi(3)
-  integer, intent(in) :: q_bar_lo(3), q_bar_hi(3)
+  integer, intent(in) :: qc_lo(3), qc_hi(3)
+  integer, intent(in) :: qp_lo(3), qp_hi(3)
+  integer, intent(in) :: qc_bar_lo(3), qc_bar_hi(3)
+  integer, intent(in) :: qp_bar_lo(3), qp_bar_hi(3)
   integer, intent(in) :: qa_lo(3), qa_hi(3)
   integer, intent(in) :: qa_bar_lo(3), qa_bar_hi(3)
   integer, intent(in) :: srU_lo(3), srU_hi(3)
@@ -87,8 +91,10 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
   real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR)
-  real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
-  real(rt), intent(inout) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), NQ)
+  real(rt), intent(inout) :: q_core(qc_lo(1):qc_hi(1), qc_lo(2):qc_hi(2), qc_lo(3):qc_hi(3), NQC)
+  real(rt), intent(inout) :: q_pass(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQP)
+  real(rt), intent(inout) :: q_core_bar(qc_bar_lo(1):qc_bar_hi(1), qc_bar_lo(2):qc_bar_hi(2), qc_bar_lo(3):qc_bar_hi(3), NQC)
+  real(rt), intent(inout) :: q_pass_bar(qp_bar_lo(1):qp_bar_hi(1), qp_bar_lo(2):qp_bar_hi(2), qp_bar_lo(3):qp_bar_hi(3), NQP)
   real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
   real(rt), intent(inout) :: qaux_bar(qa_bar_lo(1):qa_bar_hi(1), qa_bar_lo(2):qa_bar_hi(2), qa_bar_lo(3):qa_bar_hi(3), NQAUX)
   real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
@@ -116,13 +122,21 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   real(rt), pointer :: avisx(:,:,:), avisy(:,:,:), avisz(:,:,:)
 
   ! Edge-centered primitive variables (Riemann state)
-  real(rt), pointer :: qx_avg(:,:,:,:)
-  real(rt), pointer :: qy_avg(:,:,:,:)
-  real(rt), pointer :: qz_avg(:,:,:,:)
+  real(rt), pointer :: qx_core_avg(:,:,:,:)
+  real(rt), pointer :: qy_core_avg(:,:,:,:)
+  real(rt), pointer :: qz_core_avg(:,:,:,:)
 
-  real(rt), pointer :: qx(:,:,:,:)
-  real(rt), pointer :: qy(:,:,:,:)
-  real(rt), pointer :: qz(:,:,:,:)
+  real(rt), pointer :: qx_pass_avg(:,:,:,:)
+  real(rt), pointer :: qy_pass_avg(:,:,:,:)
+  real(rt), pointer :: qz_pass_avg(:,:,:,:)
+
+  real(rt), pointer :: qx_core(:,:,:,:)
+  real(rt), pointer :: qy_core(:,:,:,:)
+  real(rt), pointer :: qz_core(:,:,:,:)
+
+  real(rt), pointer :: qx_pass(:,:,:,:)
+  real(rt), pointer :: qy_pass(:,:,:,:)
+  real(rt), pointer :: qz_pass(:,:,:,:)
 
 #ifdef HYBRID_MOMENTUM
   real(rt), pointer :: qgdnvx(:,:,:,:)
@@ -137,8 +151,11 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
   real(rt), pointer :: shk(:,:,:)
 
-  real(rt), pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
-  real(rt), pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
+  real(rt), pointer :: qxm_core(:,:,:,:), qym_core(:,:,:,:), qzm_core(:,:,:,:)
+  real(rt), pointer :: qxp_core(:,:,:,:), qyp_core(:,:,:,:), qzp_core(:,:,:,:)
+
+  real(rt), pointer :: qxm_pass(:,:,:,:), qym_pass(:,:,:,:), qzm_pass(:,:,:,:)
+  real(rt), pointer :: qxp_pass(:,:,:,:), qyp_pass(:,:,:,:), qzp_pass(:,:,:,:)
 
   integer :: ngf
   integer :: It_lo(3), It_hi(3)
@@ -178,30 +195,47 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_allocate(avisz, lo, hi+dg)
 #endif
 
-  call bl_allocate(qx_avg, q_lo, q_hi, NQ)
-  call bl_allocate(qx, q_lo, q_hi, NQ)
-  call bl_allocate(flx_avg, q_lo, q_hi, NVAR)
-#if AMREX_SPACEDIM >= 2
-  call bl_allocate(qy_avg, q_lo, q_hi, NQ)
-  call bl_allocate(qy, q_lo, q_hi, NQ)
-  call bl_allocate(fly_avg, q_lo, q_hi, NVAR)
-#endif
-#if AMREX_SPACEDIM == 3
-  call bl_allocate(qz_avg, q_lo, q_hi, NQ)
-  call bl_allocate(qz, q_lo, q_hi, NQ)
-  call bl_allocate(flz_avg, q_lo, q_hi, NVAR)
-#endif
+  call bl_allocate(qx_core_avg, qc_lo, qc_hi, NQC)
+  call bl_allocate(qx_core, qc_lo, qc_hi, NQC)
+  call bl_allocate(qx_pass_avg, qc_lo, qc_hi, NQP)
+  call bl_allocate(qx_pass, qc_lo, qc_hi, NQP)
 
-  call bl_allocate(qxm, q_lo, q_hi, NQ)
-  call bl_allocate(qxp, q_lo, q_hi, NQ)
+  call bl_allocate(flx_avg, qc_lo, qc_hi, NVAR)
 
 #if AMREX_SPACEDIM >= 2
-  call bl_allocate(qym, q_lo, q_hi, NQ)
-  call bl_allocate(qyp, q_lo, q_hi, NQ)
+  call bl_allocate(qy_core_avg, qc_lo, qc_hi, NQC)
+  call bl_allocate(qy_core, qc_lo, qc_hi, NQC)
+  call bl_allocate(qy_pass_avg, qc_lo, qc_hi, NQP)
+  call bl_allocate(qy_pass, qc_lo, qc_hi, NQP)
+
+  call bl_allocate(fly_avg, qc_lo, qc_hi, NVAR)
+#endif
+
+#if AMREX_SPACEDIM == 3
+  call bl_allocate(qz_core_avg, qc_lo, qc_hi, NQC)
+  call bl_allocate(qz_core, qc_lo, qc_hi, NQC)
+  call bl_allocate(qz_pass_avg, qc_lo, qc_hi, NQP)
+  call bl_allocate(qz_pass, qc_lo, qc_hi, NQP)
+
+  call bl_allocate(flz_avg, qc_lo, qc_hi, NVAR)
+#endif
+
+  call bl_allocate(qxm_core, qc_lo, qc_hi, NQC)
+  call bl_allocate(qxp_core, qc_lo, qc_hi, NQC)
+  call bl_allocate(qxm_pass, qc_lo, qc_hi, NQP)
+  call bl_allocate(qxp_pass, qc_lo, qc_hi, NQP)
+
+#if AMREX_SPACEDIM >= 2
+  call bl_allocate(qym_core, qc_lo, qc_hi, NQC)
+  call bl_allocate(qyp_core, qc_lo, qc_hi, NQC)
+  call bl_allocate(qym_pass, qc_lo, qc_hi, NQP)
+  call bl_allocate(qyp_pass, qc_lo, qc_hi, NQP)
 #endif
 #if AMREX_SPACEDIM == 3
-  call bl_allocate(qzm, q_lo, q_hi, NQ)
-  call bl_allocate(qzp, q_lo, q_hi, NQ)
+  call bl_allocate(qzm_core, qc_lo, qc_hi, NQC)
+  call bl_allocate(qzp_core, qc_lo, qc_hi, NQC)
+  call bl_allocate(qzm_pass, qc_lo, qc_hi, NQP)
+  call bl_allocate(qzp_pass, qc_lo, qc_hi, NQP)
 #endif
 
   call bl_allocate(shk, shk_lo, shk_hi)
@@ -212,7 +246,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
 
      call ca_shock(lo-dg, hi+dg, &
-                   q_bar, q_bar_lo, q_bar_hi, &
+                   q_core_bar, qc_bar_lo, qc_bar_hi, &
                    shk, shk_lo, shk_hi, &
                    dx)
 
@@ -236,7 +270,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      ! hybrid Riemann solver
      if (hybrid_riemann == 1) then
         call ca_shock(lo-dg, hi+dg, &
-                      q_bar, q_bar_lo, q_bar_hi, &
+                      q_core_bar, qc_bar_lo, qc_bar_hi, &
                       shk, shk_lo, shk_hi, &
                       dx)
      else
@@ -246,42 +280,71 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
      ! Compute flattening coefficient for slope calculations -- we do
      ! this with q_bar, since we need all of the ghost cells
-     call bl_allocate(flatn, q_bar_lo, q_bar_hi)
+     call bl_allocate(flatn, qc_bar_lo, qc_bar_hi)
 
      if (use_flattening == 1) then
         call ca_uflatten(lo - ngf*dg, hi + ngf*dg, &
-                         q_bar, q_bar_lo, q_bar_hi, &
-                         flatn, q_bar_lo, q_bar_hi, QPRES)
+                         q_core_bar, qc_bar_lo, qc_bar_hi, &
+                         flatn, qc_bar_lo, qc_bar_hi, QPRES)
      else
         flatn = ONE
      endif
 
      ! do the reconstruction here -- get the interface states
 
-     do n = 1, NQ
+     do n = 1, NQC
 
         ! x-interfaces
         call states(1, &
-                    q, q_lo, q_hi, NQ, n, &
-                    flatn, q_bar_lo, q_bar_hi, &
-                    qxm, qxp, q_lo, q_hi, &
+                    q_core, qc_lo, qc_hi, NQC, n, &
+                    flatn, qc_bar_lo, qc_bar_hi, &
+                    qxm_core, qxp_core, qc_lo, qc_hi, &
                     lo, hi)
 
 #if AMREX_SPACEDIM >= 2
         ! y-interfaces
         call states(2, &
-                    q, q_lo, q_hi, NQ, n, &
-                    flatn, q_bar_lo, q_bar_hi, &
-                    qym, qyp, q_lo, q_hi, &
+                    q_core, qc_lo, qc_hi, NQC, n, &
+                    flatn, qc_bar_lo, qc_bar_hi, &
+                    qym_core, qyp_core, qc_lo, qc_hi, &
                     lo, hi)
 #endif
 
 #if AMREX_SPACEDIM == 3
         ! z-interfaces
         call states(3, &
-                    q, q_lo, q_hi, NQ, n, &
-                    flatn, q_bar_lo, q_bar_hi, &
-                    qzm, qzp, q_lo, q_hi, &
+                    q_core, qc_lo, qc_hi, NQC, n, &
+                    flatn, qc_bar_lo, qc_bar_hi, &
+                    qzm_core, qzp_core, qc_lo, qc_hi, &
+                    lo, hi)
+#endif
+
+     enddo
+
+     do n = 1, NQP
+
+        ! x-interfaces
+        call states(1, &
+                    q_pass, qp_lo, qp_hi, NQP, n, &
+                    flatn, qc_bar_lo, qc_bar_hi, &
+                    qxm_pass, qxp_pass, qc_lo, qc_hi, &
+                    lo, hi)
+
+#if AMREX_SPACEDIM >= 2
+        ! y-interfaces
+        call states(2, &
+                    q_pass, qp_lo, qp_hi, NQP, n, &
+                    flatn, qc_bar_lo, qc_bar_hi, &
+                    qym_pass, qyp_pass, qc_lo, qc_hi, &
+                    lo, hi)
+#endif
+
+#if AMREX_SPACEDIM == 3
+        ! z-interfaces
+        call states(3, &
+                    q_pass, qp_lo, qp_hi, NQP, n, &
+                    flatn, qc_bar_lo, qc_bar_hi, &
+                    qzm_pass, qzp_pass, qc_lo, qc_hi, &
                     lo, hi)
 #endif
 
@@ -293,9 +356,12 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      ! solve the Riemann problems -- we just require the interface state
      ! at this point
 
-     call riemann_state(qxm, q_lo, q_hi, &
-                        qxp, q_lo, q_hi, 1, 1, &
-                        qx_avg, q_lo, q_hi, &
+     call riemann_state(qxm_core, qc_lo, qc_hi, &
+                        qxp_core, qc_lo, qc_hi, 1, 1, &
+                        qxm_pass, qc_lo, qc_hi, &
+                        qxp_pass, qc_lo, qc_hi, &
+                        qx_core_avg, qc_lo, qc_hi, &
+                        qx_pass_avg, qc_lo, qc_hi, &
                         qaux, qa_lo, qa_hi, &
                         1, &
                         [lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
@@ -304,15 +370,19 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
      call compute_flux_q([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
                          [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                         qx_avg, q_lo, q_hi, &
-                         flx_avg, q_lo, q_hi, &
+                         qx_core_avg, qc_lo, qc_hi, &
+                         qx_pass_avg, qc_lo, qc_hi, &
+                         flx_avg, qc_lo, qc_hi, &
                          1)
 
 
 #if AMREX_SPACEDIM >= 2
-     call riemann_state(qym, q_lo, q_hi, &
-                        qyp, q_lo, q_hi, 1, 1, &
-                        qy_avg, q_lo, q_hi, &
+     call riemann_state(qym_core, qc_lo, qc_hi, &
+                        qyp_core, qc_lo, qc_hi, 1, 1, &
+                        qym_pass, qc_lo, qc_hi, &
+                        qyp_pass, qc_lo, qc_hi, &
+                        qy_core_avg, qc_lo, qc_hi, &
+                        qy_pass_avg, qc_lo, qc_hi, &
                         qaux, qa_lo, qa_hi, &
                         2, &
                         [lo(1)-1, lo(2), lo(3)-dg(3)], &
@@ -321,15 +391,19 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
      call compute_flux_q([lo(1)-1, lo(2), lo(3)-dg(3)], &
                          [hi(1)+1, hi(2)+1, hi(3)+dg(3)], &
-                         qy_avg, q_lo, q_hi, &
-                         fly_avg, q_lo, q_hi, &
+                         qy_core_avg, qc_lo, qc_hi, &
+                         qy_pass_avg, qc_lo, qc_hi, &
+                         fly_avg, qc_lo, qc_hi, &
                          2)
 #endif
 
 #if AMREX_SPACEDIM == 3
-     call riemann_state(qzm, q_lo, q_hi, &
-                        qzp, q_lo, q_hi, 1, 1, &
-                        qz_avg, q_lo, q_hi, &
+     call riemann_state(qzm_core, qc_lo, qc_hi, &
+                        qzp_core, qc_lo, qc_hi, 1, 1, &
+                        qzm_pass, qc_lo, qc_hi, &
+                        qzp_pass, qc_lo, qc_hi, &
+                        qz_core_avg, qc_lo, qc_hi, &
+                        qz_pass_avg, qc_lo, qc_hi, &
                         qaux, qa_lo, qa_hi, &
                         3, &
                         [lo(1)-1, lo(2)-1, lo(3)], &
@@ -338,25 +412,32 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
      call compute_flux_q([lo(1)-1, lo(2)-1, lo(3)], &
                          [hi(1)+1, hi(2)+1, hi(3)+1], &
-                         qz_avg, q_lo, q_hi, &
-                         flz_avg, q_lo, q_hi, &
+                         qz_core_avg, qc_lo, qc_hi, &
+                         qz_pass_avg, qc_lo, qc_hi, &
+                         flz_avg, qc_lo, qc_hi, &
                          3)
 #endif
 
 
      call bl_deallocate(flatn)
 
-     call bl_deallocate(qxm)
-     call bl_deallocate(qxp)
+     call bl_deallocate(qxm_core)
+     call bl_deallocate(qxp_core)
+     call bl_deallocate(qxm_pass)
+     call bl_deallocate(qxp_pass)
 
 #if AMREX_SPACEDIM >= 2
-     call bl_deallocate(qym)
-     call bl_deallocate(qyp)
+     call bl_deallocate(qym_core)
+     call bl_deallocate(qyp_core)
+     call bl_deallocate(qym_pass)
+     call bl_deallocate(qyp_pass)
 #endif
 
 #if AMREX_SPACEDIM == 3
-     call bl_deallocate(qzm)
-     call bl_deallocate(qzp)
+     call bl_deallocate(qzm_core)
+     call bl_deallocate(qzp_core)
+     call bl_deallocate(qzm_pass)
+     call bl_deallocate(qzp_pass)
 #endif
 
      call bl_deallocate(shk)
@@ -368,93 +449,136 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
      ! construct the face-center interface states
 
 #if AMREX_SPACEDIM >= 2
-     ! x-interfaces
-     do n = 1, NQ
+
+     do n = 1, NQC
         if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
 
+        ! x-interfaces
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)+1
 
                  ! note: need to consider axisymmetry in the future
-                 lap = qx_avg(i,j+1,k,n) - TWO*qx_avg(i,j,k,n) + qx_avg(i,j-1,k,n)
+                 lap = qx_core_avg(i,j+1,k,n) - TWO*qx_core_avg(i,j,k,n) + qx_core_avg(i,j-1,k,n)
 #if AMREX_SPACEDIM == 3
-                 lap = lap + qx_avg(i,j,k+1,n) - TWO*qx_avg(i,j,k,n) + qx_avg(i,j,k-1,n)
+                 lap = lap + qx_core_avg(i,j,k+1,n) - TWO*qx_core_avg(i,j,k,n) + qx_core_avg(i,j,k-1,n)
 #endif
-                 qx(i,j,k,n) = qx_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
-              enddo
-           enddo
-        enddo
-     enddo
+                 qx_core(i,j,k,n) = qx_core_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+              end do
+           end do
+        end do
 
-     ! y-interfaces
-     do n = 1, NQ
-        if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
-
+        ! y-interfaces
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)+1
               do i = lo(1), hi(1)
 
                  ! note: need to consider axisymmetry in the future
-                 lap = qy_avg(i+1,j,k,n) - TWO*qy_avg(i,j,k,n) + qy_avg(i-1,j,k,n)
+                 lap = qy_core_avg(i+1,j,k,n) - TWO*qy_core_avg(i,j,k,n) + qy_core_avg(i-1,j,k,n)
 #if AMREX_SPACEDIM == 3
-                 lap = lap + qy_avg(i,j,k+1,n) - TWO*qy_avg(i,j,k,n) + qy_avg(i,j,k-1,n)
+                 lap = lap + qy_core_avg(i,j,k+1,n) - TWO*qy_core_avg(i,j,k,n) + qy_core_avg(i,j,k-1,n)
 #endif
-                 qy(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
-              enddo
-           enddo
-        enddo
-     enddo
+                 qy_core(i,j,k,n) = qy_core_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+              end do
+           end do
+        end do
 
 #if AMREX_SPACEDIM == 3
-     ! z-interfaces
-     do n = 1, NQ
-        if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
-
+        ! z-interfaces
         do k = lo(3), hi(3)+1
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
 
                  ! note: need to consider axisymmetry in the future
-                 lap = qz_avg(i+1,j,k,n) - TWO*qz_avg(i,j,k,n) + qz_avg(i-1,j,k,n)
-                 lap = lap + qz_avg(i,j+1,k,n) - TWO*qz_avg(i,j,k,n) + qz_avg(i,j-1,k,n)
+                 lap = qz_core_avg(i+1,j,k,n) - TWO*qz_core_avg(i,j,k,n) + qz_core_avg(i-1,j,k,n)
+                 lap = lap + qz_core_avg(i,j+1,k,n) - TWO*qz_core_avg(i,j,k,n) + qz_core_avg(i,j-1,k,n)
 
-                 qz(i,j,k,n) = qz_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
-              enddo
-           enddo
-        enddo
-     enddo
-
+                 qz_core(i,j,k,n) = qz_core_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+              end do
+           end do
+        end do
 #endif
+     end do
 
+
+     do n = 1, NQP
+
+        ! x-interfaces
+        do k = lo(3), hi(3)
+           do j = lo(2), hi(2)
+              do i = lo(1), hi(1)+1
+
+                 ! note: need to consider axisymmetry in the future
+                 lap = qx_pass_avg(i,j+1,k,n) - TWO*qx_pass_avg(i,j,k,n) + qx_pass_avg(i,j-1,k,n)
+#if AMREX_SPACEDIM == 3
+                 lap = lap + qx_pass_avg(i,j,k+1,n) - TWO*qx_pass_avg(i,j,k,n) + qx_pass_avg(i,j,k-1,n)
+#endif
+                 qx_pass(i,j,k,n) = qx_pass_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+              end do
+           end do
+        end do
+
+        ! y-interfaces
+        do k = lo(3), hi(3)
+           do j = lo(2), hi(2)+1
+              do i = lo(1), hi(1)
+
+                 ! note: need to consider axisymmetry in the future
+                 lap = qy_pass_avg(i+1,j,k,n) - TWO*qy_pass_avg(i,j,k,n) + qy_pass_avg(i-1,j,k,n)
+#if AMREX_SPACEDIM == 3
+                 lap = lap + qy_pass_avg(i,j,k+1,n) - TWO*qy_pass_avg(i,j,k,n) + qy_pass_avg(i,j,k-1,n)
+#endif
+                 qy_pass(i,j,k,n) = qy_pass_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+              end do
+           end do
+        end do
+
+#if AMREX_SPACEDIM == 3
+        ! z-interfaces
+        do k = lo(3), hi(3)+1
+           do j = lo(2), hi(2)
+              do i = lo(1), hi(1)
+
+                 ! note: need to consider axisymmetry in the future
+                 lap = qz_pass_avg(i+1,j,k,n) - TWO*qz_pass_avg(i,j,k,n) + qz_pass_avg(i-1,j,k,n)
+                 lap = lap + qz_pass_avg(i,j+1,k,n) - TWO*qz_pass_avg(i,j,k,n) + qz_pass_avg(i,j-1,k,n)
+
+                 qz_pass(i,j,k,n) = qz_pass_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+              end do
+           end do
+        end do
+#endif
+     end do
 
      ! compute face-centered fluxes
      ! these will be stored in flx, fly, flz
      call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
-                         qx, q_lo, q_hi, &
+                         qx_core, qc_lo, qc_hi, &
+                         qx_pass, qc_lo, qc_hi, &
                          flx, flx_lo, flx_hi, &
                          1)
 
-#if AMREX_SPACEDIM >= 2
      call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
-                         qy, q_lo, q_hi, &
+                         qy_core, qc_lo, qc_hi, &
+                         qy_pass, qc_lo, qc_hi, &
                          fly, fly_lo, fly_hi, &
                          2)
-#endif
 
 #if AMREX_SPACEDIM == 3
      call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
-                         qz, q_lo, q_hi, &
+                         qz_core, qc_lo, qc_hi, &
+                         qz_pass, qc_lo, qc_hi, &
                          flz, flz_lo, flz_hi, &
                          3)
 #endif
 
-     call bl_deallocate(qx)
-#if AMREX_SPACEDIM >= 2
-     call bl_deallocate(qy)
-#endif
+     call bl_deallocate(qx_core)
+     call bl_deallocate(qx_pass)
+     call bl_deallocate(qy_core)
+     call bl_deallocate(qy_pass)
 #if AMREX_SPACEDIM == 3
-     call bl_deallocate(qz)
+     call bl_deallocate(qz_core)
+     call bl_deallocate(qz_pass)
 #endif
 
      ! compute the final fluxes (as an average over the interface), this
@@ -521,20 +645,20 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
      ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
      call avisc(lo, hi, &
-                q_bar, q_bar_lo, q_bar_hi, &
+                q_core_bar, qc_bar_lo, qc_bar_hi, &
                 qaux_bar, qa_bar_lo, qa_bar_hi, &
                 dx, avisx, lo, hi+dg, 1)
 
 #if BL_SPACEDIM >= 2
      call avisc(lo, hi, &
-                q_bar, q_bar_lo, q_bar_hi, &
+                q_core_bar, qc_bar_lo, qc_bar_hi, &
                 qaux_bar, qa_bar_lo, qa_bar_hi, &
                 dx, avisy, lo, hi+dg, 2)
 #endif
 
 #if BL_SPACEDIM == 3
      call avisc(lo, hi, &
-                q_bar, q_bar_lo, q_bar_hi, &
+                q_core_bar, qc_bar_lo, qc_bar_hi, &
                 qaux_bar, qa_bar_lo, qa_bar_hi, &
                 dx, avisz, lo, hi+dg, 3)
 #endif
@@ -613,15 +737,19 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #endif
 
   else
+     ! do_hydro = 0
      flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = ZERO
-     qx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = ZERO
+     qx_core_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = ZERO
+     qx_pass_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = ZERO
 #if AMREX_SPACEDIM >= 2
      fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),:) = ZERO
-     qy_avg(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),:) = ZERO
+     qy_core_avg(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),:) = ZERO
+     qy_pass_avg(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),:) = ZERO
 #endif
 #if AMREX_SPACEDIM == 3
      flz(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,:) = ZERO
-     qz_avg(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,:) = ZERO
+     qz_core_avg(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,:) = ZERO
+     qz_pass_avg(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,:) = ZERO
 #endif
 
   end if
@@ -653,7 +781,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #if AMREX_SPACEDIM == 1
               if (n == UMX) then
                  update(i,j,k,UMX) = update(i,j,k,UMX) - &
-                      ( qx_avg(i+1,j,k,QPRES) - qx_avg(i,j,k,QPRES) ) / dx(1)
+                      ( qx_core_avg(i+1,j,k,QPRES) - qx_core_avg(i,j,k,QPRES) ) / dx(1)
               end if
 #endif
 
@@ -661,7 +789,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
               if (n == UMX) then
                  ! add the pressure source term for axisymmetry
                  if (coord_type > 0) then
-                    update(i,j,k,n) = update(i,j,k,n) - (qx_avg(i+1,j,k,QPRES) - qx_avg(i,j,k,QPRES))/ dx(1)
+                    update(i,j,k,n) = update(i,j,k,n) - (qx_core_avg(i+1,j,k,QPRES) - qx_core_avg(i,j,k,QPRES))/ dx(1)
                  end if
               end if
 #endif
@@ -675,21 +803,24 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 
 #if AMREX_SPACEDIM == 3
 #ifdef HYBRID_MOMENTUM
-  call bl_allocate(qgdnvx, q_lo, q_hi, NGDNV)
-  call bl_allocate(qgdnvy, q_lo, q_hi, NGDNV)
-  call bl_allocate(qgdnvz, q_lo, q_hi, NGDNV)
+  call bl_allocate(qgdnvx, qc_lo, qc_hi, NGDNV)
+  call bl_allocate(qgdnvy, qc_lo, qc_hi, NGDNV)
+  call bl_allocate(qgdnvz, qc_lo, qc_hi, NGDNV)
 
   call ca_store_godunov_state(lo, hi+dg, &
-                              qx_avg, q_lo, q_hi, &
-                              qgdnvx, q_lo, q_hi)
+                              qx_core_avg, qc_lo, qc_hi, &
+                              qx_pass_avg, qc_lo, qc_hi, &
+                              qgdnvx, qc_lo, qc_hi)
 
   call ca_store_godunov_state(lo, hi+dg, &
-                              qy_avg, q_lo, q_hi, &
-                              qgdnvy, q_lo, q_hi)
+                              qy_core_avg, qc_lo, qc_hi, &
+                              qy_pass_avg, qc_lo, qc_hi, &
+                              qgdnvy, qc_lo, qc_hi)
 
   call ca_store_godunov_state(lo, hi+dg, &
-                              qz_avg, q_lo, q_hi, &
-                              qgdnvz, q_lo, q_hi)
+                              qz_core_avg, qc_lo, qc_hi, &
+                              qz_pass_avg, qc_lo, qc_hi, &
+                              qgdnvz, qc_lo, qc_hi)
 
   call add_hybrid_advection_source(lo, hi, dt, &
                                    update, uout_lo, uout_hi, &
@@ -715,7 +846,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #if AMREX_SPACEDIM == 1
               if (coord_type .eq. 0 .and. n == UMX) then
                  flx(i,j,k,n) = flx(i,j,k,n) + &
-                      dt * area1(i,j,k) * qx_avg(i,j,k,QPRES)
+                      dt * area1(i,j,k) * qx_core_avg(i,j,k,QPRES)
               endif
 #endif
 
@@ -751,7 +882,7 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
 #if AMREX_SPACEDIM < 3
   if (coord_type > 0) then
      pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = &
-          qx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),QPRES) * dt
+          qx_core_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),QPRES) * dt
   end if
 #endif
   call bl_deallocate(avisx)
@@ -762,14 +893,17 @@ subroutine ca_fourth_single_stage(lo, hi, time, domlo, domhi, &
   call bl_deallocate(avisz)
 #endif
 
-  call bl_deallocate(qx_avg)
+  call bl_deallocate(qx_core_avg)
+  call bl_deallocate(qx_pass_avg)
   call bl_deallocate(flx_avg)
 #if AMREX_SPACEDIM >= 2
-  call bl_deallocate(qy_avg)
+  call bl_deallocate(qy_core_avg)
+  call bl_deallocate(qy_pass_avg)
   call bl_deallocate(fly_avg)
 #endif
 #if AMREX_SPACEDIM == 3
-  call bl_deallocate(qz_avg)
+  call bl_deallocate(qz_core_avg)
+  call bl_deallocate(qz_pass_avg)
   call bl_deallocate(flz_avg)
 #endif
 #else

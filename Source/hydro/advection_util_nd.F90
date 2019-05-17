@@ -1464,7 +1464,7 @@ contains
 
 
   subroutine avisc(lo, hi, &
-                   q, q_lo, q_hi, &
+                   q_core, q_lo, q_hi, &
                    qaux, qa_lo, qa_hi, &
                    dx, avis, a_lo, a_hi, idir)
 
@@ -1484,7 +1484,7 @@ contains
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: idir
     real(rt), intent(in) :: dx(3)
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
+    real(rt), intent(in) :: q_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(inout) :: avis(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
 
@@ -1501,16 +1501,16 @@ contains
              if (idir == 1) then
 
                 ! normal direction
-                avis(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU))/dx(1)
+                avis(i,j,k) = (q_core(i,j,k,QU) - q_core(i-1,j,k,QU))/dx(1)
 #if BL_SPACEDIM >= 2
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j+1,k,QV) - q(i,j-1,k,QV) + &
-                     q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV))/dx(2)
+                     q_core(i,j+1,k,QV) - q_core(i,j-1,k,QV) + &
+                     q_core(i-1,j+1,k,QV) - q_core(i-1,j-1,k,QV))/dx(2)
 #endif
 #if BL_SPACEDIM >= 3
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
-                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
+                     q_core(i,j,k+1,QW) - q_core(i,j,k-1,QW) + &
+                     q_core(i-1,j,k+1,QW) - q_core(i-1,j,k-1,QW))/dx(3)
 #endif
 
                 cmin = min(qaux(i,j,k,QC), qaux(i-1,j,k,QC))
@@ -1518,16 +1518,16 @@ contains
              else if (idir == 2) then
 
                 ! normal direction
-                avis(i,j,k) = (q(i,j,k,QV) - q(i,j-1,k,QV))/dx(2)
+                avis(i,j,k) = (q_core(i,j,k,QV) - q_core(i,j-1,k,QV))/dx(2)
 
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i+1,j,k,QU) - q(i-1,j,k,QU) + &
-                     q(i+1,j-1,k,QU) - q(i-1,j-1,k,QU))/dx(1)
+                     q_core(i+1,j,k,QU) - q_core(i-1,j,k,QU) + &
+                     q_core(i+1,j-1,k,QU) - q_core(i-1,j-1,k,QU))/dx(1)
 
 #if BL_SPACEDIM >= 3
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
-                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
+                     q_core(i,j,k+1,QW) - q_core(i,j,k-1,QW) + &
+                     q_core(i-1,j,k+1,QW) - q_core(i-1,j,k-1,QW))/dx(3)
 #endif
 
                 cmin = min(qaux(i,j,k,QC), qaux(i,j-1,k,QC))
@@ -1535,15 +1535,15 @@ contains
              else
 
                 ! normal direction
-                avis(i,j,k) = (q(i,j,k,QW) - q(i,j,k-1,QW))/dx(1)
+                avis(i,j,k) = (q_core(i,j,k,QW) - q_core(i,j,k-1,QW))/dx(1)
 
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j+1,k,QV) - q(i,j-1,k,QV) + &
-                     q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV))/dx(2)
+                     q_core(i,j+1,k,QV) - q_core(i,j-1,k,QV) + &
+                     q_core(i-1,j+1,k,QV) - q_core(i-1,j-1,k,QV))/dx(2)
 
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
-                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
+                     q_core(i,j,k+1,QW) - q_core(i,j,k-1,QW) + &
+                     q_core(i-1,j,k+1,QW) - q_core(i-1,j,k-1,QW))/dx(3)
 
                 cmin = min(qaux(i,j,k,QC), qaux(i,j,k-1,QC))
 

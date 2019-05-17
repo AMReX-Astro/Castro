@@ -68,7 +68,7 @@ contains
 
 
   subroutine ca_uflatten(lo, hi, &
-                         q, q_lo, q_hi, &
+                         q_core, q_lo, q_hi, &
                          flatn, f_lo, f_hi, pres_comp) bind(c,name='ca_uflatten')
 
     use amrex_constants_module, only: ZERO, ONE
@@ -80,7 +80,7 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: q_lo(3), q_hi(3)
     integer,  intent(in   ) :: f_lo(3), f_hi(3)
-    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
+    real(rt), intent(in   ) :: q_core(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQC)
     real(rt), intent(inout) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
     integer, intent(in), value :: pres_comp
 
@@ -101,7 +101,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             dp = q(i+1,j,k,pres_comp) - q(i-1,j,k,pres_comp)
+             dp = q_core(i+1,j,k,pres_comp) - q_core(i-1,j,k,pres_comp)
 
              if (dp .gt. ZERO) then
                 ishft = 1
@@ -109,17 +109,17 @@ contains
                 ishft = -1
              endif
 
-             denom = max(small_pres, abs(q(i+2,j,k,pres_comp)-q(i-2,j,k,pres_comp)))
+             denom = max(small_pres, abs(q_core(i+2,j,k,pres_comp) - q_core(i-2,j,k,pres_comp)))
              zeta = abs(dp) / denom
              z = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
 
-             if (q(i-1,j,k,QU)-q(i+1,j,k,QU) .ge. ZERO) then
+             if (q_core(i-1,j,k,QU) - q_core(i+1,j,k,QU) .ge. ZERO) then
                 tst = ONE
              else
                 tst = ZERO
              endif
 
-             tmp = min(q(i+1,j,k,pres_comp), q(i-1,j,k,pres_comp))
+             tmp = min(q_core(i+1,j,k,pres_comp), q_core(i-1,j,k,pres_comp))
 
              if ((abs(dp)/tmp) .gt. shktst) then
                 chi = tst
@@ -127,19 +127,19 @@ contains
                 chi = ZERO
              endif
 
-             dp = q(i+1-ishft,j,k,pres_comp) - q(i-1-ishft,j,k,pres_comp)
+             dp = q_core(i+1-ishft,j,k,pres_comp) - q_core(i-1-ishft,j,k,pres_comp)
 
-             denom = max(small_pres, abs(q(i+2-ishft,j,k,pres_comp)-q(i-2-ishft,j,k,pres_comp)))
+             denom = max(small_pres, abs(q_core(i+2-ishft,j,k,pres_comp) - q_core(i-2-ishft,j,k,pres_comp)))
              zeta = abs(dp) / denom
              z2 = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
 
-             if (q(i-1-ishft,j,k,QU)-q(i+1-ishft,j,k,QU) .ge. ZERO) then
+             if (q_core(i-1-ishft,j,k,QU) - q_core(i+1-ishft,j,k,QU) .ge. ZERO) then
                 tst = ONE
              else
                 tst = ZERO
              endif
 
-             tmp = min(q(i+1-ishft,j,k,pres_comp), q(i-1-ishft,j,k,pres_comp))
+             tmp = min(q_core(i+1-ishft,j,k,pres_comp), q_core(i-1-ishft,j,k,pres_comp))
 
              if ((abs(dp)/tmp) .gt. shktst) then
                 chi2 = tst
@@ -159,7 +159,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             dp = q(i,j+1,k,pres_comp) - q(i,j-1,k,pres_comp)
+             dp = q_core(i,j+1,k,pres_comp) - q_core(i,j-1,k,pres_comp)
 
              if (dp .gt. ZERO) then
                 ishft = 1
@@ -167,36 +167,36 @@ contains
                 ishft = -1
              endif
 
-             denom = max(small_pres, abs(q(i,j+2,k,pres_comp)-q(i,j-2,k,pres_comp)))
+             denom = max(small_pres, abs(q_core(i,j+2,k,pres_comp) - q_core(i,j-2,k,pres_comp)))
              zeta = abs(dp) / denom
              z = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
 
-             if (q(i,j-1,k,QV)-q(i,j+1,k,QV) .ge. ZERO) then
+             if (q_core(i,j-1,k,QV) - q_core(i,j+1,k,QV) .ge. ZERO) then
                 tst = ONE
              else
                 tst = ZERO
              endif
 
-             tmp = min(q(i,j+1,k,pres_comp), q(i,j-1,k,pres_comp))
+             tmp = min(q_core(i,j+1,k,pres_comp), q_core(i,j-1,k,pres_comp))
              if ((abs(dp)/tmp) .gt. shktst) then
                 chi = tst
              else
                 chi = ZERO
              endif
 
-             dp = q(i,j+1-ishft,k,pres_comp) - q(i,j-1-ishft,k,pres_comp)
+             dp = q_core(i,j+1-ishft,k,pres_comp) - q_core(i,j-1-ishft,k,pres_comp)
 
-             denom = max(small_pres, abs(q(i,j+2-ishft,k,pres_comp)-q(i,j-2-ishft,k,pres_comp)))
+             denom = max(small_pres, abs(q_core(i,j+2-ishft,k,pres_comp) - q_core(i,j-2-ishft,k,pres_comp)))
              zeta = abs(dp) / denom
              z2 = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
 
-             if (q(i,j-1-ishft,k,QV)-q(i,j+1-ishft,k,QV) .ge. ZERO) then
+             if (q_core(i,j-1-ishft,k,QV) - q_core(i,j+1-ishft,k,QV) .ge. ZERO) then
                 tst = ONE
              else
                 tst = ZERO
              endif
 
-             tmp = min(q(i,j+1-ishft,k,pres_comp), q(i,j-1-ishft,k,pres_comp))
+             tmp = min(q_core(i,j+1-ishft,k,pres_comp), q_core(i,j-1-ishft,k,pres_comp))
              if ((abs(dp)/tmp) .gt. shktst) then
                 chi2 = tst
              else
@@ -217,7 +217,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             dp = q(i,j,k+1,pres_comp) - q(i,j,k-1,pres_comp)
+             dp = q_core(i,j,k+1,pres_comp) - q_core(i,j,k-1,pres_comp)
 
              if(dp .gt. ZERO) then
                 ishft = 1
@@ -225,36 +225,36 @@ contains
                 ishft = -1
              endif
 
-             denom = max(small_pres, abs(q(i,j,k+2,pres_comp)-q(i,j,k-2,pres_comp)))
+             denom = max(small_pres, abs(q_core(i,j,k+2,pres_comp) - q_core(i,j,k-2,pres_comp)))
              zeta = abs(dp) / denom
              z = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
 
-             if (q(i,j,k-1,QW)-q(i,j,k+1,QW) .ge. ZERO) then
+             if (q_core(i,j,k-1,QW) - q_core(i,j,k+1,QW) .ge. ZERO) then
                 tst = ONE
              else
                 tst = ZERO
              endif
 
-             tmp = min(q(i,j,k+1,pres_comp),q(i,j,k-1,pres_comp))
+             tmp = min(q_core(i,j,k+1,pres_comp), q_core(i,j,k-1,pres_comp))
              if ((abs(dp)/tmp) .gt. shktst) then
                 chi = tst
              else
                 chi = ZERO
              endif
 
-             dp = q(i,j,k+1-ishft,pres_comp) - q(i,j,k-1-ishft,pres_comp)
+             dp = q_core(i,j,k+1-ishft,pres_comp) - q_core(i,j,k-1-ishft,pres_comp)
 
-             denom = max(small_pres, abs(q(i,j,k+2-ishft,pres_comp)-q(i,j,k-2-ishft,pres_comp)))
+             denom = max(small_pres, abs(q_core(i,j,k+2-ishft,pres_comp) - q_core(i,j,k-2-ishft,pres_comp)))
              zeta = abs(dp) / denom
              z2 = min(ONE, max(ZERO, dzcut * (zeta - zcut1)))
 
-             if (q(i,j,k-1-ishft,QW)-q(i,j,k+1-ishft,QW) .ge. ZERO) then
+             if (q_core(i,j,k-1-ishft,QW) - q_core(i,j,k+1-ishft,QW) .ge. ZERO) then
                 tst = ONE
              else
                 tst = ZERO
              endif
 
-             tmp = min(q(i,j,k+1-ishft,pres_comp),q(i,j,k-1-ishft,pres_comp))
+             tmp = min(q_core(i,j,k+1-ishft,pres_comp), q_core(i,j,k-1-ishft,pres_comp))
              if ((abs(dp)/tmp) .gt. shktst) then
                 chi2 = tst
              else
