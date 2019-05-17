@@ -108,7 +108,9 @@ contains
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: qc_lo(3), qc_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
+#ifdef RADIATION
     integer, intent(in) :: qr_lo(3), qr_hi(3)
+#endif
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: qcs_lo(3), qcs_hi(3)
@@ -222,8 +224,8 @@ contains
     real(rt) :: hdt
     integer :: i, j, k, n, idir
 
-    logical :: source_nonzero(NQSRC)
-    logical :: reconstruct_state(NQ)
+    logical :: source_nonzero(NQC_SRC)
+    logical :: reconstruct_state(NQC)
 
     logical :: compute_shock
 
@@ -243,7 +245,7 @@ contains
     ! hybrid Riemann solver
     if (hybrid_riemann == 1 .or. compute_shock) then
        call ca_shock(lo, hi, &
-                     q, qd_lo, qd_hi, &
+                     q_core, qc_lo, qc_hi, &
                      shk, sk_lo, sk_hi, &
                      dx)
     else
@@ -267,8 +269,8 @@ contains
     ! we're working on, since the PPM reconstruction and integration
     ! done here is only local to this tile.
 
-    do n = 1, NQSRC
-       if (maxval(abs(srcQ(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n))) == ZERO) then
+    do n = 1, NQC_SRC
+       if (maxval(abs(q_core_src(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n))) == ZERO) then
           source_nonzero(n) = .false.
        else
           source_nonzero(n) = .true.
@@ -280,7 +282,7 @@ contains
        ! Compute Ip and Im -- this does the parabolic reconstruction,
        ! limiting, and returns the integral of each profile under each
        ! wave to each interface
-       do n = 1, NQ
+       do n = 1, NQC
           if (.not. reconstruct_state(n)) cycle
 
           ! core primitive variables
@@ -301,6 +303,9 @@ contains
                                Im_core, Icm_lo, Icm_hi, NQC, n, &
                                dx, dt)
 
+       end do
+
+       do n = 1, NQP
 
           ! passives
           call ca_ppm_reconstruct(lo, hi, 0, idir, &
@@ -320,7 +325,12 @@ contains
                                Im_pass, Ipm_lo, Ipm_hi, NQP, n, &
                                dx, dt)
 
+       end do
+
 #ifdef RADIATION
+
+       do n = 1, NQR
+
           ! radiation
           call ca_ppm_reconstruct(lo, hi, 0, idir, &
                                   q_rad, qr_lo, qr_hi, NQR, n, n, &
@@ -362,41 +372,62 @@ contains
 
           ! temperature-based PPM
           call ppm_reconstruct_with_eos(lo, hi, idir, &
-                                        Ip_core, Ipc_lo, Ipc_hi, &
-                                        Im_core, Imc_lo, Imc_hi, &
+                                        Ip_core, Icp_lo, Icp_hi, &
+                                        Im_core, Icm_lo, Icm_hi, &
                                         Ip_pass, Ipp_lo, Ipp_hi, &
-                                        Im_pass, Imp_lo, Imp_hi, &
+                                        Im_pass, Ipm_lo, Ipm_hi, &
                                         Ip_gc, Ipg_lo, Ipg_hi, &
                                         Im_gc, Img_lo, Img_hi)
 
        end if
 
 
-       ! source terms
-       do n = 1, NQSRC
+       ! source terms -- first the core terms
+       do n = 1, NQC_SRC
           if (source_nonzero(n)) then
              call ca_ppm_reconstruct(lo, hi, 0, idir, &
-                                     srcQ, src_lo, src_hi, NQSRC, n, n, &
+                                     q_core_src, qcs_lo, qcs_hi, NQC_SRC, n, n, &
                                      flatn, f_lo, f_hi, &
                                      sm, sm_lo, sm_hi, &
                                      sp, sp_lo, sp_hi, &
                                      1, 1, 1)
 
              call ppm_int_profile(lo, hi, idir, &
-                                  srcQ, src_lo, src_hi, NQSRC, n, &
-                                  q, qd_lo, qd_hi, &
+                                  q_core_src, qcs_lo, qcs_hi, NQC_SRC, n, &
+                                  q_core, qc_lo, qc_hi, &
                                   qaux, qa_lo, qa_hi, &
                                   sm, sm_lo, sm_hi, &
                                   sp, sp_lo, sp_hi, &
-                                  Ip_src, Ips_lo, Ips_hi, &
-                                  Im_src, Ims_lo, Ims_hi, NQSRC, n, &
+                                  Ip_core_src, Icsp_lo, Icsp_hi, &
+                                  Im_core_src, Icsm_lo, Icsm_hi, NQC_SRC, n, &
                                   dx, dt)
           else
-             Ip_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,n) = ZERO
-             Im_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,n) = ZERO
+             Ip_core_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,n) = ZERO
+             Im_core_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,n) = ZERO
           endif
-
        enddo
+
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+       do n = 1, NQP_SRC
+          call ca_ppm_reconstruct(lo, hi, 0, idir, &
+                                  q_pass_src, qps_lo, qps_hi, NQP_SRC, n, n, &
+                                  flatn, f_lo, f_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  1, 1, 1)
+
+          call ppm_int_profile(lo, hi, idir, &
+                               q_pass_src, qps_lo, qps_hi, NQP_SRC, n, &
+                               q_core, qc_lo, qc_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sm, sm_lo, sm_hi, &
+                               sp, sp_lo, sp_hi, &
+                               Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                               Im_pass_src, Ipsm_lo, Ipsm_hi, NQP_SRC, n, &
+                               dx, dt)
+       enddo
+#endif
+
 
 
        ! compute the interface states
@@ -629,7 +660,10 @@ contains
     !    state arrays
     !
 
-    use meth_params_module, only : NQSRC, NQ, NVAR, &
+    use meth_params_module, only : NQC_SRC, NQC, NQP, NVAR, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                                   NQP_SRC, &
+#endif
                                    QFS, QFX, QTEMP, QREINT, &
                                    QC, QGAMC, NQAUX, QGAME, QREINT, &
                                    NGDNV, GDU, GDV, GDW, GDPRES, &
@@ -647,7 +681,10 @@ contains
     integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: src_lo(3), src_hi(3)
+    integer, intent(in) :: qcs_lo(3), qcs_hi(3)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    integer, intent(in) :: qps_lo(3), qps_hi(3)
+#endif
     integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) :: dqc_lo(3), dqc_hi(3)
     integer, intent(in) :: dqp_lo(3), dqp_hi(3)
@@ -683,8 +720,8 @@ contains
     real(rt), intent(in) :: q_pass_src(qps_lo(1):qps_hi(1),qps_lo(2):qps_hi(2),qps_lo(3):qps_hi(3),NQP_SRC)   ! primitive variable source
 #endif
     real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
-    real(rt), intent(inout) :: dqc(dqc_lo(1):dqc_hi(1), dqc_lo(2):dqc_hi(2), dqc_lo(3):dqc_hi(3), NQC)
-    real(rt), intent(inout) :: dqp(dqp_lo(1):dqp_hi(1), dqp_lo(2):dqp_hi(2), dqp_lo(3):dqp_hi(3), NQP)
+    real(rt), intent(inout) :: dq_core(dqc_lo(1):dqc_hi(1), dqc_lo(2):dqc_hi(2), dqc_lo(3):dqc_hi(3), NQC)
+    real(rt), intent(inout) :: dq_pass(dqp_lo(1):dqp_hi(1), dqp_lo(2):dqp_hi(2), dqp_lo(3):dqp_hi(3), NQP)
 
     real(rt), intent(inout) :: qxm_core(qxmc_lo(1):qxmc_hi(1), qxmc_lo(2):qxmc_hi(2), qxmc_lo(3):qxmc_hi(3), NQC)
     real(rt), intent(inout) :: qxm_pass(qxmp_lo(1):qxmp_hi(1), qxmp_lo(2):qxmp_hi(2), qxmp_lo(3):qxmp_hi(3), NQP)
@@ -763,7 +800,7 @@ contains
           call uslope(lo, hi, idir, &
                       q_pass, qp_lo, qp_hi, n, NQP, &
                       flatn, f_lo, f_hi, &
-                      dp_pass, dqp_lo, dqp_hi)
+                      dq_pass, dqp_lo, dqp_hi)
        end do
 
        if (use_pslope == 1) then
@@ -914,7 +951,7 @@ contains
                         dx, dt) bind(C, name="ctu_consup")
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, NGDNV, NQ, &
+                                   UEDEN, UEINT, UTEMP, NGDNV, &
 #ifdef RADIATION
                                    fspace_type, comoving, &
                                    GDU, GDV, GDW, GDLAMS, GDERADS, &
@@ -937,7 +974,6 @@ contains
 
     integer, intent(in) ::       lo(3),       hi(3)
     integer, intent(in) ::   uin_lo(3),   uin_hi(3)
-    integer, intent(in) ::     q_lo(3),     q_hi(3)
     integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) ::  uout_lo(3),  uout_hi(3)
     integer, intent(in) ::  updt_lo(3),  updt_hi(3)
