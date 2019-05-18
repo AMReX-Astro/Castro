@@ -362,14 +362,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         Ip_core.resize(obx, 3*NQC);
         Elixir elix_Ip_core = Ip_core.elixir();
 
-        Ip_pass.resize(obx, 3*NQP);
-        Elixir elix_Ip_pass = Ip_pass.elixir();
-
         Im_core.resize(obx, 3*NQC);
         Elixir elix_Im_core = Im_core.elixir();
 
+        Ip_pass.resize(obx, 3*NQP);
+        Elixir elix_Ip_pass = Ip_pass.elixir();
+
         Im_pass.resize(obx, 3*NQP);
         Elixir elix_Im_pass = Im_pass.elixir();
+
+#ifdef RADIATION
+        Ip_rad.resize(obx, 3*NQR);
+        Elixir elix_Ip_rad = Ip_rad.elixir();
+
+        Im_rad.resize(obx, 3*NQR);
+        Elixir elix_Im_rad = Im_rad.elixir();
+#endif
 
         Ip_core_src.resize(obx, 3*NQC_SRC);
         Elixir elix_Ip_core_src = Ip_core_src.elixir();

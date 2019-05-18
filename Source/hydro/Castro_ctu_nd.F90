@@ -188,7 +188,10 @@ contains
     real(rt), intent(inout) :: Im_core(Icm_lo(1):Icm_hi(1),Icm_lo(2):Icm_hi(2),Icm_lo(3):Icm_hi(3),1:3,NQC)
     real(rt), intent(inout) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),1:3,NQP)
     real(rt), intent(inout) :: Im_pass(Ipm_lo(1):Ipm_hi(1),Ipm_lo(2):Ipm_hi(2),Ipm_lo(3):Ipm_hi(3),1:3,NQP)
-
+#ifdef RADIATION
+    real(rt), intent(inout) :: Ip_rad(Irp_lo(1):Irp_hi(1),Irp_lo(2):Irp_hi(2),Irp_lo(3):Irp_hi(3),1:3,NQR)
+    real(rt), intent(inout) :: Im_rad(Irm_lo(1):Irm_hi(1),Irm_lo(2):Irm_hi(2),Irm_lo(3):Irm_hi(3),1:3,NQR)
+#endif
     real(rt), intent(inout) :: Ip_core_src(Icsp_lo(1):Icsp_hi(1),Icsp_lo(2):Icsp_hi(2),Icsp_lo(3):Icsp_hi(3),1:3,NQC_SRC)
     real(rt), intent(inout) :: Im_core_src(Icsm_lo(1):Icsm_hi(1),Icsm_lo(2):Icsm_hi(2),Icsm_lo(3):Icsm_hi(3),1:3,NQC_SRC)
 
@@ -203,20 +206,32 @@ contains
     real(rt), intent(inout) :: sp(sp_lo(1):sp_hi(1), sp_lo(2):sp_hi(2), sp_lo(3):sp_hi(3))
 
     real(rt), intent(inout) :: qxm_core(qxcm_lo(1):qxcm_hi(1), qxcm_lo(2):qxcm_hi(2), qxcm_lo(3):qxcm_hi(3), NQC)
-    real(rt), intent(inout) :: qxm_pass(qxpm_lo(1):qxpm_hi(1), qxpm_lo(2):qxpm_hi(2), qxpm_lo(3):qxpm_hi(3), NQP)
     real(rt), intent(inout) :: qxp_core(qxcp_lo(1):qxcp_hi(1), qxcp_lo(2):qxcp_hi(2), qxcp_lo(3):qxcp_hi(3), NQC)
+    real(rt), intent(inout) :: qxm_pass(qxpm_lo(1):qxpm_hi(1), qxpm_lo(2):qxpm_hi(2), qxpm_lo(3):qxpm_hi(3), NQP)
     real(rt), intent(inout) :: qxp_pass(qxpp_lo(1):qxpp_hi(1), qxpp_lo(2):qxpp_hi(2), qxpp_lo(3):qxpp_hi(3), NQP)
+#ifdef RADIATION
+    real(rt), intent(inout) :: qxm_rad(qxrm_lo(1):qxrm_hi(1), qxrm_lo(2):qxrm_hi(2), qxrm_lo(3):qxrm_hi(3), NQR)
+    real(rt), intent(inout) :: qxp_rad(qxrp_lo(1):qxrp_hi(1), qxrp_lo(2):qxrp_hi(2), qxrp_lo(3):qxrp_hi(3), NQR)
+#endif
 #if AMREX_SPACEDIM >= 2
     real(rt), intent(inout) :: qym_core(qycm_lo(1):qycm_hi(1), qycm_lo(2):qycm_hi(2), qycm_lo(3):qycm_hi(3), NQC)
-    real(rt), intent(inout) :: qym_pass(qypm_lo(1):qypm_hi(1), qypm_lo(2):qypm_hi(2), qypm_lo(3):qypm_hi(3), NQP)
     real(rt), intent(inout) :: qyp_core(qycp_lo(1):qycp_hi(1), qycp_lo(2):qycp_hi(2), qycp_lo(3):qycp_hi(3), NQC)
+    real(rt), intent(inout) :: qym_pass(qypm_lo(1):qypm_hi(1), qypm_lo(2):qypm_hi(2), qypm_lo(3):qypm_hi(3), NQP)
     real(rt), intent(inout) :: qyp_pass(qypp_lo(1):qypp_hi(1), qypp_lo(2):qypp_hi(2), qypp_lo(3):qypp_hi(3), NQP)
+#ifdef RADIATION
+    real(rt), intent(inout) :: qym_rad(qyrm_lo(1):qyrm_hi(1), qyrm_lo(2):qyrm_hi(2), qyrm_lo(3):qyrm_hi(3), NQR)
+    real(rt), intent(inout) :: qyp_rad(qyrp_lo(1):qyrp_hi(1), qyrp_lo(2):qyrp_hi(2), qyrp_lo(3):qyrp_hi(3), NQR)
+#endif
 #endif
 #if AMREX_SPACEDIM == 3
     real(rt), intent(inout) :: qzm_core(qzcm_lo(1):qzcm_hi(1), qzcm_lo(2):qzcm_hi(2), qzcm_lo(3):qzcm_hi(3), NQC)
-    real(rt), intent(inout) :: qzm_pass(qzpm_lo(1):qzpm_hi(1), qzpm_lo(2):qzpm_hi(2), qzpm_lo(3):qzpm_hi(3), NQP)
     real(rt), intent(inout) :: qzp_core(qzcp_lo(1):qzcp_hi(1), qzcp_lo(2):qzcp_hi(2), qzcp_lo(3):qzcp_hi(3), NQC)
+    real(rt), intent(inout) :: qzm_pass(qzpm_lo(1):qzpm_hi(1), qzpm_lo(2):qzpm_hi(2), qzpm_lo(3):qzpm_hi(3), NQP)
     real(rt), intent(inout) :: qzp_pass(qzpp_lo(1):qzpp_hi(1), qzpp_lo(2):qzpp_hi(2), qzpp_lo(3):qzpp_hi(3), NQP)
+#ifdef RADIATION
+    real(rt), intent(inout) :: qzm_rad(qzrm_lo(1):qzrm_hi(1), qzrm_lo(2):qzrm_hi(2), qzrm_lo(3):qzrm_hi(3), NQR)
+    real(rt), intent(inout) :: qzp_rad(qzrp_lo(1):qzrp_hi(1), qzrp_lo(2):qzrp_hi(2), qzrp_lo(3):qzrp_hi(3), NQR)
+#endif
 #endif
 #if AMREX_SPACEDIM < 3
     real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
@@ -440,8 +455,8 @@ contains
                              q_pass, qp_lo, qp_hi, &
                              q_rad, qr_lo, qr_hi, &
                              qaux, qa_lo, qa_hi, &
-                             Ip_core, Ip_lo, Ip_hi, &
-                             Im_core, Im_lo, Im_hi, &
+                             Ip_core, Icp_lo, Icp_hi, &
+                             Im_core, Icm_lo, Icm_hi, &
                              Ip_pass, Ipp_lo, Ipp_hi, &
                              Im_pass, Ipm_lo, Ipm_hi, &
                              Ip_rad, Irp_lo, Irp_hi, &
@@ -452,8 +467,8 @@ contains
                              Ip_pass_src, Ipsp_lo, Ipsp_hi, &
                              Im_pass_src, Ipsm_lo, Ipsm_hi, &
 #endif
-                             qxm_core, qxm_lo, qxm_hi, &
-                             qxp_core, qxp_lo, qxp_hi, &
+                             qxm_core, qxcm_lo, qxcm_hi, &
+                             qxp_core, qxcp_lo, qxcp_hi, &
                              qxm_pass, qxpm_lo, qxpm_hi, &
                              qxp_pass, qxpp_lo, qxpp_hi, &
                              qxm_rad, qxrm_lo, qxrm_hi, &
@@ -472,8 +487,8 @@ contains
                              q_pass, qp_lo, qp_hi, &
                              q_rad, qr_lo, qr_hi, &
                              qaux, qa_lo, qa_hi, &
-                             Ip_core, Ip_lo, Ip_hi, &
-                             Im_core, Im_lo, Im_hi, &
+                             Ip_core, Icp_lo, Icp_hi, &
+                             Im_core, Icm_lo, Icm_hi, &
                              Ip_pass, Ipp_lo, Ipp_hi, &
                              Im_pass, Ipm_lo, Ipm_hi, &
                              Ip_rad, Irp_lo, Irp_hi, &
@@ -484,8 +499,8 @@ contains
                              Ip_pass_src, Ipsp_lo, Ipsp_hi, &
                              Im_pass_src, Ipsm_lo, Ipsm_hi, &
 #endif
-                             qym_core, qym_lo, qym_hi, &
-                             qyp_core, qyp_lo, qyp_hi, &
+                             qym_core, qycm_lo, qycm_hi, &
+                             qyp_core, qycp_lo, qycp_hi, &
                              qym_pass, qypm_lo, qypm_hi, &
                              qyp_pass, qypp_lo, qypp_hi, &
                              qym_rad, qyrm_lo, qyrm_hi, &
@@ -505,8 +520,8 @@ contains
                              q_pass, qp_lo, qp_hi, &
                              q_rad, qr_lo, qr_hi, &
                              qaux, qa_lo, qa_hi, &
-                             Ip_core, Ip_lo, Ip_hi, &
-                             Im_core, Im_lo, Im_hi, &
+                             Ip_core, Icp_lo, Icp_hi, &
+                             Im_core, Icm_lo, Icm_hi, &
                              Ip_pass, Ipp_lo, Ipp_hi, &
                              Im_pass, Ipm_lo, Ipm_hi, &
                              Ip_rad, Irp_lo, Irp_hi, &
@@ -517,8 +532,8 @@ contains
                              Ip_pass_src, Ipsp_lo, Ipsp_hi, &
                              Im_pass_src, Ipsm_lo, Ipsm_hi, &
 #endif
-                             qzm_core, qzm_lo, qzm_hi, &
-                             qzp_core, qzp_lo, qzp_hi, &
+                             qzm_core, qzcm_lo, qzcm_hi, &
+                             qzp_core, qzcp_lo, qzcp_hi, &
                              qzm_pass, qzpm_lo, qzpm_hi, &
                              qzp_pass, qzpp_lo, qzpp_hi, &
                              qzm_rad, qzrm_lo, qzrm_hi, &
