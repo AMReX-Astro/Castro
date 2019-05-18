@@ -145,7 +145,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(qr_core),
      const BL_FORT_FAB_ARG_3D(qr_pass),
 #ifdef RADIATION
-     const BL_FORT_FAB_ARG_3D(qr_pass),
+     const BL_FORT_FAB_ARG_3D(qr_rad),
 #endif
      const int nc, const int comp,
      BL_FORT_FAB_ARG_3D(flux),
