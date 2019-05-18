@@ -2989,6 +2989,8 @@ Castro::errorEst (TagBoxArray& tags,
 
     Real t = time;
 
+    tags.setVal(TagBox::CLEAR);
+
     // If we are forcing a post-timestep regrid,
     // note that we need to use the new time here,
     // not the old time.
