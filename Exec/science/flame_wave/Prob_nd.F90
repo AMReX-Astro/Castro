@@ -179,7 +179,6 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ! lower boundary, we'll add 4 ghostcells to this, so we need to
   ! compute dx
   nx_model = int((probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/dx_model)
-  print *, "nx_model = ", nx_model
 
   !dx_model = (probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/nx_model
   ng = 4
