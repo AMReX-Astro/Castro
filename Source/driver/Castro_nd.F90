@@ -688,6 +688,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   allocate(upass_map(NVAR))
 
   ! Transverse velocities
+  npassive = 0
 
   do iadv = 1, nadv
      upass_map(npassive + iadv) = UFA + iadv - 1
