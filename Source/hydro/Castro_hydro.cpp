@@ -75,10 +75,13 @@ Castro::cons_to_prim(const Real time)
 
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
-            MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
+            MultiFab& SDC_react_core_source = get_new_data(Simplified_SDC_React_Core_Type);
+            MultiFab& SDC_react_pass_source = get_new_data(Simplified_SDC_React_Pass_Type);
 
-            if (do_react)
-                src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,NQSRC);
+            if (do_react) {
+              q_core_src[mfi].plus(SDC_react_core_source[mfi], qbx, qbx, 0, 0, NQC_SRC);
+              q_pass_src[mfi].plus(SDC_react_pass_source[mfi], qbx, qbx, 0, 0, NQP_SRC);
+            }
 
         }
 #endif

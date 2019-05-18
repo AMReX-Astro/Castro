@@ -401,8 +401,13 @@ Castro::variableSetUp ()
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
       store_in_checkpoint = true;
-      desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point, NUM_GROW, NQSRC,
+
+      desc_lst.addDescriptor(Simplified_SDC_React_Core_Type, IndexType::TheCellType(),
+                             StateDescriptor::Point, NUM_GROW, NQC_SRC,
+                             &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+
+      desc_lst.addDescriptor(Simplified_SDC_React_Pass_Type, IndexType::TheCellType(),
+                             StateDescriptor::Point, NUM_GROW, NQP_SRC,
                              &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
   }

@@ -1122,7 +1122,7 @@ contains
 
     use amrex_constants_module, only : ZERO
     use burn_type_module
-    use meth_params_module, only : NVAR, NQ, NQAUX, QFS, QRHO, QTEMP, UFS, UEDEN, UEINT
+    use meth_params_module, only : NVAR
     use network, only : nspec, nspec_evolve, aion
     use react_util_module
 

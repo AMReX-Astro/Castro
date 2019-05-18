@@ -1116,7 +1116,8 @@ public:
 /// @param source   MultiFab to save source term to
 /// @param dt       timestep
 ///
-    void get_react_source_prim(amrex::MultiFab& source, amrex::Real time, amrex::Real dt);
+    void get_react_source_prim(amrex::MultiFab& core_source, amrex::MultiFab& pass_source,
+                               amrex::Real time, amrex::Real dt);
 
 ///
 /// @param state
