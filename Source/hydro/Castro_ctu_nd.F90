@@ -456,6 +456,8 @@ contains
                              qxp_core, qxp_lo, qxp_hi, &
                              qxm_pass, qxpm_lo, qxpm_hi, &
                              qxp_pass, qxpp_lo, qxpp_hi, &
+                             qxm_rad, qxrm_lo, qxrm_hi, &
+                             qxp_rad, qxrp_lo, qxrp_hi, &
 #if AMREX_SPACEDIM <= 2
                              dloga, dloga_lo, dloga_hi, &
 #endif
@@ -486,6 +488,8 @@ contains
                              qyp_core, qyp_lo, qyp_hi, &
                              qym_pass, qypm_lo, qypm_hi, &
                              qyp_pass, qypp_lo, qypp_hi, &
+                             qym_rad, qyrm_lo, qyrm_hi, &
+                             qyp_rad, qyrp_lo, qyrp_hi, &
 #if AMREX_SPACEDIM == 2
                              dloga, dloga_lo, dloga_hi, &
 #endif
@@ -517,6 +521,8 @@ contains
                              qzp_core, qzp_lo, qzp_hi, &
                              qzm_pass, qzpm_lo, qzpm_hi, &
                              qzp_pass, qzpp_lo, qzpp_hi, &
+                             qzm_rad, qzrm_lo, qzrm_hi, &
+                             qzp_rad, qzrp_lo, qzrp_hi, &
                              vlo, vhi, domlo, domhi, &
                              dx, dt)
 #endif

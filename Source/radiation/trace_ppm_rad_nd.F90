@@ -17,14 +17,29 @@ contains
 
 
   subroutine trace_ppm_rad(lo, hi, &
-                           idir, q, qd_lo, qd_hi, &
+                           idir, &
+                           q_core, qc_lo, qc_hi, &
+                           q_pass, qp_lo, qp_hi, &
+                           q_rad, qr_lo, qr_hi, &
                            qaux, qa_lo, qa_hi, &
-                           Ip, Ip_lo, Ip_hi, &
-                           Im, Im_lo, Im_hi, &
-                           Ip_src, Ips_lo, Ips_hi, &
-                           Im_src, Ims_lo, Ims_hi, &
-                           qm, qm_lo, qm_hi, &
-                           qp, qp_lo, qp_hi, &
+                           Ip_core, Icp_lo, Icp_hi, &
+                           Im_core, Icm_lo, Icm_hi, &
+                           Ip_pass, Ipp_lo, Ipp_hi, &
+                           Im_pass, Ipm_lo, Ipm_hi, &
+                           Ip_rad, Irp_lo, Irp_hi, &
+                           Im_rad, Irm_lo, Irm_hi, &
+                           Ip_core_src, Icsp_lo, Icsp_hi, &
+                           Im_core_src, Icsm_lo, Icsm_hi, &
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                           Ip_pass_src, Ipsp_lo, Ipsp_hi, &
+                           Im_pass_src, Ipsm_lo, Ipsm_hi, &
+#endif
+                           qm_core, qcm_lo, qcm_hi, &
+                           qp_core, qcp_lo, qcp_hi, &
+                           qm_pass, qpm_lo, qpm_hi, &
+                           qp_pass, qpp_lo, qpp_hi, &
+                           qm_rad, qrm_lo, qrm_hi, &
+                           qp_rad, qrp_lo, qrp_hi, &
 #if (AMREX_SPACEDIM < 3)
                            dloga, dloga_lo, dloga_hi, &
 #endif
@@ -32,7 +47,7 @@ contains
                            dx, dt)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
+    use meth_params_module, only : NQC, NQP, NQR, NQAUX, NQC_SRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QGAME, QC, QCG, QGAMC, QGAMCG, QLAMS, &
                                    qrad, qradhi, qptot, qreitot, &
                                    small_dens, small_pres, &
@@ -47,14 +62,28 @@ contains
     implicit none
 
     integer, intent(in) :: idir
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qc_lo(3), qc_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qr_lo(3), qr_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
-    integer, intent(in) :: Im_lo(3), Im_hi(3)
-    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
-    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
+    integer, intent(in) :: Icp_lo(3), Icp_hi(3)
+    integer, intent(in) :: Icm_lo(3), Icm_hi(3)
+    integer, intent(in) :: Ipp_lo(3), Ipp_hi(3)
+    integer, intent(in) :: Ipm_lo(3), Ipm_hi(3)
+    integer, intent(in) :: Irp_lo(3), Irp_hi(3)
+    integer, intent(in) :: Irm_lo(3), Irm_hi(3)
+    integer, intent(in) :: Icsp_lo(3), Icsp_hi(3)
+    integer, intent(in) :: Icsm_lo(3), Icsm_hi(3)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    integer, intent(in) :: Ipsp_lo(3), Ipsp_hi(3)
+    integer, intent(in) :: Ipsm_lo(3), Ipsm_hi(3)
+#endif
+    integer, intent(in) :: qcm_lo(3), qcm_hi(3)
+    integer, intent(in) :: qcp_lo(3), qcp_hi(3)
+    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
+    integer, intent(in) :: qpp_lo(3), qpp_hi(3)
+    integer, intent(in) :: qrm_lo(3), qrm_hi(3)
+    integer, intent(in) :: qrp_lo(3), qrp_hi(3)
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
@@ -62,17 +91,30 @@ contains
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt), intent(in) :: q_core(qc_lo(1):qc_hi(1),qc_lo(2):qc_hi(2),qc_lo(3):qc_hi(3),NQC)
+    real(rt), intent(in) :: q_pass(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQP)
+    real(rt), intent(in) :: q_rad(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQR)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
+    real(rt), intent(in) :: Ip_core(Icp_lo(1):Icp_hi(1),Icp_lo(2):Icp_hi(2),Icp_lo(3):Icp_hi(3),1:3,NQC)
+    real(rt), intent(in) :: Im_core(Icm_lo(1):Icm_hi(1),Icm_lo(2):Icm_hi(2),Icm_lo(3):Icm_hi(3),1:3,NQC)
+    real(rt), intent(in) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),1:3,NQP)
+    real(rt), intent(in) :: Im_pass(Ipm_lo(1):Ipm_hi(1),Ipm_lo(2):Ipm_hi(2),Ipm_lo(3):Ipm_hi(3),1:3,NQP)
+    real(rt), intent(in) :: Ip_rad(Irp_lo(1):Irp_hi(1),Irp_lo(2):Irp_hi(2),Irp_lo(3):Irp_hi(3),1:3,NQR)
+    real(rt), intent(in) :: Im_rad(Irm_lo(1):Irm_hi(1),Irm_lo(2):Irm_hi(2),Irm_lo(3):Irm_hi(3),1:3,NQR)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
-
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(in) :: Ip_core_src(Icsp_lo(1):Icsp_hi(1),Icsp_lo(2):Icsp_hi(2),Icsp_lo(3):Icsp_hi(3),1:3,NQC_SRC)
+    real(rt), intent(in) :: Im_core_src(Icsm_lo(1):Icsm_hi(1),Icsm_lo(2):Icsm_hi(2),Icsm_lo(3):Icsm_hi(3),1:3,NQC_SRC)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+    real(rt), intent(in) :: Ip_pass_src(Ipsp_lo(1):Ipsp_hi(1),Ipsp_lo(2):Ipsp_hi(2),Ipsp_lo(3):Ipsp_hi(3),1:3,NQP_SRC)
+    real(rt), intent(in) :: Im_pass_src(Ipsm_lo(1):Ipsm_hi(1),Ipsm_lo(2):Ipsm_hi(2),Ipsm_lo(3):Ipsm_hi(3),1:3,NQP_SRC)
+#endif
+    real(rt), intent(inout) :: qm_core(qcm_lo(1):qcm_hi(1),qcm_lo(2):qcm_hi(2),qcm_lo(3):qcm_hi(3),NQC)
+    real(rt), intent(inout) :: qp_core(qcp_lo(1):qcp_hi(1),qcp_lo(2):qcp_hi(2),qcp_lo(3):qcp_hi(3),NQC)
+    real(rt), intent(inout) :: qm_pass(qcm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP)
+    real(rt), intent(inout) :: qp_pass(qcp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP)
+    real(rt), intent(inout) :: qm_rad(qrm_lo(1):qrm_hi(1),qrm_lo(2):qrm_hi(2),qrm_lo(3):qrm_hi(3),NQR)
+    real(rt), intent(inout) :: qp_rad(qrp_lo(1):qrp_hi(1),qrp_lo(2):qrp_hi(2),qrp_lo(3):qrp_hi(3),NQR)
 
 #if (AMREX_SPACEDIM < 3)
     real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
@@ -194,7 +236,7 @@ contains
                 lamm(g) = qaux(i,j,k,QLAMS+g)
              end do
 
-             rho = q(i,j,k,QRHO)
+             rho = q_core(i,j,k,QRHO)
              tau = ONE/rho
 
              ! cgassq is the gas soundspeed **2
@@ -204,18 +246,18 @@ contains
              csq = cc**2
              Clag = rho*cc
 
-             un = q(i,j,k,QUN)
+             un = q_core(i,j,k,QUN)
 
-             p = q(i,j,k,QPRES)
-             rhoe_g = q(i,j,k,QREINT)
+             p = q_core(i,j,k,QPRES)
+             rhoe_g = q_core(i,j,k,QREINT)
              h_g = ( (p+rhoe_g)/rho)/csq
 
              gam_g = qaux(i,j,k,QGAMCG)
-             game = q(i,j,k,QGAME)
+             game = q_core(i,j,k,QGAME)
 
-             ptot = q(i,j,k,qptot)
+             ptot = q_rad(i,j,k,qptot)
 
-             er(:) = q(i,j,k,qrad:qradhi)
+             er(:) = q_rad(i,j,k,qrad:qradhi)
              hr(:) = (lam0+ONE)*er/rho
 
              !-------------------------------------------------------------------
@@ -230,24 +272,24 @@ contains
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
                 ! Woodward use
-                rho_ref  = Im(i,j,k,1,QRHO)
-                un_ref    = Im(i,j,k,1,QUN)
+                rho_ref  = Im_core(i,j,k,1,QRHO)
+                un_ref    = Im_core(i,j,k,1,QUN)
 
-                p_ref    = Im(i,j,k,1,QPRES)
-                rhoe_g_ref = Im(i,j,k,1,QREINT)
+                p_ref    = Im_core(i,j,k,1,QPRES)
+                rhoe_g_ref = Im_core(i,j,k,1,QREINT)
 
-                tau_ref  = ONE/Im(i,j,k,1,QRHO)
+                tau_ref  = ONE/Im_core(i,j,k,1,QRHO)
 
                 !gam_g_ref  = Im_gc(i,j,k,1,1)
-                game_ref = Im(i,j,k,1,QGAME)
+                game_ref = Im_core(i,j,k,1,QGAME)
 
-                ptot_ref = Im(i,j,k,1,QPTOT)
+                ptot_ref = Im_rad(i,j,k,1,QPTOT)
 
-                er_ref(:) = Im(i,j,k,1,QRAD:QRADHI)
+                er_ref(:) = Im_rad(i,j,k,1,QRAD:QRADHI)
 
 
-                rho_ref = max(rho_ref,small_dens)
-                p_ref = max(p_ref,small_pres)
+                rho_ref = max(rho_ref, small_dens)
+                p_ref = max(p_ref, small_pres)
 
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
@@ -256,19 +298,19 @@ contains
                 !       only by the u wave (the contact)
 
                 ! we also add the sources here so they participate in the tracing
-                dum    = un_ref    - Im(i,j,k,1,QUN) - hdt*Im_src(i,j,k,1,QUN)
-                dptotm = ptot_ref - Im(i,j,k,1,qptot) - hdt*Im_src(i,j,k,1,QPRES)
+                dum    = un_ref    - Im_core(i,j,k,1,QUN) - hdt*Im_core_src(i,j,k,1,QUN)
+                dptotm = ptot_ref - Im_rad(i,j,k,1,qptot) - hdt*Im_core_src(i,j,k,1,QPRES)
 
-                drho    = rho_ref    - Im(i,j,k,2,QRHO) - hdt*Im_src(i,j,k,2,QRHO)
-                dptot   = ptot_ref   - Im(i,j,k,2,qptot) - hdt*Im_src(i,j,k,2,QPRES)
-                drhoe_g = rhoe_g_ref - Im(i,j,k,2,QREINT) - hdt*Im_src(i,j,k,2,QREINT)
+                drho    = rho_ref    - Im_core(i,j,k,2,QRHO) - hdt*Im_core_src(i,j,k,2,QRHO)
+                dptot   = ptot_ref   - Im_rad(i,j,k,2,qptot) - hdt*Im_core_src(i,j,k,2,QPRES)
+                drhoe_g = rhoe_g_ref - Im_core(i,j,k,2,QREINT) - hdt*Im_core_src(i,j,k,2,QREINT)
 
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtau  = tau_ref  - ONE/Im(i,j,k,2,QRHO) + hdt*Im_src(i,j,k,2,QRHO)/Im(i,j,k,2,QRHO)**2
-                der(:)  = er_ref(:)  - Im(i,j,k,2,qrad:qradhi)
+                dtau  = tau_ref  - ONE/Im_core(i,j,k,2,QRHO) + hdt*Im_core_src(i,j,k,2,QRHO)/Im_core(i,j,k,2,QRHO)**2
+                der(:)  = er_ref(:)  - Im_rad(i,j,k,2,qrad:qradhi)
 
-                dup    = un_ref    - Im(i,j,k,3,QUN) - hdt*Im_src(i,j,k,3,QUN)
-                dptotp = ptot_ref - Im(i,j,k,3,qptot) - hdt*Im_src(i,j,k,3,QPRES)
+                dup    = un_ref    - Im_core(i,j,k,3,QUN) - hdt*Im_core_src(i,j,k,3,QUN)
+                dptotp = ptot_ref - Im_rad(i,j,k,3,qptot) - hdt*Im_core_src(i,j,k,3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -298,7 +340,7 @@ contains
                    alphap = HALF*(-dup - dptotp*(ONE/Clag))*(ONE/Clag)
                    alpha0r = dtau + dptot*(ONE/Clag)**2
 
-                   dge   = game_ref - Im(i,j,k,2,QGAME)
+                   dge   = game_ref - Im_core(i,j,k,2,QGAME)
                    gfactor = (game - ONE)*(game - gam_g)
                    alpha0e_g = gfactor*dptot/(tau*Clag**2) + dge
 
@@ -341,45 +383,45 @@ contains
                 ! q_s = q_ref - sum(l . dq) r
                 ! note that the a{mpz}right as defined above have the minus already
                 if (ppm_predict_gammae == 0) then
-                   qp(i,j,k,QRHO) = rho_ref + alphap + alpham + alpha0r
-                   qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc/rho
-                   qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                   qp(i,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
+                   qp_core(i,j,k,QRHO) = rho_ref + alphap + alpham + alpha0r
+                   qp_core(i,j,k,QUN) = un_ref + (alphap - alpham)*cc/rho
+                   qp_core(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
+                   qp_core(i,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
                    qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qp(i,j,k,qrad:qradhi) = qrtmp
+                   qp_rad(i,j,k,qrad:qradhi) = qrtmp
 
-                   qp(i,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                   qp(i,j,k,qreitot) = qp(i,j,k,QREINT) + sum(qrtmp)
+                   qp_rad(i,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
+                   qp_rad(i,j,k,qreitot) = qp_core(i,j,k,QREINT) + sum(qrtmp)
 
                 else
                    tau_s = tau_ref + alphap + alpham + alpha0r
-                   qp(i,j,k,QRHO  ) = ONE/tau_s
+                   qp_core(i,j,k,QRHO  ) = ONE/tau_s
 
-                   qp(i,j,k,QUN    ) = un_ref + (alpham - alphap)*Clag
-                   qp(i,j,k,QPRES ) = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamp(:)*alphar(:))
+                   qp_core(i,j,k,QUN    ) = un_ref + (alpham - alphap)*Clag
+                   qp_core(i,j,k,QPRES ) = p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamp(:)*alphar(:))
 
-                   qp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
-                   qp(i,j,k,QREINT) = qp(i,j,k,QPRES )/(qp(i,j,k,QGAME) - ONE)
+                   qp_core(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
+                   qp_core(i,j,k,QREINT) = qp_core(i,j,k,QPRES )/(qp_core(i,j,k,QGAME) - ONE)
 
                    qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                   qp(i,j,k,qrad:qradhi) = qrtmp
+                   qp_rad(i,j,k,qrad:qradhi) = qrtmp
 
-                   qp(i,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
-                   qp(i,j,k,qreitot) = qp(i,j,k,QREINT) + sum(qrtmp)
+                   qp_rad(i,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
+                   qp_rad(i,j,k,qreitot) = qp_core(i,j,k,QREINT) + sum(qrtmp)
 
                 endif
 
                 ! Enforce small_*
-                qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
-                qp(i,j,k,QPRES) = max(qp(i,j,k,QPRES),small_pres)
+                qp_core(i,j,k,QRHO) = max(qp_core(i,j,k,QRHO), small_dens)
+                qp_core(i,j,k,QPRES) = max(qp_core(i,j,k,QPRES), small_pres)
 
                 do g = 0, ngroups-1
-                   if (qp(i,j,k,qrad+g) < ZERO) then
-                      er_foo = - qp(i,j,k,qrad+g)
-                      qp(i,j,k,qrad+g) = ZERO
-                      qp(i,j,k,qptot) = qp(i,j,k,qptot) + lamp(g) * er_foo
-                      qp(i,j,k,qreitot) = qp(i,j,k,qreitot) + er_foo
+                   if (qp_rad(i,j,k,qrad+g) < ZERO) then
+                      er_foo = - qp_rad(i,j,k,qrad+g)
+                      qp_rad(i,j,k,qrad+g) = ZERO
+                      qp_rad(i,j,k,qptot) = qp_rad(i,j,k,qptot) + lamp(g) * er_foo
+                      qp_rad(i,j,k,qreitot) = qp_rad(i,j,k,qreitot) + er_foo
                    end if
                 end do
 
@@ -391,8 +433,8 @@ contains
                 ! Recall that I already takes the limit of the parabola
                 ! in the event that the wave is not moving toward the
                 ! interface
-                qp(i,j,k,QUT) = Im(i,j,k,2,QUT) + hdt*Im_src(i,j,k,2,QUT)
-                qp(i,j,k,QUTT) = Im(i,j,k,2,QUTT) + hdt*Im_src(i,j,k,2,QUTT)
+                qp_core(i,j,k,QUT) = Im_core(i,j,k,2,QUT) + hdt*Im_core_src(i,j,k,2,QUT)
+                qp_core(i,j,k,QUTT) = Im_core(i,j,k,2,QUTT) + hdt*Im_core_src(i,j,k,2,QUTT)
 
              end if
 
@@ -406,39 +448,39 @@ contains
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,3,QRHO)
-                un_ref    = Ip(i,j,k,3,QUN)
+                rho_ref  = Ip_core(i,j,k,3,QRHO)
+                un_ref    = Ip_core(i,j,k,3,QUN)
 
-                p_ref    = Ip(i,j,k,3,QPRES)
-                rhoe_g_ref = Ip(i,j,k,3,QREINT)
+                p_ref    = Ip_core(i,j,k,3,QPRES)
+                rhoe_g_ref = Ip_core(i,j,k,3,QREINT)
 
-                tau_ref  = ONE/Ip(i,j,k,3,QRHO)
+                tau_ref  = ONE/Ip_core(i,j,k,3,QRHO)
 
                 !gam_g_ref  = Ip_gc(i,j,k,3,1)
-                game_ref = Ip(i,j,k,3,QGAME)
+                game_ref = Ip_core(i,j,k,3,QGAME)
 
 
-                ptot_ref = Ip(i,j,k,3,QPTOT)
+                ptot_ref = Ip_rad(i,j,k,3,QPTOT)
 
-                er_ref(:) = Ip(i,j,k,3,QRAD:QRADHI)
+                er_ref(:) = Ip_rad(i,j,k,3,QRAD:QRADHI)
 
-                rho_ref = max(rho_ref,small_dens)
-                p_ref = max(p_ref,small_pres)
+                rho_ref = max(rho_ref, small_dens)
+                p_ref = max(p_ref, small_pres)
 
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
 
-                dum    = un_ref    - Ip(i,j,k,1,QUN) - hdt*Ip_src(i,j,k,1,QUN)
-                dptotm = ptot_ref - Ip(i,j,k,1,qptot) - hdt*Ip_src(i,j,k,1,QPRES)
+                dum    = un_ref    - Ip_core(i,j,k,1,QUN) - hdt*Ip_core_src(i,j,k,1,QUN)
+                dptotm = ptot_ref - Ip_rad(i,j,k,1,qptot) - hdt*Ip_core_src(i,j,k,1,QPRES)
 
-                drho    = rho_ref    - Ip(i,j,k,2,QRHO) - hdt*Ip_src(i,j,k,2,QRHO)
-                dptot   = ptot_ref   - Ip(i,j,k,2,qptot) - hdt*Ip_src(i,j,k,2,QPRES)
-                drhoe_g = rhoe_g_ref - Ip(i,j,k,2,QREINT) - hdt*Ip_src(i,j,k,2,QREINT)
-                dtau  = tau_ref  - ONE/Ip(i,j,k,2,QRHO) + hdt*Ip_src(i,j,k,2,QRHO)/Ip(i,j,k,2,QRHO)**2
-                der(:)  = er_ref(:)  - Ip(i,j,k,2,qrad:qradhi)
+                drho    = rho_ref    - Ip_core(i,j,k,2,QRHO) - hdt*Ip_core_src(i,j,k,2,QRHO)
+                dptot   = ptot_ref   - Ip_rad(i,j,k,2,qptot) - hdt*Ip_core_src(i,j,k,2,QPRES)
+                drhoe_g = rhoe_g_ref - Ip_core(i,j,k,2,QREINT) - hdt*Ip_core_src(i,j,k,2,QREINT)
+                dtau  = tau_ref  - ONE/Ip_core(i,j,k,2,QRHO) + hdt*Ip_core_src(i,j,k,2,QRHO)/Ip_core(i,j,k,2,QRHO)**2
+                der(:)  = er_ref(:)  - Ip_rad(i,j,k,2,qrad:qradhi)
 
-                dup    = un_ref    - Ip(i,j,k,3,QUN) - hdt*Ip_src(i,j,k,3,QUN)
-                dptotp = ptot_ref - Ip(i,j,k,3,qptot) - hdt*Ip_src(i,j,k,3,QPRES)
+                dup    = un_ref    - Ip_core(i,j,k,3,QUN) - hdt*Ip_core_src(i,j,k,3,QUN)
+                dptotp = ptot_ref - Ip_rad(i,j,k,3,qptot) - hdt*Ip_core_src(i,j,k,3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -468,7 +510,7 @@ contains
                    alphap = HALF*(-dup - dptotp*(ONE/Clag))*(ONE/Clag)
                    alpha0r = dtau + dptot*(ONE/Clag)**2
 
-                   dge = game_ref - Ip(i,j,k,2,QGAME)
+                   dge = game_ref - Ip_core(i,j,k,2,QGAME)
                    gfactor = (game - ONE)*(game - gam_g)
                    alpha0e_g = gfactor*dptot/(tau*Clag**2) + dge
 
@@ -512,40 +554,40 @@ contains
                 if (ppm_predict_gammae == 0) then
 
                    if (idir == 1) then
-                      qm(i+1,j,k,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
-                      qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc/rho
-                      qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                      qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
+                      qm_core(i+1,j,k,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
+                      qm_core(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc/rho
+                      qm_core(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
+                      qm_core(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
 
                       qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                      qm(i+1,j,k,qrad:qradhi) = qrtmp
+                      qm_rad(i+1,j,k,qrad:qradhi) = qrtmp
 
-                      qm(i+1,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                      qm(i+1,j,k,qreitot) = qm(i+1,j,k,QREINT) + sum(qrtmp)
+                      qm_rad(i+1,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
+                      qm_rad(i+1,j,k,qreitot) = qm_core(i+1,j,k,QREINT) + sum(qrtmp)
 
                    else if (idir == 2) then
-                      qm(i,j+1,k,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
-                      qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc/rho
-                      qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                      qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
+                      qm_core(i,j+1,k,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
+                      qm_core(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc/rho
+                      qm_core(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
+                      qm_core(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
 
                       qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                      qm(i,j+1,k,qrad:qradhi) = qrtmp
+                      qm_rad(i,j+1,k,qrad:qradhi) = qrtmp
 
-                      qm(i,j+1,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                      qm(i,j+1,k,qreitot) = qm(i,j+1,k,QREINT) + sum(qrtmp)
+                      qm_rad(i,j+1,k,qptot) = ptot_ref + (alphap + alpham)*csq
+                      qm_rad(i,j+1,k,qreitot) = qm_core(i,j+1,k,QREINT) + sum(qrtmp)
 
                    else if (idir == 3) then
-                      qm(i,j,k+1,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
-                      qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc/rho
-                      qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                      qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
+                      qm_core(i,j,k+1,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
+                      qm_core(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc/rho
+                      qm_core(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
+                      qm_core(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
 
                       qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                      qm(i,j,k+1,qrad:qradhi) = qrtmp
+                      qm_rad(i,j,k+1,qrad:qradhi) = qrtmp
 
-                      qm(i,j,k+1,qptot) = ptot_ref + (alphap + alpham)*csq
-                      qm(i,j,k+1,qreitot) = qm(i,j,k+1,QREINT) + sum(qrtmp)
+                      qm_rad(i,j,k+1,qptot) = ptot_ref + (alphap + alpham)*csq
+                      qm_rad(i,j,k+1,qreitot) = qm_core(i,j,k+1,QREINT) + sum(qrtmp)
 
                    end if
 
@@ -553,51 +595,51 @@ contains
 
                    if (idir == 1) then
                       tau_s = tau_ref + alphap + alpham + alpha0r
-                      qm(i+1,j,k,QRHO  ) = max(small_dens, ONE/tau_s)
+                      qm_core(i+1,j,k,QRHO  ) = max(small_dens, ONE/tau_s)
 
-                      qm(i+1,j,k,QUN    ) = un_ref + (alpham - alphap)*Clag
-                      qm(i+1,j,k,QPRES ) = max(small_pres, p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:)))
+                      qm_core(i+1,j,k,QUN    ) = un_ref + (alpham - alphap)*Clag
+                      qm_core(i+1,j,k,QPRES ) = max(small_pres, p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:)))
 
-                      qm(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
-                      qm(i+1,j,k,QREINT) = qm(i+1,j,k,QPRES )/(qm(i+1,j,k,QGAME) - ONE)
+                      qm_core(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
+                      qm_core(i+1,j,k,QREINT) = qm_core(i+1,j,k,QPRES )/(qm_core(i+1,j,k,QGAME) - ONE)
 
                       qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                      qm(i+1,j,k,qrad:qradhi) = qrtmp
+                      qm_rad(i+1,j,k,qrad:qradhi) = qrtmp
 
-                      qm(i+1,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
-                      qm(i+1,j,k,qreitot) = qm(i+1,j,k,QREINT) + sum(qrtmp)
+                      qm_rad(i+1,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
+                      qm_rad(i+1,j,k,qreitot) = qm_core(i+1,j,k,QREINT) + sum(qrtmp)
 
                    else if (idir == 2) then
                       tau_s = tau_ref + alphap + alpham + alpha0r
-                      qm(i,j+1,k,QRHO  ) = max(small_dens, ONE/tau_s)
+                      qm_core(i,j+1,k,QRHO  ) = max(small_dens, ONE/tau_s)
 
-                      qm(i,j+1,k,QUN    ) = un_ref + (alpham - alphap)*Clag
-                      qm(i,j+1,k,QPRES ) = max(small_pres, p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:)))
+                      qm_core(i,j+1,k,QUN    ) = un_ref + (alpham - alphap)*Clag
+                      qm_core(i,j+1,k,QPRES ) = max(small_pres, p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:)))
 
-                      qm(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
-                      qm(i,j+1,k,QREINT) = qm(i,j+1,k,QPRES )/(qm(i,j+1,k,QGAME) - ONE)
+                      qm_core(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
+                      qm_core(i,j+1,k,QREINT) = qm_core(i,j+1,k,QPRES )/(qm_core(i,j+1,k,QGAME) - ONE)
 
                       qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                      qm(i,j+1,k,qrad:qradhi) = qrtmp
+                      qm_rad(i,j+1,k,qrad:qradhi) = qrtmp
 
-                      qm(i,j+1,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
-                      qm(i,j+1,k,qreitot) = qm(i,j+1,k,QREINT) + sum(qrtmp)
+                      qm_rad(i,j+1,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
+                      qm_rad(i,j+1,k,qreitot) = qm_core(i,j+1,k,QREINT) + sum(qrtmp)
 
                    else if (idir == 3) then
                       tau_s = tau_ref + alphap + alpham + alpha0r
-                      qm(i,j,k+1,QRHO  ) = max(small_dens, ONE/tau_s)
+                      qm_core(i,j,k+1,QRHO  ) = max(small_dens, ONE/tau_s)
 
-                      qm(i,j,k+1,QUN    ) = un_ref + (alpham - alphap)*Clag
-                      qm(i,j,k+1,QPRES ) = max(small_pres, p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:)))
+                      qm_core(i,j,k+1,QUN    ) = un_ref + (alpham - alphap)*Clag
+                      qm_core(i,j,k+1,QPRES ) = max(small_pres, p_ref - (alphap + alpham)*(cgassq/tau**2) - sum(lamm(:)*alphar(:)))
 
-                      qm(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
-                      qm(i,j,k+1,QREINT) = qm(i,j,k+1,QPRES )/(qm(i,j,k+1,QGAME) - ONE)
+                      qm_core(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau + alpha0e_g
+                      qm_core(i,j,k+1,QREINT) = qm_core(i,j,k+1,QPRES )/(qm_core(i,j,k+1,QGAME) - ONE)
 
                       qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                      qm(i,j,k+1,qrad:qradhi) = qrtmp
+                      qm_rad(i,j,k+1,qrad:qradhi) = qrtmp
 
-                      qm(i,j,k+1,qptot) = ptot_ref - (alphap + alpham)*Clag**2
-                      qm(i,j,k+1,qreitot) = qm(i,j,k+1,QREINT) + sum(qrtmp)
+                      qm_rad(i,j,k+1,qptot) = ptot_ref - (alphap + alpham)*Clag**2
+                      qm_rad(i,j,k+1,qreitot) = qm_core(i,j,k+1,QREINT) + sum(qrtmp)
 
                    end if
 
@@ -605,45 +647,45 @@ contains
 
                 if (idir == 1) then
                    do g=0,ngroups-1
-                      if (qm(i+1,j,k,qrad+g) < ZERO) then
-                         er_foo = - qm(i+1,j,k,qrad+g)
-                         qm(i+1,j,k,qrad+g) = ZERO
-                         qm(i+1,j,k,qptot) = qm(i+1,j,k,qptot) + lamm(g) * er_foo
-                         qm(i+1,j,k,qreitot) = qm(i+1,j,k,qreitot) + er_foo
+                      if (qm_rad(i+1,j,k,qrad+g) < ZERO) then
+                         er_foo = - qm_rad(i+1,j,k,qrad+g)
+                         qm_rad(i+1,j,k,qrad+g) = ZERO
+                         qm_rad(i+1,j,k,qptot) = qm_rad(i+1,j,k,qptot) + lamm(g) * er_foo
+                         qm_rad(i+1,j,k,qreitot) = qm_rad(i+1,j,k,qreitot) + er_foo
                       end if
                    end do
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i+1,j,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i+1,j,k,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i+1,j,k,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 else if (idir == 2) then
                    do g=0,ngroups-1
-                      if (qm(i,j+1,k,qrad+g) < ZERO) then
-                         er_foo = - qm(i,j+1,k,qrad+g)
-                         qm(i,j+1,k,qrad+g) = ZERO
-                         qm(i,j+1,k,qptot) = qm(i,j+1,k,qptot) + lamm(g) * er_foo
-                         qm(i,j+1,k,qreitot) = qm(i,j+1,k,qreitot) + er_foo
+                      if (qm_rad(i,j+1,k,qrad+g) < ZERO) then
+                         er_foo = - qm_rad(i,j+1,k,qrad+g)
+                         qm_rad(i,j+1,k,qrad+g) = ZERO
+                         qm_rad(i,j+1,k,qptot) = qm_rad(i,j+1,k,qptot) + lamm(g) * er_foo
+                         qm_rad(i,j+1,k,qreitot) = qm_rad(i,j+1,k,qreitot) + er_foo
                       end if
                    end do
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i,j+1,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i,j+1,k,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i,j+1,k,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 else if (idir == 3) then
                    do g=0,ngroups-1
-                      if (qm(i,j,k+1,qrad+g) < ZERO) then
-                         er_foo = - qm(i,j,k+1,qrad+g)
-                         qm(i,j,k+1,qrad+g) = ZERO
-                         qm(i,j,k+1,qptot) = qm(i,j,k+1,qptot) + lamm(g) * er_foo
-                         qm(i,j,k+1,qreitot) = qm(i,j,k+1,qreitot) + er_foo
+                      if (qm_rad(i,j,k+1,qrad+g) < ZERO) then
+                         er_foo = - qm_rad(i,j,k+1,qrad+g)
+                         qm_rad(i,j,k+1,qrad+g) = ZERO
+                         qm_rad(i,j,k+1,qptot) = qm_rad(i,j,k+1,qptot) + lamm(g) * er_foo
+                         qm_rad(i,j,k+1,qreitot) = qm_rad(i,j,k+1,qreitot) + er_foo
                       end if
                    end do
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i,j,k+1,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm_core(i,j,k+1,QUT) = Ip_core(i,j,k,2,QUT) + hdt*Ip_core_src(i,j,k,2,QUT)
+                   qm_core(i,j,k+1,QUTT) = Ip_core(i,j,k,2,QUTT) + hdt*Ip_core_src(i,j,k,2,QUTT)
 
                 end if
 
@@ -665,25 +707,25 @@ contains
                 sourcer(:) = -HALF*dt*dlogatmp*un*(lam0(:)+ONE)*er(:)
 
                 if (i <= vhi(1)) then
-                   qm(i+1,j,k,QRHO  ) = qm(i+1,j,k,QRHO  ) + sourcr
-                   qm(i+1,j,k,QRHO  ) = max(qm(i+1,j,k,QRHO), small_dens)
-                   qm(i+1,j,k,QPRES ) = qm(i+1,j,k,QPRES ) + sourcp
-                   qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
-                   qm(i+1,j,k,qrad:qradhi) = qm(i+1,j,k,qrad:qradhi) + sourcer(:)
+                   qm_core(i+1,j,k,QRHO  ) = qm_core(i+1,j,k,QRHO  ) + sourcr
+                   qm_core(i+1,j,k,QRHO  ) = max(qm_core(i+1,j,k,QRHO), small_dens)
+                   qm_core(i+1,j,k,QPRES ) = qm_core(i+1,j,k,QPRES ) + sourcp
+                   qm_core(i+1,j,k,QREINT) = qm_core(i+1,j,k,QREINT) + source
+                   qm_rad(i+1,j,k,qrad:qradhi) = qm_rad(i+1,j,k,qrad:qradhi) + sourcer(:)
                    ! qm(i+1,j,k,qptot ) = sum(lamm(:)*qm(i+1,j,k,qrad:qradhi)) + qm(i+1,j,k,QPRES)
-                   qm(i+1,j,k,qptot) = qm(i+1,j,k,qptot) + sum(lamm(:)*sourcer(:)) + sourcp
-                   qm(i+1,j,k,qreitot) = sum(qm(i+1,j,k,qrad:qradhi))  + qm(i+1,j,k,QREINT)
+                   qm_rad(i+1,j,k,qptot) = qm_rad(i+1,j,k,qptot) + sum(lamm(:)*sourcer(:)) + sourcp
+                   qm_rad(i+1,j,k,qreitot) = sum(qm_rad(i+1,j,k,qrad:qradhi))  + qm_core(i+1,j,k,QREINT)
                 end if
 
                 if (i >= vlo(1)) then
-                   qp(i,j,k,QRHO  ) = qp(i,j,k,QRHO  ) + sourcr
-                   qp(i,j,k,QRHO  ) = max(qp(i,j,k,QRHO), small_dens)
-                   qp(i,j,k,QPRES ) = qp(i,j,k,QPRES ) + sourcp
-                   qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source
-                   qp(i,j,k,qrad:qradhi) = qp(i,j,k,qrad:qradhi) + sourcer(:)
+                   qp_core(i,j,k,QRHO  ) = qp_core(i,j,k,QRHO  ) + sourcr
+                   qp_core(i,j,k,QRHO  ) = max(qp_core(i,j,k,QRHO), small_dens)
+                   qp_core(i,j,k,QPRES ) = qp_core(i,j,k,QPRES ) + sourcp
+                   qp_core(i,j,k,QREINT) = qp_core(i,j,k,QREINT) + source
+                   qp_rad(i,j,k,qrad:qradhi) = qp_rad(i,j,k,qrad:qradhi) + sourcer(:)
                    ! qp(i  ,qptot ) = sum(lamp(:)*qp(i,qrad:qradhi)) + qp(i,QPRES)
-                   qp(i,j,k,qptot) = qp(i,j,k,qptot) + sum(lamp(:)*sourcer(:)) + sourcp
-                   qp(i,j,k,qreitot) = sum(qp(i,j,k,qrad:qradhi))  + qp(i,j,k,QREINT)
+                   qp_rad(i,j,k,qptot) = qp_rad(i,j,k,qptot) + sum(lamp(:)*sourcer(:)) + sourcp
+                   qp_rad(i,j,k,qreitot) = sum(qp_rad(i,j,k,qrad:qradhi))  + qp_core(i,j,k,QREINT)
                 end if
              endif
 #endif
@@ -701,11 +743,6 @@ contains
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
 
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  But we already dealt with all 3 velocity
-       ! components above, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
-
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -715,7 +752,7 @@ contains
                     (idir == 2 .and. j >= vlo(2)) .or. &
                     (idir == 3 .and. k >= vlo(3))) then
 
-                   un = q(i,j,k,QUN)
+                   un = q_core(i,j,k,QU-1+idir)
 
                    ! We have
                    !
@@ -727,44 +764,56 @@ contains
                    ! projecting, the reference state doesn't matter
 
                    if (un > ZERO) then
-                      qp(i,j,k,n) = q(i,j,k,n)
+                      qp_pass(i,j,k,n) = q_pass(i,j,k,n)
                    else
-                      qp(i,j,k,n) = Im(i,j,k,2,n)
+                      qp_pass(i,j,k,n) = Im_pass(i,j,k,2,n)
                    end if
-                   if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,2,n)
-                endif
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qp_pass(i,j,k,n) = qp_pass(i,j,k,n) + HALF*dt*Im_pass_src(i,j,k,2,n)
+#endif
+
+                end if
 
                 ! Minus state on face i+1
                 if (idir == 1 .and. i <= vhi(1)) then
-                   un = q(i,j,k,QUN)
+                   un = q_core(i,j,k,QU-1+idir)
                    if (un > ZERO) then
-                      qm(i+1,j,k,n) = Ip(i,j,k,2,n)
+                      qm_pass(i+1,j,k,n) = Ip_pass(i,j,k,2,n)
                    else
-                      qm(i+1,j,k,n) = q(i,j,k,n)
+                      qm_pass(i+1,j,k,n) = q_pass(i,j,k,n)
                    end if
-                   if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qm_pass(i+1,j,k,n) = qm_pass(i+1,j,k,n) + HALF*dt*Ip_pass_src(i,j,k,2,n)
+#endif
+
                 else if (idir == 2 .and. j <= vhi(2)) then
-                   un = q(i,j,k,QUN)
+                   un = q_core(i,j,k,QU-1+idir)
                    if (un > ZERO) then
-                      qm(i,j+1,k,n) = Ip(i,j,k,2,n)
+                      qm_pass(i,j+1,k,n) = Ip_pass(i,j,k,2,n)
                    else
-                      qm(i,j+1,k,n) = q(i,j,k,n)
+                      qm_pass(i,j+1,k,n) = q_pass(i,j,k,n)
                    end if
-                   if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qm_pass(i,j+1,k,n) = qm_pass(i,j+1,k,n) + HALF*dt*Ip_pass_src(i,j,k,2,n)
+#endif
+
                 else if (idir == 3 .and. k <= vhi(3)) then
-                   un = q(i,j,k,QUN)
+                   un = q_core(i,j,k,QU-1+idir)
                    if (un > ZERO) then
-                      qm(i,j,k+1,n) = Ip(i,j,k,2,n)
+                      qm_pass(i,j,k+1,n) = Ip_pass(i,j,k,2,n)
                    else
-                      qm(i,j,k+1,n) = q(i,j,k,n)
+                      qm_pass(i,j,k+1,n) = q_pass(i,j,k,n)
                    end if
-                   if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,2,n)
-                endif
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+                   qm_pass(i,j,k+1,n) = qm_pass(i,j,k+1,n) + HALF*dt*Ip_pass_src(i,j,k,2,n)
+#endif
+                end if
 
              end do
 
           end do
        end do
+
     end do
 
   end subroutine trace_ppm_rad
