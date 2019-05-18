@@ -436,7 +436,7 @@ contains
        if (idir == 1) then
           call trace_ppm_rad(lo, hi, &
                              1, &
-                            q_core, qc_lo, qc_hi, &
+                             q_core, qc_lo, qc_hi, &
                              q_pass, qp_lo, qp_hi, &
                              q_rad, qr_lo, qr_hi, &
                              qaux, qa_lo, qa_hi, &

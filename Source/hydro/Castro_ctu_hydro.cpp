@@ -448,8 +448,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 #if AMREX_SPACEDIM == 3
                        BL_TO_FORTRAN_ANYD(qzm_core),
-                       BL_TO_FORTRAN_ANYD(qzm_pass),
                        BL_TO_FORTRAN_ANYD(qzp_core),
+                       BL_TO_FORTRAN_ANYD(qzm_pass),
                        BL_TO_FORTRAN_ANYD(qzp_pass),
 #ifdef RADIATION
                        BL_TO_FORTRAN_ANYD(qzp_rad),
@@ -536,8 +536,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
                           BL_TO_FORTRAN_ANYD(qxm_core),
                           BL_TO_FORTRAN_ANYD(qxp_core),
-                          BL_TO_FORTRAN_ANYD(qxp_pass),
                           BL_TO_FORTRAN_ANYD(qxm_pass),
+                          BL_TO_FORTRAN_ANYD(qxp_pass),
 #ifdef RADIATION
                           BL_TO_FORTRAN_ANYD(qxm_rad),
                           BL_TO_FORTRAN_ANYD(qxp_rad),
