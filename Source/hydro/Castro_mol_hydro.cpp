@@ -173,7 +173,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               ca_uflatten
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q_core[mfi]),
-                 BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
+                 BL_TO_FORTRAN_ANYD(q_core[mfi]), NQC, QPRES+1,
+                 BL_TO_FORTRAN_ANYD(flatn));
             } else {
               AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
             }
