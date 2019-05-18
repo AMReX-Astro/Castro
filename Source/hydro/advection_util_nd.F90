@@ -592,8 +592,8 @@ contains
              eos_state % T   = q_core(i,j,k,QTEMP )
              eos_state % rho = q_core(i,j,k,QRHO  )
              eos_state % e   = q_core(i,j,k,QREINT)
-             eos_state % xn  = q_core(i,j,k,QFS:QFS+nspec-1)
-             eos_state % aux = q_core(i,j,k,QFX:QFX+naux-1)
+             eos_state % xn  = q_pass(i,j,k,QFS:QFS+nspec-1)
+             eos_state % aux = q_pass(i,j,k,QFX:QFX+naux-1)
 
              call eos(eos_input_re, eos_state)
 
