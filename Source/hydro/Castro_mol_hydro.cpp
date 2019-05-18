@@ -216,8 +216,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  BL_TO_FORTRAN_ANYD(dq_core),
                  BL_TO_FORTRAN_ANYD(dq_pass),
                  BL_TO_FORTRAN_ANYD(qm_core),
-                 BL_TO_FORTRAN_ANYD(qm_pass),
                  BL_TO_FORTRAN_ANYD(qp_core),
+                 BL_TO_FORTRAN_ANYD(qm_pass),
                  BL_TO_FORTRAN_ANYD(qp_pass),
                  AMREX_REAL_ANYD(dx));
 
@@ -231,8 +231,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  BL_TO_FORTRAN_ANYD(flatn),
                  BL_TO_FORTRAN_ANYD(shk),
                  BL_TO_FORTRAN_ANYD(qm_core),
-                 BL_TO_FORTRAN_ANYD(qm_pass),
                  BL_TO_FORTRAN_ANYD(qp_core),
+                 BL_TO_FORTRAN_ANYD(qm_pass),
                  BL_TO_FORTRAN_ANYD(qp_pass),
                  AMREX_REAL_ANYD(dx));
             }
@@ -240,8 +240,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             if (ppm_temp_fix == 1) {
               ca_mol_thermo_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                                    BL_TO_FORTRAN_ANYD(qm_core),
-                                   BL_TO_FORTRAN_ANYD(qm_pass),
                                    BL_TO_FORTRAN_ANYD(qp_core),
+                                   BL_TO_FORTRAN_ANYD(qm_pass),
                                    BL_TO_FORTRAN_ANYD(qp_pass));
             }
 
@@ -309,8 +309,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               cmpflx_plus_godunov
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  BL_TO_FORTRAN_ANYD(qm_core),
-                 BL_TO_FORTRAN_ANYD(qm_pass),
                  BL_TO_FORTRAN_ANYD(qp_core),
+                 BL_TO_FORTRAN_ANYD(qm_pass),
                  BL_TO_FORTRAN_ANYD(qp_pass),
                  AMREX_SPACEDIM, idir_f,
                  BL_TO_FORTRAN_ANYD(flux[idir]),
