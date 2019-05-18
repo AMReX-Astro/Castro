@@ -56,12 +56,14 @@ extern "C"
 
   void ca_uflatten
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(flatn), int pres_comp);
+     const BL_FORT_FAB_ARG_3D(q_core),
+     const BL_FORT_FAB_ARG_3D(q_pres), int ncomp, int pres_comp,
+     BL_FORT_FAB_ARG_3D(flatn));
 
   void ca_rad_flatten
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(q),
+     const BL_FORT_FAB_ARG_3D(q_core),
+     const BL_FORT_FAB_ARG_3D(q_rad),
      BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(flatg));
 
@@ -252,6 +254,9 @@ extern "C"
       const int* vlo, const int* vhi,
       const BL_FORT_FAB_ARG_3D(q_core),
       const BL_FORT_FAB_ARG_3D(q_pass),
+#ifdef RADIATION
+      const BL_FORT_FAB_ARG_3D(q_rad),
+#endif
       const BL_FORT_FAB_ARG_3D(flatn),
       const BL_FORT_FAB_ARG_3D(qaux),
       const BL_FORT_FAB_ARG_3D(q_core_src),
@@ -260,15 +265,17 @@ extern "C"
 #endif
       const BL_FORT_FAB_ARG_3D(shk),
       BL_FORT_FAB_ARG_3D(Ip_core),
-      BL_FORT_FAB_ARG_3D(Ip_pass),
       BL_FORT_FAB_ARG_3D(Im_core),
+      BL_FORT_FAB_ARG_3D(Ip_pass),
       BL_FORT_FAB_ARG_3D(Im_pass),
-      BL_FORT_FAB_ARG_3D(Ip_core_src),
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      BL_FORT_FAB_ARG_3D(Ip_pass_src),
+#ifdef RADIATION
+      BL_FORT_FAB_ARG_3D(Ip_rad),
+      BL_FORT_FAB_ARG_3D(Im_rad),
 #endif
+      BL_FORT_FAB_ARG_3D(Ip_core_src),
       BL_FORT_FAB_ARG_3D(Im_core_src),
 #ifdef PRIM_SPECIES_HAVE_SOURCES
+      BL_FORT_FAB_ARG_3D(Ip_pass_src),
       BL_FORT_FAB_ARG_3D(Im_pass_src),
 #endif
       BL_FORT_FAB_ARG_3D(Ip_gc),
@@ -276,20 +283,32 @@ extern "C"
       BL_FORT_FAB_ARG_3D(sm),
       BL_FORT_FAB_ARG_3D(sp),
       BL_FORT_FAB_ARG_3D(qxm_core),
-      BL_FORT_FAB_ARG_3D(qxm_pass),
       BL_FORT_FAB_ARG_3D(qxp_core),
+      BL_FORT_FAB_ARG_3D(qxm_pass),
       BL_FORT_FAB_ARG_3D(qxp_pass),
+#ifdef RADIATION
+      BL_FORT_FAB_ARG_3D(qxm_rad),
+      BL_FORT_FAB_ARG_3D(qxp_rad),
+#endif
 #if AMREX_SPACEDIM >= 2
       BL_FORT_FAB_ARG_3D(qym_core),
-      BL_FORT_FAB_ARG_3D(qym_pass),
       BL_FORT_FAB_ARG_3D(qyp_core),
+      BL_FORT_FAB_ARG_3D(qym_pass),
       BL_FORT_FAB_ARG_3D(qyp_pass),
+#ifdef RADIATION
+      BL_FORT_FAB_ARG_3D(qym_rad),
+      BL_FORT_FAB_ARG_3D(qyp_rad),
+#endif
 #endif
 #if AMREX_SPACEDIM == 3
       BL_FORT_FAB_ARG_3D(qzm_core),
-      BL_FORT_FAB_ARG_3D(qzm_pass),
       BL_FORT_FAB_ARG_3D(qzp_core),
+      BL_FORT_FAB_ARG_3D(qzm_pass),
       BL_FORT_FAB_ARG_3D(qzp_pass),
+#ifdef RADIATION
+      BL_FORT_FAB_ARG_3D(qzm_pass),
+      BL_FORT_FAB_ARG_3D(qzp_pass),
+#endif
 #endif
       const amrex::Real* dx, const amrex::Real dt,
 #if AMREX_SPACEDIM < 3

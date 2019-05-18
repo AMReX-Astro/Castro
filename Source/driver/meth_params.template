@@ -13,7 +13,7 @@ module meth_params_module
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                                  NQP_SRC, &
 #endif
-#ifdef RAdIATION
+#ifdef RADIATION
                                  NQR, &
 #endif
                                  NQAUX, NGDNV

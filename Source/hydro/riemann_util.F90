@@ -423,6 +423,9 @@ contains
   subroutine compute_flux_q(lo, hi, &
                             qint_core, q_lo, q_hi, &
                             qint_pass, qip_lo, qip_hi, &
+#ifdef RADIATION
+                            qint_rad, qir_lo, qir_hi, &
+#endif
                             F, F_lo, F_hi, &
 #ifdef RADIATION
                             lambda, l_lo, l_hi, &
@@ -447,7 +450,7 @@ contains
                                    GDRHO, GDU, GDV, GDW, &
 #endif
 #ifdef RADIATION
-                                   QRAD, fspace_type, &
+                                   NQR, QRAD, fspace_type, &
                                    GDERADS, GDLAMS, &
 #endif
                                    npassive, upass_map, qpass_map
@@ -465,6 +468,9 @@ contains
     integer, intent(in) :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qip_lo(3), qip_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qir_lo(3), qir_hi(3)
+#endif
     integer, intent(in) :: F_lo(3), F_hi(3)
 #ifdef RADIATION
     integer, intent(in) :: l_lo(3), l_hi(3)
@@ -473,6 +479,9 @@ contains
 
     real(rt), intent(in) :: qint_core(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQC)
     real(rt), intent(in) :: qint_pass(qip_lo(1):qip_hi(1), qip_lo(2):qip_hi(2), qip_lo(3):qip_hi(3), NQP)
+#ifdef RADIATION
+    real(rt), intent(in) :: qint_rad(qir_lo(1):qir_hi(1), qir_lo(2):qir_hi(2), qir_lo(3):qir_hi(3), NQR)
+#endif
     real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
 #ifdef RADIATION
     real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)

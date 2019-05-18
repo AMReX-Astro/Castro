@@ -201,14 +201,16 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       } else if (use_flattening == 1) {
 #ifdef RADIATION
         ca_rad_flatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(q_core[mfi]),
+                       BL_TO_FORTRAN_ANYD(q_rad[mfi]),
                        BL_TO_FORTRAN_ANYD(flatn),
                        BL_TO_FORTRAN_ANYD(flatg));
 #else
 #pragma gpu box(obx)
         ca_uflatten(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                     BL_TO_FORTRAN_ANYD(q_core[mfi]),
-                    BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
+                    BL_TO_FORTRAN_ANYD(q_core[mfi]), NQC, QPRES+1,
+                    BL_TO_FORTRAN_ANYD(flatn));
 #endif
       } else {
         AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });

@@ -610,7 +610,8 @@ contains
              qaux(i,j,k,QGAMCG)   = eos_state % gam1
              qaux(i,j,k,QCG)      = eos_state % cs
 
-             call compute_ptot_ctot(lam(i,j,k,:), q_core(i,j,k,:), qaux(i,j,k,QCG), &
+             call compute_ptot_ctot(lam(i,j,k,:), q_core(i,j,k,:), q_rad(i,j,k,:), &
+                                    qaux(i,j,k,QCG), &
                                     ptot, ctot, gamc_tot)
 
              q_rad(i,j,k,QPTOT) = ptot

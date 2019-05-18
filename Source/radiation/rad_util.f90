@@ -10,14 +10,16 @@ module rad_util_module
 
 contains
 
-  subroutine compute_ptot_ctot(lam, q, cg, ptot, ctot, gamc_tot)
+  subroutine compute_ptot_ctot(lam, q_core, q_rad, &
+                               cg, ptot, ctot, gamc_tot)
 
-    use meth_params_module, only : QPRES, QRHO, comoving, QRAD, QPTOT, NQ
+    use meth_params_module, only : QPRES, QRHO, comoving, QRAD, QPTOT, NQC, NQR
     use fluxlimiter_module, only : Edd_factor
 
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , intent(in) :: lam(0:ngroups-1)
-    real(rt)        , intent(in) :: q(NQ)
+    real(rt)        , intent(in) :: q_core(NQC)
+    real(rt)        , intent(in) :: q_rad(NQR)
     real(rt)        , intent(in) :: cg
     real(rt)        , intent(out) :: ptot
     real(rt)        , intent(out) :: ctot
@@ -38,14 +40,14 @@ contains
           gamr = lam(g) + ONE
        end if
 
-       prad = prad + lam(g)*q(QRAD+g)
-       csrad2 = csrad2 + gamr * (lam(g)*q(QRAD+g)) / q(QRHO)
+       prad = prad + lam(g)*q_rad(QRAD+g)
+       csrad2 = csrad2 + gamr * (lam(g)*q_rad(QRAD+g)) / q_core(QRHO)
     end do
 
-    ptot = q(QPRES) + prad
+    ptot = q_core(QPRES) + prad
 
     ctot = cg**2 + csrad2
-    gamc_tot = ctot * q(QRHO) / ptot
+    gamc_tot = ctot * q_core(QRHO) / ptot
 
     ctot = sqrt(ctot)
 

@@ -124,10 +124,15 @@ contains
                 qp_core, qcp_lo, qcp_hi, nc, comp, &
                 qm_pass, qpm_lo, qpm_hi, &
                 qp_pass, qpp_lo, qpp_hi, &
+#ifdef RADIATION
+                qm_rad, qrm_lo, qrm_hi, &
+                qp_rad, qrp_lo, qrp_hi, &
+#endif
                 flx, flx_lo, flx_hi, &
                 qint_core, qic_lo, qic_hi, &
                 qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
+                qint_rad, qir_lo, qir_hi, &
                 rflx, rflx_lo, rflx_hi, &
                 lambda_int, li_lo, li_hi, &
 #endif
@@ -151,10 +156,15 @@ contains
                     qp_core, qp_lo, qp_hi, nc, comp, &
                     qm_pass, qpm_lo, qpm_hi, &
                     qp_pass, qpp_lo, qpp_hi, &
+#ifdef RADIATION
+                    qm_rad, qrm_lo, qrm_hi, &
+                    qp_rad, qrp_lo, qrp_hi, &
+#endif
                     flx, flx_lo, flx_hi, &
                     qint_core, qic_lo, qic_hi, &
                     qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
+                    qint_rad, qir_lo, qir_hi, &
                     rflx, rflx_lo, rflx_hi, &
                     lambda_int, li_lo, li_hi, &
 #endif
@@ -182,6 +192,10 @@ contains
     integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: qpm_lo(3), qpm_hi(3)
     integer, intent(in) :: qpp_lo(3), qpp_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qrm_lo(3), qrm_hi(3)
+    integer, intent(in) :: qrp_lo(3), qrp_hi(3)
+#endif
     integer, intent(in) :: flx_lo(3), flx_hi(3)
     integer, intent(in) :: qic_lo(3), qic_hi(3)
     integer, intent(in) :: qip_lo(3), qip_hi(3)
@@ -199,11 +213,17 @@ contains
     real(rt), intent(inout) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP,nc)
     real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP,nc)
 
+#ifdef RADIATION
+    real(rt), intent(inout) :: qm_rad(qrm_lo(1):qrm_hi(1),qrm_lo(2):qrm_hi(2),qrm_lo(3):qrm_hi(3),NQR,nc)
+    real(rt), intent(inout) :: qp_rad(qrp_lo(1):qrp_hi(1),qrp_lo(2):qrp_hi(2),qrp_lo(3):qrp_hi(3),NQR,nc)
+#endif
+
     real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
     real(rt), intent(inout) :: qint_core(qic_lo(1):qic_hi(1),qic_lo(2):qic_hi(2),qic_lo(3):qic_hi(3),NQC)
     real(rt), intent(inout) :: qint_pass(qip_lo(1):qip_hi(1),qip_lo(2):qip_hi(2),qip_lo(3):qip_hi(3),NQP)
-
 #ifdef RADIATION
+    integer, intent(in) :: qir_lo(3), qir_hi(3)
+    real(rt), intent(inout) :: qint_rad(qir_lo(1):qir_hi(1),qir_lo(2):qir_hi(2),qir_lo(3):qir_hi(3),NQR)
     integer, intent(in) :: rflx_lo(3), rflx_hi(3)
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
     integer, intent(in) :: li_lo(3), li_hi(3)
@@ -234,10 +254,15 @@ contains
                           qp_core, qp_lo, qp_hi, nc, comp, &
                           qm_pass, qpm_lo, qpm_hi, &
                           qp_pass, qpp_lo, qpp_hi, &
+#ifdef RADIATION
+                          qm_rad, qrm_lo, qrm_hi, &
+                          qp_rad, qrp_lo, qrp_hi, &
+#endif
                           qint_core, qic_lo, qic_hi, &
                           qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
-                          lambda_int, q_lo, q_hi, &
+                          qint_rad, qir_lo, qir_hi, &
+                          lambda_int, li_lo, li_hi, &
 #endif
                           qaux, qa_lo, qa_hi, &
                           idir, lo, hi, &
@@ -246,9 +271,12 @@ contains
        call compute_flux_q(lo, hi, &
                            qint_core, qic_lo, qic_hi, &
                            qint_pass, qip_lo, qip_hi, &
+#ifdef RADIATION
+                           qint_rad, qir_lo, qir_hi, &
+#endif
                            flx, flx_lo, flx_hi, &
 #ifdef RADIATION
-                           lambda_int, q_lo, q_hi, &
+                           lambda_int, li_lo, li_hi, &
                            rflx, rflx_lo, rflx_hi, &
 #endif
                            idir)
@@ -326,11 +354,16 @@ contains
 
   subroutine riemann_state(qm_core, qm_lo, qm_hi, &
                            qp_core, qp_lo, qp_hi, nc, comp, &
-                           qm_pass, qmp_lo, qmp_hi, &
+                           qm_pass, qpm_lo, qpm_hi, &
                            qp_pass, qpp_lo, qpp_hi, &
+#ifdef RADIATION
+                           qm_rad, qrm_lo, qrm_hi, &
+                           qp_rad, qrp_lo, qrp_hi, &
+#endif
                            qint_core, qic_lo, qic_hi, &
                            qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
+                           qint_rad, qir_lo, qir_hi, &
                            lambda_int, l_lo, l_hi, &
 #endif
                            qaux, qa_lo, qa_hi, &
@@ -350,8 +383,12 @@ contains
 
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: qmp_lo(3), qmp_hi(3)
+    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
     integer, intent(in) :: qpp_lo(3), qpp_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qrm_lo(3), qrm_hi(3)
+    integer, intent(in) :: qrp_lo(3), qrp_hi(3)
+#endif
     integer, intent(in) :: qic_lo(3), qic_hi(3)
     integer, intent(in) :: qip_lo(3), qip_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
@@ -369,12 +406,17 @@ contains
 
     real(rt), intent(inout) :: qm_core(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQC,nc)
     real(rt), intent(inout) :: qp_core(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQC,nc)
-    real(rt), intent(inout) :: qm_pass(qmp_lo(1):qmp_hi(1),qmp_lo(2):qmp_hi(2),qmp_lo(3):qmp_hi(3),NQP,nc)
+    real(rt), intent(inout) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP,nc)
     real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP,nc)
-
+#ifdef RADIATION
+    real(rt), intent(inout) :: qm_rad(qrm_lo(1):qrm_hi(1),qrm_lo(2):qrm_hi(2),qrm_lo(3):qrm_hi(3),NQR,nc)
+    real(rt), intent(inout) :: qp_rad(qrp_lo(1):qrp_hi(1),qrp_lo(2):qrp_hi(2),qrp_lo(3):qrp_hi(3),NQR,nc)
+#endif
     real(rt), intent(inout) :: qint_core(qic_lo(1):qic_hi(1),qic_lo(2):qic_hi(2),qic_lo(3):qic_hi(3),NQC)
     real(rt), intent(inout) :: qint_pass(qip_lo(1):qip_hi(1),qip_lo(2):qip_hi(2),qip_lo(3):qip_hi(3),NQP)
 #ifdef RADIATION
+    integer, intent(in) :: qir_lo(3), qir_hi(3)
+    real(rt), intent(inout) :: qint_rad(qir_lo(1):qir_hi(1),qir_lo(2):qir_hi(2),qir_lo(3):qir_hi(3),NQR)
     integer, intent(in) :: l_lo(3), l_hi(3)
     real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
 #endif
@@ -484,13 +526,18 @@ contains
 
        call riemannus(qm_core, qm_lo, qm_hi, &
                       qp_core, qp_lo, qp_hi, nc, comp, &
-                      qm_pass, qmp_lo, qmp_hi, &
+                      qm_pass, qpm_lo, qpm_hi, &
                       qp_pass, qpp_lo, qpp_hi, &
+#ifdef RADIATION
+                      qm_rad, qrm_lo, qrm_hi, &
+                      qp_rad, qrp_lo, qrp_hi, &
+#endif
                       qaux, qa_lo, qa_hi, &
                       qint_core, qic_lo, qic_hi, &
                       qint_pass, qip_lo, qip_hi, &
 #ifdef RADIATION
-                      lambda_int, q_lo, q_hi, &
+                      qint_rad, qir_lo, qir_hi, &
+                      lambda_int, l_lo, l_hi, &
 #endif
                       idir, lo, hi, &
                       domlo, domhi, compute_interface_gamma)
@@ -501,7 +548,7 @@ contains
 #ifndef RADIATION
        call riemanncg(qm_core, qm_lo, qm_hi, &
                       qp_core, qp_lo, qp_hi, nc, comp, &
-                      qm_pass, qmp_lo, qmp_hi, &
+                      qm_pass, qpm_lo, qpm_hi, &
                       qp_pass, qpp_lo, qpp_hi, &
                       qaux, qa_lo, qa_hi, &
                       qint_core, qic_lo, qic_hi, &

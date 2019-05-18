@@ -10,11 +10,17 @@
 /// Calculate primitive variables from given conserved variables
 ///
 /// @param u        MultiFab of conserved variables
-/// @param q        MultiFab to save primitive variables to
+/// @param q_core   MultiFab where we write core primitive variables
+/// @param q_pass   MultiFab where we write passive primitive variables
+/// @param q_rad    MultiFab where we write radiation primitive variables
 /// @param qaux     MultiFab of auxiliary variables
 /// @param time     Current time
 ///
-    void cons_to_prim(amrex::MultiFab& u, amrex::MultiFab& q_core, amrex::MultiFab& q_pass,
+    void cons_to_prim(amrex::MultiFab& u,
+                      amrex::MultiFab& q_core, amrex::MultiFab& q_pass,
+#ifdef RADIATION
+                      amrex::MultiFab& q_rad,
+#endif
                       amrex::MultiFab& qaux, const amrex::Real time);
 
 ///
