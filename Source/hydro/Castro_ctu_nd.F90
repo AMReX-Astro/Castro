@@ -181,7 +181,7 @@ contains
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))   ! flattening parameter
     real(rt), intent(in) ::  q_core_src(qcs_lo(1):qcs_hi(1),qcs_lo(2):qcs_hi(2),qcs_lo(3):qcs_hi(3),NQC_SRC)   ! primitive variable source
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-    real(rt), intent(in) ::  q_prim_src(qps_lo(1):qps_hi(1),qps_lo(2):qps_hi(2),qps_lo(3):qps_hi(3),NQP_SRC)   ! primitive variable source
+    real(rt), intent(in) ::  q_pass_src(qps_lo(1):qps_hi(1),qps_lo(2):qps_hi(2),qps_lo(3):qps_hi(3),NQP_SRC)   ! primitive variable source
 #endif
     real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: Ip_core(Icp_lo(1):Icp_hi(1),Icp_lo(2):Icp_hi(2),Icp_lo(3):Icp_hi(3),1:3,NQC)

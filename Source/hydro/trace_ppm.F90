@@ -25,7 +25,7 @@ contains
                        Im_core_src, Icsm_lo, Icsm_hi, &
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                        Ip_pass_src, Ipsp_lo, Ipsp_hi, &
-                       Im_pass_src, Ipms_lo, Ipms_hi, &
+                       Im_pass_src, Ipsm_lo, Ipsm_hi, &
 #endif
                        Ip_gc, Ipg_lo, Ipg_hi, &
                        Im_gc, Img_lo, Img_hi, &
@@ -215,7 +215,7 @@ contains
                               Im_core_src, Icsm_lo, Icsm_hi, &
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                               Ip_pass_src, Ipsp_lo, Ipsp_hi, &
-                              Im_pass_src, Ipms_lo, Ipms_hi, &
+                              Im_pass_src, Ipsm_lo, Ipsm_hi, &
 #endif
                               Ip_gc, Ipg_lo, Ipg_hi, &
                               Im_gc, Img_lo, Img_hi, &
@@ -240,7 +240,7 @@ contains
                                 Im_core_src, Icsm_lo, Icsm_hi, &
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                                 Ip_pass_src, Ipsp_lo, Ipsp_hi, &
-                                Im_pass_src, Ipms_lo, Ipms_hi, &
+                                Im_pass_src, Ipsm_lo, Ipsm_hi, &
 #endif
                                 Ip_gc, Ipg_lo, Ipg_hi, &
                                 Im_gc, Img_lo, Img_hi, &
@@ -266,7 +266,7 @@ contains
                            Im_core_src, Icsm_lo, Icsm_hi, &
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                            Ip_pass_src, Ipsp_lo, Ipsp_hi, &
-                           Im_pass_src, Ipms_lo, Ipms_hi, &
+                           Im_pass_src, Ipsm_lo, Ipsm_hi, &
 #endif
                            Ip_gc, Ipg_lo, Ipg_hi, &
                            Im_gc, Img_lo, Img_hi, &
