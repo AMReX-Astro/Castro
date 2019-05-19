@@ -851,11 +851,27 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
       const Box& tyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0,0,1)));
 
-      qmyx.resize(tyxbx, NQ);
-      Elixir elix_qmyx = qmyx.elixir();
+      qmyx_core.resize(tyxbx, NQC);
+      Elixir elix_qmyx_core = qmyx_core.elixir();
 
-      qpyx.resize(tyxbx, NQ);
-      Elixir elix_qpyx = qpyx.elixir();
+      qmyx_pass.resize(tyxbx, NQP);
+      Elixir elix_qmyx_pass = qmyx_pass.elixir();
+
+#ifdef RADIATION
+      qmyx_rad.resize(tyxbx, NQR);
+      Elixir elix_qmyx_rad = qmyx_rad.elixir();
+#endif
+
+      qpyx_core.resize(tyxbx, NQC);
+      Elixir elix_qpyx_core = qpyx_core.elixir();
+
+      qpyx_pass.resize(tyxbx, NQP);
+      Elixir elix_qpyx_pass = qpyx_pass.elixir();
+
+#ifdef RADIATION
+      qpyx_rad.resize(tyxbx, NQR);
+      Elixir elix_qpyx_rad = qpyx_rad.elixir();
+#endif
 
       // ftmp1 = fx
       // rftmp1 = rfx
@@ -889,11 +905,27 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
       const Box& tzxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0,1,0)));
 
-      qmzx.resize(tzxbx, NQ);
-      Elixir elix_qmzx = qmzx.elixir();
+      qmzx_core.resize(tzxbx, NQC);
+      Elixir elix_qmzx_core = qmzx_core.elixir();
 
-      qpzx.resize(tzxbx, NQ);
-      Elixir elix_qpzx = qpzx.elixir();
+      qmzx_pass.resize(tzxbx, NQP);
+      Elixir elix_qmzx_pass = qmzx_pass.elixir();
+
+#ifdef RADIATION
+      qmzx_rad.resize(tzxbx, NQR);
+      Elixir elix_qmzx_rad = qmzx_rad.elixir();
+#endif
+
+      qpzx_core.resize(tzxbx, NQC);
+      Elixir elix_qpzx_core = qpzx_core.elixir();
+
+      qpzx_pass.resize(tzxbx, NQP);
+      Elixir elix_qpzx_pass = qpzx_pass.elixir();
+
+#ifdef RADIATION
+      qpzx_rad.resize(tzxbx, NQR);
+      Elixir elix_qpzx_rad = qpzx_rad.elixir();
+#endif
 
 #pragma gpu box(tzxbx)
       transx_on_zstates(AMREX_INT_ANYD(tzxbx.loVect()), AMREX_INT_ANYD(tzxbx.hiVect()),
@@ -955,11 +987,27 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
       const Box& txybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
 
-      qmxy.resize(txybx, NQ);
-      Elixir elix_qmxy = qmxy.elixir();
+      qmxy_core.resize(txybx, NQC);
+      Elixir elix_qmxy_core = qmxy_core.elixir();
 
-      qpxy.resize(txybx, NQ);
-      Elixir elix_qpxy = qpxy.elixir();
+      qmxy_pass.resize(txybx, NQP);
+      Elixir elix_qmxy_pass = qmxy_pass.elixir();
+
+#ifdef RADIATION
+      qmxy_rad.resize(txybx, NQR);
+      Elixir elix_qmxy_rad = qmxy_rad.elixir();
+#endif
+
+      qpxy_core.resize(txybx, NQC);
+      Elixir elix_qpxy_core = qpxy_core.elixir();
+
+      qpxy_pass.resize(txybx, NQP);
+      Elixir elix_qpxy_pass = qpxy_pass.elixir();
+
+#ifdef RADIATION
+      qpxy_rad.resize(txybx, NQR);
+      Elixir elix_qpxy_rad = qpxy_rad.elixir();
+#endif
 
       // ftmp1 = fy
       // rftmp1 = rfy
@@ -993,11 +1041,27 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), lo(3)+1]
       const Box& tzybx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1,0,0)));
 
-      qmzy.resize(tzybx, NQ);
-      Elixir elix_qmzy = qmzy.elixir();
+      qmzy_core.resize(tzybx, NQC);
+      Elixir elix_qmzy_core = qmzy_core.elixir();
 
-      qpzy.resize(tzybx, NQ);
-      Elixir elix_qpzy = qpzy.elixir();
+      qmzy_pass.resize(tzybx, NQP);
+      Elixir elix_qmzy_pass = qmzy_pass.elixir();
+
+#ifdef RADIATION
+      qmzy_rad.resize(tzybx, NQR);
+      Elixir elix_qmzy_rad = qmzy_rad.elixir();
+#endif
+
+      qpzy_core.resize(tzybx, NQC);
+      Elixir elix_qpzy_core = qpzy_core.elixir();
+
+      qpzy_pass.resize(tzybx, NQP);
+      Elixir elix_qpzy_pass = qpzy_pass.elixir();
+
+#ifdef RADIATION
+      qpzy_rad.resize(tzybx, NQR);
+      Elixir elix_qpzy_rad = qpzy_rad.elixir();
+#endif
 
       // ftmp1 = fy
       // rftmp1 = rfy
@@ -1062,11 +1126,27 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& txzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
 
-      qmxz.resize(txzbx, NQ);
-      Elixir elix_qmxz = qmxz.elixir();
+      qmxz_core.resize(txzbx, NQC);
+      Elixir elix_qmxz_core = qmxz_core.elixir();
 
-      qpxz.resize(txzbx, NQ);
-      Elixir elix_qpxz = qpxz.elixir();
+      qmxz_pass.resize(txzbx, NQP);
+      Elixir elix_qmxz_pass = qmxz_pass.elixir();
+
+#ifdef RADIATION
+      qmxz_rad.resize(txzbx, NQR);
+      Elixir elix_qmxz_rad = qmxz_rad.elixir();
+#endif
+
+      qpxz_core.resize(txzbx, NQC);
+      Elixir elix_qpxz_core = qpxz_core.elixir();
+
+      qpxz_pass.resize(txzbx, NQP);
+      Elixir elix_qpxz_pass = qpxz_pass.elixir();
+
+#ifdef RADIATION
+      qpxz_rad.resize(txzbx, NQR);
+      Elixir elix_qpxz_rad = qpxz_rad.elixir();
+#endif
 
       // ftmp1 = fz
       // rftmp1 = rfz
@@ -1100,11 +1180,27 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& tyzbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1,0,0)));
 
-      qmyz.resize(tyzbx, NQ);
-      Elixir elix_qmyz = qmyz.elixir();
+      qmyz_core.resize(tyzbx, NQC);
+      Elixir elix_qmyz_core = qmyz_core.elixir();
 
-      qpyz.resize(tyzbx, NQ);
-      Elixir elix_qpyz = qpyz.elixir();
+      qmyz_pass.resize(tyzbx, NQP);
+      Elixir elix_qmyz_pass = qmyz_pass.elixir();
+
+#ifdef RADIATION
+      qmyz_rad.resize(tyzbx, NQR);
+      Elixir elix_qmyz_rad = qmyz_rad.elixir();
+#endif
+
+      qpyz_core.resize(tyzbx, NQC);
+      Elixir elix_qpyz_core = qpyz_core.elixir();
+
+      qpyz_pass.resize(tyzbx, NQP);
+      Elixir elix_qpyz_pass = qpyz_pass.elixir();
+
+#ifdef RADIATION
+      qpyz_rad.resize(tyzbx, NQR);
+      Elixir elix_qpyz_rad = qpyz_rad.elixir();
+#endif
 
       // ftmp1 = fz
       // rftmp1 = rfz
@@ -1309,8 +1405,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(qpxz_core),
                           BL_TO_FORTRAN_ANYD(qmxz_pass),
                           BL_TO_FORTRAN_ANYD(qpxz_pass),
+#ifdef RADIATION
                           BL_TO_FORTRAN_ANYD(qmxz_rad),
                           BL_TO_FORTRAN_ANYD(qpxz_rad),
+#endif
                           1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp2),
                           BL_TO_FORTRAN_ANYD(q_int_core),

@@ -12,10 +12,22 @@ contains
   ! transx routines
   !===========================================================================
   subroutine transx_on_ystates(lo, hi, &
-                               qym, qym_lo, qym_hi, &
-                               qymo, qymo_lo, qymo_hi, &
-                               qyp, qyp_lo, qyp_hi, &
-                               qypo, qypo_lo, qypo_hi, &
+                               qym_core, qycm_lo, qycm_hi, &
+                               qymo_core, qycmo_lo, qycmo_hi, &
+                               qym_pass, qypm_lo, qypm_hi, &
+                               qymo_pass, qypmo_lo, qypmo_hi, &
+#ifdef RADIATION
+                               qym_rad, qyrm_lo, qyrm_hi, &
+                               qymo_rad, qyrmo_lo, qyrmo_hi, &
+#endif
+                               qyp_core, qycp_lo, qycp_hi, &
+                               qypo_core, qycpo_lo, qycpo_hi, &
+                               qyp_pass, qypp_lo, qypp_hi, &
+                               qypo_pass, qyppo_lo, qyppo_hi, &
+#ifdef RADIATION
+                               qyp_rad, qyrp_lo, qyrp_hi, &
+                               qypo_rad, qyrpo_lo, qyrpo_hi, &
+#endif
                                qaux, qa_lo, qa_hi, &
                                fx, fx_lo, fx_hi, &
 #ifdef RADIATION
@@ -59,10 +71,20 @@ contains
     use prob_params_module, only : mom_flux_has_p
 #endif
 
-    integer, intent(in) :: qym_lo(3), qym_hi(3)
-    integer, intent(in) :: qyp_lo(3), qyp_hi(3)
-    integer, intent(in) :: qymo_lo(3), qymo_hi(3)
-    integer, intent(in) :: qypo_lo(3), qypo_hi(3)
+    integer, intent(in) :: qycm_lo(3), qycm_hi(3)
+    integer, intent(in) :: qypm_lo(3), qypm_hi(3)
+    integer, intent(in) :: qycmo_lo(3), qycmo_hi(3)
+    integer, intent(in) :: qypmo_lo(3), qypmo_hi(3)
+    integer, intent(in) :: qycp_lo(3), qycp_hi(3)
+    integer, intent(in) :: qypp_lo(3), qypp_hi(3)
+    integer, intent(in) :: qycpo_lo(3), qycpo_hi(3)
+    integer, intent(in) :: qyppo_lo(3), qyppo_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qyrm_lo(3), qyrm_hi(3)
+    integer, intent(in) :: qyrmo_lo(3), qyrmo_hi(3)
+    integer, intent(in) :: qyrp_lo(3), qyrp_hi(3)
+    integer, intent(in) :: qyrpo_lo(3), qyrpo_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fx_lo(3), fx_hi(3)
 #ifdef RADIATION
@@ -81,14 +103,26 @@ contains
 
     real(rt), intent(in), value :: hdt, cdtdx
 
-    real(rt), intent(in) :: qym(qym_lo(1):qym_hi(1),qym_lo(2):qym_hi(2),qym_lo(3):qym_hi(3),NQ)
-    real(rt), intent(in) :: qyp(qyp_lo(1):qyp_hi(1),qyp_lo(2):qyp_hi(2),qyp_lo(3):qyp_hi(3),NQ)
+    real(rt), intent(in) :: qym_core(qycm_lo(1):qycm_hi(1),qycm_lo(2):qycm_hi(2),qycm_lo(3):qycm_hi(3),NQC)
+    real(rt), intent(in) :: qyp_core(qycp_lo(1):qycp_hi(1),qycp_lo(2):qycp_hi(2),qycp_lo(3):qycp_hi(3),NQC)
+    real(rt), intent(in) :: qym_pass(qypm_lo(1):qypm_hi(1),qypm_lo(2):qypm_hi(2),qypm_lo(3):qypm_hi(3),NQP)
+    real(rt), intent(in) :: qyp_pass(qypp_lo(1):qypp_hi(1),qypp_lo(2):qypp_hi(2),qypp_lo(3):qypp_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(in) ::  qym_rad(qyrm_lo(1):qyrm_hi(1),qyrm_lo(2):qyrm_hi(2),qyrm_lo(3):qyrm_hi(3),NQR)
+    real(rt), intent(in) ::  qyp_rad(qyrp_lo(1):qyrp_hi(1),qyrp_lo(2):qyrp_hi(2),qyrp_lo(3):qyrp_hi(3),NQR)
+#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
 
-    real(rt), intent(out) :: qymo(qymo_lo(1):qymo_hi(1),qymo_lo(2):qymo_hi(2),qymo_lo(3):qymo_hi(3),NQ)
-    real(rt), intent(out) :: qypo(qypo_lo(1):qypo_hi(1),qypo_lo(2):qypo_hi(2),qypo_lo(3):qypo_hi(3),NQ)
+    real(rt), intent(out) :: qymo_core(qycmo_lo(1):qycmo_hi(1),qycmo_lo(2):qycmo_hi(2),qycmo_lo(3):qycmo_hi(3),NQC)
+    real(rt), intent(out) :: qypo_core(qycpo_lo(1):qycpo_hi(1),qycpo_lo(2):qycpo_hi(2),qycpo_lo(3):qycpo_hi(3),NQC)
+    real(rt), intent(out) :: qymo_pass(qypmo_lo(1):qypmo_hi(1),qypmo_lo(2):qypmo_hi(2),qypmo_lo(3):qypmo_hi(3),NQP)
+    real(rt), intent(out) :: qypo_pass(qyppo_lo(1):qyppo_hi(1),qyppo_lo(2):qyppo_hi(2),qyppo_lo(3):qyppo_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(out) ::  qymo_rad(qyrmo_lo(1):qyrmo_hi(1),qyrmo_lo(2):qyrmo_hi(2),qyrmo_lo(3):qyrmo_hi(3),NQR)
+    real(rt), intent(out) ::  qypo_rad(qyrpo_lo(1):qyrpo_hi(1),qyrpo_lo(2):qyrpo_hi(2),qyrpo_lo(3):qyrpo_hi(3),NQR)
+#endif
 #if AMREX_SPACEDIM == 2
     real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
     real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
@@ -606,10 +640,22 @@ contains
 
 
   subroutine transx_on_zstates(lo, hi, &
-                               qzm, qzm_lo, qzm_hi, &
-                               qzmo, qzmo_lo, qzmo_hi, &
-                               qzp, qzp_lo, qzp_hi, &
-                               qzpo, qzpo_lo, qzpo_hi, &
+                               qzm_core, qzcm_lo, qzcm_hi, &
+                               qzmo_core, qzcmo_lo, qzcmo_hi, &
+                               qzm_pass, qzpm_lo, qzpm_hi, &
+                               qzmo_pass, qzpmo_lo, qzpmo_hi, &
+#ifdef RADIATION
+                               qzm_rad, qzrm_lo, qzrm_hi, &
+                               qzmo_rad, qzrmo_lo, qzrmo_hi, &
+#endif
+                               qzp_core, qzcp_lo, qzcp_hi, &
+                               qzpo_core, qzcpo_lo, qzcpo_hi, &
+                               qzp_pass, qzpp_lo, qzpp_hi, &
+                               qzpo_pass, qzppo_lo, qzppo_hi, &
+#ifdef RADIATION
+                               qzp_rad, qzrp_lo, qzrp_hi, &
+                               qzpo_rad, qzrpo_lo, qzrpo_hi, &
+#endif
                                qaux, qa_lo, qa_hi, &
                                fx, fx_lo, fx_hi, &
 #ifdef RADIATION
@@ -649,10 +695,20 @@ contains
   use prob_params_module, only : mom_flux_has_p
 #endif
 
-    integer, intent(in) :: qzm_lo(3), qzm_hi(3)
-    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
-    integer, intent(in) :: qzmo_lo(3), qzmo_hi(3)
-    integer, intent(in) :: qzpo_lo(3), qzpo_hi(3)
+    integer, intent(in) :: qzcm_lo(3), qzcm_hi(3)
+    integer, intent(in) :: qzcm_lo(3), qzcm_hi(3)
+    integer, intent(in) :: qzcmo_lo(3), qzcmo_hi(3)
+    integer, intent(in) :: qzcmo_lo(3), qzcmo_hi(3)
+    integer, intent(in) :: qzpp_lo(3), qzpp_hi(3)
+    integer, intent(in) :: qzpp_lo(3), qzpp_hi(3)
+    integer, intent(in) :: qzppo_lo(3), qzppo_hi(3)
+    integer, intent(in) :: qzppo_lo(3), qzppo_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qzrm_lo(3), qzrm_hi(3)
+    integer, intent(in) :: qzrmo_lo(3), qzrmo_hi(3)
+    integer, intent(in) :: qzrp_lo(3), qzrp_hi(3)
+    integer, intent(in) :: qzrpo_lo(3), qzrpo_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fx_lo(3), fx_hi(3)
 #ifdef RADIATION
@@ -667,14 +723,26 @@ contains
 
     real(rt), intent(in), value :: hdt, cdtdx
 
-    real(rt), intent(in) :: qzm(qzm_lo(1):qzm_hi(1),qzm_lo(2):qzm_hi(2),qzm_lo(3):qzm_hi(3),NQ)
-    real(rt), intent(in) :: qzp(qzp_lo(1):qzp_hi(1),qzp_lo(2):qzp_hi(2),qzp_lo(3):qzp_hi(3),NQ)
+    real(rt), intent(in) :: qzm_core(qzcm_lo(1):qzcm_hi(1),qzcm_lo(2):qzcm_hi(2),qzcm_lo(3):qzcm_hi(3),NQC)
+    real(rt), intent(in) :: qzp_core(qzcp_lo(1):qzcp_hi(1),qzcp_lo(2):qzcp_hi(2),qzcp_lo(3):qzcp_hi(3),NQC)
+    real(rt), intent(in) :: qzm_pass(qzpm_lo(1):qzpm_hi(1),qzpm_lo(2):qzpm_hi(2),qzpm_lo(3):qzpm_hi(3),NQP)
+    real(rt), intent(in) :: qzp_pass(qzpp_lo(1):qzpp_hi(1),qzpp_lo(2):qzpp_hi(2),qzpp_lo(3):qzpp_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(in) ::  qzm_rad(qzrm_lo(1):qzrm_hi(1),qzrm_lo(2):qzrm_hi(2),qzrm_lo(3):qzrm_hi(3),NQR)
+    real(rt), intent(in) ::  qzp_rad(qzrp_lo(1):qzrp_hi(1),qzrp_lo(2):qzrp_hi(2),qzrp_lo(3):qzrp_hi(3),NQR)
+#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fx(fx_lo(1):fx_hi(1),fx_lo(2):fx_hi(2),fx_lo(3):fx_hi(3),NVAR)
     real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
 
-    real(rt), intent(out) :: qzmo(qzmo_lo(1):qzmo_hi(1),qzmo_lo(2):qzmo_hi(2),qzmo_lo(3):qzmo_hi(3),NQ)
-    real(rt), intent(out) :: qzpo(qzpo_lo(1):qzpo_hi(1),qzpo_lo(2):qzpo_hi(2),qzpo_lo(3):qzpo_hi(3),NQ)
+    real(rt), intent(out) :: qzmo_core(qzcmo_lo(1):qzcmo_hi(1),qzcmo_lo(2):qzcmo_hi(2),qzcmo_lo(3):qzcmo_hi(3),NQC)
+    real(rt), intent(out) :: qzpo_core(qzcpo_lo(1):qzcpo_hi(1),qzcpo_lo(2):qzcpo_hi(2),qzcpo_lo(3):qzcpo_hi(3),NQC)
+    real(rt), intent(out) :: qzmo_pass(qzpmo_lo(1):qzpmo_hi(1),qzpmo_lo(2):qzpmo_hi(2),qzpmo_lo(3):qzpmo_hi(3),NQP)
+    real(rt), intent(out) :: qzpo_pass(qzppo_lo(1):qzppo_hi(1),qzppo_lo(2):qzppo_hi(2),qzppo_lo(3):qzppo_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(out) ::  qzmo_rad(qzrmo_lo(1):qzrmo_hi(1),qzrmo_lo(2):qzrmo_hi(2),qzrmo_lo(3):qzrmo_hi(3),NQR)
+    real(rt), intent(out) ::  qzpo_rad(qzrpo_lo(1):qzrpo_hi(1),qzrpo_lo(2):qzrpo_hi(2),qzrpo_lo(3):qzrpo_hi(3),NQR)
+#endif
 
     integer i, j, k, n, nqp, ipassive
 
@@ -1050,10 +1118,22 @@ contains
   ! transy routines
   !===========================================================================
   subroutine transy_on_xstates(lo, hi, &
-                               qxm, qxm_lo, qxm_hi, &
-                               qxmo, qxmo_lo, qxmo_hi, &
-                               qxp, qxp_lo, qxp_hi, &
-                               qxpo, qxpo_lo, qxpo_hi, &
+                               qxm_core, qxcm_lo, qxcm_hi, &
+                               qxmo_core, qxcmo_lo, qxcmo_hi, &
+                               qxm_pass, qxpm_lo, qxpm_hi, &
+                               qxmo_pass, qxpmo_lo, qxpmo_hi, &
+#ifdef RADIATION
+                               qxm_rad, qxrm_lo, qxrm_hi, &
+                               qxmo_rad, qxrmo_lo, qxrmo_hi, &
+#endif
+                               qxp_core, qxcp_lo, qxcp_hi, &
+                               qxpo_core, qxcpo_lo, qxcpo_hi, &
+                               qxp_pass, qxpp_lo, qxpp_hi, &
+                               qxpo_pass, qxppo_lo, qxppo_hi, &
+#ifdef RADIATION
+                               qxp_rad, qxrp_lo, qxrp_hi, &
+                               qxpo_rad, qxrpo_lo, qxrpo_hi, &
+#endif
                                qaux, qa_lo, qa_hi, &
                                fy, fy_lo, fy_hi, &
 #ifdef RADIATION
@@ -1091,10 +1171,20 @@ contains
     use eos_type_module, only: eos_input_rt, eos_t
 
 
-    integer, intent(in) :: qxm_lo(3), qxm_hi(3)
-    integer, intent(in) :: qxp_lo(3), qxp_hi(3)
-    integer, intent(in) :: qxmo_lo(3), qxmo_hi(3)
-    integer, intent(in) :: qxpo_lo(3), qxpo_hi(3)
+    integer, intent(in) :: qxcm_lo(3), qxcm_hi(3)
+    integer, intent(in) :: qxcm_lo(3), qxcm_hi(3)
+    integer, intent(in) :: qxpp_lo(3), qxpp_hi(3)
+    integer, intent(in) :: qxpp_lo(3), qxpp_hi(3)
+    integer, intent(in) :: qxcmo_lo(3), qxcmo_hi(3)
+    integer, intent(in) :: qxcmo_lo(3), qxcmo_hi(3)
+    integer, intent(in) :: qxppo_lo(3), qxppo_hi(3)
+    integer, intent(in) :: qxppo_lo(3), qxppo_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qxrm_lo(3), qxrm_hi(3)
+    integer, intent(in) :: qxrp_lo(3), qxrp_hi(3)
+    integer, intent(in) :: qxrmo_lo(3), qxrmo_hi(3)
+    integer, intent(in) :: qxrpo_lo(3), qxrpo_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fy_lo(3), fy_hi(3)
 #ifdef RADIATION
@@ -1109,14 +1199,26 @@ contains
 
     real(rt), intent(in), value :: cdtdy
 
-    real(rt), intent(in) :: qxm(qxm_lo(1):qxm_hi(1),qxm_lo(2):qxm_hi(2),qxm_lo(3):qxm_hi(3),NQ)
-    real(rt), intent(in) :: qxp(qxp_lo(1):qxp_hi(1),qxp_lo(2):qxp_hi(2),qxp_lo(3):qxp_hi(3),NQ)
+    real(rt), intent(in) :: qxm_core(qxcm_lo(1):qxcm_hi(1),qxcm_lo(2):qxcm_hi(2),qxcm_lo(3):qxcm_hi(3),NQC)
+    real(rt), intent(in) :: qxp_core(qxcp_lo(1):qxcp_hi(1),qxcp_lo(2):qxcp_hi(2),qxcp_lo(3):qxcp_hi(3),NQC)
+    real(rt), intent(in) :: qxm_pass(qxpm_lo(1):qxpm_hi(1),qxpm_lo(2):qxpm_hi(2),qxpm_lo(3):qxpm_hi(3),NQP)
+    real(rt), intent(in) :: qxp_pass(qxpp_lo(1):qxpp_hi(1),qxpp_lo(2):qxpp_hi(2),qxpp_lo(3):qxpp_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(in) ::  qxm_rad(qxrm_lo(1):qxrm_hi(1),qxrm_lo(2):qxrm_hi(2),qxrm_lo(3):qxrm_hi(3),NQR)
+    real(rt), intent(in) ::  qxp_rad(qxrp_lo(1):qxrp_hi(1),qxrp_lo(2):qxrp_hi(2),qxrp_lo(3):qxrp_hi(3),NQR)
+#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
 
-    real(rt), intent(out) :: qxmo(qxmo_lo(1):qxmo_hi(1),qxmo_lo(2):qxmo_hi(2),qxmo_lo(3):qxmo_hi(3),NQ)
-    real(rt), intent(out) :: qxpo(qxpo_lo(1):qxpo_hi(1),qxpo_lo(2):qxpo_hi(2),qxpo_lo(3):qxpo_hi(3),NQ)
+    real(rt), intent(out) :: qxmo_core(qxcmo_lo(1):qxcmo_hi(1),qxcmo_lo(2):qxcmo_hi(2),qxcmo_lo(3):qxcmo_hi(3),NQC)
+    real(rt), intent(out) :: qxpo_core(qxcpo_lo(1):qxcpo_hi(1),qxcpo_lo(2):qxcpo_hi(2),qxcpo_lo(3):qxcpo_hi(3),NQC)
+    real(rt), intent(out) :: qxmo_pass(qxpmo_lo(1):qxpmo_hi(1),qxpmo_lo(2):qxpmo_hi(2),qxpmo_lo(3):qxpmo_hi(3),NQP)
+    real(rt), intent(out) :: qxpo_pass(qxppo_lo(1):qxppo_hi(1),qxppo_lo(2):qxppo_hi(2),qxppo_lo(3):qxppo_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(out) ::  qxmo_rad(qxrmo_lo(1):qxrmo_hi(1),qxrmo_lo(2):qxrmo_hi(2),qxrmo_lo(3):qxrmo_hi(3),NQR)
+    real(rt), intent(out) ::  qxpo_rad(qxrpo_lo(1):qxrpo_hi(1),qxrpo_lo(2):qxrpo_hi(2),qxrpo_lo(3):qxrpo_hi(3),NQR)
+#endif
 
     integer i, j, k, n, nqp, ipassive
 
@@ -1486,10 +1588,22 @@ contains
   end subroutine transy_on_xstates
 
   subroutine transy_on_zstates(lo, hi, &
-                               qzm, qzm_lo, qzm_hi, &
-                               qzmo, qzmo_lo, qzmo_hi, &
-                               qzp, qzp_lo, qzp_hi, &
-                               qzpo, qzpo_lo, qzpo_hi, &
+                               qzm_core, qzcm_lo, qzcm_hi, &
+                               qzmo_core, qzcmo_lo, qzcmo_hi, &
+                               qzm_pass, qzpm_lo, qzpm_hi, &
+                               qzmo_pass, qzpmo_lo, qzpmo_hi, &
+#ifdef RADIATION
+                               qzm_rad, qzrm_lo, qzrm_hi, &
+                               qzmo_rad, qzrmo_lo, qzrmo_hi, &
+#endif
+                               qzp_core, qzcp_lo, qzcp_hi, &
+                               qzpo_core, qzcpo_lo, qzcpo_hi, &
+                               qzp_pass, qzpp_lo, qzpp_hi, &
+                               qzpo_pass, qzppo_lo, qzppo_hi, &
+#ifdef RADIATION
+                               qzp_rad, qzrp_lo, qzrp_hi, &
+                               qzpo_rad, qzrpo_lo, qzrpo_hi, &
+#endif
                                qaux, qa_lo, qa_hi, &
                                fy, fy_lo, fy_hi, &
 #ifdef RADIATION
@@ -1527,10 +1641,20 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
 
-    integer, intent(in) :: qzm_lo(3), qzm_hi(3)
-    integer, intent(in) :: qzp_lo(3), qzp_hi(3)
-    integer, intent(in) :: qzmo_lo(3), qzmo_hi(3)
-    integer, intent(in) :: qzpo_lo(3), qzpo_hi(3)
+    integer, intent(in) :: qzcm_lo(3), qzcm_hi(3)
+    integer, intent(in) :: qzcm_lo(3), qzcm_hi(3)
+    integer, intent(in) :: qzpp_lo(3), qzpp_hi(3)
+    integer, intent(in) :: qzpp_lo(3), qzpp_hi(3)
+    integer, intent(in) :: qzcmo_lo(3), qzcmo_hi(3)
+    integer, intent(in) :: qzcmo_lo(3), qzcmo_hi(3)
+    integer, intent(in) :: qzppo_lo(3), qzppo_hi(3)
+    integer, intent(in) :: qzppo_lo(3), qzppo_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qzrm_lo(3), qzrm_hi(3)
+    integer, intent(in) :: qzrp_lo(3), qzrp_hi(3)
+    integer, intent(in) :: qzrmo_lo(3), qzrmo_hi(3)
+    integer, intent(in) :: qzrpo_lo(3), qzrpo_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fy_lo(3), fy_hi(3)
 #ifdef RADIATION
@@ -1545,14 +1669,26 @@ contains
 
     real(rt), intent(in), value :: cdtdy
 
-    real(rt), intent(in) :: qzm(qzm_lo(1):qzm_hi(1),qzm_lo(2):qzm_hi(2),qzm_lo(3):qzm_hi(3),NQ)
-    real(rt), intent(in) :: qzp(qzp_lo(1):qzp_hi(1),qzp_lo(2):qzp_hi(2),qzp_lo(3):qzp_hi(3),NQ)
+    real(rt), intent(in) :: qzm_core(qzcm_lo(1):qzcm_hi(1),qzcm_lo(2):qzcm_hi(2),qzcm_lo(3):qzcm_hi(3),NQC)
+    real(rt), intent(in) :: qzp_core(qzcp_lo(1):qzcp_hi(1),qzcp_lo(2):qzcp_hi(2),qzcp_lo(3):qzcp_hi(3),NQC)
+    real(rt), intent(in) :: qzm_pass(qzpm_lo(1):qzpm_hi(1),qzpm_lo(2):qzpm_hi(2),qzpm_lo(3):qzpm_hi(3),NQP)
+    real(rt), intent(in) :: qzp_pass(qzpp_lo(1):qzpp_hi(1),qzpp_lo(2):qzpp_hi(2),qzpp_lo(3):qzpp_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(in) ::  qzm_rad(qzrm_lo(1):qzrm_hi(1),qzrm_lo(2):qzrm_hi(2),qzrm_lo(3):qzrm_hi(3),NQR)
+    real(rt), intent(in) ::  qzp_rad(qzrp_lo(1):qzrp_hi(1),qzrp_lo(2):qzrp_hi(2),qzrp_lo(3):qzrp_hi(3),NQR)
+#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fy(fy_lo(1):fy_hi(1),fy_lo(2):fy_hi(2),fy_lo(3):fy_hi(3),NVAR)
     real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
 
-    real(rt), intent(out) :: qzmo(qzmo_lo(1):qzmo_hi(1),qzmo_lo(2):qzmo_hi(2),qzmo_lo(3):qzmo_hi(3),NQ)
-    real(rt), intent(out) :: qzpo(qzpo_lo(1):qzpo_hi(1),qzpo_lo(2):qzpo_hi(2),qzpo_lo(3):qzpo_hi(3),NQ)
+    real(rt), intent(out) :: qzmo_core(qzcmo_lo(1):qzcmo_hi(1),qzcmo_lo(2):qzcmo_hi(2),qzcmo_lo(3):qzcmo_hi(3),NQC)
+    real(rt), intent(out) :: qzpo_core(qzcpo_lo(1):qzcpo_hi(1),qzcpo_lo(2):qzcpo_hi(2),qzcpo_lo(3):qzcpo_hi(3),NQC)
+    real(rt), intent(out) :: qzmo_pass(qzpmo_lo(1):qzpmo_hi(1),qzpmo_lo(2):qzpmo_hi(2),qzpmo_lo(3):qzpmo_hi(3),NQP)
+    real(rt), intent(out) :: qzpo_pass(qzppo_lo(1):qzppo_hi(1),qzppo_lo(2):qzppo_hi(2),qzppo_lo(3):qzppo_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(out) ::  qzmo_rad(qzrmo_lo(1):qzrmo_hi(1),qzrmo_lo(2):qzrmo_hi(2),qzrmo_lo(3):qzrmo_hi(3),NQR)
+    real(rt), intent(out) ::  qzpo_rad(qzrpo_lo(1):qzrpo_hi(1),qzrpo_lo(2):qzrpo_hi(2),qzrpo_lo(3):qzrpo_hi(3),NQR)
+#endif
 
     integer i, j, k, n, nqp, ipassive
 
@@ -1930,10 +2066,22 @@ contains
   !===========================================================================
 
   subroutine transz_on_xstates(lo, hi, &
-                               qxm, qxm_lo, qxm_hi, &
-                               qxmo, qxmo_lo, qxmo_hi, &
-                               qxp, qxp_lo, qxp_hi, &
-                               qxpo, qxpo_lo, qxpo_hi, &
+                               qxm_core, qxcm_lo, qxcm_hi, &
+                               qxmo_core, qxcmo_lo, qxcmo_hi, &
+                               qxm_pass, qxpm_lo, qxpm_hi, &
+                               qxmo_pass, qxpmo_lo, qxpmo_hi, &
+#ifdef RADIATION
+                               qxm_rad, qxrm_lo, qxrm_hi, &
+                               qxmo_rad, qxrmo_lo, qxrmo_hi, &
+#endif
+                               qxp_core, qxcp_lo, qxcp_hi, &
+                               qxpo_core, qxcpo_lo, qxcpo_hi, &
+                               qxp_pass, qxpp_lo, qxpp_hi, &
+                               qxpo_pass, qxppo_lo, qxppo_hi, &
+#ifdef RADIATION
+                               qxp_rad, qxrp_lo, qxrp_hi, &
+                               qxpo_rad, qxrpo_lo, qxrpo_hi, &
+#endif
                                qaux, qa_lo, qa_hi, &
                                fz, fz_lo, fz_hi, &
 #ifdef RADIATION
@@ -1971,10 +2119,20 @@ contains
     use eos_type_module, only: eos_input_rt, eos_t
 
 
-    integer, intent(in) :: qxm_lo(3), qxm_hi(3)
-    integer, intent(in) :: qxmo_lo(3), qxmo_hi(3)
-    integer, intent(in) :: qxp_lo(3), qxp_hi(3)
-    integer, intent(in) :: qxpo_lo(3), qxpo_hi(3)
+    integer, intent(in) :: qxcm_lo(3), qxcm_hi(3)
+    integer, intent(in) :: qxcmo_lo(3), qxcmo_hi(3)
+    integer, intent(in) :: qxpm_lo(3), qxpm_hi(3)
+    integer, intent(in) :: qxpmo_lo(3), qxpmo_hi(3)
+    integer, intent(in) :: qxcp_lo(3), qxcp_hi(3)
+    integer, intent(in) :: qxcpo_lo(3), qxcpo_hi(3)
+    integer, intent(in) :: qxpp_lo(3), qxpp_hi(3)
+    integer, intent(in) :: qxppo_lo(3), qxppo_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qxrm_lo(3), qxrm_hi(3)
+    integer, intent(in) :: qxrmo_lo(3), qxrmo_hi(3)
+    integer, intent(in) :: qxrp_lo(3), qxrp_hi(3)
+    integer, intent(in) :: qxrpo_lo(3), qxrpo_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fz_lo(3), fz_hi(3)
 #ifdef RADIATION
@@ -1989,14 +2147,26 @@ contains
 
     real(rt), intent(in), value :: cdtdz
 
-    real(rt), intent(in) :: qxm(qxm_lo(1):qxm_hi(1),qxm_lo(2):qxm_hi(2),qxm_lo(3):qxm_hi(3),NQ)
-    real(rt), intent(in) :: qxp(qxp_lo(1):qxp_hi(1),qxp_lo(2):qxp_hi(2),qxp_lo(3):qxp_hi(3),NQ)
+    real(rt), intent(in) :: qxm_core(qxcm_lo(1):qxcm_hi(1),qxcm_lo(2):qxcm_hi(2),qxcm_lo(3):qxcm_hi(3),NQC)
+    real(rt), intent(in) :: qxp_core(qxcp_lo(1):qxcp_hi(1),qxcp_lo(2):qxcp_hi(2),qxcp_lo(3):qxcp_hi(3),NQC)
+    real(rt), intent(in) :: qxm_pass(qxpm_lo(1):qxpm_hi(1),qxpm_lo(2):qxpm_hi(2),qxpm_lo(3):qxpm_hi(3),NQP)
+    real(rt), intent(in) :: qxp_pass(qxpp_lo(1):qxpp_hi(1),qxpp_lo(2):qxpp_hi(2),qxpp_lo(3):qxpp_hi(3),NQP)
+#ifdef RADATION
+    real(rt), intent(in) ::  qxm_rad(qxrm_lo(1):qxrm_hi(1),qxrm_lo(2):qxrm_hi(2),qxrm_lo(3):qxrm_hi(3),NQR)
+    real(rt), intent(in) ::  qxp_rad(qxrp_lo(1):qxrp_hi(1),qxrp_lo(2):qxrp_hi(2),qxrp_lo(3):qxrp_hi(3),NQR)
+#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 
-    real(rt), intent(out) :: qxmo(qxmo_lo(1):qxmo_hi(1),qxmo_lo(2):qxmo_hi(2),qxmo_lo(3):qxmo_hi(3),NQ)
-    real(rt), intent(out) :: qxpo(qxpo_lo(1):qxpo_hi(1),qxpo_lo(2):qxpo_hi(2),qxpo_lo(3):qxpo_hi(3),NQ)
+    real(rt), intent(out) :: qxmo_core(qxcmo_lo(1):qxcmo_hi(1),qxcmo_lo(2):qxcmo_hi(2),qxcmo_lo(3):qxcmo_hi(3),NQC)
+    real(rt), intent(out) :: qxpo_core(qxcpo_lo(1):qxcpo_hi(1),qxcpo_lo(2):qxcpo_hi(2),qxcpo_lo(3):qxcpo_hi(3),NQC)
+    real(rt), intent(out) :: qxmo_pass(qxpmo_lo(1):qxpmo_hi(1),qxpmo_lo(2):qxpmo_hi(2),qxpmo_lo(3):qxpmo_hi(3),NQP)
+    real(rt), intent(out) :: qxpo_pass(qxppo_lo(1):qxppo_hi(1),qxppo_lo(2):qxppo_hi(2),qxppo_lo(3):qxppo_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(out) ::  qxmo_rad(qxrmo_lo(1):qxrmo_hi(1),qxrmo_lo(2):qxrmo_hi(2),qxrmo_lo(3):qxrmo_hi(3),NQR)
+    real(rt), intent(out) ::  qxpo_rad(qxrpo_lo(1):qxrpo_hi(1),qxrpo_lo(2):qxrpo_hi(2),qxrpo_lo(3):qxrpo_hi(3),NQR)
+#endif
 
     integer i, j, k, n, nqp, ipassive
 
@@ -2361,10 +2531,22 @@ contains
 
 
   subroutine transz_on_ystates(lo, hi, &
-                               qym, qym_lo, qym_hi, &
-                               qymo, qymo_lo, qymo_hi, &
-                               qyp, qyp_lo, qyp_hi, &
-                               qypo, qypo_lo, qypo_hi, &
+                               qym_core, qycm_lo, qycm_hi, &
+                               qymo_core, qycmo_lo, qycmo_hi, &
+                               qym_pass, qypm_lo, qypm_hi, &
+                               qymo_pass, qypmo_lo, qypmo_hi, &
+#ifdef RADIATION
+                               qym_rad, qyrm_lo, qyrm_hi, &
+                               qymo_rad, qyrmo_lo, qyrmo_hi, &
+#endif
+                               qyp_core, qycp_lo, qycp_hi, &
+                               qypo_core, qycpo_lo, qycpo_hi, &
+                               qyp_pass, qypp_lo, qypp_hi, &
+                               qypo_pass, qyppo_lo, qyppo_hi, &
+#ifdef RADIATION
+                               qyp_rad, qyrp_lo, qyrp_hi, &
+                               qypo_rad, qyrpo_lo, qyrpo_hi, &
+#endif
                                qaux, qa_lo, qa_hi, &
                                fz, fz_lo, fz_hi, &
 #ifdef RADIATION
@@ -2402,10 +2584,20 @@ contains
     use eos_type_module, only: eos_input_rt, eos_t
 
 
-    integer, intent(in) :: qym_lo(3), qym_hi(3)
-    integer, intent(in) :: qymo_lo(3), qymo_hi(3)
-    integer, intent(in) :: qyp_lo(3), qyp_hi(3)
-    integer, intent(in) :: qypo_lo(3), qypo_hi(3)
+    integer, intent(in) :: qycm_lo(3), qycm_hi(3)
+    integer, intent(in) :: qycmo_lo(3), qycmo_hi(3)
+    integer, intent(in) :: qycp_lo(3), qycp_hi(3)
+    integer, intent(in) :: qycpo_lo(3), qycpo_hi(3)
+    integer, intent(in) :: qypm_lo(3), qypm_hi(3)
+    integer, intent(in) :: qypmo_lo(3), qypmo_hi(3)
+    integer, intent(in) :: qypp_lo(3), qypp_hi(3)
+    integer, intent(in) :: qyppo_lo(3), qyppo_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qyrm_lo(3), qyrm_hi(3)
+    integer, intent(in) :: qyrmo_lo(3), qyrmo_hi(3)
+    integer, intent(in) :: qyrp_lo(3), qyrp_hi(3)
+    integer, intent(in) :: qyrpo_lo(3), qyrpo_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fz_lo(3), fz_hi(3)
 #ifdef RADIATION
@@ -2420,14 +2612,26 @@ contains
 
     real(rt), intent(in), value :: cdtdz
 
-    real(rt), intent(in) :: qym(qym_lo(1):qym_hi(1),qym_lo(2):qym_hi(2),qym_lo(3):qym_hi(3),NQ)
-    real(rt), intent(in) :: qyp(qyp_lo(1):qyp_hi(1),qyp_lo(2):qyp_hi(2),qyp_lo(3):qyp_hi(3),NQ)
+    real(rt), intent(in) :: qym_core(qycm_lo(1):qycm_hi(1),qycm_lo(2):qycm_hi(2),qycm_lo(3):qycm_hi(3),NQC)
+    real(rt), intent(in) :: qyp_core(qycp_lo(1):qycp_hi(1),qycp_lo(2):qycp_hi(2),qycp_lo(3):qycp_hi(3),NQC)
+    real(rt), intent(in) :: qym_pass(qypm_lo(1):qypm_hi(1),qypm_lo(2):qypm_hi(2),qypm_lo(3):qypm_hi(3),NQP)
+    real(rt), intent(in) :: qyp_pass(qypp_lo(1):qypp_hi(1),qypp_lo(2):qypp_hi(2),qypp_lo(3):qypp_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(in) ::  qym_rad(qyrm_lo(1):qyrm_hi(1),qyrm_lo(2):qyrm_hi(2),qyrm_lo(3):qyrm_hi(3),NQR)
+    real(rt), intent(in) ::  qyp_rad(qyrp_lo(1):qyrp_hi(1),qyrp_lo(2):qyrp_hi(2),qyrp_lo(3):qyrp_hi(3),NQR)
+#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
     real(rt), intent(in) :: fz(fz_lo(1):fz_hi(1),fz_lo(2):fz_hi(2),fz_lo(3):fz_hi(3),NVAR)
     real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 
-    real(rt), intent(out) :: qymo(qymo_lo(1):qymo_hi(1),qymo_lo(2):qymo_hi(2),qymo_lo(3):qymo_hi(3),NQ)
-    real(rt), intent(out) :: qypo(qypo_lo(1):qypo_hi(1),qypo_lo(2):qypo_hi(2),qypo_lo(3):qypo_hi(3),NQ)
+    real(rt), intent(out) :: qymo_core(qycmo_lo(1):qycmo_hi(1),qycmo_lo(2):qycmo_hi(2),qycmo_lo(3):qycmo_hi(3),NQC)
+    real(rt), intent(out) :: qypo_core(qycpo_lo(1):qycpo_hi(1),qycpo_lo(2):qycpo_hi(2),qycpo_lo(3):qycpo_hi(3),NQC)
+    real(rt), intent(out) :: qymo_pass(qypmo_lo(1):qypmo_hi(1),qypmo_lo(2):qypmo_hi(2),qypmo_lo(3):qypmo_hi(3),NQP)
+    real(rt), intent(out) :: qypo_pass(qyppo_lo(1):qyppo_hi(1),qyppo_lo(2):qyppo_hi(2),qyppo_lo(3):qyppo_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(out) ::  qymo_rad(qyrmo_lo(1):qyrmo_hi(1),qyrmo_lo(2):qyrmo_hi(2),qyrmo_lo(3):qyrmo_hi(3),NQR)
+    real(rt), intent(out) ::  qypo_rad(qyrpo_lo(1):qyrpo_hi(1),qyrpo_lo(2):qyrpo_hi(2),qyrpo_lo(3):qyrpo_hi(3),NQR)
+#endif
 
     integer i, j, k, n, nqp, ipassive
 
@@ -2795,10 +2999,22 @@ contains
   ! transyz
   !===========================================================================
   subroutine transyz(lo, hi, &
-                     qm, qm_lo, qm_hi, &
-                     qmo, qmo_lo, qmo_hi, &
-                     qp, qp_lo, qp_hi, &
-                     qpo, qpo_lo, qpo_hi, &
+                     qm_core, qcm_lo, qcm_hi, &
+                     qmo_core, qcmo_lo, qcmo_hi, &
+                     qm_pass, qpm_lo, qpm_hi, &
+                     qmo_pass, qpmo_lo, qpmo_hi, &
+#ifdef RADIATION
+                     qm_rad, qrm_lo, qrm_hi, &
+                     qmo_rad, qrmo_lo, qrmo_hi, &
+#endif
+                     qp_core, qcp_lo, qcp_hi, &
+                     qpo_core, qcpo_lo, qcpo_hi, &
+                     qp_pass, qpp_lo, qpp_hi, &
+                     qpo_pass, qppo_lo, qppo_hi, &
+#ifdef RADIATION
+                     qp_rad, qrp_lo, qrp_hi, &
+                     qpo_rad, qrpo_lo, qrpo_hi, &
+#endif
                      qaux, qa_lo, qa_hi, &
                      fyz, fyz_lo, fyz_hi, &
 #ifdef RADIATION
@@ -2841,10 +3057,20 @@ contains
     use eos_type_module, only: eos_input_rt, eos_t
 
 
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
-    integer, intent(in) :: qmo_lo(3), qmo_hi(3)
-    integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: qpo_lo(3), qpo_hi(3)
+    integer, intent(in) :: qcm_lo(3), qcm_hi(3)
+    integer, intent(in) :: qcmo_lo(3), qcmo_hi(3)
+    integer, intent(in) :: qcp_lo(3), qcp_hi(3)
+    integer, intent(in) :: qcpo_lo(3), qcpo_hi(3)
+    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
+    integer, intent(in) :: qpmo_lo(3), qpmo_hi(3)
+    integer, intent(in) :: qpp_lo(3), qpp_hi(3)
+    integer, intent(in) :: qppo_lo(3), qppo_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qrm_lo(3), qrm_hi(3)
+    integer, intent(in) :: qrmo_lo(3), qrmo_hi(3)
+    integer, intent(in) :: qrp_lo(3), qrp_hi(3)
+    integer, intent(in) :: qrpo_lo(3), qrpo_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3),qa_hi(3)
     integer, intent(in) :: fyz_lo(3), fyz_hi(3)
     integer, intent(in) :: fzy_lo(3), fzy_hi(3)
@@ -2861,10 +3087,22 @@ contains
     real(rt), intent(in) :: rfzy(fzy_lo(1):fzy_hi(1),fzy_lo(2):fzy_hi(2),fzy_lo(3):fzy_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(in) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
-    real(rt), intent(out) :: qmo(qmo_lo(1):qmo_hi(1),qmo_lo(2):qmo_hi(2),qmo_lo(3):qmo_hi(3),NQ)
-    real(rt), intent(out) :: qpo(qpo_lo(1):qpo_hi(1),qpo_lo(2):qpo_hi(2),qpo_lo(3):qpo_hi(3),NQ)
+    real(rt), intent(in) :: qm_core(qcm_lo(1):qcm_hi(1),qcm_lo(2):qcm_hi(2),qcm_lo(3):qcm_hi(3),NQC)
+    real(rt), intent(in) :: qp_core(qcp_lo(1):qcp_hi(1),qcp_lo(2):qcp_hi(2),qcp_lo(3):qcp_hi(3),NQC)
+    real(rt), intent(in) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP)
+    real(rt), intent(in) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(in) ::  qm_rad(qrm_lo(1):qrm_hi(1),qrm_lo(2):qrm_hi(2),qrm_lo(3):qrm_hi(3),NQR)
+    real(rt), intent(in) ::  qp_rad(qrp_lo(1):qrp_hi(1),qrp_lo(2):qrp_hi(2),qrp_lo(3):qrp_hi(3),NQR)
+#endif
+    real(rt), intent(out) :: qmo_core(qcmo_lo(1):qcmo_hi(1),qcmo_lo(2):qcmo_hi(2),qcmo_lo(3):qcmo_hi(3),NQC)
+    real(rt), intent(out) :: qpo_core(qcpo_lo(1):qcpo_hi(1),qcpo_lo(2):qcpo_hi(2),qcpo_lo(3):qcpo_hi(3),NQC)
+    real(rt), intent(out) :: qmo_pass(qpmo_lo(1):qpmo_hi(1),qpmo_lo(2):qpmo_hi(2),qpmo_lo(3):qpmo_hi(3),NQP)
+    real(rt), intent(out) :: qpo_pass(qppo_lo(1):qppo_hi(1),qppo_lo(2):qppo_hi(2),qppo_lo(3):qppo_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(out) ::  qmo_rad(qrmo_lo(1):qrmo_hi(1),qrmo_lo(2):qrmo_hi(2),qrmo_lo(3):qrmo_hi(3),NQR)
+    real(rt), intent(out) ::  qpo_rad(qrpo_lo(1):qrpo_hi(1),qrpo_lo(2):qrpo_hi(2),qrpo_lo(3):qrpo_hi(3),NQR)
+#endif
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
@@ -3306,10 +3544,22 @@ contains
   ! transxz
   !===========================================================================
   subroutine transxz(lo, hi, &
-                     qm, qm_lo, qm_hi, &
-                     qmo, qmo_lo, qmo_hi, &
-                     qp, qp_lo, qp_hi, &
-                     qpo, qpo_lo, qpo_hi, &
+                     qm_core, qcm_lo, qcm_hi, &
+                     qmo_core, qcmo_lo, qcmo_hi, &
+                     qm_pass, qpm_lo, qpm_hi, &
+                     qmo_pass, qpmo_lo, qpmo_hi, &
+#ifdef RADIATION
+                     qm_rad, qrm_lo, qrm_hi, &
+                     qmo_rad, qrmo_lo, qrmo_hi, &
+#endif
+                     qp_core, qcp_lo, qcp_hi, &
+                     qpo_core, qcpo_lo, qcpo_hi, &
+                     qp_pass, qpp_lo, qpp_hi, &
+                     qpo_pass, qppo_lo, qppo_hi, &
+#ifdef RADIATION
+                     qp_rad, qrp_lo, qrp_hi, &
+                     qpo_rad, qrpo_lo, qrpo_hi, &
+#endif
                      qaux, qa_lo, qa_hi, &
                      fxz, fxz_lo, fxz_hi, &
 #ifdef RADIATION
@@ -3352,10 +3602,20 @@ contains
     use eos_type_module, only: eos_input_rt, eos_t
 
 
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
-    integer, intent(in) :: qmo_lo(3), qmo_hi(3)
-    integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: qpo_lo(3), qpo_hi(3)
+    integer, intent(in) :: qcm_lo(3), qcm_hi(3)
+    integer, intent(in) :: qcmo_lo(3), qcmo_hi(3)
+    integer, intent(in) :: qcp_lo(3), qcp_hi(3)
+    integer, intent(in) :: qcpo_lo(3), qcpo_hi(3)
+    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
+    integer, intent(in) :: qpmo_lo(3), qpmo_hi(3)
+    integer, intent(in) :: qpp_lo(3), qpp_hi(3)
+    integer, intent(in) :: qppo_lo(3), qppo_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qrm_lo(3), qrm_hi(3)
+    integer, intent(in) :: qrmo_lo(3), qrmo_hi(3)
+    integer, intent(in) :: qrp_lo(3), qrp_hi(3)
+    integer, intent(in) :: qrpo_lo(3), qrpo_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3),qa_hi(3)
     integer, intent(in) :: fxz_lo(3), fxz_hi(3)
     integer, intent(in) :: fzx_lo(3), fzx_hi(3)
@@ -3372,10 +3632,22 @@ contains
     real(rt), intent(in) :: rfzx(rfzx_lo(1):rfzx_hi(1),rfzx_lo(2):rfzx_hi(2),rfzx_lo(3):rfzx_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(in) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
-    real(rt), intent(out) :: qmo(qmo_lo(1):qmo_hi(1),qmo_lo(2):qmo_hi(2),qmo_lo(3):qmo_hi(3),NQ)
-    real(rt), intent(out) :: qpo(qpo_lo(1):qpo_hi(1),qpo_lo(2):qpo_hi(2),qpo_lo(3):qpo_hi(3),NQ)
+    real(rt), intent(in) :: qm_core(qcm_lo(1):qcm_hi(1),qcm_lo(2):qcm_hi(2),qcm_lo(3):qcm_hi(3),NQC)
+    real(rt), intent(in) :: qp_core(qcp_lo(1):qcp_hi(1),qcp_lo(2):qcp_hi(2),qcp_lo(3):qcp_hi(3),NQC)
+    real(rt), intent(in) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP)
+    real(rt), intent(in) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(in) ::  qm_rad(qrm_lo(1):qrm_hi(1),qrm_lo(2):qrm_hi(2),qrm_lo(3):qrm_hi(3),NQR)
+    real(rt), intent(in) ::  qp_rad(qrp_lo(1):qrp_hi(1),qrp_lo(2):qrp_hi(2),qrp_lo(3):qrp_hi(3),NQR)
+#endif
+    real(rt), intent(out) :: qmo_core(qcmo_lo(1):qcmo_hi(1),qcmo_lo(2):qcmo_hi(2),qcmo_lo(3):qcmo_hi(3),NQC)
+    real(rt), intent(out) :: qpo_core(qcpo_lo(1):qcpo_hi(1),qcpo_lo(2):qcpo_hi(2),qcpo_lo(3):qcpo_hi(3),NQC)
+    real(rt), intent(out) :: qmo_pass(qpmo_lo(1):qpmo_hi(1),qpmo_lo(2):qpmo_hi(2),qpmo_lo(3):qpmo_hi(3),NQP)
+    real(rt), intent(out) :: qpo_pass(qppo_lo(1):qppo_hi(1),qppo_lo(2):qppo_hi(2),qppo_lo(3):qppo_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(out) ::  qmo_rad(qrmo_lo(1):qrmo_hi(1),qrmo_lo(2):qrmo_hi(2),qrmo_lo(3):qrmo_hi(3),NQR)
+    real(rt), intent(out) ::  qpo_rad(qrpo_lo(1):qrpo_hi(1),qrpo_lo(2):qrpo_hi(2),qrpo_lo(3):qrpo_hi(3),NQR)
+#endif
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
@@ -3816,10 +4088,22 @@ contains
   ! transxy
   !===========================================================================
   subroutine transxy(lo, hi, &
-                     qm, qm_lo, qm_hi, &
-                     qmo, qmo_lo, qmo_hi, &
-                     qp, qp_lo, qp_hi, &
-                     qpo, qpo_lo, qpo_hi, &
+                     qm_core, qcm_lo, qcm_hi, &
+                     qmo_core, qcmo_lo, qcmo_hi, &
+                     qm_pass, qpm_lo, qpm_hi, &
+                     qmo_pass, qpmo_lo, qpmo_hi, &
+#ifdef RADIATION
+                     qm_rad, qrm_lo, qrm_hi, &
+                     qmo_rad, qrmo_lo, qrmo_hi, &
+#endif
+                     qp_core, qcp_lo, qcp_hi, &
+                     qpo_core, qcpo_lo, qcpo_hi, &
+                     qp_pass, qpp_lo, qpp_hi, &
+                     qpo_pass, qppo_lo, qppo_hi, &
+#ifdef RADIATION
+                     qp_rad, qrp_lo, qrp_hi, &
+                     qpo_rad, qrpo_lo, qrpo_hi, &
+#endif
                      qaux, qa_lo, qa_hi, &
                      fxy, fxy_lo, fxy_hi, &
 #ifdef RADIATION
@@ -3863,10 +4147,20 @@ contains
     use eos_type_module, only: eos_input_rt, eos_t
 
 
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
-    integer, intent(in) :: qmo_lo(3), qmo_hi(3)
-    integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: qpo_lo(3), qpo_hi(3)
+    integer, intent(in) :: qcm_lo(3), qcm_hi(3)
+    integer, intent(in) :: qcmo_lo(3), qcmo_hi(3)
+    integer, intent(in) :: qcp_lo(3), qcp_hi(3)
+    integer, intent(in) :: qcpo_lo(3), qcpo_hi(3)
+    integer, intent(in) :: qpm_lo(3), qpm_hi(3)
+    integer, intent(in) :: qpmo_lo(3), qpmo_hi(3)
+    integer, intent(in) :: qpp_lo(3), qpp_hi(3)
+    integer, intent(in) :: qppo_lo(3), qppo_hi(3)
+#ifdef RADIATION
+    integer, intent(in) :: qrm_lo(3), qrm_hi(3)
+    integer, intent(in) :: qrmo_lo(3), qrmo_hi(3)
+    integer, intent(in) :: qrp_lo(3), qrp_hi(3)
+    integer, intent(in) :: qrpo_lo(3), qrpo_hi(3)
+#endif
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: fxy_lo(3), fxy_hi(3)
     integer, intent(in) :: fyx_lo(3), fyx_hi(3)
@@ -3883,11 +4177,22 @@ contains
     real(rt), intent(in) :: rfyx(rfyx_lo(1):rfyx_hi(1),rfyx_lo(2):rfyx_hi(2),rfyx_lo(3):rfyx_hi(3),0:ngroups-1)
 #endif
 
-    real(rt), intent(in) ::   qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(in) ::   qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
-    real(rt), intent(out) :: qmo(qmo_lo(1):qmo_hi(1),qmo_lo(2):qmo_hi(2),qmo_lo(3):qmo_hi(3),NQ)
-    real(rt), intent(out) :: qpo(qpo_lo(1):qpo_hi(1),qpo_lo(2):qpo_hi(2),qpo_lo(3):qpo_hi(3),NQ)
-
+    real(rt), intent(in) :: qm_core(qcm_lo(1):qcm_hi(1),qcm_lo(2):qcm_hi(2),qcm_lo(3):qcm_hi(3),NQC)
+    real(rt), intent(in) :: qp_core(qcp_lo(1):qcp_hi(1),qcp_lo(2):qcp_hi(2),qcp_lo(3):qcp_hi(3),NQC)
+    real(rt), intent(in) :: qm_pass(qpm_lo(1):qpm_hi(1),qpm_lo(2):qpm_hi(2),qpm_lo(3):qpm_hi(3),NQP)
+    real(rt), intent(in) :: qp_pass(qpp_lo(1):qpp_hi(1),qpp_lo(2):qpp_hi(2),qpp_lo(3):qpp_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(in) ::  qm_rad(qrm_lo(1):qrm_hi(1),qrm_lo(2):qrm_hi(2),qrm_lo(3):qrm_hi(3),NQR)
+    real(rt), intent(in) ::  qp_rad(qrp_lo(1):qrp_hi(1),qrp_lo(2):qrp_hi(2),qrp_lo(3):qrp_hi(3),NQR)
+#endif
+    real(rt), intent(out) :: qmo_core(qcmo_lo(1):qcmo_hi(1),qcmo_lo(2):qcmo_hi(2),qcmo_lo(3):qcmo_hi(3),NQC)
+    real(rt), intent(out) :: qpo_core(qcpo_lo(1):qcpo_hi(1),qcpo_lo(2):qcpo_hi(2),qcpo_lo(3):qcpo_hi(3),NQC)
+    real(rt), intent(out) :: qmo_pass(qpmo_lo(1):qpmo_hi(1),qpmo_lo(2):qpmo_hi(2),qpmo_lo(3):qpmo_hi(3),NQP)
+    real(rt), intent(out) :: qpo_pass(qppo_lo(1):qppo_hi(1),qppo_lo(2):qppo_hi(2),qppo_lo(3):qppo_hi(3),NQP)
+#ifdef RADIATION
+    real(rt), intent(out) ::  qmo_rad(qrmo_lo(1):qrmo_hi(1),qrmo_lo(2):qrmo_hi(2),qrmo_lo(3):qrmo_hi(3),NQR)
+    real(rt), intent(out) ::  qpo_rad(qrpo_lo(1):qrpo_hi(1),qrpo_lo(2):qrpo_hi(2),qrpo_lo(3):qrpo_hi(3),NQR)
+#endif
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt), intent(in) :: fxy(fxy_lo(1):fxy_hi(1),fxy_lo(2):fxy_hi(2),fxy_lo(3):fxy_hi(3),NVAR)
