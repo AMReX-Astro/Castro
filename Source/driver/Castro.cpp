@@ -3035,8 +3035,8 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
             // data pointer and index space
 	    char*       tptr    = tagfab.dataPtr();
-	    const int*  tlo     = tilebx.loVect();
-	    const int*  thi     = tilebx.hiVect();
+	    const int*  tlo     = tagfab.loVect();
+	    const int*  thi     = tagfab.hiVect();
 
             const char tagval   = TagBox::SET;
             const char clearval = TagBox::CLEAR;
@@ -3076,8 +3076,6 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 
     BL_PROFILE("Castro::apply_tagging_func()");
 
-    const int*  domain_lo = geom.Domain().loVect();
-    const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
     const Real* prob_lo   = geom.ProbLo();
 
@@ -3103,8 +3101,8 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 
             // data pointer and index space
             char*       tptr    = tagfab.dataPtr();
-            const int*  tlo     = tilebx.loVect();
-            const int*  thi     = tilebx.hiVect();
+            const int*  tlo     = tagfab.loVect();
+            const int*  thi     = tagfab.hiVect();
             //
             const int*  lo      = tlo;
             const int*  hi      = thi;
