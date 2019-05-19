@@ -651,20 +651,20 @@ contains
                             shk, sk_lo, sk_hi, &
                             dq_core, dqc_lo, dqc_hi, &
                             dq_pass, dqp_lo, dqp_hi, &
-                            qxm_core, qxmc_lo, qxmc_hi, &
-                            qxp_core, qxpc_lo, qxpc_hi, &
-                            qxm_pass, qxmp_lo, qxmp_hi, &
+                            qxm_core, qxcm_lo, qxcm_hi, &
+                            qxp_core, qxcp_lo, qxcp_hi, &
+                            qxm_pass, qxpm_lo, qxpm_hi, &
                             qxp_pass, qxpp_lo, qxpp_hi, &
 #if AMREX_SPACEDIM >= 2
-                            qym_core, qymc_lo, qymc_hi, &
-                            qyp_core, qypc_lo, qypc_hi, &
-                            qym_pass, qymp_lo, qymp_hi, &
+                            qym_core, qycm_lo, qycm_hi, &
+                            qyp_core, qycp_lo, qycp_hi, &
+                            qym_pass, qypm_lo, qypm_hi, &
                             qyp_pass, qypp_lo, qypp_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                            qzm_core, qzmc_lo, qzmc_hi, &
-                            qzp_core, qzpc_lo, qzpc_hi, &
-                            qzm_pass, qzmp_lo, qzmp_hi, &
+                            qzm_core, qzcm_lo, qzcm_hi, &
+                            qzp_core, qzcp_lo, qzcp_hi, &
+                            qzm_pass, qzpm_lo, qzpm_hi, &
                             qzp_pass, qzpp_lo, qzpp_hi, &
 #endif
                             dx, dt, &
@@ -709,20 +709,20 @@ contains
     integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) :: dqc_lo(3), dqc_hi(3)
     integer, intent(in) :: dqp_lo(3), dqp_hi(3)
-    integer, intent(in) :: qxmc_lo(3), qxmc_hi(3)
-    integer, intent(in) :: qxmp_lo(3), qxmp_hi(3)
-    integer, intent(in) :: qxpc_lo(3), qxpc_hi(3)
+    integer, intent(in) :: qxcm_lo(3), qxcm_hi(3)
+    integer, intent(in) :: qxpm_lo(3), qxpm_hi(3)
+    integer, intent(in) :: qxcp_lo(3), qxcp_hi(3)
     integer, intent(in) :: qxpp_lo(3), qxpp_hi(3)
 #if AMREX_SPACEDIM >= 2
-    integer, intent(in) :: qymc_lo(3), qymc_hi(3)
-    integer, intent(in) :: qymp_lo(3), qymp_hi(3)
-    integer, intent(in) :: qypc_lo(3), qypc_hi(3)
+    integer, intent(in) :: qycm_lo(3), qycm_hi(3)
+    integer, intent(in) :: qypm_lo(3), qypm_hi(3)
+    integer, intent(in) :: qycp_lo(3), qycp_hi(3)
     integer, intent(in) :: qypp_lo(3), qypp_hi(3)
 #endif
 #if AMREX_SPACEDIM == 3
-    integer, intent(in) :: qzmc_lo(3), qzmc_hi(3)
-    integer, intent(in) :: qzmp_lo(3), qzmp_hi(3)
-    integer, intent(in) :: qzpc_lo(3), qzpc_hi(3)
+    integer, intent(in) :: qzcm_lo(3), qzcm_hi(3)
+    integer, intent(in) :: qzpm_lo(3), qzpm_hi(3)
+    integer, intent(in) :: qzcp_lo(3), qzcp_hi(3)
     integer, intent(in) :: qzpp_lo(3), qzpp_hi(3)
 #endif
 #if AMREX_SPACEDIM < 3
@@ -744,20 +744,20 @@ contains
     real(rt), intent(inout) :: dq_core(dqc_lo(1):dqc_hi(1), dqc_lo(2):dqc_hi(2), dqc_lo(3):dqc_hi(3), NQC)
     real(rt), intent(inout) :: dq_pass(dqp_lo(1):dqp_hi(1), dqp_lo(2):dqp_hi(2), dqp_lo(3):dqp_hi(3), NQP)
 
-    real(rt), intent(inout) :: qxm_core(qxmc_lo(1):qxmc_hi(1), qxmc_lo(2):qxmc_hi(2), qxmc_lo(3):qxmc_hi(3), NQC)
-    real(rt), intent(inout) :: qxm_pass(qxmp_lo(1):qxmp_hi(1), qxmp_lo(2):qxmp_hi(2), qxmp_lo(3):qxmp_hi(3), NQP)
-    real(rt), intent(inout) :: qxp_core(qxpc_lo(1):qxpc_hi(1), qxpc_lo(2):qxpc_hi(2), qxpc_lo(3):qxpc_hi(3), NQC)
+    real(rt), intent(inout) :: qxm_core(qxcm_lo(1):qxcm_hi(1), qxcm_lo(2):qxcm_hi(2), qxcm_lo(3):qxcm_hi(3), NQC)
+    real(rt), intent(inout) :: qxm_pass(qxpm_lo(1):qxpm_hi(1), qxpm_lo(2):qxpm_hi(2), qxpm_lo(3):qxpm_hi(3), NQP)
+    real(rt), intent(inout) :: qxp_core(qxcp_lo(1):qxcp_hi(1), qxcp_lo(2):qxcp_hi(2), qxcp_lo(3):qxcp_hi(3), NQC)
     real(rt), intent(inout) :: qxp_pass(qxpp_lo(1):qxpp_hi(1), qxpp_lo(2):qxpp_hi(2), qxpp_lo(3):qxpp_hi(3), NQP)
 #if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: qym_core(qymc_lo(1):qymc_hi(1), qymc_lo(2):qymc_hi(2), qymc_lo(3):qymc_hi(3), NQC)
-    real(rt), intent(inout) :: qym_pass(qymp_lo(1):qymp_hi(1), qymp_lo(2):qymp_hi(2), qymp_lo(3):qymp_hi(3), NQP)
-    real(rt), intent(inout) :: qyp_core(qypc_lo(1):qypc_hi(1), qypc_lo(2):qypc_hi(2), qypc_lo(3):qypc_hi(3), NQC)
+    real(rt), intent(inout) :: qym_core(qycm_lo(1):qycm_hi(1), qycm_lo(2):qycm_hi(2), qycm_lo(3):qycm_hi(3), NQC)
+    real(rt), intent(inout) :: qym_pass(qypm_lo(1):qypm_hi(1), qypm_lo(2):qypm_hi(2), qypm_lo(3):qypm_hi(3), NQP)
+    real(rt), intent(inout) :: qyp_core(qycp_lo(1):qycp_hi(1), qycp_lo(2):qycp_hi(2), qycp_lo(3):qycp_hi(3), NQC)
     real(rt), intent(inout) :: qyp_pass(qypp_lo(1):qypp_hi(1), qypp_lo(2):qypp_hi(2), qypp_lo(3):qypp_hi(3), NQP)
 #endif
 #if AMREX_SPACEDIM == 3
-    real(rt), intent(inout) :: qzm_core(qzmc_lo(1):qzmc_hi(1), qzmc_lo(2):qzmc_hi(2), qzmc_lo(3):qzmc_hi(3), NQC)
-    real(rt), intent(inout) :: qzm_pass(qzmp_lo(1):qzmp_hi(1), qzmp_lo(2):qzmp_hi(2), qzmp_lo(3):qzmp_hi(3), NQP)
-    real(rt), intent(inout) :: qzp_core(qzpc_lo(1):qzpc_hi(1), qzpc_lo(2):qzpc_hi(2), qzpc_lo(3):qzpc_hi(3), NQC)
+    real(rt), intent(inout) :: qzm_core(qzcm_lo(1):qzcm_hi(1), qzcm_lo(2):qzcm_hi(2), qzcm_lo(3):qzcm_hi(3), NQC)
+    real(rt), intent(inout) :: qzm_pass(qzpm_lo(1):qzpm_hi(1), qzpm_lo(2):qzpm_hi(2), qzpm_lo(3):qzpm_hi(3), NQP)
+    real(rt), intent(inout) :: qzp_core(qzcp_lo(1):qzcp_hi(1), qzcp_lo(2):qzcp_hi(2), qzcp_lo(3):qzcp_hi(3), NQC)
     real(rt), intent(inout) :: qzp_pass(qzpp_lo(1):qzpp_hi(1), qzpp_lo(2):qzpp_hi(2), qzpp_lo(3):qzpp_hi(3), NQP)
 #endif
 #if AMREX_SPACEDIM < 3
@@ -842,8 +842,8 @@ contains
                          q_core, qc_lo, qc_hi, &
                          qaux, qa_lo, qa_hi, &
                          dq_core, dqc_lo, dqc_hi, &
-                         qxm_core, qxmc_lo, qxmc_hi, &
-                         qxp_core, qxpc_lo, qxpc_hi, &
+                         qxm_core, qxcm_lo, qxcm_hi, &
+                         qxp_core, qxcp_lo, qxcp_hi, &
 #if AMREX_SPACEDIM < 3
                          dloga, dloga_lo, dloga_hi, &
 #endif
@@ -856,7 +856,7 @@ contains
                                  q_pass, qp_lo, qp_hi, &
                                  q_core, qc_lo, qc_hi, &
                                  dq_pass, dqp_lo, dqp_hi, &
-                                 qxm_pass, qxmp_lo, qxmp_hi, &
+                                 qxm_pass, qxpm_lo, qxpm_hi, &
                                  qxp_pass, qxpp_lo, qxpp_hi, &
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                                  q_pass_src, qps_lo, qps_hi, &
@@ -870,13 +870,13 @@ contains
                          2, &
                          q_core, qc_lo, qc_hi, &
                          qaux, qa_lo, qa_hi, &
-                         dq, dq_lo, dq_hi, &
-                         qym, qym_lo, qym_hi, &
-                         qyp, qyp_lo, qyp_hi, &
+                         dq_core, dqc_lo, dqc_hi, &
+                         qym_core, qycm_lo, qycm_hi, &
+                         qyp_core, qycp_lo, qycp_hi, &
 #if AMREX_SPACEDIM < 3
                          dloga, dloga_lo, dloga_hi, &
 #endif
-                         SrcQ, src_lo, src_hi, &
+                         q_core_src, qcs_lo, qcs_hi, &
                          vlo, vhi, domlo, domhi, &
                          dx, dt)
 
@@ -885,7 +885,7 @@ contains
                                  q_pass, qp_lo, qp_hi, &
                                  q_core, qc_lo, qc_hi, &
                                  dq_pass, dqp_lo, dqp_hi, &
-                                 qym_pass, qymp_lo, qymp_hi, &
+                                 qym_pass, qypm_lo, qypm_hi, &
                                  qyp_pass, qypp_lo, qypp_hi, &
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                                  q_pass_src, qps_lo, qps_hi, &
@@ -899,12 +899,12 @@ contains
        else
           call trace_plm(lo, hi, &
                          3, &
-                         q_core, qd_lo, qd_hi, &
+                         q_core, qc_lo, qc_hi, &
                          qaux, qa_lo, qa_hi, &
-                         dq, dq_lo, dq_hi, &
-                         qzm, qzm_lo, qzm_hi, &
-                         qzp, qzp_lo, qzp_hi, &
-                         SrcQ, src_lo, src_hi, &
+                         dq_core, dqc_lo, dqc_hi, &
+                         qzm_core, qzcm_lo, qzcm_hi, &
+                         qzp_core, qzcp_lo, qzcp_hi, &
+                         q_core_src, qcs_lo, qcs_hi, &
                          vlo, vhi, domlo, domhi, &
                          dx, dt)
 
@@ -913,7 +913,7 @@ contains
                                  q_pass, qp_lo, qp_hi, &
                                  q_core, qc_lo, qc_hi, &
                                  dq_pass, dqp_lo, dqp_hi, &
-                                 qzm_pass, qzmp_lo, qzmp_hi, &
+                                 qzm_pass, qzpm_lo, qzpm_hi, &
                                  qzp_pass, qzpp_lo, qzpp_hi, &
 #ifdef PRIM_SPECIES_HAVE_SOURCES
                                  q_pass_src, qps_lo, qps_hi, &
