@@ -3002,7 +3002,7 @@ Castro::errorEst (TagBoxArray& tags,
 
     // Now we'll tag any user-specified zones using the full state array.
 
-    apply_problem_tags(tags, time);
+    apply_problem_tags(tags, t);
 }
 
 
