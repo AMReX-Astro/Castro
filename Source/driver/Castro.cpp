@@ -3022,10 +3022,10 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 #pragma omp parallel
 #endif
     {
-	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	for (MFIter mfi(tags); mfi.isValid(); ++mfi)
 	{
 	    // tile box
-	    const Box&  tilebx  = mfi.tilebox();
+	    const Box&  bx      = mfi.validbox();
 
             TagBox&     tagfab  = tags[mfi];
 
@@ -3040,20 +3040,20 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 #ifdef AMREX_DIMENSION_AGNOSTIC
 #ifdef GPU_COMPATIBLE_PROBLEM
 #pragma gpu
-	    set_problem_tags(AMREX_INT_ANYD(tilebx.loVect()), AMREX_INT_ANYD(tilebx.hiVect()),
+	    set_problem_tags(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                              BL_TO_FORTRAN_ANYD(tagfab),
 			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			     AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
                              tagval, clearval, time, level);
 #else
-	    set_problem_tags(AMREX_ARLIM_ANYD(tilebx.loVect()), AMREX_ARLIM_ANYD(tilebx.hiVect()),
+	    set_problem_tags(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                              BL_TO_FORTRAN_ANYD(tagfab),
 			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			     AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
                              tagval, clearval, time, level);
 #endif
 #else
-	    set_problem_tags(tilebx.loVect(), tilebx.hiVect(),
+	    set_problem_tags(bx.loVect(), bx.hiVect(),
                              BL_TO_FORTRAN(tagfab),
 			     BL_TO_FORTRAN(S_new[mfi]),
                              dx, problo,
@@ -3083,22 +3083,22 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 #pragma omp parallel
 #endif
     {
-        for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+        for (MFIter mfi(tags); mfi.isValid(); ++mfi)
         {
             // FABs
             FArrayBox&  datfab  = (*mf)[mfi];
             TagBox&     tagfab  = tags[mfi];
 
             // tile box
-            const Box&  tilebx  = mfi.tilebox();
+            const Box&  bx      = mfi.validbox();
 
             // data pointer and index space
             char*       tptr    = tagfab.dataPtr();
             const int*  tlo     = tagfab.loVect();
             const int*  thi     = tagfab.hiVect();
             //
-            const int*  lo      = tilebx.loVect();
-            const int*  hi      = tilebx.hiVect();
+            const int*  lo      = bx.loVect();
+            const int*  hi      = bx.hiVect();
             //
             Real*       dat     = datfab.dataPtr();
             const int*  dlo     = datfab.loVect();
