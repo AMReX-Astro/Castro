@@ -2010,8 +2010,6 @@ Castro::check_for_post_regrid (Real time)
 
 	TagBoxArray tags(grids, dmap);
 
-	tags.setVal(grids, TagBox::CLEAR);
-
 	for (int i = 0; i < err_list_names.size(); ++i) {
             apply_tagging_func(tags, time, i);
         }
@@ -2988,8 +2986,6 @@ Castro::errorEst (TagBoxArray& tags,
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     Real t = time;
-
-    tags.setVal(grids, TagBox::CLEAR);
 
     // If we are forcing a post-timestep regrid,
     // note that we need to use the new time here,
