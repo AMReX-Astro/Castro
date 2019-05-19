@@ -3096,20 +3096,17 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
             // tile box
             const Box&  tilebx  = mfi.tilebox();
 
-            //fab box
-            const Box&  datbox  = datfab.box();
-
             // data pointer and index space
             char*       tptr    = tagfab.dataPtr();
             const int*  tlo     = tagfab.loVect();
             const int*  thi     = tagfab.hiVect();
             //
-            const int*  lo      = tlo;
-            const int*  hi      = thi;
+            const int*  lo      = tilebx.loVect();
+            const int*  hi      = tilebx.hiVect();
             //
             Real*       dat     = datfab.dataPtr();
-            const int*  dlo     = datbox.loVect();
-            const int*  dhi     = datbox.hiVect();
+            const int*  dlo     = datfab.loVect();
+            const int*  dhi     = datfab.hiVect();
             const int   ncomp   = datfab.nComp();
 
             const char tagval   = TagBox::SET;
