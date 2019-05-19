@@ -632,11 +632,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnxv
 #pragma gpu box(cxbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(cxbx.loVect()), AMREX_INT_ANYD(cxbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qxm),
-                          BL_TO_FORTRAN_ANYD(qxp), 1, 1,
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qxm_core),
+                          BL_TO_FORTRAN_ANYD(qxp_core),
+                          BL_TO_FORTRAN_ANYD(qxm_pass),
+                          BL_TO_FORTRAN_ANYD(qxp_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qxm_rad),
+                          BL_TO_FORTRAN_ANYD(qxp_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp1),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -653,11 +662,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // rftmp2 = rfy
 #pragma gpu box(cybx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(cybx.loVect()), AMREX_INT_ANYD(cybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qym),
-                          BL_TO_FORTRAN_ANYD(qyp), 1, 1,
-                          BL_TO_FORTRAN_ANYD(ftmp2),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qym_core),
+                          BL_TO_FORTRAN_ANYD(qyp_core),
+                          BL_TO_FORTRAN_ANYD(qym_pass),
+                          BL_TO_FORTRAN_ANYD(qyp_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qym_rad),
+                          BL_TO_FORTRAN_ANYD(qyp_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp2),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp2),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -673,10 +691,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // rftmp2 = rfy
 #pragma gpu box(xbx)
       transy_on_xstates(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(qxm),
-                        BL_TO_FORTRAN_ANYD(ql),
-                        BL_TO_FORTRAN_ANYD(qxp),
-                        BL_TO_FORTRAN_ANYD(qr),
+                        BL_TO_FORTRAN_ANYD(qxm_core),
+                        BL_TO_FORTRAN_ANYD(ql_core),
+                        BL_TO_FORTRAN_ANYD(qxm_pass),
+                        BL_TO_FORTRAN_ANYD(ql_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qxm_rad),
+                        BL_TO_FORTRAN_ANYD(ql_rad),
+#endif
+                        BL_TO_FORTRAN_ANYD(qxp_core),
+                        BL_TO_FORTRAN_ANYD(qr_core),
+                        BL_TO_FORTRAN_ANYD(qxp_pass),
+                        BL_TO_FORTRAN_ANYD(qr_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qxp_rad),
+                        BL_TO_FORTRAN_ANYD(qr_rad),
+#endif
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp2),
 #ifdef RADIATION
@@ -689,11 +719,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #pragma gpu box(xbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(ql),
-                          BL_TO_FORTRAN_ANYD(qr), 1, 1,
-                          BL_TO_FORTRAN_ANYD(flux[0]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(ql_core),
+                          BL_TO_FORTRAN_ANYD(qr_core),
+                          BL_TO_FORTRAN_ANYD(ql_pass),
+                          BL_TO_FORTRAN_ANYD(qr_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(ql_rad),
+                          BL_TO_FORTRAN_ANYD(qr_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(flux[0]),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rad_flux[0]),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -711,10 +750,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #pragma gpu box(ybx)
       transx_on_ystates(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(qym),
-                        BL_TO_FORTRAN_ANYD(ql),
-                        BL_TO_FORTRAN_ANYD(qyp),
-                        BL_TO_FORTRAN_ANYD(qr),
+                        BL_TO_FORTRAN_ANYD(qym_core),
+                        BL_TO_FORTRAN_ANYD(ql_core),
+                        BL_TO_FORTRAN_ANYD(qym_pass),
+                        BL_TO_FORTRAN_ANYD(ql_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qym_rad),
+                        BL_TO_FORTRAN_ANYD(ql_rad),
+#endif
+                        BL_TO_FORTRAN_ANYD(qyp_core),
+                        BL_TO_FORTRAN_ANYD(qr_core),
+                        BL_TO_FORTRAN_ANYD(qyp_pass),
+                        BL_TO_FORTRAN_ANYD(qr_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qyp_rad),
+                        BL_TO_FORTRAN_ANYD(qr_rad),
+#endif
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
@@ -729,11 +780,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #pragma gpu box(ybx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(ql),
-                          BL_TO_FORTRAN_ANYD(qr), 1, 1,
-                          BL_TO_FORTRAN_ANYD(flux[1]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(ql_core),
+                          BL_TO_FORTRAN_ANYD(qr_core),
+                          BL_TO_FORTRAN_ANYD(ql_pass),
+                          BL_TO_FORTRAN_ANYD(qr_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(ql_rad),
+                          BL_TO_FORTRAN_ANYD(qr_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(flux[1]),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rad_flux[1]),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -766,11 +826,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnxv
 #pragma gpu box(cxbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(cxbx.loVect()), AMREX_INT_ANYD(cxbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qxm),
-                          BL_TO_FORTRAN_ANYD(qxp), 1, 1,
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qxm_core),
+                          BL_TO_FORTRAN_ANYD(qxp_core),
+                          BL_TO_FORTRAN_ANYD(qxm_pass),
+                          BL_TO_FORTRAN_ANYD(qxp_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qxm_rad),
+                          BL_TO_FORTRAN_ANYD(qxp_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp1),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -793,10 +862,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvx
 #pragma gpu box(tyxbx)
       transx_on_ystates(AMREX_INT_ANYD(tyxbx.loVect()), AMREX_INT_ANYD(tyxbx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(qym),
-                        BL_TO_FORTRAN_ANYD(qmyx),
-                        BL_TO_FORTRAN_ANYD(qyp),
-                        BL_TO_FORTRAN_ANYD(qpyx),
+                        BL_TO_FORTRAN_ANYD(qym_core),
+                        BL_TO_FORTRAN_ANYD(qmyx_core),
+                        BL_TO_FORTRAN_ANYD(qym_pass),
+                        BL_TO_FORTRAN_ANYD(qmyx_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qym_rad),
+                        BL_TO_FORTRAN_ANYD(qmyx_rad),
+#endif
+                        BL_TO_FORTRAN_ANYD(qyp_core),
+                        BL_TO_FORTRAN_ANYD(qpyx_core),
+                        BL_TO_FORTRAN_ANYD(qyp_pass),
+                        BL_TO_FORTRAN_ANYD(qpyx_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qyp_rad),
+                        BL_TO_FORTRAN_ANYD(qpyx_rad),
+#endif
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
@@ -816,10 +897,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #pragma gpu box(tzxbx)
       transx_on_zstates(AMREX_INT_ANYD(tzxbx.loVect()), AMREX_INT_ANYD(tzxbx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(qzm),
-                        BL_TO_FORTRAN_ANYD(qmzx),
-                        BL_TO_FORTRAN_ANYD(qzp),
-                        BL_TO_FORTRAN_ANYD(qpzx),
+                        BL_TO_FORTRAN_ANYD(qzm_core),
+                        BL_TO_FORTRAN_ANYD(qmzx_core),
+                        BL_TO_FORTRAN_ANYD(qzm_pass),
+                        BL_TO_FORTRAN_ANYD(qmzx_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qzm_rad),
+                        BL_TO_FORTRAN_ANYD(qmzx_rad),
+#endif
+                        BL_TO_FORTRAN_ANYD(qzp_core),
+                        BL_TO_FORTRAN_ANYD(qpzx_core),
+                        BL_TO_FORTRAN_ANYD(qzp_pass),
+                        BL_TO_FORTRAN_ANYD(qpzx_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qzp_rad),
+                        BL_TO_FORTRAN_ANYD(qpzx_rad),
+#endif
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
@@ -837,11 +930,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvy
 #pragma gpu box(cybx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(cybx.loVect()), AMREX_INT_ANYD(cybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qym),
-                          BL_TO_FORTRAN_ANYD(qyp), 1, 1,
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qym_core),
+                          BL_TO_FORTRAN_ANYD(qyp_core),
+                          BL_TO_FORTRAN_ANYD(qym_pass),
+                          BL_TO_FORTRAN_ANYD(qyp_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qym_rad),
+                          BL_TO_FORTRAN_ANYD(qyp_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp1),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -864,10 +966,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvy
 #pragma gpu box(txybx)
       transy_on_xstates(AMREX_INT_ANYD(txybx.loVect()), AMREX_INT_ANYD(txybx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(qxm),
-                        BL_TO_FORTRAN_ANYD(qmxy),
-                        BL_TO_FORTRAN_ANYD(qxp),
-                        BL_TO_FORTRAN_ANYD(qpxy),
+                        BL_TO_FORTRAN_ANYD(qxm_core),
+                        BL_TO_FORTRAN_ANYD(qmxy_core),
+                        BL_TO_FORTRAN_ANYD(qxm_pass),
+                        BL_TO_FORTRAN_ANYD(qmxy_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qxm_rad),
+                        BL_TO_FORTRAN_ANYD(qmxy_rad),
+#endif
+                        BL_TO_FORTRAN_ANYD(qxp_core),
+                        BL_TO_FORTRAN_ANYD(qpxy_core),
+                        BL_TO_FORTRAN_ANYD(qxp_pass),
+                        BL_TO_FORTRAN_ANYD(qpxy_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qxp_rad),
+                        BL_TO_FORTRAN_ANYD(qpxy_rad),
+#endif
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
@@ -890,10 +1004,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvy
 #pragma gpu box(tzybx)
       transy_on_zstates(AMREX_INT_ANYD(tzybx.loVect()), AMREX_INT_ANYD(tzybx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(qzm),
-                        BL_TO_FORTRAN_ANYD(qmzy),
-                        BL_TO_FORTRAN_ANYD(qzp),
-                        BL_TO_FORTRAN_ANYD(qpzy),
+                        BL_TO_FORTRAN_ANYD(qzm_core),
+                        BL_TO_FORTRAN_ANYD(qmzy_core),
+                        BL_TO_FORTRAN_ANYD(qzm_pass),
+                        BL_TO_FORTRAN_ANYD(qmzy_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qzm_rad),
+                        BL_TO_FORTRAN_ANYD(qmzy_rad),
+#endif
+                        BL_TO_FORTRAN_ANYD(qzp_core),
+                        BL_TO_FORTRAN_ANYD(qpzy_core),
+                        BL_TO_FORTRAN_ANYD(qzp_pass),
+                        BL_TO_FORTRAN_ANYD(qpzy_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qzp_rad),
+                        BL_TO_FORTRAN_ANYD(qpzy_rad),
+#endif
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
@@ -911,11 +1037,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvz
 #pragma gpu box(czbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(czbx.loVect()), AMREX_INT_ANYD(czbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qzm),
-                          BL_TO_FORTRAN_ANYD(qzp), 1, 1,
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qzm_core),
+                          BL_TO_FORTRAN_ANYD(qzp_core),
+                          BL_TO_FORTRAN_ANYD(qzm_pass),
+                          BL_TO_FORTRAN_ANYD(qzp_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qzm_rad),
+                          BL_TO_FORTRAN_ANYD(qzp_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp1),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -938,10 +1073,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvz
 #pragma gpu box(txzbx)
       transz_on_xstates(AMREX_INT_ANYD(txzbx.loVect()), AMREX_INT_ANYD(txzbx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(qxm),
-                        BL_TO_FORTRAN_ANYD(qmxz),
-                        BL_TO_FORTRAN_ANYD(qxp),
-                        BL_TO_FORTRAN_ANYD(qpxz),
+                        BL_TO_FORTRAN_ANYD(qxm_core),
+                        BL_TO_FORTRAN_ANYD(qmxz_core),
+                        BL_TO_FORTRAN_ANYD(qxm_pass),
+                        BL_TO_FORTRAN_ANYD(qmxz_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qxm_rad),
+                        BL_TO_FORTRAN_ANYD(qmxz_rad),
+#endif
+                        BL_TO_FORTRAN_ANYD(qxp_core),
+                        BL_TO_FORTRAN_ANYD(qpxz_core),
+                        BL_TO_FORTRAN_ANYD(qxp_pass),
+                        BL_TO_FORTRAN_ANYD(qpxz_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qxp_rad),
+                        BL_TO_FORTRAN_ANYD(qpxz_rad),
+#endif
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
@@ -964,10 +1111,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvz
 #pragma gpu box(tyzbx)
       transz_on_ystates(AMREX_INT_ANYD(tyzbx.loVect()), AMREX_INT_ANYD(tyzbx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(qym),
-                        BL_TO_FORTRAN_ANYD(qmyz),
-                        BL_TO_FORTRAN_ANYD(qyp),
-                        BL_TO_FORTRAN_ANYD(qpyz),
+                        BL_TO_FORTRAN_ANYD(qym_core),
+                        BL_TO_FORTRAN_ANYD(qmyz_core),
+                        BL_TO_FORTRAN_ANYD(qym_pass),
+                        BL_TO_FORTRAN_ANYD(qmyz_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qym_rad),
+                        BL_TO_FORTRAN_ANYD(qmyz_rad),
+#endif
+                        BL_TO_FORTRAN_ANYD(qyp_core),
+                        BL_TO_FORTRAN_ANYD(qpyz_core),
+                        BL_TO_FORTRAN_ANYD(qyp_pass),
+                        BL_TO_FORTRAN_ANYD(qpyz_pass),
+#ifdef RADIATION
+                        BL_TO_FORTRAN_ANYD(qyp_rad),
+                        BL_TO_FORTRAN_ANYD(qpyz_rad),
+#endif
                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
                         BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
@@ -991,11 +1150,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvyz
 #pragma gpu box(cyzbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(cyzbx.loVect()), AMREX_INT_ANYD(cyzbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmyz),
-                          BL_TO_FORTRAN_ANYD(qpyz), 1, 1,
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qmyz_core),
+                          BL_TO_FORTRAN_ANYD(qpyz_core),
+                          BL_TO_FORTRAN_ANYD(qmyz_pass),
+                          BL_TO_FORTRAN_ANYD(qpyz_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qmyz_rad),
+                          BL_TO_FORTRAN_ANYD(qpyz_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp1),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -1013,11 +1181,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp2 = qgdnvzy
 #pragma gpu box(czybx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(czybx.loVect()), AMREX_INT_ANYD(czybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmzy),
-                          BL_TO_FORTRAN_ANYD(qpzy), 1, 1,
-                          BL_TO_FORTRAN_ANYD(ftmp2),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qmzy_core),
+                          BL_TO_FORTRAN_ANYD(qpzy_core),
+                          BL_TO_FORTRAN_ANYD(qmzy_pass),
+                          BL_TO_FORTRAN_ANYD(qpzy_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qmzy_rad),
+                          BL_TO_FORTRAN_ANYD(qpzy_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp2),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp2),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -1031,10 +1208,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #pragma gpu box(xbx)
       transyz(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-              BL_TO_FORTRAN_ANYD(qxm),
-              BL_TO_FORTRAN_ANYD(ql),
-              BL_TO_FORTRAN_ANYD(qxp),
-              BL_TO_FORTRAN_ANYD(qr),
+              BL_TO_FORTRAN_ANYD(qxm_core),
+              BL_TO_FORTRAN_ANYD(ql_core),
+              BL_TO_FORTRAN_ANYD(qxm_pass),
+              BL_TO_FORTRAN_ANYD(ql_pass),
+#ifdef RADIATION
+              BL_TO_FORTRAN_ANYD(qxm_rad),
+              BL_TO_FORTRAN_ANYD(ql_rad),
+#endif
+              BL_TO_FORTRAN_ANYD(qxp_core),
+              BL_TO_FORTRAN_ANYD(qr_core),
+              BL_TO_FORTRAN_ANYD(qxp_pass),
+              BL_TO_FORTRAN_ANYD(qr_pass),
+#ifdef RADIATION
+              BL_TO_FORTRAN_ANYD(qxp_rad),
+              BL_TO_FORTRAN_ANYD(qr_rad),
+#endif
               BL_TO_FORTRAN_ANYD(qaux[mfi]),
               BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
@@ -1050,11 +1239,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #pragma gpu box(xbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(ql),
-                          BL_TO_FORTRAN_ANYD(qr), 1, 1,
-                          BL_TO_FORTRAN_ANYD(flux[0]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(ql_core),
+                          BL_TO_FORTRAN_ANYD(qr_core),
+                          BL_TO_FORTRAN_ANYD(ql_pass),
+                          BL_TO_FORTRAN_ANYD(qr_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(ql_rad),
+                          BL_TO_FORTRAN_ANYD(qr_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(flux[0]),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rad_flux[0]),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -1076,11 +1274,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvzx
 #pragma gpu box(czxbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(czxbx.loVect()), AMREX_INT_ANYD(czxbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmzx),
-                          BL_TO_FORTRAN_ANYD(qpzx), 1, 1,
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qmzx_core),
+                          BL_TO_FORTRAN_ANYD(qpzx_core),
+                          BL_TO_FORTRAN_ANYD(qmzx_pass),
+                          BL_TO_FORTRAN_ANYD(qpzx_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qmzx_rad),
+                          BL_TO_FORTRAN_ANYD(qpzx_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp1),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -1098,11 +1305,18 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp2 = qgdnvxz
 #pragma gpu box(cxzbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(cxzbx.loVect()), AMREX_INT_ANYD(cxzbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmxz),
-                          BL_TO_FORTRAN_ANYD(qpxz), 1, 1,
+                          BL_TO_FORTRAN_ANYD(qmxz_core),
+                          BL_TO_FORTRAN_ANYD(qpxz_core),
+                          BL_TO_FORTRAN_ANYD(qmxz_pass),
+                          BL_TO_FORTRAN_ANYD(qpxz_pass),
+                          BL_TO_FORTRAN_ANYD(qmxz_rad),
+                          BL_TO_FORTRAN_ANYD(qpxz_rad),
+                          1, 1,
                           BL_TO_FORTRAN_ANYD(ftmp2),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp2),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -1116,10 +1330,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #pragma gpu box(ybx)
       transxz(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
-              BL_TO_FORTRAN_ANYD(qym),
-              BL_TO_FORTRAN_ANYD(ql),
-              BL_TO_FORTRAN_ANYD(qyp),
-              BL_TO_FORTRAN_ANYD(qr),
+              BL_TO_FORTRAN_ANYD(qym_core),
+              BL_TO_FORTRAN_ANYD(ql_core),
+              BL_TO_FORTRAN_ANYD(qym_pass),
+              BL_TO_FORTRAN_ANYD(ql_pass),
+#ifdef RADIATION
+              BL_TO_FORTRAN_ANYD(qym_rad),
+              BL_TO_FORTRAN_ANYD(ql_rad),
+#endif
+              BL_TO_FORTRAN_ANYD(qyp_core),
+              BL_TO_FORTRAN_ANYD(qr_core),
+              BL_TO_FORTRAN_ANYD(qyp_pass),
+              BL_TO_FORTRAN_ANYD(qr_pass),
+#ifdef RADIATION
+              BL_TO_FORTRAN_ANYD(qyp_rad),
+              BL_TO_FORTRAN_ANYD(qr_rad),
+#endif
               BL_TO_FORTRAN_ANYD(qaux[mfi]),
               BL_TO_FORTRAN_ANYD(ftmp2),
 #ifdef RADIATION
@@ -1137,11 +1363,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
 #pragma gpu box(ybx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(ql),
-                          BL_TO_FORTRAN_ANYD(qr), 1, 1,
-                          BL_TO_FORTRAN_ANYD(flux[1]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(ql_core),
+                          BL_TO_FORTRAN_ANYD(qr_core),
+                          BL_TO_FORTRAN_ANYD(ql_pass),
+                          BL_TO_FORTRAN_ANYD(qr_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(ql_rad),
+                          BL_TO_FORTRAN_ANYD(qr_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(flux[1]),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rad_flux[1]),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -1163,11 +1398,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvxy
 #pragma gpu box(cxybx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(cxybx.loVect()), AMREX_INT_ANYD(cxybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmxy),
-                          BL_TO_FORTRAN_ANYD(qpxy), 1, 1,
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qmxy_core),
+                          BL_TO_FORTRAN_ANYD(qpxy_core),
+                          BL_TO_FORTRAN_ANYD(qmxy_pass),
+                          BL_TO_FORTRAN_ANYD(qpxy_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qmxy_rad),
+                          BL_TO_FORTRAN_ANYD(qpxy_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp1),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp1),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -1185,11 +1429,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp2 = qgdnvyx
 #pragma gpu box(cyxbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(cyxbx.loVect()), AMREX_INT_ANYD(cyxbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmyx),
-                          BL_TO_FORTRAN_ANYD(qpyx), 1, 1,
-                          BL_TO_FORTRAN_ANYD(ftmp2),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(qmyx_core),
+                          BL_TO_FORTRAN_ANYD(qpyx_core),
+                          BL_TO_FORTRAN_ANYD(qmyx_pass),
+                          BL_TO_FORTRAN_ANYD(qpyx_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(qmyx_rad),
+                          BL_TO_FORTRAN_ANYD(qpyx_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(ftmp2),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rftmp2),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
@@ -1203,10 +1456,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #pragma gpu box(zbx)
       transxy(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
-              BL_TO_FORTRAN_ANYD(qzm),
-              BL_TO_FORTRAN_ANYD(ql),
-              BL_TO_FORTRAN_ANYD(qzp),
-              BL_TO_FORTRAN_ANYD(qr),
+              BL_TO_FORTRAN_ANYD(qzm_core),
+              BL_TO_FORTRAN_ANYD(ql_core),
+              BL_TO_FORTRAN_ANYD(qzm_pass),
+              BL_TO_FORTRAN_ANYD(ql_pass),
+#ifdef RADIATION
+              BL_TO_FORTRAN_ANYD(qzm_rad),
+              BL_TO_FORTRAN_ANYD(ql_rad),
+#endif
+              BL_TO_FORTRAN_ANYD(qzp_core),
+              BL_TO_FORTRAN_ANYD(qr_core),
+              BL_TO_FORTRAN_ANYD(qzp_pass),
+              BL_TO_FORTRAN_ANYD(qr_pass),
+#ifdef RADIATION
+              BL_TO_FORTRAN_ANYD(qzp_rad),
+              BL_TO_FORTRAN_ANYD(qr_rad),
+#endif
               BL_TO_FORTRAN_ANYD(qaux[mfi]),
               BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
@@ -1225,11 +1490,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #pragma gpu box(zbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(ql),
-                          BL_TO_FORTRAN_ANYD(qr), 1, 1,
-                          BL_TO_FORTRAN_ANYD(flux[2]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+                          BL_TO_FORTRAN_ANYD(ql_core),
+                          BL_TO_FORTRAN_ANYD(qr_core),
+                          BL_TO_FORTRAN_ANYD(ql_pass),
+                          BL_TO_FORTRAN_ANYD(qr_pass),
 #ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(ql_rad),
+                          BL_TO_FORTRAN_ANYD(qr_rad),
+#endif
+                          1, 1,
+                          BL_TO_FORTRAN_ANYD(flux[2]),
+                          BL_TO_FORTRAN_ANYD(q_int_core),
+                          BL_TO_FORTRAN_ANYD(q_int_pass),
+#ifdef RADIATION
+                          BL_TO_FORTRAN_ANYD(q_int_rad),
                           BL_TO_FORTRAN_ANYD(rad_flux[2]),
                           BL_TO_FORTRAN_ANYD(lambda_int),
 #endif
