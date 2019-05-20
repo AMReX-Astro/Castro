@@ -49,7 +49,7 @@ contains
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   NQR, qrad, qradhi, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -674,7 +674,7 @@ contains
                                  QPRES, QREINT, QGAME, QFS, QFX, &
                                  QC, QGAMC, &
 #ifdef RADIATION
-                                 qrad, qradhi, qptot, qreitot, &
+                                 NQR, qrad, qradhi, qptot, qreitot, &
                                  fspace_type, comoving, &
                                  GDERADS, GDLAMS, &
                                  QCG, QGAMCG, QLAMS, &
@@ -1153,7 +1153,7 @@ contains
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   NQR, qrad, qradhi, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -1625,7 +1625,7 @@ contains
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   NQR, qrad, qradhi, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -2054,7 +2054,7 @@ contains
 #ifdef RADIATION
              qzmo_rad(i,j,k,qrad:qradhi) = ernewl(:)
              qzmo_rad(i,j,k,qptot  ) = sum(lambda(:)*ernewl(:)) + qzmo_core(i,j,k,QPRES)
-             qzmo_rad(i,j,k,qreitot) = sum(qzmo_rad(i,j,k,qrad:qradhi)) + qzmo_code(i,j,k,QREINT)
+             qzmo_rad(i,j,k,qreitot) = sum(qzmo_rad(i,j,k,qrad:qradhi)) + qzmo_core(i,j,k,QREINT)
 #endif
 
           end do
@@ -2103,7 +2103,7 @@ contains
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   NQR, qrad, qradhi, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -2155,7 +2155,7 @@ contains
     real(rt), intent(in) :: qxp_core(qxcp_lo(1):qxcp_hi(1),qxcp_lo(2):qxcp_hi(2),qxcp_lo(3):qxcp_hi(3),NQC)
     real(rt), intent(in) :: qxm_pass(qxpm_lo(1):qxpm_hi(1),qxpm_lo(2):qxpm_hi(2),qxpm_lo(3):qxpm_hi(3),NQP)
     real(rt), intent(in) :: qxp_pass(qxpp_lo(1):qxpp_hi(1),qxpp_lo(2):qxpp_hi(2),qxpp_lo(3):qxpp_hi(3),NQP)
-#ifdef RADATION
+#ifdef RADIATION
     real(rt), intent(in) ::  qxm_rad(qxrm_lo(1):qxrm_hi(1),qxrm_lo(2):qxrm_hi(2),qxrm_lo(3):qxrm_hi(3),NQR)
     real(rt), intent(in) ::  qxp_rad(qxrp_lo(1):qxrp_hi(1),qxrp_lo(2):qxrp_hi(2),qxrp_lo(3):qxrp_hi(3),NQR)
 #endif
@@ -2572,7 +2572,7 @@ contains
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   NQR, qrad, qradhi, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -3049,7 +3049,7 @@ contains
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   NQR, qrad, qradhi, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -3598,7 +3598,7 @@ contains
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   NQR, qrad, qradhi, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -4147,7 +4147,7 @@ contains
                                    QPRES, QREINT, QGAME, QFS, QFX, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   NQR, qrad, qradhi, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &

@@ -306,8 +306,8 @@ extern "C"
       BL_FORT_FAB_ARG_3D(qzm_pass),
       BL_FORT_FAB_ARG_3D(qzp_pass),
 #ifdef RADIATION
-      BL_FORT_FAB_ARG_3D(qzm_pass),
-      BL_FORT_FAB_ARG_3D(qzp_pass),
+      BL_FORT_FAB_ARG_3D(qzm_rad),
+      BL_FORT_FAB_ARG_3D(qzp_rad),
 #endif
 #endif
       const amrex::Real* dx, const amrex::Real dt,
