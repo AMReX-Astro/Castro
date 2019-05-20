@@ -722,7 +722,7 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
                 q_pass_src(i,j,k,iq) = (src(i,j,k,n) - q_pass(i,j,k,iq) * q_core_src(i,j,k,QRHO)) / &
-                     q_core_src(i,j,k,QRHO)
+                     q_core(i,j,k,QRHO)
              enddo
           enddo
        enddo
