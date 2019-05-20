@@ -630,7 +630,7 @@ contains
 #ifdef RADIATION
              qymo_rad(i,j,k,qrad:qradhi) = ernewl(:)
              qymo_rad(i,j,k,qptot  ) = sum(lambda(:)*ernewl(:)) + qymo_core(i,j,k,QPRES)
-             qymo_rad(i,j,k,qreitot) = sum(qymo_rad(i,j,k,qrad:qradhi)) + qymo_pass(i,j,k,QREINT)
+             qymo_rad(i,j,k,qreitot) = sum(qymo_rad(i,j,k,qrad:qradhi)) + qymo_core(i,j,k,QREINT)
 #endif
 
           end do
@@ -2383,7 +2383,7 @@ contains
 #ifdef RADIATION
              qxpo_rad(i,j,k,qrad:qradhi) = ernewrx(:)
              qxpo_rad(i,j,k,qptot  ) = sum(lambda(:)*ernewrx(:)) + qxpo_core(i,j,k,QPRES)
-             qxpo_pass(i,j,k,qreitot) = sum(qxpo_pass(i,j,k,qrad:qradhi)) + qxpo_core(i,j,k,QREINT)
+             qxpo_rad(i,j,k,qreitot) = sum(qxpo_rad(i,j,k,qrad:qradhi)) + qxpo_core(i,j,k,QREINT)
 #endif
 
              !-------------------------------------------------------------------
