@@ -462,7 +462,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(qzm_pass),
                        BL_TO_FORTRAN_ANYD(qzp_pass),
 #ifdef RADIATION
-                       BL_TO_FORTRAN_ANYD(qzp_rad),
+                       BL_TO_FORTRAN_ANYD(qzm_rad),
                        BL_TO_FORTRAN_ANYD(qzp_rad),
 #endif
 #endif
