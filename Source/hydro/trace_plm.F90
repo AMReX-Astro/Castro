@@ -64,7 +64,7 @@ contains
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
-    integer :: i, j, k, n, ipassive
+    integer :: i, j, k, n
 
     real(rt) :: dtdx
     real(rt) :: cc, csq, rho, un, ut, utt, p, rhoe
@@ -343,7 +343,7 @@ contains
     real(rt), intent(in) :: dx(3), dt
 
     ! Local variables
-    integer :: i, j, k, n, ipassive
+    integer :: i, j, k, n
 
     real(rt) :: dtdx
     real(rt) :: spzero, acmprght, acmpleft
@@ -363,8 +363,7 @@ contains
        QUN = QW
     endif
 
-    do ipassive = 1, npassive
-       n = qpass_map(ipassive)
+    do n = 1, NQP
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)

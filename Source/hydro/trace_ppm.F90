@@ -119,13 +119,12 @@ contains
 
 
     real(rt) :: un
-    integer :: ipassive, n, i, j, k
+    integer :: n, i, j, k
 
     !$gpu
 
     ! the passive stuff is the same regardless of the tracing
-    do ipassive = 1, npassive
-       n = qpass_map(ipassive)
+    do n = 1, NQP
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
