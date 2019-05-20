@@ -1,9 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=fsdc4
+#SBATCH --job-name=f2e7sdc4
 #SBATCH --account=m3018
 #SBATCH --nodes=1
+#SBATCH --tasks-per-node=32
 #SBATCH --qos=regular
-#SBATCH --time=06:00:00
+#SBATCH --time=02:00:00
 #SBATCH --constraint=haswell
 
 # Cori Haswell has 2 Intel "Haswell" processors each with 16 cores.
@@ -53,7 +54,8 @@ NZONES="
 1024
 2048
 4096
-8192"
+8192
+16384"
 
 
 

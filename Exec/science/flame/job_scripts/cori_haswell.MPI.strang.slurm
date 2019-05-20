@@ -2,6 +2,7 @@
 #SBATCH --job-name=fstrang
 #SBATCH --account=m3018
 #SBATCH --nodes=1
+#SBATCH --tasks-per-node=32
 #SBATCH --qos=regular
 #SBATCH --time=06:00:00
 #SBATCH --constraint=haswell
