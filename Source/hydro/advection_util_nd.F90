@@ -543,7 +543,7 @@ contains
              ! of the separately updated internal energy equation.
              ! Otherwise, we'll set e = E - K.
 
-             kineng = HALF * q_core(i,j,k,QRHO) * sum(q_core(i,j,k,QU:QW)**2)
+             kineng = HALF * q_core(i,j,k,QRHO) * (q_core(i,j,k,QU)**2 + q_core(i,j,k,QV)**2 + q_core(i,j,k,QW)**2)
 
              if ( (uin(i,j,k,UEDEN) - kineng) / uin(i,j,k,UEDEN) .gt. dual_energy_eta1) then
                 q_core(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv
