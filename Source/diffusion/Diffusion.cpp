@@ -81,7 +81,7 @@ void
 Diffusion::weight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    const int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
@@ -100,7 +100,7 @@ void
 Diffusion::unweight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    const int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
@@ -140,7 +140,7 @@ Diffusion::make_mg_bc ()
     }
 
     // Set Neumann bc at r=0.
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+    if (geom.IsSPHERICAL() || geom.IsRZ() ) {
         mlmg_lobc[0] = MLLinOp::BCType::Neumann;
     }
 
