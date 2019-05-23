@@ -94,14 +94,14 @@ contains
 
     real(rt), intent(in) :: Ip_core(Icp_lo(1):Icp_hi(1),Icp_lo(2):Icp_hi(2),Icp_lo(3):Icp_hi(3),1:3,NQC)
     real(rt), intent(in) :: Im_core(Icm_lo(1):Icm_hi(1),Icm_lo(2):Icm_hi(2),Icm_lo(3):Icm_hi(3),1:3,NQC)
-    real(rt), intent(in) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),1:3,NQP)
-    real(rt), intent(in) :: Im_pass(Ipm_lo(1):Ipm_hi(1),Ipm_lo(2):Ipm_hi(2),Ipm_lo(3):Ipm_hi(3),1:3,NQP)
+    real(rt), intent(in) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),NQP)
+    real(rt), intent(in) :: Im_pass(Ipm_lo(1):Ipm_hi(1),Ipm_lo(2):Ipm_hi(2),Ipm_lo(3):Ipm_hi(3),NQP)
 
     real(rt), intent(in) :: Ip_core_src(Icsp_lo(1):Icsp_hi(1),Icsp_lo(2):Icsp_hi(2),Icsp_lo(3):Icsp_hi(3),1:3,NQC_SRC)
     real(rt), intent(in) :: Im_core_src(Icsm_lo(1):Icsm_hi(1),Icsm_lo(2):Icsm_hi(2),Icsm_lo(3):Icsm_hi(3),1:3,NQC_SRC)
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-    real(rt), intent(in) :: Ip_pass_src(Ipsp_lo(1):Ipsp_hi(1),Ipsp_lo(2):Ipsp_hi(2),Ipsp_lo(3):Ipsp_hi(3),1:3,NQP_SRC)
-    real(rt), intent(in) :: Im_pass_src(Ipsm_lo(1):Ipsm_hi(1),Ipsm_lo(2):Ipsm_hi(2),Ipsm_lo(3):Ipsm_hi(3),1:3,NQP_SRC)
+    real(rt), intent(in) :: Ip_pass_src(Ipsp_lo(1):Ipsp_hi(1),Ipsp_lo(2):Ipsp_hi(2),Ipsp_lo(3):Ipsp_hi(3),NQP_SRC)
+    real(rt), intent(in) :: Im_pass_src(Ipsm_lo(1):Ipsm_hi(1),Ipsm_lo(2):Ipsm_hi(2),Ipsm_lo(3):Ipsm_hi(3),NQP_SRC)
 #endif
 
     real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
@@ -124,6 +124,7 @@ contains
     !$gpu
 
     ! the passive stuff is the same regardless of the tracing
+    ! note: we assume here that Ip/Im_pass have only one wave, the u wave
     do n = 1, NQP
 
        do k = lo(3), hi(3)
@@ -149,10 +150,10 @@ contains
                    if (un > ZERO) then
                       qp_pass(i,j,k,n) = q_pass(i,j,k,n)
                    else
-                      qp_pass(i,j,k,n) = Im_pass(i,j,k,2,n)
+                      qp_pass(i,j,k,n) = Im_pass(i,j,k,n)
                    end if
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qp_pass(i,j,k,n) = qp_pass(i,j,k,n) + HALF*dt*Im_pass_src(i,j,k,2,n)
+                   qp_pass(i,j,k,n) = qp_pass(i,j,k,n) + HALF*dt*Im_pass_src(i,j,k,n)
 #endif
 
                 end if
@@ -161,34 +162,34 @@ contains
                 if (idir == 1 .and. i <= vhi(1)) then
                    un = q_core(i,j,k,QU-1+idir)
                    if (un > ZERO) then
-                      qm_pass(i+1,j,k,n) = Ip_pass(i,j,k,2,n)
+                      qm_pass(i+1,j,k,n) = Ip_pass(i,j,k,n)
                    else
                       qm_pass(i+1,j,k,n) = q_pass(i,j,k,n)
                    end if
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qm_pass(i+1,j,k,n) = qm_pass(i+1,j,k,n) + HALF*dt*Ip_pass_src(i,j,k,2,n)
+                   qm_pass(i+1,j,k,n) = qm_pass(i+1,j,k,n) + HALF*dt*Ip_pass_src(i,j,k,n)
 #endif
 
                 else if (idir == 2 .and. j <= vhi(2)) then
                    un = q_core(i,j,k,QU-1+idir)
                    if (un > ZERO) then
-                      qm_pass(i,j+1,k,n) = Ip_pass(i,j,k,2,n)
+                      qm_pass(i,j+1,k,n) = Ip_pass(i,j,k,n)
                    else
                       qm_pass(i,j+1,k,n) = q_pass(i,j,k,n)
                    end if
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qm_pass(i,j+1,k,n) = qm_pass(i,j+1,k,n) + HALF*dt*Ip_pass_src(i,j,k,2,n)
+                   qm_pass(i,j+1,k,n) = qm_pass(i,j+1,k,n) + HALF*dt*Ip_pass_src(i,j,k,n)
 #endif
 
                 else if (idir == 3 .and. k <= vhi(3)) then
                    un = q_core(i,j,k,QU-1+idir)
                    if (un > ZERO) then
-                      qm_pass(i,j,k+1,n) = Ip_pass(i,j,k,2,n)
+                      qm_pass(i,j,k+1,n) = Ip_pass(i,j,k,n)
                    else
                       qm_pass(i,j,k+1,n) = q_pass(i,j,k,n)
                    end if
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-                   qm_pass(i,j,k+1,n) = qm_pass(i,j,k+1,n) + HALF*dt*Ip_pass_src(i,j,k,2,n)
+                   qm_pass(i,j,k+1,n) = qm_pass(i,j,k+1,n) + HALF*dt*Ip_pass_src(i,j,k,n)
 #endif
                 end if
 

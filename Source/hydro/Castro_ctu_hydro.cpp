@@ -359,16 +359,18 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       } else {
 
         // first the core and radiation variables
+        // we need space for the u-c, u, and u+c waves
         Ip_core.resize(obx, 3*NQC);
         Elixir elix_Ip_core = Ip_core.elixir();
 
         Im_core.resize(obx, 3*NQC);
         Elixir elix_Im_core = Im_core.elixir();
 
-        Ip_pass.resize(obx, 3*NQP);
+        // we only need space for the u wave for passives
+        Ip_pass.resize(obx, NQP);
         Elixir elix_Ip_pass = Ip_pass.elixir();
 
-        Im_pass.resize(obx, 3*NQP);
+        Im_pass.resize(obx, NQP);
         Elixir elix_Im_pass = Im_pass.elixir();
 
 #ifdef RADIATION
@@ -386,10 +388,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         Elixir elix_Im_core_src = Im_core_src.elixir();
 
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-        Ip_pass_src.resize(obx, 3*NQP_SRC);
+        Ip_pass_src.resize(obx, NQP_SRC);
         Elixir elix_Ip_pass_src = Ip_pass_src.elixir();
 
-        Im_pass_src.resize(obx, 3*NQP_SRC);
+        Im_pass_src.resize(obx, NQP_SRC);
         Elixir elix_Im_pass_src = Im_pass_src.elixir();
 #endif
 

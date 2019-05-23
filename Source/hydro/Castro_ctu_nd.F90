@@ -186,8 +186,8 @@ contains
     real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: Ip_core(Icp_lo(1):Icp_hi(1),Icp_lo(2):Icp_hi(2),Icp_lo(3):Icp_hi(3),1:3,NQC)
     real(rt), intent(inout) :: Im_core(Icm_lo(1):Icm_hi(1),Icm_lo(2):Icm_hi(2),Icm_lo(3):Icm_hi(3),1:3,NQC)
-    real(rt), intent(inout) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),1:3,NQP)
-    real(rt), intent(inout) :: Im_pass(Ipm_lo(1):Ipm_hi(1),Ipm_lo(2):Ipm_hi(2),Ipm_lo(3):Ipm_hi(3),1:3,NQP)
+    real(rt), intent(inout) :: Ip_pass(Ipp_lo(1):Ipp_hi(1),Ipp_lo(2):Ipp_hi(2),Ipp_lo(3):Ipp_hi(3),1,NQP)
+    real(rt), intent(inout) :: Im_pass(Ipm_lo(1):Ipm_hi(1),Ipm_lo(2):Ipm_hi(2),Ipm_lo(3):Ipm_hi(3),1,NQP)
 #ifdef RADIATION
     real(rt), intent(inout) :: Ip_rad(Irp_lo(1):Irp_hi(1),Irp_lo(2):Irp_hi(2),Irp_lo(3):Irp_hi(3),1:3,NQR)
     real(rt), intent(inout) :: Im_rad(Irm_lo(1):Irm_hi(1),Irm_lo(2):Irm_hi(2),Irm_lo(3):Irm_hi(3),1:3,NQR)
@@ -196,8 +196,8 @@ contains
     real(rt), intent(inout) :: Im_core_src(Icsm_lo(1):Icsm_hi(1),Icsm_lo(2):Icsm_hi(2),Icsm_lo(3):Icsm_hi(3),1:3,NQC_SRC)
 
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-    real(rt), intent(inout) :: Ip_pass_src(Ipsp_lo(1):Ipsp_hi(1),Ipsp_lo(2):Ipsp_hi(2),Ipsp_lo(3):Ipsp_hi(3),1:3,NQP_SRC)
-    real(rt), intent(inout) :: Im_pass_src(Ipsm_lo(1):Ipsm_hi(1),Ipsm_lo(2):Ipsm_hi(2),Ipsm_lo(3):Ipsm_hi(3),1:3,NQP_SRC)
+    real(rt), intent(inout) :: Ip_pass_src(Ipsp_lo(1):Ipsp_hi(1),Ipsp_lo(2):Ipsp_hi(2),Ipsp_lo(3):Ipsp_hi(3),1,NQP_SRC)
+    real(rt), intent(inout) :: Im_pass_src(Ipsm_lo(1):Ipsm_hi(1),Ipsm_lo(2):Ipsm_hi(2),Ipsm_lo(3):Ipsm_hi(3),1,NQP_SRC)
 #endif
     real(rt), intent(inout) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
     real(rt), intent(inout) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
@@ -238,6 +238,7 @@ contains
 #endif
     real(rt) :: hdt
     integer :: i, j, k, n, idir
+    integer :: n_waves
 
     logical :: source_nonzero(NQC_SRC)
     logical :: reconstruct_state(NQC)
@@ -308,7 +309,8 @@ contains
                                   sp, sp_lo, sp_hi, &
                                   1, 1, 1)
 
-          call ppm_int_profile(lo, hi, idir, &
+          n_waves = 3
+          call ppm_int_profile(lo, hi, idir, n_waves, &
                                q_core, qc_lo, qc_hi, NQC, n, &
                                q_core, qc_lo, qc_hi, &
                                qaux, qa_lo, qa_hi, &
@@ -330,7 +332,8 @@ contains
                                   sp, sp_lo, sp_hi, &
                                   1, 1, 1)
 
-          call ppm_int_profile(lo, hi, idir, &
+          n_waves = 1
+          call ppm_int_profile(lo, hi, idir, n_waves, &
                                q_pass, qp_lo, qp_hi, NQP, n, &
                                q_core, qc_lo, qc_hi, &
                                qaux, qa_lo, qa_hi, &
@@ -354,7 +357,8 @@ contains
                                   sp, sp_lo, sp_hi, &
                                   1, 1, 1)
 
-          call ppm_int_profile(lo, hi, idir, &
+          n_waves = 3
+          call ppm_int_profile(lo, hi, idir, n_waves, &
                                q_rad, qr_lo, qr_hi, NQR, n, &
                                q_core, qc_lo, qc_hi, &
                                qaux, qa_lo, qa_hi, &
@@ -374,7 +378,8 @@ contains
                                   sp, sp_lo, sp_hi, &
                                   1, 1, 1)
 
-          call ppm_int_profile(lo, hi, idir, &
+          n_waves = 3
+          call ppm_int_profile(lo, hi, idir, n_waves, &
                                qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                q_core, qc_lo, qc_hi, &
                                qaux, qa_lo, qa_hi, &
@@ -386,6 +391,7 @@ contains
        else
 
           ! temperature-based PPM
+          ! TODO: this will fail with Ip_pass only having the u wave
           call ppm_reconstruct_with_eos(lo, hi, idir, &
                                         Ip_core, Icp_lo, Icp_hi, &
                                         Im_core, Icm_lo, Icm_hi, &
@@ -407,7 +413,8 @@ contains
                                      sp, sp_lo, sp_hi, &
                                      1, 1, 1)
 
-             call ppm_int_profile(lo, hi, idir, &
+             n_waves = 3
+             call ppm_int_profile(lo, hi, idir, n_waves, &
                                   q_core_src, qcs_lo, qcs_hi, NQC_SRC, n, &
                                   q_core, qc_lo, qc_hi, &
                                   qaux, qa_lo, qa_hi, &
@@ -431,7 +438,8 @@ contains
                                   sp, sp_lo, sp_hi, &
                                   1, 1, 1)
 
-          call ppm_int_profile(lo, hi, idir, &
+          n_waves = 1
+          call ppm_int_profile(lo, hi, idir, n_waves, &
                                q_pass_src, qps_lo, qps_hi, NQP_SRC, n, &
                                q_core, qc_lo, qc_hi, &
                                qaux, qa_lo, qa_hi, &
