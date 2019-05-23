@@ -628,7 +628,7 @@ contains
     real(rt), intent(inout) :: qint_pass(qip_lo(1):qip_hi(1),qip_lo(2):qip_hi(2),qip_lo(3):qip_hi(3),NQP)
 
     integer :: i, j, k
-    integer :: n, nqp, ipassive
+    integer :: n
 
     real(rt) :: ustar
     real(rt) :: rl, ul, v1l, v2l, pl, rel
@@ -1165,17 +1165,14 @@ contains
              qint_core(i,j,k,QREINT) = qint_core(i,j,k,QPRES)/(qint_core(i,j,k,QGAME) - ONE)
 
              ! advected quantities -- only the contact matters
-             do ipassive = 1, npassive
-                n  = upass_map(ipassive)
-                nqp = qpass_map(ipassive)
-
+             do n = 1, NQP
                 if (ustar > ZERO) then
-                   qint_pass(i,j,k,nqp) = ql_pass(i,j,k,nqp,comp)
+                   qint_pass(i,j,k,n) = ql_pass(i,j,k,n,comp)
                 else if (ustar < ZERO) then
-                   qint_pass(i,j,k,nqp) = qr_pass(i,j,k,nqp,comp)
+                   qint_pass(i,j,k,n) = qr_pass(i,j,k,n,comp)
                 else
-                   qavg = HALF * (ql_pass(i,j,k,nqp,comp) + qr_pass(i,j,k,nqp,comp))
-                   qint_pass(i,j,k,nqp) = qavg
+                   qavg = HALF * (ql_pass(i,j,k,n,comp) + qr_pass(i,j,k,n,comp))
+                   qint_pass(i,j,k,n) = qavg
                 end if
              end do
 
@@ -1262,7 +1259,7 @@ contains
 #endif
 
     integer :: i, j, k
-    integer :: n, nqp, ipassive
+    integer :: n
 
     real(rt) :: regdnv
     real(rt) :: rl, ul, v1l, v2l, pl, rel
@@ -1752,17 +1749,15 @@ contains
              qint_core(i,j,k,iu) = min(abs(qint_core(i,j,k,iu)), riemann_speed_limit) * sign(ONE, qint_core(i,j,k,iu))
 
              ! passively advected quantities
-             do ipassive = 1, npassive
-                n  = upass_map(ipassive)
-                nqp = qpass_map(ipassive)
+             do n = 1, NQP
 
                 if (ustar > ZERO) then
-                   qint_pass(i,j,k,nqp) = ql_pass(i,j,k,nqp,comp)
+                   qint_pass(i,j,k,n) = ql_pass(i,j,k,n,comp)
                 else if (ustar < ZERO) then
-                   qint_pass(i,j,k,nqp) = qr_pass(i,j,k,nqp,comp)
+                   qint_pass(i,j,k,n) = qr_pass(i,j,k,n,comp)
                 else
-                   qavg = HALF * (ql_pass(i,j,k,nqp,comp) + qr_pass(i,j,k,nqp,comp))
-                   qint_pass(i,j,k,nqp) = qavg
+                   qavg = HALF * (ql_pass(i,j,k,n,comp) + qr_pass(i,j,k,n,comp))
+                   qint_pass(i,j,k,n) = qavg
                 end if
              end do
 
