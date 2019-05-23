@@ -49,11 +49,12 @@ using namespace amrex;
 // 4: Reactions_Type added to checkpoint; ReactHeader functionality deprecated
 // 5: Simplified_SDC_Source_Type and Simplified_SDC_React_Type added to checkpoint
 // 6: Simplified_SDC_Source_Type removed from Castro
+// 7: Simplified_SDC_React_Type split into Core and Pass components
 
 namespace
 {
     int input_version = -1;
-    int current_version = 6;
+    int current_version = 7;
 }
 
 // I/O routines for Castro
@@ -160,8 +161,9 @@ Castro::restart (Amr&     papa,
 
 #ifdef REACTIONS
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        if (input_version < 5) { // old checkpoint without Simplified_SDC_React_Type
+        if (input_version < 7) { // old checkpoint without Simplified_SDC_React_{Core,Pass}_Type
             state[Simplified_SDC_React_Core_Type].restart(desc_lst[Simplified_SDC_React_Core_Type], state[State_Type]);
+            state[Simplified_SDC_React_Pass_Type].restart(desc_lst[Simplified_SDC_React_Pass_Type], state[State_Type]);
         }
     }
 #endif
@@ -558,8 +560,8 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
 #endif
 #ifdef REACTIONS
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        if (input_version < 5 && i == Simplified_SDC_React_Core_Type) {
-            // We are reading an old checkpoint with no Simplified_SDC_React_Type
+        if (input_version < 7 && (i == Simplified_SDC_React_Core_Type || i == Simplified_SDC_React_Pass_Type)) {
+            // We are reading an old checkpoint with no Simplified_SDC_React_{Core,Pass}_Type
             state_in_checkpoint[i] = 0;
         }
     }
