@@ -625,8 +625,8 @@ extern "C"
   void ca_mol_thermo_states
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(qm_core),
-     BL_FORT_FAB_ARG_3D(qm_pass),
      BL_FORT_FAB_ARG_3D(qp_core),
+     BL_FORT_FAB_ARG_3D(qm_pass),
      BL_FORT_FAB_ARG_3D(qp_pass));
 
   void ca_mol_consup

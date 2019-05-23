@@ -239,6 +239,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             }
 
             if (ppm_temp_fix == 1) {
+#pragma gpu box(obx)
               ca_mol_thermo_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                                    BL_TO_FORTRAN_ANYD(qm_core),
                                    BL_TO_FORTRAN_ANYD(qp_core),

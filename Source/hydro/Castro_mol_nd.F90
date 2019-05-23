@@ -243,18 +243,17 @@ subroutine ca_mol_thermo_states(lo, hi, &
 
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: qmc_lo(3), qmc_hi(3)
-  integer, intent(in) :: qmp_lo(3), qmp_hi(3)
   integer, intent(in) :: qpc_lo(3), qpc_hi(3)
+  integer, intent(in) :: qmp_lo(3), qmp_hi(3)
   integer, intent(in) :: qpp_lo(3), qpp_hi(3)
 
   real(rt), intent(inout) :: qm_core(qmc_lo(1):qmc_hi(1), qmc_lo(2):qmc_hi(2), qmc_lo(3):qmc_hi(3), NQC, AMREX_SPACEDIM)
-  real(rt), intent(inout) :: qm_pass(qmp_lo(1):qmp_hi(1), qmp_lo(2):qmp_hi(2), qmp_lo(3):qmp_hi(3), NQP, AMREX_SPACEDIM)
   real(rt), intent(inout) :: qp_core(qpc_lo(1):qpc_hi(1), qpc_lo(2):qpc_hi(2), qpc_lo(3):qpc_hi(3), NQC, AMREX_SPACEDIM)
+  real(rt), intent(inout) :: qm_pass(qmp_lo(1):qmp_hi(1), qmp_lo(2):qmp_hi(2), qmp_lo(3):qmp_hi(3), NQP, AMREX_SPACEDIM)
   real(rt), intent(inout) :: qp_pass(qpp_lo(1):qpp_hi(1), qpp_lo(2):qpp_hi(2), qpp_lo(3):qpp_hi(3), NQP, AMREX_SPACEDIM)
 
-
   integer :: idir, i, j, k, n
-   type (eos_t) :: eos_state
+  type (eos_t) :: eos_state
 
   !$gpu
 
