@@ -88,7 +88,13 @@ do
             fi
         done
 
-        find_chk_file "*chk?????"
+        find_chk_file "*chk??????"
+
+        if [ "${restartFile}" = "" ]; then
+            # look for 5-digit chk files
+            find_chk_file "*chk?????"
+        fi
+
         # restartString will be empty if no chk files are found -- i.e. new run
         if [ "${restartFile}" = "" ]; then
             restartString=""
