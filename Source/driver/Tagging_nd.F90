@@ -1,7 +1,6 @@
 module tagging_module
 
   use amrex_fort_module, only : rt => amrex_real
-  use iso_c_binding, only: c_char
 
   implicit none
 
@@ -73,15 +72,15 @@ contains
 
     implicit none
 
-    integer,                intent(in   ) :: lo(3), hi(3)
-    integer,                intent(in   ) :: taglo(3), taghi(3)
-    integer,                intent(in   ) :: denlo(3), denhi(3)
-    character(kind=c_char), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt),               intent(in   ) :: den(denlo(1):denhi(1),denlo(2):denhi(2),denlo(3):denhi(3),nd)
-    real(rt),               intent(in   ) :: delta(3), problo(3)
-    character(kind=c_char), intent(in   ), value :: set, clear
-    integer,                intent(in   ), value :: nd, level
-    real(rt),               intent(in   ), value :: time
+    integer,    intent(in   ) :: lo(3), hi(3)
+    integer,    intent(in   ) :: taglo(3), taghi(3)
+    integer,    intent(in   ) :: denlo(3), denhi(3)
+    integer(1), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt),   intent(in   ) :: den(denlo(1):denhi(1),denlo(2):denhi(2),denlo(3):denhi(3),nd)
+    real(rt),   intent(in   ) :: delta(3), problo(3)
+    integer(1), intent(in   ), value :: set, clear
+    integer,    intent(in   ), value :: nd, level
+    real(rt),   intent(in   ), value :: time
 
     real(rt) :: ax, ay, az
     integer  :: i, j, k
@@ -138,15 +137,15 @@ contains
 
     implicit none
 
-    integer,                intent(in   ) :: lo(3), hi(3)
-    integer,                intent(in   ) :: taglo(3), taghi(3)
-    integer,                intent(in   ) :: templo(3), temphi(3)
-    character(kind=c_char), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt),               intent(in   ) :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
-    real(rt),               intent(in   ) :: delta(3), problo(3)
-    character(kind=c_char), intent(in   ), value :: set, clear
-    integer,                intent(in   ), value :: np, level
-    real(rt),               intent(in   ), value :: time
+    integer,    intent(in   ) :: lo(3), hi(3)
+    integer,    intent(in   ) :: taglo(3), taghi(3)
+    integer,    intent(in   ) :: templo(3), temphi(3)
+    integer(1), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt),   intent(in   ) :: temp(templo(1):temphi(1),templo(2):temphi(2),templo(3):temphi(3),np)
+    real(rt),   intent(in   ) :: delta(3), problo(3)
+    integer(1), intent(in   ), value :: set, clear
+    integer,    intent(in   ), value :: np, level
+    real(rt),   intent(in   ), value :: time
 
     real(rt) :: ax, ay, az
     integer  :: i, j, k
@@ -204,15 +203,15 @@ contains
 
     implicit none
 
-    integer,                intent(in   ) :: lo(3), hi(3)
-    integer,                intent(in   ) :: taglo(3), taghi(3)
-    integer,                intent(in   ) :: presslo(3), presshi(3)
-    character(kind=c_char), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt),               intent(in   ) :: press(presslo(1):presshi(1),presslo(2):presshi(2),presslo(3):presshi(3),np)
-    real(rt),               intent(in   ) :: delta(3), problo(3)
-    character(kind=c_char), intent(in   ), value :: set, clear
-    integer,                intent(in   ), value :: np, level
-    real(rt),               intent(in   ), value :: time
+    integer,    intent(in   ) :: lo(3), hi(3)
+    integer,    intent(in   ) :: taglo(3), taghi(3)
+    integer,    intent(in   ) :: presslo(3), presshi(3)
+    integer(1), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt),   intent(in   ) :: press(presslo(1):presshi(1),presslo(2):presshi(2),presslo(3):presshi(3),np)
+    real(rt),   intent(in   ) :: delta(3), problo(3)
+    integer(1), intent(in   ), value :: set, clear
+    integer,    intent(in   ), value :: np, level
+    real(rt),   intent(in   ), value :: time
 
     real(rt) :: ax, ay, az
     integer  :: i, j, k
@@ -270,15 +269,15 @@ contains
 
     implicit none
 
-    integer,                intent(in   ) :: lo(3), hi(3)
-    integer,                intent(in   ) :: taglo(3), taghi(3)
-    integer,                intent(in   ) :: vello(3), velhi(3)
-    character(kind=c_char), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt),               intent(in   ) :: vel(vello(1):velhi(1),vello(2):velhi(2),vello(3):velhi(3),nv)
-    real(rt),               intent(in   ) :: delta(3), problo(3)
-    character(kind=c_char), intent(in   ), value :: set, clear
-    integer,                intent(in   ), value :: nv, level
-    real(rt),               intent(in   ), value :: time
+    integer,    intent(in   ) :: lo(3), hi(3)
+    integer,    intent(in   ) :: taglo(3), taghi(3)
+    integer,    intent(in   ) :: vello(3), velhi(3)
+    integer(1), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt),   intent(in   ) :: vel(vello(1):velhi(1),vello(2):velhi(2),vello(3):velhi(3),nv)
+    real(rt),   intent(in   ) :: delta(3), problo(3)
+    integer(1), intent(in   ), value :: set, clear
+    integer,    intent(in   ), value :: nv, level
+    real(rt),   intent(in   ), value :: time
 
     real(rt) :: ax, ay, az
     integer  :: i, j, k
@@ -336,15 +335,15 @@ contains
 
     implicit none
 
-    integer,                intent(in   ) :: lo(3), hi(3)
-    integer,                intent(in   ) :: taglo(3), taghi(3)
-    integer,                intent(in   ) :: radlo(3), radhi(3)
-    character(kind=c_char), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt),               intent(in   ) :: rad(radlo(1):radhi(1),radlo(2):radhi(2),radlo(3):radhi(3),nr)
-    real(rt),               intent(in   ) :: delta(3), problo(3)
-    character(kind=c_char), intent(in   ), value :: set, clear
-    integer,                intent(in   ), value :: nr, level
-    real(rt),               intent(in   ), value :: time
+    integer,    intent(in   ) :: lo(3), hi(3)
+    integer,    intent(in   ) :: taglo(3), taghi(3)
+    integer,    intent(in   ) :: radlo(3), radhi(3)
+    integer(1), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt),   intent(in   ) :: rad(radlo(1):radhi(1),radlo(2):radhi(2),radlo(3):radhi(3),nr)
+    real(rt),   intent(in   ) :: delta(3), problo(3)
+    integer(1), intent(in   ), value :: set, clear
+    integer,    intent(in   ), value :: nr, level
+    real(rt),   intent(in   ), value :: time
 
     real(rt) :: ax, ay, az
     integer  :: i, j, k
@@ -403,15 +402,15 @@ contains
 
     implicit none
 
-    integer,                intent(in   ) :: lo(3), hi(3)
-    integer,                intent(in   ) :: taglo(3), taghi(3)
-    integer,                intent(in   ) :: tlo(3), thi(3)
-    character(kind=c_char), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt),               intent(in   ) :: t(tlo(1):thi(1),tlo(2):thi(2),tlo(3):thi(3),nr) ! t_sound / t_e
-    real(rt),               intent(in   ) :: delta(3), problo(3)
-    character(kind=c_char), intent(in   ), value :: set, clear
-    integer,                intent(in   ), value :: nr, level
-    real(rt),               intent(in   ), value :: time
+    integer,    intent(in   ) :: lo(3), hi(3)
+    integer,    intent(in   ) :: taglo(3), taghi(3)
+    integer,    intent(in   ) :: tlo(3), thi(3)
+    integer(1), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt),   intent(in   ) :: t(tlo(1):thi(1),tlo(2):thi(2),tlo(3):thi(3),nr) ! t_sound / t_e
+    real(rt),   intent(in   ) :: delta(3), problo(3)
+    integer(1), intent(in   ), value :: set, clear
+    integer,    intent(in   ), value :: nr, level
+    real(rt),   intent(in   ), value :: time
 
     integer :: i, j, k
 
@@ -459,15 +458,15 @@ contains
 
     implicit none
 
-    integer,                intent(in   ) :: lo(3), hi(3)
-    integer,                intent(in   ) :: taglo(3), taghi(3)
-    integer,                intent(in   ) :: enuclo(3), enuchi(3)
-    character(kind=c_char), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt),               intent(in   ) :: enuc(enuclo(1):enuchi(1),enuclo(2):enuchi(2),enuclo(3):enuchi(3),nd)
-    real(rt),               intent(in   ) :: delta(3), problo(3)
-    character(kind=c_char), intent(in   ), value :: set, clear
-    integer,                intent(in   ), value :: nd, level
-    real(rt),               intent(in   ), value :: time
+    integer,    intent(in   ) :: lo(3), hi(3)
+    integer,    intent(in   ) :: taglo(3), taghi(3)
+    integer,    intent(in   ) :: enuclo(3), enuchi(3)
+    integer(1), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
+    real(rt),   intent(in   ) :: enuc(enuclo(1):enuchi(1),enuclo(2):enuchi(2),enuclo(3):enuchi(3),nd)
+    real(rt),   intent(in   ) :: delta(3), problo(3)
+    integer(1), intent(in   ), value :: set, clear
+    integer,    intent(in   ), value :: nd, level
+    real(rt),   intent(in   ), value :: time
 
     integer :: i, j, k
 
