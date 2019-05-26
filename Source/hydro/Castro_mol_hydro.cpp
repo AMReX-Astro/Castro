@@ -99,7 +99,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           }
 
 #if (AMREX_SPACEDIM <= 2)
-          if (!Geometry::IsCartesian()) {
+          if (!Geom().IsCartesian()) {
             pradial.resize(amrex::surroundingNodes(bx,0),1);
           }
 #endif
@@ -261,7 +261,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
 #if AMREX_SPACEDIM <= 2
-          if (!Geometry::IsCartesian()) {
+          if (!Geom().IsCartesian()) {
             pradial.resize(xbx, 1);
           }
           Elixir elix_pradial = pradial.elixir();
@@ -416,7 +416,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               const int prescomp = GDPRES;
 
 #if AMREX_SPACEDIM == 1
-              if (!Geometry::IsCartesian()) {
+              if (!Geom().IsCartesian()) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                                       {
                                         pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
@@ -459,7 +459,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         }
 
 #if AMREX_SPACEDIM <= 2
-        if (!Geometry::IsCartesian()) {
+        if (!Geom().IsCartesian()) {
 
             Array4<Real> pradial_fab = pradial.array();
             Array4<Real> P_radial_fab = P_radial.array(mfi);

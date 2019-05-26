@@ -264,7 +264,9 @@ Castro::variableSetUp ()
   if (ParallelDescriptor::IOProcessor())
     std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
 
-  const int coord_type = Geometry::Coord();
+  const Geometry& dgeom = DefaultGeometry();
+
+  const int coord_type = dgeom.Coord();
 
   // Get the center variable from the inputs and pass it directly to Fortran.
   Vector<Real> center(BL_SPACEDIM, 0.0);
@@ -273,7 +275,7 @@ Castro::variableSetUp ()
 
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
 			Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-			Geometry::ProbLo(),Geometry::ProbHi(),center.dataPtr());
+			dgeom.ProbLo(),dgeom.ProbHi(),center.dataPtr());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
@@ -311,7 +313,7 @@ Castro::variableSetUp ()
   // neutrino problems for now so as not to change the results of
   // other people's tests.  Better to fix cell_cons_interp!
 
-  if (Geometry::IsSPHERICAL() && Radiation::nNeutrinoSpecies > 0) {
+  if (dgeom.IsSPHERICAL() && Radiation::nNeutrinoSpecies > 0) {
     interp = &pc_interp;
   }
 #endif

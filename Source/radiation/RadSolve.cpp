@@ -640,6 +640,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   BL_PROFILE("RadSolve::levelDterm");
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
+  const Geometry& geom = parent->Geom(level);
   const Real* dx = parent->Geom(level).CellSize();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
@@ -685,7 +686,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   {
       Vector<Real> rc, re, s;
       
-      if (Geometry::IsSPHERICAL()) {
+      if (geom.IsSPHERICAL()) {
 	  for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
 	      int i = fi.index();
 	      const Box &reg = grids[i];
@@ -705,7 +706,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 #pragma omp barrier
 #endif
       }
-      else if (Geometry::IsRZ()) {
+      else if (geom.IsRZ()) {
 	  for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
 	      int i = fi.index();
 	      const Box &reg = grids[i];
@@ -921,11 +922,11 @@ void RadSolve::restoreHypreMulti()
 void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Vector<Real>& r, Vector<Real>& s)
 {
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
+    if (geom.IsCartesian()) {
 	r.resize(reg.length(0), 1);
 	s.resize(reg.length(I), 1);
     }
-    else if (Geometry::IsRZ()) {
+    else if (geom.IsRZ()) {
 	geom.GetCellLoc(r, reg, 0);
 	s.resize(reg.length(I), 1);
     }
@@ -943,11 +944,11 @@ void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox,
 {
     const Box& reg = amrex::enclosedCells(edgebox);
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
-    if (Geometry::IsCartesian()) {
+    if (geom.IsCartesian()) {
 	r.resize(reg.length(0)+1, 1);
 	s.resize(reg.length(I)+1, 1);
     }
-    else if (Geometry::IsRZ()) {
+    else if (geom.IsRZ()) {
 	if (idim == 0) {
 	    geom.GetEdgeLoc(r, reg, 0);
 	}
