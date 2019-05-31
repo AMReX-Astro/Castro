@@ -378,7 +378,7 @@ Castro::restart (Amr&     papa,
 
           Box domain(geom.Domain());
           int lo=0, hi=0;
-          if (Geometry::IsRZ()) {
+          if (geom.IsRZ()) {
              if (grown_factor != 2) 
                 amrex::Abort("Must have grown_factor = 2");
 
@@ -971,7 +971,7 @@ Castro::writeJobInfo (const std::string& dir)
   }
   jobInfoFile << "\n";
 
-  jobInfoFile << "     geometry.coord_sys:   " << Geometry::Coord() << "\n";
+  jobInfoFile << "     geometry.coord_sys:   " << geom.Coord() << "\n";
 
   jobInfoFile << "     geometry.prob_lo:     ";
   for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
@@ -1199,10 +1199,10 @@ Castro::plotFileOutput(const std::string& dir,
         int f_lev = parent->finestLevel();
         os << f_lev << '\n';
         for (i = 0; i < BL_SPACEDIM; i++)
-            os << Geometry::ProbLo(i) << ' ';
+            os << geom.ProbLo(i) << ' ';
         os << '\n';
         for (i = 0; i < BL_SPACEDIM; i++)
-            os << Geometry::ProbHi(i) << ' ';
+            os << geom.ProbHi(i) << ' ';
         os << '\n';
         for (i = 0; i < f_lev; i++)
             os << parent->refRatio(i)[0] << ' ';
@@ -1219,7 +1219,7 @@ Castro::plotFileOutput(const std::string& dir,
                 os << parent->Geom(i).CellSize()[k] << ' ';
             os << '\n';
         }
-        os << (int) Geometry::Coord() << '\n';
+        os << (int) geom.Coord() << '\n';
         os << "0\n"; // Write bndry data.
 
 #ifdef RADIATION

@@ -10,6 +10,8 @@ PROFILE    = FALSE
 USE_RAD = TRUE
 USE_NEUTRINO = FALSE
 
+DIMENSION_AGNOSTIC = TRUE
+
 CASTRO_HOME = ../../..
 
 # has the f90 routine ca_initgroups and group structure in probdata_module

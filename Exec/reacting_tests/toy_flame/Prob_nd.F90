@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amrex_probinit")
 
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
@@ -11,20 +11,20 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   implicit none
 
-  integer init, namlen
-  integer name(namlen)
-  real(rt)         problo(1), probhi(1)
-  real(rt)         xn(nspec)
+  integer :: init, namlen
+  integer :: name(namlen)
+  real(rt) :: problo(3), probhi(3)
+  real(rt) :: xn(nspec)
 
-  integer untin,i
+  integer :: untin, i
 
   type (eos_t) :: eos_state
 
-  real(rt)         :: lambda_f, v_f
+  real(rt) ::lambda_f, v_f
 
   namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel
 
-  ! Build "probin" filename -- the name of file containing 
+  ! Build "probin" filename -- the name of file containing
   ! fortin namelist.
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -89,8 +89,9 @@ end subroutine amrex_probinit
 ! :::              right hand corner of grid.  (does not include
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
-subroutine ca_initdata(level,time,lo,hi,nscal, &
-                      state,state_l1,state_h1,delta,xlo,xhi)
+subroutine ca_initdata(level, time, lo, hi, nscal, &
+                       state, s_lo, s_hi, &
+                       delta, xlo, xhi)
 
   use network, only: nspec, network_species_index
   use probdata_module
@@ -104,19 +105,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   implicit none
 
-  integer level, nscal
-  integer lo(1), hi(1)
-  integer state_l1,state_h1
-  real(rt)         state(state_l1:state_h1,NVAR)
-  real(rt)         time, delta(1)
-  real(rt)         xlo(1), xhi(1)
+  integer,  intent(in   ) :: level, nscal
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: s_lo(3), s_hi(3)
+  real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
+  real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
 
-  real(rt)         xx, x_int, L, f, pert_width
-  integer i
+  real(rt) :: xx, x_int, L, f, pert_width
+  integer :: i, j, k
 
-  real(rt)         :: e_fuel, p_fuel
-  real(rt)         :: rho_ash, T_ash, e_ash
-  real(rt)         :: xn_fuel(nspec), xn_ash(nspec)
+  real(rt) :: e_fuel, p_fuel
+  real(rt) :: rho_ash, T_ash, e_ash
+  real(rt) :: xn_fuel(nspec), xn_ash(nspec)
 
   type (eos_t) :: eos_state
 
@@ -160,47 +160,51 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   print *, 'fuel: ', rho_fuel, T_fuel, xn_fuel
   print *, 'ash: ', rho_ash, T_ash, xn_ash
 
-  do i = lo(1), hi(1)
-     xx = problo(1) + delta(1)*(dble(i) + 0.5e0_rt)
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+           xx = problo(1) + delta(1)*(dble(i) + 0.5e0_rt)
 
-     if (xx <= x_int) then
+           if (xx <= x_int) then
 
-        ! ash
-        state(i,URHO ) = rho_ash
-        state(i,UMX:UMZ) = ZERO
-        state(i,UEDEN) = rho_ash*e_ash
-        state(i,UEINT) = rho_ash*e_ash
-        state(i,UTEMP) = T_ash
-        state(i,UFS:UFS-1+nspec) = rho_ash*xn_ash(:)
+              ! ash
+              state(i,j,k,URHO ) = rho_ash
+              state(i,j,k,UMX:UMZ) = ZERO
+              state(i,j,k,UEDEN) = rho_ash*e_ash
+              state(i,j,k,UEINT) = rho_ash*e_ash
+              state(i,j,k,UTEMP) = T_ash
+              state(i,j,k,UFS:UFS-1+nspec) = rho_ash*xn_ash(:)
 
-     elseif (xx > x_int .and. xx < x_int + pert_width) then
+           elseif (xx > x_int .and. xx < x_int + pert_width) then
 
-        ! linearly interpolate
-        f = (xx - x_int)/pert_width
-        eos_state%e = (ONE-f)*e_ash + f*e_fuel
-        eos_state%rho = (ONE-f)*rho_ash + f*rho_fuel
-        eos_state%xn(:) = (ONE-f)*xn_ash(:) + f*xn_fuel(:)
-        
-        call eos(eos_input_re, eos_state)
+              ! linearly interpolate
+              f = (xx - x_int)/pert_width
+              eos_state%e = (ONE-f)*e_ash + f*e_fuel
+              eos_state%rho = (ONE-f)*rho_ash + f*rho_fuel
+              eos_state%xn(:) = (ONE-f)*xn_ash(:) + f*xn_fuel(:)
 
-        state(i,URHO ) = eos_state%rho
-        state(i,UMX:UMZ) = ZERO
-        state(i,UEDEN) = eos_state%rho*eos_state%e
-        state(i,UEINT) = eos_state%rho*eos_state%e
-        state(i,UTEMP) = eos_state%T
-        state(i,UFS:UFS-1+nspec) = eos_state%rho*eos_state%xn(:)
+              call eos(eos_input_re, eos_state)
 
-     else
+              state(i,j,k,URHO ) = eos_state%rho
+              state(i,j,k,UMX:UMZ) = ZERO
+              state(i,j,k,UEDEN) = eos_state%rho*eos_state%e
+              state(i,j,k,UEINT) = eos_state%rho*eos_state%e
+              state(i,j,k,UTEMP) = eos_state%T
+              state(i,j,k,UFS:UFS-1+nspec) = eos_state%rho*eos_state%xn(:)
 
-        ! fuel
-        state(i,URHO ) = rho_fuel
-        state(i,UMX:UMZ) = ZERO
-        state(i,UEDEN) = rho_fuel*e_fuel
-        state(i,UEINT) = rho_fuel*e_fuel
-        state(i,UTEMP) = T_fuel
-        state(i,UFS:UFS-1+nspec) = rho_fuel*xn_fuel(:)
-     endif
+           else
 
-  enddo
+              ! fuel
+              state(i,j,k,URHO ) = rho_fuel
+              state(i,j,k,UMX:UMZ) = ZERO
+              state(i,j,k,UEDEN) = rho_fuel*e_fuel
+              state(i,j,k,UEINT) = rho_fuel*e_fuel
+              state(i,j,k,UTEMP) = T_fuel
+              state(i,j,k,UFS:UFS-1+nspec) = rho_fuel*xn_fuel(:)
+           end if
+
+        end do
+     end do
+  end do
 
 end subroutine ca_initdata
