@@ -138,7 +138,7 @@ Castro::do_energy_diagnostics()
     // Geometric corrections:
 
 #if (BL_SPACEDIM == 1)
-    if (Geometry::IsSPHERICAL()) {
+    if (Geom().IsSPHERICAL()) {
       // Internal to the radiation class, fluxes in flux registers have
       // been weighted by r^2 in spherical coords.  We multiply by an
       // additional 4*pi here because we want to weight them as covering
@@ -148,7 +148,7 @@ Castro::do_energy_diagnostics()
       rry *= (4.0 * M_PI);
     }
 #elif (BL_SPACEDIM == 2)
-    if (Geometry::IsRZ()) {
+    if (Geom().IsRZ()) {
       // Internal to the radiation class, fluxes in flux registers have
       // been weighted by r in RZ coordinates.  We multiply by an
       // additional 2*pi here to be compatible with what volWgtSum

@@ -321,7 +321,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
             mass_fluxes[dir]->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
-        if (!Geometry::IsCartesian())
+        if (!Geom().IsCartesian())
             P_radial.setVal(0.0);
 #endif
 
