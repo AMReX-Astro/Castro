@@ -34,6 +34,10 @@ class Profile:
         self.T = temp
         self.enuc = enuc
 
+    def get_dx(self):
+        """ return the grid dx -- assumes uniform spacing"""
+        return self.x[1] - self.x[0]
+
     def find_x_for_T(self, T_0=1.e9):
         """ given a profile x(T), find the x_0 that corresponds to T_0 """
 
@@ -124,6 +128,7 @@ if __name__ == "__main__":
 
             v.append(v_avg)
             vs.append(v_sigma)
+
             w.append(0.5*(width + width_old))
             t.append(0.5*(time_old + p.time))
 
