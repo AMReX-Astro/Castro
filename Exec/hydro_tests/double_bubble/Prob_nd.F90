@@ -47,7 +47,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! set local variable defaults
   center(1) = 0.5e0_rt*(problo(1)+probhi(1))
   center(2) = 0.5e0_rt*(problo(2)+probhi(2))
-  center(3) = 0.5e0_rt*(problo(2)+probhi(2))
+  center(3) = 0.5e0_rt*(problo(3)+probhi(3))
 
 #if AMREX_SPACEDIM == 1
   rmin = problo(1)
