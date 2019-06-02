@@ -37,6 +37,7 @@ static amrex::Real small_ener;
 static int do_hydro;
 static int time_integration_method;
 static int limit_fourth_order;
+static int initialization_is_cell_average;
 static int use_reconstructed_gamma1;
 static int add_ext_src;
 static int hybrid_hydro;

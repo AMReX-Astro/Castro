@@ -37,6 +37,7 @@ pp.query("small_ener", small_ener);
 pp.query("do_hydro", do_hydro);
 pp.query("time_integration_method", time_integration_method);
 pp.query("limit_fourth_order", limit_fourth_order);
+pp.query("initialization_is_cell_average", initialization_is_cell_average);
 pp.query("use_reconstructed_gamma1", use_reconstructed_gamma1);
 pp.query("add_ext_src", add_ext_src);
 pp.query("hybrid_hydro", hybrid_hydro);

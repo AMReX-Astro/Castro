@@ -37,6 +37,7 @@ amrex::Real Castro::small_ener = -1.e200;
 int         Castro::do_hydro = -1;
 int         Castro::time_integration_method = 0;
 int         Castro::limit_fourth_order = 1;
+int         Castro::initialization_is_cell_average = 0;
 int         Castro::use_reconstructed_gamma1 = 0;
 int         Castro::add_ext_src = 0;
 int         Castro::hybrid_hydro = 0;
