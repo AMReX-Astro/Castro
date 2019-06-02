@@ -14,6 +14,42 @@
      hard-coded in Castro and can be expanded as needed. Problem-specific tagging
      should be done through the set_problem_tags functionality. (#611)
 
+# 19.06
+
+  -- Deprecation notice: as of the 19.06 release, dimension-specific
+     problem setups are deprecated. Presently they are opt-in by
+     adding DIMENSION_AGNOSTIC = TRUE to your makefile, and using
+     a Prob_nd.F90 file instead of a Prob_{1,2,3}d.F90 file. The
+     dimension-agnostic Prob_nd.F90 is used to fill initial data
+     for all dimensions. There is always a 3D loop over dimensions,
+     and in 1D or 2D the unused dimensions have indices (lo, hi) =
+     (0, 0) which is valid in Fortran. The current interface is found
+     in Source/problems/Prob_nd.F90. Most of the problems have been
+     converted to dimension-agnostic form and any remaining ones will
+     be done shortly, so you can use e.g. the Sedov or DustCollapse
+     problems to model you own problem on. The dimension agnostic
+     problem setup also implies dimension agnostic helper routines
+     such as in bc_fill_nd.F90 -- any user-facing file ending in a
+     1d/2d/3d.f90 file extension is deprecated. In the 19.07 release
+     support for these will be removed and problem setups will only
+     work if they are dimension agnostic. Please file an issue if you
+     need assistance converting your problem.
+
+  -- Deprecation notice: as of the 19.06 release, problem-specific
+     overrides of Castro_error.cpp, and in general custom tagging
+     routines (including Castro_prob_err.cpp and associated files),
+     are deprecated. The only supported mechanism for problem-specific
+     tagging is through the set_problem_tags function in problem_tagging_nd.F90.
+     (There are also dimension-specific versions of this file, but these
+     are now deprecated as above.) Please file an issue if you need
+     assistance converting your tagging setup to use the problem tagging,
+     or if you need more data in that interface to be able to implement
+     your tagging scheme. Support will be removed in the 19.07 release.
+
+  -- Deprecation notice: as of the 19.06 release, the problem_pre_tagging_hook
+     and problem_post_tagging_hook are deprecated. These were not actually
+     being used in any problem. These will be removed in the 19.07 release.
+
 # 19.05
 
   -- The dimension agnostic version of the external source term in
