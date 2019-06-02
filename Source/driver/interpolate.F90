@@ -223,8 +223,8 @@ contains
        call amrex_error("Error: ileft or iright not set")
     end if
 
-    if (iright <= ileft) then
-       call amrex_error("Error: lright <= ileft")
+    if (iright < ileft) then
+       call amrex_error("Error: iright < ileft")
     end if
 
     npts = iright - ileft + 1
