@@ -1088,33 +1088,36 @@ Castro::initData ()
                                     BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 
-       // Enforce that the total and internal energies are consistent.
+       if (initialization_is_cell_average == 0) {
+         // we are assuming that the initialization was done to cell-centers
 
-       enforce_consistent_e(S_new);
+         // Enforce that the total and internal energies are consistent.
+         enforce_consistent_e(S_new);
 
-       // thus far, we assume that all initialization has worked on cell-centers
-       // (to second-order, these are cell-averages, so we're done in that case).
-       // For fourth-order, we need to convert to cell-averages now.
+         // For fourth-order, we need to convert to cell-averages now.
+         // (to second-order, these are cell-averages, so we're done in that case).
+
 #ifndef AMREX_USE_CUDA
-       if (mol_order == 4 || sdc_order == 4) {
-         Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
-         AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
+         if (mol_order == 4 || sdc_order == 4) {
+           Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+           AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
-         // note: this cannot be tiled
+           // note: this cannot be tiled
 
-         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-           {
-             const Box& box     = mfi.validbox();
+           for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+             {
+               const Box& box     = mfi.validbox();
 
-             ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_FAB(Sborder[mfi]));
-           }
+               ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
+                                       BL_TO_FORTRAN_FAB(Sborder[mfi]));
+             }
 
-         // now copy back the averages
-         MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
-         Sborder.clear();
-       }
+           // now copy back the averages
+           MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
+           Sborder.clear();
+         }
 #endif
+       }
 
        // Do a FillPatch so that we can get the ghost zones filled.
 
