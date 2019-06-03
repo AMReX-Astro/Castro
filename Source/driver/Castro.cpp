@@ -278,18 +278,20 @@ Castro::read_params ()
         phys_bc.setHi(i,hi_bc[i]);
     }
 
+    const Geometry& dgeom = DefaultGeometry();
+
     //
     // Check phys_bc against possible periodic geometry
     // if periodic, must have internal BC marked.
     //
-    if (Geometry::isAnyPeriodic())
+    if (dgeom.isAnyPeriodic())
     {
         //
         // Do idiot check.  Periodic means interior in those directions.
         //
         for (int dir = 0; dir<BL_SPACEDIM; dir++)
         {
-            if (Geometry::isPeriodic(dir))
+            if (dgeom.isPeriodic(dir))
             {
                 if (lo_bc[dir] != Interior)
                 {
@@ -332,31 +334,31 @@ Castro::read_params ()
         }
     }
 
-    if ( Geometry::IsRZ() && (lo_bc[0] != Symmetry) ) {
+    if ( dgeom.IsRZ() && (lo_bc[0] != Symmetry) ) {
         std::cerr << "ERROR:Castro::read_params: must set r=0 boundary condition to Symmetry for r-z\n";
         amrex::Error();
     }
 
 #if (BL_SPACEDIM == 1)
-    if ( Geometry::IsSPHERICAL() )
+    if ( dgeom.IsSPHERICAL() )
     {
-      if ( (lo_bc[0] != Symmetry) && (Geometry::ProbLo(0) == 0.0) )
+      if ( (lo_bc[0] != Symmetry) && (dgeom.ProbLo(0) == 0.0) )
       {
         std::cerr << "ERROR:Castro::read_params: must set r=0 boundary condition to Symmetry for spherical\n";
         amrex::Error();
       }
     }
 #elif (BL_SPACEDIM == 2)
-    if ( Geometry::IsSPHERICAL() )
+    if ( dgeom.IsSPHERICAL() )
       {
 	amrex::Abort("We don't support spherical coordinate systems in 2D");
       }
 #elif (BL_SPACEDIM == 3)
-    if ( Geometry::IsRZ() )
+    if ( dgeom.IsRZ() )
       {
 	amrex::Abort("We don't support cylindrical coordinate systems in 3D");
       }
-    else if ( Geometry::IsSPHERICAL() )
+    else if ( dgeom.IsSPHERICAL() )
       {
 	amrex::Abort("We don't support spherical coordinate systems in 3D");
       }
@@ -419,7 +421,7 @@ Castro::read_params ()
         amrex::Error();
       }
 
-    if (hybrid_riemann == 1 && (Geometry::IsSPHERICAL() || Geometry::IsRZ() ))
+    if (hybrid_riemann == 1 && (dgeom.IsSPHERICAL() || dgeom.IsRZ() ))
       {
         std::cerr << "hybrid_riemann should only be used for Cartesian coordinates\n";
         amrex::Error();
@@ -466,7 +468,7 @@ Castro::read_params ()
 	amrex::Error();
       }
     }
-    if (Geometry::IsRZ())
+    if (dgeom.IsRZ())
       rot_axis = 2;
 #if (BL_SPACEDIM == 1)
       if (do_rotation) {
@@ -556,7 +558,7 @@ Castro::Castro (Amr&            papa,
 	gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
 
       // Passing numpts_1d at level 0
-      if (!Geometry::isAllPeriodic() && gravity != 0)
+      if (!level_geom.isAllPeriodic() && gravity != 0)
       {
          int numpts_1d = get_numpts();
 
@@ -684,7 +686,7 @@ Castro::buildMetrics ()
 
         Real* rad = radius[i].dataPtr();
 
-        if (Geometry::IsCartesian())
+        if (Geom().IsCartesian())
         {
             for (int j = 0; j < len; j++)
             {
@@ -753,12 +755,12 @@ Castro::initMFs()
 	mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geometry::IsCartesian())
+    if (!Geom().IsCartesian())
 	P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
 #endif
 
     // Keep track of which components of the momentum flux have pressure
-    if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && Geometry::IsRZ())) {
+    if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && Geom().IsRZ())) {
         mom_flux_has_p[0][0] = false;
     }
     else {
@@ -792,7 +794,7 @@ Castro::initMFs()
 	flux_reg.setVal(0.0);
 
 #if (BL_SPACEDIM < 3)
-	if (!Geometry::IsCartesian()) {
+	if (!Geom().IsCartesian()) {
 	    pres_reg.define(grids, dmap, crse_ratio, level, 1);
 	    pres_reg.setVal(0.0);
 	}
@@ -1086,33 +1088,36 @@ Castro::initData ()
                                     BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 
-       // Enforce that the total and internal energies are consistent.
+       if (initialization_is_cell_average == 0) {
+         // we are assuming that the initialization was done to cell-centers
 
-       enforce_consistent_e(S_new);
+         // Enforce that the total and internal energies are consistent.
+         enforce_consistent_e(S_new);
 
-       // thus far, we assume that all initialization has worked on cell-centers
-       // (to second-order, these are cell-averages, so we're done in that case).
-       // For fourth-order, we need to convert to cell-averages now.
+         // For fourth-order, we need to convert to cell-averages now.
+         // (to second-order, these are cell-averages, so we're done in that case).
+
 #ifndef AMREX_USE_CUDA
-       if (mol_order == 4 || sdc_order == 4) {
-         Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
-         AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
+         if (mol_order == 4 || sdc_order == 4) {
+           Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+           AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
-         // note: this cannot be tiled
+           // note: this cannot be tiled
 
-         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-           {
-             const Box& box     = mfi.validbox();
+           for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+             {
+               const Box& box     = mfi.validbox();
 
-             ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_FAB(Sborder[mfi]));
-           }
+               ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
+                                       BL_TO_FORTRAN_FAB(Sborder[mfi]));
+             }
 
-         // now copy back the averages
-         MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
-         Sborder.clear();
-       }
+           // now copy back the averages
+           MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
+           Sborder.clear();
+         }
 #endif
+       }
 
        // Do a FillPatch so that we can get the ghost zones filled.
 
@@ -2431,7 +2436,7 @@ Castro::FluxRegCrseInit() {
 	fine_level.flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geometry::IsCartesian())
+    if (!Geom().IsCartesian())
 	fine_level.pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
 #endif
 
@@ -2455,7 +2460,7 @@ Castro::FluxRegFineAdd() {
 	flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geometry::IsCartesian())
+    if (!Geom().IsCartesian())
 	getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
 #endif
 
@@ -2564,7 +2569,7 @@ Castro::reflux(int crse_level, int fine_level)
 	reg->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
-	if (!Geometry::IsCartesian()) {
+	if (!Geom().IsCartesian()) {
 
 	    reg = &getLevel(lev).pres_reg;
 
@@ -3719,7 +3724,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     ParallelDescriptor::Bcast(&center[0], BL_SPACEDIM, owner);
 
     // Make sure if R-Z that center stays exactly on axis
-    if ( Geometry::IsRZ() ) center[0] = 0;
+    if ( Geom().IsRZ() ) center[0] = 0;
 
     ca_set_center(ZFILL(center));
 }

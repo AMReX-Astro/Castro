@@ -163,6 +163,77 @@ contains
   end subroutine interpolate_sub
 
 
+  subroutine interpolate_conservative(interp, xl, xr, npts_model, model_r, model_var)
+    ! This interpolation routine is for conservative data at a
+    ! different (assumed coarser) resolution than the model data.  We
+    ! come in with the left and right edges of our zone, xl and xr,
+    ! and we will average all of the model zones that fall inbetween
+    ! as the interpolated value.
+    !
+    ! This assumes that the model data is uniformly spaced and that we
+    ! are properly nested between the grid and the model.
+
+    use amrex_constants_module, only : HALF
+    use amrex_error_module, only : amrex_error
+    use amrex_fort_module, only : rt => amrex_real
+
+    real(rt), intent(out) :: interp
+    real(rt), intent(in) :: xl, xr
+    integer, intent(in) :: npts_model
+    real(rt), intent(in) :: model_r(npts_model), model_var(npts_model)
+
+    ! Local variables
+    integer :: n
+    integer :: ileft, iright, npts
+    real(rt) :: x_model, x_model_l, x_model_r, dx
+    real(rt), parameter :: tol = 1.e-12_rt
+    !$gpu
+
+    ! we assume that the model is uniformly spaced
+    dx = model_r(2) - model_r(1)
+
+    ! find the range of zones in the model that fit into our grid zone xl:xr
+    ileft = -1
+    iright = -1
+
+    do n = 1, npts_model
+       x_model = model_r(n)
+       x_model_l = x_model - HALF*dx
+       x_model_r = x_model + HALF*dx
+
+       if (abs(x_model_l - xl) < tol*abs(xl)) then
+          if (ileft > 0) then
+             call amrex_error("Error: ileft already set")
+          else
+             ileft = n
+          end if
+       end if
+
+       if (abs(x_model_r - xr) < tol*abs(xr)) then
+          if (iright > 0) then
+             call amrex_error("Error: iright already set")
+          else
+             iright = n
+          end if
+       end if
+
+    end do
+
+    if (ileft == -1 .or. iright == -1) then
+       call amrex_error("Error: ileft or iright not set")
+    end if
+
+    if (iright < ileft) then
+       call amrex_error("Error: iright < ileft")
+    end if
+
+    npts = iright - ileft + 1
+
+    interp = sum(model_var(ileft:iright))/npts
+
+  end subroutine interpolate_conservative
+
+
 
   subroutine tri_interpolate(x, y, z, npts_x, npts_y, npts_z, &
        model_x, model_y, model_z, model_var, &
