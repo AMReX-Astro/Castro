@@ -7,6 +7,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   use probdata_module
   use extern_probin_module
   use amrex_constants_module
+  use conservative_map_module, only : read_conserved_model_file
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -27,7 +28,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel, T_ash, v_inflow, &
                     fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
                     ash1_name, ash2_name, ash3_name, ash4_name, &
-                    X_fuel1, X_fuel2, X_fuel3, X_fuel4, X_ash1, X_ash2, X_ash3, X_ash4
+                    X_fuel1, X_fuel2, X_fuel3, X_fuel4, X_ash1, X_ash2, X_ash3, X_ash4, &
+                    interp_model, model_file
 
   ! Build "probin" filename -- the name of file containing
   ! fortin namelist.
@@ -50,11 +52,13 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   T_ash = ONE
   v_inflow = ZERO
 
+  interp_model = .false.
+  model_file = ""
+
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin, fortin)
   close(untin)
-
 
   ! defaults
   fuel1_name = "helium-4"
@@ -160,6 +164,13 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   ! mass flux will be constant across the flame
   mass_flux = rho_fuel * v_inflow
 
+  ! if we are going to conservatively interpolate the model from a
+  ! model file instead of initializing from start, let's set that up
+  ! now
+  if (interp_model) then
+     call read_conserved_model_file(model_file)
+  end if
+
 end subroutine amrex_probinit
 
 
@@ -196,6 +207,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use amrex_constants_module
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
+  use interpolate_module, only : interpolate_conservative
+  use conservative_map_module, only : model_r, model_state, npts_model
 
   implicit none
 
@@ -205,39 +218,65 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
   real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
 
-  real(rt) :: xx, x_int, L, f, pert_width
-  integer :: i, j, k
+  real(rt) :: xx, xl, xr, x_int, L, f, pert_width
+  real(rt) :: val
+  integer :: i, j, k, n
 
   type (eos_t) :: eos_state
 
+  if (.not. interp_model) then
 
-  L = probhi(1) - problo(1)
-  x_int = problo(1) + pert_frac*L
+     L = probhi(1) - problo(1)
+     x_int = problo(1) + pert_frac*L
 
-  pert_width = pert_delta*L
+     pert_width = pert_delta*L
 
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-           xx = problo(1) + delta(1)*(dble(i) + 0.5e0_rt)
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+              xx = problo(1) + delta(1)*(dble(i) + HALF)
 
-           ! blend the fuel and ash state, keeping the pressure constant
-           eos_state % rho = (rho_ash - rho_fuel) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + rho_fuel
-           eos_state % T = (T_ash - T_fuel) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + T_fuel
-           eos_state % xn(:) = (xn_ash(:) - xn_fuel(:)) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + xn_fuel(:)
-           eos_state % p = p_fuel
+              ! blend the fuel and ash state, keeping the pressure constant
+              eos_state % rho = (rho_ash - rho_fuel) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + rho_fuel
+              eos_state % T = (T_ash - T_fuel) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + T_fuel
+              eos_state % xn(:) = (xn_ash(:) - xn_fuel(:)) * HALF * (ONE - tanh((xx - x_int)/pert_width)) + xn_fuel(:)
+              eos_state % p = p_fuel
 
-           call eos(eos_input_tp, eos_state)
+              call eos(eos_input_tp, eos_state)
 
-           state(i,j,k,URHO ) = eos_state % rho
-           state(i,j,k,UMX:UMZ) = ZERO
-           state(i,j,k,UMX) = mass_flux
-           state(i,j,k,UEDEN) = eos_state % rho * eos_state % e + &
-                HALF * sum(state(i,j,k,UMX:UMZ)**2)/state(i,j,k,URHO)
-           state(i,j,k,UEINT) = eos_state % rho * eos_state % e
-           state(i,j,k,UTEMP) = eos_state % T
-           state(i,j,k,UFS:UFS-1+nspec) = eos_state % rho * eos_state % xn(:)
+              state(i,j,k,URHO ) = eos_state % rho
+              state(i,j,k,UMX:UMZ) = ZERO
+              state(i,j,k,UMX) = mass_flux
+              state(i,j,k,UEDEN) = eos_state % rho * eos_state % e + &
+                   HALF * sum(state(i,j,k,UMX:UMZ)**2)/state(i,j,k,URHO)
+              state(i,j,k,UEINT) = eos_state % rho * eos_state % e
+              state(i,j,k,UTEMP) = eos_state % T
+              state(i,j,k,UFS:UFS-1+nspec) = eos_state % rho * eos_state % xn(:)
+           end do
         end do
      end do
-  end do
+
+  else
+
+     ! we are going to do a conservative interpolation of a
+     ! (presumably higher-resolution) model onto our grid.
+
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+
+              xl = problo(1) + delta(1)*(dble(i))
+              xr = problo(1) + delta(1)*(dble(i) + ONE)
+
+              do n = 1, NVAR
+                 call interpolate_conservative(val, xl, xr, npts_model, model_r, model_state(:,n))
+                 state(i,j,k,n) = val
+              end do
+
+           end do
+        end do
+     end do
+
+  end if
+
 end subroutine ca_initdata

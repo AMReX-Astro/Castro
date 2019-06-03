@@ -5,6 +5,9 @@ module probdata_module
 
   implicit none
 
+  logical, save :: interp_model
+  character(len=64), save :: model_file
+
   real(rt), save :: pert_frac, pert_delta
 
   real(rt), save :: rho_fuel, T_fuel, e_fuel, p_fuel
