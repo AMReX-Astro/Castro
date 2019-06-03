@@ -36,7 +36,7 @@ castro.change_max     = 1.1     # maximum increase in dt over successive steps
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
-amr.v                 = 0        # verbosity in Amr.cpp
+amr.v                 = 1        # verbosity in Amr.cpp
 #amr.grid_log         = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING
