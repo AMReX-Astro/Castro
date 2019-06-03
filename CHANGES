@@ -1,4 +1,4 @@
-# changes since the last release
+# 19.06
 
   -- Deprecation notice: as of the 19.06 release, dimension-specific
      problem setups are deprecated. Presently they are opt-in by

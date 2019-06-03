@@ -14,7 +14,4 @@ module probdata_module
   ! Domain stuff
   real(rt)        , save :: center(3)
 
-  ! lower boundary
-  logical         , save :: interp_BC, zero_vels
-
 end module probdata_module
