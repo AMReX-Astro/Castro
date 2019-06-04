@@ -11,8 +11,6 @@ USE_OMP          = FALSE
 USE_GRAV         = TRUE
 USE_REACT        = FALSE
 
-USE_OLDPLOTPER   = TRUE
-
 CASTRO_HOME = ../../..
 
 ifdef MICROPHYSICS_HOME
