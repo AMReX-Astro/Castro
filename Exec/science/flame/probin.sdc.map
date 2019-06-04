@@ -2,6 +2,21 @@
 
   interp_model = T
   model_file = "flame_4096_sdc4_plt323427.slice"
+
+  ! we still need this info for the boundary conditions
+  rho_fuel = 2.e7
+  T_fuel = 5.e7
+
+  T_ash = 3.6e9
+
+  ash1_name = "nickel-56"
+  X_ash1 = 1.0
+
+  pert_frac = 0.4d0
+  pert_delta = 0.03d0
+
+  v_inflow = 0.0d0
+
 /
 
 &tagging
