@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 10000
+max_step = 100
 stop_time = 0.2
 
 #amr.restart = chk00040
