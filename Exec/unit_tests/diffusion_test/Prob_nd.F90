@@ -8,7 +8,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   use eos_type_module, only: eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec
-  use extern_probin_module, only: const_conductivity
+  use conductivity_module
 
   implicit none
 
@@ -67,12 +67,11 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   close(unit=untin)
 
   ! the conductivity is the physical quantity that appears in the
-  ! diffusion term of the energy equation.  It is set via
-  ! diffusion.conductivity in the inputs file.  For this test problem,
-  ! we want to set the diffusion coefficient, D = k/(rho c_v), so the
-  ! free parameter we have to play with is rho.  Note that for an
-  ! ideal gas, c_v does not depend on rho, so we can call it the EOS
-  ! with any density.
+  ! diffusion term of the energy equation.  It is set in the probin
+  ! file.  For this test problem, we want to set the diffusion
+  ! coefficient, D = k/(rho c_v), so the free parameter we have to
+  ! play with is rho.  Note that for an ideal gas, c_v does not depend
+  ! on rho, so we can call it the EOS with any density.
   X(:) = 0.e0_rt
   X(1) = 1.e0_rt
 
@@ -82,10 +81,13 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   call eos(eos_input_rt, eos_state)
 
+  ! get the conductivity
+  call conductivity(eos_state)
+
   ! diffusion coefficient is D = k/(rho c_v). we are doing an ideal
   ! gas, so c_v is constant, so find the rho that combines with
   ! the conductivity
-  rho0 = const_conductivity/(diff_coeff*eos_state%cv)
+  rho0 = eos_state % conductivity/(diff_coeff*eos_state % cv)
 
 end subroutine amrex_probinit
 
