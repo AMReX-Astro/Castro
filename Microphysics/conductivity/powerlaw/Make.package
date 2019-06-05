@@ -1,0 +1,2 @@
+F90EXE_sources += powerlaw_conductivity.F90
+
