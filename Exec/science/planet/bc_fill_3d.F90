@@ -1,4 +1,3 @@
-!AUG10
 module bc_fill_module
   use bc_ext_fill_module
   use amrex_constants_module
@@ -25,7 +24,7 @@ contains
     use model_parser_module
     use amrex_error_module
     use eos_type_module
-
+  
     include 'AMReX_bc_types.fi'
 
     integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
@@ -41,8 +40,6 @@ contains
     real(rt) :: z_base,dens_base, slope
   
     type (eos_t) :: eos_state
-    !need to fix
-    zl_ext=EXT_HSE
 
     do n = 1,NVAR
     call filcc(adv(:,:,:,n),adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,&
@@ -99,7 +96,7 @@ contains
     enddo
 
 
-    if ( bc(3,1,1).eq.EXT_DIR .and. adv_l3.lt.domlo(3)) then
+    if ( bc(3,1,1).eq.FOEXTRAP .and. adv_l3.lt.domlo(3)) then
       if (zl_ext == EXT_HSE) then
         call ext_fill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
                     domlo,domhi,delta,xlo,time,bc)
@@ -185,7 +182,7 @@ contains
   
   
     ! YHI
-        if ( bc(3,2,URHO).eq.EXT_DIR .and. adv_h3.gt.domhi(3)) then
+        if ( bc(3,2,URHO).eq.FOEXTRAP .and. adv_h3.gt.domhi(3)) then
 
         if (yr_ext == EXT_HSE) then
           call amrex_error("ERROR: HSE boundaries not implemented for +Y")
@@ -414,7 +411,6 @@ contains
     !YHI
     if ( bc(3,2,1).eq.EXT_DIR .and. rad_h3.gt.domhi(3)) then
        do j=domhi(3)+1,rad_h3
-
           ! zero-gradient catch-all -- this will get the radiation
           ! energy
           rad(rad_l1:rad_h1,rad_l2:rad_h2,j) = rad(rad_l1:rad_h1,rad_l2:rad_h2,domhi(3))

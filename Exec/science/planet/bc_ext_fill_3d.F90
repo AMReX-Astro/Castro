@@ -6,7 +6,8 @@ module bc_ext_fill_module
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                  xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext,EXT_HSE, EXT_INTERP
   use interpolate_module
-
+  use amrex_error_module
+  use amrex_filcc_module, only: amrex_filccn
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -18,11 +19,6 @@ module bc_ext_fill_module
 
 contains
 
-  ! this module contains different routines for filling the
-  ! hydrodynamics boundary conditions
-
-  ! NOTE: the hydrostatic boundary conditions here rely on
-  ! constant gravity
 
   subroutine ext_fill(adv, adv_l1, adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
                       domlo, domhi, delta, xlo, time, bc) &
@@ -47,7 +43,7 @@ contains
     real(rt)         :: pres_above, p_want, pres_zone, A
     real(rt)         :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
 
-    integer, parameter :: MAX_ITER = 5000
+    integer, parameter :: MAX_ITER = 200
     real(rt)        , parameter :: TOL = 1.e-12_rt
     logical :: converged_hse
 
@@ -72,9 +68,8 @@ contains
       if (bc(2,2,n) == EXT_DIR .and. yr_ext == EXT_HSE .and. adv_h2 > domhi(2)) then
           call amrex_error("ERROR: HSE boundaries not implemented for +Y")
        end if
-
        ! ZLO
-       if (bc(3,1,n) == EXT_DIR .and. adv_l3 < domlo(3)) then
+       if (bc(3,1,n) == FOEXTRAP .and. adv_l3 < domlo(3)) then
 
           if (zl_ext == EXT_HSE) then
 
@@ -125,7 +120,6 @@ contains
                    ! integrate downward
                    do k = domlo(3)-1, adv_l3, -1
                       z = problo(3) + delta(3)*(dble(k) + HALF)
-
                       ! HSE integration to get density, pressure
 
                       ! initial guesses
@@ -286,7 +280,7 @@ contains
 
 
        ! ZHI
-       if (bc(3,2,n) == EXT_DIR .and. adv_h3 > domhi(3)) then
+       if (bc(3,2,n) == FOEXTRAP .and. adv_h3 > domhi(3)) then
 
           if (zr_ext == EXT_HSE) then
              call amrex_error("ERROR: HSE boundaries not implemented for +Z")
@@ -342,8 +336,6 @@ contains
        endif
 
     enddo
-
-
   end subroutine ext_fill
 
 

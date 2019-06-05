@@ -5,6 +5,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use model_parser_module
   use amrex_error_module
   use amrex_constants_module
+
   use amrex_fort_module, only : rt => amrex_real
   use meth_params_module, only : const_grav
 
@@ -20,7 +21,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   namelist /fortin/ model_name, apply_vel_field,shear_vel_field, &
        velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
        shear_height_loc, shear_amplitude, shear_height, shear_width_x,&
-       shear_width_y, cutoff_density
+       shear_width_y,cutoff_density, interp_BC, zero_vels
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -46,6 +47,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   velpert_height_loc = 6.5e3_rt
   num_vortices = 1
   cutoff_density = 50.e0_rt
+  interp_BC = .false.
+  zero_vels = .false.
   shear_height_loc = 0.0_rt
   shear_height     = 0.0_rt
   shear_width_x    = 0.0_rt
@@ -86,7 +89,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   center(1) = HALF*(problo(1)+probhi(1))
   center(2) = HALF*(problo(2)+probhi(2))
   center(3) = HALF*(problo(3)+probhi(3))
-
   ! velocity perturbation stuff
   offset = (probhi(1) - problo(1)) / (num_vortices)
 
@@ -124,6 +126,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      state,state_l1,state_l2,state_l3,state_h1,state_h2, &
      state_h3,delta,xlo,xhi)
 
+  !use bl_constants_module
   use amrex_constants_module
   use probdata_module
   use interpolate_module
@@ -159,7 +162,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-
            state(i,j,k,URHO)  = interpolate(z,npts_model,model_r, &
                 model_state(:,idens_model))
            state(i,j,k,UTEMP) = interpolate(z,npts_model,model_r, &
@@ -282,6 +284,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
      rad_state_h1,rad_state_h2, rad_state_h3, &
      delta,xlo,xhi)
 
+  !use bl_constants_module
   use amrex_constants_module
   use probdata_module
   use amrex_fort_module, only : rt => amrex_real
