@@ -178,7 +178,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   do j = lo(2), hi(2)     
      do i = lo(1), hi(1)   
         
-        state(i,j,UEDEN) = state(i,j,URHO) * state(i,j,UEDEN) 
+        state(i,j,UEDEN) = state(i,j,URHO) * state(i,j,UEINT) 
         state(i,j,UEINT) = state(i,j,URHO) * state(i,j,UEINT)
 
         do n = 1,nspec

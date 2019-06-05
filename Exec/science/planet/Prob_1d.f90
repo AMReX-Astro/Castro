@@ -179,7 +179,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   ! switch to conserved quantities
   do i = lo(1), hi(1)
 
-     state(i,UEDEN) = state(i,URHO) * state(i,UEDEN)
+     state(i,UEDEN) = state(i,URHO) * state(i,UEINT)
      state(i,UEINT) = state(i,URHO) * state(i,UEINT)
 
      do n = 1,nspec
