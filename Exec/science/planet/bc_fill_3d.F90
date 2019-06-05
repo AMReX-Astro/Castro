@@ -1,7 +1,6 @@
-!AUG10
 module bc_fill_module
   use bc_ext_fill_module
-  use bl_constants_module
+  use amrex_constants_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -23,9 +22,9 @@ contains
     use eos_module
     use network, only: nspec
     use model_parser_module
-    use bl_error_module
+    use amrex_error_module
     use eos_type_module
-
+  
     include 'AMReX_bc_types.fi'
 
     integer adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3
@@ -41,8 +40,6 @@ contains
     real(rt) :: z_base,dens_base, slope
   
     type (eos_t) :: eos_state
-    !need to fix
-    zl_ext=EXT_HSE
 
     do n = 1,NVAR
     call filcc(adv(:,:,:,n),adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3,&
@@ -54,7 +51,7 @@ contains
        if ( bc(1,1,n).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
 
           ! we are periodic in -x -- we should never get here
-          call bl_error("ERROR: invalid BC in Prob_3d.f90")
+          call amrex_error("ERROR: invalid BC in Prob_3d.f90")
         
        end if
 
@@ -62,7 +59,7 @@ contains
        if ( bc(2,1,n).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
 
           ! we are periodic in -y -- we should never get here
-          call bl_error("ERROR: invalid BC in Prob_3d.f90")
+          call amrex_error("ERROR: invalid BC in Prob_3d.f90")
         
        end if
 
@@ -71,7 +68,7 @@ contains
        if ( bc(1,2,n).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
           
           ! we are periodic in x -- we should never get here
-          call bl_error("ERROR: invalid BC in Prob_3d.f90")
+          call amrex_error("ERROR: invalid BC in Prob_3d.f90")
         
        end if
 
@@ -79,7 +76,7 @@ contains
        if ( bc(2,2,n).eq.EXT_DIR .and. adv_h2.lt.domhi(2)) then
 
           ! we are periodic in +y -- we should never get here
-          call bl_error("ERROR: invalid BC in Prob_3d.f90")
+          call amrex_error("ERROR: invalid BC in Prob_3d.f90")
         
        end if
 
@@ -87,19 +84,19 @@ contains
 
         if (xr_ext == EXT_HSE .or. xl_ext == EXT_HSE .or. xr_ext == EXT_INTERP .or. &
         xl_ext == EXT_INTERP ) then
-        call bl_error("ERROR: HSE boundaries not implemented for +,- X")
+        call amrex_error("ERROR: HSE boundaries not implemented for +,- X")
         end if
 
         if (yr_ext == EXT_HSE .or. yl_ext == EXT_HSE .or. yr_ext == EXT_INTERP .or. &
         yl_ext == EXT_INTERP ) then
-        call bl_error("ERROR: HSE boundaries not implemented for +,- Y")
+        call amrex_error("ERROR: HSE boundaries not implemented for +,- Y")
         end if
 
 
     enddo
 
 
-    if ( bc(3,1,1).eq.EXT_DIR .and. adv_l3.lt.domlo(3)) then
+    if ( bc(3,1,1).eq.FOEXTRAP .and. adv_l3.lt.domlo(3)) then
       if (zl_ext == EXT_HSE) then
         call ext_fill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
                     domlo,domhi,delta,xlo,time,bc)
@@ -172,7 +169,7 @@ contains
              adv(i,j,k,URHO) = dens_zone
              adv(i,j,k,UEINT) = dens_zone*eos_state%e
              adv(i,j,k,UEDEN) = dens_zone*eos_state%e + &
-                  HALF*(adv(i,j,k,UMX)**2.0_rt+adv(i,j,k,UMY)**2.0_rt+adv(i,j,k,UMZ)**2.0_rt)/dens_zone
+                  HALF*(adv(i,j,k,UMX)**2+adv(i,j,k,UMY)**2+adv(i,j,k,UMZ)**2)/dens_zone
              adv(i,j,k,UTEMP) = eos_state%T
              adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
              
@@ -185,17 +182,17 @@ contains
   
   
     ! YHI
-        if ( bc(3,2,URHO).eq.EXT_DIR .and. adv_h3.gt.domhi(3)) then
+        if ( bc(3,2,URHO).eq.FOEXTRAP .and. adv_h3.gt.domhi(3)) then
 
         if (yr_ext == EXT_HSE) then
-          call bl_error("ERROR: HSE boundaries not implemented for +Y")
+          call amrex_error("ERROR: HSE boundaries not implemented for +Y")
         elseif (yr_ext == EXT_INTERP) then
           call ext_fill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
                         domlo,domhi,delta,xlo,time,bc)
         end if
 
         if (xr_ext == EXT_HSE) then
-          call bl_error("ERROR: HSE boundaries not implemented for +X")
+          call amrex_error("ERROR: HSE boundaries not implemented for +X")
         elseif (xr_ext == EXT_INTERP) then
           call ext_fill(adv,adv_l1,adv_l2,adv_l3,adv_h1,adv_h2,adv_h3, &
                         domlo,domhi,delta,xlo,time,bc)
@@ -231,7 +228,7 @@ contains
                 adv(i,j,k,URHO) = dens_zone
                 adv(i,j,k,UEINT) = dens_zone*eos_state%e
                 adv(i,j,k,UEDEN) = dens_zone*eos_state%e + &
-                        HALF*(adv(i,j,k,UMX)**2.0_rt+adv(i,j,k,UMY)**2.0_rt+adv(i,j,k,UMZ)**2.0_rt)/dens_zone
+                        HALF*(adv(i,j,k,UMX)**2+adv(i,j,k,UMY)**2+adv(i,j,k,UMZ)**2)/dens_zone
                 adv(i,j,k,UTEMP) = temp_zone
                 adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
                
@@ -250,7 +247,7 @@ contains
     use probdata_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY,UMZ, UEDEN, UEINT, &
          UFS, UTEMP, const_grav
-    use bl_error_module
+    use amrex_error_module
     use interpolate_module
     use model_parser_module
 
@@ -277,22 +274,22 @@ contains
 
     !     XLO
     if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
-       call bl_error("We shoundn't be here (xlo denfill)")
+       call amrex_error("We shoundn't be here (xlo denfill)")
     end if
 
     !     YLO
     if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
-       call bl_error("We shoundn't be here (ylo denfill)")
+       call amrex_error("We shoundn't be here (ylo denfill)")
     end if
 
 
     !     XHI
     if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
-       call bl_error("We shoundn't be here (xhi denfill)")
+       call amrex_error("We shoundn't be here (xhi denfill)")
     endif
     !     YHI
     if ( bc(2,2,1).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
-       call bl_error("We shoundn't be here (yhi denfill)")
+       call amrex_error("We shoundn't be here (yhi denfill)")
     endif
 
 
@@ -414,7 +411,6 @@ contains
     !YHI
     if ( bc(3,2,1).eq.EXT_DIR .and. rad_h3.gt.domhi(3)) then
        do j=domhi(3)+1,rad_h3
-
           ! zero-gradient catch-all -- this will get the radiation
           ! energy
           rad(rad_l1:rad_h1,rad_l2:rad_h2,j) = rad(rad_l1:rad_h1,rad_l2:rad_h2,domhi(3))

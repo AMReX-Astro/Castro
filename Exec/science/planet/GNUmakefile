@@ -1,6 +1,6 @@
 COMP	         = gnu
 
-DIM              = 2
+DIM              = 3
 
 PRECISION        = DOUBLE
 
@@ -14,12 +14,13 @@ PROFILE          = FALSE
 
 USE_RAD = TRUE
 USE_NEUTRINO = FALSE
-USE_PARTICLES = TRUE
 
 USE_GRAV         = TRUE
 USE_REACT        = FALSE
 USE_MODELPARSER = TRUE
-
+USE_PARTICLE     = FALSE
+USE_SHOCK_VAR    = TRUE
+USE_ROTATION = FALSE
 CASTRO_HOME = ../../..
 
 ifdef MICROPHYSICS_HOME
@@ -29,7 +30,7 @@ EOS_DIR     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null
-NETWORK_INPUTS := ./planet.net
+NETWORK_INPUTS := ./taeho.net
 
 else
 

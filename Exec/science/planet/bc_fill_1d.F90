@@ -1,328 +1,580 @@
-!Aug25
 module bc_fill_module
   use bc_ext_fill_module
-  use bl_constants_module
-  use amrex_fort_module, only : rt => amrex_real
-
+  use amrex_fort_module, only: rt => amrex_real
+  use meth_params_module, only: NVAR
+  use amrex_constants_module
   implicit none
+
   include 'AMReX_bc_types.fi'
+
   public
 
 contains
 
-  subroutine ca_hypfill(adv,adv_l1,adv_h1, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
- 
+  subroutine hypfill(adv, adv_l1, adv_h1, domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: adv_l1, adv_h1
+    integer,  intent(in   ) :: bc(1,2,NVAR)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,NVAR)
+
+    integer  :: lo(3), hi(3)
+
+    lo(1) = adv_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = adv_h1
+    hi(2) = 0
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, adv, lo, hi, NVAR, domlo, domhi, delta, xlo, bc)
+
+  end subroutine hypfill
+
+
+  subroutine ca_hypfill(adv,adv_l1,adv_h1,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
     use probdata_module
-    use meth_params_module, only : NVAR, URHO, UMX,  UEDEN, UEINT, &
+    use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, &
                                    UFS, UTEMP, const_grav, &
                                    hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
-                                   xl_ext, xr_ext, EXT_HSE, EXT_INTERP
+                                   xl_ext,xr_ext, EXT_HSE, EXT_INTERP
     use amrex_fort_module, only : rt => amrex_real
     use interpolate_module
     use eos_module
     use network, only: nspec
     use model_parser_module
-    use bl_error_module
+    use amrex_error_module
     use eos_type_module
 
     include 'AMReX_bc_types.fi'
 
-    integer adv_l1,adv_h1
-    integer bc(1,2,*)
-    integer domlo(1), domhi(1)
-    real(rt) delta(1), xlo(1), time
-    real(rt) adv(adv_l1:adv_h1,NVAR)
-    
-    integer i,j,q,n
-    real(rt) x
-    real(rt) pres_above,p_want,pres_zone
-    real(rt) temp_zone,X_zone(nspec),dens_zone
-    real(rt) :: x_base, dens_base, slope
-  
-    type (eos_t) :: eos_state
-    !Need to fix
-    xl_ext=EXT_HSE
 
-    do n = 1,NVAR
-    call filcc(adv(:,n),adv_l1,adv_h1, &
-    domlo,domhi,delta,xlo,bc(:,:,n))
-    enddo
-    ! XLO -- HSE with linear density profile, T found via iteration
-    ! we do all variables at once here
-    if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
+
+
+    integer,  intent(in   ) :: adv_l1, adv_h1
+    integer,  intent(in   ) :: bc(1,2,NVAR)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,NVAR)
+
+
+    call hypfill(adv, adv_l1, adv_h1, domlo, domhi, delta, xlo, time, bc)
+    if ( bc(1,1,1).eq. FOEXTRAP .and. adv_l1.lt.domlo(1)) then
       if (xl_ext == EXT_HSE) then
-      call ext_fill(adv,adv_l1,adv_h1, &
+         call ext_fill(adv,adv_l1,adv_h1, &
                     domlo,domhi,delta,xlo,time,bc)
-      else
-
-       x_base = xlo(1) + delta(1)*(dble(domlo(1)-adv_l1) + HALF)
-
-          dens_base = adv(domlo(1),URHO)
-
-          ! density slope
-          slope = (adv(domlo(1)+1,URHO) - adv(domlo(1),URHO))/delta(1)
-          do j=domlo(1)-1,adv_l1,-1
-             x = xlo(1) + delta(1)*(dble(j-adv_l1) + HALF)
-             adv(j,:) = adv(j+1,:)
-
-             ! HSE integration to get temperature, pressure
-                    
-             ! density is linear from the last two zones
-             dens_zone = dens_base + slope*(x - x_base)
-
-             ! temperature guess and species held constant in BCs
-             temp_zone = adv(j+1,UTEMP)
-             X_zone(:) = adv(j+1,UFS:UFS-1+nspec)/adv(j+1,URHO)
-             
-             ! get pressure in zone above
-             eos_state%rho = adv(j+1,URHO)
-             eos_state%T = adv(j+1,UTEMP)
-             eos_state%xn(:) = adv(j+1,UFS:UFS-1+nspec)/adv(j+1,URHO)
-             
-             call eos(eos_input_rt, eos_state)
-             
-             pres_above = eos_state%p
-
-             ! pressure needed from HSE
-             p_want = pres_above - &
-                  delta(1)*HALF*(dens_zone + adv(j+1,URHO))*const_grav
-
-             ! EOS with HSE pressure + linear density profile yields T, e, ...
-             eos_state%rho = dens_zone
-             eos_state%T = temp_zone   ! guess
-             eos_state%xn(:) = X_zone(:)
-             eos_state%p = p_want
-
-             call eos(eos_input_rp, eos_state)
-
-            ! velocity
-             if (zero_vels) then
-                
-                ! zero gradient velocity
-                adv(j,UMX) = ZERO
-             else
-                adv(j,UMX) = min(ZERO,dens_zone*(adv(domlo(1),UMX)/adv(domlo(1),URHO)))
-             endif
-
-             adv(j,URHO) = dens_zone
-             adv(j,UEINT) = dens_zone*eos_state%e
-             adv(j,UEDEN) = dens_zone*eos_state%e + &
-                  HALF*(adv(j,UMX)**2.0_rt)/dens_zone
-             adv(j,UTEMP) = eos_state%T
-             adv(j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-             
-          end do
       end if
     end if
 
-  
-  
-    ! XHI
-       if ( bc(1,2,1).eq.EXT_DIR .and. adv_h1.gt.domhi(1)) then
-        if (xr_ext == EXT_HSE) then
-        call bl_error("ERROR: HSE boundaries not implemented for +X")
-        elseif (xr_ext == EXT_INTERP) then
-          call ext_fill(adv,adv_l1,adv_h1, &
-          domlo,domhi,delta,xlo,time,bc)
-        end if
-          do j=domhi(1)+1,adv_h1
-             x = xlo(1) + delta(1)*(dble(j-adv_l1) + HALF)
 
-             !Need to check
-             adv(j,:) = adv(domhi(1),:)
-             dens_zone=adv(domhi(1),URHO)
-             temp_zone=adv(domhi(1),UTEMP)
-                   do q = 1, nspec
-                      X_zone(q) = interpolate(x,npts_model,model_r, &
-                                             model_state(:,ispec_model-1+q))
-                   enddo
-
-                   ! extrap normal momentum
-                   adv(j,UMX) = min(ZERO,adv(domhi(1),UMX))
-                   
-                   ! zero transverse momentum
-
-                   eos_state%rho = dens_zone
-                   eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
-
-                   
-                   call eos(eos_input_rt, eos_state)
-                   
-                   adv(j,URHO) = dens_zone
-                   adv(j,UEINT) = dens_zone*eos_state%e
-                   adv(j,UEDEN) = dens_zone*eos_state%e + &
-                        HALF*(adv(j,UMX)**2.0_rt)/dens_zone
-                   adv(j,UTEMP) = temp_zone
-                   adv(j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-               
-          end do
-    end if
   end subroutine ca_hypfill
-
   
-  subroutine ca_denfill(adv,adv_l1,adv_h1, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
+
+  subroutine denfill(adv, adv_l1, adv_h1, domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: adv_l1, adv_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1)
+
+    integer :: lo(3), hi(3)
+
+    lo(1) = adv_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = adv_h1
+    hi(2) = 0
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, adv, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine denfill
+
+
+  subroutine ca_denfill(adv,adv_l1,adv_h1,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: adv_l1, adv_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1)
+
+    call denfill(adv, adv_l1, adv_h1, domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_denfill
+
+
+
+#ifdef GRAVITY
+  subroutine phigravfill(phi, phi_l1, phi_h1, domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: phi_l1, phi_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: phi(phi_l1:phi_h1)
+
+    integer :: lo(3), hi(3)
+
+    lo(1) = phi_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = phi_h1
+    hi(2) = 0
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine phigravfill
+
+
+  subroutine ca_phigravfill(phi,phi_l1,phi_h1,domlo,domhi,delta,xlo,time,bc) &
+                            bind(C, name="ca_phigravfill")
+
     
-    use probdata_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
-         UFS, UTEMP, const_grav
-    use bl_error_module
-    use interpolate_module
-    use model_parser_module
+    implicit none
+
+    integer,  intent(in   ) :: phi_l1, phi_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: phi(phi_l1:phi_h1)
+
+    call phigravfill(phi, phi_l1, phi_h1, domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_phigravfill
+
+
+
+  subroutine gravxfill(grav, grav_l1, grav_h1, domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
+
     include 'AMReX_bc_types.fi'
-    integer adv_l1,adv_h1
-    integer bc(1,2,*)
-    integer domlo(1), domhi(1)
-    real(rt) delta(1), xlo(1), time
-    real(rt) adv(adv_l1:adv_h1,NVAR)
 
-    integer i,j,q,n
-    real(rt) x
-    real(rt) :: x_base, dens_base, slope
-    real(rt) TOL
+    integer,  intent(in   ) :: grav_l1, grav_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1)
 
-    call filcc(adv,adv_l1,adv_h1,domlo,domhi,delta,xlo,bc)
+    integer :: lo(3), hi(3)
 
-   end subroutine ca_denfill
+    lo(1) = grav_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = grav_h1
+    hi(2) = 0
+    hi(3) = 0
 
-  
-  subroutine ca_gravxfill(grav,grav_l1,grav_h1, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravxfill")
+    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
 
-    use probdata_module
+  end subroutine gravxfill
+
+
+  subroutine ca_gravxfill(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravxfill")
+
     implicit none
-    include 'AMReX_bc_types.fi'
 
-    integer :: grav_l1,grav_h1
-    integer :: bc(1,2,*)
-    integer :: domlo(1), domhi(1)
-    real(rt) delta(1), xlo(1), time
-    real(rt) grav(grav_l1:grav_h1)
-    integer :: i, j
+    integer,  intent(in   ) :: grav_l1, grav_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1)
 
-    call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
-
+    call gravxfill(grav, grav_l1, grav_h1, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_gravxfill
 
 
-  subroutine ca_gravyfill(grav,grav_l1,grav_h1, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravyfill")
 
-    use probdata_module
-    use meth_params_module, only: const_grav
+  subroutine gravyfill(grav, grav_l1, grav_h1, domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
+
     include 'AMReX_bc_types.fi'
 
-    integer :: grav_l1,grav_h1
-    integer :: bc(1,2,*)
-    integer :: domlo(1), domhi(1)
-    real(rt) delta(1), xlo(1), time
-    real(rt) grav(grav_l1:grav_h1)
-    integer :: i, j
+    integer,  intent(in   ) :: grav_l1, grav_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1)
 
-    call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
+    integer :: lo(3), hi(3)
 
+    lo(1) = grav_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = grav_h1
+    hi(2) = 0
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine gravyfill
+
+
+  subroutine ca_gravyfill(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravyfill")
+
+    implicit none
+
+    integer,  intent(in   ) :: grav_l1, grav_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1)
+
+    call gravyfill(grav, grav_l1, grav_h1, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_gravyfill
 
 
-  subroutine ca_gravzfill(grav,grav_l1,grav_h1, &
-                          domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_gravzfill")
+  subroutine gravzfill(grav, grav_l1, grav_h1, domlo, domhi, delta, xlo, time, bc)
 
-    use probdata_module
-    use meth_params_module, only: const_grav
+    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
+
     include 'AMReX_bc_types.fi'
 
-    integer :: grav_l1,grav_h1
-    integer :: bc(1,2,*)
-    integer :: domlo(1), domhi(1)
-    real(rt) delta(1), xlo(1), time
-    real(rt) grav(grav_l1:grav_h1)
-    integer :: i, j
+    integer,  intent(in   ) :: grav_l1, grav_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1)
 
-    call filcc(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,bc)
+    integer :: lo(3), hi(3)
+
+    lo(1) = grav_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = grav_h1
+    hi(2) = 0
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, grav, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine gravzfill
+
+
+  subroutine ca_gravzfill(grav,grav_l1,grav_h1,domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_gravzfill")
+
+    implicit none
+
+    integer,  intent(in   ) :: grav_l1, grav_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: grav(grav_l1:grav_h1)
+
+    call gravzfill(grav, grav_l1, grav_h1, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_gravzfill
+#endif
 
 
-  subroutine ca_reactfill(react,react_l1, &
-                          react_h1,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_reactfill")
 
-    use probdata_module
+#ifdef ROTATION
+  subroutine phirotfill(phi, phi_l1, phi_h1, domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
     implicit none
+
     include 'AMReX_bc_types.fi'
 
-    integer :: react_l1,react_h1
-    integer :: bc(1,2,*)
-    integer :: domlo(1), domhi(1)
-    real(rt) delta(1), xlo(1), time
-    real(rt) react(react_l1:react_h1)
+    integer,  intent(in   ) :: phi_l1, phi_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: phi(phi_l1:phi_h1)
 
-    call filcc(react,react_l1,react_h1,domlo,domhi,delta,xlo,bc)
+    integer :: lo(3), hi(3)
+
+    lo(1) = phi_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = phi_h1
+    hi(2) = 0
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, phi, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine phirotfill
+
+
+  subroutine ca_phirotfill(phi,phi_l1,phi_h1,domlo,domhi,delta,xlo,time,bc) &
+                           bind(C, name="ca_phirotfill")
+
+    implicit none
+
+    integer,  intent(in   ) :: phi_l1, phi_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: phi(phi_l1:phi_h1)
+
+    call phirotfill(phi, phi_l1, phi_h1, domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_phirotfill
+
+
+
+  subroutine rotxfill(rot, rot_l1, rot_h1, domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: rot_l1, rot_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1)
+
+    integer :: lo(3), hi(3)
+
+    lo(1) = rot_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = rot_h1
+    hi(2) = 0
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine rotxfill
+
+
+  subroutine ca_rotxfill(rot,rot_l1,rot_h1,domlo,domhi,delta,xlo,time,bc) &
+                         bind(C, name="ca_rotxfill")
+
+    implicit none
+
+    integer,  intent(in   ) :: rot_l1, rot_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1)
+
+    call rotxfill(rot, rot_l1, rot_h1, domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_rotxfill
+
+
+
+  subroutine rotyfill(rot, rot_l1, rot_h1, domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: rot_l1, rot_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1)
+
+    integer :: lo(3), hi(3)
+
+    lo(1) = rot_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = rot_h1
+    hi(2) = 0
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine rotyfill
+
+
+  subroutine ca_rotyfill(rot,rot_l1,rot_h1,domlo,domhi,delta,xlo,time,bc) &
+                         bind(C, name="ca_rotyfill")
+
+    implicit none
+
+    integer,  intent(in   ) :: rot_l1, rot_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1)
+
+    call rotyfill(rot, rot_l1, rot_h1, domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_rotyfill
+
+
+
+  subroutine rotzfill(rot, rot_l1, rot_h1, domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: rot_l1, rot_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1)
+
+    integer :: lo(3), hi(3)
+
+    lo(1) = rot_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = rot_h1
+    hi(2) = 0
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, rot, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine rotzfill
+
+
+  subroutine ca_rotzfill(rot,rot_l1,rot_h1,domlo,domhi,delta,xlo,time,bc) &
+                         bind(C, name="ca_rotzfill")
+
+    implicit none
+
+    integer,  intent(in   ) :: rot_l1, rot_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: rot(rot_l1:rot_h1)
+
+    call rotzfill(rot, rot_l1, rot_h1, domlo, domhi, delta, xlo, time, bc)
+
+  end subroutine ca_rotzfill
+#endif
+
+
+
+#ifdef REACTIONS
+  subroutine reactfill(react, react_l1, react_h1, domlo, domhi, delta, xlo, time, bc)
+
+    use amrex_filcc_module, only: amrex_filccn
+
+    implicit none
+
+    include 'AMReX_bc_types.fi'
+
+    integer,  intent(in   ) :: react_l1, react_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: react(react_l1:react_h1)
+
+    integer :: lo(3), hi(3)
+
+    lo(1) = react_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = react_h1
+    hi(2) = 0
+    hi(3) = 0
+
+    call amrex_filccn(lo, hi, react, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+
+  end subroutine reactfill
+
+
+  subroutine ca_reactfill(react,react_l1,react_h1,domlo,domhi,delta,xlo,time,bc) &
+                          bind(C, name="ca_reactfill")
+
+    implicit none
+
+    integer,  intent(in   ) :: react_l1, react_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: react(react_l1:react_h1)
+
+    call reactfill(react, react_l1, react_h1, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_reactfill
+#endif
 
 
-  subroutine ca_radfill(rad,rad_l1, &
-                        rad_h1,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_radfill")
 
+#ifdef RADIATION
+  subroutine radfill(rad, rad_l1, rad_h1, domlo, domhi, delta, xlo, time, bc)
 
-    use probdata_module
+    use amrex_filcc_module, only: amrex_filccn
+
     implicit none
+
     include 'AMReX_bc_types.fi'
 
-    integer :: rad_l1,rad_h1
-    integer :: bc(1,2,*)
-    integer :: domlo(1), domhi(1)
-    real(rt) delta(1), xlo(1), time
-    real(rt) rad(rad_l1:rad_h1)
+    integer,  intent(in   ) :: rad_l1, rad_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: rad(rad_l1:rad_h1)
 
-    integer :: j
+    integer :: lo(3), hi(3)
 
-    call filcc(rad,rad_l1,rad_h1,domlo,domhi,delta,xlo,bc)
+    lo(1) = rad_l1
+    lo(2) = 0
+    lo(3) = 0
+    hi(1) = rad_h1
+    hi(2) = 0
+    hi(3) = 0
 
-    if ( bc(1,1,1).eq.EXT_DIR .and. rad_l1.lt.domlo(1)) then
-       do j=rad_l1, domlo(1)-1
+    call amrex_filccn(lo, hi, rad, lo, hi, 1, domlo, domhi, delta, xlo, bc)
+  end subroutine radfill
 
-          rad(j) = rad(domlo(1))
-       enddo
-    endif
 
-    if ( bc(1,2,1).eq.EXT_DIR .and. rad_h1.gt.domhi(1)) then
-       do j = domhi(1)+1, rad_h1
-          rad(j) = rad(domhi(1))
-       end do
-    end if
+  subroutine ca_radfill(rad,rad_l1,rad_h1,domlo,domhi,delta,xlo,time,bc) &
+                        bind(C, name="ca_radfill")
 
+    implicit none
+
+    integer,  intent(in   ) :: rad_l1, rad_h1
+    integer,  intent(in   ) :: bc(1,2)
+    integer,  intent(in   ) :: domlo(1), domhi(1)
+    real(rt), intent(in   ) :: delta(1), xlo(1), time
+    real(rt), intent(inout) :: rad(rad_l1:rad_h1)
+
+    call radfill(rad, rad_l1, rad_h1, domlo, domhi, delta, xlo, time, bc)
 
   end subroutine ca_radfill
-
-  
-  subroutine ca_phigravfill(phi,phi_l1, &
-                            phi_h1,domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_phigravfill")
-
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer          :: phi_l1,phi_h1
-    integer          :: bc(1,2,*)
-    integer          :: domlo(1), domhi(1)
-    real(rt) :: delta(1), xlo(1), time
-    real(rt) :: phi(phi_l1:phi_h1)
-
-    call filcc(phi,phi_l1,phi_h1, &
-         domlo,domhi,delta,xlo,bc)
-
-  end subroutine ca_phigravfill
+#endif
 
 end module bc_fill_module

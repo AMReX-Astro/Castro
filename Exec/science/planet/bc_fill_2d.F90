@@ -1,7 +1,6 @@
-!AUG10
 module bc_fill_module
   use bc_ext_fill_module
-  use bl_constants_module
+  use amrex_constants_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -11,8 +10,9 @@ module bc_fill_module
 contains
 
   subroutine ca_hypfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_hypfill")
- 
+                        domlo,domhi,delta,xlo,time,bc) &
+                        bind(C, name="ca_hypfill")
+
     use probdata_module
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
                                    UFS, UTEMP, const_grav, &
@@ -23,17 +23,19 @@ contains
     use eos_module
     use network, only: nspec
     use model_parser_module
-    use bl_error_module
+    use amrex_error_module
     use eos_type_module
 
     include 'AMReX_bc_types.fi'
 
-    integer adv_l1,adv_l2,adv_h1,adv_h2
-    integer bc(2,2,*)
-    integer domlo(2), domhi(2)
-    real(rt) delta(2), xlo(2), time
-    real(rt) adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
-    
+
+
+    integer,  intent(in   ) :: adv_l1, adv_l2, adv_h1, adv_h2
+    integer,  intent(in   ) :: bc(2,2,*)
+    integer,  intent(in   ) :: domlo(2), domhi(2)
+    real(rt), intent(in   ) :: delta(2), xlo(2), time
+    real(rt), intent(inout) :: adv(adv_l1:adv_h1,adv_l2:adv_h2,NVAR)
+
     integer i,j,q,n
     real(rt) y
     real(rt) pres_above,p_want,pres_zone
@@ -41,12 +43,13 @@ contains
     real(rt) :: y_base, dens_base, slope
   
     type (eos_t) :: eos_state
-    !need to fix
-    yl_ext=EXT_HSE
+
     do n = 1,NVAR
-    call filcc(adv(:,:,n),adv_l1,adv_l2,adv_h1,adv_h2, &
-    domlo,domhi,delta,xlo,bc(:,:,n))
+      call filcc(adv(:,:,n),adv_l1,adv_l2,adv_h1,adv_h2,&
+      domlo,domhi,delta,xlo,bc(:,:,n))
     enddo
+
+    ! process the external BCs here
     do n = 1, NVAR
          
        ! XLO
@@ -65,17 +68,14 @@ contains
         
        end if
 
-        if (xr_ext == EXT_HSE .or. xl_ext == EXT_HSE .or. xr_ext == EXT_INTERP .or. &
-        xl_ext == EXT_INTERP) then
-        call bl_error("ERROR: HSE boundaries not implemented for +,- X")
-        end if
-
-
+       if (xr_ext == EXT_HSE .or. xl_ext == EXT_HSE .or. xr_ext == EXT_INTERP .or. &
+          xl_ext == EXT_INTERP) then
+          call bl_error("ERROR: HSE boundaries not implemented for +,- X")
+       end if
 
     enddo
 
-
-    if ( bc(2,1,1).eq.EXT_DIR .and. adv_l2.lt.domlo(2)) then
+    if ( bc(2,1,1).eq.FOEXTRAP .and. adv_l2.lt.domlo(2)) then
       if (yl_ext == EXT_HSE) then
       call ext_fill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
                     domlo,domhi,delta,xlo,time,bc)
@@ -144,7 +144,7 @@ contains
              adv(i,j,URHO) = dens_zone
              adv(i,j,UEINT) = dens_zone*eos_state%e
              adv(i,j,UEDEN) = dens_zone*eos_state%e + & 
-                  HALF*(adv(i,j,UMX)**2.0_rt+adv(i,j,UMY)**2.0_rt)/dens_zone
+                  HALF*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/dens_zone
              adv(i,j,UTEMP) = eos_state%T
              adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
              
@@ -156,7 +156,7 @@ contains
   
   
     ! YHI
-       if ( bc(2,2,URHO).eq.EXT_DIR .and. adv_h2.gt.domhi(2)) then
+       if ( bc(2,2,URHO).eq.FOEXTRAP .and. adv_h2.gt.domhi(2)) then
 
         if (yr_ext == EXT_HSE) then
         call bl_error("ERROR: HSE boundaries not implemented for +Y")
@@ -196,7 +196,7 @@ contains
                    adv(i,j,URHO) = dens_zone
                    adv(i,j,UEINT) = dens_zone*eos_state%e
                    adv(i,j,UEDEN) = dens_zone*eos_state%e + &
-                        HALF*(adv(i,j,UMX)**2.0_rt+adv(i,j,UMY)**2.0_rt)/dens_zone
+                        HALF*(adv(i,j,UMX)**2+adv(i,j,UMY)**2)/dens_zone
                    adv(i,j,UTEMP) = temp_zone
                    adv(i,j,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
                
@@ -204,42 +204,34 @@ contains
              end do
           end do
        end if
-
+     
 
   end subroutine ca_hypfill
 
-  
+
+
   subroutine ca_denfill(adv,adv_l1,adv_l2,adv_h1,adv_h2, &
-                        domlo,domhi,delta,xlo,time,bc) bind(C, name="ca_denfill")
-    
+                        domlo,domhi,delta,xlo,time,bc) &
+                        bind(C, name="ca_denfill")
     use probdata_module
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, &
+    use meth_params_module, only : NVAR, URHO, UMX, UMY,UMZ, UEDEN, UEINT, &
          UFS, UTEMP, const_grav
-    use bl_error_module
+    use amrex_error_module
     use interpolate_module
     use model_parser_module
-
     implicit none
     include 'AMReX_bc_types.fi'
+
     integer adv_l1,adv_l2,adv_h1,adv_h2
     integer bc(2,2,*)
     integer domlo(2), domhi(2)
     real(rt) delta(2), xlo(2), time
     real(rt) adv(adv_l1:adv_h1,adv_l2:adv_h2)
 
-    integer i,j,q,n
-    real(rt) y
-    real(rt) :: y_base, dens_base, slope
-    real(rt) TOL
-
-    ! Note: this function should not be needed, technically, but is
-    ! provided to filpatch because there are many times in the algorithm
-    ! when just the density is needed.  We try to rig up the filling so
-    ! that the same function is called here and in hypfill where all the
-    ! states are filled.
 
     call filcc(adv,adv_l1,adv_l2,adv_h1,adv_h2,domlo,domhi,delta,xlo,bc)
 
+    ! process the external BCs here
     !     XLO
     if ( bc(1,1,1).eq.EXT_DIR .and. adv_l1.lt.domlo(1)) then
        call bl_error("We shoundn't be here (xlo denfill)")
@@ -250,10 +242,8 @@ contains
        call bl_error("We shoundn't be here (xlo denfill)")
     endif
 
-
   end subroutine ca_denfill
 
-  
   subroutine ca_gravxfill(grav,grav_l1,grav_l2,grav_h1,grav_h2, &
                           domlo,domhi,delta,xlo,time,bc) bind(C)
 
@@ -266,10 +256,9 @@ contains
     integer :: domlo(2), domhi(2)
     real(rt) delta(2), xlo(2), time
     real(rt) grav(grav_l1:grav_h1,grav_l2:grav_h2)
-    integer :: i, j
+
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
-
 
   end subroutine ca_gravxfill
 
@@ -288,7 +277,7 @@ contains
     integer :: domlo(2), domhi(2)
     real(rt) delta(2), xlo(2), time
     real(rt) grav(grav_l1:grav_h1,grav_l2:grav_h2)
-    integer :: i, j
+
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
@@ -310,11 +299,11 @@ contains
     integer :: domlo(2), domhi(2)
     real(rt) delta(2), xlo(2), time
     real(rt) grav(grav_l1:grav_h1,grav_l2:grav_h2)
-    integer :: i, j
+    integer :: i, j,k
 
     call filcc(grav,grav_l1,grav_l2,grav_h1,grav_h2,domlo,domhi,delta,xlo,bc)
 
- 
+
   end subroutine ca_gravzfill
 
 
@@ -370,7 +359,6 @@ contains
     !YHI
     if ( bc(2,2,1).eq.EXT_DIR .and. rad_h2.gt.domhi(2)) then
        do j=domhi(2)+1,rad_h2
-
           ! zero-gradient catch-all -- this will get the radiation
           ! energy
           rad(rad_l1:rad_h1,j) = rad(rad_l1:rad_h1,domhi(2))
@@ -381,7 +369,7 @@ contains
   end subroutine ca_radfill
 
 
-  subroutine ca_phigravfill(phi,phi_l1,phi_l2, &
+  subroutine ca_phigravfill(phi,phi_l1,phi_l2,&
                             phi_h1,phi_h2,domlo,domhi,delta,xlo,time,bc) bind(C)
 
     implicit none
