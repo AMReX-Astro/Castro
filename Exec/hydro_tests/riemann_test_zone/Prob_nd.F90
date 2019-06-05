@@ -10,9 +10,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer :: init, namlen
-  integer :: name(namlen)
-  real(rt) :: problo(2), probhi(2)
+  integer,  intent(in) :: init, namlen
+  integer,  intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(3), probhi(3)
 
   real(rt), pointer :: ql(:,:,:,:), qr(:,:,:,:)
   real(rt), pointer :: qint(:,:,:,:), qaux(:,:,:,:)
@@ -132,22 +132,18 @@ end subroutine amrex_probinit
 ! :::              right hand corner of grid.  (does not include
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
-subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_l2,state_h1,state_h2, &
-                       delta,xlo,xhi)
+subroutine ca_initdata(level, time, lo, hi, nscal, &
+                       state, s_lo, s_hi, &
+                       delta, xlo, xhi)
 
-  use probdata_module
-  use amrex_constants_module, only: M_PI, FOUR3RD
-  use meth_params_module , only: NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS
-  use prob_params_module, only : center
+  use meth_params_module , only: NVAR
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer :: level, nscal
-  integer :: lo(2), hi(2)
-  integer :: state_l1,state_l2,state_h1,state_h2
-  real(rt)         :: xlo(2), xhi(2), time, delta(2)
-  real(rt)         :: state(state_l1:state_h1,state_l2:state_h2,NVAR)
-
+  integer,  intent(in   ) :: level, nscal
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: s_lo(3), s_hi(3)
+  real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
+  real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
 
 end subroutine ca_initdata
