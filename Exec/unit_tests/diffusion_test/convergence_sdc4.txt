@@ -1,0 +1,13 @@
+# Testing convergence of the SDC-4 method in 1-d
+# (we cannot use spherical, since we don't have 4th order for that)
+#
+# ./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=64
+# ./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=128
+# ./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256
+# ./Castro1d.gnu.ex inputs.1d castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=512
+
+ 64   8.639542243e-05
+128   5.84073812e-06
+256   3.725743019e-07
+512   2.340631822e-08
+
