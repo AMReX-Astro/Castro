@@ -743,8 +743,8 @@ usually results in a more accurate evolution.</li>
 <li><code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code> = 3 : we do the same momentum update as
 the previous two, but for the energy update, we put all of the work
 into updating the kinetic energy alone. In particular, we explicitly
-ensure that <span class="math notranslate nohighlight">\((rho e)\)</span> maintains the same, and update
-<span class="math notranslate nohighlight">\((rho K)\)</span> with the work due to gravity, adding the new kinetic
+ensure that <span class="math notranslate nohighlight">\((\rho e)\)</span> remains the same, and update
+<span class="math notranslate nohighlight">\((\rho K)\)</span> with the work due to gravity, adding the new kinetic
 energy to the old internal energy to determine the final total gas
 energy. The physical motivation is that work should be done on the
 velocity, and should not directly update the temperature—only
