@@ -5,8 +5,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use model_parser_module
   use amrex_error_module
   use amrex_constants_module
+
   use amrex_fort_module, only : rt => amrex_real
   use meth_params_module, only : const_grav
+
 
   implicit none
 
@@ -17,10 +19,11 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt) :: offset
   integer untin,i
 
-  namelist /fortin/ model_name, apply_vel_field, &
-       velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
+  namelist /fortin/ model_name, apply_vel_field,shear_vel_field, &
+       velpert_scale, velpert_amplitude, velpert_height_loc, shear_height, & 
+       shear_width_x, shear_width_y,  num_vortices, &
        shear_height_loc, shear_amplitude, &
-       cutoff_density
+       cutoff_density, interp_BC, zero_vels
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -31,7 +34,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! the name of file containing fortin namelist.
 
 
-  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
+  if (namlen .gt. maxlen) call bl_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -45,6 +48,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   velpert_height_loc = 6.5e3_rt
   num_vortices = 1
   cutoff_density = 50.e0_rt
+  interp_BC = .false.
+  zero_vels = .false.
   shear_height_loc = 0.0d0
   
   ! Read namelists
@@ -120,12 +125,11 @@ end subroutine amrex_probinit
 subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_l1,state_l2,state_h1,state_h2, &
                        delta,xlo,xhi)
-
   use amrex_constants_module
   use probdata_module
   use interpolate_module
   use eos_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only : NVAR, URHO, UMX, UMY,UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only: nspec
   use model_parser_module
   use eos_type_module
@@ -146,7 +150,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
 
   do j = lo(2), hi(2)
-     y = xlo(2) + delta(2)*(float(j-lo(2)) + HALF)
+     y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
      do i = lo(1), hi(1)
 
         state(i,j,URHO)  = interpolate(y,npts_model,model_r, &
@@ -162,8 +166,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         
         eos_state%rho = state(i,j,URHO)
         eos_state%T = state(i,j,UTEMP)
-        eos_state%xn(:) = state(i,j,UFS:UFS-1+nspec)
-
+        eos_state%xn(:) = state(i,j,UFS:UFS+nspec-1)
         call eos(eos_input_rt, eos_state)
         state(i,j,UEINT) = eos_state%e
 
@@ -199,8 +202,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
 
            if (y >= shear_height_loc) then 
-              state(:,:,UMX) = state(:,:,URHO)*shear_amplitude
-              state(:,:,UMY) = ZERO
+              state(:,j,UMX) = state(:,j,URHO)*shear_amplitude
+              state(:,j,UMY) = ZERO
            endif
            
            upert = ZERO
@@ -210,14 +213,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
               xdist = x - xloc_vortices(vortex)
 
-              r = sqrt(xdist**2.0_rt + ydist**2.0_rt)
+              r = sqrt(xdist**2 + ydist**2)
 
               upert(1) = upert(1) - (ydist/velpert_scale) * &
-                   velpert_amplitude * exp( -r**2.0_rt/(TWO*velpert_scale**2.0_rt)) &
-                   * (ONE)**vortex
+                   velpert_amplitude * exp( -r**2/(TWO*velpert_scale**2)) &
+                   * (-ONE)**vortex
 
               upert(2) = upert(2) + (xdist/velpert_scale) * &
-                   velpert_amplitude * exp(-r**2.0_rt/(TWO*velpert_scale**2.0_rt)) &
+                   velpert_amplitude * exp(-r**2/(TWO*velpert_scale**2)) &
                    * (-ONE)**vortex
 
            enddo
@@ -225,8 +228,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,UMX) = state(i,j,UMX) + state(i,j,URHO) * upert(1)
            state(i,j,UMY) = state(i,j,UMY) + state(i,j,URHO) * upert(2)
 
-           state(i,j,UEDEN) = state(i,j,UEDEN) + HALF*(state(i,j,UMX)**2.0_rt &
-            + state(i,j,UMY)**2.0_rt)/state(i,j,URHO)
+           state(i,j,UEDEN) = state(i,j,UEDEN) + HALF*(state(i,j,UMX)**2 &
+            + state(i,j,UMY)**2)/state(i,j,URHO)
         end do
      end do
 
@@ -240,8 +243,7 @@ subroutine ca_initrad(level,time,lo,hi,nrad, &
                       rad_state,rad_state_l1,rad_state_l2, &
                       rad_state_h1,rad_state_h2, &
                       delta,xlo,xhi)
-  
-  use amrex_constants_module
+  use amrex_constants_module  
   use probdata_module
   use amrex_fort_module, only : rt => amrex_real
 
