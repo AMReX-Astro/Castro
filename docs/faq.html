@@ -291,7 +291,7 @@ I get more information?</em></p>
 <p>The best thing to do is to recompile the code with TEST=TRUE
 set in the GNUmakefile. This will have AMReX&nbsp;catch the
 signals raised in both C&nbsp;and Fortran functions. Behind the
-scenes, this defines the BL_TESTING preprocessor flag, which
+scenes, this defines the AMREX_TESTING preprocessor flag, which
 will initialize memory allocated in fabs or multifabs to
 signaling NaNs (sNaN), and use the BLBackTrace::handler()
 function to handle various signals raised in both C&nbsp;and Fortran
@@ -316,7 +316,7 @@ example. You know the line “Real rho = state(cell,0);” is
 causing a segfault. You could add a print statement before that.
 But it might print out thousands (or even millions) of line before
 it hits the segfault. With BACKTRACE, you could do</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#ifdef BL_BACKTRACING
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#ifdef AMREX_BACKTRACING
    std::ostringstream ss;
    ss &lt;&lt; ``state.box() = `` &lt;&lt; state.box() &lt;&lt; `` cell = `` &lt;&lt; cell;
    BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
