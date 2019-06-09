@@ -55,11 +55,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   interp_model = .false.
   model_file = ""
 
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(untin)
-
   ! defaults
   fuel1_name = "helium-4"
   X_fuel1 = 1.0
@@ -84,6 +79,12 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   ash4_name = ""
   X_ash4 = 0.0
+
+  ! Read namelists
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
+  read(untin, fortin)
+  close(untin)
+
 
   ifuel1 = network_species_index(fuel1_name)
   iash1 = network_species_index(ash1_name)
