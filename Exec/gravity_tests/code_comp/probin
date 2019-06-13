@@ -1,6 +1,8 @@
 &fortin
 
-  model_name =  "WD_rhoc_2.e9_M_1.1.hse.2560"
+  model_name =  "hcore.dat"
+
+  heating_factor = 1.e3
 
 /
 
@@ -35,8 +37,14 @@
 
 &sponge
 
-  sponge_upper_density = 1.d4
-  sponge_lower_density = 1.d2
-  sponge_timescale     = 1.d-3
+  sponge_lower_radius  = 2.42d11
+  sponge_upper_radius  = 2.55d11
+  sponge_timescale     = 1.d1
+
+/
+
+&extern
+
+  eos_assume_neutral = T
 
 /

@@ -5,6 +5,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use model_parser_module
   use amrex_error_module
   use prob_params_module, only : center
+  use probdata_module, only : heating_factor
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -15,7 +16,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer :: untin, i
 
   namelist /fortin/ &
-       model_name
+       model_name, heating_factor
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 127
@@ -30,6 +31,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   end do
 
   ! set namelist defaults
+
+  heating_factor = 1.e3_rt
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -105,7 +108,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                    state_lo(2):state_hi(2), &
                                    state_lo(3):state_hi(3), NVAR)
 
-  real(rt) :: xcen, ycen, zcen, dist, pres
+  real(rt) :: xcen, ycen, zcen, dist, pres, sum_X
   integer :: i, j, k, n
 
   type(eos_t) :: eos_state
@@ -122,24 +125,23 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            dist = sqrt(xcen**2 + ycen**2 + zcen**2)
 
            state(i,j,k,URHO)  = interpolate(dist,npts_model,model_r,model_state(:,idens_model))
-           state(i,j,k,UTEMP) = interpolate(dist,npts_model,model_r,model_state(:,itemp_model))
+
+           pres = interpolate(dist,npts_model,model_r,model_state(:,ipres_model))
 
            do n = 1, nspec
               state(i,j,k,UFS-1+n) = interpolate(dist,npts_model,model_r,model_state(:,ispec_model-1+n))
            enddo
 
-        enddo
-     enddo
-  enddo
+           ! normalize species
+           state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,UFS:UFS+nspec-1) / sum(state(i,j,k,UFS:UFS+nspec-1))
 
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
            eos_state%rho = state(i,j,k,URHO)
-           eos_state%T = state(i,j,k,UTEMP)
+           eos_state%p = pres
            eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
 
-           call eos(eos_input_rt, eos_state)
+           call eos(eos_input_rp, eos_state)
+
+           state(i,j,k,UTEMP) = eos_state%T
 
            state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state%e
            state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state%e
@@ -151,6 +153,26 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         enddo
      enddo
   enddo
+
+  ! do k = lo(3), hi(3)
+  !    do j = lo(2), hi(2)
+  !       do i = lo(1), hi(1)
+  !          eos_state%rho = state(i,j,k,URHO)
+  !          eos_state%T = state(i,j,k,UTEMP)
+  !          eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
+  !
+  !          call eos(eos_input_rt, eos_state)
+  !
+  !          state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state%e
+  !          state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state%e
+  !
+  !          do n = 1,nspec
+  !             state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
+  !          end do
+  !
+  !       enddo
+  !    enddo
+  ! enddo
 
   ! Initial velocities = 0
   state(:,:,:,UMX:UMZ) = ZERO

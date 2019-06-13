@@ -4,7 +4,7 @@ module prescribe_grav_module
   implicit none
 
 contains
-  
+
   subroutine ca_prescribe_grav (lo,hi,grav,g_lo,g_hi,dx) &
        bind(C, name="ca_prescribe_grav")
 
@@ -26,7 +26,7 @@ contains
     !     real(rt)         :: r_c, rho_c
 
     !     This is an example of how to specify a radial profile.
-    !     Note that in this example r_c and rho_c could be saved 
+    !     Note that in this example r_c and rho_c could be saved
     !     in another module instead, like a probdata_module.
     !     Note also that you'll have to be careful if you're working
     !     in fewer than three dimensions; you may want to set
@@ -36,7 +36,7 @@ contains
     !     rho_c = 1.0e8_rt
     !
     !     do k = lo(3), hi(3)
-    !        if (dim .eq. 3) then      
+    !        if (dim .eq. 3) then
     !           z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
     !        else
     !           z = ZERO

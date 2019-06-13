@@ -5,7 +5,7 @@ PROFILE    = FALSE
 
 DEBUG      = FALSE
 
-DIM        = 2
+DIM        = 3
 
 COMP	   = gnu
 
@@ -19,11 +19,11 @@ DIMENSION_AGNOSTIC = TRUE
 ifdef MICROPHYSICS_HOME
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-EOS_DIR     := helmholtz
+EOS_DIR     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null
-GENERAL_NET_INPUTS = $(MICROPHYSICS_HOME)/networks/$(NETWORK_DIR)/ignition_wdconvect.net
+GENERAL_NET_INPUTS = simple.net
 
 else
 
