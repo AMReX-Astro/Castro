@@ -173,7 +173,7 @@ contains
     ! This assumes that the model data is uniformly spaced and that we
     ! are properly nested between the grid and the model.
 
-    use amrex_constants_module, only : HALF
+    use amrex_constants_module, only : ZERO, HALF
     use amrex_error_module, only : amrex_error
     use amrex_fort_module, only : rt => amrex_real
 
@@ -185,7 +185,7 @@ contains
     ! Local variables
     integer :: n
     integer :: ileft, iright, npts
-    real(rt) :: x_model, x_model_l, x_model_r, dx
+    real(rt) :: x_model, x_model_l, x_model_r, dx, xscale
     real(rt), parameter :: tol = 1.e-12_rt
     !$gpu
 
@@ -201,7 +201,13 @@ contains
        x_model_l = x_model - HALF*dx
        x_model_r = x_model + HALF*dx
 
-       if (abs(x_model_l - xl) < tol*abs(xl)) then
+       if (xl == ZERO) then
+          xscale = 1
+       else
+          xscale = abs(xl)
+       endif
+
+       if (abs(x_model_l - xl) < tol*xscale) then
           if (ileft > 0) then
              call amrex_error("Error: ileft already set")
           else
@@ -217,6 +223,9 @@ contains
           end if
        end if
 
+       if (ileft >= 0 .and. iright >= 0) then
+          exit
+       end if
     end do
 
     if (ileft == -1 .or. iright == -1) then

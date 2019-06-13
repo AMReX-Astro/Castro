@@ -1,13 +1,13 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 500000
 
-stop_time    = 5.e-4
+stop_time    = 4.e-5
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0
-geometry.prob_hi     = 1024.0
+geometry.prob_hi     = 512.0
 amr.n_cell           = 1024
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -23,7 +23,16 @@ castro.do_hydro = 1
 castro.do_react = 1
 
 castro.time_integration_method = 2
-castro.sdc_order = 2
+castro.sdc_order = 4
+
+castro.sdc_solve_for_rhoe = 1
+castro.sdc_solver_tol_dens = 1.e-10
+castro.sdc_solver_tol_spec = 1.e-10
+castro.sdc_solver_tol_ener = 1.e-6
+castro.sdc_solver_atol = 1.e-10
+castro.sdc_solver = 1
+castro.sdc_use_analytic_jac = 1
+castro.sdc_solver_relax_factor = 1
 
 castro.small_temp = 1.e6
 castro.small_dens = 1.e-5
