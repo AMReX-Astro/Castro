@@ -3142,7 +3142,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
                             tagval, clearval, time, level);
             }
-#ifdef REACTION
+#ifdef REACTIONS
             else if (err_list_names[j] == "t_sound_t_enuc") {
 #pragma gpu
                 ca_nucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
