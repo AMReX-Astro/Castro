@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=f2e7sdc4
+#SBATCH --job-name=f3alpha
 #SBATCH --account=m3018
-#SBATCH --nodes=1
+#SBATCH --nodes=2
 #SBATCH --tasks-per-node=32
 #SBATCH --qos=regular
 #SBATCH --time=02:00:00
@@ -13,7 +13,7 @@
 export OMP_NUM_THREADS=1
 
 
-slack_job_start.py "starting flame problem @ NERSC" @michael
+slack_job_start.py "starting flame_runs_triple_alpha problem @ NERSC" @michael
 
 export CASTRO_EXEC=./Castro1d.intel.haswell.MPI.ex
 
@@ -25,7 +25,8 @@ function find_chk_file {
 
     # find the latest 2 restart files.  This way if the latest didn't
     # complete we fall back to the previous one.
-    temp_files=$(find . -type d -name "${chk}" -print | sort | tail -2)
+    #temp_files=$(find . -type d -name "${chk}" -print | sort | tail -2)
+    temp_files=$(find . -maxdepth 1 -name "${chk}" -print | sort | tail -2)
     restartFile=""
     for f in ${temp_files}
     do
@@ -54,8 +55,7 @@ NZONES="
 1024
 2048
 4096
-8192
-16384"
+8192"
 
 
 
@@ -64,8 +64,8 @@ RUNPARAMS="
 castro.sdc_order=4
 castro.time_integration_method=2
 castro.sdc_solve_for_rhoe=1
-castro.sdc_solver_tol_dens=1.e-8
-castro.sdc_solver_tol_spec=1.e-8
+castro.sdc_solver_tol_dens=1.e-10
+castro.sdc_solver_tol_spec=1.e-10
 castro.sdc_solver_tol_ener=1.e-6
 castro.sdc_solver_atol=1.e-10
 castro.sdc_solver=1
@@ -88,7 +88,14 @@ do
             fi
         done
 
-        find_chk_file "*chk??????"
+        slack_job_start.py "checking ${rdir} for restart" @michael
+
+        find_chk_file "*chk???????"
+
+        if [ "${restartFile}" = "" ]; then
+            # look for 6-digit chk files
+            find_chk_file "*chk??????"
+        fi
 
         if [ "${restartFile}" = "" ]; then
             # look for 5-digit chk files

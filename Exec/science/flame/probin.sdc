@@ -8,6 +8,8 @@
   ash1_name = "nickel-56"
   X_ash1 = 1.0
 
+  smallx = 1.d-10
+
   pert_frac = 0.4d0
   pert_delta = 0.03d0
 
