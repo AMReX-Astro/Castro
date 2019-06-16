@@ -24,4 +24,6 @@ module probdata_module
 
   real(rt), save :: v_inflow, mass_flux
 
+  real(rt), save :: smallx
+
 end module probdata_module

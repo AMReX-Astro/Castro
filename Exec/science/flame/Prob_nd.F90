@@ -29,7 +29,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
                     fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
                     ash1_name, ash2_name, ash3_name, ash4_name, &
                     X_fuel1, X_fuel2, X_fuel3, X_fuel4, X_ash1, X_ash2, X_ash3, X_ash4, &
-                    interp_model, model_file
+                    interp_model, model_file, smallx
 
   ! Build "probin" filename -- the name of file containing
   ! fortin namelist.
@@ -80,6 +80,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   ash4_name = ""
   X_ash4 = 0.0
 
+  smallx = 0.0
+
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin, fortin)
@@ -103,8 +105,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   endif
 
   ! fuel state
-  xn_fuel(:) = ZERO
-  xn_ash(:) = ZERO
+  xn_fuel(:) = smallx
+  xn_ash(:) = smallx
 
   if (ifuel1 > 0) then
      xn_fuel(ifuel1) = X_fuel1
