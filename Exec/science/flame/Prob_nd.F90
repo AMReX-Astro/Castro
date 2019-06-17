@@ -52,7 +52,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   T_ash = ONE
   v_inflow = ZERO
 
-  interp_model = .false.
+  interp_model = 0
   model_file = ""
 
   ! defaults
@@ -170,7 +170,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   ! if we are going to conservatively interpolate the model from a
   ! model file instead of initializing from start, let's set that up
   ! now
-  if (interp_model) then
+  if (interp_model > 0) then
      call read_conserved_model_file(model_file)
   end if
 
@@ -210,7 +210,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use amrex_constants_module
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
-  use conservative_map_module, only : interpolate_conservative
+  use conservative_map_module, only : interpolate_conservative, interpolate_avg_to_center
 
   implicit none
 
@@ -226,7 +226,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   type (eos_t) :: eos_state
 
-  if (.not. interp_model) then
+  if (interp_model == 0) then
 
      L = probhi(1) - problo(1)
      x_int = problo(1) + pert_frac*L
@@ -258,7 +258,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         end do
      end do
 
-  else
+  else if (interp_model == 1) then
 
      ! we are going to do a conservative interpolation of a
      ! (presumably higher-resolution) model onto our grid.
@@ -274,6 +274,40 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                  call interpolate_conservative(val, xl, xr, n)
                  state(i,j,k,n) = val
               end do
+
+           end do
+        end do
+     end do
+
+  else
+
+     ! we are going to use a conservative interpolant to convert from
+     ! the cell-averages in the model to the cell-center on our grid.
+     ! We will then make everything thermodynamically consistent and
+     ! leave it to the post init to convert to cell-averages.
+
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+
+              xl = problo(1) + delta(1)*(dble(i))
+              xr = problo(1) + delta(1)*(dble(i) + ONE)
+
+              do n = 1, NVAR
+                 call interpolate_avg_to_center(val, xl, xr, n)
+                 state(i,j,k,n) = val
+              end do
+
+              ! we will respect the thermodynamics, so lets use rho,
+              ! X, and T to define the energy.
+              eos_state % rho = state(i,j,k,URHO)
+              eos_state % T = state(i,j,k,UTEMP)
+              eos_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec) / eos_state % rho
+
+              call eos(eos_input_rt, eos_state)
+
+              state(i,j,k,UEINT) = eos_state % rho * eos_state % e
+              state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * state(i,j,k,UMX)**2 / eos_state % rho
 
            end do
         end do
