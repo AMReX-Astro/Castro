@@ -94,8 +94,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   ifuel2 = network_species_index(fuel2_name)
   iash2 = network_species_index(ash2_name)
 
-  ifuel3 = network_species_index(fuel4_name)
-  iash3 = network_species_index(ash4_name)
+  ifuel3 = network_species_index(fuel3_name)
+  iash3 = network_species_index(ash3_name)
 
   ifuel4 = network_species_index(fuel4_name)
   iash4 = network_species_index(ash4_name)
