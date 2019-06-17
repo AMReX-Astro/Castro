@@ -29,7 +29,7 @@ module conservative_map_module
 
   integer, parameter :: MAX_VARNAME_LENGTH=80
 
-  public :: read_conserved_model_file, close_conserved_model_file
+  public :: read_conserved_model_file, close_conserved_model_file, interpolate_conservative
 
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: model_state, model_r, npts_model
@@ -237,6 +237,86 @@ contains
     return
 
   end function get_model_npts
+
+
+  subroutine interpolate_conservative(interp, xl, xr, var_index)
+    ! This interpolation routine is for conservative data at a
+    ! different (assumed coarser) resolution than the model data.  We
+    ! come in with the left and right edges of our zone, xl and xr,
+    ! and we will average all of the model zones that fall inbetween
+    ! as the interpolated value.
+    !
+    ! This assumes that the model data is uniformly spaced and that we
+    ! are properly nested between the grid and the model.
+
+    use amrex_constants_module, only : ZERO, HALF
+    use amrex_error_module, only : amrex_error
+    use amrex_fort_module, only : rt => amrex_real
+
+    real(rt), intent(out) :: interp
+    real(rt), intent(in) :: xl, xr
+    integer, intent(in) :: var_index
+
+    ! Local variables
+    integer :: n
+    integer :: ileft, iright, npts
+    real(rt) :: x_model, x_model_l, x_model_r, dx, xscale
+    real(rt), parameter :: tol = 1.e-12_rt
+    !$gpu
+
+    ! we assume that the model is uniformly spaced
+    dx = model_r(2) - model_r(1)
+
+    ! find the range of zones in the model that fit into our grid zone xl:xr
+    ileft = -1
+    iright = -1
+
+    do n = 1, npts_model
+       x_model = model_r(n)
+       x_model_l = x_model - HALF*dx
+       x_model_r = x_model + HALF*dx
+
+       if (xl == ZERO) then
+          xscale = 1
+       else
+          xscale = abs(xl)
+       endif
+
+       if (abs(x_model_l - xl) < tol*xscale) then
+          if (ileft > 0) then
+             call amrex_error("Error: ileft already set")
+          else
+             ileft = n
+          end if
+       end if
+
+       if (abs(x_model_r - xr) < tol*abs(xr)) then
+          if (iright > 0) then
+             call amrex_error("Error: iright already set")
+          else
+             iright = n
+          end if
+       end if
+
+       if (ileft >= 0 .and. iright >= 0) then
+          exit
+       end if
+    end do
+
+    if (ileft == -1 .or. iright == -1) then
+       call amrex_error("Error: ileft or iright not set")
+    end if
+
+    if (iright < ileft) then
+       call amrex_error("Error: iright < ileft")
+    end if
+
+    npts = iright - ileft + 1
+
+    interp = sum(model_state(ileft:iright, var_index))/npts
+
+  end subroutine interpolate_conservative
+
 
   subroutine close_conserved_model_file
 

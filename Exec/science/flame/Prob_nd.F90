@@ -210,8 +210,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use amrex_constants_module
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
-  use interpolate_module, only : interpolate_conservative
-  use conservative_map_module, only : model_r, model_state, npts_model
+  use conservative_map_module, only : interpolate_conservative
 
   implicit none
 
@@ -272,7 +271,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               xr = problo(1) + delta(1)*(dble(i) + ONE)
 
               do n = 1, NVAR
-                 call interpolate_conservative(val, xl, xr, npts_model, model_r, model_state(:,n))
+                 call interpolate_conservative(val, xl, xr, n)
                  state(i,j,k,n) = val
               end do
 
