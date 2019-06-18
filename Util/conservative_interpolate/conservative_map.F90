@@ -341,7 +341,7 @@ contains
 
     ! Local variables
     integer :: n
-    integer :: ileft, iright, i0, npts
+    integer :: ileft, iright, i0, i1, i2, i3, npts
     real(rt) :: x_model, x_model_l, x_model_r, dx, xscale
     real(rt), parameter :: tol = 1.e-12_rt
 
@@ -413,8 +413,22 @@ contains
        i0 = ileft + (npts-4)/2
     end if
 
-    interp = (-model_state(i0, var_index) + 7.0_rt*model_state(i0+1, var_index) + &
-              7.0_rt*model_state(i0+2, var_index) - model_state(i0+3, var_index))/12.0_rt
+    i1 = i0+1
+    i2 = i1+1
+    i3 = i2+1
+
+    ! check if we are at the edge of the domain (only should happen for npts = 2)
+    ! if so, assume zero-gradient BCs
+    if (i0 < 1) then
+       i0 = 1
+    end if
+
+    if (i3 > npts_model) then
+       i3 = npts_model
+    end if
+
+    interp = (-model_state(i0, var_index) + 7.0_rt*model_state(i1, var_index) + &
+              7.0_rt*model_state(i2, var_index) - model_state(i3, var_index))/12.0_rt
 
   end subroutine interpolate_avg_to_center
 
