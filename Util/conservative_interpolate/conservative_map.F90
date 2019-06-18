@@ -331,7 +331,7 @@ contains
     ! This assumes that the model data is uniformly spaced and that we
     ! are properly nested between the grid and the model.
 
-    use amrex_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only : ZERO, HALF, ONE, TWO
     use amrex_error_module, only : amrex_error
     use amrex_fort_module, only : rt => amrex_real
 
@@ -341,7 +341,7 @@ contains
 
     ! Local variables
     integer :: n
-    integer :: ileft, iright, i0, i1, i2, i3, npts
+    integer :: ileft, iright, i0, i1, i2, i3, npts, im, ip
     real(rt) :: x_model, x_model_l, x_model_r, dx, xscale
     real(rt), parameter :: tol = 1.e-12_rt
 
@@ -399,36 +399,51 @@ contains
     ! now figure out the 4 zones we need to do the interpolation.
     ! Here i0 will be the first zone in the stencil.
     if (npts == 1) then
-       call amrex_error("error in interpolate_avg_to_center -- interpolation at same resolution not yet implemented")
-    else if (npts == 2) then
-       i0 = ileft - 1
-
-    else if (npts == 4) then
+       ! we will just do the correction between cell-centers and
+       ! averages that is done in the hydro
        i0 = ileft
 
+       im = ileft-1
+       if (im < 1) im = 1
+
+       ip = ileft+1
+       if (ip > npts_model) ip = npts_model
+
+       interp = model_state(i0, var_index) - &
+            (ONE/24.0_rt) * (model_state(im, var_index) - TWO*model_state(i0, var_index) + &
+                             model_state(ip, var_index))
+
     else
-       ! we have more points than we need, so add (npts-4)/2 to ileft
-       ! (and likewise subtract it from iright so ileft:iright is 4
-       ! points)
-       i0 = ileft + (npts-4)/2
+       if (npts == 2) then
+          i0 = ileft - 1
+
+       else if (npts == 4) then
+          i0 = ileft
+
+       else
+          ! we have more points than we need, so add (npts-4)/2 to ileft
+          ! (and likewise subtract it from iright so ileft:iright is 4
+          ! points)
+          i0 = ileft + (npts-4)/2
+       end if
+
+       i1 = i0+1
+       i2 = i1+1
+       i3 = i2+1
+
+       ! check if we are at the edge of the domain (only should happen for npts = 2)
+       ! if so, assume zero-gradient BCs
+       if (i0 < 1) then
+          i0 = 1
+       end if
+
+       if (i3 > npts_model) then
+          i3 = npts_model
+       end if
+
+       interp = (-model_state(i0, var_index) + 7.0_rt*model_state(i1, var_index) + &
+                 7.0_rt*model_state(i2, var_index) - model_state(i3, var_index))/12.0_rt
     end if
-
-    i1 = i0+1
-    i2 = i1+1
-    i3 = i2+1
-
-    ! check if we are at the edge of the domain (only should happen for npts = 2)
-    ! if so, assume zero-gradient BCs
-    if (i0 < 1) then
-       i0 = 1
-    end if
-
-    if (i3 > npts_model) then
-       i3 = npts_model
-    end if
-
-    interp = (-model_state(i0, var_index) + 7.0_rt*model_state(i1, var_index) + &
-              7.0_rt*model_state(i2, var_index) - model_state(i3, var_index))/12.0_rt
 
   end subroutine interpolate_avg_to_center
 
