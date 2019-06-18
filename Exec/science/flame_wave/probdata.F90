@@ -7,7 +7,7 @@ module probdata_module
   real(rt) :: dtemp
   real(rt), allocatable :: x_half_max, x_half_width
 
-  real(rt), save :: X_min, cutoff_density
+  real(rt), allocatable :: X_min, cutoff_density
 
   real(rt), save :: dx_model
 
@@ -21,13 +21,17 @@ module probdata_module
   real (rt), save :: ash1_frac, ash2_frac, ash3_frac
 
   real (rt), save :: low_density_cutoff, smallx
-  real (rt), save :: x_refine_distance
+  real (rt), allocatable :: x_refine_distance
 
-  integer, save :: max_hse_tagging_level
-  integer, save :: max_base_tagging_level
+  integer, allocatable :: max_hse_tagging_level
+  integer, allocatable :: max_base_tagging_level
 
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: x_half_max, x_half_width
+  attributes(managed) :: X_min, cutoff_density
+  attributes(managed) :: x_refine_distance
+  attributes(managed) :: max_hse_tagging_level
+  attributes(managed) :: max_base_tagging_level
 #endif
 
 end module probdata_module

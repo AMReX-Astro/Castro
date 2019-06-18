@@ -1,6 +1,5 @@
 #include "Castro.H"
 #include "Castro_F.H"
-#include "Castro_prob_err_F.H"
 
 #include "Gravity.H"
 #include <Gravity_F.H>
