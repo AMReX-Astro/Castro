@@ -1478,15 +1478,13 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEiiN5amrex4RealE">
-<span id="_CPPv3N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEiiN5amrex4RealE"></span><span id="_CPPv2N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEiiN5amrex4RealE"></span><span id="Castro::apply_problem_tags__amrex::TagBoxArrayR.i.i.amrex::Real"></span><span class="target" id="classCastro_1ad55c8251a0ed778ef0dad823210a76b9"></span>void <code class="descname">apply_problem_tags</code><span class="sig-paren">(</span>amrex::TagBoxArray &amp;<em>tags</em>, int <em>clearval</em>, int <em>setval</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEN5amrex4RealE">
+<span id="_CPPv3N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEN5amrex4RealE"></span><span id="_CPPv2N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEN5amrex4RealE"></span><span id="Castro::apply_problem_tags__amrex::TagBoxArrayR.amrex::Real"></span><span class="target" id="classCastro_1a356447819fc378cf4d19d7e30e6b7fc8"></span>void <code class="descname">apply_problem_tags</code><span class="sig-paren">(</span>amrex::TagBoxArray &amp;<em>tags</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Apply the ::set_problem_tags routine.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </li>
-<li><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">setval</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 </ul>
 </dd>
@@ -1495,50 +1493,15 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro18apply_tagging_funcERN5amrex11TagBoxArrayEiiN5amrex4RealEi">
-<span id="_CPPv3N6Castro18apply_tagging_funcERN5amrex11TagBoxArrayEiiN5amrex4RealEi"></span><span id="_CPPv2N6Castro18apply_tagging_funcERN5amrex11TagBoxArrayEiiN5amrex4RealEi"></span><span id="Castro::apply_tagging_func__amrex::TagBoxArrayR.i.i.amrex::Real.i"></span><span class="target" id="classCastro_1a393a9bd617ba1cec56b554451bc0ff00"></span>void <code class="descname">apply_tagging_func</code><span class="sig-paren">(</span>amrex::TagBoxArray &amp;<em>tags</em>, int <em>clearval</em>, int <em>setval</em>, amrex::Real <em>time</em>, int <em>j</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N6Castro18apply_tagging_funcERN5amrex11TagBoxArrayEN5amrex4RealEi">
+<span id="_CPPv3N6Castro18apply_tagging_funcERN5amrex11TagBoxArrayEN5amrex4RealEi"></span><span id="_CPPv2N6Castro18apply_tagging_funcERN5amrex11TagBoxArrayEN5amrex4RealEi"></span><span id="Castro::apply_tagging_func__amrex::TagBoxArrayR.amrex::Real.i"></span><span class="target" id="classCastro_1a4f0731997c8cc6b3cc8967fe37fe61eb"></span>void <code class="descname">apply_tagging_func</code><span class="sig-paren">(</span>amrex::TagBoxArray &amp;<em>tags</em>, amrex::Real <em>time</em>, int <em>j</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Apply a given tagging function.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </li>
-<li><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">setval</span></code>: </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 <li><code class="docutils literal notranslate"><span class="pre">j</span></code>: integer </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro24problem_pre_tagging_hookERN5amrex11TagBoxArrayEiiN5amrex4RealE">
-<span id="_CPPv3N6Castro24problem_pre_tagging_hookERN5amrex11TagBoxArrayEiiN5amrex4RealE"></span><span id="_CPPv2N6Castro24problem_pre_tagging_hookERN5amrex11TagBoxArrayEiiN5amrex4RealE"></span><span id="Castro::problem_pre_tagging_hook__amrex::TagBoxArrayR.i.i.amrex::Real"></span><span class="target" id="classCastro_1aa58d740db3d846c89128b2635c6d730b"></span>void <code class="descname">problem_pre_tagging_hook</code><span class="sig-paren">(</span>amrex::TagBoxArray &amp;<em>tags</em>, int <em>clearval</em>, int <em>tagval</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Hooks for problem-specific operations before and after applying custom tagging.</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </li>
-<li><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">tagval</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro25problem_post_tagging_hookERN5amrex11TagBoxArrayEiiN5amrex4RealE">
-<span id="_CPPv3N6Castro25problem_post_tagging_hookERN5amrex11TagBoxArrayEiiN5amrex4RealE"></span><span id="_CPPv2N6Castro25problem_post_tagging_hookERN5amrex11TagBoxArrayEiiN5amrex4RealE"></span><span id="Castro::problem_post_tagging_hook__amrex::TagBoxArrayR.i.i.amrex::Real"></span><span class="target" id="classCastro_1a742219f9aa9e7cd1ecfec34803df371d"></span>void <code class="descname">problem_post_tagging_hook</code><span class="sig-paren">(</span>amrex::TagBoxArray &amp;<em>tags</em>, int <em>clearval</em>, int <em>tagval</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </li>
-<li><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">tagval</span></code>: </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
 </ul>
 </dd>
 </dl>
@@ -3354,8 +3317,13 @@
 <dd></dd></dl>
 
 <dl class="member">
-<dt id="_CPPv4N6Castro8err_listE">
-<span id="_CPPv3N6Castro8err_listE"></span><span id="_CPPv2N6Castro8err_listE"></span><span id="Castro::err_list__amrex::ErrorList"></span><span class="target" id="classCastro_1a4414dad9812df4ea82089f97f67cb7c6"></span>amrex::ErrorList <code class="descname">err_list</code><br /></dt>
+<dt id="_CPPv4N6Castro14err_list_namesE">
+<span id="_CPPv3N6Castro14err_list_namesE"></span><span id="_CPPv2N6Castro14err_list_namesE"></span><span id="Castro::err_list_names__std::vector:ss:"></span><span class="target" id="classCastro_1a8e0a458982498e5064be9ab90386bca9"></span>std::vector&lt;std::string&gt; <code class="descname">err_list_names</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro11err_list_ngE">
+<span id="_CPPv3N6Castro11err_list_ngE"></span><span id="_CPPv2N6Castro11err_list_ngE"></span><span id="Castro::err_list_ng__std::vector:i:"></span><span class="target" id="classCastro_1a5ad7939033ede92f8d761784f419a9f4"></span>std::vector&lt;int&gt; <code class="descname">err_list_ng</code><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
