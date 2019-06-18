@@ -30,6 +30,6 @@ module probdata_module
 
   real(rt), save :: v_inflow, mass_flux
 
-  real(rt), save :: smallx
+  real(rt), save :: smallx_init
 
 end module probdata_module
