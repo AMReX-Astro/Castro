@@ -3058,7 +3058,7 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 	    set_problem_tags(bx.loVect(), bx.hiVect(),
                              (int8_t*) BL_TO_FORTRAN(tagfab),
 			     BL_TO_FORTRAN(S_new[mfi]),
-                             dx, problo,
+                             dx, prob_lo,
 			     tagval, clearval, time, level);
 #endif
 	}

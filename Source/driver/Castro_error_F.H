@@ -76,7 +76,7 @@ extern "C"
 #else
   void set_problem_tags
     (const int* lo, const int* hi,
-     int8_t* tag, const int* tag_lo, const int* tag_hi,
+     int8_t* tag, AMREX_ARLIM_P(tag_lo), AMREX_ARLIM_P(tag_hi),
      const BL_FORT_FAB_ARG(state),
      const amrex::Real* dx, const amrex::Real* problo,
      const int8_t tagval, const int8_t clearval,
