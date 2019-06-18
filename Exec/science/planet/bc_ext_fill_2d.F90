@@ -1,12 +1,12 @@
 module bc_ext_fill_module
-
   use amrex_constants_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                  xl_ext, xr_ext, yl_ext, yr_ext, EXT_HSE, EXT_INTERP
   use interpolate_module
-
+  use amrex_error_module
+  use amrex_filcc_module, only: amrex_filccn
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -47,8 +47,8 @@ contains
     real(rt)         :: pres_above, p_want, pres_zone, A
     real(rt)         :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
 
-    integer, parameter :: MAX_ITER = 100
-    real(rt)        , parameter :: TOL = 1.e-8_rt
+    integer, parameter :: MAX_ITER = 200
+    real(rt)        , parameter :: TOL = 1.e-12_rt
     logical :: converged_hse
 
     type (eos_t) :: eos_state
@@ -66,7 +66,7 @@ contains
        end if
 
        ! YLO
-       if (bc(2,1,n) == EXT_DIR .and. adv_l2 < domlo(2)) then
+       if (bc(2,1,n) == FOEXTRAP .and. adv_l2 < domlo(2)) then
 
           if (yl_ext == EXT_HSE) then
 
@@ -283,7 +283,7 @@ contains
 
 
        ! YHI
-       if (bc(2,2,n) == EXT_DIR .and. adv_h2 > domhi(2)) then
+       if (bc(2,2,n) == FOEXTRAP .and. adv_h2 > domhi(2)) then
 
           if (yr_ext == EXT_HSE) then
              call amrex_error("ERROR: HSE boundaries not implemented for +Y")

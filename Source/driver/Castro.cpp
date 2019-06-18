@@ -28,7 +28,7 @@
 #endif
 
 #ifdef AMREX_PARTICLES
-#include <AMReX_Particles_F.H>
+#include <AMReX_Particles.H>
 #endif
 
 #ifdef SELF_GRAVITY
