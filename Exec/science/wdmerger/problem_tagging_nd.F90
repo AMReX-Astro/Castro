@@ -6,10 +6,12 @@ module problem_tagging_module
 
 contains
 
-  subroutine set_problem_tags(lo, hi, tag,tag_lo,tag_hi, &
-                              state,state_lo,state_hi, &
-                              set,clear,&
-                              dx,problo,time,level) bind(C,name='set_problem_tags')
+  subroutine set_problem_tags(lo, hi, &
+                              tag, tag_lo, tag_hi, &
+                              state, state_lo, state_hi, &
+                              dx, problo, &
+                              set, clear, time, level) &
+                              bind(C,name='set_problem_tags')
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, TWO
@@ -29,19 +31,23 @@ contains
 
     implicit none
 
-    integer  :: lo(3),hi(3)
-    integer  :: state_lo(3),state_hi(3)
-    integer  :: tag_lo(3),tag_hi(3)
-    real(rt) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-    integer  :: tag(tag_lo(1):tag_hi(1),tag_lo(2):tag_hi(2),tag_lo(3):tag_hi(3))
-    real(rt) :: problo(3),dx(3),time
-    integer  :: level,set,clear
+    integer,    intent(in   ) :: lo(3), hi(3)
+    integer,    intent(in   ) :: tag_lo(3), tag_hi(3)
+    integer,    intent(in   ) :: state_lo(3), state_hi(3)
+    integer(1), intent(inout) :: tag(tag_lo(1):tag_hi(1),tag_lo(2):tag_hi(2),tag_lo(3):tag_hi(3))
+    real(rt),   intent(in   ) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    real(rt),   intent(in   ) :: dx(3), problo(3)
+    integer(1), intent(in   ), value :: set, clear
+    integer,    intent(in   ), value :: level
+    real(rt),   intent(in   ), value :: time
 
     integer  :: i, j, k, n
     real(rt) :: loc(3), r, r_P, r_S
 
     logical  :: outer_boundary_test(3)
     integer  :: boundary_buf(3), idx(3)
+
+    !$gpu
 
     do k = lo(3), hi(3)
        loc(3) = problo(3) + (dble(k) + HALF) * dx(3)
