@@ -1,6 +1,6 @@
 &fortin
 
-  interp_model = 2
+  interp_model = 1
   model_file = "flame_4096_sdc4_plt2100952.slice"
 
   ! we still need this info for the boundary conditions
