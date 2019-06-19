@@ -5,7 +5,13 @@ module probdata_module
 
   implicit none
 
-  logical, save :: interp_model
+
+  ! we take 3 options here.
+  !   interp_model = 0: no interpolation
+  !   interp_model = 1: conservative average from the model file
+  !   interp_model = 2: interp cell-average in model to cell centers on grid
+  integer, save :: interp_model
+
   character(len=64), save :: model_file
 
   real(rt), save :: pert_frac, pert_delta
@@ -23,5 +29,7 @@ module probdata_module
   real(rt), save :: X_ash1, X_ash2, X_ash3, X_ash4
 
   real(rt), save :: v_inflow, mass_flux
+
+  real(rt), save :: smallx_init
 
 end module probdata_module

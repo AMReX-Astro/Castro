@@ -29,7 +29,8 @@ module conservative_map_module
 
   integer, parameter :: MAX_VARNAME_LENGTH=80
 
-  public :: read_conserved_model_file, close_conserved_model_file
+  public :: read_conserved_model_file, close_conserved_model_file, &
+            interpolate_conservative, interpolate_avg_to_center
 
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: model_state, model_r, npts_model
@@ -237,6 +238,215 @@ contains
     return
 
   end function get_model_npts
+
+
+  subroutine interpolate_conservative(interp, xl, xr, var_index)
+    ! This interpolation routine is for conservative data at a
+    ! different (assumed coarser) resolution than the model data.  We
+    ! come in with the left and right edges of our zone, xl and xr,
+    ! and we will average all of the model zones that fall inbetween
+    ! as the interpolated value.
+    !
+    ! This assumes that the model data is uniformly spaced and that we
+    ! are properly nested between the grid and the model.
+
+    use amrex_constants_module, only : ZERO, HALF
+    use amrex_error_module, only : amrex_error
+    use amrex_fort_module, only : rt => amrex_real
+
+    real(rt), intent(out) :: interp
+    real(rt), intent(in) :: xl, xr
+    integer, intent(in) :: var_index
+
+    ! Local variables
+    integer :: n
+    integer :: ileft, iright, npts
+    real(rt) :: x_model, x_model_l, x_model_r, dx, xscale
+    real(rt), parameter :: tol = 1.e-12_rt
+    !$gpu
+
+    ! we assume that the model is uniformly spaced
+    dx = model_r(2) - model_r(1)
+
+    ! find the range of zones in the model that fit into our grid zone xl:xr
+    ileft = -1
+    iright = -1
+
+    do n = 1, npts_model
+       x_model = model_r(n)
+       x_model_l = x_model - HALF*dx
+       x_model_r = x_model + HALF*dx
+
+       if (xl == ZERO) then
+          xscale = 1
+       else
+          xscale = abs(xl)
+       endif
+
+       if (abs(x_model_l - xl) < tol*xscale) then
+          if (ileft > 0) then
+             call amrex_error("Error: ileft already set")
+          else
+             ileft = n
+          end if
+       end if
+
+       if (abs(x_model_r - xr) < tol*abs(xr)) then
+          if (iright > 0) then
+             call amrex_error("Error: iright already set")
+          else
+             iright = n
+          end if
+       end if
+
+       if (ileft >= 0 .and. iright >= 0) then
+          exit
+       end if
+    end do
+
+    if (ileft == -1 .or. iright == -1) then
+       call amrex_error("Error: ileft or iright not set")
+    end if
+
+    if (iright < ileft) then
+       call amrex_error("Error: iright < ileft")
+    end if
+
+    npts = iright - ileft + 1
+
+    interp = sum(model_state(ileft:iright, var_index))/npts
+
+  end subroutine interpolate_conservative
+
+
+  subroutine interpolate_avg_to_center(interp, xl, xr, var_index)
+    ! This interpolation routine is for conservative data at a
+    ! different (assumed coarser) resolution than the model data.  We
+    ! come in with the left and right edges of our zone, xl and xr,
+    ! and want the data at the center.  We find the group of model
+    ! finer zones that abut our center and use two on either side to
+    ! do a fourth-order interpolation from cell-averages of the
+    ! initial model to the cell-center of the zone.
+    !
+    ! This assumes that the model data is uniformly spaced and that we
+    ! are properly nested between the grid and the model.
+
+    use amrex_constants_module, only : ZERO, HALF, ONE, TWO
+    use amrex_error_module, only : amrex_error
+    use amrex_fort_module, only : rt => amrex_real
+
+    real(rt), intent(out) :: interp
+    real(rt), intent(in) :: xl, xr
+    integer, intent(in) :: var_index
+
+    ! Local variables
+    integer :: n
+    integer :: ileft, iright, i0, i1, i2, i3, npts, im, ip
+    real(rt) :: x_model, x_model_l, x_model_r, dx, xscale
+    real(rt), parameter :: tol = 1.e-12_rt
+
+    !$gpu
+
+    ! we assume that the model is uniformly spaced
+    dx = model_r(2) - model_r(1)
+
+    ! find the range of zones in the model that fit into our grid zone xl:xr
+    ileft = -1
+    iright = -1
+
+    do n = 1, npts_model
+       x_model = model_r(n)
+       x_model_l = x_model - HALF*dx
+       x_model_r = x_model + HALF*dx
+
+       if (xl == ZERO) then
+          xscale = 1
+       else
+          xscale = abs(xl)
+       endif
+
+       if (abs(x_model_l - xl) < tol*xscale) then
+          if (ileft > 0) then
+             call amrex_error("Error: ileft already set")
+          else
+             ileft = n
+          end if
+       end if
+
+       if (abs(x_model_r - xr) < tol*abs(xr)) then
+          if (iright > 0) then
+             call amrex_error("Error: iright already set")
+          else
+             iright = n
+          end if
+       end if
+
+       if (ileft >= 0 .and. iright >= 0) then
+          exit
+       end if
+    end do
+
+    if (ileft == -1 .or. iright == -1) then
+       call amrex_error("Error: ileft or iright not set")
+    end if
+
+    if (iright < ileft) then
+       call amrex_error("Error: iright < ileft")
+    end if
+
+    npts = iright - ileft + 1
+
+    ! now figure out the 4 zones we need to do the interpolation.
+    ! Here i0 will be the first zone in the stencil.
+    if (npts == 1) then
+       ! we will just do the correction between cell-centers and
+       ! averages that is done in the hydro
+       i0 = ileft
+
+       im = ileft-1
+       if (im < 1) im = 1
+
+       ip = ileft+1
+       if (ip > npts_model) ip = npts_model
+
+       interp = model_state(i0, var_index) - &
+            (ONE/24.0_rt) * (model_state(im, var_index) - TWO*model_state(i0, var_index) + &
+                             model_state(ip, var_index))
+
+    else
+       if (npts == 2) then
+          i0 = ileft - 1
+
+       else if (npts == 4) then
+          i0 = ileft
+
+       else
+          ! we have more points than we need, so add (npts-4)/2 to ileft
+          ! (and likewise subtract it from iright so ileft:iright is 4
+          ! points)
+          i0 = ileft + (npts-4)/2
+       end if
+
+       i1 = i0+1
+       i2 = i1+1
+       i3 = i2+1
+
+       ! check if we are at the edge of the domain (only should happen for npts = 2)
+       ! if so, assume zero-gradient BCs
+       if (i0 < 1) then
+          i0 = 1
+       end if
+
+       if (i3 > npts_model) then
+          i3 = npts_model
+       end if
+
+       interp = (-model_state(i0, var_index) + 7.0_rt*model_state(i1, var_index) + &
+                 7.0_rt*model_state(i2, var_index) - model_state(i3, var_index))/12.0_rt
+    end if
+
+  end subroutine interpolate_avg_to_center
+
 
   subroutine close_conserved_model_file
 

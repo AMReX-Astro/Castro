@@ -154,6 +154,7 @@ if __name__ == "__main__":
     ax_s.set_ylabel("flame speed (cm/s)")
     ax_w.set_ylabel("flame width (cm)")
 
+    plt.tight_layout()
     plt.savefig("speed.png")
 
     for to, vo, vso, wo in zip(t, v, vs, w):

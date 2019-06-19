@@ -34,7 +34,7 @@ castro.sdc_solver = 1
 castro.sdc_use_analytic_jac = 1
 castro.sdc_solver_relax_factor = 1
 
-castro.initialization_is_cell_average = 0
+castro.initialization_is_cell_average = 1
 
 castro.small_temp = 1.e6
 castro.small_dens = 1.e-5
@@ -82,4 +82,4 @@ castro.plot_per_is_exact = 1
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin.sdc.map
+amr.probin_file = probin.sdc.map.avg
