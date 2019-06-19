@@ -148,7 +148,7 @@ subroutine ca_initdata(lo, hi, &
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-           xcen = problo(1) + dx(1)*(dble(i-lo(1)) + 0.5e0_rt)
+           xcen = problo(1) + dx(1)*(dble(i) + 0.5e0_rt)
 
            state(i,j,k,URHO) = dens
 
