@@ -185,6 +185,8 @@ contains
     allocate(bulk_velz)
     allocate(single_star)
 
+    single_star = .false.
+
     axis_1 = 1
     axis_2 = 2
     axis_3 = 3
