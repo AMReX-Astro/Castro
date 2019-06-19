@@ -2,19 +2,31 @@ module probdata_module
 
   use amrex_fort_module, only : rt => amrex_real
 
-  real(rt), allocatable, managed :: T_l, T_r, dens, cfrac, ofrac, w_T, center_T, smallx, vel
+  real(rt), allocatable :: T_l, T_r, dens, cfrac, ofrac, w_T, center_T, smallx, vel
 
-  integer,  allocatable, managed :: idir
+  integer,  allocatable :: idir
 
-  integer,  allocatable, managed :: ihe4, ic12, io16
-  real(rt), allocatable, managed :: xn(:)
+  integer,  allocatable :: ihe4, ic12, io16
+  real(rt), allocatable :: xn(:)
 
-  logical,  allocatable, managed :: fill_ambient_bc
+  logical,  allocatable :: fill_ambient_bc
 
-  real(rt), allocatable, managed :: ambient_dens
-  real(rt), allocatable, managed :: ambient_temp
-  real(rt), allocatable, managed :: ambient_comp(:)
-  real(rt), allocatable, managed :: ambient_e_l, ambient_e_r
+  real(rt), allocatable :: ambient_dens
+  real(rt), allocatable :: ambient_temp
+  real(rt), allocatable :: ambient_comp(:)
+  real(rt), allocatable :: ambient_e_l, ambient_e_r
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: T_l, T_r, dens, cfrac, ofrac, w_T, center_T, smallx, vel
+  attributes(managed) :: idir
+  attributes(managed) :: ihe4, ic12, io16
+  attributes(managed) :: xn(:)
+  attributes(managed) :: fill_ambient_bc
+  attributes(managed) :: ambient_dens
+  attributes(managed) :: ambient_temp
+  attributes(managed) :: ambient_comp(:)
+  attributes(managed) :: ambient_e_l, ambient_e_r
+#endif
 
 contains
 
