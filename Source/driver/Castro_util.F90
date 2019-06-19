@@ -128,6 +128,62 @@ contains
   end subroutine ca_enforce_consistent_e
 
 
+  subroutine ca_recompute_energetics(lo, hi, state, s_lo, s_hi) bind(c,name='ca_recompute_energetics')
+    ! Recomputes T and (rho e) from (rho E)
+
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UEDEN, UEINT
+    use amrex_constants_module, only: HALF, ONE
+    use amrex_fort_module, only: rt => amrex_real
+    use eos_type_module, only : eos_t, eos_input_re
+    use eos_module, only : eos
+    use network, only : nspec
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+
+    ! Local variables
+    integer  :: i,j,k
+    real(rt) :: u, v, w, rhoInv
+
+    type(eos_t) :: eos_state
+
+    !$gpu
+
+    !
+    ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 + v^2 + w^2)
+    !
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             rhoInv = ONE / state(i,j,k,URHO)
+             u = state(i,j,k,UMX) * rhoInv
+             v = state(i,j,k,UMY) * rhoInv
+             w = state(i,j,k,UMZ) * rhoInv
+
+             eos_state % rho = state(i,j,k,URHO)
+             eos_state % T = state(i,j,k,UTEMP)
+             eos_state % e = state(i,j,k,UEINT) * rhoInv - HALF * (u*u + v*v + w*w)
+             eos_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec) * rhoInv
+
+             call eos(eos_input_re, eos_state)
+
+             state(i,j,k,UTEMP) = eos_state % T
+
+             !state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
+             !     HALF * state(i,j,k,URHO) * (u*u + v*v + w*w)
+
+             state(i,j,k,UEINT) = eos_state % rho * eos_state % e
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_recompute_energetics
+
+
   subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) bind(c,name='ca_reset_internal_e')
 
     use eos_module, only: eos
