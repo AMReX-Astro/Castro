@@ -34,6 +34,8 @@ castro.sdc_solver = 1
 castro.sdc_use_analytic_jac = 1
 castro.sdc_solver_relax_factor = 1
 
+castro.use_reconstructed_gamma1 = 1
+
 castro.initialization_is_cell_average = 1
 
 castro.small_temp = 1.e6
