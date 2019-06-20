@@ -32,6 +32,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      probin(i:i) = char(name(i))
   end do
 
+  allocate(T_l, T_r, dens, cfrac, ofrac, idir)
+  allocate(w_T, center_T, xn(nspec), ihe4, ic12, io16)
+  allocate(smallx, vel, fill_ambient_bc)
+  allocate(ambient_dens, ambient_temp, ambient_comp(nspec))
+  allocate(ambient_e_l, ambient_e_r)
+
   ! Set namelist defaults
 
   T_l = 1.e9_rt
@@ -80,7 +86,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   end if
 
   ! set the default mass fractions
-  allocate(xn(nspec))
 
   xn(:) = smallx
   xn(ic12) = max(cfrac, smallx)
@@ -88,7 +93,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   xn(ihe4) = 1.e0_rt - cfrac - ofrac - (nspec - 2) * smallx
 
   ! Set the ambient material
-  allocate(ambient_comp(nspec))
 
   ambient_dens = dens
   ambient_comp = xn
@@ -111,30 +115,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 end subroutine amrex_probinit
 
 
-! ::: -----------------------------------------------------------
-! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.
-! :::
-! ::: NOTE:  all arrays have one cell of ghost zones surrounding
-! :::        the grid interior.  Values in these cells need not
-! :::        be set here.
-! :::
-! ::: INPUTS/OUTPUTS:
-! :::
-! ::: level     => amr level of grid
-! ::: time      => time at which to init data
-! ::: lo,hi     => index limits of grid interior (cell centered)
-! ::: nstate    => number of state components.  You should know
-! :::		   this already!
-! ::: state     <=  Scalar array
-! ::: delta     => cell size
-! ::: xlo,xhi   => physical locations of lower left and upper
-! :::              right hand corner of grid.  (does not include
-! :::		   ghost region).
-! ::: -----------------------------------------------------------
-subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_lo,state_hi, &
-                       delta,xlo,xhi)
+subroutine ca_initdata(lo, hi, &
+                       state, state_lo, state_hi, &
+                       dx, problo) bind(c, name='ca_initdata')
 
   use network, only: nspec
   use eos_module, only: eos
@@ -142,38 +125,40 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use probdata_module, only: T_l, T_r, center_T, w_T, dens, vel, xn
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use amrex_fort_module, only: rt => amrex_real
-  use prob_params_module, only: problo, probhi
+  use prob_params_module, only: probhi
 
   implicit none
 
-  integer,  intent(in   ) :: level, nscal
   integer,  intent(in   ) :: lo(3), hi(3)
   integer,  intent(in   ) :: state_lo(3), state_hi(3)
   real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-  real(rt), intent(in   ) :: time, delta(3)
-  real(rt), intent(in   ) :: xlo(3), xhi(3)
+  real(rt), intent(in   ) :: dx(3), problo(3)
 
   real(rt) :: sigma, width, c_T
   real(rt) :: xcen
-  integer  :: i, j, k
+  integer  :: i, j, k, n
 
   type (eos_t) :: eos_state
-  
+
+  !$gpu
+
   width = w_T * (probhi(1) - problo(1))
   c_T = problo(1) + center_T * (probhi(1) - problo(1))
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-           xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt)
+           xcen = problo(1) + dx(1)*(dble(i) + 0.5e0_rt)
 
-           state(i,j,k,URHO ) = dens
+           state(i,j,k,URHO) = dens
 
            sigma = 1.0 / (1.0 + exp(-(c_T - xcen)/ width))
 
            state(i,j,k,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
 
-           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,URHO)*xn(1:nspec)
+           do n = 1, nspec
+              state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * xn(n)
+           end do
 
            eos_state%rho = state(i,j,k,URHO)
            eos_state%T = state(i,j,k,UTEMP)
