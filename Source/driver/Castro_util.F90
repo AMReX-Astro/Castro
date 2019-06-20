@@ -172,10 +172,11 @@ contains
 
              state(i,j,k,UTEMP) = eos_state % T
 
+             state(i,j,k,UEINT) = eos_state % rho * eos_state % e
+
              !state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
              !     HALF * state(i,j,k,URHO) * (u*u + v*v + w*w)
 
-             state(i,j,k,UEINT) = eos_state % rho * eos_state % e
 
           end do
        end do
