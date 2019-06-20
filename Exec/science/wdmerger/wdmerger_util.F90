@@ -1643,6 +1643,7 @@ contains
 
     integer  :: i, j, k
     real(rt) :: r(3), rSymmetric(3), dm, dmSymmetric, momSymmetric(3)
+    real(rt) :: primary_factor, secondary_factor
 
     !$gpu
 
@@ -1698,31 +1699,38 @@ contains
 
              end if
 
+             primary_factor = ZERO
+             secondary_factor = ZERO
+
              if (pmask(i,j,k) > ZERO) then
 
-                call amrex_reduce_add(m_p, dmSymmetric)
-
-                call amrex_reduce_add(com_p_x, dmSymmetric * rSymmetric(1))
-                call amrex_reduce_add(com_p_y, dmSymmetric * rSymmetric(2))
-                call amrex_reduce_add(com_p_z, dmSymmetric * rSymmetric(3))
-
-                call amrex_reduce_add(vel_p_x, momSymmetric(1) * vol(i,j,k))
-                call amrex_reduce_add(vel_p_y, momSymmetric(2) * vol(i,j,k))
-                call amrex_reduce_add(vel_p_z, momSymmetric(3) * vol(i,j,k))
+                primary_factor = ONE
 
              else if (smask(i,j,k) > ZERO) then
 
-                call amrex_reduce_add(m_s, dmSymmetric)
-
-                call amrex_reduce_add(com_s_x, dmSymmetric * rSymmetric(1))
-                call amrex_reduce_add(com_s_y, dmSymmetric * rSymmetric(2))
-                call amrex_reduce_add(com_s_z, dmSymmetric * rSymmetric(3))
-
-                call amrex_reduce_add(vel_s_x, momSymmetric(1) * vol(i,j,k))
-                call amrex_reduce_add(vel_s_y, momSymmetric(2) * vol(i,j,k))
-                call amrex_reduce_add(vel_s_z, momSymmetric(3) * vol(i,j,k))
+                secondary_factor = ONE
 
              endif
+
+             call amrex_reduce_add(m_p, dmSymmetric * primary_factor)
+
+             call amrex_reduce_add(com_p_x, dmSymmetric * rSymmetric(1) * primary_factor)
+             call amrex_reduce_add(com_p_y, dmSymmetric * rSymmetric(2) * primary_factor)
+             call amrex_reduce_add(com_p_z, dmSymmetric * rSymmetric(3) * primary_factor)
+
+             call amrex_reduce_add(vel_p_x, momSymmetric(1) * vol(i,j,k) * primary_factor)
+             call amrex_reduce_add(vel_p_y, momSymmetric(2) * vol(i,j,k) * primary_factor)
+             call amrex_reduce_add(vel_p_z, momSymmetric(3) * vol(i,j,k) * primary_factor)
+
+             call amrex_reduce_add(m_s, dmSymmetric * secondary_factor)
+
+             call amrex_reduce_add(com_s_x, dmSymmetric * rSymmetric(1) * secondary_factor)
+             call amrex_reduce_add(com_s_y, dmSymmetric * rSymmetric(2) * secondary_factor)
+             call amrex_reduce_add(com_s_z, dmSymmetric * rSymmetric(3) * secondary_factor)
+
+             call amrex_reduce_add(vel_s_x, momSymmetric(1) * vol(i,j,k) * secondary_factor)
+             call amrex_reduce_add(vel_s_y, momSymmetric(2) * vol(i,j,k) * secondary_factor)
+             call amrex_reduce_add(vel_s_z, momSymmetric(3) * vol(i,j,k) * secondary_factor)
 
           enddo
        enddo
@@ -1746,7 +1754,7 @@ contains
                                         volp, vols, rho_cutoff) &
                                         bind(C, name='ca_volumeindensityboundary')
 
-    use amrex_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO, ONE
     use amrex_fort_module, only: amrex_reduce_add
 
     implicit none
@@ -1765,6 +1773,7 @@ contains
     real(rt), intent(in   ), value :: rho_cutoff
 
     integer :: i, j, k
+    real(rt) :: primary_factor, secondary_factor
 
     !$gpu
 
@@ -1772,19 +1781,25 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             primary_factor = ZERO
+             secondary_factor = ZERO
+
              if (rho(i,j,k) > rho_cutoff) then
 
                 if (pmask(i,j,k) > ZERO) then
 
-                   call amrex_reduce_add(volp, vol(i,j,k))
+                   primary_factor = ONE
 
                 else if (smask(i,j,k) > ZERO) then
 
-                   call amrex_reduce_add(vols, vol(i,j,k))
+                   secondary_factor = ONE
 
                 endif
 
              endif
+
+             call amrex_reduce_add(volp, vol(i,j,k) * primary_factor)
+             call amrex_reduce_add(vols, vol(i,j,k) * secondary_factor)
 
           enddo
        enddo
