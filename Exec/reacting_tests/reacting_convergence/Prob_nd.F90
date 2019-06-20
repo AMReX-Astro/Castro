@@ -7,6 +7,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_fort_module, only : rt => amrex_real
   use eos_type_module, only : eos_t, eos_input_rt
   use eos_module, only : eos
+  use extern_probin_module, only : small_x
 
   implicit none
 
@@ -55,8 +56,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   center(3) = HALF*(problo(3) + probhi(3))
 #endif
 
-  xn_zone(:) = ZERO
-  xn_zone(1) = ONE
+  xn_zone(:) = small_x
+  xn_zone(1) = ONE - (nspec-1)*small_x
 
   eos_state % rho = rho0
   eos_state % T = T0
