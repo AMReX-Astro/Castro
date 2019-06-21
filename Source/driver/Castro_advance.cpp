@@ -623,7 +623,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (mol_order == 4 || sdc_order == 4) {
       q_bar.clear();
       qaux_bar.clear();
+#ifdef DIFFUSION
       T_cc.clear();
+#endif
     }
 
 #ifdef RADIATION
