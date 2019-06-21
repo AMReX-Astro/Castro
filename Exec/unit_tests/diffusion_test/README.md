@@ -51,6 +51,7 @@ refinement can be run as:
 ./Castro2d.gnu.ex inputs.2d.sph
 ./Castro2d.gnu.ex inputs.2d.sph amr.n_cell=128 256
 ./Castro2d.gnu.ex inputs.2d.sph amr.n_cell=256 512
+```
 
 At the end, each run will report the norm of the error against the
 analytic solution, giving:
