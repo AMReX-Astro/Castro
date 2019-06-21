@@ -14,6 +14,31 @@
      hard-coded in Castro and can be expanded as needed. Problem-specific tagging
      should be done through the set_problem_tags functionality. (#611)
 
+  -- The new SDC solver has had substantial improvements:
+
+      * Explicit thermal diffusion is now implemented for both 2nd and
+        4th order accurate solvers.
+
+      * There is a new option (castro.sdc_extra) for taking extra SDC
+        iterations.
+
+      * The Newton solver for the SDC update can now subcycle.
+
+      * The sdc_solver_relax_factor option was fixed
+
+      * There is now an absolute tolerance on species used in the
+        error check for the SDC solve.
+
+      * Some scalings of terms in the Jacobian were fixed.
+
+  -- The flame problem setup now can initialize conservatively from a
+     pre-existing flame solution.  The analysis routines have seen
+     some improvements for working with 4th order accurate
+     simulations.
+
+  -- the diffusion_test unit test now works for 4th order problems.
+
+
 # 19.06
 
   -- Deprecation notice: as of the 19.06 release, dimension-specific
