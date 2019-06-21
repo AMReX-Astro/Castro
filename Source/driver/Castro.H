@@ -1756,6 +1756,13 @@ protected:
 
 
 ///
+/// for diffusion in fourth order we need the cell-center temperature
+//
+#ifdef DIFFUSION
+    amrex::MultiFab T_cc;
+#endif
+
+///
 /// The auxiliary primitive variable state array.
 ///
     amrex::MultiFab qaux;

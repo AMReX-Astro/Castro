@@ -112,6 +112,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              BL_TO_FORTRAN_ANYD(q_bar[mfi]),
              BL_TO_FORTRAN_ANYD(qaux[mfi]),
              BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
+#ifdef DIFFUSION
+             BL_TO_FORTRAN_ANYD(T_cc[mfi]),
+#endif
              BL_TO_FORTRAN_ANYD(source_in),
              BL_TO_FORTRAN_ANYD(source_out),
              ZFILL(dx), &dt,

@@ -197,6 +197,12 @@ Castro::cons_to_prim_fourth(const Real time)
     check_for_nan(q_bar);
 #endif
 
+#ifdef DIFFUSION
+    // we need the cell-center temperature for the diffusion stencil,
+    // so save it here, by copying from q (which is cell-center at the
+    // moment).
+    MultiFab::Copy(T_cc, q, QTEMP, 0, 1, NUM_GROW-1);
+#endif
 
 #ifdef _OPENMP
 #pragma omp parallel

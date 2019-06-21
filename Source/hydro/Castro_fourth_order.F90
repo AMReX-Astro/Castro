@@ -13,6 +13,9 @@ contains
                                     q_bar, q_bar_lo, q_bar_hi, &
                                     qaux, qa_lo, qa_hi, &
                                     qaux_bar, qa_bar_lo, qa_bar_hi, &
+#ifdef DIFFUSION
+                                    T_cc, Tcc_lo, Tcc_hi, &
+#endif
                                     srcU, srU_lo, srU_hi, &
                                     update, updt_lo, updt_hi, &
                                     dx, dt, &
@@ -77,6 +80,9 @@ contains
     integer, intent(in) :: q_bar_lo(3), q_bar_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: qa_bar_lo(3), qa_bar_hi(3)
+#ifdef DIFFUSION
+    integer, intent(in) :: Tcc_lo(3), Tcc_hi(3)
+#endif
     integer, intent(in) :: srU_lo(3), srU_hi(3)
     integer, intent(in) :: updt_lo(3), updt_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
@@ -101,6 +107,9 @@ contains
     real(rt), intent(inout) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), NQ)
     real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
     real(rt), intent(inout) :: qaux_bar(qa_bar_lo(1):qa_bar_hi(1), qa_bar_lo(2):qa_bar_hi(2), qa_bar_lo(3):qa_bar_hi(3), NQAUX)
+#ifdef DIFFUSION
+    real(rt), intent(inout) :: T_cc(Tcc_lo(1):Tcc_hi(1), Tcc_lo(2):Tcc_hi(2), Tcc_lo(3):Tcc_hi(3), 1)
+#endif
     real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
     real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
     real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1), flx_lo(2):flx_hi(2), flx_lo(3):flx_hi(3), NVAR)
@@ -302,6 +311,7 @@ contains
        ! solve the Riemann problems -- we just require the interface state
        ! at this point
 
+       ! get <q> and F(<q>) on the x interfaces
        call riemann_state(qxm, q_lo, q_hi, &
                           qxp, q_lo, q_hi, 1, 1, &
                           qx_avg, q_lo, q_hi, &
@@ -326,7 +336,7 @@ contains
           is_avg = 1
           call add_diffusive_flux([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
                                   [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                                  q, q_lo, q_hi, &
+                                  q, q_lo, q_hi, NQ, QTEMP, &
                                   qx_avg, q_lo, q_hi, &
                                   flx_avg, q_lo, q_hi, &
                                   dx, 1, is_avg)
@@ -334,6 +344,7 @@ contains
 #endif
 
 #if AMREX_SPACEDIM >= 2
+       ! get <q> and F(<q>) on the y interfaces
        call riemann_state(qym, q_lo, q_hi, &
                           qyp, q_lo, q_hi, 1, 1, &
                           qy_avg, q_lo, q_hi, &
@@ -358,7 +369,7 @@ contains
           is_avg = 1
           call add_diffusive_flux([lo(1)-1, lo(2), lo(3)-dg(3)], &
                                   [hi(1)+1, hi(2)+1, hi(3)+dg(3)], &
-                                  q, q_lo, q_hi, &
+                                  q, q_lo, q_hi, NQ, QTEMP, &
                                   qy_avg, q_lo, q_hi, &
                                   fly_avg, q_lo, q_hi, &
                                   dx, 2, is_avg)
@@ -367,6 +378,7 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 3
+       ! get <q> and F(<q>) on the z interfaces
        call riemann_state(qzm, q_lo, q_hi, &
                           qzp, q_lo, q_hi, 1, 1, &
                           qz_avg, q_lo, q_hi, &
@@ -391,7 +403,7 @@ contains
           is_avg = 1
           call add_diffusive_flux([lo(1)-1, lo(2)-1, lo(3)], &
                                   [hi(1)+1, hi(2)+1, hi(3)+1], &
-                                  q, q_lo, q_hi, &
+                                  q, q_lo, q_hi, NQ, QTEMP, &
                                   qz_avg, q_lo, q_hi, &
                                   flz_avg, q_lo, q_hi, &
                                   dx, 3, is_avg)
@@ -419,7 +431,8 @@ contains
 
 
        ! we now have the face-average interface states and fluxes evaluated with these
-       ! for 1-d, we are done
+
+       ! Note: for 1-d, we are done
 
 
        ! construct the face-center interface states
@@ -493,11 +506,30 @@ contains
                                flx, flx_lo, flx_hi, &
                                1)
 
+#ifdef DIFFUSION
+          is_avg = 0
+          call add_diffusive_flux([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+                                  T_cc, Tcc_lo, Tcc_hi, 1, 1, &
+                                  qx, q_lo, q_hi, &
+                                  flx, flx_lo, flx_hi, &
+                                  dx, 1, is_avg)
+#endif
+
 #if AMREX_SPACEDIM >= 2
           call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
                                qy, q_lo, q_hi, &
                                fly, fly_lo, fly_hi, &
                                2)
+
+#ifdef DIFFUSION
+          is_avg = 0
+          call add_diffusive_flux([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
+                                  T_cc, Tcc_lo, Tcc_hi, 1, 1, &
+                                  qy, q_lo, q_hi, &
+                                  fly, fly_lo, fly_hi, &
+                                  dx, 2, is_avg)
+#endif
+
 #endif
 
 #if AMREX_SPACEDIM == 3
@@ -505,18 +537,19 @@ contains
                               qz, q_lo, q_hi, &
                               flz, flz_lo, flz_hi, &
                               3)
-#endif
-       end if
 
 #ifdef DIFFUSION
-       if (diffuse_temp == 1) then
-
-          ! we need temperature at cell-centers
-
-          ! add the diffusive flux to the face-centered fluxes
-
-       end if
+          is_avg = 0
+          call add_diffusive_flux([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
+                                  T_cc, Tcc_lo, Tcc_hi, 1, 1, &
+                                  qz, q_lo, q_hi, &
+                                  flz, flz_lo, flz_hi, &
+                                  dx, 3, is_avg)
 #endif
+
+#endif
+       end if
+
 
        call bl_deallocate(qx)
 #if AMREX_SPACEDIM >= 2
@@ -860,7 +893,7 @@ contains
 
 #ifdef DIFFUSION
   subroutine add_diffusive_flux(lo, hi, &
-                                q, q_lo, q_hi, &
+                                q, q_lo, q_hi, ncomp, temp_comp, &
                                 qint, qi_lo, qi_hi, &
                                 F, F_lo, F_hi, &
                                 dx, idir, is_avg)
@@ -871,7 +904,7 @@ contains
     use meth_params_module, only : NQ, NVAR, &
                                    URHO, &
                                    UEDEN, UEINT, UTEMP, &
-                                   QRHO, QTEMP, QREINT, QFS
+                                   QRHO, QREINT, QFS
     use eos_type_module, only : eos_t, eos_input_re
     use conductivity_module, only : conducteos
     use network, only : nspec
@@ -881,8 +914,9 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qi_lo(3), qi_hi(3)
     integer, intent(in) :: F_lo(3), F_hi(3)
+    integer, intent(in) :: ncomp, temp_comp
 
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
+    real(rt), intent(in) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), ncomp)
     real(rt), intent(in) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NQ)
     real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
     integer, intent(in) :: lo(3), hi(3)
@@ -899,7 +933,7 @@ contains
           do i = lo(1), hi(1)
 
              eos_state % rho = qint(i,j,k,QRHO)
-             eos_state % T = q(i,j,k,QTEMP)   ! initial guess
+             eos_state % T = q(i,j,k,temp_comp)   ! initial guess
              eos_state % e = qint(i,j,k,QREINT) / qint(i,j,k,QRHO)
              eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)
 
@@ -909,39 +943,39 @@ contains
 
                 if (is_avg == 0) then
                    ! we are working with the cell-center state
-                   dTdx = (-q(i+1,j,k,QTEMP) + 27*q(i,j,k,QTEMP) - &
-                        27*q(i-1,j,k,QTEMP) + q(i-2,j,k,QTEMP))/(24.0_rt * dx(1))
+                   dTdx = (-q(i+1,j,k,temp_comp) + 27*q(i,j,k,temp_comp) - &
+                        27*q(i-1,j,k,temp_comp) + q(i-2,j,k,temp_comp))/(24.0_rt * dx(1))
 
                 else
                    ! we are working with the cell-average state
-                   dTdx = (-q(i+1,j,k,QTEMP) + 15*q(i,j,k,QTEMP) - &
-                        15*q(i-1,j,k,QTEMP) + q(i-2,j,k,QTEMP))/(12.0_rt * dx(1))
+                   dTdx = (-q(i+1,j,k,temp_comp) + 15*q(i,j,k,temp_comp) - &
+                        15*q(i-1,j,k,temp_comp) + q(i-2,j,k,temp_comp))/(12.0_rt * dx(1))
                 end if
 
              else if (idir == 2) then
 
                 if (is_avg == 0) then
                    ! we are working with the cell-center state
-                   dTdx = (-q(i,j+1,k,QTEMP) + 27*q(i,j,k,QTEMP) - &
-                        27*q(i,j-1,k,QTEMP) + q(i,j-2,k,QTEMP))/(24.0_rt * dx(2))
+                   dTdx = (-q(i,j+1,k,temp_comp) + 27*q(i,j,k,temp_comp) - &
+                        27*q(i,j-1,k,temp_comp) + q(i,j-2,k,temp_comp))/(24.0_rt * dx(2))
 
                 else
                    ! we are working with the cell-average state
-                   dTdx = (-q(i,j+1,k,QTEMP) + 15*q(i,j,k,QTEMP) - &
-                        15*q(i,j-1,k,QTEMP) + q(i,j-2,k,QTEMP))/(12.0_rt * dx(2))
+                   dTdx = (-q(i,j+1,k,temp_comp) + 15*q(i,j,k,temp_comp) - &
+                        15*q(i,j-1,k,temp_comp) + q(i,j-2,k,temp_comp))/(12.0_rt * dx(2))
                 end if
 
              else
 
                 if (is_avg == 0) then
                    ! we are working with the cell-center state
-                   dTdx = (-q(i,j,k+1,QTEMP) + 27*q(i,j,k,QTEMP) - &
-                        27*q(i,j,k-1,QTEMP) + q(i,j,k-2,QTEMP))/(24.0_rt * dx(3))
+                   dTdx = (-q(i,j,k+1,temp_comp) + 27*q(i,j,k,temp_comp) - &
+                        27*q(i,j,k-1,temp_comp) + q(i,j,k-2,temp_comp))/(24.0_rt * dx(3))
 
                 else
                    ! we are working with the cell-average state
-                   dTdx = (-q(i,j,k+1,QTEMP) + 15*q(i,j,k,QTEMP) - &
-                        15*q(i,j,k-1,QTEMP) + q(i,j,k-2,QTEMP))/(12.0_rt * dx(3))
+                   dTdx = (-q(i,j,k+1,temp_comp) + 15*q(i,j,k,temp_comp) - &
+                        15*q(i,j,k-1,temp_comp) + q(i,j,k-2,temp_comp))/(12.0_rt * dx(3))
                 end if
 
              endif

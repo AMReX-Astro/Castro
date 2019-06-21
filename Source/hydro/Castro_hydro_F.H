@@ -470,6 +470,9 @@ extern "C"
      BL_FORT_FAB_ARG_3D(q_bar),
      BL_FORT_FAB_ARG_3D(qaux),
      BL_FORT_FAB_ARG_3D(qaux_bar),
+#ifdef DIFFUSION
+     BL_FORT_FAB_ARG_3D(T_Cc),
+#endif
      const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update),
      const amrex::Real* dx, const amrex::Real* dt,

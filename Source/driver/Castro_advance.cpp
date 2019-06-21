@@ -510,6 +510,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     if (mol_order == 4 || sdc_order == 4) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
+#ifdef DIFFUSION
+      T_cc.define(grids, dmap, 1, NUM_GROW);
+#endif
     }
 
     if (time_integration_method == MethodOfLines) {
@@ -620,6 +623,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (mol_order == 4 || sdc_order == 4) {
       q_bar.clear();
       qaux_bar.clear();
+      T_cc.clear();
     }
 
 #ifdef RADIATION
