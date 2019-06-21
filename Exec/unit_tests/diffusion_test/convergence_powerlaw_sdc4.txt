@@ -8,11 +8,14 @@ Convergence testing for a non-constant conductivity
  mv diffuse_plt00190 diffuse_128
  ./Castro1d.gnu.ex inputs.1d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256
  mv diffuse_plt00760 diffuse_256
+ ./Castro1d.gnu.ex inputs.1d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=512
+ mv diffuse_plt03040 diffuse_512
 
- RichardsonConvergenceTest1d.gnu.ex coarFile=diffuse_64 mediFile=diffuse_128 fineFile=diffuse_256
+ RichardsonConvergenceTest1d.gnu.ex coarFile=diffuse_64 mediFile=diffuse_128 fineFile=diffuse_256 > convergence_diffusion.1d.lo.sdc4.out
+ RichardsonConvergenceTest1d.gnu.ex coarFile=diffuse_128 mediFile=diffuse_256 fineFile=diffuse_512 > convergence_diffusion.1d.hi.sdc4.out
 
 
-This gives:
+This gives (for the lower resolution runs):
 
 Level  L1 norm of Error in Each Component
 -----------------------------------------------
