@@ -238,7 +238,7 @@ contains
              end do
           end do
 
-       elseif (yl_ext == EXT_INTERP) then
+       elseif (xl_ext == EXT_INTERP) then
 
           imin = adv_lo(1)
           imax = domlo(1)-1
@@ -289,7 +289,7 @@ contains
                 end do
              end do
           end do
-       endif  ! yl_ext check
+       endif  ! xl_ext check
 
 
     endif
@@ -356,7 +356,7 @@ contains
                 end do
              end do
           end do
-       end if  ! zr_ext check
+       end if  ! xr_ext check
 
     endif
 
@@ -658,7 +658,7 @@ contains
                 end do
              end do
           end do
-       end if  ! zr_ext check
+       end if  ! yr_ext check
 
     endif
 #endif
