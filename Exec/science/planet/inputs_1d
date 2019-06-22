@@ -14,14 +14,17 @@ amr.n_cell           = 512
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  2
-castro.hi_bc       =  2
+castro.lo_bc       =  1
+castro.hi_bc       =  1
 
 
 castro.xl_ext_bc_type = "hse"
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 castro.hse_zero_vels=0
+
+castro.xr_ext_base_type = "interp"
+
 fab.format=NATIVE_32
 
 # WHICH PHYSICS
