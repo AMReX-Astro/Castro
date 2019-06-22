@@ -82,6 +82,131 @@ contains
 
     !$gpu
 
+
+    ! start with the species
+
+    call trace_ppm_species(lo, hi, &
+                           idir, q, qd_lo, qd_hi, &
+                           Ip, Ip_lo, Ip_hi, &
+                           Im, Im_lo, Im_hi, &
+                           Ip_src, Ips_lo, Ips_hi, &
+                           Im_src, Ims_lo, Ims_hi, &
+                           qm, qm_lo, qm_hi, &
+                           qp, qp_lo, qp_hi, &
+                           vlo, vhi, domlo, domhi, &
+                           dx, dt)
+
+
+    ! now the rest of the state
+
+    if (ppm_temp_fix < 3) then
+       if (ppm_predict_gammae == 0) then
+          call trace_ppm_rhoe(lo, hi, &
+                              idir, q, qd_lo, qd_hi, &
+                              qaux, qa_lo, qa_hi, &
+                              Ip, Ip_lo, Ip_hi, &
+                              Im, Im_lo, Im_hi, &
+                              Ip_src, Ips_lo, Ips_hi, &
+                              Im_src, Ims_lo, Ims_hi, &
+                              Ip_gc, Ipg_lo, Ipg_hi, &
+                              Im_gc, Img_lo, Img_hi, &
+                              qm, qm_lo, qm_hi, &
+                              qp, qp_lo, qp_hi, &
+#if (AMREX_SPACEDIM < 3)
+                              dloga, dloga_lo, dloga_hi, &
+#endif
+                              vlo, vhi, domlo, domhi, &
+                              dx, dt)
+       else
+          call trace_ppm_gammae(lo, hi, &
+                                idir, q, qd_lo, qd_hi, &
+                                qaux, qa_lo, qa_hi, &
+                                Ip, Ip_lo, Ip_hi, &
+                                Im, Im_lo, Im_hi, &
+                                Ip_src, Ips_lo, Ips_hi, &
+                                Im_src, Ims_lo, Ims_hi, &
+                                Ip_gc, Ipg_lo, Ipg_hi, &
+                                Im_gc, Img_lo, Img_hi, &
+                                qm, qm_lo, qm_hi, &
+                                qp, qp_lo, qp_hi, &
+#if (AMREX_SPACEDIM < 3)
+                                dloga, dloga_lo, dloga_hi, &
+#endif
+                                vlo, vhi, domlo, domhi, &
+                                dx, dt)
+       end if
+    else
+       call trace_ppm_temp(lo, hi, &
+                           idir, q, qd_lo, qd_hi, &
+                           qaux, qa_lo, qa_hi, &
+                           Ip, Ip_lo, Ip_hi, &
+                           Im, Im_lo, Im_hi, &
+                           Ip_src, Ips_lo, Ips_hi, &
+                           Im_src, Ims_lo, Ims_hi, &
+                           Ip_gc, Ipg_lo, Ipg_hi, &
+                           Im_gc, Img_lo, Img_hi, &
+                           qm, qm_lo, qm_hi, &
+                           qp, qp_lo, qp_hi, &
+#if (AMREX_SPACEDIM < 3)
+                           dloga, dloga_lo, dloga_hi, &
+#endif
+                           vlo, vhi, domlo, domhi, &
+                           dx, dt)
+    end if
+
+  end subroutine trace_ppm
+
+
+  subroutine trace_ppm_species(lo, hi, &
+                               idir, q, qd_lo, qd_hi, &
+                               Ip, Ip_lo, Ip_hi, &
+                               Im, Im_lo, Im_hi, &
+                               Ip_src, Ips_lo, Ips_hi, &
+                               Im_src, Ims_lo, Ims_hi, &
+                               qm, qm_lo, qm_hi, &
+                               qp, qp_lo, qp_hi, &
+                               vlo, vhi, domlo, domhi, &
+                               dx, dt)
+    ! here, lo and hi are the range we loop over -- this can include ghost cells
+    ! vlo and vhi are the bounds of the valid box (no ghost cells)
+
+    use network, only : nspec, naux
+    use meth_params_module, only : NQ, NQSRC, ppm_predict_gammae, &
+                                   ppm_temp_fix, QU, QV, QW, npassive, qpass_map
+    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
+
+    implicit none
+
+    integer, intent(in) :: idir
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
+    integer, intent(in) :: Im_lo(3), Im_hi(3)
+    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
+    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: vlo(3), vhi(3)
+    integer, intent(in) :: domlo(3), domhi(3)
+
+    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+
+    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
+    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
+
+    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
+
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(in) :: dt, dx(3)
+
+    real(rt) :: un
+    integer :: ipassive, n, i, j, k
+
+    !$gpu
+
     ! the passive stuff is the same regardless of the tracing
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
@@ -153,64 +278,7 @@ contains
        end do
 
     end do
-
-    if (ppm_temp_fix < 3) then
-       if (ppm_predict_gammae == 0) then
-          call trace_ppm_rhoe(lo, hi, &
-                              idir, q, qd_lo, qd_hi, &
-                              qaux, qa_lo, qa_hi, &
-                              Ip, Ip_lo, Ip_hi, &
-                              Im, Im_lo, Im_hi, &
-                              Ip_src, Ips_lo, Ips_hi, &
-                              Im_src, Ims_lo, Ims_hi, &
-                              Ip_gc, Ipg_lo, Ipg_hi, &
-                              Im_gc, Img_lo, Img_hi, &
-                              qm, qm_lo, qm_hi, &
-                              qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
-                              dloga, dloga_lo, dloga_hi, &
-#endif
-                              vlo, vhi, domlo, domhi, &
-                              dx, dt)
-       else
-          call trace_ppm_gammae(lo, hi, &
-                                idir, q, qd_lo, qd_hi, &
-                                qaux, qa_lo, qa_hi, &
-                                Ip, Ip_lo, Ip_hi, &
-                                Im, Im_lo, Im_hi, &
-                                Ip_src, Ips_lo, Ips_hi, &
-                                Im_src, Ims_lo, Ims_hi, &
-                                Ip_gc, Ipg_lo, Ipg_hi, &
-                                Im_gc, Img_lo, Img_hi, &
-                                qm, qm_lo, qm_hi, &
-                                qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
-                                dloga, dloga_lo, dloga_hi, &
-#endif
-                                vlo, vhi, domlo, domhi, &
-                                dx, dt)
-       end if
-    else
-       call trace_ppm_temp(lo, hi, &
-                           idir, q, qd_lo, qd_hi, &
-                           qaux, qa_lo, qa_hi, &
-                           Ip, Ip_lo, Ip_hi, &
-                           Im, Im_lo, Im_hi, &
-                           Ip_src, Ips_lo, Ips_hi, &
-                           Im_src, Ims_lo, Ims_hi, &
-                           Ip_gc, Ipg_lo, Ipg_hi, &
-                           Im_gc, Img_lo, Img_hi, &
-                           qm, qm_lo, qm_hi, &
-                           qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
-                           dloga, dloga_lo, dloga_hi, &
-#endif
-                           vlo, vhi, domlo, domhi, &
-                           dx, dt)
-    end if
-
-  end subroutine trace_ppm
-
+  end subroutine trace_ppm_species
 
 
   subroutine trace_ppm_rhoe(lo, hi, &

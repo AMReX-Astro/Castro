@@ -42,7 +42,7 @@ contains
     use rad_params_module, only : ngroups
     use amrex_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-
+    use trace_ppm_module, only : trace_ppm_species
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
@@ -692,80 +692,19 @@ contains
        end do
     end do
 
+    ! do the passives
 
-    !-------------------------------------------------------------------------
-    ! passively advected quantities
-    !-------------------------------------------------------------------------
+    call trace_ppm_species(lo, hi, &
+                           idir, q, qd_lo, qd_hi, &
+                           Ip, Ip_lo, Ip_hi, &
+                           Im, Im_lo, Im_hi, &
+                           Ip_src, Ips_lo, Ips_hi, &
+                           Im_src, Ims_lo, Ims_hi, &
+                           qm, qm_lo, qm_hi, &
+                           qp, qp_lo, qp_hi, &
+                           vlo, vhi, domlo, domhi, &
+                           dx, dt)
 
-    ! Do all of the passively advected quantities in one loop
-    do ipassive = 1, npassive
-       n = qpass_map(ipassive)
-
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  But we already dealt with all 3 velocity
-       ! components above, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                ! Plus state on face i
-                if ((idir == 1 .and. i >= vlo(1)) .or. &
-                    (idir == 2 .and. j >= vlo(2)) .or. &
-                    (idir == 3 .and. k >= vlo(3))) then
-
-                   un = q(i,j,k,QUN)
-
-                   ! We have
-                   !
-                   ! q_l = q_ref - Proj{(q_ref - I)}
-                   !
-                   ! and Proj{} represents the characteristic projection.
-                   ! But for these, there is only 1-wave that matters, the u
-                   ! wave, so no projection is needed.  Since we are not
-                   ! projecting, the reference state doesn't matter
-
-                   if (un > ZERO) then
-                      qp(i,j,k,n) = q(i,j,k,n)
-                   else
-                      qp(i,j,k,n) = Im(i,j,k,2,n)
-                   end if
-                   if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,2,n)
-                endif
-
-                ! Minus state on face i+1
-                if (idir == 1 .and. i <= vhi(1)) then
-                   un = q(i,j,k,QUN)
-                   if (un > ZERO) then
-                      qm(i+1,j,k,n) = Ip(i,j,k,2,n)
-                   else
-                      qm(i+1,j,k,n) = q(i,j,k,n)
-                   end if
-                   if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
-                else if (idir == 2 .and. j <= vhi(2)) then
-                   un = q(i,j,k,QUN)
-                   if (un > ZERO) then
-                      qm(i,j+1,k,n) = Ip(i,j,k,2,n)
-                   else
-                      qm(i,j+1,k,n) = q(i,j,k,n)
-                   end if
-                   if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
-                else if (idir == 3 .and. k <= vhi(3)) then
-                   un = q(i,j,k,QUN)
-                   if (un > ZERO) then
-                      qm(i,j,k+1,n) = Ip(i,j,k,2,n)
-                   else
-                      qm(i,j,k+1,n) = q(i,j,k,n)
-                   end if
-                   if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,2,n)
-                endif
-
-             end do
-
-          end do
-       end do
-    end do
 
   end subroutine trace_ppm_rad
 
