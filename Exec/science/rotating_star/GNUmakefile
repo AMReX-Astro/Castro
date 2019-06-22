@@ -14,8 +14,6 @@ USE_MPI    = TRUE
 USE_GRAV   = TRUE
 USE_REACT  = TRUE
 
-DIMENSION_AGNOSTIC = TRUE
-
 ifdef MICROPHYSICS_HOME
 
   # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
