@@ -5,7 +5,6 @@ Problems
    :maxdepth: 2
 
    file/Castro__bc__ext__fill__nd_8H
-   file/Castro__bc__fill_8H
    file/Castro__bc__fill__nd_8H
    file/Prob_nd_f
    file/Problem_8H
