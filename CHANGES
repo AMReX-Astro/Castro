@@ -14,6 +14,10 @@
      hard-coded in Castro and can be expanded as needed. Problem-specific tagging
      should be done through the set_problem_tags functionality. (#611)
 
+  -- The dimension-specific code for problem initialization, boundary
+     conditions, and external heat terms has been removed, as warned in
+     the previous release notice.
+
 # 19.06
 
   -- Deprecation notice: as of the 19.06 release, dimension-specific
