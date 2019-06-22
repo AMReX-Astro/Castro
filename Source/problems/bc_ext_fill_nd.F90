@@ -44,9 +44,10 @@ contains
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
     real(rt), intent(in   ), value :: time
 
-    integer :: i, j, k, q, iter, m, d, joff, koff
-    integer :: jmin, jmax, kmin, kmax
-    real(rt) :: y, z
+    integer :: i, j, k, q, iter, m, d
+    integer :: ioff, joff, koff
+    integer :: imin, imax, jmin, jmax, kmin, kmax
+    real(rt) :: x, y, z
     real(rt) :: dens_above, dens_base, temp_above
     real(rt) :: pres_above, p_want, pres_zone, A
     real(rt) :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
@@ -59,15 +60,306 @@ contains
 
     !$gpu
 
+
+    !-------------------------------------------------------------------------
+    ! x boundaries
+    !-------------------------------------------------------------------------
+
+    ! XLO
+    if (bc(1,1,1) == EXT_DIR .and. lo(1) < domlo(1)) then
+
+       if (xl_ext == EXT_HSE) then
+
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                ! we are integrating along a column at constant i.
+                ! Make sure that our starting state is well-defined
+                dens_above = adv(domlo(1),j,k,URHO)
+
+                ! sometimes, we might be working in a corner
+                ! where the ghost cells above us have not yet
+                ! been initialized.  In that case, take the info
+                ! from the initial model
+                if (dens_above == ZERO) then
+                   x = problo(1) + delta(1)*(dble(domlo(1)) + HALF)
+
+                   call interpolate_sub(dens_above, x, npts_model, model_r, &
+                                        model_state(:,idens_model))
+
+                   call interpolate_sub(temp_above, x, npts_model, model_r, &
+                                        model_state(:,itemp_model))
+
+                   do m = 1, nspec
+                      call interpolate_sub(X_zone(m), x, npts_model,model_r, &
+                                           model_state(:,ispec_model-1+m))
+                   end do
+
+                else
+                   temp_above = adv(domlo(1),j,k,UTEMP)
+                   X_zone(:) = adv(domlo(1),j,k,UFS:UFS-1+nspec)/dens_above
+                endif
+
+                ! keep track of the density at the base of the domain
+                dens_base = dens_above
+
+                ! get pressure in this zone (the initial above zone)
+                eos_state%rho = dens_above
+                eos_state%T = temp_above
+                eos_state%xn(:) = X_zone(:)
+
+                call eos(eos_input_rt, eos_state)
+
+                eint = eos_state%e
+                pres_above = eos_state%p
+
+                ! integrate downward
+                imin = adv_lo(1)
+                imax = domlo(1)-1
+#ifdef AMREX_USE_CUDA
+                ! For CUDA, this should only be one thread doing the work:
+                ! we'll arbitrary choose the zone with index domlo(1) - 1.
+                if (hi(1) /= imax) then
+                   imax = imin - 1
+                end if
+#endif
+                do i = imax, imin, -1
+                   x = problo(1) + delta(1)*(dble(i) + HALF)
+
+                   ! HSE integration to get density, pressure
+
+                   ! initial guesses
+                   dens_zone = dens_above
+
+                   ! temperature and species held constant in BCs
+                   if (hse_interp_temp == 1) then
+                      call interpolate_sub(temp_zone, x, npts_model, model_r, &
+                                           model_state(:,itemp_model))
+                   else
+                      temp_zone = temp_above
+                   endif
+
+                   converged_hse = .FALSE.
+
+                   do iter = 1, MAX_ITER
+
+                      ! pressure needed from HSE
+                      p_want = pres_above - &
+                           delta(1)*HALF*(dens_zone + dens_above)*const_grav
+
+                      ! pressure from EOS
+                      eos_state%rho = dens_zone
+                      eos_state%T = temp_zone
+                      eos_state%xn(:) = X_zone(:)
+
+                      call eos(eos_input_rt, eos_state)
+
+                      pres_zone = eos_state%p
+                      dpdr = eos_state%dpdr
+                      eint = eos_state%e
+
+                      ! Newton-Raphson - we want to zero A = p_want - p(rho)
+                      A = p_want - pres_zone
+                      drho = A/(dpdr + HALF*delta(1)*const_grav)
+
+                      dens_zone = max(0.9_rt*dens_zone, &
+                           min(dens_zone + drho, 1.1_rt*dens_zone))
+
+                      ! convergence?
+                      if (abs(drho) < TOL*dens_zone) then
+                         converged_hse = .TRUE.
+                         exit
+                      endif
+
+                   enddo
+
 #ifndef AMREX_USE_CUDA
-    if (bc(1,1,n) == EXT_DIR .and. xl_ext == EXT_HSE .and. lo(1) < domlo(1)) then
-       call amrex_error("ERROR: HSE boundaries not implemented for -x BC")
+                   if (.not. converged_hse) then
+                      print *, "i, j, k, domlo(1): ", i, j, k, domlo(1)
+                      print *, "p_want:    ", p_want
+                      print *, "dens_zone: ", dens_zone
+                      print *, "temp_zone: ", temp_zone
+                      print *, "drho:      ", drho
+                      print *, " "
+                      print *, "column info: "
+                      print *, "   dens: ", adv(i:domlo(1),j,k,URHO)
+                      print *, "   temp: ", adv(i:domlo(1),j,k,UTEMP)
+                      call amrex_error("ERROR in bc_ext_fill_nd: failure to converge in -X BC")
+                   endif
+#endif
+
+                   ! velocity
+                   if (hse_zero_vels == 1) then
+
+                      ! zero normal momentum causes pi waves to pass through
+                      adv(i,j,k,UMX) = ZERO
+                      adv(i,j,k,UMY) = ZERO
+                      adv(i,j,k,UMZ) = ZERO
+
+                   else
+
+                      if (hse_reflect_vels == 1) then
+                         ! reflect normal, zero gradient for transverse
+                         ! note: we need to match the corresponding
+                         ! zone on the other side of the interface
+                         ioff = domlo(1)-i-1
+                         adv(i,j,k,UMX) = -dens_zone*(adv(domlo(1)+ioff,j,k,UMX)/adv(domlo(1)+ioff,j,k,URHO))
+
+                         adv(i,j,k,UMY) = -dens_zone*(adv(domlo(1),j,k,UMY)/dens_base)
+                         adv(i,j,k,UMZ) = -dens_zone*(adv(domlo(1),j,k,UMZ)/dens_base)
+                      else
+                         ! zero gradient
+                         adv(i,j,k,UMX) = dens_zone*(adv(domlo(1),j,k,UMX)/dens_base)
+                         adv(i,j,k,UMY) = dens_zone*(adv(domlo(1),j,k,UMY)/dens_base)
+                         adv(i,j,k,UMZ) = dens_zone*(adv(domlo(1),j,k,UMZ)/dens_base)
+                      endif
+                   endif
+                   eos_state%rho = dens_zone
+                   eos_state%T = temp_zone
+                   eos_state%xn(:) = X_zone
+
+                   call eos(eos_input_rt, eos_state)
+
+                   pres_zone = eos_state%p
+                   eint = eos_state%e
+
+                   ! store the final state
+                   adv(i,j,k,URHO) = dens_zone
+                   adv(i,j,k,UEINT) = dens_zone*eint
+                   adv(i,j,k,UEDEN) = dens_zone*eint + &
+                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
+                   adv(i,j,k,UTEMP) = temp_zone
+                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+
+                   ! for the next zone
+                   dens_above = dens_zone
+                   pres_above = pres_zone
+
+                end do
+             end do
+          end do
+
+       elseif (yl_ext == EXT_INTERP) then
+
+          imin = adv_lo(1)
+          imax = domlo(1)-1
+#ifdef AMREX_USE_CUDA
+          if (hi(1) /= imax) then
+             imax = imin - 1
+          end if
+#endif
+          do i = imax, imin, -1
+             x = problo(1) + delta(1)*(dble(i)+HALF)
+
+             do k = lo(3), hi(3)
+                do j = lo(2), hi(2)
+
+                   call interpolate_sub(dens_zone, x, npts_model, model_r, &
+                                        model_state(:,idens_model))
+
+                   call interpolate_sub(temp_zone, x, npts_model, model_r, &
+                                        model_state(:,itemp_model))
+
+                   do q = 1, nspec
+                      call interpolate_sub(X_zone(q), x, npts_model, model_r, &
+                                           model_state(:,ispec_model-1+q))
+                   enddo
+
+                   ! extrap normal momentum
+                   adv(i,j,k,UMX) = min(ZERO, adv(domlo(1),j,k,UMX))
+
+                   ! zero transverse momentum
+                   adv(i,j,k,UMY) = ZERO
+                   adv(i,j,k,UMZ) = ZERO
+
+                   eos_state%rho = dens_zone
+                   eos_state%T = temp_zone
+                   eos_state%xn(:) = X_zone
+
+                   call eos(eos_input_rt, eos_state)
+
+                   pres_zone = eos_state%p
+                   eint = eos_state%e
+
+                   adv(i,j,k,URHO) = dens_zone
+                   adv(i,j,k,UEINT) = dens_zone*eint
+                   adv(i,j,k,UEDEN) = dens_zone*eint + &
+                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
+                   adv(i,j,k,UTEMP) = temp_zone
+                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+                end do
+             end do
+          end do
+       endif  ! yl_ext check
+
+
     endif
 
-    if (bc(1,2,n) == EXT_DIR .and. xr_ext == EXT_HSE .and. hi(1) > domhi(1)) then
-       call amrex_error("ERROR: HSE boundaries not implemented for +x BC, d")
-    end if
+
+    ! XHI
+    if (bc(1,2,1) == EXT_DIR .and. hi(1) > domhi(1)) then
+
+       if (xr_ext == EXT_HSE) then
+#ifndef AMREX_USE_CUDA
+          call amrex_error("ERROR: HSE boundaries not implemented for +X")
 #endif
+
+       elseif (xr_ext == EXT_INTERP) then
+          ! interpolate thermodynamics from initial model
+
+          imin = domhi(1)+1
+          imax = adv_hi(1)
+#ifdef AMREX_USE_CUDA
+          if (lo(1) /= imin) then
+             imin = imax + 1
+          end if
+#endif
+          do i = imin, imax
+             x = problo(1) + delta(1)*(dble(i) + HALF)
+
+             do k = lo(3), hi(3)
+                do j = lo(2), hi(2)
+
+                   call interpolate_sub(dens_zone, x, npts_model, model_r, &
+                                        model_state(:,idens_model))
+
+                   call interpolate_sub(temp_zone, x, npts_model, model_r, &
+                                         model_state(:,itemp_model))
+
+                   do q = 1, nspec
+                      call interpolate_sub(X_zone(q), x, npts_model, model_r, &
+                                           model_state(:,ispec_model-1+q))
+                   end do
+
+                   ! extrap normal momentum
+                   adv(i,j,k,UMX) = max(ZERO, adv(domhi(1),j,k,UMX))
+
+                   ! zero transverse momentum
+                   adv(i,j,k,UMY) = ZERO
+                   adv(i,j,k,UMZ) = ZERO
+
+                   eos_state%rho = dens_zone
+                   eos_state%T = temp_zone
+                   eos_state%xn(:) = X_zone
+
+                   call eos(eos_input_rt, eos_state)
+
+                   pres_zone = eos_state%p
+                   eint = eos_state%e
+
+                   adv(i,j,k,URHO) = dens_zone
+                   adv(i,j,k,UEINT) = dens_zone*eint
+                   adv(i,j,k,UEDEN) = dens_zone*eint + &
+                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
+                   adv(i,j,k,UTEMP) = temp_zone
+                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+
+                end do
+             end do
+          end do
+       end if  ! zr_ext check
+
+    endif
+
 
 #if AMREX_SPACEDIM >= 2
     !-------------------------------------------------------------------------
