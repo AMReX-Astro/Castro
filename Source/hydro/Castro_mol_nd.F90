@@ -233,7 +233,7 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
      shk(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = ZERO
   endif
 
-
+#if 0
   do idir = 1, AMREX_SPACEDIM
      call ca_ppm_reconstruct(lo, hi, 1, idir, &
                              q, q_lo, q_hi, NQ, 1, NQ, &
@@ -241,6 +241,7 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
                              qm, qm_lo, qm_hi, &
                              qp, qp_lo, qp_hi, NQ, 1, NQ)
   end do
+#endif
 
   ! use T to define p
   if (ppm_temp_fix == 1) then

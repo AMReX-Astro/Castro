@@ -43,7 +43,6 @@ contains
 
     implicit none
 
-    integer, intent(in   ) :: lo(3), hi(3)
     integer, intent(in), value :: put_on_edges, idir
     integer, intent(in   ) :: s_lo(3), s_hi(3)
     integer, intent(in   ) :: f_lo(3), f_hi(3)
@@ -69,22 +68,6 @@ contains
     !$gpu
 
 #ifndef AMREX_USE_GPU
-    if ((s_lo(1) > lo(1)-3) .or. &
-         (dim >= 2 .and. s_lo(2) > lo(2)-3) .or. &
-         (dim == 3 .and. s_lo(3) > lo(3)-3)) then
-       print *,'Low bounds of array: ',s_lo(1), s_lo(2),s_lo(3)
-       print *,'Low bounds of  loop: ',lo(1),lo(2),lo(3)
-       call amrex_error("Need more ghost cells on array in ppm_type1")
-    end if
-
-    if ((s_hi(1) < hi(1)+3) .or. &
-         (dim >= 2 .and. s_hi(2) < hi(2)+3) .or. &
-         (dim == 3 .and. s_hi(3) < hi(3)+3)) then
-       print *,'Hi  bounds of array: ',s_hi(1), s_hi(2), s_hi(3)
-       print *,'Hi  bounds of  loop: ',hi(1),hi(2),hi(3)
-       call amrex_error("Need more ghost cells on array in ppm_type1")
-    end if
-
     if (nend - nstart /= nqend - nqstart) then
        call amrex_error("Number of components do not match in ca_ppm_reconstruct")
     end if
@@ -391,14 +374,14 @@ contains
           if (put_on_edges == 1) then
 
              ! right state at k-1/2
-             qp(i,j,k,nq,3) = sm
+             qp(nq,3) = sm
 
              ! left state at k+1/2
-             qm(i,j,k+1,nq,3) = sp
+             qm(nq,3) = sp
 
           else
-             qp(i,j,k,nq,3) = sp
-             qm(i,j,k,nq,3) = sm
+             qp(nq,3) = sp
+             qm(nq,3) = sm
           endif
 
        end do
