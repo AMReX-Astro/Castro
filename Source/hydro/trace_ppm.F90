@@ -13,14 +13,10 @@ module trace_ppm_module
 contains
 
   subroutine trace_ppm(lo, hi, &
-                       idir, q, qd_lo, qd_hi, &
+                       idir, &
+                       q, qd_lo, qd_hi, &
                        qaux, qa_lo, qa_hi, &
-                       Ip, Ip_lo, Ip_hi, &
-                       Im, Im_lo, Im_hi, &
-                       Ip_src, Ips_lo, Ips_hi, &
-                       Im_src, Ims_lo, Ims_hi, &
-                       Ip_gc, Ipg_lo, Ipg_hi, &
-                       Im_gc, Img_lo, Img_hi, &
+                       SrcQ, src_lo, src_hi, &
                        qm, qm_lo, qm_hi, &
                        qp, qp_lo, qp_hi, &
 #if (AMREX_SPACEDIM < 3)
@@ -40,15 +36,10 @@ contains
 
     integer, intent(in) :: idir
     integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
-    integer, intent(in) :: Im_lo(3), Im_hi(3)
-    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
-    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
-    integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
-    integer, intent(in) :: Img_lo(3), Img_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
 
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
@@ -59,15 +50,7 @@ contains
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
-
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
-
-    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
-    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
@@ -76,40 +59,18 @@ contains
 #endif
     real(rt), intent(in) :: dt, dx(3)
 
-
-    real(rt) :: un
-    integer :: ipassive, n, i, j, k
+    integer :: n, i, j, k
 
     !$gpu
 
 
-    ! start with the species
-
-    call trace_ppm_species(lo, hi, &
-                           idir, q, qd_lo, qd_hi, &
-                           Ip, Ip_lo, Ip_hi, &
-                           Im, Im_lo, Im_hi, &
-                           Ip_src, Ips_lo, Ips_hi, &
-                           Im_src, Ims_lo, Ims_hi, &
-                           qm, qm_lo, qm_hi, &
-                           qp, qp_lo, qp_hi, &
-                           vlo, vhi, domlo, domhi, &
-                           dx, dt)
-
-
-    ! now the rest of the state
-
     if (ppm_temp_fix < 3) then
        if (ppm_predict_gammae == 0) then
           call trace_ppm_rhoe(lo, hi, &
-                              idir, q, qd_lo, qd_hi, &
+                              idir, &
+                              q, qd_lo, qd_hi, &
                               qaux, qa_lo, qa_hi, &
-                              Ip, Ip_lo, Ip_hi, &
-                              Im, Im_lo, Im_hi, &
-                              Ip_src, Ips_lo, Ips_hi, &
-                              Im_src, Ims_lo, Ims_hi, &
-                              Ip_gc, Ipg_lo, Ipg_hi, &
-                              Im_gc, Img_lo, Img_hi, &
+                              srcQ, src_lo, src_hi, &
                               qm, qm_lo, qm_hi, &
                               qp, qp_lo, qp_hi, &
 #if (AMREX_SPACEDIM < 3)
@@ -119,14 +80,10 @@ contains
                               dx, dt)
        else
           call trace_ppm_gammae(lo, hi, &
-                                idir, q, qd_lo, qd_hi, &
+                                idir, &
+                                q, qd_lo, qd_hi, &
                                 qaux, qa_lo, qa_hi, &
-                                Ip, Ip_lo, Ip_hi, &
-                                Im, Im_lo, Im_hi, &
-                                Ip_src, Ips_lo, Ips_hi, &
-                                Im_src, Ims_lo, Ims_hi, &
-                                Ip_gc, Ipg_lo, Ipg_hi, &
-                                Im_gc, Img_lo, Img_hi, &
+                                srcQ, src_lo, src_hi, &
                                 qm, qm_lo, qm_hi, &
                                 qp, qp_lo, qp_hi, &
 #if (AMREX_SPACEDIM < 3)
@@ -137,14 +94,10 @@ contains
        end if
     else
        call trace_ppm_temp(lo, hi, &
-                           idir, q, qd_lo, qd_hi, &
+                           idir, &
+                           q, qd_lo, qd_hi, &
                            qaux, qa_lo, qa_hi, &
-                           Ip, Ip_lo, Ip_hi, &
-                           Im, Im_lo, Im_hi, &
-                           Ip_src, Ips_lo, Ips_hi, &
-                           Im_src, Ims_lo, Ims_hi, &
-                           Ip_gc, Ipg_lo, Ipg_hi, &
-                           Im_gc, Img_lo, Img_hi, &
+                           srcQ, src_lo, src_hi, &
                            qm, qm_lo, qm_hi, &
                            qp, qp_lo, qp_hi, &
 #if (AMREX_SPACEDIM < 3)
@@ -157,12 +110,11 @@ contains
   end subroutine trace_ppm
 
 
-  subroutine trace_ppm_species(lo, hi, &
-                               idir, q, qd_lo, qd_hi, &
-                               Ip, Ip_lo, Ip_hi, &
-                               Im, Im_lo, Im_hi, &
-                               Ip_src, Ips_lo, Ips_hi, &
-                               Im_src, Ims_lo, Ims_hi, &
+  subroutine trace_ppm_species(i, j, k, &
+                               idir, &
+                               q, qd_lo, qd_hi, &
+                               Ip, Im, &
+                               Ip_src, Im_src, &
                                qm, qm_lo, qm_hi, &
                                qp, qp_lo, qp_hi, &
                                vlo, vhi, domlo, domhi, &
@@ -181,29 +133,28 @@ contains
     integer, intent(in) :: qd_lo(3), qd_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: qm_lo(3), qm_hi(3)
-    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
-    integer, intent(in) :: Im_lo(3), Im_hi(3)
-    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
-    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
+    real(rt), intent(in) :: Ip(1:3,NQ)
+    real(rt), intent(in) :: Im(1:3,NQ)
 
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
+    real(rt), intent(in) :: Ip_src(1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(1:3,NQSRC)
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
     real(rt), intent(in) :: dt, dx(3)
 
+    integer, intent(in) :: i, j, k
+
     real(rt) :: un
-    integer :: ipassive, n, i, j, k
+    integer :: ipassive, n
+
 
     !$gpu
 
@@ -216,80 +167,69 @@ contains
        ! components below, so don't process them here.
        if (n == QU .or. n == QV .or. n == QW) cycle
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+       ! Plus state on face i
+       if ((idir == 1 .and. i >= vlo(1)) .or. &
+           (idir == 2 .and. j >= vlo(2)) .or. &
+           (idir == 3 .and. k >= vlo(3))) then
 
-                ! Plus state on face i
-                if ((idir == 1 .and. i >= vlo(1)) .or. &
-                    (idir == 2 .and. j >= vlo(2)) .or. &
-                    (idir == 3 .and. k >= vlo(3))) then
+          un = q(i,j,k,QU-1+idir)
 
-                   un = q(i,j,k,QU-1+idir)
+          ! We have
+          !
+          ! q_l = q_ref - Proj{(q_ref - I)}
+          !
+          ! and Proj{} represents the characteristic projection.
+          ! But for these, there is only 1-wave that matters, the u
+          ! wave, so no projection is needed.  Since we are not
+          ! projecting, the reference state doesn't matter
 
-                   ! We have
-                   !
-                   ! q_l = q_ref - Proj{(q_ref - I)}
-                   !
-                   ! and Proj{} represents the characteristic projection.
-                   ! But for these, there is only 1-wave that matters, the u
-                   ! wave, so no projection is needed.  Since we are not
-                   ! projecting, the reference state doesn't matter
+          if (un > ZERO) then
+             qp(i,j,k,n) = q(i,j,k,n)
+          else
+             qp(i,j,k,n) = Im(2,n)
+          end if
+          if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(2,n)
 
-                   if (un > ZERO) then
-                      qp(i,j,k,n) = q(i,j,k,n)
-                   else
-                      qp(i,j,k,n) = Im(i,j,k,2,n)
-                   end if
-                   if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,2,n)
+       end if
 
-                end if
+       ! Minus state on face i+1
+       if (idir == 1 .and. i <= vhi(1)) then
+          un = q(i,j,k,QU-1+idir)
+          if (un > ZERO) then
+             qm(i+1,j,k,n) = Ip(2,n)
+          else
+             qm(i+1,j,k,n) = q(i,j,k,n)
+          end if
+          if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(2,n)
 
-                ! Minus state on face i+1
-                if (idir == 1 .and. i <= vhi(1)) then
-                   un = q(i,j,k,QU-1+idir)
-                   if (un > ZERO) then
-                      qm(i+1,j,k,n) = Ip(i,j,k,2,n)
-                   else
-                      qm(i+1,j,k,n) = q(i,j,k,n)
-                   end if
-                   if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
-                else if (idir == 2 .and. j <= vhi(2)) then
-                   un = q(i,j,k,QU-1+idir)
-                   if (un > ZERO) then
-                      qm(i,j+1,k,n) = Ip(i,j,k,2,n)
-                   else
-                      qm(i,j+1,k,n) = q(i,j,k,n)
-                   end if
-                   if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
-                else if (idir == 3 .and. k <= vhi(3)) then
-                   un = q(i,j,k,QU-1+idir)
-                   if (un > ZERO) then
-                      qm(i,j,k+1,n) = Ip(i,j,k,2,n)
-                   else
-                      qm(i,j,k+1,n) = q(i,j,k,n)
-                   end if
-                   if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,2,n)
-                end if
+       else if (idir == 2 .and. j <= vhi(2)) then
+          un = q(i,j,k,QU-1+idir)
+          if (un > ZERO) then
+             qm(i,j+1,k,n) = Ip(2,n)
+          else
+             qm(i,j+1,k,n) = q(i,j,k,n)
+          end if
+          if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(2,n)
 
-             end do
-
-          end do
-       end do
+       else if (idir == 3 .and. k <= vhi(3)) then
+          un = q(i,j,k,QU-1+idir)
+          if (un > ZERO) then
+             qm(i,j,k+1,n) = Ip(2,n)
+          else
+             qm(i,j,k+1,n) = q(i,j,k,n)
+          end if
+          if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(2,n)
+       end if
 
     end do
   end subroutine trace_ppm_species
 
 
   subroutine trace_ppm_rhoe(lo, hi, &
-                            idir, q, qd_lo, qd_hi, &
+                            idir, &
+                            q, qd_lo, qd_hi, &
                             qaux, qa_lo, qa_hi, &
-                            Ip, Ip_lo, Ip_hi, &
-                            Im, Im_lo, Im_hi, &
-                            Ip_src, Ips_lo, Ips_hi, &
-                            Im_src, Ims_lo, Ims_hi, &
-                            Ip_gc, Ipg_lo, Ipg_hi, &
-                            Im_gc, Img_lo, Img_hi, &
+                            srcQ, src_lo, src_hi, &
                             qm, qm_lo, qm_hi, &
                             qp, qp_lo, qp_hi, &
 #if (AMREX_SPACEDIM < 3)
@@ -311,15 +251,12 @@ contains
 
     integer, intent(in) :: idir
     integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+    integer, intent(in) :: src_lo(3), src_hi(3)
+
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
-    integer, intent(in) :: Im_lo(3), Im_hi(3)
-    integer, intent(in) :: Ips_lo(3), Ips_hi(3)
-    integer, intent(in) :: Ims_lo(3), Ims_hi(3)
-    integer, intent(in) :: Ipg_lo(3), Ipg_hi(3)
-    integer, intent(in) :: Img_lo(3), Img_hi(3)
+
 #if (AMREX_SPACEDIM < 3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
@@ -329,15 +266,7 @@ contains
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-
-    real(rt), intent(in) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
-    real(rt), intent(in) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
-
-    real(rt), intent(in) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
-    real(rt), intent(in) :: Im_src(Ims_lo(1):Ims_hi(1),Ims_lo(2):Ims_hi(2),Ims_lo(3):Ims_hi(3),1:3,NQSRC)
-
-    real(rt), intent(in) :: Ip_gc(Ipg_lo(1):Ipg_hi(1),Ipg_lo(2):Ipg_hi(2),Ipg_lo(3):Ipg_hi(3),1:3,1)
-    real(rt), intent(in) :: Im_gc(Img_lo(1):Img_hi(1),Img_lo(2):Img_hi(2),Img_lo(3):Img_hi(3),1:3,1)
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQAUX)
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
@@ -350,6 +279,10 @@ contains
     integer :: i, j, k
 
     real(rt) :: hdt
+
+    real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
+    real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
+    real(rt) :: Ip_gc(1:3,1), Im_gc(1:3,1)
 
     integer :: QUN, QUT, QUTT
 
@@ -458,6 +391,90 @@ contains
 
              gam_g = qaux(i,j,k,QGAMC)
 
+             ! do the parabolic reconstruction and compute the
+             ! integrals under the characteristic waves
+             do n = 1, NQ
+                if (.not. reconstruct_state(n)) cycle
+
+                call ca_ppm_reconstruct(i, j, k, &
+                                        0, idir, &
+                                        q, qd_lo, qd_hi, NQ, n, n, &
+                                        flatn, f_lo, f_hi, &
+                                        sm, sp, &
+                                        1, 1, 1)
+
+                call ppm_int_profile(i, j, k, &
+                                     idir, &
+                                     q, qd_lo, qd_hi, NQ, n, &
+                                     q, qd_lo, qd_hi, &
+                                     qaux, qa_lo, qa_hi, &
+                                     sm, sp, &
+                                     Ip, Im, NQ, n, &
+                                     dx, dt)
+             end do
+
+
+             if (ppm_temp_fix /= 1) then
+                call ca_ppm_reconstruct(i, j, k, &
+                                        0, idir, &
+                                        qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
+                                        flatn, f_lo, f_hi, &
+                                        sm, sp, &
+                                        1, 1, 1)
+
+                call ppm_int_profile(i, j, k, &
+                                     idir, &
+                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                                     q, qd_lo, qd_hi, &
+                                     qaux, qa_lo, qa_hi, &
+                                     sm, sp, &
+                                     Ip_gc, Im_gc, 1, 1, &
+                                     dx, dt)
+             else
+
+                ! temperature-based PPM
+                call ppm_reconstruct_with_eos(Ip, Im, &
+                                              Ip_gc, Im_gc)
+
+             end if
+
+
+             ! source terms
+             do n = 1, NQSRC
+                if (source_nonzero(n)) then
+                   call ca_ppm_reconstruct(i, j, k, &
+                                           0, idir, &
+                                           srcQ, src_lo, src_hi, NQSRC, n, n, &
+                                           flatn, f_lo, f_hi, &
+                                           sm, sp, &
+                                           1, 1, 1)
+
+                   call ppm_int_profile(i, j, k, &
+                                        idir, &
+                                        srcQ, src_lo, src_hi, NQSRC, n, &
+                                        q, qd_lo, qd_hi, &
+                                        qaux, qa_lo, qa_hi, &
+                                        sm, sp, &
+                                        Ip_src, Im_src, NQSRC, n, &
+                                        dx, dt)
+                else
+                   Ip_src(:,n) = ZERO
+                   Im_src(:,n) = ZERO
+                end if
+
+             end do
+
+
+             ! do the passives separately
+             call trace_ppm_species(i, j, k, &
+                                    idir, &
+                                    q, qd_lo, qd_hi, &
+                                    Ip, Im, &
+                                    Ip_src, Im_src, &
+                                    qm, qm_lo, qm_hi, &
+                                    qp, qp_lo, qp_hi, &
+                                    vlo, vhi, domlo, domhi, &
+                                    dx, dt)
 
              !-------------------------------------------------------------------
              ! plus state on face i
@@ -471,13 +488,13 @@ contains
                 ! This will be the fastest moving state to the left --
                 ! this is the method that Miller & Colella and Colella &
                 ! Woodward use
-                rho_ref  = Im(i,j,k,1,QRHO)
-                un_ref    = Im(i,j,k,1,QUN)
+                rho_ref  = Im(1,QRHO)
+                un_ref    = Im(1,QUN)
 
-                p_ref    = Im(i,j,k,1,QPRES)
-                rhoe_g_ref = Im(i,j,k,1,QREINT)
+                p_ref    = Im(1,QPRES)
+                rhoe_g_ref = Im(1,QREINT)
 
-                gam_g_ref  = Im_gc(i,j,k,1,1)
+                gam_g_ref  = Im_gc(1,1)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -495,15 +512,15 @@ contains
 
 
                 ! we also add the sources here so they participate in the tracing
-                dum = un_ref - Im(i,j,k,1,QUN) - hdt*Im_src(i,j,k,1,QUN)
-                dptotm = p_ref - Im(i,j,k,1,QPRES) - hdt*Im_src(i,j,k,1,QPRES)
+                dum = un_ref - Im(1,QUN) - hdt*Im_src(1,QUN)
+                dptotm = p_ref - Im(1,QPRES) - hdt*Im_src(1,QPRES)
 
-                drho = rho_ref - Im(i,j,k,2,QRHO) - hdt*Im_src(i,j,k,2,QRHO)
-                dptot = p_ref - Im(i,j,k,2,QPRES) - hdt*Im_src(i,j,k,2,QPRES)
-                drhoe_g = rhoe_g_ref - Im(i,j,k,2,QREINT) - hdt*Im_src(i,j,k,2,QREINT)
+                drho = rho_ref - Im(2,QRHO) - hdt*Im_src(2,QRHO)
+                dptot = p_ref - Im(2,QPRES) - hdt*Im_src(2,QPRES)
+                drhoe_g = rhoe_g_ref - Im(2,QREINT) - hdt*Im_src(2,QREINT)
 
-                dup = un_ref - Im(i,j,k,3,QUN) - hdt*Im_src(i,j,k,3,QUN)
-                dptotp = p_ref - Im(i,j,k,3,QPRES) - hdt*Im_src(i,j,k,3,QPRES)
+                dup = un_ref - Im(3,QUN) - hdt*Im_src(3,QUN)
+                dptotp = p_ref - Im(3,QPRES) - hdt*Im_src(3,QPRES)
 
 
                 ! Optionally use the reference state in evaluating the
@@ -571,8 +588,8 @@ contains
                 ! Recall that I already takes the limit of the parabola
                 ! in the event that the wave is not moving toward the
                 ! interface
-                qp(i,j,k,QUT) = Im(i,j,k,2,QUT) + hdt*Im_src(i,j,k,2,QUT)
-                qp(i,j,k,QUTT) = Im(i,j,k,2,QUTT) + hdt*Im_src(i,j,k,2,QUTT)
+                qp(i,j,k,QUT) = Im(2,QUT) + hdt*Im_src(2,QUT)
+                qp(i,j,k,QUTT) = Im(2,QUTT) + hdt*Im_src(2,QUTT)
 
              end if
 
@@ -586,13 +603,13 @@ contains
 
                 ! Set the reference state
                 ! This will be the fastest moving state to the right
-                rho_ref  = Ip(i,j,k,3,QRHO)
-                un_ref    = Ip(i,j,k,3,QUN)
+                rho_ref  = Ip(3,QRHO)
+                un_ref    = Ip(3,QUN)
 
-                p_ref    = Ip(i,j,k,3,QPRES)
-                rhoe_g_ref = Ip(i,j,k,3,QREINT)
+                p_ref    = Ip(3,QPRES)
+                rhoe_g_ref = Ip(3,QREINT)
 
-                gam_g_ref  = Ip_gc(i,j,k,3,1)
+                gam_g_ref  = Ip_gc(3,1)
 
                 rho_ref = max(rho_ref, small_dens)
                 p_ref = max(p_ref, small_pres)
@@ -605,15 +622,15 @@ contains
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
 
-                dum = un_ref - Ip(i,j,k,1,QUN) - hdt*Ip_src(i,j,k,1,QUN)
-                dptotm  = p_ref - Ip(i,j,k,1,QPRES) - hdt*Ip_src(i,j,k,1,QPRES)
+                dum = un_ref - Ip(1,QUN) - hdt*Ip_src(1,QUN)
+                dptotm  = p_ref - Ip(1,QPRES) - hdt*Ip_src(1,QPRES)
 
-                drho = rho_ref - Ip(i,j,k,2,QRHO) - hdt*Ip_src(i,j,k,2,QRHO)
-                dptot = p_ref - Ip(i,j,k,2,QPRES) - hdt*Ip_src(i,j,k,2,QPRES)
-                drhoe_g = rhoe_g_ref - Ip(i,j,k,2,QREINT) - hdt*Ip_src(i,j,k,2,QREINT)
+                drho = rho_ref - Ip(2,QRHO) - hdt*Ip_src(2,QRHO)
+                dptot = p_ref - Ip(2,QPRES) - hdt*Ip_src(2,QPRES)
+                drhoe_g = rhoe_g_ref - Ip(2,QREINT) - hdt*Ip_src(2,QREINT)
 
-                dup = un_ref - Ip(i,j,k,3,QUN) - hdt*Ip_src(i,j,k,3,QUN)
-                dptotp = p_ref - Ip(i,j,k,3,QPRES) - hdt*Ip_src(i,j,k,3,QPRES)
+                dup = un_ref - Ip(3,QUN) - hdt*Ip_src(3,QUN)
+                dptotp = p_ref - Ip(3,QPRES) - hdt*Ip_src(3,QPRES)
 
                 ! Optionally use the reference state in evaluating the
                 ! eigenvectors
@@ -674,8 +691,8 @@ contains
                    qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i+1,j,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm(i+1,j,k,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
+                   qm(i+1,j,k,QUTT) = Ip(QUTT) + hdt*Ip_src(2,QUTT)
 
                 else if (idir == 2) then
                    qm(i,j+1,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
@@ -684,8 +701,8 @@ contains
                    qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i,j+1,k,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm(i,j+1,k,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
+                   qm(i,j+1,k,QUTT) = Ip(2,QUTT) + hdt*Ip_src(2,QUTT)
 
                 else if (idir == 3) then
                    qm(i,j,k+1,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
@@ -694,8 +711,8 @@ contains
                    qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
 
                    ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(i,j,k,2,QUT) + hdt*Ip_src(i,j,k,2,QUT)
-                   qm(i,j,k+1,QUTT) = Ip(i,j,k,2,QUTT) + hdt*Ip_src(i,j,k,2,QUTT)
+                   qm(i,j,k+1,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
+                   qm(i,j,k+1,QUTT) = Ip(2,QUTT) + hdt*Ip_src(2,QUTT)
                 endif
 
              end if
