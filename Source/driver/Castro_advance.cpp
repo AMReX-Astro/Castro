@@ -42,6 +42,8 @@ Castro::advance (Real time,
 
     wall_time_start = ParallelDescriptor::second();
 
+    MultiFab::RegionTag castro_advance_tag("Castro_Level_" + std::to_string(level));
+
     Real dt_new = dt;
 
     initialize_advance(time, dt, amr_iteration, amr_ncycle);
