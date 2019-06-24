@@ -135,12 +135,11 @@ contains
 #ifdef RADIATION
        if (idir == 1) then
           call trace_ppm_rad(lo, hi, &
-                             1, q, qd_lo, qd_hi, &
+                             1, &
+                             q, qd_lo, qd_hi, &
                              qaux, qa_lo, qa_hi, &
-                             Ip, Ip_lo, Ip_hi, &
-                             Im, Im_lo, Im_hi, &
-                             Ip_src, Ips_lo, Ips_hi, &
-                             Im_src, Ims_lo, Ims_hi, &
+                             srcQ, src_lo, src_hi, &
+                             flatn, f_lo, f_hi, &
                              qxm, qxm_lo, qxm_hi, &
                              qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM <= 2
@@ -152,12 +151,11 @@ contains
 #if AMREX_SPACEDIM >= 2
        else if (idir == 2) then
           call trace_ppm_rad(lo, hi, &
-                             2, q, qd_lo, qd_hi, &
+                             2, &
+                             q, qd_lo, qd_hi, &
                              qaux, qa_lo, qa_hi, &
-                             Ip, Ip_lo, Ip_hi, &
-                             Im, Im_lo, Im_hi, &
-                             Ip_src, Ips_lo, Ips_hi, &
-                             Im_src, Ims_lo, Ims_hi, &
+                             srcQ, src_lo, src_hi, &
+                             flatn, f_lo, f_hi, &
                              qym, qym_lo, qym_hi, &
                              qyp, qyp_lo, qyp_hi, &
 #if AMREX_SPACEDIM == 2
@@ -172,10 +170,8 @@ contains
           call trace_ppm_rad(lo, hi, &
                              3, q, qd_lo, qd_hi, &
                              qaux, qa_lo, qa_hi, &
-                             Ip, Ip_lo, Ip_hi, &
-                             Im, Im_lo, Im_hi, &
-                             Ip_src, Ips_lo, Ips_hi, &
-                             Im_src, Ims_lo, Ims_hi, &
+                             srcQ, src_lo, src_hi, &
+                             flatn, f_lo, f_hi, &
                              qzm, qzm_lo, qzm_hi, &
                              qzp, qzp_lo, qzp_hi, &
                              vlo, vhi, domlo, domhi, &

@@ -443,7 +443,7 @@ contains
                 if (.not. reconstruct_state(n)) cycle
 
                 call ca_ppm_reconstruct(i, j, k, &
-                                        0, idir, &
+                                        idir, &
                                         q, qd_lo, qd_hi, NQ, n, n, &
                                         flatn, f_lo, f_hi, &
                                         sm, sp, &
@@ -462,7 +462,7 @@ contains
 
              if (ppm_temp_fix /= 1) then
                 call ca_ppm_reconstruct(i, j, k, &
-                                        0, idir, &
+                                        idir, &
                                         qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
                                         flatn, f_lo, f_hi, &
                                         sm, sp, &
@@ -489,7 +489,7 @@ contains
              do n = 1, NQSRC
                 if (source_nonzero(n)) then
                    call ca_ppm_reconstruct(i, j, k, &
-                                           0, idir, &
+                                           idir, &
                                            srcQ, src_lo, src_hi, NQSRC, n, n, &
                                            flatn, f_lo, f_hi, &
                                            sm, sp, &
@@ -989,7 +989,7 @@ contains
                 if (.not. reconstruct_state(n)) cycle
 
                 call ca_ppm_reconstruct(i, j, k, &
-                                        0, idir, &
+                                        idir, &
                                         q, qd_lo, qd_hi, NQ, n, n, &
                                         flatn, f_lo, f_hi, &
                                         sm, sp, &
@@ -1008,7 +1008,7 @@ contains
 
              if (ppm_temp_fix /= 1) then
                 call ca_ppm_reconstruct(i, j, k, &
-                                        0, idir, &
+                                        idir, &
                                         qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
                                         flatn, f_lo, f_hi, &
                                         sm, sp, &
@@ -1035,7 +1035,7 @@ contains
              do n = 1, NQSRC
                 if (source_nonzero(n)) then
                    call ca_ppm_reconstruct(i, j, k, &
-                                           0, idir, &
+                                           idir, &
                                            srcQ, src_lo, src_hi, NQSRC, n, n, &
                                            flatn, f_lo, f_hi, &
                                            sm, sp, &
@@ -1562,7 +1562,7 @@ contains
                 if (.not. reconstruct_state(n)) cycle
 
                 call ca_ppm_reconstruct(i, j, k, &
-                                        0, idir, &
+                                        idir, &
                                         q, qd_lo, qd_hi, NQ, n, n, &
                                         flatn, f_lo, f_hi, &
                                         sm, sp, &
@@ -1581,7 +1581,7 @@ contains
 
              if (ppm_temp_fix /= 1) then
                 call ca_ppm_reconstruct(i, j, k, &
-                                        0, idir, &
+                                        idir, &
                                         qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
                                         flatn, f_lo, f_hi, &
                                         sm, sp, &
@@ -1608,7 +1608,7 @@ contains
              do n = 1, NQSRC
                 if (source_nonzero(n)) then
                    call ca_ppm_reconstruct(i, j, k, &
-                                           0, idir, &
+                                           idir, &
                                            srcQ, src_lo, src_hi, NQSRC, n, n, &
                                            flatn, f_lo, f_hi, &
                                            sm, sp, &

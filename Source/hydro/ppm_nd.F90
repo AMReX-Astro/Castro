@@ -13,7 +13,7 @@ module ppm_module
 contains
 
   subroutine ca_ppm_reconstruct(i, j, k, &
-                                put_on_edges, idir, &
+                                idir, &
                                 s, s_lo, s_hi, nc, nstart, nend, &
                                 flatn, f_lo, f_hi, &
                                 qm, qp, &
@@ -21,13 +21,7 @@ contains
     ! this routine does the reconstruction of the zone data into
     ! parabola.  The loops are over zone centers and for zone center,
     ! it will compute the left and right values of the parabola and
-    ! store these in the qm and qp arrays.  If put_on_edges = 0, then
-    ! this storage is done by zone so the parabola information for a
-    ! zone can then be used in ppm_int_profile to compute the
-    ! integrals.  If put_on_edges = 1, then we copy this information
-    ! to the appropriate edges, such that qm(i,j,k,1) is the left
-    ! state on the i-1/2 interface.  This is used for method-of-lines
-    ! integration methods.
+    ! store these in the qm and qp arrays.  
     !
     ! here s has nc components and we reconstruct component n
     !
@@ -43,7 +37,7 @@ contains
 
     implicit none
 
-    integer, intent(in), value :: put_on_edges, idir
+    integer, intent(in), value :: idir
     integer, intent(in   ) :: s_lo(3), s_hi(3)
     integer, intent(in   ) :: f_lo(3), f_hi(3)
     integer, intent(in   ), value :: nstart, nend, nc
@@ -162,16 +156,8 @@ contains
 
           end if
 
-          if (put_on_edges == 1) then
-             ! right state at i-1/2
-             qp(nq,1) = sm
-
-             ! left state at i+1/2
-             qm(nq,1) = sp
-          else
-             qp(nq,1) = sp
-             qm(nq,1) = sm
-          endif
+          qp(nq,1) = sp
+          qm(nq,1) = sm
 
        end do
 
@@ -266,17 +252,8 @@ contains
 
           end if
 
-          if (put_on_edges == 1) then
-
-             ! right state on j-1/2
-             qp(nq,2) = sm
-
-             ! left state on j+1/2
-             qm(nq,2) = sp
-          else
-             qp(nq,2) = sp
-             qm(nq,2) = sm
-          endif
+          qp(nq,2) = sp
+          qm(nq,2) = sm
 
        end do
 
@@ -371,18 +348,11 @@ contains
 
           end if
 
-          if (put_on_edges == 1) then
+          ! right state at k-1/2
+          qp(nq,3) = sm
 
-             ! right state at k-1/2
-             qp(nq,3) = sm
-
-             ! left state at k+1/2
-             qm(nq,3) = sp
-
-          else
-             qp(nq,3) = sp
-             qm(nq,3) = sm
-          endif
+          ! left state at k+1/2
+          qm(nq,3) = sp
 
        end do
     end if

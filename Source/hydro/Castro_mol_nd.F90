@@ -216,6 +216,8 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
   logical :: compute_shock
   type (eos_t) :: eos_state
 
+  real(rt) :: sm(NQ, AMREX_SPACEDIM), sp(NQ, AMREX_SPACEDIM)
+
   !$gpu
 
 #ifdef SHOCK_VAR
@@ -233,22 +235,58 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
      shk(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = ZERO
   endif
 
-#if 0
-  do idir = 1, AMREX_SPACEDIM
-     call ca_ppm_reconstruct(lo, hi, 1, idir, &
-                             q, q_lo, q_hi, NQ, 1, NQ, &
-                             flatn, fl_lo, fl_hi, &
-                             qm, qm_lo, qm_hi, &
-                             qp, qp_lo, qp_hi, NQ, 1, NQ)
-  end do
-#endif
-
   ! use T to define p
+  do idir = 1, AMREX_SPACEDIM
+
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+
+              call ca_ppm_reconstruct(i, j, k, &
+                                      idir, &
+                                      q, q_lo, q_hi, NQ, 1, NQ, &
+                                      flatn, fl_lo, fl_hi, &
+                                      sm, sp, NQ, 1, NQ)
+
+              if (idir == 1) then
+                 ! right state at i-1/2
+                 qp(i,j,k,:,1) = sm(:,1)
+
+                 ! left state at i+1/2
+                 qm(i+1,j,k,:,1) = sp(:,1)
+
+              else if (idir == 2) then
+                 ! right state at j-1/2
+                 qp(i,j,k,:,2) = sm(:,2)
+
+                 ! left state at j+1/2
+                 qm(i,j+1,k,:,2) = sp(:,2)
+
+              else
+                 ! right state at k-1/2
+                 qp(i,j,k,:,3) = sm(:,3)
+
+                 ! left state at k+1/2
+                 qm(i,j,k+1,:,3) = sp(:,3)
+
+              end if
+
+           end do
+        end do
+     end do
+
+  end do
+
   if (ppm_temp_fix == 1) then
+
      do idir = 1, AMREX_SPACEDIM
+
         do k = lo(3), hi(3)
            do j = lo(2), hi(2)
               do i = lo(1), hi(1)
+
+                 ! we just got the extremes corresponding to a particular cell-center, but now
+                 ! we need to assign them to interfaces
 
                  eos_state%rho    = qp(i,j,k,QRHO,idir)
                  eos_state%T      = qp(i,j,k,QTEMP,idir)
@@ -275,7 +313,9 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
               end do
            end do
         end do
+
      end do
+
   end if
 
 end subroutine ca_mol_ppm_reconstruct
