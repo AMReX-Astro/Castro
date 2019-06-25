@@ -517,7 +517,7 @@ Castro::Castro (Amr&            papa,
     AmrLevel(papa,lev,level_geom,bl,dm,time),
     prev_state(num_state_type)
 {
-    MultiFab::RegionTag castro_level_tag("Castro_Level_" + std::to_string(lev));
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
 
     buildMetrics();
 
@@ -2950,7 +2950,8 @@ Castro::avgDown (int state_indx)
 void
 Castro::allocOldData ()
 {
-    MultiFab::RegionTag region_tag("StateData_Level_" + std::to_string(level));
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
+    MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
     for (int k = 0; k < num_state_type; k++)
         state[k].allocOldData();
 }
