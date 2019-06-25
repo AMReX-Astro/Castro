@@ -137,7 +137,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
       flatg.resize(obx, 1);
       Elixir elix_flatg = flatg.elixir();
-      fab_size += flag.nBytes();
+      fab_size += flatg.nBytes();
 #endif
 
       // compute the flattening coefficient
