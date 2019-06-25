@@ -663,7 +663,7 @@ contains
 
 #ifdef HYBRID_MOMENTUM
     call add_hybrid_advection_source(lo, hi, dt, &
-         update, uout_lo, uout_hi, &
+         update, updt_lo, updt_hi, &
          qx, qx_lo, qx_hi, &
          qy, qy_lo, qy_hi, &
          qz, qz_lo, qz_hi)
