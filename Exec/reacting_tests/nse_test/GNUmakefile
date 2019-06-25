@@ -13,8 +13,6 @@ USE_REACT  = TRUE
 
 CASTRO_HOME = ../../..
 
-DIMENSION_AGNOSTIC = TRUE
-
 ifdef MICROPHYSICS_HOME
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos

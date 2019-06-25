@@ -18,7 +18,6 @@ USE_DIFFUSION = TRUE
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
 
-DIMENSION_AGNOSTIC = TRUE
 GPU_COMPATIBLE_PROBLEM = TRUE
 
 ifdef MICROPHYSICS_HOME

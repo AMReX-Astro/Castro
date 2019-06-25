@@ -4,13 +4,8 @@
 #include <AMReX_ParmParse.H>
 #include "Castro.H"
 #include "Castro_F.H"
-#ifdef AMREX_DIMENSION_AGNOSTIC
 #include "Castro_bc_fill_nd_F.H"
 #include "Castro_bc_fill_nd.H"
-#else
-#include "Castro_bc_fill_F.H"
-#include "Castro_bc_fill.H"
-#endif
 #include "Castro_generic_fill_F.H"
 #include "Castro_generic_fill.H"
 #include <Derive_F.H>

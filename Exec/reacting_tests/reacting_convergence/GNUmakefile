@@ -12,8 +12,6 @@ USE_OMP    = FALSE
 
 USE_REACT = TRUE
 
-DIMENSION_AGNOSTIC = TRUE
-
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
 

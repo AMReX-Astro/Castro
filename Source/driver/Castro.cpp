@@ -517,6 +517,8 @@ Castro::Castro (Amr&            papa,
     AmrLevel(papa,lev,level_geom,bl,dm,time),
     prev_state(num_state_type)
 {
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
+
     buildMetrics();
 
     initMFs();
@@ -1031,8 +1033,6 @@ Castro::initData ()
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
-
 #ifdef GPU_COMPATIBLE_PROBLEM
 
 #pragma gpu box(box)
@@ -1049,14 +1049,6 @@ Castro::initData ()
 
 #endif
 
-#else
-
-          BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-  	  (level, cur_time, lo, hi, ns,
-  	   BL_TO_FORTRAN(S_new[mfi]), dx,
-  	   gridloc.lo(), gridloc.hi());
-
-#endif
        }
 
 #ifdef AMREX_USE_CUDA
@@ -1185,17 +1177,10 @@ Castro::initData ()
 
 	  Rad_new[mfi].setVal(0.0);
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
 	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
 	      (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
 	       BL_TO_FORTRAN_ANYD(Rad_new[mfi]), ZFILL(dx),
 	       ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
-#else
-	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
-	      (level, cur_time, lo, hi, Radiation::nGroups,
-	       BL_TO_FORTRAN(Rad_new[mfi]),dx,
-	       gridloc.lo(),gridloc.hi());
-#endif
 
 	  if (Radiation::nNeutrinoSpecies > 0 && Radiation::nNeutrinoGroups[0] == 0) {
 	      // Hack: running photon radiation through neutrino solver
@@ -3005,6 +2990,8 @@ Castro::avgDown (int state_indx)
 void
 Castro::allocOldData ()
 {
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
+    MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
     for (int k = 0; k < num_state_type; k++)
         state[k].allocOldData();
 }
@@ -3079,7 +3066,6 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
             const int8_t tagval   = (int8_t) TagBox::SET;
             const int8_t clearval = (int8_t) TagBox::CLEAR;
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
 #ifdef GPU_COMPATIBLE_PROBLEM
 #pragma gpu
 	    set_problem_tags(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -3093,13 +3079,6 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
 			     AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
                              tagval, clearval, time, level);
-#endif
-#else
-	    set_problem_tags(bx.loVect(), bx.hiVect(),
-                             (int8_t*) BL_TO_FORTRAN(tagfab),
-			     BL_TO_FORTRAN(S_new[mfi]),
-                             dx, prob_lo,
-			     tagval, clearval, time, level);
 #endif
 	}
     }
@@ -3593,6 +3572,9 @@ Castro::swap_state_time_levels(const Real dt)
 {
 
     BL_PROFILE("Castro::swap_state_time_levels()");
+
+    MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
 
     for (int k = 0; k < num_state_type; k++) {
 

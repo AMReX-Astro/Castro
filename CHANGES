@@ -38,6 +38,9 @@
 
   -- the diffusion_test unit test now works for 4th order problems.
 
+  -- The dimension-specific code for problem initialization, boundary
+     conditions, and external heat terms has been removed, as warned in
+     the previous release notice.
 
 # 19.06
 

@@ -2044,6 +2044,17 @@ protected:
 
     void stopJob ();
 
+///
+/// Returns true if we're on the GPU and the total
+/// memory on this level oversubscribes GPU memory.
+///
+    bool oversubscribing() {
+#ifdef AMREX_USE_GPU
+        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= amrex::Gpu::Device::totalGlobalMem());
+#else
+        return false;
+#endif
+    }
 
 ///
 /// The data.
