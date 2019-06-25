@@ -41,6 +41,8 @@ ifeq ($(USE_CUDA),TRUE)
   DEFINES += -DEXTRA_THERMO
 endif
 
+# all Castro problems use a dimension-agnostic interface
+DIMENSION_AGNOSTIC = TRUE
 
 EBASE = Castro
 
