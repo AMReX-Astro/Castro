@@ -1,13 +1,13 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 500000
 
-stop_time    = 3.e-8
+stop_time    = 3.2e-8
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0
 geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0
-geometry.prob_hi     = 256.0
+geometry.prob_hi     = 128.0
 amr.n_cell           = 512
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -54,7 +54,7 @@ castro.diffuse_cutoff_density = 1.e-2
 castro.cfl            = 0.75    # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
 castro.change_max     = 1.0     # max time step growth
-castro.fixed_dt = 6.e-10
+castro.fixed_dt = 3.2e-10
 castro.dt_cutoff      = 1.e-15  # level 0 timestep below which we halt
 castro.dtnuc_e        = 0.5
 

@@ -1,7 +1,7 @@
 &fortin
 
   interp_model = 1
-  model_file = "flame_4096_sdc4_plt1124217.slice"
+  model_file = "flame_4096_sdc4_plt6797397.slice"
 
   ! we still need this info for the boundary conditions
   rho_fuel = 2.e7
