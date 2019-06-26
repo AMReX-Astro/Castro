@@ -93,8 +93,9 @@
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Setting Up Your Own Problem</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prob-nd-f90"><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#boundary-conditions">Boundary conditions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#optional-files">Optional Files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dimension-agnostic-problem-initialization">Dimension Agnostic Problem Initialization</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">Parallel I/O</a></li>
@@ -195,34 +196,44 @@
             
   <div class="section" id="setting-up-your-own-problem">
 <h1>Setting Up Your Own Problem<a class="headerlink" href="#setting-up-your-own-problem" title="Permalink to this headline">¶</a></h1>
-<p>To define a new problem, we create a new directory in one
-of the subdirectories of <code class="docutils literal notranslate"><span class="pre">Exec/</span></code>,
-and place in it a <code class="docutils literal notranslate"><span class="pre">Prob_2d.f90</span></code> file (or 1d/3d,
-depending on the dimensionality of the problem), a <code class="docutils literal notranslate"><span class="pre">probdata.f90</span></code>
-file, the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> and <code class="docutils literal notranslate"><span class="pre">probin</span></code> files, and a
-<code class="docutils literal notranslate"><span class="pre">Make.package</span></code> file that tells the build system what problem-specific
-routines exist. Finally, if you need custom boundary conditions, a
-<code class="docutils literal notranslate"><span class="pre">bc_fill_2d.F90</span></code> (or 1d/3d) file is needed. The
-simplest way to get started is to copy these files from an existing
-problem. Here we describe how to customize your problem.</p>
-<p>The purpose of these files is:</p>
-<ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">probdata.f90</span></code>: this holds the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> Fortran module
-that allocates storage for all the problem-specific runtime parameters that
-are used by the problem (including those that are read from the <code class="docutils literal notranslate"><span class="pre">probin</span></code>
-file.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Prob_?d.f90</span></code>: this holds the main routines to
-initialize the problem and grid and perform problem-specific boundary
-conditions:</p>
+<p>Castro problems are organized loosely into groups describing their
+intent (e.g., science, hydro tests, …).  These groups are
+sub-directories under the <cite>Castro/Exec/</cite> directory.  Each problem is
+then placed in a sub-directory of the appropriate group (for example,
+<code class="docutils literal notranslate"><span class="pre">Castro/Exec/hydro_tests/Sedov</span></code> holds the Sedov test problem).</p>
+<p>To create a new problem, you will create a new directory under one
+of the groups and place in it the following files:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> : this holds the problem initialization routines</li>
+<li><code class="docutils literal notranslate"><span class="pre">probdata.F90</span></code> (optional) : this is usually where
+problem-specific runtime parameters are defined.  These parameters
+are controlled by the <code class="docutils literal notranslate"><span class="pre">probin</span></code> file.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Make.package</span></code> : this is a makefile fragment that is included
+during the build process.  It tells the build system about any
+problem-specific files that need to be compiled.</li>
+<li><code class="docutils literal notranslate"><span class="pre">inputs</span></code> : this is the main inputs file that controls Castro and
+AMReX’s behavior.</li>
+<li><code class="docutils literal notranslate"><span class="pre">probin</span></code> : this is the problem-specific inputs file that
+contains Fortran namelists with problem parameters as well as any
+paramters for external physics (e.g., from the StarKiller
+Microphysics)</li>
+</ul>
+</div></blockquote>
+<p>The best way to get started writing a new problem is to copy an
+existing problem setup into a new directory.</p>
+<div class="section" id="prob-nd-f90">
+<h2><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code><a class="headerlink" href="#prob-nd-f90" title="Permalink to this headline">¶</a></h2>
+<p>Here we describe the main problem initialization routines.</p>
 <ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">probinit()</span></code>:</p>
-<p>This routine is primarily responsible for reading in the
-<code class="docutils literal notranslate"><span class="pre">probin</span></code> file (by defining the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist and
-reading in an initial model (usually through the
-<code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code>—see the <code class="docutils literal notranslate"><span class="pre">toy_convect</span></code> problem
-setup for an example). The parameters that are initialized
-here are those stored in the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.</p>
+<p>This routine is primarily responsible for reading in the <code class="docutils literal notranslate"><span class="pre">probin</span></code>
+file (by defining the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist) and doing any one-time
+initialization for the problem (like reading in an
+initial model through the <code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code>—see the
+<code class="docutils literal notranslate"><span class="pre">toy_convect</span></code> problem setup for an example).</p>
+<p>By convention, the parameters that are initialized here stored in the
+<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> defined in <code class="docutils literal notranslate"><span class="pre">probdata.F90</span></code>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">many problems set the value of the <code class="docutils literal notranslate"><span class="pre">center()</span></code> array
@@ -233,6 +244,9 @@ the center of the domain, e.g., for axisymmetric problems).
 gravity) and in computing some of the derived variables (like
 angular momentum).</p>
 </div>
+<p>The arguments include the name and length of the probin file
+as well as the physical values of the domain’s lower-left corner
+(<code class="docutils literal notranslate"><span class="pre">problo</span></code>) and upper-right corner (<code class="docutils literal notranslate"><span class="pre">probhi</span></code>).</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">ca_initdata()</span></code>:</p>
 <p>This routine will initialize the state data for a single grid.
@@ -250,159 +264,80 @@ identify where in the computational domain the box lives.</p>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">nscal</span></code>: the number of scalar quantities—this is not typically
 used in Castro.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">state_l1</span></code>, <code class="docutils literal notranslate"><span class="pre">state_l2</span></code>, (<code class="docutils literal notranslate"><span class="pre">state_l3</span></code>): the
-integer indices of the lower left corner of the box in each
-coordinate direction. These are for the box as allocated in memory,
-so they include any ghost cells as well as the valid data regions.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">state_h1</span></code>, <code class="docutils literal notranslate"><span class="pre">state_h2</span></code>, (<code class="docutils literal notranslate"><span class="pre">state_h3</span></code>): the
-integer indices of the upper right corner of the box in each
-coordinate direction. These are for the box as allocated in memory,
-so they include any ghost cells as well as the valid data regions.</p>
-</li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">state()</span></code>: the main state array. This is dimensioned as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">double</span> <span class="n">precision</span> <span class="n">state</span><span class="p">(</span><span class="n">state_l1</span><span class="p">:</span><span class="n">state_h1</span><span class="p">,</span><span class="n">state_l2</span><span class="p">:</span><span class="n">state_h2</span><span class="p">,</span><span class="n">NVAR</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">real</span><span class="p">(</span><span class="n">rt</span><span class="p">),</span> <span class="n">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="p">::</span> <span class="n">state</span><span class="p">(</span><span class="n">s_lo</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">NVAR</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(in 2-d), where <code class="docutils literal notranslate"><span class="pre">NVAR</span></code> comes from the <code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>.</p>
+<p>where <code class="docutils literal notranslate"><span class="pre">NVAR</span></code> comes from the <code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>.  The
+spatial dimensions of the array come in through the arguments
+<code class="docutils literal notranslate"><span class="pre">s_lo</span></code> and <code class="docutils literal notranslate"><span class="pre">s_hi</span></code>.</p>
 <p>When accessing this array, we use the index keys provided by
 meth_params_module (e.g., <code class="docutils literal notranslate"><span class="pre">URHO</span></code>) to refer to specific
 quantities</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">delta()</span></code>: this is an array containing the zone width (<span class="math notranslate nohighlight">\(\Delta x\)</span>)
-in each coordinate direction: <span class="math notranslate nohighlight">\(\mathtt{delta(1)} = \Delta x\)</span>,
-<span class="math notranslate nohighlight">\(\mathtt{delta(2)} = \Delta y\)</span>, <span class="math notranslate nohighlight">\(\ldots\)</span>.</p>
+in each coordinate direction: <code class="docutils literal notranslate"><span class="pre">delta(1)</span></code> = <span class="math notranslate nohighlight">\(\Delta x\)</span>,
+<code class="docutils literal notranslate"><span class="pre">delta(2)</span></code> = <span class="math notranslate nohighlight">\(\Delta y\)</span>, …</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">xlo()</span></code>, <code class="docutils literal notranslate"><span class="pre">xhi()</span></code>: these are the physical coordinates of the
 lower left and upper right corners of the <em>valid region</em>
-of the box. These can be used to compute the coordinates of the
-cell-centers of a zone as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">do</span> <span class="n">j</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-   <span class="n">y</span> <span class="o">=</span> <span class="n">xlo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">delta</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">j</span><span class="o">-</span><span class="n">lo</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="mf">0.5</span><span class="n">d0</span><span class="p">)</span>
-   <span class="o">...</span>
+of the box.  These should not be used, and will be removed in a future
+version of Castro.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>Filling data is typically done in a loop like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">do</span> <span class="n">k</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+   <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">+</span><span class="n">HALF</span><span class="p">)</span><span class="o">*</span><span class="n">delta</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">problo</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+   <span class="n">do</span> <span class="n">j</span><span class="o">=</span><span class="n">lo</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="n">hi</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+      <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="o">+</span><span class="n">HALF</span><span class="p">)</span><span class="o">*</span><span class="n">delta</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">problo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+      <span class="n">do</span> <span class="n">i</span><span class="o">=</span><span class="n">lo</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="n">hi</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+         <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="n">HALF</span><span class="p">)</span><span class="o">*</span><span class="n">delta</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">problo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+         <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">URHO</span><span class="p">)</span> <span class="o">=</span> <span class="o">...</span>
+
+      <span class="n">end</span> <span class="n">do</span>
+   <span class="n">end</span> <span class="n">do</span>
+<span class="n">end</span> <span class="n">do</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">this method works fine for the problem
-initialization stuff, but for routines that implement
-tiling, as discussed below, <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">xlo</span></code> may not
-refer to the same corner, and instead coordinates should
-be computed using <code class="docutils literal notranslate"><span class="pre">problo()</span></code> from the
-<code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code>.</p>
+<p>Here, we compute the coordinates of the zone center, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code>
+from the zone indices, <code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code>, and <code class="docutils literal notranslate"><span class="pre">k</span></code>.</p>
 </div>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">bc_fill_?d.F90</span></code>:</p>
-<p>These routines handle how Castro fills ghostcells
-<em>at physical boundaries</em> for specific data. Most problem
-setups won’t need to do anything special here, and inclusion
-of this file is optional–only use it if you need to set
-specific boundary conditions.</p>
-<p>These routines are registered in <code class="docutils literal notranslate"><span class="pre">Castro_setup.cpp</span></code>, and
-called as needed. By default, they just
-pass the arguments through to <code class="docutils literal notranslate"><span class="pre">filcc</span></code>, which handles all of
-the generic boundary conditions (like reflecting, extrapolation,
-etc.). The specific ‘fill’ routines can then supply the
-problem-specific boundary conditions, which are typically just
-Dirichlet boundary conditions (usually this means looking to see
-if the <code class="docutils literal notranslate"><span class="pre">bc()</span></code> flag at a boundary is <code class="docutils literal notranslate"><span class="pre">EXT_DIR</span></code>). The
-problem-specific code implementing these specific conditions
-should <em>follow</em> the <code class="docutils literal notranslate"><span class="pre">filcc</span></code> call.</p>
-<ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">ca_hypfill</span></code>:
-This handles the boundary filling for the hyperbolic system.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">ca_denfill</span></code>: At times, we need to fill just the density
-(always assumed to be the first element in the hyperbolic state)
-instead of the entire state. When the fill patch routine is called
-with <code class="docutils literal notranslate"><span class="pre">first_comp</span></code> = <code class="docutils literal notranslate"><span class="pre">Density</span></code> and <code class="docutils literal notranslate"><span class="pre">num_comp</span></code> = 1, then we
-use <code class="docutils literal notranslate"><span class="pre">ca_denfill</span></code> instead of <code class="docutils literal notranslate"><span class="pre">ca_hypfill</span></code>.</p>
-<p>(Note: it seems that this may be used for more than just
-density, but it is only used for tagging and the plotfile)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">ca_grav?fill</span></code>: These routines fill will the ghostcells
-of the gravitational acceleration grids with the gravitational
-acceleration.</p>
-<p>Note: for constant gravity, these routines will never be called.
-For one of the Poisson-type gravities, you only need to do
-something special here if you are implementing an Interior
-boundary type (which you can test for by comparing
-<code class="docutils literal notranslate"><span class="pre">bc(:,:,:)</span></code> to <code class="docutils literal notranslate"><span class="pre">EXT_DIR</span></code>.</p>
-<p>For the other standard physical boundary types, the ghost cell
-filling will be handled automatically by the default <code class="docutils literal notranslate"><span class="pre">filcc</span></code>
-call in these routines.</p>
-<p>The gravitational acceleration in the ghost cells is used during
-the hydrodynamics portion of the code in predicting the
-interface states.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">ca_reactfill</span></code>: This handles boundary filling for any <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code>
-<code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>, which are sometimes used to interface
-with the nuclear burning module. It stores the normal state data
-in addition to components for the energy release and species change.</p>
-</li>
-</ul>
-<p>These routines take the following arguments:</p>
-<ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">adv_l1</span></code>, <code class="docutils literal notranslate"><span class="pre">adv_l2</span></code>, (<code class="docutils literal notranslate"><span class="pre">adv_l3</span></code>): the indicies of
-the lower left corner of the box holding the data we are working on.
-These indices refer to the entire box, including ghost cells.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">adv_h1</span></code>, <code class="docutils literal notranslate"><span class="pre">adv_h2</span></code>, (<code class="docutils literal notranslate"><span class="pre">adv_h3</span></code>): the indicies of
-the upper right corner of the box holding the data we are working on.
-These indices refer to the entire box, including ghost cells.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">adv()</span></code>: the array of data whose ghost cells we are filling.
-Depending on the routine, this may have an additional index refering
-to the variable.</p>
-<p>This is dimensioned as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">double</span> <span class="n">precision</span> <span class="n">adv</span><span class="p">(</span><span class="n">adv_l1</span><span class="p">:</span><span class="n">adv_h1</span><span class="p">,</span><span class="n">adv_l2</span><span class="p">:</span><span class="n">adv_h2</span><span class="p">)</span>
+<div class="section" id="boundary-conditions">
+<h2>Boundary conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<p>Standard boundary conditions, including outflow (zero-gradient), periodic,
+and symmetry (reflect) are handled by AMReX directly.  Castro has a special
+hydrostatic boundary condition that can be used for the lower boundary.  It
+is accessed by setting the <code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> flag to 1 in the vertical coordinate
+direction, e.g., for 2-d as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">lo_bc</span>       <span class="o">=</span>  <span class="mi">0</span>   <span class="mi">1</span>
 </pre></div>
 </div>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">domlo()</span></code>, <code class="docutils literal notranslate"><span class="pre">domhi()</span></code>: the integer indices of the lower
-left and upper right corners of the valid region of the <em>entire
-domain</em>. These are used to test against to see if we are filling
-physical boundary ghost cells.</p>
-<p>This changes according to refinement level: level-0 will
-range from 0 to <code class="docutils literal notranslate"><span class="pre">castro.max_grid_size</span></code>,
-and level-n will range from 0 to
-<span class="math notranslate nohighlight">\(\mathtt{castro.max\_grid\_size} \cdot \prod_n \mathtt{castro.ref\_ratio(n)}\)</span>.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">delta()</span></code>: is the zone width in each coordinate direction,
-as in <code class="docutils literal notranslate"><span class="pre">initdata()</span></code> above.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">xlo()</span></code>: this is the physical coordinate of the lower
-left corner of the box we are filling—including the ghost cells.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">this is different than how <code class="docutils literal notranslate"><span class="pre">xlo()</span></code> was defined in
-<code class="docutils literal notranslate"><span class="pre">initdata()</span></code> above.</p>
+<p>The flag value 1 is traditionally named “inflow” by AMReX, but generally means that
+the boundary implementation is left to the user.  To tell Castro to use the
+hydrostatic boundary condition here, we set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">yl_ext_bc_type</span> <span class="o">=</span> <span class="s2">&quot;hse&quot;</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">hse_interp_temp</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">hse_reflect_vels</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
 </div>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">time</span></code>: the simulation time</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">bc()</span></code>: an array that holds the type of boundary conditions
-to enforce at the physical boundaries for <code class="docutils literal notranslate"><span class="pre">adv</span></code>.</p>
-<p>Sometimes it appears of the form <code class="docutils literal notranslate"><span class="pre">bc(:,:)</span></code> and sometimes
-<code class="docutils literal notranslate"><span class="pre">bc(:,:,:)</span></code>—the last index of the latter holds the variable
-index, i.e., density, pressure, species, etc.</p>
-<p>The first index is the coordinate direction and the second index
-is the domain face (1 is low, 2 is hi), so
-<code class="docutils literal notranslate"><span class="pre">bc(1,1)</span></code> is the lower <span class="math notranslate nohighlight">\(x\)</span> boundary type, <code class="docutils literal notranslate"><span class="pre">bc(1,2)</span></code> is
-the upper <span class="math notranslate nohighlight">\(x\)</span> boundary type, <code class="docutils literal notranslate"><span class="pre">bc(2,1)</span></code> is the lower
-<span class="math notranslate nohighlight">\(y\)</span> boundary type, etc.</p>
-<p>To interpret the array values, we test against the quantities
-defined in <code class="docutils literal notranslate"><span class="pre">bc_types.fi</span></code> included in each subroutine,
-for example, <code class="docutils literal notranslate"><span class="pre">EXT_DIR</span></code>, <code class="docutils literal notranslate"><span class="pre">FOEXTRAP</span></code>, <span class="math notranslate nohighlight">\(\ldots\)</span>. The
-meaning of these are explained below.</p>
-</li>
-</ul>
-</li>
-</ul>
+<p>The first parameter tells Castro to use the HSE boundary condition.  The next two
+control how the temperature and velocity are treated.</p>
+<p>A different special boundary condition, <code class="docutils literal notranslate"><span class="pre">&quot;interp&quot;</span></code> is available at
+the upper boundary.  This works together with the <code class="docutils literal notranslate"><span class="pre">model_parser</span></code>
+module to fill the ghost cells at the upper boundary with the initial
+model data.</p>
+<p>The implementations of these boundary conditions is found in
+<code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/bc_ext_fill_nd.F90</span></code>.</p>
+<p>If a problem requires different initial conditions, then they should
+put a version of <code class="docutils literal notranslate"><span class="pre">bc_ext_fill_nd.F90</span></code> into the problem directory and
+modify it as needed.  See the <code class="docutils literal notranslate"><span class="pre">double_mach_reflection</span></code> problem for
+an example of this.</p>
+</div>
 <div class="section" id="optional-files">
 <h2>Optional Files<a class="headerlink" href="#optional-files" title="Permalink to this headline">¶</a></h2>
 <p>The follow problem-specific files are optional. There are stubs for
@@ -413,9 +348,9 @@ each of these in the main source tree.</p>
 <code class="docutils literal notranslate"><span class="pre">problem_restart</span></code> that can be used to add information to the
 checkpoint files and read it in upon restart. This is useful for
 some global problem-specific quantities. For instance, the
-wdmerger <a class="footnote-reference" href="#id2" id="id1">[5]</a> problem uses this
-to store center of mass position and velocity information in the
-checkpoint files that are used for runtime diagnostics.</p>
+<code class="docutils literal notranslate"><span class="pre">wdmerger</span></code> problem uses this to store center of mass position and
+velocity information in the checkpoint files that are used for
+runtime diagnostics.</p>
 <p>The name of the checkpoint directory is passed in as an argument.
 <code class="docutils literal notranslate"><span class="pre">Problem_F.H</span></code> provides the C++ interfaces for these routines.</p>
 </li>
@@ -452,25 +387,6 @@ of the flame speed is computed by integrating the mass of fuel on
 the grid.</p>
 </li>
 </ul>
-</div>
-<div class="section" id="dimension-agnostic-problem-initialization">
-<h2>Dimension Agnostic Problem Initialization<a class="headerlink" href="#dimension-agnostic-problem-initialization" title="Permalink to this headline">¶</a></h2>
-<p>Most of the problem setups have separate implementations for 1-, 2-,
-and 3D. A new method exists that allows you to write just a single
-set of files for any dimensionality (this is called the <em>dimension
-agnostic</em> format). To use this mode, set
-<code class="docutils literal notranslate"><span class="pre">DIMENSION_AGNOSTIC</span></code> = <code class="docutils literal notranslate"><span class="pre">TRUE</span></code> in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.
-Then write you problem initialization in <code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code>.
-Analogous routines exist for tagging and boundary conditions. See the
-<code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> and <code class="docutils literal notranslate"><span class="pre">Noh</span></code> problem setups for an
-example.</p>
-<span class="target" id="software-io"></span><table class="docutils footnote" frame="void" id="id2" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[5]</a></td><td>available separately at
-<a class="reference external" href="https://github.com/BoxLib-Codes/wdmerger">https://github.com/BoxLib-Codes/wdmerger</a></td></tr>
-</tbody>
-</table>
 </div>
 </div>
 
