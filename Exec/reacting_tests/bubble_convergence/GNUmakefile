@@ -19,7 +19,7 @@ ifdef MICROPHYSICS_HOME
 EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := ignition_simple
+NETWORK_DIR := triple_alpha_plus_cago
 
 else
 

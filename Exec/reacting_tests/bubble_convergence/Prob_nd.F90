@@ -1,10 +1,14 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
-  use model_parser_module
   use amrex_error_module
-
+  use initial_model_module, only : generate_initial_model, model_t
+  use network, only : nspec, network_species_index
+  use amrex_constants_module, only : ONE, HALF, ZERO
+  use extern_probin_module, only : small_x
+  use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   integer,  intent(in) :: init, namlen
@@ -13,10 +17,19 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer :: untin, i
 
-  namelist /fortin/ model_name, pert_temp_factor, pert_rad_factor
+  namelist /fortin/ nx_model, dens_base, temp_base, pert_width
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
+
+  type(model_t) :: model_params
+
+  integer :: ihe4
+
+  ihe4 = network_species_index("helium-4")
+  if (ihe4 < 0) then
+     call amrex_error("Error: helium-4 not present")
+  end if
 
   ! Build "probin" filename from C++ land --
   ! the name of file containing fortin namelist.
@@ -27,19 +40,25 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      probin(i:i) = char(name(i))
   end do
 
-
   ! Namelist defaults
   nx_model = 128
+  dens_base = ONE
+  temp_base = ONE
+  pert_width = ONE
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin, fortin)
   close(unit=untin)
 
-  ! Create the initial model
-  call init_model_data(nx_model, 1)
+  model_params % T_base = temp_base
+  model_params % dens_base = dens_base
+  model_params % xn(:) = small_x
+  model_params % xn(ihe4) = ONE - (nspec - 1) * small_x
 
   call generate_initial_model(nx_model, problo(AMREX_SPACEDIM), probhi(AMREX_SPACEDIM), model_params)
+
+  center(:) = HALF * (problo(:) + probhi(:))
 
 end subroutine amrex_probinit
 
@@ -79,6 +98,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use prob_params_module, only : problo
   use amrex_constants_module, only : ZERO, ONE, HALF, TWO
   use amrex_fort_module, only : rt => amrex_real
+  use prob_params_module, only : center
 
   implicit none
 
@@ -88,10 +108,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
   real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
 
-  real(rt) :: dist, x, y, z, height
+  real(rt) :: dist, x, y, z, height, r
   integer :: i, j, k, n
 
-  real(rt) :: t0,x1,y1,z1,r1,x2,y2,z2,r2,x3,y3,z3,r3,x4,y4,r4,temp
+  real(rt) :: t0
 
   real(rt) :: temppres(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
 
@@ -127,7 +147,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            call eos(eos_input_rt, eos_state)
 
-           temppres(i,j,k) = eos_state%p
+           temppres(i,j,k) = eos_state % p
 
            state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
            state(i,j,k,UEDEN) = state(i,j,k,UEINT)
@@ -155,45 +175,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            t0 = state(i,j,k,UTEMP)
 
-           x1 = 5.0e7_rt
+           r = sqrt((x-center(1))**2 + (y-center(2))**2 + (z-center(3))**2)
 
-#if AMREX_SPACEDIM == 2
-           y1 = 6.5e7_rt
-           z1 = ZERO
-#else
-           y1 = 5.0e7_rt
-           z1 = 6.5e7_rt
-#endif
-           r1 = sqrt( (x-x1)**2 + (y-y1)**2 + (z-z1)**2 ) / (2.5e6_rt*pert_rad_factor)
-
-           x2 = 1.2e8_rt
-
-#if AMREX_SPACEDIM == 2
-           y2 = 8.5e7_rt
-           z2 = ZERO
-#else
-           y2 = 1.2e8_rt
-           z2 = 8.5e7_rt
-#endif
-
-           r2 = sqrt( (x-x2)**2 + (y-y2)**2 + (z-z2)**2 ) / (2.5e6_rt*pert_rad_factor)
-
-           x3 = 2.0e8_rt
-
-#if AMREX_SPACEDIM == 2
-           y3 = 7.5e7_rt
-           z3 = ZERO
-#else
-           y3 = 2.0e8_rt
-           z3 = 7.5e7_rt
-#endif
-
-           r3 = sqrt( (x-x3)**2 + (y-y3)**2 + (z-z3)**2 ) / (2.5e6_rt*pert_rad_factor)
-
-           state(i,j,k,UTEMP) = t0 * (ONE + pert_temp_factor* &
-                (0.150e0_rt * (ONE + tanh(TWO-r1)) + &
-                 0.300e0_rt * (ONE + tanh(TWO-r2)) + &
-                 0.225e0_rt * (ONE + tanh(TWO-r3))))
+           state(i,j,k,UTEMP) = t0 * (ONE + exp(-(r/pert_width)**2))
 
            do n = 1,nspec
               state(i,j,k,UFS+n-1) =  state(i,j,k,UFS+n-1) / state(i,j,k,URHO)
@@ -202,7 +186,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            eos_state % T = state(i,j,k,UTEMP)
            eos_state % p = temppres(i,j,k)
            eos_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec)
-           
+
            call eos(eos_input_tp, eos_state)
 
            state(i,j,k,URHO) = eos_state%rho
