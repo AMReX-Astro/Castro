@@ -177,7 +177,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            r = sqrt((x-center(1))**2 + (y-center(2))**2 + (z-center(3))**2)
 
-           state(i,j,k,UTEMP) = t0 * (ONE + exp(-(r/pert_width)**2))
+           state(i,j,k,UTEMP) = t0 * (ONE + TWO*exp(-(r/pert_width)**2))
 
            do n = 1,nspec
               state(i,j,k,UFS+n-1) =  state(i,j,k,UFS+n-1) / state(i,j,k,URHO)
