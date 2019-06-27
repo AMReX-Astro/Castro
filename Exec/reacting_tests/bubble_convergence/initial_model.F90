@@ -110,8 +110,8 @@ contains
        pnew = p + SIXTH*h*(k1 + TWO*k2 + TWO*k3 + k4)
 
        ! call the EOS to get the remainder of the thermodynamics
-       eos_state % T     = model_state(i-1, itemp_model) ! initial guess
-       eos_state % rho   = model_state(i-1, idens_model) ! initial guess
+       eos_state % T     = T ! initial guess
+       eos_state % rho   = rho ! initial guess
        eos_state % xn(:) = model_params % xn(:)
        eos_state % p = pnew
        eos_state % s = s
