@@ -163,7 +163,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   ! Initial velocities = 0
   state(:,:,:,UMX:UMZ) = ZERO
 
-#if 0
   ! Now add the perturbation
   do k = lo(3), hi(3)
      z = problo(3) + delta(3)*(dble(k) + HALF)
@@ -202,6 +201,5 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         enddo
      enddo
   enddo
-#endif
 
 end subroutine ca_initdata
