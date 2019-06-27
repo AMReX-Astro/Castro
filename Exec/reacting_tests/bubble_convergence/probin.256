@@ -3,7 +3,7 @@
   pert_width = 5.12e5
 
   dens_base = 1.e7
-  temp_base = 1.5e8
+  temp_base = 1.0e8
 
   nx_model = 256
 
@@ -16,5 +16,16 @@
   tempgrad = 1.e9
   max_temperr_lev = 5
   max_tempgrad_lev = 5
+
+/
+
+&extern
+
+  rtol_spec = 1.d-10
+  atol_spec = 1.d-10
+
+  small_x = 1.d-10
+
+  rtol_enuc = 1.d-10
 
 /

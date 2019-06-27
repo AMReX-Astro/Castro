@@ -41,7 +41,7 @@ contains
 
     integer :: i
 
-    real(rt) :: entropy_fixed
+    real(rt) :: entropy_fixed, h
 
     type (eos_t) :: eos_state
 
@@ -64,11 +64,6 @@ contains
 
     entropy_fixed = eos_state % s
 
-    model_state(1, idens_model) = eos_state % rho
-    model_state(1, itemp_model) = eos_state % T
-    model_state(1, ipres_model) = eos_state % p
-    model_state(1, ispec_model:ispec_model-1+nspec) = eos_state % xn(:)
-
     ! create the grid -- cell centers
     dx = (xmax - xmin)/nx
 
@@ -76,29 +71,48 @@ contains
        model_r(i) = xmin + (i - HALF)*dx
     end do
 
-    ! do RK 4 integration
-    do i = 2, nx
+    ! note, those conditions are the lower boundary.  This means we
+    ! need to integrate dx/2 in the first step to get to the first
+    ! zone's cell-center.  After that, we integrate from
+    ! center-to-center.
 
-       rho = model_state(i-1, idens_model)
-       T = model_state(i-1, itemp_model)
-       p = model_state(i-1, ipres_model)
-       xn(:) = model_state(i-1, ispec_model:ispec_model-1+nspec)
+    p = eos_state % p
+
+    ! do RK 4 integration
+    do i = 1, nx
+
+       ! rho and T here are guesses for the EOS call
+       if (i == 1) then
+          rho = eos_state % rho
+          T = eos_state % T
+       else
+          rho = model_state(i-1, idens_model)
+          T = model_state(i-1, itemp_model)
+       end if
+
+       xn(:) = model_params % xn(:)
+
+       ! step size
+       if (i == 1) then
+          h = HALF*dx
+       else
+          h = dx
+       end if
 
        ! entropy never changes in this model
        s = entropy_fixed
 
        k1 = f(p, s, const_grav, rho, T, xn)
-       k2 = f(p + HALF*dx*k1, s, const_grav, rho, T, xn)
-       k3 = f(p + HALF*dx*k2, s, const_grav, rho, T, xn)
-       k4 = f(p + dx*k3, s, const_grav, rho, T, xn)
+       k2 = f(p + HALF*h*k1, s, const_grav, rho, T, xn)
+       k3 = f(p + HALF*h*k2, s, const_grav, rho, T, xn)
+       k4 = f(p + h*k3, s, const_grav, rho, T, xn)
 
-       pnew = p + SIXTH*dx*(k1 + TWO*k2 + TWO*k3 + k4)
-
+       pnew = p + SIXTH*h*(k1 + TWO*k2 + TWO*k3 + k4)
 
        ! call the EOS to get the remainder of the thermodynamics
-       eos_state % T     = model_state(i-1, itemp_model) ! initial guess
-       eos_state % rho   = model_state(i-1, idens_model) ! initial guess
-       eos_state % xn(:) = model_state(i-1, ispec_model:ispec_model-1+nspec)
+       eos_state % T     = T ! initial guess
+       eos_state % rho   = rho ! initial guess
+       eos_state % xn(:) = model_params % xn(:)
        eos_state % p = pnew
        eos_state % s = s
 
@@ -109,6 +123,9 @@ contains
        model_state(i, itemp_model) = eos_state % T
        model_state(i, ipres_model) = eos_state % p
        model_state(i, ispec_model:ispec_model-1+nspec) = eos_state % xn(:)
+
+       ! reset for the next iteration
+       p = pnew
 
     enddo
 

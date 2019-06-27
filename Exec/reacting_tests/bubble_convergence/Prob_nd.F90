@@ -53,8 +53,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   model_params % T_base = temp_base
   model_params % dens_base = dens_base
-  model_params % xn(:) = small_x
-  model_params % xn(ihe4) = ONE - (nspec - 1) * small_x
+  model_params % xn(:) = 100*small_x
+  model_params % xn(ihe4) = ONE - (nspec - 1) * 100*small_x
 
   call generate_initial_model(nx_model, problo(AMREX_SPACEDIM), probhi(AMREX_SPACEDIM), model_params)
 
