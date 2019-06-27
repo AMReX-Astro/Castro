@@ -10,9 +10,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   implicit none
 
-  integer :: init, namlen
-  integer :: name(namlen)
-  real(rt) :: problo(3), probhi(3)
+  integer,  intent(in) :: init, namlen
+  integer,  intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(3), probhi(3)
 
   integer :: untin, i
 
