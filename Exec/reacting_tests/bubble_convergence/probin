@@ -3,7 +3,7 @@
   pert_width = 5.12e5
 
   dens_base = 1.e7
-  temp_base = 2.e8
+  temp_base = 1.5e8
 
   nx_model = 256
 
