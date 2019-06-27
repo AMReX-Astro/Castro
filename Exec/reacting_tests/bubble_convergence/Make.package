@@ -1,0 +1,2 @@
+ca_F90EXE_sources += probdata.F90 initial_model.F90
+

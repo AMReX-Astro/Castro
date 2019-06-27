@@ -225,22 +225,23 @@ contains
     call bl_allocate(shk, shk_lo, shk_hi)
 
 #ifdef SHOCK_VAR
-    uout(lo(1):hi(1), lo(2):hi(2), lo(3):hi(3), USHK) = ZERO
+     call ca_shock(lo-dg, hi+dg, &
+                   q_bar, q_bar_lo, q_bar_hi, &
+                   shk, shk_lo, shk_hi, &
+                   dx)
 
-    call ca_shock(lo-dg, hi+dg, &
-                  q_bar, q_bar_lo, q_bar_hi, &
-                  shk, shk_lo, shk_hi, &
-                  dx)
+     ! We'll update the shock data for future use in the burning step.
+     ! For the update, we are starting from USHK == 0 (set at the
+     ! beginning of the timestep) and we need to divide by dt since
+     ! we'll be multiplying that for the update calculation.
 
-    ! Store the shock data for future use in the burning step.
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             uout(i,j,k,USHK) = shk(i,j,k)
-          enddo
-       enddo
-    enddo
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+              update(i,j,k,USHK) = shk(i,j,k) / dt
+           enddo
+        enddo
+     enddo
 
     ! Discard it locally if we don't need it in the hydro update.
 
