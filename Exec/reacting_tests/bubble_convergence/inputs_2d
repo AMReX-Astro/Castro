@@ -3,7 +3,7 @@ max_step = 10000
 stop_time =  2.5
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 1       0
+geometry.is_periodic = 0       0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
 geometry.prob_hi     = 1.024e7 1.024e7
@@ -14,8 +14,8 @@ amr.n_cell           = 256     256
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   3
-castro.hi_bc       =  0   3
+castro.lo_bc       =  2   3
+castro.hi_bc       =  2   3
 
 castro.yl_ext_bc_type = "interp"
 
@@ -31,7 +31,7 @@ castro.ppm_type = 1
 castro.grav_source_type = 2
 
 gravity.gravity_type = ConstantGrav
-gravity.const_grav   = -1.5e10
+gravity.const_grav   = -2e10
 
 # TIME STEP CONTROL
 castro.cfl            = 0.9     # cfl number for hyperbolic system
@@ -58,7 +58,7 @@ amr.check_int       = 1000       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = plt        # root name of plotfile
-amr.plot_per         = 5.e-3       # number of timesteps between plotfiles
+amr.plot_per         = 2.5e-3       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
