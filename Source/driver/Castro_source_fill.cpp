@@ -1,6 +1,7 @@
 
 #include <AMReX_BLFort.H>
 #include <Castro.H>
+#include <Castro_generic_fill.H>
 #include <Castro_source_fill.H>
 #include <Castro_source_fill_F.H>
 
