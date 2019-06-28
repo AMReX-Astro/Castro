@@ -1099,7 +1099,7 @@ contains
   end subroutine ext_denfill
 
 
-  subroutine ext_gravxfill(lo, hi, adv, adv_lo, adv_hi, &
+  subroutine ext_gravxfill(lo, hi, grav, grav_lo, grav_hi, &
                            domlo, domhi, delta, xlo, time, bc) &
                            bind(C, name="ext_gravxfill")
 
@@ -1108,11 +1108,11 @@ contains
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
+    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
     real(rt), intent(in   ), value :: time
 
 
@@ -1123,7 +1123,7 @@ contains
   end subroutine ext_gravxfill
 
 
-  subroutine ext_gravyfill(lo, hi, adv, adv_lo, adv_hi, &
+  subroutine ext_gravyfill(lo, hi, grav, grav_lo, grav_hi, &
                            domlo, domhi, delta, xlo, time, bc) &
                            bind(C, name="ext_gravyfill")
 
@@ -1132,11 +1132,11 @@ contains
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
+    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
     real(rt), intent(in   ), value :: time
 
 
@@ -1147,7 +1147,7 @@ contains
   end subroutine ext_gravyfill
 
 
-  subroutine ext_gravzfill(lo, hi, adv, adv_lo, adv_hi, &
+  subroutine ext_gravzfill(lo, hi, grav, grav_lo, grav_hi, &
                            domlo, domhi, delta, xlo, time, bc) &
                            bind(C, name="ext_gravzfill")
 
@@ -1156,11 +1156,11 @@ contains
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
+    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
     integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
     real(rt), intent(in   ), value :: time
 
 
