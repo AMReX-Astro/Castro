@@ -25,6 +25,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   type(model_t) :: model_params
 
   integer :: ihe4
+  integer :: nbuf
 
   ihe4 = network_species_index("helium-4")
   if (ihe4 < 0) then
@@ -56,7 +57,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   model_params % xn(:) = 100*small_x
   model_params % xn(ihe4) = ONE - (nspec - 1) * 100*small_x
 
-  call generate_initial_model(nx_model, problo(AMREX_SPACEDIM), probhi(AMREX_SPACEDIM), model_params)
+  ! we add some buffer to the model so we can use it to fill ghost cells in the boundary conditions
+  nbuf = 8
+  call generate_initial_model(nx_model, problo(AMREX_SPACEDIM), probhi(AMREX_SPACEDIM), model_params, nbuf)
 
   center(:) = HALF * (problo(:) + probhi(:))
 

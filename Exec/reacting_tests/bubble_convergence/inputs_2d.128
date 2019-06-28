@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10000
-stop_time =  0.1
+stop_time =  0.15
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0       0
@@ -14,10 +14,11 @@ amr.n_cell           = 128     128
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  2   3
-castro.hi_bc       =  2   3
+castro.lo_bc       =  2   1
+castro.hi_bc       =  2   1
 
 castro.yl_ext_bc_type = "interp"
+castro.yr_ext_bc_type = "interp"
 
 # WHICH PHYSICS
 castro.do_hydro = 1
