@@ -1098,7 +1098,7 @@ contains
 
   end subroutine ext_denfill
 
-
+#ifdef GRAVITY
   subroutine ext_gravxfill(lo, hi, grav, grav_lo, grav_hi, &
                            domlo, domhi, delta, xlo, time, bc) &
                            bind(C, name="ext_gravxfill")
@@ -1169,5 +1169,6 @@ contains
     ! this is currently a stub
 
   end subroutine ext_gravzfill
+#endif
 
 end module bc_ext_fill_module
