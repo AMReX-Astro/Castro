@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>generic_fill.F90 &mdash; Castro  documentation</title>
+  <title>File Castro_source_fill.H &mdash; Castro  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="interpolate.F90" href="interpolate_f.html" />
-    <link rel="prev" title="filcc_nd.F90" href="filcc_nd_f.html" /> 
+    <link rel="next" title="Castro_util.F90" href="Castro_util_f.html" />
+    <link rel="prev" title="Castro_nd.F90" href="Castro_nd_f.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -126,7 +126,7 @@
 <li class="toctree-l3"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro_nd_f.html">Castro_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Castro__source__fill_8H.html">File Castro_source_fill.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_source_fill.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro_util_f.html">Castro_util.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Derive_nd_f.html">Derive_nd.F90</a></li>
@@ -135,10 +135,7 @@
 <li class="toctree-l3"><a class="reference internal" href="amrinfo_f.html">amrinfo.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="check_for_nan_f.html">check_for_nan.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="filcc_nd_f.html">filcc_nd.F90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">generic_fill.F90</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#f/generic_fill_module">generic_fill_module</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="generic_fill_f.html">generic_fill.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="interpolate_f.html">interpolate.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="io_f.html">io.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="math_f.html">math.F90</a></li>
@@ -215,13 +212,13 @@
         
           <li><a href="../driver_files.html">Driver</a> &raquo;</li>
         
-      <li>generic_fill.F90</li>
+      <li>File Castro_source_fill.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/generic_fill_f.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/Castro__source__fill_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -234,81 +231,39 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="generic-fill-f90">
-<h1>generic_fill.F90<a class="headerlink" href="#generic-fill-f90" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="f/generic_fill_module">
-<span id="generic-fill-module"></span><h2>generic_fill_module<a class="headerlink" href="#f/generic_fill_module" title="Permalink to this headline">¶</a></h2>
-<p class="rubric">Quick access</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/generic_fill_module/generic_multi_fill" title="f/generic_fill_module/generic_multi_fill"><code class="xref f f-func docutils literal notranslate"><span class="pre">generic_multi_fill()</span></code></a>, <a class="reference internal" href="#f/generic_fill_module/generic_single_fill" title="f/generic_fill_module/generic_single_fill"><code class="xref f f-func docutils literal notranslate"><span class="pre">generic_single_fill()</span></code></a></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Needed modules</p>
-<ul class="simple">
-<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
-<li><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>)</li>
-</ul>
-<p class="rubric">Subroutines and functions</p>
-<dl class="subroutine">
-<dt id="f/generic_fill_module/generic_single_fill">
-<em class="property">subroutine  </em><code class="descclassname">generic_fill_module/</code><code class="descname">generic_single_fill</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>state</em>, <em>s_lo</em>, <em>s_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em>, <em>xlo</em>, <em>bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/generic_fill_module/generic_single_fill" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used for a generic fill of any StateData.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bc</strong> (amrex_spacedim,2)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_filcc_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">amrex_filccn()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+  <div class="section" id="file-castro-source-fill-h">
+<h1>File Castro_source_fill.H<a class="headerlink" href="#file-castro-source-fill-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv420set_bc_launch_configv">
+<span id="_CPPv320set_bc_launch_configv"></span><span id="_CPPv220set_bc_launch_configv"></span><span id="set_bc_launch_config"></span><span class="target" id="Castro__source__fill_8H_1aa624401e4917d70ff55ffaacdf57cb50"></span><em class="property">static</em> void <code class="descname">set_bc_launch_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
 
-<dl class="subroutine">
-<dt id="f/generic_fill_module/generic_multi_fill">
-<em class="property">subroutine  </em><code class="descclassname">generic_fill_module/</code><code class="descname">generic_multi_fill</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>state</em>, <em>s_lo</em>, <em>s_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em>, <em>xlo</em>, <em>bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/generic_fill_module/generic_multi_fill" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bc</strong> (amrex_spacedim,2,nvar)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_filcc_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">amrex_filccn()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dl class="function">
+<dt id="_CPPv422clean_bc_launch_configv">
+<span id="_CPPv322clean_bc_launch_configv"></span><span id="_CPPv222clean_bc_launch_configv"></span><span id="clean_bc_launch_config"></span><span class="target" id="Castro__source__fill_8H_1a5ac535b7b6dbd5fb8d79c8b07fd51859"></span><em class="property">static</em> void <code class="descname">clean_bc_launch_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv410prepare_bcPKiKi">
+<span id="_CPPv310prepare_bcPKiKi"></span><span id="_CPPv210prepare_bcPKiKi"></span><span id="prepare_bc__iCP.iC"></span><span class="target" id="Castro__source__fill_8H_1a5a8ca9f58d605e999c2837bf14ef5e06"></span><em class="property">static</em> int *<code class="descname">prepare_bc</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>bc</em>, <em class="property">const</em> int <em>nvar</em><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv48clean_bcPi">
+<span id="_CPPv38clean_bcPi"></span><span id="_CPPv28clean_bcPi"></span><span id="clean_bc__iP"></span><span class="target" id="Castro__source__fill_8H_1a5d2da13e580d5808c80616ccab657f63"></span><em class="property">static</em> void <code class="descname">clean_bc</code><span class="sig-paren">(</span>int *<em>bc_f</em><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv421ca_source_single_fillF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
+<span id="_CPPv321ca_source_single_fillF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="_CPPv221ca_source_single_fillF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span class="target" id="Castro__source__fill_8H_1ad6fae499a27a8b49078fd3b6c75f0ff2"></span>void <code class="descname">ca_source_single_fill</code><span class="sig-paren">(</span>BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>dlo</em>, <em class="property">const</em> int *<em>dhi</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real *<em>glo</em>, <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int *<em>bc</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv421ca_source_single_fillF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv420ca_source_multi_fillF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
+<span id="_CPPv320ca_source_multi_fillF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="_CPPv220ca_source_multi_fillF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span class="target" id="Castro__source__fill_8H_1ac2da4ef3cf512cf4c4e28b8af651adef"></span>void <code class="descname">ca_source_multi_fill</code><span class="sig-paren">(</span>BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>dlo</em>, <em class="property">const</em> int *<em>dhi</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real *<em>glo</em>, <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int *<em>bc</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420ca_source_multi_fillF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 </div>
 </div>
@@ -321,10 +276,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="interpolate_f.html" class="btn btn-neutral float-right" title="interpolate.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Castro_util_f.html" class="btn btn-neutral float-right" title="Castro_util.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="filcc_nd_f.html" class="btn btn-neutral float-left" title="filcc_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Castro_nd_f.html" class="btn btn-neutral float-left" title="Castro_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
