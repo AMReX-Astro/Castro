@@ -8,6 +8,8 @@
 #include "Castro_bc_fill_nd.H"
 #include "Castro_generic_fill_F.H"
 #include "Castro_generic_fill.H"
+#include "Castro_source_fill_F.H"
+#include "Castro_source_fill.H"
 #include <Derive_F.H>
 #include "Derive.H"
 #ifdef RADIATION
@@ -573,7 +575,7 @@ Castro::variableSetUp ()
   }
 
   desc_lst.setComponent(Source_Type,Density,state_type_source_names,source_bcs,
-                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
+                        BndryFunc(ca_source_single_fill,ca_source_multi_fill));
 
 #ifdef REACTIONS
   std::string name_react;
