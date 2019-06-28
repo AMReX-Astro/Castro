@@ -79,7 +79,6 @@ extern "C"
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
      const amrex::Real* time, const int* bc);
-
 #endif
 
 #ifdef ROTATION
