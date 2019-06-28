@@ -1098,4 +1098,76 @@ contains
 
   end subroutine ext_denfill
 
+
+  subroutine ext_gravxfill(lo, hi, adv, adv_lo, adv_hi, &
+                           domlo, domhi, delta, xlo, time, bc) &
+                           bind(C, name="ext_gravxfill")
+
+    use prob_params_module, only: problo
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
+    integer,  intent(in   ) :: bc(dim,2)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+    real(rt), intent(in   ), value :: time
+
+
+    !$gpu
+
+    ! this is currently a stub
+
+  end subroutine ext_gravxfill
+
+
+  subroutine ext_gravyfill(lo, hi, adv, adv_lo, adv_hi, &
+                           domlo, domhi, delta, xlo, time, bc) &
+                           bind(C, name="ext_gravyfill")
+
+    use prob_params_module, only: problo
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
+    integer,  intent(in   ) :: bc(dim,2)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+    real(rt), intent(in   ), value :: time
+
+
+    !$gpu
+
+    ! this is currently a stub
+
+  end subroutine ext_gravyfill
+
+
+  subroutine ext_gravzfill(lo, hi, adv, adv_lo, adv_hi, &
+                           domlo, domhi, delta, xlo, time, bc) &
+                           bind(C, name="ext_gravzfill")
+
+    use prob_params_module, only: problo
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
+    integer,  intent(in   ) :: bc(dim,2)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
+    real(rt), intent(in   ), value :: time
+
+
+    !$gpu
+
+    ! this is currently a stub
+
+  end subroutine ext_gravzfill
+
 end module bc_ext_fill_module
