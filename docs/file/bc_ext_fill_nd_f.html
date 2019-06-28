@@ -312,7 +312,7 @@ hydrodynamics boundary conditions</p>
 
 <dl class="subroutine">
 <dt id="f/bc_ext_fill_module/ext_gravxfill">
-<em class="property">subroutine  </em><code class="descclassname">bc_ext_fill_module/</code><code class="descname">ext_gravxfill</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>adv</em>, <em>adv_lo</em>, <em>adv_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em>, <em>xlo</em>, <em>time</em>, <em>bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/bc_ext_fill_module/ext_gravxfill" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">bc_ext_fill_module/</code><code class="descname">ext_gravxfill</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>grav</em>, <em>grav_lo</em>, <em>grav_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em>, <em>xlo</em>, <em>time</em>, <em>bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/bc_ext_fill_module/ext_gravxfill" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -320,9 +320,9 @@ hydrodynamics boundary conditions</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>adv</strong> (adv_hi(1)-(adv_lo(1))+1,adv_hi(2)-(adv_lo(2))+1,adv_hi(3)-(adv_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>adv_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>adv_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav</strong> (grav_hi(1)-(grav_lo(1))+1,grav_hi(2)-(grav_lo(2))+1,grav_hi(3)-(grav_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>grav_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
@@ -341,7 +341,7 @@ hydrodynamics boundary conditions</p>
 
 <dl class="subroutine">
 <dt id="f/bc_ext_fill_module/ext_gravyfill">
-<em class="property">subroutine  </em><code class="descclassname">bc_ext_fill_module/</code><code class="descname">ext_gravyfill</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>adv</em>, <em>adv_lo</em>, <em>adv_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em>, <em>xlo</em>, <em>time</em>, <em>bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/bc_ext_fill_module/ext_gravyfill" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">bc_ext_fill_module/</code><code class="descname">ext_gravyfill</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>grav</em>, <em>grav_lo</em>, <em>grav_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em>, <em>xlo</em>, <em>time</em>, <em>bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/bc_ext_fill_module/ext_gravyfill" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -349,9 +349,9 @@ hydrodynamics boundary conditions</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>adv</strong> (adv_hi(1)-(adv_lo(1))+1,adv_hi(2)-(adv_lo(2))+1,adv_hi(3)-(adv_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>adv_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>adv_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav</strong> (grav_hi(1)-(grav_lo(1))+1,grav_hi(2)-(grav_lo(2))+1,grav_hi(3)-(grav_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>grav_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
@@ -370,7 +370,7 @@ hydrodynamics boundary conditions</p>
 
 <dl class="subroutine">
 <dt id="f/bc_ext_fill_module/ext_gravzfill">
-<em class="property">subroutine  </em><code class="descclassname">bc_ext_fill_module/</code><code class="descname">ext_gravzfill</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>adv</em>, <em>adv_lo</em>, <em>adv_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em>, <em>xlo</em>, <em>time</em>, <em>bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/bc_ext_fill_module/ext_gravzfill" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">bc_ext_fill_module/</code><code class="descname">ext_gravzfill</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>grav</em>, <em>grav_lo</em>, <em>grav_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em>, <em>xlo</em>, <em>time</em>, <em>bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/bc_ext_fill_module/ext_gravzfill" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -378,9 +378,9 @@ hydrodynamics boundary conditions</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>adv</strong> (adv_hi(1)-(adv_lo(1))+1,adv_hi(2)-(adv_lo(2))+1,adv_hi(3)-(adv_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>adv_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>adv_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav</strong> (grav_hi(1)-(grav_lo(1))+1,grav_hi(2)-(grav_lo(2))+1,grav_hi(3)-(grav_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>grav_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
