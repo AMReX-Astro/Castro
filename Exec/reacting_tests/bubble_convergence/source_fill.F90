@@ -49,10 +49,10 @@ contains
 
   subroutine source_multi_fill(lo, hi, state, s_lo, s_hi, domlo, domhi, delta, xlo, bc) bind(C, name="source_multi_fill")
 
-    use meth_params_module, only : UMY, const_grav
+    use meth_params_module, only : UMY, const_grav, mol_order, sdc_order
     use amrex_filcc_module, only: amrex_filccn
     use model_parser_module
-    use amrex_constants_module, only : HALF
+    use amrex_constants_module, only : HALF, ONE, TWO
     use prob_params_module, only: problo
     use interpolate_module
 
@@ -67,7 +67,7 @@ contains
 
     integer :: d, n
     integer :: bc_temp(AMREX_SPACEDIM,2,NVAR)
-    real(rt) :: y, rhoc
+    real(rt) :: y, yp, ym, rhoc, rhop, rhom, rho_avg
     integer :: i, j, k
     integer :: jmin, jmax
 
@@ -106,11 +106,23 @@ contains
        end if
 #endif
        do j = jmin, jmax
+          yp = problo(2) + delta(2)*(dble(j+1) + HALF)
           y = problo(2) + delta(2)*(dble(j) + HALF)
+          ym = problo(2) + delta(2)*(dble(j-1) + HALF)
+
+          call interpolate_sub(rhop, yp, npts_model, model_r, model_state(:,idens_model))
+          call interpolate_sub(rhoc, y, npts_model, model_r, model_state(:,idens_model))
+          call interpolate_sub(rhom, ym, npts_model, model_r, model_state(:,idens_model))
+
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
-                call interpolate_sub(rhoc, y, npts_model, model_r, model_state(:,idens_model))
-                state(i,j,k,UMY) = rhoc * const_grav
+
+                if (sdc_order == 4 .or. mol_order == 4) then
+                   rho_avg = rhoc + (ONE/24.0_rt)*(rhop - TWO*rhoc + rhom)
+                   state(i,j,k,UMY) = rho_avg * const_grav
+                else
+                   state(i,j,k,UMY) = rhoc * const_grav
+                end if
              end do
           end do
        end do
