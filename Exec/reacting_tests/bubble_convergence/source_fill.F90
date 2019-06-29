@@ -123,6 +123,7 @@ contains
                 else
                    state(i,j,k,UMY) = rhoc * const_grav
                 end if
+
              end do
           end do
        end do
@@ -138,11 +139,24 @@ contains
        end if
 #endif
        do j = jmin, jmax
+          yp = problo(2) + delta(2)*(dble(j+1) + HALF)
           y = problo(2) + delta(2)*(dble(j) + HALF)
+          ym = problo(2) + delta(2)*(dble(j-1) + HALF)
+
+          call interpolate_sub(rhop, yp, npts_model, model_r, model_state(:,idens_model))
+          call interpolate_sub(rhoc, y, npts_model, model_r, model_state(:,idens_model))
+          call interpolate_sub(rhom, ym, npts_model, model_r, model_state(:,idens_model))
+
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
-                call interpolate_sub(rhoc, y, npts_model, model_r, model_state(:,idens_model))
-                state(i,j,k,UMY) = rhoc * const_grav
+
+                if (sdc_order == 4 .or. mol_order == 4) then
+                   rho_avg = rhoc + (ONE/24.0_rt)*(rhop - TWO*rhoc + rhom)
+                   state(i,j,k,UMY) = rho_avg * const_grav
+                else
+                   state(i,j,k,UMY) = rhoc * const_grav
+                end if
+
              end do
           end do
        end do
