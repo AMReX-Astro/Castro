@@ -588,7 +588,6 @@ contains
        uin, uin_lo, uin_hi, &
        q, q_lo, q_hi, &
        shk,  sk_lo, sk_hi, &
-       uout, uout_lo, uout_hi, &
        update, updt_lo, updt_hi, &
        flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
@@ -599,6 +598,7 @@ contains
 #endif
 #ifdef RADIATION
        Erin, Erin_lo, Erin_hi, &
+       uout, uout_lo, uout_hi, &
        Erout, Erout_lo, Erout_hi, &
        radflux1, radflux1_lo, radflux1_hi, &
 #if AMREX_SPACEDIM >= 2
@@ -653,7 +653,6 @@ contains
     integer, intent(in) ::   uin_lo(3),   uin_hi(3)
     integer, intent(in) ::     q_lo(3),     q_hi(3)
     integer, intent(in) :: sk_lo(3), sk_hi(3)
-    integer, intent(in) ::  uout_lo(3),  uout_hi(3)
     integer, intent(in) ::  updt_lo(3),  updt_hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
     integer, intent(in) :: area1_lo(3), area1_hi(3)
@@ -671,6 +670,7 @@ contains
     integer, intent(in) ::   vol_lo(3),   vol_hi(3)
     integer, intent(in) ::   pdivu_lo(3),   pdivu_hi(3)
 #ifdef RADIATION
+    integer, intent(in) ::  uout_lo(3),  uout_hi(3)
     integer, intent(in) :: Erout_lo(3), Erout_hi(3)
     integer, intent(in) :: Erin_lo(3), Erin_hi(3)
     integer, intent(in) :: radflux1_lo(3), radflux1_hi(3)
@@ -686,7 +686,6 @@ contains
     real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: shk(sk_lo(1):sk_hi(1),sk_lo(2):sk_hi(2),sk_lo(3):sk_hi(3))
-    real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)
 
     real(rt), intent(in) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
@@ -712,6 +711,7 @@ contains
 
 #ifdef RADIATION
     real(rt), intent(in) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),Erout_lo(3):Erout_hi(3),0:ngroups-1)
     real(rt), intent(in) :: radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
 #if AMREX_SPACEDIM >= 2

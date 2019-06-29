@@ -51,7 +51,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(Sborder),
      const BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(shk),
-     BL_FORT_FAB_ARG_3D(S_new),
      BL_FORT_FAB_ARG_3D(hydro_source),
      const BL_FORT_FAB_ARG_3D(flux0),
 #if AMREX_SPACEDIM >= 2
@@ -62,6 +61,7 @@ extern "C"
 #endif
 #ifdef RADIATION
      const BL_FORT_FAB_ARG_3D(Erborder),
+     BL_FORT_FAB_ARG_3D(S_new),
      BL_FORT_FAB_ARG_3D(Er_out),
      const BL_FORT_FAB_ARG_3D(rad_flux0),
 #if AMREX_SPACEDIM >= 2

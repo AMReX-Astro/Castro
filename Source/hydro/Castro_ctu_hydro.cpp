@@ -1144,7 +1144,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(shk),
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
                  BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
                  BL_TO_FORTRAN_ANYD(flux[0]),
 #if AMREX_SPACEDIM >= 2
@@ -1155,6 +1154,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 #ifdef RADIATION
                  BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
                  BL_TO_FORTRAN_ANYD(Er_new[mfi]),
                  BL_TO_FORTRAN_ANYD(rad_flux[0]),
 #if AMREX_SPACEDIM >= 2
