@@ -180,6 +180,26 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           shk.resize(obx, 1);
           Elixir elix_shk = shk.elixir();
+                  
+          // Multidimensional shock detection
+          // Used for the hybrid Riemann solver
+
+#ifdef SHOCK_VAR
+          bool compute_shock = true;
+#else
+          bool compute_shock = false;
+#endif
+
+          if (hybrid_riemann == 1 || compute_shock) {
+#pragma gpu box(obx)
+              ca_shock(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(shk),
+                       AMREX_REAL_ANYD(dx));
+          }
+          else {
+              shk.setVal(0.0);
+          }
 
           qm.resize(tbx, NQ*AMREX_SPACEDIM);
           Elixir elix_qm = qm.elixir();
@@ -199,7 +219,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(flatn),
-                 BL_TO_FORTRAN_ANYD(shk),
                  BL_TO_FORTRAN_ANYD(dq),
                  BL_TO_FORTRAN_ANYD(qm),
                  BL_TO_FORTRAN_ANYD(qp),
@@ -212,7 +231,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(flatn),
-                 BL_TO_FORTRAN_ANYD(shk),
                  BL_TO_FORTRAN_ANYD(qm),
                  BL_TO_FORTRAN_ANYD(qp),
                  AMREX_REAL_ANYD(dx));

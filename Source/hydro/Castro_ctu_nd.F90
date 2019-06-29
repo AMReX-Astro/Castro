@@ -16,7 +16,6 @@ contains
                             flatn, f_lo, f_hi, &
                             qaux, qa_lo, qa_hi, &
                             srcQ, src_lo, src_hi, &
-                            shk, sk_lo, sk_hi, &
                             Ip, Ip_lo, Ip_hi, &
                             Im, Im_lo, Im_hi, &
                             Ip_src, Ips_lo, Ips_hi, &
@@ -58,7 +57,6 @@ contains
 #else
     use trace_ppm_module, only : trace_ppm
 #endif
-    use advection_util_module, only : ca_shock
     use prob_params_module, only : dg
 
     implicit none
@@ -69,7 +67,6 @@ contains
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: src_lo(3), src_hi(3)
-    integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) :: Ip_lo(3), Ip_hi(3)
     integer, intent(in) :: Im_lo(3), Im_hi(3)
     integer, intent(in) :: Ips_lo(3), Ips_hi(3)
@@ -100,7 +97,6 @@ contains
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))   ! flattening parameter
     real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)   ! primitive variable source
 
-    real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
     real(rt), intent(inout) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
     real(rt), intent(inout) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
@@ -130,30 +126,9 @@ contains
     logical :: source_nonzero(NQSRC)
     logical :: reconstruct_state(NQ)
 
-    logical :: compute_shock
-
     !$gpu
 
     hdt = HALF*dt
-
-    ! multidimensional shock detection
-
-#ifdef SHOCK_VAR
-    compute_shock = .true.
-#else
-    compute_shock = .false.
-#endif
-
-    ! multidimensional shock detection -- this will be used to do the
-    ! hybrid Riemann solver
-    if (hybrid_riemann == 1 .or. compute_shock) then
-       call ca_shock(lo, hi, &
-                     q, qd_lo, qd_hi, &
-                     shk, sk_lo, sk_hi, &
-                     dx)
-    else
-       shk(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = ZERO
-    endif
 
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing
@@ -385,7 +360,6 @@ contains
                             flatn, f_lo, f_hi, &
                             qaux, qa_lo, qa_hi, &
                             srcQ, src_lo, src_hi, &
-                            shk, sk_lo, sk_hi, &
                             dq, dq_lo, dq_hi, &
                             qxm, qxm_lo, qxm_hi, &
                             qxp, qxp_lo, qxp_hi, &
@@ -418,7 +392,6 @@ contains
          plm_iorder, use_pslope, hybrid_riemann
     use trace_plm_module, only : trace_plm
     use slope_module, only : uslope, pslope
-    use advection_util_module, only : ca_shock
     use prob_params_module, only : dg
 
     implicit none
@@ -429,7 +402,6 @@ contains
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: src_lo(3), src_hi(3)
-    integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) :: dq_lo(3), dq_hi(3)
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
     integer, intent(in) :: qxp_lo(3), qxp_hi(3)
@@ -453,7 +425,6 @@ contains
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))   ! flattening parameter
     real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)   ! primitive variable source
 
-    real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: dq(dq_lo(1):dq_hi(1), dq_lo(2):dq_hi(2), dq_lo(3):dq_hi(3), NQ)
 
     real(rt), intent(inout) :: qxm(qxm_lo(1):qxm_hi(1), qxm_lo(2):qxm_hi(2), qxm_lo(3):qxm_hi(3), NQ)
@@ -474,30 +445,9 @@ contains
 
     logical :: reconstruct_state(NQ)
 
-    logical :: compute_shock
-
     !$gpu
 
     hdt = HALF*dt
-
-    ! multidimensional shock detection
-
-#ifdef SHOCK_VAR
-    compute_shock = .true.
-#else
-    compute_shock = .false.
-#endif
-
-    ! multidimensional shock detection -- this will be used to do the
-    ! hybrid Riemann solver
-    if (hybrid_riemann == 1 .or. compute_shock) then
-       call ca_shock(lo, hi, &
-            q, qd_lo, qd_hi, &
-            shk, sk_lo, sk_hi, &
-            dx)
-    else
-       shk(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = ZERO
-    endif
 
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing

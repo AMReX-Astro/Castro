@@ -4,7 +4,6 @@
 subroutine ca_mol_plm_reconstruct(lo, hi, &
                                   q, q_lo, q_hi, &
                                   flatn, fl_lo, fl_hi, &
-                                  shk, shk_lo, shk_hi, &
                                   dq, dq_lo, dq_hi, &
                                   qm, qm_lo, qm_hi, &
                                   qp, qp_lo, qp_hi, &
@@ -12,7 +11,7 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
 
   use amrex_error_module
   use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
-                                 UTEMP, USHK, UMX, &
+                                 UTEMP, UMX, &
                                  use_flattening, QPRES, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, hybrid_riemann, &
@@ -24,47 +23,27 @@ subroutine ca_mol_plm_reconstruct(lo, hi, &
   use eos_module, only : eos
   use network, only : nspec, naux
   use prob_params_module, only : dg, coord_type
-  use advection_util_module, only : ca_shock
 
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: q_lo(3), q_hi(3)
   integer, intent(in) :: fl_lo(3), fl_hi(3)
-  integer, intent(in) :: shk_lo(3), shk_hi(3)
   integer, intent(in) :: dq_lo(3), dq_hi(3)
   integer, intent(in) :: qm_lo(3), qm_hi(3)
   integer, intent(in) :: qp_lo(3), qp_hi(3)
 
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(in) :: flatn(fl_lo(1):fl_hi(1), fl_lo(2):fl_hi(2), fl_lo(3):fl_hi(3))
-  real(rt), intent(inout) :: shk(shk_lo(1):shk_hi(1), shk_lo(2):shk_hi(2), shk_lo(3):shk_hi(3))
   real(rt), intent(inout) :: dq(dq_lo(1):dq_hi(1), dq_lo(2):dq_hi(2), dq_lo(3):dq_hi(3), NQ)
   real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ, AMREX_SPACEDIM)
   real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ, AMREX_SPACEDIM)
   real(rt), intent(in) :: dx(3)
 
-
   integer :: idir, i, j, k, n
-  logical :: compute_shock
   type (eos_t) :: eos_state
 
   !$gpu
-
-#ifdef SHOCK_VAR
-  compute_shock = .true.
-#else
-  compute_shock = .false.
-#endif
-
-  if (hybrid_riemann == 1 .or. compute_shock) then
-     call ca_shock(lo, hi, &
-                   q, q_lo, q_hi, &
-                   shk, shk_lo, shk_hi, &
-                   dx)
-  else
-     shk(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = ZERO
-  endif
 
   do idir = 1, AMREX_SPACEDIM
 
@@ -175,14 +154,13 @@ end subroutine ca_mol_plm_reconstruct
 subroutine ca_mol_ppm_reconstruct(lo, hi, &
                                   q, q_lo, q_hi, &
                                   flatn, fl_lo, fl_hi, &
-                                  shk, shk_lo, shk_hi, &
                                   qm, qm_lo, qm_hi, &
                                   qp, qp_lo, qp_hi, &
                                   dx) bind(C, name="ca_mol_ppm_reconstruct")
 
   use amrex_error_module
   use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
-                                 UTEMP, USHK, UMX, &
+                                 UTEMP, UMX, &
                                  use_flattening, QPRES, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, hybrid_riemann, &
@@ -194,45 +172,25 @@ subroutine ca_mol_ppm_reconstruct(lo, hi, &
   use eos_module, only : eos
   use network, only : nspec, naux
   use prob_params_module, only : dg, coord_type
-  use advection_util_module, only : ca_shock
 
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: q_lo(3), q_hi(3)
   integer, intent(in) :: fl_lo(3), fl_hi(3)
-  integer, intent(in) :: shk_lo(3), shk_hi(3)
   integer, intent(in) :: qm_lo(3), qm_hi(3)
   integer, intent(in) :: qp_lo(3), qp_hi(3)
 
   real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
   real(rt), intent(in) :: flatn(fl_lo(1):fl_hi(1), fl_lo(2):fl_hi(2), fl_lo(3):fl_hi(3))
-  real(rt), intent(inout) :: shk(shk_lo(1):shk_hi(1), shk_lo(2):shk_hi(2), shk_lo(3):shk_hi(3))
   real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ, AMREX_SPACEDIM)
   real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ, AMREX_SPACEDIM)
   real(rt), intent(in) :: dx(3)
 
   integer :: idir, i, j, k, n
-  logical :: compute_shock
   type (eos_t) :: eos_state
 
   !$gpu
-
-#ifdef SHOCK_VAR
-  compute_shock = .true.
-#else
-  compute_shock = .false.
-#endif
-
-  if (hybrid_riemann == 1 .or. compute_shock) then
-     call ca_shock(lo, hi, &
-                   q, q_lo, q_hi, &
-                   shk, shk_lo, shk_hi, &
-                   dx)
-  else
-     shk(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = ZERO
-  endif
-
 
   do idir = 1, AMREX_SPACEDIM
      call ca_ppm_reconstruct(lo, hi, 1, idir, &
@@ -310,7 +268,7 @@ subroutine ca_mol_consup(lo, hi, &
 
   use amrex_error_module
   use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
-                                 UTEMP, USHK, UMX, &
+                                 UTEMP, UMX, &
                                  use_flattening, QPRES, &
                                  QTEMP, QFS, QFX, QREINT, QRHO, &
                                  first_order_hydro, difmag, hybrid_riemann, &
