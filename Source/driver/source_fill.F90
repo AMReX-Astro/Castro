@@ -1,4 +1,4 @@
-module generic_fill_module
+module source_fill_module
 
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only: NVAR
@@ -10,8 +10,8 @@ module generic_fill_module
 contains
 
 
-  subroutine generic_single_fill(lo, hi, state, s_lo, s_hi, domlo, domhi, delta, xlo, bc) bind(C, name="generic_single_fill")
-    ! Used for a generic fill of any StateData.
+  subroutine source_single_fill(lo, hi, state, s_lo, s_hi, domlo, domhi, delta, xlo, bc) bind(C, name="source_single_fill")
+    ! Used for a source fill of any StateData.
 
     use amrex_filcc_module, only: amrex_filccn
 
@@ -44,11 +44,11 @@ contains
 
     call amrex_filccn(lo, hi, state, s_lo, s_hi, 1, domlo, domhi, delta, xlo, bc_temp)
 
-  end subroutine generic_single_fill
+  end subroutine source_single_fill
 
 
 
-  subroutine generic_multi_fill(lo, hi, state, s_lo, s_hi, domlo, domhi, delta, xlo, bc) bind(C, name="generic_multi_fill")
+  subroutine source_multi_fill(lo, hi, state, s_lo, s_hi, domlo, domhi, delta, xlo, bc) bind(C, name="source_multi_fill")
 
     use amrex_filcc_module, only: amrex_filccn
 
@@ -83,6 +83,6 @@ contains
 
     call amrex_filccn(lo, hi, state, s_lo, s_hi, NVAR, domlo, domhi, delta, xlo, bc_temp)
 
-  end subroutine generic_multi_fill
+  end subroutine source_multi_fill
 
-end module generic_fill_module
+end module source_fill_module

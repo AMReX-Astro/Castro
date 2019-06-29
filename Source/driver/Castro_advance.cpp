@@ -301,6 +301,14 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       amrex::Abort("invalid time_integration_method");
     }
 
+#ifdef SHOCK_VAR
+    // Zero out the shock data, and fill it during the advance.
+    // For subcycling cases this will always give the shock
+    // variable for the latest subcycle, rather than averaging.
+
+    Sborder.setVal(0.0, Shock, 1, Sborder.nGrow());
+#endif
+
 }
 
 
