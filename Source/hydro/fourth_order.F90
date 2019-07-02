@@ -58,7 +58,7 @@ contains
 
        do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-2, hi(1)+3
+             do i = lo(1)-1, hi(1)+2
 
                 ! interpolate to the edges -- this is a_{i-1/2}
                 a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i-1,j,k,n) + a(i,j,k,n)) - &
@@ -178,7 +178,7 @@ contains
     else if (idir == 2) then
 
        do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-2, hi(2)+3
+          do j = lo(2)-1, hi(2)+2
              do i = lo(1)-1, hi(1)+1
 
                 ! interpolate to the edges
@@ -297,7 +297,7 @@ contains
 
     else if (idir == 3) then
 
-       do k = lo(3)-2, hi(3)+3
+       do k = lo(3)-1, hi(3)+2
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
 
