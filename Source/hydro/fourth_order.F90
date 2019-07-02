@@ -60,7 +60,7 @@ contains
           do j = lo(2)-dg(2), hi(2)+dg(2)
              do i = lo(1)-2, hi(1)+3
 
-                ! interpolate to the edges
+                ! interpolate to the edges -- this is a_{i-1/2}
                 a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i-1,j,k,n) + a(i,j,k,n)) - &
                      (1.0_rt/12.0_rt)*(a(i-2,j,k,n) + a(i+1,j,k,n))
 
@@ -102,7 +102,7 @@ contains
              enddo
           enddo
 
-          ! this is a look over cell centers, affecting
+          ! this is a loop over cell centers, affecting
           ! i-1/2,R and i+1/2,L
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do j = lo(2)-dg(2), hi(2)+dg(2)
@@ -223,7 +223,7 @@ contains
              enddo
           enddo
 
-          ! this is a look over cell centers, affecting
+          ! this is a loop over cell centers, affecting
           ! j-1/2,R and j+1/2,L
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do j = lo(2)-1, hi(2)+1
@@ -344,7 +344,7 @@ contains
              enddo
           enddo
 
-          ! this is a look over cell centers, affecting
+          ! this is a loop over cell centers, affecting
           ! j-1/2,R and j+1/2,L
           do k = lo(3)-1, hi(3)+1
              do j = lo(2)-1, hi(2)+1
