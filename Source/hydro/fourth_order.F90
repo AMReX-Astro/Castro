@@ -424,7 +424,8 @@ contains
 
   subroutine ca_make_cell_center(lo, hi, &
                                  U, U_lo, U_hi, nc, &
-                                 U_cc, U_cc_lo, U_cc_hi, nc_cc) &
+                                 U_cc, U_cc_lo, U_cc_hi, nc_cc, &
+                                 domlo, domhi) &
                                  bind(C, name="ca_make_cell_center")
     ! Take a cell-average state U and a convert it to a cell-center
     ! state U_cc via U_cc = U - 1/24 L U
@@ -437,9 +438,10 @@ contains
     integer, intent(in) :: nc, nc_cc
     real(rt), intent(in) :: U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), nc)
     real(rt), intent(inout) :: U_cc(U_cc_lo(1):U_cc_hi(1), U_cc_lo(2):U_cc_hi(2), U_cc_lo(3):U_cc_hi(3), nc_cc)
+    integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
-    real(rt) :: lap
+    real(rt) :: lapx, lapy, lapz
 
     if (U_lo(1) > lo(1)-1 .or. U_hi(1) < hi(1)+1 .or. &
         (AMREX_SPACEDIM >= 2 .and. (U_lo(2) > lo(2)-1 .or. U_hi(2) < hi(2)+1)) .or. &
@@ -447,21 +449,25 @@ contains
        call bl_error("insufficient ghostcells in ca_make_cell_center")
     endif
 
+    lapx = ZERO
+    lapy = ZERO
+    lapz = ZERO
+
     do n = 1, nc
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                lap = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
+                lapx = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
 #if AMREX_SPACEDIM >= 2
-                lap = lap + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
+                lapy = U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
 #endif
 #if AMREX_SPACEDIM == 3
-                lap = lap + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
+                lapz = U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
 #endif
 
-                U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap
+                U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * (lapx + lapy + lapz)
 
              end do
           end do
@@ -471,7 +477,8 @@ contains
   end subroutine ca_make_cell_center
 
   subroutine ca_make_cell_center_in_place(lo, hi, &
-                                          U, U_lo, U_hi, nc) &
+                                          U, U_lo, U_hi, nc, &
+                                          domlo, domhi) &
                                           bind(C, name="ca_make_cell_center_in_place")
     ! Take a cell-average state U and make it cell-centered in place
     ! via U <- U - 1/24 L U.  Note that this operation is not tile
@@ -485,25 +492,33 @@ contains
     integer, intent(in) :: U_lo(3), U_hi(3)
     integer, intent(in) :: nc
     real(rt), intent(inout) :: U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), nc)
+    integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
 
+    real(rt) :: lapx, lapy, lapz
     real(rt), pointer :: lap(:,:,:)
 
     call bl_allocate(lap, lo, hi)
+
+    lapx = ZERO
+    lapy = ZERO
+    lapz = ZERO
 
     do n = 1, nc
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                lap(i,j,k) = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
+                lapx = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
 #if AMREX_SPACEDIM >= 2
-                lap(i,j,k) = lap(i,j,k) + U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
+                lapy = U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
 #endif
 #if AMREX_SPACEDIM == 3
-                lap(i,j,k) = lap(i,j,k) + U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
+                lapz = U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
 #endif
+
+                lap(i,j,k) = lapx + lapy + lapz
              enddo
           enddo
        enddo
@@ -523,7 +538,8 @@ contains
 
   subroutine ca_compute_lap_term(lo, hi, &
                                  U, U_lo, U_hi, nc, &
-                                 lap, lap_lo, lap_hi, ncomp) &
+                                 lap, lap_lo, lap_hi, ncomp, &
+                                 domlo, domhi) &
                                  bind(C, name="ca_compute_lap_term")
     ! Computes the h**2/24 L U term that is used in correcting
     ! cell-center to averages (and back)
@@ -537,21 +553,29 @@ contains
     real(rt), intent(in) :: U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), nc)
     real(rt), intent(inout) :: lap(lap_lo(1):lap_hi(1), lap_lo(2):lap_hi(2), lap_lo(3):lap_hi(3))
     integer, intent(in) :: ncomp
+    integer, intent(in) :: domlo(3), domhi(3)
 
     ! note: ncomp is C++ index (0-based)
 
+    real(rt) :: lapx, lapy, lapz
     integer :: i, j, k, n
+
+    lapx = ZERO
+    lapy = ZERO
+    lapz = ZERO
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             lap(i,j,k) = U(i+1,j,k,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i-1,j,k,ncomp+1)
+             lapx = U(i+1,j,k,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i-1,j,k,ncomp+1)
 #if AMREX_SPACEDIM >= 2
-             lap(i,j,k) = lap(i,j,k) + U(i,j+1,k,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i,j-1,k,ncomp+1)
+             lapy = U(i,j+1,k,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i,j-1,k,ncomp+1)
 #endif
 #if AMREX_SPACEDIM == 3
-             lap(i,j,k) = lap(i,j,k) + U(i,j,k+1,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i,j,k-1,ncomp+1)
+             lapz = U(i,j,k+1,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i,j,k-1,ncomp+1)
 #endif
+
+             lap(i,j,k) = lapx + lapy + lapz
           enddo
        enddo
     enddo
@@ -563,7 +587,8 @@ contains
 
   subroutine ca_make_fourth_average(lo, hi, &
                                     q, q_lo, q_hi, nc, &
-                                    q_bar, q_bar_lo, q_bar_hi, nc_bar) &
+                                    q_bar, q_bar_lo, q_bar_hi, nc_bar, &
+                                    domlo, domhi) &
                                     bind(C, name="ca_make_fourth_average")
     ! Take the cell-center state q and another state q_bar (e.g.,
     ! constructed from the cell-average U) and replace the cell-center
@@ -575,23 +600,28 @@ contains
     integer, intent(in) :: nc, nc_bar
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
     real(rt), intent(in) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), nc_bar)
+    integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
-    real(rt) :: lap
+    real(rt) :: lapx, lapy, lapz
+
+    lapx = ZERO
+    lapy = ZERO
+    lapz = ZERO
 
     do n = 1, nc
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                lap = q_bar(i+1,j,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i-1,j,k,n)
+                lapx = q_bar(i+1,j,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i-1,j,k,n)
 #if AMREX_SPACEDIM >= 2
-                lap = lap + q_bar(i,j+1,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j-1,k,n)
+                lapy = q_bar(i,j+1,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j-1,k,n)
 #endif
 #if AMREX_SPACEDIM == 3
-                lap = lap + q_bar(i,j,k+1,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j,k-1,n)
+                lapz = q_bar(i,j,k+1,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j,k-1,n)
 #endif
 
-                q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap
+                q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * (lapx + lapy + lapz)
 
              enddo
           enddo
@@ -601,7 +631,8 @@ contains
   end subroutine ca_make_fourth_average
 
   subroutine ca_make_fourth_in_place(lo, hi, &
-                                     q, q_lo, q_hi, nc) &
+                                     q, q_lo, q_hi, nc, &
+                                     domlo, domhi) &
                                      bind(C, name="ca_make_fourth_in_place")
     ! Take the cell-center q and makes it a cell-average q, in place
     ! (e.g. q is overwritten by its average), q <- q + 1/24 L q.
@@ -613,24 +644,32 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: nc
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
+    integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
+    real(rt) :: lapx, lapy, lapz
     real(rt), pointer :: lap(:,:,:)
 
     call bl_allocate(lap, lo, hi)
+
+    lapx = ZERO
+    lapy = ZERO
+    lapz = ZERO
 
     do n = 1, nc
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                lap(i,j,k) = q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n)
+                lapx = q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n)
 #if AMREX_SPACEDIM >= 2
-                lap(i,j,k) = lap(i,j,k) + q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n)
+                lapy = q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n)
 #endif
 #if AMREX_SPACEDIM == 3
-                lap(i,j,k) = lap(i,j,k) + q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n)
+                lapz = q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n)
 #endif
+
+                lap(i,j,k) = lapx + lapy + lapz
              end do
           end do
        end do
@@ -649,7 +688,8 @@ contains
   end subroutine ca_make_fourth_in_place
 
   subroutine ca_make_fourth_in_place_n(lo, hi, &
-                                       q, q_lo, q_hi, nc, ncomp) &
+                                       q, q_lo, q_hi, nc, ncomp, &
+                                       domlo, domhi) &
                                        bind(C, name="ca_make_fourth_in_place_n")
     ! Take the cell-center q and makes it a cell-average q, in place
     ! (e.g. q is overwritten by its average), q <- q + 1/24 L q.
@@ -665,22 +705,30 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: nc, ncomp
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
+    integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
     real(rt), pointer :: lap(:,:,:)
+    real(rt) :: lapx, lapy, lapz
 
     call bl_allocate(lap, lo, hi)
+
+    lapx = ZERO
+    lapy = ZERO
+    lapz = ZERO
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             lap(i,j,k) = q(i+1,j,k,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i-1,j,k,ncomp+1)
+             lapx = q(i+1,j,k,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i-1,j,k,ncomp+1)
 #if AMREX_SPACEDIM >= 2
-             lap(i,j,k) = lap(i,j,k) + q(i,j+1,k,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i,j-1,k,ncomp+1)
+             lapy = q(i,j+1,k,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i,j-1,k,ncomp+1)
 #endif
 #if AMREX_SPACEDIM == 3
-             lap(i,j,k) = lap(i,j,k) + q(i,j,k+1,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i,j,k-1,ncomp+1)
+             lapz = q(i,j,k+1,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i,j,k-1,ncomp+1)
 #endif
+
+             lap(i,j,k) = lapx + lapy + lapz
           enddo
        enddo
     enddo
