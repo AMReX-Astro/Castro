@@ -275,37 +275,33 @@ contains
 
     ! do the reconstruction here -- get the interface states
 
-    do n = 1, NQ
-
-       ! x-interfaces
-       call states(1, &
-                   q, q_lo, q_hi, NQ, n, &
-                   flatn, q_bar_lo, q_bar_hi, &
-                   qxm, qxp, q_lo, q_hi, &
-                   lo, hi, &
-                   domlo, domhi)
+    ! x-interfaces
+    call states(1, &
+                q, q_lo, q_hi, &
+                flatn, q_bar_lo, q_bar_hi, &
+                qxm, qxp, q_lo, q_hi, &
+                lo, hi, &
+                domlo, domhi)
 
 #if AMREX_SPACEDIM >= 2
-       ! y-interfaces
-       call states(2, &
-                   q, q_lo, q_hi, NQ, n, &
-                   flatn, q_bar_lo, q_bar_hi, &
-                   qym, qyp, q_lo, q_hi, &
-                   lo, hi, &
-                   domlo, domhi)
+    ! y-interfaces
+    call states(2, &
+                q, q_lo, q_hi, &
+                flatn, q_bar_lo, q_bar_hi, &
+                qym, qyp, q_lo, q_hi, &
+                lo, hi, &
+                domlo, domhi)
 #endif
 
 #if AMREX_SPACEDIM == 3
-       ! z-interfaces
-       call states(3, &
-                   q, q_lo, q_hi, NQ, n, &
-                   flatn, q_bar_lo, q_bar_hi, &
-                   qzm, qzp, q_lo, q_hi, &
-                   lo, hi, &
-                   domlo, domhi)
+    ! z-interfaces
+    call states(3, &
+                q, q_lo, q_hi, &
+                flatn, q_bar_lo, q_bar_hi, &
+                qzm, qzp, q_lo, q_hi, &
+                lo, hi, &
+                domlo, domhi)
 #endif
-
-    end do
 
     ! this is where we would implement ppm_temp_fix
 
