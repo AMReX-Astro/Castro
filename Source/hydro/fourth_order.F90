@@ -19,6 +19,7 @@ contains
                     domlo, domhi)
 
     use meth_params_module, only : limit_fourth_order
+    use prob_params_module, only : Interior, physbc_lo, physbc_hi
 
     implicit none
 
@@ -58,13 +59,43 @@ contains
     ! we need interface values on all faces of the domain
     if (idir == 1) then
 
+       ! this loop is over interfaces
        do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-dg(2), hi(2)+dg(2)
              do i = lo(1)-1, hi(1)+2
 
                 ! interpolate to the edges -- this is a_{i-1/2}
-                a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i-1,j,k,n) + a(i,j,k,n)) - &
-                     (1.0_rt/12.0_rt)*(a(i-2,j,k,n) + a(i+1,j,k,n))
+                ! note for non-periodic physical boundaries, we use a special stencil
+
+                if (i == domlo(1)+1 .and. physbc_lo(1) /= Interior) then
+                   ! use a stencil for the interface that is one zone
+                   ! from the left physical boundary, MC Eq. 22
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i-1,j,k,n) + 13.0_rt*a(i,j,k,n) - &
+                                                    5.0_rt*a(i+1,j,k,n) + a(i+2,j,k,n))
+
+                else if (i == domlo(1) .and. physbc_lo(1) /= Interior) then
+                   ! use a stencil for when the interface is on the
+                   ! left physical boundary MC Eq. 21
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,n) - 23.0_rt*a(i+1,j,k,n) + &
+                                                    13.0_rt*a(i+2,j,k,n) - 3.0_rt*a(i+3,j,k,n))
+
+                else if (i == domhi(1) .and. physbc_hi(1) /= Interior) then
+                   ! use a stencil for the interface that is one zone
+                   ! from the right physical boundary, MC Eq. 22
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,n) + 13.0_rt*a(i-1,j,k,n) - &
+                                                    5.0_rt*a(i-2,j,k,n) + a(i-3,j,k,n))
+
+                else if (i == domhi(1)+1 .and. physbc_hi(1) /= Interior) then
+                   ! use a stencil for when the interface is on the
+                   ! right physical boundary MC Eq. 21
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i-1,j,k,n) - 23.0_rt*a(i-2,j,k,n) + &
+                                                    13.0_rt*a(i-3,j,k,n) - 3.0_rt*a(i-4,j,k,n))
+
+                else
+                   ! regular stencil
+                   a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i-1,j,k,n) + a(i,j,k,n)) - &
+                        (1.0_rt/12.0_rt)*(a(i-2,j,k,n) + a(i+1,j,k,n))
+                end if
 
                 al(i,j,k,n) = a_int(i,j,k)
                 ar(i,j,k,n) = a_int(i,j,k)
@@ -73,6 +104,7 @@ contains
           enddo
        enddo
 
+       ! the limiting loops are now over zones
        if (limit_fourth_order == 1) then
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do j = lo(2)-dg(2), hi(2)+dg(2)
@@ -179,13 +211,41 @@ contains
 
     else if (idir == 2) then
 
+       ! this loop is over interfaces
        do k = lo(3)-dg(3), hi(3)+dg(3)
           do j = lo(2)-1, hi(2)+2
              do i = lo(1)-1, hi(1)+1
 
                 ! interpolate to the edges
-                a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i,j-1,k,n) + a(i,j,k,n)) - &
-                     (1.0_rt/12.0_rt)*(a(i,j-2,k,n) + a(i,j+1,k,n))
+                if (j == domlo(2)+1 .and. physbc_lo(2) /= Interior) then
+                   ! use a stencil for the interface that is one zone
+                   ! from the left physical boundary, MC Eq. 22
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j-1,k,n) + 13.0_rt*a(i,j,k,n) - &
+                                                    5.0_rt*a(i,j+1,k,n) + a(i,j+2,k,n))
+
+                else if (j == domlo(2) .and. physbc_lo(2) /= Interior) then
+                   ! use a stencil for when the interface is on the
+                   ! left physical boundary MC Eq. 21
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,n) - 23.0_rt*a(i,j+1,k,n) + &
+                                                    13.0_rt*a(i,j+2,k,n) - 3.0_rt*a(i,j+3,k,n))
+
+                else if (j == domhi(2) .and. physbc_hi(2) /= Interior) then
+                   ! use a stencil for the interface that is one zone
+                   ! from the right physical boundary, MC Eq. 22
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,n) + 13.0_rt*a(i,j-1,k,n) - &
+                                                    5.0_rt*a(i,j-2,k,n) + a(i,j-3,k,n))
+
+                else if (j == domhi(2)+1 .and. physbc_hi(2) /= Interior) then
+                   ! use a stencil for when the interface is on the
+                   ! right physical boundary MC Eq. 21
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j-1,k,n) - 23.0_rt*a(i,j-2,k,n) + &
+                                                    13.0_rt*a(i,j-3,k,n) - 3.0_rt*a(i,j-4,k,n))
+
+                else
+                   ! regular stencil
+                   a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i,j-1,k,n) + a(i,j,k,n)) - &
+                        (1.0_rt/12.0_rt)*(a(i,j-2,k,n) + a(i,j+1,k,n))
+                end if
 
                 al(i,j,k,n) = a_int(i,j,k)
                 ar(i,j,k,n) = a_int(i,j,k)
@@ -194,6 +254,7 @@ contains
           enddo
        enddo
 
+       ! the limiting loops are now over zones
        if (limit_fourth_order == 1) then
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do j = lo(2)-1, hi(2)+1
@@ -299,13 +360,41 @@ contains
 
     else if (idir == 3) then
 
+       ! this loop is over interfaces
        do k = lo(3)-1, hi(3)+2
           do j = lo(2)-1, hi(2)+1
              do i = lo(1)-1, hi(1)+1
 
                 ! interpolate to the edges
-                a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i,j,k-1,n) + a(i,j,k,n)) - &
-                     (1.0_rt/12.0_rt)*(a(i,j,k-2,n) + a(i,j,k+1,n))
+                if (k == domlo(3)+1 .and. physbc_lo(3) /= Interior) then
+                   ! use a stencil for the interface that is one zone
+                   ! from the left physical boundary, MC Eq. 22
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k-1,n) + 13.0_rt*a(i,j,k,n) - &
+                                                    5.0_rt*a(i,j,k+1,n) + a(i,j,k+2,n))
+
+                else if (k == domlo(3) .and. physbc_lo(3) /= Interior) then
+                   ! use a stencil for when the interface is on the
+                   ! left physical boundary MC Eq. 21
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,n) - 23.0_rt*a(i,j,k+1,n) + &
+                                                    13.0_rt*a(i,j,k+2,n) - 3.0_rt*a(i,j,k+3,n))
+
+                else if (k == domhi(3) .and. physbc_hi(3) /= Interior) then
+                   ! use a stencil for the interface that is one zone
+                   ! from the right physical boundary, MC Eq. 22
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,n) + 13.0_rt*a(i,j,k-1,n) - &
+                                                    5.0_rt*a(i,j,k-2,n) + a(i,j,k-3,n))
+
+                else if (k == domhi(3)+1 .and. physbc_hi(3) /= Interior) then
+                   ! use a stencil for when the interface is on the
+                   ! right physical boundary MC Eq. 21
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k-1,n) - 23.0_rt*a(i,j,k-2,n) + &
+                                                    13.0_rt*a(i,j,k-3,n) - 3.0_rt*a(i,j,k-4,n))
+
+                else
+                   ! regular stencil
+                   a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i,j,k-1,n) + a(i,j,k,n)) - &
+                        (1.0_rt/12.0_rt)*(a(i,j,k-2,n) + a(i,j,k+1,n))
+                end if
 
                 al(i,j,k,n) = a_int(i,j,k)
                 ar(i,j,k,n) = a_int(i,j,k)
@@ -314,6 +403,7 @@ contains
           enddo
        enddo
 
+       ! the limiting loops are now over zones
        if (limit_fourth_order == 1) then
 
           do k = lo(3)-1, hi(3)+1
