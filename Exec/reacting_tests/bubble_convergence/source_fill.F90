@@ -95,7 +95,7 @@ contains
     ! explicitly so we maintain HSE.
     ! YLO
 
-    if (lo(2) < domlo(2)) then
+    if (lo(2) < domlo(2) .and. bc(2,1,1) == EXT_DIR) then
        jmin = s_lo(2)
        jmax = domlo(2)-1
 #ifdef AMREX_USE_CUDA
@@ -130,7 +130,7 @@ contains
     end if
 
     ! YHI
-    if (hi(2) > domhi(2)) then
+    if (hi(2) > domhi(2) .and. bc(2,2,1) == EXT_DIR) then
        jmin = domhi(2)+1
        jmax = s_hi(2)
 #ifdef AMREX_USE_CUDA
