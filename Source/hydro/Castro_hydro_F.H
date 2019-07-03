@@ -51,7 +51,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(Sborder),
      const BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(shk),
-     BL_FORT_FAB_ARG_3D(S_new),
      BL_FORT_FAB_ARG_3D(hydro_source),
      const BL_FORT_FAB_ARG_3D(flux0),
 #if AMREX_SPACEDIM >= 2
@@ -62,6 +61,7 @@ extern "C"
 #endif
 #ifdef RADIATION
      const BL_FORT_FAB_ARG_3D(Erborder),
+     BL_FORT_FAB_ARG_3D(S_new),
      BL_FORT_FAB_ARG_3D(Er_out),
      const BL_FORT_FAB_ARG_3D(rad_flux0),
 #if AMREX_SPACEDIM >= 2
@@ -162,6 +162,12 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(flux));
 
+  void ca_shock
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(shk),
+     const amrex::Real* dx);
+
   void ca_ctu_update
     (const int* lo, const int* hi,
      const int* is_finest_level,
@@ -225,7 +231,6 @@ extern "C"
       const BL_FORT_FAB_ARG_3D(flatn),
       const BL_FORT_FAB_ARG_3D(qaux),
       const BL_FORT_FAB_ARG_3D(srcQ),
-      const BL_FORT_FAB_ARG_3D(shk),
       BL_FORT_FAB_ARG_3D(Ip),
       BL_FORT_FAB_ARG_3D(Im),
       BL_FORT_FAB_ARG_3D(Ip_src),
@@ -257,7 +262,6 @@ extern "C"
       const BL_FORT_FAB_ARG_3D(flatn),
       const BL_FORT_FAB_ARG_3D(qaux),
       const BL_FORT_FAB_ARG_3D(srcQ),
-      const BL_FORT_FAB_ARG_3D(shk),
       BL_FORT_FAB_ARG_3D(dq),
       BL_FORT_FAB_ARG_3D(qxm),
       BL_FORT_FAB_ARG_3D(qxp),
@@ -415,7 +419,6 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(flatn),
-     BL_FORT_FAB_ARG_3D(shk),
      BL_FORT_FAB_ARG_3D(dq),
      BL_FORT_FAB_ARG_3D(qm),
      BL_FORT_FAB_ARG_3D(qp),
@@ -425,7 +428,6 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(flatn),
-     BL_FORT_FAB_ARG_3D(shk),
      BL_FORT_FAB_ARG_3D(qm),
      BL_FORT_FAB_ARG_3D(qp),
      const amrex::Real* dx);

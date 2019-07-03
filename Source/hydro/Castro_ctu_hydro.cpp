@@ -176,6 +176,26 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       shk.resize(obx, 1);
       Elixir elix_shk = shk.elixir();
       fab_size += shk.nBytes();
+        
+      // Multidimensional shock detection
+      // Used for the hybrid Riemann solver
+
+#ifdef SHOCK_VAR
+      bool compute_shock = true;
+#else
+      bool compute_shock = false;
+#endif
+
+      if (hybrid_riemann == 1 || compute_shock) {
+#pragma gpu box(obx)
+          ca_shock(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(shk),
+                   AMREX_REAL_ANYD(dx));
+      }
+      else {
+          shk.setVal(0.0);
+      }
 
       qxm.resize(obx, NQ);
       Elixir elix_qxm = qxm.elixir();
@@ -218,7 +238,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(flatn),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
                        BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                       BL_TO_FORTRAN_ANYD(shk),
                        BL_TO_FORTRAN_ANYD(dq),
                        BL_TO_FORTRAN_ANYD(qxm),
                        BL_TO_FORTRAN_ANYD(qxp),
@@ -277,7 +296,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(flatn),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
                        BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                       BL_TO_FORTRAN_ANYD(shk),
                        BL_TO_FORTRAN_ANYD(Ip),
                        BL_TO_FORTRAN_ANYD(Im),
                        BL_TO_FORTRAN_ANYD(Ip_src),
@@ -1144,7 +1162,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(shk),
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
                  BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
                  BL_TO_FORTRAN_ANYD(flux[0]),
 #if AMREX_SPACEDIM >= 2
@@ -1155,6 +1172,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 #ifdef RADIATION
                  BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
                  BL_TO_FORTRAN_ANYD(Er_new[mfi]),
                  BL_TO_FORTRAN_ANYD(rad_flux[0]),
 #if AMREX_SPACEDIM >= 2
