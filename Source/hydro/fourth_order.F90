@@ -18,7 +18,7 @@ contains
                     lo, hi, &
                     domlo, domhi)
 
-    use meth_params_module, only : NQ, UMX, UMY, UMZ, limit_fourth_order
+    use meth_params_module, only : NQ, QU, QV, QW, limit_fourth_order
     use prob_params_module, only : Interior, Symmetry, Outflow, physbc_lo, physbc_hi
 
     implicit none
@@ -226,7 +226,7 @@ contains
 
                 else if (physbc_lo(1) == Symmetry) then
                    al(domlo(1),j,k,:) = ar(domlo(1),j,k,:)
-                   al(domlo(1),j,k,UMX) = -ar(domlo(1),j,k,UMX)
+                   al(domlo(1),j,k,QU) = -ar(domlo(1),j,k,QU)
 
                 else if (physbc_lo(1) == Interior) then
                    ! we don't need to do anything here
@@ -253,9 +253,9 @@ contains
 
                 else if (physbc_hi(1) == Symmetry) then
                    ar(domhi(1)+1,j,k,:) = al(domhi(1)+1,j,k,:)
-                   ar(domhi(1)+1,j,k,UMX) = -al(domhi(1)+1,j,k,UMX)
+                   ar(domhi(1)+1,j,k,QU) = -al(domhi(1)+1,j,k,QU)
 
-                else if (physbc_lo(1) == Interior) then
+                else if (physbc_hi(1) == Interior) then
                    ! we don't need to do anything here
                    continue
 
@@ -434,8 +434,8 @@ contains
                    al(i,domlo(2),k,:) = ar(i,domlo(2),k,:)
 
                 else if (physbc_lo(2) == Symmetry) then
-                   al(i,domlo(2),k,:) = ar(i,domlo(1),k,:)
-                   al(i,domlo(2),k,UMY) = -ar(i,domlo(1),k,UMY)
+                   al(i,domlo(2),k,:) = ar(i,domlo(2),k,:)
+                   al(i,domlo(2),k,QV) = -ar(i,domlo(2),k,QV)
 
                 else if (physbc_lo(2) == Interior) then
                    ! we don't need to do anything here
@@ -462,7 +462,7 @@ contains
 
                 else if (physbc_hi(2) == Symmetry) then
                    ar(i,domhi(2)+1,k,:) = al(i,domhi(2)+1,k,:)
-                   ar(i,domhi(2)+1,k,UMY) = -al(i,domhi(2)+1,k,UMY)
+                   ar(i,domhi(2)+1,k,QV) = -al(i,domhi(2)+1,k,QV)
 
                 else if (physbc_hi(2) == Interior) then
                    ! we don't need to do anything here
@@ -646,7 +646,7 @@ contains
 
                 else if (physbc_lo(3) == Symmetry) then
                    al(i,j,domlo(3),:) = ar(i,j,domlo(3),:)
-                   al(i,j,domlo(3),UMZ) = -ar(i,j,domlo(3),UMZ)
+                   al(i,j,domlo(3),QW) = -ar(i,j,domlo(3),QW)
 
                 else if (physbc_lo(3) == Interior) then
                    ! we don't need to do anything here
@@ -673,7 +673,7 @@ contains
 
                 else if (physbc_hi(3) == Symmetry) then
                    ar(i,j,domhi(3)+1,:) = al(i,j,domhi(3)+1,:)
-                   ar(i,j,domhi(3)+1,UMZ) = -al(i,j,domhi(3)+1,UMZ)
+                   ar(i,j,domhi(3)+1,QW) = -al(i,j,domhi(3)+1,QW)
 
                 else if (physbc_lo(3) == Interior) then
                    ! we don't need to do anything here
