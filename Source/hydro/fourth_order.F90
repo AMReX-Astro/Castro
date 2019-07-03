@@ -15,7 +15,8 @@ contains
                     a, a_lo, a_hi, ncomp, n, &
                     flatn, f_lo, f_hi, &
                     al, ar, ai_lo, ai_hi, &
-                    lo, hi)
+                    lo, hi, &
+                    domlo, domhi)
 
     use meth_params_module, only : limit_fourth_order
 
@@ -32,6 +33,7 @@ contains
 
     real(rt), intent(inout) :: al(ai_lo(1):ai_hi(1), ai_lo(2):ai_hi(2), ai_lo(3):ai_hi(3), ncomp)
     real(rt), intent(inout) :: ar(ai_lo(1):ai_hi(1), ai_lo(2):ai_hi(2), ai_lo(3):ai_hi(3), ncomp)
+    integer, intent(in) :: domlo(3), domhi(3)
 
     ! local variables
     real(rt) :: a_int(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))

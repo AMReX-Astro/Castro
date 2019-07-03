@@ -257,7 +257,7 @@ extern "C"
                               const int* domlo, const int* domhi);
 
   void ca_make_fourth_in_place(const int lo[], const int hi[],
-                               BL_FORT_FAB_ARG_3D(q), const int* nc.
+                               BL_FORT_FAB_ARG_3D(q), const int* nc,
                                const int* domlo, const int* domhi);
 
   void ca_make_fourth_in_place_n(const int lo[], const int hi[],
@@ -271,12 +271,12 @@ extern "C"
 
   void ca_make_cell_center(const int lo[], const int hi[],
                            const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc.
+                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc,
                            const int* domlo, const int* domhi);
 
   void ca_make_cell_center_in_place(const int lo[], const int hi[],
                                     BL_FORT_FAB_ARG_3D(q), const int* nc,
-                                    const int* domlo, const int* domhi;
+                                    const int* domlo, const int* domhi);
 
 #ifdef REACTIONS
   void ca_instantaneous_react
