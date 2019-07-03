@@ -52,8 +52,8 @@ contains
     ! allocate the storage in the model_parser_module
     npts_model = nx + 2*nbuf
 
-    allocate (model_state(npts_model + 2*nbuf, nvars_model))
-    allocate (model_r(npts_model + 2*nbuf))
+    allocate (model_state(npts_model, nvars_model))
+    allocate (model_r(npts_model))
 
     ibase = nbuf + 1
     itop = ibase + nx - 1
