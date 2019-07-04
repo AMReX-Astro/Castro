@@ -695,6 +695,66 @@ contains
 
 
   ! Note: pretty much all of these routines below assume that dx(1) = dx(2) = dx(3)
+  pure function compute_laplacian(i, j, k, n, &
+                                  a, a_lo, a_hi, nc, &
+                                  domlo, domhi) result (lap)
+
+    use prob_params_module, only : physbc_lo, physbc_hi, Interior
+    implicit none
+
+    integer, intent(in) :: i, j, k, n
+    integer, intent(in) :: a_lo(3), a_hi(3)
+    integer, intent(in) :: nc
+    real(rt), intent(in) :: a(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3), nc)
+    integer, intent(in) :: domlo(3), domhi(3)
+
+    real(rt) :: lapx, lapy, lapz
+    real(rt) :: lap
+
+    lapx = ZERO
+    lapy = ZERO
+    lapz = ZERO
+
+    ! we use 2nd-order accurate one-sided stencils at the physical boundaries
+
+    if (i == domlo(1) .and. physbc_lo(1) /= Interior) then
+       lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i+1,j,k,n) + 4.0_rt*a(i+2,j,k,n) - a(i+3,j,k,n)
+
+    else if (i == domhi(1) .and. physbc_hi(1) /= Interior) then
+       lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i-1,j,k,n) + 4.0_rt*a(i-2,j,k,n) - a(i-3,j,k,n)
+
+    else
+       lapx = a(i+1,j,k,n) - TWO*a(i,j,k,n) + a(i-1,j,k,n)
+    end if
+
+#if AMREX_SPACEDIM >= 2
+    if (j == domlo(2) .and. physbc_lo(2) /= Interior) then
+       lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j+1,k,n) + 4.0_rt*a(i,j+2,k,n) - a(i,j+3,k,n)
+
+    else if (j == domhi(2) .and. physbc_hi(2) /= Interior) then
+       lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j-1,k,n) + 4.0_rt*a(i,j-2,k,n) - a(i,j-3,k,n)
+
+    else
+       lapy = a(i,j+1,k,n) - TWO*a(i,j,k,n) + a(i,j-1,k,n)
+    end if
+
+#endif
+
+#if AMREX_SPACEDIM == 3
+    if (k == domlo(3) .and. physbc_lo(3) /= Interior) then
+       lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k+1,n) + 4.0_rt*a(i,j,k+2,n) - a(i,j,k+3,n)
+
+    else if (k == domhi(3) .and. physbc_hi(3) /= Interior) then
+       lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k-1,n) + 4.0_rt*a(i,j,k-2,n) - a(i,j,k-3,n)
+
+    else
+       lapz = a(i,j,k+1,n) - TWO*a(i,j,k,n) + a(i,j,k-1,n)
+    end if
+#endif
+
+    lap = lapx + lapy + lapz
+
+  end function compute_laplacian
 
   subroutine ca_make_cell_center(lo, hi, &
                                  U, U_lo, U_hi, nc, &
@@ -715,7 +775,7 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
-    real(rt) :: lapx, lapy, lapz
+    real(rt) :: lap
 
     if (U_lo(1) > lo(1)-1 .or. U_hi(1) < hi(1)+1 .or. &
         (AMREX_SPACEDIM >= 2 .and. (U_lo(2) > lo(2)-1 .or. U_hi(2) < hi(2)+1)) .or. &
@@ -723,25 +783,17 @@ contains
        call bl_error("insufficient ghostcells in ca_make_cell_center")
     end if
 
-    lapx = ZERO
-    lapy = ZERO
-    lapz = ZERO
-
     do n = 1, nc
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                lapx = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
-#if AMREX_SPACEDIM >= 2
-                lapy = U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
-#endif
-#if AMREX_SPACEDIM == 3
-                lapz = U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
-#endif
+                lap = compute_laplacian(i, j, k, n, &
+                                        U, U_lo, U_hi, nc, &
+                                        domlo, domhi)
 
-                U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * (lapx + lapy + lapz)
+                U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap
 
              end do
           end do
@@ -770,29 +822,20 @@ contains
 
     integer :: i, j, k, n
 
-    real(rt) :: lapx, lapy, lapz
     real(rt), pointer :: lap(:,:,:)
 
     call bl_allocate(lap, lo, hi)
-
-    lapx = ZERO
-    lapy = ZERO
-    lapz = ZERO
 
     do n = 1, nc
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                lapx = U(i+1,j,k,n) - TWO*U(i,j,k,n) + U(i-1,j,k,n)
-#if AMREX_SPACEDIM >= 2
-                lapy = U(i,j+1,k,n) - TWO*U(i,j,k,n) + U(i,j-1,k,n)
-#endif
-#if AMREX_SPACEDIM == 3
-                lapz = U(i,j,k+1,n) - TWO*U(i,j,k,n) + U(i,j,k-1,n)
-#endif
 
-                lap(i,j,k) = lapx + lapy + lapz
+                lap(i,j,k) = compute_laplacian(i, j, k, n, &
+                                               U, U_lo, U_hi, nc, &
+                                               domlo, domhi)
+
              end do
           end do
        end do
@@ -831,25 +874,16 @@ contains
 
     ! note: ncomp is C++ index (0-based)
 
-    real(rt) :: lapx, lapy, lapz
-    integer :: i, j, k, n
-
-    lapx = ZERO
-    lapy = ZERO
-    lapz = ZERO
+    integer :: i, j, k
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             lapx = U(i+1,j,k,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i-1,j,k,ncomp+1)
-#if AMREX_SPACEDIM >= 2
-             lapy = U(i,j+1,k,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i,j-1,k,ncomp+1)
-#endif
-#if AMREX_SPACEDIM == 3
-             lapz = U(i,j,k+1,ncomp+1) - TWO*U(i,j,k,ncomp+1) + U(i,j,k-1,ncomp+1)
-#endif
 
-             lap(i,j,k) = lapx + lapy + lapz
+             lap(i,j,k) = compute_laplacian(i, j, k, ncomp+1, &
+                                            U, U_lo, U_hi, nc, &
+                                            domlo, domhi)
+
           end do
        end do
     end do
@@ -877,25 +911,18 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
-    real(rt) :: lapx, lapy, lapz
-
-    lapx = ZERO
-    lapy = ZERO
-    lapz = ZERO
+    real(rt) :: lap
 
     do n = 1, nc
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                lapx = q_bar(i+1,j,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i-1,j,k,n)
-#if AMREX_SPACEDIM >= 2
-                lapy = q_bar(i,j+1,k,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j-1,k,n)
-#endif
-#if AMREX_SPACEDIM == 3
-                lapz = q_bar(i,j,k+1,n) - TWO*q_bar(i,j,k,n) + q_bar(i,j,k-1,n)
-#endif
 
-                q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * (lapx + lapy + lapz)
+                lap = compute_laplacian(i, j, k, n, &
+                                        q_bar, q_bar_lo, q_bar_hi, nc, &
+                                        domlo, domhi)
+
+                q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap
 
              end do
           end do
@@ -921,29 +948,20 @@ contains
     integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
-    real(rt) :: lapx, lapy, lapz
     real(rt), pointer :: lap(:,:,:)
 
     call bl_allocate(lap, lo, hi)
-
-    lapx = ZERO
-    lapy = ZERO
-    lapz = ZERO
 
     do n = 1, nc
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                lapx = q(i+1,j,k,n) - TWO*q(i,j,k,n) + q(i-1,j,k,n)
-#if AMREX_SPACEDIM >= 2
-                lapy = q(i,j+1,k,n) - TWO*q(i,j,k,n) + q(i,j-1,k,n)
-#endif
-#if AMREX_SPACEDIM == 3
-                lapz = q(i,j,k+1,n) - TWO*q(i,j,k,n) + q(i,j,k-1,n)
-#endif
 
-                lap(i,j,k) = lapx + lapy + lapz
+                lap(i,j,k) = compute_laplacian(i, j, k, n, &
+                                               q, q_lo, q_hi, nc, &
+                                               domlo, domhi)
+
              end do
           end do
        end do
@@ -981,28 +999,19 @@ contains
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
     integer, intent(in) :: domlo(3), domhi(3)
 
-    integer :: i, j, k, n
+    integer :: i, j, k
     real(rt), pointer :: lap(:,:,:)
-    real(rt) :: lapx, lapy, lapz
 
     call bl_allocate(lap, lo, hi)
-
-    lapx = ZERO
-    lapy = ZERO
-    lapz = ZERO
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             lapx = q(i+1,j,k,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i-1,j,k,ncomp+1)
-#if AMREX_SPACEDIM >= 2
-             lapy = q(i,j+1,k,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i,j-1,k,ncomp+1)
-#endif
-#if AMREX_SPACEDIM == 3
-             lapz = q(i,j,k+1,ncomp+1) - TWO*q(i,j,k,ncomp+1) + q(i,j,k-1,ncomp+1)
-#endif
 
-             lap(i,j,k) = lapx + lapy + lapz
+             lap(i,j,k) = compute_laplacian(i, j, k, ncomp+1, &
+                                            q, q_lo, q_hi, nc, &
+                                            domlo, domhi)
+
           end do
        end do
     end do
