@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use eos_module
   use eos_type_module
-  use amrex_constants_module, only: half
+  use amrex_constants_module, only: zero, half, one
   use amrex_error_module 
   use network
   use probdata_module
@@ -38,8 +38,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   read(untin,fortin)
   close(unit=untin)
 
-  xn(:) = 0.0e0_rt
-  xn(1) = 1.0e0_rt
+  xn(:) = zero
+  xn(1) = one
 
   centx = half * (problo(1)+probhi(1))
   centy = half * (problo(2)+probhi(2))
@@ -69,9 +69,9 @@ end subroutine amrex_probinit
 ! :::              right hand corner of grid.  (does not include
 ! :::		   ghost region).
 ! ::: -----------------------------------------------------------
-subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
-                       delta,xlo,xhi)
+subroutine ca_initdata(level, time, lo, hi, nscal, &
+                       state, state_lo, state_hi, &
+                       delta, xlo, xhi)
 
   use amrex_constants_module, only: zero, half, one
   use amrex_error_module
@@ -79,18 +79,20 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   use network, only: nspec
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, UFS, UFX
-
+  
   use UnitsModule
   use EquationOfStateModule_TABLE, only: ComputeThermodynamicStates_Primitive_TABLE
 
   implicit none
 
-  integer, intent(in) :: level, nscal
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: state_l1,state_l2,state_l3,state_h1,state_h2,state_h3
-  real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
-  real(rt), intent(inout) :: state(state_l1:state_h1,state_l2:state_h2, &
-                         state_l3:state_h3,NVAR)
+  integer,  intent(in   ) :: level, nscal
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: state_lo(3), state_hi(3)
+  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),&
+                                   state_lo(2):state_hi(2),&
+                                   state_lo(3):state_hi(3),NVAR)
+  real(rt), intent(in   ) :: time, delta(3)
+  real(rt), intent(in   ) :: xlo(3), xhi(3)
 
   real(rt), allocatable :: rho_in(:), T_in(:), Ye_in(:), Epervol_out(:), Epermass_out(:), Ne_out(:)
 
@@ -106,14 +108,14 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   allocate(Epermass_out(lo(1):hi(1)))
   allocate(Ne_out(lo(1):hi(1)))
 
-  if (UFX .lt. 0.d0) &
+  if (UFX .lt. zero) &
      call amrex_abort("Must have UFX defined to run this problem!")
 
   ! ************************ Min and max values of rho, T, Ye ************************
-  rho_min = 1.0e8 
+  rho_min = 1.0e8
   rho_max = 4.0e14
 
-  T_min = 5.0e9 
+  T_min = 5.0e9
   T_max = 2.6e11
 
   Ye_min = 0.3
@@ -152,7 +154,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
         state(i,j,k,UMX:UMZ) = zero
 
-        state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
+        state(i,j,k,UFS:UFS-1+nspec) = zero
         state(i,j,k,UFS            ) = state(i,j,k,URHO)
 
         rho_in(i) = state(i,j,k,URHO) * (Gram/Centimeter**3)
@@ -209,19 +211,17 @@ end subroutine get_thornado_node_averages
 
 ! hardwired assuming 4 moments
 ! streaming sine wave, J = H_x = 1 + sin(2*pi*x)
-subroutine ca_init_thornado_data(level,time,lo,hi,&
-                                 nrad_comp,rad_state, &
-                                 rad_state_l1,rad_state_l2,rad_state_l3, &
-                                 rad_state_h1,rad_state_h2,rad_state_h3, &
-                                 state,state_l1,state_l2,state_l3,state_h1,state_h2,state_h3, &
-                                 delta,xlo,xhi) bind(C,name="ca_init_thornado_data")
+subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
+                                 rad_state, rad_state_lo, rad_state_hi, &
+                                 state, state_lo, state_hi, &
+                                 delta, xlo, xhi) bind(C,name="ca_init_thornado_data")
 
   use probdata_module
   use RadiationFieldsModule, only : nSpecies
   use ProgramHeaderModule, only : nE, nNodesE
   use amrex_fort_module, only : rt => amrex_real
   use amrex_error_module
-  use amrex_constants_module, only : M_PI
+  use amrex_constants_module, only : M_PI, zero, one
   use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFX
   use MeshModule, only: MeshE, NodeCoordinate
   use UnitsModule
@@ -230,18 +230,18 @@ subroutine ca_init_thornado_data(level,time,lo,hi,&
 
   implicit none
 
-  integer , intent(in) :: level, nrad_comp
-  integer , intent(in) :: lo(3), hi(3)
-  integer , intent(in) :: state_l1,state_h1
-  integer , intent(in) :: state_l2,state_h2
-  integer , intent(in) :: state_l3,state_h3
-  integer , intent(in) :: rad_state_l1,rad_state_h1
-  integer , intent(in) :: rad_state_l2,rad_state_h2
-  integer , intent(in) :: rad_state_l3,rad_state_h3
-  real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
-  real(rt), intent(inout) ::  rad_state(rad_state_l1:rad_state_h1,rad_state_l2:rad_state_h2,&
-                                        rad_state_l3:rad_state_h3,0:nrad_comp-1)
-  real(rt), intent(inout) ::  state(state_l1:state_h1,state_l2:state_h2,state_l3:state_h3,NVAR)
+  integer,  intent(in   ) :: level, nrad_comp
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: rad_state_lo(3), rad_state_hi(3)
+  real(rt), intent(inout) :: rad_state(rad_state_lo(1):rad_state_hi(1),&
+                                       rad_state_lo(2):rad_state_hi(2),&
+                                       rad_state_lo(3):rad_state_hi(3),&
+                                       0:nrad_comp-1)
+  integer,  intent(in   ) :: state_lo(3), state_hi(3)
+  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),&
+                                   state_lo(2):state_hi(2),&
+                                   state_lo(3):state_hi(3),NVAR)
+  real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
 
   ! Local parameter
   integer, parameter :: n_moments = 4
@@ -252,13 +252,14 @@ subroutine ca_init_thornado_data(level,time,lo,hi,&
   real(rt) :: rho_in(1), T_in(1), Ye_in(1), Evol(1), Ne_loc(1), Em_in(1), M_e(1), M_p(1), M_n(1), M_nu(1), E(1)
 
   ! zero it out, just in case
-  rad_state = 0.0e0_rt
+  rad_state = zero
 
-  print *,'nrad_comp ',nrad_comp
-  print *,'nSpecies  ',nSpecies
-  print *,'n_moments ',n_moments
-  print *,'nE        ',nE
-  print *,'nNodesE   ',nNodesE
+  ! print *,'nrad_comp ',nrad_comp
+  ! print *,'nSpecies  ',nSpecies
+  ! print *,'n_moments ',n_moments
+  ! print *,'nE        ',nE
+  ! print *,'nNodesE   ',nNodesE
+  ! print *,'MULT ', nSpecies * n_moments * nE * nNodesE
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
@@ -294,16 +295,16 @@ subroutine ca_init_thornado_data(level,time,lo,hi,&
    
                  ! J moment, im = 1
                  if (im .eq. 1) &
-                         rad_state(i,j,k,ii) = max(1.0e0_rt / (exp( (E(1)-M_nu(1)) / T_in(1))  + 1.0e0_rt), 1.0d-99)
+                    rad_state(i,j,k,ii) = max(one / (exp( (E(1)-M_nu(1)) / T_in(1)) + one), 1.0d-99)
    
                  ! H_x moment, im = 2
-                 if (im .eq. 2) rad_state(i,j,k,ii) = 0.e0_rt
+                 if (im .eq. 2) rad_state(i,j,k,ii) = zero
 
                  ! H_y moment, im = 3
-                 if (im .eq. 3) rad_state(i,j,k,ii) = 0.0e0_rt
+                 if (im .eq. 3) rad_state(i,j,k,ii) = zero
    
                  ! H_z moment, im = 4
-                 if (im .eq. 4) rad_state(i,j,k,ii) = 0.0e0_rt
+                 if (im .eq. 4) rad_state(i,j,k,ii) = zero
 
               end do
 
