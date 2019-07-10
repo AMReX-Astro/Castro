@@ -10,28 +10,39 @@ COMP	   = gnu
 
 USE_MPI    = TRUE
 USE_OMP    = FALSE
+USE_GPU    = FALSE
+USE_ACC    = FALSE
 
 USE_HDF5   = TRUE
 HDF5_HOME  ?= /usr/local/Cellar/hdf5/1.10.4
-
-LAPACK_HOME ?= /Users/pmoesta/codes/ecp/lapack-release
-
-USE_THORNADO = TRUE
-
-DEFINES += -DMOMENT_CLOSURE_MAXIMUM_ENTROPY_CB
-DEFINES += -DMICROPHYSICS_WEAKLIB
-DEFINES += -DTHORNADO_LA_LAPACK
-
-# define the location of the CASTRO top directory
-CASTRO_HOME   ?= ../../..
-THORNADO_HOME ?= $(CASTRO_HOME)/thornado
-WEAKLIB_HOME  ?= $(CASTRO_HOME)/weaklib
-
-MICROPHYSICS_HOME ?= ../../../../Microphysics
-
+ifdef OLCF_HDF5_ROOT
+  HDF5_HOME := $(OLCF_HDF5_ROOT)
+endif
 ifeq ($(HOST),manda)
   HDF5_HOME := /home/almgren/bin/miniconda2
 endif
+
+LAPACK_HOME ?= /Users/pmoesta/codes/ecp/lapack-release
+ifdef OLCF_NETLIB_LAPACK_ROOT
+  LAPACK_HOME := $(OLCF_NETLIB_LAPACK_ROOT)/lib64
+endif
+ifdef OLCF_ESSL_ROOT
+  INCLUDE_LOCATIONS += $(OLCF_ESSL_ROOT)/include
+  LIBRARY_LOCATIONS += $(OLCF_ESSL_ROOT)/lib64
+  LIBRARIES += -lessl
+endif
+
+USE_THORNADO = TRUE
+THORNADO_HOME ?= $(CASTRO_HOME)/thornado
+MOMENT_CLOSURE ?= MAXIMUM_ENTROPY_CB
+NEUTRINO_MATTER_SOLVER ?= FIXED_POINT_COUPLED
+
+USE_WEAKLIB = TRUE
+WEAKLIB_HOME ?= $(CASTRO_HOME)/weaklib
+
+# define the location of the CASTRO top directory
+CASTRO_HOME ?= ../../..
+MICROPHYSICS_HOME ?= ../../../../Microphysics
 
 ifdef MICROPHYSICS_HOME
 
