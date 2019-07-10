@@ -23,11 +23,11 @@ DEFINES += -DMICROPHYSICS_WEAKLIB
 DEFINES += -DTHORNADO_LA_LAPACK
 
 # define the location of the CASTRO top directory
-CASTRO_HOME   := ../../..
-THORNADO_HOME := $(CASTRO_HOME)/thornado
-WEAKLIB_HOME  := $(CASTRO_HOME)/weaklib
+CASTRO_HOME   ?= ../../..
+THORNADO_HOME ?= $(CASTRO_HOME)/thornado
+WEAKLIB_HOME  ?= $(CASTRO_HOME)/weaklib
 
-MICROPHYSICS_HOME := ../../../../Microphysics
+MICROPHYSICS_HOME ?= ../../../../Microphysics
 
 ifeq ($(HOST),manda)
   HDF5_HOME := /home/almgren/bin/miniconda2
