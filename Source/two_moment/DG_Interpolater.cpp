@@ -50,7 +50,8 @@ DG_Interpolater::interp (const FArrayBox&     crse,
                          const Geometry&      fine_geom,
                          Vector<BCRec> const& bcr,
                          int                  actual_comp,
-                         int                  actual_state)
+                         int                  actual_state,
+                         RunOn                gpu_or_cpu)
 {
     BL_PROFILE("DG_Interpolater::interp()");
     BL_ASSERT(bcr.size() >= ncomp);

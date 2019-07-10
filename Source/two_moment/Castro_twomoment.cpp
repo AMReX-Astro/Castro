@@ -135,10 +135,10 @@ Castro::init_thornado_data()
         const int* hi      = bx.hiVect();
   
         ca_init_thornado_data
-	  (level, cur_time, lo, hi,
-           nr, BL_TO_FORTRAN(Thor_new[mfi]), 
-               BL_TO_FORTRAN(Fluid_new[mfi]), 
-           dx, gridloc.lo(), gridloc.hi());
+	  (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi),
+           nr, BL_TO_FORTRAN_ANYD(Thor_new[mfi]),
+               BL_TO_FORTRAN_ANYD(Fluid_new[mfi]),
+           ZFILL(dx), ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 
         FreeThornado_Patch();
     }

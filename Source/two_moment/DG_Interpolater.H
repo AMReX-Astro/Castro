@@ -51,7 +51,8 @@ public:
                          const Geometry&      fine_geom,
                          Vector<BCRec> const& bcr,
                          int                  actual_comp,
-                         int                  actual_state) override;
+                         int                  actual_state,
+                         RunOn                gpu_or_cpu) override;
 
 protected:
 };

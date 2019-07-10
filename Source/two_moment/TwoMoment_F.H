@@ -18,8 +18,8 @@ extern "C"
      const int& level, const amrex::Real& time,
      const int* lo, const int* hi,
      const int& n_rad_comp,
-     BL_FORT_FAB_ARG(thornado_data),
-     BL_FORT_FAB_ARG(fluid_data),
+     BL_FORT_FAB_ARG_3D(thornado_data),
+     BL_FORT_FAB_ARG_3D(fluid_data),
      const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
 
   void InitThornado_Patch(const int* len, int* swX,
