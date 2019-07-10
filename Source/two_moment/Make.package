@@ -28,14 +28,12 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_F90EXE_sources += ProgramHeaderModule.F90
 
 # In Modules/Library
-  ca_f90EXE_sources += CublasModule.f90
-  ca_f90EXE_sources += CudaModule.f90
   ca_F90EXE_sources += DeviceModule.F90
   ca_f90EXE_sources += LagrangePolynomialsModule.f90
   ca_F90EXE_sources += LinearAlgebraModule.F90
   ca_f90EXE_sources += QuadratureModule.f90
   ca_f90EXE_sources += ReferenceElementModuleE.f90
-  ca_f90EXE_sources += ReferenceElementModuleX.f90
+  ca_F90EXE_sources += ReferenceElementModuleX.F90
   ca_F90EXE_sources += ReferenceElementModule.F90
   ca_f90EXE_sources += PolynomialBasisModule_Lagrange.f90
   ca_f90EXE_sources += PolynomialBasisModuleX_Lagrange.f90
@@ -57,13 +55,13 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += GeometryComputationModuleE.f90
 
 # In Modules/Fields
-  ca_f90EXE_sources += FluidFieldsModule.f90
+  ca_F90EXE_sources += FluidFieldsModule.F90
   ca_f90EXE_sources += RadiationFieldsModule.f90
 
 # In Modules/TwoMoment
   ca_F90EXE_sources += TwoMoment_ClosureModule.F90
-  ca_F90EXE_sources += TwoMoment_PositivityLimiterModule.F90
-  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Streaming.F90
+  ca_F90EXE_sources += TwoMoment_PositivityLimiterModule_GPU.F90
+  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Streaming_GPU.F90
   ca_F90EXE_sources += TwoMoment_BoundaryConditionsModule.F90
   ca_F90EXE_sources += TwoMoment_UtilitiesModule.F90
   ca_F90EXE_sources += TwoMoment_DiscretizationModule_Collisions_Neutrinos.F90
@@ -75,7 +73,7 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
 
 # In SandBox/Interface_CASTRO
   ca_F90EXE_sources += ThornadoInitializationModule.F90
-  ca_f90EXE_sources += TimeSteppingModule_Castro.f90
+  ca_F90EXE_sources += TimeSteppingModule_Castro.F90
   ca_f90EXE_sources += DiscretizationModule_Dummy.f90
 
 # In Modules/EquationOfState
@@ -91,14 +89,29 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += wlGridModule.f90
   ca_f90EXE_sources += wlThermoStateModule.f90
   ca_f90EXE_sources += wlDependentVariablesModule.f90
-  ca_f90EXE_sources += wlInterpolationModule.f90
+  ca_F90EXE_sources += wlInterpolationModule.F90
   ca_f90EXE_sources += wlIOModuleHDF.f90
 
 # In weaklib/Distributions/EOSSource
   ca_f90EXE_sources += wlEquationOfStateTableModule.f90
+  ca_F90EXE_sources += wlEOSInversionModule.F90
   ca_f90EXE_sources += wlEOSIOModuleHDF.f90
 
 # In weaklib/Distributions/OpacitySource
   ca_f90EXE_sources += wlOpacityFieldsModule.f90
   ca_f90EXE_sources += wlOpacityTableModule.f90
   ca_f90EXE_sources += wlOpacityTableIOModuleHDF.f90
+
+ifeq ($(USE_GPU),TRUE)
+  ca_f90EXE_sources += CudaModule.f90
+  ca_f90EXE_sources += CublasModule.f90
+  ca_f90EXE_sources += CusolverModule.f90
+  ifeq ($(USE_MAGMA),TRUE)
+  ca_f90EXE_sources += MagmaModule.f90
+  endif
+  ifeq ($(USE_ACC),TRUE)
+  ca_f90EXE_sources += OpenACCModule.f90
+  else ifeq ($(USE_OMP_OFFLOAD), TRUE)
+  ca_f90EXE_sources += OpenMPModule.f90
+  endif
+endif
