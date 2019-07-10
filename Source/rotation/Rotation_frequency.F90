@@ -4,10 +4,6 @@ module rotation_frequency_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  private
-
-  public get_omega, get_domegadt
-
 contains
 
   function get_omega(time) result(omega)

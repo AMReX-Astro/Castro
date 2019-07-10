@@ -12,7 +12,7 @@ DEBUG            = FALSE
 PROFILE          = FALSE
 
 
-USE_RAD = FALSE
+USE_RAD = TRUE
 USE_NEUTRINO = FALSE
 
 USE_GRAV         = TRUE
@@ -20,15 +20,17 @@ USE_REACT        = FALSE
 USE_MODELPARSER = TRUE
 USE_PARTICLE     = FALSE
 USE_SHOCK_VAR    = TRUE
+USE_ROTATION = FALSE
+
 CASTRO_HOME = ../../..
 
 ifdef MICROPHYSICS_HOME
 
 #This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-EOS_dir     := gamma_law_general
+EOS_DIR     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-Network_dir := general_null
+NETWORK_DIR := general_null
 NETWORK_INPUTS := ./taeho.net
 
 else

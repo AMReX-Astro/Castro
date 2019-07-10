@@ -17,16 +17,17 @@ help:
 clean:
 	rm -rf build doxy_files source/class source/file source/namespace source/preprocessed_files
 	rm -f source/classlist.rst source/filelist.rst source/namespacelist.rst
+	rm -rf source/preprocessed_files
 	rm -rf source/*_files.rst
 
 html:
 	./rp.py > source/runtime_parameters.rst
-	python3 preprocess_files.py
 ifneq ($(NO_DOXYGEN),TRUE)
+	python3 preprocess_files.py
 	doxygen Doxyfile
 	breathe-apidoc --o source doxy_files/xml -g class,file
-endif
 	python3 make_api.py
+endif
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Catch-all target: route all unknown targets to Sphinx using the new

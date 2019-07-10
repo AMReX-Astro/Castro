@@ -3,7 +3,7 @@
 ! or add runtime parameters, please edit _cpp_parameters and then run
 ! mk_params.sh
 
-! This module stores the runtime parameters and integer names for 
+! This module stores the runtime parameters and integer names for
 ! indexing arrays.
 !
 ! The Fortran-specific parameters are initialized in set_method_params(),
@@ -70,8 +70,8 @@ module meth_params_module
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
-  integer, parameter :: EXT_INTERP = 2 
-  
+  integer, parameter :: EXT_INTERP = 2
+
   integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
@@ -134,6 +134,7 @@ module meth_params_module
   real(rt), allocatable, save :: cg_tol
   integer,  allocatable, save :: cg_blend
   integer,  allocatable, save :: use_eos_in_riemann
+  real(rt), allocatable, save :: riemann_speed_limit
   integer,  allocatable, save :: use_flattening
   integer,  allocatable, save :: transverse_use_eos
   integer,  allocatable, save :: transverse_reset_density
@@ -159,7 +160,11 @@ module meth_params_module
   integer,  allocatable, save :: mol_order
   integer,  allocatable, save :: sdc_order
   integer,  allocatable, save :: sdc_solver
-  real(rt), allocatable, save :: sdc_solver_tol
+  real(rt), allocatable, save :: sdc_solver_tol_dens
+  real(rt), allocatable, save :: sdc_solver_tol_spec
+  real(rt), allocatable, save :: sdc_solver_tol_ener
+  real(rt), allocatable, save :: sdc_solver_atol
+  real(rt), allocatable, save :: sdc_solver_relax_factor
   integer,  allocatable, save :: sdc_solve_for_rhoe
   integer,  allocatable, save :: sdc_use_analytic_jac
   real(rt), allocatable, save :: cfl
@@ -220,6 +225,7 @@ attributes(managed) :: cg_maxiter
 attributes(managed) :: cg_tol
 attributes(managed) :: cg_blend
 attributes(managed) :: use_eos_in_riemann
+attributes(managed) :: riemann_speed_limit
 attributes(managed) :: use_flattening
 attributes(managed) :: transverse_use_eos
 attributes(managed) :: transverse_reset_density
@@ -245,7 +251,11 @@ attributes(managed) :: hse_reflect_vels
 attributes(managed) :: mol_order
 attributes(managed) :: sdc_order
 attributes(managed) :: sdc_solver
-attributes(managed) :: sdc_solver_tol
+attributes(managed) :: sdc_solver_tol_dens
+attributes(managed) :: sdc_solver_tol_spec
+attributes(managed) :: sdc_solver_tol_ener
+attributes(managed) :: sdc_solver_atol
+attributes(managed) :: sdc_solver_relax_factor
 attributes(managed) :: sdc_solve_for_rhoe
 attributes(managed) :: sdc_use_analytic_jac
 attributes(managed) :: cfl
@@ -337,6 +347,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(cg_tol) &
   !$acc create(cg_blend) &
   !$acc create(use_eos_in_riemann) &
+  !$acc create(riemann_speed_limit) &
   !$acc create(use_flattening) &
   !$acc create(transverse_use_eos) &
   !$acc create(transverse_reset_density) &
@@ -356,7 +367,11 @@ attributes(managed) :: get_g_from_phi
   !$acc create(mol_order) &
   !$acc create(sdc_order) &
   !$acc create(sdc_solver) &
-  !$acc create(sdc_solver_tol) &
+  !$acc create(sdc_solver_tol_dens) &
+  !$acc create(sdc_solver_tol_spec) &
+  !$acc create(sdc_solver_tol_ener) &
+  !$acc create(sdc_solver_atol) &
+  !$acc create(sdc_solver_relax_factor) &
   !$acc create(sdc_solve_for_rhoe) &
   !$acc create(sdc_use_analytic_jac) &
   !$acc create(cfl) &
@@ -497,14 +512,6 @@ contains
     allocate(rot_axis)
     rot_axis = 3;
 #endif
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0d0;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
     allocate(difmag)
     difmag = 0.1d0;
     allocate(small_dens)
@@ -547,6 +554,8 @@ contains
     cg_blend = 2;
     allocate(use_eos_in_riemann)
     use_eos_in_riemann = 0;
+    allocate(riemann_speed_limit)
+    riemann_speed_limit = 2.99792458d10;
     allocate(use_flattening)
     use_flattening = 1;
     allocate(transverse_use_eos)
@@ -597,8 +606,16 @@ contains
     sdc_order = 2;
     allocate(sdc_solver)
     sdc_solver = 1;
-    allocate(sdc_solver_tol)
-    sdc_solver_tol = 1.d-6;
+    allocate(sdc_solver_tol_dens)
+    sdc_solver_tol_dens = 1.d-6;
+    allocate(sdc_solver_tol_spec)
+    sdc_solver_tol_spec = 1.d-6;
+    allocate(sdc_solver_tol_ener)
+    sdc_solver_tol_ener = 1.d-6;
+    allocate(sdc_solver_atol)
+    sdc_solver_atol = 1.d-10;
+    allocate(sdc_solver_relax_factor)
+    sdc_solver_relax_factor = 1.0d0;
     allocate(sdc_solve_for_rhoe)
     sdc_solve_for_rhoe = 1;
     allocate(sdc_use_analytic_jac)
@@ -637,6 +654,14 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0d0;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
 
     call amrex_parmparse_build(pp, "castro")
 #ifdef DIFFUSION
@@ -654,11 +679,6 @@ contains
     call pp%query("rot_source_type", rot_source_type)
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
-#endif
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -681,6 +701,7 @@ contains
     call pp%query("cg_tol", cg_tol)
     call pp%query("cg_blend", cg_blend)
     call pp%query("use_eos_in_riemann", use_eos_in_riemann)
+    call pp%query("riemann_speed_limit", riemann_speed_limit)
     call pp%query("use_flattening", use_flattening)
     call pp%query("transverse_use_eos", transverse_use_eos)
     call pp%query("transverse_reset_density", transverse_reset_density)
@@ -706,7 +727,11 @@ contains
     call pp%query("mol_order", mol_order)
     call pp%query("sdc_order", sdc_order)
     call pp%query("sdc_solver", sdc_solver)
-    call pp%query("sdc_solver_tol", sdc_solver_tol)
+    call pp%query("sdc_solver_tol_dens", sdc_solver_tol_dens)
+    call pp%query("sdc_solver_tol_spec", sdc_solver_tol_spec)
+    call pp%query("sdc_solver_tol_ener", sdc_solver_tol_ener)
+    call pp%query("sdc_solver_atol", sdc_solver_atol)
+    call pp%query("sdc_solver_relax_factor", sdc_solver_relax_factor)
     call pp%query("sdc_solve_for_rhoe", sdc_solve_for_rhoe)
     call pp%query("sdc_use_analytic_jac", sdc_use_analytic_jac)
     call pp%query("cfl", cfl)
@@ -726,6 +751,11 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
     call amrex_parmparse_destroy(pp)
 
 
@@ -738,25 +768,26 @@ contains
     !$acc device(ppm_predict_gammae, ppm_reference_eigenvectors, plm_iorder) &
     !$acc device(hybrid_riemann, riemann_solver, cg_maxiter) &
     !$acc device(cg_tol, cg_blend, use_eos_in_riemann) &
-    !$acc device(use_flattening, transverse_use_eos, transverse_reset_density) &
-    !$acc device(transverse_reset_rhoe, dual_energy_eta1, dual_energy_eta2) &
-    !$acc device(use_pslope, limit_fluxes_on_small_dens, density_reset_method) &
-    !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
-    !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
-    !$acc device(hse_reflect_vels, mol_order, sdc_order) &
-    !$acc device(sdc_solver, sdc_solver_tol, sdc_solve_for_rhoe) &
-    !$acc device(sdc_use_analytic_jac, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_X_threshold, do_react) &
-    !$acc device(react_T_min, react_T_max, react_rho_min) &
-    !$acc device(react_rho_max, disable_shock_burning, T_guess) &
-    !$acc device(diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac) &
-    !$acc device(do_grav, grav_source_type, do_rotation) &
-    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
-    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
-    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
-    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
-    !$acc device(do_acc, grown_factor, track_grid_losses) &
-    !$acc device(const_grav, get_g_from_phi)
+    !$acc device(riemann_speed_limit, use_flattening, transverse_use_eos) &
+    !$acc device(transverse_reset_density, transverse_reset_rhoe, dual_energy_eta1) &
+    !$acc device(dual_energy_eta2, use_pslope, limit_fluxes_on_small_dens) &
+    !$acc device(density_reset_method, allow_small_energy, do_sponge) &
+    !$acc device(sponge_implicit, first_order_hydro, hse_zero_vels) &
+    !$acc device(hse_interp_temp, hse_reflect_vels, mol_order) &
+    !$acc device(sdc_order, sdc_solver, sdc_solver_tol_dens) &
+    !$acc device(sdc_solver_tol_spec, sdc_solver_tol_ener, sdc_solver_atol) &
+    !$acc device(sdc_solver_relax_factor, sdc_solve_for_rhoe, sdc_use_analytic_jac) &
+    !$acc device(cfl, dtnuc_e, dtnuc_X) &
+    !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
+    !$acc device(react_T_max, react_rho_min, react_rho_max) &
+    !$acc device(disable_shock_burning, T_guess, diffuse_cutoff_density) &
+    !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
+    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
+    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
 
 
 #ifdef GRAVITY
@@ -770,6 +801,8 @@ contains
        gravity_type_int = 1
     else if (gravity_type == "PoissonGrav") then
        gravity_type_int = 2
+    else if (gravity_type == "PrescribedGrav") then
+       gravity_type_int = 3
     else
        call amrex_error("Unknown gravity type")
     end if
@@ -779,7 +812,7 @@ contains
     select case (xl_ext_bc_type)
     case ("hse", "HSE")
        xl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xl_ext = EXT_INTERP
     case default
        xl_ext = EXT_UNDEFINED
@@ -788,7 +821,7 @@ contains
     select case (yl_ext_bc_type)
     case ("hse", "HSE")
        yl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yl_ext = EXT_INTERP
     case default
        yl_ext = EXT_UNDEFINED
@@ -797,7 +830,7 @@ contains
     select case (zl_ext_bc_type)
     case ("hse", "HSE")
        zl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zl_ext = EXT_INTERP
     case default
        zl_ext = EXT_UNDEFINED
@@ -806,7 +839,7 @@ contains
     select case (xr_ext_bc_type)
     case ("hse", "HSE")
        xr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xr_ext = EXT_INTERP
     case default
        xr_ext = EXT_UNDEFINED
@@ -815,7 +848,7 @@ contains
     select case (yr_ext_bc_type)
     case ("hse", "HSE")
        yr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yr_ext = EXT_INTERP
     case default
        yr_ext = EXT_UNDEFINED
@@ -824,7 +857,7 @@ contains
     select case (zr_ext_bc_type)
     case ("hse", "HSE")
        zr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zr_ext = EXT_INTERP
     case default
        zr_ext = EXT_UNDEFINED
@@ -917,6 +950,9 @@ contains
     if (allocated(use_eos_in_riemann)) then
         deallocate(use_eos_in_riemann)
     end if
+    if (allocated(riemann_speed_limit)) then
+        deallocate(riemann_speed_limit)
+    end if
     if (allocated(use_flattening)) then
         deallocate(use_flattening)
     end if
@@ -992,8 +1028,20 @@ contains
     if (allocated(sdc_solver)) then
         deallocate(sdc_solver)
     end if
-    if (allocated(sdc_solver_tol)) then
-        deallocate(sdc_solver_tol)
+    if (allocated(sdc_solver_tol_dens)) then
+        deallocate(sdc_solver_tol_dens)
+    end if
+    if (allocated(sdc_solver_tol_spec)) then
+        deallocate(sdc_solver_tol_spec)
+    end if
+    if (allocated(sdc_solver_tol_ener)) then
+        deallocate(sdc_solver_tol_ener)
+    end if
+    if (allocated(sdc_solver_atol)) then
+        deallocate(sdc_solver_atol)
+    end if
+    if (allocated(sdc_solver_relax_factor)) then
+        deallocate(sdc_solver_relax_factor)
     end if
     if (allocated(sdc_solve_for_rhoe)) then
         deallocate(sdc_solve_for_rhoe)
@@ -1108,7 +1156,7 @@ contains
     end if
 
 
-    
+
   end subroutine ca_finalize_meth_params
 
 
@@ -1137,9 +1185,9 @@ contains
        call amrex_error("Unknown fspace_type", fspace_type)
     end if
 #endif
-    
+
     do_inelastic_scattering = (do_is_in .ne. 0)
-    
+
     if (com_in .eq. 1) then
        comoving = .true.
     else if (com_in .eq. 0) then
@@ -1149,9 +1197,9 @@ contains
        call amrex_error("Wrong value for comoving", fspace_type)
 #endif
     end if
-    
+
     flatten_pp_threshold = fppt
-    
+
     !$acc update &
     !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &

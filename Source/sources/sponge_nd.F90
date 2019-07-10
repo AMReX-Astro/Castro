@@ -35,7 +35,7 @@ contains
     use amrex_constants_module,  only: ZERO, HALF, ONE
 #ifdef HYBRID_MOMENTUM
     use meth_params_module,   only: UMR, UMP
-    use hybrid_advection_module, only: add_hybrid_momentum_source
+    use hybrid_advection_module, only: set_hybrid_momentum_source
 #endif
     use amrex_fort_module, only : rt => amrex_real
 
@@ -62,9 +62,9 @@ contains
     real(rt) :: src(NVAR)
     real(rt) :: local_state(NVAR)
 
-    src(:) = ZERO
-
     !$gpu
+
+    src(:) = ZERO
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + dble(k + HALF) * dx(3) - center(3)
@@ -84,12 +84,17 @@ contains
 
              src(UMX:UMZ) = Sr(:)
 
+             ! Kinetic energy is 1/2 rho u**2, or (rho u)**2 / (2 rho). This means
+             ! that d(KE)/dt = u d(rho u)/dt - 1/2 u**2 d(rho)/dt. In this case
+             ! the sponge has no contribution to rho, so the kinetic energy source
+             ! term, and thus the total energy source term, is u * momentum source.
+
              SrE = dot_product(state(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              src(UEDEN) = SrE
 
 #ifdef HYBRID_MOMENTUM
-             call add_hybrid_momentum_source(r, src(UMR:UMP), src(UMX:UMZ))
+             call set_hybrid_momentum_source(r, src(UMR:UMP), src(UMX:UMZ))
 #endif
 
              ! Add terms to the source array.

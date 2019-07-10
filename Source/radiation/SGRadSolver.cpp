@@ -44,7 +44,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   MultiFab Er_old(grids, dmap, Er_new.nComp(), Er_new.nGrow());
   Er_old.copy(Er_new); // all components, including any first moments
 
-  Tuple<MultiFab, BL_SPACEDIM> Ff_new;
+  Array<MultiFab, BL_SPACEDIM> Ff_new;
 
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
       Ff_new[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
@@ -94,7 +94,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   MultiFab eta(grids,dmap,1,0);
   MultiFab etainv(grids,dmap,1,0);  // this is 1-eta, to avoid loss of accuracy
 
-  Tuple<MultiFab, BL_SPACEDIM> lambda;
+  Array<MultiFab, BL_SPACEDIM> lambda;
 
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
       lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);

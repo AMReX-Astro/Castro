@@ -666,7 +666,7 @@ class HypreMultiABec {
   amrex::Vector< amrex::Vector<amrex::BoxArray> > subgrids;
 
   amrex::Vector<std::unique_ptr<amrex::MultiFab> > acoefs;
-  amrex::Vector<std::unique_ptr<amrex::Tuple<amrex::MultiFab, BL_SPACEDIM> > > bcoefs;
+  amrex::Vector<std::unique_ptr<amrex::Array<amrex::MultiFab, BL_SPACEDIM> > > bcoefs;
   amrex::Real alpha, beta;
   amrex::Real reltol, abstol;
 

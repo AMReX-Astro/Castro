@@ -1,36 +1,39 @@
 module hybrid_advection_module
 
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
 contains
 
 
   subroutine ca_init_hybrid_momentum(lo, hi, state, s_lo, s_hi) bind(C, name='ca_init_hybrid_momentum')
-    !  Takes the initial linear momentum data in a state and converts it
+    ! Takes the initial linear momentum data in a state and converts it
     ! to the hybrid momenta.
 
     use meth_params_module, only: NVAR, UMR, UMP, UMX, UMZ
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
     use prob_params_module, only: center
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-    integer          :: i, j, k
-    real(rt)         :: loc(3)
+    integer  :: i, j, k
+    real(rt) :: loc(3), mom(3)
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              loc = position(i,j,k) - center
+             mom = state(i,j,k,UMX:UMZ)
 
-             state(i,j,k,UMR:UMP) = linear_to_hybrid(loc, state(i,j,k,UMX:UMZ))
+             state(i,j,k,UMR:UMP) = linear_to_hybrid(loc, mom)
 
           enddo
        enddo
@@ -47,9 +50,8 @@ contains
     use amrex_constants_module, only: ONE
     use meth_params_module, only: NVAR, URHO, UMR, UML
     use prob_params_module, only: center
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
     use network, only: nspec, naux
-    use amrex_fort_module, only : rt => amrex_real
 
     implicit none
 
@@ -62,6 +64,8 @@ contains
 
     integer  :: i, j, k
     real(rt) :: loc(3), R, rhoInv
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -89,13 +93,14 @@ contains
 
     use amrex_constants_module, only: ZERO
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    real(rt)        , intent(in) :: loc(3), mom_in(3)
-    real(rt)         :: mom_out(3)
+    real(rt), intent(in) :: loc(3), mom_in(3)
+    real(rt) :: mom_out(3)
 
-    real(rt)         :: R
+    real(rt) :: R
+
+    !$gpu
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
@@ -121,13 +126,14 @@ contains
 
     use amrex_constants_module, only: ZERO
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    real(rt)        , intent(in) :: loc(3), mom_in(3)
-    real(rt)         :: mom_out(3)
+    real(rt), intent(in) :: loc(3), mom_in(3)
+    real(rt) :: mom_out(3)
 
-    real(rt)         :: R
+    real(rt) :: R
+
+    !$gpu
 
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
@@ -144,31 +150,6 @@ contains
   subroutine add_hybrid_momentum_source(loc, mom, source)
     ! Update hybrid momenta to account for source term to linear momenta.
 
-
-    use amrex_fort_module, only : rt => amrex_real
-    implicit none
-
-    real(rt)        , intent(in   ) :: loc(3), source(3)
-    real(rt)        , intent(inout) :: mom(3)
-
-    real(rt)         :: R
-
-    !$gpu
-
-    R = sqrt( loc(1)**2 + loc(2)**2 )
-
-    ! This is analogous to the conversion of linear momentum to hybrid momentum.
-
-    mom(1) = mom(1) - source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
-    mom(2) = mom(2) + source(2) * loc(2) - source(2) * loc(1)
-    mom(3) = mom(3) + source(3)
-
-  end subroutine add_hybrid_momentum_source
-
-
-  subroutine set_hybrid_momentum_source(loc, mom, source)
-
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
     real(rt), intent(in   ) :: loc(3), source(3)
@@ -176,12 +157,36 @@ contains
 
     real(rt) :: R
 
+    !$gpu
+
     R = sqrt( loc(1)**2 + loc(2)**2 )
 
     ! This is analogous to the conversion of linear momentum to hybrid momentum.
 
-    mom(1) = -source(1) * (loc(1) / R) - source(2) * (loc(2) / R)
-    mom(2) =  source(2) * loc(2) - source(2) * loc(1)
+    mom(1) = mom(1) + source(1) * (loc(1) / R) + source(2) * (loc(2) / R)
+    mom(2) = mom(2) + source(2) * loc(1) - source(1) * loc(2)
+    mom(3) = mom(3) + source(3)
+
+  end subroutine add_hybrid_momentum_source
+
+
+  subroutine set_hybrid_momentum_source(loc, mom, source)
+
+    implicit none
+
+    real(rt), intent(in   ) :: loc(3), source(3)
+    real(rt), intent(inout) :: mom(3)
+
+    real(rt) :: R
+
+    !$gpu
+
+    R = sqrt( loc(1)**2 + loc(2)**2 )
+
+    ! This is analogous to the conversion of linear momentum to hybrid momentum.
+
+    mom(1) =  source(1) * (loc(1) / R) + source(2) * (loc(2) / R)
+    mom(2) =  source(2) * loc(1) - source(1) * loc(2)
     mom(3) =  source(3)
 
   end subroutine set_hybrid_momentum_source
@@ -191,23 +196,26 @@ contains
   subroutine compute_hybrid_flux(state, flux, idir, idx, cell_centered)
 
     use meth_params_module, only: NVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, UMR, UML, UMP
+#ifndef AMREX_USE_CUDA
     use amrex_error_module, only: amrex_error
+#endif
     use prob_params_module, only: center
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    real(rt)         :: state(NGDNV)
-    real(rt)         :: flux(NVAR)
-    integer          :: idir, idx(3)
+    real(rt)          :: state(NGDNV)
+    real(rt)          :: flux(NVAR)
+    integer           :: idir, idx(3)
     logical, optional :: cell_centered
 
-    real(rt)         :: linear_mom(3), hybrid_mom(3)
-    real(rt)         :: loc(3), R
+    real(rt) :: linear_mom(3), hybrid_mom(3)
+    real(rt) :: loc(3), R
 
-    real(rt)         :: u_adv
-    logical :: cc
+    real(rt) :: u_adv
+    logical  :: cc
+
+    !$gpu
 
     cc = .false.
 
@@ -275,25 +283,26 @@ contains
 
     use meth_params_module, only: NVAR, NGDNV, GDPRES, UMR
     use prob_params_module, only: center, dx_level
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
     use amrinfo_module, only: amr_level
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer          :: lo(3), hi(3)
-    integer          :: u_lo(3), u_hi(3)
-    integer          :: qx_lo(3), qx_hi(3)
-    integer          :: qy_lo(3), qy_hi(3)
-    integer          :: qz_lo(3), qz_hi(3)
-    real(rt)         :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    real(rt)         :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    real(rt)         :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    real(rt)         :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    real(rt)         :: dt
+    integer  :: lo(3), hi(3)
+    integer  :: u_lo(3), u_hi(3)
+    integer  :: qx_lo(3), qx_hi(3)
+    integer  :: qy_lo(3), qy_hi(3)
+    integer  :: qz_lo(3), qz_hi(3)
+    real(rt) :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    real(rt) :: dt
 
-    integer          :: i, j, k
-    real(rt)         :: loc(3), R, dx(3)
+    integer  :: i, j, k
+    real(rt) :: loc(3), R, dx(3)
+
+    !$gpu
 
     dx = dx_level(:,amr_level)
 
@@ -321,26 +330,28 @@ contains
 
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: URHO, UMR, UMP, UMX, UMZ, UEDEN, NVAR
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
     use prob_params_module, only: center
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: state_lo(3), state_hi(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: state_lo(3), state_hi(3)
     real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-    integer          :: i, j, k
-    real(rt)         :: loc(3)
+    integer  :: i, j, k
+    real(rt) :: loc(3), mom(3)
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              loc = position(i,j,k) - center
+             mom = state(i,j,k,UMR:UMP)
 
-             state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, state(i,j,k,UMR:UMP))
+             state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, mom)
 
           enddo
        enddo

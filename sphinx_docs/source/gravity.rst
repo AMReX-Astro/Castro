@@ -610,8 +610,8 @@ the hydrodynamics system. The main parameter here is
 - ``castro.grav_source_type`` = 3 : we do the same momentum update as
   the previous two, but for the energy update, we put all of the work
   into updating the kinetic energy alone. In particular, we explicitly
-  ensure that :math:`(rho e)` maintains the same, and update
-  :math:`(rho K)` with the work due to gravity, adding the new kinetic
+  ensure that :math:`(\rho e)` remains the same, and update
+  :math:`(\rho K)` with the work due to gravity, adding the new kinetic
   energy to the old internal energy to determine the final total gas
   energy. The physical motivation is that work should be done on the
   velocity, and should not directly update the temperature—only

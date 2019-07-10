@@ -18,6 +18,8 @@ amr.n_cell           = 64 64 64
 castro.lo_bc       =  0   0   3
 castro.hi_bc       =  0   0   1
 
+castro.zr_ext_bc_type = "interp"
+
 # this is here just for test suite coverage
 castro.state_nghost = 1
 

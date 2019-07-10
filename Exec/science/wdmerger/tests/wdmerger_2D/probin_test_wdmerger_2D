@@ -2,7 +2,7 @@
   mass_P = 0.90
   mass_S = 0.90
 
-  problem = 2
+  problem = 1
 
   roche_radius_factor = 1.0d0
 

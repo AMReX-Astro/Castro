@@ -1,0 +1,69 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 20000
+
+# for pert_factor = 8.1d-3 -> max Mach number ~0.05
+stop_time    = 4.5e-5
+amr.plot_per = 4.5e-5
+
+
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 1   0
+geometry.coord_sys   = 0        # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     = 0   0
+geometry.prob_hi     = 2.0 2.0
+amr.n_cell           = 512 512
+
+castro.ppm_type = 1
+
+castro.riemann_solver = 1
+
+castro.use_flattening = 1
+
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  0   1
+castro.hi_bc       =  0   1
+
+# WHICH PHYSICS
+castro.do_hydro = 1
+castro.do_react = 0
+castro.do_grav  = 1
+
+gravity.gravity_type = ConstantGrav
+gravity.const_grav   = -1.e9
+
+# TIME STEP CONTROL
+castro.cfl            = 0.8     # cfl number for hyperbolic system
+castro.init_shrink    = 0.1     # scale back initial timestep
+castro.change_max     = 1.1     # max time step growth
+castro.dt_cutoff      = 1.e-10  # level 0 timestep below which we halt
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+
+# REFINEMENT / REGRIDDING 
+amr.max_level       = 0       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 # how often to regrid
+amr.blocking_factor = 64      # block factor in grid generation
+amr.max_grid_size   = 64
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+# CHECKPOINT FILES
+amr.checkpoint_files_output = 0
+amr.check_file      = chk        # root name of checkpoint file
+amr.check_int       = -1         # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_file       = plt        # root name of plotfile
+amr.derive_plot_vars = ALL
+
+#PROBIN FILENAME
+amr.probin_file = probin

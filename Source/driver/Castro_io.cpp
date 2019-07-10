@@ -376,7 +376,7 @@ Castro::restart (Amr&     papa,
 
           Box domain(geom.Domain());
           int lo=0, hi=0;
-          if (Geometry::IsRZ()) {
+          if (geom.IsRZ()) {
              if (grown_factor != 2) 
                 amrex::Abort("Must have grown_factor = 2");
 
@@ -429,11 +429,9 @@ Castro::restart (Amr&     papa,
 
            if (! orig_domain.contains(bx)) {
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
-
 #ifdef GPU_COMPATIBLE_PROBLEM
 
-#pragma gpu
+#pragma gpu box(bx)
               ca_initdata(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                           BL_TO_FORTRAN_ANYD(S_new[mfi]),
                           AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
@@ -447,14 +445,6 @@ Castro::restart (Amr&     papa,
 
 #endif
 
-#else
-
-	      BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-		(level, cur_time, lo, hi, ns,
-		 BL_TO_FORTRAN(S_new[mfi]), dx,
-		 gridloc.lo(), gridloc.hi());
-
-#endif
 
            }
        }
@@ -573,38 +563,26 @@ Castro::checkPoint(const std::string& dir,
                    VisMF::How     how,
                    bool dump_old_default)
 {
-    
-#ifdef AMREX_USE_CUDA
-    for (int s = 0; s < num_state_type; ++s) {
-        if (dump_old && state[s].hasOldData()) {
-            MultiFab& old_MF = get_old_data(s);
-            for (MFIter mfi(old_MF); mfi.isValid(); ++mfi) {
-                old_MF.prefetchToHost(mfi);
-            }
-        }
-	MultiFab& new_MF = get_new_data(s);
-        for (MFIter mfi(new_MF); mfi.isValid(); ++mfi) {
-            new_MF.prefetchToHost(mfi);
-        }
-    }
-#endif
+
+  for (int s = 0; s < num_state_type; ++s) {
+      if (dump_old && state[s].hasOldData()) {
+          MultiFab& old_MF = get_old_data(s);
+          amrex::prefetchToHost(old_MF);
+      }
+      MultiFab& new_MF = get_new_data(s);
+      amrex::prefetchToHost(new_MF);
+  }
 
   AmrLevel::checkPoint(dir, os, how, dump_old);
 
-#ifdef AMREX_USE_CUDA
-    for (int s = 0; s < num_state_type; ++s) {
-        if (dump_old && state[s].hasOldData()) {
-            MultiFab& old_MF = get_old_data(s);
-            for (MFIter mfi(old_MF); mfi.isValid(); ++mfi) {
-                old_MF.prefetchToDevice(mfi);
-            }
-        }
-	MultiFab& new_MF = get_new_data(s);
-        for (MFIter mfi(new_MF); mfi.isValid(); ++mfi) {
-            new_MF.prefetchToDevice(mfi);
-        }
-    }
-#endif
+  for (int s = 0; s < num_state_type; ++s) {
+      if (dump_old && state[s].hasOldData()) {
+          MultiFab& old_MF = get_old_data(s);
+          amrex::prefetchToDevice(old_MF);
+      }
+      MultiFab& new_MF = get_new_data(s);
+      amrex::prefetchToDevice(new_MF);
+  }
 
 #ifdef RADIATION
   if (do_radiation) {
@@ -984,7 +962,7 @@ Castro::writeJobInfo (const std::string& dir)
   }
   jobInfoFile << "\n";
 
-  jobInfoFile << "     geometry.coord_sys:   " << Geometry::Coord() << "\n";
+  jobInfoFile << "     geometry.coord_sys:   " << geom.Coord() << "\n";
 
   jobInfoFile << "     geometry.prob_lo:     ";
   for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
@@ -1220,10 +1198,10 @@ Castro::plotFileOutput(const std::string& dir,
         int f_lev = parent->finestLevel();
         os << f_lev << '\n';
         for (i = 0; i < BL_SPACEDIM; i++)
-            os << Geometry::ProbLo(i) << ' ';
+            os << geom.ProbLo(i) << ' ';
         os << '\n';
         for (i = 0; i < BL_SPACEDIM; i++)
-            os << Geometry::ProbHi(i) << ' ';
+            os << geom.ProbHi(i) << ' ';
         os << '\n';
         for (i = 0; i < f_lev; i++)
             os << parent->refRatio(i)[0] << ' ';
@@ -1240,7 +1218,7 @@ Castro::plotFileOutput(const std::string& dir,
                 os << parent->Geom(i).CellSize()[k] << ' ';
             os << '\n';
         }
-        os << (int) Geometry::Coord() << '\n';
+        os << (int) geom.Coord() << '\n';
         os << "0\n"; // Write bndry data.
 
 #ifdef RADIATION
@@ -1355,11 +1333,7 @@ Castro::plotFileOutput(const std::string& dir,
     }
 #endif
 
-#ifdef AMREX_USE_CUDA
-    for (MFIter mfi(plotMF); mfi.isValid(); ++mfi) {
-        plotMF.prefetchToHost(mfi);
-    }
-#endif
+    amrex::prefetchToHost(plotMF);
 
     //
     // Use the Full pathname when naming the MultiFab.

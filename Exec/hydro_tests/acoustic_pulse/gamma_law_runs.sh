@@ -1,6 +1,6 @@
 #!/bin/sh
 
-
+echo "building..."
 make realclean 2>1 > /dev/null
 make EOS_DIR=gamma_law -j 4 2>1 > /dev/null
 status=$?
@@ -10,8 +10,8 @@ if [ $status -ne 0 ]; then
     exit
 fi
 
-echo "running the CTU version..."
-./convergence.sh
+echo "running the RK4 version..."
+./convergence_rk4.sh
 
 echo "running 2nd order SDC..."
 ./convergence_sdc.sh

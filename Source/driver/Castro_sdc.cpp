@@ -57,6 +57,32 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
     AmrLevel::FillPatch(*this, C_source, C_source.nGrow(), time,
                         SDC_Source_Type, 0, NUM_STATE);
 
+
+    // we'll also construct an initial guess for the nonlinear solve,
+    // and store this in the Sburn MultiFab.  We'll use S_new as the
+    // staging place so we can do a FillPatch
+    MultiFab& S_new = get_new_data(State_Type);
+
+    Real dt_m = dt/2.0;
+
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+
+      const Box& bx = mfi.tilebox();
+
+      ca_sdc_compute_initial_guess(BL_TO_FORTRAN_BOX(bx),
+                                   BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
+                                   BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
+                                   BL_TO_FORTRAN_3D((*A_old[m_start])[mfi]),
+                                   BL_TO_FORTRAN_3D((*R_old[m_start])[mfi]),
+                                   BL_TO_FORTRAN_3D(S_new[mfi]),
+                                   &dt_m, &sdc_iteration);
+
+
+    }
+
+    const Real cur_time = state[State_Type].curTime();
+    expand_state(Sburn, cur_time, 2);
+
   }
 #endif
 
@@ -114,6 +140,13 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
       // solve for the updated cell-center U using our cell-centered C -- we
       // need to do this with one ghost cell
       U_new_center.resize(bx1, NUM_STATE);
+
+      // initialize U_new with our guess for the new state, stored as
+      // an average in Sburn
+      ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
+                          BL_TO_FORTRAN_FAB(Sburn[mfi]),
+                          BL_TO_FORTRAN_FAB(U_new_center));
+
       ca_sdc_update_centers_o4(BL_TO_FORTRAN_BOX(bx1), &dt_m,
                                BL_TO_FORTRAN_3D(U_center),
                                BL_TO_FORTRAN_3D(U_new_center),

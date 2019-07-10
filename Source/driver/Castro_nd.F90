@@ -977,6 +977,13 @@ subroutine ca_get_tagging_params(name, namlen) &
        enucerr, max_enucerr_lev, &
        dxnuc_min, dxnuc_max, max_dxnuc_lev
 
+  allocate(denerr)
+  allocate(dengrad)
+  allocate(dengrad_rel)
+  allocate(max_denerr_lev)
+  allocate(max_dengrad_lev)
+  allocate(max_dengrad_rel_lev)
+
   ! Set namelist defaults
   denerr = 1.e20_rt
   dengrad = 1.e20_rt
@@ -985,12 +992,40 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_dengrad_lev = -1
   max_dengrad_rel_lev = -1
 
+  allocate(ye_err)
+  allocate(ye_grad)
+  allocate(ye_grad_rel)
+  allocate(max_ye_err_lev)
+  allocate(max_ye_grad_lev)
+  allocate(max_ye_grad_rel_lev)
+
+  ye_err = 1.e20_rt
+  ye_grad = 1.e20_rt
+  ye_grad_rel = 1.e20_rt
+  max_ye_err_lev = -1
+  max_ye_grad_lev = -1
+  max_ye_grad_rel_lev = -1
+
+  allocate(enterr)
+  allocate(entgrad)
+  allocate(entgrad_rel)
+  allocate(max_enterr_lev)
+  allocate(max_entgrad_lev)
+  allocate(max_entgrad_rel_lev)
+
   enterr = 1.e20_rt
   entgrad = 1.e20_rt
   entgrad_rel = 1.e20_rt
   max_enterr_lev = -1
   max_entgrad_lev = -1
   max_entgrad_rel_lev = -1
+
+  allocate(presserr)
+  allocate(pressgrad)
+  allocate(pressgrad_rel)
+  allocate(max_presserr_lev)
+  allocate(max_pressgrad_lev)
+  allocate(max_pressgrad_rel_lev)
 
   presserr = 1.e20_rt
   pressgrad = 1.e20_rt
@@ -999,12 +1034,26 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_pressgrad_lev = -1
   max_pressgrad_rel_lev = -1
 
+  allocate(velerr)
+  allocate(velgrad)
+  allocate(velgrad_rel)
+  allocate(max_velerr_lev)
+  allocate(max_velgrad_lev)
+  allocate(max_velgrad_rel_lev)
+
   velerr  = 1.e20_rt
   velgrad = 1.e20_rt
   velgrad_rel = 1.e20_rt
   max_velerr_lev = -1
   max_velgrad_lev = -1
   max_velgrad_rel_lev = -1
+
+  allocate(temperr)
+  allocate(tempgrad)
+  allocate(tempgrad_rel)
+  allocate(max_temperr_lev)
+  allocate(max_tempgrad_lev)
+  allocate(max_tempgrad_rel_lev)
 
   temperr  = 1.e20_rt
   tempgrad = 1.e20_rt
@@ -1013,6 +1062,13 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_tempgrad_lev = -1
   max_tempgrad_rel_lev = -1
 
+  allocate(raderr)
+  allocate(radgrad)
+  allocate(radgrad_rel)
+  allocate(max_raderr_lev)
+  allocate(max_radgrad_lev)
+  allocate(max_radgrad_rel_lev)
+
   raderr  = 1.e20_rt
   radgrad = 1.e20_rt
   radgrad_rel = 1.e20_rt
@@ -1020,8 +1076,15 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_radgrad_lev = -1
   max_radgrad_rel_lev = -1
 
+  allocate(enucerr)
+  allocate(max_enucerr_lev)
+
   enucerr = 1.e200_rt
   max_enucerr_lev = -1
+
+  allocate(dxnuc_min)
+  allocate(dxnuc_max)
+  allocate(max_dxnuc_lev)
 
   dxnuc_min = 1.e200_rt
   dxnuc_max = 1.e200_rt

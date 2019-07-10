@@ -18,8 +18,12 @@ These are:
 
 ## Building
 
-To build one of the radiation diagnostics, comment/uncomment the
-relevant lines in the `GNUMakefile` AND the `Make.package` file.
+To build one of the radiation diagnostics, specify the executable name
+as the target, e.g.
+
+```
+   make DIM=1 rad_sphere.ex
+```
 
 Take care that you compile with the correct dimension (i.e. set `DIM`
 equal to the same value it had for the code that generated the plotfile

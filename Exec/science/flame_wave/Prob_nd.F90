@@ -16,6 +16,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
                              max_hse_tagging_level, max_base_tagging_level, x_refine_distance
   use network, only: nspec, network_species_index
   use prob_params_module, only : center
+  use meth_params_module, only : small_dens
 
   implicit none
 
@@ -56,6 +57,14 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   allocate(x_half_max)
   allocate(x_half_width)
+
+  allocate(X_min)
+  allocate(cutoff_density)
+
+  allocate(x_refine_distance)
+
+  allocate(max_hse_tagging_level)
+  allocate(max_base_tagging_level)
 
   ! set namelist defaults here
   X_min = 1.e-4_rt
@@ -102,6 +111,12 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)
   close(unit=untin)
+
+  ! check to make sure that small_dens is less than low_density_cutoff
+  ! if not, funny things can happen above the atmosphere
+  if (small_dens >= 0.99_rt * low_density_cutoff) then
+     call amrex_error("ERROR: small_dens should be set lower than low_density_cutoff")
+  end if
 
   ! get the species indices
   species_defined = .true.
@@ -164,7 +179,6 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ! lower boundary, we'll add 4 ghostcells to this, so we need to
   ! compute dx
   nx_model = int((probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/dx_model)
-  print *, "nx_model = ", nx_model
 
   !dx_model = (probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/nx_model
   ng = 4

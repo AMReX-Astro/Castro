@@ -42,6 +42,8 @@ Castro::advance (Real time,
 
     wall_time_start = ParallelDescriptor::second();
 
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
+
     Real dt_new = dt;
 
     initialize_advance(time, dt, amr_iteration, amr_ncycle);
@@ -112,8 +114,7 @@ Castro::advance (Real time,
 
                 MultiFab& S_new = get_new_data(State_Type);
 
-                int is_new=1;
-                clean_state(is_new, S_new.nGrow());
+                clean_state(S_new, state[State_Type].curTime(), S_new.nGrow());
 
                 // Compute the reactive source term for use in the next iteration.
 
@@ -243,11 +244,14 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // zones. So we use a FillPatch using the state data to give us
     // Sborder, which does have ghost zones.
 
+    MultiFab& S_old = get_old_data(State_Type);
+
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       // for the CTU unsplit method, we always start with the old state
-      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
       const Real prev_time = state[State_Type].prevTime();
-      expand_state(Sborder, prev_time, 0, NUM_GROW);
+      clean_state(S_old, prev_time, 0);
+      expand_state(Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == MethodOfLines) {
 
@@ -257,9 +261,10 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       if (mol_iteration == 0) {
 
 	// first MOL stage
-	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+        Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
 	const Real prev_time = state[State_Type].prevTime();
-	expand_state(Sborder, prev_time, 0, NUM_GROW);
+        clean_state(S_old, prev_time, 0);
+	expand_state(Sborder, prev_time, NUM_GROW);
 
       } else {
 
@@ -278,23 +283,31 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	  MultiFab::Saxpy(S_new, dt*a_mol[mol_iteration][i], *k_mol[i], 0, 0, S_new.nComp(), 0);
 
         // not sure if this is needed
-        int is_new=1;
-        clean_state(is_new, S_new.nGrow());
-
-	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
 	const Real new_time = state[State_Type].curTime();
-	expand_state(Sborder, new_time, 1, NUM_GROW);
+        clean_state(S_new, new_time, S_new.nGrow());
+
+	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
+        clean_state(S_new, new_time, 0);
+	expand_state(Sborder, new_time, NUM_GROW);
 
       }
 
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
       // we'll handle the filling inside of do_advance_sdc 
-      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
 
     } else {
       amrex::Abort("invalid time_integration_method");
     }
+
+#ifdef SHOCK_VAR
+    // Zero out the shock data, and fill it during the advance.
+    // For subcycling cases this will always give the shock
+    // variable for the latest subcycle, rather than averaging.
+
+    Sborder.setVal(0.0, Shock, 1, Sborder.nGrow());
+#endif
 
 }
 
@@ -467,9 +480,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // trusted to respect the consistency between certain state variables
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
-    int is_new=0;
     MultiFab& S_old = get_old_data(State_Type);
-    clean_state(is_new, S_old.nGrow());
+    clean_state(S_old, time, S_old.nGrow());
 
     // Initialize the previous state data container now, so that we can
     // always ask if it has valid data.
@@ -490,9 +502,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 
     // This array holds the hydrodynamics update.
-
-    hydro_source.define(grids,dmap,NUM_STATE,0);
-
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      hydro_source.define(grids,dmap,NUM_STATE,0);
+    }
 
 
     // Allocate space for the primitive variables.
@@ -567,7 +579,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         mass_fluxes[dir]->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geometry::IsCartesian())
+    if (!Geom().IsCartesian())
 	P_radial.setVal(0.0);
 #endif
 
@@ -604,7 +616,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     Real cur_time = state[State_Type].curTime();
 
-    hydro_source.clear();
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      hydro_source.clear();
+    }
 
     q.clear();
     qaux.clear();

@@ -497,9 +497,7 @@ contains
 
     case default
 
-#ifdef AMREX_USE_CUDA
-       stop
-#else
+#ifndef AMREX_USE_CUDA
        call amrex_error("EOS: invalid independent variable")
 #endif
 

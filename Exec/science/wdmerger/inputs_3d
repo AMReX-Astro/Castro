@@ -158,6 +158,9 @@ castro.riemann_solver = 0
 # the iterations don't converge, but instead to do additional bisection iteration.
 castro.cg_blend = 2
 
+# Limit the maximum speed in the Riemann solver
+castro.riemann_speed_limit = 2.99792458e9
+
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
 
@@ -344,6 +347,3 @@ amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
 amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
-
-# Write out plotfile data in single precision
-fab.format = NATIVE_32

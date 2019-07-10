@@ -41,6 +41,8 @@ ifeq ($(USE_CUDA),TRUE)
   DEFINES += -DEXTRA_THERMO
 endif
 
+# all Castro problems use a dimension-agnostic interface
+DIMENSION_AGNOSTIC = TRUE
 
 EBASE = Castro
 
@@ -76,11 +78,7 @@ endif
 # if we're not using CUDA.
 
 ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
-  ifeq ($(DIMENSION_AGNOSTIC),TRUE)
     DEFINES += -DGPU_COMPATIBLE_PROBLEM
-  else
-    $(error GPU_COMPATIBLE_PROBLEM is only supported if DIMENSION_AGNOSTIC=TRUE)
-  endif
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs

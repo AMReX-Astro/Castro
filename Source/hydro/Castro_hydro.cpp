@@ -38,7 +38,7 @@ Castro::cons_to_prim(const Real time)
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
-#pragma gpu
+#pragma gpu box(qbx)
         ca_ctoprim(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
 #ifdef RADIATION
@@ -51,7 +51,7 @@ Castro::cons_to_prim(const Real time)
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
         if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-#pragma gpu
+#pragma gpu box(qbx)
             ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
                          BL_TO_FORTRAN_ANYD(q[mfi]),
                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
@@ -159,6 +159,18 @@ Castro::cons_to_prim_fourth(const Real time)
                           BL_TO_FORTRAN_FAB(Sborder[mfi]),
                           BL_TO_FORTRAN_FAB(U_cc));
 
+      // enforce the minimum density on the new cell-centered state
+      Real dens_change = 1.e0;
+      ca_enforce_minimum_density
+        (AMREX_ARLIM_ANYD(qbxm1.loVect()), AMREX_ARLIM_ANYD(qbxm1.hiVect()),
+         BL_TO_FORTRAN_ANYD(U_cc),
+         &dens_change, verbose);
+
+      // and ensure that the internal energy is positive
+      ca_reset_internal_e(AMREX_ARLIM_ANYD(qbxm1.loVect()), AMREX_ARLIM_ANYD(qbxm1.hiVect()),
+                          BL_TO_FORTRAN_ANYD(U_cc),
+                          print_fortran_warnings);
+
       // convert U_avg to q_bar -- this will be done on all NUM_GROW
       // ghost cells.
       ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
@@ -231,7 +243,7 @@ Castro::check_for_cfl_violation(const Real dt)
 
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
                        BL_TO_FORTRAN_ANYD(q[mfi]),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),

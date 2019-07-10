@@ -25,7 +25,7 @@ castro.hi_bc       =  2   1
 castro.do_hydro = 1
 castro.do_react = 0
 castro.ppm_type = 1
-casrto.riemann_solver = 2
+castro.riemann_solver = 2
 
 # TIME STEP CONTROL
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
@@ -36,7 +36,7 @@ castro.change_max     = 1.1     # maximum increase in dt over successive steps
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
-amr.v                 = 0        # verbosity in Amr.cpp
+amr.v                 = 1        # verbosity in Amr.cpp
 #amr.grid_log         = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING
