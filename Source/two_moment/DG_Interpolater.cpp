@@ -48,7 +48,7 @@ DG_Interpolater::interp (const FArrayBox&     crse,
                          const IntVect&       ratio,
                          const Geometry&      crse_geom,
                          const Geometry&      fine_geom,
-                         Vector<BCRec>&       bcr,
+                         Vector<BCRec> const& bcr,
                          int                  actual_comp,
                          int                  actual_state)
 {
