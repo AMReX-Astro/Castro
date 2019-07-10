@@ -42,10 +42,6 @@ module model_parser_module
   real (rt), allocatable, save :: model_state(:,:)
   real (rt), allocatable, save :: model_r(:)
 
-#ifdef AMREX_USE_CUDA
-  attributes(managed) :: model_state, model_r, npts_model
-#endif
-
   ! model_initialized will be .true. once the model is read in and the
   ! model data arrays are initialized and filled
   logical, save :: model_initialized = .false.
@@ -53,6 +49,10 @@ module model_parser_module
   integer, parameter :: MAX_VARNAME_LENGTH=80
 
   public :: read_model_file, close_model_file
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: model_state, model_r, npts_model
+#endif
 
 contains
 

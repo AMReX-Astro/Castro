@@ -14,9 +14,6 @@ contains
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
     use amrex_filcc_module, only: amrex_filccn
-#ifndef AMREX_USE_CUDA
-    use bc_ext_fill_module, only: ext_fill
-#endif
 
     implicit none
 
@@ -34,11 +31,6 @@ contains
 
     call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
-#ifndef AMREX_USE_CUDA
-    ! process the external BCs here
-    call ext_fill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
-#endif
-
   end subroutine hypfill
 
 
@@ -46,9 +38,6 @@ contains
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
     use amrex_filcc_module, only: amrex_filccn
-#ifndef AMREX_USE_CUDA
-    use bc_ext_fill_module, only: ext_denfill
-#endif
 
     implicit none
 
@@ -65,11 +54,6 @@ contains
     !$gpu
 
     call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
-
-#ifndef AMREX_USE_CUDA
-    ! process the external BCs here
-    call ext_denfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
-#endif
 
   end subroutine denfill
 

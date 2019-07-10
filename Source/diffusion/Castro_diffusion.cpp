@@ -100,7 +100,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
                coeff_cc.resize(obx, 1);
                Elixir elix_coeff_cc = coeff_cc.elixir();
 
-#pragma gpu
+#pragma gpu box(obx)
                ca_fill_temp_cond(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                                  BL_TO_FORTRAN_ANYD(grown_state[mfi]),
                                  BL_TO_FORTRAN_ANYD(coeff_cc));
@@ -113,7 +113,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
 
                    const int idir_f = idir + 1;
 
-#pragma gpu
+#pragma gpu box(nbx)
                    ca_average_coef_cc_to_ec(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                                             BL_TO_FORTRAN_ANYD(coeff_cc),
                                             BL_TO_FORTRAN_ANYD((*coeffs[idir])[mfi]),

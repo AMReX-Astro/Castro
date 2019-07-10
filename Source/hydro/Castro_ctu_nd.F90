@@ -11,46 +11,45 @@ module ctu_module
 contains
 
   subroutine ctu_ppm_states(lo, hi, &
-       vlo, vhi, &
-       q, qd_lo, qd_hi, &
-       flatn, f_lo, f_hi, &
-       qaux, qa_lo, qa_hi, &
-       srcQ, src_lo, src_hi, &
-       shk, sk_lo, sk_hi, &
-       Ip, Ip_lo, Ip_hi, &
-       Im, Im_lo, Im_hi, &
-       Ip_src, Ips_lo, Ips_hi, &
-       Im_src, Ims_lo, Ims_hi, &
-       Ip_gc, Ipg_lo, Ipg_hi, &
-       Im_gc, Img_lo, Img_hi, &
-       sm, sm_lo, sm_hi, &
-       sp, sp_lo, sp_hi, &
-       qxm, qxm_lo, qxm_hi, &
-       qxp, qxp_lo, qxp_hi, &
+                            vlo, vhi, &
+                            q, qd_lo, qd_hi, &
+                            flatn, f_lo, f_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            srcQ, src_lo, src_hi, &
+                            Ip, Ip_lo, Ip_hi, &
+                            Im, Im_lo, Im_hi, &
+                            Ip_src, Ips_lo, Ips_hi, &
+                            Im_src, Ims_lo, Ims_hi, &
+                            Ip_gc, Ipg_lo, Ipg_hi, &
+                            Im_gc, Img_lo, Img_hi, &
+                            sm, sm_lo, sm_hi, &
+                            sp, sp_lo, sp_hi, &
+                            qxm, qxm_lo, qxm_hi, &
+                            qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM >= 2
-       qym, qym_lo, qym_hi, &
-       qyp, qyp_lo, qyp_hi, &
+                            qym, qym_lo, qym_hi, &
+                            qyp, qyp_lo, qyp_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       qzm, qzm_lo, qzm_hi, &
-       qzp, qzp_lo, qzp_hi, &
+                            qzm, qzm_lo, qzm_hi, &
+                            qzp, qzp_lo, qzp_hi, &
 #endif
-       dx, dt, &
+                            dx, dt, &
 #if AMREX_SPACEDIM < 3
-       dloga, dloga_lo, dloga_hi, &
+                            dloga, dloga_lo, dloga_hi, &
 #endif
-       domlo, domhi) bind(C, name="ctu_ppm_states")
+                            domlo, domhi) bind(C, name="ctu_ppm_states")
     ! Compute the normal interface states by reconstructing
     ! the primitive variables using the piecewise parabolic method
     ! and doing characteristic tracing.  We do not apply the
     ! transverse terms here.
 
     use meth_params_module, only : NQSRC, NQ, NVAR, &
-         QFS, QFX, QTEMP, QREINT, &
-         QC, QGAMC, NQAUX, QGAME, QREINT, &
-         NGDNV, GDU, GDV, GDW, GDPRES, &
-         ppm_predict_gammae, ppm_temp_fix, &
-         hybrid_riemann
+                                   QFS, QFX, QTEMP, QREINT, &
+                                   QC, QGAMC, NQAUX, QGAME, QREINT, &
+                                   NGDNV, GDU, GDV, GDW, GDPRES, &
+                                   ppm_predict_gammae, ppm_temp_fix, &
+                                   hybrid_riemann
     use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -58,7 +57,6 @@ contains
 #else
     use trace_ppm_module, only : trace_ppm
 #endif
-    use advection_util_module, only : ca_shock
     use prob_params_module, only : dg
 
     implicit none
@@ -69,7 +67,6 @@ contains
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: src_lo(3), src_hi(3)
-    integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) :: Ip_lo(3), Ip_hi(3)
     integer, intent(in) :: Im_lo(3), Im_hi(3)
     integer, intent(in) :: Ips_lo(3), Ips_hi(3)
@@ -100,7 +97,6 @@ contains
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))   ! flattening parameter
     real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)   ! primitive variable source
 
-    real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),1:3,NQ)
     real(rt), intent(inout) :: Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),1:3,NQ)
     real(rt), intent(inout) :: Ip_src(Ips_lo(1):Ips_hi(1),Ips_lo(2):Ips_hi(2),Ips_lo(3):Ips_hi(3),1:3,NQSRC)
@@ -130,30 +126,9 @@ contains
     logical :: source_nonzero(NQSRC)
     logical :: reconstruct_state(NQ)
 
-    logical :: compute_shock
-
     !$gpu
 
     hdt = HALF*dt
-
-    ! multidimensional shock detection
-
-#ifdef SHOCK_VAR
-    compute_shock = .true.
-#else
-    compute_shock = .false.
-#endif
-
-    ! multidimensional shock detection -- this will be used to do the
-    ! hybrid Riemann solver
-    if (hybrid_riemann == 1 .or. compute_shock) then
-       call ca_shock(lo, hi, &
-            q, qd_lo, qd_hi, &
-            shk, sk_lo, sk_hi, &
-            dx)
-    else
-       shk(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = ZERO
-    endif
 
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing
@@ -173,8 +148,7 @@ contains
     ! done here is only local to this tile.
 
     do n = 1, NQSRC
-       if (minval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n)) == ZERO .and. &
-           maxval(srcQ(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n)) == ZERO) then
+       if (maxval(abs(srcQ(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n))) == ZERO) then
           source_nonzero(n) = .false.
        else
           source_nonzero(n) = .true.
@@ -190,49 +164,49 @@ contains
           if (.not. reconstruct_state(n)) cycle
 
           call ca_ppm_reconstruct(lo, hi, 0, idir, &
-               q, qd_lo, qd_hi, NQ, n, n, &
-               flatn, f_lo, f_hi, &
-               sm, sm_lo, sm_hi, &
-               sp, sp_lo, sp_hi, &
-               1, 1, 1)
+                                  q, qd_lo, qd_hi, NQ, n, n, &
+                                  flatn, f_lo, f_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  1, 1, 1)
 
           call ppm_int_profile(lo, hi, idir, &
-               q, qd_lo, qd_hi, NQ, n, &
-               q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               sm, sm_lo, sm_hi, &
-               sp, sp_lo, sp_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, NQ, n, &
-               dx, dt)
+                               q, qd_lo, qd_hi, NQ, n, &
+                               q, qd_lo, qd_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sm, sm_lo, sm_hi, &
+                               sp, sp_lo, sp_hi, &
+                               Ip, Ip_lo, Ip_hi, &
+                               Im, Im_lo, Im_hi, NQ, n, &
+                               dx, dt)
        end do
 
 
        if (ppm_temp_fix /= 1) then
           call ca_ppm_reconstruct(lo, hi, 0, idir, &
-               qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
-               flatn, f_lo, f_hi, &
-               sm, sm_lo, sm_hi, &
-               sp, sp_lo, sp_hi, &
-               1, 1, 1)
+                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
+                                  flatn, f_lo, f_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  1, 1, 1)
 
           call ppm_int_profile(lo, hi, idir, &
-               qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-               q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               sm, sm_lo, sm_hi, &
-               sp, sp_lo, sp_hi, &
-               Ip_gc, Ipg_lo, Ipg_hi, &
-               Im_gc, Img_lo, Img_hi, 1, 1, &
+                               qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                               q, qd_lo, qd_hi, &
+                               qaux, qa_lo, qa_hi, &
+                               sm, sm_lo, sm_hi, &
+                               sp, sp_lo, sp_hi, &
+                               Ip_gc, Ipg_lo, Ipg_hi, &
+                               Im_gc, Img_lo, Img_hi, 1, 1, &
                dx, dt)
        else
 
           ! temperature-based PPM
           call ppm_reconstruct_with_eos(lo, hi, idir, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_gc, Ipg_lo, Ipg_hi, &
-               Im_gc, Img_lo, Img_hi)
+                                        Ip, Ip_lo, Ip_hi, &
+                                        Im, Im_lo, Im_hi, &
+                                        Ip_gc, Ipg_lo, Ipg_hi, &
+                                        Im_gc, Img_lo, Img_hi)
 
        end if
 
@@ -241,21 +215,21 @@ contains
        do n = 1, NQSRC
           if (source_nonzero(n)) then
              call ca_ppm_reconstruct(lo, hi, 0, idir, &
-                  srcQ, src_lo, src_hi, NQSRC, n, n, &
-                  flatn, f_lo, f_hi, &
-                  sm, sm_lo, sm_hi, &
-                  sp, sp_lo, sp_hi, &
-                  1, 1, 1)
+                                     srcQ, src_lo, src_hi, NQSRC, n, n, &
+                                     flatn, f_lo, f_hi, &
+                                     sm, sm_lo, sm_hi, &
+                                     sp, sp_lo, sp_hi, &
+                                     1, 1, 1)
 
              call ppm_int_profile(lo, hi, idir, &
-                  srcQ, src_lo, src_hi, NQSRC, n, &
-                  q, qd_lo, qd_hi, &
-                  qaux, qa_lo, qa_hi, &
-                  sm, sm_lo, sm_hi, &
-                  sp, sp_lo, sp_hi, &
-                  Ip_src, Ips_lo, Ips_hi, &
-                  Im_src, Ims_lo, Ims_hi, NQSRC, n, &
-                  dx, dt)
+                                  srcQ, src_lo, src_hi, NQSRC, n, &
+                                  q, qd_lo, qd_hi, &
+                                  qaux, qa_lo, qa_hi, &
+                                  sm, sm_lo, sm_hi, &
+                                  sp, sp_lo, sp_hi, &
+                                  Ip_src, Ips_lo, Ips_hi, &
+                                  Im_src, Ims_lo, Ims_hi, NQSRC, n, &
+                                  dx, dt)
           else
              Ip_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,n) = ZERO
              Im_src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:,n) = ZERO
@@ -269,108 +243,108 @@ contains
 #ifdef RADIATION
        if (idir == 1) then
           call trace_ppm_rad(lo, hi, &
-               1, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               qxm, qxm_lo, qxm_hi, &
-               qxp, qxp_lo, qxp_hi, &
+                             1, q, qd_lo, qd_hi, &
+                             qaux, qa_lo, qa_hi, &
+                             Ip, Ip_lo, Ip_hi, &
+                             Im, Im_lo, Im_hi, &
+                             Ip_src, Ips_lo, Ips_hi, &
+                             Im_src, Ims_lo, Ims_hi, &
+                             qxm, qxm_lo, qxm_hi, &
+                             qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM <= 2
-               dloga, dloga_lo, dloga_hi, &
+                             dloga, dloga_lo, dloga_hi, &
 #endif
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                             vlo, vhi, domlo, domhi, &
+                             dx, dt)
 
 #if AMREX_SPACEDIM >= 2
        else if (idir == 2) then
           call trace_ppm_rad(lo, hi, &
-               2, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               qym, qym_lo, qym_hi, &
-               qyp, qyp_lo, qyp_hi, &
+                             2, q, qd_lo, qd_hi, &
+                             qaux, qa_lo, qa_hi, &
+                             Ip, Ip_lo, Ip_hi, &
+                             Im, Im_lo, Im_hi, &
+                             Ip_src, Ips_lo, Ips_hi, &
+                             Im_src, Ims_lo, Ims_hi, &
+                             qym, qym_lo, qym_hi, &
+                             qyp, qyp_lo, qyp_hi, &
 #if AMREX_SPACEDIM == 2
-               dloga, dloga_lo, dloga_hi, &
+                             dloga, dloga_lo, dloga_hi, &
 #endif
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                             vlo, vhi, domlo, domhi, &
+                             dx, dt)
 #endif
 
 #if AMREX_SPACEDIM == 3
        else
           call trace_ppm_rad(lo, hi, &
-               3, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               qzm, qzm_lo, qzm_hi, &
-               qzp, qzp_lo, qzp_hi, &
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                             3, q, qd_lo, qd_hi, &
+                             qaux, qa_lo, qa_hi, &
+                             Ip, Ip_lo, Ip_hi, &
+                             Im, Im_lo, Im_hi, &
+                             Ip_src, Ips_lo, Ips_hi, &
+                             Im_src, Ims_lo, Ims_hi, &
+                             qzm, qzm_lo, qzm_hi, &
+                             qzp, qzp_lo, qzp_hi, &
+                             vlo, vhi, domlo, domhi, &
+                             dx, dt)
 #endif
        endif
 #else
        ! hydro (no radiation)
        if (idir == 1) then
           call trace_ppm(lo, hi, &
-               1, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               Ip_gc, Ipg_lo, Ipg_hi, &
-               Im_gc, Img_lo, Img_hi, &
-               qxm, qxm_lo, qxm_hi, &
-               qxp, qxp_lo, qxp_hi, &
+                         1, q, qd_lo, qd_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         Ip, Ip_lo, Ip_hi, &
+                         Im, Im_lo, Im_hi, &
+                         Ip_src, Ips_lo, Ips_hi, &
+                         Im_src, Ims_lo, Ims_hi, &
+                         Ip_gc, Ipg_lo, Ipg_hi, &
+                         Im_gc, Img_lo, Img_hi, &
+                         qxm, qxm_lo, qxm_hi, &
+                         qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM <= 2
-               dloga, dloga_lo, dloga_hi, &
+                         dloga, dloga_lo, dloga_hi, &
 #endif
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                         vlo, vhi, domlo, domhi, &
+                         dx, dt)
 
 #if AMREX_SPACEDIM >= 2
        else if (idir == 2) then
           call trace_ppm(lo, hi, &
-               2, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               Ip_gc, Ipg_lo, Ipg_hi, &
-               Im_gc, Img_lo, Img_hi, &
-               qym, qym_lo, qym_hi, &
-               qyp, qyp_lo, qyp_hi, &
+                         2, q, qd_lo, qd_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         Ip, Ip_lo, Ip_hi, &
+                         Im, Im_lo, Im_hi, &
+                         Ip_src, Ips_lo, Ips_hi, &
+                         Im_src, Ims_lo, Ims_hi, &
+                         Ip_gc, Ipg_lo, Ipg_hi, &
+                         Im_gc, Img_lo, Img_hi, &
+                         qym, qym_lo, qym_hi, &
+                         qyp, qyp_lo, qyp_hi, &
 #if AMREX_SPACEDIM == 2
-               dloga, dloga_lo, dloga_hi, &
+                         dloga, dloga_lo, dloga_hi, &
 #endif
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                         vlo, vhi, domlo, domhi, &
+                         dx, dt)
 #endif
 
 #if AMREX_SPACEDIM == 3
        else
           call trace_ppm(lo, hi, &
-               3, q, qd_lo, qd_hi, &
-               qaux, qa_lo, qa_hi, &
-               Ip, Ip_lo, Ip_hi, &
-               Im, Im_lo, Im_hi, &
-               Ip_src, Ips_lo, Ips_hi, &
-               Im_src, Ims_lo, Ims_hi, &
-               Ip_gc, Ipg_lo, Ipg_hi, &
-               Im_gc, Img_lo, Img_hi, &
-               qzm, qzm_lo, qzm_hi, &
-               qzp, qzp_lo, qzp_hi, &
-               vlo, vhi, domlo, domhi, &
-               dx, dt)
+                         3, q, qd_lo, qd_hi, &
+                         qaux, qa_lo, qa_hi, &
+                         Ip, Ip_lo, Ip_hi, &
+                         Im, Im_lo, Im_hi, &
+                         Ip_src, Ips_lo, Ips_hi, &
+                         Im_src, Ims_lo, Ims_hi, &
+                         Ip_gc, Ipg_lo, Ipg_hi, &
+                         Im_gc, Img_lo, Img_hi, &
+                         qzm, qzm_lo, qzm_hi, &
+                         qzp, qzp_lo, qzp_hi, &
+                         vlo, vhi, domlo, domhi, &
+                         dx, dt)
 #endif
        end if
 #endif
@@ -381,28 +355,27 @@ contains
 
 
   subroutine ctu_plm_states(lo, hi, &
-       vlo, vhi, &
-       q, qd_lo, qd_hi, &
-       flatn, f_lo, f_hi, &
-       qaux, qa_lo, qa_hi, &
-       srcQ, src_lo, src_hi, &
-       shk, sk_lo, sk_hi, &
-       dq, dq_lo, dq_hi, &
-       qxm, qxm_lo, qxm_hi, &
-       qxp, qxp_lo, qxp_hi, &
+                            vlo, vhi, &
+                            q, qd_lo, qd_hi, &
+                            flatn, f_lo, f_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            srcQ, src_lo, src_hi, &
+                            dq, dq_lo, dq_hi, &
+                            qxm, qxm_lo, qxm_hi, &
+                            qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM >= 2
-       qym, qym_lo, qym_hi, &
-       qyp, qyp_lo, qyp_hi, &
+                            qym, qym_lo, qym_hi, &
+                            qyp, qyp_lo, qyp_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       qzm, qzm_lo, qzm_hi, &
-       qzp, qzp_lo, qzp_hi, &
+                            qzm, qzm_lo, qzm_hi, &
+                            qzp, qzp_lo, qzp_hi, &
 #endif
-       dx, dt, &
+                            dx, dt, &
 #if AMREX_SPACEDIM < 3
-       dloga, dloga_lo, dloga_hi, &
+                            dloga, dloga_lo, dloga_hi, &
 #endif
-       domlo, domhi) bind(C, name="ctu_plm_states")
+                            domlo, domhi) bind(C, name="ctu_plm_states")
     ! Compute the normal interface states by reconstructing
     ! the primitive variables using piecewise linear slopes and doing
     ! characteristic tracing.  We do not apply the transverse terms here.
@@ -419,7 +392,6 @@ contains
          plm_iorder, use_pslope, hybrid_riemann
     use trace_plm_module, only : trace_plm
     use slope_module, only : uslope, pslope
-    use advection_util_module, only : ca_shock
     use prob_params_module, only : dg
 
     implicit none
@@ -430,7 +402,6 @@ contains
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: src_lo(3), src_hi(3)
-    integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) :: dq_lo(3), dq_hi(3)
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
     integer, intent(in) :: qxp_lo(3), qxp_hi(3)
@@ -454,7 +425,6 @@ contains
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))   ! flattening parameter
     real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)   ! primitive variable source
 
-    real(rt), intent(inout) :: shk(sk_lo(1):sk_hi(1), sk_lo(2):sk_hi(2), sk_lo(3):sk_hi(3))
     real(rt), intent(inout) :: dq(dq_lo(1):dq_hi(1), dq_lo(2):dq_hi(2), dq_lo(3):dq_hi(3), NQ)
 
     real(rt), intent(inout) :: qxm(qxm_lo(1):qxm_hi(1), qxm_lo(2):qxm_hi(2), qxm_lo(3):qxm_hi(3), NQ)
@@ -475,30 +445,9 @@ contains
 
     logical :: reconstruct_state(NQ)
 
-    logical :: compute_shock
-
     !$gpu
 
     hdt = HALF*dt
-
-    ! multidimensional shock detection
-
-#ifdef SHOCK_VAR
-    compute_shock = .true.
-#else
-    compute_shock = .false.
-#endif
-
-    ! multidimensional shock detection -- this will be used to do the
-    ! hybrid Riemann solver
-    if (hybrid_riemann == 1 .or. compute_shock) then
-       call ca_shock(lo, hi, &
-            q, qd_lo, qd_hi, &
-            shk, sk_lo, sk_hi, &
-            dx)
-    else
-       shk(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = ZERO
-    endif
 
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing
@@ -589,7 +538,6 @@ contains
        uin, uin_lo, uin_hi, &
        q, q_lo, q_hi, &
        shk,  sk_lo, sk_hi, &
-       uout, uout_lo, uout_hi, &
        update, updt_lo, updt_hi, &
        flux1, flux1_lo, flux1_hi, &
 #if AMREX_SPACEDIM >= 2
@@ -600,6 +548,7 @@ contains
 #endif
 #ifdef RADIATION
        Erin, Erin_lo, Erin_hi, &
+       uout, uout_lo, uout_hi, &
        Erout, Erout_lo, Erout_hi, &
        radflux1, radflux1_lo, radflux1_hi, &
 #if AMREX_SPACEDIM >= 2
@@ -654,7 +603,6 @@ contains
     integer, intent(in) ::   uin_lo(3),   uin_hi(3)
     integer, intent(in) ::     q_lo(3),     q_hi(3)
     integer, intent(in) :: sk_lo(3), sk_hi(3)
-    integer, intent(in) ::  uout_lo(3),  uout_hi(3)
     integer, intent(in) ::  updt_lo(3),  updt_hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
     integer, intent(in) :: area1_lo(3), area1_hi(3)
@@ -672,6 +620,7 @@ contains
     integer, intent(in) ::   vol_lo(3),   vol_hi(3)
     integer, intent(in) ::   pdivu_lo(3),   pdivu_hi(3)
 #ifdef RADIATION
+    integer, intent(in) ::  uout_lo(3),  uout_hi(3)
     integer, intent(in) :: Erout_lo(3), Erout_hi(3)
     integer, intent(in) :: Erin_lo(3), Erin_hi(3)
     integer, intent(in) :: radflux1_lo(3), radflux1_hi(3)
@@ -687,7 +636,6 @@ contains
     real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: shk(sk_lo(1):sk_hi(1),sk_lo(2):sk_hi(2),sk_lo(3):sk_hi(3))
-    real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)
 
     real(rt), intent(in) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
@@ -713,6 +661,7 @@ contains
 
 #ifdef RADIATION
     real(rt), intent(in) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
     real(rt), intent(inout) :: Erout(Erout_lo(1):Erout_hi(1),Erout_lo(2):Erout_hi(2),Erout_lo(3):Erout_hi(3),0:ngroups-1)
     real(rt), intent(in) :: radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
 #if AMREX_SPACEDIM >= 2
@@ -804,7 +753,7 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             uout(i,j,k,USHK) = shk(i,j,k)
+             update(i,j,k,USHK) = shk(i,j,k) / dt
           end do
        end do
     end do
@@ -812,7 +761,7 @@ contains
 
 #ifdef HYBRID_MOMENTUM
     call add_hybrid_advection_source(lo, hi, dt, &
-         update, uout_lo, uout_hi, &
+         update, updt_lo, updt_hi, &
          qx, qx_lo, qx_hi, &
          qy, qy_lo, qy_hi, &
          qz, qz_lo, qz_hi)
@@ -1100,7 +1049,7 @@ contains
     use prob_params_module, only : domlo_level, domhi_level, center
     use castro_util_module, only: position ! function
     use castro_util_module, only: linear_to_angular_momentum ! function
-    use amrex_fort_module, only: amrex_add
+    use amrex_fort_module, only: amrex_reduce_add
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
@@ -1135,17 +1084,17 @@ contains
 
              loc = position(i,j,k,ccz=.false.) - center
 
-             call amrex_add(mass_lost, -flux3(i,j,k,URHO))
-             call amrex_add(xmom_lost, -flux3(i,j,k,UMX))
-             call amrex_add(ymom_lost, -flux3(i,j,k,UMY))
-             call amrex_add(zmom_lost, -flux3(i,j,k,UMZ))
-             call amrex_add(eden_lost, -flux3(i,j,k,UEDEN))
+             call amrex_reduce_add(mass_lost, -flux3(i,j,k,URHO))
+             call amrex_reduce_add(xmom_lost, -flux3(i,j,k,UMX))
+             call amrex_reduce_add(ymom_lost, -flux3(i,j,k,UMY))
+             call amrex_reduce_add(zmom_lost, -flux3(i,j,k,UMZ))
+             call amrex_reduce_add(eden_lost, -flux3(i,j,k,UEDEN))
 
              flux(:) = flux3(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_add(xang_lost, -ang_mom(1))
-             call amrex_add(yang_lost, -ang_mom(2))
-             call amrex_add(zang_lost, -ang_mom(3))
+             call amrex_reduce_add(xang_lost, -ang_mom(1))
+             call amrex_reduce_add(yang_lost, -ang_mom(2))
+             call amrex_reduce_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -1160,17 +1109,17 @@ contains
 
              loc = position(i,j,k,ccz=.false.) - center
 
-             call amrex_add(mass_lost, flux3(i,j,k,URHO))
-             call amrex_add(xmom_lost, flux3(i,j,k,UMX))
-             call amrex_add(ymom_lost, flux3(i,j,k,UMY))
-             call amrex_add(zmom_lost, flux3(i,j,k,UMZ))
-             call amrex_add(eden_lost, flux3(i,j,k,UEDEN))
+             call amrex_reduce_add(mass_lost, flux3(i,j,k,URHO))
+             call amrex_reduce_add(xmom_lost, flux3(i,j,k,UMX))
+             call amrex_reduce_add(ymom_lost, flux3(i,j,k,UMY))
+             call amrex_reduce_add(zmom_lost, flux3(i,j,k,UMZ))
+             call amrex_reduce_add(eden_lost, flux3(i,j,k,UEDEN))
 
              flux(:) = flux3(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_add(xang_lost, ang_mom(1))
-             call amrex_add(yang_lost, ang_mom(2))
-             call amrex_add(zang_lost, ang_mom(3))
+             call amrex_reduce_add(xang_lost, ang_mom(1))
+             call amrex_reduce_add(yang_lost, ang_mom(2))
+             call amrex_reduce_add(zang_lost, ang_mom(3))
 
           enddo
        enddo
@@ -1187,17 +1136,17 @@ contains
 
              loc = position(i,j,k,ccy=.false.) - center
 
-             call amrex_add(mass_lost, -flux2(i,j,k,URHO))
-             call amrex_add(xmom_lost, -flux2(i,j,k,UMX))
-             call amrex_add(ymom_lost, -flux2(i,j,k,UMY))
-             call amrex_add(zmom_lost, -flux2(i,j,k,UMZ))
-             call amrex_add(eden_lost, -flux2(i,j,k,UEDEN))
+             call amrex_reduce_add(mass_lost, -flux2(i,j,k,URHO))
+             call amrex_reduce_add(xmom_lost, -flux2(i,j,k,UMX))
+             call amrex_reduce_add(ymom_lost, -flux2(i,j,k,UMY))
+             call amrex_reduce_add(zmom_lost, -flux2(i,j,k,UMZ))
+             call amrex_reduce_add(eden_lost, -flux2(i,j,k,UEDEN))
 
              flux(:) = flux2(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_add(xang_lost, -ang_mom(1))
-             call amrex_add(yang_lost, -ang_mom(2))
-             call amrex_add(zang_lost, -ang_mom(3))
+             call amrex_reduce_add(xang_lost, -ang_mom(1))
+             call amrex_reduce_add(yang_lost, -ang_mom(2))
+             call amrex_reduce_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -1212,17 +1161,17 @@ contains
 
              loc = position(i,j,k,ccy=.false.) - center
 
-             call amrex_add(mass_lost, flux2(i,j,k,URHO))
-             call amrex_add(xmom_lost, flux2(i,j,k,UMX))
-             call amrex_add(ymom_lost, flux2(i,j,k,UMY))
-             call amrex_add(zmom_lost, flux2(i,j,k,UMZ))
-             call amrex_add(eden_lost, flux2(i,j,k,UEDEN))
+             call amrex_reduce_add(mass_lost, flux2(i,j,k,URHO))
+             call amrex_reduce_add(xmom_lost, flux2(i,j,k,UMX))
+             call amrex_reduce_add(ymom_lost, flux2(i,j,k,UMY))
+             call amrex_reduce_add(zmom_lost, flux2(i,j,k,UMZ))
+             call amrex_reduce_add(eden_lost, flux2(i,j,k,UEDEN))
 
              flux(:) = flux2(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_add(xang_lost, ang_mom(1))
-             call amrex_add(yang_lost, ang_mom(2))
-             call amrex_add(zang_lost, ang_mom(3))
+             call amrex_reduce_add(xang_lost, ang_mom(1))
+             call amrex_reduce_add(yang_lost, ang_mom(2))
+             call amrex_reduce_add(zang_lost, ang_mom(3))
 
           enddo
        enddo
@@ -1238,17 +1187,17 @@ contains
 
              loc = position(i,j,k,ccx=.false.) - center
 
-             call amrex_add(mass_lost, -flux1(i,j,k,URHO))
-             call amrex_add(xmom_lost, -flux1(i,j,k,UMX))
-             call amrex_add(ymom_lost, -flux1(i,j,k,UMY))
-             call amrex_add(zmom_lost, -flux1(i,j,k,UMZ))
-             call amrex_add(eden_lost, -flux1(i,j,k,UEDEN))
+             call amrex_reduce_add(mass_lost, -flux1(i,j,k,URHO))
+             call amrex_reduce_add(xmom_lost, -flux1(i,j,k,UMX))
+             call amrex_reduce_add(ymom_lost, -flux1(i,j,k,UMY))
+             call amrex_reduce_add(zmom_lost, -flux1(i,j,k,UMZ))
+             call amrex_reduce_add(eden_lost, -flux1(i,j,k,UEDEN))
 
              flux(:) = flux1(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_add(xang_lost, -ang_mom(1))
-             call amrex_add(yang_lost, -ang_mom(2))
-             call amrex_add(zang_lost, -ang_mom(3))
+             call amrex_reduce_add(xang_lost, -ang_mom(1))
+             call amrex_reduce_add(yang_lost, -ang_mom(2))
+             call amrex_reduce_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -1263,17 +1212,17 @@ contains
 
              loc = position(i,j,k,ccx=.false.) - center
 
-             call amrex_add(mass_lost, flux1(i,j,k,URHO))
-             call amrex_add(xmom_lost, flux1(i,j,k,UMX))
-             call amrex_add(ymom_lost, flux1(i,j,k,UMY))
-             call amrex_add(zmom_lost, flux1(i,j,k,UMZ))
-             call amrex_add(eden_lost, flux1(i,j,k,UEDEN))
+             call amrex_reduce_add(mass_lost, flux1(i,j,k,URHO))
+             call amrex_reduce_add(xmom_lost, flux1(i,j,k,UMX))
+             call amrex_reduce_add(ymom_lost, flux1(i,j,k,UMY))
+             call amrex_reduce_add(zmom_lost, flux1(i,j,k,UMZ))
+             call amrex_reduce_add(eden_lost, flux1(i,j,k,UEDEN))
 
              flux(:) = flux1(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_add(xang_lost, ang_mom(1))
-             call amrex_add(yang_lost, ang_mom(2))
-             call amrex_add(zang_lost, ang_mom(3))
+             call amrex_reduce_add(xang_lost, ang_mom(1))
+             call amrex_reduce_add(yang_lost, ang_mom(2))
+             call amrex_reduce_add(zang_lost, ang_mom(3))
 
           enddo
        enddo

@@ -14,7 +14,6 @@ PROFILE    = FALSE
 DEBUG      = FALSE
 
 DIM        = 3
-DIMENSION_AGNOSTIC = TRUE
 
 COMP	   = gnu
 

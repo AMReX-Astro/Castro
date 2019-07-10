@@ -4,15 +4,12 @@
 #include <AMReX_ParmParse.H>
 #include "Castro.H"
 #include "Castro_F.H"
-#ifdef AMREX_DIMENSION_AGNOSTIC
 #include "Castro_bc_fill_nd_F.H"
 #include "Castro_bc_fill_nd.H"
-#else
-#include "Castro_bc_fill_F.H"
-#include "Castro_bc_fill.H"
-#endif
 #include "Castro_generic_fill_F.H"
 #include "Castro_generic_fill.H"
+#include "Castro_source_fill_F.H"
+#include "Castro_source_fill.H"
 #include <Derive_F.H>
 #include "Derive.H"
 #ifdef RADIATION
@@ -268,7 +265,9 @@ Castro::variableSetUp ()
   if (ParallelDescriptor::IOProcessor())
     std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
 
-  const int coord_type = Geometry::Coord();
+  const Geometry& dgeom = DefaultGeometry();
+
+  const int coord_type = dgeom.Coord();
 
   // Get the center variable from the inputs and pass it directly to Fortran.
   Vector<Real> center(BL_SPACEDIM, 0.0);
@@ -277,7 +276,7 @@ Castro::variableSetUp ()
 
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
 			Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-			Geometry::ProbLo(),Geometry::ProbHi(),center.dataPtr());
+			dgeom.ProbLo(),dgeom.ProbHi(),center.dataPtr());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
@@ -315,7 +314,7 @@ Castro::variableSetUp ()
   // neutrino problems for now so as not to change the results of
   // other people's tests.  Better to fix cell_cons_interp!
 
-  if (Geometry::IsSPHERICAL() && Radiation::nNeutrinoSpecies > 0) {
+  if (dgeom.IsSPHERICAL() && Radiation::nNeutrinoSpecies > 0) {
     interp = &pc_interp;
   }
 #endif
@@ -661,7 +660,7 @@ Castro::variableSetUp ()
   }
 
   desc_lst.setComponent(Source_Type,Density,state_type_source_names,source_bcs,
-                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
+                        BndryFunc(ca_source_single_fill,ca_source_multi_fill));
 
 #ifdef REACTIONS
   std::string name_react;
@@ -1091,7 +1090,47 @@ Castro::variableSetUp ()
   //
   // DEFINE ERROR ESTIMATION QUANTITIES
   //
-  ErrorSetUp();
+  err_list_names.push_back("density");
+  err_list_ng.push_back(1);
+
+  err_list_names.push_back("Temp");
+  err_list_ng.push_back(1);
+
+  err_list_names.push_back("pressure");
+  err_list_ng.push_back(1);
+
+  err_list_names.push_back("x_velocity");
+  err_list_ng.push_back(1);
+
+#if (BL_SPACEDIM >= 2)
+  err_list_names.push_back("y_velocity");
+  err_list_ng.push_back(1);
+#endif
+
+#if (BL_SPACEDIM == 3)
+  err_list_names.push_back("z_velocity");
+  err_list_ng.push_back(1);
+#endif
+
+#ifdef REACTIONS
+  err_list_names.push_back("t_sound_t_enuc");
+  err_list_ng.push_back(0);
+
+  err_list_names.push_back("enuc");
+  err_list_ng.push_back(0);
+#endif
+
+#ifdef RADIATION
+  if (do_radiation && !Radiation::do_multigroup) {
+      err_list_names.push_back("rad");
+      err_list_ng.push_back(1);
+  }
+#endif
+
+  // Save the number of built-in functions; this will help us
+  // distinguish between those, and the ones the user is about to add.
+
+  num_err_list_default = err_list_names.size();
 
   //
   // Construct an array holding the names of the source terms.

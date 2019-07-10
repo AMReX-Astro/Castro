@@ -1,7 +1,0 @@
-This problem takes the Rayleigh-Taylor problem from the Castro/Exec/RT
-directory and adds particles.  These particles are moved with the
-fluid velocity each time step, and if they leave the domain then they
-just "disappear."
-
-This test is primarily designed to test the ability of Castro to handle 
-particles.

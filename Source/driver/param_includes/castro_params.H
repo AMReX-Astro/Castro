@@ -9,6 +9,9 @@ static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cutoff_density_hi;
 static amrex::Real diffuse_cond_scale_fac;
 #endif
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
+#endif
 #ifdef ROTATION
 static amrex::Real rotational_period;
 static amrex::Real rotational_dPdt;
@@ -19,14 +22,6 @@ static int state_in_rotating_frame;
 static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
-#endif
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
-#endif
-#ifdef GRAVITY
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
@@ -56,6 +51,7 @@ static int cg_maxiter;
 static amrex::Real cg_tol;
 static int cg_blend;
 static int use_eos_in_riemann;
+static amrex::Real riemann_speed_limit;
 static int use_flattening;
 static int transverse_use_eos;
 static int transverse_reset_density;
@@ -82,7 +78,11 @@ static int hse_reflect_vels;
 static int mol_order;
 static int sdc_order;
 static int sdc_solver;
-static amrex::Real sdc_solver_tol;
+static amrex::Real sdc_solver_tol_dens;
+static amrex::Real sdc_solver_tol_spec;
+static amrex::Real sdc_solver_tol_ener;
+static amrex::Real sdc_solver_atol;
+static amrex::Real sdc_solver_relax_factor;
 static int sdc_solve_for_rhoe;
 static int sdc_use_analytic_jac;
 static amrex::Real fixed_dt;
@@ -140,3 +140,8 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif

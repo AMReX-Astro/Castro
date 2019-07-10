@@ -122,12 +122,16 @@ cg_tol                       Real          1.0e-5             y
 # we do not converge to a solution for the star state.
 # 0 = do nothing; print iterations and exit
 # 1 = revert to the original guess for p-star
-# 2 = do a bisection search for another 2 * cg\_maxiter iterations.
+# 2 = do a bisection search for another 2 * cg_maxiter iterations.
 cg_blend                     int           2                  y
 
 # should we use the EOS in the Riemann solver to ensure
 # thermodynamic consistency?
 use_eos_in_riemann           int           0                  y
+
+# Limit the Riemann velocity used for flux construction to
+# this speed limit.
+riemann_speed_limit          Real          2.99792458e10      y
 
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
@@ -167,11 +171,10 @@ limit_fluxes_on_small_dens   int           0                  y
 # Which method to use when resetting a negative/small density
 # 1 = Reset to characteristics of adjacent zone with largest density
 # 2 = Use average of all adjacent zones for all state variables
-# 3 = Reset to the original zone state before the hydro update
 density_reset_method         int           1                  y
 
 # Whether or not to allow the internal energy to be less than the
-# internal energy corresponding to small\_temp
+# internal energy corresponding to small_temp
 allow_small_energy           int           1                  y
 
 # permits sponge to be turned on and off
@@ -210,7 +213,7 @@ zr_ext_bc_type               string        ""                 y
 hse_zero_vels                int           0                  y
 
 # if we are doing HSE boundary conditions, should we get the temperature
-# via interpolation (using model\_parser) or hold it constant?
+# via interpolation (using model_parser) or hold it constant?
 hse_interp_temp              int           0                  y
 
 # if we are doing HSE boundary conditions, how do we treat the velocity?
@@ -229,8 +232,24 @@ sdc_order                    int           2                  y
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
 sdc_solver                   int           1                  y
 
-# which SDC nonlinear solver to use?  1 = Newton, 2 = VODE
-sdc_solver_tol               Real          1.e-6             y
+# relative tolerance for the nonlinear solve on rho with SDC
+sdc_solver_tol_dens           Real          1.e-6              y
+
+# relative tolerance for the nonlinear solve on rho X_k with SDC
+sdc_solver_tol_spec           Real          1.e-6              y
+
+# relative tolerance for the nonlinear solve on (rho e) or (rho E) with SDC
+sdc_solver_tol_ener           Real          1.e-6              y
+
+# absolute tolerance for species with SDC (this will be multiplied by
+# the current rho in the zone to define the absolute tolerance on (rho
+# X)).
+sdc_solver_atol               Real          1.e-10              y
+
+# factor by which to reduce the SDC solver tol for each iteration before the last
+# (e.g., for iteration k out of kmax iterations, the tol is
+# :math:`\epsilon/f^{(k_\mathrm{max} - k)}`
+sdc_solver_relax_factor      Real          1.0                y
 
 # do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
 sdc_solve_for_rhoe           int           1                  y
@@ -521,14 +540,14 @@ job_name                     string        ""
 output_at_completion         int           1
 
 # Do we want to reset the time in the checkpoint?
-# This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1,
-# (which require that max\_step and stop\_time be less than the value in the checkpoint)
+# This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1,
+# (which require that max_step and stop_time be less than the value in the checkpoint)
 # and you set it to value greater than this default value.
 reset_checkpoint_time        Real          -1.e200
 
 # Do we want to reset the number of steps in the checkpoint?
-# This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1,
-# (which require that max\_step and stop\_time be less than the value in the checkpoint)
+# This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1,
+# (which require that max_step and stop_time be less than the value in the checkpoint)
 # and you set it to value greater than this default value.
 reset_checkpoint_step        int           -1
 

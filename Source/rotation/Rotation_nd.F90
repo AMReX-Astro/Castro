@@ -5,11 +5,8 @@ module rotation_module
 
   use amrex_error_module
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
-
-  private
-
-  public inertial_to_rotational_velocity, rotational_acceleration, rotational_potential
 
 contains
 

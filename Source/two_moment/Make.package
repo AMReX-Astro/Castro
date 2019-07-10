@@ -64,7 +64,7 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_F90EXE_sources += TwoMoment_DiscretizationModule_Streaming_GPU.F90
   ca_F90EXE_sources += TwoMoment_BoundaryConditionsModule.F90
   ca_F90EXE_sources += TwoMoment_UtilitiesModule.F90
-  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Collisions_Neutrinos_GPU.F90
+  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Collisions_Neutrinos.F90
   ca_f90EXE_sources += TwoMoment_MeshRefinementModule.f90
 
 # In Modules/Units
@@ -102,25 +102,16 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += wlOpacityTableModule.f90
   ca_f90EXE_sources += wlOpacityTableIOModuleHDF.f90
 
-#ifeq ($(USE_GPU),TRUE)
+ifeq ($(USE_GPU),TRUE)
   ca_f90EXE_sources += CudaModule.f90
   ca_f90EXE_sources += CublasModule.f90
   ca_f90EXE_sources += CusolverModule.f90
-  DEFINES += -DTHORNADO_GPU
-  DEFINES += -DWEAKLIB_GPU
-  #ifeq ($(USE_MAGMA),TRUE)
-  #  ca_f90EXE_sources += MagmaModule.f90
-  #  DEFINES += -DTHORNADO_LA_MAGMA
-  #else
-    DEFINES += -DTHORNADO_LA_CUBLAS
-  #endif
-  #ifeq ($(USE_ACC),TRUE)
-    ca_f90EXE_sources += OpenACCModule.f90
-    DEFINES += -DTHORNADO_OACC
-    DEFINES += -DWEAKLIB_OACC
-  #else ifeq ($(USE_OMP_OFFLOAD), TRUE)
-  #  ca_f90EXE_sources += OpenMPModule.f90
-  #  DEFINES += -DTHORNADO_OMP_OL
-  #  DEFINES += -DWEAKLIB_OMP_OL
-  #endif
-#endif
+  ifeq ($(USE_MAGMA),TRUE)
+  ca_f90EXE_sources += MagmaModule.f90
+  endif
+  ifeq ($(USE_ACC),TRUE)
+  ca_f90EXE_sources += OpenACCModule.f90
+  else ifeq ($(USE_OMP_OFFLOAD), TRUE)
+  ca_f90EXE_sources += OpenMPModule.f90
+  endif
+endif

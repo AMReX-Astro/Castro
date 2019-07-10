@@ -66,6 +66,10 @@ Fortran
 * Use the ``only`` clause in module ``use`` statements to explicitly
   make clear what is being accessed.
 
+* In a module, there should be no "top-level" ``use`` statements (with
+  the exception of getting access to the ``rt`` type).  Instead each
+  function / subroutine in the module  should use what it needs directly.
+
 * New Fortran files should have the .F90 file extension, not the .f90
   file extension, so that they can be preprocessed.
 

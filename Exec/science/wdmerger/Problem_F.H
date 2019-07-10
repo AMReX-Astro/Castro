@@ -17,7 +17,7 @@ extern "C"
 	     BL_FORT_FAB_ARG_3D(smask),
 	     BL_FORT_FAB_ARG_3D(vol),
 	     const int* lo, const int* hi,
-	     const amrex::Real* dx, const amrex::Real* time,
+	     const amrex::Real* dx, const amrex::Real time,
 	     amrex::Real* com_p_x, amrex::Real* com_p_y, amrex::Real* com_p_z,
 	     amrex::Real* com_s_x, amrex::Real* com_s_y, amrex::Real* com_s_z,
 	     amrex::Real* vel_p_x, amrex::Real* vel_p_y, amrex::Real* vel_p_z,
@@ -31,7 +31,7 @@ extern "C"
 				  const int* lo, const int* hi,
 				  const amrex::Real* dx,
 				  amrex::Real* volp, amrex::Real* vols,
-				  amrex::Real* rho_cutoff);
+				  amrex::Real rho_cutoff);
 
   void get_single_star(int* flag);
 
@@ -54,7 +54,7 @@ extern "C"
 				    BL_FORT_FAB_ARG_3D(gz),
 				    BL_FORT_FAB_ARG_3D(vol),
 				    const int* lo, const int* hi,
-				    const amrex::Real* dx, const amrex::Real* time,
+				    const amrex::Real* dx, const amrex::Real time,
 				    amrex::Real* Qtt);
 
   void gw_strain_tensor(amrex::Real* h_plus_1, amrex::Real* h_cross_1,
@@ -80,6 +80,8 @@ extern "C"
   void transform_to_inertial_frame(BL_FORT_FAB_ARG_3D(state),
 				   const int* lo, const int* hi,
 				   const amrex::Real* time);
+
+  void get_relaxation_cutoff_time(amrex::Real* relaxation_cutoff_time);
 
   void check_relaxation(BL_FORT_FAB_ARG_3D(state),
 			BL_FORT_FAB_ARG_3D(phieff),

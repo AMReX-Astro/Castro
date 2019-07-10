@@ -1,3 +1,1 @@
-CA_BASE=EXE
-
-ca_f90$(CA_BASE)_sources += probdata.f90
+ca_F90EXE_sources += probdata.F90

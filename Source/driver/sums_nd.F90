@@ -1,16 +1,17 @@
 module castro_sums_module
 
-  use amrex_fort_module, only : rt => amrex_real
+  use amrex_fort_module, only: rt => amrex_real
+
   implicit none
 
   public
 
 contains
 
-  subroutine ca_summass(lo,hi,rho,r_lo,r_hi,dx, &
-                        vol,v_lo,v_hi,mass) bind(c,name='ca_summass')
+  subroutine ca_summass(lo, hi, rho, r_lo, r_hi, dx, &
+                        vol, v_lo, v_hi, mass) bind(C, name='ca_summass')
 
-    use amrex_fort_module, only: rt => amrex_real, amrex_add
+    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
 
     implicit none
 
@@ -33,7 +34,7 @@ contains
 
              dm = rho(i,j,k) * vol(i,j,k)
 
-             call amrex_add(mass, dm)
+             call amrex_reduce_add(mass, dm)
 
           enddo
        enddo
@@ -43,29 +44,33 @@ contains
 
 
 
-  subroutine ca_sumsquared(lo,hi,rho,r_lo,r_hi,dx,&
-                           vol,v_lo,v_hi,mass) bind(C, name="ca_sumsquared")
+  subroutine ca_sumsquared(lo, hi, rho, r_lo, r_hi, dx,&
+                           vol, v_lo, v_hi, mass) bind(C, name="ca_sumsquared")
 
-    use amrex_constants_module, only : ZERO
+    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: r_lo(3), r_hi(3)
-    integer, intent(in) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
     real(rt), intent(inout) :: mass, dx(3)
-    real(rt), intent(in) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
-    integer          :: i, j, k
+    integer  :: i, j, k
+    real(rt) :: dm2
 
-    mass = ZERO
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             mass = mass + rho(i,j,k)*rho(i,j,k)*vol(i,j,k)
+
+             dm2 = rho(i,j,k) * rho(i,j,k) * vol(i,j,k)
+
+             call amrex_reduce_add(mass, dm2)
+
           enddo
        enddo
     enddo
@@ -74,29 +79,29 @@ contains
 
   
 
-  subroutine ca_sumlocmass(lo,hi,rho,r_lo,r_hi,dx,&
-                           vol,v_lo,v_hi,mass,idir) bind(C, name="ca_sumlocmass")
+  subroutine ca_sumlocmass(lo, hi, rho, r_lo, r_hi, dx, &
+                           vol, v_lo, v_hi, mass, idir) bind(C, name="ca_sumlocmass")
 
     use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
-    use amrex_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only: ZERO, HALF
+    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: idir
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: r_lo(3), r_hi(3)
-    integer, intent(in) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ), value :: idir
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
     real(rt), intent(inout) :: mass
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(in) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
-    integer          :: i, j, k
-    real(rt)         :: x, y, z
-    real(rt)         :: symlo, symhi
+    integer  :: i, j, k
+    real(rt) :: x, y, z
+    real(rt) :: symlo, symhi
 
-    mass = ZERO
+    !$gpu
 
     symlo = ZERO
     symhi = ZERO
@@ -113,7 +118,7 @@ contains
           x = x + symlo + symhi
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
-                mass = mass + rho(i,j,k) * vol(i,j,k) * x
+                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x)
              enddo
           enddo
        enddo
@@ -129,7 +134,7 @@ contains
           y = y + symlo + symhi
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
-                mass = mass + rho(i,j,k) * vol(i,j,k) * y
+                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y)
              enddo
           enddo
        enddo
@@ -145,7 +150,7 @@ contains
           z = z + symlo + symhi
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                mass = mass + rho(i,j,k) * vol(i,j,k) * z
+                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z)
              enddo
           enddo
        enddo
@@ -155,29 +160,29 @@ contains
 
 
 
-  subroutine ca_sumlocmass2d(lo,hi,rho,r_lo,r_hi,dx,&
-                             vol,v_lo,v_hi,mass,idir1,idir2) bind(C, name="ca_sumlocmass2d")
+  subroutine ca_sumlocmass2d(lo, hi, rho, r_lo, r_hi, dx,&
+                             vol, v_lo, v_hi, mass, idir1, idir2) bind(C, name="ca_sumlocmass2d")
 
     use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
-    use amrex_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only: ZERO, HALF
+    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: idir1, idir2
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: r_lo(3), r_hi(3)
-    integer, intent(in) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ), value :: idir1, idir2
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
     real(rt), intent(inout) :: mass
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(in) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
-    integer          :: i, j, k
-    real(rt)         :: x, y, z
-    real(rt)         :: symlo1, symhi1, symlo2, symhi2
+    integer  :: i, j, k
+    real(rt) :: x, y, z
+    real(rt) :: symlo1, symhi1, symlo2, symhi2
 
-    mass = ZERO
+    !$gpu
 
     symlo1 = ZERO
     symlo2 = ZERO
@@ -197,7 +202,7 @@ contains
           if (idir2 .eq. 0) then
              do k = lo(3), hi(3)
                 do j = lo(2), hi(2)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * x * x
+                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x * x)
                 enddo
              enddo
           elseif (idir2 .eq. 1 .and. dim .ge. 2) then
@@ -211,7 +216,7 @@ contains
                 endif
                 y = y + symlo2 + symhi2
                 do k = lo(3), hi(3)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * x * y
+                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x * y)
                 enddo
              enddo
           elseif (dim .eq. 3) then
@@ -225,7 +230,7 @@ contains
                 endif
                 z = z + symlo2 + symhi2
                 do j = lo(2), hi(2)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * x * z
+                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x * z)
                 enddo
              enddo
           endif
@@ -251,13 +256,13 @@ contains
                 endif
                 x = x + symlo2 + symhi2
                 do k = lo(3), hi(3)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * y * x
+                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y * x)
                 enddo
              enddo
           elseif (idir2 .eq. 1) then
              do i = lo(1), hi(1)
                 do k = lo(3), hi(3)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * y * y
+                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y * y)
                 enddo
              enddo
           elseif (dim .eq. 3) then
@@ -271,7 +276,7 @@ contains
                 endif
                 z = z + symlo2 + symhi2                   
                 do i = lo(1), hi(1)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * y * z
+                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y * z)
                 enddo
              enddo
           endif
@@ -297,7 +302,7 @@ contains
                 endif
                 x = x + symlo2 + symhi2
                 do j = lo(2), hi(2)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * z * x
+                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z * x)
                 enddo
              enddo
           elseif (idir2 .eq. 1) then
@@ -311,13 +316,13 @@ contains
                 endif
                 y = y + symlo2 + symhi2
                 do i = lo(1), hi(1)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * z * y
+                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z * y)
                 enddo
              enddo
           else
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
-                   mass = mass + rho(i,j,k) * vol(i,j,k) * z * z
+                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z * z)
                 enddo
              enddo
           endif
@@ -328,35 +333,35 @@ contains
 
 
 
-  subroutine ca_sumlocsquaredmass(lo,hi,rho,r_lo,r_hi,dx,&
-                                  vol,v_lo,v_hi,mass,idir) bind(C, name="ca_sumlocsquaredmass")
+  subroutine ca_sumlocsquaredmass(lo, hi, rho, r_lo, r_hi, dx,&
+                                  vol, v_lo, v_hi, mass, idir) bind(C, name="ca_sumlocsquaredmass")
 
     use prob_params_module, only: problo, center, dim
-    use amrex_constants_module, only : ZERO, HALF
+    use amrex_constants_module, only: HALF
+    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
 
-    use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    integer, intent(in) :: idir
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: r_lo(3), r_hi(3)
-    integer, intent(in) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ), value :: idir
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
     real(rt), intent(inout) :: mass
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(in) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
-    integer          :: i, j, k
-    real(rt)         :: x, y, z
+    integer  :: i, j, k
+    real(rt) :: x, y, z
 
-    mass = ZERO
+    !$gpu
 
     if (idir .eq. 0) then
        do i = lo(1), hi(1)
           x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
-                mass = mass + rho(i,j,k) * vol(i,j,k) * (x**2)
+                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (x**2))
              enddo
           enddo
        enddo
@@ -365,7 +370,7 @@ contains
           y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
-                mass = mass + rho(i,j,k) * vol(i,j,k) * (y**2)
+                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (y**2))
              enddo
           enddo
        enddo
@@ -374,7 +379,7 @@ contains
           z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                mass = mass + rho(i,j,k) * vol(i,j,k) * (z**2)
+                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (z**2))
              enddo
           enddo
        enddo
@@ -384,32 +389,31 @@ contains
 
 
   
-  subroutine ca_sumproduct(lo,hi,f1,f1_lo,f1_hi,f2,f2_lo,f2_hi,dx,&
-                           vol,v_lo,v_hi,product) bind(C, name="ca_sumproduct")
+  subroutine ca_sumproduct(lo, hi, f1, f1_lo, f1_hi, f2, f2_lo, f2_hi, dx,&
+                           vol, v_lo, v_hi, product) bind(C, name="ca_sumproduct")
 
-    !$gpu
-    
-    use amrex_constants_module, only : ZERO
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: f1_lo(3), f1_hi(3)
-    integer, intent(in) :: f2_lo(3), f2_hi(3)
-    integer, intent(in) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: f1_lo(3), f1_hi(3)
+    integer,  intent(in   ) :: f2_lo(3), f2_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
     real(rt), intent(inout) :: product
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(in) :: f1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
-    real(rt), intent(in) :: f2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
-    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ) :: f1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3))
+    real(rt), intent(in   ) :: f2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
-    integer          :: i, j, k
+    integer :: i, j, k
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             product = product + f1(i,j,k) * f2(i,j,k) * vol(i,j,k)
+             call amrex_reduce_add(product, f1(i,j,k) * f2(i,j,k) * vol(i,j,k))
           enddo
        enddo
     enddo

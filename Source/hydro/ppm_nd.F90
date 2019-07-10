@@ -10,10 +10,6 @@ module ppm_module
 
   implicit none
 
-  private
-
-  public ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
-
 contains
 
   subroutine ca_ppm_reconstruct(lo, hi, put_on_edges, idir, &
