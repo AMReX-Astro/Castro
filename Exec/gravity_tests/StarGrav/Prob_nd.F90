@@ -121,11 +121,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            dist = sqrt(xcen**2 + ycen**2 + zcen**2)
 
-           state(i,j,k,URHO)  = interpolate(dist,npts_model,model_r,model_state(:,idens_model))
-           state(i,j,k,UTEMP) = interpolate(dist,npts_model,model_r,model_state(:,itemp_model))
+           call interpolate_sub(state(i,j,k,URHO), dist, idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), dist, itemp_model)
 
            do n = 1, nspec
-              state(i,j,k,UFS-1+n) = interpolate(dist,npts_model,model_r,model_state(:,ispec_model-1+n))
+              call interpolate_sub(state(i,j,k,UFS-1+n), dist, ispec_model-1+n)
            enddo
 
         enddo
