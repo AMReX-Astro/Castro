@@ -715,8 +715,6 @@ contains
                     (idir == 2 .and. j >= vlo(2)) .or. &
                     (idir == 3 .and. k >= vlo(3))) then
 
-                   un = q(i,j,k,QUN)
-
                    ! We have
                    !
                    ! q_l = q_ref - Proj{(q_ref - I)}
@@ -726,39 +724,23 @@ contains
                    ! wave, so no projection is needed.  Since we are not
                    ! projecting, the reference state doesn't matter
 
-                   if (un > ZERO) then
-                      qp(i,j,k,n) = q(i,j,k,n)
-                   else
-                      qp(i,j,k,n) = Im(i,j,k,2,n)
-                   end if
+                   qp(i,j,k,n) = Im(i,j,k,2,n)
                    if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(i,j,k,2,n)
                 endif
 
                 ! Minus state on face i+1
                 if (idir == 1 .and. i <= vhi(1)) then
-                   un = q(i,j,k,QUN)
-                   if (un > ZERO) then
-                      qm(i+1,j,k,n) = Ip(i,j,k,2,n)
-                   else
-                      qm(i+1,j,k,n) = q(i,j,k,n)
-                   end if
+                   qm(i+1,j,k,n) = Ip(i,j,k,2,n)
                    if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
+
                 else if (idir == 2 .and. j <= vhi(2)) then
-                   un = q(i,j,k,QUN)
-                   if (un > ZERO) then
-                      qm(i,j+1,k,n) = Ip(i,j,k,2,n)
-                   else
-                      qm(i,j+1,k,n) = q(i,j,k,n)
-                   end if
+                   qm(i,j+1,k,n) = Ip(i,j,k,2,n)
                    if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(i,j,k,2,n)
+
                 else if (idir == 3 .and. k <= vhi(3)) then
-                   un = q(i,j,k,QUN)
-                   if (un > ZERO) then
-                      qm(i,j,k+1,n) = Ip(i,j,k,2,n)
-                   else
-                      qm(i,j,k+1,n) = q(i,j,k,n)
-                   end if
+                   qm(i,j,k+1,n) = Ip(i,j,k,2,n)
                    if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(i,j,k,2,n)
+
                 endif
 
              end do
