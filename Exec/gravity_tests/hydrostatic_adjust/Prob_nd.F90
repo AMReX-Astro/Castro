@@ -165,7 +165,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_module
   use eos_type_module
   use network, only : nspec
-  use interpolate_module
   use model_parser_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
   use prob_params_module, only : center
@@ -202,11 +201,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            dist = sqrt(x*x + y*y + z*z)
 #endif
 
-           state(i,j,k,URHO ) = interpolate(dist, npts_model, model_r, model_state(:, idens_model))
-           state(i,j,k,UTEMP) = interpolate(dist, npts_model, model_r, model_state(:, itemp_model))
+           call interpolate_sub(state(i,j,k,URHO), dist, idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), dist, itemp_model)
 
            do n= 1, nspec
-              state(i,j,k,UFS+n-1) = interpolate(dist, npts_model, model_r, model_state(:, ispec_model-1+n))
+              call interpolate_sub(state(i,j,k,UFS+n-1), dist, ispec_model-1+n)
            end do
 
         end do

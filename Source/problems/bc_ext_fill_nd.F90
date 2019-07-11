@@ -32,8 +32,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
-    use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
-    use interpolate_module, only: interpolate_sub
+    use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model, interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -83,15 +82,11 @@ contains
                 if (dens_above == ZERO) then
                    x = problo(1) + delta(1)*(dble(domlo(1)) + HALF)
 
-                   call interpolate_sub(dens_above, x, npts_model, model_r, &
-                                        model_state(:,idens_model))
-
-                   call interpolate_sub(temp_above, x, npts_model, model_r, &
-                                        model_state(:,itemp_model))
+                   call interpolate_sub(dens_above, x, idens_model)
+                   call interpolate_sub(temp_above, x, itemp_model)
 
                    do m = 1, nspec
-                      call interpolate_sub(X_zone(m), x, npts_model,model_r, &
-                                           model_state(:,ispec_model-1+m))
+                      call interpolate_sub(X_zone(m), x, ispec_model-1+m)
                    end do
 
                 else
@@ -132,8 +127,7 @@ contains
 
                    ! temperature and species held constant in BCs
                    if (hse_interp_temp == 1) then
-                      call interpolate_sub(temp_zone, x, npts_model, model_r, &
-                                           model_state(:,itemp_model))
+                      call interpolate_sub(temp_zone, x, itemp_model)
                    else
                       temp_zone = temp_above
                    endif
@@ -253,15 +247,11 @@ contains
              do k = lo(3), hi(3)
                 do j = lo(2), hi(2)
 
-                   call interpolate_sub(dens_zone, x, npts_model, model_r, &
-                                        model_state(:,idens_model))
-
-                   call interpolate_sub(temp_zone, x, npts_model, model_r, &
-                                        model_state(:,itemp_model))
+                   call interpolate_sub(dens_zone, x, idens_model)
+                   call interpolate_sub(temp_zone, x, itemp_model)
 
                    do q = 1, nspec
-                      call interpolate_sub(X_zone(q), x, npts_model, model_r, &
-                                           model_state(:,ispec_model-1+q))
+                      call interpolate_sub(X_zone(q), x, ispec_model-1+q)
                    enddo
 
                    ! extrap normal momentum
@@ -319,15 +309,11 @@ contains
              do k = lo(3), hi(3)
                 do j = lo(2), hi(2)
 
-                   call interpolate_sub(dens_zone, x, npts_model, model_r, &
-                                        model_state(:,idens_model))
-
-                   call interpolate_sub(temp_zone, x, npts_model, model_r, &
-                                         model_state(:,itemp_model))
+                   call interpolate_sub(dens_zone, x, idens_model)
+                   call interpolate_sub(temp_zone, x, itemp_model)
 
                    do q = 1, nspec
-                      call interpolate_sub(X_zone(q), x, npts_model, model_r, &
-                                           model_state(:,ispec_model-1+q))
+                      call interpolate_sub(X_zone(q), x, ispec_model-1+q)
                    end do
 
                    ! extrap normal momentum
@@ -384,15 +370,11 @@ contains
                 if (dens_above == ZERO) then
                    y = problo(2) + delta(2)*(dble(domlo(2)) + HALF)
 
-                   call interpolate_sub(dens_above, y,npts_model,model_r, &
-                        model_state(:,idens_model))
-
-                   call interpolate_sub(temp_above, y,npts_model,model_r, &
-                        model_state(:,itemp_model))
+                   call interpolate_sub(dens_above, y,idens_model)
+                   call interpolate_sub(temp_above, y, itemp_model)
 
                    do m = 1, nspec
-                      call interpolate_sub(X_zone(m), y,npts_model,model_r, &
-                           model_state(:,ispec_model-1+m))
+                      call interpolate_sub(X_zone(m), y, ispec_model-1+m)
                    enddo
 
                 else
@@ -433,8 +415,7 @@ contains
 
                    ! temperature and species held constant in BCs
                    if (hse_interp_temp == 1) then
-                      call interpolate_sub(temp_zone, y,npts_model,model_r, &
-                           model_state(:,itemp_model))
+                      call interpolate_sub(temp_zone, y, itemp_model)
                    else
                       temp_zone = temp_above
                    endif
@@ -555,15 +536,11 @@ contains
              do k = lo(3), hi(3)
                 do i = lo(1), hi(1)
 
-                   call interpolate_sub(dens_zone, y,npts_model,model_r, &
-                        model_state(:,idens_model))
-
-                   call interpolate_sub(temp_zone, y,npts_model,model_r, &
-                        model_state(:,itemp_model))
+                   call interpolate_sub(dens_zone, y, idens_model)
+                   call interpolate_sub(temp_zone, y, itemp_model)
 
                    do q = 1, nspec
-                      call interpolate_sub(X_zone(q), y,npts_model,model_r, &
-                           model_state(:,ispec_model-1+q))
+                      call interpolate_sub(X_zone(q), y, ispec_model-1+q)
                    enddo
 
                    ! extrap normal momentum
@@ -621,15 +598,11 @@ contains
              do k = lo(3), hi(3)
                 do i = lo(1), hi(1)
 
-                   call interpolate_sub(dens_zone, y,npts_model,model_r, &
-                        model_state(:,idens_model))
-
-                   call interpolate_sub(temp_zone, y,npts_model,model_r, &
-                        model_state(:,itemp_model))
+                   call interpolate_sub(dens_zone, y, idens_model)
+                   call interpolate_sub(temp_zone, y, itemp_model)
 
                    do q = 1, nspec
-                      call interpolate_sub(X_zone(q), y,npts_model,model_r, &
-                           model_state(:,ispec_model-1+q))
+                      call interpolate_sub(X_zone(q), y, ispec_model-1+q)
                    enddo
 
                    ! extrap normal momentum
@@ -687,15 +660,11 @@ contains
                 if (dens_above == ZERO) then
                    z = problo(3) + delta(3)*(dble(domlo(3)) + HALF)
 
-                   call interpolate_sub(dens_above, z,npts_model,model_r, &
-                        model_state(:,idens_model))
-
-                   call interpolate_sub(temp_above, z,npts_model,model_r, &
-                        model_state(:,itemp_model))
+                   call interpolate_sub(dens_above, z, idens_model)
+                   call interpolate_sub(temp_above, z, itemp_model)
 
                    do m = 1, nspec
-                      call interpolate_sub(X_zone(m), z,npts_model,model_r, &
-                           model_state(:,ispec_model-1+m))
+                      call interpolate_sub(X_zone(m), z, ispec_model-1+m)
                    enddo
 
                 else
@@ -734,8 +703,7 @@ contains
 
                    ! temperature and species held constant in BCs
                    if (hse_interp_temp == 1) then
-                      call interpolate_sub(temp_zone, z,npts_model,model_r, &
-                           model_state(:,itemp_model))
+                      call interpolate_sub(temp_zone, z, itemp_model)
                    else
                       temp_zone = temp_above
                    endif
@@ -856,15 +824,11 @@ contains
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
 
-                   call interpolate_sub(dens_zone, z,npts_model,model_r, &
-                        model_state(:,idens_model))
-
-                   call interpolate_sub(temp_zone, z,npts_model,model_r, &
-                        model_state(:,itemp_model))
+                   call interpolate_sub(dens_zone, z, idens_model)
+                   call interpolate_sub(temp_zone, z, itemp_model)
 
                    do q = 1, nspec
-                      call interpolate_sub(X_zone(q), z,npts_model,model_r, &
-                           model_state(:,ispec_model-1+q))
+                      call interpolate_sub(X_zone(q), z, ispec_model-1+q)
                    enddo
 
                    ! extrap normal momentum
@@ -922,15 +886,11 @@ contains
              do j = lo(2),hi(2)
                 do i = lo(1), hi(1)
 
-                   call interpolate_sub(dens_zone, z,npts_model,model_r, &
-                        model_state(:,idens_model))
-
-                   call interpolate_sub(temp_zone, z,npts_model,model_r, &
-                        model_state(:,itemp_model))
+                   call interpolate_sub(dens_zone, z, idens_model)
+                   call interpolate_sub(temp_zone, z, itemp_model)
 
                    do q = 1, nspec
-                      call interpolate_sub(X_zone(q), z,npts_model,model_r, &
-                           model_state(:,ispec_model-1+q))
+                      call interpolate_sub(X_zone(q), z, ispec_model-1+q)
                    enddo
 
 
@@ -973,11 +933,10 @@ contains
                          bind(C, name="ext_denfill")
 
     use prob_params_module, only: problo
-    use model_parser_module, only: npts_model, model_r, model_state, idens_model
+    use model_parser_module, only: npts_model, model_r, model_state, idens_model, interpolate_sub
 #ifndef AMREX_USE_CUDA
     use amrex_error_module, only: amrex_error
 #endif
-    use interpolate_module, only: interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
@@ -1030,7 +989,7 @@ contains
           y = problo(2) + delta(2)*(dble(j) + HALF)
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
-                call interpolate_sub(adv(i,j,k), y,npts_model,model_r,model_state(:,idens_model))
+                call interpolate_sub(adv(i,j,k), y, idens_model)
              end do
           end do
        end do
@@ -1049,7 +1008,7 @@ contains
           y = problo(2) + delta(2)*(dble(j)+ HALF)
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
-                call interpolate_sub(adv(i,j,k), y,npts_model,model_r,model_state(:,idens_model))
+                call interpolate_sub(adv(i,j,k), y, idens_model)
              end do
           end do
        end do
@@ -1070,7 +1029,7 @@ contains
           z = problo(3) + delta(3)*(dble(k) + HALF)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                call interpolate_sub(adv(i,j,k), z,npts_model,model_r,model_state(:,idens_model))
+                call interpolate_sub(adv(i,j,k), z, idens_model)
              end do
           end do
        end do
@@ -1089,7 +1048,7 @@ contains
           z = problo(3) + delta(3)*(dble(k)+ HALF)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                call interpolate_sub(adv(i,j,k), z,npts_model,model_r,model_state(:,idens_model))
+                call interpolate_sub(adv(i,j,k), z, idens_model)
              end do
           end do
        end do
