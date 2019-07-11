@@ -48,7 +48,7 @@ module model_parser_module
 
   integer, parameter :: MAX_VARNAME_LENGTH=80
 
-  public :: read_model_file, close_model_file
+  public :: read_model_file, close_model_file, interpolate_sub, locate_sub
 
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: model_state, model_r, npts_model
