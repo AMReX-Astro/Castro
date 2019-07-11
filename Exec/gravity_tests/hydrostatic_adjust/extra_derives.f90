@@ -6,7 +6,7 @@ subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
   use eos_module
   use eos_type_module
   use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX
-  use probdata_module, only: hse_p
+  use model_parser_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -59,7 +59,7 @@ subroutine ca_derpi(p,p_l1,p_h1,ncomp_p, &
 
      end if
 
-     p(i,1) = p(i,1) - hse_p(i)
+     p(i,1) = p(i,1) - model_state(i, ipres_model)
 
   enddo
 
@@ -76,7 +76,7 @@ subroutine ca_derpioverp0(p,p_l1,p_h1,ncomp_p, &
   use eos_module
   use eos_type_module
   use meth_params_module, only : URHO, UMX, UEINT, UTEMP, UFS, UFX
-  use probdata_module, only: hse_p
+  use model_parser_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -129,7 +129,7 @@ subroutine ca_derpioverp0(p,p_l1,p_h1,ncomp_p, &
 
      end if
 
-     p(i,1) = abs(p(i,1) - hse_p(i)) / hse_p(i)
+     p(i,1) = abs(p(i,1) - model_state(i, ipres_model)) / model_state(i, ipres_model)
 
   enddo
 
