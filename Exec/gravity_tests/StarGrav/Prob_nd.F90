@@ -83,7 +83,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   use amrex_constants_module
   use probdata_module
-  use interpolate_module
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
                                  UEDEN, UEINT, UFS
