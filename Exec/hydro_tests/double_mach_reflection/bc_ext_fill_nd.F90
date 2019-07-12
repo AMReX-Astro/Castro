@@ -34,7 +34,6 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
     use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
-    use interpolate_module, only: interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -238,7 +237,6 @@ contains
 #ifndef AMREX_USE_CUDA
     use amrex_error_module, only: amrex_error
 #endif
-    use interpolate_module, only: interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none

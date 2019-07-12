@@ -92,7 +92,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   use amrex_constants_module
   use probdata_module
-  use interpolate_module
   use eos_module
   use eos_type_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
@@ -131,13 +130,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            height = z
 #endif
 
-           state(i,j,k,URHO)  = interpolate(height,npts_model,model_r, &
-                                            model_state(:,idens_model))
-           state(i,j,k,UTEMP) = interpolate(height,npts_model,model_r, &
-                                            model_state(:,itemp_model))
+           call interpolate_sub(state(i,j,k,URHO), height, idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), height, itemp_model)
            do n = 1, nspec
-              state(i,j,k,UFS-1+n) = interpolate(height,npts_model,model_r, &
-                                                 model_state(:,ispec_model-1+n))
+              call interpolate_sub(state(i,j,k,UFS-1+n), height, ispec_model-1+n)
            end do
            state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,UFS:UFS-1+nspec)/sum(state(i,j,k,UFS:UFS-1+nspec))
 
