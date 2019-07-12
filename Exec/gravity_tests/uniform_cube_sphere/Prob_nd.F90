@@ -97,13 +97,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   !$OMP PARALLEL DO PRIVATE(i, j, k, xx, yy, zz)
   do k = lo(3), hi(3)
-     zz = xlo(3) + delta(3) * (dble(k-lo(3))+HALF) - center(3)
+     zz = problo(3) + delta(3) * (dble(k)+HALF) - center(3)
 
      do j = lo(2), hi(2)
-        yy = xlo(2) + delta(2) * (dble(j-lo(2))+HALF) - center(2)
+        yy = problo(2) + delta(2) * (dble(j)+HALF) - center(2)
 
         do i = lo(1), hi(1)
-           xx = xlo(1) + delta(1) * (dble(i-lo(1))+HALF) - center(1)
+           xx = problo(1) + delta(1) * (dble(i)+HALF) - center(1)
 
            ! Establish the cube or sphere
 

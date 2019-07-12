@@ -112,13 +112,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   type(eos_t) :: eos_state
 
   do k = lo(3), hi(3)
-     z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF) - center(3)
+     z = problo(3) + delta(3)*(dble(k) + HALF) - center(3)
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF) - center(2)
+        y = problo(2) + delta(2)*(dble(j) + HALF) - center(2)
 
         do i = lo(1), hi(1)
-           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF) - center(1)
+           x = problo(1) + delta(1)*(dble(i) + HALF) - center(1)
 
            dist = sqrt(x**2 + y**2 + z**2)
 
@@ -159,13 +159,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   ! add a perturbation
   do k = lo(3), hi(3)
-     z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF) - center(3)
+     z = problo(3) + delta(3)*(dble(k) + HALF) - center(3)
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF) - center(2)
+        y = problo(2) + delta(2)*(dble(j) + HALF) - center(2)
 
         do i = lo(1), hi(1)
-           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF) - center(1)
+           x = problo(1) + delta(1)*(dble(i) + HALF) - center(1)
 
            t0 = state(i,j,k,UTEMP)
 

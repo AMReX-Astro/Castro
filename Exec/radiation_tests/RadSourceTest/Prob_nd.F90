@@ -98,6 +98,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only : nspec
   use amrex_fort_module, only : rt => amrex_real
+  use prob_params_module, only : problo
 
   implicit none
 
@@ -115,7 +116,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-           xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5d0)
+           xcen = problo(1) + delta(1)*(dble(i) + 0.5d0)
 
            state(i,j,k,URHO) = rho_0
            state(i,j,k,UMX:UMZ) = 0.d0

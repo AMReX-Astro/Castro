@@ -46,7 +46,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_type_module, only: eos_t, eos_input_rp
   use network, only: nspec
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
-  use prob_params_module, only: center
+  use prob_params_module, only: center, problo
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -79,13 +79,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 #endif
 
   do k = lo(3), hi(3)
-     zcen = xlo(3) + dx(3)*(dble(k-lo(3)) + HALF)
+     zcen = problo(3) + dx(3)*(dble(k) + HALF)
 
      do j = lo(2), hi(2)
-        ycen = xlo(2) + dx(2)*(dble(j-lo(2)) + HALF)
+        ycen = problo(2) + dx(2)*(dble(j) + HALF)
 
         do i = lo(1), hi(1)
-           xcen = xlo(1) + dx(1)*(dble(i-lo(1)) + HALF)
+           xcen = problo(1) + dx(1)*(dble(i) + HALF)
 
            if (i == icen .and. j == jcen .and. k == kcen) then
               dens = dens_ambient*dens_pert_factor

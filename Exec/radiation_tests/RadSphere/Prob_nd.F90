@@ -37,8 +37,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(C, name="amrex_pr
   T_0 = 5.797e5           ! 50 eV
 
   !     Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
+  open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)
   close(unit=untin)
 
@@ -85,6 +84,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UEDEN, UEINT, UFS, UFX, UTEMP
   use network, only : nspec, naux
+  use prob_params_module, only : problo
 
   use amrex_fort_module, only : rt => amrex_real
 
@@ -105,7 +105,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-           xcen = xlo(1) + delta(1)*(float(i-lo(1)) + 0.5e0_rt)
+           xcen = problo(1) + delta(1)*(dble(i) + 0.5e0_rt)
 
            state(i,j,k,URHO ) = rho_0
            state(i,j,k,UMX  ) = 0.e0_rt

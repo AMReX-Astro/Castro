@@ -88,7 +88,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                  UEDEN, UEINT, UFS
   use network, only : nspec
   use model_parser_module
-  use prob_params_module, only : center
+  use prob_params_module, only : center, problo
   use eos_type_module
   use eos_module
 
@@ -110,13 +110,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   type(eos_t) :: eos_state
 
   do k = lo(3), hi(3)
-     zcen = xlo(3) + delta(3)*(dble(k-lo(3)) + 0.5e0_rt) - center(3)
+     zcen = problo(3) + delta(3)*(dble(k) + 0.5e0_rt) - center(3)
 
      do j = lo(2), hi(2)
-        ycen = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5e0_rt) - center(2)
+        ycen = problo(2) + delta(2)*(dble(j) + 0.5e0_rt) - center(2)
 
         do i = lo(1), hi(1)
-           xcen = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt) - center(1)
+           xcen = problo(1) + delta(1)*(dble(i) + 0.5e0_rt) - center(1)
 
            dist = sqrt(xcen**2 + ycen**2 + zcen**2)
 

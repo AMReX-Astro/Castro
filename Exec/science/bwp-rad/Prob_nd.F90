@@ -78,13 +78,12 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        delta, xlo, xhi)
 
   use probdata_module
-  use prob_params_module, only : problo
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
        UEDEN, UEINT, UFS
   use network, only : nspec
   use model_parser_module
-  use prob_params_module, only : center
+  use prob_params_module, only : center, problo
   use eos_type_module
   use eos_module
 
@@ -163,7 +162,7 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
   use probdata_module
   use fundamental_constants_module, only: a_rad
   use model_parser_module
-  use prob_params_module, only : center
+  use prob_params_module, only : center, problo
 
   use amrex_fort_module, only : rt => amrex_real
 
@@ -181,13 +180,13 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
   integer :: i, j, k
 
   do k = lo(3), hi(3)
-     zcen = xlo(3) + dx(3)*(dble(k-lo(3)) + 0.5e0_rt) - center(3)
+     zcen = problo(3) + dx(3)*(dble(k) + 0.5e0_rt) - center(3)
 
      do j = lo(2), hi(2)
-        ycen = xlo(2) + dx(2)*(dble(j-lo(2)) + 0.5e0_rt) - center(2)
+        ycen = problo(2) + dx(2)*(dble(j) + 0.5e0_rt) - center(2)
 
         do i = lo(1), hi(1)
-           xcen = xlo(1) + dx(1)*(dble(i-lo(1)) + 0.5e0_rt) - center(1)
+           xcen = problo(1) + dx(1)*(dble(i) + 0.5e0_rt) - center(1)
 
 #if AMREX_SPACEDIM == 2
            dist = sqrt(xcen**2 + ycen**2)
