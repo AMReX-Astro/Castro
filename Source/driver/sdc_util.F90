@@ -79,13 +79,9 @@ contains
        ! we are going to assume we already have a good guess for the
        ! solving in U_new and just pass the solve onto the main Newton
        ! solve
-       call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, ierr)
+       call sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
 
-       if (ierr /= NEWTON_SUCCESS) then
-          call sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
-       end if
-
-       ! still failing?
+       ! failing?
        if (ierr /= NEWTON_SUCCESS) then
           call amrex_error("Newton subcycling failed in sdc_solve")
        end if
@@ -103,13 +99,9 @@ contains
 
        ! now U_new is the update that VODE predicts, so we will use
        ! that as the initial guess to the Newton solve
-       call sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, ierr)
+       call sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
 
-       if (ierr /= NEWTON_SUCCESS) then
-          call sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
-       end if
-
-       ! still failing?
+       ! failing?
        if (ierr /= NEWTON_SUCCESS) then
           call amrex_error("Newton failure in sdc_solve")
        end if
@@ -118,7 +110,11 @@ contains
   end subroutine sdc_solve
 
   subroutine sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
-
+    ! This is the driver for solving the nonlinear update for the
+    ! reacting/advecting system using Newton's method.  It attempts to
+    ! do the solution for the full dt_m requested, but if it fails,
+    ! will subdivide the domain until it converges or reaches our
+    ! limit on the number of subintervals.
     use meth_params_module, only : NVAR, URHO, UFS
     use amrex_constants_module, only : ZERO, HALF, ONE
     use extern_probin_module, only : SMALL_X_SAFE
@@ -143,7 +139,7 @@ contains
     integer, parameter :: MAX_NSUB = 64
 
     ! subdivide the timestep and do multiple Newtons
-    nsub = 2
+    nsub = 1
     ierr = CONVERGENCE_FAILURE
     U_begin(:) = U_old(:)
     do while (nsub < MAX_NSUB .and. ierr /= NEWTON_SUCCESS)
