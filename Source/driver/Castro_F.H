@@ -132,12 +132,10 @@ extern "C"
 #endif
 #endif
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
 #ifdef GPU_COMPATIBLE_PROBLEM
   void ca_initdata(const int* lo, const int* hi,
                    BL_FORT_FAB_ARG_3D(state),
                    const amrex::Real* dx, const amrex::Real* problo);
-#endif
 #endif
 
   void ca_apply_metric
@@ -204,6 +202,9 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_enforce_consistent_e
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
+
+  void ca_recompute_energetics
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_reset_internal_e
@@ -490,7 +491,6 @@ extern "C"
   void ca_setgroup(const int& igroup);
 #endif
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
   void ca_ext_src
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(old_state),
@@ -498,7 +498,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(ext_src),
      const amrex::Real* prob_lo, const amrex::Real* dx,
      const amrex::Real time, const amrex::Real dt);
-#endif
 
 /* hydrodynamics */
 #include <Castro_hydro_F.H>
@@ -510,7 +509,6 @@ extern "C"
 }
 #endif
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
 
 #ifndef GPU_COMPATIBLE_PROBLEM
 BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
@@ -521,16 +519,6 @@ BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
      const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
 #endif
 
-#else
-
-BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
-    (const int& level, const amrex::Real& time,
-     const int* lo, const int* hi,
-     const int& num_state,
-     BL_FORT_FAB_ARG(state),
-     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
-
-#endif
 
 #ifdef MAESTRO_INIT
 BL_FORT_PROC_DECL(CA_INITDATA_MAESTRO,ca_initdata_maestro)
@@ -554,32 +542,14 @@ BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
 #endif
 
 #ifdef RADIATION
-#ifdef AMREX_DIMENSION_AGNOSTIC
 BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
   (const int& level, const amrex::Real& time,
    const int* lo, const int* hi,
    const int& num_state,
    BL_FORT_FAB_ARG_3D(state),
    const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
-#else
-BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
-  (const int& level, const amrex::Real& time,
-   const int* lo, const int* hi,
-   const int& num_state,
-   BL_FORT_FAB_ARG(state),
-   const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
-#endif
 #endif
 
-#ifndef AMREX_DIMENSION_AGNOSTIC
-BL_FORT_PROC_DECL(CA_EXT_SRC,ca_ext_src)
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG(old_state),
-     const BL_FORT_FAB_ARG(new_state),
-     BL_FORT_FAB_ARG(ext_src),
-     const amrex::Real* prob_lo, const amrex::Real* dx,
-     const amrex::Real* time, const amrex::Real* dt);
-#endif
 
 /* problem-specific includes */
 #include <Problem_F.H>

@@ -205,9 +205,7 @@ Castro::do_advance_sdc (Real time,
       do_sdc_update(m, m+1, dt); //(dt_sdc[m+1] - dt_sdc[m])*dt);
 
       // we now have a new value of k_new[m+1], do a clean_state on it
-      MultiFab::Copy(S_new, *(k_new[m+1]), 0, 0, S_new.nComp(), 0);
       clean_state(S_new, cur_time, 0);
-      MultiFab::Copy(*(k_new[m+1]), S_new, 0, 0, S_new.nComp(), 0);
 
     }
 

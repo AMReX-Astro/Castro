@@ -1,7 +1,7 @@
 &fortin
 
   interp_model = 1
-  model_file = "flame_4096_sdc4_plt2100952.slice"
+  model_file = "flame_4096_sdc4_plt6797397.slice"
 
   ! we still need this info for the boundary conditions
   rho_fuel = 2.e7
@@ -9,7 +9,7 @@
 
   T_ash = 3.6e9
 
-  ash1_name = "nickel-56"
+  ash1_name = "iron-56"
   X_ash1 = 1.0
 
   pert_frac = 0.4d0
@@ -44,7 +44,6 @@
 &extern
   rtol_spec = 1.d-10
   atol_spec = 1.d-10
-  eos_ttol = 1.d-12
-  eos_dtol = 1.d-12
 
+  small_x = 1.e-11
 /

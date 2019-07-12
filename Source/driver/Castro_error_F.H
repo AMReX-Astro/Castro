@@ -65,7 +65,6 @@ extern "C"
      const amrex::Real time, const int level);
 #endif
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
   void set_problem_tags
     (const int* lo, const int* hi,
      int8_t* tag, const int* tag_lo, const int* tag_hi,
@@ -73,15 +72,6 @@ extern "C"
      const amrex::Real* dx, const amrex::Real* problo,
      const int8_t tagval, const int8_t clearval,
      const amrex::Real time, const int level);
-#else
-  void set_problem_tags
-    (const int* lo, const int* hi,
-     int8_t* tag, AMREX_ARLIM_P(tag_lo), AMREX_ARLIM_P(tag_hi),
-     const BL_FORT_FAB_ARG(state),
-     const amrex::Real* dx, const amrex::Real* problo,
-     const int8_t tagval, const int8_t clearval,
-     const amrex::Real time, const int level);
-#endif
 
 #ifdef __cplusplus
 }

@@ -100,6 +100,9 @@ contains
     ! for computing a numerical derivative
     real(rt) :: eps = 1.e-8_rt
 
+#ifdef SDC
+    call amrex_error("we shouldn't be here with the simplified SDC method (USE_SDC=TRUE)")
+#else
     if (sdc_use_analytic_jac == 0) then
        ! note the numerical Jacobian will be returned in terms of X
        call numerical_jac(burn_state)
@@ -114,6 +117,7 @@ contains
        enddo
 
     endif
+#endif
 
     ! at this point, our Jacobian should be entirely in terms of X,
     ! not Y.  Let's now fix the rhs terms themselves to be in terms of

@@ -36,9 +36,9 @@ contains
     real(rt) :: y, z, height
 
     do k = lo(3), hi(3)
-       z = problo(3) + dble(k + HALF)*dx(3)
+       z = problo(3) + (dble(k) + HALF)*dx(3)
        do j = lo(2), hi(2)
-          y = problo(2) + dble(j + HALF)*dx(2)
+          y = problo(2) + (dble(j) + HALF)*dx(2)
           do i = lo(1), hi(1)
              if (dim == 2) then
                 height = y
