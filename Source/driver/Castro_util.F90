@@ -106,9 +106,6 @@ contains
 
     !$gpu
 
-    !
-    ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 + v^2 + w^2)
-    !
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
