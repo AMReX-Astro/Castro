@@ -148,9 +148,6 @@ contains
 
     !$gpu
 
-    !
-    ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 + v^2 + w^2)
-    !
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -170,10 +167,6 @@ contains
              state(i,j,k,UTEMP) = eos_state % T
 
              state(i,j,k,UEINT) = eos_state % rho * eos_state % e
-
-             !state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
-             !     HALF * state(i,j,k,URHO) * (u*u + v*v + w*w)
-
 
           end do
        end do
