@@ -164,7 +164,7 @@ extern "C"
 
 #pragma gpu
     ext_gravxfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                  adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
+                  grav, AMREX_INT_ANYD(grav_lo), AMREX_INT_ANYD(grav_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
 
@@ -206,7 +206,7 @@ extern "C"
 
 #pragma gpu
     ext_gravyfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                  adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
+                  grav, AMREX_INT_ANYD(grav_lo), AMREX_INT_ANYD(grav_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
 
@@ -246,7 +246,7 @@ extern "C"
 #endif
 
     ext_gravzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                  adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
+                  grav, AMREX_INT_ANYD(grav_lo), AMREX_INT_ANYD(grav_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
                   AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
 
