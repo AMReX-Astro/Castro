@@ -8,7 +8,7 @@ module bc_ext_fill_module
 
   use amrex_constants_module, only: ZERO, HALF, ONE, TWO
 #ifndef AMREX_USE_CUDA
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
 #endif
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
@@ -67,13 +67,13 @@ contains
 
     ! XLO
     if (bc(1,1,1) == EXT_DIR .and. lo(1) < domlo(1)) then
-       call amrex_error("BCs not implemented for -X")
+       call castro_error("BCs not implemented for -X")
     endif
 
 
     ! XHI
     if (bc(1,2,1) == EXT_DIR .and. hi(1) > domhi(1)) then
-       call amrex_error("BCs not implemented for +X")
+       call castro_error("BCs not implemented for +X")
     endif
 
 
@@ -282,12 +282,12 @@ contains
 
     ! ZLO
     if (bc(3,1,1) == EXT_DIR .and. lo(3) < domlo(3)) then
-       call amrex_error("BCs not implemented for -Z")
+       call castro_error("BCs not implemented for -Z")
     endif
 
     ! ZHI
     if (bc(3,2,1) == EXT_DIR .and. hi(3) > domhi(3)) then
-       call amrex_error("BCs not implemented for +Z")
+       call castro_error("BCs not implemented for +Z")
     end if
 #endif
 
@@ -301,7 +301,7 @@ contains
     use prob_params_module, only: problo
     use model_parser_module, only: npts_model, model_r, model_state, idens_model
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use interpolate_module, only: interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
@@ -331,12 +331,12 @@ contains
 #ifndef AMREX_USE_CUDA
     ! XLO
     if ( bc(1,1) == EXT_DIR .and. lo(1) < domlo(1)) then
-       call amrex_error("We should not be here (xlo denfill)")
+       call castro_error("We should not be here (xlo denfill)")
     end if
 
     ! XHI
     if ( bc(1,2) == EXT_DIR .and. hi(1) > domhi(1)) then
-       call amrex_error("We should not be here (xhi denfill)")
+       call castro_error("We should not be here (xhi denfill)")
     endif
 #endif
 

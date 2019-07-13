@@ -359,7 +359,7 @@ contains
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, &
          UFS, UFX
     use amrex_constants_module, only: ZERO, ONE
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -387,7 +387,7 @@ contains
                 print *,'>>> Error: Castro_util.F90::ca_compute_temp ',i,j,k
                 print *,'>>> ... negative density ',state(i,j,k,URHO)
                 print *,'    '
-                call amrex_error("Error:: compute_temp_nd.f90")
+                call castro_error("Error:: compute_temp_nd.f90")
              end if
 
              if (state(i,j,k,UEINT) <= ZERO) then
@@ -395,7 +395,7 @@ contains
                 print *,'>>> Warning: Castro_util.F90::ca_compute_temp ',i,j,k
                 print *,'>>> ... negative (rho e) ',state(i,j,k,UEINT)
                 print *,'   '
-                call amrex_error("Error:: compute_temp_nd.f90")
+                call castro_error("Error:: compute_temp_nd.f90")
              end if
 
           enddo
@@ -432,7 +432,7 @@ contains
     use network           , only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use amrex_fort_module, only: rt => amrex_real
 
@@ -458,7 +458,7 @@ contains
              if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.e-8_rt * state(i,j,k,URHO)) then
 
                 print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
-                call amrex_error("Error:: Failed check of initial species summing to 1")
+                call castro_error("Error:: Failed check of initial species summing to 1")
 
              end if
 #endif
@@ -545,7 +545,7 @@ contains
     use amrinfo_module, only: amr_level
     use amrex_constants_module, only: ZERO, ONE, TWO, M_PI, FOUR
     use prob_params_module, only: dim, coord_type, dx_level
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -632,7 +632,7 @@ contains
 #ifndef AMREX_USE_CUDA
        else
 
-          call amrex_error("Cylindrical coordinates only supported in 2D.")
+          call castro_error("Cylindrical coordinates only supported in 2D.")
 #endif
 
        endif
@@ -659,7 +659,7 @@ contains
 #ifndef AMREX_USE_CUDA
        else
 
-          call amrex_error("Spherical coordinates only supported in 1D.")
+          call castro_error("Spherical coordinates only supported in 1D.")
 #endif
 
        endif
@@ -679,7 +679,7 @@ contains
     ! in 2D, and Spherical in 1D.
 
     use amrinfo_module, only: amr_level
-    use amrex_error_module
+    use castro_error_module
     use amrex_constants_module, only: ZERO, HALF, FOUR3RD, TWO, M_PI
     use prob_params_module, only: dim, coord_type, dx_level
     use amrex_fort_module, only: rt => amrex_real
@@ -728,7 +728,7 @@ contains
 #ifndef AMREX_USE_CUDA
        else
 
-          call amrex_error("Cylindrical coordinates only supported in 2D.")
+          call castro_error("Cylindrical coordinates only supported in 2D.")
 #endif
 
        endif
@@ -749,7 +749,7 @@ contains
 #ifndef AMREX_USE_CUDA
        else
 
-          call amrex_error("Spherical coordinates only supported in 1D.")
+          call castro_error("Spherical coordinates only supported in 1D.")
 #endif
 
        endif
@@ -918,7 +918,7 @@ contains
     use meth_params_module, only: URHO, UMX, UMY, UMZ
     use prob_params_module, only: center, dim
     use amrex_constants_module, only: HALF
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -941,7 +941,7 @@ contains
     real(rt) :: x_mom,y_mom,z_mom,radial_mom
 
 #ifndef AMREX_USE_CUDA
-    if (dim .eq. 1) call amrex_error("Error: cannot do ca_compute_avgstate in 1D.")
+    if (dim .eq. 1) call castro_error("Error: cannot do ca_compute_avgstate in 1D.")
 #endif
 
     !
@@ -960,7 +960,7 @@ contains
                 print *,'COMPUTE_AVGSTATE: INDEX TOO BIG ',index,' > ',numpts_1d-1
                 print *,'AT (i,j,k) ',i,j,k
                 print *,'R / DR ',r,dr
-                call amrex_error("Error:: Castro_util.F90 :: ca_compute_avgstate")
+                call castro_error("Error:: Castro_util.F90 :: ca_compute_avgstate")
              end if
 #endif
              radial_state(URHO,index) = radial_state(URHO,index) &

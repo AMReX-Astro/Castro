@@ -20,7 +20,7 @@ end module extern_probin_module
 subroutine runtime_init(name, namlen)
 
   use extern_probin_module
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
 
   implicit none
 
@@ -42,7 +42,7 @@ subroutine runtime_init(name, namlen)
 
   ! create the filename
   if (namlen > maxlen) then
-     call amrex_error("probin file name too long")
+     call castro_error("probin file name too long")
   endif
 
   do i = 1, namlen
@@ -61,7 +61,7 @@ subroutine runtime_init(name, namlen)
 
   else if (status > 0) then
      ! some problem in the namelist
-     call amrex_error("ERROR: problem in the extern namelist")
+     call castro_error("ERROR: problem in the extern namelist")
   endif
 
   close (unit=un)
@@ -74,7 +74,7 @@ subroutine runtime_pretty_print(name, namlen) bind(C, name="runtime_pretty_print
 
   use amrex_constants_module
   use extern_probin_module
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
 
   implicit none
 
@@ -89,7 +89,7 @@ subroutine runtime_pretty_print(name, namlen) bind(C, name="runtime_pretty_print
   character (len=maxlen) :: probin
 
   if (namlen > maxlen) then
-     call amrex_error("probin file name too long")
+     call castro_error("probin file name too long")
   endif
 
   do i = 1, namlen

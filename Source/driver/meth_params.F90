@@ -12,7 +12,7 @@
 
 module meth_params_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
   use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC
 
@@ -822,7 +822,7 @@ contains
     else if (gravity_type == "PrescribedGrav") then
        gravity_type_int = 3
     else
-       call amrex_error("Unknown gravity type")
+       call castro_error("Unknown gravity type")
     end if
 #endif
 
@@ -1206,7 +1206,7 @@ contains
 
 #ifndef AMREX_USE_GPU
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
-       call amrex_error("Unknown fspace_type", fspace_type)
+       call castro_error("Unknown fspace_type", fspace_type)
     end if
 #endif
 
@@ -1218,7 +1218,7 @@ contains
        comoving = .false.
     else
 #ifndef AMREX_USE_GPU
-       call amrex_error("Wrong value for comoving", fspace_type)
+       call castro_error("Wrong value for comoving", fspace_type)
 #endif
     end if
 

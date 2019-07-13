@@ -54,7 +54,7 @@ contains
     use advection_util_module, only : limit_hydro_fluxes_on_small_dens, ca_shock, &
                                       normalize_species_fluxes, avisc
 
-    use amrex_error_module
+    use castro_error_module
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
     use flatten_module, only: ca_uflatten
     use riemann_module, only: riemann_state
@@ -177,7 +177,7 @@ contains
     ! averages and cell-centers with the correct volume terms in the integral.
 #ifndef AMREX_USE_CUDA
     if (coord_type > 0) then
-       call amrex_error("Error: fourth order not implemented for axisymmetric")
+       call castro_error("Error: fourth order not implemented for axisymmetric")
     endif
 #endif
 
@@ -885,7 +885,7 @@ contains
 #else
 #ifndef AMREX_USE_CUDA
    ! RADIATION check
-    call amrex_error("ERROR: ca_fourth_single_stage does not support radiation")
+    call castro_error("ERROR: ca_fourth_single_stage does not support radiation")
 #endif
 #endif
   end subroutine ca_fourth_single_stage
@@ -907,7 +907,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_re
     use conductivity_module, only : conducteos
     use network, only : nspec
-    use amrex_error_module, only : amrex_error
+    use castro_error_module, only : castro_error
 
     integer, intent(in) :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)

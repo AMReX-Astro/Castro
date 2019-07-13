@@ -43,7 +43,7 @@ end module rpar_sdc_module
 module sdc_util
 
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_error_module, only : amrex_error
+  use castro_error_module, only : castro_error
 
   implicit none
 
@@ -83,7 +83,7 @@ contains
 
        ! failing?
        if (ierr /= NEWTON_SUCCESS) then
-          call amrex_error("Newton subcycling failed in sdc_solve")
+          call castro_error("Newton subcycling failed in sdc_solve")
        end if
 
     else if (sdc_solver == VODE_SOLVE) then
@@ -103,7 +103,7 @@ contains
 
        ! failing?
        if (ierr /= NEWTON_SUCCESS) then
-          call amrex_error("Newton failure in sdc_solve")
+          call castro_error("Newton failure in sdc_solve")
        end if
     end if
 
@@ -510,7 +510,7 @@ contains
                1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
 
     if (istate < 0) then
-       call amrex_error("vode termination poorly, istate = ", istate)
+       call castro_error("vode termination poorly, istate = ", istate)
     endif
 #endif
 
@@ -964,7 +964,7 @@ contains
        enddo
 
     else
-       call amrex_error("error in ca_sdc_update_advection_o4 -- should not be here")
+       call castro_error("error in ca_sdc_update_advection_o4 -- should not be here")
     endif
 
   end subroutine ca_sdc_update_advection_o4
@@ -1033,7 +1033,7 @@ contains
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
 
              else
-                call amrex_error("error in ca_sdc_compute_C4 -- should not be here")
+                call castro_error("error in ca_sdc_compute_C4 -- should not be here")
              endif
 
           enddo

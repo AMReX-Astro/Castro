@@ -3,7 +3,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   use amrex_constants_module
   use probdata_module
   use amrex_constants_module
-  use amrex_error_module
+  use castro_error_module
   use fundamental_constants_module
   use eos_module
 
@@ -25,7 +25,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   if (namlen > maxlen) then
-     call amrex_error("ERROR: probin file name too long")
+     call castro_error("ERROR: probin file name too long")
   end if
 
   do i = 1, namlen
@@ -74,7 +74,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        delta, xlo, xhi)
 
   use amrex_constants_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   use probdata_module
@@ -125,7 +125,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            else
 
-              call amrex_error("Problem not defined.")
+              call castro_error("Problem not defined.")
 
            endif
 
