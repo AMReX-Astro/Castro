@@ -562,16 +562,6 @@ Castro::variableSetUp ()
   for (int i = 0; i < NUM_STATE; ++i) {
     state_type_source_names[i] = name[i] + "_source";
     source_bcs[i] = bcs[i];
-
-    // Replace inflow BCs with FOEXTRAP.
-
-    for (int j = 0; j < AMREX_SPACEDIM; ++j) {
-        if (source_bcs[i].lo(j) == EXT_DIR)
-            source_bcs[i].setLo(j, FOEXTRAP);
-
-        if (source_bcs[i].hi(j) == EXT_DIR)
-            source_bcs[i].setHi(j, FOEXTRAP);
-    }
   }
 
   desc_lst.setComponent(Source_Type,Density,state_type_source_names,source_bcs,
