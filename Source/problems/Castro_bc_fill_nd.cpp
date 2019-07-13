@@ -3,9 +3,9 @@
 #include <Castro.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_bc_fill_nd_F.H>
-#include <Castro_bc_ext_fill_nd.H>
 #include <Castro_generic_fill.H>
 #include <Castro_generic_fill_F.H>
+#include <Castro_bc_ext_fill_nd_F.H>
 
 using namespace amrex;
 
@@ -49,7 +49,11 @@ extern "C"
     clean_bc_launch_config();
 #endif
 
-    ca_ext_fill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, dx, xlo, time, bc_f);
+#pragma gpu
+    ext_fill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+             adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
+             AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
 
 #ifdef AMREX_USE_CUDA
     clean_bc(bc_f);
@@ -86,7 +90,11 @@ extern "C"
     clean_bc_launch_config();
 #endif
 
-    ca_ext_denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, dx, xlo, time, bc_f);
+#pragma gpu
+    ext_denfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
+                AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+                AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
 
 #ifdef AMREX_USE_CUDA
     clean_bc(bc_f);
@@ -154,7 +162,12 @@ extern "C"
     clean_bc_launch_config();
 #endif
 
-    ca_ext_gravxfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, dx, xlo, time, bc_f);
+#pragma gpu
+    ext_gravxfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                  adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
+                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+                  AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
+
 
 #ifdef AMREX_USE_CUDA
     clean_bc(bc_f);
@@ -191,7 +204,11 @@ extern "C"
     clean_bc_launch_config();
 #endif
 
-    ca_ext_gravyfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, dx, xlo, time, bc_f);
+#pragma gpu
+    ext_gravyfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                  adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
+                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+                  AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
 
 #ifdef AMREX_USE_CUDA
     clean_bc(bc_f);
@@ -228,7 +245,10 @@ extern "C"
     clean_bc_launch_config();
 #endif
 
-    ca_ext_gravzfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, dx, xlo, time, bc_f);
+    ext_gravzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                  adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
+                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+                  AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
 
 #ifdef AMREX_USE_CUDA
     clean_bc(bc_f);
