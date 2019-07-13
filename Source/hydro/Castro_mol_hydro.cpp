@@ -384,7 +384,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 #ifdef DIFFUSION
           ca_fill_temp_cond
-            (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+            (AMREX_ARLIM_ANYD(obx.loVect()), AMREX_ARLIM_ANYD(obx.hiVect()),
              BL_TO_FORTRAN_ANYD(Sborder[mfi]),
              BL_TO_FORTRAN_ANYD(cond));
 
@@ -394,12 +394,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             int idir_f = idir + 1;
 
             ca_mol_diffusive_flux
-              (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+              (AMREX_ARLIM_ANYD(nbx.loVect()), AMREX_ARLIM_ANYD(nbx.hiVect()),
                idir_f,
                BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                BL_TO_FORTRAN_ANYD(cond),
                BL_TO_FORTRAN_ANYD(flux[idir]),
-               AMREX_REAL_ANYD(dx));
+               AMREX_ZFILL(dx));
 
           }
 #endif

@@ -62,18 +62,6 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   ! Save some of the data locally
 
-  allocate(hse_r(npts_model),hse_rho(npts_model), &
-           hse_t(npts_model),hse_p(npts_model))
-  allocate(hse_s(nspec,npts_model))
-
-  hse_r   = model_r(:)
-  hse_rho = model_state(:,idens_model)
-  hse_t   = model_state(:,itemp_model)
-  hse_p   = model_state(:,ipres_model)
-  do i = 1, nspec
-     hse_s(i,:) = model_state(:,ispec_model+i-1)
-  enddo
-
 #if AMREX_SPACEDIM == 1
   ! 1-d assumes spherical, with center at origin
   center(1) = ZERO
@@ -132,9 +120,9 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   ! conditions
   allocate (hse_X_top(nspec))
 
-  hse_rho_top  = hse_rho(npts_model)
-  hse_t_top    = hse_t(npts_model)
-  hse_X_top(:) = hse_s(:,npts_model)
+  hse_rho_top  = model_state(npts_model, idens_model)
+  hse_t_top    = model_state(npts_model, itemp_model)
+  hse_X_top(:) = model_state(npts_model, ispec_model:ispec_model-1+nspec)
 
   ! set hse_eint_top and hse_p_top via the EOS
   eos_state%rho   = hse_rho_top
@@ -177,8 +165,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_module
   use eos_type_module
   use network, only : nspec
-  use interpolate_module
-  use model_parser_module, only: npts_model
+  use model_parser_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
   use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
@@ -214,11 +201,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            dist = sqrt(x*x + y*y + z*z)
 #endif
 
-           state(i,j,k,URHO ) = interpolate(dist, npts_model, hse_r, hse_rho)
-           state(i,j,k,UTEMP) = interpolate(dist, npts_model, hse_r, hse_t)
+           call interpolate_sub(state(i,j,k,URHO), dist, idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), dist, itemp_model)
 
            do n= 1, nspec
-              state(i,j,k,UFS+n-1) = interpolate(dist, npts_model, hse_r, hse_s(n,:))
+              call interpolate_sub(state(i,j,k,UFS+n-1), dist, ispec_model-1+n)
            end do
 
         end do

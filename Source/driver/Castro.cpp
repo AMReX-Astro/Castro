@@ -1150,7 +1150,7 @@ Castro::initData ()
                                      AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
            }
 
-         // now copy back the averages for UEDEN and UTEMP only
+         // now copy back the averages for UEINT and UTEMP only
          MultiFab::Copy(S_new, Sborder, Eint, Eint, 1, 0);
          MultiFab::Copy(S_new, Sborder, Temp, Temp, 1, 0);
          Sborder.clear();
