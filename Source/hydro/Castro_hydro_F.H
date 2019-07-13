@@ -472,6 +472,9 @@ extern "C"
      BL_FORT_FAB_ARG_3D(q_bar),
      BL_FORT_FAB_ARG_3D(qaux),
      BL_FORT_FAB_ARG_3D(qaux_bar),
+#ifdef DIFFUSION
+     BL_FORT_FAB_ARG_3D(T_Cc),
+#endif
      const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update),
      const amrex::Real* dx, const amrex::Real* dt,
@@ -497,6 +500,14 @@ extern "C"
 #endif
      const BL_FORT_FAB_ARG_3D(volume),
      const int&  verbose);
+
+  void ca_mol_diffusive_flux
+    (const int* lo, const int* hi,
+     const int idir,
+     const BL_FORT_FAB_ARG_3D(U),
+     const BL_FORT_FAB_ARG_3D(cond),
+     BL_FORT_FAB_ARG_3D(flux),
+     const amrex::Real* dx);
 
 #ifndef AMREX_USE_CUDA
   void ca_sdc_update_advection_o2
