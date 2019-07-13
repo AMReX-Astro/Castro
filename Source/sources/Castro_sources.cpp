@@ -57,11 +57,13 @@ Castro::source_flag(int src)
 
 #ifdef DIFFUSION
     case diff_src:
-        if (diffuse_temp) {
-            return true;
+        if (diffuse_temp &&
+            !(time_integration_method == MethodOfLines ||
+              time_integration_method == SpectralDeferredCorrections)) {
+          return true;
         }
         else {
-            return false;
+          return false;
         }
 #endif
 
@@ -206,8 +208,12 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real
 
 #ifdef DIFFUSION
     case diff_src:
-	construct_old_diff_source(source, state_in, time, dt);
-	break;
+        if (!(time_integration_method == MethodOfLines ||
+              time_integration_method == SpectralDeferredCorrections)) {
+          // for MOL or SDC, we'll compute a diffusive flux in the MOL routine
+          construct_old_diff_source(source, state_in, time, dt);
+        }
+        break;
 #endif
 
 #ifdef HYBRID_MOMENTUM

@@ -8,8 +8,9 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   use eos_type_module, only: eos_t, eos_input_rt
   use eos_module, only : eos
   use network, only : nspec
+#ifdef DIFFUSION
   use conductivity_module
-
+#endif
   implicit none
 
   integer, intent(in) :: init, namlen
@@ -81,6 +82,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   call eos(eos_input_rt, eos_state)
 
+#ifdef DIFFUSION
   ! get the conductivity
   call conductivity(eos_state)
 
@@ -88,6 +90,9 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   ! gas, so c_v is constant, so find the rho that combines with
   ! the conductivity
   rho0 = eos_state % conductivity/(diff_coeff*eos_state % cv)
+#else
+  rho0 = 1.0_rt
+#endif
 
 end subroutine amrex_probinit
 

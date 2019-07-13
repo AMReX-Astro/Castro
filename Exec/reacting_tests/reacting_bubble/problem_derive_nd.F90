@@ -10,7 +10,6 @@ subroutine derpi(p, p_lo, p_hi, ncomp_p, &
   use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
 
   use probdata_module
-  use interpolate_module
   use model_parser_module
   use prob_params_module, only: problo
   use amrex_fort_module, only : rt => amrex_real
@@ -47,8 +46,7 @@ subroutine derpi(p, p_lo, p_hi, ncomp_p, &
         height = z
 #endif
 
-        pres = interpolate(height, npts_model, model_r, &
-                           model_state(:,ipres_model))
+        call interpolate_sub(pres, height, ipres_model)
 
         do i = lo(1), hi(1)
 
@@ -119,8 +117,7 @@ subroutine derpioverp0(p, p_lo, p_hi, ncomp_p, &
         height = z
 #endif
 
-        pres = interpolate(height, npts_model, model_r, &
-                           model_state(:,ipres_model))
+        call interpolate_sub(pres, height, ipres_model)
 
         do i = lo(1), hi(1)
 
@@ -186,8 +183,7 @@ subroutine derrhopert(p, p_lo, p_hi, ncomp_p, &
         height = z
 #endif
 
-        dens = interpolate(height, npts_model, model_r, &
-                           model_state(:,idens_model))
+        call interpolate_sub(dens, height, idens_model)
 
         do i = lo(1), hi(1)
            p(i,j,k,1) = u(i,j,k,URHO) - dens
@@ -244,8 +240,7 @@ subroutine dertpert(p, p_lo, p_hi, ncomp_p, &
         height = z
 #endif
 
-        temp = interpolate(height, npts_model, model_r, &
-                           model_state(:,itemp_model))
+        call interpolate_sub(temp, height, itemp_model)
 
         do i = lo(1), hi(1)
            p(i,j,k,1) = u(i,j,k,UTEMP) - temp
