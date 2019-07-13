@@ -17,7 +17,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer :: untin, i
 
-  namelist /fortin/ nx_model, dens_base, temp_base, pert_width
+  namelist /fortin/ nx_model, dens_base, temp_base, pert_width, do_pert
 
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
@@ -25,6 +25,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   type(model_t) :: model_params
 
   integer :: ihe4
+  integer :: nbuf
 
   ihe4 = network_species_index("helium-4")
   if (ihe4 < 0) then
@@ -45,6 +46,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   dens_base = ONE
   temp_base = ONE
   pert_width = ONE
+  do_pert = .true.
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -56,7 +58,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   model_params % xn(:) = 100*small_x
   model_params % xn(ihe4) = ONE - (nspec - 1) * 100*small_x
 
-  call generate_initial_model(nx_model, problo(AMREX_SPACEDIM), probhi(AMREX_SPACEDIM), model_params)
+  ! we add some buffer to the model so we can use it to fill ghost cells in the boundary conditions
+  nbuf = 8
+  call generate_initial_model(nx_model, problo(AMREX_SPACEDIM), probhi(AMREX_SPACEDIM), model_params, nbuf)
 
   center(:) = HALF * (problo(:) + probhi(:))
 
@@ -159,43 +163,45 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   ! Initial velocities = 0
   state(:,:,:,UMX:UMZ) = ZERO
 
-  ! Now add the perturbation
-  do k = lo(3), hi(3)
-     z = problo(3) + delta(3)*(dble(k) + HALF)
+  if (do_pert) then
 
-     do j = lo(2), hi(2)
-        y = problo(2) + delta(2)*(dble(j) + HALF)
+     ! Now add the perturbation
+     do k = lo(3), hi(3)
+        z = problo(3) + delta(3)*(dble(k) + HALF)
 
-        do i = lo(1), hi(1)
-           x = problo(1) + delta(1)*(dble(i) + HALF)
+        do j = lo(2), hi(2)
+           y = problo(2) + delta(2)*(dble(j) + HALF)
 
-           t0 = state(i,j,k,UTEMP)
+           do i = lo(1), hi(1)
+              x = problo(1) + delta(1)*(dble(i) + HALF)
 
-           r = sqrt((x-center(1))**2 + (y-center(2))**2 + (z-center(3))**2)
+              t0 = state(i,j,k,UTEMP)
 
-           state(i,j,k,UTEMP) = t0 * (ONE + 1.5_rt * exp(-(r/pert_width)**2))
+              r = sqrt((x-center(1))**2 + (y-center(2))**2 + (z-center(3))**2)
 
-           do n = 1,nspec
-              state(i,j,k,UFS+n-1) =  state(i,j,k,UFS+n-1) / state(i,j,k,URHO)
-           enddo
+              state(i,j,k,UTEMP) = t0 * (ONE + 1.5_rt * exp(-(r/pert_width)**2))
 
-           eos_state % T = state(i,j,k,UTEMP)
-           eos_state % p = temppres(i,j,k)
-           eos_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec)
+              do n = 1,nspec
+                 state(i,j,k,UFS+n-1) =  state(i,j,k,UFS+n-1) / state(i,j,k,URHO)
+              end do
 
-           call eos(eos_input_tp, eos_state)
+              eos_state % T = state(i,j,k,UTEMP)
+              eos_state % p = temppres(i,j,k)
+              eos_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec)
 
-           state(i,j,k,URHO) = eos_state%rho
+              call eos(eos_input_tp, eos_state)
 
-           state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
-           state(i,j,k,UEDEN) = state(i,j,k,UEINT)
+              state(i,j,k,URHO) = eos_state%rho
 
-           do n = 1,nspec
-              state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
-           enddo
+              state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
+              state(i,j,k,UEDEN) = state(i,j,k,UEINT)
 
-        enddo
-     enddo
-  enddo
+              do n = 1,nspec
+                 state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
+              end do
 
+           end do
+        end do
+     end do
+  end if
 end subroutine ca_initdata

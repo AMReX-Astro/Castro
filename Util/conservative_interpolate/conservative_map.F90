@@ -42,7 +42,9 @@ contains
 
     use meth_params_module, only : NVAR, URHO, UMX, UTEMP, UEDEN, UEINT, UFS
     use amrex_constants_module
+#ifndef AMREX_USE_CUDA
     use amrex_error_module
+#endif
 
     character(len=*), intent(in   ) :: model_file
 
@@ -67,7 +69,9 @@ contains
 
     if (ierr .ne. 0) then
        print *,'Couldnt open model_file: ',model_file
+#ifndef AMREX_USE_CUDA
        call amrex_error('Aborting now -- please supply model_file')
+#endif
     end if
 
     ! the first line has the number of points in the model
@@ -177,6 +181,7 @@ contains
 
        ! were all the variables we care about provided?
        if (i == 1) then
+#ifndef AMREX_USE_CUDA
           if (.not. found_dens) then
              call amrex_error("ERROR: density not provided in inputs file")
           end if
@@ -203,6 +208,7 @@ contains
                      ' not provided in inputs file')
              end if
           end do
+#endif
        end if
 
     end do   ! end loop over npts_model
@@ -251,7 +257,9 @@ contains
     ! are properly nested between the grid and the model.
 
     use amrex_constants_module, only : ZERO, HALF
+#ifndef AMREX_USE_CUDA
     use amrex_error_module, only : amrex_error
+#endif
     use amrex_fort_module, only : rt => amrex_real
 
     real(rt), intent(out) :: interp
@@ -285,7 +293,9 @@ contains
 
        if (abs(x_model_l - xl) < tol*xscale) then
           if (ileft > 0) then
+#ifndef AMREX_USE_CUDA
              call amrex_error("Error: ileft already set")
+#endif
           else
              ileft = n
           end if
@@ -293,7 +303,9 @@ contains
 
        if (abs(x_model_r - xr) < tol*abs(xr)) then
           if (iright > 0) then
+#ifndef AMREX_USE_CUDA
              call amrex_error("Error: iright already set")
+#endif
           else
              iright = n
           end if
@@ -304,6 +316,7 @@ contains
        end if
     end do
 
+#ifndef AMREX_USE_CUDA
     if (ileft == -1 .or. iright == -1) then
        call amrex_error("Error: ileft or iright not set")
     end if
@@ -311,6 +324,7 @@ contains
     if (iright < ileft) then
        call amrex_error("Error: iright < ileft")
     end if
+#endif
 
     npts = iright - ileft + 1
 
@@ -332,7 +346,9 @@ contains
     ! are properly nested between the grid and the model.
 
     use amrex_constants_module, only : ZERO, HALF, ONE, TWO
+#ifndef AMREX_USE_CUDA
     use amrex_error_module, only : amrex_error
+#endif
     use amrex_fort_module, only : rt => amrex_real
 
     real(rt), intent(out) :: interp
@@ -367,7 +383,9 @@ contains
 
        if (abs(x_model_l - xl) < tol*xscale) then
           if (ileft > 0) then
+#ifndef AMREX_USE_CUDA
              call amrex_error("Error: ileft already set")
+#endif
           else
              ileft = n
           end if
@@ -375,7 +393,9 @@ contains
 
        if (abs(x_model_r - xr) < tol*abs(xr)) then
           if (iright > 0) then
+#ifndef AMREX_USE_CUDA
              call amrex_error("Error: iright already set")
+#endif
           else
              iright = n
           end if
@@ -386,6 +406,7 @@ contains
        end if
     end do
 
+#ifndef AMREX_USE_CUDA
     if (ileft == -1 .or. iright == -1) then
        call amrex_error("Error: ileft or iright not set")
     end if
@@ -393,6 +414,7 @@ contains
     if (iright < ileft) then
        call amrex_error("Error: iright < ileft")
     end if
+#endif
 
     npts = iright - ileft + 1
 
