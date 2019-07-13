@@ -204,7 +204,7 @@ contains
 
           do comp = 1, nspec
              if (.not. found_spec(comp)) then
-                call castro_error("ERROR: " // trim(spec_names(comp)), &
+                call castro_error("ERROR: " // trim(spec_names(comp)) // &
                      ' not provided in inputs file')
              end if
           end do

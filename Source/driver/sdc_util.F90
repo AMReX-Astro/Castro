@@ -510,7 +510,8 @@ contains
                1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
 
     if (istate < 0) then
-       call castro_error("vode termination poorly, istate = ", istate)
+       print *, "VODE error, istate = ", istate
+       call castro_error("vode termination poorly")
     endif
 #endif
 
