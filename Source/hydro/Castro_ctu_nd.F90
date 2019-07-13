@@ -141,7 +141,8 @@ contains
 #if AMREX_SPACEDIM == 3
        else
           call trace_ppm_rad(lo, hi, &
-                             3, q, qd_lo, qd_hi, &
+                             3, &
+                             q, qd_lo, qd_hi, &
                              qaux, qa_lo, qa_hi, &
                              srcQ, src_lo, src_hi, &
                              flatn, f_lo, f_hi, &
@@ -171,7 +172,8 @@ contains
 #if AMREX_SPACEDIM >= 2
        else if (idir == 2) then
           call trace_ppm(lo, hi, &
-                         2, q, qd_lo, qd_hi, &
+                         2, &
+                         q, qd_lo, qd_hi, &
                          qaux, qa_lo, qa_hi, &
                          srcQ, src_lo, src_hi, &
                          flatn, f_lo, f_hi, &
@@ -187,7 +189,8 @@ contains
 #if AMREX_SPACEDIM == 3
        else
           call trace_ppm(lo, hi, &
-                         3, q, qd_lo, qd_hi, &
+                         3, &
+                         q, qd_lo, qd_hi, &
                          qaux, qa_lo, qa_hi, &
                          srcQ, src_lo, src_hi, &
                          flatn, f_lo, f_hi, &

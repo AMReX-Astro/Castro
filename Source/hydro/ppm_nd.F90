@@ -348,11 +348,8 @@ contains
 
           end if
 
-          ! right state at k-1/2
-          qp(nq,3) = sm
-
-          ! left state at k+1/2
-          qm(nq,3) = sp
+          qp(nq,3) = sp
+          qm(nq,3) = sm
 
        end do
     end if
