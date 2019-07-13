@@ -1,8 +1,8 @@
 Castro_fourth_order.F90
 =======================
 
-ca\_fourth\_single\_stage subroutine
-------------------------------------
+fourth\_order\_hydro
+--------------------
 
-.. f:autosubroutine:: ca_fourth_single_stage
+.. f:automodule:: fourth_order_hydro
 

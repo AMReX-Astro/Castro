@@ -236,6 +236,8 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="file/Castro_fourth_order_f.html#f/fourth_order_hydro/add_diffusive_flux"><strong>add_diffusive_flux() (fortran subroutine in module fourth_order_hydro)</strong></a>
+</li>
       <li><a href="file/hybrid_advection_nd_f.html#f/hybrid_advection_module/add_hybrid_advection_source"><strong>add_hybrid_advection_source() (fortran subroutine in module hybrid_advection_module)</strong></a>
 </li>
       <li><a href="file/hybrid_advection_nd_f.html#f/hybrid_advection_module/add_hybrid_momentum_source"><strong>add_hybrid_momentum_source() (fortran subroutine in module hybrid_advection_module)</strong></a>
@@ -632,7 +634,7 @@
 </li>
       <li><a href="file/MGFLD_1d_f.html#f/_/ca_flux_face2center"><strong>ca_flux_face2center() (fortran subroutine)</strong></a>, <a href="file/MGFLD_2d_f.html#f/_/ca_flux_face2center"><strong>[1]</strong></a>, <a href="file/MGFLD_3d_f.html#f/_/ca_flux_face2center"><strong>[2]</strong></a>
 </li>
-      <li><a href="file/Castro_fourth_order_f.html#f/_/ca_fourth_single_stage"><strong>ca_fourth_single_stage() (fortran subroutine)</strong></a>
+      <li><a href="file/Castro_fourth_order_f.html#f/fourth_order_hydro/ca_fourth_single_stage"><strong>ca_fourth_single_stage() (fortran subroutine in module fourth_order_hydro)</strong></a>
 </li>
       <li><a href="file/Castro__generic__fill_8H.html#_CPPv421ca_generic_multi_fillF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">ca_generic_multi_fill (C++ function)</a>
 </li>
@@ -726,11 +728,13 @@
 </li>
       <li><a href="file/fourth_order_f.html#f/fourth_order/ca_make_fourth_in_place_n"><strong>ca_make_fourth_in_place_n() (fortran subroutine in module fourth_order)</strong></a>
 </li>
-      <li><a href="file/Castro_mol_nd_f.html#f/_/ca_mol_consup"><strong>ca_mol_consup() (fortran subroutine)</strong></a>
+      <li><a href="file/Castro_mol_nd_f.html#f/castro_mol_module/ca_mol_consup"><strong>ca_mol_consup() (fortran subroutine in module castro_mol_module)</strong></a>
 </li>
-      <li><a href="file/Castro_mol_nd_f.html#f/_/ca_mol_plm_reconstruct"><strong>ca_mol_plm_reconstruct() (fortran subroutine)</strong></a>
+      <li><a href="file/Castro_mol_nd_f.html#f/castro_mol_module/ca_mol_diffusive_flux"><strong>ca_mol_diffusive_flux() (fortran subroutine in module castro_mol_module)</strong></a>
 </li>
-      <li><a href="file/Castro_mol_nd_f.html#f/_/ca_mol_ppm_reconstruct"><strong>ca_mol_ppm_reconstruct() (fortran subroutine)</strong></a>
+      <li><a href="file/Castro_mol_nd_f.html#f/castro_mol_module/ca_mol_plm_reconstruct"><strong>ca_mol_plm_reconstruct() (fortran subroutine in module castro_mol_module)</strong></a>
+</li>
+      <li><a href="file/Castro_mol_nd_f.html#f/castro_mol_module/ca_mol_ppm_reconstruct"><strong>ca_mol_ppm_reconstruct() (fortran subroutine in module castro_mol_module)</strong></a>
 </li>
       <li><a href="file/MGFLD_1d_f.html#f/_/ca_ncupdate_matter"><strong>ca_ncupdate_matter() (fortran subroutine)</strong></a>, <a href="file/MGFLD_2d_f.html#f/_/ca_ncupdate_matter"><strong>[1]</strong></a>, <a href="file/MGFLD_3d_f.html#f/_/ca_ncupdate_matter"><strong>[2]</strong></a>
 </li>
@@ -791,6 +795,8 @@
       <li><a href="file/React_nd_f.html#f/reactions_module/ca_react_state_simplified_sdc"><strong>ca_react_state_simplified_sdc() (fortran subroutine in module reactions_module)</strong></a>
 </li>
       <li><a href="file/Castro__bc__fill__nd_8H.html#_CPPv412ca_reactfillF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">ca_reactfill (C++ function)</a>
+</li>
+      <li><a href="file/Castro_util_f.html#f/castro_util_module/ca_recompute_energetics"><strong>ca_recompute_energetics() (fortran subroutine in module castro_util_module)</strong></a>
 </li>
       <li><a href="file/Castro_util_f.html#f/castro_util_module/ca_reset_internal_e"><strong>ca_reset_internal_e() (fortran subroutine in module castro_util_module)</strong></a>
 </li>
@@ -1000,6 +1006,8 @@
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.initial_dt</a>
 </li>
+      <li><a href="runtime_parameters.html#index-1">castro.initialization_is_cell_average</a>
+</li>
       <li><a href="runtime_parameters.html#index-10">castro.job_name</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.limit_fluxes_on_small_dens</a>
@@ -1085,6 +1093,8 @@
       <li><a href="runtime_parameters.html#index-8">castro.scf_polar_radius</a>
 </li>
       <li><a href="runtime_parameters.html#index-8">castro.scf_relax_tol</a>
+</li>
+      <li><a href="runtime_parameters.html#index-1">castro.sdc_extra</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.sdc_iters</a>
 </li>
@@ -1752,6 +1762,8 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro22swap_state_time_levelsEKN5amrex4RealE">Castro::swap_state_time_levels (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro22swap_state_time_levelsEKN5amrex4RealE">[1]</a>
 </li>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro4T_ccE">Castro::T_cc (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro4T_ccE">[1]</a>
+</li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro4TempE">Castro::Temp (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro4TempE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4NK6Castro15thePlotFileTypeEv">Castro::thePlotFileType (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4NK6Castro15thePlotFileTypeEv">[1]</a>
@@ -1807,6 +1819,8 @@
       <li><a href="class/classCastro.html#_CPPv4N6Castro4ZmomE">Castro::Zmom (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro4ZmomE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6CastroD0Ev">Castro::~Castro (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6CastroD0Ev">[1]</a>
+</li>
+      <li><a href="file/Castro_mol_nd_f.html#f/castro_mol_module"><strong>castro_mol_module (module)</strong></a>
 </li>
       <li><a href="file/sums_nd_f.html#f/castro_sums_module"><strong>castro_sums_module (module)</strong></a>
 </li>
@@ -1867,6 +1881,8 @@
       <li><a href="file/Castro__hydro_8H.html#_CPPv426construct_ctu_hydro_sourceN5amrex4RealEN5amrex4RealE">construct_ctu_hydro_source (C++ function)</a>
 </li>
       <li><a href="file/Castro__hydro_8H.html#_CPPv426construct_mol_hydro_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabE">construct_mol_hydro_source (C++ function)</a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/rpar_sdc_module/convergence_failure"><strong>convergence_failure (fortran variable in module rpar_sdc_module)</strong></a>
 </li>
       <li><a href="file/prob_params_f.html#f/prob_params_module/coord_type"><strong>coord_type (fortran variable in module prob_params_module)</strong></a>
 </li>
@@ -1970,6 +1986,8 @@
 </li>
       <li><a href="file/meth_params_f.html#f/meth_params_module/diffuse_cutoff_density_hi"><strong>diffuse_cutoff_density_hi (fortran variable in module meth_params_module)</strong></a>
 </li>
+      <li><a href="file/meth_params_f.html#f/meth_params_module/diffuse_temp"><strong>diffuse_temp (fortran variable in module meth_params_module)</strong></a>
+</li>
       <li><a href="class/classDiffusion.html#_CPPv49Diffusion">Diffusion (C++ class)</a>, <a href="file/Diffusion_8H.html#_CPPv49Diffusion">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-12">diffusion.mlmg_maxorder</a>
@@ -1986,10 +2004,10 @@
 </li>
       <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion5gridsE">Diffusion::grids (C++ member)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion5gridsE">[1]</a>
 </li>
-      <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion13install_levelEiPN5amrex8AmrLevelERN5amrex8MultiFabEPN5amrex8MultiFabE">Diffusion::install_level (C++ function)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion13install_levelEiPN5amrex8AmrLevelERN5amrex8MultiFabEPN5amrex8MultiFabE">[1]</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion13install_levelEiPN5amrex8AmrLevelERN5amrex8MultiFabEPN5amrex8MultiFabE">Diffusion::install_level (C++ function)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion13install_levelEiPN5amrex8AmrLevelERN5amrex8MultiFabEPN5amrex8MultiFabE">[1]</a>
+</li>
       <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion9LevelDataE">Diffusion::LevelData (C++ member)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion9LevelDataE">[1]</a>
 </li>
       <li><a href="class/classDiffusion.html#_CPPv4N9Diffusion10make_mg_bcEv">Diffusion::make_mg_bc (C++ function)</a>, <a href="file/Diffusion_8H.html#_CPPv4N9Diffusion10make_mg_bcEv">[1]</a>
@@ -2170,10 +2188,10 @@
 </li>
       <li><a href="file/filter_f.html#f/filter_module/ff4b0"><strong>ff4b0 (fortran variable in module filter_module)</strong></a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/filter_f.html#f/filter_module/ff4b1"><strong>ff4b1 (fortran variable in module filter_module)</strong></a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/filter_f.html#f/filter_module/ff4b2"><strong>ff4b2 (fortran variable in module filter_module)</strong></a>
 </li>
       <li><a href="file/filter_f.html#f/filter_module/ff4b3"><strong>ff4b3 (fortran variable in module filter_module)</strong></a>
@@ -2205,6 +2223,8 @@
       <li><a href="file/fluxlimiter_f.html#f/fluxlimiter_module"><strong>fluxlimiter_module (module)</strong></a>
 </li>
       <li><a href="file/fourth_order_f.html#f/fourth_order"><strong>fourth_order (module)</strong></a>
+</li>
+      <li><a href="file/Castro_fourth_order_f.html#f/fourth_order_hydro"><strong>fourth_order_hydro (module)</strong></a>
 </li>
       <li><a href="file/meth_params_f.html#f/meth_params_module/fspace_type"><strong>fspace_type (fortran variable in module meth_params_module)</strong></a>
 </li>
@@ -2530,6 +2550,8 @@
 </li>
       <li><a href="file/meth_params_f.html#f/meth_params_module/hybrid_riemann"><strong>hybrid_riemann (fortran variable in module meth_params_module)</strong></a>
 </li>
+      <li><a href="file/sdc_util_f.html#f/rpar_sdc_module/hybrid_solve"><strong>hybrid_solve (fortran variable in module rpar_sdc_module)</strong></a>
+</li>
       <li><a href="file/Castro_8H.html#_CPPv410hybrid_src">hybrid_src (C++ enumerator)</a>
 </li>
       <li><a href="file/hybrid_advection_nd_f.html#f/hybrid_advection_module/hybrid_to_linear"><strong>hybrid_to_linear() (fortran function in module hybrid_advection_module)</strong></a>
@@ -2590,10 +2612,10 @@
 </li>
       <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec8getBndryEv">HypreABec::getBndry (C++ function)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec8getBndryEv">[1]</a>
 </li>
-      <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec13getFaceMetricERN5amrex6VectorIN5amrex4RealEEERKN5amrex3BoxERKN5amrex11OrientationERKN5amrex8GeometryE">HypreABec::getFaceMetric (C++ function)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec13getFaceMetricERN5amrex6VectorIN5amrex4RealEEERKN5amrex3BoxERKN5amrex11OrientationERKN5amrex8GeometryE">[1]</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec13getFaceMetricERN5amrex6VectorIN5amrex4RealEEERKN5amrex3BoxERKN5amrex11OrientationERKN5amrex8GeometryE">HypreABec::getFaceMetric (C++ function)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec13getFaceMetricERN5amrex6VectorIN5amrex4RealEEERKN5amrex3BoxERKN5amrex11OrientationERKN5amrex8GeometryE">[1]</a>
+</li>
       <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec5hgridE">HypreABec::hgrid (C++ member)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec5hgridE">[1]</a>
 </li>
       <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec9HypreABecERKN5amrex8BoxArrayERKN5amrex19DistributionMappingERKN5amrex8GeometryEi">HypreABec::HypreABec (C++ function)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec9HypreABecERKN5amrex8BoxArrayERKN5amrex19DistributionMappingERKN5amrex8GeometryEi">[1]</a>
@@ -2916,6 +2938,10 @@
 </li>
       <li><a href="file/Radiation_8H.html#_CPPv48Neutrino">Neutrino (C++ enumerator)</a>
 </li>
+      <li><a href="file/sdc_util_f.html#f/rpar_sdc_module/newton_solve"><strong>newton_solve (fortran variable in module rpar_sdc_module)</strong></a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/rpar_sdc_module/newton_success"><strong>newton_success (fortran variable in module rpar_sdc_module)</strong></a>
+</li>
       <li><a href="file/rad_params_f.html#f/rad_params_module/ng0"><strong>ng0 (fortran variable in module rad_params_module)</strong></a>
 </li>
       <li><a href="file/rad_params_f.html#f/rad_params_module/ng1"><strong>ng1 (fortran variable in module rad_params_module)</strong></a>
@@ -2924,10 +2950,10 @@
 </li>
       <li><a href="class/classNGBndry.html#_CPPv4N7NGBndry11bctypearrayE">NGBndry::bctypearray (C++ member)</a>, <a href="file/NGBndry_8H.html#_CPPv4N7NGBndry11bctypearrayE">[1]</a>
 </li>
-      <li><a href="class/classNGBndry.html#_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE">NGBndry::bndryTypes (C++ function)</a>, <a href="file/NGBndry_8H.html#_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE">[1]</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="class/classNGBndry.html#_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE">NGBndry::bndryTypes (C++ function)</a>, <a href="file/NGBndry_8H.html#_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE">[1]</a>
+</li>
       <li><a href="class/classNGBndry.html#_CPPv4NK7NGBndry10mixedBndryERKN5amrex11OrientationE">NGBndry::mixedBndry (C++ function)</a>, <a href="file/NGBndry_8H.html#_CPPv4NK7NGBndry10mixedBndryERKN5amrex11OrientationE">[1]</a>
 </li>
       <li><a href="class/classNGBndry.html#_CPPv4N7NGBndry7NGBndryERK7NGBndry">NGBndry::NGBndry (C++ function)</a>, <a href="class/classNGBndry.html#_CPPv4N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE">[1]</a>, <a href="file/NGBndry_8H.html#_CPPv4N7NGBndry7NGBndryERK7NGBndry">[2]</a>, <a href="file/NGBndry_8H.html#_CPPv4N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE">[3]</a>
@@ -3856,6 +3882,12 @@
 </li>
       <li><a href="file/scf_relaxation_f.html#f/scf_relaxation_module/scf_update_for_omegasq"><strong>scf_update_for_omegasq() (fortran subroutine in module scf_relaxation_module)</strong></a>
 </li>
+      <li><a href="file/meth_params_f.html#f/meth_params_module/sdc_extra"><strong>sdc_extra (fortran variable in module meth_params_module)</strong></a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/sdc_newton_solve"><strong>sdc_newton_solve() (fortran subroutine in module sdc_util)</strong></a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/sdc_newton_subdivide"><strong>sdc_newton_subdivide() (fortran subroutine in module sdc_util)</strong></a>
+</li>
       <li><a href="file/meth_params_f.html#f/meth_params_module/sdc_order"><strong>sdc_order (fortran variable in module meth_params_module)</strong></a>
 </li>
       <li><a href="file/sdc_util_f.html#f/sdc_util/sdc_solve"><strong>sdc_solve() (fortran subroutine in module sdc_util)</strong></a>
@@ -3877,6 +3909,8 @@
       <li><a href="file/meth_params_f.html#f/meth_params_module/sdc_use_analytic_jac"><strong>sdc_use_analytic_jac (fortran variable in module meth_params_module)</strong></a>
 </li>
       <li><a href="file/sdc_util_f.html#f/sdc_util"><strong>sdc_util (module)</strong></a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/sdc_vode_solve"><strong>sdc_vode_solve() (fortran subroutine in module sdc_util)</strong></a>
 </li>
       <li><a href="file/Castro__generic__fill_8H.html#_CPPv420set_bc_launch_configv">set_bc_launch_config (C++ function)</a>
 </li>
@@ -3902,13 +3936,15 @@
 </li>
       <li><a href="file/Castro_8H.html#_CPPv437SimplifiedSpectralDeferredCorrections">SimplifiedSpectralDeferredCorrections (C++ enumerator)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/react_util_f.html#f/react_util_module/single_zone_jac"><strong>single_zone_jac() (fortran subroutine in module react_util_module)</strong></a>
 </li>
       <li><a href="file/react_util_f.html#f/react_util_module/single_zone_react_source"><strong>single_zone_react_source() (fortran subroutine in module react_util_module)</strong></a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/Radiation_8H.html#_CPPv417SingleGroupSolver">SingleGroupSolver (C++ enumerator)</a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/rpar_sdc_module/singular_matrix"><strong>singular_matrix (fortran variable in module rpar_sdc_module)</strong></a>
 </li>
       <li><a href="file/prob_params_f.html#f/prob_params_module/slipwall"><strong>slipwall (fortran variable in module prob_params_module)</strong></a>
 </li>
@@ -4240,9 +4276,11 @@
 </li>
       <li><a href="file/Tagging_nd_f.html#f/tagging_module/velgrad"><strong>velgrad (fortran variable in module tagging_module)</strong></a>
 </li>
+      <li><a href="file/Tagging_nd_f.html#f/tagging_module/velgrad_rel"><strong>velgrad_rel (fortran variable in module tagging_module)</strong></a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="file/Tagging_nd_f.html#f/tagging_module/velgrad_rel"><strong>velgrad_rel (fortran variable in module tagging_module)</strong></a>
+      <li><a href="file/sdc_util_f.html#f/rpar_sdc_module/vode_solve"><strong>vode_solve (fortran variable in module rpar_sdc_module)</strong></a>
 </li>
       <li><a href="file/Castro_util_f.html#f/castro_util_module/volume"><strong>volume() (fortran function in module castro_util_module)</strong></a>
 </li>

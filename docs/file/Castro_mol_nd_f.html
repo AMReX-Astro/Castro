@@ -134,9 +134,7 @@
 <li class="toctree-l3"><a class="reference internal" href="Castro_fourth_order_f.html">Castro_fourth_order.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Castro_mol_nd.F90</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#ca-mol-plm-reconstruct-subroutine">ca_mol_plm_reconstruct subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-mol-ppm-reconstruct-subroutine">ca_mol_ppm_reconstruct subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-mol-consup-subroutine">ca_mol_consup subroutine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#f/castro_mol_module">castro_mol_module</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
@@ -236,11 +234,21 @@
             
   <div class="section" id="castro-mol-nd-f90">
 <h1>Castro_mol_nd.F90<a class="headerlink" href="#castro-mol-nd-f90" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="ca-mol-plm-reconstruct-subroutine">
-<h2>ca_mol_plm_reconstruct subroutine<a class="headerlink" href="#ca-mol-plm-reconstruct-subroutine" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="f/castro_mol_module">
+<span id="castro-mol-module"></span><h2>castro_mol_module<a class="headerlink" href="#f/castro_mol_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/castro_mol_module/ca_mol_consup" title="f/castro_mol_module/ca_mol_consup"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_mol_consup()</span></code></a>, <a class="reference internal" href="#f/castro_mol_module/ca_mol_diffusive_flux" title="f/castro_mol_module/ca_mol_diffusive_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_mol_diffusive_flux()</span></code></a>, <a class="reference internal" href="#f/castro_mol_module/ca_mol_plm_reconstruct" title="f/castro_mol_module/ca_mol_plm_reconstruct"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_mol_plm_reconstruct()</span></code></a>, <a class="reference internal" href="#f/castro_mol_module/ca_mol_ppm_reconstruct" title="f/castro_mol_module/ca_mol_ppm_reconstruct"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_mol_ppm_reconstruct()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Subroutines and functions</p>
 <dl class="subroutine">
-<dt id="f/_/ca_mol_plm_reconstruct">
-<em class="property">subroutine  </em><code class="descname">ca_mol_plm_reconstruct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>flatn</em>, <em>fl_lo</em>, <em>fl_hi</em>, <em>dq</em>, <em>dq_lo</em>, <em>dq_hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_mol_plm_reconstruct" title="Permalink to this definition">¶</a></dt>
+<dt id="f/castro_mol_module/ca_mol_plm_reconstruct">
+<em class="property">subroutine  </em><code class="descclassname">castro_mol_module/</code><code class="descname">ca_mol_plm_reconstruct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>flatn</em>, <em>fl_lo</em>, <em>fl_hi</em>, <em>dq</em>, <em>dq_lo</em>, <em>dq_hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/castro_mol_module/ca_mol_plm_reconstruct" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -277,12 +285,9 @@
 </table>
 </dd></dl>
 
-</div>
-<div class="section" id="ca-mol-ppm-reconstruct-subroutine">
-<h2>ca_mol_ppm_reconstruct subroutine<a class="headerlink" href="#ca-mol-ppm-reconstruct-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_mol_ppm_reconstruct">
-<em class="property">subroutine  </em><code class="descname">ca_mol_ppm_reconstruct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>flatn</em>, <em>fl_lo</em>, <em>fl_hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_mol_ppm_reconstruct" title="Permalink to this definition">¶</a></dt>
+<dt id="f/castro_mol_module/ca_mol_ppm_reconstruct">
+<em class="property">subroutine  </em><code class="descclassname">castro_mol_module/</code><code class="descname">ca_mol_ppm_reconstruct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>flatn</em>, <em>fl_lo</em>, <em>fl_hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/castro_mol_module/ca_mol_ppm_reconstruct" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -316,12 +321,9 @@
 </table>
 </dd></dl>
 
-</div>
-<div class="section" id="ca-mol-consup-subroutine">
-<h2>ca_mol_consup subroutine<a class="headerlink" href="#ca-mol-consup-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_mol_consup">
-<em class="property">subroutine  </em><code class="descname">ca_mol_consup</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>uin</em>, <em>uin_lo</em>, <em>uin_hi</em>, <em>uout</em>, <em>uout_lo</em>, <em>uout_hi</em>, <em>srcu</em>, <em>sru_lo</em>, <em>sru_hi</em>, <em>update</em>, <em>updt_lo</em>, <em>updt_hi</em>, <em>dx</em>, <em>dt</em>, <em>flux1</em>, <em>flux1_lo</em>, <em>flux1_hi</em>, <em>flux2</em>, <em>flux2_lo</em>, <em>flux2_hi</em>, <em>flux3</em>, <em>flux3_lo</em>, <em>flux3_hi</em>, <em>area1</em>, <em>area1_lo</em>, <em>area1_hi</em>, <em>area2</em>, <em>area2_lo</em>, <em>area2_hi</em>, <em>area3</em>, <em>area3_lo</em>, <em>area3_hi</em>, <em>q1</em>, <em>q1_lo</em>, <em>q1_hi</em>, <em>q2</em>, <em>q2_lo</em>, <em>q2_hi</em>, <em>q3</em>, <em>q3_lo</em>, <em>q3_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_mol_consup" title="Permalink to this definition">¶</a></dt>
+<dt id="f/castro_mol_module/ca_mol_consup">
+<em class="property">subroutine  </em><code class="descclassname">castro_mol_module/</code><code class="descname">ca_mol_consup</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>uin</em>, <em>uin_lo</em>, <em>uin_hi</em>, <em>uout</em>, <em>uout_lo</em>, <em>uout_hi</em>, <em>srcu</em>, <em>sru_lo</em>, <em>sru_hi</em>, <em>update</em>, <em>updt_lo</em>, <em>updt_hi</em>, <em>dx</em>, <em>dt</em>, <em>flux1</em>, <em>flux1_lo</em>, <em>flux1_hi</em>, <em>flux2</em>, <em>flux2_lo</em>, <em>flux2_hi</em>, <em>flux3</em>, <em>flux3_lo</em>, <em>flux3_hi</em>, <em>area1</em>, <em>area1_lo</em>, <em>area1_hi</em>, <em>area2</em>, <em>area2_lo</em>, <em>area2_hi</em>, <em>area3</em>, <em>area3_lo</em>, <em>area3_hi</em>, <em>q1</em>, <em>q1_lo</em>, <em>q1_hi</em>, <em>q2</em>, <em>q2_lo</em>, <em>q2_hi</em>, <em>q3</em>, <em>q3_lo</em>, <em>q3_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/castro_mol_module/ca_mol_consup" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -380,6 +382,37 @@
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module/add_hybrid_advection_source" title="f/hybrid_advection_module/add_hybrid_advection_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">add_hybrid_advection_source()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/castro_mol_module/ca_mol_diffusive_flux">
+<em class="property">subroutine  </em><code class="descclassname">castro_mol_module/</code><code class="descname">ca_mol_diffusive_flux</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>idir</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>cond</em>, <em>c_lo</em>, <em>c_hi</em>, <em>flux</em>, <em>f_lo</em>, <em>f_hi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/castro_mol_module/ca_mol_diffusive_flux" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>cond</strong> (c_hi(1)-(c_lo(1))+1,c_hi(2)-(c_lo(2))+1,c_hi(3)-(c_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux</strong> (f_hi(1)-(f_lo(1))+1,f_hi(2)-(f_lo(2))+1,f_hi(3)-(f_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>f_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_error_module</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/utemp" title="f/meth_params_module/utemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueint" title="f/meth_params_module/ueint"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueden" title="f/meth_params_module/ueden"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
 </tr>
 </tbody>
