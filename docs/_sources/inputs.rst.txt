@@ -39,7 +39,7 @@ There are three several Fortran namelists that can be defined in the
 ``probin`` file:
 
   * ``&fortin`` is the main namelist read by the problem’s
-    ``probinit`` subroutine in the ``Prob_?d.F90`` file.
+    ``probinit`` subroutine in the ``Prob_nd.F90`` file.
 
   * ``&extern`` is used to set different microphysics options
 
