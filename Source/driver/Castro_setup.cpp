@@ -563,15 +563,6 @@ Castro::variableSetUp ()
     state_type_source_names[i] = name[i] + "_source";
     source_bcs[i] = bcs[i];
 
-    // Replace inflow BCs with FOEXTRAP.
-
-    for (int j = 0; j < AMREX_SPACEDIM; ++j) {
-        if (source_bcs[i].lo(j) == EXT_DIR)
-            source_bcs[i].setLo(j, FOEXTRAP);
-
-        if (source_bcs[i].hi(j) == EXT_DIR)
-            source_bcs[i].setHi(j, FOEXTRAP);
-    }
   }
 
   desc_lst.setComponent(Source_Type,Density,state_type_source_names,source_bcs,
@@ -595,16 +586,6 @@ Castro::variableSetUp ()
           char buf[64];
           sprintf(buf, "sdc_react_source_%d", i);
           set_scalar_bc(bc,phys_bc);
-
-          // Replace inflow BCs with FOEXTRAP.
-
-          for (int j = 0; j < AMREX_SPACEDIM; ++j) {
-              if (bc.lo(j) == EXT_DIR)
-                  bc.setLo(j, FOEXTRAP);
-
-              if (bc.hi(j) == EXT_DIR)
-                  bc.setHi(j, FOEXTRAP);
-          }
 
           desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
       }
