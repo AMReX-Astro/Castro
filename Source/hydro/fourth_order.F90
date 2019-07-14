@@ -715,7 +715,10 @@ contains
     lapy = ZERO
     lapz = ZERO
 
-    ! we use 2nd-order accurate one-sided stencils at the physical boundaries
+    ! we use 2nd-order accurate one-sided stencils at the physical
+    ! boundaries note: this differs from the suggestion in MC2011 --
+    ! they just suggest using the Laplacian from +1 off the interior.
+    ! I like the one-sided better.
 
     if (i == domlo(1) .and. physbc_lo(1) /= Interior) then
        lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i+1,j,k,n) + 4.0_rt*a(i+2,j,k,n) - a(i+3,j,k,n)
