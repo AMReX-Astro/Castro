@@ -53,7 +53,7 @@ extern "C"
     ext_fill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
              adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
              AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
+             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
 
 #ifdef AMREX_USE_CUDA
     clean_bc(bc_f);
