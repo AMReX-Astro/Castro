@@ -1,4 +1,4 @@
-M! advection routines in support of method of lines integration
+! advection routines in support of method of lines integration
 !
 
 module castro_mol_module
