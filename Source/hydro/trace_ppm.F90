@@ -460,29 +460,21 @@ contains
              end do
 
 
-             if (ppm_temp_fix /= 1) then
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
-
-                call ppm_int_profile(i, j, k, &
+             call ca_ppm_reconstruct(i, j, k, &
                                      idir, &
-                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
+                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
+                                     flatn, f_lo, f_hi, &
                                      sm, sp, &
-                                     Ip_gc, Im_gc, 1, 1, &
-                                     dx, dt)
-             else
+                                     1, 1, 1)
 
-                ! temperature-based PPM
-                call ppm_reconstruct_with_eos(Ip, Im, &
-                                              Ip_gc, Im_gc)
-
-             end if
+             call ppm_int_profile(i, j, k, &
+                                  idir, &
+                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
+                                  q, qd_lo, qd_hi, &
+                                  qaux, qa_lo, qa_hi, &
+                                  sm, sp, &
+                                  Ip_gc, Im_gc, 1, 1, &
+                                  dx, dt)
 
 
              ! source terms
