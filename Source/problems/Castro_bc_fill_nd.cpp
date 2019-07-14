@@ -245,6 +245,7 @@ extern "C"
     clean_bc_launch_config();
 #endif
 
+#pragma gpu
     ext_gravzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   grav, AMREX_INT_ANYD(grav_lo), AMREX_INT_ANYD(grav_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
