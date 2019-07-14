@@ -120,7 +120,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use probdata_module
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
   use amrex_fort_module, only: rt => amrex_real
-  use castro_error_module, only: amrex_abort
+  use castro_error_module, only: castro_error
 
   implicit none
 
@@ -200,7 +200,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               endif
               
            else
-              call amrex_abort('invalid idir')
+              call castro_error('invalid idir')
            endif
  
            state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt

@@ -118,7 +118,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        state, s_lo, s_hi, &
                        dx, xlo, xhi)
 
-  use castro_error_module, only: amrex_abort
+  use castro_error_module, only: castro_error
   use amrex_fort_module, only: rt => amrex_real
   use network, only: nspec
   use probdata_module
@@ -202,7 +202,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               endif
               
            else
-              call amrex_abort('invalid idir')
+              call castro_error('invalid idir')
            endif
  
            state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
