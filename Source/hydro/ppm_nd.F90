@@ -31,7 +31,7 @@ contains
 
 
 #ifndef AMREX_USE_GPU
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use prob_params_module, only : dim
 
@@ -63,7 +63,7 @@ contains
 
 #ifndef AMREX_USE_GPU
     if (nend - nstart /= nqend - nqstart) then
-       call amrex_error("Number of components do not match in ca_ppm_reconstruct")
+       call castro_error("Number of components do not match in ca_ppm_reconstruct")
     end if
 #endif
 

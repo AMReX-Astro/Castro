@@ -15,7 +15,7 @@ contains
                                     qp, qp_lo, qp_hi, &
                                     dx) bind(C, name="ca_mol_plm_reconstruct")
 
-    use amrex_error_module
+    use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
                                    use_flattening, QPRES, &
@@ -165,7 +165,7 @@ contains
                                     qp, qp_lo, qp_hi, &
                                     dx) bind(C, name="ca_mol_ppm_reconstruct")
 
-    use amrex_error_module
+    use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
                                    use_flattening, QPRES, &
@@ -315,7 +315,7 @@ contains
 #endif
                            vol, vol_lo, vol_hi) bind(C, name="ca_mol_consup")
 
-    use amrex_error_module
+    use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
                                    use_flattening, QPRES, &
@@ -450,7 +450,7 @@ contains
                                    flux, f_lo, f_hi, &
                                    dx) bind(C, name="ca_mol_diffusive_flux")
 
-    use amrex_error_module
+    use castro_error_module
     use meth_params_module, only : NVAR, UTEMP, UEINT, UEDEN
     use amrex_constants_module, only : HALF
     use amrex_fort_module, only : rt => amrex_real

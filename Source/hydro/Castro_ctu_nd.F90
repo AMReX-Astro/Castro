@@ -3,7 +3,7 @@ module ctu_module
   ! advection routines in support of the CTU unsplit advection scheme
 
   use amrex_constants_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -311,7 +311,7 @@ contains
 
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
-    call amrex_error("ppm_type <=0 is not supported in with radiation")
+    call castro_error("ppm_type <=0 is not supported in with radiation")
 #endif
 #endif
 

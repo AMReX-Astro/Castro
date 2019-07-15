@@ -2,7 +2,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   use eos_module
   use eos_type_module
-  use amrex_error_module
+  use castro_error_module
   use network
   use probdata_module
   use extern_probin_module
@@ -37,7 +37,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error("probin file name too long")
+     call castro_error("probin file name too long")
   end if
 
   do i = 1, namlen
@@ -101,7 +101,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   iash4 = network_species_index(ash4_name)
 
   if (iash1 < 0 .and. iash2 < 0 .and. iash3 < 0 .and. iash4 < 0) then
-     call amrex_error("no valid ash state defined")
+     call castro_error("no valid ash state defined")
   endif
 
   ! fuel state
@@ -208,7 +208,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_type_module
   use eos_module
   use amrex_constants_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   use conservative_map_module, only : interpolate_conservative, interpolate_avg_to_center
 

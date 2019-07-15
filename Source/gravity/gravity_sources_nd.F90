@@ -19,7 +19,7 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
     use castro_util_module, only: position ! function
@@ -147,7 +147,7 @@ contains
 #ifndef AMREX_USE_CUDA
              else
 
-                call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+                call castro_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
 #endif
 
              end if
@@ -189,7 +189,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
@@ -495,7 +495,7 @@ contains
 #ifndef AMREX_USE_CUDA
              else
 
-                call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+                call castro_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
 #endif
              end if
 
