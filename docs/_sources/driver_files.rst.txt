@@ -5,6 +5,7 @@ Driver
    :maxdepth: 2
 
    file/Castro_8H
+   file/Castro_error_f
    file/Castro__generic__fill_8H
    file/Castro__io_8H
    file/Castro_nd_f
