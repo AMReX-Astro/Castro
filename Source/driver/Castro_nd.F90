@@ -583,7 +583,6 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 
   integer :: iadv, ispec
 
-  integer :: i
   integer :: ioproc
 
 
