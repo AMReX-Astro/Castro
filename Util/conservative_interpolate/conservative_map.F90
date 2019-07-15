@@ -43,7 +43,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UMX, UTEMP, UEDEN, UEINT, UFS
     use amrex_constants_module
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module
+    use castro_error_module
 #endif
 
     character(len=*), intent(in   ) :: model_file
@@ -70,7 +70,7 @@ contains
     if (ierr .ne. 0) then
        print *,'Couldnt open model_file: ',model_file
 #ifndef AMREX_USE_CUDA
-       call amrex_error('Aborting now -- please supply model_file')
+       call castro_error('Aborting now -- please supply model_file')
 #endif
     end if
 
@@ -183,28 +183,28 @@ contains
        if (i == 1) then
 #ifndef AMREX_USE_CUDA
           if (.not. found_dens) then
-             call amrex_error("ERROR: density not provided in inputs file")
+             call castro_error("ERROR: density not provided in inputs file")
           end if
 
           if (.not. found_xmom) then
-             call amrex_error("ERROR: x-momentum not provided in inputs file")
+             call castro_error("ERROR: x-momentum not provided in inputs file")
           end if
 
           if (.not. found_rho_E) then
-             call amrex_error("ERROR: rho_E not provided in inputs file")
+             call castro_error("ERROR: rho_E not provided in inputs file")
           end if
 
           if (.not. found_rho_eint) then
-             call amrex_error("ERROR: rho_e not provided in inputs file")
+             call castro_error("ERROR: rho_e not provided in inputs file")
           end if
 
           if (.not. found_temp) then
-             call amrex_error("ERROR: Temp not provided in inputs file")
+             call castro_error("ERROR: Temp not provided in inputs file")
           end if
 
           do comp = 1, nspec
              if (.not. found_spec(comp)) then
-                call amrex_error("ERROR: " // trim(spec_names(comp)), &
+                call castro_error("ERROR: " // trim(spec_names(comp)) // &
                      ' not provided in inputs file')
              end if
           end do
@@ -258,7 +258,7 @@ contains
 
     use amrex_constants_module, only : ZERO, HALF
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only : amrex_error
+    use castro_error_module, only : castro_error
 #endif
     use amrex_fort_module, only : rt => amrex_real
 
@@ -294,7 +294,7 @@ contains
        if (abs(x_model_l - xl) < tol*xscale) then
           if (ileft > 0) then
 #ifndef AMREX_USE_CUDA
-             call amrex_error("Error: ileft already set")
+             call castro_error("Error: ileft already set")
 #endif
           else
              ileft = n
@@ -304,7 +304,7 @@ contains
        if (abs(x_model_r - xr) < tol*abs(xr)) then
           if (iright > 0) then
 #ifndef AMREX_USE_CUDA
-             call amrex_error("Error: iright already set")
+             call castro_error("Error: iright already set")
 #endif
           else
              iright = n
@@ -318,11 +318,11 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (ileft == -1 .or. iright == -1) then
-       call amrex_error("Error: ileft or iright not set")
+       call castro_error("Error: ileft or iright not set")
     end if
 
     if (iright < ileft) then
-       call amrex_error("Error: iright < ileft")
+       call castro_error("Error: iright < ileft")
     end if
 #endif
 
@@ -347,7 +347,7 @@ contains
 
     use amrex_constants_module, only : ZERO, HALF, ONE, TWO
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only : amrex_error
+    use castro_error_module, only : castro_error
 #endif
     use amrex_fort_module, only : rt => amrex_real
 
@@ -384,7 +384,7 @@ contains
        if (abs(x_model_l - xl) < tol*xscale) then
           if (ileft > 0) then
 #ifndef AMREX_USE_CUDA
-             call amrex_error("Error: ileft already set")
+             call castro_error("Error: ileft already set")
 #endif
           else
              ileft = n
@@ -394,7 +394,7 @@ contains
        if (abs(x_model_r - xr) < tol*abs(xr)) then
           if (iright > 0) then
 #ifndef AMREX_USE_CUDA
-             call amrex_error("Error: iright already set")
+             call castro_error("Error: iright already set")
 #endif
           else
              iright = n
@@ -408,11 +408,11 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (ileft == -1 .or. iright == -1) then
-       call amrex_error("Error: ileft or iright not set")
+       call castro_error("Error: ileft or iright not set")
     end if
 
     if (iright < ileft) then
-       call amrex_error("Error: iright < ileft")
+       call castro_error("Error: iright < ileft")
     end if
 #endif
 

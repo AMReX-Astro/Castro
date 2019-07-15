@@ -4,7 +4,7 @@ module trace_ppm_module
   ! profiles in each zone to the edge / half-time.
 
   use prob_params_module, only : dg
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module, only : ZERO, HALF, ONE
 
@@ -322,7 +322,7 @@ contains
 #ifndef AMREX_USE_CUDA
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call amrex_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
+       call castro_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
     end if
 #endif
 
@@ -783,7 +783,7 @@ contains
 #ifndef AMREX_USE_CUDA
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call amrex_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
+       call castro_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
     end if
 #endif
 
@@ -1273,7 +1273,7 @@ contains
 #ifndef AMREX_USE_CUDA
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call amrex_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
+       call castro_error("Error:: trace_ppm_nd.f90 :: tracexy_ppm")
     end if
 #endif
 

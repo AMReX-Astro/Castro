@@ -59,7 +59,7 @@ contains
   subroutine read_model_file(model_file)
 
     use amrex_constants_module
-    use amrex_error_module
+    use castro_error_module
 
     character(len=*), intent(in   ) :: model_file
 
@@ -83,7 +83,7 @@ contains
 
     if (ierr .ne. 0) then
        print *,'Couldnt open model_file: ',model_file
-       call amrex_error('Aborting now -- please supply model_file')
+       call castro_error('Aborting now -- please supply model_file')
     end if
 
     ! the first line has the number of points in the model

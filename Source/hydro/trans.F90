@@ -1,6 +1,6 @@
 module transverse_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   use prob_params_module, only : dg
 

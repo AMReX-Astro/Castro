@@ -4,7 +4,7 @@
 module trace_ppm_rad_module
 
   use prob_params_module, only : dg
-  use amrex_error_module, only : amrex_error
+  use castro_error_module, only : castro_error
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -133,7 +133,7 @@ contains
 
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call amrex_error("Error:: trace_ppm_rad_nd.f90 :: tracexy_ppm_rad")
+       call castro_error("Error:: trace_ppm_rad_nd.f90 :: tracexy_ppm_rad")
     end if
 
     hdt = HALF * dt
