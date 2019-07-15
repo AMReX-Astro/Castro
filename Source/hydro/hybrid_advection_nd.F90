@@ -197,7 +197,7 @@ contains
 
     use meth_params_module, only: NVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, UMR, UML, UMP
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use prob_params_module, only: center
     use castro_util_module, only: position ! function
@@ -236,7 +236,7 @@ contains
        u_adv = state(GDW)
 #ifndef AMREX_USE_CUDA
     else
-       call amrex_error("Error: unknown direction in compute_hybrid_flux.")
+       call castro_error("Error: unknown direction in compute_hybrid_flux.")
 #endif
     endif
 
@@ -267,7 +267,7 @@ contains
 #ifndef AMREX_USE_CUDA
     else
 
-       call amrex_error("Error: unknown direction in compute_hybrid_flux.")
+       call castro_error("Error: unknown direction in compute_hybrid_flux.")
 #endif
     endif
 

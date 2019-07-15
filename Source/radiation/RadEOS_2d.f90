@@ -190,7 +190,7 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UFS, UFX, &
        small_temp
 
-  use amrex_error_module, only : amrex_error
+  use castro_error_module, only : castro_error
   use amrex_fort_module, only : rt => amrex_real
   implicit none
   integer         , intent(in) :: lo(2), hi(2)
@@ -230,7 +230,7 @@ subroutine ca_compute_temp_given_reye(lo, hi, &
 
            if(temp(i,j).lt.0.e0_rt) then
               print*,'negative temp in compute_temp_given_reye ', temp(i,j)
-              call amrex_error("Error :: ca_compute_temp_given_reye")
+              call castro_error("Error :: ca_compute_temp_given_reye")
            endif
 
         end if

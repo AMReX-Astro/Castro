@@ -146,21 +146,21 @@ Castro::do_advance_sdc (Real time,
       // will be used to advance us to the next node the new time
 
 
-    // Construct the primitive variables.
-    if (do_hydro) {
+      // Construct the primitive variables.
       if (sdc_order == 4) {
         cons_to_prim_fourth(time);
       } else {
         cons_to_prim(time);
       }
 
-      // Check for CFL violations.
-      check_for_cfl_violation(dt);
+      if (do_hydro) {
+        // Check for CFL violations.
+        check_for_cfl_violation(dt);
 
-      // If we detect one, return immediately.
-      if (cfl_violation)
-        return dt;
-    }
+        // If we detect one, return immediately.
+        if (cfl_violation)
+          return dt;
+      }
 
       // construct the update for the current stage -- this fills
       // A_new[m] with the righthand side for this stage.
@@ -203,7 +203,12 @@ Castro::do_advance_sdc (Real time,
     // update to
     if (m < SDC_NODES-1) {
       do_sdc_update(m, m+1, dt); //(dt_sdc[m+1] - dt_sdc[m])*dt);
+
+      // we now have a new value of k_new[m+1], do a clean_state on it
+      clean_state(S_new, cur_time, 0);
+
     }
+
 
   } // node iteration
 
@@ -233,7 +238,7 @@ Castro::do_advance_sdc (Real time,
   }
 #endif
 
-  if (sdc_iteration == sdc_order-1) {
+  if (sdc_iteration == sdc_order+sdc_extra-1) {
 
     // store the new solution
     MultiFab::Copy(S_new, *(k_new[SDC_NODES-1]), 0, 0, S_new.nComp(), 0);

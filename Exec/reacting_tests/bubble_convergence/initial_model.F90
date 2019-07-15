@@ -20,10 +20,10 @@ module initial_model_module
 
 contains
 
-  subroutine generate_initial_model(nx, xmin, xmax, model_params)
+  subroutine generate_initial_model(nx, xmin, xmax, model_params, nbuf)
 
     use amrex_constants_module
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     use eos_module, only: eos
@@ -35,11 +35,11 @@ contains
 
     implicit none
 
-    integer, intent(in) :: nx
+    integer, intent(in) :: nx, nbuf
     type(model_t), intent(in) :: model_params
     real(rt) :: xmin, xmax
 
-    integer :: i
+    integer :: i, ibase, itop
 
     real(rt) :: entropy_fixed, h
 
@@ -50,10 +50,13 @@ contains
     real(rt) :: dx
 
     ! allocate the storage in the model_parser_module
-    npts_model = nx
+    npts_model = nx + 2*nbuf
 
     allocate (model_state(npts_model, nvars_model))
     allocate (model_r(npts_model))
+
+    ibase = nbuf + 1
+    itop = ibase + nx - 1
 
     ! get the base conditions
     eos_state % rho = model_params % dens_base
@@ -67,8 +70,8 @@ contains
     ! create the grid -- cell centers
     dx = (xmax - xmin)/nx
 
-    do i = 1, nx
-       model_r(i) = xmin + (i - HALF)*dx
+    do i = 1, nx + 2*nbuf
+       model_r(i) = xmin + (i - HALF - nbuf)*dx
     end do
 
     ! note, those conditions are the lower boundary.  This means we
@@ -78,11 +81,11 @@ contains
 
     p = eos_state % p
 
-    ! do RK 4 integration
-    do i = 1, nx
+    ! do RK 4 integration up from the lower boundary
+    do i = ibase, itop + nbuf
 
        ! rho and T here are guesses for the EOS call
-       if (i == 1) then
+       if (i == ibase) then
           rho = eos_state % rho
           T = eos_state % T
        else
@@ -93,11 +96,52 @@ contains
        xn(:) = model_params % xn(:)
 
        ! step size
-       if (i == 1) then
+       if (i == ibase) then
           h = HALF*dx
        else
           h = dx
        end if
+
+       ! entropy never changes in this model
+       s = entropy_fixed
+
+       k1 = f(p, s, const_grav, rho, T, xn)
+       k2 = f(p + HALF*h*k1, s, const_grav, rho, T, xn)
+       k3 = f(p + HALF*h*k2, s, const_grav, rho, T, xn)
+       k4 = f(p + h*k3, s, const_grav, rho, T, xn)
+
+       pnew = p + SIXTH*h*(k1 + TWO*k2 + TWO*k3 + k4)
+
+       ! call the EOS to get the remainder of the thermodynamics
+       eos_state % T     = T ! initial guess
+       eos_state % rho   = rho ! initial guess
+       eos_state % xn(:) = model_params % xn(:)
+       eos_state % p = pnew
+       eos_state % s = s
+
+       call eos(eos_input_ps, eos_state)
+
+       ! update the thermodynamics in this zone
+       model_state(i, idens_model) = eos_state % rho
+       model_state(i, itemp_model) = eos_state % T
+       model_state(i, ipres_model) = eos_state % p
+       model_state(i, ispec_model:ispec_model-1+nspec) = eos_state % xn(:)
+
+       ! reset for the next iteration
+       p = pnew
+
+    enddo
+
+    p = model_state(ibase, ipres_model)
+
+    ! now integrate down
+    do i = ibase-1, 1, -1
+
+       rho = model_state(i+1, idens_model)
+       T = model_state(i+1, itemp_model)
+       xn(:) = model_params % xn(:)
+
+       h = -dx
 
        ! entropy never changes in this model
        s = entropy_fixed

@@ -112,7 +112,7 @@ contains
   subroutine init_1d_tanh(nx, xmin, xmax, model_params, model_num)
 
     use amrex_constants_module
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     use eos_module, only: eos
@@ -192,7 +192,7 @@ contains
 
     if (index_base == -1) then
        print *, 'ERROR: base_height not found on grid'
-       call amrex_error('ERROR: invalid base_height')
+       call castro_error('ERROR: invalid base_height')
     endif
 
 
@@ -443,7 +443,7 @@ contains
              print *, dens_zone, temp_zone
              print *, p_want, entropy_base, entropy
              print *, drho, dtemp
-             call amrex_error('Error: HSE non-convergence')
+             call castro_error('Error: HSE non-convergence')
 
           endif
 
@@ -548,7 +548,7 @@ contains
           print *, dens_zone, temp_zone
           print *, p_want
           print *, drho
-          call amrex_error('Error: HSE non-convergence')
+          call castro_error('Error: HSE non-convergence')
 
        endif
 

@@ -1,26 +1,19 @@
 &fortin
 
-  rho_fuel = 2.d6
+  rho_fuel = 2.e7
   T_fuel = 5.e7
 
-  T_ash = 2.e9
+  T_ash = 3.6e9
 
-  pert_frac = 0.2d0
-  pert_delta = 0.05d0
-
-  fuel1_name = "hydrogen-1"
-  fuel2_name = "helium-4"
-  fuel3_name = "carbon-12"
-  fuel4_name = "oxygen-16"
-
-  ash1_name = "nickel-56"
-
-  X_fuel1 = 0.7
-  X_fuel2 = 0.28
-  X_fuel3 = 0.01
-  X_fuel4 = 0.01
-
+  ash1_name = "iron-56"
   X_ash1 = 1.0
+
+  smallx_init = 1.d-8
+
+  pert_frac = 0.4d0
+  pert_delta = 0.06d0
+
+  v_inflow = 0.0d0
 
 /
 
@@ -47,9 +40,8 @@
 /
 
 &extern
-  rtol_spec = 1.d-6
+  rtol_spec = 1.d-10
   atol_spec = 1.d-10
 
-  react_boost = 1.0
-
+  small_x = 1.e-10
 /

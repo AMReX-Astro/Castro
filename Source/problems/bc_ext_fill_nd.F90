@@ -8,7 +8,7 @@ module bc_ext_fill_module
 
   use amrex_constants_module, only: ZERO, HALF
 #ifndef AMREX_USE_CUDA
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
 #endif
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
@@ -177,7 +177,7 @@ contains
                       print *, "column info: "
                       print *, "   dens: ", adv(i:domlo(1),j,k,URHO)
                       print *, "   temp: ", adv(i:domlo(1),j,k,UTEMP)
-                      call amrex_error("ERROR in bc_ext_fill_nd: failure to converge in -X BC")
+                      call castro_error("ERROR in bc_ext_fill_nd: failure to converge in -X BC")
                    endif
 #endif
 
@@ -290,7 +290,7 @@ contains
 
        if (xr_ext == EXT_HSE) then
 #ifndef AMREX_USE_CUDA
-          call amrex_error("ERROR: HSE boundaries not implemented for +X")
+          call castro_error("ERROR: HSE boundaries not implemented for +X")
 #endif
 
        elseif (xr_ext == EXT_INTERP) then
@@ -466,7 +466,7 @@ contains
                       print *, "column info: "
                       print *, "   dens: ", adv(i,j:domlo(2),k,URHO)
                       print *, "   temp: ", adv(i,j:domlo(2),k,UTEMP)
-                      call amrex_error("ERROR in bc_ext_fill_nd: failure to converge in -Y BC")
+                      call castro_error("ERROR in bc_ext_fill_nd: failure to converge in -Y BC")
                    endif
 #endif
 
@@ -579,7 +579,7 @@ contains
 
        if (yr_ext == EXT_HSE) then
 #ifndef AMREX_USE_CUDA
-          call amrex_error("ERROR: HSE boundaries not implemented for +Y")
+          call castro_error("ERROR: HSE boundaries not implemented for +Y")
 #endif
 
        elseif (yr_ext == EXT_INTERP) then
@@ -754,7 +754,7 @@ contains
                       print *, "column info: "
                       print *, "   dens: ", adv(i,j,k:domlo(3),URHO)
                       print *, "   temp: ", adv(i,j,k:domlo(3),UTEMP)
-                      call amrex_error("ERROR in bc_ext_fill_1d: failure to converge in -Z BC")
+                      call castro_error("ERROR in bc_ext_fill_1d: failure to converge in -Z BC")
                    endif
 #endif
 
@@ -867,7 +867,7 @@ contains
 
        if (zr_ext == EXT_HSE) then
 #ifndef AMREX_USE_CUDA
-          call amrex_error("ERROR: HSE boundaries not implemented for +Z")
+          call castro_error("ERROR: HSE boundaries not implemented for +Z")
 #endif
 
        elseif (zr_ext == EXT_INTERP) then
@@ -935,7 +935,7 @@ contains
     use prob_params_module, only: problo
     use model_parser_module, only: npts_model, model_r, model_state, idens_model, interpolate_sub
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use amrex_filcc_module, only: amrex_filccn
 
@@ -964,12 +964,12 @@ contains
 #ifndef AMREX_USE_CUDA
     ! XLO
     if ( bc(1,1) == EXT_DIR .and. lo(1) < domlo(1)) then
-       call amrex_error("We should not be here (xlo denfill)")
+       call castro_error("We should not be here (xlo denfill)")
     end if
 
     ! XHI
     if ( bc(1,2) == EXT_DIR .and. hi(1) > domhi(1)) then
-       call amrex_error("We should not be here (xhi denfill)")
+       call castro_error("We should not be here (xhi denfill)")
     endif
 #endif
 

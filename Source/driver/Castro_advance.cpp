@@ -64,7 +64,7 @@ Castro::advance (Real time,
 #ifndef AMREX_USE_CUDA
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
-      for (int iter = 0; iter < sdc_order; ++iter) {
+      for (int iter = 0; iter < sdc_order+sdc_extra; ++iter) {
 	sdc_iteration = iter;
 	dt_new = do_advance_sdc(time, dt, amr_iteration, amr_ncycle);
       }
@@ -520,6 +520,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     if (mol_order == 4 || sdc_order == 4) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
+#ifdef DIFFUSION
+      T_cc.define(grids, dmap, 1, NUM_GROW);
+#endif
     }
 
     if (time_integration_method == MethodOfLines) {
@@ -630,6 +633,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (mol_order == 4 || sdc_order == 4) {
       q_bar.clear();
       qaux_bar.clear();
+#ifdef DIFFUSION
+      T_cc.clear();
+#endif
     }
 
 #ifdef RADIATION
