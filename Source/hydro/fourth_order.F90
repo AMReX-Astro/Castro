@@ -2,7 +2,7 @@ module fourth_order
 
   use amrex_constants_module, only : ZERO, TWO, ONE
   use prob_params_module, only : dg
-  use amrex_error_module, only : amrex_error
+  use castro_error_module, only : castro_error
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -234,7 +234,7 @@ contains
 
                 else
                    ! not supported
-                   call amrex_error("ERROR: boundary conditions not supported for -X in states")
+                   call castro_error("ERROR: boundary conditions not supported for -X in states")
                 end if
 
              end do
@@ -261,7 +261,7 @@ contains
 
                 else
                    ! not supported
-                   call amrex_error("ERROR: boundary conditions not supported for +X in states")
+                   call castro_error("ERROR: boundary conditions not supported for +X in states")
                 end if
 
              end do
@@ -443,7 +443,7 @@ contains
 
                 else
                    ! not supported
-                   call amrex_error("ERROR: boundary conditions not supported for -Y in states")
+                   call castro_error("ERROR: boundary conditions not supported for -Y in states")
                 end if
 
              end do
@@ -470,7 +470,7 @@ contains
 
                 else
                    ! not supported
-                   call amrex_error("ERROR: boundary conditions not supported for +Y in states")
+                   call castro_error("ERROR: boundary conditions not supported for +Y in states")
                 end if
 
              end do
@@ -654,7 +654,7 @@ contains
 
                 else
                    ! not supported
-                   call amrex_error("ERROR: boundary conditions not supported for -Z in states")
+                   call castro_error("ERROR: boundary conditions not supported for -Z in states")
                 end if
 
              end do
@@ -681,7 +681,7 @@ contains
 
                 else
                    ! not supported
-                   call amrex_error("ERROR: boundary conditions not supported for +Z in states")
+                   call castro_error("ERROR: boundary conditions not supported for +Z in states")
                 end if
 
              end do
