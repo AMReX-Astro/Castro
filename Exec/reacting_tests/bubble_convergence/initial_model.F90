@@ -23,7 +23,7 @@ contains
   subroutine generate_initial_model(nx, xmin, xmax, model_params, nbuf)
 
     use amrex_constants_module
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     use eos_module, only: eos

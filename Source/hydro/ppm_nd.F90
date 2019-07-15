@@ -36,7 +36,7 @@ contains
 
 
 #ifndef AMREX_USE_GPU
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use prob_params_module, only : dim
 
@@ -73,7 +73,7 @@ contains
          (dim == 3 .and. s_lo(3) > lo(3)-3)) then
        print *,'Low bounds of array: ',s_lo(1), s_lo(2),s_lo(3)
        print *,'Low bounds of  loop: ',lo(1),lo(2),lo(3)
-       call amrex_error("Need more ghost cells on array in ppm_type1")
+       call castro_error("Need more ghost cells on array in ppm_type1")
     end if
 
     if ((s_hi(1) < hi(1)+3) .or. &
@@ -81,11 +81,11 @@ contains
          (dim == 3 .and. s_hi(3) < hi(3)+3)) then
        print *,'Hi  bounds of array: ',s_hi(1), s_hi(2), s_hi(3)
        print *,'Hi  bounds of  loop: ',hi(1),hi(2),hi(3)
-       call amrex_error("Need more ghost cells on array in ppm_type1")
+       call castro_error("Need more ghost cells on array in ppm_type1")
     end if
 
     if (nend - nstart /= nqend - nqstart) then
-       call amrex_error("Number of components do not match in ca_ppm_reconstruct")
+       call castro_error("Number of components do not match in ca_ppm_reconstruct")
     end if
 #endif
 

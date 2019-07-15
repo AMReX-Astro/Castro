@@ -12,7 +12,7 @@ contains
 
   subroutine initialize_problem(init_in)
 
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
     use prob_params_module, only: dim
 
     implicit none
@@ -46,7 +46,7 @@ contains
     use meth_params_module
     use prob_params_module, only: dim, coord_type
     use problem_io_module, only: probin
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
     use network, only: nspec
     use fundamental_constants_module, only: M_solar
 
@@ -330,7 +330,7 @@ contains
     if (dim .eq. 2) then
 
        if (coord_type .ne. 1) then
-          call amrex_error("We only support cylindrical coordinates in two dimensions. Set coord_type == 1.")
+          call castro_error("We only support cylindrical coordinates in two dimensions. Set coord_type == 1.")
        endif
 
        axis_1 = 2
@@ -342,35 +342,35 @@ contains
     ! Make sure we have a sensible collision impact parameter.
 
     if (collision_impact_parameter > 1.0) then
-       call amrex_error("Impact parameter must be less than one in our specified units.")
+       call castro_error("Impact parameter must be less than one in our specified units.")
     endif
 
     ! Safety check: we can't run most problems in one dimension.
 
     if (dim .eq. 1 .and. problem /= 0) then
-       call amrex_error("Can only run a collision or freefall in 1D. Exiting.")
+       call castro_error("Can only run a collision or freefall in 1D. Exiting.")
     endif
 
     ! Don't do a collision, free-fall, or TDE in a rotating reference frame.
 
     if (problem .eq. 0 .and. do_rotation .eq. 1) then
-       call amrex_error("The free-fall/collision problem does not make sense in a rotating reference frame.")
+       call castro_error("The free-fall/collision problem does not make sense in a rotating reference frame.")
     endif
 
     if (problem .eq. 2 .and. do_rotation .eq. 1) then
-       call amrex_error("The TDE problem does not make sense in a rotating reference frame.")
+       call castro_error("The TDE problem does not make sense in a rotating reference frame.")
     end if
 
     ! Make sure we have a sensible eccentricity.
 
     if (orbital_eccentricity >= 1.0) then
-       call amrex_error("Orbital eccentricity cannot be larger than one.")
+       call castro_error("Orbital eccentricity cannot be larger than one.")
     endif
 
     ! Make sure we have a sensible angle. Then convert it to radians.
 
     if (orbital_angle < 0.0 .or. orbital_angle > 360.0) then
-       call amrex_error("Orbital angle must be between 0 and 360 degrees.")
+       call castro_error("Orbital angle must be between 0 and 360 degrees.")
     endif
 
     orbital_angle = orbital_angle * M_PI / 180.0
@@ -390,7 +390,7 @@ contains
 
        if (point_mass <= ZERO) then
 
-          call amrex_error("No point mass specified for the TDE problem.")
+          call castro_error("No point mass specified for the TDE problem.")
 
        end if
 
@@ -398,7 +398,7 @@ contains
 
        if (mass_S >= ZERO) then
 
-          call amrex_error("TDE problem cannot have a secondary WD.")
+          call castro_error("TDE problem cannot have a secondary WD.")
 
        end if
 
@@ -406,7 +406,7 @@ contains
 
        if (tde_beta <= ZERO) then
 
-          call amrex_error("TDE beta must be positive.")
+          call castro_error("TDE beta must be positive.")
 
        end if
 
@@ -414,7 +414,7 @@ contains
 
        if (tde_separation <= ZERO) then
 
-          call amrex_error("TDE separation must be positive.")
+          call castro_error("TDE separation must be positive.")
 
        end if
 
@@ -484,7 +484,7 @@ contains
 
     use extern_probin_module, only: small_x
     use network, only: network_species_index
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
     use amrex_constants_module, only: ZERO, ONE
 
     implicit none
@@ -508,7 +508,7 @@ contains
 
     if (model % mass > ZERO .and. model % mass < max_he_wd_mass) then
 
-       if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
+       if (iHe4 < 0) call castro_error("Must have He4 in the nuclear network.")
 
        model % core_comp(iHe4) = ONE
 
@@ -516,8 +516,8 @@ contains
 
     else if (model % mass >= max_he_wd_mass .and. model % mass < max_hybrid_wd_mass) then
 
-       if (iC12 < 0) call amrex_error("Must have C12 in the nuclear network.")
-       if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
+       if (iC12 < 0) call castro_error("Must have C12 in the nuclear network.")
+       if (iO16 < 0) call castro_error("Must have O16 in the nuclear network.")
 
        model % core_comp(iC12) = hybrid_wd_c_frac
        model % core_comp(iO16) = hybrid_wd_o_frac
@@ -525,7 +525,7 @@ contains
        model % envelope_mass = hybrid_wd_he_shell_mass
 
        if (model % envelope_mass > ZERO) then
-          if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
+          if (iHe4 < 0) call castro_error("Must have He4 in the nuclear network.")
           model % envelope_comp(iHe4) = ONE
        else
           model % envelope_comp = model % core_comp
@@ -533,8 +533,8 @@ contains
 
     else if (model % mass >= max_hybrid_wd_mass .and. model % mass < max_co_wd_mass) then
 
-       if (iC12 < 0) call amrex_error("Must have C12 in the nuclear network.")
-       if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
+       if (iC12 < 0) call castro_error("Must have C12 in the nuclear network.")
+       if (iO16 < 0) call castro_error("Must have O16 in the nuclear network.")
 
        model % core_comp(iC12) = co_wd_c_frac
        model % core_comp(iO16) = co_wd_o_frac
@@ -542,7 +542,7 @@ contains
        model % envelope_mass = co_wd_he_shell_mass
 
        if (model % envelope_mass > ZERO) then
-          if (iHe4 < 0) call amrex_error("Must have He4 in the nuclear network.")
+          if (iHe4 < 0) call castro_error("Must have He4 in the nuclear network.")
           model % envelope_comp(iHe4) = ONE
        else
           model % envelope_comp = model % core_comp
@@ -550,9 +550,9 @@ contains
 
     else if (model % mass > max_co_wd_mass) then
 
-       if (iO16 < 0) call amrex_error("Must have O16 in the nuclear network.")
-       if (iNe20 < 0) call amrex_error("Must have Ne20 in the nuclear network.")
-       if (iMg24 < 0) call amrex_error("Must have Mg24 in the nuclear network.")
+       if (iO16 < 0) call castro_error("Must have O16 in the nuclear network.")
+       if (iNe20 < 0) call castro_error("Must have Ne20 in the nuclear network.")
+       if (iMg24 < 0) call castro_error("Must have Mg24 in the nuclear network.")
 
        model % core_comp(iO16)  = onemg_wd_o_frac
        model % core_comp(iNe20) = onemg_wd_ne_frac
@@ -708,7 +708,7 @@ contains
     use math_module, only: cross_product
     use binary_module, only: get_roche_radii
     use problem_io_module, only: ioproc
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
     use fundamental_constants_module, only: Gconst, c_light, AU, M_solar
     use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO
 
@@ -789,7 +789,7 @@ contains
 
     else
 
-       call amrex_error("Must specify either a positive primary mass or a positive primary central density.")
+       call castro_error("Must specify either a positive primary mass or a positive primary central density.")
 
     endif
 
@@ -817,7 +817,7 @@ contains
 
        else
 
-          call amrex_error("If we are doing a binary calculation, we must specify either a " // &
+          call castro_error("If we are doing a binary calculation, we must specify either a " // &
                            "positive secondary mass or a positive secondary central density.")
 
        endif
@@ -963,7 +963,7 @@ contains
 
        else
 
-          call amrex_error("Error: Unknown problem choice.")
+          call castro_error("Error: Unknown problem choice.")
 
        endif
 
@@ -1078,7 +1078,7 @@ contains
     use sponge_module, only: sponge_lower_radius
     use meth_params_module, only: do_sponge
     use fundamental_constants_module, only: Gconst
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 
     implicit none
 
@@ -1112,7 +1112,7 @@ contains
 
     else
 
-       call amrex_error("Error: overspecified Kepler's third law calculation.")
+       call castro_error("Error: overspecified Kepler's third law calculation.")
 
     endif
 
@@ -1151,7 +1151,7 @@ contains
     end if
 
     if (length > (probhi(axis_1)-problo(axis_1))) then
-       call amrex_error("ERROR: The domain width is too small to include the binary orbit.")
+       call castro_error("ERROR: The domain width is too small to include the binary orbit.")
     endif
 
     ! We want to do a similar check to make sure that no part of the stars
@@ -1160,18 +1160,18 @@ contains
     if (do_sponge .eq. 1 .and. sponge_lower_radius > ZERO) then
 
        if (abs(r_1) + radius_1 .ge. sponge_lower_radius) then
-          call amrex_error("ERROR: Primary contains material inside the sponge region.")
+          call castro_error("ERROR: Primary contains material inside the sponge region.")
        endif
 
        if (abs(r_2) + radius_2 .ge. sponge_lower_radius) then
-          call amrex_error("ERROR: Secondary contains material inside the sponge region.")
+          call castro_error("ERROR: Secondary contains material inside the sponge region.")
        endif
 
     endif
 
     ! Make sure the stars are not touching.
     if (radius_1 + radius_2 > a) then
-       call amrex_error("ERROR: Stars are touching!")
+       call castro_error("ERROR: Stars are touching!")
     endif
 
   end subroutine kepler_third_law
@@ -2189,7 +2189,7 @@ contains
   subroutine update_center(time) bind(C,name='update_center')
 
     use amrex_constants_module, only: ZERO
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
     use probdata_module, only: bulk_velx, bulk_vely, bulk_velz, &
                                center_fracx, center_fracy, center_fracz
     use prob_params_module, only: center, problo, probhi, dim
@@ -2220,7 +2220,7 @@ contains
 
     else
 
-       call amrex_error("Error: unknown dim in subroutine update_center.")
+       call castro_error("Error: unknown dim in subroutine update_center.")
 
     endif
 

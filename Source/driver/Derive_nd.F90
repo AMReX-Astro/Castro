@@ -2,7 +2,7 @@ module derive_module
     ! All subroutines in this file must be threadsafe because they are called
     ! inside OpenMP parallel regions.
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -40,7 +40,7 @@ contains
 #ifndef AMREX_USE_CUDA
     if (nv .ne. 3) then
        print *,'... confusion in derstate ... nv should be 3 but is ',nv
-       call amrex_error('Error:: Derive_nd.f90 :: derstate')
+       call castro_error('Error:: Derive_nd.f90 :: derstate')
     end if
 #endif
 

@@ -1,7 +1,7 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
-  use amrex_error_module
+  use castro_error_module
   use initial_model_module, only : generate_initial_model, model_t
   use network, only : nspec, network_species_index
   use amrex_constants_module, only : ONE, HALF, ZERO
@@ -29,13 +29,13 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   ihe4 = network_species_index("helium-4")
   if (ihe4 < 0) then
-     call amrex_error("Error: helium-4 not present")
+     call castro_error("Error: helium-4 not present")
   end if
 
   ! Build "probin" filename from C++ land --
   ! the name of file containing fortin namelist.
 
-  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
+  if (namlen .gt. maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))

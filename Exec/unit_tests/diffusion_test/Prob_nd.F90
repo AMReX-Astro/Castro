@@ -1,7 +1,7 @@
 subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   use amrex_constants_module, only: ZERO, HALF
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use amrex_fort_module, only : rt => amrex_real
   use prob_params_module, only: center, coord_type
   use probdata_module
@@ -29,7 +29,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  if (namlen > maxlen) call amrex_error("probin file name too long")
+  if (namlen > maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))

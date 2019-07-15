@@ -11,7 +11,7 @@
       use eos_module
       use network, only : nspec, naux
       use amrex_constants_module
-      use amrex_error_module
+      use castro_error_module
 
       use amrex_fort_module, only : rt => amrex_real
       implicit none
@@ -55,7 +55,7 @@
                   print *,'>>> ... index too big: ', index,' > ',n1d-1
                   print *,'>>> ... at (i,j)     : ',i,j
                   print *,'    '
-                  call amrex_error("Error:: Gravity_2d.f90 :: ca_compute_avgpres")
+                  call castro_error("Error:: Gravity_2d.f90 :: ca_compute_avgpres")
                end if
 
             else

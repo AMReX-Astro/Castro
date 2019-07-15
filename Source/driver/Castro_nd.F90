@@ -482,7 +482,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
        outflow_data_old, outflow_data_old_time
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -501,7 +501,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 #ifndef AMREX_USE_CUDA
   if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
      print *,'size of old and new dont match in swap_outflow_data '
-     call amrex_error("Error:: Castro_nd.f90 :: swap_outflow_data")
+     call castro_error("Error:: Castro_nd.f90 :: swap_outflow_data")
   end if
 #endif
 
@@ -627,7 +627,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   ! sanity check
 #ifndef AMREX_USE_CUDA
   if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-     call amrex_error("ERROR: velocity components for godunov and primitive state are not aligned")
+     call castro_error("ERROR: velocity components for godunov and primitive state are not aligned")
   endif
 #endif
 
@@ -755,7 +755,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
      ! Binds to C function `ca_set_problem_params`
 
   use amrex_constants_module, only: ZERO
-  use amrex_error_module
+  use castro_error_module
   use prob_params_module
   use meth_params_module, only: UMX, UMY, UMZ
 #ifdef ROTATION
@@ -836,7 +836,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   ! sanity check on our allocations
 #ifndef AMREX_USE_CUDA
   if (UMZ > MAX_MOM_INDEX) then
-     call amrex_error("ERROR: not enough space in comp in mom_flux_has_p")
+     call castro_error("ERROR: not enough space in comp in mom_flux_has_p")
   endif
 #endif
 
@@ -946,7 +946,7 @@ subroutine ca_get_tagging_params(name, namlen) &
      ! Binds to C function `ca_get_tagging_params`
 
   use tagging_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -1061,7 +1061,7 @@ subroutine ca_get_tagging_params(name, namlen) &
   ! create the filename
 #ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
-     call amrex_error('probin file name too long')
+     call castro_error('probin file name too long')
   endif
 #endif
 
@@ -1081,7 +1081,7 @@ subroutine ca_get_tagging_params(name, namlen) &
   else if (status > 0) then
      ! some problem in the namelist
 #ifndef AMREX_USE_CUDA
-     call amrex_error('ERROR: problem in the tagging namelist')
+     call castro_error('ERROR: problem in the tagging namelist')
 #endif
   endif
 
@@ -1102,7 +1102,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
     ! Binds to C function `ca_get_sponge_params`
 
   use sponge_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -1152,7 +1152,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   ! create the filename
 #ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
-     call amrex_error('probin file name too long')
+     call castro_error('probin file name too long')
   endif
 #endif
 
@@ -1172,7 +1172,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   else if (status > 0) then
      ! some problem in the namelist
 #ifndef AMREX_USE_CUDA
-     call amrex_error('ERROR: problem in the sponge namelist')
+     call castro_error('ERROR: problem in the sponge namelist')
 #endif
   endif
 
@@ -1186,11 +1186,11 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
 #ifndef AMREX_USE_CUDA
   if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
-     call amrex_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
+     call castro_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
   endif
 
   if (sponge_upper_factor < 0.e0_rt .or. sponge_upper_factor > 1.e0_rt) then
-     call amrex_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
+     call castro_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
   endif
 #endif
 

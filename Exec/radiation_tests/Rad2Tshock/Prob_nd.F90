@@ -2,7 +2,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   use probdata_module
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use eos_module
   use eos_type_module
 
@@ -20,7 +20,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   integer, parameter ::  maxlen = 256
   character probin*(maxlen)
 
-  if (namlen > maxlen) call amrex_error("probin file name too long")
+  if (namlen > maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -93,7 +93,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use network, only : nspec, naux
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_rt
-  use amrex_error_module
+  use castro_error_module
 
   use amrex_fort_module, only : rt => amrex_real
 
@@ -124,7 +124,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            else if (idir == 3) then
               length_cell = zmin + delta(3) * (dble(k) + 0.5e0_rt)
            else
-              call amrex_error("Invalid direction please input idir = [1,3]")
+              call castro_error("Invalid direction please input idir = [1,3]")
            endif
 
 
@@ -211,7 +211,7 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
   use fundamental_constants_module, only: a_rad
   use rad_params_module, only : xnu
   use blackbody_module, only : BGroup
-  use amrex_error_module
+  use castro_error_module
 
   use amrex_fort_module, only : rt => amrex_real
 
@@ -243,7 +243,7 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
            else if (idir == 3) then
               length_cell = zmin + delta(3) * (dble(k) + 0.5e0_rt)
            else
-              call amrex_error("Invalid direction please input idir = [1,3]")
+              call castro_error("Invalid direction please input idir = [1,3]")
            endif
 
            if (length_cell < 0.e0_rt) then

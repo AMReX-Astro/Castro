@@ -34,7 +34,7 @@ HEADER = """
 CHECK_EQUAL = """
 subroutine check_equal(index1, index2)
 
-  use amrex_error_module
+  use castro_error_module
 
   implicit none
 
@@ -42,7 +42,7 @@ subroutine check_equal(index1, index2)
 
 #ifndef AMREX_USE_CUDA
   if (index1 /= index2) then
-    call amrex_error("ERROR: mismatch of indices")
+    call castro_error("ERROR: mismatch of indices")
   endif
 #endif
 
