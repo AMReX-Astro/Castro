@@ -84,7 +84,8 @@ contains
        end if
 
     else
-       call castro_error("Unknown limiter ", limiter)
+       print *, "limiter = ", limiter
+       call castro_error("Unknown limiter type")
     endif
   end function FLDlambda
 

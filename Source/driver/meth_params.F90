@@ -819,8 +819,6 @@ contains
        gravity_type_int = 1
     else if (gravity_type == "PoissonGrav") then
        gravity_type_int = 2
-    else if (gravity_type == "PrescribedGrav") then
-       gravity_type_int = 3
     else
        call castro_error("Unknown gravity type")
     end if
@@ -1206,7 +1204,8 @@ contains
 
 #ifndef AMREX_USE_GPU
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
-       call castro_error("Unknown fspace_type", fspace_type)
+       print *, "fspace_type = ", fspace_type
+       call castro_error("Unknown fspace_type")
     end if
 #endif
 
@@ -1218,7 +1217,7 @@ contains
        comoving = .false.
     else
 #ifndef AMREX_USE_GPU
-       call castro_error("Wrong value for comoving", fspace_type)
+       call castro_error("Wrong value for comoving")
 #endif
     end if
 
