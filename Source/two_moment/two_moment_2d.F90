@@ -31,6 +31,8 @@
     use ProgramHeaderModule, only : nE, nNodesE, swE
     use FluidFieldsModule, only : uCF, nCF, iCF_D, iCF_S1, iCF_S2, iCF_S3, iCF_E, iCF_Ne
     use FluidFieldsModule, only : CreateFluidFields, DestroyFluidFields
+    use GeometryFieldsModule, only : uGF
+    use GeometryFieldsModuleE, only : uGE
     use RadiationFieldsModule, only : CreateRadiationFields,DestroyRadiationFields,nSpecies, uCR
     use TimeSteppingModule_Castro, only : Update_IMEX_PDARS
     use UnitsModule, only : Gram, Centimeter, Second, AtomicMassUnit, Erg
@@ -168,7 +170,25 @@
     ! Call the time stepper that lives in the thornado repo
     ! ************************************************************************************
 
+#if defined(THORNADO_OMP_OL)
+    !$OMP TARGET ENTER DATA &
+    !$OMP MAP( to: uCF, uCR, uGE, uGF )
+#elif defined(THORNADO_OACC)
+    !$ACC ENTER DATA &
+    !$ACC COPYIN( uCF, uCR, uGE, uGF )
+#endif
+
     call Update_IMEX_PDARS(dt*Second, uCF, uCR)
+
+#if defined(THORNADO_OMP_OL)
+    !$OMP TARGET EXIT DATA &
+    !$OMP MAP( from: uCF, uCR ) &
+    !$OMP MAP( release: uGE, uGF )
+#elif defined(THORNADO_OACC)
+    !$ACC EXIT DATA &
+    !$ACC COPYOUT( uCF, uCR ) &
+    !$ACC DELETE( uGE, uGF )
+#endif
 
     ! Zero out dS so we can accumulate weighted average in it
     dS(:,:,:) = 0.d0
