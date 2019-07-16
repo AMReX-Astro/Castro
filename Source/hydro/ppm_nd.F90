@@ -80,20 +80,20 @@ contains
           !!!!!!!!!!!!!!!!!!!!
           ! Compute van Leer slopes
 
-          dsl = TWO  * (s(i-1,j,k,n) - s(i-2,j,k,n))
-          dsr = TWO  * (s(i  ,j,k,n) - s(i-1,j,k,n))
+          dsl = s(i-1,j,k,n) - s(i-2,j,k,n)
+          dsr = s(i  ,j,k,n) - s(i-1,j,k,n)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i  ,j,k,n) - s(i-2,j,k,n))
-             dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_l = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_l = ZERO
           end if
 
           dsl = dsr
-          dsr = TWO  * (s(i+1,j,k,n) - s(i  ,j,k,n))
+          dsr = s(i+1,j,k,n) - s(i  ,j,k,n)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i+1,j,k,n) - s(i-1,j,k,n))
-             dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_r = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_r = ZERO
           end if
@@ -109,20 +109,20 @@ contains
 
           ! Compute van Leer slopes
 
-          dsl = TWO  * (s(i  ,j,k,n) - s(i-1,j,k,n))
-          dsr = TWO  * (s(i+1,j,k,n) - s(i  ,j,k,n))
+          dsl = s(i  ,j,k,n) - s(i-1,j,k,n)
+          !dsr = s(i+1,j,k,n) - s(i  ,j,k,n) (unchanged from above)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i+1,j,k,n) - s(i-1,j,k,n))
-             dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_l = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_l = ZERO
           end if
 
           dsl = dsr
-          dsr = TWO  * (s(i+2,j,k,n) - s(i+1,j,k,n))
+          dsr = s(i+2,j,k,n) - s(i+1,j,k,n)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i+2,j,k,n) - s(i  ,j,k,n))
-             dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_r = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_r = ZERO
           end if
@@ -175,20 +175,20 @@ contains
 
           ! Compute van Leer slopes
 
-          dsl = TWO  * (s(i,j-1,k,n) - s(i,j-2,k,n))
-          dsr = TWO  * (s(i,j  ,k,n) - s(i,j-1,k,n))
+          dsl = s(i,j-1,k,n) - s(i,j-2,k,n)
+          dsr = s(i,j  ,k,n) - s(i,j-1,k,n)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j  ,k,n) - s(i,j-2,k,n))
-             dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_l = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_l = ZERO
           end if
 
           dsl = dsr
-          dsr = TWO  * (s(i,j+1,k,n) - s(i,j  ,k,n))
+          dsr = s(i,j+1,k,n) - s(i,j  ,k,n)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j+1,k,n) - s(i,j-1,k,n))
-             dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_r = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_r = ZERO
           end if
@@ -204,20 +204,20 @@ contains
 
           ! Compute van Leer slopes
 
-          dsl = TWO  * (s(i,j  ,k,n) - s(i,j-1,k,n))
-          dsr = TWO  * (s(i,j+1,k,n) - s(i,j  ,k,n))
+          dsl = s(i,j  ,k,n) - s(i,j-1,k,n)
+          !dsr = s(i,j+1,k,n) - s(i,j  ,k,n) (unchanged from above)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j+1,k,n) - s(i,j-1,k,n))
-             dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_l = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_l = ZERO
           end if
 
           dsl = dsr
-          dsr = TWO  * (s(i,j+2,k,n) - s(i,j+1,k,n))
+          dsr = s(i,j+2,k,n) - s(i,j+1,k,n)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j+2,k,n) - s(i,j  ,k,n))
-             dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_r = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_r = ZERO
           end if
@@ -271,20 +271,20 @@ contains
 
           ! Compute van Leer slopes
 
-          dsl = TWO  * (s(i,j,k-1,n) - s(i,j,k-2,n))
-          dsr = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
+          dsl = s(i,j,k-1,n) - s(i,j,k-2,n)
+          dsr = s(i,j,k  ,n) - s(i,j,k-1,n)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j,k  ,n) - s(i,j,k-2,n))
-             dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_l = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_l = ZERO
           end if
 
           dsl = dsr
-          dsr = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
+          dsr = s(i,j,k+1,n) - s(i,j,k  ,n)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
-             dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_r = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_r = ZERO
           end if
@@ -300,20 +300,20 @@ contains
 
           ! Compute van Leer slopes
 
-          dsl = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
-          dsr = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
+          dsl = s(i,j,k  ,n) - s(i,j,k-1,n)
+          !dsr = s(i,j,k+1,n) - s(i,j,k  ,n) (unchanged from above)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
-             dsvl_l = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_l = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_l = ZERO
           end if
 
           dsl = dsr
-          dsr = TWO  * (s(i,j,k+2,n) - s(i,j,k+1,n))
+          dsr = s(i,j,k+2,n) - s(i,j,k+1,n)
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j,k+2,n) - s(i,j,k  ,n))
-             dsvl_r = sign(ONE,dsc)*min(abs(dsc),abs(dsl),abs(dsr))
+             dsvl_r = sign(ONE,dsc) * min(abs(dsc), TWO*abs(dsl), TWO*abs(dsr))
           else
              dsvl_r = ZERO
           end if
