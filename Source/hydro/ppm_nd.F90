@@ -87,7 +87,7 @@ contains
              dsvl_l = ZERO
           end if
 
-          dsl = TWO  * (s(i  ,j,k,n) - s(i-1,j,k,n))
+          dsl = dsr
           dsr = TWO  * (s(i+1,j,k,n) - s(i  ,j,k,n))
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i+1,j,k,n) - s(i-1,j,k,n))
@@ -102,8 +102,8 @@ contains
 
           ! Make sure sedge lies in between adjacent cell-centered values
 
-          sm = max(sm, min(s(i,j,k,n),s(i-1,j,k,n)))
-          sm = min(sm, max(s(i,j,k,n),s(i-1,j,k,n)))
+          sm = max(sm, min(s(i,j,k,n), s(i-1,j,k,n)))
+          sm = min(sm, max(s(i,j,k,n), s(i-1,j,k,n)))
 
           ! Compute van Leer slopes
 
@@ -116,7 +116,7 @@ contains
              dsvl_l = ZERO
           end if
 
-          dsl = TWO  * (s(i+1,j,k,n) - s(i  ,j,k,n))
+          dsl = dsr
           dsr = TWO  * (s(i+2,j,k,n) - s(i+1,j,k,n))
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i+2,j,k,n) - s(i  ,j,k,n))
@@ -131,8 +131,8 @@ contains
 
           ! Make sure sedge lies in between adjacent cell-centered values
 
-          sp = max(sp, min(s(i+1,j,k,n),s(i,j,k,n)))
-          sp = min(sp, max(s(i+1,j,k,n),s(i,j,k,n)))
+          sp = max(sp, min(s(i+1,j,k,n), s(i,j,k,n)))
+          sp = min(sp, max(s(i+1,j,k,n), s(i,j,k,n)))
 
           ! Flatten the parabola
           sm = flatn(i,j,k)*sm + (ONE-flatn(i,j,k))*s(i,j,k,n)
@@ -182,7 +182,7 @@ contains
              dsvl_l = ZERO
           end if
 
-          dsl = TWO  * (s(i,j  ,k,n) - s(i,j-1,k,n))
+          dsl = dsr
           dsr = TWO  * (s(i,j+1,k,n) - s(i,j  ,k,n))
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j+1,k,n) - s(i,j-1,k,n))
@@ -197,8 +197,8 @@ contains
 
           ! Make sure sedge lies in between adjacent cell-centered values
 
-          sm = max(sm, min(s(i,j,k,n),s(i,j-1,k,n)))
-          sm = min(sm, max(s(i,j,k,n),s(i,j-1,k,n)))
+          sm = max(sm, min(s(i,j,k,n), s(i,j-1,k,n)))
+          sm = min(sm, max(s(i,j,k,n), s(i,j-1,k,n)))
 
           ! Compute van Leer slopes
 
@@ -211,7 +211,7 @@ contains
              dsvl_l = ZERO
           end if
 
-          dsl = TWO  * (s(i,j+1,k,n) - s(i,j  ,k,n))
+          dsl = dsr
           dsr = TWO  * (s(i,j+2,k,n) - s(i,j+1,k,n))
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j+2,k,n) - s(i,j  ,k,n))
@@ -278,7 +278,7 @@ contains
              dsvl_l = ZERO
           end if
 
-          dsl = TWO  * (s(i,j,k  ,n) - s(i,j,k-1,n))
+          dsl = dsr
           dsr = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j,k+1,n) - s(i,j,k-1,n))
@@ -307,7 +307,7 @@ contains
              dsvl_l = ZERO
           end if
 
-          dsl = TWO  * (s(i,j,k+1,n) - s(i,j,k  ,n))
+          dsl = dsr
           dsr = TWO  * (s(i,j,k+2,n) - s(i,j,k+1,n))
           if (dsl*dsr .gt. ZERO) then
              dsc = HALF * (s(i,j,k+2,n) - s(i,j,k  ,n))
@@ -391,7 +391,7 @@ contains
     real(rt) :: speed
 
     real(rt) :: dtdx
-    real(rt) :: sigma, s6
+    real(rt) :: sigma, s6, ds
 
     integer :: QUN
 
@@ -402,6 +402,7 @@ contains
 
     ! compute x-component of Ip and Im
     s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
+    ds = sp - sm
 
     ! Ip/m is the integral under the parabola for the extent
     ! that a wave can travel over a timestep
@@ -416,9 +417,9 @@ contains
     ! if speed == ZERO, then either branch is the same
     if (speed <= ZERO) then
        Ip(1,ic) = sp
-       Im(1,ic) = sm + HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+       Im(1,ic) = sm + HALF*sigma*(ds + (ONE-TWO3RD*sigma)*s6)
     else
-       Ip(1,ic) = sp - HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+       Ip(1,ic) = sp - HALF*sigma*(ds - (ONE-TWO3RD*sigma)*s6)
        Im(1,ic) = sm
     endif
 
@@ -428,9 +429,9 @@ contains
 
     if (speed <= ZERO) then
        Ip(2,ic) = sp
-       Im(2,ic) = sm + HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+       Im(2,ic) = sm + HALF*sigma*(ds + (ONE-TWO3RD*sigma)*s6)
     else
-       Ip(2,ic) = sp - HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+       Ip(2,ic) = sp - HALF*sigma*(ds - (ONE-TWO3RD*sigma)*s6)
        Im(2,ic) = sm
     endif
 
@@ -440,9 +441,9 @@ contains
 
     if (speed <= ZERO) then
        Ip(3,ic) = sp
-       Im(3,ic) = sm + HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+       Im(3,ic) = sm + HALF*sigma*(ds + (ONE-TWO3RD*sigma)*s6)
     else
-       Ip(3,ic) = sp - HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+       Ip(3,ic) = sp - HALF*sigma*(ds - (ONE-TWO3RD*sigma)*s6)
        Im(3,ic) = sm
     endif
 
