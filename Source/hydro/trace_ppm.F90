@@ -281,8 +281,7 @@ contains
     use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
-                                   ppm_type, ppm_temp_fix, &
-                                   ppm_reference_eigenvectors
+                                   ppm_type, ppm_temp_fix
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
@@ -351,17 +350,14 @@ contains
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
     real(rt) :: cc, csq
-    real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g
-    real(rt) :: gam_g
+    real(rt) :: rho, un
 
     real(rt) :: drho, dptot, drhoe_g
     real(rt) :: dup, dptotp
     real(rt) :: dum, dptotm
 
     real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, h_g_ref
-
     real(rt) :: cc_ref, csq_ref, gam_g_ref
-    real(rt) :: cc_ev, csq_ev, rho_ev, h_g_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -428,14 +424,6 @@ contains
              csq = cc**2
 
              un = q(i,j,k,QUN)
-             ut = q(i,j,k,QUT)
-             utt = q(i,j,k,QUTT)
-
-             p = q(i,j,k,QPRES)
-             rhoe_g = q(i,j,k,QREINT)
-             h_g = ( (p + rhoe_g)/rho)/csq
-
-             gam_g = qaux(i,j,k,QGAMC)
 
              ! do the parabolic reconstruction and compute the
              ! integrals under the characteristic waves
@@ -540,7 +528,7 @@ contains
                 ! For tracing (optionally)
                 csq_ref = gam_g_ref*p_ref/rho_ref
                 cc_ref = sqrt(csq_ref)
-                h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
+                h_g_ref = p_ref + rhoe_g_ref)/rho_ref
 
                 ! *m are the jumps carried by un-c
                 ! *p are the jumps carried by un+c
@@ -560,31 +548,16 @@ contains
                 dup = un_ref - Im(3,QUN) - hdt*Im_src(3,QUN)
                 dptotp = p_ref - Im(3,QPRES) - hdt*Im_src(3,QPRES)
 
-
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   rho_ev  = rho
-                   cc_ev   = cc
-                   csq_ev  = csq
-                   h_g_ev = h_g
-                else
-                   rho_ev  = rho_ref
-                   cc_ev   = cc_ref
-                   csq_ev  = csq_ref
-                   h_g_ev = h_g_ref
-                endif
-
                 ! (rho, u, p, (rho e) eigensystem
 
                 ! These are analogous to the beta's from the original PPM
                 ! paper (except we work with rho instead of tau).  This is
                 ! simply (l . dq), where dq = qref - I(q)
 
-                alpham = HALF*(dptotm*(ONE/(rho_ev*cc_ev)) - dum)*(rho_ev/cc_ev)
-                alphap = HALF*(dptotp*(ONE/(rho_ev*cc_ev)) + dup)*(rho_ev/cc_ev)
-                alpha0r = drho - dptot/csq_ev
-                alpha0e_g = drhoe_g - dptot*h_g_ev  ! note h_g has a 1/c**2 in it
+                alpham = HALF*(dptotm*(ONE/(rho_ref*cc_ref)) - dum)*(rho_ref/cc_ref)
+                alphap = HALF*(dptotp*(ONE/(rho_ref*cc_ref)) + dup)*(rho_ref/cc_ref)
+                alpha0r = drho - dptot/csq_ref
+                alpha0e_g = drhoe_g - dptot*h_g_ref/csq_ref
 
                 if (un-cc > ZERO) then
                    alpham = ZERO
@@ -614,9 +587,9 @@ contains
                 ! q_s = q_ref - sum(l . dq) r
                 ! note that the a{mpz}right as defined above have the minus already
                 qp(i,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                qp(i,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref/rho_ref
+                qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
+                qp(i,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
 
                 ! Transverse velocities -- there's no projection here, so
@@ -655,7 +628,7 @@ contains
                 ! For tracing (optionally)
                 csq_ref = gam_g_ref*p_ref/rho_ref
                 cc_ref = sqrt(csq_ref)
-                h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
+                h_g_ref = p_ref + rhoe_g_ref)/rho_ref
 
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
@@ -670,30 +643,16 @@ contains
                 dup = un_ref - Ip(3,QUN) - hdt*Ip_src(3,QUN)
                 dptotp = p_ref - Ip(3,QPRES) - hdt*Ip_src(3,QPRES)
 
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   rho_ev  = rho
-                   cc_ev   = cc
-                   csq_ev  = csq
-                   h_g_ev = h_g
-                else
-                   rho_ev  = rho_ref
-                   cc_ev   = cc_ref
-                   csq_ev  = csq_ref
-                   h_g_ev = h_g_ref
-                endif
-
                 ! (rho, u, p, (rho e)) eigensystem
 
                 ! These are analogous to the beta's from the original PPM
                 ! paper (except we work with rho instead of tau).  This is
                 ! simply (l . dq), where dq = qref - I(q)
 
-                alpham = HALF*(dptotm*(ONE/(rho_ev*cc_ev)) - dum)*(rho_ev/cc_ev)
-                alphap = HALF*(dptotp*(ONE/(rho_ev*cc_ev)) + dup)*(rho_ev/cc_ev)
-                alpha0r = drho - dptot/csq_ev
-                alpha0e_g = drhoe_g - dptot*h_g_ev  ! h_g has a 1/c**2 in it
+                alpham = HALF*(dptotm*(ONE/(rho_ref*cc_ref)) - dum)*(rho_ref/cc_ref)
+                alphap = HALF*(dptotp*(ONE/(rho_ref*cc_ref)) + dup)*(rho_ref/cc_ref)
+                alpha0r = drho - dptot/csq_ref
+                alpha0e_g = drhoe_g - dptot*h_g_ref/csq_ref
 
                 if (un-cc > ZERO) then
                    alpham = -alpham
@@ -724,9 +683,9 @@ contains
                 ! note that the a{mpz}left as defined above have the minus already
                 if (idir == 1) then
                    qm(i+1,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                   qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                   qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref/rho_ref
+                   qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
+                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
                    ! transverse velocities
                    qm(i+1,j,k,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
@@ -734,9 +693,9 @@ contains
 
                 else if (idir == 2) then
                    qm(i,j+1,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                   qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                   qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ref/rho_ref
+                   qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
+                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
                    ! transverse velocities
                    qm(i,j+1,k,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
@@ -744,9 +703,9 @@ contains
 
                 else if (idir == 3) then
                    qm(i,j,k+1,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                   qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                   qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ref/rho_ref
+                   qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
+                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
                    ! transverse velocities
                    qm(i,j,k+1,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
@@ -767,7 +726,7 @@ contains
                 dlogatmp = min(eta, ONE)*dloga(i,j,k)
                 sourcr = -HALF*dt*rho*dlogatmp*un
                 sourcp = sourcr*csq
-                source = sourcp*h_g
+                source = sourcp*( (q(i,j,k,QPRES) + q(i,j,k,QREINT))/rho)/csq
 
                 if (i <= vhi(1)) then
 
