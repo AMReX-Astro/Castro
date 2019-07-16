@@ -528,7 +528,7 @@ contains
                 ! For tracing (optionally)
                 csq_ref = gam_g_ref*p_ref/rho_ref
                 cc_ref = sqrt(csq_ref)
-                h_g_ref = p_ref + rhoe_g_ref)/rho_ref
+                h_g_ref = (p_ref + rhoe_g_ref)/rho_ref
 
                 ! *m are the jumps carried by un-c
                 ! *p are the jumps carried by un+c
@@ -628,7 +628,7 @@ contains
                 ! For tracing (optionally)
                 csq_ref = gam_g_ref*p_ref/rho_ref
                 cc_ref = sqrt(csq_ref)
-                h_g_ref = p_ref + rhoe_g_ref)/rho_ref
+                h_g_ref = (p_ref + rhoe_g_ref)/rho_ref
 
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
