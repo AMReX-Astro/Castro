@@ -60,10 +60,12 @@ contains
 
     !$gpu
 
+#ifdef AMREX_DEBUG
 #ifndef AMREX_USE_GPU
     if (nend - nstart /= nqend - nqstart) then
        call castro_error("Number of components do not match in ca_ppm_reconstruct")
     end if
+#endif
 #endif
 
     if (idir == 1) then
