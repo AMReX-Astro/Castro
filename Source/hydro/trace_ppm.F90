@@ -523,10 +523,11 @@ contains
                 gam_g_ref  = Im_gc(1,1)
 
                 rho_ref = max(rho_ref, small_dens)
+                rho_ref_inv = ONE/rho_ref
                 p_ref = max(p_ref, small_pres)
 
                 ! For tracing (optionally)
-                csq_ref = gam_g_ref*p_ref/rho_ref
+                csq_ref = gam_g_ref*p_ref*rho_ref_inv
                 cc_ref = sqrt(csq_ref)
                 h_g_ref = p_ref + rhoe_g_ref)/rho_ref
 
