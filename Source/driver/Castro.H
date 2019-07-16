@@ -1709,7 +1709,7 @@ public:
     static int THORNADO_NMOMENTS;
     static int THORNADO_RAD_NDOF;
 
-    static int         thornado_nspecies;
+    static int         thornado_nSpecies;
 
     // These are the lower and upper limits of the energy groups
     static int         thornado_swE;
