@@ -356,8 +356,8 @@ contains
     real(rt) :: dup, dptotp
     real(rt) :: dum, dptotm
 
-    real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, h_g_ref
-    real(rt) :: cc_ref, csq_ref, gam_g_ref
+    real(rt) :: rho_ref, rho_ref_inv, un_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt) :: cc_ref, cc_ref_inv, csq_ref, gam_g_ref
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -529,7 +529,8 @@ contains
                 ! For tracing (optionally)
                 csq_ref = gam_g_ref*p_ref*rho_ref_inv
                 cc_ref = sqrt(csq_ref)
-                h_g_ref = (p_ref + rhoe_g_ref)/rho_ref
+                cc_ref_inv = ONE/cc_ref
+                h_g_ref = (p_ref + rhoe_g_ref)*rho_ref_inv
 
                 ! *m are the jumps carried by un-c
                 ! *p are the jumps carried by un+c
@@ -555,8 +556,8 @@ contains
                 ! paper (except we work with rho instead of tau).  This is
                 ! simply (l . dq), where dq = qref - I(q)
 
-                alpham = HALF*(dptotm*(ONE/(rho_ref*cc_ref)) - dum)*(rho_ref/cc_ref)
-                alphap = HALF*(dptotp*(ONE/(rho_ref*cc_ref)) + dup)*(rho_ref/cc_ref)
+                alpham = HALF*(dptotm*rho_ref_inv*cc_ref_inv - dum)*rho_ref*cc_ref_inv
+                alphap = HALF*(dptotp*rho_ref_inv*cc_ref_inv + dup)*rho_ref*cc_ref_inv
                 alpha0r = drho - dptot/csq_ref
                 alpha0e_g = drhoe_g - dptot*h_g_ref/csq_ref
 
@@ -588,7 +589,7 @@ contains
                 ! q_s = q_ref - sum(l . dq) r
                 ! note that the a{mpz}right as defined above have the minus already
                 qp(i,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref/rho_ref
+                qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv
                 qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
                 qp(i,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
@@ -624,12 +625,14 @@ contains
                 gam_g_ref  = Ip_gc(3,1)
 
                 rho_ref = max(rho_ref, small_dens)
+                rho_ref_inv = ONE/rho_ref
                 p_ref = max(p_ref, small_pres)
 
                 ! For tracing (optionally)
-                csq_ref = gam_g_ref*p_ref/rho_ref
+                csq_ref = gam_g_ref*p_ref*rho_ref_inv
                 cc_ref = sqrt(csq_ref)
-                h_g_ref = (p_ref + rhoe_g_ref)/rho_ref
+                cc_ref_inv = ONE/cc_ref
+                h_g_ref = (p_ref + rhoe_g_ref)*rho_ref_inv
 
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
@@ -650,8 +653,8 @@ contains
                 ! paper (except we work with rho instead of tau).  This is
                 ! simply (l . dq), where dq = qref - I(q)
 
-                alpham = HALF*(dptotm*(ONE/(rho_ref*cc_ref)) - dum)*(rho_ref/cc_ref)
-                alphap = HALF*(dptotp*(ONE/(rho_ref*cc_ref)) + dup)*(rho_ref/cc_ref)
+                alpham = HALF*(dptotm*rho_ref_inv*cc_ref_inv - dum)*rho_ref*cc_ref_inv
+                alphap = HALF*(dptotp*rho_ref_inv*cc_ref_inv + dup)*rho_ref*cc_ref_inv
                 alpha0r = drho - dptot/csq_ref
                 alpha0e_g = drhoe_g - dptot*h_g_ref/csq_ref
 
@@ -684,7 +687,7 @@ contains
                 ! note that the a{mpz}left as defined above have the minus already
                 if (idir == 1) then
                    qm(i+1,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref/rho_ref
+                   qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv
                    qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
                    qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
@@ -694,7 +697,7 @@ contains
 
                 else if (idir == 2) then
                    qm(i,j+1,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ref/rho_ref
+                   qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv
                    qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
                    qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
@@ -704,7 +707,7 @@ contains
 
                 else if (idir == 3) then
                    qm(i,j,k+1,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ref/rho_ref
+                   qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv
                    qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
                    qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
