@@ -446,7 +446,7 @@ contains
                                    QRAD, fspace_type, &
                                    GDERADS, GDLAMS, &
 #endif
-                                   npassive, upass_map, qpass_map
+                                   npassive, upass_map, qpass_map, T_guess
 #ifdef RADIATION
     use fluxlimiter_module, only : Edd_factor
     use rad_params_module, only : ngroups
@@ -532,7 +532,7 @@ contains
                 eos_state % rho = qint(i,j,k,QRHO)
                 eos_state % p = qint(i,j,k,QPRES)
                 eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)
-                eos_state % T = 100.0  ! initial guess
+                eos_state % T = T_guess  ! initial guess
                 call eos(eos_input_rp, eos_state)
                 rhoeint = qint(i,j,k,QRHO) * eos_state % e
              else
@@ -579,6 +579,7 @@ contains
              ! passively advected quantities
              do ipassive = 1, npassive
                 n  = upass_map(ipassive)
+                if (n == UMY .or. n == UMZ) cycle
                 nqp = qpass_map(ipassive)
 
                 F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp)
