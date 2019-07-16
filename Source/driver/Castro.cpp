@@ -130,10 +130,11 @@ int          Castro::NQ            = -1;
 int          Castro::NGDNV         = -1;
 
 #ifdef THORNADO
-int          Castro::THORNADO_NSPECIES   = 1;
+int          Castro::thornado_nspecies   = 1;
 int          Castro::THORNADO_NMOMENTS   = 4;
 int          Castro::THORNADO_RAD_NDOF   = std::pow(2,(BL_SPACEDIM + 1));   // = 16 for 3D and 1 energy
 
+int          Castro::thornado_nSpecies   = 1;
 int          Castro::thornado_swE        = 0;
 Real         Castro::thornado_eL         = 0.; 
 Real         Castro::thornado_eR         = 300.; 
