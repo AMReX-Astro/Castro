@@ -1275,7 +1275,7 @@ contains
              ! ------------------------------------------------------------------
 
              if (idir == 1) then
-                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i-1,j,k,QC))  )
+                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i-1,j,k,QC)))
                 cavg = HALF*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC))
                 gamcl = qaux(i-1,j,k,QGAMC)
                 gamcr = qaux(i,j,k,QGAMC)
@@ -1284,7 +1284,7 @@ contains
                 gamcgr = qaux(i,j,k,QGAMCG)
 #endif
              else if (idir == 2) then
-                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i,j-1,k,QC))  )
+                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i,j-1,k,QC)))
                 cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC))
                 gamcl = qaux(i,j-1,k,QGAMC)
                 gamcr = qaux(i,j,k,QGAMC)
@@ -1293,7 +1293,7 @@ contains
                 gamcgr = qaux(i,j,k,QGAMCG)
 #endif
              else
-                csmall = max( small, max( small * qaux(i,j,k,QC) , small * qaux(i,j,k-1,QC))  )
+                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i,j,k-1,QC)))
                 cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC))
                 gamcl = qaux(i,j,k-1,QGAMC)
                 gamcr = qaux(i,j,k,QGAMC)
@@ -1314,7 +1314,7 @@ contains
                 eos_state % p = pl
                 eos_state % rho = rl
                 eos_state % xn(:) = ql(i,j,k,QFS:QFS-1+nspec,comp)
-                eos_state % T = 100.0 ! initial guess
+                eos_state % T = T_guess ! initial guess
 
                 call eos(eos_input_rp, eos_state)
 
@@ -1323,7 +1323,7 @@ contains
                 eos_state % p = pr
                 eos_state % rho = rr
                 eos_state % xn(:) = qr(i,j,k,QFS:QFS-1+nspec,comp)
-                eos_state % T = 100.0 ! initial guess
+                eos_state % T = T_guess ! initial guess
 
                 call eos(eos_input_rp, eos_state)
 
@@ -1440,12 +1440,12 @@ contains
              rstar = max(small_dens, rstar)
 
 #ifdef RADIATION
-             estar_g = reo_g + drho*(reo_g + po_g)/ro
-             co_g = sqrt(abs(gamco_g*po_g/ro))
+             estar_g = reo_g + drho*(reo_g + po_g)*roinv
+             co_g = sqrt(abs(gamco_g*po_g*roinv))
              co_g = max(csmall, co_g)
              pstar_g = po_g + drho*co_g**2
              pstar_g = max(pstar_g, small_pres)
-             estar_r = reo_r(:) + drho*(reo_r(:) + po_r(:))/ro
+             estar_r = reo_r(:) + drho*(reo_r(:) + po_r(:))*roinv
 #else
              entho = (reo + po)*roinv*co2inv
              estar = reo + (pstar - po)*entho
