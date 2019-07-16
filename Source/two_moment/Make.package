@@ -103,14 +103,14 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += wlOpacityTableModule.f90
   ca_f90EXE_sources += wlOpacityTableIOModuleHDF.f90
 
-ifeq ($(USE_GPU),TRUE)
+ifeq ($(USE_THORNADO_GPU),TRUE)
   ca_f90EXE_sources += CudaModule.f90
   ca_f90EXE_sources += CublasModule.f90
   ca_f90EXE_sources += CusolverModule.f90
   ifeq ($(USE_MAGMA),TRUE)
   ca_f90EXE_sources += MagmaModule.f90
   endif
-  ifeq ($(USE_ACC),TRUE)
+  ifeq ($(USE_THORNADO_ACC),TRUE)
   ca_f90EXE_sources += OpenACCModule.f90
   else ifeq ($(USE_OMP_OFFLOAD), TRUE)
   ca_f90EXE_sources += OpenMPModule.f90

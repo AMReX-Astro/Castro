@@ -6,12 +6,24 @@ OPTIMIZE   = TRUE
 
 DIM        = 2
 
-COMP	   = gnu
+COMP	   = pgi
 
 USE_MPI    = TRUE
 USE_OMP    = FALSE
 USE_GPU    = FALSE
+USE_CUDA   = FALSE
 USE_ACC    = FALSE
+
+USE_THORNADO_GPU = TRUE
+USE_THORNADO_ACC = TRUE
+ifeq ($(USE_THORNADO_GPU),TRUE)
+  INCLUDE_LOCATIONS += $(OLCF_CUDA_ROOT)/include
+  LIBRARY_LOCATIONS += $(OLCF_CUDA_ROOT)/lib64
+  LIBRARIES += -lcusolver -lcublas -lcudart -lcuda
+endif
+ifeq ($(USE_THORNADO_ACC),TRUE)
+  GENERIC_PGI_FLAGS += -acc -Minfo=accel -mcmodel=medium -ta=tesla:cc70,ptxinfo,cuda10.1
+endif
 
 USE_HDF5   = TRUE
 HDF5_HOME  ?= /usr/local/Cellar/hdf5/1.10.4
