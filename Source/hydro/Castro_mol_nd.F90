@@ -197,7 +197,7 @@ contains
     integer :: idir, i, j, k, n
     type (eos_t) :: eos_state
 
-    real(rt) :: sm(NQ, AMREX_SPACEDIM), sp(NQ, AMREX_SPACEDIM)
+    real(rt) :: sm(NQ), sp(NQ)
 
     !$gpu
 
@@ -215,24 +215,24 @@ contains
 
                 if (idir == 1) then
                    ! right state at i-1/2
-                   qp(i,j,k,:,1) = sm(:,1)
+                   qp(i,j,k,:,1) = sm
 
                    ! left state at i+1/2
-                   qm(i+1,j,k,:,1) = sp(:,1)
+                   qm(i+1,j,k,:,1) = sp
 
                 else if (idir == 2) then
                    ! right state at j-1/2
-                   qp(i,j,k,:,2) = sm(:,2)
+                   qp(i,j,k,:,2) = sm
 
                    ! left state at j+1/2
-                   qm(i,j+1,k,:,2) = sp(:,2)
+                   qm(i,j+1,k,:,2) = sp
 
                 else
                    ! right state at k-1/2
-                   qp(i,j,k,:,3) = sm(:,3)
+                   qp(i,j,k,:,3) = sm
 
                    ! left state at k+1/2
-                   qm(i,j,k+1,:,3) = sp(:,3)
+                   qm(i,j,k+1,:,3) = sp
 
                 end if
 

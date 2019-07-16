@@ -45,8 +45,7 @@ contains
 
     real(rt), intent(in   ) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), nc)
     real(rt), intent(in   ) :: flatn(f_lo(1):f_hi(1), f_lo(2):f_hi(2), f_lo(3):f_hi(3))
-    real(rt), intent(inout) :: qm(ncq, AMREX_SPACEDIM)
-    real(rt), intent(inout) :: qp(ncq, AMREX_SPACEDIM)
+    real(rt), intent(inout) :: qm(ncq), qp(ncq)
 
     integer, intent(in) :: i, j, k
 
@@ -156,8 +155,8 @@ contains
 
           end if
 
-          qp(nq,1) = sp
-          qm(nq,1) = sm
+          qp(nq) = sp
+          qm(nq) = sm
 
        end do
 
@@ -252,8 +251,8 @@ contains
 
           end if
 
-          qp(nq,2) = sp
-          qm(nq,2) = sm
+          qp(nq) = sp
+          qm(nq) = sm
 
        end do
 
@@ -348,8 +347,8 @@ contains
 
           end if
 
-          qp(nq,3) = sp
-          qm(nq,3) = sm
+          qp(nq) = sp
+          qm(nq) = sm
 
        end do
     end if
@@ -357,13 +356,12 @@ contains
   end subroutine ca_ppm_reconstruct
 
 
-
   subroutine ppm_int_profile(i, j, k, &
                              idir, &
                              s, s_lo, s_hi, ncomp, n, &
                              q, qd_lo, qd_hi, &
                              qaux, qa_lo, qa_hi, &
-                             sm_in, sp_in, &
+                             sm, sp, &
                              Ip, Im, icomp, ic, &
                              dx, dt)
 
@@ -381,8 +379,8 @@ contains
     real(rt), intent(in) ::     s( s_lo(1): s_hi(1), s_lo(2): s_hi(2), s_lo(3): s_hi(3), ncomp)
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3), NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3), NQAUX)
-    real(rt), intent(in) :: sm_in(AMREX_SPACEDIM)
-    real(rt), intent(in) :: sp_in(AMREX_SPACEDIM)
+    real(rt), intent(in) :: sm
+    real(rt), intent(in) :: sp
     real(rt), intent(inout) :: Ip(1:3, icomp)
     real(rt), intent(inout) :: Im(1:3, icomp)
 
@@ -392,195 +390,63 @@ contains
     ! local
     real(rt) :: speed
 
-    real(rt)         dtdx, dtdy, dtdz
-    real(rt)         sigma, s6
-    real(rt)         :: sm, sp
+    real(rt) :: dtdx
+    real(rt) :: sigma, s6
+
+    integer :: QUN
 
     !$gpu
 
-    dtdx = dt/dx(1)
-#if (AMREX_SPACEDIM >= 2)
-    dtdy = dt/dx(2)
-#endif
-#if (AMREX_SPACEDIM == 3)
-    dtdz = dt/dx(3)
-#endif
+    dtdx = dt/dx(idir)
+    QUN = QU - 1 + idir
 
-    if (idir == 1) then
+    ! compute x-component of Ip and Im
+    s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
 
-       !!!!!!!!!!!!!!!!!!!!
-       ! x-direction
-       !!!!!!!!!!!!!!!!!!!!
+    ! Ip/m is the integral under the parabola for the extent
+    ! that a wave can travel over a timestep
+    !
+    ! Ip integrates to the right edge of a cell
+    ! Im integrates to the left edge of a cell
 
-       ! copy sedge into sp and sm
-       sp = sp_in(1)
-       sm = sm_in(1)
+    ! u-c wave
+    speed = q(i,j,k,QUN)-qaux(i,j,k,QC)
+    sigma = abs(speed)*dtdx
 
-       ! compute x-component of Ip and Im
-       s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
-
-       ! Ip/m is the integral under the parabola for the extent
-       ! that a wave can travel over a timestep
-       !
-       ! Ip integrates to the right edge of a cell
-       ! Im integrates to the left edge of a cell
-
-       ! u-c wave
-       speed = q(i,j,k,QU)-qaux(i,j,k,QC)
-       sigma = abs(speed)*dtdx
-
-       ! if speed == ZERO, then either branch is the same
-       if (speed <= ZERO) then
-          Ip(1,ic) = sp
-          Im(1,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-       else
-          Ip(1,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          Im(1,ic) = sm
-       endif
-
-       ! u wave
-       speed = q(i,j,k,QU)
-       sigma = abs(speed)*dtdx
-
-       if (speed <= ZERO) then
-          Ip(2,ic) = sp
-          Im(2,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-       else
-          Ip(2,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          Im(2,ic) = sm
-       endif
-
-       ! u+c wave
-       speed = q(i,j,k,QU)+qaux(i,j,k,QC)
-       sigma = abs(speed)*dtdx
-
-       if (speed <= ZERO) then
-          Ip(3,ic) = sp
-          Im(3,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-       else
-          Ip(3,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          Im(3,ic) = sm
-       endif
-
-    else if (idir == 2) then
-
-       !!!!!!!!!!!!!!!!!!!!
-       ! y-direction
-       !!!!!!!!!!!!!!!!!!!!
-
-       ! copy sedge into sp and sm
-       sp = sp_in(2)
-       sm = sm_in(2)
-
-       ! compute y-component of Ip and Im
-       s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
-
-       ! v-c wave
-       speed = q(i,j,k,QV)-qaux(i,j,k,QC)
-       sigma = abs(speed)*dtdy
-
-       if (speed <= ZERO) then
-          Ip(1,ic) = sp
-          Im(1,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-       else
-          Ip(1,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          Im(1,ic) = sm
-       endif
-
-       ! v wave
-       speed = q(i,j,k,QV)
-       sigma = abs(speed)*dtdy
-
-       if (speed <= ZERO) then
-          Ip(2,ic) = sp
-          Im(2,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-       else
-          Ip(2,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          Im(2,ic) = sm
-       endif
-
-       ! v+c wave
-       speed = q(i,j,k,QV)+qaux(i,j,k,QC)
-       sigma = abs(speed)*dtdy
-
-       if (speed <= ZERO) then
-          Ip(3,ic) = sp
-          Im(3,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-       else
-          Ip(3,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          Im(3,ic) = sm
-       endif
-
+    ! if speed == ZERO, then either branch is the same
+    if (speed <= ZERO) then
+       Ip(1,ic) = sp
+       Im(1,ic) = sm + HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
     else
-       !!!!!!!!!!!!!!!!!!!!
-       ! z-direction
-       !!!!!!!!!!!!!!!!!!!!
+       Ip(1,ic) = sp - HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+       Im(1,ic) = sm
+    endif
 
-       sp = sp_in(3)
-       sm = sm_in(3)
+    ! u wave
+    speed = q(i,j,k,QUN)
+    sigma = abs(speed)*dtdx
 
-       ! compute z-component of Ip and Im
-       s6 = SIX*s(i,j,k,n) - THREE*(sm+sp)
+    if (speed <= ZERO) then
+       Ip(2,ic) = sp
+       Im(2,ic) = sm + HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+    else
+       Ip(2,ic) = sp - HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+       Im(2,ic) = sm
+    endif
 
-       ! w-c wave
-       speed = q(i,j,k,QW)-qaux(i,j,k,QC)
-       sigma = abs(speed)*dtdz
+    ! u+c wave
+    speed = q(i,j,k,QUN)+qaux(i,j,k,QC)
+    sigma = abs(speed)*dtdx
 
-       if (speed <= ZERO) then
-          Ip(1,ic) = sp
-          Im(1,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-       else
-          Ip(1,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          Im(1,ic) = sm
-       endif
-
-       ! w wave
-       speed = q(i,j,k,QW)
-       sigma = abs(speed)*dtdz
-
-       if (speed <= ZERO) then
-          Ip(2,ic) = sp
-          Im(2,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-       else
-          Ip(2,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          Im(2,ic) = sm
-       endif
-
-       ! w+c wave
-       speed = q(i,j,k,QW)+qaux(i,j,k,QC)
-       sigma = abs(speed)*dtdz
-
-       if (speed <= ZERO) then
-          Ip(3,ic) = sp
-          Im(3,ic) = sm + &
-               HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
-       else
-          Ip(3,ic) = sp - &
-               HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
-          Im(3,ic) = sm
-       endif
-
+    if (speed <= ZERO) then
+       Ip(3,ic) = sp
+       Im(3,ic) = sm + HALF*sigma*(sp-sm+(ONE-TWO3RD*sigma)*s6)
+    else
+       Ip(3,ic) = sp - HALF*sigma*(sp-sm-(ONE-TWO3RD*sigma)*s6)
+       Im(3,ic) = sm
     endif
 
   end subroutine ppm_int_profile
-
-
 
 
   subroutine ppm_reconstruct_with_eos(Ip, Im, Ip_gc, Im_gc)

@@ -324,7 +324,7 @@ contains
 
     real(rt) :: hdt
 
-    real(rt) :: sm(1, AMREX_SPACEDIM), sp(1, AMREX_SPACEDIM)
+    real(rt) :: sm(1), sp(1)
 
     real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
     real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
@@ -454,7 +454,7 @@ contains
                                      q, qd_lo, qd_hi, NQ, n, &
                                      q, qd_lo, qd_hi, &
                                      qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
+                                     sm(1), sp(1), &
                                      Ip, Im, NQ, n, &
                                      dx, dt)
              end do
@@ -472,7 +472,7 @@ contains
                                   qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                   q, qd_lo, qd_hi, &
                                   qaux, qa_lo, qa_hi, &
-                                  sm, sp, &
+                                  sm(1), sp(1), &
                                   Ip_gc, Im_gc, 1, 1, &
                                   dx, dt)
 
@@ -492,7 +492,7 @@ contains
                                         srcQ, src_lo, src_hi, NQSRC, n, &
                                         q, qd_lo, qd_hi, &
                                         qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
+                                        sm(1), sp(1), &
                                         Ip_src, Im_src, NQSRC, n, &
                                         dx, dt)
                 else
@@ -855,7 +855,7 @@ contains
 
     real(rt) :: hdt
 
-    real(rt) :: sm(1, AMREX_SPACEDIM), sp(1, AMREX_SPACEDIM)
+    real(rt) :: sm(1), sp(1)
 
     real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
     real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
@@ -992,7 +992,7 @@ contains
                                      q, qd_lo, qd_hi, NQ, n, &
                                      q, qd_lo, qd_hi, &
                                      qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
+                                     sm(1), sp(1), &
                                      Ip, Im, NQ, n, &
                                      dx, dt)
              end do
@@ -1011,7 +1011,7 @@ contains
                                      qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                      q, qd_lo, qd_hi, &
                                      qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
+                                     sm(1), sp(1), &
                                      Ip_gc, Im_gc, 1, 1, &
                                      dx, dt)
              else
@@ -1038,7 +1038,7 @@ contains
                                         srcQ, src_lo, src_hi, NQSRC, n, &
                                         q, qd_lo, qd_hi, &
                                         qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
+                                        sm(1), sp(1), &
                                         Ip_src, Im_src, NQSRC, n, &
                                         dx, dt)
                 else
@@ -1422,7 +1422,7 @@ contains
 
     real(rt) :: hdt
 
-    real(rt) :: sm(1, AMREX_SPACEDIM), sp(1, AMREX_SPACEDIM)
+    real(rt) :: sm(1), sp(1)
 
     real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
     real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
@@ -1565,7 +1565,7 @@ contains
                                      q, qd_lo, qd_hi, NQ, n, &
                                      q, qd_lo, qd_hi, &
                                      qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
+                                     sm(1), sp(1), &
                                      Ip, Im, NQ, n, &
                                      dx, dt)
              end do
@@ -1584,7 +1584,7 @@ contains
                                      qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
                                      q, qd_lo, qd_hi, &
                                      qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
+                                     sm(1), sp(1), &
                                      Ip_gc, Im_gc, 1, 1, &
                                      dx, dt)
              else
@@ -1611,7 +1611,7 @@ contains
                                         srcQ, src_lo, src_hi, NQSRC, n, &
                                         q, qd_lo, qd_hi, &
                                         qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
+                                        sm(1), sp(1), &
                                         Ip_src, Im_src, NQSRC, n, &
                                         dx, dt)
                 else
