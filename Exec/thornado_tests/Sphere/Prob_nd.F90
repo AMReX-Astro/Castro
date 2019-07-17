@@ -225,8 +225,10 @@ subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
   use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFX
   use MeshModule, only: MeshE, NodeCoordinate
   use UnitsModule
-  use EquationOfStateModule_TABLE, only: ComputeThermodynamicStates_Auxiliary_TABLE, ComputeElectronChemicalPotential_TABLE, &
-                                         ComputeProtonChemicalPotential_TABLE, ComputeNeutronChemicalPotential_TABLE
+  use EquationOfStateModule_TABLE, only: ComputeTemperatureFromSpecificInternalEnergyPoint_TABLE, &
+      ComputeElectronChemicalPotential_TABLE, &
+      ComputeProtonChemicalPotential_TABLE, &
+      ComputeNeutronChemicalPotential_TABLE
 
   implicit none
 
@@ -249,7 +251,7 @@ subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
   ! local variables
   integer :: i,j,k,ienode
   integer :: ii,ii_0,is,im,ie
-  real(rt) :: rho_in(1), T_in(1), Ye_in(1), Evol(1), Ne_loc(1), Em_in(1), M_e(1), M_p(1), M_n(1), M_nu(1), E(1)
+  real(rt) :: rho_in, T_in, Ye_in, Evol, Ne_loc, Em_in, M_e, M_p, M_n, M_nu, E
 
   ! zero it out, just in case
   rad_state = zero
@@ -266,13 +268,15 @@ subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
         do i = lo(1), hi(1)
 
            ! Get Castro fluid variables unit convert to thornado units
-           rho_in(1) = state(i,j,k,URHO ) * Gram / Centimeter**3
-           T_in(1)   = state(i,j,k,UTEMP) * Kelvin
-           Evol(1)   = state(i,j,k,UEINT) * (Erg/Centimeter**3)
-           Ne_loc(1) = state(i,j,k,UFX  ) / Centimeter**3
+           rho_in = state(i,j,k,URHO ) * Gram / Centimeter**3
+           T_in   = state(i,j,k,UTEMP) * Kelvin
+           Evol   = state(i,j,k,UEINT) * (Erg/Centimeter**3)
+           Ne_loc = state(i,j,k,UFX  ) / Centimeter**3
 
            ! Calculate chemical potentials via thornado subroutines
-           call ComputeThermodynamicStates_Auxiliary_TABLE( rho_in, Evol, Ne_loc, T_in, Em_in, Ye_in)
+           Em_in  = Evol / rho_in
+           Ye_in  = Ne_loc / rho_in * AtomicMassUnit
+           call ComputeTemperatureFromSpecificInternalEnergyPoint_TABLE(rho_in,Em_in,Ye_in,T_in,Guess_Option=T_in)
            call ComputeElectronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_e)
            call ComputeProtonChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_p)
            call ComputeNeutronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_n)
@@ -295,11 +299,11 @@ subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
    
                  ! J moment, im = 1, is = 1
                  if (im .eq. 1 .and. is .eq. 1) &
-                    rad_state(i,j,k,ii) = max(one / (exp( (E(1)-M_nu(1)) / T_in(1)) + one), 1.0d-99)
+                    rad_state(i,j,k,ii) = max(one / (exp( (E-M_nu) / T_in) + one), 1.0d-99)
 
                  ! J moment, im = 1, is = 2
                  if (im .eq. 1 .and. is .eq. 2) &
-                    rad_state(i,j,k,ii) = max(one / (exp( (E(1)+M_nu(1)) / T_in(1)) + one), 1.0d-99)
+                    rad_state(i,j,k,ii) = max(one / (exp( (E+M_nu) / T_in) + one), 1.0d-99)
    
                  ! H_x moment, im = 2
                  if (im .eq. 2) rad_state(i,j,k,ii) = zero
