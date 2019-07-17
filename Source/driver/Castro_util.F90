@@ -128,7 +128,7 @@ contains
   subroutine ca_recompute_energetics(lo, hi, state, s_lo, s_hi) bind(c,name='ca_recompute_energetics')
     ! Recomputes T and (rho e) from (rho E)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UEDEN, UEINT
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UEINT
     use amrex_constants_module, only: HALF, ONE
     use amrex_fort_module, only: rt => amrex_real
     use eos_type_module, only : eos_t, eos_input_re

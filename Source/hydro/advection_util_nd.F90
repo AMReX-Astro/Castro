@@ -1831,7 +1831,7 @@ contains
        flux, f_lo, f_hi, &
        area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
-    use meth_params_module, only: NVAR, UMX, GDPRES, NGDNV
+    use meth_params_module, only: NVAR, GDPRES, UMX, NGDNV
     use prob_params_module, only : coord_type
 
     implicit none
