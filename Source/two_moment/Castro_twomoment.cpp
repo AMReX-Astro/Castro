@@ -42,7 +42,9 @@ Castro::init_thornado()
 
     if (thornado_plot_node_averages == 1) {
 
-       ca_get_thornado_node_averages(&thornado_nplotvar);
+       int nplot_thornado;
+       ca_get_thornado_node_averages(&nplot_thornado);
+       thornado_nplotvar = nplot_thornado;
 
        char buf[12];
 

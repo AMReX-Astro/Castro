@@ -225,6 +225,8 @@ subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
   use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFX
   use MeshModule, only: MeshE, NodeCoordinate
   use UnitsModule
+  use wlEOSInversionModule, only: DescribeEOSInversionError
+  use NeutrinoOpacitiesComputationModule, only: FermiDirac
   use EquationOfStateModule_TABLE, only: ComputeTemperatureFromSpecificInternalEnergyPoint_TABLE, &
       ComputeElectronChemicalPotential_TABLE, &
       ComputeProtonChemicalPotential_TABLE, &
@@ -247,9 +249,10 @@ subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
 
   ! Local parameter
   integer, parameter :: n_moments = 4
+  real(rt), parameter :: Log1d100 = LOG( 1.0d100 )
 
   ! local variables
-  integer :: i,j,k,ienode
+  integer :: i,j,k,ienode,Error
   integer :: ii,ii_0,is,im,ie
   real(rt) :: rho_in, T_in, Ye_in, Evol, Ne_loc, Em_in, M_e, M_p, M_n, M_nu, E
 
@@ -276,7 +279,11 @@ subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
            ! Calculate chemical potentials via thornado subroutines
            Em_in  = Evol / rho_in
            Ye_in  = Ne_loc / rho_in * AtomicMassUnit
-           call ComputeTemperatureFromSpecificInternalEnergyPoint_TABLE(rho_in,Em_in,Ye_in,T_in,Guess_Option=T_in)
+           call ComputeTemperatureFromSpecificInternalEnergyPoint_TABLE(rho_in,Em_in,Ye_in,T_in,Error_Option=Error)
+           if ( Error > 0 ) then
+             call DescribeEOSInversionError( Error )
+             stop
+           end if
            call ComputeElectronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_e)
            call ComputeProtonChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_p)
            call ComputeNeutronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_n)
@@ -298,12 +305,14 @@ subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
                  E = NodeCoordinate( MeshE, ie, ienode)
    
                  ! J moment, im = 1, is = 1
-                 if (im .eq. 1 .and. is .eq. 1) &
-                    rad_state(i,j,k,ii) = max(one / (exp( (E-M_nu) / T_in) + one), 1.0d-99)
+                 if (im .eq. 1 .and. is .eq. 1) then
+                    rad_state(i,j,k,ii) = FermiDirac( E, +M_nu, BoltzmannConstant * T_in )
+                 end if
 
                  ! J moment, im = 1, is = 2
-                 if (im .eq. 1 .and. is .eq. 2) &
-                    rad_state(i,j,k,ii) = max(one / (exp( (E+M_nu) / T_in) + one), 1.0d-99)
+                 if (im .eq. 1 .and. is .eq. 2) then
+                    rad_state(i,j,k,ii) = FermiDirac( E, -M_nu, BoltzmannConstant * T_in )
+                 end if
    
                  ! H_x moment, im = 2
                  if (im .eq. 2) rad_state(i,j,k,ii) = zero
