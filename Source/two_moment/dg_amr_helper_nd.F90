@@ -50,8 +50,8 @@ contains
     nFineX_local(3) = 1
 #endif
 
-    if ( nvar .ne. nNodesE * nE * nCR ) &
-       call amrex_error("Mismatch of nvar with nNodesE*nE*nCR in dg_refine")
+    if ( nvar .ne. nNodesE * nE * nCR * nSpecies ) &
+       call amrex_error("Mismatch of nvar with nNodesE*nE*nCR*nSpecies in dg_refine")
 #if (AMREX_SPACEDIM == 2)
     if ( nDOF .ne. nNodesE * nNodesX(1) * nNodesX(2) ) &
        call amrex_error("Mismatch of nDOF with nNodesE*nNodesX(1)*nNodesX(2) in dg_refine")
@@ -253,8 +253,8 @@ contains
     ! print *,'FINE LO ', fine_lo(:)
     ! print *,'FINE HI ', fine_hi(:)
 
-    if ( nvar .ne. nNodesE * nE * nCR ) &
-       call amrex_error("Mismatch of nvar with nNodesE*nE*nCR in dg_coarsen")
+    if ( nvar .ne. nNodesE * nE * nCR * nSpecies ) &
+       call amrex_error("Mismatch of nvar with nNodesE*nE*nCR*nSpecies in dg_coarsen")
 #if (AMREX_SPACEDIM == 2)
     if ( nDOF .ne. nNodesE * nNodesX(1) * nNodesX(2) ) &
        call amrex_error("Mismatch of nDOF with nNodesE*nNodesX(1)*nNodesX(2) in dg_refine")
