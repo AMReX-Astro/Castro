@@ -1706,9 +1706,10 @@ public:
     static amrex::Real num_zones_advanced;
 
 #ifdef THORNADO
-    static int THORNADO_NSPECIES;
     static int THORNADO_NMOMENTS;
     static int THORNADO_RAD_NDOF;
+
+    static int         thornado_nSpecies;
 
     // These are the lower and upper limits of the energy groups
     static int         thornado_swE;

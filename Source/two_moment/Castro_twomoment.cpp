@@ -11,6 +11,7 @@ Castro::read_thornado_params ()
 {
   ParmParse pp("thornado");
 
+  pp.query("nSpecies" , thornado_nSpecies);
   pp.query("eL"       , thornado_eL);
   pp.query("eR"       , thornado_eR);
   pp.query("ndimse"   , thornado_ndimse);
@@ -25,7 +26,6 @@ Castro::init_thornado()
 {
     int nDimsX   = BL_SPACEDIM;
     int nDimsE   = thornado_ndimse; // number of energy groups in thornado
-    int nSpecies = THORNADO_NSPECIES;
 
     Real zoomE    = thornado_zoome;  // geometric zoom factor for energy groups
 
@@ -35,7 +35,7 @@ Castro::init_thornado()
 
     // Note these are in units of MeV
     amrex::Print() << "*****Calling InitThornado with eL and eR = " << thornado_eL << " " << thornado_eR << std::endl;
-    InitThornado(&nDimsX, &nDimsE, &swE, &eL, &eR, &zoomE, &nSpecies);
+    InitThornado(&nDimsX, &nDimsE, &swE, &eL, &eR, &zoomE, &thornado_nSpecies);
 
     int ncomp_thornado;
     ca_get_rad_ncomp(&ncomp_thornado);
