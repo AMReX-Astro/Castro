@@ -36,8 +36,8 @@ contains
                                    qrad, qradhi, qptot, qreitot, &
                                    small_dens, small_pres, &
                                    ppm_type, ppm_temp_fix, &
-                                   ppm_reference_eigenvectors, ppm_predict_gammae, &
-                                   npassive, qpass_map
+                                   ppm_reference_eigenvectors, ppm_predict_gammae
+
     use rad_params_module, only : ngroups
     use amrex_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
