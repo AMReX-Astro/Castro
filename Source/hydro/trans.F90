@@ -145,9 +145,6 @@ contains
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
 
-       ! since we merge 2- and 3-d, be sure not to update any velocities
-       if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
-
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -719,9 +716,6 @@ contains
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
 
-       ! since we merge 2- and 3-d, be sure not to update any velocities
-       if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
-
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -1161,9 +1155,6 @@ contains
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
 
-       ! since we merge 2- and 3-d, be sure not to update any velocities
-       if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
-
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -1596,9 +1587,6 @@ contains
     do ipassive = 1,npassive
        n  = upass_map(ipassive)
        nqp = qpass_map(ipassive)
-
-       ! since we merge 2- and 3-d, be sure not to update any velocities
-       if (nqp == QU .or. nqp == QV .or. nqp == QW) cycle
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)

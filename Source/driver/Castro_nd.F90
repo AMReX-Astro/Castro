@@ -633,28 +633,12 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   ! easy indexing for the passively advected quantities.  This lets us
   ! loop over all groups (advected, species, aux) in a single loop.
   ! Note: these sizes are the maximum size we expect for passives.
-  allocate(qpass_map(NQ))
-  allocate(upass_map(NVAR))
+  allocate(qpass_map(nadv + nspec + naux))
+  allocate(upass_map(nadv + nspec + naux))
 
   ! Transverse velocities
 
-  if (dm == 1) then
-     upass_map(1) = UMY
-     qpass_map(1) = QV
-
-     upass_map(2) = UMZ
-     qpass_map(2) = QW
-
-     npassive = 2
-
-  else if (dm == 2) then
-     upass_map(1) = UMZ
-     qpass_map(1) = QW
-
-     npassive = 1
-  else
-     npassive = 0
-  endif
+  npassive = 0
 
   do iadv = 1, nadv
      upass_map(npassive + iadv) = UFA + iadv - 1

@@ -1538,17 +1538,9 @@ contains
                 qint(i,j,k,QREINT) = eos_state % rho * eos_state % e
              endif
 
-
-             ! ------------------------------------------------------------------
-             ! compute the fluxes
-             ! ------------------------------------------------------------------
-
-             ! we just found the state on the interface, now we use this to
-             ! evaluate the fluxes
-
+             ! Enforce that fluxes through a symmetry plane or wall are hard zero.
              u_adv = qint(i,j,k,iu)
 
-             ! Enforce that fluxes through a symmetry plane or wall are hard zero.
              if ( special_bnd_lo_x .and. i == domlo(1) .or. &
                   special_bnd_hi_x .and. i == domhi(1)+1 ) then
                 bnd_fac_x = ZERO

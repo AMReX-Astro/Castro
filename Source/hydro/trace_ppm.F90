@@ -198,11 +198,6 @@ contains
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
 
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  We will deal with all 3 velocity
-       ! components below, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
-
        ! Plus state on face i
        if ((idir == 1 .and. i >= vlo(1)) .or. &
            (idir == 2 .and. j >= vlo(2)) .or. &

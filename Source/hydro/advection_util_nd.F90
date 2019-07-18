@@ -555,28 +555,14 @@ contains
              q(i,j,k,qrad:qradhi) = Erin(i,j,k,:)
 #endif
 
-          enddo
-       enddo
-    enddo
-
-    ! Load passively advected quatities into q
-    do ipassive = 1, npassive
-       n  = upass_map(ipassive)
-       iq = qpass_map(ipassive)
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
-                q(i,j,k,iq) = uin(i,j,k,n)/q(i,j,k,QRHO)
+             ! Load passively advected quatities into q
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                iq = qpass_map(ipassive)
+                q(i,j,k,iq) = uin(i,j,k,n) * rhoinv
              enddo
-          enddo
-       enddo
-    enddo
 
-    ! get gamc, p, T, c, csml using q state
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
+             ! get gamc, p, T, c, csml using q state
              eos_state % T   = q(i,j,k,QTEMP )
              eos_state % rho = q(i,j,k,QRHO  )
              eos_state % e   = q(i,j,k,QREINT)
@@ -682,9 +668,6 @@ contains
     do ipassive = 1, npassive
        n = upass_map(ipassive)
        iq = qpass_map(ipassive)
-
-       ! we already accounted for velocities above
-       if (iq == QU .or. iq == QV .or. iq == QW) cycle
 
        ! we may not be including the ability to have species sources,
        ! so check to make sure that we are < NQSRC
