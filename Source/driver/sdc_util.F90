@@ -55,12 +55,10 @@ contains
     ! reaction update.  It either directly calls the Newton method or first
     ! tries VODE and then does the Newton update.
 
-    use meth_params_module, only : NVAR, UEDEN, UEINT, URHO, UFS, UMX, UMZ, UTEMP, &
-                                   sdc_solver
+    use meth_params_module, only : NVAR, sdc_solver
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
-    use extern_probin_module, only : SMALL_X_SAFE
     use network, only : nspec, nspec_evolve
     use rpar_sdc_module
 
@@ -117,7 +115,6 @@ contains
     ! limit on the number of subintervals.
     use meth_params_module, only : NVAR, URHO, UFS
     use amrex_constants_module, only : ZERO, HALF, ONE
-    use extern_probin_module, only : SMALL_X_SAFE
     use network, only : nspec, nspec_evolve
     use rpar_sdc_module
 
@@ -177,7 +174,6 @@ contains
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
-    use extern_probin_module, only : SMALL_X_SAFE
     use network, only : nspec, nspec_evolve
     use rpar_sdc_module
 
@@ -192,19 +188,16 @@ contains
 
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
     real(rt) :: w(0:nspec_evolve+1)
-    real(rt) :: atol_spec(nspec_evolve)
 
     real(rt) :: rpar(0:n_rpar-1)
-    integer :: ipar
 
     integer :: ipvt(nspec_evolve+2)
     integer :: info
 
     logical :: converged
 
-    real(rt) :: time
     real(rt) :: tol_dens, tol_spec, tol_ener, relax_fac
-    real(rt) :: rtol(0:nspec_evolve+1), atol(0:nspec_evolve+1), eps_tot(0:nspec_evolve+1)
+    real(rt) :: eps_tot(0:nspec_evolve+1)
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
@@ -212,20 +205,15 @@ contains
     !   1:nspec_evolve  : species
     !   nspec_evolve+1  : (rho E) or (rho e)
 
-    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), &
-                R_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
+    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1)
     real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
 
-    integer :: m, n
-
-    real(rt) :: err, eta, eta_max, sum_rhoX
+    real(rt) :: err, eta
 
     integer, parameter :: MAX_ITER = 100
     integer :: iter
 
     integer :: max_newton_iter
-
-    integer :: imode
 
     ierr = NEWTON_SUCCESS
 
@@ -376,7 +364,6 @@ contains
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
-    use extern_probin_module, only : SMALL_X_SAFE
     use network, only : nspec, nspec_evolve
     use rpar_sdc_module
 
@@ -388,16 +375,10 @@ contains
     real(rt), intent(in) :: C(NVAR)
     integer, intent(in) :: sdc_iteration
 
-    real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
-    real(rt) :: w(0:nspec_evolve+1)
-    real(rt) :: atol_spec(nspec_evolve)
-
     real(rt) :: rpar(0:n_rpar-1)
     integer :: ipar
 
     integer :: istate, iopt
-
-    logical :: converged
 
     integer, parameter :: lrw = 22 + 9*(nspec_evolve+2) + 2*(nspec_evolve+2)**2
     integer, parameter :: liw = 30 + nspec_evolve + 2
@@ -414,13 +395,7 @@ contains
     !   1:nspec_evolve  : species
     !   nspec_evolve+1  : (rho E) or (rho e)
 
-    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1), &
-                R_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
-    real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
-
-    integer :: m, n
-
-    real(rt) :: err_dens, err_spec, err_ener
+    real(rt) :: U_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
 
     integer, parameter :: MF_ANALYTIC_JAC = 21, MF_NUMERICAL_JAC = 22
     integer :: imode
@@ -754,15 +729,13 @@ contains
 
     real(rt) :: U_full(nvar),  R_full(nvar)
     real(rt) :: R_react(0:n-1), f_source(0:n-1)
-    real(rt) :: U_pert(0:n-1) , f_pert(0:n-1)
     type(burn_t) :: burn_state
     type(eos_t) :: eos_state
     real(rt) :: dt_m
 
     real(rt) :: denom
     real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
-    integer :: m, ncol
-    real(rt) :: eps = 1.e-8_rt   ! should be sqrt(machine epsilon)
+    integer :: m
 
     ! we are not solving the momentum equations
     ! create a full state -- we need this for some interfaces
@@ -1271,8 +1244,8 @@ contains
 
     use amrex_constants_module, only : ZERO
     use burn_type_module
-    use meth_params_module, only : NVAR, NQ, NQAUX, QFS, QRHO, QTEMP, UFS, UEDEN, UEINT
-    use network, only : nspec, nspec_evolve, aion
+    use meth_params_module, only : NVAR, NQ, NQAUX
+    use network, only : nspec, nspec_evolve
     use react_util_module
 
 

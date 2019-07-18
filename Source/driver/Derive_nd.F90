@@ -1391,7 +1391,7 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE
     use meth_params_module, only: UTEMP
-    use prob_params_module, only: problo, coord_type, dg
+    use prob_params_module, only: problo, coord_type
 
     implicit none
 

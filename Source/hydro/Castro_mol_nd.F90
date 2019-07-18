@@ -115,6 +115,7 @@ contains
                 end do
              end do
 #endif
+
           end if
        end do
     end do
@@ -196,22 +197,62 @@ contains
     integer :: idir, i, j, k, n
     type (eos_t) :: eos_state
 
+    real(rt) :: sm(NQ, AMREX_SPACEDIM), sp(NQ, AMREX_SPACEDIM)
+
     !$gpu
 
     do idir = 1, AMREX_SPACEDIM
-       call ca_ppm_reconstruct(lo, hi, 1, idir, &
-                               q, q_lo, q_hi, NQ, 1, NQ, &
-                               flatn, fl_lo, fl_hi, &
-                               qm, qm_lo, qm_hi, &
-                               qp, qp_lo, qp_hi, NQ, 1, NQ)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call ca_ppm_reconstruct(i, j, k, &
+                                        idir, &
+                                        q, q_lo, q_hi, NQ, 1, NQ, &
+                                        flatn, fl_lo, fl_hi, &
+                                        sm, sp, NQ, 1, NQ)
+
+                if (idir == 1) then
+                   ! right state at i-1/2
+                   qp(i,j,k,:,1) = sm(:,1)
+
+                   ! left state at i+1/2
+                   qm(i+1,j,k,:,1) = sp(:,1)
+
+                else if (idir == 2) then
+                   ! right state at j-1/2
+                   qp(i,j,k,:,2) = sm(:,2)
+
+                   ! left state at j+1/2
+                   qm(i,j+1,k,:,2) = sp(:,2)
+
+                else
+                   ! right state at k-1/2
+                   qp(i,j,k,:,3) = sm(:,3)
+
+                   ! left state at k+1/2
+                   qm(i,j,k+1,:,3) = sp(:,3)
+
+                end if
+
+             end do
+          end do
+       end do
+
     end do
 
     ! use T to define p
     if (ppm_temp_fix == 1) then
+
        do idir = 1, AMREX_SPACEDIM
+
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
+
+                   ! we just got the extremes corresponding to a particular cell-center, but now
+                   ! we need to assign them to interfaces
 
                    eos_state%rho    = qp(i,j,k,QRHO,idir)
                    eos_state%T      = qp(i,j,k,QTEMP,idir)
@@ -238,7 +279,9 @@ contains
                 end do
              end do
           end do
+
        end do
+
     end if
 
   end subroutine ca_mol_ppm_reconstruct
@@ -356,13 +399,13 @@ contains
 #elif AMREX_SPACEDIM == 2
                 update(i,j,k,n) = update(i,j,k,n) + &
                      (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
-                      flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
+                     flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
 
 #else
                 update(i,j,k,n) = update(i,j,k,n) + &
                      (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) + &
-                      flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
-                      flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
+                     flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) + &
+                     flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
 #endif
 
 #if AMREX_SPACEDIM == 1

@@ -11,7 +11,7 @@ contains
     use network, only : nspec, nspec_evolve, aion
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_re, eos_get_small_temp
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX
+    use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UFS, UFX
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
     use extern_probin_module, only : SMALL_X_SAFE, MAX_TEMP
@@ -24,7 +24,7 @@ contains
     type(burn_t), intent(inout) :: burn_state
 
     type(eos_t) :: eos_state
-    real(rt) :: rhoInv, rho_e_K
+    real(rt) :: rhoInv
     integer :: n
     real(rt) :: small_temp
 
@@ -82,7 +82,7 @@ contains
 
     use burn_type_module, only : burn_t, net_ienuc, net_itemp
     use network, only : nspec, nspec_evolve, aion, aion_inv
-    use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UMX, UMZ, UFS, UFX, &
+    use meth_params_module, only : NVAR, URHO, &
                                    sdc_use_analytic_jac
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
