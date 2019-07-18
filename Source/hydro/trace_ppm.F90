@@ -188,9 +188,7 @@ contains
 
     integer, intent(in) :: i, j, k
 
-    real(rt) :: un
     integer :: ipassive, n
-
 
     !$gpu
 
@@ -203,8 +201,6 @@ contains
            (idir == 2 .and. j >= vlo(2)) .or. &
            (idir == 3 .and. k >= vlo(3))) then
 
-          un = q(i,j,k,QU-1+idir)
-
           ! We have
           !
           ! q_l = q_ref - Proj{(q_ref - I)}
@@ -214,41 +210,22 @@ contains
           ! wave, so no projection is needed.  Since we are not
           ! projecting, the reference state doesn't matter
 
-          if (un > ZERO) then
-             qp(i,j,k,n) = q(i,j,k,n)
-          else
-             qp(i,j,k,n) = Im(2,n)
-          end if
+          qp(i,j,k,n) = Im(2,n)
           if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(2,n)
 
        end if
 
        ! Minus state on face i+1
        if (idir == 1 .and. i <= vhi(1)) then
-          un = q(i,j,k,QU-1+idir)
-          if (un > ZERO) then
-             qm(i+1,j,k,n) = Ip(2,n)
-          else
-             qm(i+1,j,k,n) = q(i,j,k,n)
-          end if
+          qm(i+1,j,k,n) = Ip(2,n)
           if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(2,n)
 
        else if (idir == 2 .and. j <= vhi(2)) then
-          un = q(i,j,k,QU-1+idir)
-          if (un > ZERO) then
-             qm(i,j+1,k,n) = Ip(2,n)
-          else
-             qm(i,j+1,k,n) = q(i,j,k,n)
-          end if
+          qm(i,j+1,k,n) = Ip(2,n)
           if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(2,n)
 
        else if (idir == 3 .and. k <= vhi(3)) then
-          un = q(i,j,k,QU-1+idir)
-          if (un > ZERO) then
-             qm(i,j,k+1,n) = Ip(2,n)
-          else
-             qm(i,j,k+1,n) = q(i,j,k,n)
-          end if
+          qm(i,j,k+1,n) = Ip(2,n)
           if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(2,n)
        end if
 
