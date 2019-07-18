@@ -559,8 +559,7 @@ contains
              do ipassive = 1, npassive
                 n  = upass_map(ipassive)
                 iq = qpass_map(ipassive)
-                !q(i,j,k,iq) = uin(i,j,k,n) * rhoinv
-                q(i,j,k,iq) = uin(i,j,k,n) / q(i,j,k,QRHO)
+                q(i,j,k,iq) = uin(i,j,k,n) * rhoinv
              enddo
 
              ! get gamc, p, T, c, csml using q state
