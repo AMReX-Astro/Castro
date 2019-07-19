@@ -46,7 +46,7 @@ Castro::init_thornado()
        ca_get_thornado_node_averages(&nplot_thornado);
        thornado_nplotvar = nplot_thornado;
 
-       char buf[12];
+       char buf[13];
 
        int n_each = thornado_nplotvar/4;
 
@@ -70,7 +70,6 @@ Castro::init_thornado()
            sprintf(buf, "Hz_avg_bin%d", i);
            thornado_plotvar_names.push_back(buf);
        }
-   
     } else {
        thornado_nplotvar = 0;
     }
@@ -144,7 +143,7 @@ Castro::init_thornado_data()
 
         FreeThornado_Patch();
     }
-    delete boxlen;
+    delete[] boxlen;
 }
 
 void
@@ -376,7 +375,7 @@ Castro::create_thornado_source(Real dt)
     dS_new.mult(dt_inv);
     dR_new.mult(dt_inv);
 
-    delete boxlen;
+    delete[] boxlen;
 
     // Copy dS_new into dS_old so that we can interpolate in time correctly 
     MultiFab::Copy(dS_old,dS_new,0,0,dS_new.nComp(),dS_new.nGrow());
