@@ -77,7 +77,7 @@ Castro::hybrid_sync(MultiFab& state, int ng)
 	    const Box& bx = mfi.growntilebox(ng);
 
 #pragma gpu box(bx)
-	    ca_hybrid_update(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
+	    ca_hybrid_to_linear_momentum(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
 
 	}
 
