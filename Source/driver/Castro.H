@@ -1539,7 +1539,7 @@ public:
 /// @param state    Current state
 /// @param ng       Number of ghost cells
 ///
-    void hybrid_to_linear_momentum(amrex::MultiFab& state, int ng);
+    void hybrid_to_linear_momentum(amrex::MultiFab& state, int ng = 0);
 
 
 ///
@@ -1548,7 +1548,7 @@ public:
 /// @param state    Current state
 /// @param ng       Number of ghost cells
 ///
-    void linear_to_hybrid_momentum(amrex::MultiFab& state, int ng);
+    void linear_to_hybrid_momentum(amrex::MultiFab& state, int ng = 0);
 #endif
 
 
