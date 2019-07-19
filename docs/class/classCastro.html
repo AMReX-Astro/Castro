@@ -2080,9 +2080,24 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro11hybrid_syncERN5amrex8MultiFabEi">
-<span id="_CPPv3N6Castro11hybrid_syncERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro11hybrid_syncERN5amrex8MultiFabEi"></span><span id="Castro::hybrid_sync__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a854e3e6495d67dfb4773c83064a99ec4"></span>void <code class="descname">hybrid_sync</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11hybrid_syncERN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Update state to account for hybrid advection</p>
+<dt id="_CPPv4N6Castro25hybrid_to_linear_momentumERN5amrex8MultiFabEi">
+<span id="_CPPv3N6Castro25hybrid_to_linear_momentumERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro25hybrid_to_linear_momentumERN5amrex8MultiFabEi"></span><span id="Castro::hybrid_to_linear_momentum__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1adcf41fa83a7d9b76d16b1103f051ca3d"></span>void <code class="descname">hybrid_to_linear_momentum</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro25hybrid_to_linear_momentumERN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Synchronize linear momentum with hybrid momentum</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </li>
+<li><code class="docutils literal notranslate"><span class="pre">ng</span></code>: Number of ghost cells </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro25linear_to_hybrid_momentumERN5amrex8MultiFabEi">
+<span id="_CPPv3N6Castro25linear_to_hybrid_momentumERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro25linear_to_hybrid_momentumERN5amrex8MultiFabEi"></span><span id="Castro::linear_to_hybrid_momentum__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1ac8a11535678460468b7841c2aac837fe"></span>void <code class="descname">linear_to_hybrid_momentum</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro25linear_to_hybrid_momentumERN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Synchronize hybrid momentum with linear momentum</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
