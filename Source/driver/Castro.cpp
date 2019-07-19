@@ -3944,7 +3944,9 @@ Castro::clean_state(MultiFab& state, Real time, int ng) {
     // Sync the linear and hybrid momenta.
 
 #ifdef HYBRID_MOMENTUM
-    hybrid_sync(state, ng);
+    if (hybrid_hydro) {
+        hybrid_to_linear_momentum(state, ng);
+    }
 #endif
 
     // Compute the temperature (note that this will also reset
