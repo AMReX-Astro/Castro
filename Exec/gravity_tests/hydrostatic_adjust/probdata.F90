@@ -4,12 +4,6 @@ module probdata_module
   use amrex_fort_module, only : rt => amrex_real
   character (len=80), save  :: model_name
 
-  ! arrange storage for read_in model-- not worrying about efficiency,
-  ! since this will only be called once
-  real(rt)        , allocatable, save ::  hse_r(:), hse_rho(:)
-  real(rt)        , allocatable, save ::  hse_t(:), hse_p(:)
-  real(rt)        , allocatable, save ::  hse_s(:,:)
-
   ! hold the state at the top of the initial model for the boundary
   ! conditions
   real(rt)        , save              :: hse_rho_top, hse_T_top

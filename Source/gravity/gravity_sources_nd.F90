@@ -19,7 +19,7 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
     use castro_util_module, only: position ! function
@@ -147,7 +147,7 @@ contains
 #ifndef AMREX_USE_CUDA
              else
 
-                call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+                call castro_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
 #endif
 
              end if
@@ -189,12 +189,12 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
-                                  grav_source_type, gravity_type_int, get_g_from_phi
+                                  grav_source_type, gravity_type_int, PoissonGrav, MonopoleGrav, get_g_from_phi
     use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
@@ -392,7 +392,7 @@ contains
                 ! properties when using AMR.
 
 #ifdef SELF_GRAVITY
-                if (gravity_type_int == 2 .or. (gravity_type_int == 1 .and. get_g_from_phi == 1) ) then ! Poisson and monopole, respectively
+                if (gravity_type_int == PoissonGrav .or. (gravity_type_int == MonopoleGrav .and. get_g_from_phi == 1) ) then
 
                    ! For our purposes, we want the time-level n+1/2 phi because we are
                    ! using fluxes evaluated at that time. To second order we can
@@ -418,7 +418,7 @@ contains
                    ! because in that case the value in the ghost zone is the cell-centered value.
                    ! We also want to skip the corners, because the potential is undefined there.
 
-                   if (gravity_type_int == 2) then ! Poisson
+                   if (gravity_type_int == PoissonGrav) then
 
                       if (i .eq. domlo(1) .and. physbc_lo(1) .ne. Symmetry) then
                          phixl = phi - phixl
@@ -495,7 +495,7 @@ contains
 #ifndef AMREX_USE_CUDA
              else
 
-                call amrex_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+                call castro_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
 #endif
              end if
 

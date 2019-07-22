@@ -14,7 +14,7 @@ contains
     use meth_params_module, only : NVAR, URHO, small_dens, density_reset_method
     use amrex_constants_module, only : ZERO
 #ifndef AMREX_USE_GPU
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use amrex_fort_module, only: rt => amrex_real, amrex_min
 
@@ -47,7 +47,7 @@ contains
 #ifndef AMREX_USE_GPU
                 print *,'DENSITY EXACTLY ZERO AT CELL ', i, j, k
                 print *,'  in grid ',lo(1), lo(2), lo(3), hi(1), hi(2), hi(3)
-                call amrex_error("Error :: ca_enforce_minimum_density")
+                call castro_error("Error :: ca_enforce_minimum_density")
 #endif
 
              else if (state(i,j,k,URHO) < small_dens) then
@@ -152,7 +152,7 @@ contains
 #ifndef AMREX_USE_CUDA
                 else
 
-                   call amrex_error("Unknown density_reset_method in subroutine ca_enforce_minimum_density.")
+                   call castro_error("Unknown density_reset_method in subroutine ca_enforce_minimum_density.")
 #endif
                 endif
 
@@ -449,7 +449,7 @@ contains
          small_dens
 
     use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_error_module
+    use castro_error_module
 #ifdef ROTATION
     use meth_params_module, only: do_rotation, state_in_rotating_frame
     use rotation_module, only: inertial_to_rotational_velocity
@@ -505,12 +505,12 @@ contains
                 print *,'   '
                 print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
                 print *,'>>> ... negative density ', uin(i,j,k,URHO)
-                call amrex_error("Error:: advection_util_nd.f90 :: ctoprim")
+                call castro_error("Error:: advection_util_nd.f90 :: ctoprim")
              else if (uin(i,j,k,URHO) .lt. small_dens) then
                 print *,'   '
                 print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
                 print *,'>>> ... small density ', uin(i,j,k,URHO)
-                call amrex_error("Error:: advection_util_nd.f90 :: ctoprim")
+                call castro_error("Error:: advection_util_nd.f90 :: ctoprim")
              endif
           end do
 #endif
@@ -555,28 +555,14 @@ contains
              q(i,j,k,qrad:qradhi) = Erin(i,j,k,:)
 #endif
 
-          enddo
-       enddo
-    enddo
-
-    ! Load passively advected quatities into q
-    do ipassive = 1, npassive
-       n  = upass_map(ipassive)
-       iq = qpass_map(ipassive)
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
-                q(i,j,k,iq) = uin(i,j,k,n)/q(i,j,k,QRHO)
+             ! Load passively advected quatities into q
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                iq = qpass_map(ipassive)
+                q(i,j,k,iq) = uin(i,j,k,n) * rhoinv
              enddo
-          enddo
-       enddo
-    enddo
 
-    ! get gamc, p, T, c, csml using q state
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
+             ! get gamc, p, T, c, csml using q state
              eos_state % T   = q(i,j,k,QTEMP )
              eos_state % rho = q(i,j,k,QRHO  )
              eos_state % e   = q(i,j,k,QREINT)
@@ -682,9 +668,6 @@ contains
     do ipassive = 1, npassive
        n = upass_map(ipassive)
        iq = qpass_map(ipassive)
-
-       ! we already accounted for velocities above
-       if (iq == QU .or. iq == QV .or. iq == QW) cycle
 
        ! we may not be including the ability to have species sources,
        ! so check to make sure that we are < NQSRC
@@ -1137,7 +1120,7 @@ contains
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type
     use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -1170,7 +1153,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (coord_type /= 0) then
-       call amrex_error("ERROR: invalid geometry in shock()")
+       call castro_error("ERROR: invalid geometry in shock()")
     endif
 #endif
 
@@ -1212,7 +1195,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
              else
-                call amrex_error("ERROR: invalid coord_type in shock")
+                call castro_error("ERROR: invalid coord_type in shock")
 #endif
              endif
 
@@ -1831,7 +1814,7 @@ contains
        flux, f_lo, f_hi, &
        area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
-    use meth_params_module, only: NVAR, UMX, GDPRES, NGDNV
+    use meth_params_module, only: NVAR, GDPRES, UMX, NGDNV
     use prob_params_module, only : coord_type
 
     implicit none

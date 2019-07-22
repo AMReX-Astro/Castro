@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use model_parser_module
-  use amrex_error_module
+  use castro_error_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -21,7 +21,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! Build "probin" filename from C++ land --
   ! the name of file containing fortin namelist.
 
-  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
+  if (namlen .gt. maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -67,7 +67,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        delta, xlo, xhi)
 
   use probdata_module
-  use interpolate_module
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_rt, eos_input_tp
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
@@ -108,14 +107,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
         do i = lo(1), hi(1)
 
-           state(i,j,k,URHO)  = interpolate(height, npts_model, model_r, &
-                                            model_state(:,idens_model))
-           state(i,j,k,UTEMP) = interpolate(height, npts_model, model_r, &
-                                            model_state(:,itemp_model))
+           call interpolate_sub(state(i,j,k,URHO), height, idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), height, itemp_model)
 
            do n = 1, nspec
-              state(i,j,k,UFS-1+n) = interpolate(height, npts_model, model_r, &
-                                                 model_state(:,ispec_model-1+n))
+              call interpolate_sub(state(i,j,k,UFS-1+n), height, ispec_model-1+n)
            end do
 
            eos_state%rho = state(i,j,k,URHO)

@@ -1,6 +1,6 @@
 module nan_check
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -21,7 +21,7 @@ contains
 
              if (isnan(s(i,j,k,comp))) then
                 print *, "NaN: ", i, j, k, comp
-                call amrex_error("NaN")
+                call castro_error("NaN")
              endif
           end do
        end do

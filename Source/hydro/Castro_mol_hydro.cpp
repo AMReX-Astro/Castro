@@ -53,6 +53,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     // longer needed (only relevant for the asynchronous case, usually on GPUs).
 
     FArrayBox flatn;
+    FArrayBox cond;
     FArrayBox dq;
     FArrayBox shk;
     FArrayBox qm, qp;
@@ -99,9 +100,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           }
 
 #if (AMREX_SPACEDIM <= 2)
-          if (!Geom().IsCartesian()) {
-            pradial.resize(amrex::surroundingNodes(bx,0),1);
-          }
+          pradial.resize(amrex::surroundingNodes(bx,0),1);
 #endif
 
           ca_fourth_single_stage
@@ -113,6 +112,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              BL_TO_FORTRAN_ANYD(q_bar[mfi]),
              BL_TO_FORTRAN_ANYD(qaux[mfi]),
              BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
+#ifdef DIFFUSION
+             BL_TO_FORTRAN_ANYD(T_cc[mfi]),
+#endif
              BL_TO_FORTRAN_ANYD(source_in),
              BL_TO_FORTRAN_ANYD(source_out),
              ZFILL(dx), &dt,
@@ -375,6 +377,32 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                                        });
             }
           } // end do_hydro
+
+          // add a diffusive flux
+          cond.resize(obx, 1);
+          Elixir elix_cond = cond.elixir();
+
+#ifdef DIFFUSION
+          ca_fill_temp_cond
+            (AMREX_ARLIM_ANYD(obx.loVect()), AMREX_ARLIM_ANYD(obx.hiVect()),
+             BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+             BL_TO_FORTRAN_ANYD(cond));
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+            int idir_f = idir + 1;
+
+            ca_mol_diffusive_flux
+              (AMREX_ARLIM_ANYD(nbx.loVect()), AMREX_ARLIM_ANYD(nbx.hiVect()),
+               idir_f,
+               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+               BL_TO_FORTRAN_ANYD(cond),
+               BL_TO_FORTRAN_ANYD(flux[idir]),
+               AMREX_ZFILL(dx));
+
+          }
+#endif
 
           // do the conservative update -- and store the shock variable
 #pragma gpu box(bx)

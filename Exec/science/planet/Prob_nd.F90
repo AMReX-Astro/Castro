@@ -3,7 +3,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_paralleldescriptor_module, only: parallel_IOProcessor => amrex_pd_ioprocessor
   use probdata_module
   use model_parser_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_constants_module
 
   use amrex_fort_module, only : rt => amrex_real
@@ -32,7 +32,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! the name of file containing fortin namelist.
 
 
-  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
+  if (namlen .gt. maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -129,7 +129,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   !use bl_constants_module
   use amrex_constants_module
   use probdata_module
-  use interpolate_module
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY,UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only: nspec
@@ -171,15 +170,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         do i = lo(1), hi(1)
            coord(1) = problo(1) + delta(1)*(dble(i) + HALF)
 
-           state(i,j,k,URHO)  = interpolate(coord(AMREX_SPACEDIM), npts_model, &
-                                            model_r, model_state(:,idens_model))
-           state(i,j,k,UTEMP) = interpolate(coord(AMREX_SPACEDIM), npts_model, &
-                                            model_r, model_state(:,itemp_model))
-
+           call interpolate_sub(state(i,j,k,URHO), coord(AMREX_SPACEDIM), idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), coord(AMREX_SPACEDIM), itemp_model)
 
            do n = 1, nspec
-              state(i,j,k,UFS-1+n) = interpolate(coord(AMREX_SPACEDIM), npts_model, &
-                                                 model_r, model_state(:,ispec_model-1+n))
+              call interpolate_sub(state(i,j,k,UFS-1+n), coord(AMREX_SPACEDIM), ispec_model-1+n)
            end do
 
            eos_state % rho = state(i,j,k,URHO)

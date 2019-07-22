@@ -12,10 +12,11 @@ amr.max_grid_size   = 48
 castro.max_dt = 1.e-5
 
 # ------------------  THORNADO-SPECIFIC INPUTS -------------------
-thornado.eL     = 0
-thornado.eR     = 300
-thornado.ndimse = 10
-thornado.zoome  = 1.4
+thornado.nSpecies = 1
+thornado.eL       = 0
+thornado.eR       = 300
+thornado.ndimse   = 10
+thornado.zoome    = 1.4
 
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 stop_time =  5.e-3

@@ -7,9 +7,8 @@ module hybrid_advection_module
 contains
 
 
-  subroutine ca_init_hybrid_momentum(lo, hi, state, s_lo, s_hi) bind(C, name='ca_init_hybrid_momentum')
-    ! Takes the initial linear momentum data in a state and converts it
-    ! to the hybrid momenta.
+  subroutine ca_linear_to_hybrid_momentum(lo, hi, state, s_lo, s_hi) bind(C, name='ca_linear_to_hybrid_momentum')
+    ! Convert linear momentum to hybrid momentum.
 
     use meth_params_module, only: NVAR, UMR, UMP, UMX, UMZ
     use castro_util_module, only: position ! function
@@ -39,7 +38,42 @@ contains
        enddo
     enddo
 
-  end subroutine ca_init_hybrid_momentum
+  end subroutine ca_linear_to_hybrid_momentum
+
+
+
+  subroutine ca_hybrid_to_linear_momentum(lo, hi, state, s_lo, s_hi) bind(C, name='ca_hybrid_to_linear_momentum')
+    ! Convert hybrid momentum to linear momentum.
+
+    use meth_params_module, only: NVAR, URHO, UMR, UMP, UMX, UMZ
+    use castro_util_module, only: position ! function
+    use prob_params_module, only: center
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+
+    integer  :: i, j, k
+    real(rt) :: loc(3), mom(3)
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             loc = position(i,j,k) - center
+             mom = state(i,j,k,UMR:UMP)
+
+             state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, mom)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_hybrid_to_linear_momentum
 
 
 
@@ -197,7 +231,7 @@ contains
 
     use meth_params_module, only: NVAR, NGDNV, GDRHO, GDU, GDV, GDW, GDPRES, UMR, UML, UMP
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use prob_params_module, only: center
     use castro_util_module, only: position ! function
@@ -236,7 +270,7 @@ contains
        u_adv = state(GDW)
 #ifndef AMREX_USE_CUDA
     else
-       call amrex_error("Error: unknown direction in compute_hybrid_flux.")
+       call castro_error("Error: unknown direction in compute_hybrid_flux.")
 #endif
     endif
 
@@ -267,7 +301,7 @@ contains
 #ifndef AMREX_USE_CUDA
     else
 
-       call amrex_error("Error: unknown direction in compute_hybrid_flux.")
+       call castro_error("Error: unknown direction in compute_hybrid_flux.")
 #endif
     endif
 
@@ -322,41 +356,5 @@ contains
     enddo
 
   end subroutine add_hybrid_advection_source
-
-
-
-  subroutine ca_hybrid_update(lo, hi, state, state_lo, state_hi) bind(C, name='ca_hybrid_update')
-    ! Update state to account for hybrid advection.
-
-    use amrex_constants_module, only: HALF, ONE
-    use meth_params_module, only: URHO, UMR, UMP, UMX, UMZ, UEDEN, NVAR
-    use castro_util_module, only: position ! function
-    use prob_params_module, only: center
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: state_lo(3), state_hi(3)
-    real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-
-    integer  :: i, j, k
-    real(rt) :: loc(3), mom(3)
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             loc = position(i,j,k) - center
-             mom = state(i,j,k,UMR:UMP)
-
-             state(i,j,k,UMX:UMZ) = hybrid_to_linear(loc, mom)
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_hybrid_update
 
 end module hybrid_advection_module

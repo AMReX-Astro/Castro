@@ -8,7 +8,7 @@ module bc_ext_fill_module
 
   use amrex_constants_module, only: ZERO, HALF, ONE, TWO
 #ifndef AMREX_USE_CUDA
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
 #endif
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
@@ -28,7 +28,7 @@ contains
 
     use prob_params_module, only : problo, dim, center
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use network, only: nspec
     use probdata_module
@@ -75,11 +75,11 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (bc(1,1,n) == EXT_DIR .and. lo(1) < domlo(1)) then
-       call amrex_error("ERROR: HSE boundaries not implemented for -x BC")
+       call castro_error("ERROR: HSE boundaries not implemented for -x BC")
     endif
 
     if (bc(1,2,n) == EXT_DIR .and. hi(1) > domhi(1)) then
-       call amrex_error("ERROR: HSE boundaries not implemented for +x BC, d")
+       call castro_error("ERROR: HSE boundaries not implemented for +x BC, d")
     end if
 #endif
 
@@ -279,7 +279,7 @@ contains
 
     use prob_params_module, only: problo, center
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use probdata_module
     use model_module
@@ -330,11 +330,11 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (bc(1,1) == EXT_DIR .and. lo(1) < domlo(1)) then
-       call amrex_error("ERROR: HSE boundaries not implemented for -x BC")
+       call castro_error("ERROR: HSE boundaries not implemented for -x BC")
     endif
 
     if (bc(1,2) == EXT_DIR .and. hi(1) > domhi(1)) then
-       call amrex_error("ERROR: HSE boundaries not implemented for +x BC, d")
+       call castro_error("ERROR: HSE boundaries not implemented for +x BC, d")
     end if
 #endif
 

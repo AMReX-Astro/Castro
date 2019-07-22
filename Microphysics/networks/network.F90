@@ -41,7 +41,7 @@ contains
 
   subroutine network_init()
 
-    use amrex_error_module, only : amrex_error
+    use castro_error_module, only : castro_error
     use amrex_constants_module, only : ONE
 
     implicit none
@@ -59,11 +59,11 @@ contains
     ! Check to make sure, and if not, throw an error.
 
     if ( nspec .le. 0 ) then
-       call amrex_error("Network cannot have a negative number of species.")
+       call castro_error("Network cannot have a negative number of species.")
     endif
 
     if ( naux .lt. 0 ) then
-       call amrex_error("Network cannot have a negative number of auxiliary variables.")
+       call castro_error("Network cannot have a negative number of auxiliary variables.")
     endif
 
     aion_inv(:) = ONE/aion(:)

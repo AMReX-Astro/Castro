@@ -111,7 +111,7 @@ USE_MLMG = FALSE
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/driver/param_includes \
            Source/hydro Source/problems Source/sources \
-           Source/scf constants Util/model_parser
+           Source/scf constants Util/model_parser Util/conservative_interpolate
 else
   Bdirs := constants
 endif
@@ -142,7 +142,7 @@ ifeq ($(USE_THORNADO), TRUE)
   ifeq ($(findstring weaklib, $(EOS_DIR)), weaklib)
     DEFINES += -DMICROPHYSICS_WEAKLIB
   endif
-  ifeq ($(USE_GPU),TRUE)
+  ifeq ($(USE_THORNADO_GPU),TRUE)
     DEFINES += -DTHORNADO_GPU
     LIBRARIES += -lcusolver -lcublas
     ifeq ($(USE_MAGMA),TRUE)
@@ -156,7 +156,7 @@ ifeq ($(USE_THORNADO), TRUE)
     else
       DEFINES += -DTHORNADO_LA_CUBLAS
     endif
-    ifeq ($(USE_ACC),TRUE)
+    ifeq ($(USE_THORNADO_ACC),TRUE)
       DEFINES += -DTHORNADO_OACC
     else ifeq ($(USE_OMP_OFFLOAD), TRUE)
       DEFINES += -DTHORNADO_OMP_OL
@@ -169,9 +169,9 @@ endif
 ifeq ($(findstring weaklib, $(EOS_DIR)), weaklib)
   DEFINES += -DCASTRO_CALL_WEAKLIB
   DEFINES += -DNUCLEAR_EOS
-  ifeq ($(USE_GPU),TRUE)
+  ifeq ($(USE_THORNADO_GPU),TRUE)
     DEFINES += -DWEAKLIB_GPU
-    ifeq ($(USE_ACC),TRUE)
+    ifeq ($(USE_THORNADO_ACC),TRUE)
       DEFINES += -DWEAKLIB_OACC
     else ifeq ($(USE_OMP_OFFLOAD), TRUE)
       DEFINES += -DWEAKLIB_OMP_OL
@@ -497,7 +497,7 @@ F90EXE_sources += extern.F90
 EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
 # these are for finding runtime parameters
-EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser
+EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)/Util/conservative_interpolate
 ifdef MICROPHYSICS_HOME
    EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 endif
