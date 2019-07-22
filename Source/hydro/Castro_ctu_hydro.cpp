@@ -78,8 +78,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox flatg;
 #endif
     FArrayBox dq;
-    FArrayBox Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc;
-    FArrayBox sm, sp;
     FArrayBox shk;
     FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
@@ -257,38 +255,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       } else {
 
-        Ip.resize(obx, 3*NQ);
-        Elixir elix_Ip = Ip.elixir();
-        fab_size += Ip.nBytes();
-
-        Im.resize(obx, 3*NQ);
-        Elixir elix_Im = Im.elixir();
-        fab_size += Im.nBytes();
-
-        Ip_src.resize(obx, 3*NQSRC);
-        Elixir elix_Ip_src = Ip_src.elixir();
-        fab_size += Ip_src.nBytes();
-
-        Im_src.resize(obx, 3*NQSRC);
-        Elixir elix_Im_src = Im_src.elixir();
-        fab_size += Im_src.nBytes();
-
-        Ip_gc.resize(obx, 3);
-        Elixir elix_Ip_gc = Ip_gc.elixir();
-        fab_size += Ip_gc.nBytes();
-
-        Im_gc.resize(obx, 3);
-        Elixir elix_Im_gc = Im_gc.elixir();
-        fab_size += Im_gc.nBytes();
-
-        sm.resize(obx, AMREX_SPACEDIM);
-        Elixir elix_sm = sm.elixir();
-        fab_size += sm.nBytes();
-
-        sp.resize(obx, AMREX_SPACEDIM);
-        Elixir elix_sp = sp.elixir();
-        fab_size += sp.nBytes();
-
 #pragma gpu box(obx)
         ctu_ppm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                        AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -296,14 +262,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(flatn),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
                        BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                       BL_TO_FORTRAN_ANYD(Ip),
-                       BL_TO_FORTRAN_ANYD(Im),
-                       BL_TO_FORTRAN_ANYD(Ip_src),
-                       BL_TO_FORTRAN_ANYD(Im_src),
-                       BL_TO_FORTRAN_ANYD(Ip_gc),
-                       BL_TO_FORTRAN_ANYD(Im_gc),
-                       BL_TO_FORTRAN_ANYD(sm),
-                       BL_TO_FORTRAN_ANYD(sp),
                        BL_TO_FORTRAN_ANYD(qxm),
                        BL_TO_FORTRAN_ANYD(qxp),
 #if AMREX_SPACEDIM >= 2

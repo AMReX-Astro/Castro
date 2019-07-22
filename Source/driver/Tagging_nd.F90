@@ -627,7 +627,6 @@ contains
     ! energy generation rate
     !
 
-    use prob_params_module, only: dg
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none

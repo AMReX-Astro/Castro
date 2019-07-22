@@ -12,7 +12,7 @@
 
 module meth_params_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
   use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC
 
@@ -56,6 +56,10 @@ module meth_params_module
   ! Numerical values corresponding to the gravity types
 #ifdef GRAVITY
   integer, save, allocatable :: gravity_type_int
+  integer, parameter :: ConstantGrav = 0
+  integer, parameter :: MonopoleGrav = 1
+  integer, parameter :: PoissonGrav = 2
+  integer, parameter :: PrescribedGrav = 3
 #endif
 
   integer         , save :: numpts_1d
@@ -159,6 +163,7 @@ module meth_params_module
   integer,  allocatable, save :: hse_reflect_vels
   integer,  allocatable, save :: mol_order
   integer,  allocatable, save :: sdc_order
+  integer,  allocatable, save :: sdc_extra
   integer,  allocatable, save :: sdc_solver
   real(rt), allocatable, save :: sdc_solver_tol_dens
   real(rt), allocatable, save :: sdc_solver_tol_spec
@@ -178,6 +183,7 @@ module meth_params_module
   real(rt), allocatable, save :: react_rho_max
   integer,  allocatable, save :: disable_shock_burning
   real(rt), allocatable, save :: T_guess
+  integer,  allocatable, save :: diffuse_temp
   real(rt), allocatable, save :: diffuse_cutoff_density
   real(rt), allocatable, save :: diffuse_cutoff_density_hi
   real(rt), allocatable, save :: diffuse_cond_scale_fac
@@ -250,6 +256,7 @@ attributes(managed) :: hse_interp_temp
 attributes(managed) :: hse_reflect_vels
 attributes(managed) :: mol_order
 attributes(managed) :: sdc_order
+attributes(managed) :: sdc_extra
 attributes(managed) :: sdc_solver
 attributes(managed) :: sdc_solver_tol_dens
 attributes(managed) :: sdc_solver_tol_spec
@@ -269,6 +276,9 @@ attributes(managed) :: react_rho_min
 attributes(managed) :: react_rho_max
 attributes(managed) :: disable_shock_burning
 attributes(managed) :: T_guess
+#ifdef DIFFUSION
+attributes(managed) :: diffuse_temp
+#endif
 #ifdef DIFFUSION
 attributes(managed) :: diffuse_cutoff_density
 #endif
@@ -366,6 +376,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(hse_reflect_vels) &
   !$acc create(mol_order) &
   !$acc create(sdc_order) &
+  !$acc create(sdc_extra) &
   !$acc create(sdc_solver) &
   !$acc create(sdc_solver_tol_dens) &
   !$acc create(sdc_solver_tol_spec) &
@@ -385,6 +396,9 @@ attributes(managed) :: get_g_from_phi
   !$acc create(react_rho_max) &
   !$acc create(disable_shock_burning) &
   !$acc create(T_guess) &
+#ifdef DIFFUSION
+  !$acc create(diffuse_temp) &
+#endif
 #ifdef DIFFUSION
   !$acc create(diffuse_cutoff_density) &
 #endif
@@ -470,35 +484,25 @@ contains
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
-    allocate(character(len=1)::gravity_type)
-    gravity_type = "fillme";
-    allocate(const_grav)
-    const_grav = 0.0d0;
-    allocate(get_g_from_phi)
-    get_g_from_phi = 0;
-
-    call amrex_parmparse_build(pp, "gravity")
-    call pp%query("gravity_type", gravity_type)
-    call pp%query("const_grav", const_grav)
-    call pp%query("get_g_from_phi", get_g_from_phi)
-    call amrex_parmparse_destroy(pp)
-
-
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0d0;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
-#ifdef DIFFUSION
-    allocate(diffuse_cutoff_density)
-    diffuse_cutoff_density = -1.d200;
-    allocate(diffuse_cutoff_density_hi)
-    diffuse_cutoff_density_hi = -1.d200;
-    allocate(diffuse_cond_scale_fac)
-    diffuse_cond_scale_fac = 1.0d0;
+#ifdef ROTATION
+    allocate(rot_period)
+    rot_period = -1.d200;
+    allocate(rot_period_dot)
+    rot_period_dot = 0.0d0;
+    allocate(rotation_include_centrifugal)
+    rotation_include_centrifugal = 1;
+    allocate(rotation_include_coriolis)
+    rotation_include_coriolis = 1;
+    allocate(rotation_include_domegadt)
+    rotation_include_domegadt = 1;
+    allocate(state_in_rotating_frame)
+    state_in_rotating_frame = 1;
+    allocate(rot_source_type)
+    rot_source_type = 4;
+    allocate(implicit_rotation_update)
+    implicit_rotation_update = 1;
+    allocate(rot_axis)
+    rot_axis = 3;
 #endif
     allocate(difmag)
     difmag = 0.1d0;
@@ -592,6 +596,8 @@ contains
     mol_order = 2;
     allocate(sdc_order)
     sdc_order = 2;
+    allocate(sdc_extra)
+    sdc_extra = 0;
     allocate(sdc_solver)
     sdc_solver = 1;
     allocate(sdc_solver_tol_dens)
@@ -642,37 +648,36 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
-#ifdef ROTATION
-    allocate(rot_period)
-    rot_period = -1.d200;
-    allocate(rot_period_dot)
-    rot_period_dot = 0.0d0;
-    allocate(rotation_include_centrifugal)
-    rotation_include_centrifugal = 1;
-    allocate(rotation_include_coriolis)
-    rotation_include_coriolis = 1;
-    allocate(rotation_include_domegadt)
-    rotation_include_domegadt = 1;
-    allocate(state_in_rotating_frame)
-    state_in_rotating_frame = 1;
-    allocate(rot_source_type)
-    rot_source_type = 4;
-    allocate(implicit_rotation_update)
-    implicit_rotation_update = 1;
-    allocate(rot_axis)
-    rot_axis = 3;
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0d0;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
+#ifdef DIFFUSION
+    allocate(diffuse_temp)
+    diffuse_temp = 0;
+    allocate(diffuse_cutoff_density)
+    diffuse_cutoff_density = -1.d200;
+    allocate(diffuse_cutoff_density_hi)
+    diffuse_cutoff_density_hi = -1.d200;
+    allocate(diffuse_cond_scale_fac)
+    diffuse_cond_scale_fac = 1.0d0;
 #endif
 
     call amrex_parmparse_build(pp, "castro")
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
-#endif
-#ifdef DIFFUSION
-    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
-    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
-    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+    call pp%query("rotational_dPdt", rot_period_dot)
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+    call pp%query("rot_source_type", rot_source_type)
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+    call pp%query("rot_axis", rot_axis)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -720,6 +725,7 @@ contains
     call pp%query("hse_reflect_vels", hse_reflect_vels)
     call pp%query("mol_order", mol_order)
     call pp%query("sdc_order", sdc_order)
+    call pp%query("sdc_extra", sdc_extra)
     call pp%query("sdc_solver", sdc_solver)
     call pp%query("sdc_solver_tol_dens", sdc_solver_tol_dens)
     call pp%query("sdc_solver_tol_spec", sdc_solver_tol_spec)
@@ -745,17 +751,31 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
-#ifdef ROTATION
-    call pp%query("rotational_period", rot_period)
-    call pp%query("rotational_dPdt", rot_period_dot)
-    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
-    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
-    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
-    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-    call pp%query("rot_source_type", rot_source_type)
-    call pp%query("implicit_rotation_update", implicit_rotation_update)
-    call pp%query("rot_axis", rot_axis)
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
+#ifdef DIFFUSION
+    call pp%query("diffuse_temp", diffuse_temp)
+    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
+    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+#endif
+    call amrex_parmparse_destroy(pp)
+
+
+    allocate(character(len=1)::gravity_type)
+    gravity_type = "fillme";
+    allocate(const_grav)
+    const_grav = 0.0d0;
+    allocate(get_g_from_phi)
+    get_g_from_phi = 0;
+
+    call amrex_parmparse_build(pp, "gravity")
+    call pp%query("gravity_type", gravity_type)
+    call pp%query("const_grav", const_grav)
+    call pp%query("get_g_from_phi", get_g_from_phi)
     call amrex_parmparse_destroy(pp)
 
 
@@ -801,6 +821,7 @@ contains
     !$acc device(hse_reflect_vels) &
     !$acc device(mol_order) &
     !$acc device(sdc_order) &
+    !$acc device(sdc_extra) &
     !$acc device(sdc_solver) &
     !$acc device(sdc_solver_tol_dens) &
     !$acc device(sdc_solver_tol_spec) &
@@ -820,6 +841,9 @@ contains
     !$acc device(react_rho_max) &
     !$acc device(disable_shock_burning) &
     !$acc device(T_guess) &
+#ifdef DIFFUSION
+    !$acc device(diffuse_temp) &
+#endif
 #ifdef DIFFUSION
     !$acc device(diffuse_cutoff_density) &
 #endif
@@ -881,13 +905,15 @@ contains
     allocate(gravity_type_int)
 
     if (gravity_type == "ConstantGrav") then
-       gravity_type_int = 0
+       gravity_type_int = ConstantGrav
     else if (gravity_type == "MonopoleGrav") then
-       gravity_type_int = 1
+       gravity_type_int = MonopoleGrav
     else if (gravity_type == "PoissonGrav") then
-       gravity_type_int = 2
+       gravity_type_int = PoissonGrav
+    else if (gravity_type == "PrescribedGrav") then
+       gravity_type_int = PrescribedGrav
     else
-       call amrex_error("Unknown gravity type")
+       call castro_error("Unknown gravity type")
     end if
 #endif
 
@@ -1108,6 +1134,9 @@ contains
     if (allocated(sdc_order)) then
         deallocate(sdc_order)
     end if
+    if (allocated(sdc_extra)) then
+        deallocate(sdc_extra)
+    end if
     if (allocated(sdc_solver)) then
         deallocate(sdc_solver)
     end if
@@ -1164,6 +1193,9 @@ contains
     end if
     if (allocated(T_guess)) then
         deallocate(T_guess)
+    end if
+    if (allocated(diffuse_temp)) then
+        deallocate(diffuse_temp)
     end if
     if (allocated(diffuse_cutoff_density)) then
         deallocate(diffuse_cutoff_density)
@@ -1265,7 +1297,8 @@ contains
 
 #ifndef AMREX_USE_GPU
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
-       call amrex_error("Unknown fspace_type", fspace_type)
+       print *, "fspace_type = ", fspace_type
+       call castro_error("Unknown fspace_type")
     end if
 #endif
 
@@ -1277,7 +1310,7 @@ contains
        comoving = .false.
     else
 #ifndef AMREX_USE_GPU
-       call amrex_error("Wrong value for comoving", fspace_type)
+       call castro_error("Wrong value for comoving")
 #endif
     end if
 

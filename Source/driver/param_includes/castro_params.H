@@ -17,6 +17,7 @@ static amrex::Real small_ener;
 static int do_hydro;
 static int time_integration_method;
 static int limit_fourth_order;
+static int initialization_is_cell_average;
 static int use_reconstructed_gamma1;
 static int add_ext_src;
 static int hybrid_hydro;
@@ -57,6 +58,7 @@ static int hse_interp_temp;
 static int hse_reflect_vels;
 static int mol_order;
 static int sdc_order;
+static int sdc_extra;
 static int sdc_solver;
 static amrex::Real sdc_solver_tol_dens;
 static amrex::Real sdc_solver_tol_spec;
@@ -123,12 +125,6 @@ static int reset_checkpoint_step;
 #ifdef AMREX_PARTICLES
 static int do_tracer_particles;
 #endif
-#ifdef DIFFUSION
-static int diffuse_temp;
-static amrex::Real diffuse_cutoff_density;
-static amrex::Real diffuse_cutoff_density_hi;
-static amrex::Real diffuse_cond_scale_fac;
-#endif
 #ifdef ROTATION
 static amrex::Real rotational_period;
 static amrex::Real rotational_dPdt;
@@ -144,4 +140,10 @@ static int rot_axis;
 static int use_point_mass;
 static amrex::Real point_mass;
 static int point_mass_fix_solution;
+#endif
+#ifdef DIFFUSION
+static int diffuse_temp;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
+static amrex::Real diffuse_cond_scale_fac;
 #endif

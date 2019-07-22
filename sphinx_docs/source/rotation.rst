@@ -25,7 +25,7 @@ equations.
 The axis of rotation currently depends on the dimensionality of the
 problem and the value of coord_sys; in all cases, however, the
 default axis of rotation points from ``center``, which is typically
-defined in a ``Prob_$(DIM)d.f90`` routine, to the typical “vertical
+defined in a ``Prob_nd.F90`` routine, to the typical “vertical
 direction.” The vertical direction is defined as follows:
 
 .. note:: make sure you have set the ``center()`` variable

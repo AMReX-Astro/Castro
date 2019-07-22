@@ -27,7 +27,7 @@ contains
   subroutine initialize(name, namlen)
 
     use amrex_constants_module, only: ZERO
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none

@@ -4,7 +4,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
                              xn, ihe4, ic12, io16, smallx, vel, fill_ambient_bc, &
                              ambient_dens, ambient_temp, ambient_comp, ambient_e_l, ambient_e_r
   use network, only: network_species_index, nspec
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use amrex_fort_module, only: rt => amrex_real
   use eos_type_module, only: eos_t, eos_input_rt
   use eos_module, only: eos
@@ -26,7 +26,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer, parameter :: maxlen = 256
   character :: probin*(maxlen)
 
-  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
+  if (namlen .gt. maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -67,22 +67,22 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   io16 = network_species_index("oxygen-16")
 
   if (ihe4 < 0 .or. ic12 < 0 .or. io16 < 0) then
-     call amrex_error("ERROR: species indices not found")
+     call castro_error("ERROR: species indices not found")
   endif
 
   ! make sure that the carbon fraction falls between 0 and 1
   if (cfrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
-     call amrex_error("ERROR: cfrac must fall between 0 and 1")
+     call castro_error("ERROR: cfrac must fall between 0 and 1")
   endif
 
   ! make sure that the oxygen fraction falls between 0 and 1
   if (ofrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
-     call amrex_error("ERROR: ofrac must fall between 0 and 1")
+     call castro_error("ERROR: ofrac must fall between 0 and 1")
   endif
 
   ! make sure that the C/O fraction sums to no more than 1
   if (cfrac + ofrac > 1.e0_rt) then
-     call amrex_error("ERROR: cfrac + ofrac cannot exceed 1.")
+     call castro_error("ERROR: cfrac + ofrac cannot exceed 1.")
   end if
 
   ! set the default mass fractions

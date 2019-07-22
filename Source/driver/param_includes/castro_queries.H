@@ -17,6 +17,7 @@ pp.query("small_ener", small_ener);
 pp.query("do_hydro", do_hydro);
 pp.query("time_integration_method", time_integration_method);
 pp.query("limit_fourth_order", limit_fourth_order);
+pp.query("initialization_is_cell_average", initialization_is_cell_average);
 pp.query("use_reconstructed_gamma1", use_reconstructed_gamma1);
 pp.query("add_ext_src", add_ext_src);
 pp.query("hybrid_hydro", hybrid_hydro);
@@ -57,6 +58,7 @@ pp.query("hse_interp_temp", hse_interp_temp);
 pp.query("hse_reflect_vels", hse_reflect_vels);
 pp.query("mol_order", mol_order);
 pp.query("sdc_order", sdc_order);
+pp.query("sdc_extra", sdc_extra);
 pp.query("sdc_solver", sdc_solver);
 pp.query("sdc_solver_tol_dens", sdc_solver_tol_dens);
 pp.query("sdc_solver_tol_spec", sdc_solver_tol_spec);
@@ -123,12 +125,6 @@ pp.query("reset_checkpoint_step", reset_checkpoint_step);
 #ifdef AMREX_PARTICLES
 pp.query("do_tracer_particles", do_tracer_particles);
 #endif
-#ifdef DIFFUSION
-pp.query("diffuse_temp", diffuse_temp);
-pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
-pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
-pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
-#endif
 #ifdef ROTATION
 pp.query("rotational_period", rotational_period);
 pp.query("rotational_dPdt", rotational_dPdt);
@@ -144,4 +140,10 @@ pp.query("rot_axis", rot_axis);
 pp.query("use_point_mass", use_point_mass);
 pp.query("point_mass", point_mass);
 pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#endif
+#ifdef DIFFUSION
+pp.query("diffuse_temp", diffuse_temp);
+pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
+pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
+pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
 #endif

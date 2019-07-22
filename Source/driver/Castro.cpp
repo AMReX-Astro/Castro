@@ -1087,46 +1087,86 @@ Castro::initData ()
            const int* hi  = box.hiVect();
 
 #pragma gpu box(box)
-           ca_init_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
+           ca_linear_to_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 #endif
 
        // Verify that the sum of (rho X)_i = rho at every cell
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-           const Box& bx = mfi.validbox();
+         const Box& bx = mfi.validbox();
 #pragma gpu box(bx)
-           ca_check_initial_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                    BL_TO_FORTRAN_ANYD(S_new[mfi]));
+         ca_check_initial_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                  BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 
-       // Enforce that the total and internal energies are consistent.
+       if (initialization_is_cell_average == 0) {
+         // we are assuming that the initialization was done to cell-centers
 
-       enforce_consistent_e(S_new);
+         // Enforce that the total and internal energies are consistent.
+         enforce_consistent_e(S_new);
 
-       // thus far, we assume that all initialization has worked on cell-centers
-       // (to second-order, these are cell-averages, so we're done in that case).
-       // For fourth-order, we need to convert to cell-averages now.
+         // For fourth-order, we need to convert to cell-averages now.
+         // (to second-order, these are cell-averages, so we're done in that case).
+
 #ifndef AMREX_USE_CUDA
-       if (mol_order == 4 || sdc_order == 4) {
+         if (mol_order == 4 || sdc_order == 4) {
+           Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+           AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
+
+           // note: this cannot be tiled
+
+           for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+             {
+               const Box& box     = mfi.validbox();
+
+               ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
+                                       BL_TO_FORTRAN_FAB(Sborder[mfi]));
+             }
+
+           // now copy back the averages
+           MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
+           Sborder.clear();
+         }
+#endif
+       } else {
+
          Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
-         // note: this cannot be tiled
-
+         // convert to centers -- not tile safe
          for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
            {
-             const Box& box     = mfi.validbox();
+             const Box& box = mfi.growntilebox(2);
+
+             ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(box),
+                                          BL_TO_FORTRAN_FAB(Sborder[mfi]));
+           }
+
+         // reset the energy -- do this in one ghost cell so we can average in place below
+         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+           {
+             const Box& box = mfi.growntilebox(1);
+
+             ca_recompute_energetics(BL_TO_FORTRAN_BOX(box),
+                                     BL_TO_FORTRAN_ANYD(Sborder[mfi]));
+           }
+
+         // convert back to averages -- not tile safe
+         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+           {
+             const Box& box = mfi.validbox();
 
              ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
                                      BL_TO_FORTRAN_FAB(Sborder[mfi]));
            }
 
-         // now copy back the averages
-         MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
+         // now copy back the averages for UEINT and UTEMP only
+         MultiFab::Copy(S_new, Sborder, Eint, Eint, 1, 0);
+         MultiFab::Copy(S_new, Sborder, Temp, Temp, 1, 0);
          Sborder.clear();
+
        }
-#endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
 
@@ -3953,7 +3993,9 @@ Castro::clean_state(MultiFab& state, Real time, int ng) {
     // Sync the linear and hybrid momenta.
 
 #ifdef HYBRID_MOMENTUM
-    hybrid_sync(state, ng);
+    if (hybrid_hydro) {
+        hybrid_to_linear_momentum(state, ng);
+    }
 #endif
 
     // Compute the temperature (note that this will also reset
