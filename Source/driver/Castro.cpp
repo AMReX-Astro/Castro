@@ -1102,10 +1102,11 @@ Castro::initData ()
            for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
              {
                const Box& box     = mfi.validbox();
+               const Real* dx = geom.CellSize();
 
                ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
                                        BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                       AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                       ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
              }
 
            // now copy back the averages
@@ -1122,13 +1123,15 @@ Castro::initData ()
          const int* domain_lo = geom.Domain().loVect();
          const int* domain_hi = geom.Domain().hiVect();
 
+         const Real* dx = geom.CellSize();
+
          for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
            {
              const Box& box = mfi.growntilebox(2);
 
              ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(box),
                                           BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                          AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                          ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
            }
 
          // reset the energy -- do this in one ghost cell so we can average in place below
@@ -1147,7 +1150,7 @@ Castro::initData ()
 
              ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
                                      BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                     AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                     ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
            }
 
          // now copy back the averages for UEINT and UTEMP only
@@ -3418,6 +3421,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
     // cell centered only on 1 ghost cells
     const int* domain_lo = geom.Domain().loVect();
     const int* domain_hi = geom.Domain().hiVect();
+    const Real* dx = geom.CellSize();
 
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(1);
@@ -3427,11 +3431,11 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
       ca_compute_lap_term(BL_TO_FORTRAN_BOX(bx0),
                           BL_TO_FORTRAN_FAB(Stemp[mfi]),
                           BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), &Eint,
-                          AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
                                    BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                   ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
     }
 
@@ -3509,6 +3513,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
     const int* domain_lo = geom.Domain().loVect();
     const int* domain_hi = geom.Domain().hiVect();
+    const Real* dx = geom.CellSize();
 
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
 
@@ -3518,7 +3523,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
       // only temperature
       ca_make_fourth_in_place_n(BL_TO_FORTRAN_BOX(bx),
                                 BL_TO_FORTRAN_FAB(Stemp[mfi]), &Temp,
-                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
     }
 

@@ -176,8 +176,8 @@ contains
     ! to do 4th order for axisymmetry, we need to derive the transformations between
     ! averages and cell-centers with the correct volume terms in the integral.
 #ifndef AMREX_USE_CUDA
-    if (coord_type > 0) then
-       call castro_error("Error: fourth order not implemented for axisymmetric")
+    if (coord_type > 1) then
+       call castro_error("Error: fourth order not implemented for 1-d spherical")
     endif
 #endif
 

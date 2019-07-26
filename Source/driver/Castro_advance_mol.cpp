@@ -81,13 +81,14 @@ Castro::do_advance_mol (Real time,
     if (mol_order == 4) {
       // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
       // we'll reuse sources_for_hydro for this memory buffer at the moment
+      const Real* dx = geom.CellSize();
 
       for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
         const Box& gbx = mfi.growntilebox(1);
         ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
                             BL_TO_FORTRAN_FAB(Sborder[mfi]),
                             BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]),
-                            AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                            ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       }
     }
@@ -105,9 +106,10 @@ Castro::do_advance_mol (Real time,
       // Convert to cell averages.  This loop cannot be tiled.
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
+        const Real* dx = geom.CellSize();
         ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
                                 BL_TO_FORTRAN_FAB(old_source[mfi]),
-                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       }
 

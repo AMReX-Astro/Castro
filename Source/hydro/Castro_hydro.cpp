@@ -148,6 +148,7 @@ Castro::cons_to_prim_fourth(const Real time)
 
       const Box& qbx = mfi.growntilebox(NUM_GROW);
       const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
+      const Real* dx = geom.CellSize();
 
       // note: these conversions are using a growntilebox, so it
       // will include ghost cells
@@ -161,7 +162,7 @@ Castro::cons_to_prim_fourth(const Real time)
       ca_make_cell_center(BL_TO_FORTRAN_BOX(qbxm1),
                           BL_TO_FORTRAN_FAB(Sborder[mfi]),
                           BL_TO_FORTRAN_FAB(U_cc),
-                          AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // enforce the minimum density on the new cell-centered state
       Real dens_change = 1.e0;
@@ -214,6 +215,7 @@ Castro::cons_to_prim_fourth(const Real time)
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
+      const Real* dx = geom.CellSize();
 
       // now convert q, qaux into 4th order accurate averages
       // this will create q, qaux in NUM_GROW-1 ghost cells, but that's
@@ -222,14 +224,14 @@ Castro::cons_to_prim_fourth(const Real time)
       ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
                              BL_TO_FORTRAN_FAB(q[mfi]),
                              BL_TO_FORTRAN_FAB(q_bar[mfi]),
-                             AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                             ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // not sure if we need to convert qaux this way, or if we can
       // just evaluate it (we may not need qaux at all actually)
       ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
                              BL_TO_FORTRAN_FAB(qaux[mfi]),
                              BL_TO_FORTRAN_FAB(qaux_bar[mfi]),
-                             AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                             ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
     }
 

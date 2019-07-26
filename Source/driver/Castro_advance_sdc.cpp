@@ -101,10 +101,12 @@ Castro::do_advance_sdc (Real time,
 
           for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
             const Box& gbx = mfi.growntilebox(1);
+            const Real* dx = geom.CellSize();
+
             ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
                                 BL_TO_FORTRAN_FAB(Sborder[mfi]),
                                 BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]),
-                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
           }
 
@@ -122,9 +124,10 @@ Castro::do_advance_sdc (Real time,
           // Now convert to cell averages.  This loop cannot be tiled.
           for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
+            const Real* dx = geom.CellSize();
             ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
                                     BL_TO_FORTRAN_FAB(old_source[mfi]),
-                                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                    ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
           }
 
         } else {
