@@ -95,8 +95,43 @@ contains
 
                    else
                       ! regular stencil
-                      a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i-1,j,k,n) + a(i,j,k,n)) - &
-                           (1.0_rt/12.0_rt)*(a(i-2,j,k,n) + a(i+1,j,k,n))
+                      if (coord_type == 1) then
+                         denom = 6.0_rt*(9.0*rt * delta(1)**4 - &
+                                         200.0_rt * delta(1)**3 * rc - &
+                                         120.0_rt * delta(1)**2 * rc**2 + &
+                                         160.0_rt * delta(1) * rc**3 + &
+                                         80.0_rt * rc**4)
+
+                         a4 = delta(1)**4 * (93.0_rt * a(i+1,j,k,n) - &
+                                             21.0_rt * a(i-1,j,k,n) - &
+                                             18.0_rt * a(i-2,j,k,n))
+
+                         a3 = delta(1)**3 * rc * (575.0_rt * a(i+1,j,k,n) - &
+                                                  285.0_rt * a(i-1,j,k,n) - &
+                                                  107.0_rt * a(i-2,j,k,n) - &
+                                                  1365.0_rt * a(i,j,k,n))
+
+                         a2 = delta(1)**2 * rc**2 * (270.0_rt * a(i+1,j,k,n) - &
+                                                     90.0_rt * a(i-1,j,k,n) + &
+                                                     66.0_rt * a(i-2,j,k,n) - &
+                                                     850.0_rt * a(i,j,k,n))
+
+                         a1 = delta(1) * rc**3 * (-412.0_rt * a(i+1,j,k,n) + &
+                                                  276.0_rt * a(i-1,j,k,n) + &
+                                                  76.0_rt * a(i-2,j,k,n) + &
+                                                  1012.0_rt * a(i,j,k,n))
+
+                         a0 = rc**4 * (-200.0_rt * a(i+1,j,k,n) + &
+                                       120.0_rt * a(i-1,j,k,n) - &
+                                       40.0_rt * a(i-2,j,k,n) + &
+                                       520.0_rt * a(i,j,k,n))
+
+                         a_int(i,j,k) = (a4 + a3 + a2 + a1 + a0)/denom
+
+                      else
+                         a_int(i,j,k) = (7.0_rt/12.0_rt)*(a(i-1,j,k,n) + a(i,j,k,n)) - &
+                              (1.0_rt/12.0_rt)*(a(i-2,j,k,n) + a(i+1,j,k,n))
+                      end if
                    end if
 
                    al(i,j,k,n) = a_int(i,j,k)
