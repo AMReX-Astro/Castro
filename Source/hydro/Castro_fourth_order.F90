@@ -465,7 +465,7 @@ contains
 
                 lap = transy_laplacian(i, j, k, n, &
                                        qy_avg, q_lo, q_hi, NQ, &
-                                       domlo, domhi)
+                                       dx, domlo, domhi)
 
                 qy(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
 
@@ -602,7 +602,7 @@ contains
 
                 lap = transy_laplacian(i, j, k, n, &
                                        fly_avg, q_lo, q_hi, NVAR, &
-                                       domlo, domhi)
+                                       dx, domlo, domhi)
 
                 fly(i,j,k,n) = fly(i,j,k,n) + 1.0_rt/24.0_rt * lap
 
@@ -619,7 +619,7 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                lap = transy_laplacian(i, j, k, n, &
+                lap = transz_laplacian(i, j, k, n, &
                                        flz_avg, q_lo, q_hi, NVAR, &
                                        domlo, domhi)
 

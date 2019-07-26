@@ -1,6 +1,6 @@
 module fourth_order
 
-  use amrex_constants_module, only : ZERO, TWO, ONE
+  use amrex_constants_module, only : ZERO, HALF, TWO, ONE
   use prob_params_module, only : dg
   use castro_error_module, only : castro_error
   use amrex_fort_module, only : rt => amrex_real
@@ -699,7 +699,7 @@ contains
                                   a, a_lo, a_hi, nc, &
                                   delta, domlo, domhi) result (lap)
 
-    use prob_params_module, only : physbc_lo, physbc_hi, Interior, problo
+    use prob_params_module, only : physbc_lo, physbc_hi, Interior, problo, coord_type
     implicit none
 
     integer, intent(in) :: i, j, k, n
@@ -711,6 +711,7 @@ contains
 
     real(rt) :: lapx, lapy, lapz, dadr
     real(rt) :: lap
+    real(rt) :: rc
 
     lapx = ZERO
     lapy = ZERO
@@ -821,7 +822,7 @@ contains
                                  a, a_lo, a_hi, nc, &
                                  delta, domlo, domhi) result (lap)
 
-    use prob_params_module, only : physbc_lo, physbc_hi, Interior, problo
+    use prob_params_module, only : physbc_lo, physbc_hi, Interior, problo, coord_type
     implicit none
 
     integer, intent(in) :: i, j, k, n
@@ -831,8 +832,9 @@ contains
     real(rt), intent(in) :: delta(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt) :: lapx, lapy, lapz
+    real(rt) :: lapx, lapy, lapz, dadr
     real(rt) :: lap
+    real(rt) :: rc
 
     lapx = ZERO
     lapz = ZERO
