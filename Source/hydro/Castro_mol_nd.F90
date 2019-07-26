@@ -28,7 +28,6 @@ contains
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use network, only : nspec, naux
-    use prob_params_module, only : dg, coord_type
 
     implicit none
 
@@ -178,7 +177,6 @@ contains
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use network, only : nspec, naux
-    use prob_params_module, only : dg, coord_type
 
     implicit none
 
