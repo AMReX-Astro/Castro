@@ -31,6 +31,9 @@ Castro::do_advance_mol (Real time,
   MultiFab& S_old = get_old_data(State_Type);
   MultiFab& S_new = get_new_data(State_Type);
 
+  const int* domain_lo = geom.Domain().loVect();
+  const int* domain_hi = geom.Domain().hiVect();
+
   // Perform initialization steps.
 
   initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -83,7 +86,8 @@ Castro::do_advance_mol (Real time,
         const Box& gbx = mfi.growntilebox(1);
         ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
                             BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                            BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]));
+                            BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]),
+                            AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       }
     }
@@ -102,7 +106,8 @@ Castro::do_advance_mol (Real time,
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
         ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                                BL_TO_FORTRAN_FAB(old_source[mfi]));
+                                BL_TO_FORTRAN_FAB(old_source[mfi]),
+                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       }
 

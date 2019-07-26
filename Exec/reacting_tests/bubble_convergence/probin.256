@@ -1,6 +1,6 @@
 &fortin
 
-  pert_width = 5.12e5
+  pert_width = 2.56e5
 
   dens_base = 1.e7
   temp_base = 1.0e8
