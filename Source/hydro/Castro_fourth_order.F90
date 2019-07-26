@@ -619,7 +619,7 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                lap = transy_laplacian(i, j, k, n, &
+                lap = transz_laplacian(i, j, k, n, &
                                        flz_avg, q_lo, q_hi, NVAR, &
                                        domlo, domhi)
 
