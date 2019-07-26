@@ -697,23 +697,27 @@ contains
   ! Note: pretty much all of these routines below assume that dx(1) = dx(2) = dx(3)
   pure function compute_laplacian(i, j, k, n, &
                                   a, a_lo, a_hi, nc, &
-                                  domlo, domhi) result (lap)
+                                  delta, domlo, domhi) result (lap)
 
-    use prob_params_module, only : physbc_lo, physbc_hi, Interior
+    use prob_params_module, only : physbc_lo, physbc_hi, Interior, problo
     implicit none
 
     integer, intent(in) :: i, j, k, n
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: nc
     real(rt), intent(in) :: a(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3), nc)
+    real(rt), intent(in) :: delta(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
-    real(rt) :: lapx, lapy, lapz
+    real(rt) :: lapx, lapy, lapz, dadr
     real(rt) :: lap
 
     lapx = ZERO
     lapy = ZERO
     lapz = ZERO
+
+    ! for axisymmetric
+    dadr = ZERO
 
     ! we use 2nd-order accurate one-sided stencils at the physical
     ! boundaries note: this differs from the suggestion in MC2011 --
@@ -722,12 +726,17 @@ contains
 
     if (i == domlo(1) .and. physbc_lo(1) /= Interior) then
        lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i+1,j,k,n) + 4.0_rt*a(i+2,j,k,n) - a(i+3,j,k,n)
-
+       if (coord_type == 1) then
+          dadr = HALF*(-3.0_rt*a(i,j,k,n) + 4.0_rt*a(i+1,j,k,n) - a(i+2,j,k,n))
+       end if
     else if (i == domhi(1) .and. physbc_hi(1) /= Interior) then
        lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i-1,j,k,n) + 4.0_rt*a(i-2,j,k,n) - a(i-3,j,k,n)
-
+       if (coord_type == 1) then
+          dadr = HALF*(3.0_rt*a(i,j,k,n) - 4.0_rt*a(i-1,j,k,n) + a(i-2,j,k,n))
+       end if
     else
        lapx = a(i+1,j,k,n) - TWO*a(i,j,k,n) + a(i-1,j,k,n)
+       dadr = HALF*(a(i+1,j,k,n) - a(i-1,j,k,n))
     end if
 
 #if AMREX_SPACEDIM >= 2
@@ -755,7 +764,8 @@ contains
     end if
 #endif
 
-    lap = lapx + lapy + lapz
+    rc = problo(1) + (dble(i) + HALF)*delta(1)
+    lap = lapx + lapy + lapz + delta(1)*dadr/(12.0*rc)
 
   end function compute_laplacian
 
@@ -809,15 +819,16 @@ contains
 
   pure function transy_laplacian(i, j, k, n, &
                                  a, a_lo, a_hi, nc, &
-                                 domlo, domhi) result (lap)
+                                 delta, domlo, domhi) result (lap)
 
-    use prob_params_module, only : physbc_lo, physbc_hi, Interior
+    use prob_params_module, only : physbc_lo, physbc_hi, Interior, problo
     implicit none
 
     integer, intent(in) :: i, j, k, n
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: nc
     real(rt), intent(in) :: a(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3), nc)
+    real(rt), intent(in) :: delta(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt) :: lapx, lapy, lapz
@@ -826,16 +837,24 @@ contains
     lapx = ZERO
     lapz = ZERO
 
+    ! for axisymmetric
+    dadr = ZERO
+
     ! we use 2nd-order accurate one-sided stencils at the physical boundaries
 
     if (i == domlo(1) .and. physbc_lo(1) /= Interior) then
        lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i+1,j,k,n) + 4.0_rt*a(i+2,j,k,n) - a(i+3,j,k,n)
-
+       if (coord_type == 1) then
+          dadr = HALF*(-3.0_rt*a(i,j,k,n) + 4.0_rt*a(i+1,j,k,n) - a(i+2,j,k,n))
+       end if
     else if (i == domhi(1) .and. physbc_hi(1) /= Interior) then
        lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i-1,j,k,n) + 4.0_rt*a(i-2,j,k,n) - a(i-3,j,k,n)
-
+       if (coord_type == 1) then
+          dadr = HALF*(3.0_rt*a(i,j,k,n) - 4.0_rt*a(i-1,j,k,n) + a(i-2,j,k,n))
+       end if
     else
        lapx = a(i+1,j,k,n) - TWO*a(i,j,k,n) + a(i-1,j,k,n)
+       dadr = HALF*(a(i+1,j,k,n) - a(i-1,j,k,n))
     end if
 
 #if AMREX_SPACEDIM == 3
@@ -850,7 +869,8 @@ contains
     end if
 #endif
 
-    lap = lapx + lapz
+    rc = problo(1) + (dble(i) + HALF)*delta(1)
+    lap = lapx + lapz + delta(1)*dadr/(12.0*rc)
 
   end function transy_laplacian
 
@@ -904,7 +924,7 @@ contains
   subroutine ca_make_cell_center(lo, hi, &
                                  U, U_lo, U_hi, nc, &
                                  U_cc, U_cc_lo, U_cc_hi, nc_cc, &
-                                 domlo, domhi) &
+                                 delta, domlo, domhi) &
                                  bind(C, name="ca_make_cell_center")
     ! Take a cell-average state U and a convert it to a cell-center
     ! state U_cc via U_cc = U - 1/24 L U
@@ -917,6 +937,7 @@ contains
     integer, intent(in) :: nc, nc_cc
     real(rt), intent(in) :: U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), nc)
     real(rt), intent(inout) :: U_cc(U_cc_lo(1):U_cc_hi(1), U_cc_lo(2):U_cc_hi(2), U_cc_lo(3):U_cc_hi(3), nc_cc)
+    real(rt), intent(in) :: delta(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
@@ -936,7 +957,7 @@ contains
 
                 lap = compute_laplacian(i, j, k, n, &
                                         U, U_lo, U_hi, nc, &
-                                        domlo, domhi)
+                                        delta, domlo, domhi)
 
                 U_cc(i,j,k,n) = U(i,j,k,n) - TWENTYFOURTH * lap
 
@@ -949,7 +970,7 @@ contains
 
   subroutine ca_make_cell_center_in_place(lo, hi, &
                                           U, U_lo, U_hi, nc, &
-                                          domlo, domhi) &
+                                          delta, domlo, domhi) &
                                           bind(C, name="ca_make_cell_center_in_place")
     ! Take a cell-average state U and make it cell-centered in place
     ! via U <- U - 1/24 L U.  Note that this operation is not tile
@@ -963,6 +984,7 @@ contains
     integer, intent(in) :: U_lo(3), U_hi(3)
     integer, intent(in) :: nc
     real(rt), intent(inout) :: U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), nc)
+    real(rt), intent(in) :: delta(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
@@ -979,7 +1001,7 @@ contains
 
                 lap(i,j,k) = compute_laplacian(i, j, k, n, &
                                                U, U_lo, U_hi, nc, &
-                                               domlo, domhi)
+                                               delta, domlo, domhi)
 
              end do
           end do
@@ -1001,7 +1023,7 @@ contains
   subroutine ca_compute_lap_term(lo, hi, &
                                  U, U_lo, U_hi, nc, &
                                  lap, lap_lo, lap_hi, ncomp, &
-                                 domlo, domhi) &
+                                 delta, domlo, domhi) &
                                  bind(C, name="ca_compute_lap_term")
     ! Computes the h**2/24 L U term that is used in correcting
     ! cell-center to averages (and back)
@@ -1015,6 +1037,7 @@ contains
     real(rt), intent(in) :: U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), nc)
     real(rt), intent(inout) :: lap(lap_lo(1):lap_hi(1), lap_lo(2):lap_hi(2), lap_lo(3):lap_hi(3))
     integer, intent(in) :: ncomp
+    real(rt), intent(in) :: delta(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     ! note: ncomp is C++ index (0-based)
@@ -1027,7 +1050,7 @@ contains
 
              lap(i,j,k) = compute_laplacian(i, j, k, ncomp+1, &
                                             U, U_lo, U_hi, nc, &
-                                            domlo, domhi)
+                                            delta, domlo, domhi)
 
           end do
        end do
@@ -1041,7 +1064,7 @@ contains
   subroutine ca_make_fourth_average(lo, hi, &
                                     q, q_lo, q_hi, nc, &
                                     q_bar, q_bar_lo, q_bar_hi, nc_bar, &
-                                    domlo, domhi) &
+                                    delta, domlo, domhi) &
                                     bind(C, name="ca_make_fourth_average")
     ! Take the cell-center state q and another state q_bar (e.g.,
     ! constructed from the cell-average U) and replace the cell-center
@@ -1053,6 +1076,7 @@ contains
     integer, intent(in) :: nc, nc_bar
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
     real(rt), intent(in) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), nc_bar)
+    real(rt), intent(in) :: delta(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
@@ -1065,7 +1089,7 @@ contains
 
                 lap = compute_laplacian(i, j, k, n, &
                                         q_bar, q_bar_lo, q_bar_hi, nc, &
-                                        domlo, domhi)
+                                        delta, domlo, domhi)
 
                 q(i,j,k,n) = q(i,j,k,n) + TWENTYFOURTH * lap
 
@@ -1078,7 +1102,7 @@ contains
 
   subroutine ca_make_fourth_in_place(lo, hi, &
                                      q, q_lo, q_hi, nc, &
-                                     domlo, domhi) &
+                                     delta, domlo, domhi) &
                                      bind(C, name="ca_make_fourth_in_place")
     ! Take the cell-center q and makes it a cell-average q, in place
     ! (e.g. q is overwritten by its average), q <- q + 1/24 L q.
@@ -1090,6 +1114,7 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: nc
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
+    real(rt), intent(in) :: delta(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k, n
@@ -1105,7 +1130,7 @@ contains
 
                 lap(i,j,k) = compute_laplacian(i, j, k, n, &
                                                q, q_lo, q_hi, nc, &
-                                               domlo, domhi)
+                                               delta, domlo, domhi)
 
              end do
           end do
@@ -1126,7 +1151,7 @@ contains
 
   subroutine ca_make_fourth_in_place_n(lo, hi, &
                                        q, q_lo, q_hi, nc, ncomp, &
-                                       domlo, domhi) &
+                                       delta, domlo, domhi) &
                                        bind(C, name="ca_make_fourth_in_place_n")
     ! Take the cell-center q and makes it a cell-average q, in place
     ! (e.g. q is overwritten by its average), q <- q + 1/24 L q.
@@ -1142,6 +1167,7 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: nc, ncomp
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
+    real(rt), intent(in) :: delta(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k
@@ -1155,7 +1181,7 @@ contains
 
              lap(i,j,k) = compute_laplacian(i, j, k, ncomp+1, &
                                             q, q_lo, q_hi, nc, &
-                                            domlo, domhi)
+                                            delta, domlo, domhi)
 
           end do
        end do
