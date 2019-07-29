@@ -56,6 +56,10 @@ module meth_params_module
   ! Numerical values corresponding to the gravity types
 #ifdef GRAVITY
   integer, save, allocatable :: gravity_type_int
+  integer, parameter :: ConstantGrav = 0
+  integer, parameter :: MonopoleGrav = 1
+  integer, parameter :: PoissonGrav = 2
+  integer, parameter :: PrescribedGrav = 3
 #endif
 
   integer         , save :: numpts_1d
@@ -814,11 +818,13 @@ contains
     allocate(gravity_type_int)
 
     if (gravity_type == "ConstantGrav") then
-       gravity_type_int = 0
+       gravity_type_int = ConstantGrav
     else if (gravity_type == "MonopoleGrav") then
-       gravity_type_int = 1
+       gravity_type_int = MonopoleGrav
     else if (gravity_type == "PoissonGrav") then
-       gravity_type_int = 2
+       gravity_type_int = PoissonGrav
+    else if (gravity_type == "PrescribedGrav") then
+       gravity_type_int = PrescribedGrav
     else
        call castro_error("Unknown gravity type")
     end if
