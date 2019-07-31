@@ -1,3 +1,14 @@
+
+  -- We slightly changed how the characteristic tracing is done for
+     the CTU PPM hydro solver -- we now use the limit of the parabola
+     as the edge state if the wave is not moving toward the interface
+     (#632)
+
+  -- We created a new error wrapper, castro_error(), to replace the
+     AMReX amrex_error().  This will allow us to deal with error when
+     on the GPU.
+
+
 # changes since the last release
 
   -- There is now a separate set of boundary filling routines for
@@ -23,7 +34,7 @@
   -- The new SDC solver has had substantial improvements:
 
       * Explicit thermal diffusion is now implemented for both 2nd and
-        4th order accurate solvers.
+        4th order accurate solvers. (#610)
 
       * There is a new option (castro.sdc_extra) for taking extra SDC
         iterations.
