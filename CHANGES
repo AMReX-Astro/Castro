@@ -1,3 +1,4 @@
+# changes since the last release
 
   -- We slightly changed how the characteristic tracing is done for
      the CTU PPM hydro solver -- we now use the limit of the parabola
@@ -7,29 +8,6 @@
   -- We created a new error wrapper, castro_error(), to replace the
      AMReX amrex_error().  This will allow us to deal with error when
      on the GPU.
-
-
-# changes since the last release
-
-  -- There is now a separate set of boundary filling routines for
-     source terms, source_fill.F90.  Previously this was handled
-     by generic_fill.F90 (#627)
-
-  -- The tagging routines have been reformulated so that they run on
-     the GPU.  Since the tags_and_untags routine in AMReX is not
-     GPU-accelerated, we opt to directly fill in the TagBoxArray in
-     the tagging routines. We now pass the TagBox to Fortran as an
-     int8_t. This means that the interface to problem_tagging_nd.F90
-     has been updated to use integer(1).
-
-     Castro_prob_err_list.H and other related files have been deleted
-     as they were not actually used anywhere.
-
-     Castro_error.cpp is now removed and there is no further support
-     for writing custom tagging routines. The set of variables that we
-     check for tagging is hard-coded in Castro and can be expanded as
-     needed. Problem-specific tagging should be done through the
-     set_problem_tags functionality. (#611)
 
   -- The new SDC solver has had substantial improvements:
 
@@ -54,6 +32,28 @@
      simulations.
 
   -- the diffusion_test unit test now works for 4th order problems.
+
+# 19.07
+
+  -- There is now a separate set of boundary filling routines for
+     source terms, source_fill.F90.  Previously this was handled
+     by generic_fill.F90 (#627)
+
+  -- The tagging routines have been reformulated so that they run on
+     the GPU.  Since the tags_and_untags routine in AMReX is not
+     GPU-accelerated, we opt to directly fill in the TagBoxArray in
+     the tagging routines. We now pass the TagBox to Fortran as an
+     int8_t. This means that the interface to problem_tagging_nd.F90
+     has been updated to use integer(1).
+
+     Castro_prob_err_list.H and other related files have been deleted
+     as they were not actually used anywhere.
+
+     Castro_error.cpp is now removed and there is no further support
+     for writing custom tagging routines. The set of variables that we
+     check for tagging is hard-coded in Castro and can be expanded as
+     needed. Problem-specific tagging should be done through the
+     set_problem_tags functionality. (#611)
 
   -- The dimension-specific code for problem initialization, boundary
      conditions, and external heat terms has been removed, as warned
