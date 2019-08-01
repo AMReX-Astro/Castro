@@ -275,34 +275,33 @@ contains
 
     ! do the reconstruction here -- get the interface states
 
-    do n = 1, NQ
-
-       ! x-interfaces
-       call states(1, &
-                   q, q_lo, q_hi, NQ, n, &
-                   flatn, q_bar_lo, q_bar_hi, &
-                   qxm, qxp, q_lo, q_hi, &
-                   lo, hi)
+    ! x-interfaces
+    call states(1, &
+                q, q_lo, q_hi, &
+                flatn, q_bar_lo, q_bar_hi, &
+                qxm, qxp, q_lo, q_hi, &
+                lo, hi, &
+                domlo, domhi)
 
 #if AMREX_SPACEDIM >= 2
-       ! y-interfaces
-       call states(2, &
-                   q, q_lo, q_hi, NQ, n, &
-                   flatn, q_bar_lo, q_bar_hi, &
-                   qym, qyp, q_lo, q_hi, &
-                   lo, hi)
+    ! y-interfaces
+    call states(2, &
+                q, q_lo, q_hi, &
+                flatn, q_bar_lo, q_bar_hi, &
+                qym, qyp, q_lo, q_hi, &
+                lo, hi, &
+                domlo, domhi)
 #endif
 
 #if AMREX_SPACEDIM == 3
-       ! z-interfaces
-       call states(3, &
-                   q, q_lo, q_hi, NQ, n, &
-                   flatn, q_bar_lo, q_bar_hi, &
-                   qzm, qzp, q_lo, q_hi, &
-                   lo, hi)
+    ! z-interfaces
+    call states(3, &
+                q, q_lo, q_hi, &
+                flatn, q_bar_lo, q_bar_hi, &
+                qzm, qzp, q_lo, q_hi, &
+                lo, hi, &
+                domlo, domhi)
 #endif
-
-    end do
 
     ! this is where we would implement ppm_temp_fix
 
@@ -445,12 +444,12 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)+1
 
-                ! note: need to consider axisymmetry in the future
-                lap = qx_avg(i,j+1,k,n) - TWO*qx_avg(i,j,k,n) + qx_avg(i,j-1,k,n)
-#if AMREX_SPACEDIM == 3
-                lap = lap + qx_avg(i,j,k+1,n) - TWO*qx_avg(i,j,k,n) + qx_avg(i,j,k-1,n)
-#endif
+                lap = transx_laplacian(i, j, k, n, &
+                                       qx_avg, q_lo, q_hi, NQ, &
+                                       domlo, domhi)
+
                 qx(i,j,k,n) = qx_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+
              end do
           end do
        end do
@@ -464,12 +463,12 @@ contains
           do j = lo(2), hi(2)+1
              do i = lo(1), hi(1)
 
-                ! note: need to consider axisymmetry in the future
-                lap = qy_avg(i+1,j,k,n) - TWO*qy_avg(i,j,k,n) + qy_avg(i-1,j,k,n)
-#if AMREX_SPACEDIM == 3
-                lap = lap + qy_avg(i,j,k+1,n) - TWO*qy_avg(i,j,k,n) + qy_avg(i,j,k-1,n)
-#endif
+                lap = transy_laplacian(i, j, k, n, &
+                                       qy_avg, q_lo, q_hi, NQ, &
+                                       domlo, domhi)
+
                 qy(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+
              end do
           end do
        end do
@@ -484,11 +483,12 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                ! note: need to consider axisymmetry in the future
-                lap = qz_avg(i+1,j,k,n) - TWO*qz_avg(i,j,k,n) + qz_avg(i-1,j,k,n)
-                lap = lap + qz_avg(i,j+1,k,n) - TWO*qz_avg(i,j,k,n) + qz_avg(i,j-1,k,n)
+                lap = transz_laplacian(i, j, k, n, &
+                                       qz_avg, q_lo, q_hi, NQ, &
+                                       domlo, domhi)
 
                 qz(i,j,k,n) = qz_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+
              end do
           end do
        end do
@@ -583,10 +583,10 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)+1
 
-                lap = flx_avg(i,j+1,k,n) - TWO*flx_avg(i,j,k,n) + flx_avg(i,j-1,k,n)
-#if AMREX_SPACEDIM == 3
-                lap = lap + flx_avg(i,j,k+1,n) - TWO*flx_avg(i,j,k,n) + flx_avg(i,j,k-1,n)
-#endif
+                lap = transx_laplacian(i, j, k, n, &
+                                       flx_avg, q_lo, q_hi, NVAR, &
+                                       domlo, domhi)
+
                 flx(i,j,k,n) = flx(i,j,k,n) + 1.0_rt/24.0_rt * lap
 
              end do
@@ -600,11 +600,12 @@ contains
           do j = lo(2), hi(2)+1
              do i = lo(1), hi(1)
 
-                lap = fly_avg(i+1,j,k,n) - TWO*fly_avg(i,j,k,n) + fly_avg(i-1,j,k,n)
-#if AMREX_SPACEDIM == 3
-                lap = lap + fly_avg(i,j,k+1,n) - TWO*fly_avg(i,j,k,n) + fly_avg(i,j,k-1,n)
-#endif
+                lap = transy_laplacian(i, j, k, n, &
+                                       fly_avg, q_lo, q_hi, NVAR, &
+                                       domlo, domhi)
+
                 fly(i,j,k,n) = fly(i,j,k,n) + 1.0_rt/24.0_rt * lap
+
              end do
           end do
        end do
@@ -618,8 +619,10 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                lap = flz_avg(i+1,j,k,n) - TWO*flz_avg(i,j,k,n) + flz_avg(i-1,j,k,n)
-                lap = lap + flz_avg(i,j+1,k,n) - TWO*flz_avg(i,j,k,n) + flz_avg(i,j-1,k,n)
+                lap = transz_laplacian(i, j, k, n, &
+                                       flz_avg, q_lo, q_hi, NVAR, &
+                                       domlo, domhi)
+
                 flz(i,j,k,n) = flz(i,j,k,n) + 1.0_rt/24.0_rt * lap
 
              end do
