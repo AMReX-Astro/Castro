@@ -1045,7 +1045,7 @@ contains
                 qL = q(i,j,k-1,:)
                 qR = q(i,j,k  ,:)
                 fluxL = dflux(uL, qL, idir, [i, j, k-1])
-                fluxR = dflux(uR, qR, idir, [i, j, k-1])
+                fluxR = dflux(uR, qR, idir, [i, j, k  ])
                 fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j,k-1,:) - u(i,j,k,:)))
 
                 flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k))
