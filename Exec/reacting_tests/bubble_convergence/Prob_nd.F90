@@ -138,7 +138,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            call interpolate_sub(state(i,j,k,UTEMP), height, itemp_model)
 
            do n = 1, nspec
-              call interpolate_sub(state(i,j,k,UFS-1+n), npts_model, ispec_model-1+n)
+              call interpolate_sub(state(i,j,k,UFS-1+n), height, ispec_model-1+n)
            end do
 
            eos_state%rho = state(i,j,k,URHO)
