@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=32
 #SBATCH --qos=regular
-#SBATCH --time=06:00:00
+#SBATCH --time=04:00:00
 #SBATCH --constraint=haswell
 
 # Cori Haswell has 2 Intel "Haswell" processors each with 16 cores.
@@ -13,7 +13,7 @@
 export OMP_NUM_THREADS=1
 
 
-slack_job_start.py "starting flame problem @ NERSC" @michael
+slack_job_start.py "starting flame strang problem @ NERSC" @michael
 
 export CASTRO_EXEC=./Castro1d.intel.haswell.MPI.ex
 
@@ -25,7 +25,8 @@ function find_chk_file {
 
     # find the latest 2 restart files.  This way if the latest didn't
     # complete we fall back to the previous one.
-    temp_files=$(find . -type d -name "${chk}" -print | sort | tail -2)
+    #temp_files=$(find . -type d -name "${chk}" -print | sort | tail -2)
+    temp_files=$(find . -maxdepth 1 -name "${chk}" -print | sort | tail -2)
     restartFile=""
     for f in ${temp_files}
     do
@@ -51,10 +52,9 @@ probin.sdc
 helm_table.dat"
 
 NZONES="
-1024
-2048
-4096
-8192"
+256
+512
+1024"
 
 
 # Strang
@@ -78,7 +78,20 @@ do
             fi
         done
 
-        find_chk_file "*chk?????"
+        slack_job_start.py "checking ${rdir} for restart" @michael
+
+        find_chk_file "*chk???????"
+
+        if [ "${restartFile}" = "" ]; then
+            # look for 6-digit chk files
+            find_chk_file "*chk??????"
+        fi
+
+        if [ "${restartFile}" = "" ]; then
+            # look for 5-digit chk files
+            find_chk_file "*chk?????"
+        fi
+
         # restartString will be empty if no chk files are found -- i.e. new run
         if [ "${restartFile}" = "" ]; then
             restartString=""
