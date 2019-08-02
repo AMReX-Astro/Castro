@@ -28,7 +28,7 @@ castro.sdc_solver_tol_ener=1.e-5
 castro.sdc_solver_atol=1.e-10
 castro.sdc_solver=1"
 
-srun ${CASTRO_EXEC} inputs.2d.64 ${RUNPARAMS} amr.plot_file=bubble_64_sdc4_plt &> 64.out
-srun ${CASTRO_EXEC} inputs.2d.128 ${RUNPARAMS} amr.plot_file=bubble_128_sdc4_plt &> 128.out
-srun ${CASTRO_EXEC} inputs.2d.256 ${RUNPARAMS} amr.plot_file=bubble_256_sdc4_plt &> 256.out
-srun ${CASTRO_EXEC} inputs.2d.512 ${RUNPARAMS} amr.plot_file=bubble_512_sdc4_plt &> 512.out
+srun ${CASTRO_EXEC} inputs_2d.64 ${RUNPARAMS} amr.plot_file=bubble_64_sdc4_plt &> 64.out
+srun ${CASTRO_EXEC} inputs_2d.128 ${RUNPARAMS} amr.plot_file=bubble_128_sdc4_plt &> 128.out
+srun ${CASTRO_EXEC} inputs_2d.256 ${RUNPARAMS} amr.plot_file=bubble_256_sdc4_plt &> 256.out
+srun ${CASTRO_EXEC} inputs_2d.512 ${RUNPARAMS} amr.plot_file=bubble_512_sdc4_plt &> 512.out
