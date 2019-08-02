@@ -11,9 +11,6 @@ echo "starting..."
 
 export OMP_NUM_THREADS=1
 
-
-slack_job_start.py "starting reacting_convergence problem @ NERSC" @michael
-
 export CASTRO_EXEC=./Castro2d.intel.haswell.MPI.ex
 
 # Cori Haswell has 2 Intel "Haswell" processors each with 16 cores.
