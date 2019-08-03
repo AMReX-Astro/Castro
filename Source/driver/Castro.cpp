@@ -1068,7 +1068,7 @@ Castro::initData ()
            const int* hi  = box.hiVect();
 
 #pragma gpu box(box)
-           ca_init_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
+           ca_linear_to_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 #endif
 
@@ -1096,13 +1096,16 @@ Castro::initData ()
            AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
            // note: this cannot be tiled
+           const int* domain_lo = geom.Domain().loVect();
+           const int* domain_hi = geom.Domain().hiVect();
 
            for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
              {
                const Box& box     = mfi.validbox();
 
                ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                       BL_TO_FORTRAN_FAB(Sborder[mfi]));
+                                       BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                                       AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
              }
 
            // now copy back the averages
@@ -1116,12 +1119,16 @@ Castro::initData ()
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
          // convert to centers -- not tile safe
+         const int* domain_lo = geom.Domain().loVect();
+         const int* domain_hi = geom.Domain().hiVect();
+
          for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
            {
              const Box& box = mfi.growntilebox(2);
 
              ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(box),
-                                          BL_TO_FORTRAN_FAB(Sborder[mfi]));
+                                          BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
            }
 
          // reset the energy -- do this in one ghost cell so we can average in place below
@@ -1139,7 +1146,8 @@ Castro::initData ()
              const Box& box = mfi.validbox();
 
              ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_FAB(Sborder[mfi]));
+                                     BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                                     AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
            }
 
          // now copy back the averages for UEINT and UTEMP only
@@ -3408,6 +3416,9 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
     // convert to cell centers -- this will result in Stemp being
     // cell centered only on 1 ghost cells
+    const int* domain_lo = geom.Domain().loVect();
+    const int* domain_hi = geom.Domain().hiVect();
+
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(1);
       const Box& bx0 = mfi.tilebox();
@@ -3415,10 +3426,12 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
       ca_compute_lap_term(BL_TO_FORTRAN_BOX(bx0),
                           BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), &Eint);
+                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), &Eint,
+                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
       ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
-                                   BL_TO_FORTRAN_FAB(Stemp[mfi]));
+                                   BL_TO_FORTRAN_FAB(Stemp[mfi]),
+                                   AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
     }
 
@@ -3494,6 +3507,9 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
     // cell-averages -- this is 4th-order and will be a no-op for
     // those zones where e wasn't changed.
 
+    const int* domain_lo = geom.Domain().loVect();
+    const int* domain_hi = geom.Domain().hiVect();
+
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
 
       const Box& bx = mfi.tilebox();
@@ -3501,7 +3517,8 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
       // only temperature
       ca_make_fourth_in_place_n(BL_TO_FORTRAN_BOX(bx),
-                                BL_TO_FORTRAN_FAB(Stemp[mfi]), &Temp);
+                                BL_TO_FORTRAN_FAB(Stemp[mfi]), &Temp,
+                                AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
     }
 
@@ -3944,7 +3961,9 @@ Castro::clean_state(MultiFab& state, Real time, int ng) {
     // Sync the linear and hybrid momenta.
 
 #ifdef HYBRID_MOMENTUM
-    hybrid_sync(state, ng);
+    if (hybrid_hydro) {
+        hybrid_to_linear_momentum(state, ng);
+    }
 #endif
 
     // Compute the temperature (note that this will also reset

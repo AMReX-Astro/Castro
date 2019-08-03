@@ -132,6 +132,9 @@ Castro::cons_to_prim_fourth(const Real time)
     // convert the conservative state cell averages to primitive cell
     // averages with 4th order accuracy
 
+    const int* domain_lo = geom.Domain().loVect();
+    const int* domain_hi = geom.Domain().hiVect();
+
     MultiFab& S_new = get_new_data(State_Type);
 
     // we don't support radiation here
@@ -157,7 +160,8 @@ Castro::cons_to_prim_fourth(const Real time)
 
       ca_make_cell_center(BL_TO_FORTRAN_BOX(qbxm1),
                           BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                          BL_TO_FORTRAN_FAB(U_cc));
+                          BL_TO_FORTRAN_FAB(U_cc),
+                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
       // enforce the minimum density on the new cell-centered state
       Real dens_change = 1.e0;
@@ -217,13 +221,15 @@ Castro::cons_to_prim_fourth(const Real time)
 
       ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
                              BL_TO_FORTRAN_FAB(q[mfi]),
-                             BL_TO_FORTRAN_FAB(q_bar[mfi]));
+                             BL_TO_FORTRAN_FAB(q_bar[mfi]),
+                             AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
       // not sure if we need to convert qaux this way, or if we can
       // just evaluate it (we may not need qaux at all actually)
       ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
                              BL_TO_FORTRAN_FAB(qaux[mfi]),
-                             BL_TO_FORTRAN_FAB(qaux_bar[mfi]));
+                             BL_TO_FORTRAN_FAB(qaux_bar[mfi]),
+                             AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
     }
 

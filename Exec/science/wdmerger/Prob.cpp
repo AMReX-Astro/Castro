@@ -709,7 +709,7 @@ void Castro::problem_post_restart() {
               do_sums = true;
           log.close();
 
-          if (do_sums)
+          if (do_sums && (sum_interval > 0 || sum_per > 0))
               sum_integrated_quantities();
 
       }
