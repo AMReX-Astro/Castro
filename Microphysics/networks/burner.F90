@@ -60,7 +60,7 @@ contains
 
     !$gpu
 
-    use amrex_error_module
+    use castro_error_module
 
     implicit none
 
@@ -72,11 +72,11 @@ contains
 
 #if !(defined(ACC)||defined(AMREX_USE_CUDA))
     if (.NOT. network_initialized) then
-       call amrex_error("ERROR in burner: must initialize network first.")
+       call castro_error("ERROR in burner: must initialize network first.")
     endif
 
     if (.NOT. burner_initialized) then
-       call amrex_error("ERROR in burner: must initialize burner first.")
+       call castro_error("ERROR in burner: must initialize burner first.")
     endif
 #endif
 

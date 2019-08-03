@@ -5,7 +5,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use probdata_module, only: p_ambient, dens_ambient, exp_energy, temp_ambient, e_ambient, &
                              xn_zone, r_init, nsub, e_exp
   use prob_params_module, only: center, coord_type
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use eos_type_module, only: eos_t, eos_input_rt, eos_input_rp
   use eos_module, only: eos
   use network, only: nspec
@@ -30,7 +30,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character :: probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error('probin file name too long')
+     call castro_error('probin file name too long')
   end if
 
   do i = 1, namlen
@@ -103,7 +103,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 #if AMREX_SPACEDIM == 1
 
 #ifndef AMREX_USE_CUDA
-     call amrex_error("Sedov problem unsupported in 1D Cartesian geometry.")
+     call castro_error("Sedov problem unsupported in 1D Cartesian geometry.")
 #endif
 
 #elif AMREX_SPACEDIM == 2
@@ -133,7 +133,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 #else
 
 #ifndef AMREX_USE_CUDA
-     call amrex_error("Sedov problem unsupported in 3D axisymmetric geometry.")
+     call castro_error("Sedov problem unsupported in 3D axisymmetric geometry.")
 #endif
 
 #endif

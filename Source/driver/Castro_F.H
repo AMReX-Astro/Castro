@@ -168,7 +168,10 @@ extern "C"
 
 
 #ifdef HYBRID_MOMENTUM
-  void ca_init_hybrid_momentum
+  void ca_linear_to_hybrid_momentum
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
+
+  void ca_hybrid_to_linear_momentum
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_hybrid_hydro_source
@@ -176,10 +179,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(sources),
      const amrex::Real mult_factor);
-
-  void ca_hybrid_update
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state));
 #endif
 
   void ca_check_initial_species
@@ -202,6 +201,9 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_enforce_consistent_e
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
+
+  void ca_recompute_energetics
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_reset_internal_e
@@ -250,24 +252,30 @@ extern "C"
 
   void ca_make_fourth_average(const int lo[], const int hi[],
                               BL_FORT_FAB_ARG_3D(q), const int* nc,
-                              const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar);
+                              const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar,
+                              const int* domlo, const int* domhi);
 
   void ca_make_fourth_in_place(const int lo[], const int hi[],
-                               BL_FORT_FAB_ARG_3D(q), const int* nc);
+                               BL_FORT_FAB_ARG_3D(q), const int* nc,
+                               const int* domlo, const int* domhi);
 
   void ca_make_fourth_in_place_n(const int lo[], const int hi[],
-                                 BL_FORT_FAB_ARG_3D(q), const int* nc, const int* ncomp);
+                                 BL_FORT_FAB_ARG_3D(q), const int* nc, const int* ncomp,
+                                 const int* domlo, const int* domhi);
 
   void ca_compute_lap_term(const int lo[], const int hi[],
                            const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_ANYD(lap), const int* ncomp);
+                           BL_FORT_FAB_ARG_ANYD(lap), const int* ncomp,
+                           const int* domlo, const int* domhi);
 
   void ca_make_cell_center(const int lo[], const int hi[],
                            const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc);
+                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc,
+                           const int* domlo, const int* domhi);
 
   void ca_make_cell_center_in_place(const int lo[], const int hi[],
-                                    BL_FORT_FAB_ARG_3D(q), const int* nc);
+                                    BL_FORT_FAB_ARG_3D(q), const int* nc,
+                                    const int* domlo, const int* domhi);
 
 #ifdef REACTIONS
   void ca_instantaneous_react

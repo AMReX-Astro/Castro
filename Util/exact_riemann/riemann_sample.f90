@@ -105,7 +105,7 @@ subroutine riemann_sample(rho_l, u_l, p_l, &
 
   else
      ! we should average in this case
-     call amrex_error("Not implemented")
+     call castro_error("Not implemented")
 
   endif
 

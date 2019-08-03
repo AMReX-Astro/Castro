@@ -89,7 +89,7 @@ contains
     ! this is stricly interpolation, so if the point (x,y,z) is outside
     ! the bounds of model_x,model_y,model_z, then we abort
 
-    use amrex_error_module
+    use castro_error_module
     use amrex_constants_module, only: ONE
     use amrex_fort_module, only : rt => amrex_real
     real(rt)        , intent(in   ) :: x,y,z

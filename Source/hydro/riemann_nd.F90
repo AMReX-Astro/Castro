@@ -50,7 +50,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t
     use network, only: nspec, naux
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
 
@@ -134,7 +134,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t
     use network, only: nspec, naux
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
 
@@ -221,7 +221,7 @@ contains
                  domlo, domhi)
 #ifndef AMREX_USE_CUDA
     else
-       call amrex_error("ERROR: invalid value of riemann_solver")
+       call castro_error("ERROR: invalid value of riemann_solver")
 #endif
     endif
 
@@ -287,7 +287,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use network, only: nspec, naux
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver, &
                                    T_guess
@@ -341,11 +341,11 @@ contains
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
     if (hybrid_riemann == 1) then
-       call amrex_error("ERROR: hybrid Riemann not supported for radiation")
+       call castro_error("ERROR: hybrid Riemann not supported for radiation")
     endif
 
     if (riemann_solver > 0) then
-       call amrex_error("ERROR: only the CGF Riemann solver is supported for radiation")
+       call castro_error("ERROR: only the CGF Riemann solver is supported for radiation")
     endif
 #endif
 #endif
@@ -353,7 +353,7 @@ contains
 #if AMREX_SPACEDIM == 1
 #ifndef AMREX_USE_CUDA
     if (riemann_solver > 1) then
-       call amrex_error("ERROR: HLLC not implemented for 1-d")
+       call castro_error("ERROR: HLLC not implemented for 1-d")
     endif
 #endif
 #endif
@@ -444,13 +444,13 @@ contains
                       domlo, domhi)
 #else
 #ifndef AMREX_USE_CUDA
-       call amrex_error("ERROR: CG solver does not support radiaiton")
+       call castro_error("ERROR: CG solver does not support radiaiton")
 #endif
 #endif
 
 #ifndef AMREX_USE_CUDA
     else
-       call amrex_error("ERROR: invalid value of riemann_solver")
+       call castro_error("ERROR: invalid value of riemann_solver")
 #endif
     endif
 
@@ -472,7 +472,7 @@ contains
     ! this version is dimension agnostic -- for 1- and 2-d, set kc,
     ! kflux, and k3d to 0
 
-    use amrex_error_module
+    use castro_error_module
 #ifndef AMREX_USE_CUDA
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
 #endif
@@ -556,7 +556,7 @@ contains
 #ifndef AMREX_USE_CUDA
     if (cg_blend == 2 .and. cg_maxiter < 5) then
 
-       call amrex_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
+       call castro_error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.")
 
     endif
 #endif
@@ -846,7 +846,7 @@ contains
                    print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                    print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                    print *, 'cavg, smallc:', cavg, csmall
-                   call amrex_error("ERROR: non-convergence in the Riemann solver")
+                   call castro_error("ERROR: non-convergence in the Riemann solver")
 #endif
                 else if (cg_blend == 1) then
 
@@ -881,14 +881,14 @@ contains
                       print *, 'left state  (r,u,p,re,gc): ', rl, ul, pl, rel, gcl
                       print *, 'right state (r,u,p,re,gc): ', rr, ur, pr, rer, gcr
                       print *, 'cavg, smallc:', cavg, csmall
-                      call amrex_error("ERROR: non-convergence in the Riemann solver")
+                      call castro_error("ERROR: non-convergence in the Riemann solver")
 
                    endif
 #endif
                 else
 
 #ifndef AMREX_USE_CUDA
-                   call amrex_error("ERROR: unrecognized cg_blend option.")
+                   call castro_error("ERROR: unrecognized cg_blend option.")
 #endif
                 endif
 
@@ -1583,17 +1583,9 @@ contains
 
              endif
 
-
-             ! ------------------------------------------------------------------
-             ! compute the fluxes
-             ! ------------------------------------------------------------------
-
-             ! we just found the state on the interface, now we use this to
-             ! evaluate the fluxes
-
+             ! Enforce that fluxes through a symmetry plane or wall are hard zero.
              u_adv = qint(i,j,k,iu)
 
-             ! Enforce that fluxes through a symmetry plane or wall are hard zero.
              if ( special_bnd_lo_x .and. i == domlo(1) .or. &
                   special_bnd_hi_x .and. i == domhi(1)+1 ) then
                 bnd_fac_x = ZERO

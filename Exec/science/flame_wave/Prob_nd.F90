@@ -2,7 +2,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, ONE, HALF
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use model_parser_module, only: model_parser_init
   use initial_model_module, only: model_t, init_model_data, gen_model_r, gen_model_state, init_1d_tanh
   use probdata_module, only: dx_model, dtemp, x_half_max, x_half_width, &
@@ -49,7 +49,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer :: nx_model
   integer :: ng
 
-  if (namlen > maxlen) call amrex_error("probin file name too long")
+  if (namlen > maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -115,7 +115,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ! check to make sure that small_dens is less than low_density_cutoff
   ! if not, funny things can happen above the atmosphere
   if (small_dens >= 0.99_rt * low_density_cutoff) then
-     call amrex_error("ERROR: small_dens should be set lower than low_density_cutoff")
+     call castro_error("ERROR: small_dens should be set lower than low_density_cutoff")
   end if
 
   ! get the species indices
@@ -149,7 +149,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   if (.not. species_defined) then
      print *, ifuel1, ifuel2, ifuel3
      print *, iash1, iash2, iash3
-     call amrex_error("ERROR: species not defined")
+     call castro_error("ERROR: species not defined")
   endif
 
 
@@ -167,11 +167,11 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   ! check if they sum to 1
   if (abs(sum(model_params % xn_star) - ONE) > nspec*smallx) then
-     call amrex_error("ERROR: ash mass fractions don't sum to 1")
+     call castro_error("ERROR: ash mass fractions don't sum to 1")
   endif
 
   if (abs(sum(model_params % xn_base) - ONE) > nspec*smallx) then
-     call amrex_error("ERROR: fuel mass fractions don't sum to 1")
+     call castro_error("ERROR: fuel mass fractions don't sum to 1")
   endif
 
   ! we are going to generate an initial model from problo(2) to
@@ -231,7 +231,7 @@ subroutine ca_initdata(lo, hi, &
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, HALF, ONE
 #ifndef AMREX_USE_CUDA
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
 #endif
   use probdata_module, only: x_half_width, x_half_max
   use eos_module, only: eos
@@ -277,7 +277,7 @@ subroutine ca_initdata(lo, hi, &
               height = z
 #ifndef AMREX_USE_CUDA
            else
-              call amrex_error("ERROR: problem not setup for 1D")
+              call castro_error("ERROR: problem not setup for 1D")
 #endif
            end if
 

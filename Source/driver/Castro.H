@@ -1534,12 +1534,21 @@ public:
 
 
 ///
-/// Update state to account for hybrid advection
+/// Synchronize linear momentum with hybrid momentum
 ///
 /// @param state    Current state
 /// @param ng       Number of ghost cells
 ///
-    void hybrid_sync(amrex::MultiFab& state, int ng);
+    void hybrid_to_linear_momentum(amrex::MultiFab& state, int ng = 0);
+
+
+///
+/// Synchronize hybrid momentum with linear momentum
+///
+/// @param state    Current state
+/// @param ng       Number of ghost cells
+///
+    void linear_to_hybrid_momentum(amrex::MultiFab& state, int ng = 0);
 #endif
 
 
@@ -1754,6 +1763,13 @@ protected:
 ///
     amrex::MultiFab q_bar;
 
+
+///
+/// for diffusion in fourth order we need the cell-center temperature
+//
+#ifdef DIFFUSION
+    amrex::MultiFab T_cc;
+#endif
 
 ///
 /// The auxiliary primitive variable state array.

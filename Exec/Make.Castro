@@ -111,7 +111,7 @@ USE_MLMG = FALSE
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/driver/param_includes \
            Source/hydro Source/problems Source/sources \
-           Source/scf constants Util/model_parser
+           Source/scf constants Util/model_parser Util/conservative_interpolate
 else
   Bdirs := constants
 endif
@@ -411,7 +411,7 @@ F90EXE_sources += extern.F90
 EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
 # these are for finding runtime parameters
-EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser
+EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)/Util/conservative_interpolate
 ifdef MICROPHYSICS_HOME
    EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 endif

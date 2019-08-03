@@ -1,7 +1,7 @@
 subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   use amrex_constants_module
-  use amrex_error_module
+  use castro_error_module
   use probdata_module
   use prob_params_module, only: center
   use eos_module
@@ -35,7 +35,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   character (len=256) :: header_line
 
   if (namlen > maxlen) then
-     call amrex_error("probin file name too long")
+     call castro_error("probin file name too long")
   end if
 
   do i = 1, namlen
@@ -83,7 +83,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   xmax = probhi(1)
 
   if (xmin /= 0.e0_rt) then
-     call amrex_error("ERROR: xmin should be 0!")
+     call castro_error("ERROR: xmin should be 0!")
   endif
 
   ymin = ZERO
@@ -94,7 +94,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 #elif AMREX_SPACEDIM == 2
   xmin = problo(1)
   if (xmin /= 0.e0_rt) then
-     call amrex_error("ERROR: xmin should be 0!")
+     call castro_error("ERROR: xmin should be 0!")
   endif
 
   xmax = probhi(1)
