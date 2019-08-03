@@ -40,7 +40,7 @@ contains
     real(rt) :: a_int(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
     real(rt) :: dafm, dafp, d2af
     real(rt) :: d2ac(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
-    real(rt) :: d3a(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
+    real(rt) :: d3am1, d3a0, d3ap1, d3ap2
 
     real(rt), parameter :: C2 = 1.25_rt
     real(rt), parameter :: C3 = 0.1_rt
@@ -115,15 +115,6 @@ contains
                 end do
              end do
 
-             do k = lo(3)-dg(3), hi(3)+dg(3)
-                do j = lo(2)-dg(2), hi(2)+dg(2)
-                   do i = lo(1)-2, hi(1)+3
-                      ! this lives on the interface
-                      d3a(i,j,k) = d2ac(i,j,k) - d2ac(i-1,j,k)
-                   end do
-                end do
-             end do
-
              ! this is a loop over cell centers, affecting
              ! i-1/2,R and i+1/2,L
              do k = lo(3)-dg(3), hi(3)+dg(3)
@@ -164,8 +155,13 @@ contains
 
                          if (rho < 1.0_rt - 1.e-12_rt) then
                             ! we may need to limit -- these quantities are at cell-centers
-                            d3a_min = min(d3a(i-1,j,k), d3a(i,j,k), d3a(i+1,j,k), d3a(i+2,j,k))
-                            d3a_max = max(d3a(i-1,j,k), d3a(i,j,k), d3a(i+1,j,k), d3a(i+2,j,k))
+                            d3am1 = d2ac(i-1,j,k) - d2ac(i-2,j,k)
+                            d3a0  = d2ac(i,j,k) - d2ac(i-1,j,k)
+                            d3ap1 = d2ac(i+1,j,k) - d2ac(i,j,k)
+                            d3ap2 = d2ac(i+2,j,k) - d2ac(i+1,j,k)
+
+                            d3a_min = min(d3am1, d3a0, d3ap1, d3ap2)
+                            d3a_max = max(d3am1, d3a0, d3ap1, d3ap2)
 
                             if (C3*max(abs(d3a_min), abs(d3a_max)) <= (d3a_max - d3a_min)) then
                                ! limit
@@ -322,15 +318,6 @@ contains
                 end do
              end do
 
-             do k = lo(3)-dg(3), hi(3)+dg(3)
-                do j = lo(2)-2, hi(2)+3
-                   do i = lo(1)-1, hi(1)+1
-                      ! this lives on the interface
-                      d3a(i,j,k) = d2ac(i,j,k) - d2ac(i,j-1,k)
-                   end do
-                end do
-             end do
-
              ! this is a loop over cell centers, affecting
              ! j-1/2,R and j+1/2,L
              do k = lo(3)-dg(3), hi(3)+dg(3)
@@ -371,8 +358,12 @@ contains
 
                          if (rho < 1.0_rt - 1.e-12_rt) then
                             ! we may need to limit -- these quantities are at cell-centers
-                            d3a_min = min(d3a(i,j-1,k), d3a(i,j,k), d3a(i,j+1,k), d3a(i,j+2,k))
-                            d3a_max = max(d3a(i,j-1,k), d3a(i,j,k), d3a(i,j+1,k), d3a(i,j+2,k))
+                            d3am1 = d2ac(i,j-1,k) - d2ac(i,j-2,k)
+                            d3a0  = d2ac(i,j,k) - d2ac(i,j-1,k)
+                            d3ap1 = d2ac(i,j+1,k) - d2ac(i,j,k)
+                            d3ap2 = d2ac(i,j+2,k) - d2ac(i,j+1,k)
+                            d3a_min = min(d3am1, d3a0, d3ap1, d3ap2)
+                            d3a_max = max(d3am1, d3a0, d3ap1, d3ap2)
 
                             if (C3*max(abs(d3a_min), abs(d3a_max)) <= (d3a_max - d3a_min)) then
                                ! limit
@@ -528,15 +519,6 @@ contains
                 end do
              end do
 
-             do k = lo(3)-2, hi(3)+3
-                do j = lo(2)-1, hi(2)+1
-                   do i = lo(1)-1, hi(1)+1
-                      ! this lives on the interface
-                      d3a(i,j,k) = d2ac(i,j,k) - d2ac(i,j,k-1)
-                   end do
-                end do
-             end do
-
              ! this is a loop over cell centers, affecting
              ! j-1/2,R and j+1/2,L
              do k = lo(3)-1, hi(3)+1
@@ -577,8 +559,12 @@ contains
 
                          if (rho < 1.0_rt - 1.e-12_rt) then
                             ! we may need to limit -- these quantities are at cell-centers
-                            d3a_min = min(d3a(i,j,k-1), d3a(i,j,k), d3a(i,j,k+1), d3a(i,j,k+2))
-                            d3a_max = max(d3a(i,j,k-1), d3a(i,j,k), d3a(i,j,k+1), d3a(i,j,k+2))
+                            d3am1 = d2ac(i,j,k-1) - d2ac(i,j,k-2)
+                            d3a0  = d2ac(i,j,k) - d2ac(i,j,k-1)
+                            d3ap1 = d2ac(i,j,k+1) - d2ac(i,j,k)
+                            d3ap2 = d2ac(i,j,k+2) - d2ac(i,j,k+1)
+                            d3a_min = min(d3am1, d3a0, d3ap1, d3ap2)
+                            d3a_max = max(d3am1, d3a0, d3ap1, d3ap2)
 
                             if (C3*max(abs(d3a_min), abs(d3a_max)) <= (d3a_max - d3a_min)) then
                                ! limit
@@ -586,7 +572,7 @@ contains
                                   ! Eqs. 29, 30
                                   ar(i,j,k,n) = a(i,j,k,n) - rho*dafm  ! note: typo in Eq 29
                                   al(i,j,k+1,n) = a(i,j,k,n) + rho*dafp
-                               else if (abs(dafm) >= 2.0_rt*abs(dafp) then
+                               else if (abs(dafm) >= 2.0_rt*abs(dafp)) then
                                   ! Eq. 31
                                   ar(i,j,k,n) = a(i,j,k,n) - 2.0_rt*(1.0_rt - rho)*dafp - rho*dafm
                                else if (abs(dafp) >= 2.0*abs(dafm)) then
