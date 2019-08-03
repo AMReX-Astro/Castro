@@ -32,8 +32,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
-    use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
-    use interpolate_module, only: interpolate_sub
+    use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model, interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
     use meth_params_module, only : sdc_order, mol_order
 
@@ -100,25 +99,18 @@ contains
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
 
-                call interpolate_sub(rhop, yp, npts_model, model_r, &
-                                     model_state(:,idens_model))
-                call interpolate_sub(rhoc, y, npts_model, model_r, &
-                                     model_state(:,idens_model))
-                call interpolate_sub(rhom, ym, npts_model, model_r, &
-                                     model_state(:,idens_model))
+                call interpolate_sub(rhop, yp, idens_model)
+                call interpolate_sub(rhoc, y, idens_model)
+                call interpolate_sub(rhom, ym, idens_model)
 
-                call interpolate_sub(Tp, yp, npts_model, model_r, &
-                                     model_state(:,itemp_model))
-                call interpolate_sub(Tc, y, npts_model, model_r, &
-                                     model_state(:,itemp_model))
-                call interpolate_sub(Tm, ym, npts_model, model_r, &
-                                     model_state(:,itemp_model))
+                call interpolate_sub(Tp, yp, itemp_model)
+                call interpolate_sub(Tc, y, itemp_model)
+                call interpolate_sub(Tm, ym, itemp_model)
 
                 ! the composition in our initial model is uniform, so we just need
                 ! it at one point to get the average
                 do q = 1, nspec
-                   call interpolate_sub(X_zone(q), y, npts_model, model_r, &
-                                        model_state(:,ispec_model-1+q))
+                   call interpolate_sub(X_zone(q), y, ispec_model-1+q)
                 enddo
 
                 ! extrap normal momentum
@@ -197,25 +189,18 @@ contains
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
 
-                call interpolate_sub(rhop, yp, npts_model, model_r, &
-                                     model_state(:,idens_model))
-                call interpolate_sub(rhoc, y, npts_model, model_r, &
-                                     model_state(:,idens_model))
-                call interpolate_sub(rhom, ym, npts_model, model_r, &
-                                     model_state(:,idens_model))
+                call interpolate_sub(rhop, yp, idens_model)
+                call interpolate_sub(rhoc, y, idens_model)
+                call interpolate_sub(rhom, ym, idens_model)
 
-                call interpolate_sub(Tp, yp, npts_model, model_r, &
-                                     model_state(:,itemp_model))
-                call interpolate_sub(Tc, y, npts_model, model_r, &
-                                     model_state(:,itemp_model))
-                call interpolate_sub(Tm, ym, npts_model, model_r, &
-                                     model_state(:,itemp_model))
+                call interpolate_sub(Tp, yp, itemp_model)
+                call interpolate_sub(Tc, y, itemp_model)
+                call interpolate_sub(Tm, ym, itemp_model)
 
                 ! the composition in our initial model is uniform, so we just need
                 ! it at one point to get the average
                 do q = 1, nspec
-                   call interpolate_sub(X_zone(q), y, npts_model, model_r, &
-                                        model_state(:,ispec_model-1+q))
+                   call interpolate_sub(X_zone(q), y, ispec_model-1+q)
                 enddo
 
                 ! extrap normal momentum
@@ -299,11 +284,10 @@ contains
                          bind(C, name="ext_denfill")
 
     use prob_params_module, only: problo
-    use model_parser_module, only: npts_model, model_r, model_state, idens_model
+    use model_parser_module, only: npts_model, model_r, model_state, idens_model, interpolate_sub
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
 #endif
-    use interpolate_module, only: interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
@@ -356,7 +340,7 @@ contains
           y = problo(2) + delta(2)*(dble(j) + HALF)
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
-                call interpolate_sub(adv(i,j,k), y,npts_model,model_r,model_state(:,idens_model))
+                call interpolate_sub(adv(i,j,k), y, idens_model)
              end do
           end do
        end do
@@ -375,7 +359,7 @@ contains
           y = problo(2) + delta(2)*(dble(j)+ HALF)
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
-                call interpolate_sub(adv(i,j,k), y,npts_model,model_r,model_state(:,idens_model))
+                call interpolate_sub(adv(i,j,k), y, idens_model)
              end do
           end do
        end do

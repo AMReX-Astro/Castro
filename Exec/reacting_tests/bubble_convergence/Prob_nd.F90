@@ -99,7 +99,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use network, only: nspec
   use model_parser_module
   use prob_params_module, only : problo
-  use amrex_constants_module, only : ZERO, ONE, HALF, TWO
+  use amrex_constants_module, only : ZERO, ONE, HALF, TWO, FOUR
   use amrex_fort_module, only : rt => amrex_real
   use prob_params_module, only : center
 
@@ -138,7 +138,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            call interpolate_sub(state(i,j,k,UTEMP), height, itemp_model)
 
            do n = 1, nspec
-              call interpolate_sub(state(i,j,k,UFS-1+n), npts_model, ispec_model-1+n)
+              call interpolate_sub(state(i,j,k,UFS-1+n), height, ispec_model-1+n)
            end do
 
            eos_state%rho = state(i,j,k,URHO)
@@ -177,9 +177,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
               t0 = state(i,j,k,UTEMP)
 
-              r = sqrt((x-center(1))**2 + (y-center(2))**2 + (z-center(3))**2)
+              r = sqrt((x-center(1))**2 + (y-center(2))**2 + (z-center(3))**2) /  pert_width
 
-              state(i,j,k,UTEMP) = t0 * (ONE + 1.5_rt * exp(-(r/pert_width)**2))
+
+              !state(i,j,k,UTEMP) = t0 * (ONE + 1.5_rt * exp(-(r/pert_width)**2))
+              state(i,j,k,UTEMP) = t0 * (ONE + 0.6_rt * (ONE + tanh(FOUR - r)))
 
               do n = 1,nspec
                  state(i,j,k,UFS+n-1) =  state(i,j,k,UFS+n-1) / state(i,j,k,URHO)

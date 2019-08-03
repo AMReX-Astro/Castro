@@ -1,9 +1,19 @@
-# changes since the last release
+# 19.08.1
+
+  -- Fix CUDA compilation
+
+  -- Remove special treatment of 4th order outflow BCs (see #648)
+
+# 19.08
 
   -- We slightly changed how the characteristic tracing is done for
      the CTU PPM hydro solver -- we now use the limit of the parabola
      as the edge state if the wave is not moving toward the interface
      (#632)
+
+  -- The CTU PPM solver now uses a lot less memory by computing the
+     integrals under the parabolas as needed instead of precomputing
+     and storing them (#624)
 
   -- We created a new error wrapper, castro_error(), to replace the
      AMReX amrex_error().  This will allow us to deal with error when
@@ -25,6 +35,9 @@
         error check for the SDC solve.
 
       * Some scalings of terms in the Jacobian were fixed.
+
+      * We now use one-sided stencils for the reconstruction at
+        physical boundaries (#633)
 
   -- The flame problem setup now can initialize conservatively from a
      pre-existing flame solution.  The analysis routines have seen
