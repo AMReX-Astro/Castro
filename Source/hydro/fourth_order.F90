@@ -38,8 +38,9 @@ contains
 
     ! local variables
     real(rt) :: a_int(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
+
     real(rt) :: dafm, dafp, d2af
-    real(rt) :: d2ac(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3))
+    real(rt) :: d2acm2, d2acm1, d2ac0, d2acp1, d2acp2
     real(rt) :: d3am1, d3a0, d3ap1, d3ap2
 
     real(rt), parameter :: C2 = 1.25_rt
@@ -107,14 +108,6 @@ contains
           ! the limiting loops are now over zones
           if (limit_fourth_order == 1) then
 
-             do k = lo(3)-dg(3), hi(3)+dg(3)
-                do j = lo(2)-dg(2), hi(2)+dg(2)
-                   do i = lo(1)-3, hi(1)+3
-                      d2ac(i,j,k) = a(i-1,j,k,n) - 2.0_rt*a(i,j,k,n) + a(i+1,j,k,n)
-                   end do
-                end do
-             end do
-
              ! this is a loop over cell centers, affecting
              ! i-1/2,R and i+1/2,L
              do k = lo(3)-dg(3), hi(3)+dg(3)
@@ -128,19 +121,25 @@ contains
                       ! these live on cell-centers
                       d2af = 6.0_rt*(a_int(i,j,k) - 2.0_rt*a(i,j,k,n) + a_int(i+1,j,k))
 
+                      d2acm2 = a(i-3,j,k,n) - 2.0_rt*a(i-2,j,k,n) + a(i-1,j,k,n)
+                      d2acm1 = a(i-2,j,k,n) - 2.0_rt*a(i-1,j,k,n) + a(i,j,k,n)
+                      d2ac0  = a(i-1,j,k,n) - 2.0_rt*a(i,j,k,n) + a(i+1,j,k,n)
+                      d2acp1 = a(i,j,k,n) - 2.0_rt*a(i+1,j,k,n) + a(i+2,j,k,n)
+                      d2acp2 = a(i+1,j,k,n) - 2.0_rt*a(i+2,j,k,n) + a(i+3,j,k,n)
+
                       ! limit? MC Eq. 24 and 25
                       if (dafm * dafp <= 0.0_rt .or. &
                            (a(i,j,k,n) - a(i-2,j,k,n))*(a(i+2,j,k,n) - a(i,j,k,n)) <= 0.0_rt) then
 
                          ! we are at an extrema
 
-                         s = sign(1.0_rt, d2ac(i,j,k))
-                         if ( s == sign(1.0_rt, d2ac(i-1,j,k)) .and. &
-                              s == sign(1.0_rt, d2ac(i+1,j,k)) .and. &
+                         s = sign(1.0_rt, d2ac0)
+                         if ( s == sign(1.0_rt, d2acm1) .and. &
+                              s == sign(1.0_rt, d2acp1) .and. &
                               s == sign(1.0_rt, d2af)) then
                             ! MC Eq. 26
-                            d2a_lim = s*min(abs(d2af), C2*abs(d2ac(i-1,j,k)), &
-                                 C2*abs(d2ac(i,j,k)), C2*abs(d2ac(i+1,j,k)))
+                            d2a_lim = s*min(abs(d2af), C2*abs(d2acm1), &
+                                            C2*abs(d2ac0), C2*abs(d2acp1))
                          else
                             d2a_lim = 0.0_rt
                          end if
@@ -155,10 +154,10 @@ contains
 
                          if (rho < 1.0_rt - 1.e-12_rt) then
                             ! we may need to limit -- these quantities are at cell-centers
-                            d3am1 = d2ac(i-1,j,k) - d2ac(i-2,j,k)
-                            d3a0  = d2ac(i,j,k) - d2ac(i-1,j,k)
-                            d3ap1 = d2ac(i+1,j,k) - d2ac(i,j,k)
-                            d3ap2 = d2ac(i+2,j,k) - d2ac(i+1,j,k)
+                            d3am1 = d2acm1 - d2acm2
+                            d3a0  = d2ac0 - d2acm1
+                            d3ap1 = d2acp1 - d2ac0
+                            d3ap2 = d2acp2 - d2acp1
 
                             d3a_min = min(d3am1, d3a0, d3ap1, d3ap2)
                             d3a_max = max(d3am1, d3a0, d3ap1, d3ap2)
@@ -310,14 +309,6 @@ contains
           ! the limiting loops are now over zones
           if (limit_fourth_order == 1) then
 
-             do k = lo(3)-dg(3), hi(3)+dg(3)
-                do j = lo(2)-3, hi(2)+3
-                   do i = lo(1)-1, hi(1)+1
-                      d2ac(i,j,k) = a(i,j-1,k,n) - 2.0_rt*a(i,j,k,n) + a(i,j+1,k,n)
-                   end do
-                end do
-             end do
-
              ! this is a loop over cell centers, affecting
              ! j-1/2,R and j+1/2,L
              do k = lo(3)-dg(3), hi(3)+dg(3)
@@ -331,19 +322,25 @@ contains
                       ! these live on cell-centers
                       d2af = 6.0_rt*(a_int(i,j,k) - 2.0_rt*a(i,j,k,n) + a_int(i,j+1,k))
 
+                      d2acm2 = a(i,j-3,k,n) - 2.0_rt*a(i,j-2,k,n) + a(i,j-1,k,n)
+                      d2acm1 = a(i,j-2,k,n) - 2.0_rt*a(i,j-1,k,n) + a(i,j,k,n)
+                      d2ac0  = a(i,j-1,k,n) - 2.0_rt*a(i,j,k,n) + a(i,j+1,k,n)
+                      d2acp1 = a(i,j,k,n) - 2.0_rt*a(i,j+1,k,n) + a(i,j+2,k,n)
+                      d2acp2 = a(i,j+1,k,n) - 2.0_rt*a(i,j+2,k,n) + a(i,j+3,k,n)
+
                       ! limit? MC Eq. 24 and 25
                       if (dafm * dafp <= 0.0_rt .or. &
                            (a(i,j,k,n) - a(i,j-2,k,n))*(a(i,j+2,k,n) - a(i,j,k,n)) <= 0.0_rt) then
 
                          ! we are at an extrema
 
-                         s = sign(1.0_rt, d2ac(i,j,k))
-                         if ( s == sign(1.0_rt, d2ac(i,j-1,k)) .and. &
-                              s == sign(1.0_rt, d2ac(i,j+1,k)) .and. &
+                         s = sign(1.0_rt, d2ac0)
+                         if ( s == sign(1.0_rt, d2acm1) .and. &
+                              s == sign(1.0_rt, d2acp1) .and. &
                               s == sign(1.0_rt, d2af)) then
                             ! MC Eq. 26
-                            d2a_lim = s*min(abs(d2af), C2*abs(d2ac(i,j-1,k)), &
-                                 C2*abs(d2ac(i,j,k)), C2*abs(d2ac(i,j+1,k)))
+                            d2a_lim = s*min(abs(d2af), C2*abs(d2acm1), &
+                                            C2*abs(d2ac0), C2*abs(d2acp1))
                          else
                             d2a_lim = 0.0_rt
                          end if
@@ -358,10 +355,11 @@ contains
 
                          if (rho < 1.0_rt - 1.e-12_rt) then
                             ! we may need to limit -- these quantities are at cell-centers
-                            d3am1 = d2ac(i,j-1,k) - d2ac(i,j-2,k)
-                            d3a0  = d2ac(i,j,k) - d2ac(i,j-1,k)
-                            d3ap1 = d2ac(i,j+1,k) - d2ac(i,j,k)
-                            d3ap2 = d2ac(i,j+2,k) - d2ac(i,j+1,k)
+                            d3am1 = d2acm1 - d2acm2
+                            d3a0  = d2ac0 - d2acm1
+                            d3ap1 = d2acp1 - d2ac0
+                            d3ap2 = d2acp2 - d2acp1
+
                             d3a_min = min(d3am1, d3a0, d3ap1, d3ap2)
                             d3a_max = max(d3am1, d3a0, d3ap1, d3ap2)
 
@@ -511,14 +509,6 @@ contains
           ! the limiting loops are now over zones
           if (limit_fourth_order == 1) then
 
-             do k = lo(3)-3, hi(3)+3
-                do j = lo(2)-1, hi(2)+1
-                   do i = lo(1)-1, hi(1)+1
-                      d2ac(i,j,k) = a(i,j,k-1,n) - 2.0_rt*a(i,j,k,n) + a(i,j,k+1,n)
-                   end do
-                end do
-             end do
-
              ! this is a loop over cell centers, affecting
              ! j-1/2,R and j+1/2,L
              do k = lo(3)-1, hi(3)+1
@@ -532,19 +522,25 @@ contains
                       ! these live on cell-centers
                       d2af = 6.0_rt*(a_int(i,j,k) - 2.0_rt*a(i,j,k,n) + a_int(i,j,k+1))
 
+                      d2acm2 = a(i,j,k-3,n) - 2.0_rt*a(i,j,k-2,n) + a(i,j,k-1,n)
+                      d2acm1 = a(i,j,k-2,n) - 2.0_rt*a(i,j,k-1,n) + a(i,j,k,n)
+                      d2ac0  = a(i,j,k-1,n) - 2.0_rt*a(i,j,k,n) + a(i,j,k+1,n)
+                      d2acp1 = a(i,j,k,n) - 2.0_rt*a(i,j,k+1,n) + a(i,j,k+2,n)
+                      d2acp2 = a(i,j,k+1,n) - 2.0_rt*a(i,j,k+2,n) + a(i,j,k+3,n)
+
                       ! limit? MC Eq. 24 and 25
                       if (dafm * dafp <= 0.0_rt .or. &
                            (a(i,j,k,n) - a(i,j,k-2,n))*(a(i,j,k+2,n) - a(i,j,k,n)) <= 0.0_rt) then
 
                          ! we are at an extrema
 
-                         s = sign(1.0_rt, d2ac(i,j,k))
-                         if ( s == sign(1.0_rt, d2ac(i,j,k-1)) .and. &
-                              s == sign(1.0_rt, d2ac(i,j,k+1)) .and. &
+                         s = sign(1.0_rt, d2ac0)
+                         if ( s == sign(1.0_rt, d2acm1) .and. &
+                              s == sign(1.0_rt, d2acp1) .and. &
                               s == sign(1.0_rt, d2af)) then
                             ! MC Eq. 26
-                            d2a_lim = s*min(abs(d2af), C2*abs(d2ac(i,j,k-1)), &
-                                 C2*abs(d2ac(i,j,k)), C2*abs(d2ac(i,j,k+1)))
+                            d2a_lim = s*min(abs(d2af), C2*abs(d2acm1), &
+                                            C2*abs(d2ac0), C2*abs(d2acp1))
                          else
                             d2a_lim = 0.0_rt
                          end if
@@ -559,10 +555,11 @@ contains
 
                          if (rho < 1.0_rt - 1.e-12_rt) then
                             ! we may need to limit -- these quantities are at cell-centers
-                            d3am1 = d2ac(i,j,k-1) - d2ac(i,j,k-2)
-                            d3a0  = d2ac(i,j,k) - d2ac(i,j,k-1)
-                            d3ap1 = d2ac(i,j,k+1) - d2ac(i,j,k)
-                            d3ap2 = d2ac(i,j,k+2) - d2ac(i,j,k+1)
+                            d3am1 = d2acm1 - d2acm2
+                            d3a0  = d2ac0 - d2acm1
+                            d3ap1 = d2acp1 - d2ac0
+                            d3ap2 = d2acp2 - d2acp1
+
                             d3a_min = min(d3am1, d3a0, d3ap1, d3ap2)
                             d3a_max = max(d3am1, d3a0, d3ap1, d3ap2)
 
