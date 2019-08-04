@@ -574,7 +574,7 @@ the code chooses a time step based on the CFL number:</p>
                                                                \frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}},
                                                                \frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]
 \label{eq:cfl}\]</div>
-<p>If method-of-lines integration is used instead, then we have</p>
+<p>If method-of-lines of SDC integration is used instead, then we have</p>
 <div class="math notranslate nohighlight">
 \[\Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\left(\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
                                                     \left(\frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
@@ -583,11 +583,8 @@ the code chooses a time step based on the CFL number:</p>
 <p>The following parameters affect the timestep choice:</p>
 <blockquote>
 <div><ul class="simple">
-<li><dl class="first docutils">
-<dt><code class="docutils literal notranslate"><span class="pre">castro.cfl</span></code>: CFL number (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span> and <span class="math notranslate nohighlight">\(\leq 1\)</span>;</dt>
-<dd>default: 0.8)</dd>
-</dl>
-</li>
+<li><code class="docutils literal notranslate"><span class="pre">castro.cfl</span></code>: CFL number (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span> and <span class="math notranslate nohighlight">\(\leq 1\)</span>;
+default: 0.8)</li>
 <li><code class="docutils literal notranslate"><span class="pre">castro.init_shrink</span></code>: factor by which to shrink the initial
 time step (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span> and <span class="math notranslate nohighlight">\(\leq 1\)</span>; default: 1.0)</li>
 <li><code class="docutils literal notranslate"><span class="pre">castro.change_max</span></code>: factor by which the time step can
