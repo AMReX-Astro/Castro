@@ -9,20 +9,19 @@ Here we detail the procedure used for convergence testing at NERSC and
 processing the results for the pretty table included in the Castro SDC
 paper.
 
-  in `Castro/Exec/hydro_tests/acoustic_pulse_general`
+  in `Castro/Exec/hydro_tests/acoustic_pulse`
     ```
     make COMP=intel -j 4
     ```
 
   in the output directory:
     ```
-    mkdir acoustic_pulse_general
-    cd acoustic_pulse_general
-    cp ~/Castro/Exec/hydro_tests/acoustic_pulse_general/Castro2d.intel.haswell.MPI.ex .
-    cp ~/Castro/Exec/hydro_tests/acoustic_pulse_general/inputs.2d.* .
-    cp ~/Castro/Exec/hydro_tests/acoustic_pulse_general/probin .
-    cp ~/Castro/Exec/hydro_tests/acoustic_pulse_general/helm_table.dat .
-    cp ~/Castro/Exec/hydro_tests/acoustic_pulse_general/job_scripts/cori.acoustic_pulse_convergence.slurm .
+    mkdir acoustic_pulse
+    cd acoustic_pulse
+    cp ~/Castro/Exec/hydro_tests/acoustic_pulse/Castro2d.intel.haswell.MPI.ex .
+    cp ~/Castro/Exec/hydro_tests/acoustic_pulse/inputs.2d.* .
+    cp ~/Castro/Exec/hydro_tests/acoustic_pulse/probin .
+    cp ~/Castro/Exec/hydro_tests/acoustic_pulse/job_scripts/cori.acoustic_pulse_convergence.slurm .
     sbatch cori.acoustic_pulse_convergence.slurm
     ```
 
@@ -43,4 +42,3 @@ paper.
     ```
     python3 ./create_pretty_tables.py
     ```
-
