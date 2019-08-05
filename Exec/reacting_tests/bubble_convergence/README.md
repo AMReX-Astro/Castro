@@ -48,3 +48,7 @@ This setup can also be used just to test HSE convergence.
   ```
   make USE_REACT=FALSE -j 20
   ```
+  Then run the tests as:
+  ```
+  ./converge_test_sdc4_nopert.sh
+  ```
