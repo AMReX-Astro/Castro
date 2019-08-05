@@ -26,11 +26,11 @@ L_y = ds.domain_right_edge[1] - ds.domain_left_edge[1]
 fig = plt.figure()
 fig.set_size_inches(12.0, 9.0)
 
-grid = ImageGrid(fig, 111, nrows_ncols=(1, 3), axes_pad=0.75, cbar_pad="2%", 
+grid = ImageGrid(fig, 111, nrows_ncols=(2, 2), axes_pad=0.75, cbar_pad="2%", 
                  label_mode="L", cbar_mode="each")
 
 
-fields = ["Temp", "magvel", "X(C12)"] #, "rho_enuc"]
+fields = ["Temp", "magvel", "X(C12)", "rho_enuc"]
 
 for i, f in enumerate(fields):
 
@@ -39,6 +39,7 @@ for i, f in enumerate(fields):
 
     if f == "X(C12)":
         sp.set_log(f, True)
+        sp.set_cmap(f, "plasma")
         sp.set_zlim(f, 1.e-8, 2.e-4)
 
     elif f == "magvel":
@@ -52,6 +53,7 @@ for i, f in enumerate(fields):
 
     elif f == "rho_enuc":
         sp.set_log(f, True)
+        sp.set_cmap(f, "plasma")
         #sp.set_zlim(f, 1.e-3, 2.5e-2)
 
     sp.set_axes_unit("cm")
@@ -67,7 +69,7 @@ for i, f in enumerate(fields):
 
 
 
-fig.set_size_inches(10.0, 4.0)
+fig.set_size_inches(8.0, 8.0)
 plt.tight_layout()
 plt.savefig("{}_slice.pdf".format(os.path.basename(plotfile)))
 
