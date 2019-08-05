@@ -39,3 +39,12 @@ SDC solver with gravity and reactions.
     ```
     python3 create_pretty_tables.py
     ```
+
+# HSE convergence
+
+This setup can also be used just to test HSE convergence.  
+
+* Build as:
+  ```
+  make USE_REACT=FALSE -j 20
+  ```
