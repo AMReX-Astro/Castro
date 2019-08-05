@@ -52,3 +52,10 @@ This setup can also be used just to test HSE convergence.
   ```
   ./converge_test_sdc4_nopert.sh
   ```
+
+  We can get the maximum velocity as:
+  ```
+  fextrema.Linux.gfortran.exe bubble_64_plt00667 | grep -i magvel
+  fextrema.Linux.gfortran.exe bubble_128_plt01334 | grep -i magvel
+  fextrema.Linux.gfortran.exe bubble_256_plt02667 | grep -i magvel
+
