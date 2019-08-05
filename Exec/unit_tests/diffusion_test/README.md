@@ -210,19 +210,19 @@ e.g. we see fourth-order convergence in the temperature
 This is built as the previous test:
 
 ```
-make DIM=2 CONDUCTIVITY_DIR=powerlaw -j 20
+make DIM=2 CONDUCTIVITY_DIR=powerlaw -j 20 USE_MPI=TRUE
 ```
 
 and then run as:
 
 ```
-./Castro2d.gnu.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=64 64
+mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=64 64
 mv diffuse_plt00039 diffuse_2d_64
-./Castro2d.gnu.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4
+mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4
 mv diffuse_plt00157 diffuse_2d_128
-./Castro2d.gnu.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256 256
+mpiexec -n 16./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256 256
 mv diffuse_plt00626 diffuse_2d_256
-./Castro2d.gnu.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=512 512
+mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=512 512
 mv diffuse_plt02504 diffuse_2d_512
 
 RichardsonConvergenceTest2d.gnu.ex coarFile=diffuse_2d_64 mediFile=diffuse_2d_128 fineFile=diffuse_2d_256 > convergence_diffusion.2d.lo.sdc4.out
