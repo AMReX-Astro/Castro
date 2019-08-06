@@ -220,7 +220,7 @@ mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_m
 mv diffuse_plt00039 diffuse_2d_64
 mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4
 mv diffuse_plt00157 diffuse_2d_128
-mpiexec -n 16./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256 256
+mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256 256
 mv diffuse_plt00626 diffuse_2d_256
 mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=512 512
 mv diffuse_plt02504 diffuse_2d_512
@@ -237,7 +237,6 @@ Level  L1 norm of Error in Each Component
 Warning: BoxArray lengths are not the same at level 0
   0    Level  L1 norm of Error in Each Component
 -----------------------------------------------
-Warning: BoxArray lengths are not the same at level 0
   0    \begin{table}[p]
 \begin{center}
 \begin{tabular}{|cccc|} \hline
@@ -247,11 +246,9 @@ density&    	 0.000000e+00 & ------------ &0.000000e+00 \\
 xmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
 ymom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
 zmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-rho_E&    	 1.111626e-05 & 3.948910124 & 7.198104e-07 \\ 
-rho_e&    	 1.111626e-05 & 3.948910124 & 7.198104e-07 \\ 
-Temp&    	 1.063477e-05 & 3.952987539 & 6.866892e-07 \\ 
-rho_X&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
-pressure&    	 7.410837e-06 & 3.948910124 & 4.798736e-07 \\ 
+rho_E&    	 1.902161e-06 & 3.957610923 & 1.224299e-07 \\ 
+rho_e&    	 1.902161e-06 & 3.957610923 & 1.224299e-07 \\ 
+Temp&    	 1.770452e-06 & 3.966033724 & 1.132894e-07 \\ 
 ```
 
 e.g. we see fourth-order convergence in the temperature
