@@ -1,3 +1,0 @@
-This is an alternate version of the acoustic pulse problem from
-McCorquodale & Colella 2011.  In this version, we perturb the pressure
-and use a constant entropy via the EOS to find the density.
