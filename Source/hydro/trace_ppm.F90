@@ -749,8 +749,7 @@ contains
     use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
-                                   ppm_type, ppm_temp_fix, &
-                                   ppm_reference_eigenvectors
+                                   ppm_type, ppm_temp_fix
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
@@ -829,7 +828,6 @@ contains
     real(rt) :: tau_ref
 
     real(rt) :: Clag_ref, gam_g_ref, game_ref, gfactor
-    real(rt) :: Clag_ev, tau_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -1043,30 +1041,19 @@ contains
                 dup = un_ref - Im(3,QUN) - hdt*Im_src(3,QUN)
                 dptotp = p_ref - Im(3,QPRES) - hdt*Im_src(3,QPRES)
 
-
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   Clag_ev = Clag
-                   tau_ev  = ONE/rho
-                else
-                   Clag_ev = Clag_ref
-                   tau_ev  = tau_ref
-                endif
-
                 ! (tau, u, p, game) eigensystem
 
                 ! This is the way things were done in the original PPM
                 ! paper -- here we work with tau in the characteristic
                 ! system
 
-                alpham = HALF*( dum - dptotm*(ONE/Clag_ev))*(ONE/Clag_ev)
-                alphap = HALF*(-dup - dptotp*(ONE/Clag_ev))*(ONE/Clag_ev)
-                alpha0r = dtau + dptot*(ONE/Clag_ev)**2
+                alpham = HALF*( dum - dptotm*(ONE/Clag_ref))*(ONE/Clag_ref)
+                alphap = HALF*(-dup - dptotp*(ONE/Clag_ref))*(ONE/Clag_ref)
+                alpha0r = dtau + dptot*(ONE/Clag_ref)**2
 
                 dge   = game_ref - Im(2,QGAME)
                 gfactor = (game - ONE)*(game - gam_g)
-                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
+                alpha0e_g = gfactor*dptot/(tau_ref*Clag_ref**2) + dge
 
                 if (un-cc > ZERO) then
                    alpham = ZERO
@@ -1098,10 +1085,10 @@ contains
                 tau_s = tau_ref + alphap + alpham + alpha0r
                 qp(i,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                qp(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                qp(i,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                qp(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                qp(i,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ref**2)
 
-                qp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                qp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ref + alpha0e_g
                 qp(i,j,k,QREINT) = qp(i,j,k,QPRES )/(qp(i,j,k,QGAME) - ONE)
 
 
@@ -1160,28 +1147,18 @@ contains
                 dup = un_ref - Ip(3,QUN) - hdt*Ip_src(3,QUN)
                 dptotp = p_ref - Ip(3,QPRES) - hdt*Ip_src(3,QPRES)
 
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   Clag_ev = Clag
-                   tau_ev  = ONE/rho
-                else
-                   Clag_ev = Clag_ref
-                   tau_ev  = tau_ref
-                endif
-
                 ! (tau, u, p, game) eigensystem
 
                 ! This is the way things were done in the original PPM
                 ! paper -- here we work with tau in the characteristic
                 ! system
-                alpham = HALF*( dum - dptotm*(ONE/Clag_ev))*(ONE/Clag_ev)
-                alphap = HALF*(-dup - dptotp*(ONE/Clag_ev))*(ONE/Clag_ev)
-                alpha0r = dtau + dptot*(ONE/Clag_ev)**2
+                alpham = HALF*( dum - dptotm*(ONE/Clag_ref))*(ONE/Clag_ref)
+                alphap = HALF*(-dup - dptotp*(ONE/Clag_ref))*(ONE/Clag_ref)
+                alpha0r = dtau + dptot*(ONE/Clag_ref)**2
 
                 dge = game_ref - Ip(2,QGAME)
                 gfactor = (game - ONE)*(game - gam_g)
-                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
+                alpha0e_g = gfactor*dptot/(tau_ref*Clag_ref**2) + dge
 
                 if (un-cc > ZERO) then
                    alpham = -alpham
@@ -1215,10 +1192,10 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i+1,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ref**2)
 
-                   qm(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ref + alpha0e_g
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QPRES )/(qm(i+1,j,k,QGAME) - ONE)
 
                    ! transverse velocities
@@ -1229,10 +1206,10 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i,j+1,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ref**2)
 
-                   qm(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ref + alpha0e_g
                    qm(i,j+1,k,QREINT) = qm(i,j+1,k,QPRES )/(qm(i,j+1,k,QGAME) - ONE)
 
                    ! transverse velocities
@@ -1243,10 +1220,10 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i,j,k+1,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ref**2)
 
-                   qm(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ref + alpha0e_g
                    qm(i,j,k+1,QREINT) = qm(i,j,k+1,QPRES )/(qm(i,j,k+1,QGAME) - ONE)
 
                    ! transverse velocities
@@ -1314,8 +1291,7 @@ contains
     use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFS, QFX, &
                                    small_dens, small_pres, &
-                                   ppm_type, ppm_temp_fix, &
-                                   ppm_reference_eigenvectors
+                                   ppm_type, ppm_temp_fix
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
@@ -1385,7 +1361,7 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    real(rt) :: cc, csq, Clag
+    real(rt) :: cc, csq
     real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g, temp
     real(rt) :: gam_g, game
 
@@ -1400,7 +1376,6 @@ contains
     real(rt) :: tau_ref
 
     real(rt) :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
-    real(rt) :: cc_ev, csq_ev, Clag_ev, rho_ev, tau_ev, temp_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -1469,7 +1444,6 @@ contains
 
              cc = qaux(i,j,k,QC)
              csq = cc**2
-             Clag = rho*cc
 
              un = q(i,j,k,QUN)
              ut = q(i,j,k,QUT)
@@ -1626,29 +1600,11 @@ contains
                 dptotp = p_ref - Im(3,QPRES) - hdt*Im_src(3,QPRES)
 
 
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   rho_ev  = rho
-                   cc_ev   = cc
-                   csq_ev  = csq
-                   Clag_ev = Clag
-                   tau_ev  = ONE/rho
-                   temp_ev = temp
-                else
-                   rho_ev  = rho_ref
-                   cc_ev   = cc_ref
-                   csq_ev  = csq_ref
-                   Clag_ev = Clag_ref
-                   tau_ev  = tau_ref
-                   temp_ev = temp_ref
-                endif
-
                 ! (tau, u T) eigensystem
 
                 ! eos to get some thermodynamics
-                eos_state%T = temp_ev
-                eos_state%rho = rho_ev
+                eos_state%T = temp_ref
+                eos_state%rho = rho_ref
                 eos_state%xn(:) = q(i,j,k,QFS:QFS-1+nspec)
                 eos_state%aux(:) = q(i,j,k,QFX:QFX-1+naux)
 
@@ -1657,9 +1613,9 @@ contains
                 p_r = eos_state%dpdr
                 p_T = eos_state%dpdT
 
-                alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dum - p_T*dTm/Clag_ev)/Clag_ev
-                alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dup - p_T*dTp/Clag_ev)/Clag_ev
-                alpha0r = dtau + (-rho_ev**2*p_r*dtau + p_T*dT0)/Clag_ev**2
+                alpham = HALF*(rho_ref**2*p_r*dtaum/Clag_ref + dum - p_T*dTm/Clag_ref)/Clag_ref
+                alphap = HALF*(rho_ref**2*p_r*dtaup/Clag_ref - dup - p_T*dTp/Clag_ref)/Clag_ref
+                alpha0r = dtau + (-rho_ref**2*p_r*dtau + p_T*dT0)/Clag_ref**2
 
                 ! not used, but needed to prevent bad invalid ops
                 alpha0e_g = ZERO
@@ -1688,9 +1644,9 @@ contains
                 tau_s = tau_ref + alphap + alpham + alpha0r
                 qp(i,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                qp(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                qp(i,j,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
-                     rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+                qp(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                qp(i,j,k,QTEMP) = temp_ref + (-Clag_ref**2 - rho_ref**2*p_r)*alpham/p_T + &
+                     rho_ref**2*p_r*alpha0r/p_T - (-Clag_ref**2 - rho_ref**2*p_r)*alphap/p_T
 
                 ! we defer getting the pressure until later, once we do the species
                 qp(i,j,k,QPRES) = small_pres ! just to make it defined
@@ -1757,29 +1713,11 @@ contains
                 dup = un_ref - Ip(3,QUN) - hdt*Ip_src(3,QUN)
                 dptotp = p_ref - Ip(3,QPRES) - hdt*Ip_src(3,QPRES)
 
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   rho_ev  = rho
-                   cc_ev   = cc
-                   csq_ev  = csq
-                   Clag_ev = Clag
-                   tau_ev  = ONE/rho
-                   temp_ev = temp
-                else
-                   rho_ev  = rho_ref
-                   cc_ev   = cc_ref
-                   csq_ev  = csq_ref
-                   Clag_ev = Clag_ref
-                   tau_ev  = tau_ref
-                   temp_ev = temp_ref
-                endif
-
                 ! (tau, u T) eigensystem
 
                 ! eos to get some thermodynamics
-                eos_state%T = temp_ev
-                eos_state%rho = rho_ev
+                eos_state%T = temp_ref
+                eos_state%rho = rho_ref
                 eos_state%xn(:) = q(i,j,k,QFS:QFS-1+nspec)
                 eos_state%aux(:) = q(i,j,k,QFX:QFX-1+naux)
 
@@ -1788,9 +1726,9 @@ contains
                 p_r = eos_state%dpdr
                 p_T = eos_state%dpdT
 
-                alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dum - p_T*dTm/Clag_ev)/Clag_ev
-                alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dup - p_T*dTp/Clag_ev)/Clag_ev
-                alpha0r = dtau + (-rho_ev**2*p_r*dtau + p_T*dT0)/Clag_ev**2
+                alpham = HALF*(rho_ref**2*p_r*dtaum/Clag_ref + dum - p_T*dTm/Clag_ref)/Clag_ref
+                alphap = HALF*(rho_ref**2*p_r*dtaup/Clag_ref - dup - p_T*dTp/Clag_ref)/Clag_ref
+                alpha0r = dtau + (-rho_ref**2*p_r*dtau + p_T*dT0)/Clag_ref**2
 
                 ! not used, but needed to prevent bad invalid ops
                 alpha0e_g = ZERO
@@ -1821,9 +1759,9 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i+1,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i+1,j,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
-                        rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i+1,j,k,QTEMP) = temp_ref + (-Clag_ref**2 - rho_ref**2*p_r)*alpham/p_T + &
+                        rho_ref**2*p_r*alpha0r/p_T - (-Clag_ref**2 - rho_ref**2*p_r)*alphap/p_T
 
                    ! we defer getting the pressure until later, once
                    ! we do the species
@@ -1837,9 +1775,9 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i,j+1,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j+1,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
-                        rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i,j+1,k,QTEMP) = temp_ref + (-Clag_ref**2 - rho_ref**2*p_r)*alpham/p_T + &
+                        rho_ref**2*p_r*alpha0r/p_T - (-Clag_ref**2 - rho_ref**2*p_r)*alphap/p_T
 
                    ! we defer getting the pressure until later, once
                    ! we do the species
@@ -1853,9 +1791,9 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i,j,k+1,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j,k+1,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
-                        rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i,j,k+1,QTEMP) = temp_ref + (-Clag_ref**2 - rho_ref**2*p_r)*alpham/p_T + &
+                        rho_ref**2*p_r*alpha0r/p_T - (-Clag_ref**2 - rho_ref**2*p_r)*alphap/p_T
 
                    ! we defer getting the pressure until later, once
                    ! we do the species

@@ -44,7 +44,6 @@ int         Castro::hybrid_hydro = 0;
 int         Castro::ppm_type = 1;
 int         Castro::ppm_temp_fix = 0;
 int         Castro::ppm_predict_gammae = 0;
-int         Castro::ppm_reference_eigenvectors = 0;
 int         Castro::plm_iorder = 2;
 int         Castro::hybrid_riemann = 0;
 int         Castro::riemann_solver = 0;
