@@ -84,7 +84,6 @@ Castro::advance (Real time,
       if (sdc_order == 4) {
         // fill ghost cells on S_new -- we'll need these to convert to
         // centers
-        std::cout << "trying to expand" << std::endl;
         Real cur_time = state[State_Type].curTime();
         // we'll use Sborder to expand the state, but we already cleared
         // it at the end of the andance
@@ -92,8 +91,6 @@ Castro::advance (Real time,
 
         expand_state(Sborder, cur_time, 2);
       }
-
-      std::cout << "done with expand" << std::endl;
 
       FArrayBox U_center;
       FArrayBox R_center;
@@ -109,8 +106,6 @@ Castro::advance (Real time,
           ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
                               BL_TO_FORTRAN_FAB(Sborder[mfi]),
                               BL_TO_FORTRAN_FAB(U_center));
-
-          std::cout << "done with making U_center" << std::endl;
 
           // pass in the reaction source and state at centers, including one ghost cell
           // and derive everything that is needed including 1 ghost cell
