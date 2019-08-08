@@ -579,7 +579,6 @@ contains
              ! passively advected quantities
              do ipassive = 1, npassive
                 n  = upass_map(ipassive)
-                if (n == UMY .or. n == UMZ) cycle
                 nqp = qpass_map(ipassive)
 
                 F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp)
