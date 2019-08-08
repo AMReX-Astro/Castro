@@ -55,7 +55,7 @@ contains
     ! reaction update.  It either directly calls the Newton method or first
     ! tries VODE and then does the Newton update.
 
-    use meth_params_module, only : NVAR, sdc_solver
+    use meth_params_module, only : NVAR, sdc_solver, UTEMP, URHO, UFS
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
@@ -71,16 +71,20 @@ contains
     integer, intent(in) :: sdc_iteration
 
     integer :: ierr
-
+    real(rt) :: err_out
 
     if (sdc_solver == NEWTON_SOLVE) then
        ! we are going to assume we already have a good guess for the
        ! solving in U_new and just pass the solve onto the main Newton
        ! solve
-       call sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
+       call sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr)
 
        ! failing?
        if (ierr /= NEWTON_SUCCESS) then
+          print *, "convergence failure, error = ", err_out
+          print *, "density: ", U_old(URHO)
+          print *, "(old) temperature: ", U_old(UTEMP)
+          print *, "mass fractions: ", U_old(UFS:UFS-1+nspec)/U_old(URHO)
           call castro_error("Newton subcycling failed in sdc_solve")
        end if
 
@@ -97,7 +101,7 @@ contains
 
        ! now U_new is the update that VODE predicts, so we will use
        ! that as the initial guess to the Newton solve
-       call sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
+       call sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr)
 
        ! failing?
        if (ierr /= NEWTON_SUCCESS) then
@@ -107,7 +111,7 @@ contains
 
   end subroutine sdc_solve
 
-  subroutine sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, ierr)
+  subroutine sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr)
     ! This is the driver for solving the nonlinear update for the
     ! reacting/advecting system using Newton's method.  It attempts to
     ! do the solution for the full dt_m requested, but if it fails,
@@ -125,6 +129,7 @@ contains
     real(rt), intent(inout) :: U_new(NVAR)
     real(rt), intent(in) :: C(NVAR)
     integer, intent(in) :: sdc_iteration
+    real(rt), intent(out) :: err_out
     integer, intent(inout) :: ierr
 
     integer :: isub, nsub
@@ -133,16 +138,22 @@ contains
     integer :: n
     real(rt) :: sum_rhoX
 
-    integer, parameter :: MAX_NSUB = 64
+    integer, parameter :: MAX_NSUB = 1024
 
-    ! subdivide the timestep and do multiple Newtons
+    ! subdivide the timestep and do multiple Newtons.  We come in here
+    ! with an initial guess for the new solution stored in U_new.
+    ! That only really makes sense for the case where we have 1
+    ! substep.  Otherwise, we should just use the old time solution.
     nsub = 1
     ierr = CONVERGENCE_FAILURE
     U_begin(:) = U_old(:)
     do while (nsub < MAX_NSUB .and. ierr /= NEWTON_SUCCESS)
+       if (nsub > 1) then
+          U_new(:) = U_old(:)
+       end if
        dt_sub = dt_m / nsub
        do isub = 1, nsub
-          call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
+          call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, err_out, ierr)
           U_begin(:) = U_new(:)
 
           ! normalize species
@@ -158,7 +169,7 @@ contains
 
   end subroutine sdc_newton_subdivide
 
-  subroutine sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, ierr)
+  subroutine sdc_newton_solve(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr)
     ! the purpose of this function is to solve the system
     ! U - dt R(U) = U_old + dt C using a Newton solve.
     !
@@ -184,6 +195,7 @@ contains
     real(rt), intent(inout) :: U_new(NVAR)
     real(rt), intent(in) :: C(NVAR)
     integer, intent(in) :: sdc_iteration
+    real(rt), intent(out) :: err_out
     integer, intent(out) :: ierr
 
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
@@ -321,6 +333,8 @@ contains
 
        iter = iter + 1
     enddo
+
+    err_out = err
 
     if (.not. converged) then
        !print *, "dens: ", U_react(0), dU_react(0), eps_tot(0), abs(dU_react(0))/eps_tot(0)
