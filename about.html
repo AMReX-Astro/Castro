@@ -184,6 +184,31 @@
             <p><img class="intext" src="science-images/wdmerger_scaling.png"><br>
               <p class="caption">Castro strong scaling for the WD merger problem with full Poisson gravity on the OLCF titan machine.</p>
 
+	    <header class="major">
+	      <h3>GPU performance</h3>
+	    </header>
+
+	    <p>Castro offloads to GPUs using MPI+CUDA, using the same
+              computational kernels as we do with MPI+OpenMP.
+              Presently the main hydrodynamics solve (CTU PPM), the
+              gamma-law and stellar EOS, gravity, diffusion, and other
+              source terms, and most of the nuclear reaction networks
+              run on GPUs, allowing us to run entire simulations on
+              GPUs.</p>
+
+            <p><img class="intext" src="science-images/sedov_gpu.png"><br>
+              <p class="caption">GPU weak scaling on Summit for the
+                Sedov problem.  We see that the GPU version (6 GPUs
+                /node) of the problem is about an order of magnitude
+                faster than the CPU version (6 MPI &times; 7 OpenMP
+                threads per MPI on each node).</p>
+
+            <p><img class="intext" src="science-images/wdmerger_gpu.png"><br>
+              <p class="caption">GPU weak scaling on Summit for the WD
+                merger problem.  We see that the GPU version (6 GPUs
+                /node) of the problem is much faster than the CPU version (6 MPI &times; 7 OpenMP
+                threads per MPI on each node). <p>
+
 	  </div>
 	</div>
       </div>
