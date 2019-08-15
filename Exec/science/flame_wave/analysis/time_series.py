@@ -61,9 +61,9 @@ def doit(plotfiles):
 
         sp._setup_plots()
 
-    fig.set_size_inches(6.0, 10.0)
+    fig.set_size_inches(9.5, 10.0)
     #fig.tight_layout()
-    plt.subplots_adjust(left=0.025, right=0.975, top=0.975, bottom=0.05)
+    plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
     #plt.margins(0.0)
     fig.savefig("time_series.png", dpi=200)
 
