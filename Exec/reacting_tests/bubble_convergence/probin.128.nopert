@@ -1,0 +1,32 @@
+&fortin
+
+  pert_width = 2.56e5
+
+  dens_base = 1.e7
+  temp_base = 1.0e8
+
+  nx_model = 128
+
+  do_pert = F
+/
+
+
+&tagging
+
+  temperr = 6.e8
+  tempgrad = 1.e9
+  max_temperr_lev = 5
+  max_tempgrad_lev = 5
+
+/
+
+&extern
+
+  rtol_spec = 1.d-10
+  atol_spec = 1.d-10
+
+  small_x = 1.d-10
+
+  rtol_enuc = 1.d-10
+
+/

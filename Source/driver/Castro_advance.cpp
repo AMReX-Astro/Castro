@@ -42,6 +42,8 @@ Castro::advance (Real time,
 
     wall_time_start = ParallelDescriptor::second();
 
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
+
     Real dt_new = dt;
 
     initialize_advance(time, dt, amr_iteration, amr_ncycle);
@@ -62,7 +64,7 @@ Castro::advance (Real time,
 #ifndef AMREX_USE_CUDA
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
-      for (int iter = 0; iter < sdc_order; ++iter) {
+      for (int iter = 0; iter < sdc_order+sdc_extra; ++iter) {
 	sdc_iteration = iter;
 	dt_new = do_advance_sdc(time, dt, amr_iteration, amr_ncycle);
       }
@@ -246,7 +248,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       // for the CTU unsplit method, we always start with the old state
-      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
       const Real prev_time = state[State_Type].prevTime();
       clean_state(S_old, prev_time, 0);
       expand_state(Sborder, prev_time, NUM_GROW);
@@ -259,7 +261,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       if (mol_iteration == 0) {
 
 	// first MOL stage
-	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+        Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
 	const Real prev_time = state[State_Type].prevTime();
         clean_state(S_old, prev_time, 0);
 	expand_state(Sborder, prev_time, NUM_GROW);
@@ -284,7 +286,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 	const Real new_time = state[State_Type].curTime();
         clean_state(S_new, new_time, S_new.nGrow());
 
-	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
         clean_state(S_new, new_time, 0);
 	expand_state(Sborder, new_time, NUM_GROW);
 
@@ -293,11 +295,19 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
       // we'll handle the filling inside of do_advance_sdc 
-      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
 
     } else {
       amrex::Abort("invalid time_integration_method");
     }
+
+#ifdef SHOCK_VAR
+    // Zero out the shock data, and fill it during the advance.
+    // For subcycling cases this will always give the shock
+    // variable for the latest subcycle, rather than averaging.
+
+    Sborder.setVal(0.0, Shock, 1, Sborder.nGrow());
+#endif
 
 }
 
@@ -510,6 +520,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     if (mol_order == 4 || sdc_order == 4) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
+#ifdef DIFFUSION
+      T_cc.define(grids, dmap, 1, NUM_GROW);
+#endif
     }
 
     if (time_integration_method == MethodOfLines) {
@@ -620,6 +633,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (mol_order == 4 || sdc_order == 4) {
       q_bar.clear();
       qaux_bar.clear();
+#ifdef DIFFUSION
+      T_cc.clear();
+#endif
     }
 
 #ifdef RADIATION

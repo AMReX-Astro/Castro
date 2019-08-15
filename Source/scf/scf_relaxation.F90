@@ -105,7 +105,6 @@ contains
     real(rt), intent(inout) :: phi_A, phi_B, psi_A, psi_B
 
     integer  :: i, j, k
-    integer  :: loc(3)
     real(rt) :: r(3), rr(3), scale
 
     ! The below assumes we are rotating on the z-axis.
@@ -183,7 +182,6 @@ contains
     real(rt), intent(inout) :: bernoulli
 
     integer  :: i, j, k
-    integer  :: loc(3)
     real(rt) :: r(3), rr(3), scale
 
     ! The below assumes we are rotating on the z-axis.
@@ -261,7 +259,7 @@ contains
                                 Linf_norm) bind(C, name='scf_update_density')
 
     use amrex_constants_module, only: ZERO, HALF
-    use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMY, UMZ, UEDEN, UEINT, UFS
+    use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMZ, UEDEN, UEINT, UFS
     use network, only: nspec
     use eos_module, only: eos
     use eos_type_module, only: eos_input_th, eos_t

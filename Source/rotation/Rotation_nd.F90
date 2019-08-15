@@ -3,7 +3,7 @@ module rotation_module
   use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
        rotation_include_domegadt
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -41,7 +41,7 @@ contains
           loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
        else
 #ifndef AMREX_USE_GPU
-          call amrex_error("Error: unknown direction in inertial_to_rotational_velocity.")
+          call castro_error("Error: unknown direction in inertial_to_rotational_velocity.")
 #endif
        endif
     else

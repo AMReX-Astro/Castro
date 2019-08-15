@@ -22,8 +22,6 @@ USE_OMP     ?= FALSE
 
 USE_GRAV    ?= TRUE
 
-DIMENSION_AGNOSTIC = TRUE
-
 # This sets the EOS directory in $(CASTRO_HOME)/EOS
 EOS_DIR     := gamma_law
 

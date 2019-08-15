@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use model_parser_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_paralleldescriptor_module, only: parallel_IOProcessor => amrex_pd_ioprocessor
 
   use amrex_fort_module, only : rt => amrex_real
@@ -25,7 +25,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! the name of file containing fortin namelist.
 
 
-  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
+  if (namlen .gt. maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -93,13 +93,12 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use amrex_constants_module, only : ZERO, HALF, ONE
   use prob_params_module, only : problo
   use probdata_module
-  use interpolate_module
   use eos_module
   use eos_type_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only: nspec
   use model_parser_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -117,7 +116,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   type (eos_t) :: eos_state
 
 #if AMREX_SPACEDIM == 3
-  call amrex_error("Error: 3-d initialization not implemented")
+  call castro_error("Error: 3-d initialization not implemented")
 #endif
 
   do k = lo(3), hi(3)
@@ -126,13 +125,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
         do i = lo(1), hi(1)
 
-           state(i,j,k,URHO)  = interpolate(y,npts_model,model_r, &
-                                            model_state(:,idens_model))
-           state(i,j,k,UTEMP) = interpolate(y,npts_model,model_r, &
-                                            model_state(:,itemp_model))
+           call interpolate_sub(state(i,j,k,URHO), y, idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), y, itemp_model)
            do n = 1, nspec
-              state(i,j,k,UFS-1+n) = interpolate(y,npts_model,model_r, &
-                                                 model_state(:,ispec_model-1+n))
+              call interpolate_sub(state(i,j,k,UFS-1+n), y, ispec_model-1+n)
            end do
 
            eos_state%rho = state(i,j,k,URHO)

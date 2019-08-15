@@ -1,7 +1,7 @@
 module riemann_support
 
   use amrex_constants_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   use eos_type_module
@@ -139,7 +139,7 @@ contains
        enddo
        
        !print *, 'did we try to bisect? ', found
-       call amrex_error("ERROR: shock did not converge")
+       call castro_error("ERROR: shock did not converge")
     endif
     
 
@@ -335,7 +335,7 @@ contains
        enddo
        
     else
-       call amrex_error('unable to bracket the root')
+       call castro_error('unable to bracket the root')
     endif
 
     if (converged) W_s = 0.5_rt*(W1 + W2)

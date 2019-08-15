@@ -14,8 +14,8 @@ amr.n_cell           = 128     8      8
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  2   4   4
-castro.hi_bc       =  2   4   4
+castro.lo_bc       =  2   3   3
+castro.hi_bc       =  2   3   3
 
 # WHICH PHYSICS
 castro.do_hydro = 1

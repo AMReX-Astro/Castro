@@ -274,7 +274,6 @@ subroutine derrhopert(p, p_lo, p_hi, ncomp_p, &
   use meth_params_module, only : URHO, const_grav, T_guess
   use actual_eos_module, only: gamma_const
   use probdata_module
-  use interpolate_module
   use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
 

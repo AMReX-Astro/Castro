@@ -39,7 +39,7 @@ There are three several Fortran namelists that can be defined in the
 ``probin`` file:
 
   * ``&fortin`` is the main namelist read by the problem’s
-    ``probinit`` subroutine in the ``Prob_?d.F90`` file.
+    ``probinit`` subroutine in the ``Prob_nd.F90`` file.
 
   * ``&extern`` is used to set different microphysics options
 
@@ -376,7 +376,7 @@ the code chooses a time step based on the CFL number:
                                                                   \frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]
    \label{eq:cfl}
 
-If method-of-lines integration is used instead, then we have
+If method-of-lines of SDC integration is used instead, then we have
 
 .. math::
 
@@ -389,7 +389,7 @@ If method-of-lines integration is used instead, then we have
 The following parameters affect the timestep choice:
 
   * ``castro.cfl``: CFL number (Real :math:`> 0` and :math:`\leq 1`;
-     default: 0.8)
+    default: 0.8)
 
   * ``castro.init_shrink``: factor by which to shrink the initial
     time step (Real :math:`> 0` and :math:`\leq 1`; default: 1.0)

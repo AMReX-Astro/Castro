@@ -24,7 +24,7 @@ Castro's major capabilities:
 
   * rotation (in the co-rotating frame) in 2-d axisymmetric and 3-d.
 
-  * parallelization via MPI + OpenMP
+  * parallelization via MPI + OpenMP or MPI + CUDA
 
 Units and Conventions
 =====================

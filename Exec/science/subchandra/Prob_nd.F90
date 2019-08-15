@@ -2,7 +2,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
 
   use probdata_module
   use model_parser_module
-  use amrex_error_module
+  use castro_error_module
   use prob_params_module, only : center
   use amrex_constants_module, only : ZERO, HALF
   use amrex_fort_module, only : rt => amrex_real
@@ -25,7 +25,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
   character probin*(maxlen)
   character model*(maxlen)
 
-  if (namlen > maxlen) call amrex_error("probin file name too long")
+  if (namlen > maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -88,7 +88,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        delta, xlo, xhi)
 
   use probdata_module
-  use interpolate_module
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
                                  UEDEN, UEINT, UFS
@@ -125,11 +124,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            dist = sqrt(x**2 + y**2 + z**2)
 
-           state(i,j,k,URHO)  = interpolate(dist,npts_model,model_r,model_state(:,idens_model))
-           state(i,j,k,UTEMP) = interpolate(dist,npts_model,model_r,model_state(:,itemp_model))
+           call interpolate_sub(state(i,j,k,URHO), dist, idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), dist, itemp_model)
 
            do n = 1, nspec
-              state(i,j,k,UFS-1+n) = interpolate(dist,npts_model,model_r,model_state(:,ispec_model-1+n))
+              call interpolate_sub(state(i,j,k,UFS-1+n), dist, ispec_model-1+n)
            end do
 
         end do

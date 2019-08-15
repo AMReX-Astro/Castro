@@ -429,8 +429,6 @@ Castro::restart (Amr&     papa,
 
            if (! orig_domain.contains(bx)) {
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
-
 #ifdef GPU_COMPATIBLE_PROBLEM
 
 #pragma gpu box(bx)
@@ -447,14 +445,6 @@ Castro::restart (Amr&     papa,
 
 #endif
 
-#else
-
-	      BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-		(level, cur_time, lo, hi, ns,
-		 BL_TO_FORTRAN(S_new[mfi]), dx,
-		 gridloc.lo(), gridloc.hi());
-
-#endif
 
            }
        }

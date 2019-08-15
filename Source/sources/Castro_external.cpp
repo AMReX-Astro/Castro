@@ -67,7 +67,6 @@ Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& stat
 
         const Box& bx = mfi.tilebox();
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
 #pragma gpu box(bx)
         ca_ext_src
 	  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -75,13 +74,5 @@ Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& stat
 	   BL_TO_FORTRAN_ANYD(state_new[mfi]),
 	   BL_TO_FORTRAN_ANYD(ext_src[mfi]),
 	   AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
-#else
-	BL_FORT_PROC_CALL(CA_EXT_SRC,ca_ext_src)
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(state_old[mfi]),
-	   BL_TO_FORTRAN(state_new[mfi]),
-	   BL_TO_FORTRAN(ext_src[mfi]),
-	   prob_lo,dx,&time,&dt);
-#endif
     }
 }

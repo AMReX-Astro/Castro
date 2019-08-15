@@ -16,4 +16,7 @@ module probdata_module
   ! lower boundary
   logical         , save :: interp_BC, zero_vels
 
+  ! for the source term
+  integer, save :: ih1, ic12, in14, io16
+
 end module probdata_module

@@ -41,6 +41,8 @@ ifeq ($(USE_CUDA),TRUE)
   DEFINES += -DEXTRA_THERMO
 endif
 
+# all Castro problems use a dimension-agnostic interface
+DIMENSION_AGNOSTIC = TRUE
 
 EBASE = Castro
 
@@ -76,11 +78,7 @@ endif
 # if we're not using CUDA.
 
 ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
-  ifeq ($(DIMENSION_AGNOSTIC),TRUE)
     DEFINES += -DGPU_COMPATIBLE_PROBLEM
-  else
-    $(error GPU_COMPATIBLE_PROBLEM is only supported if DIMENSION_AGNOSTIC=TRUE)
-  endif
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
@@ -113,7 +111,7 @@ USE_MLMG = FALSE
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/driver/param_includes \
            Source/hydro Source/problems Source/sources \
-           Source/scf constants Util/model_parser
+           Source/scf constants Util/model_parser Util/conservative_interpolate
 else
   Bdirs := constants
 endif
@@ -413,7 +411,7 @@ F90EXE_sources += extern.F90
 EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
 # these are for finding runtime parameters
-EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser
+EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)/Util/conservative_interpolate
 ifdef MICROPHYSICS_HOME
    EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 endif

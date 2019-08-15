@@ -6,7 +6,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   use eos_type_module, only: eos_t, eos_input_re
   use network, only : nspec
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_error_module, only : amrex_error
+  use castro_error_module, only : castro_error
 
   implicit none
 
@@ -27,7 +27,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error("probin file name too long")
+     call castro_error("probin file name too long")
   end if
 
   do i = 1, namlen
