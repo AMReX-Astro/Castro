@@ -257,7 +257,8 @@ contains
                 ! reset the left state at domlo(1) if needed -- it is outside the domain
 
                 if (physbc_lo(1) == Outflow) then
-                   al(domlo(1),j,k,:) = ar(domlo(1),j,k,:)
+                   !al(domlo(1),j,k,:) = ar(domlo(1),j,k,:)
+                   continue
 
                 else if (physbc_lo(1) == Symmetry) then
                    al(domlo(1),j,k,:) = ar(domlo(1),j,k,:)
@@ -284,7 +285,8 @@ contains
              do j = lo(2)-dg(2), hi(2)+dg(2)
 
                 if (physbc_hi(1) == Outflow) then
-                   ar(domhi(1)+1,j,k,:) = al(domhi(1)+1,j,k,:)
+                   !ar(domhi(1)+1,j,k,:) = al(domhi(1)+1,j,k,:)
+                   continue
 
                 else if (physbc_hi(1) == Symmetry) then
                    ar(domhi(1)+1,j,k,:) = al(domhi(1)+1,j,k,:)
@@ -466,7 +468,8 @@ contains
              do i = lo(1)-1, hi(1)+1
 
                 if (physbc_lo(2) == Outflow) then
-                   al(i,domlo(2),k,:) = ar(i,domlo(2),k,:)
+                   !al(i,domlo(2),k,:) = ar(i,domlo(2),k,:)
+                   continue
 
                 else if (physbc_lo(2) == Symmetry) then
                    al(i,domlo(2),k,:) = ar(i,domlo(2),k,:)
@@ -493,7 +496,8 @@ contains
              do i = lo(1)-1, hi(1)+1
 
                 if (physbc_hi(2) == Outflow) then
-                   ar(i,domhi(2)+1,k,:) = al(i,domhi(2)+1,k,:)
+                   !ar(i,domhi(2)+1,k,:) = al(i,domhi(2)+1,k,:)
+                   continue
 
                 else if (physbc_hi(2) == Symmetry) then
                    ar(i,domhi(2)+1,k,:) = al(i,domhi(2)+1,k,:)
@@ -677,7 +681,8 @@ contains
              do i = lo(1)-1, hi(1)+1
 
                 if (physbc_lo(3) == Outflow) then
-                   al(i,j,domlo(3),:) = ar(i,j,domlo(3),:)
+                   !al(i,j,domlo(3),:) = ar(i,j,domlo(3),:)
+                   continue
 
                 else if (physbc_lo(3) == Symmetry) then
                    al(i,j,domlo(3),:) = ar(i,j,domlo(3),:)
@@ -704,7 +709,8 @@ contains
              do i = lo(1)-1, hi(1)+1
 
                 if (physbc_hi(3) == Outflow) then
-                   ar(i,j,domhi(3)+1,:) = al(i,j,domhi(3)+1,:)
+                   !ar(i,j,domhi(3)+1,:) = al(i,j,domhi(3)+1,:)
+                   continue
 
                 else if (physbc_hi(3) == Symmetry) then
                    ar(i,j,domhi(3)+1,:) = al(i,j,domhi(3)+1,:)

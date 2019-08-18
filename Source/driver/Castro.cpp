@@ -1106,7 +1106,7 @@ Castro::initData ()
 
                ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
                                        BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                       ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                       ZFILL(dx), AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
              }
 
            // now copy back the averages
@@ -1131,7 +1131,7 @@ Castro::initData ()
 
              ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(box),
                                           BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                          ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                          ZFILL(dx), AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
            }
 
          // reset the energy -- do this in one ghost cell so we can average in place below
@@ -1150,7 +1150,7 @@ Castro::initData ()
 
              ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
                                      BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                     ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                     ZFILL(dx), AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
            }
 
          // now copy back the averages for UEINT and UTEMP only
@@ -3431,11 +3431,11 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
       ca_compute_lap_term(BL_TO_FORTRAN_BOX(bx0),
                           BL_TO_FORTRAN_FAB(Stemp[mfi]),
                           BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), &Eint,
-                          ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          ZFILL(dx), AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
       ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
                                    BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                                   ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                   ZFILL(dx), AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
     }
 
@@ -3523,7 +3523,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
       // only temperature
       ca_make_fourth_in_place_n(BL_TO_FORTRAN_BOX(bx),
                                 BL_TO_FORTRAN_FAB(Stemp[mfi]), &Temp,
-                                ZFILL(dx), AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                                ZFILL(dx), AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
     }
 
