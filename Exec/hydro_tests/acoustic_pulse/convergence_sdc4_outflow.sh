@@ -6,7 +6,7 @@ set -x
 DIM=2
 EXEC=./Castro${DIM}d.gnu.MPI.ex
 
-RUNPARAMS="castro.sdc_order=4 castro.time_integration_method=2 castro.lo_bc=2 2 castro.hi_bc=2 2 geometry.is_periodic=0 0"
+RUNPARAMS="castro.sdc_order=4 castro.time_integration_method=2 castro.lo_bc=2 2 castro.hi_bc=2 2 geometry.is_periodic=0 0 castro.limit_fourth_order=0"
 
 mpiexec -n 4 ${EXEC} inputs.2d.64 ${RUNPARAMS} amr.plot_file=acoustic_pulse_64_sdc4_plt &> 64.out
 mpiexec -n 4 ${EXEC} inputs.2d.128 ${RUNPARAMS} amr.plot_file=acoustic_pulse_128_sdc4_plt &> 128.out
