@@ -93,8 +93,8 @@ People who make a number of substantive contributions will be named
 "core developers" of Castro.  The criteria for becoming a core
 developer are flexible, but generally involve one of the following:
 
-  * 10 non-merge commits to `Castro/Source/` or `Castro/Docs/` or one
-    of the problems that is not your own science problem *or*
+  * 10 non-merge commits to `Castro/Source/` or `Castro/sphinx_docs/`
+    or one of the problems that is not your own science problem *or*
 
   * addition of a new algorithm / module  *or*
 
