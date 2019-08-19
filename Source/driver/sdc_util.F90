@@ -287,6 +287,10 @@ contains
        U_react(nspec_evolve+1) = U_new(UEDEN)
     endif
 
+    !U_react(0) = f_source(0) + dt_m * U_old(URHO)
+    !U_react(1:nspec_evolve) = f_source(1:nspec_evolve) + dt_m * U_old(UFS:UFS-1+nspec_evolve)
+    !U_react(nspec_evolve+1) = f_source(nspec_evolve+1) + dt_m * U_old(nspec_evolve+1)
+
 #if (INTEGRATOR == 0)
     ! do a simple Newton solve
 
