@@ -14,7 +14,7 @@ amr.n_cell           = 768         192
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  3   1
+castro.lo_bc       =  3   3
 castro.hi_bc       =  2   1
 
 castro.yl_ext_bc_type = "hse"

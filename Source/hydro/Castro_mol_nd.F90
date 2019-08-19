@@ -13,13 +13,13 @@ contains
                                     dq, dq_lo, dq_hi, &
                                     qm, qm_lo, qm_hi, &
                                     qp, qp_lo, qp_hi, &
-                                    dx) bind(C, name="ca_mol_plm_reconstruct")
+                                    domlo, domhi) bind(C, name="ca_mol_plm_reconstruct")
 
     use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
                                    use_flattening, QPRES, &
-                                   QTEMP, QFS, QFX, QREINT, QRHO, &
+                                   QTEMP, QFS, QFX, QREINT, QRHO, QU, QV, QW, &
                                    first_order_hydro, hybrid_riemann, &
                                    ppm_temp_fix
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
@@ -28,7 +28,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use network, only : nspec, naux
-    use prob_params_module, only : dg, coord_type
+    use prob_params_module, only : dg, coord_type, Symmetry, physbc_lo, physbc_hi
 
     implicit none
 
@@ -44,7 +44,7 @@ contains
     real(rt), intent(inout) :: dq(dq_lo(1):dq_hi(1), dq_lo(2):dq_hi(2), dq_lo(3):dq_hi(3), NQ)
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ, AMREX_SPACEDIM)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ, AMREX_SPACEDIM)
-    real(rt), intent(in) :: dx(3)
+    integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: idir, i, j, k, n
     type (eos_t) :: eos_state
@@ -117,8 +117,117 @@ contains
 #endif
 
           end if
-       end do
-    end do
+
+       end do ! component loop
+
+       ! special care for reflecting BCs
+       if (idir == 1) then
+          if (lo(1) == domlo(1)) then
+
+             do k = lo(3)-dg(3), hi(3)+dg(3)
+                do j = lo(2)-dg(2), hi(2)+dg(2)
+
+                   ! reset the left state at domlo(1) if needed -- it is outside the domain
+                   if (physbc_lo(1) == Symmetry) then
+                      qm(domlo(1),j,k,:,1) = qp(domlo(1),j,k,:,1)
+                      qm(domlo(1),j,k,QU,1) = -qp(domlo(1),j,k,QU,1)
+                   end if
+
+                end do
+             end do
+
+          end if
+
+          if (hi(1)+1 == domhi(1)+1) then
+             ! reset the right state at domhi(1)+1 if needed -- it is outside the domain
+
+             do k = lo(3)-dg(3), hi(3)+dg(3)
+                do j = lo(2)-dg(2), hi(2)+dg(2)
+
+                   if (physbc_hi(1) == Symmetry) then
+                      qp(domhi(1)+1,j,k,:,1) = qm(domhi(1)+1,j,k,:,1)
+                      qp(domhi(1)+1,j,k,QU,1) = -qm(domhi(1)+1,j,k,QU,1)
+                   end if
+
+                end do
+             end do
+
+          end if
+
+#if AMREX_SPACEDIM >= 2
+       else if (idir == 2) then
+
+          if (lo(2) == domlo(2)) then
+             ! reset the left state at domlo(2) if needed -- it is outside the domain
+
+             do k = lo(3)-dg(3), hi(3)+dg(3)
+                do i = lo(1)-1, hi(1)+1
+
+                   if (physbc_lo(2) == Symmetry) then
+                      qm(i,domlo(2),k,:,2) = qp(i,domlo(2),k,:,2)
+                      qm(i,domlo(2),k,QV,2) = -qp(i,domlo(2),k,QV,2)
+                   end if
+
+                end do
+             end do
+
+          end if
+
+          if (hi(2)+1 == domhi(2)+1) then
+             ! reset the right state at domhi(2)+1 if needed -- it is outside the domain
+
+             do k = lo(3)-dg(3), hi(3)+dg(3)
+                do i = lo(1)-1, hi(1)+1
+
+                   if (physbc_hi(2) == Symmetry) then
+                      qp(i,domhi(2)+1,k,:,2) = qm(i,domhi(2)+1,k,:,2)
+                      qp(i,domhi(2)+1,k,QV,2) = -qm(i,domhi(2)+1,k,QV,2)
+                   end if
+
+                end do
+             end do
+
+          end if
+#endif
+#if AMREX_SPACEDIM == 3
+       else
+
+          if (lo(3) == domlo(3)) then
+             ! reset the left state at domlo(3) if needed -- it is outside the domain
+
+             do j = lo(2)-1, hi(2)+1
+                do i = lo(1)-1, hi(1)+1
+
+                   if (physbc_lo(3) == Symmetry) then
+                      qm(i,j,domlo(3),:,3) = qp(i,j,domlo(3),:,3)
+                      qm(i,j,domlo(3),QW,3) = -qp(i,j,domlo(3),QW,3)
+                   end if
+
+                end do
+             end do
+
+          end if
+
+          if (hi(3)+1 == domhi(3)+1) then
+             ! reset the right state at domhi(3)+1 if needed -- it is outside the domain
+
+             do j = lo(2)-1, hi(2)+1
+                do i = lo(1)-1, hi(1)+1
+
+                   if (physbc_hi(3) == Symmetry) then
+                      qp(i,j,domhi(3)+1,:,3) = qm(i,j,domhi(3)+1,:,3)
+                      qp(i,j,domhi(3)+1,QW,3) = -qm(i,j,domhi(3)+1,QW,3)
+                   end if
+
+                end do
+             end do
+
+          end if
+#endif
+
+       end if
+
+    end do ! dimension loop
 
     ! use T to define p
     if (ppm_temp_fix == 1) then
