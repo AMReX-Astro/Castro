@@ -1177,6 +1177,7 @@ contains
     ! m+1, which is dt_m = dt/2.
 
     use meth_params_module, only : NVAR
+    use react_util_module, only : okay_to_burn
 
     implicit none
 
@@ -1198,9 +1199,14 @@ contains
           do i = lo(1), hi(1)
 
              ! we come in with U_new being a guess for the updated solution
+             if (okay_to_burn(U_old(i,j,k,:))) then
+                call sdc_solve(dt_m, U_old(i,j,k,:), U_new(i,j,k,:), &
+                               C(i,j,k,:), sdc_iteration)
+             else
+                ! no reactions, so it is a straightforward update
+                U_new(i,j,k,:) = U_old(i,j,k,:) + dt_m * C(i,j,k,:)
 
-             call sdc_solve(dt_m, U_old(i,j,k,:), U_new(i,j,k,:), C(i,j,k,:), sdc_iteration)
-
+             end if
           enddo
        enddo
     enddo
@@ -1277,7 +1283,11 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             call single_zone_react_source(state(i,j,k,:), R_source(i,j,k,:), i,j,k, burn_state)
+             if (okay_to_burn(state(i,j,k,:))) then
+                call single_zone_react_source(state(i,j,k,:), R_source(i,j,k,:), i,j,k, burn_state)
+             else
+                R_source(i,j,k,:) = ZERO
+             end if
           enddo
        enddo
     enddo
@@ -1306,8 +1316,6 @@ contains
     real(rt), intent(inout) :: R_store(rs_lo(1):rs_hi(1), rs_lo(2):rs_hi(2), rs_lo(3):rs_hi(3), nspec+2)
 
     integer :: i, j, k
-
-
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
