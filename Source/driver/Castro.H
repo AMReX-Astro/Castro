@@ -383,29 +383,6 @@ public:
                                int  amr_iteration,
                                int  amr_ncycle);
 
-///
-/// This routine will advance the old state data (called ``S_old`` here)
-/// to the new time, for a single level.  The new data is called
-/// ``S_new`` here.  The update includes reactions (if we are not doing
-/// SDC), hydro, and the source terms. The advance is doing using the MOL
-/// (method of lines) approach.
-///
-/// @note the time that passes through here is the time for the
-/// current stage
-///
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
-///
-    amrex::Real do_advance_mol (amrex::Real time,
-                                amrex::Real dt,
-                                int  amr_iteration,
-                                int  amr_ncycle);
 
 #ifndef AMREX_USE_CUDA
     amrex::Real do_advance_sdc (amrex::Real time,
@@ -1747,7 +1724,7 @@ protected:
 
 
 ///
-/// A state array for the post burn state to be used in MOL integration
+/// A state array for the some reaction stuff with SDC
 ///
     amrex::MultiFab Sburn;
 
@@ -1869,21 +1846,6 @@ protected:
 ///
     bool keep_prev_state;
 
-
-///
-/// Storage for the method of lines stages
-///
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_mol;
-
-
-///
-/// MOL Butcher tableau
-///
-    static int MOL_STAGES;
-
-    static amrex::Vector< amrex::Vector<amrex::Real> > a_mol;
-    static amrex::Vector<amrex::Real> b_mol;
-    static amrex::Vector<amrex::Real> c_mol;
 
 
     //
@@ -2195,10 +2157,6 @@ protected:
     int current_sdc_node;
 
 
-///
-/// method of lines
-///
-    int mol_iteration;
 
 /* problem-specific includes */
 #include <Problem.H>

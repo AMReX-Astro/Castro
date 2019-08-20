@@ -71,7 +71,6 @@ jobInfoFile << (Castro::zr_ext_bc_type == "" ? "    " : "[*] ") << "castro.zr_ex
 jobInfoFile << (Castro::hse_zero_vels == 0 ? "    " : "[*] ") << "castro.hse_zero_vels = " << Castro::hse_zero_vels << std::endl;
 jobInfoFile << (Castro::hse_interp_temp == 0 ? "    " : "[*] ") << "castro.hse_interp_temp = " << Castro::hse_interp_temp << std::endl;
 jobInfoFile << (Castro::hse_reflect_vels == 0 ? "    " : "[*] ") << "castro.hse_reflect_vels = " << Castro::hse_reflect_vels << std::endl;
-jobInfoFile << (Castro::mol_order == 2 ? "    " : "[*] ") << "castro.mol_order = " << Castro::mol_order << std::endl;
 jobInfoFile << (Castro::sdc_order == 2 ? "    " : "[*] ") << "castro.sdc_order = " << Castro::sdc_order << std::endl;
 jobInfoFile << (Castro::sdc_extra == 0 ? "    " : "[*] ") << "castro.sdc_extra = " << Castro::sdc_extra << std::endl;
 jobInfoFile << (Castro::sdc_solver == 1 ? "    " : "[*] ") << "castro.sdc_solver = " << Castro::sdc_solver << std::endl;

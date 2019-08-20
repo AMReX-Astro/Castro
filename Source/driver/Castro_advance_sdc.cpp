@@ -30,7 +30,6 @@ Castro::do_advance_sdc (Real time,
 
   // this is the new "formal" SDC integration routine.
 
-  // unlike the MOL version which just operates on a single stage,
   // this does the entire update in time for 1 SDC iteration.
 
   BL_PROFILE("Castro::do_advance_sdc()");
