@@ -289,7 +289,7 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if (vel(i,j,k,1) .ge. velerr) then
+                if (abs(vel(i,j,k,1)) .ge. velerr) then
                    tag(i,j,k) = set
                 endif
              enddo
