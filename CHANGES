@@ -3,6 +3,13 @@ recent changes
   -- The velerr tagging now takes the abs() of the velocity component
      to ensure we tag large positive and negative velocities.
 
+  -- The SDC algorithm now implements the burning conditionals
+     depending on rho and T (react_rho_min, react_rho_max,
+     react_T_min, react_T_max)
+
+  -- The SDC/MOL PLM reconstruction now implements reflecting BCs on
+     the interface states
+
 # 19.08.1
 
   -- Fix CUDA compilation

@@ -141,6 +141,7 @@ Vector<Real> Castro::c_mol;
 
 int          Castro::SDC_NODES;
 Vector<Real> Castro::dt_sdc;
+Vector<Real> Castro::node_weights;
 
 #ifdef AMREX_USE_CUDA
 int          Castro::numBCThreadsMin[3] = {1, 1, 1};

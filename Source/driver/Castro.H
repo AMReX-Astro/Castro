@@ -1908,6 +1908,7 @@ protected:
 
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;
+    static amrex::Vector<amrex::Real> node_weights;
 
 
 ///
