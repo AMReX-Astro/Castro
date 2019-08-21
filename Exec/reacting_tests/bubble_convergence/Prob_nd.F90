@@ -126,13 +126,16 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      do j = lo(2), hi(2)
         y = problo(2) + delta(2)*(dble(j) + HALF)
 
-#if AMREX_SPACEDIM == 2
-        height = y
-#else
-        height = z
-#endif
-
         do i = lo(1), hi(1)
+           x = problo(1) + delta(1)*(dble(i) + HALF)
+
+#if AMREX_SPACEDIM == 1
+           height = x
+#elif AMREX_SPACEDIM == 2
+           height = y
+#else
+           height = z
+#endif
 
            call interpolate_sub(state(i,j,k,URHO), height, idens_model)
            call interpolate_sub(state(i,j,k,UTEMP), height, itemp_model)
