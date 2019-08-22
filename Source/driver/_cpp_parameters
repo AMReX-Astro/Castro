@@ -106,6 +106,10 @@ ppm_reference_eigenvectors   int           0                  y
 # for piecewise linear, reconstruction order to use
 plm_iorder                   int           2                  y
 
+# for piecewise linear, MOL or SDC, do well-balanced reconstruction on
+# pressure
+plm_well_balanced            int           0                  y
+
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y

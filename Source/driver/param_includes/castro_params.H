@@ -46,6 +46,7 @@ static int ppm_temp_fix;
 static int ppm_predict_gammae;
 static int ppm_reference_eigenvectors;
 static int plm_iorder;
+static int plm_well_balanced;
 static int hybrid_riemann;
 static int riemann_solver;
 static int cg_maxiter;

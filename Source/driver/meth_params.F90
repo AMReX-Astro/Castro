@@ -132,6 +132,7 @@ module meth_params_module
   integer,  allocatable, save :: ppm_predict_gammae
   integer,  allocatable, save :: ppm_reference_eigenvectors
   integer,  allocatable, save :: plm_iorder
+  integer,  allocatable, save :: plm_well_balanced
   integer,  allocatable, save :: hybrid_riemann
   integer,  allocatable, save :: riemann_solver
   integer,  allocatable, save :: cg_maxiter
@@ -225,6 +226,7 @@ attributes(managed) :: ppm_temp_fix
 attributes(managed) :: ppm_predict_gammae
 attributes(managed) :: ppm_reference_eigenvectors
 attributes(managed) :: plm_iorder
+attributes(managed) :: plm_well_balanced
 attributes(managed) :: hybrid_riemann
 attributes(managed) :: riemann_solver
 attributes(managed) :: cg_maxiter
@@ -351,6 +353,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(ppm_predict_gammae) &
   !$acc create(ppm_reference_eigenvectors) &
   !$acc create(plm_iorder) &
+  !$acc create(plm_well_balanced) &
   !$acc create(hybrid_riemann) &
   !$acc create(riemann_solver) &
   !$acc create(cg_maxiter) &
@@ -558,6 +561,8 @@ contains
     ppm_reference_eigenvectors = 0;
     allocate(plm_iorder)
     plm_iorder = 2;
+    allocate(plm_well_balanced)
+    plm_well_balanced = 0;
     allocate(hybrid_riemann)
     hybrid_riemann = 0;
     allocate(riemann_solver)
@@ -714,6 +719,7 @@ contains
     call pp%query("ppm_predict_gammae", ppm_predict_gammae)
     call pp%query("ppm_reference_eigenvectors", ppm_reference_eigenvectors)
     call pp%query("plm_iorder", plm_iorder)
+    call pp%query("plm_well_balanced", plm_well_balanced)
     call pp%query("hybrid_riemann", hybrid_riemann)
     call pp%query("riemann_solver", riemann_solver)
     call pp%query("cg_maxiter", cg_maxiter)
@@ -786,30 +792,29 @@ contains
     !$acc device(time_integration_method, limit_fourth_order, use_reconstructed_gamma1) &
     !$acc device(hybrid_hydro, ppm_type, ppm_temp_fix) &
     !$acc device(ppm_predict_gammae, ppm_reference_eigenvectors, plm_iorder) &
-    !$acc device(hybrid_riemann, riemann_solver, cg_maxiter) &
-    !$acc device(cg_tol, cg_blend, use_eos_in_riemann) &
-    !$acc device(riemann_speed_limit, use_flattening, transverse_use_eos) &
-    !$acc device(transverse_reset_density, transverse_reset_rhoe, dual_energy_eta1) &
-    !$acc device(dual_energy_eta2, use_pslope, limit_fluxes_on_small_dens) &
-    !$acc device(density_reset_method, allow_small_energy, do_sponge) &
-    !$acc device(sponge_implicit, first_order_hydro, hse_zero_vels) &
-    !$acc device(hse_interp_temp, hse_reflect_vels, mol_order) &
-    !$acc device(sdc_order, sdc_extra, sdc_solver) &
-    !$acc device(sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener) &
-    !$acc device(sdc_solver_atol, sdc_solver_relax_factor, sdc_solve_for_rhoe) &
-    !$acc device(sdc_use_analytic_jac, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_X_threshold, do_react) &
-    !$acc device(react_T_min, react_T_max, react_rho_min) &
-    !$acc device(react_rho_max, disable_shock_burning, T_guess) &
-    !$acc device(diffuse_temp, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
-    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, use_point_mass, point_mass) &
-    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
-    !$acc device(track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(plm_well_balanced, hybrid_riemann, riemann_solver) &
+    !$acc device(cg_maxiter, cg_tol, cg_blend) &
+    !$acc device(use_eos_in_riemann, riemann_speed_limit, use_flattening) &
+    !$acc device(transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
+    !$acc device(dual_energy_eta1, dual_energy_eta2, use_pslope) &
+    !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_small_energy) &
+    !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
+    !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
+    !$acc device(mol_order, sdc_order, sdc_extra) &
+    !$acc device(sdc_solver, sdc_solver_tol_dens, sdc_solver_tol_spec) &
+    !$acc device(sdc_solver_tol_ener, sdc_solver_atol, sdc_solver_relax_factor) &
+    !$acc device(sdc_solve_for_rhoe, sdc_use_analytic_jac, cfl) &
+    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
+    !$acc device(do_react, react_T_min, react_T_max) &
+    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
+    !$acc device(T_guess, diffuse_temp, diffuse_cutoff_density) &
+    !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
+    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
+    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
 
 
 #ifdef GRAVITY
@@ -953,6 +958,9 @@ contains
     end if
     if (allocated(plm_iorder)) then
         deallocate(plm_iorder)
+    end if
+    if (allocated(plm_well_balanced)) then
+        deallocate(plm_well_balanced)
     end if
     if (allocated(hybrid_riemann)) then
         deallocate(hybrid_riemann)
