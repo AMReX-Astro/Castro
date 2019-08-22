@@ -324,7 +324,7 @@ contains
                       q, qd_lo, qd_hi, n, &
                       flatn, f_lo, f_hi, &
                       dq, dq_lo, dq_hi, &
-                      domlo, domhi)
+                      dx, domlo, domhi)
        end do
 
        if (use_pslope == 1) then

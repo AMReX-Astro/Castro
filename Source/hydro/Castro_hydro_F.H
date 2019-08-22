@@ -414,6 +414,7 @@ extern "C"
      BL_FORT_FAB_ARG_3D(dq),
      BL_FORT_FAB_ARG_3D(qm),
      BL_FORT_FAB_ARG_3D(qp),
+     const amrex::Real* dx,
      const int* domlo, const int* domhi);
 
   void ca_mol_ppm_reconstruct

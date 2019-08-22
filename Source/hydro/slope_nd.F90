@@ -14,9 +14,10 @@ contains
                     q, qd_lo, qd_hi, n, &
                     flatn, f_lo, f_hi, &
                     dq, qpd_lo, qpd_hi, &
-                    domlo, domhi)
+                    dx, domlo, domhi)
 
-    use meth_params_module, only: NQ, plm_iorder, QU
+    use meth_params_module, only: NQ, plm_iorder, QU, QPRES, QRHO, &
+                                  const_grav, plm_well_balanced
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, FOUR3RD, FOURTH, SIXTH
     use prob_params_module, only : Symmetry, physbc_lo, physbc_hi
     use amrex_fort_module, only : rt => amrex_real
@@ -32,6 +33,7 @@ contains
     real(rt), intent(inout) :: dq(qpd_lo(1):qpd_hi(1),qpd_lo(2):qpd_hi(2),qpd_lo(3):qpd_hi(3),NQ)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in), value :: idir
+    real(rt), intent(in) :: dx(3)
     integer, intent(in) :: domlo(3), domhi(3)
 
     integer :: i, j, k
@@ -41,6 +43,7 @@ contains
     real(rt) :: dlftm1, drgtm1, dfm1
 
     real(rt) :: qm2, qm1, q0, qp1, qp2
+    real(rt) :: pp1, p0, pm1
 
     !$gpu
 
@@ -62,7 +65,7 @@ contains
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
 
-                   if (plm_well_balanced == 1 .and. n == QPRES) then
+                   if (plm_well_balanced == 1 .and. n == QPRES .and. idir == AMREX_SPACEDIM) then
                       ! we'll only do a second-order pressure slope,
                       ! but we'll follow the well-balanced scheme of
                       ! Kappeli.  Note at the moment we are assuming
@@ -71,13 +74,13 @@ contains
                       pp1 = q(i+1,j,k,QPRES) - (p0 + HALF*dx(1)*(q(i,j,k,QRHO) + q(i+1,j,k,QRHO))*const_grav)
                       pm1 = q(i-1,j,k,QPRES) - (p0 - HALF*dx(1)*(q(i,j,k,QRHO) + q(i-1,j,k,QRHO))*const_grav)
 
-                      if (i == domlo(1) .and. physbc_lo(1) == Symmetry) then
-                         pm1 = ZERO  ! HSE is perfectly satisfied
-                      end if
+                      ! if (i == domlo(1) .and. physbc_lo(1) == Symmetry) then
+                      !    pm1 = ZERO  ! HSE is perfectly satisfied
+                      ! end if
 
-                      if (i == domhi(1) .and. physbc_hi(1) == Symmetry) then
-                         pp1 = ZERO
-                      end if
+                      ! if (i == domhi(1) .and. physbc_hi(1) == Symmetry) then
+                      !    pp1 = ZERO
+                      ! end if
 
                       dlft = TWO*(p0 - pm1)
                       drgt = TWO*(pp1 - p0)

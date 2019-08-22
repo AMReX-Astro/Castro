@@ -228,6 +228,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  BL_TO_FORTRAN_ANYD(dq),
                  BL_TO_FORTRAN_ANYD(qm),
                  BL_TO_FORTRAN_ANYD(qp),
+                 AMREX_REAL_ANYD(dx),
                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
             } else {

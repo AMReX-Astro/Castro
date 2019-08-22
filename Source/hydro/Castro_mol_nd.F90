@@ -13,15 +13,15 @@ contains
                                     dq, dq_lo, dq_hi, &
                                     qm, qm_lo, qm_hi, &
                                     qp, qp_lo, qp_hi, &
-                                    domlo, domhi) bind(C, name="ca_mol_plm_reconstruct")
+                                    dx, domlo, domhi) bind(C, name="ca_mol_plm_reconstruct")
 
     use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
-                                   use_flattening, QPRES, &
+                                   use_flattening, plm_well_balanced, QPRES, &
                                    QTEMP, QFS, QFX, QREINT, QRHO, QU, QV, QW, &
                                    first_order_hydro, hybrid_riemann, &
-                                   ppm_temp_fix
+                                   ppm_temp_fix, const_grav
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
     use slope_module, only : uslope
     use amrex_fort_module, only : rt => amrex_real
@@ -45,6 +45,7 @@ contains
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ, AMREX_SPACEDIM)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ, AMREX_SPACEDIM)
     integer, intent(in) :: domlo(3), domhi(3)
+    real(rt), intent(in) :: dx(3)
 
     integer :: idir, i, j, k, n
     type (eos_t) :: eos_state
@@ -60,7 +61,7 @@ contains
                       q, q_lo, q_hi, n, &
                       flatn, fl_lo, fl_hi, &
                       dq, dq_lo, dq_hi, &
-                      domlo, domhi)
+                      dx, domlo, domhi)
 
        end do
 
@@ -68,20 +69,39 @@ contains
 
           ! for each slope, fill the two adjacent edge states
           if (idir == 1) then
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-                   do i = lo(1), hi(1)
 
-                      ! left state at i+1/2 interface
-                      qm(i+1,j,k,n,1) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+             if (plm_well_balanced == 1 .and. n == QPRES .and. idir == AMREX_SPACEDIM) then
 
-                      ! right state at i-1/2 interface
-                      qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
 
+                         ! left state at i+1/2 interface
+                         qm(i+1,j,k,n,1) = q(i,j,k,n) + HALF*dq(i,j,k,n) + &
+                              HALF*dx(1)*q(i,j,k,QRHO)*const_grav
+
+                         ! right state at i-1/2 interface
+                         qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n) - &
+                              HALF*dx(1)*q(i,j,k,QRHO)*const_grav
+                      end do
                    end do
                 end do
-             end do
 
+             else
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
+
+                         ! left state at i+1/2 interface
+                         qm(i+1,j,k,n,1) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+
+                         ! right state at i-1/2 interface
+                         qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+
+                      end do
+                   end do
+                end do
+             end if
 #if BL_SPACEDIM >= 2
           else if (idir == 2) then
              do k = lo(3), hi(3)
