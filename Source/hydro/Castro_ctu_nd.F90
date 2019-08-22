@@ -321,18 +321,19 @@ contains
        do n = 1, NQ
           if (.not. reconstruct_state(n)) cycle
           call uslope(lo, hi, idir, &
-               q, qd_lo, qd_hi, n, &
-               flatn, f_lo, f_hi, &
-               dq, dq_lo, dq_hi)
+                      q, qd_lo, qd_hi, n, &
+                      flatn, f_lo, f_hi, &
+                      dq, dq_lo, dq_hi, &
+                      domlo, domhi)
        end do
 
        if (use_pslope == 1) then
           call pslope(lo, hi, idir, &
-               q, qd_lo, qd_hi, &
-               flatn, f_lo, f_hi, &
-               dq, dq_lo, dq_hi, &
-               srcQ, src_lo, src_hi, &
-               dx)
+                      q, qd_lo, qd_hi, &
+                      flatn, f_lo, f_hi, &
+                      dq, dq_lo, dq_hi, &
+                      srcQ, src_lo, src_hi, &
+                      dx)
        endif
 
 

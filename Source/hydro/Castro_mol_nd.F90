@@ -59,7 +59,8 @@ contains
           call uslope(lo, hi, idir, &
                       q, q_lo, q_hi, n, &
                       flatn, fl_lo, fl_hi, &
-                      dq, dq_lo, dq_hi)
+                      dq, dq_lo, dq_hi, &
+                      domlo, domhi)
 
        end do
 
@@ -432,7 +433,6 @@ contains
                                    first_order_hydro, difmag, hybrid_riemann, &
                                    limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-    use slope_module, only : uslope
     use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source
