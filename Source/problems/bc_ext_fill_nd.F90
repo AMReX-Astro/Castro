@@ -950,8 +950,8 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: i, j, k
-    integer :: jmin, jmax, kmin, kmax
-    real(rt) :: y, z
+    integer :: imin, imax, jmin, jmax, kmin, kmax
+    real(rt) :: x, y, z
 
     !$gpu
 
@@ -964,12 +964,42 @@ contains
 #ifndef AMREX_USE_CUDA
     ! XLO
     if ( bc(1,1) == EXT_DIR .and. lo(1) < domlo(1)) then
-       call castro_error("We should not be here (xlo denfill)")
+       imin = adv_lo(1)
+       imax = domlo(1)-1
+#ifdef AMREX_USE_CUDA
+       ! For CUDA, this should only be one thread doing the work:
+       ! we'll arbitrary choose the zone with index domlo(2) - 1.
+       if (hi(1) /= imax) then
+          imax = imin - 1
+       end if
+#endif
+       do i = imin, imax
+          x = problo(1) + delta(1)*(dble(i) + HALF)
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                call interpolate_sub(adv(i,j,k), x, idens_model)
+             end do
+          end do
+       end do
     end if
 
     ! XHI
     if ( bc(1,2) == EXT_DIR .and. hi(1) > domhi(1)) then
-       call castro_error("We should not be here (xhi denfill)")
+       imin = domhi(1)+1
+       imax = adv_hi(1)
+#ifdef AMREX_USE_CUDA
+       if (lo(1) /= imin) then
+          imin = imax + 1
+       end if
+#endif
+       do i = imin, imax
+          x = problo(1) + delta(1)*(dble(i)+ HALF)
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                call interpolate_sub(adv(i,j,k), x, idens_model)
+             end do
+          end do
+       end do
     endif
 #endif
 
