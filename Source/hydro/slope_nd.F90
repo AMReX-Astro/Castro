@@ -70,7 +70,7 @@ contains
                       ! but we'll follow the well-balanced scheme of
                       ! Kappeli.  Note at the moment we are assuming
                       ! constant gravity.
-                      p0 = q(i,j,k,QPRES)
+                      p0 = ZERO
                       pp1 = q(i+1,j,k,QPRES) - (p0 + HALF*dx(1)*(q(i,j,k,QRHO) + q(i+1,j,k,QRHO))*const_grav)
                       pm1 = q(i-1,j,k,QPRES) - (p0 - HALF*dx(1)*(q(i,j,k,QRHO) + q(i-1,j,k,QRHO))*const_grav)
 
