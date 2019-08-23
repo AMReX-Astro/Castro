@@ -74,13 +74,13 @@ contains
                       pp1 = q(i+1,j,k,QPRES) - (p0 + HALF*dx(1)*(q(i,j,k,QRHO) + q(i+1,j,k,QRHO))*const_grav)
                       pm1 = q(i-1,j,k,QPRES) - (p0 - HALF*dx(1)*(q(i,j,k,QRHO) + q(i-1,j,k,QRHO))*const_grav)
 
-                      ! if (i == domlo(1) .and. physbc_lo(1) == Symmetry) then
-                      !    pm1 = ZERO  ! HSE is perfectly satisfied
-                      ! end if
+                      if (i == domlo(1) .and. physbc_lo(1) == Symmetry) then
+                         pm1 = ZERO  ! HSE is perfectly satisfied
+                      end if
 
-                      ! if (i == domhi(1) .and. physbc_hi(1) == Symmetry) then
-                      !    pp1 = ZERO
-                      ! end if
+                      if (i == domhi(1) .and. physbc_hi(1) == Symmetry) then
+                         pp1 = ZERO
+                      end if
 
                       dlft = TWO*(p0 - pm1)
                       drgt = TWO*(pp1 - p0)
@@ -95,8 +95,27 @@ contains
 
                       dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dcen))
 
-                   else
+                   else if (plm_iorder == 2) then
+                      ! the 2nd order MC limiter
 
+                      qm1 = q(i-1,j,k,n)
+                      q0 = q(i,j,k,n)
+                      qp1 = q(i+1,j,k,n)
+
+                      dlft = TWO*(q0 - qm1)
+                      drgt = TWO*(qp1 - q0)
+                      dcen = FOURTH * (dlft + drgt)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlft), abs(drgt))
+                      if (dlft*drgt >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+
+                      dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dcen))
+
+                   else
                       ! the 4th order MC limiter
 
                       qm2 = q(i-2,j,k,n)

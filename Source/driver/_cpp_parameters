@@ -104,7 +104,8 @@ ppm_predict_gammae           int           0                  y
 ppm_reference_eigenvectors   int           0                  y
 
 # for piecewise linear, reconstruction order to use
-plm_iorder                   int           2                  y
+# 1 = piecewise constant, 2 = MC limiter, >2 = 4th order MC limiter
+plm_iorder                   int           3                  y
 
 # for piecewise linear, MOL or SDC, do well-balanced reconstruction on
 # pressure
