@@ -329,7 +329,7 @@ contains
                 eint = eos_state%e
                 pres_below = eos_state%p
 
-                ! integrate downward
+                ! integrate upward
                 imin = domhi(1)+1
                 imax = adv_hi(1)
 #ifdef AMREX_USE_CUDA
