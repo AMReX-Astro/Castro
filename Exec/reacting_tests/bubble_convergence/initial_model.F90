@@ -205,7 +205,7 @@ contains
 
              model_state(i, idens_model) = eos_state % rho
              model_state(i, itemp_model) = eos_state % T
-             model_state(i, ispec_model:ispec_model-1+nspec) = xn(:)
+             model_state(i, ispec_model:ispec_model-1+nspec) = model_params % xn(:)
 
           else
 
@@ -243,12 +243,53 @@ contains
              model_state(i, idens_model) = dens_zone
              model_state(i, ipres_model) = p_want
              model_state(i, itemp_model) = eos_state % T
-             model_state(i, ispec_model:ispec_model-1+nspec) = xn(:)
+             model_state(i, ispec_model:ispec_model-1+nspec) = model_params % xn(:)
 
           end if
           print *, i, model_state(i, idens_model), model_state(i, ipres_model)
 
        end do
+
+       ! now integrate down
+       do i = ibase-1, 1, -1
+
+          dens_zone = model_state(i+1, idens_model)
+
+          converged_hse = .FALSE.
+
+          do iter = 1, MAX_ITER
+
+             p_want = model_state(i+1, ipres_model) - &
+                  dx*HALF*(dens_zone + model_state(i+1, idens_model))*const_grav
+
+             ! use the EOS with constant entropy to find corrected state
+             eos_state % p = p_want
+             eos_state % s = entropy_fixed
+             eos_state % xn(:) = model_params % xn(:)
+
+             call eos(eos_input_ps, eos_state)
+
+             drho = eos_state % rho - dens_zone
+             dens_zone = eos_state % rho
+             if (abs(drho) < TOL*dens_zone) then
+                converged_hse = .TRUE.
+                exit
+             end if
+
+          end do
+
+          if (.not. converged_hse) then
+             print *, "failed to convergence in initial model generation"
+             call castro_error("ERROR")
+          end if
+
+          ! initialze zone
+          model_state(i, idens_model) = dens_zone
+          model_state(i, ipres_model) = p_want
+          model_state(i, itemp_model) = eos_state % T
+          model_state(i, ispec_model:ispec_model-1+nspec) = model_params % xn(:)
+
+       enddo
 
     end if
 

@@ -22,7 +22,7 @@ castro.xr_ext_bc_type = "hse"
 
 # WHICH PHYSICS
 castro.do_hydro = 1
-castro.do_react = 1
+castro.do_react = 0
 castro.do_grav = 1
 castro.do_sponge = 1
 
