@@ -95,6 +95,7 @@ contains
 
                       dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dcen))
 
+
                    else if (plm_iorder == 2) then
                       ! the 2nd order MC limiter
 

@@ -18,7 +18,7 @@ contains
     use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
-                                   use_flattening, plm_well_balanced, QPRES, &
+                                   plm_well_balanced, QPRES, &
                                    QTEMP, QFS, QFX, QREINT, QRHO, QU, QV, QW, &
                                    first_order_hydro, hybrid_riemann, &
                                    ppm_temp_fix, const_grav
@@ -298,7 +298,7 @@ contains
     use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
-                                   use_flattening, QPRES, &
+                                   QPRES, &
                                    QTEMP, QFS, QFX, QREINT, QRHO, &
                                    first_order_hydro, hybrid_riemann, &
                                    ppm_temp_fix
@@ -448,7 +448,7 @@ contains
     use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
-                                   use_flattening, QPRES, &
+                                   QPRES, &
                                    QTEMP, QFS, QFX, QREINT, QRHO, &
                                    first_order_hydro, difmag, hybrid_riemann, &
                                    limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
