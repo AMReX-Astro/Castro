@@ -30,6 +30,7 @@ castro.small_temp = 1.e6
 
 castro.sdc_order=2
 castro.ppm_type=0
+castro.plm_iorder = 2
 castro.plm_well_balanced=1
 castro.time_integration_method=2
 castro.limit_fourth_order=1
