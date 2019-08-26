@@ -739,9 +739,171 @@ contains
     if (bc(2,2,1) == EXT_DIR .and. hi(2) > domhi(2)) then
 
        if (yr_ext == EXT_HSE) then
-#ifndef AMREX_USE_CUDA
-          call castro_error("ERROR: HSE boundaries not implemented for +Y")
+
+          do k = lo(3), hi(3)
+             do i = lo(1), hi(1)
+
+                ! we are integrating along a column at constant i.
+                ! Make sure that our starting state is well-defined
+                dens_below = adv(i,domhi(2),k,URHO)
+
+                ! sometimes, we might be working in a corner
+                ! where the ghost cells above us have not yet
+                ! been initialized.  In that case, take the info
+                ! from the initial model
+                if (dens_below == ZERO) then
+                   y = problo(2) + delta(2)*(dble(domhi(2)) + HALF)
+
+                   call interpolate_sub(dens_below, y, idens_model)
+                   call interpolate_sub(temp_below, y, itemp_model)
+
+                   do m = 1, nspec
+                      call interpolate_sub(X_zone(m), y, ispec_model-1+m)
+                   end do
+
+                else
+                   temp_below = adv(i,domhi(2),k,UTEMP)
+                   X_zone(:) = adv(i,domhi(2),k,UFS:UFS-1+nspec)/dens_below
+                endif
+
+                ! keep track of the density at the base of the domain
+                dens_base = dens_below
+
+                ! get pressure in this zone (the initial below zone)
+                eos_state%rho = dens_below
+                eos_state%T = temp_below
+                eos_state%xn(:) = X_zone(:)
+
+                call eos(eos_input_rt, eos_state)
+
+                eint = eos_state%e
+                pres_below = eos_state%p
+
+                ! integrate upward
+                jmin = domhi(2)+1
+                jmax = adv_hi(2)
+#ifdef AMREX_USE_CUDA
+                ! For CUDA, this should only be one thread doing the work:
+                ! we'll arbitrary choose the zone with index domlo(1) - 1.
+                if (hi(2) /= jmax) then
+                   jmax = jmin - 1
+                end if
 #endif
+                do j = jmin, jmax
+                   y = problo(2) + delta(2)*(dble(j) + HALF)
+
+                   ! HSE integration to get density, pressure
+
+                   ! initial guesses
+                   dens_zone = dens_below
+
+                   ! temperature and species held constant in BCs
+                   if (hse_interp_temp == 1) then
+                      call interpolate_sub(temp_zone, y, itemp_model)
+                   else
+                      temp_zone = temp_below
+                   endif
+
+                   converged_hse = .FALSE.
+
+                   do iter = 1, MAX_ITER
+
+                      ! pressure needed from HSE
+                      p_want = pres_below + &
+                           delta(2)*HALF*(dens_zone + dens_below)*const_grav
+
+                      ! pressure from EOS
+                      eos_state%rho = dens_zone
+                      eos_state%T = temp_zone
+                      eos_state%xn(:) = X_zone(:)
+
+                      call eos(eos_input_rt, eos_state)
+
+                      pres_zone = eos_state%p
+                      dpdr = eos_state%dpdr
+                      eint = eos_state%e
+
+                      ! Newton-Raphson - we want to zero A = p_want - p(rho)
+                      A = p_want - pres_zone
+                      drho = A/(dpdr - HALF*delta(2)*const_grav)
+
+                      dens_zone = max(0.9_rt*dens_zone, &
+                           min(dens_zone + drho, 1.1_rt*dens_zone))
+
+                      ! convergence?
+                      if (abs(drho) < TOL*dens_zone) then
+                         converged_hse = .TRUE.
+                         exit
+                      endif
+
+                   enddo
+
+#ifndef AMREX_USE_CUDA
+                   if (.not. converged_hse) then
+                      print *, "i, j, k, domhi(2): ", i, j, k, domhi(2)
+                      print *, "p_want:    ", p_want
+                      print *, "dens_zone: ", dens_zone
+                      print *, "temp_zone: ", temp_zone
+                      print *, "drho:      ", drho
+                      print *, " "
+                      print *, "column info: "
+                      print *, "   dens: ", adv(i,j:domhi(2),k,URHO)
+                      print *, "   temp: ", adv(i,j:domhi(2),k,UTEMP)
+                      call castro_error("ERROR in bc_ext_fill_nd: failure to converge in +Y BC")
+                   endif
+#endif
+
+                   ! velocity
+                   if (hse_zero_vels == 1) then
+
+                      ! zero normal momentum causes pi waves to pass through
+                      adv(i,j,k,UMX) = ZERO
+                      adv(i,j,k,UMY) = ZERO
+                      adv(i,j,k,UMZ) = ZERO
+
+                   else
+
+                      if (hse_reflect_vels == 1) then
+                         ! reflect normal, zero gradient for transverse
+                         ! note: we need to match the corresponding
+                         ! zone on the other side of the interface
+                         joff = j-domhi(2)-1
+                         adv(i,j,k,UMY) = -dens_zone*(adv(i,domhi(2)-joff,k,UMY)/adv(i,domhi(2)-joff,k,URHO))
+
+                         adv(i,j,k,UMX) = -dens_zone*(adv(i,domhi(2),k,UMX)/dens_base)
+                         adv(i,j,k,UMZ) = -dens_zone*(adv(i,domhi(2),k,UMZ)/dens_base)
+                      else
+                         ! zero gradient
+                         adv(i,j,k,UMX) = dens_zone*(adv(i,domhi(2),k,UMX)/dens_base)
+                         adv(i,j,k,UMY) = dens_zone*(adv(i,domhi(2),k,UMY)/dens_base)
+                         adv(i,j,k,UMZ) = dens_zone*(adv(i,domhi(2),k,UMZ)/dens_base)
+                      endif
+                   endif
+                   eos_state%rho = dens_zone
+                   eos_state%T = temp_zone
+                   eos_state%xn(:) = X_zone
+
+                   call eos(eos_input_rt, eos_state)
+
+                   pres_zone = eos_state%p
+                   eint = eos_state%e
+
+                   ! store the final state
+                   adv(i,j,k,URHO) = dens_zone
+                   adv(i,j,k,UEINT) = dens_zone*eint
+                   adv(i,j,k,UEDEN) = dens_zone*eint + &
+                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
+                   adv(i,j,k,UTEMP) = temp_zone
+                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+
+                   ! for the next zone
+                   dens_below = dens_zone
+                   pres_below = pres_zone
+
+                end do
+             end do
+          end do
+
 
        elseif (yr_ext == EXT_INTERP) then
           ! interpolate thermodynamics from initial model
