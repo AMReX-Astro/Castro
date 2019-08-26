@@ -38,8 +38,8 @@ main (int   argc,
 {
 
     // check to see if it contains --describe
-    if (argc > 2) {
-        for (auto i = 2; i < argc; i++) {
+    if (argc >= 2) {
+        for (auto i = 1; i < argc; i++) {
             if (std::string(argv[i]) == "--describe") {
                 Castro::writeBuildInfo();
                 return 0;
