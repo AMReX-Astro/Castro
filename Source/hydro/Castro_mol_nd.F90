@@ -102,39 +102,82 @@ contains
                    end do
                 end do
              end if
+
 #if BL_SPACEDIM >= 2
           else if (idir == 2) then
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-                   do i = lo(1), hi(1)
 
-                      ! left state at j+1/2 interface
-                      qm(i,j+1,k,n,2) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+             if (plm_well_balanced == 1 .and. n == QPRES .and. idir == AMREX_SPACEDIM) then
 
-                      ! right state at j-1/2 interface
-                      qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
 
+                         ! left state at i+1/2 interface
+                         qm(i,j+1,k,n,2) = q(i,j,k,n) + HALF*dq(i,j,k,n) + &
+                              HALF*dx(2)*q(i,j,k,QRHO)*const_grav
+
+                         ! right state at i-1/2 interface
+                         qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n) - &
+                              HALF*dx(2)*q(i,j,k,QRHO)*const_grav
+                      end do
                    end do
                 end do
-             end do
+
+             else
+
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
+
+                         ! left state at j+1/2 interface
+                         qm(i,j+1,k,n,2) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+
+                         ! right state at j-1/2 interface
+                         qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+
+                      end do
+                   end do
+                end do
+             end if
 #endif
 
 #if BL_SPACEDIM == 3
           else
 
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-                   do i = lo(1), hi(1)
+             if (plm_well_balanced == 1 .and. n == QPRES .and. idir == AMREX_SPACEDIM) then
 
-                      ! left state at k+1/2 interface
-                      qm(i,j,k+1,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
 
-                      ! right state at k-1/2 interface
-                      qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                         ! left state at i+1/2 interface
+                         qm(i,j,k+1,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n) + &
+                              HALF*dx(3)*q(i,j,k,QRHO)*const_grav
 
+                         ! right state at i-1/2 interface
+                         qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n) - &
+                              HALF*dx(3)*q(i,j,k,QRHO)*const_grav
+                      end do
                    end do
                 end do
-             end do
+
+             else
+
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
+
+                         ! left state at k+1/2 interface
+                         qm(i,j,k+1,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+
+                         ! right state at k-1/2 interface
+                         qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+
+                      end do
+                   end do
+                end do
+
+             end if
 #endif
 
           end if

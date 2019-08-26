@@ -195,49 +195,102 @@ contains
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
 
-                   ! First compute Fromm slopes
+                   if (plm_well_balanced == 1 .and. n == QPRES .and. idir == AMREX_SPACEDIM) then
+                      ! we'll only do a second-order pressure slope,
+                      ! but we'll follow the well-balanced scheme of
+                      ! Kappeli.  Note at the moment we are assuming
+                      ! constant gravity.
+                      p0 = ZERO
+                      pp1 = q(i,j+1,k,QPRES) - (p0 + HALF*dx(2)*(q(i,j,k,QRHO) + q(i,j+1,k,QRHO))*const_grav)
+                      pm1 = q(i,j+1,k,QPRES) - (p0 - HALF*dx(2)*(q(i,j,k,QRHO) + q(i,j-1,k,QRHO))*const_grav)
 
-                   ! df at j+1
-                   dlftp1 = TWO*(q(i,j+1,k,n) - q(i,j,k,n))
-                   drgtp1 = TWO*(q(i,j+2,k,n) - q(i,j+1,k,n))
-                   dcen = FOURTH * (dlftp1 + drgtp1)
-                   dsgn = sign(ONE, dcen)
-                   slop = min(abs(dlftp1), abs(drgtp1))
-                   if (dlftp1*drgtp1 >= ZERO) then
-                      dlim = slop
+                      if (j == domlo(2) .and. physbc_lo(2) == Symmetry) then
+                         pm1 = ZERO  ! HSE is perfectly satisfied
+                      end if
+
+                      if (j == domhi(2) .and. physbc_hi(2) == Symmetry) then
+                         pp1 = ZERO
+                      end if
+
+                      dlft = TWO*(p0 - pm1)
+                      drgt = TWO*(pp1 - p0)
+                      dcen = FOURTH * (dlft + drgt)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlft), abs(drgt))
+                      if (dlft*drgt >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+
+                      dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dcen))
+
+
+                   else if (plm_iorder == 2) then
+                      ! the 2nd order MC limiter
+
+                      qm1 = q(i,j-1,k,n)
+                      q0 = q(i,j,k,n)
+                      qp1 = q(i,j+1,k,n)
+
+                      dlft = TWO*(q0 - qm1)
+                      drgt = TWO*(qp1 - q0)
+                      dcen = FOURTH * (dlft + drgt)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlft), abs(drgt))
+                      if (dlft*drgt >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+
+                      dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dcen))
+
                    else
-                      dlim = ZERO
+                      ! First compute Fromm slopes
+
+                      ! df at j+1
+                      dlftp1 = TWO*(q(i,j+1,k,n) - q(i,j,k,n))
+                      drgtp1 = TWO*(q(i,j+2,k,n) - q(i,j+1,k,n))
+                      dcen = FOURTH * (dlftp1 + drgtp1)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlftp1), abs(drgtp1))
+                      if (dlftp1*drgtp1 >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+                      dfp1 = dsgn*min(dlim, abs(dcen))
+
+                      ! df at j-1
+                      dlftm1 = TWO*(q(i,j-1,k,n) - q(i,j-2,k,n))
+                      drgtm1 = TWO*(q(i,j,k,n) - q(i,j-1,k,n))
+                      dcen = FOURTH * (dlftm1 + drgtm1)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlftm1), abs(drgtm1))
+                      if (dlftm1*drgtm1 >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+                      dfm1 = dsgn*min(dlim, abs(dcen))
+
+                      ! Now compute limited fourth order slopes at j
+                      dlft = drgtm1
+                      drgt = dlftp1
+                      dcen = FOURTH * (dlft + drgt)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlft), abs(drgt))
+                      if (dlft*drgt >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+
+                      dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
+                      dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
+
                    end if
-                   dfp1 = dsgn*min(dlim, abs(dcen))
-
-                   ! df at j-1
-                   dlftm1 = TWO*(q(i,j-1,k,n) - q(i,j-2,k,n))
-                   drgtm1 = TWO*(q(i,j,k,n) - q(i,j-1,k,n))
-                   dcen = FOURTH * (dlftm1 + drgtm1)
-                   dsgn = sign(ONE, dcen)
-                   slop = min(abs(dlftm1), abs(drgtm1))
-                   if (dlftm1*drgtm1 >= ZERO) then
-                      dlim = slop
-                   else
-                      dlim = ZERO
-                   end if
-                   dfm1 = dsgn*min(dlim, abs(dcen))
-
-                   ! Now compute limited fourth order slopes at j
-                   dlft = drgtm1
-                   drgt = dlftp1
-                   dcen = FOURTH * (dlft + drgt)
-                   dsgn = sign(ONE, dcen)
-                   slop = min(abs(dlft), abs(drgt))
-                   if (dlft*drgt >= ZERO) then
-                      dlim = slop
-                   else
-                      dlim = ZERO
-                   end if
-
-                   dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
-                   dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
-
                 end do
              end do
           end do
@@ -251,48 +304,104 @@ contains
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
 
-                   ! First compute Fromm slopes
+                   if (plm_well_balanced == 1 .and. n == QPRES .and. idir == AMREX_SPACEDIM) then
+                      ! we'll only do a second-order pressure slope,
+                      ! but we'll follow the well-balanced scheme of
+                      ! Kappeli.  Note at the moment we are assuming
+                      ! constant gravity.
+                      p0 = ZERO
+                      pp1 = q(i,j,k+1,QPRES) - (p0 + HALF*dx(3)*(q(i,j,k,QRHO) + q(i,j,k+1,QRHO))*const_grav)
+                      pm1 = q(i,j,k-1,QPRES) - (p0 - HALF*dx(3)*(q(i,j,k,QRHO) + q(i,j,k-1,QRHO))*const_grav)
 
-                   ! df at k+1
-                   dlftp1 = TWO*(q(i,j,k+1,n) - q(i,j,k,n))
-                   drgtp1 = TWO*(q(i,j,k+2,n) - q(i,j,k+1,n))
-                   dcen = FOURTH * (dlftp1 + drgtp1)
-                   dsgn = sign(ONE, dcen)
-                   slop = min(abs(dlftp1), abs(drgtp1))
-                   if (dlftp1*drgtp1 >= ZERO) then
-                      dlim = slop
+                      if (k == domlo(3) .and. physbc_lo(3) == Symmetry) then
+                         pm1 = ZERO  ! HSE is perfectly satisfied
+                      end if
+
+                      if (k == domhi(3) .and. physbc_hi(3) == Symmetry) then
+                         pp1 = ZERO
+                      end if
+
+                      dlft = TWO*(p0 - pm1)
+                      drgt = TWO*(pp1 - p0)
+                      dcen = FOURTH * (dlft + drgt)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlft), abs(drgt))
+                      if (dlft*drgt >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+
+                      dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dcen))
+
+
+                   else if (plm_iorder == 2) then
+                      ! the 2nd order MC limiter
+
+                      qm1 = q(i,j,k-1,n)
+                      q0 = q(i,j,k,n)
+                      qp1 = q(i,j,k+1,n)
+
+                      dlft = TWO*(q0 - qm1)
+                      drgt = TWO*(qp1 - q0)
+                      dcen = FOURTH * (dlft + drgt)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlft), abs(drgt))
+                      if (dlft*drgt >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+
+                      dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dcen))
+
                    else
-                      dlim = ZERO
-                   end if
-                   dfp1 = dsgn*min(dlim, abs(dcen))
+                      ! the 4th order MC limiter
 
-                   ! df at k-1
-                   dlftm1 = TWO*(q(i,j,k-1,n) - q(i,j,k-2,n))
-                   drgtm1 = TWO*(q(i,j,k,n) - q(i,j,k-1,n))
-                   dcen = FOURTH * (dlftm1 + drgtm1)
-                   dsgn = sign(ONE, dcen)
-                   slop = min(abs(dlftm1), abs(drgtm1))
-                   if (dlftm1*drgtm1 >= ZERO) then
-                      dlim = slop
-                   else
-                      dlim = ZERO
-                   end if
-                   dfm1 = dsgn*min(dlim, abs(dcen))
+                      ! First compute Fromm slopes
 
-                   ! Now compute limited fourth order slopes at k
-                   dlft = drgtm1
-                   drgt = dlftp1
-                   dcen = FOURTH * (dlft + drgt)
-                   dsgn = sign(ONE, dcen)
-                   slop = min(abs(dlft), abs(drgt))
-                   if (dlft*drgt >= ZERO) then
-                      dlim = slop
-                   else
-                      dlim = ZERO
-                   end if
+                      ! df at k+1
+                      dlftp1 = TWO*(q(i,j,k+1,n) - q(i,j,k,n))
+                      drgtp1 = TWO*(q(i,j,k+2,n) - q(i,j,k+1,n))
+                      dcen = FOURTH * (dlftp1 + drgtp1)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlftp1), abs(drgtp1))
+                      if (dlftp1*drgtp1 >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+                      dfp1 = dsgn*min(dlim, abs(dcen))
 
-                   dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
-                   dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
+                      ! df at k-1
+                      dlftm1 = TWO*(q(i,j,k-1,n) - q(i,j,k-2,n))
+                      drgtm1 = TWO*(q(i,j,k,n) - q(i,j,k-1,n))
+                      dcen = FOURTH * (dlftm1 + drgtm1)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlftm1), abs(drgtm1))
+                      if (dlftm1*drgtm1 >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+                      dfm1 = dsgn*min(dlim, abs(dcen))
+
+                      ! Now compute limited fourth order slopes at k
+                      dlft = drgtm1
+                      drgt = dlftp1
+                      dcen = FOURTH * (dlft + drgt)
+                      dsgn = sign(ONE, dcen)
+                      slop = min(abs(dlft), abs(drgt))
+                      if (dlft*drgt >= ZERO) then
+                         dlim = slop
+                      else
+                         dlim = ZERO
+                      end if
+
+                      dq1 = FOUR3RD*dcen - SIXTH*(dfp1 + dfm1)
+                      dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dq1))
+
+                   end if
                 end do
              end do
           end do
