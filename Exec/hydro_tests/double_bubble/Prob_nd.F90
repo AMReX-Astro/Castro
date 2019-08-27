@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use prob_params_module, only: center
   use probdata_module
-  use amrex_error_module
+  use castro_error_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -27,7 +27,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   single = .false.
 
   if (namlen .gt. maxlen) then
-     call amrex_error("probin file name too long")
+     call castro_error("probin file name too long")
   end if
 
   do i = 1, namlen
@@ -142,7 +142,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   if (.not. single) then
 
 #if AMREX_SPACEDIM == 1
-     call amrex_error("Error: 1-d not supported")
+     call castro_error("Error: 1-d not supported")
 
 #elif AMREX_SPACEDIM == 2
      x1 = left_bubble_x_center
@@ -223,7 +223,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   else
 
 #if AMREX_SPACEDIM == 1
-     call amrex_error("Error: 1-d not supported")
+     call castro_error("Error: 1-d not supported")
 #elif AMREX_SPACEDIM == 2
      x1 = left_bubble_x_center
      y1 = r_pert_center

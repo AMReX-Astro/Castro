@@ -1,6 +1,6 @@
 module rotation_frequency_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -44,7 +44,7 @@ contains
 
     else
 #ifndef AMREX_USE_GPU
-       call amrex_error("Error:: rotation_nd.f90 :: invalid coord_type")
+       call castro_error("Error:: rotation_nd.f90 :: invalid coord_type")
 #endif
     endif
 
@@ -86,7 +86,7 @@ contains
 
     else
 #ifndef AMREX_USE_GPU
-       call amrex_error("Error:: rotation_nd.f90 :: unknown coord_type")
+       call castro_error("Error:: rotation_nd.f90 :: unknown coord_type")
 #endif
     endif
 

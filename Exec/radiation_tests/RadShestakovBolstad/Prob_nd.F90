@@ -2,7 +2,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   use probdata_module
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_error_module
+  use castro_error_module
 
   implicit none
 
@@ -20,7 +20,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error("probin file name too long")
+     call castro_error("probin file name too long")
   end if
 
   do i = 1, namlen

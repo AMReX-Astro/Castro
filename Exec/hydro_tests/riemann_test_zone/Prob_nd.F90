@@ -2,7 +2,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use probdata_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_constants_module
   use riemann_module
   use meth_params_module
@@ -32,7 +32,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character :: probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error('probin file name too long')
+     call castro_error('probin file name too long')
   end if
 
   do i = 1, namlen
@@ -106,7 +106,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
                  [lo(1)-1, lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0])
 
   ! we're done -- abort the code
-  call amrex_error("done with Riemann")
+  call castro_error("done with Riemann")
 
 end subroutine amrex_probinit
 

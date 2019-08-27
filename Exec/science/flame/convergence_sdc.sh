@@ -6,7 +6,19 @@ set -x
 DIM=1
 EXEC=./Castro${DIM}d.gnu.MPI.ex
 
-RUNPARAMS="castro.sdc_order=2 castro.time_integration_method=2 castro.ppm_type=0 castro.sdc_solve_for_rhoe=1 castro.sdc_solver_tol_dens=1.e-8 castro.sdc_solver_tol_spec=1.e-8 castro.sdc_solver_tol_ener=1.e-6 castro.sdc_solver=2 castro.sdc_use_analytic_jac=0"
+RUNPARAMS="
+castro.time_integration_method=2
+castro.sdc_order=2
+castro.ppm_type=0
+castro.sdc_solve_for_rhoe=1
+castro.sdc_solver_tol_dens=1.e-8
+castro.sdc_solver_tol_spec=1.e-8
+castro.sdc_solver_tol_ener=1.e-5
+castro.sdc_solver_atol=1.e-5
+castro.sdc_solver=2
+castro.sdc_use_analytic_jac=0
+castro.cfl=0.25
+castro.init_shrink=0.01"
 
 #mpiexec -n 16 ${EXEC} inputs.1d.sdc ${RUNPARAMS} amr.n_cell=1024 amr.plot_file=flame_1024_sdc_plt &> sdc_1024.out
 mpiexec -n 16 ${EXEC} inputs.1d.sdc ${RUNPARAMS} amr.n_cell=2048 amr.plot_file=flame_2048_sdc_plt &> sdc_2048.out

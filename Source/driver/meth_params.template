@@ -1,4 +1,4 @@
-! This module stores the runtime parameters and integer names for 
+! This module stores the runtime parameters and integer names for
 ! indexing arrays.
 !
 ! The Fortran-specific parameters are initialized in set_method_params(),
@@ -7,7 +7,7 @@
 
 module meth_params_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
   use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC
 
@@ -51,6 +51,10 @@ module meth_params_module
   ! Numerical values corresponding to the gravity types
 #ifdef GRAVITY
   integer, save, allocatable :: gravity_type_int
+  integer, parameter :: ConstantGrav = 0
+  integer, parameter :: MonopoleGrav = 1
+  integer, parameter :: PoissonGrav = 2
+  integer, parameter :: PrescribedGrav = 3
 #endif
 
   integer         , save :: numpts_1d
@@ -65,8 +69,8 @@ module meth_params_module
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
-  integer, parameter :: EXT_INTERP = 2 
-  
+  integer, parameter :: EXT_INTERP = 2
+
   integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
@@ -150,13 +154,15 @@ contains
     allocate(gravity_type_int)
 
     if (gravity_type == "ConstantGrav") then
-       gravity_type_int = 0
+       gravity_type_int = ConstantGrav
     else if (gravity_type == "MonopoleGrav") then
-       gravity_type_int = 1
+       gravity_type_int = MonopoleGrav
     else if (gravity_type == "PoissonGrav") then
-       gravity_type_int = 2
+       gravity_type_int = PoissonGrav
+    else if (gravity_type == "PrescribedGrav") then
+       gravity_type_int = PrescribedGrav
     else
-       call amrex_error("Unknown gravity type")
+       call castro_error("Unknown gravity type")
     end if
 #endif
 
@@ -164,7 +170,7 @@ contains
     select case (xl_ext_bc_type)
     case ("hse", "HSE")
        xl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xl_ext = EXT_INTERP
     case default
        xl_ext = EXT_UNDEFINED
@@ -173,7 +179,7 @@ contains
     select case (yl_ext_bc_type)
     case ("hse", "HSE")
        yl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yl_ext = EXT_INTERP
     case default
        yl_ext = EXT_UNDEFINED
@@ -182,7 +188,7 @@ contains
     select case (zl_ext_bc_type)
     case ("hse", "HSE")
        zl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zl_ext = EXT_INTERP
     case default
        zl_ext = EXT_UNDEFINED
@@ -191,7 +197,7 @@ contains
     select case (xr_ext_bc_type)
     case ("hse", "HSE")
        xr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xr_ext = EXT_INTERP
     case default
        xr_ext = EXT_UNDEFINED
@@ -200,7 +206,7 @@ contains
     select case (yr_ext_bc_type)
     case ("hse", "HSE")
        yr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yr_ext = EXT_INTERP
     case default
        yr_ext = EXT_UNDEFINED
@@ -209,7 +215,7 @@ contains
     select case (zr_ext_bc_type)
     case ("hse", "HSE")
        zr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zr_ext = EXT_INTERP
     case default
        zr_ext = EXT_UNDEFINED
@@ -240,7 +246,7 @@ contains
 #endif
 
     @@free_castro_params@@
-    
+
   end subroutine ca_finalize_meth_params
 
 
@@ -266,24 +272,25 @@ contains
 
 #ifndef AMREX_USE_GPU
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
-       call amrex_error("Unknown fspace_type", fspace_type)
+       print *, "fspace_type = ", fspace_type
+       call castro_error("Unknown fspace_type")
     end if
 #endif
-    
+
     do_inelastic_scattering = (do_is_in .ne. 0)
-    
+
     if (com_in .eq. 1) then
        comoving = .true.
     else if (com_in .eq. 0) then
        comoving = .false.
     else
 #ifndef AMREX_USE_GPU
-       call amrex_error("Wrong value for comoving", fspace_type)
+       call castro_error("Wrong value for comoving")
 #endif
     end if
-    
+
     flatten_pp_threshold = fppt
-    
+
     !$acc update &
     !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &

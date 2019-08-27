@@ -12,8 +12,6 @@ USE_OMP    = TRUE
 USE_GRAV      = TRUE
 USE_ROTATION  = TRUE
 
-DIMENSION_AGNOSTIC = TRUE
-
 USE_HYBRID_MOMENTUM = TRUE
 
 # define the location of the CASTRO top directory

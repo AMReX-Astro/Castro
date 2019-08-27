@@ -64,6 +64,12 @@ time_integration_method      int           0                  y
 # do we use a limiter with the fourth-order accurate reconstruction?
 limit_fourth_order           int           1                  y
 
+# for fourth order, we usually assume that the initialization is done
+# to cell centers and we convert to cell-averages.  With this option,
+# we take the initialization as cell-averages (except for T, which we
+# compute to fourth-order through the EOS after initialization).
+initialization_is_cell_average  int        0                  n
+
 # should we use a reconstructed version of Gamma_1 in the Riemann
 # solver? or the default zone average (requires SDC or MOL
 # integration, since we do not trace)
@@ -229,6 +235,9 @@ mol_order                    int           2                  y
 # valid options are 2 and 4
 sdc_order                    int           2                  y
 
+# number of extra SDC iterations to take beyond the order
+sdc_extra                    int           0                  y
+
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
 sdc_solver                   int           1                  y
 
@@ -371,7 +380,7 @@ T_guess                     Real           1.e8               y
 #-----------------------------------------------------------------------------
 
 # enable thermal diffusion
-diffuse_temp                 int           0                  n     DIFFUSION
+diffuse_temp                 int           0                  y     DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
 diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION

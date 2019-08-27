@@ -1,3 +1,82 @@
+recent changes
+
+  -- The velerr tagging now takes the abs() of the velocity component
+     to ensure we tag large positive and negative velocities.
+
+# 19.08.1
+
+  -- Fix CUDA compilation
+
+  -- Remove special treatment of 4th order outflow BCs (see #648)
+
+# 19.08
+
+  -- We slightly changed how the characteristic tracing is done for
+     the CTU PPM hydro solver -- we now use the limit of the parabola
+     as the edge state if the wave is not moving toward the interface
+     (#632)
+
+  -- The CTU PPM solver now uses a lot less memory by computing the
+     integrals under the parabolas as needed instead of precomputing
+     and storing them (#624)
+
+  -- We created a new error wrapper, castro_error(), to replace the
+     AMReX amrex_error().  This will allow us to deal with error when
+     on the GPU.
+
+  -- The new SDC solver has had substantial improvements:
+
+      * Explicit thermal diffusion is now implemented for both 2nd and
+        4th order accurate solvers. (#610)
+
+      * There is a new option (castro.sdc_extra) for taking extra SDC
+        iterations.
+
+      * The Newton solver for the SDC update can now subcycle.
+
+      * The sdc_solver_relax_factor option was fixed
+
+      * There is now an absolute tolerance on species used in the
+        error check for the SDC solve.
+
+      * Some scalings of terms in the Jacobian were fixed.
+
+      * We now use one-sided stencils for the reconstruction at
+        physical boundaries (#633)
+
+  -- The flame problem setup now can initialize conservatively from a
+     pre-existing flame solution.  The analysis routines have seen
+     some improvements for working with 4th order accurate
+     simulations.
+
+  -- the diffusion_test unit test now works for 4th order problems.
+
+# 19.07
+
+  -- There is now a separate set of boundary filling routines for
+     source terms, source_fill.F90.  Previously this was handled
+     by generic_fill.F90 (#627)
+
+  -- The tagging routines have been reformulated so that they run on
+     the GPU.  Since the tags_and_untags routine in AMReX is not
+     GPU-accelerated, we opt to directly fill in the TagBoxArray in
+     the tagging routines. We now pass the TagBox to Fortran as an
+     int8_t. This means that the interface to problem_tagging_nd.F90
+     has been updated to use integer(1).
+
+     Castro_prob_err_list.H and other related files have been deleted
+     as they were not actually used anywhere.
+
+     Castro_error.cpp is now removed and there is no further support
+     for writing custom tagging routines. The set of variables that we
+     check for tagging is hard-coded in Castro and can be expanded as
+     needed. Problem-specific tagging should be done through the
+     set_problem_tags functionality. (#611)
+
+  -- The dimension-specific code for problem initialization, boundary
+     conditions, and external heat terms has been removed, as warned
+     in the previous release notice.
+
 # 19.06
 
   -- Deprecation notice: as of the 19.06 release, dimension-specific

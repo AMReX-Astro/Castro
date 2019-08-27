@@ -62,25 +62,37 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 
 
 void
-Castro::hybrid_sync(MultiFab& state, int ng)
+Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
 {
-
-    BL_PROFILE("Castro::hybrid_sync()");
-
-    if (hybrid_hydro) {
+    BL_PROFILE("Castro::linear_to_hybrid_momentum()");
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-        for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
-
-	    const Box& bx = mfi.growntilebox(ng);
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.growntilebox(ng);
 
 #pragma gpu box(bx)
-	    ca_hybrid_update(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
-
-	}
-
+        ca_linear_to_hybrid_momentum(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
     }
+}
 
+
+
+void
+Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
+{
+    BL_PROFILE("Castro::hybrid_to_linear_momentum()");
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.growntilebox(ng);
+
+#pragma gpu box(bx)
+        ca_hybrid_to_linear_momentum(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
+    }
 }

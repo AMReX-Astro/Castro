@@ -15,8 +15,6 @@ USE_REACT = FALSE
 
 USE_POST_SIM = TRUE
 
-DIMENSION_AGNOSTIC = TRUE
-
 CASTRO_HOME := ../../..
 
 # This sets the EOS directory in $(CASTRO_HOME)/EOS

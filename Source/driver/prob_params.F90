@@ -55,6 +55,7 @@ module prob_params_module
   attributes(managed) :: coord_type
   attributes(managed) :: center, problo, probhi
   attributes(managed) :: domlo_level, domhi_level, dx_level
+  attributes(managed) :: ref_ratio, n_error_buf, blocking_factor
   attributes(managed) :: mom_flux_has_p
 #endif
 

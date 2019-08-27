@@ -8,7 +8,7 @@ module bc_ext_fill_module
 
   use amrex_constants_module, only: ZERO, HALF, THREE, M_PI, FOURTH, SIXTH
 #ifndef AMREX_USE_CUDA
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
 #endif
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
@@ -34,7 +34,6 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
     use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
-    use interpolate_module, only: interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -49,7 +48,6 @@ contains
     integer :: imin, imax, jmin, jmax, kmin, kmax
     real(rt) :: x, y, z, xcen, ycen, shockfront
 
-    real(rt), parameter :: gp(2) = (/ -1.d0/sqrt(THREE), 1.d0/sqrt(THREE) /)
     real(rt), parameter :: pi_over_3 = M_PI / THREE
     real(rt), parameter :: ff = FOURTH
 
@@ -89,9 +87,11 @@ contains
        end do
     endif
 
+#ifndef AMREX_USE_CUDA
     if (bc(1,2,1) == EXT_DIR .and. hi(1) > domhi(1)) then
-       call amrex_error("ERROR: special boundary not defined at +x")
+       call castro_error("ERROR: special boundary not defined at +x")
     end if
+#endif
 
 #if AMREX_SPACEDIM >= 2
     !-------------------------------------------------------------------------
@@ -148,7 +148,7 @@ contains
 
        do k = lo(3), hi(3)
           do i = lo(1), hi(1)
-             xcen = problo(1) + delta(1)*(dble(i) + 0.5_rt)
+             xcen = problo(1) + delta(1) * (dble(i) + HALF)
 
              jmin = domhi(2)+1
              jmax = adv_hi(2)
@@ -158,7 +158,7 @@ contains
              end if
 #endif
              do j = jmin, jmax
-                ycen = problo(2) + delta(2)*(dble(j) + 0.5_rt)
+                ycen = problo(2) + delta(2) * (dble(j) + HALF)
 
                 adv(i,j,k,URHO ) = 0.d0
                 adv(i,j,k,UMX  ) = 0.d0
@@ -167,13 +167,15 @@ contains
                 adv(i,j,k,UEINT) = 0.d0
                 adv(i,j,k,UTEMP) = 0.d0
 
-                do jj = 1,2
-                   y = ycen + 0.5_rt*delta(2)*gp(jj)
+                do jj = -1, 1
+                   if (jj == 0) cycle
+                   y = ycen + HALF * delta(2) * (jj / sqrt(THREE))
 
                    shockfront = sixth + y/tan(pi_over_3) + (10.d0/sin(pi_over_3))*time
 
-                   do ii = 1,2
-                      x = xcen + 0.5_rt*delta(1)*gp(ii)
+                   do ii = -1, 1
+                      if (ii == 0) cycle
+                      x = xcen + HALF * delta(1) * (ii / sqrt(THREE))
 
                       if (x < shockfront) then
                          ! Post shock ICs
@@ -207,6 +209,7 @@ contains
 
 #endif
 
+#ifndef AMREX_USE_CUDA
 #if AMREX_SPACEDIM == 3
 
     !-------------------------------------------------------------------------
@@ -215,15 +218,15 @@ contains
 
     ! ZLO
     if (bc(3,1,1) == EXT_DIR .and. lo(3) < domlo(3)) then
-       call amrex_error("ERROR: -z special BCs not implemented")
+       call castro_error("ERROR: -z special BCs not implemented")
     endif
 
     ! ZHI
     if (bc(3,2,1) == EXT_DIR .and. hi(3) > domhi(3)) then
-       call amrex_error("ERROR: +z special BCs not implemented")
+       call castro_error("ERROR: +z special BCs not implemented")
     end if
 #endif
-
+#endif
 
   end subroutine ext_fill
 
@@ -236,9 +239,8 @@ contains
     use prob_params_module, only: problo
     use model_parser_module, only: npts_model, model_r, model_state, idens_model
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
-    use interpolate_module, only: interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
 
     implicit none
@@ -255,7 +257,6 @@ contains
     integer :: imin, imax, jmin, jmax, kmin, kmax
     real(rt) :: x, y, z, xcen, ycen, shockfront
 
-    real(rt), parameter :: gp(2) = (/ -1.d0/sqrt(THREE), 1.d0/sqrt(THREE) /)
     real(rt), parameter :: pi_over_3 = M_PI / THREE
     real(rt), parameter :: ff = FOURTH
 
@@ -293,9 +294,11 @@ contains
        end do
     endif
 
+#ifndef AMREX_USE_CUDA
     if (bc(1,2) == EXT_DIR .and. hi(1) > domhi(1)) then
-       call amrex_error("ERROR: special boundary not defined at +x")
+       call castro_error("ERROR: special boundary not defined at +x")
     end if
+#endif
 
 #if AMREX_SPACEDIM >= 2
     !-------------------------------------------------------------------------
@@ -338,7 +341,7 @@ contains
 
        do k = lo(3), hi(3)
           do i = lo(1), hi(1)
-             xcen = problo(1) + delta(1)*(dble(i) + 0.5_rt)
+             xcen = problo(1) + delta(1) * (dble(i) + HALF)
 
              jmin = domhi(2)+1
              jmax = adv_hi(2)
@@ -348,17 +351,19 @@ contains
              end if
 #endif
              do j = jmin, jmax
-                ycen = problo(2) + delta(2)*(dble(j) + 0.5_rt)
+                ycen = problo(2) + delta(2) * (dble(j) + HALF)
 
                 adv(i,j,k) = 0.d0
 
-                do jj = 1,2
-                   y = ycen + 0.5_rt*delta(2)*gp(jj)
+                do jj = -1, 1
+                   if (jj == 0) cycle
+                   y = ycen + HALF * delta(2) * (jj / sqrt(THREE))
 
                    shockfront = sixth + y/tan(pi_over_3) + (10.d0/sin(pi_over_3))*time
 
-                   do ii = 1,2
-                      x = xcen + 0.5_rt*delta(1)*gp(ii)
+                   do ii = -1, 1
+                      if (ii == 0) cycle
+                      x = xcen + HALF * delta(1) * (ii / sqrt(THREE))
 
                       if (x < shockfront) then
                          ! Post shock ICs
@@ -378,6 +383,7 @@ contains
 
 #endif
 
+#ifndef AMREX_USE_CUDA
 #if AMREX_SPACEDIM == 3
 
     !-------------------------------------------------------------------------
@@ -386,15 +392,15 @@ contains
 
     ! ZLO
     if (bc(3,1) == EXT_DIR .and. lo(3) < domlo(3)) then
-       call amrex_error("ERROR: -z special BCs not implemented")
+       call castro_error("ERROR: -z special BCs not implemented")
     endif
 
     ! ZHI
     if (bc(3,2) == EXT_DIR .and. hi(3) > domhi(3)) then
-       call amrex_error("ERROR: +z special BCs not implemented")
+       call castro_error("ERROR: +z special BCs not implemented")
     end if
 #endif
-
+#endif
 
   end subroutine ext_denfill
 

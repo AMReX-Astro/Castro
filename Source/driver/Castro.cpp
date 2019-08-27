@@ -51,7 +51,8 @@ using namespace amrex;
 
 bool         Castro::signalStopJob = false;
 
-ErrorList    Castro::err_list;
+std::vector<std::string> Castro::err_list_names;
+std::vector<int> Castro::err_list_ng;
 int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
@@ -516,6 +517,8 @@ Castro::Castro (Amr&            papa,
     AmrLevel(papa,lev,level_geom,bl,dm,time),
     prev_state(num_state_type)
 {
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
+
     buildMetrics();
 
     initMFs();
@@ -1030,8 +1033,6 @@ Castro::initData ()
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
-
 #ifdef GPU_COMPATIBLE_PROBLEM
 
 #pragma gpu box(box)
@@ -1048,14 +1049,6 @@ Castro::initData ()
 
 #endif
 
-#else
-
-          BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-  	  (level, cur_time, lo, hi, ns,
-  	   BL_TO_FORTRAN(S_new[mfi]), dx,
-  	   gridloc.lo(), gridloc.hi());
-
-#endif
        }
 
 #ifdef AMREX_USE_CUDA
@@ -1075,46 +1068,94 @@ Castro::initData ()
            const int* hi  = box.hiVect();
 
 #pragma gpu box(box)
-           ca_init_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
+           ca_linear_to_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 #endif
 
        // Verify that the sum of (rho X)_i = rho at every cell
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-           const Box& bx = mfi.validbox();
+         const Box& bx = mfi.validbox();
 #pragma gpu box(bx)
-           ca_check_initial_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                    BL_TO_FORTRAN_ANYD(S_new[mfi]));
+         ca_check_initial_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                  BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 
-       // Enforce that the total and internal energies are consistent.
+       if (initialization_is_cell_average == 0) {
+         // we are assuming that the initialization was done to cell-centers
 
-       enforce_consistent_e(S_new);
+         // Enforce that the total and internal energies are consistent.
+         enforce_consistent_e(S_new);
 
-       // thus far, we assume that all initialization has worked on cell-centers
-       // (to second-order, these are cell-averages, so we're done in that case).
-       // For fourth-order, we need to convert to cell-averages now.
+         // For fourth-order, we need to convert to cell-averages now.
+         // (to second-order, these are cell-averages, so we're done in that case).
+
 #ifndef AMREX_USE_CUDA
-       if (mol_order == 4 || sdc_order == 4) {
+         if (mol_order == 4 || sdc_order == 4) {
+           Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+           AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
+
+           // note: this cannot be tiled
+           const int* domain_lo = geom.Domain().loVect();
+           const int* domain_hi = geom.Domain().hiVect();
+
+           for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+             {
+               const Box& box     = mfi.validbox();
+
+               ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
+                                       BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                                       AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+             }
+
+           // now copy back the averages
+           MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
+           Sborder.clear();
+         }
+#endif
+       } else {
+
          Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
-         // note: this cannot be tiled
+         // convert to centers -- not tile safe
+         const int* domain_lo = geom.Domain().loVect();
+         const int* domain_hi = geom.Domain().hiVect();
 
          for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
            {
-             const Box& box     = mfi.validbox();
+             const Box& box = mfi.growntilebox(2);
 
-             ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_FAB(Sborder[mfi]));
+             ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(box),
+                                          BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
            }
 
-         // now copy back the averages
-         MultiFab::Copy(S_new, Sborder, 0, 0, NUM_STATE, 0);
+         // reset the energy -- do this in one ghost cell so we can average in place below
+         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+           {
+             const Box& box = mfi.growntilebox(1);
+
+             ca_recompute_energetics(BL_TO_FORTRAN_BOX(box),
+                                     BL_TO_FORTRAN_ANYD(Sborder[mfi]));
+           }
+
+         // convert back to averages -- not tile safe
+         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+           {
+             const Box& box = mfi.validbox();
+
+             ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
+                                     BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                                     AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+           }
+
+         // now copy back the averages for UEINT and UTEMP only
+         MultiFab::Copy(S_new, Sborder, Eint, Eint, 1, 0);
+         MultiFab::Copy(S_new, Sborder, Temp, Temp, 1, 0);
          Sborder.clear();
+
        }
-#endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
 
@@ -1144,17 +1185,10 @@ Castro::initData ()
 
 	  Rad_new[mfi].setVal(0.0);
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
 	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
 	      (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
 	       BL_TO_FORTRAN_ANYD(Rad_new[mfi]), ZFILL(dx),
 	       ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
-#else
-	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
-	      (level, cur_time, lo, hi, Radiation::nGroups,
-	       BL_TO_FORTRAN(Rad_new[mfi]),dx,
-	       gridloc.lo(),gridloc.hi());
-#endif
 
 	  if (Radiation::nNeutrinoSpecies > 0 && Radiation::nNeutrinoGroups[0] == 0) {
 	      // Hack: running photon radiation through neutrino solver
@@ -2011,12 +2045,11 @@ Castro::check_for_post_regrid (Real time)
 
 	TagBoxArray tags(grids, dmap);
 
-	tags.setVal(TagBox::CLEAR);
+	for (int i = 0; i < err_list_names.size(); ++i) {
+            apply_tagging_func(tags, time, i);
+        }
 
-	for (int i = 0; i < err_list.size(); ++i)
-            apply_tagging_func(tags, TagBox::CLEAR, TagBox::SET, time, i);
-
-        apply_problem_tags(tags, TagBox::CLEAR, TagBox::SET, time);
+        apply_problem_tags(tags, time);
 
 	// Globally collate the tags.
 
@@ -2965,6 +2998,8 @@ Castro::avgDown (int state_indx)
 void
 Castro::allocOldData ()
 {
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
+    MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
     for (int k = 0; k < num_state_type; k++)
         state[k].allocOldData();
 }
@@ -2998,31 +3033,19 @@ Castro::errorEst (TagBoxArray& tags,
 
     // Apply each of the specified tagging functions.
 
-    for (int j = 0; j < num_err_list_default; j++)
-	apply_tagging_func(tags, clearval, tagval, t, j);
-
-    // Now apply the user-specified tagging functions.
-    // Include problem-specific hooks before and after.
-
-    problem_pre_tagging_hook(tags, clearval, tagval, t);
-
-    for (int j = num_err_list_default; j < err_list.size(); j++)
-        apply_tagging_func(tags, clearval, tagval, t, j);
+    for (int j = 0; j < num_err_list_default; j++) {
+	apply_tagging_func(tags, t, j);
+    }
 
     // Now we'll tag any user-specified zones using the full state array.
 
-    apply_problem_tags(tags, clearval, tagval, time);
-
-    problem_post_tagging_hook(tags, clearval, tagval, t);
+    apply_problem_tags(tags, t);
 }
 
 
 
 void
-Castro::apply_problem_tags (TagBoxArray& tags,
-                            int          clearval,
-                            int          tagval,
-                            Real         time)
+Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 {
 
     BL_PROFILE("Castro::apply_problem_tags()");
@@ -3036,42 +3059,35 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 #pragma omp parallel
 #endif
     {
-        Vector<int>  itags;
-
-	for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+	for (MFIter mfi(tags); mfi.isValid(); ++mfi)
 	{
 	    // tile box
-	    const Box&  tilebx  = mfi.tilebox();
+	    const Box&  bx      = mfi.validbox();
 
             TagBox&     tagfab  = tags[mfi];
 
-	    // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
-	    // So we are going to get a temporary integer array.
-	    tagfab.get_itags(itags, tilebx);
-
             // data pointer and index space
-	    int*        tptr    = itags.dataPtr();
-	    const int*  tlo     = tilebx.loVect();
-	    const int*  thi     = tilebx.hiVect();
+	    char*       tptr    = tagfab.dataPtr();
+	    const int*  tlo     = tagfab.loVect();
+	    const int*  thi     = tagfab.hiVect();
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
-	    set_problem_tags(ARLIM_3D(tilebx.loVect()), ARLIM_3D(tilebx.hiVect()),
-                             tptr, ARLIM_3D(tlo), ARLIM_3D(thi),
+            const int8_t tagval   = (int8_t) TagBox::SET;
+            const int8_t clearval = (int8_t) TagBox::CLEAR;
+
+#ifdef GPU_COMPATIBLE_PROBLEM
+#pragma gpu
+	    set_problem_tags(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
 			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-			     &tagval, &clearval,
-			     ZFILL(dx), ZFILL(prob_lo), &time, &level);
+			     AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                             tagval, clearval, time, level);
 #else
-	    set_problem_tags(tilebx.loVect(), tilebx.hiVect(),
-                             tptr, ARLIM(tlo), ARLIM(thi),
-			     BL_TO_FORTRAN(S_new[mfi]),
-			     &tagval, &clearval,
-		             dx, prob_lo, &time, &level);
+	    set_problem_tags(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
+			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
+			     AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
+                             tagval, clearval, time, level);
 #endif
-
-	    //
-	    // Now update the tags in the TagBox.
-	    //
-            tagfab.tags_and_untags(itags, tilebx);
 	}
     }
 
@@ -3080,17 +3096,15 @@ Castro::apply_problem_tags (TagBoxArray& tags,
 
 
 void
-Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real time, int j)
+Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 {
 
     BL_PROFILE("Castro::apply_tagging_func()");
 
-    const int*  domain_lo = geom.Domain().loVect();
-    const int*  domain_hi = geom.Domain().hiVect();
     const Real* dx        = geom.CellSize();
     const Real* prob_lo   = geom.ProbLo();
 
-    auto mf = derive(err_list[j].name(), time, err_list[j].nGrow());
+    auto mf = derive(err_list_names[j], time, err_list_ng[j]);
 
     BL_ASSERT(mf);
 
@@ -3098,50 +3112,91 @@ Castro::apply_tagging_func(TagBoxArray& tags, int clearval, int tagval, Real tim
 #pragma omp parallel
 #endif
     {
-        Vector<int>  itags;
-
-        for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+        for (MFIter mfi(tags); mfi.isValid(); ++mfi)
         {
             // FABs
             FArrayBox&  datfab  = (*mf)[mfi];
             TagBox&     tagfab  = tags[mfi];
 
             // tile box
-            const Box&  tilebx  = mfi.tilebox();
-
-            // physical tile box
-            const RealBox& pbx  = RealBox(tilebx,geom.CellSize(),geom.ProbLo());
-
-            //fab box
-            const Box&  datbox  = datfab.box();
-
-            // We cannot pass tagfab to Fortran becuase it is BaseFab<char>.
-            // So we are going to get a temporary integer array.
-            tagfab.get_itags(itags, tilebx);
+            const Box&  bx      = mfi.validbox();
 
             // data pointer and index space
-            int*        tptr    = itags.dataPtr();
-            const int*  tlo     = tilebx.loVect();
-            const int*  thi     = tilebx.hiVect();
+            char*       tptr    = tagfab.dataPtr();
+            const int*  tlo     = tagfab.loVect();
+            const int*  thi     = tagfab.hiVect();
             //
-            const int*  lo      = tlo;
-            const int*  hi      = thi;
-            //
-            const Real* xlo     = pbx.lo();
+            const int*  lo      = bx.loVect();
+            const int*  hi      = bx.hiVect();
             //
             Real*       dat     = datfab.dataPtr();
-            const int*  dlo     = datbox.loVect();
-            const int*  dhi     = datbox.hiVect();
+            const int*  dlo     = datfab.loVect();
+            const int*  dhi     = datfab.hiVect();
             const int   ncomp   = datfab.nComp();
 
-            err_list[j].errFunc()(tptr, tlo, thi, &tagval,
-                                  &clearval, dat, dlo, dhi,
-                                  lo,hi, &ncomp, domain_lo, domain_hi,
-                                  dx, xlo, prob_lo, &time, &level);
-            //
-            // Now update the tags in the TagBox.
-            //
-            tagfab.tags_and_untags(itags, tilebx);
+            const int8_t tagval   = (int8_t) TagBox::SET;
+            const int8_t clearval = (int8_t) TagBox::CLEAR;
+
+            if (err_list_names[j] == "density") {
+#pragma gpu
+                ca_denerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
+                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                            tagval, clearval, time, level);
+            }
+            else if (err_list_names[j] == "Temp") {
+#pragma gpu
+                ca_temperror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
+                             BL_TO_FORTRAN_ANYD(datfab), ncomp,
+                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                             tagval, clearval, time, level);
+            }
+            else if (err_list_names[j] == "pressure") {
+#pragma gpu
+                ca_presserror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                              (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
+                              BL_TO_FORTRAN_ANYD(datfab), ncomp,
+                              AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                              tagval, clearval, time, level);
+            }
+            else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
+#pragma gpu
+                ca_velerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
+                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                            tagval, clearval, time, level);
+            }
+#ifdef REACTIONS
+            else if (err_list_names[j] == "t_sound_t_enuc") {
+#pragma gpu
+                ca_nucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
+                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                            tagval, clearval, time, level);
+            }
+            else if (err_list_names[j] == "enuc") {
+#pragma gpu
+                ca_enucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
+                             BL_TO_FORTRAN_ANYD(datfab), ncomp,
+                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                             tagval, clearval, time, level);
+            }
+#endif
+#ifdef RADIATION
+            else if (err_list_names[j] == "rad") {
+#pragma gpu
+                ca_raderror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
+                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                            tagval, clearval, time, level);
+            }
+#endif
         }
     }
 
@@ -3361,6 +3416,9 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
     // convert to cell centers -- this will result in Stemp being
     // cell centered only on 1 ghost cells
+    const int* domain_lo = geom.Domain().loVect();
+    const int* domain_hi = geom.Domain().hiVect();
+
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(1);
       const Box& bx0 = mfi.tilebox();
@@ -3368,10 +3426,12 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
       ca_compute_lap_term(BL_TO_FORTRAN_BOX(bx0),
                           BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), &Eint);
+                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), &Eint,
+                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
       ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
-                                   BL_TO_FORTRAN_FAB(Stemp[mfi]));
+                                   BL_TO_FORTRAN_FAB(Stemp[mfi]),
+                                   AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
     }
 
@@ -3447,6 +3507,9 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
     // cell-averages -- this is 4th-order and will be a no-op for
     // those zones where e wasn't changed.
 
+    const int* domain_lo = geom.Domain().loVect();
+    const int* domain_hi = geom.Domain().hiVect();
+
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
 
       const Box& bx = mfi.tilebox();
@@ -3454,7 +3517,8 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
       // only temperature
       ca_make_fourth_in_place_n(BL_TO_FORTRAN_BOX(bx),
-                                BL_TO_FORTRAN_FAB(Stemp[mfi]), &Temp);
+                                BL_TO_FORTRAN_FAB(Stemp[mfi]), &Temp,
+                                AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
     }
 
@@ -3525,6 +3589,9 @@ Castro::swap_state_time_levels(const Real dt)
 {
 
     BL_PROFILE("Castro::swap_state_time_levels()");
+
+    MultiFab::RegionTag statedata_tag("StateData_Level_" + std::to_string(level));
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
 
     for (int k = 0; k < num_state_type; k++) {
 
@@ -3894,7 +3961,9 @@ Castro::clean_state(MultiFab& state, Real time, int ng) {
     // Sync the linear and hybrid momenta.
 
 #ifdef HYBRID_MOMENTUM
-    hybrid_sync(state, ng);
+    if (hybrid_hydro) {
+        hybrid_to_linear_momentum(state, ng);
+    }
 #endif
 
     // Compute the temperature (note that this will also reset

@@ -440,7 +440,7 @@ contains
                                    bind(C, name="ca_put_multipole_phi")
 
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use prob_params_module, only: problo, center, dim, coord_type
     use fundamental_constants_module, only: Gconst
@@ -480,7 +480,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (lnum > lnum_max) then
-       call amrex_error("Error: ca_put_multipole_phi: requested more multipole moments than we allocated data for.")
+       call castro_error("Error: ca_put_multipole_phi: requested more multipole moments than we allocated data for.")
     endif
 #endif
 
@@ -604,7 +604,7 @@ contains
                                           bind(C, name="ca_compute_multipole_moments")
 
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use prob_params_module, only: problo, center, probhi, dim, coord_type
     use amrex_constants_module
@@ -649,7 +649,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (lnum > lnum_max) then
-       call amrex_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
+       call castro_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
     endif
 #endif
 

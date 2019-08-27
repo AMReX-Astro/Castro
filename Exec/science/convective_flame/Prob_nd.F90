@@ -1,7 +1,7 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use amrex_constants_module
-  use amrex_error_module
+  use castro_error_module
   use initial_model_module
   use model_parser_module, only : model_r, model_state, npts_model, model_initialized
   use probdata_module
@@ -10,9 +10,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   implicit none
 
-  integer :: init, namlen
-  integer :: name(namlen)
-  real(rt) :: problo(3), probhi(3)
+  integer,  intent(in) :: init, namlen
+  integer,  intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(3), probhi(3)
 
   integer :: untin, i
 
@@ -38,7 +38,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt) :: dx_model
   integer :: ng
 
-  if (namlen > maxlen) call amrex_error("probin file name too long")
+  if (namlen > maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -121,7 +121,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   if (.not. species_defined) then
      print *, ifuel1, ifuel2, ifuel3
      print *, iash1, iash2, iash3
-     call amrex_error("ERROR: species not defined")
+     call castro_error("ERROR: species not defined")
   endif
 
 
@@ -139,11 +139,11 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   ! check if they sum to 1
   if (abs(sum(model_params % xn_star) - ONE) > nspec*smallx) then
-     call amrex_error("ERROR: ash mass fractions don't sum to 1")
+     call castro_error("ERROR: ash mass fractions don't sum to 1")
   endif
 
   if (abs(sum(model_params % xn_base) - ONE) > nspec*smallx) then
-     call amrex_error("ERROR: fuel mass fractions don't sum to 1")
+     call castro_error("ERROR: fuel mass fractions don't sum to 1")
   endif
 
   ! we are going to generate an initial model from problo(2) to
@@ -266,7 +266,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               r = sqrt(x**2 + y**2)
               height = z
            else
-              call amrex_error("ERROR: problem not setup for 1D")
+              call castro_error("ERROR: problem not setup for 1D")
            end if
 
            if (r < x_half_max) then

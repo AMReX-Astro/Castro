@@ -16,20 +16,35 @@ the different code paths.  These fall into two categories:
    explicit coupling of the burning and hydro is done. Within the
    Strang code path, there are two methods for doing the hydrodynamics:
 
-   -  Corner-transport upwind (CTU): this implements the unsplit,
-      characteristic tracing method of :cite:`colella:1990`.
+   - Corner-transport upwind (CTU): this implements the unsplit,
+     characteristic tracing method of :cite:`colella:1990`.
 
-   -  Method of lines (MOL): this discretizes the space part of
-      our system without any characteristic tracing and uses an
-      ODE integrator to advance the state. Multiple stages can be done,
-      each requiring reconstruction, Riemann solve, etc., and the final
-      solution is pieced together from the intermediate stages.
+   - Method of lines (MOL): this discretizes the space part of our
+     system without any characteristic tracing and uses an ODE
+     integrator to advance the state. Multiple stages can be done,
+     each requiring reconstruction, Riemann solve, etc., and the final
+     solution is pieced together from the intermediate stages.
 
 -  SDC: a class of iterative methods that couples the advection and reactions
    such that each process explicitly sees the effect of the other.  We have
    two SDC implementations in Castro.
 
 .. index:: castro.time_integration_method, USE_SDC
+
+   - The "simplified SDC" method is based on the CTU hydro update.  We
+     iterate over the construction of this term, using a lagged
+     reaction source as inputs and do the final conservative update by
+     integrating the reaction system using an ODE solver with the
+     explicit advective source included in a
+     piecewise-constant-in-time fastion.
+
+   - The main SDC method.  This fully couples the hydro and reactions
+     to either 2nd or 4th order.  This approximates the integral in
+     time using a simple quadrature rule, and integrates the hydro
+     explicitly and reactions implicitly to the next time node.
+     Iterations allow each process to see one another and achieve
+     high-order in time convergence.
+
 
 The time-integration method used is controlled by
 ``castro.time_integration_method``.
@@ -41,17 +56,16 @@ The time-integration method used is controlled by
   * ``time_integration_method = 1``: this is a method-of-lines integration
     method with Strang splitting for reactions.
 
-  * ``time_integration_method = 2``: this is a new implementation of
-    the spectral deferred corrections formalism, under development,
-    that will soon support 4th order (space and time) coupling of
-    hydro and reactions.
+  * ``time_integration_method = 2``: this is a full implementation of
+    the spectral deferred corrections formalism, with both 2nd and 4th
+    order integration implemented.  At the moment, this does not support
+    multilevel domains.
 
-  * ``time_integration_method = 3``: this is the original SDC method that
-    uses the CTU hydro advection and an ODE reaction solve that sees the
-    effects of the hydro to couple reactions and hydro to second order.
-    Note: because this requires a different set of state variables, you
-    must compile with ``USE_SDC = TRUE`` for this method to work.  We call
-    this method "simplified-SDC".
+  * ``time_integration_method = 3``: this is the simplifed SDC method
+    described above.that uses the CTU hydro advection and an ODE
+    reaction solve.  Note: because this requires a different set of
+    state variables, you must compile with ``USE_SDC = TRUE`` for this
+    method to work.
 
 Several helper functions are used throughout:
 
@@ -70,9 +84,10 @@ Several helper functions are used throughout:
 
 .. _flow:sec:nosdc:
 
-Overview of a single step (no SDC)
-==================================
+Strang-Split Evolution
+======================
 
+This driver supports both Strang CTU and Strang MOL integration.
 (``castro.time_integration_method`` = 0 or 1)
 
 The main evolution for a single step is contained in
@@ -195,14 +210,16 @@ of each step.
 
    -  Free any memory allocated for the level advance.
 
-Main Hydro, Reaction, and Gravity Advancement (CTU w/ Strang-splitting)
------------------------------------------------------------------------
+CTU w/ Strang-split Reactions Flowchart
+---------------------------------------
 
-(``castro.time_integration_method`` = 0)
+This described the flow using the CTU + Strang-split reactions,
+including gravity, rotation, and diffusion.  This integration is
+selected via ``castro.time_integration_method = 0``.
 
-The explicit portion of the system advancement (reactions,
-hydrodynamics, and gravity) is done by ``do_advance()``. Consider
-our system of equations as:
+The system advancement (reactions, hydrodynamics, diffusion, rotation,
+and gravity) is done by ``do_advance()``. Consider our system of
+equations as:
 
 .. math:: \frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb,
 
@@ -265,13 +282,11 @@ here, consistent with the names used in the code:
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
 
-#. [strang:init] *Initialize*
+#. *Initialize*
 
-   #. In ``initialize_do_advance()`` :
+   A. In ``initialize_do_advance()``, create ``Sborder``, initialized from ``S_old``
 
-      #. Create ``Sborder``, initialized from ``S_old``
-
-   #. Check for NaNs in the initial state, ``S_old``.
+   B. Check for NaNs in the initial state, ``S_old``.
 
 #. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
 
@@ -321,7 +336,7 @@ In the code, the objective is to evolve the state from the old time,
    At the end of this step, ``Sborder`` sees the effects of the
    reactions.
 
-#. [strang:oldsource] *Construct time-level n sources and apply*
+#. *Construct time-level n sources and apply*
    [``construct_old_gravity()``, ``do_old_sources()`` ]
 
    The time level :math:`n` sources are computed, and added to the
@@ -332,12 +347,12 @@ In the code, the objective is to evolve the state from the old time,
 
    The sources that we deal with here are:
 
-   #. sponge : the sponge is a damping term added to
+   A. sponge : the sponge is a damping term added to
       the momentum equation that is designed to drive the velocities to
       zero over some timescale. Our implementation of the sponge
       follows that of Maestro :cite:`maestro:III`
 
-   #. external sources : users can define problem-specific sources
+   B. external sources : users can define problem-specific sources
       in the ``ext_src_?d.f90`` file. Sources for the different
       equations in the conservative state vector, :math:`\Ub`, are indexed
       using the integer keys defined in ``meth_params_module``
@@ -347,7 +362,7 @@ In the code, the objective is to evolve the state from the old time,
       ``toy_convect`` problem setup) for an example. But most
       problems will not use this.
 
-   #. [``DIFFUSION``] diffusion : thermal diffusion can be
+   C. [``DIFFUSION``] diffusion : thermal diffusion can be
       added in an explicit formulation. Second-order accuracy is
       achieved by averaging the time-level :math:`n` and :math:`n+1` terms, using
       the same predictor-corrector strategy described here.
@@ -358,10 +373,10 @@ In the code, the objective is to evolve the state from the old time,
       timestep constraint, since the treatment is explicit. See
       Chapter \ `[ch:diffusion] <#ch:diffusion>`__ for more details.
 
-   #. [``HYBRID_MOMENTUM``] angular momentum
+   D. [``HYBRID_MOMENTUM``] angular momentum
 
 
-   #. [``GRAVITY``] gravity:
+   E. [``GRAVITY``] gravity:
 
       For full Poisson gravity, we solve for for gravity using:
 
@@ -376,7 +391,7 @@ In the code, the objective is to evolve the state from the old time,
       solver are given in Chapter \ `[ch:gravity] <#ch:gravity>`__.
 
 
-   #. [``ROTATION``] rotation
+   F. [``ROTATION``] rotation
 
       We compute the rotational potential (for use in the energy update)
       and the rotational acceleration (for use in the momentum
@@ -395,7 +410,7 @@ In the code, the objective is to evolve the state from the old time,
    Note that the source terms are already applied to ``S_new``
    in this step, with a full :math:`\Delta t`—this will be corrected later.
 
-#. [strang:hydro] *Construct the hydro update* [construct_hydro_source()]
+#. *Construct the hydro update* [``construct_hydro_source()``]
 
    The goal is to advance our system considering only the advective
    terms (which in Cartesian coordinates can be written as the
@@ -408,29 +423,22 @@ In the code, the objective is to evolve the state from the old time,
    complex time-integration schemes.
 
    In the Strang-split formulation, we start the reconstruction using
-   the state after burning, :math:`\Ub^\star` (``Sborder``). There
-   are two approaches we use, the corner transport upwind (CTU) method
-   that uses characteristic tracing as described in
-   :cite:`colella:1990`, and a method-of-lines approach. The choice is
-   determined by the parameter ``castro.time_integration_method``.
+   the state after burning, :math:`\Ub^\star` (``Sborder``).  For the
+   CTU method, we predict to the half-time (:math:`n+1/2`) to get a
+   second-order accurate method. Note: ``Sborder`` does not know of
+   any sources except for reactions. The advection step is
+   complicated, and more detail is given in Section `[Sec:Advection
+   Step] <#Sec:Advection Step>`__. Here is the summarized version:
 
-   #. CTU method:
+   A. Compute primitive variables.
 
-      For the CTU method, we predict to the half-time (:math:`n+1/2`) to get a
-      second-order accurate method. Note: ``Sborder`` does not
-      know of any sources except for reactions. The advection step is
-      complicated, and more detail is given in Section
-      `[Sec:Advection Step] <#Sec:Advection Step>`__. Here is the summarized version:
+   B. Convert the source terms to those acting on primitive variables
 
-      #. Compute primitive variables.
+   C. Predict primitive variables to time-centered edges.
 
-      #. Convert the source terms to those acting on primitive variables
+   D. Solve the Riemann problem.
 
-      #. Predict primitive variables to time-centered edges.
-
-      #. Solve the Riemann problem.
-
-      #. Compute fluxes and update.
+   E. Compute fluxes and update.
 
       To start the hydrodynamics, we need to know the hydrodynamics source
       terms at time-level :math:`n`, since this enters into the prediction to
@@ -448,23 +456,17 @@ In the code, the objective is to evolve the state from the old time,
       The update computed here is then immediately applied to
       ``S_new``.
 
-   #. method of lines
-
-#. [strang:clean] *Clean State* [``clean_state()``]
-
-   .. raw:: latex
-
-      \MarginPar{we only seem to do this for the MOL integration}
+#. *Clean State* [``clean_state()``]
 
    This is done on ``S_new``.
 
    After these checks, we check the state for NaNs.
 
-#. [strang:radial] *Update radial data and center of mass for monopole gravity*
+#. *Update radial data and center of mass for monopole gravity*
 
    These quantities are computed using ``S_new``.
 
-#. [strang:newsource] *Correct the source terms with the n+1
+#. *Correct the source terms with the n+1
    contribution* [``construct_new_gravity()``, ``do_new_sources`` ]
 
    Previously we added :math:`\Delta t\, \Sb(\Ub^\star)` to the state, when
@@ -476,7 +478,7 @@ In the code, the objective is to evolve the state from the old time,
    correction, :math:`(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]` to
    add to :math:`\Ub^{n+1,(b)}` to give us the properly time-centered source,
    and the fully updated state, :math:`\Ub^{n+1,(c)}`. This correction is stored
-   in the new_sources MultiFab [2]_.
+   in the ``new_sources`` MultiFab [2]_.
 
    In the process of updating the sources, we update the temperature to
    make it consistent with the new state.
@@ -489,15 +491,15 @@ In the code, the objective is to evolve the state from the old time,
    This is largely the same as ``strang_react_first_half()``, but
    it does not currently fill the reactions in the ghost cells.
 
-#. [strang:finalize] *Finalize* [``finalize_do_advance()``]
+#. *Finalize* [``finalize_do_advance()``]
 
    Finalize does the following:
 
-   #. for the momentum sources, we compute :math:`d\Sb/dt`, to use in the
+   A. for the momentum sources, we compute :math:`d\Sb/dt`, to use in the
       source term prediction/extrapolation for the hydrodynamic
       interface states during the next step.
 
-   #. If we are doing the hybrid momentum algorithm, then we sync up
+   B. If we are doing the hybrid momentum algorithm, then we sync up
       the hybrid and linear momenta
 
 A summary of which state is the input and which is updated for each of
@@ -523,10 +525,11 @@ these processes is presented below:
 | 8. react           |           |                     | input / updated     |
 +--------------------+-----------+---------------------+---------------------+
 
-Main Hydro, Reaction, and Gravity Advancement (MOL w/ Strang-splitting)
------------------------------------------------------------------------
+MOL w/ Strang-splitting
+-----------------------
 
-(``castro.time_integration_method`` = 1)
+This describes the flow when using the method-of-lines integration together with
+Strang splitting.  This is selected by setting ``castro.time_integration_method = 1``.
 
 The handling of sources differs in the MOL integration, as compared to CTU.
 Again, consider our system as:
@@ -577,14 +580,14 @@ as in the CTU flowchart.
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
 
-#. [strang:init] *Initialize*
+#. *Initialize*
 
    In ``initialize_do_advance()``, set the starting point for the stage’s integration:
 
-   #. if ``mol_iteration`` = 0: initialize
+   A. if ``mol_iteration`` = 0: initialize
       ``Sborder`` from ``S_old``
 
-   #. if ``mol_iteration`` > 0: we need to create
+   B. if ``mol_iteration`` > 0: we need to create
       the starting point for the current stage. We store this,
       temporarily in the new-time slot (what we normally refer to as
       ``S_new``):
@@ -604,13 +607,8 @@ In the code, the objective is to evolve the state from the old time,
    store the effect of the burn in a new MultiFab, ``Sburn``,
    for use in the stage initialization.
 
-#. [strang:oldsource] *Construct sources from the current
-   stage’s state*
+#. *Construct sources from the current stage’s state*
    [``construct_old_gravity()``, ``do_old_sources()``]
-
-   .. raw:: latex
-
-      \MarginPar{fix: gravity is still using {\tt S\_old}}
 
    The time level :math:`n` sources are computed, and added to the
    StateData ``Source_Type``. The sources are then applied
@@ -625,7 +623,7 @@ In the code, the objective is to evolve the state from the old time,
       \gb^n = -\nabla\phi^n, \qquad
           \Delta\phi^n = 4\pi G\rho^n,
 
-#. [strang:hydro] *Construct the hydro update* [``construct_hydro_source()``]
+#. *Construct the hydro update* [``construct_hydro_source()``]
 
    The hydro update in the MOL branch will include both the advective
    and source terms. In each stage, store in ``k_mol[istage]`` the righthand 
@@ -642,11 +640,7 @@ In the code, the objective is to evolve the state from the old time,
 
    .. math:: \mathtt{S\_new} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l
 
-#. [strang:clean] *Clean State* [``clean_state()``]
-
-   .. raw:: latex
-
-      \MarginPar{we only seem to do this for the MOL integration}
+#. *Clean State* [``clean_state()``]
 
    This is done on ``S_new``.
 
@@ -660,15 +654,15 @@ In the code, the objective is to evolve the state from the old time,
    This is largely the same as ``strang_react_first_half()``, but
    it does not currently fill the reactions in the ghost cells.
 
-#. [strang:finalize] *Finalize* [``finalize_do_advance()``]
+#. *Finalize* [``finalize_do_advance()``]
 
    Finalize does the following:
 
-   #. for the momentum sources, we compute :math:`d\Sb/dt`, to use in the
+   A. for the momentum sources, we compute :math:`d\Sb/dt`, to use in the
       source term prediction/extrapolation for the hydrodynamic
       interface states during the next step.
 
-   #. If we are doing the hybrid momentum algorithm, then we sync up
+   B. If we are doing the hybrid momentum algorithm, then we sync up
       the hybrid and linear momenta
 
 A summary of which state is the input and which is updated for each of
@@ -694,8 +688,12 @@ these processes is presented below:
 | 8. react           |           |                     | input / updated     |
 +--------------------+-----------+---------------------+---------------------+
 
-Overview of a single step (with SDC)
-====================================
+Simplified-SDC Evolution
+========================
+
+The simplified SDC method uses the CTU advection solver together with
+an ODE solution to update the compute advective-reacting system.  This
+is selected by ``castro.time_integration_method = 3``.
 
 We express our system as:
 
@@ -716,8 +714,8 @@ step now proceeds as:
 
    Loop :math:`k` from 0 to ``sdc_iters``, doing:
 
-   #. *Hydrodynamics advance*: This is done through
-      do_advance—in SDC mode, this only updates the hydrodynamics,
+   A. *Hydrodynamics advance*: This is done through
+      ``do_advance``—in SDC mode, this only updates the hydrodynamics,
       including the non-reacting sources. However, in predicting the
       interface states, we use an iteratively-lagged approximation to the
       reaction source on the primitive variables, :math:`\mathcal{I}_q^{k-1}`.
@@ -726,7 +724,7 @@ step now proceeds as:
       stored in ``hydro_sources`` (the flux divergence)
       and ``old_sources`` and ``new_sources``.
 
-   #. *React*: Reactions are integrated with the advective
+   B. *React*: Reactions are integrated with the advective
       update as a source—this way the reactions see the
       time-evolution due to advection as we integrate:
 
@@ -738,10 +736,10 @@ step now proceeds as:
       ``hydro_source``, ``old_sources``, and
       ``new_sources``.
 
-   #. *Clean state*: This ensures that the thermodynamic state is
+   C. *Clean state*: This ensures that the thermodynamic state is
       valid and consistent.
 
-   #. *Construct reaction source terms*: Construct the change
+   D. *Construct reaction source terms*: Construct the change
       in the primitive variables due only to reactions over the
       timestep, :math:`\mathcal{I}_q^{k}`. This will be used in the next
       iteration.
@@ -751,39 +749,36 @@ non-advective auxiliary quantity updates) should be inside the SDC
 loop, but presently they are only done at the end. Also note that the
 radiation implicit update is not done as part of the SDC iterations.
 
-Main Hydro and Gravity Advancement (simplified-SDC)
----------------------------------------------------
+Simplified_SDC Hydro Advance
+----------------------------
 
-(``castro.time_integration_method`` = 3)
-
-The evolution in do_advance is substantially different than the
+The evolution in ``do_advance`` is substantially different than the
 Strang case. In particular, reactions are not evolved. Here we
 summarize those differences.
 
 #. *Initialize* [``initialize_do_advance()``]
 
-   This is unchanged from step `[strang:init] <#strang:init>`__ in the Strang algorithm.
+   This is unchanged from the initialization in the CTU Strang algorithm.
 
 #. *Construct time-level n sources and apply*
    [``construct_old_gravity()``, ``do_old_sources()``]
 
-   This corresponds to step `[strang:oldsource] <#strang:oldsource>`__ in the Strang
+   This corresponds to step old source part in the Strang CTU
    algorithm. There are not differences compared to the Strang
    algorithm, although we note, this only needs to be done for the first
    SDC iteration in the advancement, since the old state does not change.
 
 #. *Construct the hydro update* [``construct_hydro_source()``]
 
-   This corresponds to step \ `[strang:hydro] <#strang:hydro>`__ in the Strang
-   algorithm. There are a few major differences with the Strang case:
+   There are a few major differences with the Strang case:
 
-   -  There is no need to extrapolate source terms to the half-time
+   A. There is no need to extrapolate source terms to the half-time
       for the prediction (the ``castro.source_term_predictor``
       parameter), since SDC provides a natural way to approximate the
       time-centered source—we simply use the iteratively-lagged new-time
       source.
 
-   -  The primitive variable source terms that are used for the
+   B. The primitive variable source terms that are used for the
       prediction include the contribution due to reactions (from the last
       SDC iteration). This addition is done in
       ``construct_hydro_source()`` after the source terms are
@@ -791,21 +786,15 @@ summarize those differences.
 
 #. *Update radial data and center of mass for monopole gravity*
 
-   This is the same as the Strang step \ `[strang:radial] <#strang:radial>`__
-
 #. *Clean State* [``clean_state()``]
 
-   This is the same as the Strang step \ `[strang:clean] <#strang:clean>`__
-
-#. [strang:newsource] *Correct the source terms with the n+1 contribution*
+#. *Correct the source terms with the n+1 contribution*
    [``construct_new_gravity()``, ``do_new_sources`` ]
-
-   This is the same as the Strang step \ `[strang:newsource] <#strang:newsource>`__
 
 #. *Finalize* [``finalize_do_advance()``]
 
-   This differs from Strang step \ `[strang:finalize] <#strang:finalize>`__ in that we do not
-   construct :math:`d\Sb/dt`, but instead store the total hydrodynamical source
+   This differs from Strang finalization in that we do not construct
+   :math:`d\Sb/dt`, but instead store the total hydrodynamical source
    term at the new time. As discussed above, this will be used in the
    next iteration to approximate the time-centered source term.
 

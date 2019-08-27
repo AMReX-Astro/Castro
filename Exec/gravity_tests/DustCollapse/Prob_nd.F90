@@ -2,7 +2,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, ONE
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use probdata_module, only: rho_0, T_0, X_0, p_0, rho_ambient, T_ambient, &
                              r_old, r_old_s, r_0, smooth_delta, r_offset, offset_smooth_delta, &
                              center_x, center_y, center_z, nsub
@@ -30,7 +30,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   character :: probin*(maxlen)
 
   if (namlen > maxlen) then
-     call amrex_error("probin file name too long")
+     call castro_error("probin file name too long")
   end if
 
   do i = 1, namlen
@@ -76,9 +76,9 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 #endif
 #endif
 
-  if (problo(1) /= ZERO) call amrex_error("ERROR: xmin should be 0!")
-  if (problo(2) /= ZERO) call amrex_error("ERROR: ymin should be 0!")
-  if (problo(3) /= ZERO) call amrex_error("ERROR: zmin should be 0!")
+  if (problo(1) /= ZERO) call castro_error("ERROR: xmin should be 0!")
+  if (problo(2) /= ZERO) call castro_error("ERROR: ymin should be 0!")
+  if (problo(3) /= ZERO) call castro_error("ERROR: zmin should be 0!")
 
   ! set the composition to be uniform
   allocate(X_0(nspec))

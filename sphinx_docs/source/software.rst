@@ -50,6 +50,10 @@ division between C++ and Fortran.
 
    -  ``radiation_tests/``: test problems that primarily exercise the radiation hydrodynamics solver
 
+   -  ``reacting_tests/``: test problems that primarily exercise the reactions (and hydro + reaction coupling)
+
+   -  ``scf_tests/``: problem setups that use the self-consistent field initialization
+
    -  ``science/``: problem setups that were used for scientific investigations
 
    -  ``unit_tests/``: test problems that exercise primarily a single module
@@ -88,6 +92,8 @@ division between C++ and Fortran.
    -  ``reactions/`` : nuclear reaction code
 
    -  ``rotation/`` : rotating code
+
+   -  ``scf/`` : the self-consistent field initialization support
 
    -  ``sources/`` : hydrodynamics source terms support
 

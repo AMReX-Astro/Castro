@@ -4,7 +4,7 @@ subroutine ca_ext_src(lo, hi, &
      src, src_lo, src_hi, &
      problo, dx, time, dt) bind(C, name='ca_ext_src')
 
-  use amrex_constants_module, only: HALF
+  use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
   use meth_params_module, only : NVAR, UEDEN, UEINT
   use prob_params_module, only : center
   use probdata_module, only : heating_factor
@@ -23,26 +23,27 @@ subroutine ca_ext_src(lo, hi, &
   real(rt), intent(in   ), value :: time, dt
 
   integer          :: i,j, k
-  real(rt)         :: x, y, z, r
+  real(rt)         :: y, fheat
 
   src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.e0_rt
 
   do k = lo(3), hi(3)
-
-     z = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
      do j = lo(2), hi(2)
-        y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+        y = problo(2) + (dble(j) + HALF) * dx(2) 
 
-        do i = lo(1), hi(1)
-           x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+        if (y < 1.125e0_rt * 4.e8_rt) then 
+            fheat = sin(8.e0_rt * M_PI * (y/ 4.e8_rt - ONE))
 
-           r = sqrt(x**2 + y**2 + z**2)
+            do i = lo(1), hi(1)
+    
+               ! Source terms
+               src(i,j,k,UEDEN) = heating_factor * fheat
+               src(i,j,k,UEINT) = src(i,j,k,UEDEN)
+    
+            end do
+        endif
 
-           ! Source terms
-           src(i,j,k,UEDEN) = heating_factor * 6.7e5_rt * exp(-(r/3.2e10_rt)**2)
-           src(i,j,k,UEINT) = src(i,j,k,UEDEN)
-
-        end do
+        ! fheat = ZERO
      end do
   end do
 

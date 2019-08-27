@@ -1,7 +1,7 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module, only: frac, rho_1, rho_2, p0_base, split, L_x
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -19,7 +19,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error('probin file name too long')
+     call castro_error('probin file name too long')
   end if
 
   do i = 1, namlen
@@ -33,9 +33,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   p0_base = 5.0e0_rt
 
   ! Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
+  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
+  read(untin, fortin)
   close(unit=untin)
 
   ! set local variable defaults
@@ -56,7 +55,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use amrex_constants_module, only: ZERO, HALF, M_PI
   use actual_eos_module, only: gamma_const
   use amrex_fort_module, only: rt => amrex_real
-  use prob_params_module, only: dim
+  use prob_params_module, only: dim, problo
 
   implicit none
 
@@ -72,11 +71,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   presmid  = p0_base - rho_1 * split(dim)
 
   do k = lo(3), hi(3)
-     r(3) = (dble(k - lo(3)) + HALF) * dx(3) + xlo(3)
+     r(3) = problo(3) + (dble(k) + HALF) * dx(3)
+
      do j = lo(2), hi(2)
-        r(2) = (dble(j - lo(2)) + HALF) * dx(2) + xlo(2)
+        r(2) = problo(2) + (dble(j) + HALF) * dx(2)
+
         do i = lo(1), hi(1)
-           r(1) = (dble(i - lo(1)) + HALF) * dx(1) + xlo(1)
+           r(1) = problo(1) + (dble(i) + HALF) * dx(1)
 
            if (r(dim) .lt. split(dim)) then
               pres = p0_base - rho_1 * r(dim)

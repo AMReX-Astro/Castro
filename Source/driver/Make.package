@@ -1,6 +1,7 @@
 # these are the files that should be needed for any Castro build
 
 ca_F90EXE_sources += amrinfo.F90
+ca_F90EXE_sources += Castro_error.F90
 ca_F90EXE_sources += filcc_nd.F90
 
 CEXE_sources += Castro.cpp
@@ -11,7 +12,6 @@ ifneq ($(USE_CUDA), TRUE)
   CEXE_sources += Castro_advance_sdc.cpp
 endif
 CEXE_sources += Castro_setup.cpp
-CEXE_sources += Castro_error.cpp
 CEXE_sources += Castro_io.cpp
 CEXE_sources += CastroBld.cpp
 ifneq ($(USE_CUDA), TRUE)
@@ -38,6 +38,11 @@ CEXE_headers += Castro_generic_fill.H
 CEXE_sources += Castro_generic_fill.cpp
 FEXE_headers += Castro_generic_fill_F.H
 ca_F90EXE_sources += generic_fill.F90
+
+CEXE_headers += Castro_source_fill.H
+CEXE_sources += Castro_source_fill.cpp
+FEXE_headers += Castro_source_fill_F.H
+ca_F90EXE_sources += source_fill.F90
 
 ca_F90EXE_sources += Castro_nd.F90
 ca_F90EXE_sources += Castro_util.F90

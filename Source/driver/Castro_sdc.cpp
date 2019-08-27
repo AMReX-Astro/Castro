@@ -25,6 +25,9 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
   // for 4th order reactive SDC, we need to first compute the source, C
   // and do a ghost cell fill on it
 
+  const int* domain_lo = geom.Domain().loVect();
+  const int* domain_hi = geom.Domain().hiVect();
+
 #ifdef REACTIONS
   // SDC_Source_Type is only defined for 4th order
   MultiFab tmp;
@@ -129,13 +132,15 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
       U_center.resize(bx1, NUM_STATE);
       ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
                           BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                          BL_TO_FORTRAN_FAB(U_center));
+                          BL_TO_FORTRAN_FAB(U_center),
+                          AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // convert the C source to cell-centers
       C_center.resize(bx1, NUM_STATE);
       ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
                           BL_TO_FORTRAN_FAB(C_source[mfi]),
-                          BL_TO_FORTRAN_FAB(C_center));
+                          BL_TO_FORTRAN_FAB(C_center),
+                          AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // solve for the updated cell-center U using our cell-centered C -- we
       // need to do this with one ghost cell
@@ -145,7 +150,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
       // an average in Sburn
       ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
                           BL_TO_FORTRAN_FAB(Sburn[mfi]),
-                          BL_TO_FORTRAN_FAB(U_new_center));
+                          BL_TO_FORTRAN_FAB(U_new_center),
+                          AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       ca_sdc_update_centers_o4(BL_TO_FORTRAN_BOX(bx1), &dt_m,
                                BL_TO_FORTRAN_3D(U_center),
@@ -161,7 +167,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
                              BL_TO_FORTRAN_3D(R_new));
 
       ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                              BL_TO_FORTRAN_FAB(R_new));
+                              BL_TO_FORTRAN_FAB(R_new),
+                              AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // now do the conservative update using this <R> to get <U>
       // We'll also need to pass in <C>
@@ -206,6 +213,9 @@ Castro::construct_old_react_source(amrex::MultiFab& U_state,
 
   BL_PROFILE("Castro::construct_old_react_source()");
 
+  const int* domain_lo = geom.Domain().loVect();
+  const int* domain_hi = geom.Domain().hiVect();
+
   if (sdc_order == 4 && input_is_average) {
     // we have cell-averages
     // Note: we cannot tile these operations
@@ -222,7 +232,8 @@ Castro::construct_old_react_source(amrex::MultiFab& U_state,
       U_center.resize(obx, NUM_STATE);
       ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
                           BL_TO_FORTRAN_FAB(U_state[mfi]),
-                          BL_TO_FORTRAN_FAB(U_center));
+                          BL_TO_FORTRAN_FAB(U_center),
+                          AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // burn, including one ghost cell
       R_center.resize(obx, NUM_STATE);
@@ -232,7 +243,8 @@ Castro::construct_old_react_source(amrex::MultiFab& U_state,
 
       // convert R to averages (in place)
       ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                              BL_TO_FORTRAN_FAB(R_center));
+                              BL_TO_FORTRAN_FAB(R_center),
+                              AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       // copy this to the center
       R_source[mfi].copy(R_center, bx, 0, bx, 0, NUM_STATE);

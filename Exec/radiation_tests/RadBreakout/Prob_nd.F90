@@ -1,7 +1,7 @@
 subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amrex_probinit")
 
   use probdata_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -22,7 +22,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error('probin file name too long')
+     call castro_error('probin file name too long')
   end if
 
   do i = 1, namlen
@@ -56,7 +56,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   read(untin,*) npts_model
   read(untin,*) dummy
   if (npts_model > npts_max) then
-     call amrex_error('npts_max in probdata.f90 is too small')
+     call castro_error('npts_max in probdata.f90 is too small')
   end if
 
   do i = 1, npts_model
@@ -122,11 +122,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   type(eos_t) :: eos_state
 
   if (naux .ne. 2) then
-     call amrex_error("naux in network is not equal to 2")
+     call castro_error("naux in network is not equal to 2")
   end if
 
   if (nspec .ne. 1) then
-     call amrex_error("nspec in network is not equal to 1")
+     call castro_error("nspec in network is not equal to 1")
   end if
 
   dx_sub = delta(1) / dble(nsub)

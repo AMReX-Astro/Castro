@@ -2,7 +2,10 @@
 
   model_name =  "hcore.dat"
 
-  heating_factor = 1.e3
+  heating_factor = 9.020952262e19
+  g0 = -9.021899571e8
+  rho0 = 1.82094e6
+  p0 = 2.7647358e23
 
 /
 

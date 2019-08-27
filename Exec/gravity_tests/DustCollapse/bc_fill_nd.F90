@@ -15,7 +15,7 @@ contains
     use amrex_filcc_module, only: amrex_filccn
     use amrex_constants_module, only: HALF
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use meth_params_module, only: NVAR,UMX,UMY,UMZ
     use prob_params_module, only: center
@@ -46,7 +46,7 @@ contains
     if ( (bc(1,1,1) == EXT_DIR .or. bc(1,2,1) == EXT_DIR) .or.  &
          (bc(2,1,1) == EXT_DIR .or. bc(2,2,1) == EXT_DIR) .or. &
          (bc(3,1,1) == EXT_DIR .or. bc(3,2,1) == EXT_DIR) ) then
-       call amrex_error("NOT SET UP FOR EXT_DIR BCs IN HYPFILL")
+       call castro_error("NOT SET UP FOR EXT_DIR BCs IN HYPFILL")
     end if
 #endif
 

@@ -14,7 +14,6 @@ contains
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
     use amrex_filcc_module, only: amrex_filccn
-    use bc_ext_fill_module, only: ext_fill
 
     implicit none
 
@@ -39,9 +38,6 @@ contains
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
     use amrex_filcc_module, only: amrex_filccn
-#ifndef AMREX_USE_CUDA
-    use bc_ext_fill_module, only: ext_denfill
-#endif
 
     implicit none
 

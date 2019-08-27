@@ -2,7 +2,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_input_rp, eos_t
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use network, only: nspec
   use probdata_module, only: p_l, u_l, rho_l, p_r, u_r, rho_r, rhoe_l, rhoe_r, T_l, T_r, &
                              frac, idir, use_Tinit, xcloud, cldradius, split
@@ -26,7 +26,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   character :: probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error("probin file name too long")
+     call castro_error("probin file name too long")
   end if
 
   do i = 1, namlen
@@ -60,7 +60,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   close(unit=untin)
 
   if (idir /= 1) then
-     call amrex_error('invalid idir')
+     call castro_error('invalid idir')
   end if
 
   split(:) = frac * (problo(:) + probhi(:))

@@ -40,9 +40,6 @@
 
        !$gpu
 
-       ! Note that this function exists in a tiling region so we should only 
-       ! modify the zones between lo and hi. 
-
        ! First do any relaxation source terms.
 
        if (problem == 1 .and. relaxation_damping_factor > ZERO) then
@@ -102,13 +99,13 @@
 
        if (problem == 1 .and. radial_damping_factor > ZERO) then
 
-          ! For this source term, the relevant dynamical timescale is the larger of the two.
+          ! The logic for which dynamical timescale to use and
+          ! how to do the implicit coupling follows the reasoning
+          ! described above for the relaxation damping.
 
           dynamical_timescale = max(t_ff_P, t_ff_S)
 
           radial_damping_timescale = radial_damping_factor * dynamical_timescale
-
-          ! Use an implicit damping, with the same logic as the damping.
 
           damping_factor = -(ONE - ONE / (ONE + dt / radial_damping_timescale)) / dt
 

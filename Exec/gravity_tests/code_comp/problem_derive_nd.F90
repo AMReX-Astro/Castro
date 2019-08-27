@@ -7,9 +7,8 @@ subroutine derextheating(h, h_lo, h_hi, ncomp_h, &
                          bind(C, name='derextheating')
 
     use amrex_fort_module, only: rt => amrex_real
-    use amrex_constants_module, only: HALF
-    use meth_params_module, only : UEDEN
-    use prob_params_module, only : center
+    use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
+    use prob_params_module, only : problo
     use probdata_module, only : heating_factor
 
     implicit none
@@ -25,22 +24,27 @@ subroutine derextheating(h, h_lo, h_hi, ncomp_h, &
     real(rt), intent(in   ), value :: time
 
     integer :: i, j, k
+    real(rt) :: fheat, y
 
     !$ gpu
 
+    h(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),1:ncomp_h) = ZERO
+
     do k = lo(3), hi(3)
-       ! z = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
        do j = lo(2), hi(2)
-          ! y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
-          do i = lo(1), hi(1)
-             ! x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+          y = problo(2) + (dble(j) + HALF) * dx(2) 
+          if (y < 1.125e0_rt * 4.e8_rt) then 
 
-             ! r = sqrt(x**2 + y**2 + z**2)
+            fheat = sin(8.e0_rt * M_PI * (y/ 4.e8_rt - ONE))
 
-             ! h(i,j,k,1) = heating_factor * 6.7e5_rt * exp(-(r/3.2e10_rt)**2)
-             h(i,j,k,1) = s(i,j,k,UEDEN)
+            do i = lo(1), hi(1)
+    
+               ! Source terms
+               h(i,j,k,1) = heating_factor * fheat
+    
+            end do
+          endif
 
-          end do
        end do
     end do
 

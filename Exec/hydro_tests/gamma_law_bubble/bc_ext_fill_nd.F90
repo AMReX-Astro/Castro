@@ -8,7 +8,7 @@ module bc_ext_fill_module
 
   use amrex_constants_module, only: ZERO, HALF, ONE, TWO
 #ifndef AMREX_USE_CUDA
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
 #endif
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
@@ -28,7 +28,7 @@ contains
 
     use prob_params_module, only : problo, dim, center
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rp
@@ -144,11 +144,11 @@ contains
 
 #ifndef AMREX_USE_CUDA
        if (bc(1,1,n) == EXT_DIR .and. lo(1) < domlo(1)) then
-          call amrex_error("ERROR: HSE boundaries not implemented for -x BC")
+          call castro_error("ERROR: HSE boundaries not implemented for -x BC")
        endif
 
        if (bc(1,2,n) == EXT_DIR .and. hi(1) > domhi(1)) then
-          call amrex_error("ERROR: HSE boundaries not implemented for +x BC, d")
+          call castro_error("ERROR: HSE boundaries not implemented for +x BC, d")
        end if
 #endif
 
@@ -365,7 +365,7 @@ contains
 
     use prob_params_module, only: problo, center
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use probdata_module
     use actual_eos_module, only : gamma_const
@@ -439,11 +439,11 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (bc(1,1) == EXT_DIR .and. lo(1) < domlo(1)) then
-       call amrex_error("ERROR: HSE boundaries not implemented for -x BC")
+       call castro_error("ERROR: HSE boundaries not implemented for -x BC")
     endif
 
     if (bc(1,2) == EXT_DIR .and. hi(1) > domhi(1)) then
-       call amrex_error("ERROR: HSE boundaries not implemented for +x BC, d")
+       call castro_error("ERROR: HSE boundaries not implemented for +x BC, d")
     end if
 #endif
 
@@ -550,5 +550,78 @@ contains
 #endif
 
   end subroutine ext_denfill
+
+#ifdef GRAVITY
+  subroutine ext_gravxfill(lo, hi, grav, grav_lo, grav_hi, &
+                           domlo, domhi, delta, xlo, time, bc) &
+                           bind(C, name="ext_gravxfill")
+
+    use prob_params_module, only: problo
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
+    integer,  intent(in   ) :: bc(dim,2)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(in   ), value :: time
+
+
+    !$gpu
+
+    ! this is currently a stub
+
+  end subroutine ext_gravxfill
+
+
+  subroutine ext_gravyfill(lo, hi, grav, grav_lo, grav_hi, &
+                           domlo, domhi, delta, xlo, time, bc) &
+                           bind(C, name="ext_gravyfill")
+
+    use prob_params_module, only: problo
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
+    integer,  intent(in   ) :: bc(dim,2)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(in   ), value :: time
+
+
+    !$gpu
+
+    ! this is currently a stub
+
+  end subroutine ext_gravyfill
+
+
+  subroutine ext_gravzfill(lo, hi, grav, grav_lo, grav_hi, &
+                           domlo, domhi, delta, xlo, time, bc) &
+                           bind(C, name="ext_gravzfill")
+
+    use prob_params_module, only: problo
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
+    integer,  intent(in   ) :: bc(dim,2)
+    integer,  intent(in   ) :: domlo(3), domhi(3)
+    real(rt), intent(in   ) :: delta(3), xlo(3)
+    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(in   ), value :: time
+
+
+    !$gpu
+
+    ! this is currently a stub
+
+  end subroutine ext_gravzfill
+#endif
 
 end module bc_ext_fill_module

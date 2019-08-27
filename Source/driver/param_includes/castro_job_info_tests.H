@@ -32,6 +32,7 @@ jobInfoFile << (Castro::small_ener == -1.e200 ? "    " : "[*] ") << "castro.smal
 jobInfoFile << (Castro::do_hydro == -1 ? "    " : "[*] ") << "castro.do_hydro = " << Castro::do_hydro << std::endl;
 jobInfoFile << (Castro::time_integration_method == 0 ? "    " : "[*] ") << "castro.time_integration_method = " << Castro::time_integration_method << std::endl;
 jobInfoFile << (Castro::limit_fourth_order == 1 ? "    " : "[*] ") << "castro.limit_fourth_order = " << Castro::limit_fourth_order << std::endl;
+jobInfoFile << (Castro::initialization_is_cell_average == 0 ? "    " : "[*] ") << "castro.initialization_is_cell_average = " << Castro::initialization_is_cell_average << std::endl;
 jobInfoFile << (Castro::use_reconstructed_gamma1 == 0 ? "    " : "[*] ") << "castro.use_reconstructed_gamma1 = " << Castro::use_reconstructed_gamma1 << std::endl;
 jobInfoFile << (Castro::add_ext_src == 0 ? "    " : "[*] ") << "castro.add_ext_src = " << Castro::add_ext_src << std::endl;
 jobInfoFile << (Castro::hybrid_hydro == 0 ? "    " : "[*] ") << "castro.hybrid_hydro = " << Castro::hybrid_hydro << std::endl;
@@ -72,6 +73,7 @@ jobInfoFile << (Castro::hse_interp_temp == 0 ? "    " : "[*] ") << "castro.hse_i
 jobInfoFile << (Castro::hse_reflect_vels == 0 ? "    " : "[*] ") << "castro.hse_reflect_vels = " << Castro::hse_reflect_vels << std::endl;
 jobInfoFile << (Castro::mol_order == 2 ? "    " : "[*] ") << "castro.mol_order = " << Castro::mol_order << std::endl;
 jobInfoFile << (Castro::sdc_order == 2 ? "    " : "[*] ") << "castro.sdc_order = " << Castro::sdc_order << std::endl;
+jobInfoFile << (Castro::sdc_extra == 0 ? "    " : "[*] ") << "castro.sdc_extra = " << Castro::sdc_extra << std::endl;
 jobInfoFile << (Castro::sdc_solver == 1 ? "    " : "[*] ") << "castro.sdc_solver = " << Castro::sdc_solver << std::endl;
 jobInfoFile << (Castro::sdc_solver_tol_dens == 1.e-6 ? "    " : "[*] ") << "castro.sdc_solver_tol_dens = " << Castro::sdc_solver_tol_dens << std::endl;
 jobInfoFile << (Castro::sdc_solver_tol_spec == 1.e-6 ? "    " : "[*] ") << "castro.sdc_solver_tol_spec = " << Castro::sdc_solver_tol_spec << std::endl;

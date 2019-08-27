@@ -20,7 +20,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // divergence) using the CTU framework for unsplit hydrodynamics
 
   if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Entering construct_ctu_hydro_source" << std::endl << std::endl;
+    std::cout << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
 
   hydro_source.setVal(0.0);
 
@@ -78,8 +78,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox flatg;
 #endif
     FArrayBox dq;
-    FArrayBox Ip, Im, Ip_src, Im_src, Ip_gc, Im_gc;
-    FArrayBox sm, sp;
     FArrayBox shk;
     FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
@@ -118,7 +116,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
     FArrayBox pdivu;
 
+    size_t starting_size = MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level));
+    size_t current_size = starting_size;
+
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      size_t fab_size = 0;
 
       // the valid region box
       const Box& bx = mfi.tilebox();
@@ -127,10 +130,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       flatn.resize(obx, 1);
       Elixir elix_flatn = flatn.elixir();
+      fab_size += flatn.nBytes();
 
 #ifdef RADIATION
       flatg.resize(obx, 1);
       Elixir elix_flatg = flatg.elixir();
+      fab_size += flatg.nBytes();
 #endif
 
       // compute the flattening coefficient
@@ -168,33 +173,61 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       shk.resize(obx, 1);
       Elixir elix_shk = shk.elixir();
+      fab_size += shk.nBytes();
+        
+      // Multidimensional shock detection
+      // Used for the hybrid Riemann solver
+
+#ifdef SHOCK_VAR
+      bool compute_shock = true;
+#else
+      bool compute_shock = false;
+#endif
+
+      if (hybrid_riemann == 1 || compute_shock) {
+#pragma gpu box(obx)
+          ca_shock(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(shk),
+                   AMREX_REAL_ANYD(dx));
+      }
+      else {
+          shk.setVal(0.0);
+      }
 
       qxm.resize(obx, NQ);
       Elixir elix_qxm = qxm.elixir();
+      fab_size += shk.nBytes();
 
       qxp.resize(obx, NQ);
       Elixir elix_qxp = qxp.elixir();
+      fab_size += qxp.nBytes();
 
 #if AMREX_SPACEDIM >= 2
       qym.resize(obx, NQ);
       Elixir elix_qym = qym.elixir();
+      fab_size += qym.nBytes();
 
       qyp.resize(obx, NQ);
       Elixir elix_qyp = qyp.elixir();
+      fab_size += qyp.nBytes();
 #endif
 
 #if AMREX_SPACEDIM == 3
       qzm.resize(obx, NQ);
       Elixir elix_qzm = qzm.elixir();
+      fab_size += qzm.nBytes();
 
       qzp.resize(obx, NQ);
       Elixir elix_qzp = qzp.elixir();
+      fab_size += qzp.nBytes();
 #endif
 
       if (ppm_type == 0) {
 
         dq.resize(obx, NQ);
         Elixir elix_dq = dq.elixir();
+        fab_size += dq.nBytes();
 
 #pragma gpu box(obx)
         ctu_plm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
@@ -203,7 +236,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(flatn),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
                        BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                       BL_TO_FORTRAN_ANYD(shk),
                        BL_TO_FORTRAN_ANYD(dq),
                        BL_TO_FORTRAN_ANYD(qxm),
                        BL_TO_FORTRAN_ANYD(qxp),
@@ -223,30 +255,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       } else {
 
-        Ip.resize(obx, 3*NQ);
-        Elixir elix_Ip = Ip.elixir();
-
-        Im.resize(obx, 3*NQ);
-        Elixir elix_Im = Im.elixir();
-
-        Ip_src.resize(obx, 3*NQSRC);
-        Elixir elix_Ip_src = Ip_src.elixir();
-
-        Im_src.resize(obx, 3*NQSRC);
-        Elixir elix_Im_src = Im_src.elixir();
-
-        Ip_gc.resize(obx, 3);
-        Elixir elix_Ip_gc = Ip_gc.elixir();
-
-        Im_gc.resize(obx, 3);
-        Elixir elix_Im_gc = Im_gc.elixir();
-
-        sm.resize(obx, AMREX_SPACEDIM);
-        Elixir elix_sm = sm.elixir();
-
-        sp.resize(obx, AMREX_SPACEDIM);
-        Elixir elix_sp = sp.elixir();
-
 #pragma gpu box(obx)
         ctu_ppm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                        AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -254,15 +262,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(flatn),
                        BL_TO_FORTRAN_ANYD(qaux[mfi]),
                        BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                       BL_TO_FORTRAN_ANYD(shk),
-                       BL_TO_FORTRAN_ANYD(Ip),
-                       BL_TO_FORTRAN_ANYD(Im),
-                       BL_TO_FORTRAN_ANYD(Ip_src),
-                       BL_TO_FORTRAN_ANYD(Im_src),
-                       BL_TO_FORTRAN_ANYD(Ip_gc),
-                       BL_TO_FORTRAN_ANYD(Im_gc),
-                       BL_TO_FORTRAN_ANYD(sm),
-                       BL_TO_FORTRAN_ANYD(sp),
                        BL_TO_FORTRAN_ANYD(qxm),
                        BL_TO_FORTRAN_ANYD(qxp),
 #if AMREX_SPACEDIM >= 2
@@ -282,6 +281,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       div.resize(obx, 1);
       Elixir elix_div = div.elixir();
+      fab_size += div.nBytes();
 
       // compute divu -- we'll use this later when doing the artifical viscosity
 #pragma gpu box(obx)
@@ -292,46 +292,57 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       q_int.resize(obx, NQ);
       Elixir elix_q_int = q_int.elixir();
+      fab_size += q_int.nBytes();
 
 #ifdef RADIATION
       lambda_int.resize(obx, Radiation::nGroups);
       Elixir elix_lambda_int = lambda_int.elixir();
+      fab_size += lambda_int.nBytes();
 #endif
 
       flux[0].resize(gxbx, NUM_STATE);
       Elixir elix_flux_x = flux[0].elixir();
+      fab_size += flux[0].nBytes();
 
       qe[0].resize(gxbx, NGDNV);
       Elixir elix_qe_x = qe[0].elixir();
+      fab_size += qe[0].nBytes();
 
 #ifdef RADIATION
       rad_flux[0].resize(gxbx, Radiation::nGroups);
       Elixir elix_rad_flux_x = rad_flux[0].elixir();
+      fab_size += rad_flux[0].nBytes();
 #endif
 
 #if AMREX_SPACEDIM >= 2
       flux[1].resize(gybx, NUM_STATE);
       Elixir elix_flux_y = flux[1].elixir();
+      fab_size += flux[1].nBytes();
 
       qe[1].resize(gybx, NGDNV);
       Elixir elix_qe_y = qe[1].elixir();
+      fab_size += qe[1].nBytes();
 
 #ifdef RADIATION
       rad_flux[1].resize(gybx, Radiation::nGroups);
       Elixir elix_rad_flux_y = rad_flux[1].elixir();
+      fab_size += rad_flux[1].nBytes();
 #endif
 #endif
 
 #if AMREX_SPACEDIM == 3
       flux[2].resize(gzbx, NUM_STATE);
       Elixir elix_flux_z = flux[2].elixir();
+      fab_size += flux[2].nBytes();
 
       qe[2].resize(gzbx, NGDNV);
       Elixir elix_qe_z = qe[2].elixir();
+      fab_size += qe[2].nBytes();
 
 #ifdef RADIATION
       rad_flux[2].resize(gzbx, Radiation::nGroups);
       Elixir elix_rad_flux_z = rad_flux[2].elixir();
+      fab_size += rad_flux[2].nBytes();
 #endif
 #endif
 
@@ -340,6 +351,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           pradial.resize(xbx, 1);
       }
       Elixir elix_pradial = pradial.elixir();
+      fab_size += pradial.nBytes();
 #endif
 
 #if AMREX_SPACEDIM == 1
@@ -365,29 +377,37 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM >= 2
       ftmp1.resize(obx, NUM_STATE);
       Elixir elix_ftmp1 = ftmp1.elixir();
+      fab_size += ftmp1.nBytes();
 
       ftmp2.resize(obx, NUM_STATE);
       Elixir elix_ftmp2 = ftmp2.elixir();
+      fab_size += ftmp2.nBytes();
 
 #ifdef RADIATION
       rftmp1.resize(obx, Radiation::nGroups);
       Elixir elix_rftmp1 = rftmp1.elixir();
+      fab_size += rftmp1.nBytes();
 
       rftmp2.resize(obx, Radiation::nGroups);
       Elixir elix_rftmp2 = rftmp2.elixir();
+      fab_size += rftmp2.nBytes();
 #endif
 
       qgdnvtmp1.resize(obx, NGDNV);
       Elixir elix_qgdnvtmp1 = qgdnvtmp1.elixir();
+      fab_size += qgdnvtmp1.nBytes();
 
       qgdnvtmp2.resize(obx, NGDNV);
       Elixir elix_qgdnvtmp2 = qgdnvtmp2.elixir();
+      fab_size += qgdnvtmp2.nBytes();
 
       ql.resize(obx, NQ);
       Elixir elix_ql = ql.elixir();
+      fab_size += ql.nBytes();
 
       qr.resize(obx, NQ);
       Elixir elix_qr = qr.elixir();
+      fab_size += qr.nBytes();
 #endif
 
 
@@ -559,9 +579,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qmyx.resize(tyxbx, NQ);
       Elixir elix_qmyx = qmyx.elixir();
+      fab_size += qmyx.nBytes();
 
       qpyx.resize(tyxbx, NQ);
       Elixir elix_qpyx = qpyx.elixir();
+      fab_size += qpyx.nBytes();
 
       // ftmp1 = fx
       // rftmp1 = rfx
@@ -585,9 +607,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qmzx.resize(tzxbx, NQ);
       Elixir elix_qmzx = qmzx.elixir();
+      fab_size += qmzx.nBytes();
 
       qpzx.resize(tzxbx, NQ);
       Elixir elix_qpzx = qpzx.elixir();
+      fab_size += qpzx.nBytes();
 
 #pragma gpu box(tzxbx)
       transx_on_zstates(AMREX_INT_ANYD(tzxbx.loVect()), AMREX_INT_ANYD(tzxbx.hiVect()),
@@ -630,9 +654,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qmxy.resize(txybx, NQ);
       Elixir elix_qmxy = qmxy.elixir();
+      fab_size += qmxy.nBytes();
 
       qpxy.resize(txybx, NQ);
       Elixir elix_qpxy = qpxy.elixir();
+      fab_size += qpxy.nBytes();
 
       // ftmp1 = fy
       // rftmp1 = rfy
@@ -656,9 +682,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qmzy.resize(tzybx, NQ);
       Elixir elix_qmzy = qmzy.elixir();
+      fab_size += qmzy.nBytes();
 
       qpzy.resize(tzybx, NQ);
       Elixir elix_qpzy = qpzy.elixir();
+      fab_size += qpzy.nBytes();
 
       // ftmp1 = fy
       // rftmp1 = rfy
@@ -704,9 +732,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qmxz.resize(txzbx, NQ);
       Elixir elix_qmxz = qmxz.elixir();
+      fab_size += qmxz.nBytes();
 
       qpxz.resize(txzbx, NQ);
       Elixir elix_qpxz = qpxz.elixir();
+      fab_size += qpxz.nBytes();
 
       // ftmp1 = fz
       // rftmp1 = rfz
@@ -730,9 +760,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qmyz.resize(tyzbx, NQ);
       Elixir elix_qmyz = qmyz.elixir();
+      fab_size += qmyz.nBytes();
 
       qpyz.resize(tyzbx, NQ);
       Elixir elix_qpyz = qpyz.elixir();
+      fab_size += qpyz.nBytes();
 
       // ftmp1 = fz
       // rftmp1 = rfz
@@ -1079,6 +1111,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       pdivu.resize(bx, 1);
       Elixir elix_pdivu = pdivu.elixir();
+      fab_size += pdivu.nBytes();
 
       // conservative update
 
@@ -1087,7 +1120,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(shk),
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
                  BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
                  BL_TO_FORTRAN_ANYD(flux[0]),
 #if AMREX_SPACEDIM >= 2
@@ -1098,6 +1130,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 #ifdef RADIATION
                  BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
                  BL_TO_FORTRAN_ANYD(Er_new[mfi]),
                  BL_TO_FORTRAN_ANYD(rad_flux[0]),
 #if AMREX_SPACEDIM >= 2
@@ -1281,6 +1314,30 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                                AMREX_MFITER_REDUCE_SUM(&zang_lost));
       }
 
+#ifdef AMREX_USE_GPU
+      // Check if we're going to run out of memory in the next MFIter iteration.
+      // If so, do a synchronize here so that we don't oversubscribe GPU memory.
+      // Note that this will capture the case where we started with more memory
+      // than what the GPU has, on the logic that even in that case, it makes
+      // sense to not further pile on the oversubscription demands.
+
+      // This could (and should) be generalized in the future to operate with
+      // more granularity than the MFIter loop boundary. We would have potential
+      // synchronization points prior to each of the above kernel launches, and
+      // we would check whether the sum of all previously allocated fabs would
+      // result in oversubscription, including any contributions from a partial
+      // MFIter loop. A further optimization would be to not apply a device
+      // synchronize, but rather to use CUDA events to poll on a check about
+      // whether enough memory has freed up to begin the next iteration, and then
+      // immediately proceed to the next kernel when there's enough space for it.
+
+      current_size += fab_size;
+      if (current_size + fab_size >= Gpu::Device::totalGlobalMem()) {
+          Gpu::Device::synchronize();
+          current_size = starting_size;
+      }
+#endif
+
     } // MFIter loop
 
   } // OMP loop
@@ -1346,7 +1403,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
   if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Leaving construct_ctu_hydro_sources()" << std::endl << std::endl;
+    std::cout << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
 
   if (verbose > 0)
     {

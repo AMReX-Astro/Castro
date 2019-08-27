@@ -196,6 +196,12 @@ public:
 
 
 ///
+/// Dump build info 
+///
+    static void writeBuildInfo ();
+
+
+///
 /// Define data descriptors.
 ///
 /// ::variableSetUp is called in the constructor of Amr.cpp, so
@@ -997,42 +1003,20 @@ public:
 /// Apply the ::set_problem_tags routine.
 ///
 /// @param tags         TagBoxArray of tags
-/// @param clearval
-/// @param setval
 /// @param time         current time
 ///
-    void apply_problem_tags (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time);
+    void apply_problem_tags (amrex::TagBoxArray& tags, amrex::Real time);
 
 
 ///
 /// Apply a given tagging function.
 ///
 /// @param tags         TagBoxArray of tags
-/// @param clearval
-/// @param setval
 /// @param time         current time
 /// @param j            integer
 ///
-    void apply_tagging_func (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time, int j);
+    void apply_tagging_func (amrex::TagBoxArray& tags, amrex::Real time, int j);
 
-
-///
-/// Hooks for problem-specific operations before and after applying custom tagging.
-///
-/// @param tags     TagBoxArray of tags
-/// @param clearval
-/// @param tagval
-/// @param time     current time
-///
-    void problem_pre_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
-
-///
-/// @param tags     TagBoxArray of tags
-/// @param clearval
-/// @param tagval
-/// @param time     current time
-///
-    void problem_post_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
 ///
 /// Returns a MultiFab containing the derived data for this level.
@@ -1556,12 +1540,21 @@ public:
 
 
 ///
-/// Update state to account for hybrid advection
+/// Synchronize linear momentum with hybrid momentum
 ///
 /// @param state    Current state
 /// @param ng       Number of ghost cells
 ///
-    void hybrid_sync(amrex::MultiFab& state, int ng);
+    void hybrid_to_linear_momentum(amrex::MultiFab& state, int ng = 0);
+
+
+///
+/// Synchronize hybrid momentum with linear momentum
+///
+/// @param state    Current state
+/// @param ng       Number of ghost cells
+///
+    void linear_to_hybrid_momentum(amrex::MultiFab& state, int ng = 0);
 #endif
 
 
@@ -1776,6 +1769,13 @@ protected:
 ///
     amrex::MultiFab q_bar;
 
+
+///
+/// for diffusion in fourth order we need the cell-center temperature
+//
+#ifdef DIFFUSION
+    amrex::MultiFab T_cc;
+#endif
 
 ///
 /// The auxiliary primitive variable state array.
@@ -2059,6 +2059,17 @@ protected:
 
     void stopJob ();
 
+///
+/// Returns true if we're on the GPU and the total
+/// memory on this level oversubscribes GPU memory.
+///
+    bool oversubscribing() {
+#ifdef AMREX_USE_GPU
+        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= amrex::Gpu::Device::totalGlobalMem());
+#else
+        return false;
+#endif
+    }
 
 ///
 /// The data.
@@ -2085,7 +2096,8 @@ protected:
 
     static bool      signalStopJob;
     static int       radius_grow;
-    static amrex::ErrorList err_list;
+    static std::vector<std::string> err_list_names;
+    static std::vector<int> err_list_ng;
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
