@@ -39,6 +39,9 @@ stream_color_help = """Options for coloring the streamlines - will be ignored if
         indices) followed by the value (even indices). Valid options are cmap (the colormap) and display_threshold (to
         turn off the streamlines below a certain value for field color), and cbar (display streamline colorbar, True by
         default)."""
+grid_help = """Add an overlay to the plot showing the hierarchical grid structure. May supply additional options to yt
+        as whitespace-delimited pairs of the keyword and its value (e.g. --grid alpha 0.5 min_level 1 cmap gray)."""
+cell_edges_help = "Overplot the edges of the grid cells."
 flame_wave_help = """Populate settings with those for the flame wave project (colored streamlines with colorbar)."""
 
 # Construct parser and parse
@@ -62,6 +65,8 @@ parser.add_argument('-x', '--xlim', nargs=2, type=float, metavar=('UPPER', 'LOWE
 parser.add_argument('-y', '--ylim', nargs=2, type=float, metavar=('UPPER', 'LOWER'), help=ylim_help)
 parser.add_argument('-S', '--stream', nargs=3, metavar=('XFIELD', 'YFIELD', 'FACTOR'))
 parser.add_argument('-Sc', '--stream_color', nargs='*', help=stream_color_help)
+parser.add_argument('--grid', nargs='*', default=None, help=grid_help)
+parser.add_argument('--cell_edges', action='store_true', help=cell_edges_help)
 parser.add_argument('--flame_wave', action='store_true', help=flame_wave_help)
 
 args = parser.parse_args(sys.argv[1:])
@@ -99,8 +104,9 @@ if args.flame_wave:
     optdict = dict(field_color='transvel', cmap='kamae', display_threshold=1.5e7, cbar=False)
     args.contour = ['enuc', 3, 1e16, 1e20]
     contour_opt = {'plot_args': {'colors': '0.7', 'linewidths': 1}}
-    args.ylim = (0.375e4, 1.5e4)
-    args.xlim = (0.0, 5e4)
+    args.ylim = 0.375e4, 1.5e4
+    args.xlim = 0.0, 5e4
+    args.bounds = 0.0, 2e9
 
 if args.stream_color is not None:
 
@@ -191,7 +197,7 @@ def get_center(ds, xlim=None, ylim=None, zlim=None):
         if zlim is None: zlim = ds.domain_left_edge[2], ds.domain_right_edge[2]
         else: zlim = zlim[0] * cm, zlim[1] * cm
 
-        zctr = 0.5 * (zlim[2] + zlim[2])
+        zctr = 0.5 * (zlim[0] + zlim[1])
 
     return xctr, yctr, zctr
 
@@ -200,54 +206,27 @@ def _transvel(field, data):
     """ Transverse velocity """
 
     return np.sqrt(data['x_velocity']**2 + data['y_velocity']**2)
-    
-# Get mass fraction fields and atomic masses, assuming an identical field list for each dataset.
-xfilt = lambda f: f.startswith("X(") and f.endswith(")")
-fields = map(lambda f: f[1], ts[0].field_list)
-mfrac_fields = np.array(list(filter(xfilt, fields)))
-
-def to_atomic_mass(mfrac_field):
-    """Conversion function from field names to atomic masses."""
-    
-    numeric = filter(lambda char: char.isnumeric(), mfrac_field)
-    return int(reduce(lambda a, b: a + b, numeric))
-
-atomic_masses = np.array(list(map(to_atomic_mass, mfrac_fields)))
-indices = np.argsort(atomic_masses)
-
-mfrac_fields = mfrac_fields[indices]
-atomic_masses = atomic_masses[indices]
-
-# Define Abar
-def _Abar(field, data):
-    """ Mean atomic mass. """
-   
-    sum = None
-
-    for i, f in enumerate(mfrac_fields):
-       
-       mfracs = data[f]
-       A = atomic_masses[i]
-       
-       if sum is None: sum = mfracs / A
-       else: sum += mfracs / A
-       
-    return 1 / sum * amu
 
 print("Generating...")
 
 # Loop and generate
 for ds in ts:
     
-    ds.add_field(("gas", "transvel"), function=_transvel, units="cm/s", sampling_type="cell")
-    ds.add_field(("gas", "Abar"), function=_Abar, units="amu", sampling_type="cell")
+    if ("gas", "transvel") not in ds.field_list:
+        
+        try:
+            ds.add_field(("gas", "transvel"), function=_transvel,
+                    units="cm/s", sampling_type="cell")
+        except: pass
 
     settings = {}
     settings['center'] = get_center(ds, args.xlim, args.ylim)
     settings['width'] = get_width(ds, args.xlim, args.ylim)
-    if ds.geometry == 'cylindrical':
+    if ds.geometry in {'cylindrical', 'spherical'}:
         settings['normal'] = 'theta'
         settings['origin'] = 'native'
+    else:
+        settings['normal'] = 'z'
 
     plot = func(ds, fields=field, **settings)
     if args.cmap: plot.set_cmap(field=field, cmap=args.cmap)
@@ -277,6 +256,15 @@ for ds in ts:
 
         plot.annotate_streamlines(args.stream[0], args.stream[1], factor=args.stream[2],
                 plot_args={'cmap': color_opt.cmap, 'arrowstyle': '->'}, **kw)
+    
+    if args.grid is not None:
+                   
+        opts = dict(zip(args.grid[::2], args.grid[1::2]))
+        plot.annotate_grids(**opts)
+
+    if args.cell_edges:
+
+        plot.annotate_cell_edges()
 
     suffix = args.func.replace('Plot', '').lower()
     plot.save(os.path.join(args.out, '{}_{}_{}.{}'.format(ds, field, suffix, args.ext)))
