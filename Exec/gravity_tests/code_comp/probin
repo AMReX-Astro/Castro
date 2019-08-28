@@ -1,0 +1,53 @@
+&fortin
+
+  model_name =  "hcore.dat"
+
+  heating_factor = 9.020952262e19
+  g0 = -9.021899571e8
+  rho0 = 1.82094e6
+  p0 = 2.7647358e23
+
+/
+
+&tagging
+
+  max_dengrad_lev    = -1
+  max_denerr_lev     = 10
+
+  max_pressgrad_lev  = -1
+  max_presserr_lev   = -1
+
+  max_velgrad_lev    = -1
+  max_velerr_lev     = -1
+
+  max_temperr_lev    = -1
+  max_tempgrad_lev   = -1
+
+  dengrad            = 1.e18
+  denerr             = 2.e8
+  denerr             = 1.e0
+
+  velgrad            = 1.e18
+  velerr             = 1.e18
+
+  pressgrad          = 1.e18
+  presserr           = 1.e10
+
+  temperr            = 1.d20
+  tempgrad           = 1.d20
+
+/
+
+&sponge
+
+  sponge_lower_radius  = 2.42d11
+  sponge_upper_radius  = 2.55d11
+  sponge_timescale     = 1.d1
+
+/
+
+&extern
+
+  eos_assume_neutral = T
+
+/
