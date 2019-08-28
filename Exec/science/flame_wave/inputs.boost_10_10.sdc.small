@@ -19,7 +19,7 @@ castro.hi_bc       =  2   1
 
 castro.yl_ext_bc_type = "hse"
 castro.hse_interp_temp = 1
-castro.hse_reflect_vels = 0
+castro.hse_reflect_vels = 1
 
 castro.yr_ext_bc_type = "interp"
 
@@ -102,4 +102,4 @@ amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity
 
 #PROBIN FILENAME
-amr.probin_file = probin.boost_10_10
+amr.probin_file = probin.boost_10_10.sdc
