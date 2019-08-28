@@ -16,7 +16,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer :: untin, i
 
   namelist /fortin/ &
-       model_name, heating_factor, g0, rho0, p0
+       heating_factor, g0, rho0, p0
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 127
@@ -41,9 +41,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
   close(unit=untin)
-
-  ! read initial model
-  call read_model_file(model_name)
 
 #if AMREX_SPACEDIM == 1
   center(1) = ZERO
