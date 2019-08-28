@@ -111,7 +111,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   real(rt) :: x, y, z, p_want, dens_zone, sum_X, fheat, rhopert, A0, temp_zone
   real(rt) :: entropy, entropy_want, pres_zone, dpt, dpd, dst, dsd, A, B
-  real(rt) :: dAdT, dAdrho, dBdT, dBdrho, dtemp, drho, g_zone, fv, fg
+  real(rt) :: dAdT, dAdrho, dBdT, dBdrho, dtemp, drho, g_zone, fv, fg, gp, gm
   real(rt), allocatable :: pres(:), dens(:)
   real(rt) :: xn(nspec)
   integer :: i, j, k, n, iter, n_dy
@@ -126,27 +126,17 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   A0 = p0 / rho0**gamma_const
 
-  pres(0) = p0
-  dens(0) = rho0
-
-  eos_state % rho = rho0
-  eos_state % T = 3.401423e9_rt
-
-  ! do species
-  eos_state%xn(:) = ZERO
-  eos_state%xn(1) = ONE
-  eos_state%xn(2) = ZERO
-
-  call eos(eos_input_rt, eos_state)
-
-  entropy_want = eos_state % s
-
-  do j = 1, hi(2)
+  ! do HSE
+  do j = 0, hi(2)
     y = problo(2) + delta(2)*(dble(j) + HALF) 
 
-    ! do HSE
-    dens_zone = dens(j-1)
-    pres_zone = pres(j-1)
+    if (j .eq. 0) then 
+        dens_zone = rho0
+        pres_zone = p0
+    else
+        dens_zone = dens(j-1)
+        pres_zone = pres(j-1)
+    endif
 
     eos_state%rho = dens_zone
     eos_state%p = pres_zone
@@ -170,22 +160,48 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
     temp_zone = eos_state % T
 
-    ! compute the gravitational acceleration on the interface between zones
-    ! i and i+1
-    if (y-delta(2)*HALF < 1.0625e0_rt * 4.e8_rt) then 
-        fg = HALF * (ONE + sin(16.e0_rt * M_PI * (y/4.e8_rt - 1.03125e0_rt)))
-    else if (y-delta(2)*HALF > 2.9375e0_rt * 4.e8_rt) then
-        fg = HALF * (ONE - sin(16.e0_rt * M_PI * (y/4.e8_rt - 2.96875e0_rt)))
+    if (j .eq. 0) then
+        ! compute the gravitational acceleration halfway between lower boundary 
+        ! and cell center
+        if (y-delta(2)*0.25e0_rt < 1.0625e0_rt * 4.e8_rt) then 
+            fg = HALF * (ONE + sin(16.e0_rt * M_PI * ((y-delta(2)*0.25e0_rt)/4.e8_rt - 1.03125e0_rt)))
+        else if (y-delta(2)*0.25e0_rt > 2.9375e0_rt * 4.e8_rt) then
+            fg = HALF * (ONE - sin(16.e0_rt * M_PI * ((y-delta(2)*0.25e0_rt)/4.e8_rt - 2.96875e0_rt)))
+        else
+            fg = ONE
+        endif
+        g_zone = fg * g0 / ((y-delta(2)*0.25e0_rt) / 4.e8_rt)**1.25e0_rt
+
+        ! if (y-delta(2)*HALF < 1.0625e0_rt * 4.e8_rt) then 
+        !     fg = HALF * (ONE + sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 1.03125e0_rt)))
+        ! else if (y-delta(2)*HALF > 2.9375e0_rt * 4.e8_rt) then
+        !     fg = HALF * (ONE - sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 2.96875e0_rt)))
+        ! else
+        !     fg = ONE
+        ! endif
+        ! gm = fg * g0 / ((y-delta(2)*HALF) / 4.e8_rt)**1.25e0_rt
     else
-        fg = ONE
+        ! compute the gravitational acceleration on the interface between zones
+        ! i and i+1
+        if (y-delta(2)*HALF < 1.0625e0_rt * 4.e8_rt) then 
+            fg = HALF * (ONE + sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 1.03125e0_rt)))
+        else if (y-delta(2)*HALF > 2.9375e0_rt * 4.e8_rt) then
+            fg = HALF * (ONE - sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 2.96875e0_rt)))
+        else
+            fg = ONE
+        endif
+        g_zone = fg * g0 / ((y-delta(2)*HALF) / 4.e8_rt)**1.25e0_rt
     endif
-    g_zone = fg * g0 / ((y-delta(2)*HALF) / 4.e8_rt)**1.25e0_rt
 
     converged_hse = .FALSE.
 
     do iter = 1, MAX_ITER
 
-        p_want = pres(j-1) + delta(2) * HALF * (dens_zone + dens(j-1)) * g_zone
+        if (j .eq. 0) then 
+            p_want = p0 + HALF * delta(2) * HALF * (dens_zone + rho0) * g_zone
+        else
+            p_want = pres(j-1) + delta(2) * HALF * (dens_zone + dens(j-1)) * g_zone
+        endif
 
         ! (t, rho) -> (p, s)
         eos_state%T     = temp_zone

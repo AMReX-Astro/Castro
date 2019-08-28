@@ -3,7 +3,7 @@
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 0
 
-max_step = 100000
+max_step = 100
 stop_time = 1583.1276
 
 geometry.is_periodic = 1 0 1
@@ -12,7 +12,7 @@ geometry.coord_sys = 0           # cartesian
 geometry.prob_lo     = -4.e8  4.e8  -4.e8
 geometry.prob_hi     =  4.e8  12.e8   4.e8
 
-amr.n_cell         = 96 96 96
+amr.n_cell          = 128 128 128
 #amr.n_cell         = 384 384 384
 #amr.n_cell         = 768 768 768
 
