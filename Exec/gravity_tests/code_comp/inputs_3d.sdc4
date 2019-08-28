@@ -56,16 +56,16 @@ amr.regrid_int      = 10000   # how often to regrid
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
-amr.check_file      = /home/alice/raid/Castro/code_comp/chk     # root name of checkpoint file
+amr.check_file      = code_comp/chk     # root name of checkpoint file
 amr.check_int       = 100     # number of timesteps between checkpoints
-amr.plot_file       = /home/alice/raid/Castro/code_comp/plt     # root name of plot file
+amr.plot_file       = code_comp/plt     # root name of plot file
 amr.plot_int        = 10     # number of timesteps between plotfiles
 
 amr.max_grid_size   = 64       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 64       # block factor in grid generation
 
 amr.v               = 1       # control verbosity in Amr.cpp
-castro.v            = 0       # control verbosity in Castro.cpp
+castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 
