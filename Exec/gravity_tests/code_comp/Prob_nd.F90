@@ -96,7 +96,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use prob_params_module, only : center, problo, probhi
   use eos_type_module
   use eos_module
-
+  use prescribe_grav_module, only : grav_zone
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -158,58 +158,24 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
     temp_zone = eos_state % T
 
     if (j .eq. 0) then
-        ! compute the gravitational acceleration halfway between lower boundary 
-        ! and cell center
-        if (y-delta(2)*0.25e0_rt < 1.0625e0_rt * 4.e8_rt) then 
-            fg = HALF * (ONE + sin(16.e0_rt * M_PI * ((y-delta(2)*0.25e0_rt)/4.e8_rt - 1.03125e0_rt)))
-        else if (y-delta(2)*0.25e0_rt > 2.9375e0_rt * 4.e8_rt) then
-            fg = HALF * (ONE - sin(16.e0_rt * M_PI * ((y-delta(2)*0.25e0_rt)/4.e8_rt - 2.96875e0_rt)))
-        else
-            fg = ONE
-        endif
-        g_zone = fg * g0 / ((y-delta(2)*0.25e0_rt) / 4.e8_rt)**1.25e0_rt
+       ! compute the gravitational acceleration halfway between lower boundary 
+       ! and cell center
+       g_zone = grav_zone(y-delta(2)*0.25e0_rt)
 
-        ! compute the gravitational acceleration on the lower boundary 
-        if (y-delta(2)*HALF < 1.0625e0_rt * 4.e8_rt) then 
-            fg = HALF * (ONE + sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 1.03125e0_rt)))
-        else if (y-delta(2)*HALF > 2.9375e0_rt * 4.e8_rt) then
-            fg = HALF * (ONE - sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 2.96875e0_rt)))
-        else
-            fg = ONE
-        endif
-        gm = fg * g0 / ((y-delta(2)*HALF) / 4.e8_rt)**1.25e0_rt
+       ! compute the gravitational acceleration on the lower boundary 
+       gm = grav_zone(y-delta(2)*HALF)
+
     else
-        ! compute the gravitational acceleration on the interface between zones
-        ! i and i+1
-        if (y-delta(2)*HALF < 1.0625e0_rt * 4.e8_rt) then 
-            fg = HALF * (ONE + sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 1.03125e0_rt)))
-        else if (y-delta(2)*HALF > 2.9375e0_rt * 4.e8_rt) then
-            fg = HALF * (ONE - sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 2.96875e0_rt)))
-        else
-            fg = ONE
-        endif
-        g_zone = fg * g0 / ((y-delta(2)*HALF) / 4.e8_rt)**1.25e0_rt
+       ! compute the gravitational acceleration on the interface between zones
+       ! i and i+1
+       g_zone = grav_zone(y-delta(2)*HALF)
 
-        ! compute the gravitational acceleration in the cell below
-        if (y-delta(2) < 1.0625e0_rt * 4.e8_rt) then 
-            fg = HALF * (ONE + sin(16.e0_rt * M_PI * ((y-delta(2))/4.e8_rt - 1.03125e0_rt)))
-        else if (y-delta(2) > 2.9375e0_rt * 4.e8_rt) then
-            fg = HALF * (ONE - sin(16.e0_rt * M_PI * ((y-delta(2))/4.e8_rt - 2.96875e0_rt)))
-        else
-            fg = ONE
-        endif
-        gm = fg * g0 / ((y-delta(2)) / 4.e8_rt)**1.25e0_rt
+       ! compute the gravitational acceleration in the cell below
+       gm = grav_zone(y-delta(2))
     endif
 
     ! compute the gravitational acceleration at cell center
-    if (y < 1.0625e0_rt * 4.e8_rt) then 
-        fg = HALF * (ONE + sin(16.e0_rt * M_PI * (y/4.e8_rt - 1.03125e0_rt)))
-    else if (y > 2.9375e0_rt * 4.e8_rt) then
-        fg = HALF * (ONE - sin(16.e0_rt * M_PI * (y/4.e8_rt - 2.96875e0_rt)))
-    else
-        fg = ONE
-    endif
-    gp = fg * g0 / (y/4.e8_rt)**1.25e0_rt
+    gp = grav_zone(y)
 
     converged_hse = .FALSE.
 
