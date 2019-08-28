@@ -109,9 +109,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                    state_lo(2):state_hi(2), &
                                    state_lo(3):state_hi(3), NVAR)
 
-  real(rt) :: x, y, z, p_want, dens_zone, sum_X, fheat, rhopert, A0, temp_zone
-  real(rt) :: entropy, entropy_want, pres_zone, dpt, dpd, dst, dsd, A, B
-  real(rt) :: dAdT, dAdrho, dBdT, dBdrho, dtemp, drho, g_zone, fv, fg, gp, gm
+  real(rt) :: x, y, z, p_want, dens_zone, sum_X, fheat, rhopert, temp_zone
+  real(rt) :: pres_zone, dpd, drho, g_zone, fv, fg, gp, gm
   real(rt), allocatable :: pres(:), dens(:)
   real(rt) :: xn(nspec)
   integer :: i, j, k, n, iter, n_dy
@@ -123,8 +122,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   allocate(pres(0:hi(2)))
   allocate(dens(0:hi(2)))
-
-  A0 = p0 / rho0**gamma_const
 
   ! do HSE
   do j = 0, hi(2)
@@ -172,14 +169,15 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         endif
         g_zone = fg * g0 / ((y-delta(2)*0.25e0_rt) / 4.e8_rt)**1.25e0_rt
 
-        ! if (y-delta(2)*HALF < 1.0625e0_rt * 4.e8_rt) then 
-        !     fg = HALF * (ONE + sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 1.03125e0_rt)))
-        ! else if (y-delta(2)*HALF > 2.9375e0_rt * 4.e8_rt) then
-        !     fg = HALF * (ONE - sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 2.96875e0_rt)))
-        ! else
-        !     fg = ONE
-        ! endif
-        ! gm = fg * g0 / ((y-delta(2)*HALF) / 4.e8_rt)**1.25e0_rt
+        ! compute the gravitational acceleration on the lower boundary 
+        if (y-delta(2)*HALF < 1.0625e0_rt * 4.e8_rt) then 
+            fg = HALF * (ONE + sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 1.03125e0_rt)))
+        else if (y-delta(2)*HALF > 2.9375e0_rt * 4.e8_rt) then
+            fg = HALF * (ONE - sin(16.e0_rt * M_PI * ((y-delta(2)*HALF)/4.e8_rt - 2.96875e0_rt)))
+        else
+            fg = ONE
+        endif
+        gm = fg * g0 / ((y-delta(2)*HALF) / 4.e8_rt)**1.25e0_rt
     else
         ! compute the gravitational acceleration on the interface between zones
         ! i and i+1
@@ -191,16 +189,36 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
             fg = ONE
         endif
         g_zone = fg * g0 / ((y-delta(2)*HALF) / 4.e8_rt)**1.25e0_rt
+
+        ! compute the gravitational acceleration in the cell below
+        if (y-delta(2) < 1.0625e0_rt * 4.e8_rt) then 
+            fg = HALF * (ONE + sin(16.e0_rt * M_PI * ((y-delta(2))/4.e8_rt - 1.03125e0_rt)))
+        else if (y-delta(2) > 2.9375e0_rt * 4.e8_rt) then
+            fg = HALF * (ONE - sin(16.e0_rt * M_PI * ((y-delta(2))/4.e8_rt - 2.96875e0_rt)))
+        else
+            fg = ONE
+        endif
+        gm = fg * g0 / ((y-delta(2)) / 4.e8_rt)**1.25e0_rt
     endif
+
+    ! compute the gravitational acceleration at cell center
+    if (y < 1.0625e0_rt * 4.e8_rt) then 
+        fg = HALF * (ONE + sin(16.e0_rt * M_PI * (y/4.e8_rt - 1.03125e0_rt)))
+    else if (y > 2.9375e0_rt * 4.e8_rt) then
+        fg = HALF * (ONE - sin(16.e0_rt * M_PI * (y/4.e8_rt - 2.96875e0_rt)))
+    else
+        fg = ONE
+    endif
+    gp = fg * g0 / (y/4.e8_rt)**1.25e0_rt
 
     converged_hse = .FALSE.
 
     do iter = 1, MAX_ITER
 
         if (j .eq. 0) then 
-            p_want = p0 + HALF * delta(2) * HALF * (dens_zone + rho0) * g_zone
+            p_want = p0 + HALF * delta(2) * HALF * (dens_zone*gp + rho0*gm) 
         else
-            p_want = pres(j-1) + delta(2) * HALF * (dens_zone + dens(j-1)) * g_zone
+            p_want = pres(j-1) + delta(2) * HALF * (dens_zone*gp + dens(j-1)*gm)
         endif
 
         ! (t, rho) -> (p, s)
@@ -224,17 +242,14 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
         call eos(eos_input_rt, eos_state)
 
-        ! entropy = eos_state%s
         pres_zone = eos_state%p
+        temp_zone = eos_state%T
 
         dpd = eos_state%dpdr
         drho = (p_want - pres_zone) / (dpd - HALF*delta(2)*g_zone)
 
         dens_zone = max(0.9e0_rt*dens_zone, &
                 min(dens_zone + drho, 1.1e0_rt*dens_zone))
-
-        temp_zone = max(0.9e0_rt*temp_zone, &
-                min(temp_zone + dtemp, 1.1e0_rt*temp_zone))
 
         if (abs(drho) < TOL*dens_zone) then
             converged_hse = .TRUE.
@@ -336,3 +351,4 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   state(:,:,:,UMX:UMZ) = ZERO
 
 end subroutine ca_initdata
+
