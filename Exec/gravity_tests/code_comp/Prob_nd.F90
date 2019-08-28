@@ -114,11 +114,12 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   real(rt) :: x, y, z, p_want, dens_zone, sum_X, fheat, rhopert, A0, temp_zone
   real(rt) :: entropy, entropy_want, pres_zone, dpt, dpd, dst, dsd, A, B
-  real(rt) :: dAdT, dAdrho, dBdT, dBdrho, dtemp, drho, g_zone
+  real(rt) :: dAdT, dAdrho, dBdT, dBdrho, dtemp, drho, g_zone, fv, fg
   real(rt), allocatable :: pres(:), dens(:)
+  real(rt) :: xn(nspec)
   integer :: i, j, k, n, iter, n_dy
-  real(rt), parameter :: TOL = 1.e-8_rt
-  integer, parameter :: MAX_ITER = 100
+  real(rt), parameter :: TOL = 1.e-10_rt
+  integer, parameter :: MAX_ITER = 200
   logical :: converged_hse
 
   type(eos_t) :: eos_state
@@ -131,8 +132,20 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   pres(0) = p0
   dens(0) = rho0
 
+  eos_state % rho = rho0
+  eos_state % T = 3.401423e9_rt
+
+  ! do species
+  eos_state%xn(:) = ZERO
+  eos_state%xn(1) = ONE
+  eos_state%xn(2) = ZERO
+
+  call eos(eos_input_rt, eos_state)
+
+  entropy_want = eos_state % s
+
   do j = 1, hi(2)
-    y = problo(2) + delta(2)*(dble(j) + 0.5e0_rt) 
+    y = problo(2) + delta(2)*(dble(j) + HALF) 
 
     ! do HSE
     dens_zone = dens(j-1)
@@ -140,62 +153,77 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
     eos_state%rho = dens_zone
     eos_state%p = pres_zone
-    eos_state%xn(:) = ONE / nspec
+
+    ! do species
+    xn(:) = ZERO
+    if (y < 1.9375e0_rt * 4.e8_rt) then 
+         xn(1) = ONE
+         xn(2) = ZERO
+    else if (y > 2.0625e0_rt * 4.e8_rt) then
+         xn(1) = ZERO 
+         xn(2) = ONE 
+    else
+         fv = HALF * (ONE + sin(8.e0_rt * M_PI * (y/4.e8_rt - 2.e0_rt)))
+         xn(1) = ONE - fv
+         xn(2) = fv
+    endif
+    eos_state%xn(:) = xn(:)
 
     call eos(eos_input_rp, eos_state)
 
     temp_zone = eos_state % T
-    entropy_want = eos_state % s
-    g_zone = g0 / ((y-delta(2)*0.5e0_rt) / 4.e8_rt)**1.25e0_rt
+
+    ! compute the gravitational acceleration on the interface between zones
+    ! i and i+1
+    if (y-delta(2)*HALF < 1.0625e0_rt * 4.e8_rt) then 
+        fg = HALF * (ONE + sin(16.e0_rt * M_PI * (y/4.e8_rt - 1.03125e0_rt)))
+    else if (y-delta(2)*HALF > 2.9375e0_rt * 4.e8_rt) then
+        fg = HALF * (ONE - sin(16.e0_rt * M_PI * (y/4.e8_rt - 2.96875e0_rt)))
+    else
+        fg = ONE
+    endif
+    g_zone = fg * g0 / ((y-delta(2)*HALF) / 4.e8_rt)**1.25e0_rt
+
     converged_hse = .FALSE.
 
     do iter = 1, MAX_ITER
 
         p_want = pres(j-1) + delta(2) * HALF * (dens_zone + dens(j-1)) * g_zone
 
-        ! now we have two functions to zero:
-        !   A = p_want - p(rho,T)
-        !   B = entropy_want - s(rho,T)
-        ! We use a two dimensional Taylor expansion and find the deltas
-        ! for both density and temperature
-
         ! (t, rho) -> (p, s)
-
         eos_state%T     = temp_zone
         eos_state%rho   = dens_zone
-        eos_state%xn(:) = ONE / nspec
+        eos_state%xn(:) = xn(:)
+
+        ! do species
+        eos_state%xn(:) = ZERO
+        if (y < 1.9375e0_rt * 4.e8_rt) then 
+             eos_state%xn(1) = ONE
+             eos_state%xn(2) = ZERO
+        else if (y > 2.0625e0_rt * 4.e8_rt) then
+             eos_state%xn(1) = ZERO 
+             eos_state%xn(2) = ONE 
+        else
+             fv = HALF * (ONE + sin(8.e0_rt * M_PI * (y/4.e8_rt - 2.e0_rt)))
+             eos_state%xn(1) = ONE - fv
+             eos_state%xn(2) = fv
+        endif
 
         call eos(eos_input_rt, eos_state)
 
-        entropy = eos_state%s
+        ! entropy = eos_state%s
         pres_zone = eos_state%p
 
-        dpt = eos_state%dpdt
         dpd = eos_state%dpdr
-        dst = eos_state%dsdt
-        dsd = eos_state%dsdr
+        drho = (p_want - pres_zone) / (dpd - HALF*delta(2)*g_zone)
 
-        A = p_want - pres_zone
-        B = entropy_want - entropy
+        dens_zone = max(0.9e0_rt*dens_zone, &
+                min(dens_zone + drho, 1.1e0_rt*dens_zone))
 
-        dAdT = -dpt
-        dAdrho = -HALF*delta(2)*g_zone - dpd
-        dBdT = -dst
-        dBdrho = -dsd
+        temp_zone = max(0.9e0_rt*temp_zone, &
+                min(temp_zone + dtemp, 1.1e0_rt*temp_zone))
 
-        dtemp = (B - (dBdrho/dAdrho)*A)/ &
-                ((dBdrho/dAdrho)*dAdT - dBdT)
-
-        drho = -(A + dAdT*dtemp)/dAdrho
-
-        dens_zone = max(0.9d0*dens_zone, &
-                min(dens_zone + drho, 1.1d0*dens_zone))
-
-        temp_zone = max(0.9d0*temp_zone, &
-                min(temp_zone + dtemp, 1.1d0*temp_zone))
-
-        ! if (A < TOL .and. B < ETOL) then
-        if (abs(drho) < TOL*dens_zone .and. abs(dtemp) < TOL*temp_zone) then
+        if (abs(drho) < TOL*dens_zone) then
             converged_hse = .TRUE.
             exit
         endif
@@ -217,7 +245,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
     eos_state%T     = temp_zone
     eos_state%rho   = dens_zone
-    eos_state%xn(:) = ONE / nspec
+    eos_state%xn(:) = xn(:)
 
     call eos(eos_input_rt, eos_state)
 
@@ -227,10 +255,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   enddo
 
   do k = lo(3), hi(3)
-    z = xlo(3) + delta(3)*(dble(k-lo(3)) + 0.5e0_rt) - center(3)
+    z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF) - center(3)
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5e0_rt)
+        y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
 
         if (y < 1.125e0_rt * 4.e8_rt) then 
             fheat = sin(8.e0_rt * M_PI * (y/ 4.e8_rt - ONE))
@@ -239,7 +267,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         endif
 
         do i = lo(1), hi(1)
-           x = xlo(1) + delta(1)*(dble(i-lo(1)) + 0.5e0_rt) - center(1)
+           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF) - center(1)
 
            rhopert = ZERO
 
@@ -247,15 +275,26 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                                 cos(M_PI * x / 4.e8_rt)) * &
                      (sin(3 * M_PI * z/4.e8_rt) - cos(M_PI * z/4.e8_rt))
 
-           ! normalize species
-           state(i,j,k,UFS:UFS+nspec-1) = ONE / nspec 
+           ! do species
+           state(i,j,k,UFS:UFS-1+nspec) = ZERO
+           if (y < 1.9375e0_rt * 4.e8_rt) then 
+                state(i,j,k,UFS) = ONE
+                state(i,j,k,UFS+1) = ZERO
+           else if (y > 2.0625e0_rt * 4.e8_rt) then
+                state(i,j,k,UFS) = ZERO 
+                state(i,j,k,UFS+1) = ONE 
+           else
+                fv = HALF * (ONE + sin(8.e0_rt * M_PI * (y/4.e8_rt - 2.e0_rt)))
+                state(i,j,k,UFS) = ONE - fv
+                state(i,j,k,UFS+1) = fv
+           endif
 
            if (j < 0) then 
-            eos_state % rho = rho0 + rhopert
-            eos_state % p = p0
+                eos_state % rho = rho0 + rhopert
+                eos_state % p = p0
            else
-            eos_state%rho = dens(j) + rhopert
-            eos_state%p = pres(j)
+                eos_state%rho = dens(j) + rhopert
+                eos_state%p = pres(j)
            endif
 
            eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
@@ -276,6 +315,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         enddo
      enddo
   enddo
+
+  deallocate(pres)
+  deallocate(dens)
 
   ! Initial velocities = 0
   state(:,:,:,UMX:UMZ) = ZERO
