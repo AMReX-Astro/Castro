@@ -1,119 +1,66 @@
 #!/usr/bin/env python3
 
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.image import imread
-from matplotlib import animation
-
 import sys
+import os
 import argparse
+import tempfile as tf
 
 # Argument information
 description = "Animate a list of images and save the result as a video file."
-name_help = "The name of the main module."
 images_help = "The images to be animated. Must be supplied in order if sort option is not specified."
 out_help = "The name of the output file. movie.mp4 by default."
-dpi_help = """The desired dpi for the animation. The default is 256. Beware that larger numbers may cause memory errors
-        on certain systems."""
-stack_help = """Create a single plot with multiple stacked subplots. The first argument is the number of subplots, and
-        the second determines how they are grouped (set to 1 to stack each NSUBPLOTS images, and 0 to split the image
-        list into NSUBPLOTS parts, and cycle through them in parallel). The input will be sorted prior to splitting the
-        the list in the first case, and afterward in the latter one."""
-sort_help = """A floating point number specifying the digits to sort file names by. Digits preceding the decimal point
-    give the starting index, digits following the decimal point give the number of characters. Make negative for
-    descending order."""
+sort_help = """A floating point number specifying the digits to sort file names by. Digits preceding
+    the decimal point give the starting index, digits following the decimal point give the number of
+    characters. Make negative for descending order."""
+framerate_help = "Output fps. Set to 30 by default."
 
 # Construct parser and parse
 parser = argparse.ArgumentParser(description=description)
 parser.add_argument('images', nargs='*', help=images_help)
-parser.add_argument('-o', '--out', default='movie.mp4', help=out_help)
-parser.add_argument('-d', '--dpi', type=int, default=256, help=dpi_help)
-parser.add_argument('--stack', nargs=2, type=int, metavar=('NSUBPLOTS', 'GROUPMODE'), help=stack_help)
-parser.add_argument('-s', '--sort', type=float, help=sort_help)
+parser.add_argument('-o', '--out', default='movie', help=out_help)
+parser.add_argument('-r', '--framerate', type=int, default=30, help=framerate_help)
+parser.add_argument('-s', '--sort', nargs="?", type=float, default=0.0, help=sort_help)
 
 args = parser.parse_args(sys.argv[1:])
 images = args.images
 
-if not images:
-    sys.exit("No images supplied for animation.")
-
-if args.stack is not None:
-    
-    nsubplots = args.stack[0]
-    groupmode = args.stack[1]
-    
-else:
-    
-    nsubplots = 1
-    groupmode = 0
-    
-sublist_size = len(images) // nsubplots
-    
-if nsubplots > 1 and groupmode == 0:
-    
-    step = sublist_size
-    indices = range(step, len(images) + 1, step)
-    sublists = [images[i-step:i] for i in indices]
-    
-else:
-    
-    sublists = [images]
-
 # Sort if necessary
 if args.sort is not None:
+    
     # Descending or ascending
     desc = args.sort < 0
-    # Staring index
+    # Starting index
     start = abs(int(args.sort))
     # Number of characters
     nchars = int(str(args.sort).split('.')[1])
 
     if nchars == 0:
-        key = lambda img: img[start:]
+        key = lambda filename: filename[start:]
     else:
-        key = lambda img: img[start:start + nchars]
-    for imlist in sublists:
-        imlist.sort(key=key, reverse=desc)
+        key = lambda filename: filename[start:start+nchars]
+    images.sort(key=key, reverse=desc)
+    
+if args.out.endswith(".mp4"):
+    args.out = args.out[:-4]
+if not args.out:
+    sys.exit("Invalid output file!")
+
+with tf.TemporaryDirectory() as dir:
+    
+    # The files are numbered
+    # Padding with zeros preserves sort order
+    ndigits = len(str(len(images)))
+    baselink = "__fftemp_{:0%dd}.png" % ndigits
+
+    for i, image in enumerate(map(os.path.abspath, images)):
         
-if nsubplots > 1 and groupmode == 1:
-    
-    sublists = [images[i::nsubplots] for i in range(nsubplots)]
+        # Create a symlink for each file
+        linkname = baselink.format(i)
+        linkname = os.path.join(dir, linkname)
+        os.symlink(image, linkname)
 
-# Load images and animate
-print("Reading...")
-sublists = [list(map(imread, images)) for images in sublists]
+    cmd = 'ffmpeg -y -r {} -pattern_type glob -i \'{}\' -c:v libx264 -pix_fmt yuv420p \'{}.mp4\''
+    cmd = cmd.format(args.framerate, os.path.join(dir, '__fftemp_*.png'), args.out)
+    os.system(cmd)
 
-print("Animating...")
-
-if nsubplots == 1:
-    
-    fig = plt.figure()
-    axes = [plt.gca()]
-    
-else:
-    
-    fig, axes = plt.subplots(nsubplots)
-
-imobj = []
-
-for ax, sub in zip(axes, sublists):
-    
-    ax.set_axis_off()
-    zeros = np.zeros(sub[0].shape)
-    imobj.append(ax.imshow(zeros, origin='lower', alpha=1.0, zorder=1, aspect=1))
-
-def init():
-    
-    for im, sub in zip(imobj, sublists):
-        im.set_data(np.zeros(sub[0].shape))
-    return imobj,
-
-def animate(i):
-    
-    for im, sub in zip(imobj, sublists):
-        im.set_data(sub[i][-1::-1])
-    return imobj
-
-anim = animation.FuncAnimation(fig, animate, init_func=init, frames=sublist_size)
-print("Saving...")
-anim.save(args.out, dpi=args.dpi)
+print("Task completed.")

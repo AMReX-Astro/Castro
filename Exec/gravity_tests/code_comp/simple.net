@@ -1,0 +1,7 @@
+# The simple network is used for 2-fluid problems.  Fluids 'A' and 'B'
+# have the same properties, but are named differently so we can keep
+# track of them independently.
+
+# name   short name    aion     zion
+  core   core          1.848    1.848
+  env    env           1.802    1.802
