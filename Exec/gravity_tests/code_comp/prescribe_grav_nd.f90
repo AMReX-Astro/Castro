@@ -5,6 +5,27 @@ module prescribe_grav_module
 
 contains
 
+  pure function grav_zone(y) result (g)
+
+    use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
+    use probdata_module, only : g0
+
+    real(rt), intent(in) :: y
+    real(rt) :: g
+    real(rt) :: fg
+
+    if (y < 1.0625e0_rt * 4.e8_rt) then 
+       fg = HALF * (ONE + sin(16.e0_rt * M_PI * (y/4.e8_rt - 1.03125e0_rt)))
+    else if (y > 2.9375e0_rt * 4.e8_rt) then
+       fg = HALF * (ONE - sin(16.e0_rt * M_PI * (y/4.e8_rt - 2.96875e0_rt)))
+    else
+       fg = ONE
+    endif
+
+    g = fg * g0 / ((y / 4.e8_rt)**1.25e0_rt)
+
+  end function grav_zone
+
   subroutine ca_prescribe_grav (lo,hi,grav,g_lo,g_hi,dx) &
        bind(C, name="ca_prescribe_grav")
 
@@ -23,26 +44,15 @@ contains
     integer          :: i, j, k
     real(rt)         :: y, fg
 
-    real(rt), parameter :: SMALL_GRAV = 1.e-6_rt
-
     do k = lo(3), hi(3)
-
        do j = lo(2), hi(2)
           y = problo(2) + (dble(j)+HALF) * dx(2)
-
-          if (y < 1.0625e0_rt * 4.e8_rt) then 
-            fg = HALF * (ONE + sin(16.e0_rt * M_PI * (y/4.e8_rt - 1.03125e0_rt)))
-          else if (y > 2.9375e0_rt * 4.e8_rt) then
-            fg = HALF * (ONE - sin(16.e0_rt * M_PI * (y/4.e8_rt - 2.96875e0_rt)))
-          else
-            fg = ONE
-          endif
 
           do i = lo(1), hi(1)
 
             grav(i,j,k,1:3) = ZERO
 
-            grav(i,j,k,2) = fg * g0 / ((y / 4.e8_rt)**1.25e0_rt)
+            grav(i,j,k,2) = grav_zone(y)
 
           enddo
        enddo
