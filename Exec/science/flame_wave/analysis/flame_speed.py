@@ -6,8 +6,16 @@ from scipy.stats import linregress
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 
-def measure_and_plot(rad, t, stab_ind):
+plt.rcParams.update \
+(
+    {
+        "font.family": "serif"
+    }
+)
+
+def measure_and_plot(dat, stab_ind):
     """
     Plots front_location vs. time on the current pyplot figure, as well as any
     reasonable linear fits. *stab_ind* should give an index for which the flame
@@ -16,37 +24,56 @@ def measure_and_plot(rad, t, stab_ind):
     """
     
     slopes = dict()
-    
-    rad.plot()
 
-    for col in rad:
+    radarr = dat["enuc[0.1%]"]
+    tarr = dat["time"]
+
+    plt.plot(tarr * 1000, radarr, linewidth=2)
+
+    indx = tarr.argsort()
+    tarr = tarr[indx][stab_ind:]
+    radarr = radarr[indx][stab_ind:]
+
+    m, b, r, _, sd = linregress(tarr, radarr)
+    print("{:>20}\t{:.2e}\t{:.3f}\t{:.2e}".format("enuc[0.1%]", m, r, sd))
+    
+    if r > 0.8:
         
-        radarr = rad[col][stab_ind:]
-        tarr = t["time"][stab_ind:]
+        plt.plot(dat["time"] * 1000, m * dat["time"] + b, "k--", linewidth=2)
         
-        m, b, r, _, _ = linregress(tarr, radarr)
-        print("{:>20}\t{:.2e}\t{:.3f}".format(col, m, r))
+    ax = plt.gca()
+    ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
+    ax.yaxis.major.formatter._useMathText = True
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    # ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    
+    plt.xlabel("t [ms]")
+    plt.ylabel("r [cm]")
+    plt.title("Front Position vs. Time", fontsize=24)
+    
+    for item in (ax.xaxis.label, ax.yaxis.label):
         
-        if r > 0.8:
-            
-            plt.plot(t["time"].index.values, m * t["time"] + b, "k--")
-            
-        slopes["col"] = m
+        item.set_fontsize(20)
+        item.set_color("dimgrey")
         
-    return slopes
+    for item in (ax.get_xticklabels() + ax.get_yticklabels()) + [ax.yaxis.offsetText]:
+        
+        item.set_fontsize(16)
+        item.set_color("dimgrey")
+    
+    return m
 
 if __name__ == "__main__":
     
     try:
         
-        rad = pd.read_csv(sys.argv[1], sep="\s+")
-        t = pd.read_csv(sys.argv[2], sep="\s+")
-        stab_ind = int(sys.argv[3])
+        dat = pd.read_csv(sys.argv[1], sep="\s+")
+        stab_ind = int(sys.argv[2])
+
+        plt.style.use("ggplot")
+        measure_and_plot(dat, stab_ind)
+        plt.show()
         
     except (ValueError, IndexError):
         
-        print("Usage: ./fit_speed.py radii.dat times.dat starting_index")
-    
-    plt.style.use("seaborn")
-    measure_and_plot(rad, t, stab_ind)
-    plt.show()
+        print("Usage: ./fit_speed.py data_file starting_index")
