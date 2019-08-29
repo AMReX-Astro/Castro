@@ -59,6 +59,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 end subroutine amrex_probinit
 
 
+
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
 ! ::: to initialize data on each grid.
@@ -98,6 +99,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_module
   use prescribe_grav_module, only : grav_zone
   use amrex_fort_module, only : rt => amrex_real
+  use model_util_module, only : set_species
 
   implicit none
 
@@ -139,18 +141,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
     eos_state%p = pres_zone
 
     ! do species
-    xn(:) = ZERO
-    if (y < 1.9375e0_rt * 4.e8_rt) then 
-         xn(1) = ONE
-         xn(2) = ZERO
-    else if (y > 2.0625e0_rt * 4.e8_rt) then
-         xn(1) = ZERO 
-         xn(2) = ONE 
-    else
-         fv = HALF * (ONE + sin(8.e0_rt * M_PI * (y/4.e8_rt - 2.e0_rt)))
-         xn(1) = ONE - fv
-         xn(2) = fv
-    endif
+    xn(:) = set_species(y)
     eos_state%xn(:) = xn(:)
 
     call eos(eos_input_rp, eos_state)
@@ -193,18 +184,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         eos_state%xn(:) = xn(:)
 
         ! do species
-        eos_state%xn(:) = ZERO
-        if (y < 1.9375e0_rt * 4.e8_rt) then 
-             eos_state%xn(1) = ONE
-             eos_state%xn(2) = ZERO
-        else if (y > 2.0625e0_rt * 4.e8_rt) then
-             eos_state%xn(1) = ZERO 
-             eos_state%xn(2) = ONE 
-        else
-             fv = HALF * (ONE + sin(8.e0_rt * M_PI * (y/4.e8_rt - 2.e0_rt)))
-             eos_state%xn(1) = ONE - fv
-             eos_state%xn(2) = fv
-        endif
+        eos_state%xn(:) = set_species(y)
 
         call eos(eos_input_rt, eos_state)
 
@@ -270,18 +250,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                      (sin(3 * M_PI * z/4.e8_rt) - cos(M_PI * z/4.e8_rt))
 
            ! do species
-           state(i,j,k,UFS:UFS-1+nspec) = ZERO
-           if (y < 1.9375e0_rt * 4.e8_rt) then 
-                state(i,j,k,UFS) = ONE
-                state(i,j,k,UFS+1) = ZERO
-           else if (y > 2.0625e0_rt * 4.e8_rt) then
-                state(i,j,k,UFS) = ZERO 
-                state(i,j,k,UFS+1) = ONE 
-           else
-                fv = HALF * (ONE + sin(8.e0_rt * M_PI * (y/4.e8_rt - 2.e0_rt)))
-                state(i,j,k,UFS) = ONE - fv
-                state(i,j,k,UFS+1) = fv
-           endif
+           state(i,j,k,UFS:UFS-1+nspec) = set_species(y)
 
            if (j < 0) then 
                 eos_state % rho = rho0 + rhopert
