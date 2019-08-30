@@ -228,6 +228,14 @@ Managing Runs
    by this and will always be written out in the native precision (the ‘fab.format‘ parameter
    is overridden in the checkpoint code in AMReX).
 
+#. *How can I check the compilation parameters of a Castro executable?*
+
+   The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as 
+
+   ::
+
+       ./Castro.exe --display
+
 .. _ch:faq:vis:
 
 Runtime Errors
