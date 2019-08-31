@@ -1,3 +1,8 @@
+recent changes
+
+  -- The velerr tagging now takes the abs() of the velocity component
+     to ensure we tag large positive and negative velocities.
+
 # 19.08.1
 
   -- Fix CUDA compilation

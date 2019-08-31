@@ -82,7 +82,8 @@ Castro::do_advance_sdc (Real time,
     // primitive, then get the source term from the MOL driver.  Note,
     // for m = 0, we only have to do all of this the first iteration,
     // since that state never changes
-    if (!(sdc_iteration > 0 && m == 0)) {
+    if (!(sdc_iteration > 0 && m == 0) &&
+        !(sdc_iteration == sdc_order+sdc_extra-1 && m == SDC_NODES-1)) {
 
       // Construct the "old-time" sources from Sborder.  Since we are
       // working from Sborder, this will actually evaluate the sources
@@ -226,10 +227,12 @@ Castro::do_advance_sdc (Real time,
   // the final time node.  This means we can still use S_new as
   // "scratch" until we finally set it.
 
-  // store A_old for the next SDC iteration -- don't need to do n=0,
-  // since that is unchanged
-  for (int n=1; n < SDC_NODES; n++) {
-    MultiFab::Copy(*(A_old[n]), *(A_new[n]), 0, 0, NUM_STATE, 0);
+  if (sdc_iteration != sdc_order+sdc_extra-1) {
+    // store A_old for the next SDC iteration -- don't need to do n=0,
+    // since that is unchanged
+    for (int n=1; n < SDC_NODES; n++) {
+      MultiFab::Copy(*(A_old[n]), *(A_new[n]), 0, 0, NUM_STATE, 0);
+    }
   }
 
 #ifdef REACTIONS
