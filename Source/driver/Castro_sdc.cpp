@@ -241,6 +241,11 @@ Castro::construct_old_react_source(amrex::MultiFab& U_state,
                              BL_TO_FORTRAN_3D(U_center),
                              BL_TO_FORTRAN_3D(R_center));
 
+      // at this point, we have the reaction term on centers,
+      // including a ghost cell.  Save this into Sburn so we can use
+      // it later for the plotfile filling
+      Sburn[mfi].copy(R_center, obx, 0, obx, 0, NUM_STATE);
+
       // convert R to averages (in place)
       ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
                               BL_TO_FORTRAN_FAB(R_center),
@@ -261,6 +266,7 @@ Castro::construct_old_react_source(amrex::MultiFab& U_state,
       ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
                              BL_TO_FORTRAN_3D(U_state[mfi]),
                              BL_TO_FORTRAN_3D(R_source[mfi]));
+
 
     }
   }
