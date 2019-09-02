@@ -560,7 +560,7 @@ contains
     allocate(ppm_reference_eigenvectors)
     ppm_reference_eigenvectors = 0;
     allocate(plm_iorder)
-    plm_iorder = 2;
+    plm_iorder = 3;
     allocate(plm_well_balanced)
     plm_well_balanced = 0;
     allocate(hybrid_riemann)
