@@ -16,6 +16,18 @@ recent changes
   -- The SDC/MOL PLM reconstruction now implements reflecting BCs on
      the interface states
 
+  -- A well-balanced scheme has been added to the piecewise linear SDC
+     method, enabled with castro.plm_well_balanaced=1.  At the moment
+     it only supports constant gravity. (#294)
+
+  -- The weighting of the time-node fluxes stored in the flux registers
+     for SDC has been fixed (#658)
+
+  -- The meaning of the castro.plm_iorder flag has changed slightly.
+     1 = piecewise constant, 2 = 2nd order MC limiter, and >= 3 for
+     4th order MC limiter (previously there was no way to select the
+     2nd order limiter).
+
 # 19.08.1
 
   -- Fix CUDA compilation
