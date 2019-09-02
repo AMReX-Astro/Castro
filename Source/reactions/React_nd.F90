@@ -230,6 +230,7 @@ contains
     use sdc_type_module, only : sdc_t, SRHO, SMX, SMZ, SEDEN, SEINT, SFS
 #endif
     use amrex_fort_module, only : rt => amrex_real
+    use react_util_module
 
     implicit none
 
@@ -272,7 +273,7 @@ contains
 
              ! Don't burn if we're outside of the relevant (rho, T) range.
 
-             if (.not. okay_to_burn(U(i,j,k,:))) cycle
+             if (.not. okay_to_burn(uold(i,j,k,:))) cycle
 
              ! Feed in the old-time state data.
 
