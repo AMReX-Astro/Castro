@@ -5,7 +5,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use model_parser_module
   use amrex_error_module
   use prob_params_module, only : center
-  use probdata_module, only : heating_factor, g0, rho0, p0
+  use probdata_module, only : heating_factor, g0, rho0, p0, gamma1
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -16,7 +16,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer :: untin, i
 
   namelist /fortin/ &
-       heating_factor, g0, rho0, p0
+       heating_factor, g0, rho0, p0, gamma1
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 127
@@ -36,6 +36,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   g0 = -9.021899571e8_rt
   rho0 = 1.82094e6_rt
   p0 = 2.7647358e23_rt
+  gamma1 = 1.4e0_rt
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
