@@ -46,9 +46,10 @@ contains
     use eos_type_module
     use eos_module
     use prescribe_grav_module, only : grav_zone
+    use probdata_module, only: gamma1
 
     real(rt), intent(in) :: y, U(2)
-    real(rt) :: dU(2)
+    real(rt) :: dU(2), gamma, gamma0
 
     type(eos_t) :: eos_state
 
@@ -58,8 +59,11 @@ contains
 
     call eos(eos_input_rp, eos_state)
 
+    gamma0 = eos_state % gam1
+    gamma = gamma0 + fv(y) * (gamma1 - gamma0)
+
     dU(2) = exp(U(1)) * grav_zone(y) / exp(U(2))
-    dU(1) = dU(2) / eos_state % gam1
+    dU(1) = dU(2) / gamma
 
   end function dUdy
 
