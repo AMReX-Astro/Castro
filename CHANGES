@@ -1,13 +1,4 @@
-# 19.09
-
-  -- You can now type ./Castro.gnu.ex --describe to see the list of
-     modules / compilers the code was built with (#660)
-
-  -- The reaction quantities are now computed as proper 4th order
-     averages for the plotfile, when using sdc_order = 4 (#647)
-
-  -- The velerr tagging now takes the abs() of the velocity component
-     to ensure we tag large positive and negative velocities.
+changes since the last release
 
   -- The SDC algorithm now implements the burning conditionals
      depending on rho and T (react_rho_min, react_rho_max,
@@ -27,6 +18,18 @@
      1 = piecewise constant, 2 = 2nd order MC limiter, and >= 3 for
      4th order MC limiter (previously there was no way to select the
      2nd order limiter).
+
+# 19.09
+
+  -- You can now type ./Castro.gnu.ex --describe to see the list of
+     modules / compilers the code was built with (#660)
+
+  -- The reaction quantities are now computed as proper 4th order
+     averages for the plotfile, when using sdc_order = 4 (#647)
+
+  -- The velerr tagging now takes the abs() of the velocity component
+     to ensure we tag large positive and negative velocities.
+
 
 # 19.08.1
 
