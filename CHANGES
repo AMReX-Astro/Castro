@@ -1,4 +1,4 @@
-recent changes
+# 19.09
 
   -- You can now type ./Castro.gnu.ex --describe to see the list of
      modules / compilers the code was built with (#660)
