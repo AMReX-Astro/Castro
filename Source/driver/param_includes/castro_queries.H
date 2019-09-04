@@ -78,6 +78,7 @@ pp.query("hse_interp_temp", hse_interp_temp);
 pp.query("hse_reflect_vels", hse_reflect_vels);
 pp.query("mol_order", mol_order);
 pp.query("sdc_order", sdc_order);
+pp.query("sdc_quadrature", sdc_quadrature);
 pp.query("sdc_extra", sdc_extra);
 pp.query("sdc_solver", sdc_solver);
 pp.query("sdc_solver_tol_dens", sdc_solver_tol_dens);

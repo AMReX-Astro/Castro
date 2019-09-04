@@ -235,6 +235,9 @@ mol_order                    int           2                  y
 # valid options are 2 and 4
 sdc_order                    int           2                  y
 
+# which quadrature type to use with SDC?  0 = Gauss-Lobatto, 1 = Radau
+sdc_quadrature               int           0                  
+
 # number of extra SDC iterations to take beyond the order
 sdc_extra                    int           0                  y
 
