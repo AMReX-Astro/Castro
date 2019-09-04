@@ -1159,49 +1159,57 @@ Castro::variableSetUp ()
   }
 
 
+  if (sdc_quadrature == 0) {
+    // Gauss-Lobatto
 
-  if (sdc_order == 2) {
-    // Gauss-Lobatto (trapezoid)
-    SDC_NODES = 2;
+    if (sdc_order == 2) {
+      // trapezoid
+      SDC_NODES = 2;
 
-    dt_sdc.resize(SDC_NODES);
-    dt_sdc = {0.0, 1.0};
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, 1.0};
 
-    node_weights.resize(SDC_NODES);
-    node_weights = {0.5, 0.5};
+      node_weights.resize(SDC_NODES);
+      node_weights = {0.5, 0.5};
 
-  } else if (sdc_order == 4) {
-    // Gauss-Lobatto (Simpsons)
-    SDC_NODES = 3;
+    } else if (sdc_order == 4) {
+      // Simpsons
+      SDC_NODES = 3;
 
-    dt_sdc.resize(SDC_NODES);
-    dt_sdc = {0.0, 0.5, 1.0};
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, 0.5, 1.0};
 
-    node_weights.resize(SDC_NODES);
-    node_weights = {1.0/6.0, 4.0/6.0, 1.0/6.0};
+      node_weights.resize(SDC_NODES);
+      node_weights = {1.0/6.0, 4.0/6.0, 1.0/6.0};
 
-  } else if (sdc_order == 20) {
+    } else {
+      amrex::Error("invalid value of sdc_order");
+    }
+
+  } else if (sdc_quadrature == 1) {
     // Radau
-    SDC_NODES = 3;
 
-    dt_sdc.resize(SDC_NODES);
-    dt_sdc = {0.0, 1.0/3.0, 1.0};
+    if (sdc_order == 2) {
+      SDC_NODES = 3;
 
-    node_weights.resize(SDC_NODES);
-    node_weights = {0.0, 3.0/4.0, 1.0/4.0};
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, 1.0/3.0, 1.0};
 
-  } else if (sdc_order == 40) {
-    // Radau
-    SDC_NODES = 4;
+      node_weights.resize(SDC_NODES);
+      node_weights = {0.0, 3.0/4.0, 1.0/4.0};
 
-    dt_sdc.resize(SDC_NODES);
-    dt_sdc = {0.0, (4.0 - std::sqrt(6))/10.0, (4.0 + std::sqrt(6))/10.0, 1.0};
+    } else if (sdc_order == 4) {
+      SDC_NODES = 4;
 
-    node_weights.resize(SDC_NODES);
-    node_weights = {0.0, (16.0 - std::sqrt(6))/36.0, (16.0 + std::sqrt(6))/36.0, 1.0/9.0};
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, (4.0 - std::sqrt(6))/10.0, (4.0 + std::sqrt(6))/10.0, 1.0};
 
-  } else {
-    amrex::Error("invalid value of sdc_order");
+      node_weights.resize(SDC_NODES);
+      node_weights = {0.0, (16.0 - std::sqrt(6))/36.0, (16.0 + std::sqrt(6))/36.0, 1.0/9.0};
+
+    } else {
+      amrex::Error("invalid value of sdc_order");
+    }
+
   }
-
 }
