@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=f3alpha
+#SBATCH --job-name=flame_sdc
 #SBATCH --account=m3018
-#SBATCH --nodes=2
+#SBATCH --nodes=1
 #SBATCH --tasks-per-node=32
 #SBATCH --qos=regular
-#SBATCH --time=02:00:00
+#SBATCH --time=04:00:00
 #SBATCH --constraint=haswell
 
 # Cori Haswell has 2 Intel "Haswell" processors each with 16 cores.
@@ -13,7 +13,7 @@
 export OMP_NUM_THREADS=1
 
 
-slack_job_start.py "starting flame_runs_triple_alpha problem @ NERSC" @michael
+slack_job_start.py "starting flame sdc4 problem @ NERSC" @michael
 
 export CASTRO_EXEC=./Castro1d.intel.haswell.MPI.ex
 
@@ -52,11 +52,9 @@ probin.sdc
 helm_table.dat"
 
 NZONES="
-1024
-2048
-4096
-8192"
-
+256
+512
+1024"
 
 
 # SDC-4

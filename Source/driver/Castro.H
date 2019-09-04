@@ -201,6 +201,12 @@ public:
 
 
 ///
+/// Dump build info 
+///
+    static void writeBuildInfo ();
+
+
+///
 /// Define data descriptors.
 ///
 /// ::variableSetUp is called in the constructor of Amr.cpp, so

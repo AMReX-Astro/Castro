@@ -205,5 +205,54 @@ pressure&    	 7.410837e-06 & 3.948910124 & 4.798736e-07 \\
 e.g. we see fourth-order convergence in the temperature
 
 
+## 4th order SDC (2-d)
+
+This is built as the previous test:
+
+```
+make DIM=2 CONDUCTIVITY_DIR=powerlaw -j 20 USE_MPI=TRUE
+```
+
+and then run as:
+
+```
+mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=64 64
+mv diffuse_plt00039 diffuse_2d_64
+mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4
+mv diffuse_plt00157 diffuse_2d_128
+mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=256 256
+mv diffuse_plt00626 diffuse_2d_256
+mpiexec -n 16 ./Castro2d.gnu.MPI.ex inputs.2d.powerlaw castro.time_integration_method=2 castro.sdc_order=4 amr.n_cell=512 512
+mv diffuse_plt02504 diffuse_2d_512
+
+RichardsonConvergenceTest2d.gnu.ex coarFile=diffuse_2d_64 mediFile=diffuse_2d_128 fineFile=diffuse_2d_256 > convergence_diffusion.2d.lo.sdc4.out
+RichardsonConvergenceTest2d.gnu.ex coarFile=diffuse_2d_128 mediFile=diffuse_2d_256 fineFile=diffuse_2d_512 > convergence_diffusion.2d.hi.sdc4.out
+```
+
+This gives (for the lower resolution runs):
+
+```
+Level  L1 norm of Error in Each Component
+-----------------------------------------------
+Warning: BoxArray lengths are not the same at level 0
+  0    Level  L1 norm of Error in Each Component
+-----------------------------------------------
+  0    \begin{table}[p]
+\begin{center}
+\begin{tabular}{|cccc|} \hline
+Variable & $e_{4h \rightarrow 2h}$ & Order & $e_{2h \rightarrow h}$\\
+\hline 
+density&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
+xmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
+ymom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
+zmom&    	 0.000000e+00 & ------------ &0.000000e+00 \\ 
+rho_E&    	 1.902161e-06 & 3.957610923 & 1.224299e-07 \\ 
+rho_e&    	 1.902161e-06 & 3.957610923 & 1.224299e-07 \\ 
+Temp&    	 1.770452e-06 & 3.966033724 & 1.132894e-07 \\ 
+```
+
+e.g. we see fourth-order convergence in the temperature
+
+
 
 

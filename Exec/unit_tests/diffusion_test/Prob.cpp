@@ -15,11 +15,15 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 
   Real err = -1.e30;
 
+
   for (int n = 0; n < nlevels; ++n) {
 
     // the Castro object for this level
     Castro& castro = dynamic_cast<Castro&>(*amr_level[n]);
     Real time = castro.get_state_data(State_Type).curTime();
+
+    const int* domain_lo = castro.geom.Domain().loVect();
+    const int* domain_hi = castro.geom.Domain().hiVect();
 
     // the state data
     MultiFab& S = castro.get_new_data(State_Type);
@@ -33,7 +37,8 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 
         const Box& gbx = mfi.growntilebox(1);
         ca_make_fourth_in_place(AMREX_INT_ANYD(gbx.loVect()), AMREX_INT_ANYD(gbx.hiVect()),
-                                BL_TO_FORTRAN_FAB((*analytic)[mfi]));
+                                BL_TO_FORTRAN_FAB((*analytic)[mfi]),
+                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       }
     }

@@ -2,7 +2,7 @@
 
 # run as: ./test2-helm.py castro_exec_dir plotfle
 
-# note: this relies on fextract.XXXX.exe being in your path somewhere
+# note: this relies on fextract.XXXX.ex being in your path somewhere
 
 import sys
 import os
@@ -26,7 +26,7 @@ def process(castro_exec_dir, plotfile):
             continue
         for f in os.listdir(full_dir):
             if (os.path.isfile(full_dir+"/"+f) and
-                f.startswith("fextract") and f.endswith(".exe")):
+                f.startswith("fextract") and f.endswith(".ex")):
                 analysis_routine = full_dir+"/"+f
                 break
 

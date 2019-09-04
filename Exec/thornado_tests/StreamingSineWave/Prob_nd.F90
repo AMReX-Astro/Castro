@@ -144,6 +144,19 @@ subroutine get_rad_ncomp(rad_ncomp) bind(C,name="ca_get_rad_ncomp")
 end subroutine get_rad_ncomp
 
 ! hardwired assuming 4 moments
+subroutine get_thornado_node_averages(n_node_avgs) bind(C,name="ca_get_thornado_node_averages")
+
+  use RadiationFieldsModule, only : nSpecies
+  use ProgramHeaderModule  , only : nE
+
+  integer :: n_node_avgs
+  integer :: n_moments = 4
+
+  n_node_avgs =  nSpecies * n_moments * nE
+
+end subroutine get_thornado_node_averages
+
+! hardwired assuming 4 moments
 ! streaming sine wave, J = H_x = 1 + sin(2*pi*x)
 subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
                                  rad_state_l1,rad_state_l2,rad_state_l3, &
@@ -253,5 +266,4 @@ subroutine ca_init_thornado_data(level,time,lo,hi,nrad_comp,rad_state, &
   enddo
 
 end subroutine ca_init_thornado_data
-
 

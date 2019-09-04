@@ -20,7 +20,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // divergence) using the CTU framework for unsplit hydrodynamics
 
   if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Entering construct_ctu_hydro_source" << std::endl << std::endl;
+    std::cout << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
 
   hydro_source.setVal(0.0);
 
@@ -1403,7 +1403,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
   if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Leaving construct_ctu_hydro_sources()" << std::endl << std::endl;
+    std::cout << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
 
   if (verbose > 0)
     {

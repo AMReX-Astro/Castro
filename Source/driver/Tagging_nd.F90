@@ -5,7 +5,6 @@ module tagging_module
   implicit none
 
   real(rt), allocatable ::    denerr,   dengrad, dengrad_rel
-  real(rt), allocatable ::    ye_err,   ye_grad, ye_grad_rel
   real(rt), allocatable ::    enterr,   entgrad, entgrad_rel
   real(rt), allocatable ::    velerr,   velgrad, velgrad_rel
   real(rt), allocatable ::   temperr,  tempgrad, tempgrad_rel
@@ -14,8 +13,6 @@ module tagging_module
   real(rt), allocatable ::   enucerr
 
   integer, allocatable ::  max_denerr_lev,   max_dengrad_lev, max_dengrad_rel_lev
-  integer, allocatable ::  max_ye_err_lev,   max_ye_grad_lev, max_ye_grad_rel_lev
-  integer, allocatable ::  max_enterr_lev,   max_entgrad_lev, max_entgrad_rel_lev
   integer, allocatable ::  max_velerr_lev,   max_velgrad_lev, max_velgrad_rel_lev
   integer, allocatable ::  max_temperr_lev,  max_tempgrad_lev, max_tempgrad_rel_lev
   integer, allocatable ::  max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev
@@ -41,8 +38,6 @@ module tagging_module
 
 #ifdef AMREX_USE_CUDA
   attributes(managed) ::    denerr,   dengrad, dengrad_rel
-  attributes(managed) ::    ye_err,   ye_grad, ye_grad_rel
-  attributes(managed) ::    enterr,   entgrad, entgrad_rel
   attributes(managed) ::    velerr,   velgrad, velgrad_rel
   attributes(managed) ::   temperr,  tempgrad, tempgrad_rel
   attributes(managed) ::  presserr, pressgrad, pressgrad_rel
@@ -50,8 +45,6 @@ module tagging_module
   attributes(managed) ::   enucerr
 
   attributes(managed) ::  max_denerr_lev,   max_dengrad_lev, max_dengrad_rel_lev
-  attributes(managed) ::  max_ye_err_lev,   max_ye_grad_lev, max_ye_grad_rel_lev
-  attributes(managed) ::  max_enterr_lev,   max_entgrad_lev, max_entgrad_rel_lev
   attributes(managed) ::  max_velerr_lev,   max_velgrad_lev, max_velgrad_rel_lev
   attributes(managed) ::  max_temperr_lev,  max_tempgrad_lev, max_tempgrad_rel_lev
   attributes(managed) ::  max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev
@@ -128,173 +121,6 @@ contains
 
   end subroutine ca_denerror
 
-
-  subroutine ca_ye_error(lo, hi, &
-                         tag, taglo, taghi, &
-                         ye, yelo, yehi, nd, &
-                         delta, problo, &
-                         set, clear, time, level) &
-                         bind(C, name="ca_ye_error")
-     !
-     ! This routine will tag high error cells based on Ye
-     !
-
-    use prob_params_module, only: dg
-    use amrex_fort_module, only : rt => amrex_real
-
-    implicit none
-
-    integer,    intent(in   ) :: lo(3), hi(3)
-    integer,    intent(in   ) :: taglo(3), taghi(3)
-    integer,    intent(in   ) :: yelo(3), yehi(3)
-    integer(1), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt),   intent(in   ) :: ye(yelo(1):yehi(1),yelo(2):yehi(2),yelo(3):yehi(3),nd)
-    real(rt),   intent(in   ) :: delta(3), problo(3)
-    integer(1), intent(in   ), value :: set, clear
-    integer,    intent(in   ), value :: nd, level
-    real(rt),   intent(in   ), value :: time
-
-    real(rt)         :: ax, ay, az
-    integer          :: i, j, k
-
-    !     Tag on regions of high Ye
-    if (level .lt. max_ye_err_lev) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                if (ye(i,j,k,1) .ge. ye_err) then
-                   tag(i,j,k) = set
-                endif
-             enddo
-          enddo
-       enddo
-    endif
-
-    !     Tag on regions of high Ye gradient
-    if (level .lt. max_ye_grad_lev) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                ax = ABS(ye(i+1*dg(1),j,k,1) - ye(i,j,k,1))
-                ay = ABS(ye(i,j+1*dg(2),k,1) - ye(i,j,k,1))
-                az = ABS(ye(i,j,k+1*dg(3),1) - ye(i,j,k,1))
-                ax = MAX(ax,ABS(ye(i,j,k,1) - ye(i-1*dg(1),j,k,1)))
-                ay = MAX(ay,ABS(ye(i,j,k,1) - ye(i,j-1*dg(2),k,1)))
-                az = MAX(az,ABS(ye(i,j,k,1) - ye(i,j,k-1*dg(3),1)))
-
-                if (MAX(ax,ay,az) .ge. ye_grad) then
-                   tag(i,j,k) = set
-                endif
-             enddo
-          enddo
-       enddo
-    endif
-
-    !     Tag on regions of high Ye gradient
-    if (level .lt. max_ye_grad_rel_lev) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                ax = ABS(ye(i+1*dg(1),j,k,1) - ye(i,j,k,1))
-                ay = ABS(ye(i,j+1*dg(2),k,1) - ye(i,j,k,1))
-                az = ABS(ye(i,j,k+1*dg(3),1) - ye(i,j,k,1))
-                ax = MAX(ax,ABS(ye(i,j,k,1) - ye(i-1*dg(1),j,k,1)))
-                ay = MAX(ay,ABS(ye(i,j,k,1) - ye(i,j-1*dg(2),k,1)))
-                az = MAX(az,ABS(ye(i,j,k,1) - ye(i,j,k-1*dg(3),1)))
-
-                if (MAX(ax,ay,az) .ge. ABS(ye_grad_rel * ye(i,j,k,1))) then
-                   tag(i,j,k) = set
-                endif
-             enddo
-          enddo
-       enddo
-    endif
-
-  end subroutine ca_ye_error
-
-
-  subroutine ca_enterror(lo, hi, &
-                         tag, taglo, taghi, &
-                         ent, entlo, enthi, nd, &
-                         delta, problo, &
-                         set, clear, time, level) &
-                         bind(C, name="ca_enterror")
-     !
-     ! This routine will tag high error cells based on ent
-     !
-
-    use prob_params_module, only: dg
-    use amrex_fort_module, only : rt => amrex_real
-
-    implicit none
-
-    integer,    intent(in   ) :: lo(3), hi(3)
-    integer,    intent(in   ) :: taglo(3), taghi(3)
-    integer,    intent(in   ) :: entlo(3), enthi(3)
-    integer(1), intent(inout) :: tag(taglo(1):taghi(1),taglo(2):taghi(2),taglo(3):taghi(3))
-    real(rt),   intent(in   ) :: ent(entlo(1):enthi(1),entlo(2):enthi(2),entlo(3):enthi(3),nd)
-    real(rt),   intent(in   ) :: delta(3), problo(3)
-    integer(1), intent(in   ), value :: set, clear
-    integer,    intent(in   ), value :: nd, level
-    real(rt),   intent(in   ), value :: time
-
-    real(rt)         :: ax, ay, az
-    integer          :: i, j, k
-
-    !     Tag on regions of high ent
-    if (level .lt. max_enterr_lev) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                if (ent(i,j,k,1) .ge. enterr) then
-                   tag(i,j,k) = set
-                endif
-             enddo
-          enddo
-       enddo
-    endif
-
-    !     Tag on regions of high ent gradient
-    if (level .lt. max_entgrad_lev) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                ax = ABS(ent(i+1*dg(1),j,k,1) - ent(i,j,k,1))
-                ay = ABS(ent(i,j+1*dg(2),k,1) - ent(i,j,k,1))
-                az = ABS(ent(i,j,k+1*dg(3),1) - ent(i,j,k,1))
-                ax = MAX(ax,ABS(ent(i,j,k,1) - ent(i-1*dg(1),j,k,1)))
-                ay = MAX(ay,ABS(ent(i,j,k,1) - ent(i,j-1*dg(2),k,1)))
-                az = MAX(az,ABS(ent(i,j,k,1) - ent(i,j,k-1*dg(3),1)))
-
-                if (MAX(ax,ay,az) .ge. entgrad) then
-                   tag(i,j,k) = set
-                endif
-             enddo
-          enddo
-       enddo
-    endif
-
-    !     Tag on regions of high ent gradient
-    if (level .lt. max_entgrad_rel_lev) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                ax = ABS(ent(i+1*dg(1),j,k,1) - ent(i,j,k,1))
-                ay = ABS(ent(i,j+1*dg(2),k,1) - ent(i,j,k,1))
-                az = ABS(ent(i,j,k+1*dg(3),1) - ent(i,j,k,1))
-                ax = MAX(ax,ABS(ent(i,j,k,1) - ent(i-1*dg(1),j,k,1)))
-                ay = MAX(ay,ABS(ent(i,j,k,1) - ent(i,j-1*dg(2),k,1)))
-                az = MAX(az,ABS(ent(i,j,k,1) - ent(i,j,k-1*dg(3),1)))
-
-                if (MAX(ax,ay,az) .ge. ABS(entgrad_rel * ent(i,j,k,1))) then
-                   tag(i,j,k) = set
-                endif
-             enddo
-          enddo
-       enddo
-    endif
-
-  end subroutine ca_enterror
 
 
   subroutine ca_temperror(lo, hi, &
@@ -463,7 +289,7 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if (vel(i,j,k,1) .ge. velerr) then
+                if (abs(vel(i,j,k,1)) .ge. velerr) then
                    tag(i,j,k) = set
                 endif
              enddo

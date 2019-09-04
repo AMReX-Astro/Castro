@@ -60,14 +60,21 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += RadiationFieldsModule.f90
 
 # In Modules/TwoMoment
-  ca_F90EXE_sources += TwoMoment_ClosureModule.F90
-  ca_F90EXE_sources += TwoMoment_PositivityLimiterModule_GPU.F90
-  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Streaming_GPU.F90
   ca_F90EXE_sources += TwoMoment_BoundaryConditionsModule.F90
   ca_F90EXE_sources += TwoMoment_UtilitiesModule.F90
   ca_F90EXE_sources += TwoMoment_NeutrinoMatterSolverModule.F90
-  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Collisions_Neutrinos_GPU.F90
   ca_f90EXE_sources += TwoMoment_MeshRefinementModule.f90
+  ca_F90EXE_sources += TwoMoment_ClosureModule.F90
+
+ifeq ($(USE_THORNADO_GPU),TRUE)
+  ca_F90EXE_sources += TwoMoment_PositivityLimiterModule_GPU.F90
+  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Streaming_GPU.F90
+  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Collisions_Neutrinos_GPU.F90
+else
+  ca_F90EXE_sources += TwoMoment_PositivityLimiterModule.F90
+  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Streaming.F90
+  ca_F90EXE_sources += TwoMoment_DiscretizationModule_Collisions_Neutrinos.F90
+endif
 
 # In Modules/Units
   ca_f90EXE_sources += PhysicalConstantsModule.f90

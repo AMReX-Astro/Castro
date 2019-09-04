@@ -54,7 +54,6 @@ contains
     use model_parser_module
     use amrex_constants_module, only : HALF, ONE, TWO
     use prob_params_module, only: problo
-    use interpolate_module
 
     implicit none
 
@@ -110,9 +109,9 @@ contains
           y = problo(2) + delta(2)*(dble(j) + HALF)
           ym = problo(2) + delta(2)*(dble(j-1) + HALF)
 
-          call interpolate_sub(rhop, yp, npts_model, model_r, model_state(:,idens_model))
-          call interpolate_sub(rhoc, y, npts_model, model_r, model_state(:,idens_model))
-          call interpolate_sub(rhom, ym, npts_model, model_r, model_state(:,idens_model))
+          call interpolate_sub(rhop, yp, idens_model)
+          call interpolate_sub(rhoc, y, idens_model)
+          call interpolate_sub(rhom, ym, idens_model)
 
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
@@ -143,9 +142,9 @@ contains
           y = problo(2) + delta(2)*(dble(j) + HALF)
           ym = problo(2) + delta(2)*(dble(j-1) + HALF)
 
-          call interpolate_sub(rhop, yp, npts_model, model_r, model_state(:,idens_model))
-          call interpolate_sub(rhoc, y, npts_model, model_r, model_state(:,idens_model))
-          call interpolate_sub(rhom, ym, npts_model, model_r, model_state(:,idens_model))
+          call interpolate_sub(rhop, yp, idens_model)
+          call interpolate_sub(rhoc, y, idens_model)
+          call interpolate_sub(rhom, ym, idens_model)
 
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)

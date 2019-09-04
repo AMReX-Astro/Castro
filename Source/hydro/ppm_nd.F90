@@ -161,7 +161,6 @@ contains
 
        end do
 
-#if AMREX_SPACEDIM >= 2
     else if (idir == 2) then
 
        do ic = 0, (nend - nstart)
@@ -258,7 +257,6 @@ contains
 
        end do
 
-#if AMREX_SPACEDIM >= 3
     else
 
        do ic = 0, (nend - nstart)
@@ -354,8 +352,6 @@ contains
           qm(nq,3) = sm
 
        end do
-#endif
-#endif
     end if
 
   end subroutine ca_ppm_reconstruct
@@ -472,8 +468,8 @@ contains
           Im(3,ic) = sm
        endif
 
-#if AMREX_SPACEDIM >= 2
     else if (idir == 2) then
+
        !!!!!!!!!!!!!!!!!!!!
        ! y-direction
        !!!!!!!!!!!!!!!!!!!!
@@ -527,7 +523,6 @@ contains
           Im(3,ic) = sm
        endif
 
-#if AMREX_SPACEDIM >= 3
     else
        !!!!!!!!!!!!!!!!!!!!
        ! z-direction
@@ -581,8 +576,6 @@ contains
           Im(3,ic) = sm
        endif
 
-#endif
-#endif
     endif
 
   end subroutine ppm_int_profile

@@ -3,7 +3,7 @@ max_step = 10000
 stop_time =  0.1
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 0       0
+geometry.is_periodic = 1       0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
 geometry.prob_hi     = 7.68e6  7.68e6
@@ -14,8 +14,8 @@ amr.n_cell           = 64      64
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  2   3
-castro.hi_bc       =  2   3
+castro.lo_bc       =  0   3
+castro.hi_bc       =  0   3
 
 castro.yl_ext_bc_type = "interp"
 castro.yr_ext_bc_type = "interp"
@@ -28,7 +28,17 @@ castro.do_sponge = 1
 
 castro.small_temp = 1.e6
 
-castro.ppm_type = 1
+castro.sdc_order=4
+castro.time_integration_method=2
+castro.limit_fourth_order=1
+castro.use_reconstructed_gamma1=1
+castro.sdc_solve_for_rhoe=1
+castro.sdc_solver_tol_spec=1.e-10
+castro.sdc_solver_tol_dens=1.e-10
+castro.sdc_solver_tol_ener=1.e-5
+castro.sdc_solver_atol=1.e-10
+castro.sdc_solver=1
+
 castro.grav_source_type = 2
 
 gravity.gravity_type = ConstantGrav

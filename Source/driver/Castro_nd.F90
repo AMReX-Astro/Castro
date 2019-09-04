@@ -945,10 +945,6 @@ subroutine ca_get_tagging_params(name, namlen) &
   namelist /tagging/ &
        denerr, dengrad, dengrad_rel, &
        max_denerr_lev, max_dengrad_lev, max_dengrad_rel_lev, &
-       ye_err, ye_grad, ye_grad_rel, &
-       max_ye_err_lev, max_ye_grad_lev, max_ye_grad_rel_lev, &
-       enterr, entgrad, entgrad_rel, &
-       max_enterr_lev, max_entgrad_lev, max_entgrad_rel_lev, &
        velerr, velgrad, velgrad_rel, &
        max_velerr_lev, max_velgrad_lev, max_velgrad_rel_lev, &
        presserr, pressgrad, pressgrad_rel, &
@@ -974,34 +970,6 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_denerr_lev = -1
   max_dengrad_lev = -1
   max_dengrad_rel_lev = -1
-
-  allocate(ye_err)
-  allocate(ye_grad)
-  allocate(ye_grad_rel)
-  allocate(max_ye_err_lev)
-  allocate(max_ye_grad_lev)
-  allocate(max_ye_grad_rel_lev)
-
-  ye_err = 1.e20_rt
-  ye_grad = 1.e20_rt
-  ye_grad_rel = 1.e20_rt
-  max_ye_err_lev = -1
-  max_ye_grad_lev = -1
-  max_ye_grad_rel_lev = -1
-
-  allocate(enterr)
-  allocate(entgrad)
-  allocate(entgrad_rel)
-  allocate(max_enterr_lev)
-  allocate(max_entgrad_lev)
-  allocate(max_entgrad_rel_lev)
-
-  enterr = 1.e20_rt
-  entgrad = 1.e20_rt
-  entgrad_rel = 1.e20_rt
-  max_enterr_lev = -1
-  max_entgrad_lev = -1
-  max_entgrad_rel_lev = -1
 
   allocate(presserr)
   allocate(pressgrad)
