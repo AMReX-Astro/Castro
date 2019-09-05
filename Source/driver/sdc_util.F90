@@ -828,14 +828,15 @@ contains
   end subroutine f_sdc_jac
 #endif
 
-  subroutine ca_sdc_update_advection_o2(lo, hi, dt_m, dt, &
-                                        k_m, kmlo, kmhi, &
-                                        k_n, knlo, knhi, &
-                                        A_m, Amlo, Amhi, &
-                                        A_0_old, A0lo, A0hi, &
-                                        A_1_old, A1lo, A1hi, &
-                                        m_start) bind(C, name="ca_sdc_update_advection_o2")
+  subroutine ca_sdc_update_advection_o2_lobatto(lo, hi, dt_m, dt, &
+                                                k_m, kmlo, kmhi, &
+                                                k_n, knlo, knhi, &
+                                                A_m, Amlo, Amhi, &
+                                                A_0_old, A0lo, A0hi, &
+                                                A_1_old, A1lo, A1hi, &
+                                                m_start) bind(C, name="ca_sdc_update_advection_o2_lobatto")
     ! update k_m to k_n via advection -- this is a second-order accurate update
+    ! for the Gauss-Lobatto discretization of the time nodes
 
     ! here, dt_m is the update for this stage, from one time node to the next
     ! dt is the update over the whole timestep, n to n+1
@@ -864,38 +865,103 @@ contains
 
     integer :: i, j, k
 
-    if (sdc_quadrature == 0) then
+    ! Gauss-Lobatto / trapezoid
 
-       ! Gauss-Lobatto / trapezoid
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             k_n(i,j,k,:) = k_m(i,j,k,:) + HALF * dt * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:))
+          end do
+       end do
+    end do
+
+  end subroutine ca_sdc_update_advection_o2_lobatto
+
+
+  subroutine ca_sdc_update_advection_o2_radau(lo, hi, dt_m, dt, &
+                                              k_m, kmlo, kmhi, &
+                                              k_n, knlo, knhi, &
+                                              A_m, Amlo, Amhi, &
+                                              A_0_old, A0lo, A0hi, &
+                                              A_1_old, A1lo, A1hi, &
+                                              A_2_old, A2lo, A2hi, &
+                                              m_start) bind(C, name="ca_sdc_update_advection_o2_radau")
+    ! update k_m to k_n via advection -- this is a second-order accurate update
+    ! for the Radau discretization of the time nodes
+
+    ! here, dt_m is the update for this stage, from one time node to the next
+    ! dt is the update over the whole timestep, n to n+1
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : HALF, FIVE
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: dt_m, dt
+    integer, intent(in) :: kmlo(3), kmhi(3)
+    integer, intent(in) :: knlo(3), knhi(3)
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: A2lo(3), A2hi(3)
+    integer, intent(in) :: m_start
+
+
+    real(rt), intent(in) :: k_m(kmlo(1):kmhi(1), kmlo(2):kmhi(2), kmlo(3):kmhi(3), NVAR)
+    real(rt), intent(inout) :: k_n(knlo(1):knhi(1), knlo(2):knhi(2), knlo(3):knhi(3), NVAR)
+
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+    real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
+
+    integer :: i, j, k
+
+    ! Radau
+
+    if (m_start == 0) then
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                k_n(i,j,k,:) = k_m(i,j,k,:) + HALF * dt * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:))
+
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
+                     dt/12.0_rt * (FIVE*A_1_old(i,j,k,:) - A_2_old(i,j,k,:))
+
              end do
           end do
        end do
 
-    else if (sdc_quadrature == 1) then
+    else if (m_start == 1) then
 
-       ! Radau
-       call amrex_error("2nd order Radau not implemented")
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
+                     dt/3.0_rt * (A_1_old(i,j,k,:) + A_2_old(i,j,k,:))
+
+             end do
+          end do
+       end do
 
     end if
 
+  end subroutine ca_sdc_update_advection_o2_radau
 
-  end subroutine ca_sdc_update_advection_o2
 
-
-  subroutine ca_sdc_update_advection_o4(lo, hi, dt_m, dt, &
-                                        k_m, kmlo, kmhi, &
-                                        k_n, knlo, knhi, &
-                                        A_m, Amlo, Amhi, &
-                                        A_0_old, A0lo, A0hi, &
-                                        A_1_old, A1lo, A1hi, &
-                                        A_2_old, A2lo, A2hi, &
-                                        m_start) bind(C, name="ca_sdc_update_advection_o4")
-    ! update k_m to k_n via advection -- this is a second-order accurate update
+  subroutine ca_sdc_update_advection_o4_lobatto(lo, hi, dt_m, dt, &
+                                                k_m, kmlo, kmhi, &
+                                                k_n, knlo, knhi, &
+                                                A_m, Amlo, Amhi, &
+                                                A_0_old, A0lo, A0hi, &
+                                                A_1_old, A1lo, A1hi, &
+                                                A_2_old, A2lo, A2hi, &
+                                                m_start) bind(C, name="ca_sdc_update_advection_o4_lobatto")
+    ! update k_m to k_n via advection -- this is a fourth order accurate update
 
     ! here, dt_m is the update for this stage, from one time node to the next
     ! dt is the update over the whole timestep, n to n+1
@@ -926,46 +992,132 @@ contains
 
     integer :: i, j, k
 
-    if (sdc_quadrature == 0) then
+    ! Gauss-Lobatto (Simpsons)
 
-       ! Gauss-Lobatto (Simpsons)
+    if (m_start == 0) then
 
-       if (m_start == 0) then
-
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-                do i = lo(1), hi(1)
-                   k_n(i,j,k,:) = k_m(i,j,k,:) + &
-                        dt_m * (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
-                        dt/24.0_rt * (FIVE*A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) - A_2_old(i,j,k,:))
-                enddo
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
+                     dt/24.0_rt * (FIVE*A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) - A_2_old(i,j,k,:))
              enddo
           enddo
+       enddo
 
-       else if (m_start == 1) then
+    else if (m_start == 1) then
 
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-                do i = lo(1), hi(1)
-                   k_n(i,j,k,:) = k_m(i,j,k,:) + &
-                        dt_m * (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
-                        dt/24.0_rt * (-A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) + FIVE*A_2_old(i,j,k,:))
-                enddo
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
+                     dt/24.0_rt * (-A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) + FIVE*A_2_old(i,j,k,:))
              enddo
           enddo
+       enddo
 
-       else
-          call castro_error("error in ca_sdc_update_advection_o4 -- should not be here")
-       endif
+    else
+       call castro_error("error in ca_sdc_update_advection_o4_lobatto -- should not be here")
+    endif
 
-    else if (sdc_quadrature == 1) then
+  end subroutine ca_sdc_update_advection_o4_lobatto
 
-       ! Radau
-       call amrex_error("4th order Radau not implemented")
 
-    end if
+  subroutine ca_sdc_update_advection_o4_radau(lo, hi, dt_m, dt, &
+                                              k_m, kmlo, kmhi, &
+                                              k_n, knlo, knhi, &
+                                              A_m, Amlo, Amhi, &
+                                              A_0_old, A0lo, A0hi, &
+                                              A_1_old, A1lo, A1hi, &
+                                              A_2_old, A2lo, A2hi, &
+                                              A_3_old, A3lo, A3hi, &
+                                              m_start) bind(C, name="ca_sdc_update_advection_o4_radau")
+    ! update k_m to k_n via advection -- this is a fourth-order accurate update
 
-  end subroutine ca_sdc_update_advection_o4
+    ! here, dt_m is the update for this stage, from one time node to the next
+    ! dt is the update over the whole timestep, n to n+1
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: dt_m, dt
+    integer, intent(in) :: kmlo(3), kmhi(3)
+    integer, intent(in) :: knlo(3), knhi(3)
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: A2lo(3), A2hi(3)
+    integer, intent(in) :: A3lo(3), A3hi(3)
+    integer, intent(in) :: m_start
+
+
+    real(rt), intent(in) :: k_m(kmlo(1):kmhi(1), kmlo(2):kmhi(2), kmlo(3):kmhi(3), NVAR)
+    real(rt), intent(inout) :: k_n(knlo(1):knhi(1), knlo(2):knhi(2), knlo(3):knhi(3), NVAR)
+
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+    real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
+    real(rt), intent(in) :: A_3_old(A3lo(1):A3hi(1), A3lo(2):A3hi(2), A3lo(3):A3hi(3), NVAR)
+
+    integer :: i, j, k
+
+    ! Gauss-Lobatto (Simpsons)
+
+    if (m_start == 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
+                     dt/1800.0_rt * ((-35.0_rt*sqrt(6.0_rt) + 440.0_rt)*A_1_old(i,j,k,:) + &
+                                     (-169.0_rt*sqrt(6.0_rt) + 296.0_rt)*A_2_old(i,j,k,:) + &
+                                     (-16.0_rt + 24.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,:))
+             enddo
+          enddo
+       enddo
+
+    else if (m_start == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
+                     dt/150.0_rt * ((-12.0_rt + 17.0_rt*sqrt(6.0_rt))*A_1_old(i,j,k,:) + &
+                                    (12.0_rt + 17.0_rt*sqrt(6.0_rt))*A_2_old(i,j,k,:) + &
+                                    (-4.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,:))
+             enddo
+          enddo
+       enddo
+
+    else if (m_start == 2) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_2_old(i,j,k,:)) + &
+                     dt/600.0_rt * ((168.0_rt - 73.0_rt*sqrt(6.0_rt))*A_1_old(i,j,k,:) + &
+                                    (120.0_rt + 5.0_rt*sqrt(6.0_rt))*A_2_old(i,j,k,:) + &
+                                    (72.0_rt + 8.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,:))
+             enddo
+          enddo
+       enddo
+
+    else
+       call castro_error("error in ca_sdc_update_advection_o4_radau -- should not be here")
+    endif
+
+  end subroutine ca_sdc_update_advection_o4_radau
+
+
 
 
 #ifdef REACTIONS

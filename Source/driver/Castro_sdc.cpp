@@ -180,22 +180,50 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
 #else
     // pure advection
     if (sdc_order == 2) {
-      ca_sdc_update_advection_o2(BL_TO_FORTRAN_BOX(bx), &dt_m, &dt,
-                                 BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
-                                 BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
-                                 BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                                 BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                                 BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                                 &m_start);
+
+      if (sdc_quadrature == 0) {
+        ca_sdc_update_advection_o2_lobatto(BL_TO_FORTRAN_BOX(bx), &dt_m, &dt,
+                                           BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
+                                           BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
+                                           BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+                                           BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
+                                           BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                                           &m_start);
+
+      } else {
+        ca_sdc_update_advection_o2_radau(BL_TO_FORTRAN_BOX(bx), &dt_m, &dt,
+                                         BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
+                                         BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
+                                         BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+                                         BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
+                                         BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                                         BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
+                                         &m_start);
+
+      }
+
     } else {
-      ca_sdc_update_advection_o4(BL_TO_FORTRAN_BOX(bx), &dt_m, &dt,
-                                 BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
-                                 BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
-                                 BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                                 BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                                 BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                                 BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
-                                 &m_start);
+      if (sdc_quadrature == 0) {
+        ca_sdc_update_advection_o4_lobatto(BL_TO_FORTRAN_BOX(bx), &dt_m, &dt,
+                                           BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
+                                           BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
+                                           BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+                                           BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
+                                           BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                                           BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
+                                           &m_start);
+      } else {
+        ca_sdc_update_advection_o4_radau(BL_TO_FORTRAN_BOX(bx), &dt_m, &dt,
+                                         BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
+                                         BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
+                                         BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+                                         BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
+                                         BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                                         BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
+                                         BL_TO_FORTRAN_3D((*A_old[3])[mfi]),
+                                         &m_start);
+      }
+
     }
 #endif
 
