@@ -1336,14 +1336,152 @@ contains
   end subroutine ca_sdc_compute_initial_guess
 
 
+  subroutine ca_sdc_compute_C2_lobatto(lo, hi, dt_m, dt, &
+                                       A_m, Amlo, Amhi, &
+                                       A_0_old, A0lo, A0hi, &
+                                       A_1_old, A1lo, A1hi, &
+                                       R_0_old, R0lo, R0hi, &
+                                       R_1_old, R1lo, R1hi, &
+                                       C, Clo, Chi, &
+                                       m_start) bind(C, name="ca_sdc_compute_C2_lobatto")
+    ! compute the source term C for the 2nd order Lobatto update
+
+    ! Here, dt_m is the timestep between time-nodes m and m+1
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : ZERO, HALF
+    use burn_type_module, only : burn_t
+    use network, only : nspec, nspec_evolve
+    use react_util_module
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: dt_m, dt
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: R0lo(3), R0hi(3)
+    integer, intent(in) :: R1lo(3), R1hi(3)
+    integer, intent(in) :: Clo(3), Chi(3)
+    integer, intent(in) :: m_start
+
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+
+    real(rt), intent(in) :: R_0_old(R0lo(1):R0hi(1), R0lo(2):R0hi(2), R0lo(3):R0hi(3), NVAR)
+    real(rt), intent(in) :: R_1_old(R1lo(1):R1hi(1), R1lo(2):R1hi(2), R1lo(3):R1hi(3), NVAR)
+
+    real(rt), intent(out) :: C(Clo(1):Chi(1), Clo(2):Chi(2), Clo(3):Chi(3), NVAR)
+
+    integer :: i, j, k
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! construct the source term to the update for 2nd order
+             ! Lobatto, there is no advective correction, and we have
+             ! C = - R(U^{m+1,k}) + I_m^{m+1}/dt
+             C(i,j,k,:) = -R_1_old(i,j,k,:) + &
+                  HALF * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
+                  HALF * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
+          end do
+       end do
+    end do
+
+  end subroutine ca_sdc_compute_C2_lobatto
+
+
+  subroutine ca_sdc_compute_C2_radau(lo, hi, dt_m, dt, &
+                                     A_m, Amlo, Amhi, &
+                                     A_0_old, A0lo, A0hi, &
+                                     A_1_old, A1lo, A1hi, &
+                                     A_2_old, A2lo, A2hi, &
+                                     R_0_old, R0lo, R0hi, &
+                                     R_1_old, R1lo, R1hi, &
+                                     R_2_old, R2lo, R2hi, &
+                                     C, Clo, Chi, &
+                                     m_start) bind(C, name="ca_sdc_compute_C2_radau")
+    ! compute the source term C for the 2nd order Radau update
+
+    ! Here, dt_m is the timestep between time-nodes m and m+1
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : ZERO, HALF, ONE, FIVE
+    use burn_type_module, only : burn_t
+    use network, only : nspec, nspec_evolve
+    use react_util_module
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: dt_m, dt
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: A2lo(3), A2hi(3)
+    integer, intent(in) :: R0lo(3), R0hi(3)
+    integer, intent(in) :: R1lo(3), R1hi(3)
+    integer, intent(in) :: R2lo(3), R2hi(3)
+    integer, intent(in) :: Clo(3), Chi(3)
+    integer, intent(in) :: m_start
+
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+    real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
+
+    real(rt), intent(in) :: R_0_old(R0lo(1):R0hi(1), R0lo(2):R0hi(2), R0lo(3):R0hi(3), NVAR)
+    real(rt), intent(in) :: R_1_old(R1lo(1):R1hi(1), R1lo(2):R1hi(2), R1lo(3):R1hi(3), NVAR)
+    real(rt), intent(in) :: R_2_old(R2lo(1):R2hi(1), R2lo(2):R2hi(2), R2lo(3):R2hi(3), NVAR)
+
+    real(rt), intent(out) :: C(Clo(1):Chi(1), Clo(2):Chi(2), Clo(3):Chi(3), NVAR)
+
+    integer :: i, j, k
+
+    ! construct the source term to the update for 2nd order
+    ! Radau
+
+    if (m_start == 0) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                C(i,j,k,:) = -R_1_old(i,j,k,:) + &
+                     (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
+                     (dt/dt_m) * (ONE/12.0_rt) * &
+                     FIVE*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
+                          (A_2_old(i,j,k,:) + R_2_old(i,j,k,:))
+             end do
+          end do
+       end do
+
+    else if (m_start == 1) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                C(i,j,k,:) = -R_2_old(i,j,k,:) + &
+                     (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
+                     (dt/dt_m) * (ONE/3.0_rt) * &
+                     (A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                     (A_2_old(i,j,k,:) + R_2_old(i,j,k,:))
+             end do
+          end do
+       end do
+    end if
+
+  end subroutine ca_sdc_compute_C2_radau
+
+
   subroutine ca_sdc_update_o2(lo, hi, dt_m, &
                               k_m, kmlo, kmhi, &
                               k_n, knlo, knhi, &
                               A_m, Amlo, Amhi, &
-                              A_0_old, A0lo, A0hi, &
-                              A_1_old, A1lo, A1hi, &
-                              R_0_old, R0lo, R0hi, &
-                              R_1_old, R1lo, R1hi, &
+                              R_m_old, Rmlo, Rmhi, &
+                              C, Clo, Chi, &
                               sdc_iteration, &
                               m_start) bind(C, name="ca_sdc_update_o2")
     ! update k_m to k_n via advection -- this is a second-order accurate update
@@ -1363,10 +1501,8 @@ contains
     integer, intent(in) :: kmlo(3), kmhi(3)
     integer, intent(in) :: knlo(3), knhi(3)
     integer, intent(in) :: Amlo(3), Amhi(3)
-    integer, intent(in) :: A0lo(3), A0hi(3)
-    integer, intent(in) :: A1lo(3), A1hi(3)
-    integer, intent(in) :: R0lo(3), R0hi(3)
-    integer, intent(in) :: R1lo(3), R1hi(3)
+    integer, intent(in) :: Rmlo(3), Rmhi(3)
+    integer, intent(in) :: Clo(3), Chi(3)
     integer, intent(in) :: sdc_iteration, m_start
 
 
@@ -1374,32 +1510,21 @@ contains
     real(rt), intent(inout) :: k_n(knlo(1):knhi(1), knlo(2):knhi(2), knlo(3):knhi(3), NVAR)
 
     real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
-    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
-    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
-
-    real(rt), intent(in) :: R_0_old(R0lo(1):R0hi(1), R0lo(2):R0hi(2), R0lo(3):R0hi(3), NVAR)
-    real(rt), intent(in) :: R_1_old(R1lo(1):R1hi(1), R1lo(2):R1hi(2), R1lo(3):R1hi(3), NVAR)
+    real(rt), intent(in) :: R_m_old(Rmlo(1):Rmhi(1), Rmlo(2):Rmhi(2), Rmlo(3):Rmhi(3), NVAR)
+    real(rt), intent(in) :: C(Clo(1):Chi(1), Clo(2):Chi(2), Clo(3):Chi(3), NVAR)
 
     integer :: i, j, k
 
     type(burn_t) :: burn_state
 
-    real(rt) :: U_old(NVAR), U_new(NVAR), C(NVAR), R_full(NVAR)
+    real(rt) :: U_old(NVAR), U_new(NVAR), R_full(NVAR), C_zone(NVAR)
 
-
-    ! now consider the reacting system
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              U_old(:) = k_m(i,j,k,:)
-
-             ! construct the source term to the update
-             ! for 2nd order, there is no advective correction, and we have
-             ! C = - R(U^{m+1,k}) + I_m^{m+1}/dt
-             C(:) = -R_1_old(i,j,k,:) + &
-                  HALF * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
-                  HALF * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
+             C_zone(:) = C(i,j,k,:)
 
              ! only burn if we are within the temperature and density
              ! limits for burning
@@ -1415,12 +1540,12 @@ contains
                 ! the first iteration, let's try to extrapolate forward
                 ! in time.
                 if (sdc_iteration == 0) then
-                   U_new(:) = U_old(:) + dt_m * A_m(i,j,k,:) + dt_m * R_0_old(i,j,k,:)
+                   U_new(:) = U_old(:) + dt_m * A_m(i,j,k,:) + dt_m * R_m_old(i,j,k,:)
                 else
                    U_new(:) = k_n(i,j,k,:)
                 endif
 
-                call sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
+                call sdc_solve(dt_m, U_old, U_new, C_zone, sdc_iteration)
 
                 ! we solved our system to some tolerance, but let's be sure we are conservative by
                 ! reevaluating the reactions and then doing the full step update
@@ -1428,7 +1553,7 @@ contains
 
              end if
 
-             U_new(:) = U_old(:) + dt_m * R_full(:) + dt_m * C(:)
+             U_new(:) = U_old(:) + dt_m * R_full(:) + dt_m * C_zone(:)
 
              ! copy back to k_n
              k_n(i,j,k,:) = U_new(:)

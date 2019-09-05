@@ -45,16 +45,34 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
 
       const Box& bx = mfi.tilebox();
 
-      ca_sdc_compute_C4(BL_TO_FORTRAN_BOX(bx),
-                        BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                        BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                        BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                        BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
-                        BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
-                        BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
-                        BL_TO_FORTRAN_3D((*R_old[2])[mfi]),
-                        BL_TO_FORTRAN_3D(C_source[mfi]),
-                        &m_start);
+      if (sdc_quadrature == 0) {
+
+        ca_sdc_compute_C4_lobatto(BL_TO_FORTRAN_BOX(bx),
+                                  &dt_m, &dt,
+                                  BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+                                  BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
+                                  BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                                  BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
+                                  BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
+                                  BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
+                                  BL_TO_FORTRAN_3D((*R_old[2])[mfi]),
+                                  BL_TO_FORTRAN_3D(C_source[mfi]),
+                                  &m_start);
+      } else {
+        ca_sdc_compute_C4_radau(BL_TO_FORTRAN_BOX(bx),
+                                &dt_m, &dt,
+                                BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+                                BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
+                                BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                                BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
+                                BL_TO_FORTRAN_3D((*A_old[3])[mfi]),
+                                BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
+                                BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
+                                BL_TO_FORTRAN_3D((*R_old[2])[mfi]),
+                                BL_TO_FORTRAN_3D((*R_old[3])[mfi]),
+                                BL_TO_FORTRAN_3D(C_source[mfi]),
+                                &m_start);
+      }
     }
 
     // need to construct the time for this stage -- but it is not really
@@ -98,6 +116,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
   FArrayBox U_new_center;
   FArrayBox R_new;
 
+  FArrayBox C2;
+
   for (MFIter mfi(*k_new[0]); mfi.isValid(); ++mfi) {
 
     const Box& bx = mfi.tilebox();
@@ -110,14 +130,44 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
       // second order SDC reaction update -- we don't care about
       // the difference between cell-centers and averages
 
+      // first compute the source term, C -- this differs depending
+      // on whether we are Lobatto or Radau
+      C2.resize(bx, NUM_STATE);
+
+      if (sdc_quadrature == 0) {
+
+        ca_sdc_compute_C2_lobatto(BL_TO_FORTRAN_BOX(bx),
+                                  &dt_m, &dt,
+                                  BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+                                  BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
+                                  BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                                  BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
+                                  BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
+                                  BL_TO_FORTRAN_3D(C2),
+                                  &m_start);
+
+      } else {
+
+        ca_sdc_compute_C2_radau(BL_TO_FORTRAN_BOX(bx),
+                                &dt_m, &dt,
+                                BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+                                BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
+                                BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
+                                BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
+                                BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
+                                BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
+                                BL_TO_FORTRAN_3D((*R_old[2])[mfi]),
+                                BL_TO_FORTRAN_3D(C2),
+                                &m_start);
+
+      }
+
       ca_sdc_update_o2(BL_TO_FORTRAN_BOX(bx), &dt_m,
                        BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
                        BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
                        BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                       BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                       BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                       BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
-                       BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
+                       BL_TO_FORTRAN_3D((*R_old[m_start])[mfi]),
+                       BL_TO_FORTRAN_3D(C2),
                        &sdc_iteration,
                        &m_start);
     } else {
