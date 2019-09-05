@@ -28,13 +28,13 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
   const int* domain_lo = geom.Domain().loVect();
   const int* domain_hi = geom.Domain().hiVect();
 
+  // the timestep from m to m+1
+  Real dt_m = (dt_sdc[m_end] - dt_sdc[m_start]) * dt;
+
 #ifdef REACTIONS
   // SDC_Source_Type is only defined for 4th order
   MultiFab tmp;
   MultiFab& C_source = (sdc_order == 4) ? get_new_data(SDC_Source_Type) : tmp;
-
-  // the timestep from m to m+1
-  Real dt_m = (dt_sdc[m_end] - dt_sdc[m_start]) * dt;
 
   if (sdc_order == 4) {
 
@@ -110,7 +110,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
       // second order SDC reaction update -- we don't care about
       // the difference between cell-centers and averages
 
-      ca_sdc_update_o2(BL_TO_FORTRAN_BOX(bx), &dt,
+      ca_sdc_update_o2(BL_TO_FORTRAN_BOX(bx), &dt_m,
                        BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
                        BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
                        BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
@@ -180,7 +180,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
 #else
     // pure advection
     if (sdc_order == 2) {
-      ca_sdc_update_advection_o2(BL_TO_FORTRAN_BOX(bx), &dt,
+      ca_sdc_update_advection_o2(BL_TO_FORTRAN_BOX(bx), &dt_m, &dt,
                                  BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
                                  BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
                                  BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
@@ -188,7 +188,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
                                  BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
                                  &m_start);
     } else {
-      ca_sdc_update_advection_o4(BL_TO_FORTRAN_BOX(bx), &dt,
+      ca_sdc_update_advection_o4(BL_TO_FORTRAN_BOX(bx), &dt_m, &dt,
                                  BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
                                  BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
                                  BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),

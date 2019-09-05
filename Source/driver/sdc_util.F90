@@ -828,7 +828,7 @@ contains
   end subroutine f_sdc_jac
 #endif
 
-  subroutine ca_sdc_update_advection_o2(lo, hi, dt_m, &
+  subroutine ca_sdc_update_advection_o2(lo, hi, dt_m, dt, &
                                         k_m, kmlo, kmhi, &
                                         k_n, knlo, knhi, &
                                         A_m, Amlo, Amhi, &
@@ -837,13 +837,16 @@ contains
                                         m_start) bind(C, name="ca_sdc_update_advection_o2")
     ! update k_m to k_n via advection -- this is a second-order accurate update
 
+    ! here, dt_m is the update for this stage, from one time node to the next
+    ! dt is the update over the whole timestep, n to n+1
+
     use meth_params_module, only : NVAR
     use amrex_constants_module, only : HALF
 
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
-    real(rt), intent(in) :: dt_m
+    real(rt), intent(in) :: dt_m, dt
     integer, intent(in) :: kmlo(3), kmhi(3)
     integer, intent(in) :: knlo(3), knhi(3)
     integer, intent(in) :: Amlo(3), Amhi(3)
@@ -861,18 +864,30 @@ contains
 
     integer :: i, j, k
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             k_n(i,j,k,:) = k_m(i,j,k,:) + HALF * dt_m * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:))
-          enddo
-       enddo
-    enddo
+    if (sdc_quadrature == 0) then
+
+       ! Gauss-Lobatto / trapezoid
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                k_n(i,j,k,:) = k_m(i,j,k,:) + HALF * dt * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:))
+             end do
+          end do
+       end do
+
+    else if (sdc_quadrature == 1) then
+
+       ! Radau
+       call amrex_error("2nd order Radau not implemented")
+
+    end if
+
 
   end subroutine ca_sdc_update_advection_o2
 
 
-  subroutine ca_sdc_update_advection_o4(lo, hi, dt, &
+  subroutine ca_sdc_update_advection_o4(lo, hi, dt_m, dt, &
                                         k_m, kmlo, kmhi, &
                                         k_n, knlo, knhi, &
                                         A_m, Amlo, Amhi, &
@@ -881,7 +896,9 @@ contains
                                         A_2_old, A2lo, A2hi, &
                                         m_start) bind(C, name="ca_sdc_update_advection_o4")
     ! update k_m to k_n via advection -- this is a second-order accurate update
-    ! dt is the total timestep from n to n+1
+
+    ! here, dt_m is the update for this stage, from one time node to the next
+    ! dt is the update over the whole timestep, n to n+1
 
     use meth_params_module, only : NVAR
     use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT
@@ -889,7 +906,7 @@ contains
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
-    real(rt), intent(in) :: dt
+    real(rt), intent(in) :: dt_m, dt
     integer, intent(in) :: kmlo(3), kmhi(3)
     integer, intent(in) :: knlo(3), knhi(3)
     integer, intent(in) :: Amlo(3), Amhi(3)
@@ -908,38 +925,45 @@ contains
     real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
 
     integer :: i, j, k
-    real(rt) :: dt_m
 
+    if (sdc_quadrature == 0) then
 
-    dt_m = HALF * dt
+       ! Gauss-Lobatto (Simpsons)
 
-    if (m_start == 0) then
+       if (m_start == 0) then
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                k_n(i,j,k,:) = k_m(i,j,k,:) + &
-                     dt_m * (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
-                     dt/24.0_rt * (FIVE*A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) - A_2_old(i,j,k,:))
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
+                   k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                        dt_m * (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
+                        dt/24.0_rt * (FIVE*A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) - A_2_old(i,j,k,:))
+                enddo
              enddo
           enddo
-       enddo
 
-    else if (m_start == 1) then
+       else if (m_start == 1) then
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                k_n(i,j,k,:) = k_m(i,j,k,:) + &
-                     dt_m * (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
-                     dt/24.0_rt * (-A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) + FIVE*A_2_old(i,j,k,:))
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
+                   k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                        dt_m * (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
+                        dt/24.0_rt * (-A_0_old(i,j,k,:) + EIGHT*A_1_old(i,j,k,:) + FIVE*A_2_old(i,j,k,:))
+                enddo
              enddo
           enddo
-       enddo
 
-    else
-       call castro_error("error in ca_sdc_update_advection_o4 -- should not be here")
-    endif
+       else
+          call castro_error("error in ca_sdc_update_advection_o4 -- should not be here")
+       endif
+
+    else if (sdc_quadrature == 1) then
+
+       ! Radau
+       call amrex_error("4th order Radau not implemented")
+
+    end if
 
   end subroutine ca_sdc_update_advection_o4
 
@@ -986,33 +1010,44 @@ contains
     integer :: i, j, k
     real(rt) :: integral(NVAR)
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+    if (sdc_quadrature == 0) then
 
-             ! compute the integral (without the dt).  Note that each of these is over
-             ! dt/2
-             if (m_start == 0) then
-                integral(:) = ONE/12.0_rt * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
-                                             EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
-                                             (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+       ! Gauss-Lobatto (Simpsons)
 
-                C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-             else if (m_start == 1) then
-                integral(:) = ONE/12.0_rt * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
-                                             EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
-                                             FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+                ! compute the integral (without the dt).  Note that each of these is over
+                ! dt/2
+                if (m_start == 0) then
+                   integral(:) = ONE/12.0_rt * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                                EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
+                                                (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
-                C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
+                   C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
 
-             else
-                call castro_error("error in ca_sdc_compute_C4 -- should not be here")
-             endif
+                else if (m_start == 1) then
+                   integral(:) = ONE/12.0_rt * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                                EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                                                FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
+                   C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
+
+                else
+                   call castro_error("error in ca_sdc_compute_C4 -- should not be here")
+                endif
+
+             enddo
           enddo
        enddo
-    enddo
+
+    else
+
+       ! Radau
+       call amrex_error("Error: Radau not implemented for ca_sdc_compute_C4")
+
+    end if
 
   end subroutine ca_sdc_compute_C4
 
@@ -1046,6 +1081,8 @@ contains
     integer, intent(in) :: sdc_iteration
     integer :: i, j, k
 
+    ! Here dt_m is the timestep to update from time node m to m+1
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -1074,6 +1111,8 @@ contains
                               sdc_iteration, &
                               m_start) bind(C, name="ca_sdc_update_o2")
     ! update k_m to k_n via advection -- this is a second-order accurate update
+
+    ! Here, dt_m is the timestep between time-nodes m and m+1
 
     use meth_params_module, only : NVAR
     use amrex_constants_module, only : ZERO, HALF
@@ -1174,7 +1213,7 @@ contains
     ! update U_old to U_new on cell-centers.  This is an implicit
     ! solve because of reactions.  Here U_old corresponds to time node
     ! m and U_new is node m+1.  dt_m is the timestep between m and
-    ! m+1, which is dt_m = dt/2.
+    ! m+1
 
     use meth_params_module, only : NVAR
     use react_util_module, only : okay_to_burn
