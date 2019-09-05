@@ -1118,19 +1118,18 @@ contains
   end subroutine ca_sdc_update_advection_o4_radau
 
 
-
-
 #ifdef REACTIONS
-  subroutine ca_sdc_compute_C4(lo, hi, &
-                               A_m, Amlo, Amhi, &
-                               A_0_old, A0lo, A0hi, &
-                               A_1_old, A1lo, A1hi, &
-                               A_2_old, A2lo, A2hi, &
-                               R_0_old, R0lo, R0hi, &
-                               R_1_old, R1lo, R1hi, &
-                               R_2_old, R2lo, R2hi, &
-                               C, Clo, Chi, &
-                               m_start) bind(C, name="ca_sdc_compute_C4")
+  subroutine ca_sdc_compute_C4_lobatto(lo, hi, &
+                                       A_m, Amlo, Amhi, &
+                                       A_0_old, A0lo, A0hi, &
+                                       A_1_old, A1lo, A1hi, &
+                                       A_2_old, A2lo, A2hi, &
+                                       R_0_old, R0lo, R0hi, &
+                                       R_1_old, R1lo, R1hi, &
+                                       R_2_old, R2lo, R2hi, &
+                                       C, Clo, Chi, &
+                                       m_start) bind(C, name="ca_sdc_compute_C4_lobatto")
+
     ! compute the 'C' term for the 4th-order solve with reactions
     ! note: this 'C' is cell-averages
 
@@ -1162,46 +1161,131 @@ contains
     integer :: i, j, k
     real(rt) :: integral(NVAR)
 
-    if (sdc_quadrature == 0) then
+    ! Gauss-Lobatto (Simpsons)
 
-       ! Gauss-Lobatto (Simpsons)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+             if (m_start == 0) then
+                ! compute the integral from [t_m, t_{m+1}], normalized by dt_m
+                integral(:) = ONE/12.0_rt * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                             EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
+                                             (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
-                ! compute the integral (without the dt).  Note that each of these is over
-                ! dt/2
-                if (m_start == 0) then
-                   integral(:) = ONE/12.0_rt * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
-                                                EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
-                                                (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+                C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
 
-                   C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
+             else if (m_start == 1) then
+                ! compute the integral from [t_m, t_{m+1}], normalized by dt_m
+                integral(:) = ONE/12.0_rt * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
+                                             EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                                             FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
 
-                else if (m_start == 1) then
-                   integral(:) = ONE/12.0_rt * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
-                                                EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
-                                                FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
+                C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
 
-                   C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
+             else
+                call castro_error("error in ca_sdc_compute_C4 -- should not be here")
+             endif
 
-                else
-                   call castro_error("error in ca_sdc_compute_C4 -- should not be here")
-                endif
-
-             enddo
           enddo
        enddo
+    enddo
 
-    else
+  end subroutine ca_sdc_compute_C4_lobatto
 
-       ! Radau
-       call amrex_error("Error: Radau not implemented for ca_sdc_compute_C4")
 
-    end if
+  subroutine ca_sdc_compute_C4_radau(lo, hi, dt_m, dt, &
+                                     A_m, Amlo, Amhi, &
+                                     A_0_old, A0lo, A0hi, &
+                                     A_1_old, A1lo, A1hi, &
+                                     A_2_old, A2lo, A2hi, &
+                                     A_3_old, A3lo, A3hi, &
+                                     R_0_old, R0lo, R0hi, &
+                                     R_1_old, R1lo, R1hi, &
+                                     R_2_old, R2lo, R2hi, &
+                                     R_3_old, R3lo, R3hi, &
+                                     C, Clo, Chi, &
+                                     m_start) bind(C, name="ca_sdc_compute_C4_radau")
+    ! compute the 'C' term for the 4th-order solve with reactions
+    ! note: this 'C' is cell-averages
 
-  end subroutine ca_sdc_compute_C4
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : ONE, HALF, TWO, FIVE, EIGHT
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: A2lo(3), A2hi(3)
+    integer, intent(in) :: A3lo(3), A3hi(3)
+    integer, intent(in) :: R0lo(3), R0hi(3)
+    integer, intent(in) :: R1lo(3), R1hi(3)
+    integer, intent(in) :: R2lo(3), R2hi(3)
+    integer, intent(in) :: R3lo(3), R3hi(3)
+    integer, intent(in) :: Clo(3), Chi(3)
+    integer, intent(in) :: m_start
+
+    real(rt), intent(in) :: dt_m, dt
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+    real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
+    real(rt), intent(in) :: A_3_old(A3lo(1):A3hi(1), A3lo(2):A3hi(2), A3lo(3):A3hi(3), NVAR)
+    real(rt), intent(in) :: R_0_old(R0lo(1):R0hi(1), R0lo(2):R0hi(2), R0lo(3):R0hi(3), NVAR)
+    real(rt), intent(in) :: R_1_old(R1lo(1):R1hi(1), R1lo(2):R1hi(2), R1lo(3):R1hi(3), NVAR)
+    real(rt), intent(in) :: R_2_old(R2lo(1):R2hi(1), R2lo(2):R2hi(2), R2lo(3):R2hi(3), NVAR)
+    real(rt), intent(in) :: R_3_old(R3lo(1):R3hi(1), R3lo(2):R3hi(2), R3lo(3):R3hi(3), NVAR)
+    real(rt), intent(out) :: C(Clo(1):Chi(1), Clo(2):Chi(2), Clo(3):Chi(3), NVAR)
+
+    integer :: i, j, k
+    real(rt) :: integral(NVAR)
+
+    ! Gauss-Lobatto (Simpsons)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (m_start == 0) then
+                ! compute the integral from [t_m, t_{m+1}], normalized by dt_m
+                integral(:) = (dt/dt_m) * (ONE/1800.0_rt) * &
+                     ((-35.0_rt*sqrt(6.0_rt) + 440.0_rt)*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                      (-169.0_rt*sqrt(6.0_rt) + 296.0_rt)*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)) + &
+                      (-16.0_rt + 24.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,:) + R_3_old(i,j,k,:)))
+
+                C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
+
+             else if (m_start == 1) then
+                ! compute the integral from [t_m, t_{m+1}], normalized by dt_m
+                integral(:) = (dt/dt_m) * (ONE/150.0_rt) * &
+                     ((-12.0_rt + 17.0_rt*sqrt(6.0_rt))*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                      (12.0_rt + 17.0_rt*sqrt(6.0_rt))*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)) + &
+                      (-4.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,:) + R_3_old(i,j,k,:)))
+
+                C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
+
+
+             else if (m_start == 2) then
+                ! compute the integral from [t_m, t_{m+1}], normalized by dt_m
+                integral(:) = (dt/dt_m) * (ONE/600.0_rt) * &
+                     ((168.0_rt - 73.0_rt*sqrt(6.0_rt))*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                     (120.0_rt + 5.0_rt*sqrt(6.0_rt))*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)) + &
+                     (72.0_rt + 8.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,:) + R_3_old(i,j,k,:)))
+
+                C(i,j,k,:) = (A_m(i,j,k,:) - A_2_old(i,j,k,:)) - R_3_old(i,j,k,:) + integral
+
+             else
+                call castro_error("error in ca_sdc_compute_C4 -- should not be here")
+             endif
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_sdc_compute_C4_radau
+
 
   subroutine ca_sdc_compute_initial_guess(lo, hi, &
                                           U_old, Uo_lo, Uo_hi, &
