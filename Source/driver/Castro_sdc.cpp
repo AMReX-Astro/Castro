@@ -33,6 +33,9 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
   MultiFab tmp;
   MultiFab& C_source = (sdc_order == 4) ? get_new_data(SDC_Source_Type) : tmp;
 
+  // the timestep from m to m+1
+  Real dt_m = (dt_sdc[m_end] - dt_sdc[m_start]) * dt;
+
   if (sdc_order == 4) {
 
     // for 4th order reacting flow, we need to create the "source" C
@@ -65,8 +68,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
     // and store this in the Sburn MultiFab.  We'll use S_new as the
     // staging place so we can do a FillPatch
     MultiFab& S_new = get_new_data(State_Type);
-
-    Real dt_m = dt/2.0;
 
     for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
 
@@ -120,9 +121,6 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
                        &sdc_iteration,
                        &m_start);
     } else {
-
-      // the timestep from m to m+1
-      Real dt_m = dt/2.0;
 
       // fourth order SDC reaction update -- we need to respect the
       // difference between cell-centers and averages
