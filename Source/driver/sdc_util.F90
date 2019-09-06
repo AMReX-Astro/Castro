@@ -1120,6 +1120,7 @@ contains
 
 #ifdef REACTIONS
   subroutine ca_sdc_compute_C4_lobatto(lo, hi, &
+                                       dt_m, dt, &
                                        A_m, Amlo, Amhi, &
                                        A_0_old, A0lo, A0hi, &
                                        A_1_old, A1lo, A1hi, &
@@ -1149,6 +1150,7 @@ contains
     integer, intent(in) :: Clo(3), Chi(3)
     integer, intent(in) :: m_start
 
+    real(rt), intent(in) :: dt_m, dt
     real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
     real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
     real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
@@ -1194,7 +1196,8 @@ contains
   end subroutine ca_sdc_compute_C4_lobatto
 
 
-  subroutine ca_sdc_compute_C4_radau(lo, hi, dt_m, dt, &
+  subroutine ca_sdc_compute_C4_radau(lo, hi, &
+                                     dt_m, dt, &
                                      A_m, Amlo, Amhi, &
                                      A_0_old, A0lo, A0hi, &
                                      A_1_old, A1lo, A1hi, &
