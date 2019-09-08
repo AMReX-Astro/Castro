@@ -444,7 +444,7 @@ Castro::read_params ()
 
     // radiation is only supported with CTU
     if (do_radiation && time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Radiation is currently unsupported for CTU time advancement.");
+        amrex::Error("Radiation is currently only supported for CTU time advancement.");
     }
 #endif
 
