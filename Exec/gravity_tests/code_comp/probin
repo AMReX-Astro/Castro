@@ -4,6 +4,7 @@
   g0 = -9.021899571e8
   rho0 = 1.82094e6
   p0 = 2.7647358e23
+  gamma1 = 1.3e0
 
 /
 
@@ -46,12 +47,12 @@
 
 &extern
 
-  eos_gamma_default = 1.66666667d0
+  eos_gamma = 1.66666667d0
 
-  species_a_name = 'core'
-  species_a_gamma = 1.66666667d0
+  ! species_a_name = 'core'
+  ! species_a_gamma = 1.66666667d0
 
-  species_b_name = 'env'
-  species_b_gamma = 1.3d0
+  ! species_b_name = 'env'
+  ! species_b_gamma = 1.3d0
 
 /

@@ -94,11 +94,16 @@ Castro::advance (Real time,
         const Box& obx = mfi.growntilebox(1);
 
         if (sdc_order == 4) {
+
+          const int* domain_lo = geom.Domain().loVect();
+          const int* domain_hi = geom.Domain().hiVect();
+
           // convert S_new to cell-centers
           U_center.resize(obx, NUM_STATE);
           ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
                               BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                              BL_TO_FORTRAN_FAB(U_center));
+                              BL_TO_FORTRAN_FAB(U_center),
+                              AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
           // pass in the reaction source and state at centers, including one ghost cell
           // and derive everything that is needed including 1 ghost cell
@@ -110,7 +115,8 @@ Castro::advance (Real time,
 
           // convert R_new from centers to averages in place
           ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                                  BL_TO_FORTRAN_FAB(R_center));
+                                  BL_TO_FORTRAN_FAB(R_center),
+                                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
 
           // store
