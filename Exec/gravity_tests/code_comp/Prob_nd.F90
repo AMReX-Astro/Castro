@@ -176,7 +176,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
         k4(:) = dUdy(ystart + h, U_new)
 
-        U_new = (1.0_rt/6.0_rt) * (k1(:) + TWO*k2(:) + TWO*k3(:) + k4(:))
+        U_new = U_old(:) + (1.0_rt/6.0_rt) * h * (k1(:) + TWO*k2(:) + TWO*k3(:) + k4(:))
 
         dens(j) = exp(U_new(1))
         pres(j) = exp(U_new(2))
