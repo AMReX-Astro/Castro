@@ -60,7 +60,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 end subroutine amrex_probinit
 
 
-
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
 ! ::: to initialize data on each grid.

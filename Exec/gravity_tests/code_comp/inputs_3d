@@ -1,7 +1,7 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 
 amr.plot_files_output = 1
-amr.checkpoint_files_output = 0
+amr.checkpoint_files_output = 1
 
 max_step = 500000
 stop_time = 1583.1276
@@ -50,9 +50,11 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = /home/alice/raid/Castro/code_comp/chk     # root name of checkpoint file
-amr.check_int       = 100     # number of timesteps between checkpoints
+amr.check_dt        = 39.75819
 amr.plot_file       = /home/alice/raid/Castro/code_comp/plt     # root name of plot file
 amr.plot_int        = 50     # number of timesteps between plotfiles
+amr.plot_dt         = 3.975819
+castro.plot_per_is_exact = 1
 
 amr.max_grid_size   = 64       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
@@ -63,3 +65,4 @@ castro.v            = 0       # control verbosity in Castro.cpp
 amr.derive_plot_vars = ALL
 
 amr.probin_file = probin
+
