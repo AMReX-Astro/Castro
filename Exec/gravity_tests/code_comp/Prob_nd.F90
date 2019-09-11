@@ -60,7 +60,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 end subroutine amrex_probinit
 
 
-
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
 ! ::: to initialize data on each grid.
@@ -90,7 +89,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use probdata_module
   use interpolate_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
-                                 UEDEN, UEINT, UFS
+                                 UEDEN, UEINT, UFS, sdc_order
   use network, only : nspec
   use model_parser_module
   use prob_params_module, only : center, problo, probhi
@@ -110,7 +109,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                    state_lo(2):state_hi(2), &
                                    state_lo(3):state_hi(3), NVAR)
 
-  real(rt) :: x, y, z, fheat, rhopert, U_old(2), U_new(2), h, k1(2)
+  real(rt) :: x, y, z, fheat, rhopert, U_old(2), U_new(2), h
+  real(rt) :: ystart, k1(2), k2(2), k3(2), k4(2)
   real(rt), allocatable :: pres(:), dens(:)
   real(rt) :: xn(nspec)
   integer :: i, j, k, n, iter, n_dy
@@ -126,25 +126,65 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   U_old(1) = log(rho0)
   U_old(2) = log(p0)
 
-  ! do HSE using RK2
-  do j = 0, hi(2)
-    y = problo(2) + delta(2)*(dble(j) + HALF) 
+  if (sdc_order /= 4) then
 
-    if (j .eq. 0) then 
-        h = delta(2) * HALF 
-    else
-        h = delta(2)
-    endif
+     ! do HSE using RK2
+     do j = 0, hi(2)
+        y = problo(2) + delta(2)*(dble(j) + HALF)
 
-    k1(:) = dUdy(y - h, U_old)
-    U_new(:) = U_old(:) + h * dUdy(y - HALF*h, U_old + HALF*h * k1)
+        ! our integration starts at y - h
+        if (j .eq. 0) then
+           h = delta(2) * HALF
+        else
+           h = delta(2)
+        endif
 
-    dens(j) = exp(U_new(1))
-    pres(j) = exp(U_new(2))
+        k1(:) = dUdy(y - h, U_old)
+        U_new(:) = U_old(:) + h * dUdy(y - HALF*h, U_old + HALF*h * k1)
 
-    U_old(:) = U_new(:)   
+        dens(j) = exp(U_new(1))
+        pres(j) = exp(U_new(2))
 
-  enddo
+        U_old(:) = U_new(:)
+
+     end do
+
+  else
+
+     ! do HSE using RK4
+     do j = 0, hi(2)
+        y = problo(2) + delta(2)*(dble(j) + HALF)
+
+        ! our integration starts at y - h
+        if (j .eq. 0) then
+           h = delta(2) * HALF
+        else
+           h = delta(2)
+        endif
+
+        ystart = y - h
+
+        k1(:) = dUdy(ystart, U_old)
+        U_new(:) = U_old(:) + HALF*h * k1(:)
+
+        k2(:) = dUdy(ystart + HALF*h, U_new)
+        U_new(:) = U_old(:) + HALF*h * k2(:)
+
+        k3(:) = dUdy(ystart + HALF*h, U_new)
+        U_new(:) = U_old(:) + h * k3(:)
+
+        k4(:) = dUdy(ystart + h, U_new)
+
+        U_new = U_old(:) + (1.0_rt/6.0_rt) * h * (k1(:) + TWO*k2(:) + TWO*k3(:) + k4(:))
+
+        dens(j) = exp(U_new(1))
+        pres(j) = exp(U_new(2))
+
+        U_old(:) = U_new(:)
+
+     end do
+
+  end if
 
   do k = lo(3), hi(3)
     z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF) - center(3)
@@ -152,7 +192,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      do j = lo(2), hi(2)
         y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
 
-        if (y < 1.125e0_rt * 4.e8_rt) then 
+        if (y < 1.125e0_rt * 4.e8_rt) then
             fheat = sin(8.e0_rt * M_PI * (y/ 4.e8_rt - ONE))
         else
             fheat = ZERO
@@ -170,7 +210,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            ! do species
            state(i,j,k,UFS:UFS-1+nspec) = set_species(y)
 
-           if (j < 0) then 
+           if (j < 0) then
                 eos_state % rho = rho0 + rhopert
                 eos_state % p = p0
            else
@@ -204,4 +244,3 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   state(:,:,:,UMX:UMZ) = ZERO
 
 end subroutine ca_initdata
-
