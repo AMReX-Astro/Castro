@@ -53,8 +53,11 @@ contains
 
     type(eos_t) :: eos_state
 
-    eos_state % rho = U(1)
-    eos_state % p = U(2)
+    ! U(1) = log(rho)
+    ! U(2) = log(p)
+
+    eos_state % rho = exp(U(1))
+    eos_state % p = exp(U(2))
     eos_state % xn = set_species(y)
 
     call eos(eos_input_rp, eos_state)
@@ -62,7 +65,10 @@ contains
     gamma0 = eos_state % gam1
     gamma = gamma0 + fv(y) * (gamma1 - gamma0)
 
+    ! dlog p / dy
     dU(2) = exp(U(1)) * grav_zone(y) / exp(U(2))
+
+    ! this follows from p = A rho**gamma
     dU(1) = dU(2) / gamma
 
   end function dUdy
