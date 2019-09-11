@@ -3,7 +3,7 @@
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 0
 
-max_step = 100000
+max_step = 1000000
 stop_time = 1583.1276
 
 geometry.is_periodic = 1 0 1
@@ -13,6 +13,7 @@ geometry.prob_lo     = -4.e8  4.e8  -4.e8
 geometry.prob_hi     =  4.e8  12.e8   4.e8
 
 amr.n_cell          = 256  256
+amr.n_cell          = 512  512
 
 amr.max_level      = 0       # maximum level number allowed
 
