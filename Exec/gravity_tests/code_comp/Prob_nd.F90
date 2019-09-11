@@ -204,9 +204,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            rhopert = ZERO
 
-           rhopert = 5.e-5_rt * rho0 * fheat * (sin(3.e0_rt * M_PI * x / 4.e8_rt) + &
-                                                cos(M_PI * x / 4.e8_rt)) * &
-                     (sin(3 * M_PI * z/4.e8_rt) - cos(M_PI * z/4.e8_rt))
+           if (do_pert) then
+              rhopert = 5.e-5_rt * rho0 * fheat * (sin(3.e0_rt * M_PI * x / 4.e8_rt) + &
+                                                   cos(M_PI * x / 4.e8_rt)) * &
+                                                   (sin(3 * M_PI * z/4.e8_rt) - cos(M_PI * z/4.e8_rt))
+           end if
 
            ! do species
            state(i,j,k,UFS:UFS-1+nspec) = set_species(y)
