@@ -13,6 +13,8 @@ contains
     real(rt), intent(in) :: y
     real(rt) :: xn(nspec)
 
+    !$gpu
+
     xn(:) = ZERO
     xn(1) = ONE - fv(y)
     xn(2) = fv(y)
@@ -26,6 +28,8 @@ contains
 
     real(rt), intent(in) :: y
     real(rt) :: f_v
+
+    !$gpu
 
     if (y < 1.9375e0_rt * 4.e8_rt) then
        f_v = ZERO
@@ -47,6 +51,8 @@ contains
     real(rt), intent(in) :: y
     real(rt) :: df_vdy
 
+    !$gpu
+
     if (y < 1.9375e0_rt * 4.e8_rt) then
        df_vdy = ZERO
 
@@ -65,7 +71,7 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     use eos_type_module
     use eos_module
-    use prescribe_grav_module, only : grav_zone
+    use prescribe_grav_module, only : grav_zone ! function
     use probdata_module, only: gamma1
     use meth_params_module, only : T_guess
 
@@ -78,6 +84,8 @@ contains
 
     ! U(1) = rho
     ! U(2) = p
+
+    !$gpu
 
     eos_state % rho = U(1)
     eos_state % p = U(2)
@@ -113,9 +121,12 @@ contains
     real(rt), intent(in) :: rho0, p0, ymin, ymax
 
     real(rt) :: ystart, y, dy, k1(2), k2(2), k3(2), k4(2)
-    real(rt) :: U_old(2), U_new(2), h
+    real(rt) :: U_old(2), U_new(2), h, U_star(2)
+
     integer :: j
     type (eos_t) :: eos_state
+
+    !$gpu
 
     ! allocate the storage in the model_parser_module
     npts_model = ny
@@ -150,22 +161,24 @@ contains
           ! do HSE using RK2
 
           k1(:) = dUdy(ystart, U_old)
-          U_new(:) = U_old(:) + h * dUdy(ystart + HALF*h, U_old + HALF*h * k1)
+
+          U_star(:) = U_old + HALF*h * k1
+          U_new(:) = U_old(:) + h * dUdy(ystart + HALF*h, U_star)
 
        else
 
           ! do HSE using RK4
 
           k1(:) = dUdy(ystart, U_old)
-          U_new(:) = U_old(:) + HALF*h * k1(:)
+          U_star(:) = U_old(:) + HALF*h * k1(:)
 
-          k2(:) = dUdy(ystart + HALF*h, U_new)
-          U_new(:) = U_old(:) + HALF*h * k2(:)
+          k2(:) = dUdy(ystart + HALF*h, U_star)
+          U_star(:) = U_old(:) + HALF*h * k2(:)
 
-          k3(:) = dUdy(ystart + HALF*h, U_new)
-          U_new(:) = U_old(:) + h * k3(:)
+          k3(:) = dUdy(ystart + HALF*h, U_star)
+          U_star(:) = U_old(:) + h * k3(:)
 
-          k4(:) = dUdy(ystart + h, U_new)
+          k4(:) = dUdy(ystart + h, U_star)
 
           U_new = U_old(:) + (1.0_rt/6.0_rt) * h * (k1(:) + TWO*k2(:) + TWO*k3(:) + k4(:))
 
