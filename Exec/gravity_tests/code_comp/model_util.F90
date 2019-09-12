@@ -85,8 +85,6 @@ contains
     gamma0 = eos_state % gam1
     gamma = gamma0 + fv(y) * (gamma1 - gamma0)
 
-    dgdy = dfvdy(y) * (gamma1 - gamma0)
-
     ! dlog p / dy
     dU(2) = exp(U(1)) * grav_zone(y) / exp(U(2))
 
