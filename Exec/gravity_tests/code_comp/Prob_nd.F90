@@ -120,6 +120,8 @@ subroutine ca_initdata(lo, hi, &
 
   type(eos_t) :: eos_state
 
+  !$gpu
+
   allocate(pres(0:hi(2)))
   allocate(dens(0:hi(2)))
 
