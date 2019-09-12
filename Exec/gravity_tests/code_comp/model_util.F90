@@ -39,6 +39,26 @@ contains
 
   end function fv
 
+  pure function dfvdy(y) result (df_vdy)
+
+    use amrex_constants_module, only: HALF, ZERO, M_PI, ONE
+    use amrex_fort_module, only : rt => amrex_real
+
+    real(rt), intent(in) :: y
+    real(rt) :: df_vdy
+
+    if (y < 1.9375e0_rt * 4.e8_rt) then
+       df_vdy = ZERO
+
+    else if (y > 2.0625e0_rt * 4.e8_rt) then
+       df_vdy = ZERO
+
+    else
+       df_vdy = HALF*8.e0_rt*M_PI * cos(8.e0_rt * M_PI* (y/4.e8_rt - 2.e0_rt))/4.e8_rt
+    endif
+
+  end function dfvdy
+
   function dUdy(y, U) result (dU)
 
     use amrex_constants_module, only: HALF, ZERO, M_PI, ONE
