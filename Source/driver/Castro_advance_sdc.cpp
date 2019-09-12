@@ -30,7 +30,6 @@ Castro::do_advance_sdc (Real time,
 
   // this is the new "formal" SDC integration routine.
 
-  // unlike the MOL version which just operates on a single stage,
   // this does the entire update in time for 1 SDC iteration.
 
   BL_PROFILE("Castro::do_advance_sdc()");
@@ -82,7 +81,8 @@ Castro::do_advance_sdc (Real time,
     // primitive, then get the source term from the MOL driver.  Note,
     // for m = 0, we only have to do all of this the first iteration,
     // since that state never changes
-    if (!(sdc_iteration > 0 && m == 0)) {
+    if (!(sdc_iteration > 0 && m == 0) &&
+        !(sdc_iteration == sdc_order+sdc_extra-1 && m == SDC_NODES-1)) {
 
       // Construct the "old-time" sources from Sborder.  Since we are
       // working from Sborder, this will actually evaluate the sources
@@ -223,10 +223,12 @@ Castro::do_advance_sdc (Real time,
   // the final time node.  This means we can still use S_new as
   // "scratch" until we finally set it.
 
-  // store A_old for the next SDC iteration -- don't need to do n=0,
-  // since that is unchanged
-  for (int n=1; n < SDC_NODES; n++) {
-    MultiFab::Copy(*(A_old[n]), *(A_new[n]), 0, 0, NUM_STATE, 0);
+  if (sdc_iteration != sdc_order+sdc_extra-1) {
+    // store A_old for the next SDC iteration -- don't need to do n=0,
+    // since that is unchanged
+    for (int n=1; n < SDC_NODES; n++) {
+      MultiFab::Copy(*(A_old[n]), *(A_new[n]), 0, 0, NUM_STATE, 0);
+    }
   }
 
 #ifdef REACTIONS
@@ -248,11 +250,8 @@ Castro::do_advance_sdc (Real time,
     // store the new solution
     MultiFab::Copy(S_new, *(k_new[SDC_NODES-1]), 0, 0, S_new.nComp(), 0);
 
-
-    // I think this bit only needs to be done for the last iteration...
-
     // We need to make source_old and source_new be the source terms at
-    // the old and new time.  we never actually evaluate the sources
+    // the old and new time.  we never actually evaluated the sources
     // using the new time state (since we just constructed it).  Note:
     // we always use do_old_sources here, since we want the actual
     // source and not a correction.
@@ -270,7 +269,7 @@ Castro::do_advance_sdc (Real time,
     clean_state(S_new, cur_time, 0);
     expand_state(Sborder, cur_time, Sborder.nGrow());
     do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
-    AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, new_source, new_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
   }
 
   finalize_do_advance(time, dt, amr_iteration, amr_ncycle);

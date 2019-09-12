@@ -58,7 +58,7 @@ small_ener                   Real         -1.e200             y
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
-# how do we advance in time? 0 = CTU + Strang, 1 = MOL + Strang, 2 = SDC, 3 = simplified-SDC
+# how do we advance in time? 0 = CTU + Strang, 1 is not used, 2 = SDC, 3 = simplified-SDC
 time_integration_method      int           0                  y
 
 # do we use a limiter with the fourth-order accurate reconstruction?
@@ -71,7 +71,7 @@ limit_fourth_order           int           1                  y
 initialization_is_cell_average  int        0                  n
 
 # should we use a reconstructed version of Gamma_1 in the Riemann
-# solver? or the default zone average (requires SDC or MOL
+# solver? or the default zone average (requires SDC
 # integration, since we do not trace)
 use_reconstructed_gamma1     int           0                  y
 
@@ -222,11 +222,6 @@ hse_interp_temp              int           0                  y
 # if we are doing HSE boundary conditions, how do we treat the velocity?
 # reflect? or outflow?
 hse_reflect_vels             int           0                  y
-
-
-# integration order for MOL integration
-# 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK
-mol_order                    int           2                  y
 
 # integration order for SDC integration
 # valid options are 2 and 4

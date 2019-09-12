@@ -4,6 +4,7 @@
   g0 = -9.021899571e8
   rho0 = 1.82094e6
   p0 = 2.7647358e23
+  gamma1 = 1.3e0
 
 /
 
@@ -46,6 +47,6 @@
 
 &extern
 
-  eos_assume_neutral = T
+  eos_gamma = 1.66666667d0
 
 /

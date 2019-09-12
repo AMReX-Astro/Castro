@@ -1,4 +1,10 @@
-recent changes
+# 19.09
+
+  -- You can now type ./Castro.gnu.ex --describe to see the list of
+     modules / compilers the code was built with (#660)
+
+  -- The reaction quantities are now computed as proper 4th order
+     averages for the plotfile, when using sdc_order = 4 (#647)
 
   -- The velerr tagging now takes the abs() of the velocity component
      to ensure we tag large positive and negative velocities.
