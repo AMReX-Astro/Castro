@@ -114,7 +114,7 @@ contains
     real(rt), intent(inout) :: dens(0:hi), pres(0:hi)
 
     real(rt) :: ystart, y, k1(2), k2(2), k3(2), k4(2)
-    real(rt) :: U_old(2), U_new(2), h
+    real(rt) :: U_old(2), U_new(2), h, U_star(2)
     integer :: j
 
     !$gpu
@@ -136,7 +136,9 @@ contains
           endif
 
           k1(:) = dUdy(y - h, U_old)
-          U_new(:) = U_old(:) + h * dUdy(y - HALF*h, U_old + HALF*h * k1)
+
+          U_star(:) = U_old + HALF*h * k1
+          U_new(:) = U_old(:) + h * dUdy(y - HALF*h, U_star)
 
           dens(j) = exp(U_new(1))
           pres(j) = exp(U_new(2))
