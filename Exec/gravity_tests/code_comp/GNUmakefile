@@ -14,12 +14,12 @@ USE_MPI    = TRUE
 USE_GRAV   = TRUE
 USE_REACT  = FALSE
 
-DIMENSION_AGNOSTIC = TRUE
+GPU_COMPATIBLE_PROBLEM = TRUE
 
 ifdef MICROPHYSICS_HOME
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-EOS_DIR     := multigamma
+EOS_DIR     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null

@@ -14,6 +14,8 @@ contains
     real(rt) :: g
     real(rt) :: fg
 
+    !$gpu
+
     if (y < 1.0625e0_rt * 4.e8_rt) then 
        fg = HALF * (ONE + sin(16.e0_rt * M_PI * (y/4.e8_rt - 1.03125e0_rt)))
     else if (y > 2.9375e0_rt * 4.e8_rt) then
@@ -50,7 +52,7 @@ contains
 
           do i = lo(1), hi(1)
 
-            grav(i,j,k,1:3) = ZERO
+            grav(i,j,k,1:dim) = ZERO
 
             grav(i,j,k,2) = grav_zone(y)
 
