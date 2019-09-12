@@ -7,7 +7,6 @@ ca_F90EXE_sources += filcc_nd.F90
 CEXE_sources += Castro.cpp
 CEXE_sources += Castro_advance.cpp
 CEXE_sources += Castro_advance_ctu.cpp
-CEXE_sources += Castro_advance_mol.cpp
 ifneq ($(USE_CUDA), TRUE)
   CEXE_sources += Castro_advance_sdc.cpp
 endif
