@@ -53,8 +53,9 @@ The time-integration method used is controlled by
     described in :cite:`castro_I`.  This uses Strang splitting and the CTU
     hydrodynamics scheme.
 
-  * ``time_integration_method = 1``: this is a method-of-lines integration
-    method with Strang splitting for reactions.
+  * ``time_integration_method = 1``: unused (in Castro 19.08 and
+    earlier, this was a method-of-lines integration method with Strang
+    splitting for reactions.)
 
   * ``time_integration_method = 2``: this is a full implementation of
     the spectral deferred corrections formalism, with both 2nd and 4th
@@ -87,8 +88,8 @@ Several helper functions are used throughout:
 Strang-Split Evolution
 ======================
 
-This driver supports both Strang CTU and Strang MOL integration.
-(``castro.time_integration_method`` = 0 or 1)
+This driver supports the Strang CTU integration.
+(``castro.time_integration_method`` = 0)
 
 The main evolution for a single step is contained in
 ``Castro_advance.cpp``, as ``Castro::advance()``. This does
@@ -525,168 +526,6 @@ these processes is presented below:
 | 8. react           |           |                     | input / updated     |
 +--------------------+-----------+---------------------+---------------------+
 
-MOL w/ Strang-splitting
------------------------
-
-This describes the flow when using the method-of-lines integration together with
-Strang splitting.  This is selected by setting ``castro.time_integration_method = 1``.
-
-The handling of sources differs in the MOL integration, as compared to CTU.
-Again, consider our system as:
-
-.. math:: \frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb \, .
-
-We will again use Strang splitting to discretize the
-advection-reaction equations, but the hydro update will consist of :math:`s`
-stages. The update first does the reactions, as with CTU:
-
-.. math:: \Ub^\star = \Ub^n + \frac{\dt}{2}\Rb(\Ub^n)
-
-We then consider the hydro update discretized in space, but not time, written
-as:
-
-.. math:: \frac{\partial \Ub}{\partial t} = -{\bf A}(\Ub) + \Sb(\Ub)
-
-Using a Runge-Kutta (or similar) integrator, we write the update as:
-
-.. math:: \Ub^{n+1,\star} = \Ub^\star + \dt \sum_{l=1}^s b_i {\bf k}_l
-
-where :math:`b_i` is the weight for stage :math:`i` and :math:`k_i` is the stage update:
-
-.. math:: {\bf k}_l = -{\bf A}(\Ub_l) + \Sb(\Ub_l)
-
-with
-
-.. math:: \Ub_l = \Ub^\star  + \dt \sum_{m=1}^{l-1} a_{lm} {\bf k}_m
-
-Finally, there is the last part of the reactions:
-
-.. math:: \Ub^{n+1} = \Ub^{n+1,\star} + \frac{\dt}{2} \Rb(\Ub^{n+1,\star})
-
-In contrast to the CTU method, the sources are treated together
-with the advection here.
-
-The time at the intermediate stages is evaluated as:
-
-.. math:: t_l = c_l \dt
-
-The integration coefficients are stored in the vectors
-``a_mol``, ``b_mol``, and ``c_mol``, and the
-stage updates are stored in the MultiFab ``k_mol``.
-
-Here is the single-level algorithm. We use the same notation
-as in the CTU flowchart.
-
-In the code, the objective is to evolve the state from the old time,
-``S_old``, to the new time, ``S_new``.
-
-#. *Initialize*
-
-   In ``initialize_do_advance()``, set the starting point for the stage’s integration:
-
-   A. if ``mol_iteration`` = 0: initialize
-      ``Sborder`` from ``S_old``
-
-   B. if ``mol_iteration`` > 0: we need to create
-      the starting point for the current stage. We store this,
-      temporarily in the new-time slot (what we normally refer to as
-      ``S_new``):
-
-      .. math:: \mathtt{S\_new}_\mathrm{iter} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{iter}-1} a_{\mathrm{iter},l} \mathtt{k\_mol}_l
-
-      Then initialize ``Sborder`` from ``S_new``.
-
-   Check for NaNs in the initial state, ``S_old``.
-
-#. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
-
-   This step is unchanged from the CTU version. At the end of this
-   step, ``Sborder`` sees the effects of the reactions.
-
-   Each stage needs to build its starting point from this point, so we
-   store the effect of the burn in a new MultiFab, ``Sburn``,
-   for use in the stage initialization.
-
-#. *Construct sources from the current stage’s state*
-   [``construct_old_gravity()``, ``do_old_sources()``]
-
-   The time level :math:`n` sources are computed, and added to the
-   StateData ``Source_Type``. The sources are then applied
-   to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
-   weighting (this will be corrected later). This produces the
-   intermediate state, :math:`\Ub^{n+1,(a)}`.
-
-   For full Poisson gravity, we solve for for gravity using:
-
-   .. math::
-
-      \gb^n = -\nabla\phi^n, \qquad
-          \Delta\phi^n = 4\pi G\rho^n,
-
-#. *Construct the hydro update* [``construct_hydro_source()``]
-
-   The hydro update in the MOL branch will include both the advective
-   and source terms. In each stage, store in ``k_mol[istage]`` the righthand 
-   side for the current stage.
-
-   In constructing the stage update, we use the source evaluated earlier,
-   and compute:
-
-   .. math:: \mathtt{k\_mol}_l = - \Ab(\Ub_l) + \Sb(\Ub_l)
-
-   Each call to ``do_advance_mol`` only computes this update for
-   a single stage. On the last stage, we compute the final update
-   as:
-
-   .. math:: \mathtt{S\_new} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l
-
-#. *Clean State* [``clean_state()``]
-
-   This is done on ``S_new``.
-
-   After these checks, we check the state for NaNs.
-
-#. *React* :math:`\Delta t/2` [``strang_react_second_half()``]
-
-   We do the final :math:`\dt/2` reacting on the state, begining with :math:`\Ub^{n+1,(c)}` to
-   give us the final state on this level, :math:`\Ub^{n+1}`.
-
-   This is largely the same as ``strang_react_first_half()``, but
-   it does not currently fill the reactions in the ghost cells.
-
-#. *Finalize* [``finalize_do_advance()``]
-
-   Finalize does the following:
-
-   A. for the momentum sources, we compute :math:`d\Sb/dt`, to use in the
-      source term prediction/extrapolation for the hydrodynamic
-      interface states during the next step.
-
-   B. If we are doing the hybrid momentum algorithm, then we sync up
-      the hybrid and linear momenta
-
-A summary of which state is the input and which is updated for each of
-these processes is presented below:
-
-+--------------------+-----------+---------------------+---------------------+
-| *step*             | ``S_old`` | ``Sborder``         | ``S_new``           |
-+====================+===========+=====================+=====================+
-| 1. init            | input     | updated             |                     |
-+--------------------+-----------+---------------------+---------------------+
-| 2. react           |           | input / updated     |                     |
-+--------------------+-----------+---------------------+---------------------+
-| 3. old sources     |           | input               | updated             |
-+--------------------+-----------+---------------------+---------------------+
-| 4. hydro           |           | input               | updated             |
-+--------------------+-----------+---------------------+---------------------+
-| 5. clean           |           |                     | input / updated     |
-+--------------------+-----------+---------------------+---------------------+
-| 6. radial / center |           |                     | input               |
-+--------------------+-----------+---------------------+---------------------+
-| 7. correct sources |           |                     | input / updated     |
-+--------------------+-----------+---------------------+---------------------+
-| 8. react           |           |                     | input / updated     |
-+--------------------+-----------+---------------------+---------------------+
 
 Simplified-SDC Evolution
 ========================

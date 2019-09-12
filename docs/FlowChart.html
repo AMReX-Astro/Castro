@@ -100,7 +100,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#strang-split-evolution">Strang-Split Evolution</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#ctu-w-strang-split-reactions-flowchart">CTU w/ Strang-split Reactions Flowchart</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#mol-w-strang-splitting">MOL w/ Strang-splitting</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#simplified-sdc-evolution">Simplified-SDC Evolution</a><ul>
@@ -241,8 +240,9 @@ two SDC implementations in Castro.</li>
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">0</span></code>: this is the original Castro method,
 described in <a class="reference internal" href="zreferences.html#castro-i" id="id2">[6]</a>.  This uses Strang splitting and the CTU
 hydrodynamics scheme.</li>
-<li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">1</span></code>: this is a method-of-lines integration
-method with Strang splitting for reactions.</li>
+<li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">1</span></code>: unused (in Castro 19.08 and
+earlier, this was a method-of-lines integration method with Strang
+splitting for reactions.)</li>
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">2</span></code>: this is a full implementation of
 the spectral deferred corrections formalism, with both 2nd and 4th
 order integration implemented.  At the moment, this does not support
@@ -271,8 +271,8 @@ consistent with the state.</li>
 </div>
 <div class="section" id="strang-split-evolution">
 <span id="flow-sec-nosdc"></span><h2>Strang-Split Evolution<a class="headerlink" href="#strang-split-evolution" title="Permalink to this headline">¶</a></h2>
-<p>This driver supports both Strang CTU and Strang MOL integration.
-(<code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span></code> = 0 or 1)</p>
+<p>This driver supports the Strang CTU integration.
+(<code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span></code> = 0)</p>
 <p>The main evolution for a single step is contained in
 <code class="docutils literal notranslate"><span class="pre">Castro_advance.cpp</span></code>, as <code class="docutils literal notranslate"><span class="pre">Castro::advance()</span></code>. This does
 the following advancement. Note, some parts of this are only done
@@ -603,203 +603,6 @@ and the fully updated state, <span class="math notranslate nohighlight">\(\Ub^{n
 in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference" href="#id7" id="id5">[2]</a>.</p>
 <p>In the process of updating the sources, we update the temperature to
 make it consistent with the new state.</p>
-</li>
-<li><p class="first"><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_second_half()</span></code>]</p>
-<p>We do the final <span class="math notranslate nohighlight">\(\dt/2\)</span> reacting on the state, begining with <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span> to
-give us the final state on this level, <span class="math notranslate nohighlight">\(\Ub^{n+1}\)</span>.</p>
-<p>This is largely the same as <code class="docutils literal notranslate"><span class="pre">strang_react_first_half()</span></code>, but
-it does not currently fill the reactions in the ghost cells.</p>
-</li>
-<li><p class="first"><em>Finalize</em> [<code class="docutils literal notranslate"><span class="pre">finalize_do_advance()</span></code>]</p>
-<p>Finalize does the following:</p>
-<ol class="upperalpha simple">
-<li>for the momentum sources, we compute <span class="math notranslate nohighlight">\(d\Sb/dt\)</span>, to use in the
-source term prediction/extrapolation for the hydrodynamic
-interface states during the next step.</li>
-<li>If we are doing the hybrid momentum algorithm, then we sync up
-the hybrid and linear momenta</li>
-</ol>
-</li>
-</ol>
-<p>A summary of which state is the input and which is updated for each of
-these processes is presented below:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="27%" />
-<col width="15%" />
-<col width="29%" />
-<col width="29%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head"><em>step</em></th>
-<th class="head"><code class="docutils literal notranslate"><span class="pre">S_old</span></code></th>
-<th class="head"><code class="docutils literal notranslate"><span class="pre">Sborder</span></code></th>
-<th class="head"><code class="docutils literal notranslate"><span class="pre">S_new</span></code></th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><ol class="first last arabic simple">
-<li>init</li>
-</ol>
-</td>
-<td>input</td>
-<td>updated</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-odd"><td><ol class="first last arabic simple" start="2">
-<li>react</li>
-</ol>
-</td>
-<td>&#160;</td>
-<td>input / updated</td>
-<td>&#160;</td>
-</tr>
-<tr class="row-even"><td><ol class="first last arabic simple" start="3">
-<li>old sources</li>
-</ol>
-</td>
-<td>&#160;</td>
-<td>input</td>
-<td>updated</td>
-</tr>
-<tr class="row-odd"><td><ol class="first last arabic simple" start="4">
-<li>hydro</li>
-</ol>
-</td>
-<td>&#160;</td>
-<td>input</td>
-<td>updated</td>
-</tr>
-<tr class="row-even"><td><ol class="first last arabic simple" start="5">
-<li>clean</li>
-</ol>
-</td>
-<td>&#160;</td>
-<td>&#160;</td>
-<td>input / updated</td>
-</tr>
-<tr class="row-odd"><td><ol class="first last arabic simple" start="6">
-<li>radial / center</li>
-</ol>
-</td>
-<td>&#160;</td>
-<td>&#160;</td>
-<td>input</td>
-</tr>
-<tr class="row-even"><td><ol class="first last arabic simple" start="7">
-<li>correct sources</li>
-</ol>
-</td>
-<td>&#160;</td>
-<td>&#160;</td>
-<td>input / updated</td>
-</tr>
-<tr class="row-odd"><td><ol class="first last arabic simple" start="8">
-<li>react</li>
-</ol>
-</td>
-<td>&#160;</td>
-<td>&#160;</td>
-<td>input / updated</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="mol-w-strang-splitting">
-<h3>MOL w/ Strang-splitting<a class="headerlink" href="#mol-w-strang-splitting" title="Permalink to this headline">¶</a></h3>
-<p>This describes the flow when using the method-of-lines integration together with
-Strang splitting.  This is selected by setting <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p>
-<p>The handling of sources differs in the MOL integration, as compared to CTU.
-Again, consider our system as:</p>
-<div class="math notranslate nohighlight">
-\[\frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb \, .\]</div>
-<p>We will again use Strang splitting to discretize the
-advection-reaction equations, but the hydro update will consist of <span class="math notranslate nohighlight">\(s\)</span>
-stages. The update first does the reactions, as with CTU:</p>
-<div class="math notranslate nohighlight">
-\[\Ub^\star = \Ub^n + \frac{\dt}{2}\Rb(\Ub^n)\]</div>
-<p>We then consider the hydro update discretized in space, but not time, written
-as:</p>
-<div class="math notranslate nohighlight">
-\[\frac{\partial \Ub}{\partial t} = -{\bf A}(\Ub) + \Sb(\Ub)\]</div>
-<p>Using a Runge-Kutta (or similar) integrator, we write the update as:</p>
-<div class="math notranslate nohighlight">
-\[\Ub^{n+1,\star} = \Ub^\star + \dt \sum_{l=1}^s b_i {\bf k}_l\]</div>
-<p>where <span class="math notranslate nohighlight">\(b_i\)</span> is the weight for stage <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(k_i\)</span> is the stage update:</p>
-<div class="math notranslate nohighlight">
-\[{\bf k}_l = -{\bf A}(\Ub_l) + \Sb(\Ub_l)\]</div>
-<p>with</p>
-<div class="math notranslate nohighlight">
-\[\Ub_l = \Ub^\star  + \dt \sum_{m=1}^{l-1} a_{lm} {\bf k}_m\]</div>
-<p>Finally, there is the last part of the reactions:</p>
-<div class="math notranslate nohighlight">
-\[\Ub^{n+1} = \Ub^{n+1,\star} + \frac{\dt}{2} \Rb(\Ub^{n+1,\star})\]</div>
-<p>In contrast to the CTU method, the sources are treated together
-with the advection here.</p>
-<p>The time at the intermediate stages is evaluated as:</p>
-<div class="math notranslate nohighlight">
-\[t_l = c_l \dt\]</div>
-<p>The integration coefficients are stored in the vectors
-<code class="docutils literal notranslate"><span class="pre">a_mol</span></code>, <code class="docutils literal notranslate"><span class="pre">b_mol</span></code>, and <code class="docutils literal notranslate"><span class="pre">c_mol</span></code>, and the
-stage updates are stored in the MultiFab <code class="docutils literal notranslate"><span class="pre">k_mol</span></code>.</p>
-<p>Here is the single-level algorithm. We use the same notation
-as in the CTU flowchart.</p>
-<p>In the code, the objective is to evolve the state from the old time,
-<code class="docutils literal notranslate"><span class="pre">S_old</span></code>, to the new time, <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
-<ol class="arabic">
-<li><p class="first"><em>Initialize</em></p>
-<p>In <code class="docutils literal notranslate"><span class="pre">initialize_do_advance()</span></code>, set the starting point for the stage’s integration:</p>
-<ol class="upperalpha">
-<li><p class="first">if <code class="docutils literal notranslate"><span class="pre">mol_iteration</span></code> = 0: initialize
-<code class="docutils literal notranslate"><span class="pre">Sborder</span></code> from <code class="docutils literal notranslate"><span class="pre">S_old</span></code></p>
-</li>
-<li><p class="first">if <code class="docutils literal notranslate"><span class="pre">mol_iteration</span></code> &gt; 0: we need to create
-the starting point for the current stage. We store this,
-temporarily in the new-time slot (what we normally refer to as
-<code class="docutils literal notranslate"><span class="pre">S_new</span></code>):</p>
-<div class="math notranslate nohighlight">
-\[\mathtt{S\_new}_\mathrm{iter} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{iter}-1} a_{\mathrm{iter},l} \mathtt{k\_mol}_l\]</div>
-<p>Then initialize <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> from <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
-</li>
-</ol>
-<p>Check for NaNs in the initial state, <code class="docutils literal notranslate"><span class="pre">S_old</span></code>.</p>
-</li>
-<li><p class="first"><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_first_half()</span></code> ]</p>
-<p>This step is unchanged from the CTU version. At the end of this
-step, <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> sees the effects of the reactions.</p>
-<p>Each stage needs to build its starting point from this point, so we
-store the effect of the burn in a new MultiFab, <code class="docutils literal notranslate"><span class="pre">Sburn</span></code>,
-for use in the stage initialization.</p>
-</li>
-<li><p class="first"><em>Construct sources from the current stage’s state</em>
-[<code class="docutils literal notranslate"><span class="pre">construct_old_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_old_sources()</span></code>]</p>
-<p>The time level <span class="math notranslate nohighlight">\(n\)</span> sources are computed, and added to the
-StateData <code class="docutils literal notranslate"><span class="pre">Source_Type</span></code>. The sources are then applied
-to the state after the burn, <span class="math notranslate nohighlight">\(\Ub^\star\)</span> with a full <span class="math notranslate nohighlight">\(\Delta t\)</span>
-weighting (this will be corrected later). This produces the
-intermediate state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)</span>.</p>
-<p>For full Poisson gravity, we solve for for gravity using:</p>
-<div class="math notranslate nohighlight">
-\[\gb^n = -\nabla\phi^n, \qquad
-    \Delta\phi^n = 4\pi G\rho^n,\]</div>
-</li>
-<li><p class="first"><em>Construct the hydro update</em> [<code class="docutils literal notranslate"><span class="pre">construct_hydro_source()</span></code>]</p>
-<p>The hydro update in the MOL branch will include both the advective
-and source terms. In each stage, store in <code class="docutils literal notranslate"><span class="pre">k_mol[istage]</span></code> the righthand
-side for the current stage.</p>
-<p>In constructing the stage update, we use the source evaluated earlier,
-and compute:</p>
-<div class="math notranslate nohighlight">
-\[\mathtt{k\_mol}_l = - \Ab(\Ub_l) + \Sb(\Ub_l)\]</div>
-<p>Each call to <code class="docutils literal notranslate"><span class="pre">do_advance_mol</span></code> only computes this update for
-a single stage. On the last stage, we compute the final update
-as:</p>
-<div class="math notranslate nohighlight">
-\[\mathtt{S\_new} = \mathtt{Sburn} + \dt \sum_{l=0}^{\mathrm{n\_stages}-1} b_l \, \mathrm{k\_mol}_l\]</div>
-</li>
-<li><p class="first"><em>Clean State</em> [<code class="docutils literal notranslate"><span class="pre">clean_state()</span></code>]</p>
-<p>This is done on <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
-<p>After these checks, we check the state for NaNs.</p>
 </li>
 <li><p class="first"><em>React</em> <span class="math notranslate nohighlight">\(\Delta t/2\)</span> [<code class="docutils literal notranslate"><span class="pre">strang_react_second_half()</span></code>]</p>
 <p>We do the final <span class="math notranslate nohighlight">\(\dt/2\)</span> reacting on the state, begining with <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span> to
