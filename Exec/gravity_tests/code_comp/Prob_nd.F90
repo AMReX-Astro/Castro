@@ -6,9 +6,11 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_error_module
   use prob_params_module, only : center
   use probdata_module, only : heating_factor, g0, rho0, p0, gamma1
-
+  use model_util_module, only : integrate_model
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
+
   integer, intent(in) :: init, namlen
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
@@ -16,7 +18,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer :: untin, i
 
   namelist /fortin/ &
-       heating_factor, g0, rho0, p0, gamma1, do_pert
+       heating_factor, g0, rho0, p0, gamma1, do_pert, ny
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 127
@@ -38,6 +40,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   p0 = 2.7647358e23_rt
   gamma1 = 1.4e0_rt
   do_pert = .true.
+  ny = 256
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -57,6 +60,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   center(2) = HALF*(problo(2)+probhi(2))
   center(3) = HALF*(problo(3)+probhi(3))
 #endif
+
+  call integrate_model(ny, problo(2), probhi(2), rho0, p0)
 
 end subroutine amrex_probinit
 
@@ -90,7 +95,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use probdata_module
   use interpolate_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
-                                 UEDEN, UEINT, UFS, sdc_order
+                                 UEDEN, UEINT, UFS, T_guess
   use network, only : nspec
   use model_parser_module
   use prob_params_module, only : center, problo, probhi
@@ -98,7 +103,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_module
   use prescribe_grav_module, only : grav_zone
   use amrex_fort_module, only : rt => amrex_real
-  use model_util_module, only : set_species, fv, dUdy, integrate_model
 
   implicit none
 
@@ -111,22 +115,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                    state_lo(3):state_hi(3), NVAR)
 
   real(rt) :: x, y, z, fheat, rhopert
-  real(rt), allocatable :: pres(:), dens(:)
-  real(rt) :: xn(nspec)
-  integer :: i, j, k, n, iter, n_dy
-  real(rt), parameter :: TOL = 1.e-10_rt
-  integer, parameter :: MAX_ITER = 200
-  logical :: converged_hse
+  integer :: i, j, k, n
 
   type(eos_t) :: eos_state
-
-  allocate(pres(0:hi(2)))
-  allocate(dens(0:hi(2)))
-
-  call integrate_model(hi(2), rho0, p0, problo(2), delta(2), dens, pres)
+  real(rt) :: pres
 
   do k = lo(3), hi(3)
-    z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF) - center(3)
+    z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
 
      do j = lo(2), hi(2)
         y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
@@ -138,7 +133,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         endif
 
         do i = lo(1), hi(1)
-           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF) - center(1)
+           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
 
            rhopert = ZERO
 
@@ -148,24 +143,25 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                                    (sin(3 * M_PI * z/4.e8_rt) - cos(M_PI * z/4.e8_rt))
            end if
 
-           ! do species
-           state(i,j,k,UFS:UFS-1+nspec) = set_species(y)
+           call interpolate_sub(state(i,j,k,URHO), y, idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), y, itemp_model)
 
-           if (j < 0) then
-                eos_state % rho = rho0 + rhopert
-                eos_state % p = p0
-           else
-                eos_state%rho = dens(j) + rhopert
-                eos_state%p = pres(j)
-           endif
+           do n = 1, nspec
+              call interpolate_sub(state(i,j,k,UFS-1+n), y, ispec_model-1+n)
+           end do
 
-           eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
+           ! get temporary pressure
+           call interpolate_sub(pres, y, ipres_model)
+
+           eos_state % rho = state(i,j,k,URHO) + rhopert
+           eos_state % p = pres
+           eos_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec)
+           eos_state % T = T_guess
 
            call eos(eos_input_rp, eos_state)
 
            state(i,j,k,URHO) = eos_state % rho
-
-           state(i,j,k,UTEMP) = eos_state%T
+           state(i,j,k,UTEMP) = eos_state % T
 
            state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state%e
            state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state%e
@@ -174,14 +170,12 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
            end do
 
+           ! Initial velocities = 0
+           state(i,j,k,UMX:UMZ) = ZERO
+
         enddo
      enddo
   enddo
 
-  deallocate(pres)
-  deallocate(dens)
-
-  ! Initial velocities = 0
-  state(:,:,:,UMX:UMZ) = ZERO
 
 end subroutine ca_initdata
