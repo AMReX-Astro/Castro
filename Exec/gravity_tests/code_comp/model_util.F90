@@ -13,6 +13,8 @@ contains
     real(rt), intent(in) :: y
     real(rt) :: xn(nspec)
 
+    !$gpu
+
     xn(:) = ZERO
     xn(1) = ONE - fv(y)
     xn(2) = fv(y)
@@ -26,6 +28,8 @@ contains
 
     real(rt), intent(in) :: y
     real(rt) :: f_v
+
+    !$gpu
 
     if (y < 1.9375e0_rt * 4.e8_rt) then
        f_v = ZERO
@@ -46,6 +50,8 @@ contains
 
     real(rt), intent(in) :: y
     real(rt) :: df_vdy
+
+    !$gpu
 
     if (y < 1.9375e0_rt * 4.e8_rt) then
        df_vdy = ZERO
@@ -72,6 +78,8 @@ contains
     real(rt) :: dU(2), gamma, gamma0
 
     type(eos_t) :: eos_state
+
+    !$gpu
 
     ! U(1) = log(rho)
     ! U(2) = log(p)
@@ -108,6 +116,8 @@ contains
     real(rt) :: ystart, y, k1(2), k2(2), k3(2), k4(2)
     real(rt) :: U_old(2), U_new(2), h
     integer :: j
+
+    !$gpu
 
     U_old(1) = log(rho0)
     U_old(2) = log(p0)

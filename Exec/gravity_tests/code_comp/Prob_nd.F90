@@ -101,7 +101,8 @@ subroutine ca_initdata(lo, hi, &
   use eos_module
   use prescribe_grav_module, only : grav_zone
   use amrex_fort_module, only : rt => amrex_real
-  use model_util_module, only : set_species, fv, dUdy, integrate_model
+  use model_util_module, only : set_species ! function
+  use model_util_module, only : integrate_model ! function
 
   implicit none
 
