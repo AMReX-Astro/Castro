@@ -596,25 +596,6 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro14do_advance_molEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro14do_advance_molEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_advance_molEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_mol__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a5121e5fc960d04cdcc3434561c6f0dcf"></span>amrex::Real <code class="descname">do_advance_mol</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14do_advance_molEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms. The advance is doing using the MOL (method of lines) approach.</p>
-<p><dl class="docutils">
-<dt><strong>Note</strong></dt>
-<dd>the time that passes through here is the time for the current stage</dd>
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
-<li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </li>
-<li><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </li>
-<li><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="_CPPv4N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv3N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_sdc__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a4ed730068ad5f231af6fe2f6c2182c28"></span>amrex::Real <code class="descname">do_advance_sdc</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
@@ -2830,7 +2811,7 @@
 <dl class="member">
 <dt id="_CPPv4N6Castro5SburnE">
 <span id="_CPPv3N6Castro5SburnE"></span><span id="_CPPv2N6Castro5SburnE"></span><span id="Castro::Sburn__amrex::MultiFab"></span><span class="target" id="classCastro_1a322ee43fe4ea9ae33b83b48ccf20a9e1"></span>amrex::MultiFab <code class="descname">Sburn</code><a class="headerlink" href="#_CPPv4N6Castro5SburnE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>A state array for the post burn state to be used in MOL integration </p>
+<dd><p>A state array for the some reaction stuff with SDC </p>
 </dd></dl>
 
 <dl class="member">
@@ -2988,12 +2969,6 @@
 </dd></dl>
 
 <dl class="member">
-<dt id="_CPPv4N6Castro5k_molE">
-<span id="_CPPv3N6Castro5k_molE"></span><span id="_CPPv2N6Castro5k_molE"></span><span id="Castro::k_mol__amrex::Vector:std::unique_ptr:amrex::MultiFab::"></span><span class="target" id="classCastro_1aedbe3272502faa5461bf1fce0224ac2a"></span>amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; <code class="descname">k_mol</code><a class="headerlink" href="#_CPPv4N6Castro5k_molE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Storage for the method of lines stages </p>
-</dd></dl>
-
-<dl class="member">
 <dt id="_CPPv4N6Castro5k_newE">
 <span id="_CPPv3N6Castro5k_newE"></span><span id="_CPPv2N6Castro5k_newE"></span><span id="Castro::k_new__amrex::Vector:std::unique_ptr:amrex::MultiFab::"></span><span class="target" id="classCastro_1af59ffa422e0e8e803989a47f7b09c2e9"></span>amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; <code class="descname">k_new</code><a class="headerlink" href="#_CPPv4N6Castro5k_newE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
@@ -3108,12 +3083,6 @@
 <span id="_CPPv3N6Castro16current_sdc_nodeE"></span><span id="_CPPv2N6Castro16current_sdc_nodeE"></span><span id="Castro::current_sdc_node__i"></span><span class="target" id="classCastro_1afb08b23c0d86436aaa54010c07c58b29"></span>int <code class="descname">current_sdc_node</code><a class="headerlink" href="#_CPPv4N6Castro16current_sdc_nodeE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="member">
-<dt id="_CPPv4N6Castro13mol_iterationE">
-<span id="_CPPv3N6Castro13mol_iterationE"></span><span id="_CPPv2N6Castro13mol_iterationE"></span><span id="Castro::mol_iteration__i"></span><span class="target" id="classCastro_1a594f3eabc8768a5eca90dfaa339085cb"></span>int <code class="descname">mol_iteration</code><a class="headerlink" href="#_CPPv4N6Castro13mol_iterationE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>method of lines </p>
-</dd></dl>
-
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Protected Static Functions</p>
@@ -3162,27 +3131,6 @@
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Protected Static Attributes</p>
-<dl class="member">
-<dt id="_CPPv4N6Castro10MOL_STAGESE">
-<span id="_CPPv3N6Castro10MOL_STAGESE"></span><span id="_CPPv2N6Castro10MOL_STAGESE"></span><span id="Castro::MOL_STAGES__i"></span><span class="target" id="classCastro_1a7ba798cadf45efa47deed32cbbb33c77"></span>int <code class="descname">MOL_STAGES</code><a class="headerlink" href="#_CPPv4N6Castro10MOL_STAGESE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>MOL Butcher tableau </p>
-</dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro5a_molE">
-<span id="_CPPv3N6Castro5a_molE"></span><span id="_CPPv2N6Castro5a_molE"></span><span id="Castro::a_mol__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classCastro_1af7befbb76d1152d108c20597db5680b7"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">a_mol</code><a class="headerlink" href="#_CPPv4N6Castro5a_molE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro5b_molE">
-<span id="_CPPv3N6Castro5b_molE"></span><span id="_CPPv2N6Castro5b_molE"></span><span id="Castro::b_mol__amrex::Vector:amrex::Real:"></span><span class="target" id="classCastro_1a8caa7a79662d021a852d30077b930e0f"></span>amrex::Vector&lt;amrex::Real&gt; <code class="descname">b_mol</code><a class="headerlink" href="#_CPPv4N6Castro5b_molE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro5c_molE">
-<span id="_CPPv3N6Castro5c_molE"></span><span id="_CPPv2N6Castro5c_molE"></span><span id="Castro::c_mol__amrex::Vector:amrex::Real:"></span><span class="target" id="classCastro_1adca0ea81ee55857a1ae29523945bc4d5"></span>amrex::Vector&lt;amrex::Real&gt; <code class="descname">c_mol</code><a class="headerlink" href="#_CPPv4N6Castro5c_molE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
 <dl class="member">
 <dt id="_CPPv4N6Castro9SDC_NODESE">
 <span id="_CPPv3N6Castro9SDC_NODESE"></span><span id="_CPPv2N6Castro9SDC_NODESE"></span><span id="Castro::SDC_NODES__i"></span><span class="target" id="classCastro_1ada15861b871d44d09f72c1ed30f1786b"></span>int <code class="descname">SDC_NODES</code><a class="headerlink" href="#_CPPv4N6Castro9SDC_NODESE" title="Permalink to this definition">¶</a><br /></dt>
