@@ -351,7 +351,7 @@ Castro::variableSetUp ()
 
   // Source terms -- for the CTU method, because we do characteristic
   // tracing on the source terms, we need NUM_GROW ghost cells to do
-  // the reconstruction.  For MOL and SDC, on the other hand, we only
+  // the reconstruction.  For SDC, on the other hand, we only
   // need 1 (for the fourth-order stuff). Simplified SDC uses the CTU
   // advance, so it behaves the same way as CTU here.
 
@@ -666,7 +666,7 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  if (time_integration_method == SpectralDeferredCorrections && (mol_order == 4 || sdc_order == 4)) {
+  if (time_integration_method == SpectralDeferredCorrections && sdc_order == 4) {
 
     // we are doing 4th order reactive SDC.  We need 2 ghost cells here
     SDC_Source_Type = desc_lst.size();
@@ -1078,7 +1078,7 @@ Castro::variableSetUp ()
   // required interior zone. And for reflecting BCs,
   // we need NUM_GROW * 2 == 8 threads anyway. This logic
   // then requires that blocking_factor be a multiple
-  // of 8. It is a little wasteful for MOL/SDC and for
+  // of 8. It is a little wasteful for SDC and for
   // problems that only have outflow BCs, but the BC
   // fill is not the expensive part of the algorithm
   // for our production science problems anyway, so
@@ -1089,86 +1089,16 @@ Castro::variableSetUp ()
   }
 #endif
 
-  // method of lines Butcher tableau
-  if (mol_order == 1) {
-
-      // first order Euler
-      MOL_STAGES = 1;
-
-      a_mol.resize(MOL_STAGES);
-      for (int n = 0; n < MOL_STAGES; ++n)
-        a_mol[n].resize(MOL_STAGES);
-
-      a_mol[0] = {1};
-      b_mol = {1.0};
-      c_mol = {0.0};
-
-  } else if (mol_order == 2) {
-
-    // second order TVD
-    MOL_STAGES = 2;
-
-    a_mol.resize(MOL_STAGES);
-    for (int n = 0; n < MOL_STAGES; ++n)
-      a_mol[n].resize(MOL_STAGES);
-
-    a_mol[0] = {0,   0,};
-    a_mol[1] = {1.0, 0,};
-
-    b_mol = {0.5, 0.5};
-
-    c_mol = {0.0, 1.0};
-
-  } else if (mol_order == 3) {
-
-    // third order TVD
-    MOL_STAGES = 3;
-
-    a_mol.resize(MOL_STAGES);
-    for (int n = 0; n < MOL_STAGES; ++n)
-      a_mol[n].resize(MOL_STAGES);
-
-    a_mol[0] = {0.0,  0.0,  0.0};
-    a_mol[1] = {1.0,  0.0,  0.0};
-    a_mol[2] = {0.25, 0.25, 0.0};
-
-    b_mol = {1./6., 1./6., 2./3.};
-
-    c_mol = {0.0, 1.0, 0.5};
-
-  } else if (mol_order == 4) {
-
-    // fourth order TVD
-    MOL_STAGES = 4;
-
-    a_mol.resize(MOL_STAGES);
-    for (int n = 0; n < MOL_STAGES; ++n)
-      a_mol[n].resize(MOL_STAGES);
-
-    a_mol[0] = {0.0,  0.0,  0.0,  0.0};
-    a_mol[1] = {0.5,  0.0,  0.0,  0.0};
-    a_mol[2] = {0.0,  0.5,  0.0,  0.0};
-    a_mol[3] = {0.0,  0.0,  1.0,  0.0};
-
-    b_mol = {1./6., 1./3., 1./3., 1./6.};
-
-    c_mol = {0.0, 0.5, 0.5, 1.0};
-
-  } else {
-    amrex::Error("invalid value of mol_order\n");
-  }
-
-
 
   if (sdc_order == 2) {
-
+    // Gauss-Lobatto (trapezoid)
     SDC_NODES = 2;
 
     dt_sdc.resize(SDC_NODES);
     dt_sdc = {0.0, 1.0};
 
   } else if (sdc_order == 4) {
-
+    // Gauss-Lobatto (Simpsons)
     SDC_NODES = 3;
 
     dt_sdc.resize(SDC_NODES);
