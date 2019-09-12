@@ -35,6 +35,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! allocate probdata variables
   allocate(heating_factor, g0, rho0, p0, gamma1)
   allocate(do_pert)
+  allocate(ny)
 
   ! set namelist defaults
 
