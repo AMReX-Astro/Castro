@@ -50,7 +50,7 @@ contains
 
           do i = lo(1), hi(1)
 
-            grav(i,j,k,1:3) = ZERO
+            grav(i,j,k,1:dim) = ZERO
 
             grav(i,j,k,2) = grav_zone(y)
 

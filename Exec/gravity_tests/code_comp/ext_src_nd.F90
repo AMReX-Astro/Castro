@@ -6,7 +6,6 @@ subroutine ca_ext_src(lo, hi, &
 
   use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
   use meth_params_module, only : NVAR, UEDEN, UEINT
-  use prob_params_module, only : center
   use probdata_module, only : heating_factor
   use amrex_fort_module, only : rt => amrex_real
 
@@ -25,6 +24,8 @@ subroutine ca_ext_src(lo, hi, &
   integer          :: i,j, k
   real(rt)         :: y, fheat
 
+  !$gpu
+
   src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.e0_rt
 
   do k = lo(3), hi(3)
@@ -42,8 +43,6 @@ subroutine ca_ext_src(lo, hi, &
     
             end do
         endif
-
-        ! fheat = ZERO
      end do
   end do
 
