@@ -121,10 +121,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt) :: pres
 
   do k = lo(3), hi(3)
-    z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
+    z = problo(3) + delta(3)*(dble(k) + HALF)
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
+        y = problo(2) + delta(2)*(dble(j) + HALF)
 
         if (y < 1.125e0_rt * 4.e8_rt) then
             fheat = sin(8.e0_rt * M_PI * (y/ 4.e8_rt - ONE))
@@ -133,7 +133,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         endif
 
         do i = lo(1), hi(1)
-           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
+           x = problo(1) + delta(1)*(dble(i) + HALF)
 
            rhopert = ZERO
 
