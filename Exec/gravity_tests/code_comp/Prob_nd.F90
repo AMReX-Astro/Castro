@@ -16,7 +16,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer :: untin, i
 
   namelist /fortin/ &
-       heating_factor, g0, rho0, p0, gamma1
+       heating_factor, g0, rho0, p0, gamma1, do_pert
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 127
@@ -32,6 +32,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   ! allocate probdata variables
   allocate(heating_factor, g0, rho0, p0, gamma1)
+  allocate(do_pert)
 
   ! set namelist defaults
 
@@ -40,6 +41,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   rho0 = 1.82094e6_rt
   p0 = 2.7647358e23_rt
   gamma1 = 1.4e0_rt
+  do_pert = .true.
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -100,7 +102,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_module
   use prescribe_grav_module, only : grav_zone
   use amrex_fort_module, only : rt => amrex_real
-  use model_util_module, only : set_species, fv, dUdy
+  use model_util_module, only : set_species, fv, dUdy, integrate_model
 
   implicit none
 
@@ -112,8 +114,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                    state_lo(2):state_hi(2), &
                                    state_lo(3):state_hi(3), NVAR)
 
-  real(rt) :: x, y, z, fheat, rhopert, U_old(2), U_new(2), h
-  real(rt) :: ystart, k1(2), k2(2), k3(2), k4(2)
+  real(rt) :: x, y, z, fheat, rhopert
   real(rt), allocatable :: pres(:), dens(:)
   real(rt) :: xn(nspec)
   integer :: i, j, k, n, iter, n_dy
@@ -126,68 +127,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   allocate(pres(0:hi(2)))
   allocate(dens(0:hi(2)))
 
-  U_old(1) = log(rho0)
-  U_old(2) = log(p0)
-
-  if (sdc_order /= 4) then
-
-     ! do HSE using RK2
-     do j = 0, hi(2)
-        y = problo(2) + delta(2)*(dble(j) + HALF)
-
-        ! our integration starts at y - h
-        if (j .eq. 0) then
-           h = delta(2) * HALF
-        else
-           h = delta(2)
-        endif
-
-        k1(:) = dUdy(y - h, U_old)
-        U_new(:) = U_old(:) + h * dUdy(y - HALF*h, U_old + HALF*h * k1)
-
-        dens(j) = exp(U_new(1))
-        pres(j) = exp(U_new(2))
-
-        U_old(:) = U_new(:)
-
-     end do
-
-  else
-
-     ! do HSE using RK4
-     do j = 0, hi(2)
-        y = problo(2) + delta(2)*(dble(j) + HALF)
-
-        ! our integration starts at y - h
-        if (j .eq. 0) then
-           h = delta(2) * HALF
-        else
-           h = delta(2)
-        endif
-
-        ystart = y - h
-
-        k1(:) = dUdy(ystart, U_old)
-        U_new(:) = U_old(:) + HALF*h * k1(:)
-
-        k2(:) = dUdy(ystart + HALF*h, U_new)
-        U_new(:) = U_old(:) + HALF*h * k2(:)
-
-        k3(:) = dUdy(ystart + HALF*h, U_new)
-        U_new(:) = U_old(:) + h * k3(:)
-
-        k4(:) = dUdy(ystart + h, U_new)
-
-        U_new = U_old(:) + (1.0_rt/6.0_rt) * h * (k1(:) + TWO*k2(:) + TWO*k3(:) + k4(:))
-
-        dens(j) = exp(U_new(1))
-        pres(j) = exp(U_new(2))
-
-        U_old(:) = U_new(:)
-
-     end do
-
-  end if
+  call integrate_model(hi(2), rho0, p0, problo(2), delta(2), dens, pres)
 
   do k = lo(3), hi(3)
     z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF) - center(3)
@@ -206,9 +146,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            rhopert = ZERO
 
-           rhopert = 5.e-5_rt * rho0 * fheat * (sin(3.e0_rt * M_PI * x / 4.e8_rt) + &
-                                                cos(M_PI * x / 4.e8_rt)) * &
-                     (sin(3 * M_PI * z/4.e8_rt) - cos(M_PI * z/4.e8_rt))
+           if (do_pert) then
+              rhopert = 5.e-5_rt * rho0 * fheat * (sin(3.e0_rt * M_PI * x / 4.e8_rt) + &
+                                                   cos(M_PI * x / 4.e8_rt)) * &
+                                                   (sin(3 * M_PI * z/4.e8_rt) - cos(M_PI * z/4.e8_rt))
+           end if
 
            ! do species
            state(i,j,k,UFS:UFS-1+nspec) = set_species(y)
