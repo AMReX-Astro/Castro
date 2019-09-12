@@ -99,7 +99,6 @@ subroutine ca_initdata(lo, hi, &
   use model_parser_module
   use eos_type_module
   use eos_module
-  use prescribe_grav_module, only : grav_zone
   use amrex_fort_module, only : rt => amrex_real
   use model_util_module, only : set_species ! function
   use model_util_module, only : integrate_model ! function

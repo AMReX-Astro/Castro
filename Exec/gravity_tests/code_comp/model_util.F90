@@ -71,7 +71,7 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     use eos_type_module
     use eos_module
-    use prescribe_grav_module, only : grav_zone
+    use prescribe_grav_module, only : grav_zone ! function
     use probdata_module, only: gamma1
 
     real(rt), intent(in) :: y, U(2)
