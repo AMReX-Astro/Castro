@@ -77,7 +77,6 @@ std::string Castro::zr_ext_bc_type = "";
 int         Castro::hse_zero_vels = 0;
 int         Castro::hse_interp_temp = 0;
 int         Castro::hse_reflect_vels = 0;
-int         Castro::mol_order = 2;
 int         Castro::sdc_order = 2;
 int         Castro::sdc_extra = 0;
 int         Castro::sdc_solver = 1;
