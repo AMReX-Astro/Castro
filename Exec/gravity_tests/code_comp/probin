@@ -49,10 +49,4 @@
 
   eos_gamma = 1.66666667d0
 
-  ! species_a_name = 'core'
-  ! species_a_gamma = 1.66666667d0
-
-  ! species_b_name = 'env'
-  ! species_b_gamma = 1.3d0
-
 /
