@@ -106,11 +106,6 @@ subroutine ca_initdata(lo, hi, &
   use eos_type_module
   use eos_module
   use amrex_fort_module, only : rt => amrex_real
-<<<<<<< HEAD
-=======
-  use model_util_module, only : set_species ! function
-  use model_util_module, only : integrate_model ! function
->>>>>>> development
 
   implicit none
 
@@ -124,16 +119,9 @@ subroutine ca_initdata(lo, hi, &
 
   type(eos_t) :: eos_state
 
-<<<<<<< HEAD
   real(rt) :: pres
-=======
+
   !$gpu
-
-  allocate(pres(0:hi(2)))
-  allocate(dens(0:hi(2)))
-
-  call integrate_model(hi(2), rho0, p0, problo(2), dx(2), dens, pres)
->>>>>>> development
 
   do k = lo(3), hi(3)
     z = problo(3) + dx(3)*(dble(k) + HALF)
