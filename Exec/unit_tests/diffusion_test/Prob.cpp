@@ -32,7 +32,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
     auto analytic = castro.derive("analytic", time, 1);
 
     // if we are fourth-order, we need to convert to averages
-    if (mol_order == 4 || sdc_order == 4) {
+    if (sdc_order == 4) {
       for (MFIter mfi(*analytic); mfi.isValid(); ++mfi) {
 
         const Box& gbx = mfi.growntilebox(1);

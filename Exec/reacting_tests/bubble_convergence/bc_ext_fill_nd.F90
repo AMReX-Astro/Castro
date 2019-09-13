@@ -34,7 +34,7 @@ contains
     use network, only: nspec
     use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model, interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
-    use meth_params_module, only : sdc_order, mol_order
+    use meth_params_module, only : sdc_order
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
@@ -140,7 +140,7 @@ contains
                 rhoem = rhom * eos_state % e
 
                 ! now make the averages
-                if (sdc_order == 4 .or. mol_order == 4) then
+                if (sdc_order == 4) then
                    rho_avg = rhoc + (ONE/24.0_rt) * (rhop - TWO*rhoc + rhom)
                    T_avg = Tc + (ONE/24.0_rt) * (Tp - TWO*Tc + Tm)
                    rhoe_avg = rhoec + (ONE/24.0_rt) * (rhoep - TWO*rhoec + rhoem)
@@ -230,7 +230,7 @@ contains
                 rhoem = rhom * eos_state % e
 
                 ! now make the averages
-                if (sdc_order == 4 .or. mol_order == 4) then
+                if (sdc_order == 4) then
                    rho_avg = rhoc + (ONE/24.0_rt) * (rhop - TWO*rhoc + rhom)
                    T_avg = Tc + (ONE/24.0_rt) * (Tp - TWO*Tc + Tm)
                    rhoe_avg = rhoec + (ONE/24.0_rt) * (rhoep - TWO*rhoec + rhoem)

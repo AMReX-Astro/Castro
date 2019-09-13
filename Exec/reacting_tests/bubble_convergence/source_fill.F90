@@ -49,7 +49,7 @@ contains
 
   subroutine source_multi_fill(lo, hi, state, s_lo, s_hi, domlo, domhi, delta, xlo, bc) bind(C, name="source_multi_fill")
 
-    use meth_params_module, only : UMY, const_grav, mol_order, sdc_order
+    use meth_params_module, only : UMY, const_grav, sdc_order
     use amrex_filcc_module, only: amrex_filccn
     use model_parser_module
     use amrex_constants_module, only : HALF, ONE, TWO
@@ -116,7 +116,7 @@ contains
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
 
-                if (sdc_order == 4 .or. mol_order == 4) then
+                if (sdc_order == 4) then
                    rho_avg = rhoc + (ONE/24.0_rt)*(rhop - TWO*rhoc + rhom)
                    state(i,j,k,UMY) = rho_avg * const_grav
                 else
@@ -149,7 +149,7 @@ contains
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
 
-                if (sdc_order == 4 .or. mol_order == 4) then
+                if (sdc_order == 4) then
                    rho_avg = rhoc + (ONE/24.0_rt)*(rhop - TWO*rhoc + rhom)
                    state(i,j,k,UMY) = rho_avg * const_grav
                 else
