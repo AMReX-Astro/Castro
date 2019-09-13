@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 changes since the last release
 
   -- The SDC algorithm now implements the burning conditionals
@@ -18,6 +19,12 @@ changes since the last release
      1 = piecewise constant, 2 = 2nd order MC limiter, and >= 3 for
      4th order MC limiter (previously there was no way to select the
      2nd order limiter).
+=======
+changes since the last release:
+
+  -- The Runge-Kutta based method-of-lines integration method has
+     been removed in favor of the SDC integration.
+>>>>>>> development
 
 # 19.09
 
