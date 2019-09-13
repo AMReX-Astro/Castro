@@ -81,18 +81,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         Real stage_weight = 1.0;
 
-<<<<<<< HEAD
-        if (time_integration_method == MethodOfLines) {
-          stage_weight = b_mol[mol_iteration];
-        }
-
         if (time_integration_method == SpectralDeferredCorrections) {
           stage_weight = node_weights[current_sdc_node];
         }
 
-
-=======
->>>>>>> development
 #ifndef AMREX_USE_CUDA
         if (sdc_order == 4) {
 
