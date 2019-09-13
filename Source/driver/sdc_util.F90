@@ -55,7 +55,7 @@ contains
     ! reaction update.  It either directly calls the Newton method or first
     ! tries VODE and then does the Newton update.
 
-    use meth_params_module, only : NVAR, sdc_solver
+    use meth_params_module, only : NVAR, sdc_solver, URHO, UTEMP, UEINT, UFS
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
@@ -72,6 +72,8 @@ contains
 
     integer :: ierr
 
+    ! for debugging
+    real(rt) :: U_orig(NVAR)
 
     if (sdc_solver == NEWTON_SOLVE) then
        ! we are going to assume we already have a good guess for the
@@ -81,6 +83,13 @@ contains
 
        ! failing?
        if (ierr /= NEWTON_SUCCESS) then
+          print *, "Newton convergence failure"
+          print *, "  input state:"
+          print *, "     density:        ", U_orig(URHO)
+          print *, "     temperature   : ", U_orig(UTEMP)
+          print *, "     (rho e):        ", U_orig(UEINT)
+          print *, "     mass fractions: ", U_orig(UFS:UFS-1+nspec)/U_orig(URHO)
+          print *, " "
           call castro_error("Newton subcycling failed in sdc_solve")
        end if
 
