@@ -158,6 +158,7 @@ contains
           do n = 1, nspec
              U_begin(UFS-1+n) = max(ZERO, U_begin(UFS-1+n))
           end do
+
           sum_rhoX = sum(U_begin(UFS:UFS-1+nspec))
           U_begin(UFS:UFS-1+nspec) = U_begin(UFS:UFS-1+nspec) * U_begin(URHO)/sum_rhoX
 
@@ -650,70 +651,7 @@ contains
 
   end subroutine jac_ode
 
-  subroutine f_sdc(n, U, f, iflag, rpar)
-    ! this is used by the Newton solve to compute the Jacobian via differencing
-
-    use rpar_sdc_module
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT, UTEMP, sdc_solve_for_rhoe
-    use network, only : nspec, nspec_evolve
-    use burn_type_module
-    use react_util_module
-
-    ! this computes the function we need to zero for the SDC update
-    implicit none
-
-    integer,intent(in) :: n
-    real(rt), intent(in)  :: U(0:n-1)
-    real(rt), intent(out) :: f(0:n-1)
-    integer, intent(inout) :: iflag  !! leave this untouched
-    real(rt), intent(inout) :: rpar(0:n_rpar-1)
-
-    real(rt) :: U_full(nvar),  R_full(nvar)
-    real(rt) :: R_react(0:n-1), f_source(0:n-1)
-    type(burn_t) :: burn_state
-
-    real(rt) :: dt_m
-
-    ! we are not solving the momentum equations
-    ! create a full state -- we need this for some interfaces
-    U_full(URHO) = U(0)
-    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
-    if (sdc_solve_for_rhoe == 1) then
-       U_full(UEINT) = U(nspec_evolve+1)
-       U_full(UEDEN) = rpar(irp_evar)
-    else
-       U_full(UEDEN) = U(nspec_evolve+1)
-       U_full(UEINT) = rpar(irp_evar)
-    endif
-
-    U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
-    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
-
-    ! unpack rpar
-    dt_m = rpar(irp_dt)
-    f_source(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
-
-    ! initial guess for T
-    U_full(UTEMP) = rpar(irp_temp)
-
-    call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
-
-    ! update guess for next time
-    rpar(irp_temp) = U_full(UTEMP)
-
-    R_react(0) = R_full(URHO)
-    R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
-    if (sdc_solve_for_rhoe == 1) then
-       R_react(nspec_evolve+1) = R_full(UEINT)
-    else
-       R_react(nspec_evolve+1) = R_full(UEDEN)
-    endif
-
-    f(:) = U(:) - dt_m * R_react(:) - f_source(:)
-
-  end subroutine f_sdc
-
-  subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, rpar)
+  subroutine f_sdc_jac(neq, U, f, Jac, ldjac, iflag, rpar)
     ! this is used with the Newton solve and returns f and the Jacobian
 
     use rpar_sdc_module
@@ -729,22 +667,23 @@ contains
     ! this computes the function we need to zero for the SDC update
     implicit none
 
-    integer,intent(in) :: n, ldjac
-    real(rt), intent(in)  :: U(0:n-1)
-    real(rt), intent(out) :: f(0:n-1)
-    real(rt), intent(out) :: Jac(0:ldjac-1,0:n-1)
+    integer,intent(in) :: neq, ldjac
+    real(rt), intent(in)  :: U(0:neq-1)
+    real(rt), intent(out) :: f(0:neq-1)
+    real(rt), intent(out) :: Jac(0:ldjac-1,0:neq-1)
     integer, intent(inout) :: iflag  !! leave this untouched
     real(rt), intent(inout) :: rpar(0:n_rpar-1)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
-    real(rt) :: R_react(0:n-1), f_source(0:n-1)
+    real(rt) :: R_react(0:neq-1), f_source(0:neq-1)
     type(burn_t) :: burn_state
     type(eos_t) :: eos_state
     real(rt) :: dt_m
 
     real(rt) :: denom
     real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
-    integer :: m
+    integer :: m, k
+    real(rt) :: sum_rhoX
 
     ! we are not solving the momentum equations
     ! create a full state -- we need this for some interfaces
@@ -760,6 +699,14 @@ contains
 
     U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
     U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
+
+    ! normalize the species
+    do k = 1, nspec
+       U_full(UFS-1+k) = max(ZERO, U_full(UFS-1+k))
+    end do
+
+    sum_rhoX = sum(U_full(UFS:UFS-1+nspec))
+    U_full(UFS:UFS-1+nspec) = U_full(UFS:UFS-1+nspec) * U_full(URHO)/sum_rhoX
 
     ! unpack rpar
     dt_m = rpar(irp_dt)
