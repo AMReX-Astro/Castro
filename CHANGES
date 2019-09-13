@@ -19,6 +19,9 @@ changes since the last release
      4th order MC limiter (previously there was no way to select the
      2nd order limiter).
 
+  -- The Runge-Kutta based method-of-lines integration method has
+     been removed in favor of the SDC integration.
+
 # 19.09
 
   -- You can now type ./Castro.gnu.ex --describe to see the list of
