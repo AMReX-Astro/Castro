@@ -207,6 +207,9 @@ Castro::do_advance_sdc (Real time,
     // this if we are on the final node (since there is nothing to
     // update to
     if (m < SDC_NODES-1) {
+
+      std::cout << "... doing the SDC update, iteration = " << sdc_iteration << " from node " << m << " to " << m+1 << std::endl;
+
       do_sdc_update(m, m+1, dt); //(dt_sdc[m+1] - dt_sdc[m])*dt);
 
       // we now have a new value of k_new[m+1], do a clean_state on it

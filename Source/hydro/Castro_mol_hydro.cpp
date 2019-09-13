@@ -24,7 +24,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   const Real strt_time = ParallelDescriptor::second();
 
   if (verbose && ParallelDescriptor::IOProcessor()) {
-    std::cout << "... SDC iteration: " << sdc_iteration << "; current node: " << current_sdc_node << std::endl;
+    std::cout << "... construct advection term, SDC iteration: " << sdc_iteration << "; current node: " << current_sdc_node << std::endl;
   }
 
 
