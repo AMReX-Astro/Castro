@@ -151,8 +151,6 @@ contains
     do while (nsub < MAX_NSUB .and. ierr /= NEWTON_SUCCESS)
        dt_sub = dt_m / nsub
        do isub = 1, nsub
-          call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
-          U_begin(:) = U_new(:)
 
           ! normalize species
           do n = 1, nspec
@@ -161,6 +159,9 @@ contains
 
           sum_rhoX = sum(U_begin(UFS:UFS-1+nspec))
           U_begin(UFS:UFS-1+nspec) = U_begin(UFS:UFS-1+nspec) * U_begin(URHO)/sum_rhoX
+
+          call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
+          U_begin(:) = U_new(:)
 
        end do
        nsub = nsub * 2
@@ -224,6 +225,9 @@ contains
     integer :: iter
 
     integer :: max_newton_iter
+
+    real(rt) :: xn(nspec)
+    integer :: k
 
     ierr = NEWTON_SUCCESS
 
@@ -316,6 +320,18 @@ contains
        dU_react(:) = eta * dU_react(:)
 
        U_react(:) = U_react(:) + dU_react(:)
+
+       ! we still need to normalize here
+       xn(1:nspec_evolve) = U_react(1:nspec_evolve)/U_react(0)
+       xn(nspec_evolve+1:nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))/U_react(0)
+
+       do k = 1, nspec
+          xn(k) = max(ZERO, xn(k))
+       end do
+       xn(:) = xn(:)/sum(xn)
+
+       U_react(1:nspec_evolve) = U_react(0) * xn(1:nspec_evolve)
+       rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = U_react(0) * xn(nspec_evolve+1:nspec)
 
        eps_tot(0) = tol_dens * abs(U_react(0)) + sdc_solver_atol
        ! for species, atol is the mass fraction limit, so we multiply by density to get a partial density limit
@@ -650,6 +666,7 @@ contains
     Jac(:,:) = matmul(dRdw, dwdU)
 
   end subroutine jac_ode
+
 
   subroutine f_sdc_jac(neq, U, f, Jac, ldjac, iflag, rpar)
     ! this is used with the Newton solve and returns f and the Jacobian
