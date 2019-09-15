@@ -285,9 +285,8 @@ extern "C"
 
   void ca_store_reaction_state
     (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG_3D(R_old),
      const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(R_new));
+     BL_FORT_FAB_ARG_3D(R_new), amrex::Real weight);
 #endif
 
 #ifdef RADIATION

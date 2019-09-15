@@ -63,77 +63,94 @@ Castro::advance (Real time,
       }
 
 #ifdef REACTIONS
-      // store the reaction information as well.  Note: this will be
-      // the instantaneous reactive source from the last burn.  In the
-      // future, we might want to do a quadrature over R_old[]
+      // this next part is done only for the plotfile
 
-      // At this point, Sburn contains the cell-center reaction source
-      // on one ghost-cell.  So we can use this to derive what we need.
+      // store the reaction information as well.  After the last
+      // iteration, we never recomputed R_old based on the updated
+      // state for each time node.  We'll do that now, node by node,
+      // and add the result to R_new with the appropriate quadrature
+      // weight.  For 4th order, we'll do this on centers. This will
+      // result in Sburn representing the average of the reactive
+      // source over the timestep.  We can then convert back to averages.
 
-      // this is done only for the plotfile
+      // Loop over time nodes -- note we'll reuse S_new here, but at
+      // the end of the loop, S_new will be set back to the final
+      // solution.
+
+      if (sdc_order == 4) {
+        Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
+      }
+
+      FArrayBox R_center;
+      FArrayBox U_center;
+
       MultiFab& R_new = get_new_data(Reactions_Type);
       MultiFab& S_new = get_new_data(State_Type);
 
-      if (sdc_order == 4) {
-        // fill ghost cells on S_new -- we'll need these to convert to
-        // centers
-        Real cur_time = state[State_Type].curTime();
-        // we'll use Sborder to expand the state, but we already cleared
-        // it at the end of the andance
-        Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
+      const int* domain_lo = geom.Domain().loVect();
+      const int* domain_hi = geom.Domain().hiVect();
 
-        expand_state(Sborder, cur_time, 2);
-      }
+      R_new.setVal(0.0, R_new.nGrow());
 
-      FArrayBox U_center;
-      FArrayBox R_center;
+      for (int m = 0; m < SDC_NODES; ++m) {
 
-      // this cannot be tiled
-      for (MFIter mfi(R_new); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.tilebox();
-        const Box& obx = mfi.growntilebox(1);
+        Real weight = node_weights[m];
 
         if (sdc_order == 4) {
-
-          const int* domain_lo = geom.Domain().loVect();
-          const int* domain_hi = geom.Domain().hiVect();
-
-          // convert S_new to cell-centers
-          U_center.resize(obx, NUM_STATE);
-          ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
-                              BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                              BL_TO_FORTRAN_FAB(U_center),
-                              AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
-
-          // pass in the reaction source and state at centers, including one ghost cell
-          // and derive everything that is needed including 1 ghost cell
-          R_center.resize(obx, R_new.nComp());
-          ca_store_reaction_state(BL_TO_FORTRAN_BOX(obx),
-                                  BL_TO_FORTRAN_3D(Sburn[mfi]),
-                                  BL_TO_FORTRAN_3D(U_center),
-                                  BL_TO_FORTRAN_3D(R_center));
-
-          // convert R_new from centers to averages in place
-          ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                                  BL_TO_FORTRAN_FAB(R_center),
-                                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
-
-
-          // store
-          R_new[mfi].copy(R_center, bx, 0, bx, 0, R_new.nComp());
-
-        } else {
-
-          // we don't worry about the difference between centers and averages
-          ca_store_reaction_state(BL_TO_FORTRAN_BOX(bx),
-                                  BL_TO_FORTRAN_3D((*R_old[SDC_NODES-1])[mfi]),
-                                  BL_TO_FORTRAN_3D(S_new[mfi]),
-                                  BL_TO_FORTRAN_3D(R_new[mfi]));
+          // TODO: do we need a clean state here?
+          MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
+          Real cur_time = state[State_Type].curTime();
+          expand_state(Sburn, cur_time, 2);
         }
 
-      }
+        // this cannot be tiled
+        for (MFIter mfi(R_new); mfi.isValid(); ++mfi) {
+          const Box& bx = mfi.tilebox();
+          const Box& obx = mfi.growntilebox(1);
+
+          if (sdc_order == 2) {
+            // we don't need to worry about centers vs. averages, so
+            // we just work on the valid domain (no ghost cells).
+            ca_store_reaction_state(BL_TO_FORTRAN_BOX(bx),
+                                    BL_TO_FORTRAN_3D((*k_new[m])[mfi]),
+                                    BL_TO_FORTRAN_3D(R_new[mfi]), weight);
+
+          }  else {
+
+            // convert S_new to cell-centers
+            U_center.resize(obx, NUM_STATE);
+            ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
+                                BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                                BL_TO_FORTRAN_FAB(U_center),
+                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+            // this will add the current reactive term to the R_new
+            // MF, leaving the data on cell-centers, including one
+            // ghost cell.
+
+            // Here we rely on R_new having 1 ghost cell
+            ca_store_reaction_state(BL_TO_FORTRAN_BOX(obx),
+                                    BL_TO_FORTRAN_3D(U_center),
+                                    BL_TO_FORTRAN_3D(R_new[mfi]), weight);
+
+          }
+
+        }
+
+      } // end node loop
+
 
       if (sdc_order == 4) {
+        // now convert the resulting R_new back to averages
+        for (MFIter mfi(R_new); mfi.isValid(); ++mfi) {
+          const Box& bx = mfi.tilebox();
+
+          ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
+                                  BL_TO_FORTRAN_FAB(R_new[mfi]),
+                                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+        }
+
         Sborder.clear();
       }
 

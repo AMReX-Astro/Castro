@@ -1241,6 +1241,7 @@ contains
                                     state, s_lo, s_hi, &
                                     R_source, r_lo, r_hi) &
                                     bind(C, name="ca_instantaneous_react")
+    ! take the conservative state and compute the reactive source terms
 
     use amrex_constants_module, only : ZERO
     use burn_type_module
@@ -1261,10 +1262,6 @@ contains
     integer :: i, j, k
     type(burn_t) :: burn_state
 
-    ! convert from cons to prim -- show this be here or in C++-land?
-    ! or should I do things like we do in burn_state and convert it manually?
-    ! (in that case, I am not sure if I can assume UTEMP is defined)
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -1276,39 +1273,46 @@ contains
   end subroutine ca_instantaneous_react
 
   subroutine ca_store_reaction_state(lo, hi, &
-                                     R_old, r_lo, r_hi, &
                                      state, s_lo, s_hi, &
-                                     R_store, rs_lo, rs_hi) &
+                                     R_store, rs_lo, rs_hi, &
+                                     weight) &
                                      bind(C, name="ca_store_reaction_state")
-     ! copy the data from the last node's reactive source to the state data
+    ! create the reaction terms that will be stored in the plotfile.
+    ! If we are doing 4th order, then state comes in here as
+    ! cell-centers and we will leave R_store on centers as well.  We
+    ! add to R_store, using the given weight.  This allows us to do a
+    ! quadrature over the time nodes.
 
     use meth_params_module, only : NVAR, URHO, UEDEN, UFS
     use network, only : nspec
+    use burn_type_module, only : burn_t
+    use react_util_module, only : single_zone_react_source
 
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: s_lo(3), s_hi(3)
-    integer, intent(in) :: r_lo(3), r_hi(3)
     integer, intent(in) :: rs_lo(3), rs_hi(3)
 
-    real(rt), intent(in) :: R_old(r_lo(1):r_hi(1), r_lo(2):r_hi(2), r_lo(3):r_hi(3), NVAR)
     real(rt), intent(in) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
     real(rt), intent(inout) :: R_store(rs_lo(1):rs_hi(1), rs_lo(2):rs_hi(2), rs_lo(3):rs_hi(3), nspec+2)
+    real(rt), intent(in) :: weight
 
     integer :: i, j, k
-
-
+    real(rt) :: R_zone(NVAR)
+    type(burn_t) :: burn_state
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             call single_zone_react_source(state(i,j,k,:), R_zone, i,j,k, burn_state)
+
              ! for R_store we use the indices defined in Castro_setup.cpp for
              ! Reactions_Type
-             R_store(i,j,k,1:nspec) = R_old(i,j,k,UFS:UFS-1+nspec)/state(i,j,k,URHO)
-             R_store(i,j,k,nspec+1) = R_old(i,j,k,UEDEN)/state(i,j,k,URHO)
-             R_store(i,j,k,nspec+2) = R_old(i,j,k,UEDEN)
+             R_store(i,j,k,1:nspec) = R_zone(UFS:UFS-1+nspec)/state(i,j,k,URHO)
+             R_store(i,j,k,nspec+1) = R_zone(UEDEN)/state(i,j,k,URHO)
+             R_store(i,j,k,nspec+2) = R_zone(UEDEN)
           enddo
        enddo
     enddo

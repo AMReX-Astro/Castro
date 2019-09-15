@@ -389,9 +389,9 @@ Castro::variableSetUp ()
   // Component    NumSpec            is      enuc =      (eout-ein)
   // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
   store_in_checkpoint = true;
-  desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,0,NumSpec+2,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+  desc_lst.addDescriptor(Reactions_Type, IndexType::TheCellType(),
+			 StateDescriptor::Point, sdc_order == 4 ? 1 : 0, NumSpec+2,
+			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 #endif
 
 #ifdef REACTIONS
@@ -1097,12 +1097,18 @@ Castro::variableSetUp ()
     dt_sdc.resize(SDC_NODES);
     dt_sdc = {0.0, 1.0};
 
+    node_weights.resize(SDC_NODES);
+    node_weights = {0.5, 0.5};
+
   } else if (sdc_order == 4) {
     // Gauss-Lobatto (Simpsons)
     SDC_NODES = 3;
 
     dt_sdc.resize(SDC_NODES);
     dt_sdc = {0.0, 0.5, 1.0};
+
+    node_weights.resize(SDC_NODES);
+    node_weights = {1.0/6.0, 4.0/6.0, 1.0/6.0};
 
   } else {
     amrex::Error("invalid value of sdc_order");
