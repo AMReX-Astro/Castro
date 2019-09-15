@@ -126,6 +126,7 @@ contains
     use amrex_constants_module, only : ZERO, HALF, ONE
     use network, only : nspec, nspec_evolve
     use rpar_sdc_module
+    use extern_probin_module, only : small_x
 
     implicit none
 
@@ -154,7 +155,7 @@ contains
 
           ! normalize species
           do n = 1, nspec
-             U_begin(UFS-1+n) = max(ZERO, U_begin(UFS-1+n))
+             U_begin(UFS-1+n) = max(small_x, U_begin(UFS-1+n))
           end do
 
           sum_rhoX = sum(U_begin(UFS:UFS-1+nspec))
@@ -187,6 +188,7 @@ contains
     use react_util_module
     use network, only : nspec, nspec_evolve
     use rpar_sdc_module
+    use extern_probin_module, only : small_x
 
     implicit none
 
@@ -326,7 +328,7 @@ contains
        xn(nspec_evolve+1:nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))/U_react(0)
 
        do k = 1, nspec
-          xn(k) = max(ZERO, xn(k))
+          xn(k) = max(small_x, xn(k))
        end do
        xn(:) = xn(:)/sum(xn)
 
@@ -593,6 +595,7 @@ contains
     use eos_module, only : eos
     use rpar_sdc_module
     use react_util_module
+    use extern_probin_module, only : small_x
 
     implicit none
 
@@ -680,6 +683,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_re
     use eos_module, only : eos
     use amrex_constants_module, only : ZERO, HALF, ONE
+    use extern_probin_module, only : small_x
 
     ! this computes the function we need to zero for the SDC update
     implicit none
@@ -719,7 +723,7 @@ contains
 
     ! normalize the species
     do k = 1, nspec
-       U_full(UFS-1+k) = max(ZERO, U_full(UFS-1+k))
+       U_full(UFS-1+k) = max(small_x, U_full(UFS-1+k))
     end do
 
     sum_rhoX = sum(U_full(UFS:UFS-1+nspec))
