@@ -77,10 +77,10 @@ Castro::do_advance_sdc (Real time,
 
 
     // the next chunk of code constructs the advective term for the
-    // current node, m.  First we get the sources, then convert to
-    // primitive, then get the source term from the MOL driver.  Note,
-    // for m = 0, we only have to do all of this the first iteration,
-    // since that state never changes
+    // current node, m.  First we get the sources, then full hydro
+    // source term from the MOL driver.  Note, for m = 0, we only have
+    // to do all of this the first iteration, since that state never
+    // changes
     if (!(sdc_iteration > 0 && m == 0) &&
         !(sdc_iteration == sdc_order+sdc_extra-1 && m == SDC_NODES-1)) {
 
