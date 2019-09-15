@@ -3,6 +3,11 @@ changes since the last release:
   -- The Runge-Kutta based method-of-lines integration method has
      been removed in favor of the SDC integration.
 
+  -- We've changed how the reactive source terms are store for
+     the SDC time integration method.  They are now the average
+     over the timestep, using the same quadrature rule as the
+     SDC method.
+
 # 19.09
 
   -- You can now type ./Castro.gnu.ex --describe to see the list of
