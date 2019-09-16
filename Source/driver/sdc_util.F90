@@ -1296,7 +1296,7 @@ contains
 
     real(rt), intent(in) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
     real(rt), intent(inout) :: R_store(rs_lo(1):rs_hi(1), rs_lo(2):rs_hi(2), rs_lo(3):rs_hi(3), nspec+2)
-    real(rt), intent(in) :: weight
+    real(rt), intent(in), value :: weight
 
     integer :: i, j, k
     real(rt) :: R_zone(NVAR)
