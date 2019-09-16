@@ -1310,9 +1310,9 @@ contains
 
              ! for R_store we use the indices defined in Castro_setup.cpp for
              ! Reactions_Type
-             R_store(i,j,k,1:nspec) = R_zone(UFS:UFS-1+nspec)/state(i,j,k,URHO)
-             R_store(i,j,k,nspec+1) = R_zone(UEDEN)/state(i,j,k,URHO)
-             R_store(i,j,k,nspec+2) = R_zone(UEDEN)
+             R_store(i,j,k,1:nspec) = R_store(i,j,k,1:nspec) + weight * R_zone(UFS:UFS-1+nspec)/state(i,j,k,URHO)
+             R_store(i,j,k,nspec+1) = R_store(i,j,k,nspec+1) + weight * R_zone(UEDEN)/state(i,j,k,URHO)
+             R_store(i,j,k,nspec+2) = R_store(i,j,k,nspec+2) + weight * R_zone(UEDEN)
           enddo
        enddo
     enddo
