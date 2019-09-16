@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 40
+max_step = 40000
 stop_time =  0.2
 
 # PROBLEM SIZE & GEOMETRY
@@ -63,7 +63,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = det_x_chk  # root name of checkpoint file
-amr.check_int       = 300         # number of timesteps between checkpoints
+amr.check_int       = 1000         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = det_x_plt  # root name of plotfile
