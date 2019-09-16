@@ -233,6 +233,7 @@ Castro::do_advance_sdc (Real time,
     for (int n=1; n < SDC_NODES; n++) {
       MultiFab::Copy(*(A_old[n]), *(A_new[n]), 0, 0, NUM_STATE, 0);
     }
+  }
 
 #ifdef REACTIONS
     // we just did the update, so now recompute the "old" reactive
@@ -247,7 +248,6 @@ Castro::do_advance_sdc (Real time,
       construct_old_react_source(Sburn, *(R_old[m]), input_is_average);
     }
 #endif
-  }
 
   if (sdc_iteration == sdc_order+sdc_extra-1) {
 
