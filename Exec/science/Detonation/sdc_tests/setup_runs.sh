@@ -53,7 +53,7 @@ do
             fi
         done
 
-        nohup mpiexec -n 4 ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${GLOBAL_RUNPARAMS} ${RUNPARAMS} castro.cfl=${c} amr.n_cell=${nz} >& out &
+        nohup ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${GLOBAL_RUNPARAMS} ${RUNPARAMS} castro.cfl=${c} amr.n_cell=${nz} >& out &
         cd ..
     done
 done
@@ -93,7 +93,7 @@ do
             fi
         done
 
-        nohup mpiexec -n 4 ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${GLOBAL_RUNPARAMS} ${RUNPARAMS} castro.cfl=${c} amr.n_cell=${nz} >& out &
+        nohup ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${GLOBAL_RUNPARAMS} ${RUNPARAMS} castro.cfl=${c} amr.n_cell=${nz} >& out &
         cd ..
     done
 done
@@ -127,7 +127,7 @@ do
             fi
         done
 
-        nohup mpiexec -n 4 ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${GLOBAL_RUNPARAMS} ${RUNPARAMS} castro.cfl=${c} amr.n_cell=${nz} >& out &
+        nohup ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${GLOBAL_RUNPARAMS} ${RUNPARAMS} castro.cfl=${c} amr.n_cell=${nz} >& out &
         cd ..
     done
 done
