@@ -100,7 +100,7 @@ Castro::advance (Real time,
           // TODO: do we need a clean state here?
           MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
           Real cur_time = state[State_Type].curTime();
-          expand_state(Sburn, cur_time, 2);
+          expand_state(Sborder, cur_time, 2);
         }
 
         // this cannot be tiled
