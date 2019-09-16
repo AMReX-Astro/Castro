@@ -140,6 +140,7 @@ contains
        model_r(j) = ymin + (j - HALF)*dy
     end do
 
+    ! these are the values on the lower boundary, not the first cell-center
     U_old(1) = rho0
     U_old(2) = p0
 
@@ -147,7 +148,7 @@ contains
        y = model_r(j)
 
        ! our integration starts at y - h
-       if (j .eq. 0) then
+       if (j .eq. 1) then
           h = dy * HALF
        else
           h = dy
