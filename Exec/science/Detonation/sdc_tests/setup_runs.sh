@@ -1,4 +1,4 @@
-CASTRO_EXEC=./Castro1d.gnu.MPI.ex
+CASTRO_EXEC=./Castro1d.gnu.ex
 
 NEEDED_FILES="
 ${CASTRO_EXEC}
@@ -40,7 +40,7 @@ do
 
     for nz in ${NZONES}
     do
-        rdir=flame_z${nz}_c${c}_lobatto_sdc4
+        rdir=det_z${nz}_c${c}_lobatto_sdc4
         if [ ! -d ${rdir} ]; then
             mkdir ${rdir}
         fi
@@ -80,7 +80,7 @@ do
 
     for nz in ${NZONES}
     do
-        rdir=flame_z${nz}_c${c}_radau_sdc4
+        rdir=det_z${nz}_c${c}_radau_sdc4
         if [ ! -d ${rdir} ]; then
             mkdir ${rdir}
         fi
@@ -114,7 +114,7 @@ do
 
     for nz in ${NZONES}
     do
-        rdir=flame_z${nz}_c${c}_strang_ctu
+        rdir=det_z${nz}_c${c}_strang_ctu
         if [ ! -d ${rdir} ]; then
             mkdir ${rdir}
         fi
