@@ -1143,5 +1143,7 @@ Castro::variableSetUp ()
       amrex::Error("invalid value of sdc_order");
     }
 
+  } else {
+    amrex::Error("invalid value of sdc_quadrature");
   }
 }
