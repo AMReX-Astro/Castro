@@ -60,12 +60,92 @@ done
 
 
 #=============================================================================
+# Lobatto SDC-2
+#=============================================================================
+
+RUNPARAMS="
+castro.time_integration_method=2
+castro.sdc_order=2
+castro.sdc_quadrature=0
+castro.limit_fourth_order=1
+castro.use_reconstructed_gamma1=1
+castro.sdc_solve_for_rhoe=1
+castro.sdc_solver_tol_dens=1.e-8
+castro.sdc_solver_tol_spec=1.e-8
+castro.sdc_solver_tol_ener=1.e-8
+castro.sdc_solver=2"
+
+for c in ${CFL}
+do
+
+    for nz in ${NZONES}
+    do
+        rdir=det_z${nz}_c${c}_lobatto_sdc4
+        if [ ! -d ${rdir} ]; then
+            mkdir ${rdir}
+        fi
+
+        cd ${rdir}
+        for nf in ${NEEDED_FILES}
+        do
+            if [ ! -f ${nf} ]; then
+                cp ../${nf} .
+            fi
+        done
+
+        nohup ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${GLOBAL_RUNPARAMS} ${RUNPARAMS} castro.cfl=${c} amr.n_cell=${nz} >& out &
+        cd ..
+    done
+done
+
+
+#=============================================================================
 # Radau SDC-4
 #=============================================================================
 
 RUNPARAMS="
 castro.time_integration_method=2
 castro.sdc_order=4
+castro.sdc_quadrature=1
+castro.limit_fourth_order=1
+castro.use_reconstructed_gamma1=1
+castro.sdc_solve_for_rhoe=1
+castro.sdc_solver_tol_dens=1.e-8
+castro.sdc_solver_tol_spec=1.e-8
+castro.sdc_solver_tol_ener=1.e-8
+castro.sdc_solver=2"
+
+for c in ${CFL}
+do
+
+    for nz in ${NZONES}
+    do
+        rdir=det_z${nz}_c${c}_radau_sdc4
+        if [ ! -d ${rdir} ]; then
+            mkdir ${rdir}
+        fi
+
+        cd ${rdir}
+        for nf in ${NEEDED_FILES}
+        do
+            if [ ! -f ${nf} ]; then
+                cp ../${nf} .
+            fi
+        done
+
+        nohup ${CASTRO_EXEC} inputs.1d.sdc amr.plot_file=${rdir}_plt ${GLOBAL_RUNPARAMS} ${RUNPARAMS} castro.cfl=${c} amr.n_cell=${nz} >& out &
+        cd ..
+    done
+done
+
+
+#=============================================================================
+# Radau SDC-2
+#=============================================================================
+
+RUNPARAMS="
+castro.time_integration_method=2
+castro.sdc_order=2
 castro.sdc_quadrature=1
 castro.limit_fourth_order=1
 castro.use_reconstructed_gamma1=1
