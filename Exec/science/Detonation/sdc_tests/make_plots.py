@@ -159,14 +159,13 @@ if __name__ == "__main__":
             if len(dset) == 0:
                 continue
 
-            fig = plt.figure(1)
-            fig.clear()
+            fig, axes = plt.subplots(ncols=1, nrows=3, constrained_layout=True, squeeze=True)
 
             fig.set_size_inches(7.0, 9.0)
 
-            ax_T = fig.add_subplot(311)
-            ax_e = fig.add_subplot(312)
-            ax_he = fig.add_subplot(313)
+            ax_T = axes[0]
+            ax_e = axes[1]
+            ax_he = axes[2]
 
             for q in dset:
                 pf = q.get_data(idx)
@@ -192,5 +191,4 @@ if __name__ == "__main__":
 
             fig.suptitle("integrator = {}; number of zones = {}".format(intg, nz))
 
-            fig.tight_layout()
             fig.savefig("det_cfl_compare_{}_nz{}.png".format(intg, nz))
