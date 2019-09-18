@@ -16,7 +16,7 @@ contains
                     dq, qpd_lo, qpd_hi, &
                     dx, domlo, domhi)
 
-    use meth_params_module, only: NQ, plm_iorder, QU, QPRES, QRHO, &
+    use meth_params_module, only: NQ, plm_iorder, plm_limiter, QU, QPRES, QRHO, &
                                   const_grav, plm_well_balanced
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO, FOUR3RD, FOURTH, SIXTH
     use prob_params_module, only : Symmetry, physbc_lo, physbc_hi
@@ -49,6 +49,7 @@ contains
 
     if (plm_iorder == 1) then
 
+       ! first order -- piecewise constant slopes
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
@@ -58,6 +59,8 @@ contains
        end do
 
     else
+
+       ! second-order -- piecewise linear slopes
 
        if (idir == 1) then
           ! Compute slopes in first coordinate direction
@@ -96,7 +99,7 @@ contains
                       dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dcen))
 
 
-                   else if (plm_iorder == 2) then
+                   else if (plm_limiter == 1) then
                       ! the 2nd order MC limiter
 
                       qm1 = q(i-1,j,k,n)
@@ -226,7 +229,7 @@ contains
                       dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dcen))
 
 
-                   else if (plm_iorder == 2) then
+                   else if (plm_limiter == 1) then
                       ! the 2nd order MC limiter
 
                       qm1 = q(i,j-1,k,n)
@@ -335,7 +338,7 @@ contains
                       dq(i,j,k,n) = flatn(i,j,k)*dsgn*min(dlim, abs(dcen))
 
 
-                   else if (plm_iorder == 2) then
+                   else if (plm_limiter == 1) then
                       ! the 2nd order MC limiter
 
                       qm1 = q(i,j,k-1,n)
