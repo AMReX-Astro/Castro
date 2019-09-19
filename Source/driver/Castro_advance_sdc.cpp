@@ -284,6 +284,7 @@ Castro::do_advance_sdc (Real time,
         // TODO: do we need a clean state here?
         MultiFab::Copy(S_new, *(k_new[m]), 0, 0, S_new.nComp(), 0);
         Real cur_time = state[State_Type].curTime();
+        clean_state(S_new, cur_time, 0);
         expand_state(Sborder, cur_time, 2);
       }
 
