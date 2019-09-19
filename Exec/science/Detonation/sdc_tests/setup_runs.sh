@@ -80,7 +80,7 @@ do
 
     for nz in ${NZONES}
     do
-        rdir=det_z${nz}_c${c}_lobatto_sdc4
+        rdir=det_z${nz}_c${c}_lobatto_sdc2
         if [ ! -d ${rdir} ]; then
             mkdir ${rdir}
         fi
@@ -160,7 +160,7 @@ do
 
     for nz in ${NZONES}
     do
-        rdir=det_z${nz}_c${c}_radau_sdc4
+        rdir=det_z${nz}_c${c}_radau_sdc2
         if [ ! -d ${rdir} ]; then
             mkdir ${rdir}
         fi
