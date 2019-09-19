@@ -153,9 +153,15 @@ if __name__ == "__main__":
     runs.sort()
     print(runs)
 
-    # make a plot of the profiles for different CFLs and different resolutions
-    nzones = set([q.nzones for q in runs])
-    integrators = set([q.integrator for q in runs])
+    nzones = list(set([q.nzones for q in runs]))
+    nzones.sort()
+    integrators = list(set([q.integrator for q in runs]))
+    integrators.sort()
+    cfls = list(set([q.cfl for q in runs]))
+    cfls.sort()
+
+    # make a plot of the profiles for different CFLs with the same
+    # integrator and resolutions
 
     idx = 5
     for nz in nzones:
@@ -198,3 +204,49 @@ if __name__ == "__main__":
             fig.suptitle("{}, number of zones = {}".format(intg, nz))
 
             fig.savefig("det_cfl_compare_{}_nz{}.png".format(intg.replace(" ", "_"), nz))
+            plt.close()
+
+    # make a plot of the profiles for different integrators with the same CFLs and resolutions
+
+    idx = 5
+    for nz in nzones:
+        for c in cfls:
+            dset = [q for q in runs if q.cfl == c and q.nzones == nz]
+            dset.sort(key=lambda q: q.integrator)
+            if len(dset) == 0:
+                continue
+
+            fig, axes = plt.subplots(ncols=1, nrows=3, constrained_layout=True, squeeze=True)
+
+            fig.set_size_inches(7.0, 9.0)
+
+            ax_T = axes[0]
+            ax_e = axes[1]
+            ax_he = axes[2]
+
+            for q in dset:
+                pf = q.get_data(idx)
+                print("working on {}, time = {}".format(q.name, pf.time))
+
+                ax_T.plot(pf.x, pf.T, label="{}".format(q.integrator))
+                ax_e.plot(pf.x, pf.enuc)
+                ax_he.plot(pf.x, pf.rho_he4)
+
+            ax_T.legend(frameon=False)
+
+            ax_T.set_ylabel(r"$T$ (K)")
+            ax_e.set_ylabel(r"$H_\mathrm{nuc}$ (erg/g/s)")
+            ax_he.set_ylabel(r"$\rho X({}^4\mathrm{He})$ (g/cm${}^3$)")
+            ax_he.set_xlabel("x (cm)")
+
+            ax_T.set_xlim(5000, 15000)
+            ax_e.set_xlim(5000, 15000)
+            ax_he.set_xlim(5000, 15000)
+
+            ax_e.set_yscale("log")
+            ax_he.set_yscale("log")
+
+            fig.suptitle("number of zones = {}, CFL = {}".format(nz, c))
+
+            fig.savefig("det_integrator_compare_cfl{}_nz{}.png".format(c, nz))
+            plt.close()
