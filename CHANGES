@@ -14,8 +14,11 @@ changes since the last release
   -- The weighting of the time-node fluxes stored in the flux registers
      for SDC has been fixed (#658)
 
-  -- The meaning of the castro.plm_iorder flag has changed slightly.
-     1 = piecewise constant, 2 = 2nd order MC limiter, and >= 3 for
+  -- As before, we can choose the reconstruction with PLM using the
+     castro.plm_iorder flag: 1 = piecewise constant, 2 = piecewise
+     linear slopes.  Now we added a way to specify the limiter used
+     with the linear slopes.  castro.plm_limiter = 1 will use the 2nd
+     order MC limiter and castro.plm_limiter = 2 will use the default
      4th order MC limiter (previously there was no way to select the
      2nd order limiter).
 
