@@ -133,9 +133,10 @@ class Detonation:
     def get_data(self, n=-1):
         """get the temperature and energy generation rate from the nth
         plotfile (starting to count at 0).""" 
-
-        return Profile(os.path.join(self.name, self.files[n]))
-
+        try:
+            return Profile(os.path.join(self.name, self.files[n]))
+        except IndexError:
+            return None
 
 if __name__ == "__main__":
 
@@ -181,6 +182,9 @@ if __name__ == "__main__":
 
             for q in dset:
                 pf = q.get_data(idx)
+                if not pf:
+                    continue
+
                 print("working on {}, time = {}".format(q.name, pf.time))
 
                 ax_T.plot(pf.x, pf.T, label="CFL = {}".format(q.cfl))
@@ -226,6 +230,8 @@ if __name__ == "__main__":
 
             for q in dset:
                 pf = q.get_data(idx)
+                if not pf:
+                    continue
                 print("working on {}, time = {}".format(q.name, pf.time))
 
                 ax_T.plot(pf.x, pf.T, label="{}".format(q.integrator))

@@ -273,6 +273,8 @@ contains
        flatn = ONE
     end if
 
+    flatn = ZERO
+
     ! do the reconstruction here -- get the interface states
 
     ! x-interfaces
