@@ -221,7 +221,7 @@ burned state, and then does the final <span class="math notranslate nohighlight"
 explicit coupling of the burning and hydro is done. Within the
 Strang code path, there are two methods for doing the hydrodynamics:<ul>
 <li>Corner-transport upwind (CTU): this implements the unsplit,
-characteristic tracing method of <a class="reference internal" href="zreferences.html#colella-1990" id="id1">[12]</a>.</li>
+characteristic tracing method of <a class="reference internal" href="zreferences.html#colella-1990" id="id1">[colella:1990]</a>.</li>
 <li>Method of lines (MOL): this discretizes the space part of our
 system without any characteristic tracing and uses an ODE
 integrator to advance the state. Multiple stages can be done,
@@ -238,7 +238,7 @@ two SDC implementations in Castro.</li>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">0</span></code>: this is the original Castro method,
-described in <a class="reference internal" href="zreferences.html#castro-i" id="id2">[6]</a>.  This uses Strang splitting and the CTU
+described in <a class="reference internal" href="zreferences.html#castro-i" id="id2">[castro_I]</a>.  This uses Strang splitting and the CTU
 hydrodynamics scheme.</li>
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">1</span></code>: unused (in Castro 19.08 and
 earlier, this was a method-of-lines integration method with Strang
@@ -491,7 +491,7 @@ intermediate state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)
 <li><p class="first">sponge : the sponge is a damping term added to
 the momentum equation that is designed to drive the velocities to
 zero over some timescale. Our implementation of the sponge
-follows that of Maestro <a class="reference internal" href="zreferences.html#maestro-iii" id="id4">[7]</a></p>
+follows that of Maestro <a class="reference internal" href="zreferences.html#maestro-iii" id="id4">[maestro:III]</a></p>
 </li>
 <li><p class="first">external sources : users can define problem-specific sources
 in the <code class="docutils literal notranslate"><span class="pre">ext_src_?d.f90</span></code> file. Sources for the different

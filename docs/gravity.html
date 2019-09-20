@@ -270,7 +270,7 @@ interfaces, the data from the coarse levels acts as Dirichlet
 boundary conditions for the current-level-solve.</li>
 </ul>
 <p>The overall integration strategy is as follows, and is similar to
-the discussion in <a class="reference internal" href="zreferences.html#castro-i" id="id1">[6]</a>. Briefly:</p>
+the discussion in <a class="reference internal" href="zreferences.html#castro-i" id="id1">[castro_I]</a>. Briefly:</p>
 <ul>
 <li><p class="first">At the beginning of a simulation, we do a multilevel composite
 solve (if <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> = 0).</p>
@@ -492,7 +492,7 @@ outwards from the center to get <span class="math notranslate nohighlight">\(\ph
 <span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Permalink to this headline">¶</a></h4>
 <p>The following describes methods for doing isolated boundary
 conditions. The best reference for Castro’s implementation of this
-is <a class="reference internal" href="zreferences.html#katz-2016" id="id2">[31]</a>.</p>
+is <a class="reference internal" href="zreferences.html#katz-2016" id="id2">[katz:2016]</a>.</p>
 <ul>
 <li><p class="first"><strong>Multipole Expansion</strong></p>
 <p>In 3D, by default, we use a multipole expansion to estimate the value
@@ -631,8 +631,8 @@ GR-correction term for Newtonian gravity.  The correction term is
 applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span></code> = TRUE is
 set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>The formulae of GR-correction here are based on
-<a class="reference internal" href="zreferences.html#grbk1" id="id5">[33]</a>. For detailed physics, please refer to
-<a class="reference internal" href="zreferences.html#grbk2" id="id6">[45]</a>. For describing very strong gravitational
+<a class="reference internal" href="zreferences.html#grbk1" id="id5">[grbk1]</a>. For detailed physics, please refer to
+<a class="reference internal" href="zreferences.html#grbk2" id="id6">[grbk2]</a>. For describing very strong gravitational
 field, we need to use Einstein field equations</p>
 <div class="math notranslate nohighlight">
 \[\label{field}
@@ -755,7 +755,7 @@ of the source term at the cell center, but this method evaluates the
 change in energy at cell edges, using the hydrodynamical mass
 fluxes, permitting total energy to be conserved (excluding possible
 losses at open domain boundaries). See
-<a class="reference internal" href="zreferences.html#katzthesis" id="id7">[30]</a> for some more details.</li>
+<a class="reference internal" href="zreferences.html#katzthesis" id="id7">[katzthesis]</a> for some more details.</li>
 </ul>
 <table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
