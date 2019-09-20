@@ -46,6 +46,7 @@ pp.query("ppm_temp_fix", ppm_temp_fix);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);
 pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
 pp.query("plm_iorder", plm_iorder);
+pp.query("plm_limiter", plm_limiter);
 pp.query("plm_well_balanced", plm_well_balanced);
 pp.query("hybrid_riemann", hybrid_riemann);
 pp.query("riemann_solver", riemann_solver);

@@ -1,6 +1,9 @@
 [![Build Status](https://travis-ci.com/AMReX-Astro/Castro.svg?branch=development)](https://travis-ci.com/AMReX-Astro/Castro)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2301848.svg)](https://doi.org/10.5281/zenodo.2301848)
 
+[![AMReX](https://amrex-codes.github.io/badges/powered%20by-AMReX-red.svg)](https://amrex-codes.github.io)
+
+
 # Castro
 *an adaptive mesh, astrophysical radiation hydrodynamics simulation code*
 
