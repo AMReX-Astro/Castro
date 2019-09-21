@@ -13,17 +13,9 @@ the different code paths.  These fall into two categories:
 -  Strang-splitting: the Strang evolution does the burning on the
    state for :math:`\Delta t/2`, then updates the hydrodynamics using the
    burned state, and then does the final :math:`\Delta t/2` burning. No
-   explicit coupling of the burning and hydro is done. Within the
-   Strang code path, there are two methods for doing the hydrodynamics:
-
-   - Corner-transport upwind (CTU): this implements the unsplit,
-     characteristic tracing method of :cite:`colella:1990`.
-
-   - Method of lines (MOL): this discretizes the space part of our
-     system without any characteristic tracing and uses an ODE
-     integrator to advance the state. Multiple stages can be done,
-     each requiring reconstruction, Riemann solve, etc., and the final
-     solution is pieced together from the intermediate stages.
+   explicit coupling of the burning and hydro is done.  This code
+   path uses the corner-transport upwind (CTU) method (the unsplit,
+   characteristic tracing method of :cite:`colella:1990`).
 
 -  SDC: a class of iterative methods that couples the advection and reactions
    such that each process explicitly sees the effect of the other.  We have
@@ -127,18 +119,10 @@ of each step.
 
 #. *Advancement*
 
-   The update strategy differs for CTU vs MOL:
-
-   -  CTU: Calls ``do_advance to`` take a single step,
+   -  Call ``do_advance`` to take a single step,
       incorporating hydrodynamics, reactions, and source terms.
 
-   -  MOL: Call ``do_advance_mol`` ``MOL_STAGES`` times
-      (i.e., once for each of the intermediate stages in the ODE
-      integration). Within ``do_advance`` we will use the stage
-      number, ``mol_iteration``, to do an pre- or post-hydro
-      sources (e.g., burning).
-
-   In either case, for radiation-hydrodynamics, this step does the
+   For radiation-hydrodynamics, this step does the
    advective (hyperbolic) portion of the radiation update only.
    Source terms, including gravity, rotation, and diffusion are
    included in this step, and are time-centered to achieve second-order
@@ -222,9 +206,9 @@ The system advancement (reactions, hydrodynamics, diffusion, rotation,
 and gravity) is done by ``do_advance()``. Consider our system of
 equations as:
 
-.. math:: \frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb,
+.. math:: \frac{\partial\Ub}{\partial t} = {\bf A}(\Ub) + \Rb(\Ub) + \Sb,
 
-where :math:`{\bf A}(\Ub) = \nabla \cdot \Fb(\Ub)`, with :math:`\Fb` the flux vector, :math:`\Rb` are the reaction
+where :math:`{\bf A}(\Ub) = -\nabla \cdot \Fb(\Ub)`, with :math:`\Fb` the flux vector, :math:`\Rb` are the reaction
 source terms, and :math:`\Sb` are the non-reaction source terms, which
 includes any user-defined external sources, :math:`\Sb_{\rm ext}`. We use
 Strang splitting to discretize the advection-reaction equations. In
@@ -239,7 +223,7 @@ update, in sequence, looks like:
    \begin{aligned}
    \Ub^\star &= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
    \Ub^{n+1,(a)} &= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
-   \Ub^{n+1,(b)} &= \Ub^{n+1,(a)} - \dt\, {\bf A}(\Ub^\star) \\
+   \Ub^{n+1,(b)} &= \Ub^{n+1,(a)} + \dt\, {\bf A}(\Ub^\star) \\
    \Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
    \Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Rb(\Ub^{n+1,(c)})\end{aligned}
 
@@ -538,6 +522,59 @@ together directly.
 
    At the moment, the SDC solvers do not support multilevel or AMR
    simulation.
+
+The SDC solver follows the algorithm detailed in :cite:`castro_sdc`.
+If we write our evolution equation as:
+
+.. math::
+   \frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)
+
+where :math:`{\bf A}(\Ub) = -\nabla \cdot {\bf F}(\Ub) + {\bf S}(\Ub)`, with the 
+hydrodynamic source terms, :math:`{\bf S}` grouped together with the flux divergence.
+
+The SDC update looks at the solution a several time nodes (the number
+depending on the desired temporal order of accuracy), and iteratively
+updates the solution from node :math:`m` to :math:`m+1` as:
+
+.. math::
+   \begin{align}
+   \avg{\Ub^{m+1,(k+1)}} = \avg{\Ub^{m,(k+1)}} &+ \Delta t \left [ \avg{{\bf A}(\Ub)}^{m,(k+1)} - \avg{{\bf A}(\Ub)}^{m,(k)} \right ] \\
+                                   &+ \Delta t \left [ \avg{{\bf R}(\Ub)}^{m+1,(k+1)} - \avg{{\bf R}(\Ub)}^{m+1,(k)} \right ] \\
+                                   &+ \int_{t^m}^{t^{m+1}} \left [ \avg{{\bf A}(\Ub)}^{(k)} + \avg{{\bf R}(\Ub)}^{(k)} \right ] dt
+   \end{align}
+
+
+.. index:: castro.sdc_order, castro.sdc_quadrature
+
+Where :math:`k` is the iteration index.  In the SDC formalism, each
+iteration gains us an order of accuracy in time, up to the order with
+which we discretize the integral at the end of the above expression.
+In Castro, there are two parameters that together determine the number
+and location of the temporal nodes, the accuracy of the integral, and
+hence the overall accuracy in time: ``castro.sdc_order`` and
+``castro.sdc_quadrature``. 
+
+``castro.sdc_quadrature = 0`` uses
+Gauss-Lobatto integration, which includes both the starting and ending
+time in the time nodes.  This gives us the trapezoid rule for 2nd
+order methods and Simpson's rule for 4th order methods.  Choosing
+``castro.sdc_quadrature = 1`` uses Radau IIA integration, which includes
+the ending time but not the starting time in the quadrature.
+
++---------------------+----------------------+---------------+-------------------+------------------+
+|``castro.sdc_order`` |``castro.quadrature`` |  # of         |  temporal         |  description     |
+|                     |                      |  time nodes   |  accuracy         |                  |
++=====================+======================+===============+===================+==================+
+|       2             |         0            |          2    |                2  | trapezoid rule   |
++---------------------+----------------------+---------------+-------------------+------------------+
+|       2             |         1            |          3    |                2  | Simpson's rule   |
++---------------------+----------------------+---------------+-------------------+------------------+
+|       4             |         0            |          3    |                4  | Radau 2nd order  |
++---------------------+----------------------+---------------+-------------------+------------------+
+|       4             |         1            |          4    |                4  | Radau 4th order  |
++---------------------+----------------------+---------------+-------------------+------------------+
+
+The overall evolution appears as:
 
 
 
