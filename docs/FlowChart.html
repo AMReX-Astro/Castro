@@ -27,7 +27,7 @@
         <script type="text/javascript" src="_static/doctools.js"></script>
         <script type="text/javascript" src="_static/language_data.js"></script>
         <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}"}}})</script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -219,17 +219,9 @@ the different code paths.  These fall into two categories:</p>
 <li>Strang-splitting: the Strang evolution does the burning on the
 state for <span class="math notranslate nohighlight">\(\Delta t/2\)</span>, then updates the hydrodynamics using the
 burned state, and then does the final <span class="math notranslate nohighlight">\(\Delta t/2\)</span> burning. No
-explicit coupling of the burning and hydro is done. Within the
-Strang code path, there are two methods for doing the hydrodynamics:<ul>
-<li>Corner-transport upwind (CTU): this implements the unsplit,
-characteristic tracing method of <a class="reference internal" href="zreferences.html#colella-1990" id="id1">[colella:1990]</a>.</li>
-<li>Method of lines (MOL): this discretizes the space part of our
-system without any characteristic tracing and uses an ODE
-integrator to advance the state. Multiple stages can be done,
-each requiring reconstruction, Riemann solve, etc., and the final
-solution is pieced together from the intermediate stages.</li>
-</ul>
-</li>
+explicit coupling of the burning and hydro is done.  This code
+path uses the corner-transport upwind (CTU) method (the unsplit,
+characteristic tracing method of <a class="reference internal" href="zreferences.html#colella-1990" id="id1">[colella:1990]</a>).</li>
 <li>SDC: a class of iterative methods that couples the advection and reactions
 such that each process explicitly sees the effect of the other.  We have
 two SDC implementations in Castro.</li>
@@ -302,17 +294,11 @@ MultiFab&nbsp;that holds the post burn state.</li>
 </ul>
 </li>
 <li><p class="first"><em>Advancement</em></p>
-<p>The update strategy differs for CTU vs MOL:</p>
 <ul class="simple">
-<li>CTU: Calls <code class="docutils literal notranslate"><span class="pre">do_advance</span> <span class="pre">to</span></code> take a single step,
+<li>Call <code class="docutils literal notranslate"><span class="pre">do_advance</span></code> to take a single step,
 incorporating hydrodynamics, reactions, and source terms.</li>
-<li>MOL: Call <code class="docutils literal notranslate"><span class="pre">do_advance_mol</span></code> <code class="docutils literal notranslate"><span class="pre">MOL_STAGES</span></code> times
-(i.e., once for each of the intermediate stages in the ODE
-integration). Within <code class="docutils literal notranslate"><span class="pre">do_advance</span></code> we will use the stage
-number, <code class="docutils literal notranslate"><span class="pre">mol_iteration</span></code>, to do an pre- or post-hydro
-sources (e.g., burning).</li>
 </ul>
-<p>In either case, for radiation-hydrodynamics, this step does the
+<p>For radiation-hydrodynamics, this step does the
 advective (hyperbolic) portion of the radiation update only.
 Source terms, including gravity, rotation, and diffusion are
 included in this step, and are time-centered to achieve second-order
@@ -371,7 +357,7 @@ coarse-fine interfaces. This cleans up the memory used during
 the step.</li>
 <li>If <code class="docutils literal notranslate"><span class="pre">castro.track_grid_losses</span></code> is set, then we
 also add up the mass that left through the boundary over this
-step. <a class="footnote-reference" href="#id6" id="id3">[1]</a></li>
+step. <a class="footnote-reference" href="#id7" id="id3">[1]</a></li>
 <li>Free any memory allocated for the level advance.</li>
 </ul>
 </li>
@@ -385,8 +371,8 @@ selected via <code class="docutils literal notranslate"><span class="pre">castro
 and gravity) is done by <code class="docutils literal notranslate"><span class="pre">do_advance()</span></code>. Consider our system of
 equations as:</p>
 <div class="math notranslate nohighlight">
-\[\frac{\partial\Ub}{\partial t} = -{\bf A}(\Ub) + \Rb(\Ub) + \Sb,\]</div>
-<p>where <span class="math notranslate nohighlight">\({\bf A}(\Ub) = \nabla \cdot \Fb(\Ub)\)</span>, with <span class="math notranslate nohighlight">\(\Fb\)</span> the flux vector, <span class="math notranslate nohighlight">\(\Rb\)</span> are the reaction
+\[\frac{\partial\Ub}{\partial t} = {\bf A}(\Ub) + \Rb(\Ub) + \Sb,\]</div>
+<p>where <span class="math notranslate nohighlight">\({\bf A}(\Ub) = -\nabla \cdot \Fb(\Ub)\)</span>, with <span class="math notranslate nohighlight">\(\Fb\)</span> the flux vector, <span class="math notranslate nohighlight">\(\Rb\)</span> are the reaction
 source terms, and <span class="math notranslate nohighlight">\(\Sb\)</span> are the non-reaction source terms, which
 includes any user-defined external sources, <span class="math notranslate nohighlight">\(\Sb_{\rm ext}\)</span>. We use
 Strang splitting to discretize the advection-reaction equations. In
@@ -399,7 +385,7 @@ update, in sequence, looks like:</p>
 \[\begin{split}\begin{aligned}
 \Ub^\star &amp;= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
 \Ub^{n+1,(a)} &amp;= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
-\Ub^{n+1,(b)} &amp;= \Ub^{n+1,(a)} - \dt\, {\bf A}(\Ub^\star) \\
+\Ub^{n+1,(b)} &amp;= \Ub^{n+1,(a)} + \dt\, {\bf A}(\Ub^\star) \\
 \Ub^{n+1,(c)} &amp;= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
 \Ub^{n+1}     &amp;= \Ub^{n+1,(c)} + \frac{\dt}{2} \Rb(\Ub^{n+1,(c)})\end{aligned}\end{split}\]</div>
 <p>Note that in the first step, we add a full <span class="math notranslate nohighlight">\(\Delta t\)</span> of the old-time
@@ -601,7 +587,7 @@ using the updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(
 correction, <span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]\)</span> to
 add to <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span> to give us the properly time-centered source,
 and the fully updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span>. This correction is stored
-in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference" href="#id7" id="id5">[2]</a>.</p>
+in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference" href="#id8" id="id5">[2]</a>.</p>
 <p>In the process of updating the sources, we update the temperature to
 make it consistent with the new state.</p>
 </li>
@@ -717,6 +703,80 @@ together directly.</p>
 <p class="last">At the moment, the SDC solvers do not support multilevel or AMR
 simulation.</p>
 </div>
+<p>The SDC solver follows the algorithm detailed in [castro_sdc].
+If we write our evolution equation as:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)\]</div>
+<p>where <span class="math notranslate nohighlight">\({\bf A}(\Ub) = -\nabla \cdot {\bf F}(\Ub) + {\bf S}(\Ub)\)</span>, with the
+hydrodynamic source terms, <span class="math notranslate nohighlight">\({\bf S}\)</span> grouped together with the flux divergence.</p>
+<p>The SDC update looks at the solution a several time nodes (the number
+depending on the desired temporal order of accuracy), and iteratively
+updates the solution from node <span class="math notranslate nohighlight">\(m\)</span> to <span class="math notranslate nohighlight">\(m+1\)</span> as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+\avg{\Ub^{m+1,(k+1)}} = \avg{\Ub^{m,(k+1)}} &amp;+ \Delta t \left [ \avg{{\bf A}(\Ub)}^{m,(k+1)} - \avg{{\bf A}(\Ub)}^{m,(k)} \right ] \\
+                                &amp;+ \Delta t \left [ \avg{{\bf R}(\Ub)}^{m+1,(k+1)} - \avg{{\bf R}(\Ub)}^{m+1,(k)} \right ] \\
+                                &amp;+ \int_{t^m}^{t^{m+1}} \left [ \avg{{\bf A}(\Ub)}^{(k)} + \avg{{\bf R}(\Ub)}^{(k)} \right ] dt
+\end{align}\end{split}\]</div>
+<p id="index-0">Where <span class="math notranslate nohighlight">\(k\)</span> is the iteration index.  In the SDC formalism, each
+iteration gains us an order of accuracy in time, up to the order with
+which we discretize the integral at the end of the above expression.
+In Castro, there are two parameters that together determine the number
+and location of the temporal nodes, the accuracy of the integral, and
+hence the overall accuracy in time: <code class="docutils literal notranslate"><span class="pre">castro.sdc_order</span></code> and
+<code class="docutils literal notranslate"><span class="pre">castro.sdc_quadrature</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">castro.sdc_quadrature</span> <span class="pre">=</span> <span class="pre">0</span></code> uses
+Gauss-Lobatto integration, which includes both the starting and ending
+time in the time nodes.  This gives us the trapezoid rule for 2nd
+order methods and Simpson’s rule for 4th order methods.  Choosing
+<code class="docutils literal notranslate"><span class="pre">castro.sdc_quadrature</span> <span class="pre">=</span> <span class="pre">1</span></code> uses Radau IIA integration, which includes
+the ending time but not the starting time in the quadrature.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="23%" />
+<col width="16%" />
+<col width="20%" />
+<col width="19%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><code class="docutils literal notranslate"><span class="pre">castro.sdc_order</span></code></th>
+<th class="head"><code class="docutils literal notranslate"><span class="pre">castro.quadrature</span></code></th>
+<th class="head"># of
+time nodes</th>
+<th class="head">temporal
+accuracy</th>
+<th class="head">description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>2</td>
+<td>0</td>
+<td>2</td>
+<td>2</td>
+<td>trapezoid rule</td>
+</tr>
+<tr class="row-odd"><td>2</td>
+<td>1</td>
+<td>3</td>
+<td>2</td>
+<td>Simpson’s rule</td>
+</tr>
+<tr class="row-even"><td>4</td>
+<td>0</td>
+<td>3</td>
+<td>4</td>
+<td>Radau 2nd order</td>
+</tr>
+<tr class="row-odd"><td>4</td>
+<td>1</td>
+<td>4</td>
+<td>4</td>
+<td>Radau 4th order</td>
+</tr>
+</tbody>
+</table>
+<p>The overall evolution appears as:</p>
 </div>
 <div class="section" id="simplified-sdc-evolution">
 <h2>Simplified-SDC Evolution<a class="headerlink" href="#simplified-sdc-evolution" title="Permalink to this headline">¶</a></h2>
@@ -824,7 +884,7 @@ term at the new time. As discussed above, this will be used in the
 next iteration to approximate the time-centered source term.</p>
 </li>
 </ol>
-<table class="docutils footnote" frame="void" id="id6" rules="none">
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td>Note: this functionality assumes that only the
@@ -833,7 +893,7 @@ any use masks to prevent double counting if multiple levels
 touch the boundary.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id7" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[2]</a></td><td>The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.</td></tr>
