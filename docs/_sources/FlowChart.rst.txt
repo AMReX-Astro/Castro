@@ -527,12 +527,33 @@ these processes is presented below:
 +--------------------+-----------+---------------------+---------------------+
 
 
+SDC Evolution
+=============
+
+The SDC evolution is selected by ``castro.time_integration_method = 2``.  It
+does away with Strang splitting and instead couples the reactions and hydro
+together directly.
+
+.. note::
+
+   At the moment, the SDC solvers do not support multilevel or AMR
+   simulation.
+
+
+
+
 Simplified-SDC Evolution
 ========================
 
 The simplified SDC method uses the CTU advection solver together with
 an ODE solution to update the compute advective-reacting system.  This
 is selected by ``castro.time_integration_method = 3``.
+
+.. note::
+
+   The code must be compiled with ``USE_SDC = TRUE`` to use this
+   evolution type.
+
 
 We express our system as:
 

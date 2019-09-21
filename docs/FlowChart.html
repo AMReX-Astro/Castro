@@ -102,6 +102,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#ctu-w-strang-split-reactions-flowchart">CTU w/ Strang-split Reactions Flowchart</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#sdc-evolution">SDC Evolution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#simplified-sdc-evolution">Simplified-SDC Evolution</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#simplified-sdc-hydro-advance">Simplified_SDC Hydro Advance</a></li>
 </ul>
@@ -706,11 +707,27 @@ these processes is presented below:</p>
 </table>
 </div>
 </div>
+<div class="section" id="sdc-evolution">
+<h2>SDC Evolution<a class="headerlink" href="#sdc-evolution" title="Permalink to this headline">¶</a></h2>
+<p>The SDC evolution is selected by <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">2</span></code>.  It
+does away with Strang splitting and instead couples the reactions and hydro
+together directly.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">At the moment, the SDC solvers do not support multilevel or AMR
+simulation.</p>
+</div>
+</div>
 <div class="section" id="simplified-sdc-evolution">
 <h2>Simplified-SDC Evolution<a class="headerlink" href="#simplified-sdc-evolution" title="Permalink to this headline">¶</a></h2>
 <p>The simplified SDC method uses the CTU advection solver together with
 an ODE solution to update the compute advective-reacting system.  This
 is selected by <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
+evolution type.</p>
+</div>
 <p>We express our system as:</p>
 <div class="math notranslate nohighlight">
 \[\Ub_t = \mathcal{A}(\Ub) + \Rb(\Ub)\]</div>
