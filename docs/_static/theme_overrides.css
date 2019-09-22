@@ -10,6 +10,7 @@ span.eqno {
 code.docutils.literal.notranslate {
    border: 0px;
    background: inherit;
+   padding: 1px 1px;
 }
 
 /* override table width restrictions */
