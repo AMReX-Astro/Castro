@@ -217,13 +217,14 @@ The treatment of source terms complicates this a little. The actual
 update, in sequence, looks like:
 
 .. math::
-
    \begin{aligned}
    \Ub^\star &= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
    \Ub^{n+1,(a)} &= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
    \Ub^{n+1,(b)} &= \Ub^{n+1,(a)} + \dt\, {\bf A}(\Ub^\star) \\
-   \Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
-   \Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Rb(\Ub^{n+1,(c)})\end{aligned}
+   \Ub^{n+1,(c)} &= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \\
+   \Ub^{n+1}     &= \Ub^{n+1,(c)} + \frac{\dt}{2} \Rb(\Ub^{n+1,(c)})
+   \end{aligned}
+   :label: eq:source_correct
 
 Note that in the first step, we add a full :math:`\Delta t` of the old-time
 source to the state. This prediction ensures consistency when it
@@ -236,8 +237,8 @@ fluxes.
 
 At the beginning of the time step, we assume that :math:`\Ub` and :math:`\phi` are
 defined consistently, i.e., :math:`\rho^n` and :math:`\phi^n` satisfy equation
-(`[eq:Self Gravity] <#eq:Self Gravity>`__). Note that in
-Eq. \ `[eq:source_correct] <#eq:source_correct>`__, we actually can actually do some
+:eq:`eq:Self Gravity`. Note that in
+:eq:`eq:source_correct`, we can actually do some
 sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
 make the update more akin to:
@@ -248,8 +249,8 @@ Castro also supports radiation. This part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
 
 Here is the single-level algorithm. The goal here is to update the
-``State_Type``  StateData from the old to new time (see
-§ \ `[soft:sec:statedata] <#soft:sec:statedata>`__). We will use the following notation
+``State_Type``  ``StateData`` from the old to new time (see
+§ :ref:`soft:sec:statedata`). We will use the following notation
 here, consistent with the names used in the code:
 
 -  ``S_old`` is a MultiFab reference to the old-time-level
@@ -354,7 +355,7 @@ In the code, the objective is to evolve the state from the old time,
 
       Also note that incorporating diffusion brings in an additional
       timestep constraint, since the treatment is explicit. See
-      Chapter \ `[ch:diffusion] <#ch:diffusion>`__ for more details.
+      Chapter :ref:`ch:diffusion` for more details.
 
    D. [``HYBRID_MOMENTUM``] angular momentum
 
@@ -371,7 +372,7 @@ In the code, the objective is to evolve the state from the old time,
       The construction of the form of the gravity source for the
       momentum and energy equation is dependent on the parameter
       ``castro.grav_source_type``. Full details of the gravity
-      solver are given in Chapter \ `[ch:gravity] <#ch:gravity>`__.
+      solver are given in Chapter :ref:`ch:gravity`.
 
 
    F. [``ROTATION``] rotation
@@ -382,7 +383,7 @@ In the code, the objective is to evolve the state from the old time,
       constant-angular-velocity co-rotating frame. The form of the
       rotational source that is constructed then depends on the
       parameter ``castro.rot_source_type``. More details are
-      given in Chapter \ `[ch:rotation] <#ch:rotation>`__.
+      given in Chapter :ref:`ch:rotation`.
 
    The source terms here are evaluated using the post-burn state,
    :math:`\Ub^\star` (``Sborder``), and later corrected by using the
@@ -410,8 +411,8 @@ In the code, the objective is to evolve the state from the old time,
    CTU method, we predict to the half-time (:math:`n+1/2`) to get a
    second-order accurate method. Note: ``Sborder`` does not know of
    any sources except for reactions. The advection step is
-   complicated, and more detail is given in Section `[Sec:Advection
-   Step] <#Sec:Advection Step>`__. Here is the summarized version:
+   complicated, and more detail is given in Section
+   :ref:`Sec:Advection Step`. Here is the summarized version:
 
    A. Compute primitive variables.
 

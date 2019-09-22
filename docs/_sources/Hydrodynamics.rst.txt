@@ -41,9 +41,10 @@ several main data structures that hold the state.
 -  conserved state: these arrays generally begin with ``u``,
    e.g., ``uin``, ``uout``. The ``NVAR``
    components for the state data in the array are accessed using
-   integer keys defined in `[table:consints] <#table:consints>`__.
+   integer keys defined in :numref:`table:consints`.
 
-   .. table:: [table:consints] The integer variables to index the conservative state array
+   .. _table:consints:
+   .. table:: The integer variables to index the conservative state array
 
       +-----------------------+-----------------------+-------------------------+
       | **variable**          | **quantity**          | **note**                |

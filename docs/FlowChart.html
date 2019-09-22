@@ -393,13 +393,14 @@ summary, for each time step, we update the conservative variables,
 step (ignoring the reaction terms), and reacting for half a time step.
 The treatment of source terms complicates this a little. The actual
 update, in sequence, looks like:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{aligned}
+<div class="math notranslate nohighlight" id="equation-eq-source-correct">
+<span class="eqno">(1)<a class="headerlink" href="#equation-eq-source-correct" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
 \Ub^\star &amp;= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
 \Ub^{n+1,(a)} &amp;= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
 \Ub^{n+1,(b)} &amp;= \Ub^{n+1,(a)} + \dt\, {\bf A}(\Ub^\star) \\
-\Ub^{n+1,(c)} &amp;= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \label{eq:source_correct}\\
-\Ub^{n+1}     &amp;= \Ub^{n+1,(c)} + \frac{\dt}{2} \Rb(\Ub^{n+1,(c)})\end{aligned}\end{split}\]</div>
+\Ub^{n+1,(c)} &amp;= \Ub^{n+1,(b)} + \frac{\dt}{2}\, [\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)] \\
+\Ub^{n+1}     &amp;= \Ub^{n+1,(c)} + \frac{\dt}{2} \Rb(\Ub^{n+1,(c)})
+\end{aligned}\end{split}\]</div>
 <p>Note that in the first step, we add a full <span class="math notranslate nohighlight">\(\Delta t\)</span> of the old-time
 source to the state. This prediction ensures consistency when it
 comes time to predicting the new-time source at the end of the update.
@@ -410,8 +411,8 @@ time-centered edges and use an approximate Riemann solver construct
 fluxes.</p>
 <p>At the beginning of the time step, we assume that <span class="math notranslate nohighlight">\(\Ub\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span> are
 defined consistently, i.e., <span class="math notranslate nohighlight">\(\rho^n\)</span> and <span class="math notranslate nohighlight">\(\phi^n\)</span> satisfy equation
-(<a class="reference external" href="#eq:SelfGravity">[eq:Self Gravity]</a>). Note that in
-Eq.&nbsp;<a class="reference external" href="#eq:source_correct">[eq:source_correct]</a>, we actually can actually do some
+<a class="reference internal" href="gravity.html#equation-eq-self-gravity">(1)</a>. Note that in
+<a class="reference internal" href="#equation-eq-source-correct">(1)</a>, we can actually do some
 sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
 make the update more akin to:</p>
@@ -420,8 +421,8 @@ make the update more akin to:</p>
 <p>Castro&nbsp;also supports radiation. This part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.</p>
 <p>Here is the single-level algorithm. The goal here is to update the
-<code class="docutils literal notranslate"><span class="pre">State_Type</span></code>  StateData from the old to new time (see
-§&nbsp;<a class="reference external" href="#soft:sec:statedata">[soft:sec:statedata]</a>). We will use the following notation
+<code class="docutils literal notranslate"><span class="pre">State_Type</span></code>  <code class="docutils literal notranslate"><span class="pre">StateData</span></code> from the old to new time (see
+§ <a class="reference internal" href="software.html#soft-sec-statedata"><span class="std std-ref">StateData</span></a>). We will use the following notation
 here, consistent with the names used in the code:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">S_old</span></code> is a MultiFab reference to the old-time-level
@@ -508,7 +509,7 @@ the same predictor-corrector strategy described here.</p>
 <p>Note: thermal diffusion is distinct from radiation hydrodynamics.</p>
 <p>Also note that incorporating diffusion brings in an additional
 timestep constraint, since the treatment is explicit. See
-Chapter&nbsp;<a class="reference external" href="#ch:diffusion">[ch:diffusion]</a> for more details.</p>
+Chapter <a class="reference internal" href="diffusion.html#ch-diffusion"><span class="std std-ref">Diffusion</span></a> for more details.</p>
 </li>
 <li><p class="first">[<code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>] angular momentum</p>
 </li>
@@ -520,7 +521,7 @@ Chapter&nbsp;<a class="reference external" href="#ch:diffusion">[ch:diffusion]</
 <p>The construction of the form of the gravity source for the
 momentum and energy equation is dependent on the parameter
 <code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code>. Full details of the gravity
-solver are given in Chapter&nbsp;<a class="reference external" href="#ch:gravity">[ch:gravity]</a>.</p>
+solver are given in Chapter <a class="reference internal" href="gravity.html#ch-gravity"><span class="std std-ref">Gravity</span></a>.</p>
 </li>
 <li><p class="first">[<code class="docutils literal notranslate"><span class="pre">ROTATION</span></code>] rotation</p>
 <p>We compute the rotational potential (for use in the energy update)
@@ -529,7 +530,7 @@ equation). This includes the Coriolis and centrifugal terms in a
 constant-angular-velocity co-rotating frame. The form of the
 rotational source that is constructed then depends on the
 parameter <code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span></code>. More details are
-given in Chapter&nbsp;<a class="reference external" href="#ch:rotation">[ch:rotation]</a>.</p>
+given in Chapter <a class="reference internal" href="rotation.html#ch-rotation"><span class="std std-ref">Rotation</span></a>.</p>
 </li>
 </ol>
 <p>The source terms here are evaluated using the post-burn state,
@@ -554,8 +555,8 @@ the state after burning, <span class="math notranslate nohighlight">\(\Ub^\star\
 CTU method, we predict to the half-time (<span class="math notranslate nohighlight">\(n+1/2\)</span>) to get a
 second-order accurate method. Note: <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> does not know of
 any sources except for reactions. The advection step is
-complicated, and more detail is given in Section <a class="reference external" href="#Sec:AdvectionStep">[Sec:Advection
-Step]</a>. Here is the summarized version:</p>
+complicated, and more detail is given in Section
+<a class="reference internal" href="Hydrodynamics.html#sec-advection-step"><span class="std std-ref">Hydrodynamics Update</span></a>. Here is the summarized version:</p>
 <ol class="upperalpha">
 <li><p class="first">Compute primitive variables.</p>
 </li>
