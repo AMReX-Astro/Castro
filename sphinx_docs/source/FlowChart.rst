@@ -411,8 +411,8 @@ In the code, the objective is to evolve the state from the old time,
    CTU method, we predict to the half-time (:math:`n+1/2`) to get a
    second-order accurate method. Note: ``Sborder`` does not know of
    any sources except for reactions. The advection step is
-   complicated, and more detail is given in Section `[Sec:Advection
-   Step] <#Sec:Advection Step>`__. Here is the summarized version:
+   complicated, and more detail is given in Section
+   :ref:`Sec:Advection Step`. Here is the summarized version:
 
    A. Compute primitive variables.
 
