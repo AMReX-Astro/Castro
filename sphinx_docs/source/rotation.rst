@@ -111,18 +111,17 @@ at the point :math:`P` whose location is given by :math:`\rb` in
 or in component notation
 
 .. math::
-
-   \label{eq:r}
-       r_i\boldsymbol{e_i} = \widetilde{r_i}\widetilde{\boldsymbol{e_i}} + l_i\boldsymbol{e_i},
+   r_i\boldsymbol{e_i} = \widetilde{r_i}\widetilde{\boldsymbol{e_i}} + l_i\boldsymbol{e_i},
+   :label: eq:r
 
 where :math:`\boldsymbol{e_i}` and :math:`\widetilde{\boldsymbol{e_i}}` are the :math:`i`\ th unit
 vectors in the :math:`C` and :math:`\widetilde{C}` coordinate systems,
-respectively. The total time rate of change of `[eq:r] <#eq:r>`__ is given by
+respectively. The total time rate of change of :eq:`eq:r` is given by
 
 .. math::
+   \frac{Dr_i}{Dt}\boldsymbol{e_i} = \frac{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} + \frac{Dl_i}{Dt}\boldsymbol{e_i},
+   :label: eq:vcomp
 
-   \label{eq:vcomp}
-       \frac{Dr_i}{Dt}\boldsymbol{e_i} = \frac{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} + \frac{Dl_i}{Dt}\boldsymbol{e_i},
 
 where we have used the fact that the unit vectors of the inertial
 frame :math:`C` are not moving (or at least can be considered stationary,
@@ -134,39 +133,39 @@ a rotation about the :math:`\ob` axis, and the tip of the unit
 vector moves circumferentially, that is
 
 .. math::
+   \frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \ob\times\widetilde{\boldsymbol{e_i}}.
+   :label: eq:etilde-rot
 
-   \label{eq:etilde-rot}
-       \frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \ob\times\widetilde{\boldsymbol{e_i}}.
 
-Plugging `[eq:etilde-rot] <#eq:etilde-rot>`__ into `[eq:vcomp] <#eq:vcomp>`__ and switching back to
+Plugging :eq:`eq:etilde-rot` into :eq:`eq:vcomp` and switching back to
 vector notation, we have
 
 .. math::
+   \frac{D\rb}{Dt} = \frac{D\rbt}{Dt} + \ob\times\rbt + \frac{D\boldsymbol{l}}{Dt}.
+   :label: eq:r-dot
 
-   \label{eq:r-dot}
-       \frac{D\rb}{Dt} = \frac{D\rbt}{Dt} + \ob\times\rbt + \frac{D\boldsymbol{l}}{Dt}.
 
-The left hand side of `[eq:r-dot] <#eq:r-dot>`__ is interpretted as the velocity
+The left hand side of :eq:`eq:r-dot` is interpretted as the velocity
 of the fluid element as seen in the inertial frame; the first term on the
 right hand side is the velocity of the fluid element as seen by a
 stationary observer in the rotating frame :math:`\widetilde{C}`. The second
-and third terms on the right hand side of `[eq:r-dot] <#eq:r-dot>`__ describe the
+and third terms on the right hand side of :eq:`eq:r-dot` describe the
 additional velocity due to rotation and translation of the frame
 :math:`\widetilde{C}` as seen in :math:`C`. In other words,
 
 .. math::
+   \vb = \vbt + \ob\times\rbt + \boldsymbol{v_l},
+   :label: eq:v
 
-   \label{eq:v}
-       \vb = \vbt + \ob\times\rbt + \boldsymbol{v_l},
 
 where we use :math:`\boldsymbol{v_l}` to represent the translational velocity.
 
-Similarly, by taking a second time derivative of `[eq:v] <#eq:v>`__ we have
+Similarly, by taking a second time derivative of :eq:`eq:v` we have
 
 .. math::
+   \frac{D\vb}{Dt} = \frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right] + \frac{D\boldsymbol{v_l}}{Dt}.
+   :label: eq:a
 
-   \label{eq:a}
-       \frac{D\vb}{Dt} = \frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right] + \frac{D\boldsymbol{v_l}}{Dt}.
 
 Henceforth we will assume the two coordinate systems are not
 translating relative to one another, :math:`\boldsymbol{v_l} = 0`. It is
@@ -177,16 +176,16 @@ Because of this, the continuity equation remains unchanged in the
 rotating frame:
 
 .. math::
+   \frac{\partial \rho}{\partial t} = -\nablab\cdot\left(\rho\vbt\right),
+   :label: eq:cont-rot
 
-   \label{eq:cont-rot}
-       \frac{\partial \rho}{\partial t} = -\nablab\cdot\left(\rho\vbt\right),
 
 or
 
 .. math::
+   \frac{D\rho}{Dt} = -\rho\nablab\cdot\vbt.
+   :label: eq:cont-rot-total
 
-   \label{eq:cont-rot-total}
-       \frac{D\rho}{Dt} = -\rho\nablab\cdot\vbt.
 
 Momentum equation in rotating frame
 ===================================
@@ -194,12 +193,12 @@ Momentum equation in rotating frame
 The usual momentum equation applies in an inertial frame:
 
 .. math::
+   \frac{D\left(\rho\vb\right)}{Dt} = -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb.
+   :label: eq:mom1
 
-   \label{eq:mom1}
-       \frac{D\left(\rho\vb\right)}{Dt} = -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb.
 
-Using the continuity equation, `[eq:cont-rot-total] <#eq:cont-rot-total>`__, and substituting for
-the terms in the rotating frame from `[eq:a] <#eq:a>`__, we have from `[eq:mom1] <#eq:mom1>`__:
+Using the continuity equation, :eq:`eq:cont-rot-total`, and substituting for
+the terms in the rotating frame from :eq:`eq:a`, we have from :eq:`eq:mom1`:
 
 .. math::
 
@@ -213,41 +212,41 @@ the terms in the rotating frame from `[eq:a] <#eq:a>`__, we have from `[eq:mom1]
 or
 
 .. math::
+   \frac{D\left(\rho\vbt\right)}{Dt} = -\rho\vbt\cdot\nablab\vbt - \nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right].
+   :label: eq:mom-rot-tot
 
-   \label{eq:mom-rot-tot}
-       \frac{D\left(\rho\vbt\right)}{Dt} = -\rho\vbt\cdot\nablab\vbt - \nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right].
 
 Energy equations in rotating frame
 ==================================
 
-From `[eq:mom-rot-tot] <#eq:mom-rot-tot>`__, we have the velocity evolution equation in
+From :eq:`eq:mom-rot-tot`, we have the velocity evolution equation in
 a rotating frame
 
 .. math::
+   \frac{D\vbt}{Dt} = -\frac{1}{\rho}\nablab p + \gb - 2\ob\times\vbt - \ob\times\left[\ob\times\rbt\right].
+   :label: eq:v-rot
 
-   \label{eq:v-rot}
-       \frac{D\vbt}{Dt} = -\frac{1}{\rho}\nablab p + \gb - 2\ob\times\vbt - \ob\times\left[\ob\times\rbt\right].
 
-The kinetic energy equation can be obtained from `[eq:v-rot] <#eq:v-rot>`__ by
+The kinetic energy equation can be obtained from :eq:`eq:v-rot` by
 mulitplying by :math:`\rho\vbt`:
 
 .. math::
-
    \begin{align}
        \rho\vbt\cdot\frac{D\vbt}{Dt} &= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - 2\rho\vbt\cdot\left[\ob\times\vbt\right] - \rho\vbt\cdot\left\{\ob\times\left[\ob\times\rbt\right]\right\} \nonumber \\
        \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \nonumber \\
-       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &= -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]. \label{eq:ekin-rot-total}
+       \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &= -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].
      \end{align}
+   :label: eq:ekin-rot-total
 
 The internal energy is simply advected, and, from the first law of
 thermodynamics, can change due to :math:`pdV` work:
 
 .. math::
+   \frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\nablab\cdot\vbt.
+   :label: eq:eint-rot-total
 
-   \label{eq:eint-rot-total}
-       \frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\nablab\cdot\vbt.
 
-Combining `[eq:ekin-rot-total] <#eq:ekin-rot-total>`__ and `[eq:eint-rot-total] <#eq:eint-rot-total>`__ we can
+Combining :eq:`eq:ekin-rot-total` and :eq:`eq:eint-rot-total` we can
 get the evolution of the total specific energy in the rotating frame,
 :math:`\rho \widetilde{E} = \rho e + \frac{1}{2}\rho\vbt\cdot\vbt`:
 
