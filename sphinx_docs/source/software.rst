@@ -172,7 +172,7 @@ data. In AMReX, an AMR level has a global index space, with
 (for a domain of :math:`N_x \times N_y \times N_z` zones). The location of
 any ``Box`` at a level can be uniquely specified with respect to this
 global index space by giving the index of its lower-left and
-upper-right corners. Figure `[fig:soft:indexspace] <#fig:soft:indexspace>`__ shows an
+upper-right corners. :numref:`fig:soft:indexspace` shows an
 example of three boxes at the same level of refinement.
 
 AMReX provides other data structures that collect Boxes together,
@@ -182,6 +182,7 @@ which is defined as part of the ``AmrLevel`` class that ``Castro``
 inherits. ``grids`` is used when building new ``MultiFabs`` to give
 the layout of the boxes at the current level.
 
+.. _fig:soft:indexspace:
 .. figure:: index_grid2.png
    :width: 4in
 
