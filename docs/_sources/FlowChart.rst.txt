@@ -10,6 +10,8 @@ implemented in Castro. As best as possible, they share the same
 driver routines and use preprocessor or runtime variables to separate
 the different code paths.  These fall into two categories:
 
+.. index:: castro.time_integration_method, USE_SDC
+
 -  Strang-splitting: the Strang evolution does the burning on the
    state for :math:`\Delta t/2`, then updates the hydrodynamics using the
    burned state, and then does the final :math:`\Delta t/2` burning. No
@@ -20,8 +22,6 @@ the different code paths.  These fall into two categories:
 -  SDC: a class of iterative methods that couples the advection and reactions
    such that each process explicitly sees the effect of the other.  We have
    two SDC implementations in Castro.
-
-.. index:: castro.time_integration_method, USE_SDC
 
    - The "simplified SDC" method is based on the CTU hydro update.  We
      iterate over the construction of this term, using a lagged
@@ -61,6 +61,8 @@ The time-integration method used is controlled by
     method to work.
 
 Several helper functions are used throughout:
+
+.. index:: clean_state
 
 -  ``clean_state``:
    There are many ways that the hydrodynamics state may become
@@ -111,16 +113,12 @@ of each step.
    -  Create the MultiFabs that hold the primitive variable information
       for the hydro solve.
 
-   -  For method of lines integration: allocate the storage for the
-      intermediate stage updates, ``k_mol``, and the ``Sburn``
-      MultiFab that holds the post burn state.
-
    -  Zero out all of the fluxes
 
 #. *Advancement*
 
-   -  Call ``do_advance`` to take a single step,
-      incorporating hydrodynamics, reactions, and source terms.
+   Call ``do_advance`` to take a single step, incorporating
+   hydrodynamics, reactions, and source terms.
 
    For radiation-hydrodynamics, this step does the
    advective (hyperbolic) portion of the radiation update only.
@@ -524,7 +522,7 @@ together directly.
    simulation.
 
 The SDC solver follows the algorithm detailed in :cite:`castro_sdc`.
-If we write our evolution equation as:
+We write our evolution equation as:
 
 .. math::
    \frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)
@@ -538,7 +536,7 @@ updates the solution from node :math:`m` to :math:`m+1` as:
 
 .. math::
    \begin{align}
-   \avg{\Ub^{m+1,(k+1)}} = \avg{\Ub^{m,(k+1)}} &+ \Delta t \left [ \avg{{\bf A}(\Ub)}^{m,(k+1)} - \avg{{\bf A}(\Ub)}^{m,(k)} \right ] \\
+   \avg{\Ub}^{m+1,(k+1)} = \avg{\Ub}^{m,(k+1)} &+ \Delta t \left [ \avg{{\bf A}(\Ub)}^{m,(k+1)} - \avg{{\bf A}(\Ub)}^{m,(k)} \right ] \\
                                    &+ \Delta t \left [ \avg{{\bf R}(\Ub)}^{m+1,(k+1)} - \avg{{\bf R}(\Ub)}^{m+1,(k)} \right ] \\
                                    &+ \int_{t^m}^{t^{m+1}} \left [ \avg{{\bf A}(\Ub)}^{(k)} + \avg{{\bf R}(\Ub)}^{(k)} \right ] dt
    \end{align}
@@ -549,6 +547,10 @@ updates the solution from node :math:`m` to :math:`m+1` as:
 Where :math:`k` is the iteration index.  In the SDC formalism, each
 iteration gains us an order of accuracy in time, up to the order with
 which we discretize the integral at the end of the above expression.
+We also write the conservative state as :math:`\avg{\Ub}` to remind us
+that it is the cell average and not the cell-center.  This distinction
+is important when we consider the 4th order method.
+
 In Castro, there are two parameters that together determine the number
 and location of the temporal nodes, the accuracy of the integral, and
 hence the overall accuracy in time: ``castro.sdc_order`` and
@@ -576,8 +578,129 @@ the ending time but not the starting time in the quadrature.
 
 The overall evolution appears as:
 
+.. index:: k_new, A_old, A_new, R_old
+
+#. *Initialization* (``initialize_advance``)
+
+   Here we create the ``MultiFab`` s that store the needed information
+   at the different time nodes.  Each of the quantities below is a
+   vector of size ``SDC_NODES``, whose components are the ``MultiFab``
+   for that time node:
 
 
+    * ``k_new`` : the current solution at this time node.
+
+      Note that
+      ``k_new[0]`` is aliased to ``S_old``, the solution at the start
+      of the step, since this never changes (so long as the 0th time
+      node is the start of the timestep).
+
+    * ``A_old`` : the advective term at each time node at the old
+      iteration.
+
+    * ``A_new`` : the advective term at each time node at the current
+      iteration.
+    
+    * ``R_old`` : the reactive source term at each time node at the old
+      iteration.
+
+#. *Advancement*
+
+   Our iteration loop calls ``do_advance_sdc`` to update the solution through
+   all the time nodes for a single iteration.
+
+   The total number of iterations is ``castro.sdc_order`` + ``castro.sdc_extra``.
+
+#. *Finalize*
+
+   This clears the ``MultiFab`` s we allocated.
+
+SDC Single Iteration Flowchart
+------------------------------
+
+.. index:: do_advance_sdc
+
+The update through all time nodes for a single iteration is done by
+``do_advance_sdc``.  The basic update appears as:
+
+Throughout this driver we use the ``State_Type`` ``StateData`` as
+storage for the current node.  In particular, we use the new time slot
+in the ``StateData`` (which we refer to as ``S_new``) to allow us to
+do ``FillPatch`` operations.
+
+#. *Initialize*
+
+   We allocate ``Sborder``.  Just like with the Strang CTU driver, we
+   will use this as input into the hydrodynamics routines.
+
+#. Loop over time nodes
+
+   We'll use ``m`` to denote the current time node and ``sdc_iter`` to
+   denote the current (0-based) iteration.  In our loop over time
+   nodes, we do the following for each node:
+
+   * Load in the starting data
+
+     * ``S_new`` :math:`\leftarrow` ``k_new[m]``
+
+     * ``clean_state`` on ``S_new``
+
+     * Fill ``Sborder`` using ``S_new``
+
+   * Construct the hydro sources and advective term
+
+     Note: we only do this on the first time node for ``sdc_iter`` = 0, and
+     we don't need to do this for the last time node on the last
+     iteration.
+
+     * Call ``do_old_sources`` filling the ``Source_Type``
+       ``StateData``, ``old_source``.
+
+     * Convert the sources to 4th order averages if needed.
+
+     * ``sources_for_hydro`` :math:`\leftarrow` ``old_source``
+
+     * Convert the conserved variables to primitive variables
+
+     * Call ``construct_mol_hydro_source`` to get the advective update
+       at the current time node, stored in ``A_new[m]``.
+ 
+   * Bootstrap the first iteration.
+
+     For the first iteration, we don't have the old iteration's
+     advective and reaction terms needed in the SDC update.  So for
+     the first time node (``m = 0``) on the first iteration, we do:
+
+     * ``A_old[n]`` = ``A_old[0]``, where ``n`` loops over all time nodes.
+
+     * Compute the reactive source using the ``m = 0`` node's state and
+       store this in ``R_old[0]``.
+
+       Then fill all other time nodes as: ``R_old[n]`` = ``R_old[0]``
+
+    * Do the SDC update from node ``m`` to ``m+1``.
+
+      We call ``do_sdc_update()`` to do the update in time to the next
+      node.  This solves the nonlinear system (when we have reactions)
+      and stores the solution in ``k_new[m+1]``.
+
+#. Store the advective terms for the next iteration.
+
+   Since we are done with this iteration, we do: ``A_old[n]``
+   :math:`\leftarrow` ``A_new[n]``.
+
+   We also store ``R_old`` for the next iteration.  We do this by
+   calling the reaction source one last time using the data for each
+   time node.
+
+#. Store the new-time solution.
+
+   On the last iteration, we save the solution to the ``State_Type`` ``StateData``:
+
+   ``S_new`` :math:`\leftarrow` ``k_new[SDC_NODES-1]``
+
+#. Call ``finalize_do_advance`` to clean up the memory.
+   
 
 Simplified-SDC Evolution
 ========================
@@ -601,7 +724,7 @@ flux divergence and the hydrodynamic source terms (e.g. gravity):
 
 .. math:: \mathcal{A}(\Ub) = -\nabla \cdot \Fb(\Ub) + \Sb
 
-The SDC version of the main advance loop looks similar to the no-SDC
+The simplified-SDC version of the main advance loop looks similar to the Strang CTU
 version, but includes an iteration loop over the hydro, gravity, and
 reaction update. So the only difference happens in step 2 of the
 flowchart outlined in § \ `2 <#flow:sec:nosdc>`__. In particular this
@@ -612,7 +735,7 @@ step now proceeds as:
    Loop :math:`k` from 0 to ``sdc_iters``, doing:
 
    A. *Hydrodynamics advance*: This is done through
-      ``do_advance``—in SDC mode, this only updates the hydrodynamics,
+      ``do_advance``—in Simplified SDC mode, this only updates the hydrodynamics,
       including the non-reacting sources. However, in predicting the
       interface states, we use an iteratively-lagged approximation to the
       reaction source on the primitive variables, :math:`\mathcal{I}_q^{k-1}`.
@@ -642,9 +765,9 @@ step now proceeds as:
       iteration.
 
 Note that is it likely that some of the other updates (like any
-non-advective auxiliary quantity updates) should be inside the SDC
+non-advective auxiliary quantity updates) should be inside the Simplified-SDC
 loop, but presently they are only done at the end. Also note that the
-radiation implicit update is not done as part of the SDC iterations.
+radiation implicit update is not done as part of the Simplified-SDC iterations.
 
 Simplified_SDC Hydro Advance
 ----------------------------
@@ -671,13 +794,13 @@ summarize those differences.
 
    A. There is no need to extrapolate source terms to the half-time
       for the prediction (the ``castro.source_term_predictor``
-      parameter), since SDC provides a natural way to approximate the
+      parameter), since the Simplified-SDC provides a natural way to approximate the
       time-centered source—we simply use the iteratively-lagged new-time
       source.
 
    B. The primitive variable source terms that are used for the
       prediction include the contribution due to reactions (from the last
-      SDC iteration). This addition is done in
+      iteration). This addition is done in
       ``construct_hydro_source()`` after the source terms are
       converted to primitive variables.
 

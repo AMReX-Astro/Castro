@@ -102,7 +102,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#ctu-w-strang-split-reactions-flowchart">CTU w/ Strang-split Reactions Flowchart</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#sdc-evolution">SDC Evolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sdc-evolution">SDC Evolution</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sdc-single-iteration-flowchart">SDC Single Iteration Flowchart</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#simplified-sdc-evolution">Simplified-SDC Evolution</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#simplified-sdc-hydro-advance">Simplified_SDC Hydro Advance</a></li>
 </ul>
@@ -215,7 +218,7 @@
 implemented in Castro. As best as possible, they share the same
 driver routines and use preprocessor or runtime variables to separate
 the different code paths.  These fall into two categories:</p>
-<ul class="simple">
+<ul class="simple" id="index-0">
 <li>Strang-splitting: the Strang evolution does the burning on the
 state for <span class="math notranslate nohighlight">\(\Delta t/2\)</span>, then updates the hydrodynamics using the
 burned state, and then does the final <span class="math notranslate nohighlight">\(\Delta t/2\)</span> burning. No
@@ -224,7 +227,21 @@ path uses the corner-transport upwind (CTU) method (the unsplit,
 characteristic tracing method of <a class="reference internal" href="zreferences.html#colella-1990" id="id1">[colella:1990]</a>).</li>
 <li>SDC: a class of iterative methods that couples the advection and reactions
 such that each process explicitly sees the effect of the other.  We have
-two SDC implementations in Castro.</li>
+two SDC implementations in Castro.<ul>
+<li>The “simplified SDC” method is based on the CTU hydro update.  We
+iterate over the construction of this term, using a lagged
+reaction source as inputs and do the final conservative update by
+integrating the reaction system using an ODE solver with the
+explicit advective source included in a
+piecewise-constant-in-time fastion.</li>
+<li>The main SDC method.  This fully couples the hydro and reactions
+to either 2nd or 4th order.  This approximates the integral in
+time using a simple quadrature rule, and integrates the hydro
+explicitly and reactions implicitly to the next time node.
+Iterations allow each process to see one another and achieve
+high-order in time convergence.</li>
+</ul>
+</li>
 </ul>
 <p>The time-integration method used is controlled by
 <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span></code>.</p>
@@ -248,7 +265,7 @@ method to work.</li>
 </ul>
 </div></blockquote>
 <p>Several helper functions are used throughout:</p>
-<ul class="simple">
+<ul class="simple" id="index-1">
 <li><code class="docutils literal notranslate"><span class="pre">clean_state</span></code>:
 There are many ways that the hydrodynamics state may become
 unphysical in the evolution. The <code class="docutils literal notranslate"><span class="pre">clean_state()</span></code> routine
@@ -287,17 +304,12 @@ the next evolution starts with the result from the previous step).</li>
 <li>Do a <code class="docutils literal notranslate"><span class="pre">clean_state</span></code></li>
 <li>Create the MultiFabs that hold the primitive variable information
 for the hydro solve.</li>
-<li>For method of lines integration: allocate the storage for the
-intermediate stage updates, <code class="docutils literal notranslate"><span class="pre">k_mol</span></code>, and the <code class="docutils literal notranslate"><span class="pre">Sburn</span></code>
-MultiFab&nbsp;that holds the post burn state.</li>
 <li>Zero out all of the fluxes</li>
 </ul>
 </li>
 <li><p class="first"><em>Advancement</em></p>
-<ul class="simple">
-<li>Call <code class="docutils literal notranslate"><span class="pre">do_advance</span></code> to take a single step,
-incorporating hydrodynamics, reactions, and source terms.</li>
-</ul>
+<p>Call <code class="docutils literal notranslate"><span class="pre">do_advance</span></code> to take a single step, incorporating
+hydrodynamics, reactions, and source terms.</p>
 <p>For radiation-hydrodynamics, this step does the
 advective (hyperbolic) portion of the radiation update only.
 Source terms, including gravity, rotation, and diffusion are
@@ -704,7 +716,7 @@ together directly.</p>
 simulation.</p>
 </div>
 <p>The SDC solver follows the algorithm detailed in [castro_sdc].
-If we write our evolution equation as:</p>
+We write our evolution equation as:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)\]</div>
 <p>where <span class="math notranslate nohighlight">\({\bf A}(\Ub) = -\nabla \cdot {\bf F}(\Ub) + {\bf S}(\Ub)\)</span>, with the
@@ -714,14 +726,17 @@ depending on the desired temporal order of accuracy), and iteratively
 updates the solution from node <span class="math notranslate nohighlight">\(m\)</span> to <span class="math notranslate nohighlight">\(m+1\)</span> as:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
-\avg{\Ub^{m+1,(k+1)}} = \avg{\Ub^{m,(k+1)}} &amp;+ \Delta t \left [ \avg{{\bf A}(\Ub)}^{m,(k+1)} - \avg{{\bf A}(\Ub)}^{m,(k)} \right ] \\
+\avg{\Ub}^{m+1,(k+1)} = \avg{\Ub}^{m,(k+1)} &amp;+ \Delta t \left [ \avg{{\bf A}(\Ub)}^{m,(k+1)} - \avg{{\bf A}(\Ub)}^{m,(k)} \right ] \\
                                 &amp;+ \Delta t \left [ \avg{{\bf R}(\Ub)}^{m+1,(k+1)} - \avg{{\bf R}(\Ub)}^{m+1,(k)} \right ] \\
                                 &amp;+ \int_{t^m}^{t^{m+1}} \left [ \avg{{\bf A}(\Ub)}^{(k)} + \avg{{\bf R}(\Ub)}^{(k)} \right ] dt
 \end{align}\end{split}\]</div>
-<p id="index-0">Where <span class="math notranslate nohighlight">\(k\)</span> is the iteration index.  In the SDC formalism, each
+<p id="index-2">Where <span class="math notranslate nohighlight">\(k\)</span> is the iteration index.  In the SDC formalism, each
 iteration gains us an order of accuracy in time, up to the order with
 which we discretize the integral at the end of the above expression.
-In Castro, there are two parameters that together determine the number
+We also write the conservative state as <span class="math notranslate nohighlight">\(\avg{\Ub}\)</span> to remind us
+that it is the cell average and not the cell-center.  This distinction
+is important when we consider the 4th order method.</p>
+<p>In Castro, there are two parameters that together determine the number
 and location of the temporal nodes, the accuracy of the integral, and
 hence the overall accuracy in time: <code class="docutils literal notranslate"><span class="pre">castro.sdc_order</span></code> and
 <code class="docutils literal notranslate"><span class="pre">castro.sdc_quadrature</span></code>.</p>
@@ -777,6 +792,119 @@ accuracy</th>
 </tbody>
 </table>
 <p>The overall evolution appears as:</p>
+<ol class="arabic" id="index-3">
+<li><p class="first"><em>Initialization</em> (<code class="docutils literal notranslate"><span class="pre">initialize_advance</span></code>)</p>
+<p>Here we create the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s that store the needed information
+at the different time nodes.  Each of the quantities below is a
+vector of size <code class="docutils literal notranslate"><span class="pre">SDC_NODES</span></code>, whose components are the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>
+for that time node:</p>
+<blockquote>
+<div><ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">k_new</span></code> : the current solution at this time node.</p>
+<p>Note that
+<code class="docutils literal notranslate"><span class="pre">k_new[0]</span></code> is aliased to <code class="docutils literal notranslate"><span class="pre">S_old</span></code>, the solution at the start
+of the step, since this never changes (so long as the 0th time
+node is the start of the timestep).</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">A_old</span></code> : the advective term at each time node at the old
+iteration.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">A_new</span></code> : the advective term at each time node at the current
+iteration.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">R_old</span></code> : the reactive source term at each time node at the old
+iteration.</p>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first"><em>Advancement</em></p>
+<p>Our iteration loop calls <code class="docutils literal notranslate"><span class="pre">do_advance_sdc</span></code> to update the solution through
+all the time nodes for a single iteration.</p>
+<p>The total number of iterations is <code class="docutils literal notranslate"><span class="pre">castro.sdc_order</span></code> + <code class="docutils literal notranslate"><span class="pre">castro.sdc_extra</span></code>.</p>
+</li>
+<li><p class="first"><em>Finalize</em></p>
+<p>This clears the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s we allocated.</p>
+</li>
+</ol>
+<div class="section" id="sdc-single-iteration-flowchart">
+<h3>SDC Single Iteration Flowchart<a class="headerlink" href="#sdc-single-iteration-flowchart" title="Permalink to this headline">¶</a></h3>
+<p id="index-4">The update through all time nodes for a single iteration is done by
+<code class="docutils literal notranslate"><span class="pre">do_advance_sdc</span></code>.  The basic update appears as:</p>
+<p>Throughout this driver we use the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> as
+storage for the current node.  In particular, we use the new time slot
+in the <code class="docutils literal notranslate"><span class="pre">StateData</span></code> (which we refer to as <code class="docutils literal notranslate"><span class="pre">S_new</span></code>) to allow us to
+do <code class="docutils literal notranslate"><span class="pre">FillPatch</span></code> operations.</p>
+<ol class="arabic">
+<li><p class="first"><em>Initialize</em></p>
+<p>We allocate <code class="docutils literal notranslate"><span class="pre">Sborder</span></code>.  Just like with the Strang CTU driver, we
+will use this as input into the hydrodynamics routines.</p>
+</li>
+<li><p class="first">Loop over time nodes</p>
+<p>We’ll use <code class="docutils literal notranslate"><span class="pre">m</span></code> to denote the current time node and <code class="docutils literal notranslate"><span class="pre">sdc_iter</span></code> to
+denote the current (0-based) iteration.  In our loop over time
+nodes, we do the following for each node:</p>
+<ul>
+<li><p class="first">Load in the starting data</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">S_new</span></code> <span class="math notranslate nohighlight">\(\leftarrow\)</span> <code class="docutils literal notranslate"><span class="pre">k_new[m]</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">clean_state</span></code> on <code class="docutils literal notranslate"><span class="pre">S_new</span></code></li>
+<li>Fill <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> using <code class="docutils literal notranslate"><span class="pre">S_new</span></code></li>
+</ul>
+</li>
+<li><p class="first">Construct the hydro sources and advective term</p>
+<p>Note: we only do this on the first time node for <code class="docutils literal notranslate"><span class="pre">sdc_iter</span></code> = 0, and
+we don’t need to do this for the last time node on the last
+iteration.</p>
+<ul class="simple">
+<li>Call <code class="docutils literal notranslate"><span class="pre">do_old_sources</span></code> filling the <code class="docutils literal notranslate"><span class="pre">Source_Type</span></code>
+<code class="docutils literal notranslate"><span class="pre">StateData</span></code>, <code class="docutils literal notranslate"><span class="pre">old_source</span></code>.</li>
+<li>Convert the sources to 4th order averages if needed.</li>
+<li><code class="docutils literal notranslate"><span class="pre">sources_for_hydro</span></code> <span class="math notranslate nohighlight">\(\leftarrow\)</span> <code class="docutils literal notranslate"><span class="pre">old_source</span></code></li>
+<li>Convert the conserved variables to primitive variables</li>
+<li>Call <code class="docutils literal notranslate"><span class="pre">construct_mol_hydro_source</span></code> to get the advective update
+at the current time node, stored in <code class="docutils literal notranslate"><span class="pre">A_new[m]</span></code>.</li>
+</ul>
+</li>
+<li><p class="first">Bootstrap the first iteration.</p>
+<p>For the first iteration, we don’t have the old iteration’s
+advective and reaction terms needed in the SDC update.  So for
+the first time node (<code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">=</span> <span class="pre">0</span></code>) on the first iteration, we do:</p>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">A_old[n]</span></code> = <code class="docutils literal notranslate"><span class="pre">A_old[0]</span></code>, where <code class="docutils literal notranslate"><span class="pre">n</span></code> loops over all time nodes.</p>
+</li>
+<li><p class="first">Compute the reactive source using the <code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">=</span> <span class="pre">0</span></code> node’s state and
+store this in <code class="docutils literal notranslate"><span class="pre">R_old[0]</span></code>.</p>
+<p>Then fill all other time nodes as: <code class="docutils literal notranslate"><span class="pre">R_old[n]</span></code> = <code class="docutils literal notranslate"><span class="pre">R_old[0]</span></code></p>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<div><ul>
+<li><p class="first">Do the SDC update from node <code class="docutils literal notranslate"><span class="pre">m</span></code> to <code class="docutils literal notranslate"><span class="pre">m+1</span></code>.</p>
+<p>We call <code class="docutils literal notranslate"><span class="pre">do_sdc_update()</span></code> to do the update in time to the next
+node.  This solves the nonlinear system (when we have reactions)
+and stores the solution in <code class="docutils literal notranslate"><span class="pre">k_new[m+1]</span></code>.</p>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">Store the advective terms for the next iteration.</p>
+<p>Since we are done with this iteration, we do: <code class="docutils literal notranslate"><span class="pre">A_old[n]</span></code>
+<span class="math notranslate nohighlight">\(\leftarrow\)</span> <code class="docutils literal notranslate"><span class="pre">A_new[n]</span></code>.</p>
+<p>We also store <code class="docutils literal notranslate"><span class="pre">R_old</span></code> for the next iteration.  We do this by
+calling the reaction source one last time using the data for each
+time node.</p>
+</li>
+<li><p class="first">Store the new-time solution.</p>
+<p>On the last iteration, we save the solution to the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code>:</p>
+<p><code class="docutils literal notranslate"><span class="pre">S_new</span></code> <span class="math notranslate nohighlight">\(\leftarrow\)</span> <code class="docutils literal notranslate"><span class="pre">k_new[SDC_NODES-1]</span></code></p>
+</li>
+<li><p class="first">Call <code class="docutils literal notranslate"><span class="pre">finalize_do_advance</span></code> to clean up the memory.</p>
+</li>
+</ol>
+</div>
 </div>
 <div class="section" id="simplified-sdc-evolution">
 <h2>Simplified-SDC Evolution<a class="headerlink" href="#simplified-sdc-evolution" title="Permalink to this headline">¶</a></h2>
@@ -795,7 +923,7 @@ evolution type.</p>
 flux divergence and the hydrodynamic source terms (e.g. gravity):</p>
 <div class="math notranslate nohighlight">
 \[\mathcal{A}(\Ub) = -\nabla \cdot \Fb(\Ub) + \Sb\]</div>
-<p>The SDC version of the main advance loop looks similar to the no-SDC
+<p>The simplified-SDC version of the main advance loop looks similar to the Strang CTU
 version, but includes an iteration loop over the hydro, gravity, and
 reaction update. So the only difference happens in step 2 of the
 flowchart outlined in §&nbsp;<a class="reference external" href="#flow:sec:nosdc">2</a>. In particular this
@@ -805,7 +933,7 @@ step now proceeds as:</p>
 <p>Loop <span class="math notranslate nohighlight">\(k\)</span> from 0 to <code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code>, doing:</p>
 <ol class="upperalpha">
 <li><p class="first"><em>Hydrodynamics advance</em>: This is done through
-<code class="docutils literal notranslate"><span class="pre">do_advance</span></code>—in SDC mode, this only updates the hydrodynamics,
+<code class="docutils literal notranslate"><span class="pre">do_advance</span></code>—in Simplified SDC mode, this only updates the hydrodynamics,
 including the non-reacting sources. However, in predicting the
 interface states, we use an iteratively-lagged approximation to the
 reaction source on the primitive variables, <span class="math notranslate nohighlight">\(\mathcal{I}_q^{k-1}\)</span>.</p>
@@ -836,9 +964,9 @@ iteration.</p>
 </li>
 </ol>
 <p>Note that is it likely that some of the other updates (like any
-non-advective auxiliary quantity updates) should be inside the SDC
+non-advective auxiliary quantity updates) should be inside the Simplified-SDC
 loop, but presently they are only done at the end. Also note that the
-radiation implicit update is not done as part of the SDC iterations.</p>
+radiation implicit update is not done as part of the Simplified-SDC iterations.</p>
 <div class="section" id="simplified-sdc-hydro-advance">
 <h3>Simplified_SDC Hydro Advance<a class="headerlink" href="#simplified-sdc-hydro-advance" title="Permalink to this headline">¶</a></h3>
 <p>The evolution in <code class="docutils literal notranslate"><span class="pre">do_advance</span></code> is substantially different than the
@@ -860,12 +988,12 @@ SDC iteration in the advancement, since the old state does not change.</p>
 <ol class="upperalpha simple">
 <li>There is no need to extrapolate source terms to the half-time
 for the prediction (the <code class="docutils literal notranslate"><span class="pre">castro.source_term_predictor</span></code>
-parameter), since SDC provides a natural way to approximate the
+parameter), since the Simplified-SDC provides a natural way to approximate the
 time-centered source—we simply use the iteratively-lagged new-time
 source.</li>
 <li>The primitive variable source terms that are used for the
 prediction include the contribution due to reactions (from the last
-SDC iteration). This addition is done in
+iteration). This addition is done in
 <code class="docutils literal notranslate"><span class="pre">construct_hydro_source()</span></code> after the source terms are
 converted to primitive variables.</li>
 </ol>
