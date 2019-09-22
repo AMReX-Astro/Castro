@@ -1,6 +1,9 @@
+.. _ch:gravity:
+
 *******
 Gravity
 *******
+
 
 Introduction
 ============
@@ -284,7 +287,9 @@ The most general case is a self-induced gravitational field,
 
 where :math:`\phi` is defined by solving
 
-.. math:: \mathbf{\Delta} \phi = 4 \pi G \rho .\label{eq:Self Gravity}
+.. math::
+   \mathbf{\Delta} \phi = 4 \pi G \rho
+   :label: eq:Self Gravity
 
 We only allow ``PoissonGrav`` in 2D or 3D because in 1D, computing
 the monopole approximation in spherical coordinates is faster and more

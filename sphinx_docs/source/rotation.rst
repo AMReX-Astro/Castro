@@ -1,3 +1,5 @@
+.. _ch:rotation:
+
 ********
 Rotation
 ********
