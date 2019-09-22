@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Sponge &mdash; Castro 19.09
+  <title>Spectral Deferred Corrections &mdash; Castro 19.09
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Radiation" href="radiation.html" />
-    <link rel="prev" title="Rotation" href="rotation.html" /> 
+    <link rel="next" title="Adaptive Mesh Refinement" href="AMR.html" />
+    <link rel="prev" title="Microphysics" href="EOSNetwork.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -113,11 +113,11 @@
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
 <li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Spectral Deferred Corrections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
@@ -177,13 +177,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Sponge</li>
+      <li>Spectral Deferred Corrections</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/sponge.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/sdc.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -196,160 +196,50 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="sponge">
-<span id="sponge-section"></span><h1>Sponge<a class="headerlink" href="#sponge" title="Permalink to this headline">¶</a></h1>
-<p>Castro uses a sponge source term to damp velocities in regions where
-we are not interested in the dynamics, to prevent them from
-dominating the timestep constraint.  Often these are buffer regions
-between the domain of interest and the boundary conditions.</p>
-<p>The sponge parameters are set in your <code class="docutils literal notranslate"><span class="pre">probin</span></code> file, in the
-<code class="docutils literal notranslate"><span class="pre">&amp;sponge</span></code> namelist.  The timescale of the damping is set through
-<code class="docutils literal notranslate"><span class="pre">sponge_timescale</span></code>.</p>
-<p>The sponge value, <span class="math notranslate nohighlight">\(f_\mathrm{sponge}\)</span> is computed as described below
-and then the sponge factor, <span class="math notranslate nohighlight">\(f\)</span> is computed as:</p>
-<div class="math notranslate nohighlight">
-\[f = - \left [ 1 - \frac{1}{1 + \alpha f_\mathrm{sponge}}\right ]\]</div>
-<p>for an implicit update or</p>
-<div class="math notranslate nohighlight">
-\[f = -\alpha f_\mathrm{sponge}\]</div>
-<p id="index-0">for an explicit update.  This choice is controlled by
-<code class="docutils literal notranslate"><span class="pre">sponge_implicit</span></code>.  Here, <span class="math notranslate nohighlight">\(\alpha\)</span> is constructed from the
-<code class="docutils literal notranslate"><span class="pre">sponge_timescale</span></code> parameter, <span class="math notranslate nohighlight">\(t_\mathrm{sponge}\)</span> as:</p>
-<div class="math notranslate nohighlight">
-\[\alpha = \frac{\Delta t}{t_\mathrm{sponge}}\]</div>
-<p>The sponge source is then added to the momentum and total energy equations.</p>
-<p>The general sponge parameters are:</p>
-<blockquote>
-<div><table border="1" class="docutils">
-<colgroup>
-<col width="52%" />
-<col width="48%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">variable</th>
-<th class="head">runtime parameter</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(f_\mathrm{lower}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_factor</span></code></td>
-</tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(f_\mathrm{upper}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_factor</span></code></td>
-</tr>
-</tbody>
-</table>
-</div></blockquote>
-<p>There are three sponges, each controlled by different runtime parameters:</p>
-<blockquote>
-<div><ul>
-<li><p class="first"><strong>radial sponge</strong> : The radial sponge operates beyond some radius
-(define in terms of the <code class="docutils literal notranslate"><span class="pre">center(:)</span></code> position for the problem).
-It takes the form:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}f_\mathrm{sponge} = \left \{
-      \begin{array}{cc}
-              f_\mathrm{lower}   &amp; r &lt; r_\mathrm{lower} \\
-              f_\mathrm{lower} + \frac{f_\mathrm{upper} - f_\mathrm{lower}}{2}
-                   \left [ 1 - \cos \left ( \frac{\pi (r - r_\mathrm{lower})}{\Delta r} \right ) \right ]  &amp; r_\mathrm{lower} \le r &lt; r_\mathrm{upper} \\
-              f_\mathrm{upper} &amp; r \ge r_\mathrm{upper}
-      \end{array} \right .\end{split}\]</div>
-<p>The parameters controlling the various quantities here are:</p>
-<blockquote>
-<div><table border="1" class="docutils">
-<colgroup>
-<col width="52%" />
-<col width="48%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">variable</th>
-<th class="head">runtime parameter</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(r_\mathrm{lower}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_radius</span></code></td>
-</tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(r_\mathrm{upper}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_radius</span></code></td>
-</tr>
-</tbody>
-</table>
-</div></blockquote>
-<p>and <span class="math notranslate nohighlight">\(\Delta r = r_\mathrm{upper} - r_\mathrm{lower}\)</span> .</p>
-</li>
-<li><p class="first"><strong>density sponge</strong> : The density sponge turns on based on density
-thresholds.  At high densities, we usually care about the
-dynamics, so we will want the sponge off, but as the density
-lowers, we gradually turn on the sponge.  It takes the form:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}f_\mathrm{sponge} = \left \{
-      \begin{array}{cc}
-              f_\mathrm{lower}   &amp; \rho &gt; \rho_\mathrm{upper} \\
-              f_\mathrm{lower} + \frac{f_\mathrm{upper} - f_\mathrm{lower}}{2}
-                   \left [ 1 - \cos \left ( \frac{\pi (\rho - \rho_\mathrm{upper})}{\Delta \rho} \right ) \right ]  &amp; \rho_\mathrm{upper} \ge \rho &gt; \rho_\mathrm{lower} \\
-              f_\mathrm{upper} &amp; \rho &lt; \rho_\mathrm{lower}
-      \end{array} \right .\end{split}\]</div>
-<p>The parameters controlling the various quantities here are:</p>
-<blockquote>
-<div><table border="1" class="docutils">
-<colgroup>
-<col width="52%" />
-<col width="48%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">variable</th>
-<th class="head">runtime parameter</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(\rho_\mathrm{lower}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_density</span></code></td>
-</tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\rho_\mathrm{upper}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_density</span></code></td>
-</tr>
-</tbody>
-</table>
-</div></blockquote>
-<p>and <span class="math notranslate nohighlight">\(\Delta \rho = \rho_\mathrm{upper} - \rho_\mathrm{lower}\)</span> .</p>
-</li>
-<li><p class="first"><strong>pressure sponge</strong> : The pressure sponge is just like the density sponge,
-except it is keyed on pressure.  It takes the form:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}f_\mathrm{sponge} = \left \{
-      \begin{array}{cc}
-              f_\mathrm{lower}   &amp; p &gt; p_\mathrm{upper} \\
-              f_\mathrm{lower} + \frac{f_\mathrm{upper} - f_\mathrm{lower}}{2}
-                   \left [ 1 - \cos \left ( \frac{\pi (p - p_\mathrm{upper})}{\Delta p} \right ) \right ]  &amp; p_\mathrm{upper} \ge p \ge p_\mathrm{lower} \\
-              f_\mathrm{upper} &amp; \rho &lt; \rho_\mathrm{lower}
-      \end{array} \right .\end{split}\]</div>
-<p>The parameters controlling the various quantities here are:</p>
-<blockquote>
-<div><table border="1" class="docutils">
-<colgroup>
-<col width="52%" />
-<col width="48%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">variable</th>
-<th class="head">runtime parameter</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(p_\mathrm{lower}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_pressure</span></code></td>
-</tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(p_\mathrm{upper}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_pressure</span></code></td>
-</tr>
-</tbody>
-</table>
-</div></blockquote>
-<p>and <span class="math notranslate nohighlight">\(\Delta p = p_\mathrm{upper} - p_\mathrm{lower}\)</span> .</p>
-</li>
+  <div class="section" id="spectral-deferred-corrections">
+<h1>Spectral Deferred Corrections<a class="headerlink" href="#spectral-deferred-corrections" title="Permalink to this headline">¶</a></h1>
+<p>The Castro SDC solver couples the hydrodynamics tightly together,
+iteratively improving the convergence of the solution.  This is the
+basis of the 4th order accurate Castro solver.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Here we are referring to the full SDC time integration scheme
+(<code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">2</span></code>), not the simplified-SDC solver.</p>
+</div>
+<p>The options that describe the quadrature and iterations are:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">castro.sdc_order</span></code> : the desired spatial and temporal order.  2 and 4 are supported.</li>
+<li><code class="docutils literal notranslate"><span class="pre">castro.sdc_quadrature</span></code> : the quadrature scheme used for the
+time-integration.  This determines the number and location of the
+temporal nodes.  Supported values are 0 for Gauss-Lobatto and 1 for
+Radau IIA.</li>
+<li><code class="docutils literal notranslate"><span class="pre">castro.sdc_extra</span></code> : the number of extra iterations to take.  By
+default the number of iterations used is equal to the value of
+<code class="docutils literal notranslate"><span class="pre">sdc_order</span></code>.</li>
 </ul>
-</div></blockquote>
+<p>The options that affect the nonlinear solve are:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">sdc_solver</span></code> : the method we use to do the nonlinear solution of
+the reaction system.  Values are:<ul>
+<li>1 : pure Newton iteration (we subdivide the time interval if
+needed to get the Newton method to converge).</li>
+<li>2 : use VODE to solve the nonlinear system by expressing it as an ODE system.</li>
+<li>3 : use VODE for the first iteration and then Newton for the
+subsequent iterations.</li>
+</ul>
+</li>
+<li><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_dens</span></code> : the relative error on the density in solving the nonlinear system.</li>
+<li><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_spec</span></code> : the relative error on the partial densities, <span class="math notranslate nohighlight">\((\rho X_k)\)</span>
+in the nonlinear solve.</li>
+<li><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_ener</span></code> : the relative error of the energy in the nonlinear solve.</li>
+<li><code class="docutils literal notranslate"><span class="pre">sdc_solver_atol</span></code> : the absolute error in the mass fractions during the nonlinear solve.</li>
+<li><code class="docutils literal notranslate"><span class="pre">sdc_solver_relax_factor</span></code> : the factor by which to relax the
+tolerances (i.e. increase them) for earlier iterations.  We reach
+the desired tolerances on the final iteration.</li>
+<li><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code> : whether we solve the system in terms of <span class="math notranslate nohighlight">\((\rho e)\)</span> or <span class="math notranslate nohighlight">\((\rho E)\)</span>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">sdc_use_analytic_jac</span></code> : whether we use the analytic Jacobian for
+the reaction part of the system or compute it numerically.</li>
+</ul>
 </div>
 
 
@@ -360,10 +250,10 @@ except it is keyed on pressure.  It takes the form:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="radiation.html" class="btn btn-neutral float-right" title="Radiation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="AMR.html" class="btn btn-neutral float-right" title="Adaptive Mesh Refinement" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="rotation.html" class="btn btn-neutral float-left" title="Rotation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="EOSNetwork.html" class="btn btn-neutral float-left" title="Microphysics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
