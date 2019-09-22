@@ -123,8 +123,8 @@ There are three sponges, each controlled by different runtime parameters:
        ============================     ==========================
          variable                          runtime parameter
        ============================     ==========================
-       :math:`p_\mathrm{lower}`       ``sponge_lower_pressure``
-       :math:`p_\mathrm{upper}`       ``sponge_upper_pressure``
+       :math:`p_\mathrm{lower}`         ``sponge_lower_pressure``
+       :math:`p_\mathrm{upper}`         ``sponge_upper_pressure``
        ============================     ==========================
 
     and :math:`\Delta p = p_\mathrm{upper} - p_\mathrm{lower}` .

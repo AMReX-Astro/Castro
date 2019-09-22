@@ -1,6 +1,9 @@
+.. _ch:diffusion:
+
 *********
 Diffusion
 *********
+
 
 Thermal Diffusion
 =================

@@ -66,9 +66,13 @@ class Detonation:
         if "strang_ctu" in name:
             self.integrator = "strang"
         elif "lobatto_sdc4" in name:
-            self.integrator = "lobatto"
+            self.integrator = "Gauss-Lobatto SDC-4"
         elif "radau_sdc4" in name:
-            self.integrator = "radau"
+            self.integrator = "Radau SDC-4"
+        elif "lobatto_sdc2" in name:
+            self.integrator = "Gauss-Lobatto SDC-2"
+        elif "radau_sdc2" in name:
+            self.integrator = "Radau SDC-2"
 
         fields = name.split("_")
 
@@ -151,9 +155,11 @@ if __name__ == "__main__":
 
     # make a plot of the profiles for different CFLs and different resolutions
     nzones = set([q.nzones for q in runs])
+    integrators = set([q.integrator for q in runs])
+
     idx = 5
     for nz in nzones:
-        for intg in ["strang", "lobatto", "radau"]:
+        for intg in integrators:
             dset = [q for q in runs if q.integrator == intg and q.nzones == nz]
 
             if len(dset) == 0:
@@ -190,7 +196,7 @@ if __name__ == "__main__":
             ax_e.set_yscale("log")
             ax_he.set_yscale("log")
 
-            fig.suptitle("integrator = {}; number of zones = {}".format(intg, nz))
+            fig.suptitle("{}, number of zones = {}".format(intg, nz))
 
             fig.tight_layout()
-            fig.savefig("det_cfl_compare_{}_nz{}.png".format(intg, nz))
+            fig.savefig("det_cfl_compare_{}_nz{}.png".format(intg.replace(" ", "_"), nz))
