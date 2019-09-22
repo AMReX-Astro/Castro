@@ -131,7 +131,6 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#sedov-problem">Sedov Problem</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#spherical-blast-wave">Spherical Blast Wave</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#cylindrical-blast-wave">Cylindrical Blast Wave</a></li>
 </ul>
 </li>
@@ -281,7 +280,7 @@ kept constant. We use a CFL number of 0.9, an initial timestep shrink
 (castro.init_shrink) of 0.1, and the maximum factor by which
 the timestep can increase (castro.change_max) of 1.05.</p>
 <div class="figure align-center" id="id12">
-<a class="reference internal image-reference" href="_images/sod_3d.png"><img alt="sod problem" src="_images/sod_3d.png" style="width: 4.75in;" /></a>
+<span id="fig-sod"></span><a class="reference internal image-reference" href="_images/sod_3d.png"><img alt="sod problem" src="_images/sod_3d.png" style="width: 4.75in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 11 </span><span class="caption-text">Castro solution for Sod’s problem run in 3-d, with the newest ppm
 limiters, along the <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A
 coarse grid of 32 zones in the direction of propagation, with 2
@@ -289,17 +288,17 @@ levels of refinement was used. The analytic solution appears as the
 red line.</span></p>
 </div>
 <div class="figure align-center" id="id13">
-<a class="reference internal image-reference" href="_images/sod_3d_ppm0.png"><img alt="sod problem" src="_images/sod_3d_ppm0.png" style="width: 4.75in;" /></a>
+<span id="fig-sod-ppm0"></span><a class="reference internal image-reference" href="_images/sod_3d_ppm0.png"><img alt="sod problem" src="_images/sod_3d_ppm0.png" style="width: 4.75in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 12 </span><span class="caption-text">Castro solution for Sod’s problem run in 3-d, with the
 piecewise-linear Godunov method with limiters, along the <span class="math notranslate nohighlight">\(x\)</span>,
 <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid of 32 zones in the
 direction of propagation, with 2 levels of refinement was used. The
 analytic solution appears as the red line.</span></p>
 </div>
-<p>Figure&nbsp;<a class="reference external" href="#fig:sod">[fig:sod]</a> shows the Castro&nbsp;solution using the newest PPM limiters
+<p><a class="reference internal" href="#fig-sod"><span class="std std-numref">Fig. 11</span></a> shows the Castro&nbsp;solution using the newest PPM limiters
 compared to the analytic
 solution, showing the density, velocity, pressure, and internal energy.
-Figure&nbsp;<a class="reference external" href="#fig:sod_ppm0">[fig:sod_ppm0]</a> is the same as Figure&nbsp;<a class="reference external" href="#fig:sod">[fig:sod]</a>,
+<a class="reference internal" href="#fig-sod-ppm0"><span class="std std-numref">Fig. 12</span></a> is the same as <a class="reference internal" href="#fig-sod"><span class="std std-numref">Fig. 11</span></a>,
 but with the piecewise-linear Godunov method with limiters,
 shown for comparison.</p>
 <p>The Verification subdirectory includes the analytic solution for
@@ -393,13 +392,13 @@ problem along
 timestep can increase (<code class="docutils literal notranslate"><span class="pre">castro.change_max</span></code>) of 1.05. The PPM solver with
 the new limiters are used.</p>
 <div class="figure align-center" id="id14">
-<a class="reference internal image-reference" href="_images/test2_3d.png"><img alt="double rarefaction" src="_images/test2_3d.png" style="width: 5in;" /></a>
+<span id="fig-test2"></span><a class="reference internal image-reference" href="_images/test2_3d.png"><img alt="double rarefaction" src="_images/test2_3d.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 13 </span><span class="caption-text">Castro solution for the double rarefaction problem run in 3-d,
 along the <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid
 of 32 zones in the direction of propagation, with 2 levels of
 refinement was used. The analytic solution appears as the red line.</span></p>
 </div>
-<p>Figure&nbsp;<a class="reference external" href="#fig:test2">[fig:test2]</a> shows the Castro&nbsp;output, run along all 3
+<p><a class="reference internal" href="#fig-test2"><span class="std std-numref">Fig. 13</span></a> shows the Castro&nbsp;output, run along all 3
 coordinate axes in 3-d, compared to the analytic solution.</p>
 <p>The comparison to the analytic solution follows the same procedure as
 described for the Sod’s problem above. The gnuplot script
@@ -461,13 +460,13 @@ timestep shrink (<code class="docutils literal notranslate"><span class="pre">ca
 the timestep can increase (<code class="docutils literal notranslate"><span class="pre">castro.change_max</span></code>) of 1.05. The PPM
 solver with the new limiters are used.</p>
 <div class="figure align-center" id="id15">
-<a class="reference internal image-reference" href="_images/test3_3d.png"><img alt="strong shock" src="_images/test3_3d.png" style="width: 5in;" /></a>
+<span id="fig-test3"></span><a class="reference internal image-reference" href="_images/test3_3d.png"><img alt="strong shock" src="_images/test3_3d.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 14 </span><span class="caption-text">Castro solution for the strong shock problem run in 3-d, along the
 <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid of 32 zones
 in the direction of propagation, with 2 levels of refinement was
 used. The analytic solution appears as the red line.</span></p>
 </div>
-<p>Figure&nbsp;<a class="reference external" href="#fig:test3">[fig:test3]</a> shows the Castro&nbsp;output, run along all 3
+<p><a class="reference internal" href="#fig-test3"><span class="std std-numref">Fig. 14</span></a> shows the Castro&nbsp;output, run along all 3
 coordinate axes in 3-d, compared to the analytic solution.</p>
 <p>The comparison to the analytic solution follows the same procedure as
 described for the Sod’s problem above. The gnuplot script
@@ -493,6 +492,43 @@ We use a publically available code, <code class="docutils literal notranslate"><
 <span class="pre">Exec/hydro_tests/Sedov/</span></code>.  A number of different inputs/probin files
 are provided, corresponding to different Sedov/Castro&nbsp;geometries. The
 main ones are:</p>
+<span id="table-sedov-inputs"></span><table border="1" class="docutils" id="id16">
+<caption><span class="caption-number">Table 22 </span><span class="caption-text">Sedov problem inputs and probin files</span><a class="headerlink" href="#id16" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="30%" />
+<col width="29%" />
+<col width="41%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">inputs file</th>
+<th class="head">probin file</th>
+<th class="head">description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inputs.1d.sph</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin.1d.sph</span></code></td>
+<td>Spherical Sedov explosion modeled
+in 1-d spherical coordinates</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inputs.2d.sph_in_cylcoords</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin.2d.sph_in_cylcoords</span></code></td>
+<td>Spherical Sedov explosion modeled
+in 2-d cylindrical (axisymmetric)
+coordinates.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">inputs.2d.cyl_in_cartcoords</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin.2d.cyl_in_cartcoords</span></code></td>
+<td>Cylindrical Sedov explosion modeled in
+2-d Cartesian coordinates.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">inputs.3d.sph</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">probin.3d.sph</span></code></td>
+<td>Spherical Sedov explosion modeled in
+3-d Cartesian coordinates.</td>
+</tr>
+</tbody>
+</table>
 <p>In the Sedov problem, the explosion energy, <span class="math notranslate nohighlight">\(E_\mathrm{exp}\)</span> (in units
 of energy, not energy/mass or energy/volume)
 is to be deposited into a single point, in a medium of uniform ambient
@@ -519,18 +555,14 @@ and <span class="math notranslate nohighlight">\(N_\mathrm{sub} = 10\)</span>. A
 coordinate direction plus 3 levels of refinement is used (the finest
 mesh would coorespond to 256 zones in a coordinate direction). The
 domain runs from 0 to 1 in each coordinate direction.</p>
-<p>Analysis routines for the Sedov problem are provided in
-Castro/Diagnostics/Sedov/. These routines will
-average the Castro&nbsp;solution over angles, using the proper geometric
-weighting, to produce an average profile as a function of radius.
-The following routines correspond to the inputs files described above:</p>
-<div class="section" id="spherical-blast-wave">
-<h4>Spherical Blast Wave<a class="headerlink" href="#spherical-blast-wave" title="Permalink to this headline">¶</a></h4>
+<p>An analysis routines for the Sedov problem is provided in
+<code class="docutils literal notranslate"><span class="pre">Castro/Diagnostics/Sedov/</span></code>.  Typing <code class="docutils literal notranslate"><span class="pre">make</span></code> should build it (you
+can specify the dimensionality with the <code class="docutils literal notranslate"><span class="pre">DIM</span></code> variable in the
+build).</p>
 <p>A spherical Sedov explosion can be modeled in 1-d spherical, 2-d
 cylindrical (axisymmetric), or 3-d Cartesian coordinates, using the
-inputs files described in Table&nbsp;<a class="reference external" href="#table:sedov_inputs">[table:sedov_inputs]</a>. A 1-d radial
-profile can be extracted using the appropriate fsedov routine,
-as listed in Table&nbsp;<a class="reference external" href="#table:fsedov">[table:fsedov]</a>. For example, to run and process
+inputs files described in <a class="reference internal" href="#table-sedov-inputs"><span class="std std-numref">Table 22</span></a>. A 1-d radial
+profile can be extracted using the analysis routine. For example, to run and process
 the 2-d cylindrical Sedov explosion, one would do:</p>
 <ol class="arabic">
 <li><p class="first">in <code class="docutils literal notranslate"><span class="pre">Exec/hydro_tests/Sedov</span></code>, build the Castro&nbsp;executable in 2-d</p>
@@ -540,36 +572,32 @@ the 2-d cylindrical Sedov explosion, one would do:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first">build the <code class="docutils literal notranslate"><span class="pre">fsedov2d_sph_in_cylcoords</span></code> tool in
+<li><p class="first">build the <code class="docutils literal notranslate"><span class="pre">sedov_2d_ex</span></code> tool in
 <code class="docutils literal notranslate"><span class="pre">Castro/Diagnostics/Sedov</span></code>.</p>
 </li>
-<li><dl class="first docutils">
-<dt>run <code class="docutils literal notranslate"><span class="pre">fsedov2d_sph_in_cylcoords</span></code> on the Castro&nbsp;output to generate 1-d radial</dt>
-<dd><p class="first">profiles:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fsedov2d_sph_in_cylcoords</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">s</span> <span class="n">sedov_2d_sph_in_cyl</span><span class="o">.</span><span class="n">out</span> \
-   <span class="o">-</span><span class="n">p</span> <span class="n">sedov_2d_sph_in_cyl_plt00246</span>
+<li><p class="first">run the analysis script  on the Castro output to generate 1-d radial
+profiles:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">sedov_2d</span><span class="o">.</span><span class="n">ex</span> <span class="o">--</span><span class="n">sphr</span> <span class="o">--</span><span class="n">yctr</span> <span class="mf">0.5</span> <span class="o">-</span><span class="n">s</span> <span class="n">sedov_2d_sph_in_cyl</span><span class="o">.</span><span class="n">out</span> \
+    <span class="o">-</span><span class="n">p</span> <span class="n">sedov_2d_sph_in_cyl_plt00246</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 </li>
 </ol>
 <p>A similar procedure can be used for the 1-d and 3-d spherical Sedov
-explosions (with the output named sedov_1d_sph.out and
-sedov_3d_sph.out respectively). Once this is done, the
-sedov_sph.gp gnuplot script can be used to make a plot comparing
-the 3 solutions to the analytic solution, spherical_sedov.dat.</p>
-<p>Figure&nbsp;<a class="reference external" href="#fig:sedov_sph">[fig:sedov_sph]</a> shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.</p>
-<div class="figure align-center" id="id16">
-<a class="reference internal image-reference" href="_images/sedov_sph.png"><img alt="Sedov blast wave" src="_images/sedov_sph.png" style="width: 5in;" /></a>
+explosions (with the output named <code class="docutils literal notranslate"><span class="pre">sedov_1d_sph.out</span></code> and
+<code class="docutils literal notranslate"><span class="pre">sedov_3d_sph.out</span></code> respectively). Once this is done, the
+<code class="docutils literal notranslate"><span class="pre">sedov_sph.gp</span></code> gnuplot script can be used to make a plot comparing
+the 3 solutions to the analytic solution, <code class="docutils literal notranslate"><span class="pre">spherical_sedov.dat</span></code>.</p>
+<p><a class="reference internal" href="#fig-sedov-sph"><span class="std std-numref">Fig. 15</span></a> shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.</p>
+<div class="figure align-center" id="id17">
+<span id="fig-sedov-sph"></span><a class="reference internal image-reference" href="_images/sedov_sph.png"><img alt="Sedov blast wave" src="_images/sedov_sph.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 15 </span><span class="caption-text">Castro solution for the Sedov blast wave problem run in 1-d
 spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.  Each
 of these geometries produces a spherical Sedov explosion.</span></p>
 </div>
-</div>
 <div class="section" id="cylindrical-blast-wave">
 <h4>Cylindrical Blast Wave<a class="headerlink" href="#cylindrical-blast-wave" title="Permalink to this headline">¶</a></h4>
-<div class="figure align-center" id="id17">
+<div class="figure align-center" id="id18">
 <a class="reference internal image-reference" href="_images/sedov_cyl.png"><img alt="Sedov in 2-d" src="_images/sedov_cyl.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 16 </span><span class="caption-text">Castro solution for the Sedov blast wave problem run in 2-d
 Cartesian coordinates. This corresponds to a cylindrical Sedov
@@ -597,9 +625,9 @@ to smooth the transition between the high and low density material:</p>
 <p>Hydrostatic pressure with <span class="math notranslate nohighlight">\(p=5.0\)</span> at bottom of domain, assuming
 <span class="math notranslate nohighlight">\(\rho=1\)</span> on the lower half of the domain, and <span class="math notranslate nohighlight">\(\rho=2\)</span> on the upper
 half and no density perturbation. We run to <span class="math notranslate nohighlight">\(t=2.5\)</span> with piecewise
-linear, old PPM, and new PPM. CFL=0.9. See Figure <a class="reference external" href="#fig:RT">[fig:RT]</a>.</p>
-<div class="figure align-center" id="id18">
-<a class="reference internal image-reference" href="_images/RT_ppm_type.png"><img alt="Rayleigh-Taylor with different PPM types." src="_images/RT_ppm_type.png" style="width: 6.5in;" /></a>
+linear, old PPM, and new PPM. CFL=0.9. See <a class="reference internal" href="#fig-rt"><span class="std std-numref">Fig. 17</span></a>.</p>
+<div class="figure align-center" id="id19">
+<span id="fig-rt"></span><a class="reference internal image-reference" href="_images/RT_ppm_type.png"><img alt="Rayleigh-Taylor with different PPM types." src="_images/RT_ppm_type.png" style="width: 6.5in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 17 </span><span class="caption-text">Rayleigh-Taylor with different PPM types.</span></p>
 </div>
 </div>
@@ -655,7 +683,7 @@ each case, the gas energy and radiation field will evolve until
 thermal equilibrium is achieved.</p>
 <p>Our implementation of this problem follows that of
 <a class="reference internal" href="zreferences.html#swestymyra-2009" id="id9">[swestymyra:2009]</a>.</p>
-<div class="figure align-center" id="id19">
+<div class="figure align-center" id="id20">
 <a class="reference internal image-reference" href="_images/radiating_source.png"><img alt="radiatin source" src="_images/radiating_source.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 18 </span><span class="caption-text">Castro solution for radiating source test problem. Heating and
 cooling solutions are shown as a function of time, compared to the
@@ -678,7 +706,7 @@ distance from the radiating sphere.</p>
 <p>Our implementation of this problem is in Exec/radiation_tests/RadSphere and
 follows that of <a class="reference internal" href="zreferences.html#swestymyra-2009" id="id11">[swestymyra:2009]</a>. The routine that computes
 the analytic solution is provided as analytic.f90.</p>
-<div class="figure" id="id20">
+<div class="figure" id="id21">
 <a class="reference internal image-reference" href="_images/radiating_sphere.png"><img alt="radiating sphere" src="_images/radiating_sphere.png" style="width: 5in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 19 </span><span class="caption-text">Castro solution for radiating sphere problem, showing the radiation
 energy density as a function of energy group.  This test was run

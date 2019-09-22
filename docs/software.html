@@ -387,7 +387,7 @@ data. In AMReX, an AMR level has a global index space, with
 (for a domain of <span class="math notranslate nohighlight">\(N_x \times N_y \times N_z\)</span> zones). The location of
 any <code class="docutils literal notranslate"><span class="pre">Box</span></code> at a level can be uniquely specified with respect to this
 global index space by giving the index of its lower-left and
-upper-right corners. Figure <a class="reference external" href="#fig:soft:indexspace">[fig:soft:indexspace]</a> shows an
+upper-right corners. <a class="reference internal" href="#fig-soft-indexspace"><span class="std std-numref">Fig. 1</span></a> shows an
 example of three boxes at the same level of refinement.</p>
 <p>AMReX&nbsp;provides other data structures that collect Boxes together,
 most importantly the <code class="docutils literal notranslate"><span class="pre">BoxArray</span></code>. We generally do not use these
@@ -396,7 +396,7 @@ which is defined as part of the <code class="docutils literal notranslate"><span
 inherits. <code class="docutils literal notranslate"><span class="pre">grids</span></code> is used when building new <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code> to give
 the layout of the boxes at the current level.</p>
 <div class="figure" id="id9">
-<a class="reference internal image-reference" href="_images/index_grid2.png"><img alt="_images/index_grid2.png" src="_images/index_grid2.png" style="width: 4in;" /></a>
+<span id="fig-soft-indexspace"></span><a class="reference internal image-reference" href="_images/index_grid2.png"><img alt="_images/index_grid2.png" src="_images/index_grid2.png" style="width: 4in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 1 </span><span class="caption-text">Three boxes that comprise a single level. At this
 resolution, the domain is 20 <span class="math notranslate nohighlight">\(\times\)</span> 18 zones. Note that the
 indexing in AMReX&nbsp;starts with <span class="math notranslate nohighlight">\(0\)</span>.</span></p>

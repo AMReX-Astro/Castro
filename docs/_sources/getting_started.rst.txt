@@ -213,7 +213,7 @@ Amrvis, which we demonstrate here. Amrvis is available on github.
 
    Some users have found that Amrvis does not work properly under X
    with the proprietary Nvidia graphics driver. A fix for this is
-   provided in the FAQ (§ `[ch:faq:vis] <#ch:faq:vis>`__)—this is due
+   provided in the FAQ (§ :ref:`ch:faq:vis`)—this is due
    to the default behavior of the DAC in mappuing colors.
 
    Note: yt is a great alternative to using Amrvis for visualization,
