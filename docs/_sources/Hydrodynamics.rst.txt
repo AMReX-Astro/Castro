@@ -843,7 +843,9 @@ equations in 1D, for simplicity):
 -  **Step 2**: Construct a quadratic profile using :math:`s_{i,-},s_i`,
    and :math:`s_{i,+}`.
 
-   .. math:: s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\label{Quadratic Interp}
+   .. math::
+      s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],
+      :label: Quadratic Interp
 
    .. math:: s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),
 
@@ -863,7 +865,7 @@ equations in 1D, for simplicity):
         \mathcal{I}^{(k)}_{-}(s_i) &= \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
         \end{align}
 
-     Plugging in (`[Quadratic Interp] <#Quadratic Interp>`__) gives:
+     Plugging in :eq:`Quadratic Interp` gives:
 
      .. math::
 

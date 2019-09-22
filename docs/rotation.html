@@ -297,15 +297,13 @@ at the point <span class="math notranslate nohighlight">\(P\)</span> whose locat
 <div class="math notranslate nohighlight">
 \[\rb = \rbt + \boldsymbol{l},\]</div>
 <p>or in component notation</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:r}
-    r_i\boldsymbol{e_i} = \widetilde{r_i}\widetilde{\boldsymbol{e_i}} + l_i\boldsymbol{e_i},\]</div>
+<div class="math notranslate nohighlight" id="equation-eq-r">
+<span class="eqno">(12)<a class="headerlink" href="#equation-eq-r" title="Permalink to this equation">¶</a></span>\[r_i\boldsymbol{e_i} = \widetilde{r_i}\widetilde{\boldsymbol{e_i}} + l_i\boldsymbol{e_i},\]</div>
 <p>where <span class="math notranslate nohighlight">\(\boldsymbol{e_i}\)</span> and <span class="math notranslate nohighlight">\(\widetilde{\boldsymbol{e_i}}\)</span> are the <span class="math notranslate nohighlight">\(i\)</span>th unit
 vectors in the <span class="math notranslate nohighlight">\(C\)</span> and <span class="math notranslate nohighlight">\(\widetilde{C}\)</span> coordinate systems,
-respectively. The total time rate of change of <a class="reference external" href="#eq:r">[eq:r]</a> is given by</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:vcomp}
-    \frac{Dr_i}{Dt}\boldsymbol{e_i} = \frac{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} + \frac{Dl_i}{Dt}\boldsymbol{e_i},\]</div>
+respectively. The total time rate of change of <a class="reference internal" href="#equation-eq-r">(12)</a> is given by</p>
+<div class="math notranslate nohighlight" id="equation-eq-vcomp">
+<span class="eqno">(13)<a class="headerlink" href="#equation-eq-vcomp" title="Permalink to this equation">¶</a></span>\[\frac{Dr_i}{Dt}\boldsymbol{e_i} = \frac{D\widetilde{r_i}}{Dt}\widetilde{\boldsymbol{e_i}} + \widetilde{r_i}\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} + \frac{Dl_i}{Dt}\boldsymbol{e_i},\]</div>
 <p>where we have used the fact that the unit vectors of the inertial
 frame <span class="math notranslate nohighlight">\(C\)</span> are not moving (or at least can be considered stationary,
 and the change in <span class="math notranslate nohighlight">\(\boldsymbol{l}\)</span> gives the relative motion of the two
@@ -314,29 +312,25 @@ length, and therefore the only change of <span class="math notranslate nohighlig
 time can come from changing direction. This change is carried out by
 a rotation about the <span class="math notranslate nohighlight">\(\ob\)</span> axis, and the tip of the unit
 vector moves circumferentially, that is</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:etilde-rot}
-    \frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \ob\times\widetilde{\boldsymbol{e_i}}.\]</div>
-<p>Plugging <a class="reference external" href="#eq:etilde-rot">[eq:etilde-rot]</a> into <a class="reference external" href="#eq:vcomp">[eq:vcomp]</a> and switching back to
+<div class="math notranslate nohighlight" id="equation-eq-etilde-rot">
+<span class="eqno">(14)<a class="headerlink" href="#equation-eq-etilde-rot" title="Permalink to this equation">¶</a></span>\[\frac{D\widetilde{\boldsymbol{e_i}}}{Dt} = \ob\times\widetilde{\boldsymbol{e_i}}.\]</div>
+<p>Plugging <a class="reference internal" href="#equation-eq-etilde-rot">(14)</a> into <a class="reference internal" href="#equation-eq-vcomp">(13)</a> and switching back to
 vector notation, we have</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:r-dot}
-    \frac{D\rb}{Dt} = \frac{D\rbt}{Dt} + \ob\times\rbt + \frac{D\boldsymbol{l}}{Dt}.\]</div>
-<p>The left hand side of <a class="reference external" href="#eq:r-dot">[eq:r-dot]</a> is interpretted as the velocity
+<div class="math notranslate nohighlight" id="equation-eq-r-dot">
+<span class="eqno">(15)<a class="headerlink" href="#equation-eq-r-dot" title="Permalink to this equation">¶</a></span>\[\frac{D\rb}{Dt} = \frac{D\rbt}{Dt} + \ob\times\rbt + \frac{D\boldsymbol{l}}{Dt}.\]</div>
+<p>The left hand side of <a class="reference internal" href="#equation-eq-r-dot">(15)</a> is interpretted as the velocity
 of the fluid element as seen in the inertial frame; the first term on the
 right hand side is the velocity of the fluid element as seen by a
 stationary observer in the rotating frame <span class="math notranslate nohighlight">\(\widetilde{C}\)</span>. The second
-and third terms on the right hand side of <a class="reference external" href="#eq:r-dot">[eq:r-dot]</a> describe the
+and third terms on the right hand side of <a class="reference internal" href="#equation-eq-r-dot">(15)</a> describe the
 additional velocity due to rotation and translation of the frame
 <span class="math notranslate nohighlight">\(\widetilde{C}\)</span> as seen in <span class="math notranslate nohighlight">\(C\)</span>. In other words,</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:v}
-    \vb = \vbt + \ob\times\rbt + \boldsymbol{v_l},\]</div>
+<div class="math notranslate nohighlight" id="equation-eq-v">
+<span class="eqno">(16)<a class="headerlink" href="#equation-eq-v" title="Permalink to this equation">¶</a></span>\[\vb = \vbt + \ob\times\rbt + \boldsymbol{v_l},\]</div>
 <p>where we use <span class="math notranslate nohighlight">\(\boldsymbol{v_l}\)</span> to represent the translational velocity.</p>
-<p>Similarly, by taking a second time derivative of <a class="reference external" href="#eq:v">[eq:v]</a> we have</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:a}
-    \frac{D\vb}{Dt} = \frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right] + \frac{D\boldsymbol{v_l}}{Dt}.\]</div>
+<p>Similarly, by taking a second time derivative of <a class="reference internal" href="#equation-eq-v">(16)</a> we have</p>
+<div class="math notranslate nohighlight" id="equation-eq-a">
+<span class="eqno">(17)<a class="headerlink" href="#equation-eq-a" title="Permalink to this equation">¶</a></span>\[\frac{D\vb}{Dt} = \frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right] + \frac{D\boldsymbol{v_l}}{Dt}.\]</div>
 <p>Henceforth we will assume the two coordinate systems are not
 translating relative to one another, <span class="math notranslate nohighlight">\(\boldsymbol{v_l} = 0\)</span>. It is
 also worth mentioning that derivatives with respect to spatial
@@ -344,22 +338,19 @@ coordinates do not involve additional terms due to rotation,
 i.e. <span class="math notranslate nohighlight">\(\nablab\cdot\vb = \nablab\cdot\vbt\)</span>.
 Because of this, the continuity equation remains unchanged in the
 rotating frame:</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:cont-rot}
-    \frac{\partial \rho}{\partial t} = -\nablab\cdot\left(\rho\vbt\right),\]</div>
+<div class="math notranslate nohighlight" id="equation-eq-cont-rot">
+<span class="eqno">(18)<a class="headerlink" href="#equation-eq-cont-rot" title="Permalink to this equation">¶</a></span>\[\frac{\partial \rho}{\partial t} = -\nablab\cdot\left(\rho\vbt\right),\]</div>
 <p>or</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:cont-rot-total}
-    \frac{D\rho}{Dt} = -\rho\nablab\cdot\vbt.\]</div>
+<div class="math notranslate nohighlight" id="equation-eq-cont-rot-total">
+<span class="eqno">(19)<a class="headerlink" href="#equation-eq-cont-rot-total" title="Permalink to this equation">¶</a></span>\[\frac{D\rho}{Dt} = -\rho\nablab\cdot\vbt.\]</div>
 </div>
 <div class="section" id="momentum-equation-in-rotating-frame">
 <h2>Momentum equation in rotating frame<a class="headerlink" href="#momentum-equation-in-rotating-frame" title="Permalink to this headline">¶</a></h2>
 <p>The usual momentum equation applies in an inertial frame:</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:mom1}
-    \frac{D\left(\rho\vb\right)}{Dt} = -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb.\]</div>
-<p>Using the continuity equation, <a class="reference external" href="#eq:cont-rot-total">[eq:cont-rot-total]</a>, and substituting for
-the terms in the rotating frame from <a class="reference external" href="#eq:a">[eq:a]</a>, we have from <a class="reference external" href="#eq:mom1">[eq:mom1]</a>:</p>
+<div class="math notranslate nohighlight" id="equation-eq-mom1">
+<span class="eqno">(20)<a class="headerlink" href="#equation-eq-mom1" title="Permalink to this equation">¶</a></span>\[\frac{D\left(\rho\vb\right)}{Dt} = -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb.\]</div>
+<p>Using the continuity equation, <a class="reference internal" href="#equation-eq-cont-rot-total">(19)</a>, and substituting for
+the terms in the rotating frame from <a class="reference internal" href="#equation-eq-a">(17)</a>, we have from <a class="reference internal" href="#equation-eq-mom1">(20)</a>:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
     \rho\left(\frac{D\vbt}{Dt} + 2\ob\times\vbt + \ob\times\left[\ob\times\rbt\right]\right) - \rho\vb\nablab\cdot\vb &amp;= -\rho\vb\cdot\nablab\vb - \nablab p + \rho\gb \nonumber \\
@@ -368,31 +359,28 @@ the terms in the rotating frame from <a class="reference external" href="#eq:a">
   &amp;-\ \rho\ob\times\left[\ob\times\rbt\right]\label{eq:mom-rot}
   \end{align}\end{split}\]</div>
 <p>or</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:mom-rot-tot}
-    \frac{D\left(\rho\vbt\right)}{Dt} = -\rho\vbt\cdot\nablab\vbt - \nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right].\]</div>
+<div class="math notranslate nohighlight" id="equation-eq-mom-rot-tot">
+<span class="eqno">(21)<a class="headerlink" href="#equation-eq-mom-rot-tot" title="Permalink to this equation">¶</a></span>\[\frac{D\left(\rho\vbt\right)}{Dt} = -\rho\vbt\cdot\nablab\vbt - \nablab p + \rho\gb - 2\rho\ob\times\vbt - \rho\ob\times\left[\ob\times\rbt\right].\]</div>
 </div>
 <div class="section" id="energy-equations-in-rotating-frame">
 <h2>Energy equations in rotating frame<a class="headerlink" href="#energy-equations-in-rotating-frame" title="Permalink to this headline">¶</a></h2>
-<p>From <a class="reference external" href="#eq:mom-rot-tot">[eq:mom-rot-tot]</a>, we have the velocity evolution equation in
+<p>From <a class="reference internal" href="#equation-eq-mom-rot-tot">(21)</a>, we have the velocity evolution equation in
 a rotating frame</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:v-rot}
-    \frac{D\vbt}{Dt} = -\frac{1}{\rho}\nablab p + \gb - 2\ob\times\vbt - \ob\times\left[\ob\times\rbt\right].\]</div>
-<p>The kinetic energy equation can be obtained from <a class="reference external" href="#eq:v-rot">[eq:v-rot]</a> by
+<div class="math notranslate nohighlight" id="equation-eq-v-rot">
+<span class="eqno">(22)<a class="headerlink" href="#equation-eq-v-rot" title="Permalink to this equation">¶</a></span>\[\frac{D\vbt}{Dt} = -\frac{1}{\rho}\nablab p + \gb - 2\ob\times\vbt - \ob\times\left[\ob\times\rbt\right].\]</div>
+<p>The kinetic energy equation can be obtained from <a class="reference internal" href="#equation-eq-v-rot">(22)</a> by
 mulitplying by <span class="math notranslate nohighlight">\(\rho\vbt\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{align}
+<div class="math notranslate nohighlight" id="equation-eq-ekin-rot-total">
+<span class="eqno">(23)<a class="headerlink" href="#equation-eq-ekin-rot-total" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{align}
     \rho\vbt\cdot\frac{D\vbt}{Dt} &amp;= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - 2\rho\vbt\cdot\left[\ob\times\vbt\right] - \rho\vbt\cdot\left\{\ob\times\left[\ob\times\rbt\right]\right\} \nonumber \\
     \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} - \frac{1}{2}\vbt\cdot\vbt\frac{D\rho}{Dt} &amp;= -\vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right] \nonumber \\
-    \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &amp;= -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right]. \label{eq:ekin-rot-total}
+    \frac{1}{2}\frac{D\left(\rho\vbt\cdot\vbt\right)}{Dt} &amp;= -\frac{1}{2}\rho\vbt\cdot\vbt\nablab\cdot\vbt - \vbt\cdot\nablab p + \rho\vbt\cdot\gb - \rho\vbt\cdot\left[\left(\ob\cdot\rbt\right)\ob - \rho\omega^2\rbt\right].
   \end{align}\end{split}\]</div>
 <p>The internal energy is simply advected, and, from the first law of
 thermodynamics, can change due to <span class="math notranslate nohighlight">\(pdV\)</span> work:</p>
-<div class="math notranslate nohighlight">
-\[\label{eq:eint-rot-total}
-    \frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\nablab\cdot\vbt.\]</div>
-<p>Combining <a class="reference external" href="#eq:ekin-rot-total">[eq:ekin-rot-total]</a> and <a class="reference external" href="#eq:eint-rot-total">[eq:eint-rot-total]</a> we can
+<div class="math notranslate nohighlight" id="equation-eq-eint-rot-total">
+<span class="eqno">(24)<a class="headerlink" href="#equation-eq-eint-rot-total" title="Permalink to this equation">¶</a></span>\[\frac{D\left(\rho e\right)}{Dt} = -\left(\rho e + p\right)\nablab\cdot\vbt.\]</div>
+<p>Combining <a class="reference internal" href="#equation-eq-ekin-rot-total">(23)</a> and <a class="reference internal" href="#equation-eq-eint-rot-total">(24)</a> we can
 get the evolution of the total specific energy in the rotating frame,
 <span class="math notranslate nohighlight">\(\rho \widetilde{E} = \rho e + \frac{1}{2}\rho\vbt\cdot\vbt\)</span>:</p>
 <div class="math notranslate nohighlight">

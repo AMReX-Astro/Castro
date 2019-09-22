@@ -292,7 +292,7 @@ what defines the phi used for the new-time gravity</p>
 strategy</p>
 </li>
 <li><p class="first">At an AMR synchronization step across levels (see Section
-<a class="reference external" href="#sec:amr_synchronization">[sec:amr_synchronization]</a> for a
+<a class="reference internal" href="AMR.html#sec-amr-synchronization"><span class="std std-ref">Synchronization Algorithm</span></a> for a
 description of when these synchronizations occur), if we’re
 choosing to synchronize the gravitational field across levels
 (<code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> = 0) we then do a solve starting from the coarse
@@ -474,7 +474,7 @@ that is not part of the grid.</p>
 \[\mathbf{g}(\mathbf{x},t) = \nabla \phi\]</div>
 <p>where <span class="math notranslate nohighlight">\(\phi\)</span> is defined by solving</p>
 <div class="math notranslate nohighlight" id="equation-eq-self-gravity">
-<span class="eqno">(3)<a class="headerlink" href="#equation-eq-self-gravity" title="Permalink to this equation">¶</a></span>\[\mathbf{\Delta} \phi = 4 \pi G \rho\]</div>
+<span class="eqno">(4)<a class="headerlink" href="#equation-eq-self-gravity" title="Permalink to this equation">¶</a></span>\[\mathbf{\Delta} \phi = 4 \pi G \rho\]</div>
 <p>We only allow <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code> in 2D or 3D because in 1D, computing
 the monopole approximation in spherical coordinates is faster and more
 accurate than solving the Poisson equation.</p>
@@ -502,7 +502,7 @@ of the boundary conditions. According to, for example, Jackson’s
 Poisson’s equation for electric charges and gravitational
 ”charges”), an expansion in spherical harmonics for <span class="math notranslate nohighlight">\(\phi\)</span> is</p>
 <div class="math notranslate nohighlight" id="equation-spherical-harmonic-expansion">
-<span class="eqno">(4)<a class="headerlink" href="#equation-spherical-harmonic-expansion" title="Permalink to this equation">¶</a></span>\[\phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} \frac{4\pi}{2l + 1} q_{lm} \frac{Y_{lm}(\theta,\phi)}{r^{l+1}},\]</div>
+<span class="eqno">(5)<a class="headerlink" href="#equation-spherical-harmonic-expansion" title="Permalink to this equation">¶</a></span>\[\phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} \frac{4\pi}{2l + 1} q_{lm} \frac{Y_{lm}(\theta,\phi)}{r^{l+1}},\]</div>
 <p>The origin of the coordinate system is taken to be the <code class="docutils literal notranslate"><span class="pre">center</span></code>
 variable, that must be declared and stored in the <code class="docutils literal notranslate"><span class="pre">probdata</span></code>
 module in your project directory. The validity of the expansion used
@@ -518,7 +518,7 @@ Green’s function for the Poisson equation as a series of spherical
 harmonics, which yields</p>
 <div class="math notranslate nohighlight">
 \[q_{lm} = \int Y^*_{lm}(\theta^\prime, \phi^\prime)\, {r^\prime}^l \rho(\mathbf{x}^\prime)\, d^3x^\prime. \label{multipole_moments_original}\]</div>
-<p>Some simplification of <a class="reference internal" href="#equation-spherical-harmonic-expansion">(4)</a> can
+<p>Some simplification of <a class="reference internal" href="#equation-spherical-harmonic-expansion">(5)</a> can
 be achieved by using the addition theorem for spherical harmonics:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{aligned}
@@ -636,7 +636,7 @@ set in the <code class="docutils literal notranslate"><span class="pre">GNUmakef
 <a class="reference internal" href="zreferences.html#grbk2" id="id6">[grbk2]</a>. For describing very strong gravitational
 field, we need to use Einstein field equations</p>
 <div class="math notranslate nohighlight" id="equation-field">
-<span class="eqno">(5)<a class="headerlink" href="#equation-field" title="Permalink to this equation">¶</a></span>\[R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
+<span class="eqno">(6)<a class="headerlink" href="#equation-field" title="Permalink to this equation">¶</a></span>\[R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
 \kappa=\frac{8\pi G}{c^{2}}\quad ,\]</div>
 <p>where <span class="math notranslate nohighlight">\(R_{ik}\)</span> is the Ricci tensor, <span class="math notranslate nohighlight">\(g_{ik}\)</span> is the metric
 tensor, <span class="math notranslate nohighlight">\(R\)</span> is the Riemann curvature, <span class="math notranslate nohighlight">\(c\)</span> is the speed of
@@ -653,23 +653,23 @@ spherically symmetric mass distribution. Then the line element
   ds^{2} = e^{\nu}c^{2}dt^{2}-e^{\lambda}dr^{2}-r^{2}(d\vartheta^{2}+\sin^{2}
   \vartheta d\varphi) \quad ,\]</div>
 <p>with <span class="math notranslate nohighlight">\(\nu = \nu(r)\)</span>, <span class="math notranslate nohighlight">\(\lambda = \lambda(r)\)</span>. Now we can
-put the expression of <span class="math notranslate nohighlight">\(T_{ik}\)</span> and <span class="math notranslate nohighlight">\(ds\)</span> into <a class="reference internal" href="#equation-field">(5)</a>,
+put the expression of <span class="math notranslate nohighlight">\(T_{ik}\)</span> and <span class="math notranslate nohighlight">\(ds\)</span> into <a class="reference internal" href="#equation-field">(6)</a>,
 then field equations can be reduced to 3 ordinary differential
 equations:</p>
 <div class="math notranslate nohighlight" id="equation-diff1">
-<span class="eqno">(6)<a class="headerlink" href="#equation-diff1" title="Permalink to this equation">¶</a></span>\[\frac{\kappa P}{c^{2}} =
+<span class="eqno">(7)<a class="headerlink" href="#equation-diff1" title="Permalink to this equation">¶</a></span>\[\frac{\kappa P}{c^{2}} =
    e^{-\lambda}\left (\frac{\nu^{\prime}}{r}+\frac{1}{r^{2}} \right )-\frac{1}{r^{2}}
    \quad ,\]</div>
 <div class="math notranslate nohighlight" id="equation-diff2">
-<span class="eqno">(7)<a class="headerlink" href="#equation-diff2" title="Permalink to this equation">¶</a></span>\[\frac{\kappa P}{c^{2}} =
+<span class="eqno">(8)<a class="headerlink" href="#equation-diff2" title="Permalink to this equation">¶</a></span>\[\frac{\kappa P}{c^{2}} =
   \frac{1}{2}e^{-\lambda}\left (\nu^{\prime\prime}+\frac{1}{2}{\nu^{\prime}}^{2}+\frac{\nu^
     {\prime}-\lambda^{\prime}}{r}
    -\frac{\nu^{\prime}\lambda^{\prime}}{2} \right ) \quad ,\]</div>
 <div class="math notranslate nohighlight" id="equation-diff3">
-<span class="eqno">(8)<a class="headerlink" href="#equation-diff3" title="Permalink to this equation">¶</a></span>\[\kappa \varrho =
+<span class="eqno">(9)<a class="headerlink" href="#equation-diff3" title="Permalink to this equation">¶</a></span>\[\kappa \varrho =
   e^{-\lambda}\left (\frac{\lambda^{\prime}}{r}-\frac{1}{r^{2}}\right )+\frac{1}{r^{2}} \quad ,\]</div>
 <p>where primes means the derivatives with respect to <span class="math notranslate nohighlight">\(r\)</span>. After
-multiplying with <span class="math notranslate nohighlight">\(4\pi r^2\)</span>, <a class="reference internal" href="#equation-diff3">(8)</a> can be
+multiplying with <span class="math notranslate nohighlight">\(4\pi r^2\)</span>, <a class="reference internal" href="#equation-diff3">(9)</a> can be
 integrated and yields</p>
 <div class="math notranslate nohighlight">
 \[\label{gmass1}
@@ -683,15 +683,15 @@ star. <span class="math notranslate nohighlight">\(M\)</span> contains not only 
 (divided by <span class="math notranslate nohighlight">\(c^2\)</span>), that includes the internal and gravitational
 energy. So the <span class="math notranslate nohighlight">\(\varrho = \varrho_0 +U/c^2\)</span> contains the whole
 energy density <span class="math notranslate nohighlight">\(U\)</span> and rest-mass density
-<span class="math notranslate nohighlight">\(\varrho_0\)</span>. Differentiation of <a class="reference internal" href="#equation-diff1">(6)</a> with respect to
+<span class="math notranslate nohighlight">\(\varrho_0\)</span>. Differentiation of <a class="reference internal" href="#equation-diff1">(7)</a> with respect to
 <span class="math notranslate nohighlight">\(r\)</span> gives <span class="math notranslate nohighlight">\(P = P^{\prime}(\lambda,\lambda^{\prime},
 \nu,\nu^{\prime},r)\)</span>, where
 <span class="math notranslate nohighlight">\(\lambda,\lambda^{\prime},\nu,\nu^{\prime}\)</span> can be eliminated by
-<a class="reference internal" href="#equation-diff1">(6)</a>, <a class="reference internal" href="#equation-diff2">(7)</a>, <a class="reference internal" href="#equation-diff3">(8)</a>. Finally we reach
+<a class="reference internal" href="#equation-diff1">(7)</a>, <a class="reference internal" href="#equation-diff2">(8)</a>, <a class="reference internal" href="#equation-diff3">(9)</a>. Finally we reach
 <em>Tolman-Oppenheinmer-Volkoff (TOV)</em> equation for hydrostatic
 equilibrium in general relativity:</p>
 <div class="math notranslate nohighlight" id="equation-tov">
-<span class="eqno">(9)<a class="headerlink" href="#equation-tov" title="Permalink to this equation">¶</a></span>\[\frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \left (1+\frac{P}{\varrho
+<span class="eqno">(10)<a class="headerlink" href="#equation-tov" title="Permalink to this equation">¶</a></span>\[\frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \left (1+\frac{P}{\varrho
     c^{2}}\right )\left (1+\frac{4\pi r^3 P}{m c^{2}}\right ) \left (1-\frac{2Gm}{r c^{2}} \right)^{-1} \quad .\]</div>
 <p>For Newtonian case <span class="math notranslate nohighlight">\(c^2 \rightarrow  \infty\)</span>, it reverts to usual form</p>
 <div class="math notranslate nohighlight">
@@ -699,13 +699,13 @@ equilibrium in general relativity:</p>
   \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \quad .\]</div>
 <p>Now we take effective monopole gravity as</p>
 <div class="math notranslate nohighlight" id="equation-tov2">
-<span class="eqno">(10)<a class="headerlink" href="#equation-tov2" title="Permalink to this equation">¶</a></span>\[\tilde{g} = -\frac{Gm}{r^{2}} (1+\frac{P}{\varrho
+<span class="eqno">(11)<a class="headerlink" href="#equation-tov2" title="Permalink to this equation">¶</a></span>\[\tilde{g} = -\frac{Gm}{r^{2}} (1+\frac{P}{\varrho
   c^{2}})(1+\frac{4\pi r^3 P}{m c^{2}}) (1-\frac{2Gm}{r c^{2}})^{-1}  \quad .\]</div>
 <p>For general situations, we neglect the <span class="math notranslate nohighlight">\(U/c^2\)</span> and potential
 energy in m because they are usually much smaller than
 <span class="math notranslate nohighlight">\(\varrho_0\)</span>. Only when <span class="math notranslate nohighlight">\(T\)</span> reaches <span class="math notranslate nohighlight">\(10^{13} K\)</span>
 (<span class="math notranslate nohighlight">\(KT \approx m_{p} c^2\)</span>, <span class="math notranslate nohighlight">\(m_p\)</span> is proton mass) before it
-really makes a difference. So <a class="reference internal" href="#equation-tov2">(10)</a> can be expressed as</p>
+really makes a difference. So <a class="reference internal" href="#equation-tov2">(11)</a> can be expressed as</p>
 <div class="math notranslate nohighlight">
 \[\label{tov3}
   \tilde{g} = -\frac{GM_{\rm enclosed}}{r^{2}} \left (1+\frac{P}{\varrho

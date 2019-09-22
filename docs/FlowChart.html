@@ -412,7 +412,7 @@ time-centered edges and use an approximate Riemann solver construct
 fluxes.</p>
 <p>At the beginning of the time step, we assume that <span class="math notranslate nohighlight">\(\Ub\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span> are
 defined consistently, i.e., <span class="math notranslate nohighlight">\(\rho^n\)</span> and <span class="math notranslate nohighlight">\(\phi^n\)</span> satisfy equation
-<a class="reference internal" href="gravity.html#equation-eq-self-gravity">(3)</a>. Note that in
+<a class="reference internal" href="gravity.html#equation-eq-self-gravity">(4)</a>. Note that in
 <a class="reference internal" href="#equation-eq-source-correct">(2)</a>, we can actually do some
 sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
@@ -717,7 +717,7 @@ together directly.</p>
 <p class="last">At the moment, the SDC solvers do not support multilevel or AMR
 simulation.</p>
 </div>
-<p>The SDC solver follows the algorithm detailed in [castro_sdc].
+<p>The SDC solver follows the algorithm detailed in <a class="reference internal" href="zreferences.html#castro-sdc" id="id6">[castro_sdc]</a>.
 We write our evolution equation as:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)\]</div>

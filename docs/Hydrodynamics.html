@@ -1116,8 +1116,8 @@ the following test. If <span class="math notranslate nohighlight">\(s\delta s - 
 </li>
 <li><p class="first"><strong>Step 2</strong>: Construct a quadratic profile using <span class="math notranslate nohighlight">\(s_{i,-},s_i\)</span>,
 and <span class="math notranslate nohighlight">\(s_{i,+}\)</span>.</p>
-<div class="math notranslate nohighlight">
-\[s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\label{Quadratic Interp}\]</div>
+<div class="math notranslate nohighlight" id="equation-quadratic-interp">
+<span class="eqno">(3)<a class="headerlink" href="#equation-quadratic-interp" title="Permalink to this equation">¶</a></span>\[s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\]</div>
 <div class="math notranslate nohighlight">
 \[s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),\]</div>
 <div class="math notranslate nohighlight">
@@ -1137,7 +1137,7 @@ across the face assuming the profile is moving at a speed
 \mathcal{I}^{(k)}_{+}(s_i) &amp;= \frac{1}{\sigma_k h}\int_{(i+\myhalf)h-\sigma_k h}^{(i+\myhalf)h}s_i^I(x)dx \\
 \mathcal{I}^{(k)}_{-}(s_i) &amp;= \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
 \end{align}\end{split}\]</div>
-<p>Plugging in (<a class="reference external" href="#QuadraticInterp">[Quadratic Interp]</a>) gives:</p>
+<p>Plugging in <a class="reference internal" href="#equation-quadratic-interp">(3)</a> gives:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
 \mathcal{I}^{(k)}_{+}(s_i) &amp;= s_{i,+} - \frac{\sigma_k}{2}\left[s_{i,+}-s_{i,-}-\left(1-\frac{2}{3}\sigma_k\right)s_{6,i}\right], \\

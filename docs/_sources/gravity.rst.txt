@@ -83,7 +83,7 @@ the discussion in :cite:`castro_I`. Briefly:
    strategy
 
 -  At an AMR synchronization step across levels (see Section
-   `[sec:amr_synchronization] <#sec:amr_synchronization>`__ for a
+   :ref:`sec:amr_synchronization` for a
    description of when these synchronizations occur), if we’re
    choosing to synchronize the gravitational field across levels
    (``gravity.no_sync`` = 0) we then do a solve starting from the coarse
