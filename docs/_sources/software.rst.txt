@@ -72,8 +72,8 @@ division between C++ and Fortran.
    -  ``viscosity/``: the viscous transport coefficient
 
 - ``Source/``: source code. In this main directory is all of the
-   code. Sources are mixed C++ and Fortran and are organized by topic
-   as:
+  code. Sources are mixed C++ and Fortran and are organized by topic
+  as:
 
    -  ``diffusion/`` : thermal diffusion code
 
@@ -381,11 +381,12 @@ C++ iterator that knows how to loop over the ``FArrayBox`` es in the
 ``MultiFab`` that are local to the processor (in this way, a lot of the
 parallelism is hidden from view).
 
+.. _sec:amrex0:
+
 Non-Tiling MFIter
 -----------------
 
-The non-tiling way to iterate over the ``FArrayBox`` s is
- [1]_:
+The non-tiling way to iterate over the ``FArrayBox`` s is [1]_:
 
 .. code:: c++
 
@@ -556,7 +557,7 @@ Up to this point, we have not said anything about threading. In this
 style of using the MFIter, we implement the OpenMP in Fortran, for
 instance by putting a pragma around the outer loop in this example.
 
-.. _sec:boxlib1:
+.. _sec:amrex1:
 
 AMReX’s Current Tiling Approach In C++
 --------------------------------------
@@ -583,8 +584,9 @@ non-tiling iteration approach can be considered as a special case of
 tiling with the tile size equal to the box size.
 
 Let us consider an example. Suppose there are four boxes—see
-Figure `[fig:domain-tiling] <#fig:domain-tiling>`__.
+:numref:`fig:domain-tiling`.
 
+.. _fig:domain-tiling:
 .. figure:: domain-tile.png
    :alt: tiling of the domain
 
@@ -631,7 +633,7 @@ do_work routine is show below:
 
       }
 
-Note that the code is almost identical to the one in § `[sec:boxlib0] <#sec:boxlib0>`__.
+Note that the code is almost identical to the one in § :ref:`sec:amrex0`.
 Some comments:
 
 -  The iterator now takes an extra argument to turn on tiling (set
@@ -986,8 +988,8 @@ Physical boundary conditions are specified by an integer index [4]_ in
 the ``inputs`` file, using the ``castro.lo_bc`` and ``castro.hi_bc`` runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
-velocity, transverse velocity, and generic scalar are shown in Table
-`[table:castro:bcs] <#table:castro:bcs>`__
+velocity, transverse velocity, and generic scalar are shown in 
+:numref:`table:castro:bcs`.
 
 The definition of the specific actions are:
 
@@ -1019,7 +1021,8 @@ An example is the problem toy_convect which implements a
 hydrostatic lower boundary (through its custom ``bc_fill_?d.F90``
 routines.
 
-.. table:: [table:castro:bcs] Physical boundary conditions supported in Castro. why does slipwall and noslipwall do the same thing?
+.. _table:castro:bcs:
+.. table:: Physical boundary conditions supported in Castro. why does slipwall and noslipwall do the same thing?
 
    +-------------+-------------+-------------+--------------+--------------+
    | **name**    | **integer** | **normal    | **transverse | **scalars**  |
@@ -1089,53 +1092,62 @@ Fortran Helper Modules
 There are a number of modules that make data available to the Fortran
 side of Castroor perform other useful tasks.
 
--  ``amrex_constants_module``:
+``amrex_constants_module``
+--------------------------
 
-   This provides double precision constants as Fortran parameters, like
-   ``ZERO``, ``HALF``, and ``ONE``.
+This provides double precision constants as Fortran parameters, like
+``ZERO``, ``HALF``, and ``ONE``.
 
--  ``extern_probin_module``:
+``extern_probin_module``
+------------------------
 
-   This module provides access to the runtime parameters for the
-   microphysics routines (EOS, reaction network, etc.). The source
-   for this module is generated at compile type via a make rule
-   that invokes a python script. This will search for all of the
-   ``_parameters`` files in the external sources, parse them
-   for runtime parameters, and build the module.
+This module provides access to the runtime parameters for the
+microphysics routines (EOS, reaction network, etc.). The source for
+this module is generated at compile type via a make rule that invokes
+a python script. This will search for all of the ``_parameters`` files
+in the external sources, parse them for runtime parameters, and build
+the module.
 
--  ``fundamental_constants_module``:
+``fundamental_constants_module``
+--------------------------------
 
-   This provides the CGS values of many physical constants.
+This provides the CGS values of many physical constants.
 
--  ``math_module``:
 
-   This provides simple mathematical functions. At the moment, a cross
-   product routine.
+``math_module``
+---------------
 
--  ``meth_params_module``:
+This provides simple mathematical functions. At the moment, a cross
+product routine.
 
-   This module provides the integer keys used to access the state
-   arrays for both the conserved variables (``URHO``, ``UMX``, :math:`\ldots`)
-   and primitive variables (``QRHO``, ``QU``, :math:`\ldots`), as well
-   as the number of scalar variables.
 
-   It also provides the values of most of the ``castro.*xxxx*``
-   runtime parameters.
+``meth_params_module``
+----------------------
 
--  ``model_parser_module``:
+This module provides the integer keys used to access the state arrays
+for both the conserved variables (``URHO``, ``UMX``, :math:`\ldots`)
+and primitive variables (``QRHO``, ``QU``, :math:`\ldots`), as well as
+the number of scalar variables.
 
-   This module is built if ``USE_MODELPARSER`` = ``TRUE`` is set in the
-   problem’s ``GNUmakefile``. It then provides storage for the an
-   initial model and routines to read it in and interpolate onto the
-   Castro grid.
+It also provides the values of most of the ``castro.*xxxx*``
+runtime parameters.
 
--  ``prob_params_module``:
 
-   [soft:prob_params]
+``model_parser_module``
+-----------------------
 
-   This module stores information about the domain and current level,
-   and is periodically synced up with the C++ driver. The information
-   available here is:
+This module is built if ``USE_MODELPARSER`` = ``TRUE`` is set in the
+problem’s ``GNUmakefile``. It then provides storage for the an initial
+model and routines to read it in and interpolate onto the Castro grid.
+
+.. _soft:prob_params:
+
+``prob_params_module``
+----------------------
+
+This module stores information about the domain and current level, and
+is periodically synced up with the C++ driver. The information
+available here is:
 
    -  ``physbc_lo``, ``physbc_hi``: these are the boundary
       condition types at the low and high ends of the domain, for each

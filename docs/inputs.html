@@ -290,8 +290,7 @@ domain (type: <code class="docutils literal notranslate"><span class="pre">Real<
 center is used for gravity, rotation, and some other quantities.
 This is not necessarily the geometric center of the domain—often
 you should choose it to coincide with the center of mass of your
-system. See §&nbsp;<a class="reference external" href="#soft:prob_params">[soft:prob_params]</a> for
-more details.</p>
+system. See § <a class="reference internal" href="software.html#soft-prob-params"><span class="std std-ref">prob_params_module</span></a> for more details.</p>
 </li>
 </ul>
 <blockquote>
@@ -356,7 +355,7 @@ for that direction.</p>
 <p>This defines a problem with inflow (1) in the low-<span class="math notranslate nohighlight">\(x\)</span> direction,
 outflow (2) in the high-<span class="math notranslate nohighlight">\(x\)</span> direction, slip wall (4) on
 the low and high <span class="math notranslate nohighlight">\(y\)</span>-faces, and periodic in the <span class="math notranslate nohighlight">\(z\)</span>-direction.
-See §&nbsp;<a class="reference external" href="#soft:phys_bcs">[soft:phys_bcs]</a> for more information.</p>
+See § <a class="reference internal" href="software.html#soft-phys-bcs"><span class="std std-ref">Physical Boundaries</span></a>.</p>
 </div>
 <div class="section" id="resolution">
 <h3>Resolution<a class="headerlink" href="#resolution" title="Permalink to this headline">¶</a></h3>
@@ -420,7 +419,7 @@ never regrid for any level. Note that this is not compatible with
 <div class="section" id="regridding">
 <h3>Regridding<a class="headerlink" href="#regridding" title="Permalink to this headline">¶</a></h3>
 <p>The details of the regridding strategy are described in
-§&nbsp;<a class="reference external" href="#sec:tagging">[sec:tagging]</a>; here we cover how the input parameters can
+§ <a class="reference internal" href="AMR.html#sec-tagging"><span class="std std-ref">Tagging for Refinement</span></a>; here we cover how the input parameters can
 control the gridding.</p>
 <p>As described later, the user defines Fortran subroutines which tag
 individual cells at a given level if they need refinement. This list
@@ -472,11 +471,8 @@ factors, we actually apply <code class="docutils literal notranslate"><span clas
 coarsened by <code class="docutils literal notranslate"><span class="pre">blocking_factor</span></code>, so it is no longer strictly this
 fraction, but the idea is still the same.</p>
 </li>
-<li><dl class="first docutils">
-<dt><code class="docutils literal notranslate"><span class="pre">amr.refine_grid_layout</span></code>: refine grids more if # of</dt>
-<dd><p class="first last">processors <span class="math notranslate nohighlight">\(&gt;\)</span> # of grids (0 if false, 1 if true; default: 1)</p>
-</dd>
-</dl>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.refine_grid_layout</span></code>: refine grids more if # of
+processors <span class="math notranslate nohighlight">\(&gt;\)</span> # of grids (0 if false, 1 if true; default: 1)</p>
 </li>
 </ul>
 </div></blockquote>
@@ -570,12 +566,11 @@ the number of level 0 steps taken equals 1000, whichever comes first.</p>
 <h3>Time Step<a class="headerlink" href="#time-step" title="Permalink to this headline">¶</a></h3>
 <p>If <code class="docutils literal notranslate"><span class="pre">castro.do_hydro</span> <span class="pre">=</span> <span class="pre">1</span></code>, then typically
 the code chooses a time step based on the CFL number:</p>
-<div class="math notranslate nohighlight">
-\[\Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}},
+<div class="math notranslate nohighlight" id="equation-eq-cfl">
+<span class="eqno">(1)<a class="headerlink" href="#equation-eq-cfl" title="Permalink to this equation">¶</a></span>\[\Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}},
                                                                \frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}},
-                                                               \frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]
-\label{eq:cfl}\]</div>
-<p>If method-of-lines of SDC integration is used instead, then we have</p>
+                                                               \frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]\]</div>
+<p>If SDC integration is used instead, then we have</p>
 <div class="math notranslate nohighlight">
 \[\Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\left(\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
                                                     \left(\frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
@@ -608,7 +603,7 @@ violate the CFL criterion (Integer; default: 1)</li>
 <span class="n">castro</span><span class="o">.</span><span class="n">dt_cutoff</span> <span class="o">=</span> <span class="mf">1.e-20</span>
 </pre></div>
 </div>
-<p>This defines the <span class="math notranslate nohighlight">\(\mathtt{cfl}\)</span> parameter in Eq.&nbsp;<a class="reference external" href="#eq:cfl">[eq:cfl]</a> to be
+<p>This defines the <span class="math notranslate nohighlight">\(\mathtt{cfl}\)</span> parameter in <a class="reference internal" href="#equation-eq-cfl">(1)</a> to be
 0.9, but sets (via <code class="docutils literal notranslate"><span class="pre">init_shrink</span></code>) the first timestep we take to
 be 1% of what it would be otherwise. This allows us to ramp up to
 the hydrodynamic timestep at the start of a simulation. The
@@ -639,9 +634,10 @@ grow in subsequent steps by a factor of castro.change_max each step.</p>
 \[\Delta t = \frac{1}{2}\min_{i,j,k}\left[\min\left\{\frac{\Delta x^2}{D_{i,j,k}},
                                                    \frac{\Delta y^2}{D_{i,j,k}},
                                                    \frac{\Delta z^2}{D_{i,j,k}}\right\}\right]\]</div>
-<p>where <span class="math notranslate nohighlight">\(D \equiv k / (\rho c_V)\)</span> if we are diffusing temperature, and
-<span class="math notranslate nohighlight">\(D \equiv k / (\rho c_P)\)</span> if we are diffusing enthalpy. No input parameter
-is necessary to enable this constraint. See Chapter <a class="reference external" href="#ch:diffusion">[ch:diffusion]</a> for more details.</p>
+<p>where <span class="math notranslate nohighlight">\(D \equiv k / (\rho c_V)\)</span> if we are diffusing temperature,
+and <span class="math notranslate nohighlight">\(D \equiv k / (\rho c_P)\)</span> if we are diffusing enthalpy. No
+input parameter is necessary to enable this constraint. See Chapter
+<a class="reference internal" href="diffusion.html#ch-diffusion"><span class="std std-ref">Diffusion</span></a> for more details.</p>
 <p><em>reactions</em>: If reactions are enabled, the timestep will also
 be limited by two constraints:</p>
 <div class="math notranslate nohighlight">
@@ -731,7 +727,7 @@ algorithm without I/O.</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.check_nfiles</span></code>: how parallel is the writing of
 the checkpoint files? (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 64)</p>
-<p>See the §&nbsp;<a class="reference external" href="#software:io">[software:io]</a> for more details on parallel I/O and the
+<p>See the chapter <a class="reference internal" href="io.html#ch-io"><span class="std std-ref">Parallel I/O</span></a> for more details on parallel I/O and the
 <code class="docutils literal notranslate"><span class="pre">amr.check_nfiles</span></code> parameter.</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.checkpoint_on_restart</span></code>: should we write a

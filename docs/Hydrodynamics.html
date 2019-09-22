@@ -261,9 +261,9 @@ several main data structures that hold the state.</p>
 <li><p class="first">conserved state: these arrays generally begin with <code class="docutils literal notranslate"><span class="pre">u</span></code>,
 e.g., <code class="docutils literal notranslate"><span class="pre">uin</span></code>, <code class="docutils literal notranslate"><span class="pre">uout</span></code>. The <code class="docutils literal notranslate"><span class="pre">NVAR</span></code>
 components for the state data in the array are accessed using
-integer keys defined in <code class="xref std std-numref docutils literal notranslate"><span class="pre">table:consints</span></code>.</p>
+integer keys defined in <a class="reference internal" href="#table-consints"><span class="std std-numref">Table 18</span></a>.</p>
 <span id="table-consints"></span><table border="1" class="docutils" id="id19">
-<caption><span class="caption-text">The integer variables to index the conservative state array</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 18 </span><span class="caption-text">The integer variables to index the conservative state array</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="32%" />
 <col width="32%" />
@@ -361,7 +361,7 @@ present in <code class="docutils literal notranslate"><span class="pre">NQSRC</s
 keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
 are “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
 <table border="1" class="docutils" id="id20">
-<caption><span class="caption-text">[table:primlist] The integer variable keys for accessing the primitive state vector.</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 19 </span><span class="caption-text">[table:primlist] The integer variable keys for accessing the primitive state vector.</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="33%" />
 <col width="34%" />
@@ -448,7 +448,7 @@ by the integer keys listed in table&nbsp;<a class="reference external" href="#ta
 Note, unless otherwise specified the quantities without a subscript are “gas”
 only and those with the “tot” subscript are “gas + radiation”.</p>
 <table border="1" class="docutils" id="id21">
-<caption><span class="caption-text">[table:qauxlist] The integer variable keys for accessing the auxiliary primitive state vector, quax.</span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 20 </span><span class="caption-text">[table:qauxlist] The integer variable keys for accessing the auxiliary primitive state vector, quax.</span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="33%" />
 <col width="33%" />
@@ -523,7 +523,7 @@ the integer keys defined in table&nbsp;<a class="reference external" href="#tabl
 Note, unless otherwise specified the quantities without a subscript are
 “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
 <table border="1" class="docutils" id="id22">
-<caption><span class="caption-text">[table:gdlist] The integer variable keys for accessing the Godunov interface state vectors.</span><a class="headerlink" href="#id22" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 21 </span><span class="caption-text">[table:gdlist] The integer variable keys for accessing the Godunov interface state vectors.</span><a class="headerlink" href="#id22" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="33%" />
 <col width="33%" />
@@ -1459,14 +1459,14 @@ problem is initialized as a torus with constant specific angular
 momentum, as shown below:</p>
 <div class="figure" id="id23">
 <img alt="rotating torus initial density" src="_images/rotating_torus_00000_density.png" />
-<p class="caption"><span class="caption-text">Initial density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem with
+<p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">Initial density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem with
 <span class="math notranslate nohighlight">\(64^3\)</span> zones.</span></p>
 </div>
 <p>For the standard hydrodynamics algorithm, the torus gets disrupted and
 spreads out into a disk:</p>
 <div class="figure" id="id24">
 <img alt="rotating torus normal hydro" src="_images/rotating_torus_00200_density.png" />
-<p class="caption"><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
+<p class="caption"><span class="caption-number">Fig. 4 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps, using <span class="math notranslate nohighlight">\(64^3\)</span> zones.  Notice that the initial torus
 has become disrupted into a disk.</span></p>
 </div>
@@ -1477,7 +1477,7 @@ has become disrupted into a disk.</span></p>
 <p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  With this enabled, we see that the torus remains intact:</p>
 <div class="figure" id="id25">
 <img alt="rotating torus with hybrid momentum" src="_images/rotating_torus_hybrid_00200_density.png" />
-<p class="caption"><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
+<p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps with the hybrid momentum algorithm, using <span class="math notranslate nohighlight">\(64^3\)</span>
 zones.  With this angular-momentum preserving scheme we see that
 the initial torus is largely intact.</span></p>

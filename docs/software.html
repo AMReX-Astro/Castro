@@ -130,7 +130,16 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#gravity-class"><code class="docutils literal notranslate"><span class="pre">Gravity</span></code> class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#fortran-helper-modules">Fortran Helper Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fortran-helper-modules">Fortran Helper Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#amrex-constants-module"><code class="docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extern-probin-module"><code class="docutils literal notranslate"><span class="pre">extern_probin_module</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fundamental-constants-module"><code class="docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#math-module"><code class="docutils literal notranslate"><span class="pre">math_module</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#meth-params-module"><code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-parser-module"><code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prob-params-module"><code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
@@ -264,10 +273,13 @@ within a node, to loop over subregions of a box with different
 threads.</p>
 <p>The code structure in the Castro/ directory reflects the
 division between C++ and Fortran.</p>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">constants/</span></code>: contains a file of useful constants in CGS units</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">docs/</span></code>: you’re reading this now!</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Exec/</span></code>: various problem implementations, sorted by category:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">constants/</span></code>: contains a file of useful constants in CGS units</li>
-<li><code class="docutils literal notranslate"><span class="pre">docs/</span></code>: you’re reading this now!</li>
-<li><code class="docutils literal notranslate"><span class="pre">Exec/</span></code>: various problem implementations, sorted by category:<ul>
 <li><code class="docutils literal notranslate"><span class="pre">gravity_tests/</span></code>: test problems that primarily exercise the gravity solver</li>
 <li><code class="docutils literal notranslate"><span class="pre">hydro_tests/</span></code>: test problems of the hydrodynamics (with or without reactions)</li>
 <li><code class="docutils literal notranslate"><span class="pre">radiation_tests/</span></code>: test problems that primarily exercise the radiation hydrodynamics solver</li>
@@ -277,8 +289,9 @@ division between C++ and Fortran.</p>
 <li><code class="docutils literal notranslate"><span class="pre">unit_tests/</span></code>: test problems that exercise primarily a single module</li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">Microphysics/</span></code>: contains directories for different default
-microphysics (these are all implemented in Fortran)<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Microphysics/</span></code>: contains directories for different default
+microphysics (these are all implemented in Fortran)</p>
+<ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">conductivity/</span></code>: the thermal conductivity</li>
 <li><code class="docutils literal notranslate"><span class="pre">EOS/</span></code>: the equation of state</li>
 <li><code class="docutils literal notranslate"><span class="pre">networks/</span></code>: the nuclear reaction networks</li>
@@ -286,10 +299,11 @@ microphysics (these are all implemented in Fortran)<ul>
 <li><code class="docutils literal notranslate"><span class="pre">viscosity/</span></code>: the viscous transport coefficient</li>
 </ul>
 </li>
-<li><dl class="first docutils">
-<dt><code class="docutils literal notranslate"><span class="pre">Source/</span></code>: source code. In this main directory is all of the</dt>
-<dd>code. Sources are mixed C++ and Fortran and are organized by topic
-as:<ul class="last">
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Source/</span></code>: source code. In this main directory is all of the
+code. Sources are mixed C++ and Fortran and are organized by topic
+as:</p>
+<blockquote>
+<div><ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">diffusion/</span></code> : thermal diffusion code</li>
 <li><code class="docutils literal notranslate"><span class="pre">driver/</span></code> : the main driver, I/O, runtime parameter support</li>
 <li><code class="docutils literal notranslate"><span class="pre">gravity/</span></code> : self-gravity code</li>
@@ -302,10 +316,10 @@ as:<ul class="last">
 <li><code class="docutils literal notranslate"><span class="pre">scf/</span></code> : the self-consistent field initialization support</li>
 <li><code class="docutils literal notranslate"><span class="pre">sources/</span></code> : hydrodynamics source terms support</li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">Util/</span></code>: a catch-all for additional things you may need<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Util/</span></code>: a catch-all for additional things you may need</p>
+<ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">ConvertCheckpoint/</span></code>: a tool to convert a checkpoint file to
 a larger domain</li>
 <li>…</li>
@@ -383,7 +397,7 @@ inherits. <code class="docutils literal notranslate"><span class="pre">grids</sp
 the layout of the boxes at the current level.</p>
 <div class="figure" id="id9">
 <a class="reference internal image-reference" href="_images/index_grid2.png"><img alt="_images/index_grid2.png" src="_images/index_grid2.png" style="width: 4in;" /></a>
-<p class="caption"><span class="caption-text">Three boxes that comprise a single level. At this
+<p class="caption"><span class="caption-number">Fig. 1 </span><span class="caption-text">Three boxes that comprise a single level. At this
 resolution, the domain is 20 <span class="math notranslate nohighlight">\(\times\)</span> 18 zones. Note that the
 indexing in AMReX&nbsp;starts with <span class="math notranslate nohighlight">\(0\)</span>.</span></p>
 </div>
@@ -570,11 +584,8 @@ C++ iterator that knows how to loop over the <code class="docutils literal notra
 <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> that are local to the processor (in this way, a lot of the
 parallelism is hidden from view).</p>
 <div class="section" id="non-tiling-mfiter">
-<h3>Non-Tiling MFIter<a class="headerlink" href="#non-tiling-mfiter" title="Permalink to this headline">¶</a></h3>
-<dl class="docutils">
-<dt>The non-tiling way to iterate over the <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> s is</dt>
-<dd><a class="footnote-reference" href="#id5" id="id1">[1]</a>:</dd>
-</dl>
+<span id="sec-amrex0"></span><h3>Non-Tiling MFIter<a class="headerlink" href="#non-tiling-mfiter" title="Permalink to this headline">¶</a></h3>
+<p>The non-tiling way to iterate over the <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> s is <a class="footnote-reference" href="#id5" id="id1">[1]</a>:</p>
 <div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="n">MFIter</span> <span class="n">mfi</span><span class="p">(</span><span class="n">mf</span><span class="p">);</span> <span class="n">mfi</span><span class="o">.</span><span class="n">isValid</span><span class="p">();</span> <span class="o">++</span><span class="n">mfi</span><span class="p">)</span> <span class="o">//</span> <span class="n">Loop</span> <span class="n">over</span> <span class="n">boxes</span>
 <span class="p">{</span>
   <span class="o">//</span> <span class="n">Get</span> <span class="n">the</span> <span class="n">index</span> <span class="n">space</span> <span class="n">of</span> <span class="n">this</span> <span class="n">iteration</span>
@@ -738,7 +749,7 @@ style of using the MFIter, we implement the OpenMP in Fortran, for
 instance by putting a pragma around the outer loop in this example.</p>
 </div>
 <div class="section" id="amrexs-current-tiling-approach-in-c">
-<span id="sec-boxlib1"></span><h3>AMReX’s Current Tiling Approach In C++<a class="headerlink" href="#amrexs-current-tiling-approach-in-c" title="Permalink to this headline">¶</a></h3>
+<span id="sec-amrex1"></span><h3>AMReX’s Current Tiling Approach In C++<a class="headerlink" href="#amrexs-current-tiling-approach-in-c" title="Permalink to this headline">¶</a></h3>
 <p>There are two types of tiling that people discuss. In <em>logical
 tiling</em>, the data storage in memory is unchanged from how we do things
 now in pure MPI. In a given box, the data region is stored
@@ -758,10 +769,10 @@ and a <code class="docutils literal notranslate"><span class="pre">MFIter</span>
 non-tiling iteration approach can be considered as a special case of
 tiling with the tile size equal to the box size.</p>
 <p>Let us consider an example. Suppose there are four boxes—see
-Figure <a class="reference external" href="#fig:domain-tiling">[fig:domain-tiling]</a>.</p>
+<a class="reference internal" href="#fig-domain-tiling"><span class="std std-numref">Fig. 2</span></a>.</p>
 <div class="figure" id="id10">
-<img alt="tiling of the domain" src="_images/domain-tile.png" />
-<p class="caption"><span class="caption-text">A simple domain showing 4 Boxes labeled 0–3, and their tiling
+<span id="fig-domain-tiling"></span><img alt="tiling of the domain" src="_images/domain-tile.png" />
+<p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">A simple domain showing 4 Boxes labeled 0–3, and their tiling
 regions (dotted lines)</span></p>
 </div>
 <p>The first box is divided into 4 logical tiles, the second and third
@@ -801,7 +812,7 @@ do_work routine is show below:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Note that the code is almost identical to the one in § <a class="reference external" href="#sec:boxlib0">[sec:boxlib0]</a>.
+<p>Note that the code is almost identical to the one in § <a class="reference internal" href="#sec-amrex0"><span class="std std-ref">Non-Tiling MFIter</span></a>.
 Some comments:</p>
 <ul>
 <li><p class="first">The iterator now takes an extra argument to turn on tiling (set
@@ -1122,8 +1133,8 @@ AMReX that can get around this, but we do not use them in Castro.</p>
 the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> file, using the <code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code> runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
-velocity, transverse velocity, and generic scalar are shown in Table
-<a class="reference external" href="#table:castro:bcs">[table:castro:bcs]</a></p>
+velocity, transverse velocity, and generic scalar are shown in
+<a class="reference internal" href="#table-castro-bcs"><span class="std std-numref">Table 17</span></a>.</p>
 <p>The definition of the specific actions are:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">INT_DIR</span></code>: data taken from other grids or interpolated</li>
@@ -1147,8 +1158,8 @@ the domain. You then need to write the implementation code for this.
 An example is the problem toy_convect which implements a
 hydrostatic lower boundary (through its custom <code class="docutils literal notranslate"><span class="pre">bc_fill_?d.F90</span></code>
 routines.</p>
-<table border="1" class="docutils" id="id11">
-<caption><span class="caption-text">[table:castro:bcs] Physical boundary conditions supported in Castro. why does slipwall and noslipwall do the same thing?</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<span id="table-castro-bcs"></span><table border="1" class="docutils" id="id11">
+<caption><span class="caption-number">Table 17 </span><span class="caption-text">Physical boundary conditions supported in Castro. why does slipwall and noslipwall do the same thing?</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="19%" />
 <col width="19%" />
@@ -1250,46 +1261,51 @@ calling the AMReX multigrid solvers to solve the Poisson equation.</p>
 <h2>Fortran Helper Modules<a class="headerlink" href="#fortran-helper-modules" title="Permalink to this headline">¶</a></h2>
 <p>There are a number of modules that make data available to the Fortran
 side of Castroor perform other useful tasks.</p>
-<ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>:</p>
+<div class="section" id="amrex-constants-module">
+<h3><code class="docutils literal notranslate"><span class="pre">amrex_constants_module</span></code><a class="headerlink" href="#amrex-constants-module" title="Permalink to this headline">¶</a></h3>
 <p>This provides double precision constants as Fortran parameters, like
 <code class="docutils literal notranslate"><span class="pre">ZERO</span></code>, <code class="docutils literal notranslate"><span class="pre">HALF</span></code>, and <code class="docutils literal notranslate"><span class="pre">ONE</span></code>.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">extern_probin_module</span></code>:</p>
+</div>
+<div class="section" id="extern-probin-module">
+<h3><code class="docutils literal notranslate"><span class="pre">extern_probin_module</span></code><a class="headerlink" href="#extern-probin-module" title="Permalink to this headline">¶</a></h3>
 <p>This module provides access to the runtime parameters for the
-microphysics routines (EOS, reaction network, etc.). The source
-for this module is generated at compile type via a make rule
-that invokes a python script. This will search for all of the
-<code class="docutils literal notranslate"><span class="pre">_parameters</span></code> files in the external sources, parse them
-for runtime parameters, and build the module.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code>:</p>
+microphysics routines (EOS, reaction network, etc.). The source for
+this module is generated at compile type via a make rule that invokes
+a python script. This will search for all of the <code class="docutils literal notranslate"><span class="pre">_parameters</span></code> files
+in the external sources, parse them for runtime parameters, and build
+the module.</p>
+</div>
+<div class="section" id="fundamental-constants-module">
+<h3><code class="docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code><a class="headerlink" href="#fundamental-constants-module" title="Permalink to this headline">¶</a></h3>
 <p>This provides the CGS values of many physical constants.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">math_module</span></code>:</p>
+</div>
+<div class="section" id="math-module">
+<h3><code class="docutils literal notranslate"><span class="pre">math_module</span></code><a class="headerlink" href="#math-module" title="Permalink to this headline">¶</a></h3>
 <p>This provides simple mathematical functions. At the moment, a cross
 product routine.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>:</p>
-<p>This module provides the integer keys used to access the state
-arrays for both the conserved variables (<code class="docutils literal notranslate"><span class="pre">URHO</span></code>, <code class="docutils literal notranslate"><span class="pre">UMX</span></code>, <span class="math notranslate nohighlight">\(\ldots\)</span>)
-and primitive variables (<code class="docutils literal notranslate"><span class="pre">QRHO</span></code>, <code class="docutils literal notranslate"><span class="pre">QU</span></code>, <span class="math notranslate nohighlight">\(\ldots\)</span>), as well
-as the number of scalar variables.</p>
+</div>
+<div class="section" id="meth-params-module">
+<h3><code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code><a class="headerlink" href="#meth-params-module" title="Permalink to this headline">¶</a></h3>
+<p>This module provides the integer keys used to access the state arrays
+for both the conserved variables (<code class="docutils literal notranslate"><span class="pre">URHO</span></code>, <code class="docutils literal notranslate"><span class="pre">UMX</span></code>, <span class="math notranslate nohighlight">\(\ldots\)</span>)
+and primitive variables (<code class="docutils literal notranslate"><span class="pre">QRHO</span></code>, <code class="docutils literal notranslate"><span class="pre">QU</span></code>, <span class="math notranslate nohighlight">\(\ldots\)</span>), as well as
+the number of scalar variables.</p>
 <p>It also provides the values of most of the <code class="docutils literal notranslate"><span class="pre">castro.*xxxx*</span></code>
 runtime parameters.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code>:</p>
+</div>
+<div class="section" id="model-parser-module">
+<h3><code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code><a class="headerlink" href="#model-parser-module" title="Permalink to this headline">¶</a></h3>
 <p>This module is built if <code class="docutils literal notranslate"><span class="pre">USE_MODELPARSER</span></code> = <code class="docutils literal notranslate"><span class="pre">TRUE</span></code> is set in the
-problem’s <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. It then provides storage for the an
-initial model and routines to read it in and interpolate onto the
-Castro grid.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code>:</p>
-<p>[soft:prob_params]</p>
-<p>This module stores information about the domain and current level,
-and is periodically synced up with the C++ driver. The information
+problem’s <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. It then provides storage for the an initial
+model and routines to read it in and interpolate onto the Castro grid.</p>
+</div>
+<div class="section" id="prob-params-module">
+<span id="soft-prob-params"></span><h3><code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code><a class="headerlink" href="#prob-params-module" title="Permalink to this headline">¶</a></h3>
+<p>This module stores information about the domain and current level, and
+is periodically synced up with the C++ driver. The information
 available here is:</p>
-<ul>
+<blockquote>
+<div><ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">physbc_lo</span></code>, <code class="docutils literal notranslate"><span class="pre">physbc_hi</span></code>: these are the boundary
 condition types at the low and high ends of the domain, for each
 coordinate direction. Integer keys, <code class="docutils literal notranslate"><span class="pre">Interior</span></code>, <code class="docutils literal notranslate"><span class="pre">Inflow</span></code>,
@@ -1317,8 +1333,7 @@ velocity.</p>
 <li><p class="first"><em>refining information</em></p>
 </li>
 </ul>
-</li>
-</ul>
+</div></blockquote>
 <table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -1355,6 +1370,7 @@ compared to the actual code</td></tr>
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td>the integer values are defined in <code class="docutils literal notranslate"><span class="pre">BC_TYPES.H</span></code></td></tr>
 </tbody>
 </table>
+</div>
 </div>
 </div>
 

@@ -395,7 +395,7 @@ step (ignoring the reaction terms), and reacting for half a time step.
 The treatment of source terms complicates this a little. The actual
 update, in sequence, looks like:</p>
 <div class="math notranslate nohighlight" id="equation-eq-source-correct">
-<span class="eqno">(1)<a class="headerlink" href="#equation-eq-source-correct" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
+<span class="eqno">(2)<a class="headerlink" href="#equation-eq-source-correct" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
 \Ub^\star &amp;= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
 \Ub^{n+1,(a)} &amp;= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
 \Ub^{n+1,(b)} &amp;= \Ub^{n+1,(a)} + \dt\, {\bf A}(\Ub^\star) \\
@@ -412,8 +412,8 @@ time-centered edges and use an approximate Riemann solver construct
 fluxes.</p>
 <p>At the beginning of the time step, we assume that <span class="math notranslate nohighlight">\(\Ub\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span> are
 defined consistently, i.e., <span class="math notranslate nohighlight">\(\rho^n\)</span> and <span class="math notranslate nohighlight">\(\phi^n\)</span> satisfy equation
-<a class="reference internal" href="gravity.html#equation-eq-self-gravity">(1)</a>. Note that in
-<a class="reference internal" href="#equation-eq-source-correct">(1)</a>, we can actually do some
+<a class="reference internal" href="gravity.html#equation-eq-self-gravity">(3)</a>. Note that in
+<a class="reference internal" href="#equation-eq-source-correct">(2)</a>, we can actually do some
 sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
 make the update more akin to:</p>
