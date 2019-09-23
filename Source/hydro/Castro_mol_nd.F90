@@ -13,22 +13,22 @@ contains
                                     dq, dq_lo, dq_hi, &
                                     qm, qm_lo, qm_hi, &
                                     qp, qp_lo, qp_hi, &
-                                    dx) bind(C, name="ca_mol_plm_reconstruct")
+                                    dx, domlo, domhi) bind(C, name="ca_mol_plm_reconstruct")
 
     use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
-                                   use_flattening, QPRES, &
-                                   QTEMP, QFS, QFX, QREINT, QRHO, &
+                                   plm_well_balanced, QPRES, &
+                                   QTEMP, QFS, QFX, QREINT, QRHO, QU, QV, QW, &
                                    first_order_hydro, hybrid_riemann, &
-                                   ppm_temp_fix
+                                   ppm_temp_fix, const_grav
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
     use slope_module, only : uslope
     use amrex_fort_module, only : rt => amrex_real
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use network, only : nspec, naux
-    use prob_params_module, only : dg, coord_type
+    use prob_params_module, only : dg, coord_type, Symmetry, physbc_lo, physbc_hi
 
     implicit none
 
@@ -44,6 +44,7 @@ contains
     real(rt), intent(inout) :: dq(dq_lo(1):dq_hi(1), dq_lo(2):dq_hi(2), dq_lo(3):dq_hi(3), NQ)
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ, AMREX_SPACEDIM)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ, AMREX_SPACEDIM)
+    integer, intent(in) :: domlo(3), domhi(3)
     real(rt), intent(in) :: dx(3)
 
     integer :: idir, i, j, k, n
@@ -59,7 +60,8 @@ contains
           call uslope(lo, hi, idir, &
                       q, q_lo, q_hi, n, &
                       flatn, fl_lo, fl_hi, &
-                      dq, dq_lo, dq_hi)
+                      dq, dq_lo, dq_hi, &
+                      dx, domlo, domhi)
 
        end do
 
@@ -67,58 +69,217 @@ contains
 
           ! for each slope, fill the two adjacent edge states
           if (idir == 1) then
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-                   do i = lo(1), hi(1)
 
-                      ! left state at i+1/2 interface
-                      qm(i+1,j,k,n,1) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+             if (plm_well_balanced == 1 .and. n == QPRES .and. idir == AMREX_SPACEDIM) then
 
-                      ! right state at i-1/2 interface
-                      qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
 
+                         ! left state at i+1/2 interface
+                         qm(i+1,j,k,n,1) = q(i,j,k,n) + HALF*dq(i,j,k,n) + &
+                              HALF*dx(1)*q(i,j,k,QRHO)*const_grav
+
+                         ! right state at i-1/2 interface
+                         qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n) - &
+                              HALF*dx(1)*q(i,j,k,QRHO)*const_grav
+                      end do
                    end do
                 end do
-             end do
+
+             else
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
+
+                         ! left state at i+1/2 interface
+                         qm(i+1,j,k,n,1) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+
+                         ! right state at i-1/2 interface
+                         qp(i,j,k,n,1) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+
+                      end do
+                   end do
+                end do
+             end if
 
 #if BL_SPACEDIM >= 2
           else if (idir == 2) then
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-                   do i = lo(1), hi(1)
 
-                      ! left state at j+1/2 interface
-                      qm(i,j+1,k,n,2) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+             if (plm_well_balanced == 1 .and. n == QPRES .and. idir == AMREX_SPACEDIM) then
 
-                      ! right state at j-1/2 interface
-                      qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
 
+                         ! left state at i+1/2 interface
+                         qm(i,j+1,k,n,2) = q(i,j,k,n) + HALF*dq(i,j,k,n) + &
+                              HALF*dx(2)*q(i,j,k,QRHO)*const_grav
+
+                         ! right state at i-1/2 interface
+                         qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n) - &
+                              HALF*dx(2)*q(i,j,k,QRHO)*const_grav
+                      end do
                    end do
                 end do
-             end do
+
+             else
+
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
+
+                         ! left state at j+1/2 interface
+                         qm(i,j+1,k,n,2) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+
+                         ! right state at j-1/2 interface
+                         qp(i,j,k,n,2) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+
+                      end do
+                   end do
+                end do
+             end if
 #endif
 
 #if BL_SPACEDIM == 3
           else
 
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-                   do i = lo(1), hi(1)
+             if (plm_well_balanced == 1 .and. n == QPRES .and. idir == AMREX_SPACEDIM) then
 
-                      ! left state at k+1/2 interface
-                      qm(i,j,k+1,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
 
-                      ! right state at k-1/2 interface
-                      qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+                         ! left state at i+1/2 interface
+                         qm(i,j,k+1,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n) + &
+                              HALF*dx(3)*q(i,j,k,QRHO)*const_grav
 
+                         ! right state at i-1/2 interface
+                         qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n) - &
+                              HALF*dx(3)*q(i,j,k,QRHO)*const_grav
+                      end do
                    end do
                 end do
-             end do
+
+             else
+
+                do k = lo(3), hi(3)
+                   do j = lo(2), hi(2)
+                      do i = lo(1), hi(1)
+
+                         ! left state at k+1/2 interface
+                         qm(i,j,k+1,n,3) = q(i,j,k,n) + HALF*dq(i,j,k,n)
+
+                         ! right state at k-1/2 interface
+                         qp(i,j,k,n,3) = q(i,j,k,n) - HALF*dq(i,j,k,n)
+
+                      end do
+                   end do
+                end do
+
+             end if
 #endif
 
           end if
-       end do
-    end do
+
+       end do ! component loop
+
+       ! special care for reflecting BCs
+       if (idir == 1) then
+          if (lo(1) == domlo(1) .and. physbc_lo(1) == Symmetry) then
+             ! reset the left state at domlo(1) if needed -- it is outside the domain
+
+             do k = lo(3)-dg(3), hi(3)+dg(3)
+                do j = lo(2)-dg(2), hi(2)+dg(2)
+
+                   qm(domlo(1),j,k,:,1) = qp(domlo(1),j,k,:,1)
+                   qm(domlo(1),j,k,QU,1) = -qp(domlo(1),j,k,QU,1)
+
+                end do
+             end do
+
+          end if
+
+          if (hi(1)+1 == domhi(1)+1 .and. physbc_hi(1) == Symmetry) then
+             ! reset the right state at domhi(1)+1 if needed -- it is outside the domain
+
+             do k = lo(3)-dg(3), hi(3)+dg(3)
+                do j = lo(2)-dg(2), hi(2)+dg(2)
+
+                   qp(domhi(1)+1,j,k,:,1) = qm(domhi(1)+1,j,k,:,1)
+                   qp(domhi(1)+1,j,k,QU,1) = -qm(domhi(1)+1,j,k,QU,1)
+
+                end do
+             end do
+
+          end if
+
+#if AMREX_SPACEDIM >= 2
+       else if (idir == 2) then
+
+          if (lo(2) == domlo(2) .and. physbc_lo(2) == Symmetry) then
+             ! reset the left state at domlo(2) if needed -- it is outside the domain
+
+             do k = lo(3)-dg(3), hi(3)+dg(3)
+                do i = lo(1)-1, hi(1)+1
+
+                   qm(i,domlo(2),k,:,2) = qp(i,domlo(2),k,:,2)
+                   qm(i,domlo(2),k,QV,2) = -qp(i,domlo(2),k,QV,2)
+
+                end do
+             end do
+
+          end if
+
+          if (hi(2)+1 == domhi(2)+1 .and. physbc_hi(2) == Symmetry) then
+             ! reset the right state at domhi(2)+1 if needed -- it is outside the domain
+
+             do k = lo(3)-dg(3), hi(3)+dg(3)
+                do i = lo(1)-1, hi(1)+1
+
+                   qp(i,domhi(2)+1,k,:,2) = qm(i,domhi(2)+1,k,:,2)
+                   qp(i,domhi(2)+1,k,QV,2) = -qm(i,domhi(2)+1,k,QV,2)
+
+                end do
+             end do
+
+          end if
+#endif
+#if AMREX_SPACEDIM == 3
+       else
+
+          if (lo(3) == domlo(3) .and. physbc_lo(3) == Symmetry) then
+             ! reset the left state at domlo(3) if needed -- it is outside the domain
+
+             do j = lo(2)-1, hi(2)+1
+                do i = lo(1)-1, hi(1)+1
+
+                   qm(i,j,domlo(3),:,3) = qp(i,j,domlo(3),:,3)
+                   qm(i,j,domlo(3),QW,3) = -qp(i,j,domlo(3),QW,3)
+
+                end do
+             end do
+
+          end if
+
+          if (hi(3)+1 == domhi(3)+1 .and. physbc_hi(3) == Symmetry) then
+             ! reset the right state at domhi(3)+1 if needed -- it is outside the domain
+
+             do j = lo(2)-1, hi(2)+1
+                do i = lo(1)-1, hi(1)+1
+
+                   qp(i,j,domhi(3)+1,:,3) = qm(i,j,domhi(3)+1,:,3)
+                   qp(i,j,domhi(3)+1,QW,3) = -qm(i,j,domhi(3)+1,QW,3)
+
+                end do
+             end do
+
+          end if
+#endif
+
+       end if
+
+    end do ! dimension loop
 
     ! use T to define p
     if (ppm_temp_fix == 1) then
@@ -168,7 +329,7 @@ contains
     use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
-                                   use_flattening, QPRES, &
+                                   QPRES, &
                                    QTEMP, QFS, QFX, QREINT, QRHO, &
                                    first_order_hydro, hybrid_riemann, &
                                    ppm_temp_fix
@@ -318,12 +479,11 @@ contains
     use castro_error_module
     use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
                                    UTEMP, UMX, &
-                                   use_flattening, QPRES, &
+                                   QPRES, &
                                    QTEMP, QFS, QFX, QREINT, QRHO, &
                                    first_order_hydro, difmag, hybrid_riemann, &
                                    limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-    use slope_module, only : uslope
     use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source

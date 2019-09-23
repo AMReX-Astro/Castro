@@ -1097,6 +1097,9 @@ Castro::variableSetUp ()
     dt_sdc.resize(SDC_NODES);
     dt_sdc = {0.0, 1.0};
 
+    node_weights.resize(SDC_NODES);
+    node_weights = {0.5, 0.5};
+
   } else if (sdc_order == 4) {
     // Gauss-Lobatto (Simpsons)
     SDC_NODES = 3;
