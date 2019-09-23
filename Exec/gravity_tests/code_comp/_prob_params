@@ -1,0 +1,14 @@
+
+heating_factor       real         1.e3_rt                 y
+
+g0                   real         -9.021899571e8_rt       y
+
+rho0                 real         1.82094e6_rt            y
+
+p0                   real         2.7647358e23_rt         y
+
+gamma1               real         1.4e0_rt                y
+
+do_pert              logical      .true.                  y
+
+ny                   integer      256                     y
