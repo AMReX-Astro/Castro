@@ -362,8 +362,19 @@ eigenvectors?</td>
 <td>0</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">plm_iorder</span></code></td>
-<td>for piecewise linear, reconstruction order to use</td>
+<td>for piecewise linear, reconstruction order to use 1 =
+piecewise constant, 2 = piecewise linear</td>
 <td>2</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">plm_limiter</span></code></td>
+<td>for piecewise linear, what limiter to use? 1 = 2nd
+order MC, 2 = 4th order MC</td>
+<td>2</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">plm_well_balanced</span></code></td>
+<td>for piecewise linear, MOL or SDC, do well-balanced
+reconstruction on pressure</td>
+<td>0</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hybrid_riemann</span></code></td>
 <td>do we drop from our regular Riemann solver to HLL when

@@ -229,7 +229,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/react_util_module/single_zone_jac" title="f/react_util_module/single_zone_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_jac()</span></code></a>, <a class="reference internal" href="#f/react_util_module/single_zone_react_source" title="f/react_util_module/single_zone_react_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_react_source()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/react_util_module/okay_to_burn" title="f/react_util_module/okay_to_burn"><code class="xref f f-func docutils literal notranslate"><span class="pre">okay_to_burn()</span></code></a>, <a class="reference internal" href="#f/react_util_module/single_zone_jac" title="f/react_util_module/single_zone_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_jac()</span></code></a>, <a class="reference internal" href="#f/react_util_module/single_zone_react_source" title="f/react_util_module/single_zone_react_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_react_source()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -238,6 +238,25 @@
 <li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
 </ul>
 <p class="rubric">Subroutines and functions</p>
+<dl class="function">
+<dt id="f/react_util_module/okay_to_burn">
+<em class="property">function  </em><code class="descclassname">react_util_module/</code><code class="descname">okay_to_burn</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#f/react_util_module/okay_to_burn" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><strong>burn_flag</strong><em> [</em><em>logical</em><em>]</em></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/utemp" title="f/meth_params_module/utemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/react_t_min" title="f/meth_params_module/react_t_min"><code class="xref f f-func docutils literal notranslate"><span class="pre">react_t_min()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/react_t_max" title="f/meth_params_module/react_t_max"><code class="xref f f-func docutils literal notranslate"><span class="pre">react_t_max()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/react_rho_min" title="f/meth_params_module/react_rho_min"><code class="xref f f-func docutils literal notranslate"><span class="pre">react_rho_min()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/react_rho_max" title="f/meth_params_module/react_rho_max"><code class="xref f f-func docutils literal notranslate"><span class="pre">react_rho_max()</span></code></a>)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><a class="reference internal" href="React_nd_f.html#f/reactions_module/ca_react_state_simplified_sdc" title="f/reactions_module/ca_react_state_simplified_sdc"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_react_state_simplified_sdc()</span></code></a>, <a class="reference internal" href="sdc_util_f.html#f/sdc_util/ca_sdc_update_o2" title="f/sdc_util/ca_sdc_update_o2"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_update_o2()</span></code></a>, <a class="reference internal" href="sdc_util_f.html#f/sdc_util/ca_sdc_update_centers_o4" title="f/sdc_util/ca_sdc_update_centers_o4"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_update_centers_o4()</span></code></a>, <a class="reference internal" href="sdc_util_f.html#f/sdc_util/ca_instantaneous_react" title="f/sdc_util/ca_instantaneous_react"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_instantaneous_react()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="subroutine">
 <dt id="f/react_util_module/single_zone_react_source">
 <em class="property">subroutine  </em><code class="descclassname">react_util_module/</code><code class="descname">single_zone_react_source</code><span class="sig-paren">(</span><em>state</em>, <em>r</em>, <em>i</em>, <em>j</em>, <em>k</em>, <em>burn_state</em><span class="sig-paren">)</span><a class="headerlink" href="#f/react_util_module/single_zone_react_source" title="Permalink to this definition">¶</a></dt>

@@ -35,7 +35,7 @@ namespace: ``castro``
 
 **hydrodynamics**
 
-.. index:: castro.difmag, castro.small_dens, castro.small_temp, castro.small_pres, castro.small_ener, castro.do_hydro, castro.time_integration_method, castro.limit_fourth_order, castro.initialization_is_cell_average, castro.use_reconstructed_gamma1, castro.add_ext_src, castro.hybrid_hydro, castro.ppm_type, castro.ppm_temp_fix, castro.ppm_predict_gammae, castro.ppm_reference_eigenvectors, castro.plm_iorder, castro.hybrid_riemann, castro.riemann_solver, castro.cg_maxiter, castro.cg_tol, castro.cg_blend, castro.use_eos_in_riemann, castro.riemann_speed_limit, castro.use_flattening, castro.transverse_use_eos, castro.transverse_reset_density, castro.transverse_reset_rhoe, castro.dual_energy_eta1, castro.dual_energy_eta2, castro.use_pslope, castro.limit_fluxes_on_small_dens, castro.density_reset_method, castro.allow_small_energy, castro.do_sponge, castro.sponge_implicit, castro.source_term_predictor, castro.first_order_hydro, castro.xl_ext_bc_type, castro.xr_ext_bc_type, castro.yl_ext_bc_type, castro.yr_ext_bc_type, castro.zl_ext_bc_type, castro.zr_ext_bc_type, castro.hse_zero_vels, castro.hse_interp_temp, castro.hse_reflect_vels, castro.sdc_order, castro.sdc_extra, castro.sdc_solver, castro.sdc_solver_tol_dens, castro.sdc_solver_tol_spec, castro.sdc_solver_tol_ener, castro.sdc_solver_atol, castro.sdc_solver_relax_factor, castro.sdc_solve_for_rhoe, castro.sdc_use_analytic_jac
+.. index:: castro.difmag, castro.small_dens, castro.small_temp, castro.small_pres, castro.small_ener, castro.do_hydro, castro.time_integration_method, castro.limit_fourth_order, castro.initialization_is_cell_average, castro.use_reconstructed_gamma1, castro.add_ext_src, castro.hybrid_hydro, castro.ppm_type, castro.ppm_temp_fix, castro.ppm_predict_gammae, castro.ppm_reference_eigenvectors, castro.plm_iorder, castro.plm_limiter, castro.plm_well_balanced, castro.hybrid_riemann, castro.riemann_solver, castro.cg_maxiter, castro.cg_tol, castro.cg_blend, castro.use_eos_in_riemann, castro.riemann_speed_limit, castro.use_flattening, castro.transverse_use_eos, castro.transverse_reset_density, castro.transverse_reset_rhoe, castro.dual_energy_eta1, castro.dual_energy_eta2, castro.use_pslope, castro.limit_fluxes_on_small_dens, castro.density_reset_method, castro.allow_small_energy, castro.do_sponge, castro.sponge_implicit, castro.source_term_predictor, castro.first_order_hydro, castro.xl_ext_bc_type, castro.xr_ext_bc_type, castro.yl_ext_bc_type, castro.yr_ext_bc_type, castro.zl_ext_bc_type, castro.zr_ext_bc_type, castro.hse_zero_vels, castro.hse_interp_temp, castro.hse_reflect_vels, castro.sdc_order, castro.sdc_extra, castro.sdc_solver, castro.sdc_solver_tol_dens, castro.sdc_solver_tol_spec, castro.sdc_solver_tol_ener, castro.sdc_solver_atol, castro.sdc_solver_relax_factor, castro.sdc_solve_for_rhoe, castro.sdc_use_analytic_jac
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -97,7 +97,14 @@ namespace: ``castro``
 | ``ppm_reference_eigenvectors``         | do we use the reference state in evaluating the         | 0             |
 |                                        | eigenvectors?                                           |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``plm_iorder``                         | for piecewise linear, reconstruction order to use       | 2             |
+| ``plm_iorder``                         | for piecewise linear, reconstruction order to use 1 =   | 2             |
+|                                        | piecewise constant, 2 = piecewise linear                |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``plm_limiter``                        | for piecewise linear, what limiter to use? 1 = 2nd      | 2             |
+|                                        | order MC, 2 = 4th order MC                              |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``plm_well_balanced``                  | for piecewise linear, MOL or SDC, do well-balanced      | 0             |
+|                                        | reconstruction on pressure                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``hybrid_riemann``                     | do we drop from our regular Riemann solver to HLL when  | 0             |
 |                                        | we are in shocks to avoid the odd-even decoupling       |               |
