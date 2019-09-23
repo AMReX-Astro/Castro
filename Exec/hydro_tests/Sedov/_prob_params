@@ -1,0 +1,21 @@
+# name               data type             default                  in namelist?           size
+
+
+p_ambient              real                 1.e-5_rt                     y
+
+dens_ambient           real                 1.e0_rt                      y
+
+exp_energy             real                 1.e0_rt                      y
+
+temp_ambient           real                 -1.e2_rt                     y
+
+e_ambient              real                 0.0_rt
+
+r_init                 real                 0.05e0_rt                    y
+
+xn_zone                real                 0.0_rt                       n                 (nvar, network)
+
+nsub                   int                  4                            y
+
+e_exp                  real                 0.0_rt
+
