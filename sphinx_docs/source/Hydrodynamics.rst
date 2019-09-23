@@ -100,11 +100,12 @@ several main data structures that hold the state.
    .. note:: if ``RADIATION`` is defined, then only the gas/hydro terms are
       present in ``NQSRC``.  
 
-   Table \ `[table:primlist] <#table:primlist>`__ gives the names of the primitive variable integer
+   :numref:`table:primlist` gives the names of the primitive variable integer
    keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
    are “gas” only and those with the “tot” subscript are “gas + radiation”.
 
-   .. table:: [table:primlist] The integer variable keys for accessing the primitive state vector.
+   .. _table:primlist:
+   .. table:: The integer variable keys for accessing the primitive state vector.
 
       +-----------------------+------------------------+-----------------------+
       | **variable**          | **quantity**           | **note**              |
@@ -149,11 +150,12 @@ several main data structures that hold the state.
    qaux. The main difference between these and the regular
    primitive variables is that we do not attempt to do any
    reconstruction on their profiles. There are ``NQAUX`` quantities, indexed
-   by the integer keys listed in table \ `[table:qauxlist] <#table:qauxlist>`__.
+   by the integer keys listed in :numref:`table:qauxlist`.
    Note, unless otherwise specified the quantities without a subscript are “gas”
    only and those with the “tot” subscript are “gas + radiation”.
 
-   .. table:: [table:qauxlist] The integer variable keys for accessing the auxiliary primitive state vector, quax.
+   .. _table:qauxlist:
+   .. table:: The integer variable keys for accessing the auxiliary primitive state vector, quax.
 
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
@@ -196,11 +198,12 @@ several main data structures that hold the state.
    non-conservative terms in the equations. These arrays are generally
    called ``q1``, ``q2``, and ``q3`` for the x, y, and z
    interfaces respectively. There are ``NGDNV`` components accessed with
-   the integer keys defined in table \ `[table:gdlist] <#table:gdlist>`__
+   the integer keys defined in :numref:`table:gdlist`
    Note, unless otherwise specified the quantities without a subscript are
    “gas” only and those with the “tot” subscript are “gas + radiation”.
 
-   .. table:: [table:gdlist] The integer variable keys for accessing the Godunov interface state vectors.
+   .. _table:gdlist:
+   .. table:: The integer variable keys for accessing the Godunov interface state vectors.
 
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
@@ -276,7 +279,7 @@ In the code we also carry around :math:`T` and :math:`\rho e` in the conservativ
 state vector even though they are derived from the other conserved
 quantities. The ordering of the elements within :math:`\Ub` is defined
 by integer variables into the array—see
-Table \ `[table:consints] <#table:consints>`__
+:numref:`table:consints`.
 
 Some notes:
 
@@ -391,7 +394,7 @@ The advected quantities appear as:
 All of the primitive variables are derived from the conservative state
 vector, as described in Section `6.1 <#Sec:Compute Primitive Variables>`__.
 When accessing the primitive variable state vector, the integer variable
-keys for the different quantities are listed in Table \ `[table:primlist] <#table:primlist>`__.
+keys for the different quantities are listed in :numref:`table:primlist`.
 
 Internal energy and temperature
 -------------------------------
@@ -840,7 +843,9 @@ equations in 1D, for simplicity):
 -  **Step 2**: Construct a quadratic profile using :math:`s_{i,-},s_i`,
    and :math:`s_{i,+}`.
 
-   .. math:: s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\label{Quadratic Interp}
+   .. math::
+      s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],
+      :label: Quadratic Interp
 
    .. math:: s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),
 
@@ -860,7 +865,7 @@ equations in 1D, for simplicity):
         \mathcal{I}^{(k)}_{-}(s_i) &= \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
         \end{align}
 
-     Plugging in (`[Quadratic Interp] <#Quadratic Interp>`__) gives:
+     Plugging in :eq:`Quadratic Interp` gives:
 
      .. math::
 

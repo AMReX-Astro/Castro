@@ -1511,6 +1511,11 @@ contains
              if (.not. okay_to_burn(U_old)) then
                 R_full(:) = ZERO
 
+             ! only burn if we are within the temperature and density
+             ! limits for burning
+             if (.not. okay_to_burn(U_old)) then
+                R_full(:) = ZERO
+
              else
 
                 ! this is the full state -- this will be updated as we
@@ -1525,7 +1530,7 @@ contains
                    U_new(:) = k_n(i,j,k,:)
                 endif
 
-                call sdc_solve(dt_m, U_old, U_new, C_zone, sdc_iteration)
+                call sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
 
                 ! we solved our system to some tolerance, but let's be sure we are conservative by
                 ! reevaluating the reactions and then doing the full step update

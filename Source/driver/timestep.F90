@@ -95,7 +95,7 @@ contains
              if (time_integration_method == 0) then
                 call amrex_min(dt, min(dt1,dt2,dt3))
              else
-                ! method of lines constraint is tougher
+                ! method of lines-style constraint is tougher
                 dt_tmp = ONE/dt1
                 if (dim >= 2) then
                    dt_tmp = dt_tmp + ONE/dt2
