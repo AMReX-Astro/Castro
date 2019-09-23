@@ -246,13 +246,14 @@ def write_probin(probin_template, param_file, out_file):
 
             elif keyword == "cudaattributes":
                 for p in params:
-                    fout.write("{}attributes(managed) :: {}\n".format(indent, p.var))
+                    if p.dtype != "character":
+                        fout.write("{}attributes(managed) :: {}\n".format(indent, p.var))
 
 
             elif keyword == "namelist":
                 for p in params:
                     if p.in_namelist:
-                        fout.write("{}namelist /probin/ {}\n".format(indent, p.var))
+                        fout.write("{}namelist /fortin/ {}\n".format(indent, p.var))
 
 
             elif keyword == "allocations":

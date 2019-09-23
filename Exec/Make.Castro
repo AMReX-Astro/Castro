@@ -432,6 +432,7 @@ extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 # runtime parameter support for extern/ routines
 ifeq ($(USE_PROB_PARAMS), TRUE)
    F90EXE_sources += prob_params_auto.F90
+   DEFINES += -DPROB_PARAMS
 endif
 
 PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
@@ -523,7 +524,7 @@ endif
 endif
 
 clean::
-	$(SILENT) $(RM) extern.F90
+	$(SILENT) $(RM) extern.F90 prob_params_auto.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 
