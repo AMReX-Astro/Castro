@@ -186,32 +186,28 @@ contains
 
        ! special care for reflecting BCs
        if (idir == 1) then
-          if (lo(1) == domlo(1)) then
+          if (lo(1) == domlo(1) .and. physbc_lo(1) == Symmetry) then
+             ! reset the left state at domlo(1) if needed -- it is outside the domain
 
              do k = lo(3)-dg(3), hi(3)+dg(3)
                 do j = lo(2)-dg(2), hi(2)+dg(2)
 
-                   ! reset the left state at domlo(1) if needed -- it is outside the domain
-                   if (physbc_lo(1) == Symmetry) then
-                      qm(domlo(1),j,k,:,1) = qp(domlo(1),j,k,:,1)
-                      qm(domlo(1),j,k,QU,1) = -qp(domlo(1),j,k,QU,1)
-                   end if
+                   qm(domlo(1),j,k,:,1) = qp(domlo(1),j,k,:,1)
+                   qm(domlo(1),j,k,QU,1) = -qp(domlo(1),j,k,QU,1)
 
                 end do
              end do
 
           end if
 
-          if (hi(1)+1 == domhi(1)+1) then
+          if (hi(1)+1 == domhi(1)+1 .and. physbc_hi(1) == Symmetry) then
              ! reset the right state at domhi(1)+1 if needed -- it is outside the domain
 
              do k = lo(3)-dg(3), hi(3)+dg(3)
                 do j = lo(2)-dg(2), hi(2)+dg(2)
 
-                   if (physbc_hi(1) == Symmetry) then
-                      qp(domhi(1)+1,j,k,:,1) = qm(domhi(1)+1,j,k,:,1)
-                      qp(domhi(1)+1,j,k,QU,1) = -qm(domhi(1)+1,j,k,QU,1)
-                   end if
+                   qp(domhi(1)+1,j,k,:,1) = qm(domhi(1)+1,j,k,:,1)
+                   qp(domhi(1)+1,j,k,QU,1) = -qm(domhi(1)+1,j,k,QU,1)
 
                 end do
              end do
@@ -221,32 +217,28 @@ contains
 #if AMREX_SPACEDIM >= 2
        else if (idir == 2) then
 
-          if (lo(2) == domlo(2)) then
+          if (lo(2) == domlo(2) .and. physbc_lo(2) == Symmetry) then
              ! reset the left state at domlo(2) if needed -- it is outside the domain
 
              do k = lo(3)-dg(3), hi(3)+dg(3)
                 do i = lo(1)-1, hi(1)+1
 
-                   if (physbc_lo(2) == Symmetry) then
-                      qm(i,domlo(2),k,:,2) = qp(i,domlo(2),k,:,2)
-                      qm(i,domlo(2),k,QV,2) = -qp(i,domlo(2),k,QV,2)
-                   end if
+                   qm(i,domlo(2),k,:,2) = qp(i,domlo(2),k,:,2)
+                   qm(i,domlo(2),k,QV,2) = -qp(i,domlo(2),k,QV,2)
 
                 end do
              end do
 
           end if
 
-          if (hi(2)+1 == domhi(2)+1) then
+          if (hi(2)+1 == domhi(2)+1 .and. physbc_hi(2) == Symmetry) then
              ! reset the right state at domhi(2)+1 if needed -- it is outside the domain
 
              do k = lo(3)-dg(3), hi(3)+dg(3)
                 do i = lo(1)-1, hi(1)+1
 
-                   if (physbc_hi(2) == Symmetry) then
-                      qp(i,domhi(2)+1,k,:,2) = qm(i,domhi(2)+1,k,:,2)
-                      qp(i,domhi(2)+1,k,QV,2) = -qm(i,domhi(2)+1,k,QV,2)
-                   end if
+                   qp(i,domhi(2)+1,k,:,2) = qm(i,domhi(2)+1,k,:,2)
+                   qp(i,domhi(2)+1,k,QV,2) = -qm(i,domhi(2)+1,k,QV,2)
 
                 end do
              end do
@@ -256,32 +248,28 @@ contains
 #if AMREX_SPACEDIM == 3
        else
 
-          if (lo(3) == domlo(3)) then
+          if (lo(3) == domlo(3) .and. physbc_lo(3) == Symmetry) then
              ! reset the left state at domlo(3) if needed -- it is outside the domain
 
              do j = lo(2)-1, hi(2)+1
                 do i = lo(1)-1, hi(1)+1
 
-                   if (physbc_lo(3) == Symmetry) then
-                      qm(i,j,domlo(3),:,3) = qp(i,j,domlo(3),:,3)
-                      qm(i,j,domlo(3),QW,3) = -qp(i,j,domlo(3),QW,3)
-                   end if
+                   qm(i,j,domlo(3),:,3) = qp(i,j,domlo(3),:,3)
+                   qm(i,j,domlo(3),QW,3) = -qp(i,j,domlo(3),QW,3)
 
                 end do
              end do
 
           end if
 
-          if (hi(3)+1 == domhi(3)+1) then
+          if (hi(3)+1 == domhi(3)+1 .and. physbc_hi(3) == Symmetry) then
              ! reset the right state at domhi(3)+1 if needed -- it is outside the domain
 
              do j = lo(2)-1, hi(2)+1
                 do i = lo(1)-1, hi(1)+1
 
-                   if (physbc_hi(3) == Symmetry) then
-                      qp(i,j,domhi(3)+1,:,3) = qm(i,j,domhi(3)+1,:,3)
-                      qp(i,j,domhi(3)+1,QW,3) = -qm(i,j,domhi(3)+1,QW,3)
-                   end if
+                   qp(i,j,domhi(3)+1,:,3) = qm(i,j,domhi(3)+1,:,3)
+                   qp(i,j,domhi(3)+1,QW,3) = -qm(i,j,domhi(3)+1,QW,3)
 
                 end do
              end do
