@@ -1,3 +1,30 @@
+changes since the last release
+
+  -- The SDC algorithm now implements the burning conditionals
+     depending on rho and T (react_rho_min, react_rho_max,
+     react_T_min, react_T_max)
+
+  -- The SDC/MOL PLM reconstruction now implements reflecting BCs on
+     the interface states
+
+  -- A well-balanced scheme has been added to the piecewise linear SDC
+     method, enabled with castro.plm_well_balanaced=1.  At the moment
+     it only supports constant gravity. (#294)
+
+  -- The weighting of the time-node fluxes stored in the flux registers
+     for SDC has been fixed (#658)
+
+  -- As before, we can choose the reconstruction with PLM using the
+     castro.plm_iorder flag: 1 = piecewise constant, 2 = piecewise
+     linear slopes.  Now we added a way to specify the limiter used
+     with the linear slopes.  castro.plm_limiter = 1 will use the 2nd
+     order MC limiter and castro.plm_limiter = 2 will use the default
+     4th order MC limiter (previously there was no way to select the
+     2nd order limiter).
+
+  -- The Runge-Kutta based method-of-lines integration method has
+     been removed in favor of the SDC integration.
+
 # 19.09
 
   -- You can now type ./Castro.gnu.ex --describe to see the list of
@@ -8,6 +35,7 @@
 
   -- The velerr tagging now takes the abs() of the velocity component
      to ensure we tag large positive and negative velocities.
+
 
 # 19.08.1
 

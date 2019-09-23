@@ -98,13 +98,13 @@ the columns in the output file are,
 
 The first two integers correspond to the particle index and the
 processor number.  One should use the two numbers in order to identify
-a particle and extract its history (i.e., the trajectory in Figure
-`[fig:particletrajectory] <#fig:particletrajectory>`__).
+a particle and extract its history (i.e., the trajectory in :numref:`fig:particletrajectory`.
 
 .. figure:: fluid_motion.png
 
    A model atmosphere with the arrows showing the direction of the fluid motion.
 
+.. _fig:particletrajectory:
 .. figure:: tracer_trajectory.png 
 
    The trajectories of 500 particles following the fluid motion on the

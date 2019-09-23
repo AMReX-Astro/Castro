@@ -360,7 +360,7 @@ Castro::variableSetUp ()
   if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       source_ng = NUM_GROW;
   }
-  else if (time_integration_method == MethodOfLines || time_integration_method == SpectralDeferredCorrections) {
+  else if (time_integration_method == SpectralDeferredCorrections) {
       source_ng = 1;
   }
   else {
@@ -1096,6 +1096,9 @@ Castro::variableSetUp ()
 
     dt_sdc.resize(SDC_NODES);
     dt_sdc = {0.0, 1.0};
+
+    node_weights.resize(SDC_NODES);
+    node_weights = {0.5, 0.5};
 
   } else if (sdc_order == 4) {
     // Gauss-Lobatto (Simpsons)

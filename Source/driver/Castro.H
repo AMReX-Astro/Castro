@@ -69,7 +69,6 @@ enum sources { ext_src = 0,
 // time integration method
 
 enum int_method { CornerTransportUpwind = 0,
-                  MethodOfLines,
                   SpectralDeferredCorrections,
                   SimplifiedSpectralDeferredCorrections
                 };
@@ -1876,6 +1875,7 @@ protected:
 
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;
+    static amrex::Vector<amrex::Real> node_weights;
 
 
 ///

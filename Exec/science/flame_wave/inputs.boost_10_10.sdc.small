@@ -6,8 +6,8 @@ stop_time =  3.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
-geometry.prob_hi     = 1.2288e5     3.072e4
-amr.n_cell           = 6144         1536
+geometry.prob_hi     = 4.096e4     2.048e4
+amr.n_cell           = 2048        1024
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -19,7 +19,7 @@ castro.hi_bc       =  2   1
 
 castro.yl_ext_bc_type = "hse"
 castro.hse_interp_temp = 1
-castro.hse_reflect_vels = 0
+castro.hse_reflect_vels = 1
 
 castro.yr_ext_bc_type = "interp"
 
@@ -35,9 +35,9 @@ castro.small_dens = 1.e-5
 
 castro.time_integration_method = 2
 castro.sdc_order = 2
-castro.ppm_type = 0
+castro.ppm_type = 1
 castro.plm_iorder = 2
-castro.plm_well_balanced = 1
+castro.plm_well_balanced = 0
 
 castro.sdc_solve_for_rhoe = 1
 castro.sdc_solver_tol_dens = 1.e-10
@@ -56,7 +56,7 @@ castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
 castro.diffuse_cutoff_density_hi = 5.e4
-#castro.diffuse_cutoff_density = 2.e4
+castro.diffuse_cutoff_density = 4.e4
 
 castro.diffuse_cond_scale_fac = 10.0
 
@@ -67,11 +67,11 @@ castro.react_T_min = 6.e7
 
 
 # TIME STEP CONTROL
-castro.cfl            = 0.5     # cfl number for hyperbolic system
+castro.cfl            = 0.75     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
-castro.dtnuc_e = 0.1
+castro.dtnuc_e = 0.25
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -102,4 +102,4 @@ amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity
 
 #PROBIN FILENAME
-amr.probin_file = probin.boost_10_10
+amr.probin_file = probin.boost_10_10.sdc
