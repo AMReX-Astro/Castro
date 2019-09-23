@@ -97,6 +97,8 @@ subroutine prob_params_pretty_print(name, namlen) bind(C, name="prob_params_pret
   ! open the job info file in Fortran
   open(newunit=unit, file=job_info(1:namlen), status="old", position="append")
 
+  write(unit, *) " "
+  write(unit, *) "fortin parameters:"
   @@printing@@
 
   close(unit=unit)
