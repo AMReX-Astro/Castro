@@ -31,7 +31,7 @@ subroutine probdata_init(name, namlen)
   integer :: un, i, status
 
   integer, parameter :: maxlen = 256
-  character (len=maxlen) :: probin
+  character (len=maxlen) :: probin_file
 
 
   @@namelist@@
@@ -47,13 +47,13 @@ subroutine probdata_init(name, namlen)
   endif
 
   do i = 1, namlen
-     probin(i:i) = char(name(i))
+     probin_file(i:i) = char(name(i))
   end do
 
 
   ! read in the namelist
-  open (newunit=un, file=probin(1:namlen), form='formatted', status='old')
-  read (unit=un, nml=extern, iostat=status)
+  open (newunit=un, file=probin_file(1:namlen), form='formatted', status='old')
+  read (unit=un, nml=probin, iostat=status)
 
   if (status < 0) then
      ! the namelist does not exist, so we just go with the defaults
@@ -61,17 +61,17 @@ subroutine probdata_init(name, namlen)
 
   else if (status > 0) then
      ! some problem in the namelist
-     call castro_error("ERROR: problem in the extern namelist")
+     call castro_error("ERROR: problem in the probin namelist")
   endif
 
   close (unit=un)
 
 end subroutine probdata_init
 
-subroutine prob_params_pretty_print(name, namlen) bind(C, name="runtime_pretty_print")
+subroutine prob_params_pretty_print(name, namlen) bind(C, name="prob_params_pretty_print")
 
   use amrex_constants_module
-  use extern_probin_module
+  use probdata_module
   use castro_error_module, only: castro_error
 
   implicit none

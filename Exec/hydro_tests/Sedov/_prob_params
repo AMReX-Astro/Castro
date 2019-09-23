@@ -13,9 +13,9 @@ e_ambient              real                 0.0_rt
 
 r_init                 real                 0.05e0_rt                    y
 
-xn_zone                real                 0.0_rt                       n                 (nvar, network)
+xn_zone                real                 0.0_rt                       n                 (nspec, network)
 
-nsub                   int                  4                            y
+nsub                   integer              4                            y
 
 e_exp                  real                 0.0_rt
 

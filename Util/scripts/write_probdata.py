@@ -286,6 +286,8 @@ def write_probin(probin_template, param_file, out_file):
                 fout.write("103 format (1x, a3, 2x, a32, 1x, \"=\", 1x, l)\n")
 
                 for p in params:
+                    if not p.in_namelist:
+                        continue
 
                     if p.dtype == "logical":
                         ltest = "\n{}ltest = {} .eqv. {}\n".format(indent, p.var, p.value)
