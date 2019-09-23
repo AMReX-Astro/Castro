@@ -121,12 +121,14 @@ Opacity
 
 By default, we assume that
 
-.. math:: \kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p} , \label{eq:kappa}
+.. math::
+   \kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p} ,
+   :label: eq:kappa
 
 where :math:`\kappa` is either Planck or Rosseland mean absorption
 coefficients, :math:`\rho` is density, :math:`T` is temperature, :math:`\nu` is
 frequency, and :math:`m`, :math:`n` and :math:`p` are constants. For the gray solver,
-:math:`p = 0`. If Equation (\ `[eq:kappa] <#eq:kappa>`__) is sufficient, set
+:math:`p = 0`. If :eq:`eq:kappa` is sufficient, set
 
 ::
 
@@ -173,7 +175,7 @@ The parameters describing the opacity include:
    compute opacities. If this is set to 1, the following parameters
    for opacities will be ignored.
 
--  For the Planck mean opacity of the form in Eq. (\ `[eq:kappa] <#eq:kappa>`__),
+-  For the Planck mean opacity of the form in :eq:`eq:kappa`,
    the following parameters set the coefficient and exponents:
 
    -  radiation.const_kappa_p = -1.0
@@ -184,7 +186,7 @@ The parameters describing the opacity include:
 
    -  radiation.kappa_p_exp_p = 0.0
 
--  For the Rosseland mean opacity of the form in Eq. (\ `[eq:kappa] <#eq:kappa>`__),
+-  For the Rosseland mean opacity of the form in :eq:`eq:kappa`,
    the following parameters set the coefficient and exponents:
 
    -  radiation.const_kappa_r = -1.0
@@ -195,7 +197,7 @@ The parameters describing the opacity include:
 
    -  radiation.kappa_r_exp_p = 0.0
 
--  For the scattering coefficient of the form in Eq. (\ `[eq:kappa] <#eq:kappa>`__),
+-  For the scattering coefficient of the form in :eq:`eq:kappa`,
    the following parameters set the coefficient and exponents:
 
    -  radiation.const_scattering = 0.0
@@ -225,7 +227,7 @@ The parameters describing the opacity include:
    How the averaging of opacity is done from faces to center for
    the radiation solver. 0 is arithmetic averaging, 1
    is harmonic averaging, and 2 is a combination of the two.
-   This is implemented in RAD_?D.F in kavg.
+   This is implemented in ``RAD_?D.F`` in kavg.
 
 Note that the unit for opacities is :math:`\mathrm{cm}^{-1}`. For
 the gray solver, the total opacity in the diffusion coefficient is the sum

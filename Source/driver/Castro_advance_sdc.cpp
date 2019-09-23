@@ -182,12 +182,10 @@ Castro::do_advance_sdc (Real time,
       for (int n=1; n < SDC_NODES; n++) {
         MultiFab::Copy(*(A_old[n]), *(A_new[0]), 0, 0, NUM_STATE, 0);
       }
-    }
 
 #ifdef REACTIONS
-    // if this is the first node of a new iteration, then we need
-    // to compute and store the old reactive source
-    if (m == 0 && sdc_iteration == 0) {
+      // if this is the first node of a new iteration, then we need
+      // to compute and store the old reactive source
 
       // we already have the node state with ghost cells in Sborder,
       // so we can just use that as the starting point
@@ -199,8 +197,8 @@ Castro::do_advance_sdc (Real time,
       for (int n = 1; n < SDC_NODES; n++) {
         MultiFab::Copy(*(R_old[n]), *(R_old[0]), 0, 0, R_old[0]->nComp(), 0);
       }
-    }
 #endif
+    }
 
     // update to the next stage -- this involves computing the
     // integral over the k-1 iteration data.  Note we don't do
