@@ -489,9 +489,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         // For SDC, we store node 0 the only time we enter here (the
         // first iteration) and we store the other nodes only on the
         // last iteration.
-        if (time_integration_method == MethodOfLines ||
-            (time_integration_method == SpectralDeferredCorrections &&
-             (current_sdc_node == 0 || sdc_iteration == sdc_order+sdc_extra-1))) {
+        if (time_integration_method == SpectralDeferredCorrections &&
+             (current_sdc_node == 0 || sdc_iteration == sdc_order+sdc_extra-1)) {
 
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
