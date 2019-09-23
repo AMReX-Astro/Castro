@@ -1,0 +1,104 @@
+! This module stores the runtime parameters.  The probin_init() routine is
+! used to initialize the runtime parameters
+
+module probdata_module
+
+  use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
+
+  @@declarations@@
+
+#ifdef AMREX_USE_CUDA
+  @@cudaattributes@@
+#endif
+
+end module probdata_module
+
+subroutine probdata_init(name, namlen)
+
+  use probdata_module
+  use castro_error_module, only: castro_error
+  use amrex_fort_module, only: rt => amrex_real
+ 
+  @@usestatements@@
+
+  implicit none
+
+  integer :: namlen
+  integer :: name(namlen)
+
+  integer :: un, i, status
+
+  integer, parameter :: maxlen = 256
+  character (len=maxlen) :: probin
+
+
+  @@namelist@@
+
+  @@allocations@@
+
+  @@defaults@@
+
+
+  ! create the filename
+  if (namlen > maxlen) then
+     call castro_error("probin file name too long")
+  endif
+
+  do i = 1, namlen
+     probin(i:i) = char(name(i))
+  end do
+
+
+  ! read in the namelist
+  open (newunit=un, file=probin(1:namlen), form='formatted', status='old')
+  read (unit=un, nml=extern, iostat=status)
+
+  if (status < 0) then
+     ! the namelist does not exist, so we just go with the defaults
+     continue
+
+  else if (status > 0) then
+     ! some problem in the namelist
+     call castro_error("ERROR: problem in the extern namelist")
+  endif
+
+  close (unit=un)
+
+end subroutine probdata_init
+
+subroutine prob_params_pretty_print(name, namlen) bind(C, name="runtime_pretty_print")
+
+  use amrex_constants_module
+  use extern_probin_module
+  use castro_error_module, only: castro_error
+
+  implicit none
+
+  integer :: unit, i
+
+  integer :: namlen
+  integer :: name(namlen)
+
+  logical :: ltest
+
+  integer, parameter :: maxlen = 256
+  character (len=maxlen) :: probin
+
+  if (namlen > maxlen) then
+     call castro_error("probin file name too long")
+  endif
+
+  do i = 1, namlen
+     probin(i:i) = char(name(i))
+  end do
+
+  ! open the job info file in Fortran
+  open(newunit=unit, file=probin(1:namlen), status="old", position="append")
+
+  @@printing@@
+
+  close(unit=unit)
+
+end subroutine prob_params_pretty_print
