@@ -220,8 +220,7 @@ contains
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
-                                   UFS, UFX, &
-                                   react_T_min, react_T_max, react_rho_min, react_rho_max
+                                   UFS, UFX
 #ifdef SHOCK_VAR
     use meth_params_module, only : USHK, disable_shock_burning
 #endif
@@ -231,6 +230,7 @@ contains
     use sdc_type_module, only : sdc_t, SRHO, SMX, SMZ, SEDEN, SEINT, SFS
 #endif
     use amrex_fort_module, only : rt => amrex_real
+    use react_util_module
 
     implicit none
 
@@ -273,8 +273,7 @@ contains
 
              ! Don't burn if we're outside of the relevant (rho, T) range.
 
-             if (uold(i,j,k,UTEMP) < react_T_min .or. uold(i,j,k,UTEMP) > react_T_max .or. &
-                 uold(i,j,k,URHO) < react_rho_min .or. uold(i,j,k,URHO) > react_rho_max) cycle
+             if (.not. okay_to_burn(uold(i,j,k,:))) cycle
 
              ! Feed in the old-time state data.
 
