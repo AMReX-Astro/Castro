@@ -53,7 +53,7 @@ subroutine probdata_init(name, namlen)
 
   ! read in the namelist
   open (newunit=un, file=probin_file(1:namlen), form='formatted', status='old')
-  read (unit=un, nml=probin, iostat=status)
+  read (unit=un, nml=fortin, iostat=status)
 
   if (status < 0) then
      ! the namelist does not exist, so we just go with the defaults
@@ -61,7 +61,7 @@ subroutine probdata_init(name, namlen)
 
   else if (status > 0) then
      ! some problem in the namelist
-     call castro_error("ERROR: problem in the probin namelist")
+     call castro_error("ERROR: problem in the fortin namelist")
   endif
 
   close (unit=un)
@@ -84,18 +84,18 @@ subroutine prob_params_pretty_print(name, namlen) bind(C, name="prob_params_pret
   logical :: ltest
 
   integer, parameter :: maxlen = 256
-  character (len=maxlen) :: probin
+  character (len=maxlen) :: job_info
 
   if (namlen > maxlen) then
-     call castro_error("probin file name too long")
+     call castro_error("job_info file name too long")
   endif
 
   do i = 1, namlen
-     probin(i:i) = char(name(i))
+     job_info(i:i) = char(name(i))
   end do
 
   ! open the job info file in Fortran
-  open(newunit=unit, file=probin(1:namlen), status="old", position="append")
+  open(newunit=unit, file=job_info(1:namlen), status="old", position="append")
 
   @@printing@@
 
