@@ -360,7 +360,7 @@ Castro::variableSetUp ()
   if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       source_ng = NUM_GROW;
   }
-  else if (time_integration_method == MethodOfLines || time_integration_method == SpectralDeferredCorrections) {
+  else if (time_integration_method == SpectralDeferredCorrections) {
       source_ng = 1;
   }
   else {
