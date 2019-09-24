@@ -10,18 +10,19 @@ small_dt                            real               1.d-10
 xlo_boundary_type                   character          ""
 octant                              logical            .false.
 
-This specifies the runtime parameter name, datatype, and default
+This specifies the parameter name, datatype, and default
 value.
 
-An optional 4th column can be used to indicate the priority -- if,
-when parsing the collection of parameter files, a duplicate of an
-existing parameter is encountered, the value from the one with
-the highest priority (largest integer) is retained.
+The optional 4th column indicates whether the parameter appears
+in the fortin namelist ("y" or "Y").
+
+If the parameter is an array, the optional 5th column indicates the size of
+the array.  If the size is a variable from a module, then a tuple is provided
+in the form (size, module-name)
 
 This script takes a template file and replaces keywords in it
 (delimited by @@...@@) with the Fortran code required to
-initialize the parameters, setup a namelist, and allow for
-commandline overriding of their defaults.
+initialize the parameters, setup a namelist, set the defaults, etc.
 
 """
 
