@@ -23,7 +23,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
-  !     
+  !
   integer maxlen
   parameter (maxlen=256)
   character probin*(maxlen)
@@ -62,7 +62,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   split(1) = frac*(problo(1)+probhi(1))
   split(2) = frac*(problo(2)+probhi(2))
   split(3) = frac*(problo(3)+probhi(3))
-  
+
   ! compute the internal energy (erg/cc) for the left and right state
   xn(:) = 0.0e0_rt
   xn(1) = 1.0e0_rt
@@ -74,7 +74,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      eos_state%xn(:) = xn(:)
 
      call eos(eos_input_rt, eos_state)
- 
+
      rhoe_l = rho_l*eos_state%e
      p_l = eos_state%p
 
@@ -83,7 +83,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      eos_state%xn(:) = xn(:)
 
      call eos(eos_input_rt, eos_state)
- 
+
      rhoe_r = rho_r*eos_state%e
      p_r = eos_state%p
 
@@ -95,7 +95,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      eos_state%xn(:) = xn(:)
 
      call eos(eos_input_rp, eos_state)
- 
+
      rhoe_l = rho_l*eos_state%e
      T_l = eos_state%T
 
@@ -105,7 +105,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      eos_state%xn(:) = xn(:)
 
      call eos(eos_input_rp, eos_state)
- 
+
      rhoe_r = rho_r*eos_state%e
      T_r = eos_state%T
 
@@ -123,6 +123,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use network, only: nspec
   use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
+  use prob_params_module, only : problo
 
   implicit none
 
@@ -136,13 +137,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   integer  :: i, j, k
 
   do k = lo(3), hi(3)
-     z = xlo(3) + dx(3)*(float(k-lo(3)) + 0.5e0_rt)
-     
+     z = problo(3) + dx(3)*(dble(k) + 0.5e0_rt)
+
      do j = lo(2), hi(2)
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
+        y = problo(2) + dx(2)*(dble(j) + 0.5e0_rt)
 
         do i = lo(1), hi(1)
-           x = xlo(1) + dx(1)*(float(i-lo(1)) + 0.5e0_rt)
+           x = problo(1) + dx(1)*(dble(i) + 0.5e0_rt)
 
            if (idir == 1) then
               if (x <= split(1)) then
@@ -162,7 +163,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                  state(i,j,k,UEINT) = rhoe_r
                  state(i,j,k,UTEMP) = T_r
               endif
-              
+
            else if (idir == 2) then
               if (y <= split(2)) then
                  state(i,j,k,URHO) = rho_l
@@ -181,7 +182,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                  state(i,j,k,UEINT) = rhoe_r
                  state(i,j,k,UTEMP) = T_r
               endif
-              
+
            else if (idir == 3) then
               if (z <= split(3)) then
                  state(i,j,k,URHO) = rho_l
@@ -200,18 +201,17 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                  state(i,j,k,UEINT) = rhoe_r
                  state(i,j,k,UTEMP) = T_r
               endif
-              
+
            else
               call castro_error('invalid idir')
            endif
- 
+
            state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
            state(i,j,k,UFS  ) = state(i,j,k,URHO)
 
-           
+
         enddo
      enddo
   enddo
 
 end subroutine ca_initdata
-
