@@ -1063,6 +1063,9 @@ Castro::writeJobInfo (const std::string& dir)
 
   runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
 
+#ifdef PROB_PARAMS
+  prob_params_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
+#endif
 
 }
 

@@ -14,7 +14,7 @@ contains
     use amrex_constants_module, only: HALF
     use meth_params_module, only: NVAR
     use probdata_module, only: fill_ambient_bc, fill_ambient
-
+    use prob_params_module, only : problo
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -48,7 +48,7 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                x = xlo(1) + dble(i - lo(1) + HALF)*delta(1)
+                x = problo(1) + (dble(i) + HALF)*delta(1)
 
                 if (AMREX_SPACEDIM .ge. 1) then
                    if (i .lt. domlo(1) .and. (bc(1,1,1) .ne. -1 .and. bc(1,1,1) .ne. 0 .and. bc(1,1,1) .ne. 1)) then

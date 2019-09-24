@@ -121,13 +121,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   type(eos_t) :: eos_state
 
   do k = lo(3), hi(3)
-     zz = xlo(3) + delta(3)*dble(k-lo(3) + HALF)
+     zz = problo(3) + delta(3)*(dble(k) + HALF)
 
      do j = lo(2), hi(2)
-        yy = xlo(2) + delta(2)*dble(j-lo(2) + HALF)
+        yy = problo(2) + delta(2)*(dble(j) + HALF)
 
         do i = lo(1), hi(1)
-           xx = xlo(1) + delta(1)*dble(i-lo(1) + HALF)
+           xx = problo(1) + delta(1)*(dble(i) + HALF)
 
            dist = sqrt((center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2)
 
