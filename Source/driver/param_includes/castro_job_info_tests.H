@@ -41,6 +41,8 @@ jobInfoFile << (Castro::ppm_temp_fix == 0 ? "    " : "[*] ") << "castro.ppm_temp
 jobInfoFile << (Castro::ppm_predict_gammae == 0 ? "    " : "[*] ") << "castro.ppm_predict_gammae = " << Castro::ppm_predict_gammae << std::endl;
 jobInfoFile << (Castro::ppm_reference_eigenvectors == 0 ? "    " : "[*] ") << "castro.ppm_reference_eigenvectors = " << Castro::ppm_reference_eigenvectors << std::endl;
 jobInfoFile << (Castro::plm_iorder == 2 ? "    " : "[*] ") << "castro.plm_iorder = " << Castro::plm_iorder << std::endl;
+jobInfoFile << (Castro::plm_limiter == 2 ? "    " : "[*] ") << "castro.plm_limiter = " << Castro::plm_limiter << std::endl;
+jobInfoFile << (Castro::plm_well_balanced == 0 ? "    " : "[*] ") << "castro.plm_well_balanced = " << Castro::plm_well_balanced << std::endl;
 jobInfoFile << (Castro::hybrid_riemann == 0 ? "    " : "[*] ") << "castro.hybrid_riemann = " << Castro::hybrid_riemann << std::endl;
 jobInfoFile << (Castro::riemann_solver == 0 ? "    " : "[*] ") << "castro.riemann_solver = " << Castro::riemann_solver << std::endl;
 jobInfoFile << (Castro::cg_maxiter == 12 ? "    " : "[*] ") << "castro.cg_maxiter = " << Castro::cg_maxiter << std::endl;

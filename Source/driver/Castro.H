@@ -69,7 +69,7 @@ enum sources { ext_src = 0,
 // time integration method
 
 enum int_method { CornerTransportUpwind = 0,
-                  MethodOfLines,
+                  UnusedTimeIntegration,
                   SpectralDeferredCorrections,
                   SimplifiedSpectralDeferredCorrections
                 };

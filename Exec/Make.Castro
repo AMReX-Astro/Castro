@@ -424,6 +424,24 @@ extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
            -t $(EXTERN_TEMPLATE) -o extern.F90 -n extern \
            --pa "$(EXTERN_PARAMETERS)" --managed
 
+
+#------------------------------------------------------------------------------
+# problem specific parameters
+#------------------------------------------------------------------------------
+
+# runtime parameter support for extern/ routines
+ifeq ($(USE_PROB_PARAMS), TRUE)
+   F90EXE_sources += prob_params_auto.F90
+   DEFINES += -DPROB_PARAMS
+endif
+
+PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
+PROB_PARAMETERS := ./_prob_params
+
+prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
+	$(TOP)/Util/scripts/write_probdata.py \
+           -t $(PROB_PARAMS_TEMPLATE) -o prob_params_auto.F90 -p $(PROB_PARAMETERS)
+
 #------------------------------------------------------------------------------
 # state variable info
 #-------------------------------------------------------------------------------
@@ -506,7 +524,7 @@ endif
 endif
 
 clean::
-	$(SILENT) $(RM) extern.F90
+	$(SILENT) $(RM) extern.F90 prob_params_auto.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 

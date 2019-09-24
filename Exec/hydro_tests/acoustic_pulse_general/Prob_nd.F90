@@ -14,36 +14,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
   type(eos_t) :: eos_state
 
-  namelist /fortin/ rho0, T0, dp_fact, L_pert
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character :: probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error('probin file name too long')
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! Set namelist defaults
-
-  rho0 = 1.4_rt
-  p0 = 1.0_rt
-  T0 = 1.0
-  dp_fact = 1.5
-  L_pert = 0.5
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! set explosion center
   center(:) = ZERO
@@ -120,13 +93,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   type(eos_t) :: eos_state
 
   do k = lo(3), hi(3)
-     zz = xlo(3) + delta(3)*dble(k-lo(3) + HALF)
+     zz = problo(3) + delta(3)*(dble(k) + HALF)
 
      do j = lo(2), hi(2)
-        yy = xlo(2) + delta(2)*dble(j-lo(2) + HALF)
+        yy = problo(2) + delta(2)*(dble(j) + HALF)
 
         do i = lo(1), hi(1)
-           xx = xlo(1) + delta(1)*dble(i-lo(1) + HALF)
+           xx = problo(1) + delta(1)*(dble(i) + HALF)
 
            dist = sqrt((center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2)
 

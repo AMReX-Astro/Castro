@@ -210,7 +210,7 @@ mismatch in normal gradients of :math:`\phi` at the coarse-fine interface:
    + \sum A^f \frac{\partial \phi^f}{\partial n}
 
 We want the composite :math:`\phi^{c-f}` to satisfy the multilevel
-version of (`[eq:Self Gravity] <#eq:Self Gravity>`__) at the synchronization time, just
+version of (:eq:`eq:Self Gravity`) at the synchronization time, just
 as we want the coarse and fine fluxes at that time to match. So the goal
 is to synchronize :math:`\phi` across levels at that time and then zero out
 this mismatch register.

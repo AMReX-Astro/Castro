@@ -121,6 +121,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
   use amrex_fort_module, only: rt => amrex_real
   use castro_error_module, only: castro_error
+  use amrex_error_module, only: amrex_abort
+  use prob_params_module, only : problo
 
   implicit none
 
@@ -134,13 +136,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   integer  :: i, j, k
 
   do k = lo(3), hi(3)
-     z = xlo(3) + dx(3)*(float(k-lo(3)) + 0.5e0_rt)
+     z = problo(3) + dx(3)*(dble(k) + 0.5e0_rt)
      
      do j = lo(2), hi(2)
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
+        y = problo(2) + dx(2)*(dble(j) + 0.5e0_rt)
 
         do i = lo(1), hi(1)
-           x = xlo(1) + dx(1)*(float(i-lo(1)) + 0.5e0_rt)
+           x = problo(1) + dx(1)*(dble(i) + 0.5e0_rt)
 
            if (idir == 1) then
               if (x <= split(1)) then
