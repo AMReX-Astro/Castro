@@ -11,6 +11,7 @@ USE_MPI    = TRUE
 USE_OMP    = FALSE
 
 GPU_COMPATIBLE_PROBLEM = TRUE
+USE_PROB_PARAMS = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
