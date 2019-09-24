@@ -75,6 +75,8 @@ contains
     ! for debugging
     real(rt) :: U_orig(NVAR)
 
+    U_orig(:) = U_old(:)
+
     if (sdc_solver == NEWTON_SOLVE) then
        ! we are going to assume we already have a good guess for the
        ! solving in U_new and just pass the solve onto the main Newton

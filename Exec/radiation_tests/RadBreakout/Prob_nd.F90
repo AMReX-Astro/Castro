@@ -100,6 +100,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_type_module, only : eos_t, eos_input_rt
   use interpolate_module
   use fundamental_constants_module, only: k_B, n_A
+  use prob_params_module, only : problo
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -143,7 +144,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-           xcl = xlo(1) + delta(1) * dble(i-lo(1))
+           xcl = problo(1) + delta(1) * dble(i)
 
            vtot = 0.e0_rt
            rho = 0.e0_rt
@@ -276,7 +277,7 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-           xcl = xlo(1) + delta(1) * dble(i-lo(1))
+           xcl = problo(1) + delta(1) * dble(i)
 
            vtot = 0.e0_rt
            T = 0.e0_rt
