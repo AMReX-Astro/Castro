@@ -1513,11 +1513,6 @@ contains
              if (.not. okay_to_burn(U_old)) then
                 R_full(:) = ZERO
 
-             ! only burn if we are within the temperature and density
-             ! limits for burning
-             if (.not. okay_to_burn(U_old)) then
-                R_full(:) = ZERO
-
              else
 
                 ! this is the full state -- this will be updated as we
