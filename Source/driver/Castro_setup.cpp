@@ -1134,10 +1134,10 @@ Castro::variableSetUp ()
       SDC_NODES = 4;
 
       dt_sdc.resize(SDC_NODES);
-      dt_sdc = {0.0, (4.0 - std::sqrt(6))/10.0, (4.0 + std::sqrt(6))/10.0, 1.0};
+      dt_sdc = {0.0, (4.0 - std::sqrt(6.0))/10.0, (4.0 + std::sqrt(6.0))/10.0, 1.0};
 
       node_weights.resize(SDC_NODES);
-      node_weights = {0.0, (16.0 - std::sqrt(6))/36.0, (16.0 + std::sqrt(6))/36.0, 1.0/9.0};
+      node_weights = {0.0, (16.0 - std::sqrt(6.0))/36.0, (16.0 + std::sqrt(6.0))/36.0, 1.0/9.0};
 
     } else {
       amrex::Error("invalid value of sdc_order");
