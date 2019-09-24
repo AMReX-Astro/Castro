@@ -1143,6 +1143,9 @@ Castro::variableSetUp ()
       amrex::Error("invalid value of sdc_order");
     }
 
+    node_weights.resize(SDC_NODES);
+    node_weights = {1.0/6.0, 4.0/6.0, 1.0/6.0};
+
   } else {
     amrex::Error("invalid value of sdc_quadrature");
   }
