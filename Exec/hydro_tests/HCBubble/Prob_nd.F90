@@ -124,6 +124,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use probdata_module, only: p_l, u_l, rho_l, p_r, u_r, rho_r, rhoe_l, rhoe_r, T_l, T_r, &
                              frac, idir, use_Tinit, xcloud, cldradius, split
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
+  use prob_params_module, only : problo
 
   implicit none
 
@@ -145,13 +146,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   rhocld  = rho_r * denfact
 
   do k = lo(3), hi(3)
-     zcen = xlo(3) + dx(3) * (dble(k-lo(3)) + 0.5e0_rt)
+     zcen = problo(3) + dx(3) * (dble(k) + 0.5e0_rt)
 
      do j = lo(2), hi(2)
-        ycen = xlo(2) + dx(2) * (dble(j-lo(2)) + 0.5e0_rt)
+        ycen = problo(2) + dx(2) * (dble(j) + 0.5e0_rt)
 
         do i = lo(1), hi(1)
-           xcen = xlo(1) + dx(1) * (dble(i-lo(1)) + 0.5e0_rt)
+           xcen = problo(1) + dx(1) * (dble(i) + 0.5e0_rt)
 
            if (xcen <= split(1)) then      !! left of shock
 

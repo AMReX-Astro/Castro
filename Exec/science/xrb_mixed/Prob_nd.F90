@@ -99,6 +99,8 @@ subroutine ca_initdata(level,time, lo, hi, nscal, &
   use model_parser_module
   use amrex_constants_module, only : ZERO, HALF
   use amrex_fort_module, only : rt => amrex_real
+  use prob_params_module, only : problo
+
   implicit none
 
   integer, intent(in) :: level, nscal
@@ -119,10 +121,10 @@ subroutine ca_initdata(level,time, lo, hi, nscal, &
   type (eos_t) :: eos_state
 
   do k = lo(3), hi(3)
-     z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
+     z = problo(3) + delta(3)*(dble(k) + HALF)
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
+        y = problo(2) + delta(2)*(dble(j) + HALF)
 
         do i = lo(1), hi(1)
 
@@ -166,15 +168,15 @@ subroutine ca_initdata(level,time, lo, hi, nscal, &
   if (apply_vel_field) then
 
      do k = lo(3), hi(3)
-        z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
+        z = problo(3) + delta(3)*(dble(k) + HALF)
         zdist = z - velpert_height_loc
 
         do j = lo(2), hi(2)
-           y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
+           y = problo(2) + delta(2)*(dble(j) + HALF)
            ydist = y - velpert_height_loc
 
            do i = lo(1), hi(1)
-              x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
+              x = problo(1) + delta(1)*(dble(i) + HALF)
 
               upert = ZERO
 

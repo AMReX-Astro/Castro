@@ -15,42 +15,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
 
-  namelist /fortin/ &
-       heating_factor, g0, rho0, p0, gamma1, do_pert, ny
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 127
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call amrex_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! allocate probdata variables
-  allocate(heating_factor, g0, rho0, p0, gamma1)
-  allocate(do_pert)
-  allocate(ny)
-
-  ! set namelist defaults
-
-  heating_factor = 1.e3_rt
-  g0 = -9.021899571e8_rt
-  rho0 = 1.82094e6_rt
-  p0 = 2.7647358e23_rt
-  gamma1 = 1.4e0_rt
-  do_pert = .true.
-  ny = 256
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
 #if AMREX_SPACEDIM == 1
   center(1) = ZERO
