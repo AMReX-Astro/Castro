@@ -245,6 +245,7 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
   use interpolate_module
   use rad_params_module, only : xnu
   use blackbody_module, only : BGroup
+  use prob_params_module, only : problo
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
