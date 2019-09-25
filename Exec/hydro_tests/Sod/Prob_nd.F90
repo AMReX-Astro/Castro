@@ -1,8 +1,8 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use eos_module
   use eos_type_module
-  use castro_error_module 
+  use castro_error_module
   use network
   use probdata_module
 
@@ -14,50 +14,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt)         problo(3), probhi(3)
   real(rt)         xn(nspec)
 
-  integer untin,i
-
   type (eos_t) :: eos_state
 
-  namelist /fortin/ p_l, u_l, rho_l, p_r, u_r, rho_r, T_l, T_r, frac, idir, &
-       use_Tinit
-
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !
-  integer maxlen
-  parameter (maxlen=256)
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  p_l = 1.0               ! left pressure (erg/cc)
-  u_l = 0.0               ! left velocity (cm/s)
-  rho_l = 1.0             ! left density (g/cc)
-  T_l = 1.0
-
-  p_r = 0.1               ! right pressure (erg/cc)
-  u_r = 0.0               ! right velocity (cm/s)
-  rho_r = 0.125           ! right density (g/cc)
-  T_r = 1.0
-
-  idir = 1                ! direction across which to jump
-  frac = 0.5              ! fraction of the domain for the interface
-
-  use_Tinit = .false.     ! optionally use T_l/r instead of p_l/r for initialization
-
-  !     Read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   split(1) = frac*(problo(1)+probhi(1))
   split(2) = frac*(problo(2)+probhi(2))
