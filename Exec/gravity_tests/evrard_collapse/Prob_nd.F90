@@ -47,7 +47,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use network, only : nspec
   use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
   use fundamental_constants_module, only: Gconst, M_solar
-  use prob_params_module, only: center
+  use prob_params_module, only: center, problo
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
