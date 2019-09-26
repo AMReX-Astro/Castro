@@ -100,9 +100,6 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
 {
     BL_PROFILE("Castro::getTempDiffusionTerm()");
 
-   if (verbose && ParallelDescriptor::IOProcessor())
-      std::cout << "Calculating diffusion term at time " << time << std::endl;
-
    // Fill coefficients at this level.
    Vector<std::unique_ptr<MultiFab> > coeffs(AMREX_SPACEDIM);
    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
