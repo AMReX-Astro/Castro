@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use eos_module
   use eos_type_module
@@ -13,76 +13,23 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
   real(rt) :: xn(nspec)
 
   type (eos_t) :: eos_state
-
-  namelist /fortin/ p_l, u_l, v_l, rho_l, rhoe_l, &
-                    p_r, u_r, v_r, rho_r, rhoe_r, &
-                    T_l, T_r, use_Tinit
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen=256
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
 
 #if AMREX_SPACEDIM == 1 || AMREX_SPACEDIM == 3
   call castro_error("ERROR: this problem only works for 2-d")
 #endif
 
-  ! set namelist defaults
+  call probdata_init(name, namlen)
 
-  allocate(p_l)
-  allocate(u_l)
-  allocate(v_l)
-  allocate(rho_l)
-  allocate(T_l)
-
-  p_l = 116.5             ! left pressure (erg/cc)
-  u_l = 7.1447096          ! left u (cm/s)
-  v_l = -4.125          ! left v (cm/s)
-  rho_l = 8.0             ! left density (g/cc)
-  T_l = 1.0
-
-  allocate(p_r)
-  allocate(u_r)
-  allocate(v_r)
-  allocate(rho_r)
-  allocate(T_r)
-
-  p_r = 1.0               ! right pressure (erg/cc)
-  u_r = 0.0               ! right u (cm/s)
-  v_r = 0.0               ! right v (cm/s)
-  rho_r = 1.4             ! right density (g/cc)
-  T_r = 1.0
-
-  allocate(use_Tinit)
-
-  use_Tinit = .false.     ! optionally use T_l/r instead of p_l/r for initialization
-
-  ! Read namelists
-  open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin, fortin)
-  close(unit=untin)
-
-  ! set local variable defaults -- the 'center' variables are the location of the
+  ! set local variable defaults -- the 'center' variables are the
+  ! location of the
 
   ! compute the internal energy (erg/cc) for the left and right state
   xn(:) = 0.0e0_rt
   xn(1) = 1.0e0_rt
 
-  allocate(rhoe_l)
-  allocate(rhoe_r)
-  
   if (use_Tinit) then
 
      eos_state%rho = rho_l
