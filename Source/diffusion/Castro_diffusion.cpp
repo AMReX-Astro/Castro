@@ -13,16 +13,36 @@ Castro::construct_old_diff_source(MultiFab& source, MultiFab& state, Real time, 
 {
     BL_PROFILE("Castro::construct_old_diff_source()");
 
+    const Real strt_time = ParallelDescriptor::second();
+
     MultiFab TempDiffTerm(grids, dmap, 1, 0);
 
     add_temp_diffusion_to_source(source, state, TempDiffTerm, time);
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_old_diff_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void
 Castro::construct_new_diff_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
     BL_PROFILE("Castro::construct_new_diff_source()");
+
+    const Real strt_time = ParallelDescriptor::second();
 
     MultiFab TempDiffTerm(grids, dmap, 1, 0);
 
@@ -37,6 +57,22 @@ Castro::construct_new_diff_source(MultiFab& source, MultiFab& state_old, MultiFa
 
     add_temp_diffusion_to_source(source, state_old, TempDiffTerm, old_time, mult_factor);
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_new_diff_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 // **********************************************************************************************
