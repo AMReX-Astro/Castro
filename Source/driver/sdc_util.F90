@@ -375,16 +375,14 @@ contains
     real(rt), intent(in) :: C(NVAR)
     integer, intent(in) :: sdc_iteration
 
-    real(rt) :: rpar(0:n_rpar-1)
-    integer :: ipar
-
     integer :: istate, iopt
 
-    integer, parameter :: lrw = 22 + 9*(nspec_evolve+2) + 2*(nspec_evolve+2)**2
-    integer, parameter :: liw = 30 + nspec_evolve + 2
+    type(dvode_t) :: dvode_state
+    type(rwork_t) :: rwork
+    integer :: iwork(VODE_LIW)
 
-    real(rt) :: rwork(lrw)
-    integer :: iwork(liw)
+    integer :: imode
+
     real(rt) :: time
     real(rt) :: tol_dens, tol_spec, tol_ener, relax_fac
     real(rt) :: rtol(0:nspec_evolve+1), atol(0:nspec_evolve+1)
@@ -396,10 +394,6 @@ contains
     !   nspec_evolve+1  : (rho E) or (rho e)
 
     real(rt) :: U_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
-
-    integer, parameter :: MF_ANALYTIC_JAC = 21, MF_NUMERICAL_JAC = 22
-    integer :: imode
-
 
     ! the tolerance we are solving to may depend on the iteration
     relax_fac = sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
@@ -448,17 +442,23 @@ contains
     U_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve)
     U_react(nspec_evolve+1) = U_old(UEINT)
 
-#if (INTEGRATOR == 0)
-    istate = 1
-    iopt = 1
+#if (INTEGRATOR == 3)
+    dvode_state % istate = 1
 
     iwork(:) = 0
 
     ! set the maximum number of steps allowed -- the VODE default is 500
     iwork(6) = 25000
 
-    rwork(:) = ZERO
-    time = ZERO
+    rwork % CONDOPT = ZERO
+    rwork % YH = ZERO
+    rwork % WM = ZERO
+    rwork % EWT = ZERO
+    rwork % SAVF = ZERO
+    rwork % ACOR = ZERO
+
+    dvode_state % T = ZERO
+    dvode_state % TOUT = dt_m
 
     if (sdc_use_analytic_jac == 1) then
        imode = MF_ANALYTIC_JAC
@@ -479,6 +479,10 @@ contains
     else
        atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEDEN)
     endif
+
+    dvode_state % atol(:) = atol(:)
+    dvode_state % rtol(:) = rtol(:)
+
 
     call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
                4, rtol, atol, &
