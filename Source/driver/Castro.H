@@ -69,7 +69,7 @@ enum sources { ext_src = 0,
 // time integration method
 
 enum int_method { CornerTransportUpwind = 0,
-                  MethodOfLines,
+                  UnusedTimeIntegration,
                   SpectralDeferredCorrections,
                   SimplifiedSpectralDeferredCorrections
                 };
@@ -190,9 +190,10 @@ public:
 ///
 /// Write job info to file
 ///
-/// @param dir  directory to write to
+/// @param dir       directory to write to
+/// @param io_time   how long it took to generate the plotfile/checkpoint
 ///
-    void writeJobInfo (const std::string& dir);
+    void writeJobInfo (const std::string& dir, const amrex::Real io_time);
 
 
 ///
@@ -1876,6 +1877,7 @@ protected:
 
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;
+    static amrex::Vector<amrex::Real> node_weights;
 
 
 ///

@@ -101,7 +101,16 @@ ppm_temp_fix                 int           0                  y
 ppm_predict_gammae           int           0                  y
 
 # for piecewise linear, reconstruction order to use
+# 1 = piecewise constant, 2 = piecewise linear
 plm_iorder                   int           2                  y
+
+# for piecewise linear, what limiter to use?
+# 1 = 2nd order MC, 2 = 4th order MC
+plm_limiter                  int           2                  y
+
+# for piecewise linear, MOL or SDC, do well-balanced reconstruction on
+# pressure
+plm_well_balanced            int           0                  y
 
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?

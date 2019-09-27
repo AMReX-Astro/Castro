@@ -42,7 +42,7 @@
      use network, only : nspec
      use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
      use fundamental_constants_module, only: Gconst, M_solar
-     use prob_params_module, only: center, dim
+     use prob_params_module, only: center, dim, problo
 
      use amrex_fort_module, only : rt => amrex_real
      implicit none
@@ -61,13 +61,13 @@
 
      !$OMP PARALLEL DO PRIVATE(i, j, k, loc, r, zone_state)
      do k = lo(3), hi(3)
-        loc(3) = xlo(3) + delta(3)*(dble(k-lo(3))+HALF) - center(3)
+        loc(3) = problo(3) + delta(3)*(dble(k)+HALF) - center(3)
 
         do j = lo(2), hi(2)
-           loc(2) = xlo(2) + delta(2)*(dble(j-lo(2))+HALF) - center(2)
+           loc(2) = problo(2) + delta(2)*(dble(j)+HALF) - center(2)
 
            do i = lo(1), hi(1)
-              loc(1) = xlo(1) + delta(1)*(dble(i-lo(1))+HALF) - center(1)
+              loc(1) = problo(1) + delta(1)*(dble(i)+HALF) - center(1)
 
               ! Uniform density, negligible pressure.
 

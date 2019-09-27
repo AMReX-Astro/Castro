@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use prob_params_module, only: center
   use probdata_module
@@ -11,38 +11,18 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
   namelist /fortin/ dens_base, pres_base, &
                     pert_factor, r_pert_center, pert_width, &
                     do_isentropic, &
                     boundary_type, &
                     single
 
-  ! build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
 
-  do_isentropic = .false.
-  single = .false.
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
+  call probdata_init(name, namlen)
 
   ! model composition
   xn_model(:) = 0.0e0_rt
   xn_model(1) = 1.0e0_rt
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
 
   ! set local variable defaults
   center(1) = 0.5e0_rt*(problo(1)+probhi(1))

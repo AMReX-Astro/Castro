@@ -47,7 +47,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use network, only : nspec
   use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
   use fundamental_constants_module, only: Gconst, M_solar
-  use prob_params_module, only: center
+  use prob_params_module, only: center, problo
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -70,13 +70,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   !$OMP PARALLEL DO PRIVATE(i, j, k, loc, radius, zone_state)
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + delta(3)*dble(k+HALF-lo(3))
+     loc(3) = problo(3) + delta(3)*(dble(k)+HALF)
 
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + delta(2)*dble(j+HALF-lo(2))
+        loc(2) = problo(2) + delta(2)*(dble(j)+HALF)
 
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + delta(1)*dble(i+HALF-lo(1))
+           loc(1) = problo(1) + delta(1)*(dble(i)+HALF)
 
            radius = sum( (loc - center)**2 )**HALF
 

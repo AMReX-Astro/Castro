@@ -41,6 +41,7 @@ https://github.com/amrex-astro/Castro
    radiation
    Particles
    EOSNetwork
+   sdc
    AMR
    ConvertCheckpoint
    self_consistent_field
