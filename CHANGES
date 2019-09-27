@@ -36,6 +36,10 @@ changes since the last release
      parameters in a file _prob_params in the problem directory.
      (#234, #619, #673)
 
+  -- The time to output is now stored in the job_info file (#365)
+
+  -- The SDC time advancement method has been documented
+
 # 19.09
 
   -- You can now type ./Castro.gnu.ex --describe to see the list of

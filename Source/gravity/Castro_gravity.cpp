@@ -225,6 +225,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
 void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
+    const Real strt_time = ParallelDescriptor::second();
 
 #ifdef SELF_GRAVITY
     const MultiFab& phi_old = get_old_data(PhiGrav_Type);
@@ -259,10 +260,28 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
 
     }
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_old_gravity_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
+
 }
 
 void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
+    const Real strt_time = ParallelDescriptor::second();
 
 #ifdef SELF_GRAVITY
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
@@ -307,4 +326,20 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 	}
     }
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_new_gravity_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }

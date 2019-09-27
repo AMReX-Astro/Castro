@@ -8,9 +8,28 @@ Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state, Real time
 {
     BL_PROFILE("Castro::construct_old_hybrid_source()");
 
+    const Real strt_time = ParallelDescriptor::second();
+
     Real mult_factor = 1.0;
 
     fill_hybrid_hydro_source(source, state, mult_factor);
+
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_old_hybrid_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 
@@ -18,8 +37,9 @@ Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state, Real time
 void
 Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-
     BL_PROFILE("Castro::construct_new_hybrid_source()");
+
+    const Real strt_time = ParallelDescriptor::second();
 
     // Start by subtracting off the old-time data.
 
@@ -32,6 +52,23 @@ Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, Multi
     mult_factor = 0.5;
 
     fill_hybrid_hydro_source(source, state_new, mult_factor);
+
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_new_hybrid_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 

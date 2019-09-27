@@ -8,6 +8,8 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time
 {
   if (!(time_integration_method == SpectralDeferredCorrections)) return;
 
+  const Real strt_time = ParallelDescriptor::second();
+
   MultiFab thermo_src(grids, dmap, NUM_STATE, 0);
 
   thermo_src.setVal(0.0);
@@ -17,6 +19,23 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time
   Real mult_factor = 1.0;
 
   MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, NUM_STATE, 0);
+
+  if (verbose > 1)
+  {
+      const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+      Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+      Lazy::QueueReduction( [=] () mutable {
+#endif
+      ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+      if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+      });
+#endif
+    }
 }
 
 
