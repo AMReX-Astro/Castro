@@ -16,6 +16,9 @@ NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
 VISC_HOME ?= $(TOP)/Microphysics/viscosity
 
+# default integrator
+INTEGRATOR_DIR ?= VODE90
+
 # number of passively advected quantities that are not species or auxillary
 NUMADV ?= 0
 
