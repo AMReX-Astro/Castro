@@ -55,8 +55,12 @@ EXTERN_CORE ?=
 
 
 # need to put any build suffices before Make.defs
-ifeq ($(USE_SDC), TRUE)
-  USERSuffix = .SDC
+ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+  USERSuffix = .SMPLSDC
+endif
+
+ifeq ($(USE_TRUE_SDC), TRUE)
+  USERSuffix = .TRUESDC
 endif
 
 ifeq ($(USE_RAD), TRUE)
@@ -156,8 +160,12 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
   endif
 endif
 
-ifeq ($(USE_SDC), TRUE)
+ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
   DEFINES += -DSDC -DPRIM_SPECIES_HAVE_SOURCES
+endif
+
+ifeq ($(USE_TRUE_SDC), TRUE)
+  DEFINES += -DTRUE_SDC
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
