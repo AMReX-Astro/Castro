@@ -641,7 +641,7 @@ namespace: ``gravity``
 |                                        | accurate, at the cost of an additional Poisson solve    |               |
 |                                        | per timestep.                                           |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``max_solve_level``                    | For all gravity types, we can choose a maximum level    | MAX\_LEV-1    |
+| ``max_solve_level``                    | For all gravity types, we can choose a maximum level    | MAX_LEV-1     |
 |                                        | for explicitly calculating the gravity and associated   |               |
 |                                        | potential. Above that level, we interpolate from        |               |
 |                                        | coarser levels.                                         |               |
