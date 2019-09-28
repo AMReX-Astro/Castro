@@ -1,31 +1,9 @@
-module rpar_sdc_module
+module sdc_util
 
-  use network, only : nspec, nspec_evolve
+  use amrex_fort_module, only : rt => amrex_real
+  use castro_error_module, only : castro_error
+
   implicit none
-
-  ! rpar is the storage array that is passed into the righthand side of the ODE integrator
-
-  ! f_source is function we are zeroing.  There are nspec_evolve + 2
-  ! components (density and energy), since those are the unknowns for
-  ! the nonlinear system
-  integer, parameter :: irp_f_source = 0
-
-  ! dt is the timestep (1 component)
-  integer, parameter :: irp_dt = irp_f_source + nspec_evolve + 2
-
-  ! mom is the momentum (3 components)
-  integer, parameter :: irp_mom = irp_dt + 1
-
-  ! evar is the other energy variable (rho e if we are solving for rho E, and vice versa)
-  integer, parameter :: irp_evar = irp_mom + 3
-
-  ! the temperature -- used as a guess in the EOS
-  integer, parameter :: irp_temp = irp_evar + 1
-
-  ! the unevolved species -- note: unevolved here means not reacting
-  integer, parameter :: irp_spec = irp_temp + 1  ! nspec - nspec_evolve components
-
-  integer, parameter :: n_rpar = nspec_evolve + 8 + (nspec - nspec_evolve)
 
   ! error codes
   integer, parameter :: NEWTON_SUCCESS = 0
@@ -36,16 +14,6 @@ module rpar_sdc_module
   integer, parameter :: NEWTON_SOLVE = 1
   integer, parameter :: VODE_SOLVE = 2
   integer, parameter :: HYBRID_SOLVE = 3
-
-end module rpar_sdc_module
-
-
-module sdc_util
-
-  use amrex_fort_module, only : rt => amrex_real
-  use castro_error_module, only : castro_error
-
-  implicit none
 
 contains
 
@@ -60,7 +28,6 @@ contains
     use burn_type_module, only : burn_t
     use react_util_module
     use network, only : nspec, nspec_evolve
-    use rpar_sdc_module
 
     implicit none
 
@@ -116,7 +83,6 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use amrex_constants_module, only : ZERO, HALF, ONE
     use network, only : nspec, nspec_evolve
-    use rpar_sdc_module
 
     implicit none
 
@@ -175,7 +141,7 @@ contains
     use burn_type_module, only : burn_t
     use react_util_module
     use network, only : nspec, nspec_evolve
-    use rpar_sdc_module
+    use vode_rpar_indices
 
     implicit none
 
@@ -189,7 +155,7 @@ contains
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
     real(rt) :: w(0:nspec_evolve+1)
 
-    real(rt) :: rpar(0:n_rpar-1)
+    real(rt) :: rpar(0:n_rpar_comps-1)
 
     integer :: ipvt(nspec_evolve+2)
     integer :: info
@@ -365,7 +331,11 @@ contains
     use burn_type_module, only : burn_t
     use react_util_module
     use network, only : nspec, nspec_evolve
-    use rpar_sdc_module
+    use vode_rpar_indices
+    use cuvode_parameters_module
+    use cuvode_types_module, only : dvode_t, rwork_t
+    use extern_probin_module, only : use_jacobian_caching
+    use cuvode_module, only: dvode
 
     implicit none
 
@@ -375,11 +345,13 @@ contains
     real(rt), intent(in) :: C(NVAR)
     integer, intent(in) :: sdc_iteration
 
-    integer :: istate, iopt
+    integer :: istate
 
     type(dvode_t) :: dvode_state
     type(rwork_t) :: rwork
     integer :: iwork(VODE_LIW)
+
+    real(rt) :: rpar(0:n_rpar_comps-1)
 
     integer :: imode
 
@@ -461,9 +433,13 @@ contains
     dvode_state % TOUT = dt_m
 
     if (sdc_use_analytic_jac == 1) then
-       imode = MF_ANALYTIC_JAC
+       imode = MF_ANALYTIC_JAC_CACHED
     else
-       imode = MF_NUMERICAL_JAC
+       imode = MF_NUMERICAL_JAC_CACHED
+    endif
+
+    if (.not. use_jacobian_caching) then
+       imode = -imode
     endif
 
     ! relative tolerances
@@ -483,10 +459,7 @@ contains
     dvode_state % atol(:) = atol(:)
     dvode_state % rtol(:) = rtol(:)
 
-
-    call dvode(f_ode, nspec_evolve+2, U_react, time, dt_m, &
-               4, rtol, atol, &
-               1, istate, iopt, rwork, lrw, iwork, liw, jac_ode, imode, rpar, ipar)
+    call dvode(dvode_state, rwork, iwork, ITASK, IOPT, imode)
 
     if (istate < 0) then
        print *, "VODE error, istate = ", istate
@@ -506,149 +479,10 @@ contains
   end subroutine sdc_vode_solve
 
 
-  subroutine f_ode(n, t, U, dUdt, rpar, ipar)
-    ! this is the righthand side for the ODE system that we will use
-    ! with VODE
-
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UTEMP, UMX, UMZ, UEINT
-    use burn_type_module
-    use rpar_sdc_module
-    use react_util_module
-
-    implicit none
-
-    integer, intent(in) :: n
-    real(rt), intent(in) :: t
-    real(rt), intent(in) :: U(0:n-1)
-    real(rt), intent(out) :: dUdt(0:n-1)
-    real(rt), intent(inout) :: rpar(0:n_rpar-1)
-    integer, intent(in) :: ipar
-
-    real(rt) :: U_full(nvar),  R_full(nvar)
-    real(rt) :: R_react(0:n-1), C_react(0:n-1)
-    type(burn_t) :: burn_state
-
-    ! evaluate R
-
-    ! we are not solving the momentum equations
-    ! create a full state -- we need this for some interfaces
-    U_full(URHO) = U(0)
-    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
-    U_full(UEINT) = U(nspec_evolve+1)
-    U_full(UEDEN) = rpar(irp_evar)
-
-    U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
-    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
-
-    ! initialize the temperature -- a better value will be found when we do the EOS
-    ! call in single_zone_react_source
-    U_full(UTEMP) = rpar(irp_temp)
-
-    call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
-
-    ! update our temperature for next time
-    rpar(irp_temp) = burn_state % T
-
-    R_react(0) = R_full(URHO)
-    R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
-    R_react(nspec_evolve+1) = R_full(UEINT)
-
-    ! C comes in through rpar
-    C_react(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
-
-    ! create the RHS
-    dUdt(:) = R_react(:) + C_react(:)
-
-  end subroutine f_ode
-
-  subroutine jac_ode(n, time, U, ml, mu, Jac, nrowpd, rpar, ipar)
-    ! this is the Jacobian function for use with VODE
-
-    use amrex_constants_module, only : ZERO, ONE
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UTEMP, UMX, UMZ, UEINT
-    use burn_type_module
-    use eos_type_module, only : eos_t, eos_input_re
-    use eos_module, only : eos
-    use rpar_sdc_module
-    use react_util_module
-
-    implicit none
-
-    integer   , intent(IN   ) :: n, ml, mu, nrowpd, ipar
-    real(rt), intent(INOUT) :: U(0:n-1), rpar(0:n_rpar-1), time
-    real(rt), intent(  OUT) :: Jac(0:n-1, 0:n-1)
-
-    type(burn_t) :: burn_state
-    type(eos_t) :: eos_state
-
-    real(rt) :: U_full(nvar),  R_full(nvar)
-
-    real(rt) :: denom
-    real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
-
-    integer :: m
-
-    ! we are not solving the momentum equations
-    ! create a full state -- we need this for some interfaces
-    U_full(URHO) = U(0)
-    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
-    U_full(UEINT) = U(nspec_evolve+1)
-    U_full(UEDEN) = rpar(irp_evar)
-
-    U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
-    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
-
-    ! compute the temperature and species derivatives --
-    ! maybe this should be done using the burn_state
-    ! returned by single_zone_react_source, since it is
-    ! more consistent T from e
-    eos_state % rho = U_full(URHO)
-    eos_state % T = rpar(irp_temp)   ! initial guess
-    eos_state % xn(:) = U_full(UFS:UFS-1+nspec)/U_full(URHO)
-    eos_state % e = U_full(UEINT)/U_full(URHO)  !(U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
-
-    call eos(eos_input_re, eos_state)
-
-    U_full(UTEMP) = eos_state % T
-
-    call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
-
-    call single_zone_jac(U_full, burn_state, dRdw)
-
-    ! construct dwdU
-    dwdU(:, :) = ZERO
-
-    ! the density row
-    dwdU(0, 0) = ONE
-
-    ! the X_k rows
-    do m = 1, nspec_evolve
-       dwdU(m,0) = -U(m)/U(0)**2
-       dwdU(m,m) = ONE/U(0)
-    enddo
-
-    ! now the T row -- this depends on whether we are evolving (rho E) or (rho e)
-    denom = ONE/(eos_state % rho * eos_state % dedT)
-    dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
-                                    eos_state % rho * eos_state % dedr - eos_state % e)
-
-    do m = 1, nspec_evolve
-       dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
-    enddo
-
-    dwdU(nspec_evolve+1, nspec_evolve+1) = denom
-
-    ! construct the Jacobian -- we can get most of the
-    ! terms from the network itself, but we do not rely on
-    ! it having derivative wrt density
-    Jac(:,:) = matmul(dRdw, dwdU)
-
-  end subroutine jac_ode
-
   subroutine f_sdc(n, U, f, iflag, rpar)
     ! this is used by the Newton solve to compute the Jacobian via differencing
 
-    use rpar_sdc_module
+    use vode_rpar_indices
     use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT, UTEMP, sdc_solve_for_rhoe
     use network, only : nspec, nspec_evolve
     use burn_type_module
@@ -661,7 +495,7 @@ contains
     real(rt), intent(in)  :: U(0:n-1)
     real(rt), intent(out) :: f(0:n-1)
     integer, intent(inout) :: iflag  !! leave this untouched
-    real(rt), intent(inout) :: rpar(0:n_rpar-1)
+    real(rt), intent(inout) :: rpar(0:n_rpar_comps-1)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
     real(rt) :: R_react(0:n-1), f_source(0:n-1)
@@ -711,7 +545,7 @@ contains
   subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, rpar)
     ! this is used with the Newton solve and returns f and the Jacobian
 
-    use rpar_sdc_module
+    use vode_rpar_indices
     use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP, &
          sdc_solve_for_rhoe
     use network, only : nspec, nspec_evolve
@@ -720,6 +554,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_re
     use eos_module, only : eos
     use amrex_constants_module, only : ZERO, HALF, ONE
+    use vode_rpar_indices
 
     ! this computes the function we need to zero for the SDC update
     implicit none
@@ -729,7 +564,7 @@ contains
     real(rt), intent(out) :: f(0:n-1)
     real(rt), intent(out) :: Jac(0:ldjac-1,0:n-1)
     integer, intent(inout) :: iflag  !! leave this untouched
-    real(rt), intent(inout) :: rpar(0:n_rpar-1)
+    real(rt), intent(inout) :: rpar(0:n_rpar_comps-1)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
     real(rt) :: R_react(0:n-1), f_source(0:n-1)

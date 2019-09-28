@@ -53,6 +53,7 @@ ca_F90EXE_sources += meth_params.F90
 ca_F90EXE_sources += set_indices.F90
 ifneq ($(USE_CUDA), TRUE)
   ca_F90EXE_sources += sdc_util.F90
+  ca_F90EXE_sources += sdc_vode.F90
 endif
 ca_f90EXE_sources += state_sizes.f90
 
