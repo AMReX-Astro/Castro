@@ -35,7 +35,7 @@ contains
     real(rt),   intent(in   ), value :: time
 
     integer  :: i, j, k
-    real(rt) :: x, xdist
+    real(rt) :: x, y, dist
 
     !$gpu
 
@@ -45,12 +45,18 @@ contains
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
+          y = problo(2) + (dble(j) + HALF)*dx(2)
           do i = lo(1), hi(1)
              x = problo(1) + (dble(i) + HALF)*dx(1)
 
              if ( state(i,j,k,URHO) > cutoff_density .and. state(i,j,k,UFS)/state(i,j,k,URHO) > X_min) then
-                xdist = abs(x - center(1))
-                if (level < max_hse_tagging_level .and. xdist < x_refine_distance) then
+
+#if AMREX_SPACEDIM == 2
+                dist = abs(x - center(1))
+#else
+                dist = sqrt((x - center(1))**2 + (y - center(2))**2)
+#endif
+                if (level < max_hse_tagging_level .and. dist < x_refine_distance) then
                    tag(i,j,k) = set
                 end if
              end if
