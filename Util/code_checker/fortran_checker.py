@@ -1,34 +1,94 @@
 """
-We should write a code checker to make sure that there are no simple errors. In particular:
-
-when we call the EOS with something other than eos_input_rt, we need to make sure that eos_state % rho and eos_state % T are both defined (possibly with reasonable guesses) to ensure Newton is happy.
-
-make sure all the EOS calls have aux initialized
-
-make sure that all of the numerical constants use _rt and are defined as real(rt)
-
-we should not assume that species are at the end of the state vector, e.g., q(QFS:) to get only species is unsafe.
+A code checker to make sure that there are no simple errors.
 """
 
 import re
 import pytest
+import os
+from pathlib import Path
 
-@pytest.fixture(scope="module")
-def file_dat(filename):
-    # open file
-    return open(filename, 'r').read()
+def find_fortran_files():
+    # find Castro Fortran source files 
+    try:
+        castro_home = os.environ['CASTRO_HOME']
+    except KeyError:
+        # this assumes this file is run from the Castro/Util/code_checker directory
+        castro_home = '../..'
 
-def test_check_rt(file_dat):
-    r = re.compile(r'(\d*\.\d*[de]?\d+(?:_rt)?)')
-    # d = re.compile(r'(\d*\.\d*d\d+)')
-    rt = re.compile(r'(\d*\.\d*e?\d+_rt)')
-    # no_d_or_rt = re.compile(r'(\d*\.\d+)')
+    p = Path(castro_home + '/Source')
+    return p.glob(r'**/*.[fF]90')
 
-    double_prec = re.compile(r'(double precision)')
+def idfunc(argvalue):
+    return '/'.join(str(argvalue).split('/')[-2:])
 
-    for l in file_dat.split('\n'):
-        for m in re.finditer(r, l.split('!')[0]):
-            assert re.fullmatch(rt, m.group(1)) is not None
+def pytest_generate_tests(metafunc):
+    files = find_fortran_files()
+    metafunc.parametrize('filename', files, ids=idfunc, scope="module")
 
-        assert re.search(double_prec, l.split('!')[0]) is None
 
+def test_check_rt(filename):
+    """
+    make sure that all of the numerical constants use _rt and are defined as real(rt)
+    """
+    with open(filename, 'r') as file_dat:
+
+        r = re.compile(r'(\d*\.\d*[de]?\d+(?:_rt)?)')
+        rt = re.compile(r'(\d*\.\d*e?\d+_rt)')
+
+        double_prec = re.compile(r'(double precision)')
+
+        for l in file_dat.readlines():
+            for m in re.finditer(r, l.split('!')[0]):
+                assert re.fullmatch(rt, m.group(1)) is not None
+
+            assert re.search(double_prec, l.split('!')[0]) is None
+
+def test_check_eos_inputs(filename):
+    """
+    when we call the EOS with something other than eos_input_rt, we need to make sure that eos_state % rho and eos_state % T are both defined (possibly with reasonable guesses) to ensure Newton is happy.
+    """
+
+    with open(filename, 'r') as file_dat:
+        r = re.compile(r'(?:subroutine|function)(.*?)end (?:subroutine|function)', re.M | re.S)
+
+        for m in re.finditer(r, file_dat.read()):
+            # does it contain an EOS call with something other than `eos_input_rt`?
+            s = re.compile(r'eos\(eos_input_([a-z]{2}),\s?(\w+)\s?\)')
+            function_body = m.group(1)
+
+            for n in re.finditer(s, function_body):
+                if n.group(1) != 'rt':
+                    # now we need to check that rho and T are both defined
+                    # NOTE: this bit is not clever enough to be able to deal with 
+                    # branches. It's just checking that somewhere in the routine 
+                    # prior to the EOS call, rho and T were set
+                    assert re.search(re.compile(fr'{n.group(2)}\s?%\srho\s*='), function_body[:n.start()]) is not None
+                    assert re.search(re.compile(fr'{n.group(2)}\s?%\sT\s*='), function_body[:n.start()]) is not None
+
+def test_eos_aux_initialized(filename):
+    """
+    make sure all the EOS calls have aux initialized
+    """
+
+    with open(filename, 'r') as file_dat:
+        r = re.compile(r'(?:subroutine|function)(.*?)end (?:subroutine|function)', re.M | re.S)
+
+        for m in re.finditer(r, file_dat.read()):
+            s = re.compile(r'eos\(eos_input_([a-z]{2}),\s?(\w+)\s?\)')
+            function_body = m.group(1)
+
+            for n in re.finditer(s, function_body):
+                # check that aux has been initialized
+                # NOTE: this bit is not clever enough to be able to deal with 
+                # branches. It's just checking that somewhere in the routine 
+                # prior to the EOS call aux was set
+                assert re.search(re.compile(fr'{n.group(2)}\s?%\saux\s*='), function_body[:n.start()]) is not None
+
+def test_state_vector_species(filename):
+    """
+    we should not assume that species are at the end of the state vector, e.g., q(QFS:) to get only species is unsafe.
+    """
+    with open(filename, 'r') as file_dat:
+        r = re.compile(r'(?:Q|U)FS:\s*[,)]')
+
+        assert re.search(r, file_dat.read()) is None
