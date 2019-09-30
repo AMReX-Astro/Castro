@@ -555,7 +555,7 @@ subroutine ca_compute_dcoefs(lo, hi, &
            else if (v(i-1,j,1) + v(i,j,1) .lt. 0.e0_rt) then
               d(i,j) = dcf(i,j) * v(i,j,1) * lam(i,j)
            else
-              d(i,j) = 0.0
+              d(i,j) = 0.e0_rt
            end if
            d(i,j) = d(i,j) * r(i)
         end do
@@ -568,7 +568,7 @@ subroutine ca_compute_dcoefs(lo, hi, &
            else if (v(i,j-1,2) + v(i,j,2) .lt. 0.e0_rt) then
               d(i,j) = dcf(i,j) * v(i,j,2) * lam(i,j)
            else
-              d(i,j) = 0.0
+              d(i,j) = 0.e0_rt
            end if
            d(i,j) = d(i,j) * r(i)
         end do

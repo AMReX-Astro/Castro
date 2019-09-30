@@ -32,8 +32,8 @@ def test_check_rt(filename):
     """
     with open(filename, 'r') as file_dat:
 
-        r = re.compile(r'(\d*\.\d*[de]?\d+(?:_rt)?)')
-        rt = re.compile(r'(\d*\.\d*e?\d+_rt)')
+        r = re.compile(r'\W(\d*\.\d*[de]?-?\d+(?:_rt)?)')
+        rt = re.compile(r'(\d*\.\d*e?-?\d+_rt)')
 
         double_prec = re.compile(r'(double precision)')
 
