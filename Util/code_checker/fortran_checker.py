@@ -53,7 +53,7 @@ def test_check_eos_inputs(filename):
 
         for m in re.finditer(r, file_dat.read()):
             # does it contain an EOS call with something other than `eos_input_rt`?
-            s = re.compile(r'eos\(eos_input_([a-z]{2}),\s?(\w+)\s?\)')
+            s = re.compile(r' eos\(eos_input_([a-z]{2}),\s?(\w+)\s?\)')
             function_body = m.group(1)
 
             for n in re.finditer(s, function_body):
@@ -62,8 +62,15 @@ def test_check_eos_inputs(filename):
                     # NOTE: this bit is not clever enough to be able to deal with 
                     # branches. It's just checking that somewhere in the routine 
                     # prior to the EOS call, rho and T were set
-                    assert re.search(re.compile(fr'{n.group(2)}\s?%\srho\s*='), function_body[:n.start()]) is not None
-                    assert re.search(re.compile(fr'{n.group(2)}\s?%\sT\s*='), function_body[:n.start()]) is not None
+                    try:
+                        assert re.search(re.compile(fr'{n.group(2)}\s?%\s?rho\s*='), function_body[:n.start()]) is not None
+                        assert re.search(re.compile(fr'{n.group(2)}\s?%\s?T\s*='), function_body[:n.start()]) is not None
+                    except AssertionError:
+                        # it might be that the state is burned, in which case 
+                        # the state being initialized will have a different 
+                        # name to the one having the eos called on it
+                        assert re.search(re.compile(fr'%\s?rho\s*='), function_body[:n.start()]) is not None
+                        assert re.search(re.compile(fr'%\s?T\s*='), function_body[:n.start()]) is not None
 
 def test_eos_aux_initialized(filename):
     """
@@ -74,7 +81,7 @@ def test_eos_aux_initialized(filename):
         r = re.compile(r'(?:subroutine|function)(.*?)end (?:subroutine|function)', re.M | re.S)
 
         for m in re.finditer(r, file_dat.read()):
-            s = re.compile(r'eos\(eos_input_([a-z]{2}),\s?(\w+)\s?\)')
+            s = re.compile(r' eos\(eos_input_([a-z]{2}),\s?(\w+)\s?\)')
             function_body = m.group(1)
 
             for n in re.finditer(s, function_body):
@@ -82,7 +89,10 @@ def test_eos_aux_initialized(filename):
                 # NOTE: this bit is not clever enough to be able to deal with 
                 # branches. It's just checking that somewhere in the routine 
                 # prior to the EOS call aux was set
-                assert re.search(re.compile(fr'{n.group(2)}\s?%\saux\s*='), function_body[:n.start()]) is not None
+                try:
+                    assert re.search(re.compile(fr'{n.group(2)}\s?%\s?aux[ ():\w]*='), function_body[:n.start()]) is not None
+                except AssertionError:
+                    assert re.search(re.compile(fr'%\s?aux[ ():\w]*='), function_body[:n.start()]) is not None
 
 def test_state_vector_species(filename):
     """
