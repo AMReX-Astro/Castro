@@ -44,8 +44,8 @@ contains
                                         maximum_density, &
                                         target_h_max) bind(C, name='scf_calculate_target_h_max')
 
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFS
-    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX
+    use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
 
@@ -260,8 +260,8 @@ contains
                                 Linf_norm) bind(C, name='scf_update_density')
 
     use amrex_constants_module, only: ZERO, HALF
-    use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMZ, UEDEN, UEINT, UFS
-    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMZ, UEDEN, UEINT, UFS, UFX
+    use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_th, eos_t
 
@@ -346,8 +346,8 @@ contains
                              kin_eng, pot_eng, int_eng, mass) bind(C, name='scf_diagnostics')
 
     use amrex_constants_module, only: ZERO, HALF
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFS
-    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX
+    use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
 
