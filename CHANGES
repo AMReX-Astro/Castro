@@ -1,4 +1,4 @@
-changes since the last release
+# 19.10
 
   -- The SDC algorithm now implements the burning conditionals
      depending on rho and T (react_rho_min, react_rho_max,
