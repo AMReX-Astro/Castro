@@ -783,9 +783,7 @@ contains
     ! contrast, is very important because calls to enforce_minimum_density can yield
     ! hydrodynamic states that are inconsistent (there is no clear strategy for what to do
     ! when a density is negative).
-    !
-    ! We implement the flux limiter on a dimension-by-dimension basis, starting with the x-direction.
-    !
+
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
