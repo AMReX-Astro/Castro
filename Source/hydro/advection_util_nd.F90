@@ -932,6 +932,10 @@ contains
 
                 thetap = (density_floor - rhoLFL) / (rhoL - rhoLFL)
 
+                ! Limit theta to the valid range (this will deal with roundoff issues).
+
+                thetap = min(ONE, max(thetap, ZERO))
+
              end if
 
              ! Now do the minus state.
@@ -945,6 +949,8 @@ contains
                 rhoLFR = uR(URHO) + drhoLFR
 
                 thetam = (density_floor - rhoLFR) / (rhoR - rhoLFR)
+
+                thetam = min(ONE, max(thetam, ZERO))
 
              endif
 
