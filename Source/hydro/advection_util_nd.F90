@@ -786,7 +786,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
-    use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
+    use meth_params_module, only: NVAR, NQ, URHO, UTEMP, USHK, small_dens, cfl
     use prob_params_module, only: dim
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
 
@@ -890,6 +890,13 @@ contains
              else if (uL(URHO) - drhoLF < density_floor) then
                 fluxLF(:) = fluxLF(:) * abs((density_floor - uL(URHO)) / drhoLF)
              endif
+
+             ! Zero out fluxes for quantities that don't advect.
+
+             fluxLF(UTEMP) = ZERO
+#ifdef SHOCK_VAR
+             fluxLF(USHK) = ZERO
+#endif
 
              ! Note that in the below, we are calculating theta_+ and theta_- on the left
              ! edge of the zone at interface i-1/2, to be consistent with the nodal notation
