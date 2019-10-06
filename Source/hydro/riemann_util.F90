@@ -437,7 +437,7 @@ contains
 #endif
                                    QRHO, QU, QV, QW, &
                                    QPRES, QGAME, QREINT, &
-                                   QC, QGAMC, QFS, &
+                                   QC, QGAMC, QFS, QFX, &
 #ifdef HYBRID_MOMENTUM
                                    NGDNV, GDPRES, GDGAME, &
                                    GDRHO, GDU, GDV, GDW, &
@@ -456,7 +456,7 @@ contains
 #endif
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
-    use network, only : nspec
+    use network, only : nspec, naux
 
     integer, intent(in) :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -533,6 +533,8 @@ contains
                 eos_state % p = qint(i,j,k,QPRES)
                 eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)
                 eos_state % T = T_guess  ! initial guess
+                eos_state % aux(:) = qint(i,j,k,QFX:QFX+naux-1)
+
                 call eos(eos_input_rp, eos_state)
                 rhoeint = qint(i,j,k,QRHO) * eos_state % e
              else
