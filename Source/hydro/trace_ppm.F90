@@ -425,14 +425,7 @@ contains
 
                 call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     q, qd_lo, qd_hi, NQ, n, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip, Im, NQ, n, &
-                                     dx, dt)
+                call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip(:,n), Im(:,n))
              end do
 
 
@@ -446,15 +439,7 @@ contains
 
              call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-             call ppm_int_profile(i, j, k, &
-                                  idir, &
-                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                  q, qd_lo, qd_hi, &
-                                  qaux, qa_lo, qa_hi, &
-                                  sm, sp, &
-                                  Ip_gc, Im_gc, 1, 1, &
-                                  dx, dt)
-
+             call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_gc, Im_gc)
 
              ! source terms
              do n = 1, NQSRC
@@ -470,14 +455,7 @@ contains
 
                    call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                   call ppm_int_profile(i, j, k, &
-                                        idir, &
-                                        srcQ, src_lo, src_hi, NQSRC, n, &
-                                        q, qd_lo, qd_hi, &
-                                        qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
-                                        Ip_src, Im_src, NQSRC, n, &
-                                        dx, dt)
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_src(:,n), Im_src(:,n))
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
@@ -974,14 +952,7 @@ contains
 
                 call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     q, qd_lo, qd_hi, NQ, n, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip, Im, NQ, n, &
-                                     dx, dt)
+                call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip(:,n), Im(:,n))
              end do
 
 
@@ -997,14 +968,7 @@ contains
 
                 call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip_gc, Im_gc, 1, 1, &
-                                     dx, dt)
+                call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_gc, Im_gc)
              else
 
                 ! temperature-based PPM
@@ -1028,14 +992,7 @@ contains
 
                    call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                   call ppm_int_profile(i, j, k, &
-                                        idir, &
-                                        srcQ, src_lo, src_hi, NQSRC, n, &
-                                        q, qd_lo, qd_hi, &
-                                        qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
-                                        Ip_src, Im_src, NQSRC, n, &
-                                        dx, dt)
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_src(:,n), Im_src(:,n))
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
@@ -1559,14 +1516,7 @@ contains
 
                 call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     q, qd_lo, qd_hi, NQ, n, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip, Im, NQ, n, &
-                                     dx, dt)
+                call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip(:,n), Im(:,n))
              end do
 
 
@@ -1582,14 +1532,7 @@ contains
 
                 call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip_gc, Im_gc, 1, 1, &
-                                     dx, dt)
+                call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_gc, Im_gc)
              else
 
                 ! temperature-based PPM
@@ -1613,14 +1556,7 @@ contains
 
                    call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                   call ppm_int_profile(i, j, k, &
-                                        idir, &
-                                        srcQ, src_lo, src_hi, NQSRC, n, &
-                                        q, qd_lo, qd_hi, &
-                                        qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
-                                        Ip_src, Im_src, NQSRC, n, &
-                                        dx, dt)
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_src(:,n), Im_src(:,n))
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
