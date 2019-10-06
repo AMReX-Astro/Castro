@@ -889,14 +889,12 @@ contains
              flux_coefR = TWO * (dt / alpha) * area(i,j,k) / volR
              drhoLFR = flux_coefR * fluxLF(URHO)
 
-             if (uR(URHO) + drhoLFR < density_floor) then
-                fluxLF(:) = fluxLF(:) * abs((density_floor - uR(URHO)) / drhoLFR)
-             end if
-
              flux_coefL = TWO * (dt / alpha) * area(i,j,k) / volL
              drhoLFL = flux_coefL * fluxLF(URHO)
 
-             if (uL(URHO) - drhoLFL < density_floor) then
+             if (uR(URHO) + drhoLFR < density_floor) then
+                fluxLF(:) = fluxLF(:) * abs((density_floor - uR(URHO)) / drhoLFR)
+             else if (uL(URHO) - drhoLFL < density_floor) then
                 fluxLF(:) = fluxLF(:) * abs((density_floor - uL(URHO)) / drhoLFL)
              endif
 
@@ -965,14 +963,11 @@ contains
              ! Now, apply our requirement that the final flux cannot violate the density floor.
 
              drhoR = flux_coefR * flux(i,j,k,URHO)
+             drhoL = flux_coefL * flux(i,j,k,URHO)
 
              if (uR(URHO) + drhoR < density_floor) then
                 flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - uR(URHO)) / drhoR)
-             end if
-
-             drhoL = flux_coefL * flux(i,j,k,URHO)
-
-             if (uL(URHO) - drhoL < density_floor) then
+             else if (uL(URHO) - drhoL < density_floor) then
                 flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - uL(URHO)) / drhoL)
              endif
 
