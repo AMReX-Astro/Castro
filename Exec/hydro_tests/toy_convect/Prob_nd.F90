@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module
   use model_parser_module
@@ -13,43 +13,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt), intent(in) :: problo(3), probhi(3)
 
   real(rt) :: offset
-  integer :: untin, i
-
-  namelist /fortin/ model_name, apply_vel_field, &
-                    velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
-                    H_min, cutoff_density, interp_BC, zero_vels
-
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
-  ! Build "probin" filename from C++ land --
-  ! the name of file containing fortin namelist.
-
-  if (namlen .gt. maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
+  integer :: i
 
   ! Namelist defaults
-  apply_vel_field = .false.
-  velpert_scale = 1.0e2_rt
-  velpert_amplitude = 1.0e2_rt
-  velpert_height_loc = 6.5e3_rt
-  num_vortices = 1
-
-  ! these are used in tagging
-  H_min = 1.e-4_rt
-  cutoff_density = 50.e0_rt
-
-  interp_BC = .false.
-  zero_vels = .false.
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! Read initial model
   call read_model_file(model_name)
@@ -63,8 +30,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   ! velocity perturbation stuff
   offset = (probhi(1) - problo(1)) / (num_vortices)
-
-  allocate(xloc_vortices(num_vortices))
 
   do i = 1, num_vortices
      xloc_vortices(i) = (dble(i-1) + 0.5e0_rt) * offset + problo(1)

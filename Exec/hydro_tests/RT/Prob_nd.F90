@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module, only: frac, rho_1, rho_2, p0_base, split, L_x
   use castro_error_module, only: castro_error
@@ -10,32 +10,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
-  namelist /fortin/ frac, rho_1, rho_2, p0_base
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error('probin file name too long')
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults here
-  frac = 0.5e0_rt
-  rho_1 = 1.0e0_rt
-  rho_2 = 2.0e0_rt
-  p0_base = 5.0e0_rt
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! set local variable defaults
   split(:) = frac * (problo(:) + probhi(:))

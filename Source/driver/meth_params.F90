@@ -487,35 +487,11 @@ contains
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
-    allocate(character(len=1)::gravity_type)
-    gravity_type = "fillme";
-    allocate(const_grav)
-    const_grav = 0.0d0;
-    allocate(get_g_from_phi)
-    get_g_from_phi = 0;
-
-    call amrex_parmparse_build(pp, "gravity")
-    call pp%query("gravity_type", gravity_type)
-    call pp%query("const_grav", const_grav)
-    call pp%query("get_g_from_phi", get_g_from_phi)
-    call amrex_parmparse_destroy(pp)
-
-
-#ifdef DIFFUSION
-    allocate(diffuse_temp)
-    diffuse_temp = 0;
-    allocate(diffuse_cutoff_density)
-    diffuse_cutoff_density = -1.d200;
-    allocate(diffuse_cutoff_density_hi)
-    diffuse_cutoff_density_hi = -1.d200;
-    allocate(diffuse_cond_scale_fac)
-    diffuse_cond_scale_fac = 1.0d0;
-#endif
 #ifdef ROTATION
     allocate(rot_period)
-    rot_period = -1.d200;
+    rot_period = -1.e200_rt;
     allocate(rot_period_dot)
-    rot_period_dot = 0.0d0;
+    rot_period_dot = 0.0_rt;
     allocate(rotation_include_centrifugal)
     rotation_include_centrifugal = 1;
     allocate(rotation_include_coriolis)
@@ -531,16 +507,34 @@ contains
     allocate(rot_axis)
     rot_axis = 3;
 #endif
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0_rt;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
+#ifdef DIFFUSION
+    allocate(diffuse_temp)
+    diffuse_temp = 0;
+    allocate(diffuse_cutoff_density)
+    diffuse_cutoff_density = -1.e200_rt;
+    allocate(diffuse_cutoff_density_hi)
+    diffuse_cutoff_density_hi = -1.e200_rt;
+    allocate(diffuse_cond_scale_fac)
+    diffuse_cond_scale_fac = 1.0_rt;
+#endif
     allocate(difmag)
-    difmag = 0.1d0;
+    difmag = 0.1_rt;
     allocate(small_dens)
-    small_dens = -1.d200;
+    small_dens = -1.e200_rt;
     allocate(small_temp)
-    small_temp = -1.d200;
+    small_temp = -1.e200_rt;
     allocate(small_pres)
-    small_pres = -1.d200;
+    small_pres = -1.e200_rt;
     allocate(small_ener)
-    small_ener = -1.d200;
+    small_ener = -1.e200_rt;
     allocate(do_hydro)
     do_hydro = -1;
     allocate(time_integration_method)
@@ -572,13 +566,13 @@ contains
     allocate(cg_maxiter)
     cg_maxiter = 12;
     allocate(cg_tol)
-    cg_tol = 1.0d-5;
+    cg_tol = 1.0e-5_rt;
     allocate(cg_blend)
     cg_blend = 2;
     allocate(use_eos_in_riemann)
     use_eos_in_riemann = 0;
     allocate(riemann_speed_limit)
-    riemann_speed_limit = 2.99792458d10;
+    riemann_speed_limit = 2.99792458e10_rt;
     allocate(use_flattening)
     use_flattening = 1;
     allocate(transverse_use_eos)
@@ -588,9 +582,9 @@ contains
     allocate(transverse_reset_rhoe)
     transverse_reset_rhoe = 0;
     allocate(dual_energy_eta1)
-    dual_energy_eta1 = 1.0d0;
+    dual_energy_eta1 = 1.0e0_rt;
     allocate(dual_energy_eta2)
-    dual_energy_eta2 = 1.0d-4;
+    dual_energy_eta2 = 1.0e-4_rt;
     allocate(use_pslope)
     use_pslope = 1;
     allocate(limit_fluxes_on_small_dens)
@@ -630,41 +624,41 @@ contains
     allocate(sdc_solver)
     sdc_solver = 1;
     allocate(sdc_solver_tol_dens)
-    sdc_solver_tol_dens = 1.d-6;
+    sdc_solver_tol_dens = 1.e-6_rt;
     allocate(sdc_solver_tol_spec)
-    sdc_solver_tol_spec = 1.d-6;
+    sdc_solver_tol_spec = 1.e-6_rt;
     allocate(sdc_solver_tol_ener)
-    sdc_solver_tol_ener = 1.d-6;
+    sdc_solver_tol_ener = 1.e-6_rt;
     allocate(sdc_solver_atol)
-    sdc_solver_atol = 1.d-10;
+    sdc_solver_atol = 1.e-10_rt;
     allocate(sdc_solver_relax_factor)
-    sdc_solver_relax_factor = 1.0d0;
+    sdc_solver_relax_factor = 1.0_rt;
     allocate(sdc_solve_for_rhoe)
     sdc_solve_for_rhoe = 1;
     allocate(sdc_use_analytic_jac)
     sdc_use_analytic_jac = 1;
     allocate(cfl)
-    cfl = 0.8d0;
+    cfl = 0.8_rt;
     allocate(dtnuc_e)
-    dtnuc_e = 1.d200;
+    dtnuc_e = 1.e200_rt;
     allocate(dtnuc_X)
-    dtnuc_X = 1.d200;
+    dtnuc_X = 1.e200_rt;
     allocate(dtnuc_X_threshold)
-    dtnuc_X_threshold = 1.d-3;
+    dtnuc_X_threshold = 1.e-3_rt;
     allocate(do_react)
     do_react = -1;
     allocate(react_T_min)
-    react_T_min = 0.0d0;
+    react_T_min = 0.0_rt;
     allocate(react_T_max)
-    react_T_max = 1.d200;
+    react_T_max = 1.e200_rt;
     allocate(react_rho_min)
-    react_rho_min = 0.0d0;
+    react_rho_min = 0.0_rt;
     allocate(react_rho_max)
-    react_rho_max = 1.d200;
+    react_rho_max = 1.e200_rt;
     allocate(disable_shock_burning)
     disable_shock_burning = 0;
     allocate(T_guess)
-    T_guess = 1.d8;
+    T_guess = 1.e8_rt;
     allocate(do_grav)
     do_grav = -1;
     allocate(grav_source_type)
@@ -677,22 +671,8 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0d0;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
 
     call amrex_parmparse_build(pp, "castro")
-#ifdef DIFFUSION
-    call pp%query("diffuse_temp", diffuse_temp)
-    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
-    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
-    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
-#endif
 #ifdef ROTATION
     call pp%query("rotational_period", rot_period)
     call pp%query("rotational_dPdt", rot_period_dot)
@@ -703,6 +683,17 @@ contains
     call pp%query("rot_source_type", rot_source_type)
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
+#endif
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
+#ifdef DIFFUSION
+    call pp%query("diffuse_temp", diffuse_temp)
+    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
+    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -777,11 +768,20 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
-#endif
+    call amrex_parmparse_destroy(pp)
+
+
+    allocate(character(len=1)::gravity_type)
+    gravity_type = "fillme";
+    allocate(const_grav)
+    const_grav = 0.0_rt;
+    allocate(get_g_from_phi)
+    get_g_from_phi = 0;
+
+    call amrex_parmparse_build(pp, "gravity")
+    call pp%query("gravity_type", gravity_type)
+    call pp%query("const_grav", const_grav)
+    call pp%query("get_g_from_phi", get_g_from_phi)
     call amrex_parmparse_destroy(pp)
 
 

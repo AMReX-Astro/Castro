@@ -72,7 +72,7 @@ castro.grav_source_type = 4                        # How to include the gravity 
 castro.rot_source_type = 4                         # How to include the rotation source term in the hydro equations
 
 # Explicitly limit fluxes to avoid hitting a negative density
-castro.limit_fluxes_on_small_dens = 1
+castro.limit_fluxes_on_small_dens = 0
 
 ############################################################################################
 # Thermodynamics

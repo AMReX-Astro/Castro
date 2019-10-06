@@ -1,0 +1,8 @@
+p_ambient             real        1.0_rt        y
+
+dens_ambient          real        1.0_rt        y
+
+dens_pert_factor      real        1.01_rt       y
+
+vel_pert              real        20.0_rt       y
+
