@@ -284,6 +284,7 @@ subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
     !
 
   use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+  use amrex_fort_module, only: rt => amrex_real
 
   allocate(amr_level)
   amr_level = 0
@@ -292,9 +293,9 @@ subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
   allocate(amr_ncycle)
   amr_ncycle = 0
   allocate(amr_time)
-  amr_time = 0.0d0
+  amr_time = 0.0e0_rt
   allocate(amr_dt)
-  amr_dt = 0.0d0
+  amr_dt = 0.0e0_rt
 
 end subroutine ca_amrinfo_init
 
@@ -350,11 +351,11 @@ subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
      amr_ncycle = ncycle_in
   endif
 
-  if (time_in .ge. 0.0) then
+  if (time_in .ge. 0.0e0_rt) then
      amr_time = time_in
   endif
 
-  if (dt_in .ge. 0.0) then
+  if (dt_in .ge. 0.0e0_rt) then
      amr_dt = dt_in
   endif
 

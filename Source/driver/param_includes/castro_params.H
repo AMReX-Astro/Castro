@@ -3,25 +3,16 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif
 #ifdef DIFFUSION
 static int diffuse_temp;
 static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cutoff_density_hi;
 static amrex::Real diffuse_cond_scale_fac;
-#endif
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
-#endif
-#ifdef ROTATION
-static amrex::Real rotational_period;
-static amrex::Real rotational_dPdt;
-static int rotation_include_centrifugal;
-static int rotation_include_coriolis;
-static int rotation_include_domegadt;
-static int state_in_rotating_frame;
-static int rot_source_type;
-static int implicit_rotation_update;
-static int rot_axis;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
@@ -144,8 +135,17 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
-#ifdef GRAVITY
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
+#ifdef ROTATION
+static amrex::Real rotational_period;
+static amrex::Real rotational_dPdt;
+static int rotation_include_centrifugal;
+static int rotation_include_coriolis;
+static int rotation_include_domegadt;
+static int state_in_rotating_frame;
+static int rot_source_type;
+static int implicit_rotation_update;
+static int rot_axis;
+#endif
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
 #endif

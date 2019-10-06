@@ -142,7 +142,7 @@ contains
 
              if (.not. burn_state_out % success) then
 
-                failed = 1.0
+                failed = 1.0_rt
                 return
 
              end if

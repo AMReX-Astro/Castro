@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 This script parses the list of C++ runtime parameters and writes the
@@ -65,8 +65,6 @@ we write out a single copy of:
 
 """
 
-from __future__ import print_function
-
 import argparse
 import re
 import sys
@@ -86,7 +84,7 @@ CWARNING = """
 param_include_dir = "param_includes/"
 
 
-class Param(object):
+class Param:
     """ the basic parameter class.  For each parameter, we hold the name,
         type, and default.  For some parameters, we also take a second
         value of the default, for use in debug mode (delimited via
@@ -176,17 +174,15 @@ class Param(object):
         if self.debug_default is not None:
             debug_default = self.debug_default
             if self.dtype == "Real":
-                if "e" in debug_default:
-                    debug_default = debug_default.replace("e", "d")
-                else:
-                    debug_default += "d0"
+                if "d" in debug_default:
+                    debug_default = debug_default.replace("d", "e")
+                debug_default += "_rt"
 
         default = self.default
         if self.dtype == "Real":
-            if "e" in default:
-                default = default.replace("e", "d")
-            else:
-                default += "d0"
+            if "d" in default:
+                default = default.replace("d", "e")
+            default += "_rt"
 
         name = self.f90_name
 
@@ -212,14 +208,14 @@ class Param(object):
         """this is the string that sets the variable as managed for CUDA"""
         if self.f90_dtype == "string":
             return "\n"
-        else:
-            cstr = ""
-            if self.ifdef is not None:
-                cstr += "#ifdef {}\n".format(self.ifdef)
-            cstr += "attributes(managed) :: {}\n".format(self.f90_name)
-            if self.ifdef is not None:
-                cstr += "#endif\n"
-            return cstr
+
+        cstr = ""
+        if self.ifdef is not None:
+            cstr += "#ifdef {}\n".format(self.ifdef)
+        cstr += "attributes(managed) :: {}\n".format(self.f90_name)
+        if self.ifdef is not None:
+            cstr += "#endif\n"
+        return cstr
 
     def get_query_string(self, language):
         # this is the line that queries the ParmParse object to get
@@ -240,8 +236,8 @@ class Param(object):
         """return the variable in a format that it can be recognized in C++ code"""
         if self.dtype == "string":
             return '{}'.format(self.default)
-        else:
-            return self.default
+
+        return self.default
 
     def get_job_info_test(self):
         # this is the output in C++ in the job_info writing
@@ -370,11 +366,11 @@ def write_meth_module(plist, meth_template):
 
         elif line.find("@@set_castro_params@@") >= 0:
 
-            namespaces = list(set([q.namespace for q in params]))
+            namespaces = {q.namespace for q in params}
             print("Fortran namespaces: ", namespaces)
             for nm in namespaces:
                 params_nm = [q for q in params if q.namespace == nm]
-                ifdefs = list(set([q.ifdef for q in params_nm]))
+                ifdefs = {q.ifdef for q in params_nm}
 
                 for ifdef in ifdefs:
                     if ifdef is None:
@@ -411,7 +407,8 @@ def write_meth_module(plist, meth_template):
             mo.write("    !$acc device(")
 
             for n, p in enumerate(params):
-                if p.f90_dtype == "string": continue
+                if p.f90_dtype == "string":
+                    continue
                 mo.write("{}".format(p.f90_name))
 
                 if n == len(params)-1:
@@ -546,12 +543,12 @@ def parse_params(infile, meth_template):
     # output
 
     # find all the namespaces
-    namespaces = list(set([q.namespace for q in params]))
+    namespaces = {q.namespace for q in params}
 
     for nm in namespaces:
 
         params_nm = [q for q in params if q.namespace == nm]
-        ifdefs = list(set([q.ifdef for q in params_nm]))
+        ifdefs = {q.ifdef for q in params_nm}
 
         # write name_defaults.H
         try:
@@ -635,8 +632,8 @@ def parse_params(infile, meth_template):
     write_meth_module(params, meth_template)
 
 
-if __name__ == "__main__":
-
+def main():
+    """the main driver"""
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", type=str, default=None,
                         help="template for the meth_params module")
@@ -646,3 +643,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     parse_params(args.input_file[0], args.m)
+
+if __name__ == "__main__":
+    main()

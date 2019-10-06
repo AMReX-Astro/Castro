@@ -304,7 +304,7 @@ subroutine ca_compute_dcoefs( lo, hi, &
      else if (v(i-1) + v(i) .lt. 0.e0_rt) then
         d(i) = dcf(i) * v(i) * lam(i)
      else
-        d(i) = 0.0
+        d(i) = 0.0e0_rt
      end if
      d(i) = d(i) * r(i)
   end do

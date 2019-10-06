@@ -12,6 +12,8 @@ USE_OMP    = FALSE
 
 USE_SHOCK_VAR = TRUE
 
+USE_PROB_PARAMS = TRUE
+
 CASTRO_HOME = ../../..
 
 # This sets the EOS directory in $(CASTRO_HOME)/EOS

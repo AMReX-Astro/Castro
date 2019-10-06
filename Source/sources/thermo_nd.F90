@@ -18,9 +18,9 @@ contains
    ! SDC method (the `-` is because it is on the RHS of the equation)
 
     use amrex_constants_module, only: ZERO, HALF, FOURTH
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UEINT
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UFX, UEINT
     use amrex_fort_module, only : rt => amrex_real
-    use network, only : nspec
+    use network, only : nspec, naux
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use prob_params_module, only : coord_type
@@ -97,12 +97,14 @@ contains
              eos_state_old % rho = old_state(i,j,k,URHO)
              eos_state_old % T = old_state(i,j,k,UTEMP)
              eos_state_old % xn(:) = old_state(i,j,k,UFS:UFS-1+nspec)/old_state(i,j,k,URHO)
+             eos_state_old % aux(:) = old_state(i,j,k,UFX:UFX+naux-1)/old_state(i,j,k,URHO)
 
              call eos(eos_input_rt, eos_state_old)
 
              eos_state_new % rho = new_state(i,j,k,URHO)
              eos_state_new % T = new_state(i,j,k,UTEMP)
              eos_state_new % xn(:) = new_state(i,j,k,UFS:UFS-1+nspec)/new_state(i,j,k,URHO)
+             eos_state_new % aux(:) = new_state(i,j,k,UFX:UFX+naux-1)/new_state(i,j,k,URHO)
 
              call eos(eos_input_rt, eos_state_new)
 
