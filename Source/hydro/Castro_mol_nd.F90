@@ -334,7 +334,7 @@ contains
                                    first_order_hydro, hybrid_riemann, &
                                    ppm_temp_fix
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-    use ppm_module, only : ca_ppm_reconstruct
+    use ppm_module, only: ppm_reconstruct
     use amrex_fort_module, only : rt => amrex_real
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
@@ -379,7 +379,7 @@ contains
                       s(:) = q(i,j,k-2:k+2,n)
                    end if
 
-                   call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
                    if (idir == 1) then
                       ! right state at i-1/2

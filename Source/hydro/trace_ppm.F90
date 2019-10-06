@@ -256,7 +256,7 @@ contains
                                    ppm_type, ppm_temp_fix, &
                                    ppm_reference_eigenvectors
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none
 
@@ -294,7 +294,7 @@ contains
     ! Local variables
     integer :: i, j, k, n
 
-    real(rt) :: hdt
+    real(rt) :: hdt, dtdx
 
     real(rt) :: sm, sp
 
@@ -349,6 +349,7 @@ contains
     !$gpu
 
     hdt = HALF * dt
+    dtdx = dt / dx(idir)
 
     !=========================================================================
     ! PPM CODE
@@ -423,9 +424,9 @@ contains
                    s(:) = q(i,j,k-2:k+2,n)
                 end if
 
-                call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip(:,n), Im(:,n))
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
              end do
 
 
@@ -437,9 +438,9 @@ contains
                 s(:) = qaux(i,j,k-2:k+2,QGAMC)
              end if
 
-             call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+             call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-             call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_gc, Im_gc)
+             call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_gc, Im_gc)
 
              ! source terms
              do n = 1, NQSRC
@@ -453,9 +454,9 @@ contains
                       s(:) = srcQ(i,j,k-2:k+2,n)
                    end if
 
-                   call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                   call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_src(:,n), Im_src(:,n))
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
@@ -778,7 +779,7 @@ contains
                                    ppm_type, ppm_temp_fix, &
                                    ppm_reference_eigenvectors
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none
 
@@ -814,7 +815,7 @@ contains
     ! Local variables
     integer :: i, j, k, n
 
-    real(rt) :: hdt
+    real(rt) :: hdt, dtdx
 
     real(rt) :: sm, sp
 
@@ -872,6 +873,7 @@ contains
     !$gpu
 
     hdt = HALF * dt
+    dtdx = dt / dx(idir)
 
     !=========================================================================
     ! PPM CODE
@@ -950,9 +952,9 @@ contains
                    s(:) = q(i,j,k-2:k+2,n)
                 end if
 
-                call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip(:,n), Im(:,n))
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
              end do
 
 
@@ -966,14 +968,13 @@ contains
                    s(:) = qaux(i,j,k-2:k+2,QGAMC)
                 end if
 
-                call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_gc, Im_gc)
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_gc, Im_gc)
              else
 
                 ! temperature-based PPM
-                call ppm_reconstruct_with_eos(Ip, Im, &
-                                              Ip_gc, Im_gc)
+                call ppm_reconstruct_with_eos(Ip, Im, Ip_gc, Im_gc)
 
              end if
 
@@ -990,9 +991,9 @@ contains
                       s(:) = srcQ(i,j,k-2:k+2,n)
                    end if
 
-                   call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                   call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_src(:,n), Im_src(:,n))
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
@@ -1335,7 +1336,7 @@ contains
                                    ppm_reference_eigenvectors
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
-    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none
 
@@ -1372,7 +1373,7 @@ contains
     ! Local variables
     type(eos_t) :: eos_state
 
-    real(rt) :: hdt
+    real(rt) :: hdt, dtdx
 
     real(rt) :: sm, sp
 
@@ -1434,7 +1435,7 @@ contains
     !$gpu
 
     hdt = HALF * dt
-
+    dtdx = dt / dx(idir)
 
     !=========================================================================
     ! PPM CODE
@@ -1514,9 +1515,9 @@ contains
                    s(:) = q(i,j,k-2:k+2,n)
                 end if
 
-                call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip(:,n), Im(:,n))
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
              end do
 
 
@@ -1530,14 +1531,13 @@ contains
                    s(:) = qaux(i,j,k-2:k+2,QGAMC)
                 end if
 
-                call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_gc, Im_gc)
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_gc, Im_gc)
              else
 
                 ! temperature-based PPM
-                call ppm_reconstruct_with_eos(Ip, Im, &
-                                              Ip_gc, Im_gc)
+                call ppm_reconstruct_with_eos(Ip, Im, Ip_gc, Im_gc)
 
              end if
 
@@ -1554,9 +1554,9 @@ contains
                       s(:) = srcQ(i,j,k-2:k+2,n)
                    end if
 
-                   call ca_ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                   call ppm_int_profile(sm, sp, s(0), un, cc, dt / dx(idir), Ip_src(:,n), Im_src(:,n))
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
