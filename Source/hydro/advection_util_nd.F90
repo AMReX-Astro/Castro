@@ -810,8 +810,8 @@ contains
 
     integer  :: i, j, k
 
-    real(rt) :: rhoL, rhoR, drhoL, drhoR, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLFL, rhoLFR, dtdx, theta, thetap, thetam, alpha
-    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ), volL, volR, drhoLFL, drhoLFR, flux_coefL, flux_coefR
+    real(rt) :: rhoL, rhoR, drhoL, drhoR, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta, alpha
+    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ), volL, volR, flux_coefL, flux_coefR
     integer  :: idxL(3), idxR(3)
 
     real(rt), parameter :: density_floor_tolerance = 1.1_rt
@@ -869,96 +869,76 @@ contains
 
              endif
 
+             ! Construct cell-centered fluxes.
+
+             fluxL = dflux(uL, qL, idir, idxL)
+             fluxR = dflux(uR, qR, idir, idxR)
+
              ! Construct the Lax-Friedrichs flux on the interface (Equation 12).
              ! Note that we are using the information from Equation 9 to obtain the
              ! effective maximum wave speed, (|u| + c)_max = CFL / lambda where
              ! lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
              ! freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
 
-             fluxL = dflux(uL, qL, idir, idxL)
-             fluxR = dflux(uR, qR, idir, idxR)
              fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (uL(:) - uR(:)))
 
-             ! Limit the Lax-Friedrichs flux so that it doesn't cause a density < density_floor.
-             ! To do this, first, construct the density change corresponding to the LF density flux.
-             ! Then, if this update would create a density that is less than density_floor, scale all
-             ! fluxes linearly such that the density flux gives density_floor when applied.
-             ! This is not required in the Hu et al. paper because they are only attempting to enforce
-             ! positivity. Our extra requirement on rho > density_floor requires this.
+             ! Coefficients of fluxes on either side of the interface.
 
              flux_coefR = TWO * (dt / alpha) * area(i,j,k) / volR
-             drhoLFR = flux_coefR * fluxLF(URHO)
-
              flux_coefL = TWO * (dt / alpha) * area(i,j,k) / volL
-             drhoLFL = flux_coefL * fluxLF(URHO)
-
-             if (uR(URHO) + drhoLFR < density_floor) then
-                fluxLF(:) = fluxLF(:) * abs((density_floor - uR(URHO)) / drhoLFR)
-             else if (uL(URHO) - drhoLFL < density_floor) then
-                fluxLF(:) = fluxLF(:) * abs((density_floor - uL(URHO)) / drhoLFL)
-             endif
-
-             ! Zero out fluxes for quantities that don't advect.
-
-             fluxLF(UTEMP) = ZERO
-#ifdef SHOCK_VAR
-             fluxLF(USHK) = ZERO
-#endif
-
-             ! Note that in the below, we are calculating theta_+ and theta_- on the left
-             ! edge of the zone at interface i-1/2, to be consistent with the nodal notation
-             ! that index i corresponds to the flux at interface i-1/2.
-
-             thetap = ONE
-             thetam = ONE
-
-             ! First we'll do the plus state.
 
              ! Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
+             ! If we would violate the floor, then we need to limit the flux. Since the
+             ! flux adds to the density on one side and subtracts from the other, the floor
+             ! can only be violated in at most one direction, so we'll do an if-else test
+             ! below. This means that we can simplify the approach of Hu et al. -- whereas
+             ! they constructed two thetas for each interface (corresponding to either side)
+             ! we can complete the operation in one step with a single theta.
 
              drhoL = flux_coefL * flux(i,j,k,URHO)
              rhoL = uL(URHO) - drhoL
-             drhoLFL = flux_coefL * fluxLF(URHO)
+
+             drhoR = flux_coefR * flux(i,j,k,URHO)
+             rhoR = uR(URHO) + drhoR
+
+             theta = ONE
 
              if (rhoL < density_floor) then
 
                 ! Obtain the final density corresponding to the LF flux.
 
-                rhoLFL = uL(URHO) - drhoLFL
+                drhoLF = flux_coefL * fluxLF(URHO)
+                rhoLF = uL(URHO) - drhoLF
 
                 ! Solve for theta from (1 - theta) * rhoLF + theta * rho = density_floor.
 
-                thetap = (density_floor - rhoLFL) / (rhoL - rhoLFL)
+                theta = (density_floor - rhoLF) / (rhoL - rhoLF)
 
                 ! Limit theta to the valid range (this will deal with roundoff issues).
 
-                thetap = min(ONE, max(thetap, ZERO))
+                theta = min(ONE, max(theta, ZERO))
 
-             end if
+             else if (rhoR < density_floor) then
 
-             ! Now do the minus state.
+                drhoLF = flux_coefR * fluxLF(URHO)
+                rhoLF = uR(URHO) + drhoLF
 
-             drhoR = flux_coefR * flux(i,j,k,URHO)
-             rhoR = uR(URHO) + drhoR
-             drhoLFR = flux_coefR * fluxLF(URHO)
+                theta = (density_floor - rhoLF) / (rhoR - rhoLF)
 
-             if (rhoR < density_floor) then
-
-                rhoLFR = uR(URHO) + drhoLFR
-
-                thetam = (density_floor - rhoLFR) / (rhoR - rhoLFR)
-
-                thetam = min(ONE, max(thetam, ZERO))
+                theta = min(ONE, max(theta, ZERO))
 
              endif
-
-             ! Now figure out the limiting values of theta, which is the strongest of the two limiters.
-
-             theta = min(thetam, thetap)
 
              ! Assemble the limited flux (Equation 16).
 
              flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
+
+             ! Zero out fluxes for quantities that don't advect.
+
+             flux(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
+             flux(i,j,k,USHK) = ZERO
+#endif
 
              ! Now, apply our requirement that the final flux cannot violate the density floor.
 
