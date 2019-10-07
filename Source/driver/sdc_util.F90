@@ -23,7 +23,7 @@ contains
     ! reaction update.  It either directly calls the Newton method or first
     ! tries VODE and then does the Newton update.
 
-    use meth_params_module, only : NVAR, sdc_solver
+    use meth_params_module, only : NVAR, sdc_solver, URHO, UTEMP, UEINT, UFS
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
@@ -39,6 +39,10 @@ contains
 
     integer :: ierr
 
+    ! for debugging
+    real(rt) :: U_orig(NVAR)
+
+    U_orig(:) = U_old(:)
 
     if (sdc_solver == NEWTON_SOLVE) then
        ! we are going to assume we already have a good guess for the
@@ -48,6 +52,13 @@ contains
 
        ! failing?
        if (ierr /= NEWTON_SUCCESS) then
+          print *, "Newton convergence failure"
+          print *, "  input state:"
+          print *, "     density:        ", U_orig(URHO)
+          print *, "     temperature   : ", U_orig(UTEMP)
+          print *, "     (rho e):        ", U_orig(UEINT)
+          print *, "     mass fractions: ", U_orig(UFS:UFS-1+nspec)/U_orig(URHO)
+          print *, " "
           call castro_error("Newton subcycling failed in sdc_solve")
        end if
 
@@ -83,6 +94,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UFS
     use amrex_constants_module, only : ZERO, HALF, ONE
     use network, only : nspec, nspec_evolve
+    use extern_probin_module, only : small_x
 
     implicit none
 
@@ -108,15 +120,17 @@ contains
     do while (nsub < MAX_NSUB .and. ierr /= NEWTON_SUCCESS)
        dt_sub = dt_m / nsub
        do isub = 1, nsub
-          call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
-          U_begin(:) = U_new(:)
 
           ! normalize species
           do n = 1, nspec
-             U_begin(UFS-1+n) = max(ZERO, U_begin(UFS-1+n))
+             U_begin(UFS-1+n) = max(small_x, U_begin(UFS-1+n))
           end do
+
           sum_rhoX = sum(U_begin(UFS:UFS-1+nspec))
           U_begin(UFS:UFS-1+nspec) = U_begin(UFS:UFS-1+nspec) * U_begin(URHO)/sum_rhoX
+
+          call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
+          U_begin(:) = U_new(:)
 
        end do
        nsub = nsub * 2
@@ -142,6 +156,7 @@ contains
     use react_util_module
     use network, only : nspec, nspec_evolve
     use vode_rpar_indices
+    use extern_probin_module, only : small_x
 
     implicit none
 
@@ -180,6 +195,9 @@ contains
     integer :: iter
 
     integer :: max_newton_iter
+
+    real(rt) :: xn(nspec)
+    integer :: k
 
     ierr = NEWTON_SUCCESS
 
@@ -272,6 +290,18 @@ contains
        dU_react(:) = eta * dU_react(:)
 
        U_react(:) = U_react(:) + dU_react(:)
+
+       ! we still need to normalize here
+       xn(1:nspec_evolve) = U_react(1:nspec_evolve)/U_react(0)
+       xn(nspec_evolve+1:nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))/U_react(0)
+
+       do k = 1, nspec
+          xn(k) = max(small_x, xn(k))
+       end do
+       xn(:) = xn(:)/sum(xn)
+
+       U_react(1:nspec_evolve) = U_react(0) * xn(1:nspec_evolve)
+       rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = U_react(0) * xn(nspec_evolve+1:nspec)
 
        eps_tot(0) = tol_dens * abs(U_react(0)) + sdc_solver_atol
        ! for species, atol is the mass fraction limit, so we multiply by density to get a partial density limit
@@ -478,71 +508,7 @@ contains
 
   end subroutine sdc_vode_solve
 
-
-  subroutine f_sdc(n, U, f, iflag, rpar)
-    ! this is used by the Newton solve to compute the Jacobian via differencing
-
-    use vode_rpar_indices
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UMX, UMZ, UEINT, UTEMP, sdc_solve_for_rhoe
-    use network, only : nspec, nspec_evolve
-    use burn_type_module
-    use react_util_module
-
-    ! this computes the function we need to zero for the SDC update
-    implicit none
-
-    integer,intent(in) :: n
-    real(rt), intent(in)  :: U(0:n-1)
-    real(rt), intent(out) :: f(0:n-1)
-    integer, intent(inout) :: iflag  !! leave this untouched
-    real(rt), intent(inout) :: rpar(0:n_rpar_comps-1)
-
-    real(rt) :: U_full(nvar),  R_full(nvar)
-    real(rt) :: R_react(0:n-1), f_source(0:n-1)
-    type(burn_t) :: burn_state
-
-    real(rt) :: dt_m
-
-    ! we are not solving the momentum equations
-    ! create a full state -- we need this for some interfaces
-    U_full(URHO) = U(0)
-    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
-    if (sdc_solve_for_rhoe == 1) then
-       U_full(UEINT) = U(nspec_evolve+1)
-       U_full(UEDEN) = rpar(irp_evar)
-    else
-       U_full(UEDEN) = U(nspec_evolve+1)
-       U_full(UEINT) = rpar(irp_evar)
-    endif
-
-    U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
-    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
-
-    ! unpack rpar
-    dt_m = rpar(irp_dt)
-    f_source(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
-
-    ! initial guess for T
-    U_full(UTEMP) = rpar(irp_temp)
-
-    call single_zone_react_source(U_full, R_full, 0,0,0, burn_state)
-
-    ! update guess for next time
-    rpar(irp_temp) = U_full(UTEMP)
-
-    R_react(0) = R_full(URHO)
-    R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
-    if (sdc_solve_for_rhoe == 1) then
-       R_react(nspec_evolve+1) = R_full(UEINT)
-    else
-       R_react(nspec_evolve+1) = R_full(UEDEN)
-    endif
-
-    f(:) = U(:) - dt_m * R_react(:) - f_source(:)
-
-  end subroutine f_sdc
-
-  subroutine f_sdc_jac(n, U, f, Jac, ldjac, iflag, rpar)
+  subroutine f_sdc_jac(neq, U, f, Jac, ldjac, iflag, rpar)
     ! this is used with the Newton solve and returns f and the Jacobian
 
     use vode_rpar_indices
@@ -555,26 +521,28 @@ contains
     use eos_module, only : eos
     use amrex_constants_module, only : ZERO, HALF, ONE
     use vode_rpar_indices
+    use extern_probin_module, only : small_x
 
     ! this computes the function we need to zero for the SDC update
     implicit none
 
-    integer,intent(in) :: n, ldjac
-    real(rt), intent(in)  :: U(0:n-1)
-    real(rt), intent(out) :: f(0:n-1)
-    real(rt), intent(out) :: Jac(0:ldjac-1,0:n-1)
+    integer,intent(in) :: neq, ldjac
+    real(rt), intent(in)  :: U(0:neq-1)
+    real(rt), intent(out) :: f(0:neq-1)
+    real(rt), intent(out) :: Jac(0:ldjac-1,0:neq-1)
     integer, intent(inout) :: iflag  !! leave this untouched
     real(rt), intent(inout) :: rpar(0:n_rpar_comps-1)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
-    real(rt) :: R_react(0:n-1), f_source(0:n-1)
+    real(rt) :: R_react(0:neq-1), f_source(0:neq-1)
     type(burn_t) :: burn_state
     type(eos_t) :: eos_state
     real(rt) :: dt_m
 
     real(rt) :: denom
     real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
-    integer :: m
+    integer :: m, k
+    real(rt) :: sum_rhoX
 
     ! we are not solving the momentum equations
     ! create a full state -- we need this for some interfaces
@@ -590,6 +558,14 @@ contains
 
     U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
     U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
+
+    ! normalize the species
+    do k = 1, nspec
+       U_full(UFS-1+k) = max(small_x, U_full(UFS-1+k))
+    end do
+
+    sum_rhoX = sum(U_full(UFS:UFS-1+nspec))
+    U_full(UFS:UFS-1+nspec) = U_full(UFS:UFS-1+nspec) * U_full(URHO)/sum_rhoX
 
     ! unpack rpar
     dt_m = rpar(irp_dt)
@@ -667,14 +643,18 @@ contains
   end subroutine f_sdc_jac
 #endif
 
-  subroutine ca_sdc_update_advection_o2(lo, hi, dt_m, &
-                                        k_m, kmlo, kmhi, &
-                                        k_n, knlo, knhi, &
-                                        A_m, Amlo, Amhi, &
-                                        A_0_old, A0lo, A0hi, &
-                                        A_1_old, A1lo, A1hi, &
-                                        m_start) bind(C, name="ca_sdc_update_advection_o2")
+  subroutine ca_sdc_update_advection_o2_lobatto(lo, hi, dt_m, dt, &
+                                                k_m, kmlo, kmhi, &
+                                                k_n, knlo, knhi, &
+                                                A_m, Amlo, Amhi, &
+                                                A_0_old, A0lo, A0hi, &
+                                                A_1_old, A1lo, A1hi, &
+                                                m_start) bind(C, name="ca_sdc_update_advection_o2_lobatto")
     ! update k_m to k_n via advection -- this is a second-order accurate update
+    ! for the Gauss-Lobatto discretization of the time nodes
+
+    ! here, dt_m is the update for this stage, from one time node to the next
+    ! dt is the update over the whole timestep, n to n+1
 
     use meth_params_module, only : NVAR
     use amrex_constants_module, only : HALF
@@ -682,7 +662,7 @@ contains
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
-    real(rt), intent(in) :: dt_m
+    real(rt), intent(in) :: dt_m, dt
     integer, intent(in) :: kmlo(3), kmhi(3)
     integer, intent(in) :: knlo(3), knhi(3)
     integer, intent(in) :: Amlo(3), Amhi(3)
@@ -700,35 +680,40 @@ contains
 
     integer :: i, j, k
 
+    ! Gauss-Lobatto / trapezoid
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             k_n(i,j,k,:) = k_m(i,j,k,:) + HALF * dt_m * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:))
-          enddo
-       enddo
-    enddo
+             k_n(i,j,k,:) = k_m(i,j,k,:) + HALF * dt * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:))
+          end do
+       end do
+    end do
 
-  end subroutine ca_sdc_update_advection_o2
+  end subroutine ca_sdc_update_advection_o2_lobatto
 
 
-  subroutine ca_sdc_update_advection_o4(lo, hi, dt, &
-                                        k_m, kmlo, kmhi, &
-                                        k_n, knlo, knhi, &
-                                        A_m, Amlo, Amhi, &
-                                        A_0_old, A0lo, A0hi, &
-                                        A_1_old, A1lo, A1hi, &
-                                        A_2_old, A2lo, A2hi, &
-                                        m_start) bind(C, name="ca_sdc_update_advection_o4")
+  subroutine ca_sdc_update_advection_o2_radau(lo, hi, dt_m, dt, &
+                                              k_m, kmlo, kmhi, &
+                                              k_n, knlo, knhi, &
+                                              A_m, Amlo, Amhi, &
+                                              A_0_old, A0lo, A0hi, &
+                                              A_1_old, A1lo, A1hi, &
+                                              A_2_old, A2lo, A2hi, &
+                                              m_start) bind(C, name="ca_sdc_update_advection_o2_radau")
     ! update k_m to k_n via advection -- this is a second-order accurate update
-    ! dt is the total timestep from n to n+1
+    ! for the Radau discretization of the time nodes
+
+    ! here, dt_m is the update for this stage, from one time node to the next
+    ! dt is the update over the whole timestep, n to n+1
 
     use meth_params_module, only : NVAR
-    use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT
+    use amrex_constants_module, only : HALF, FIVE
 
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
-    real(rt), intent(in) :: dt
+    real(rt), intent(in) :: dt_m, dt
     integer, intent(in) :: kmlo(3), kmhi(3)
     integer, intent(in) :: knlo(3), knhi(3)
     integer, intent(in) :: Amlo(3), Amhi(3)
@@ -747,10 +732,82 @@ contains
     real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
 
     integer :: i, j, k
-    real(rt) :: dt_m
+
+    ! Radau
+
+    if (m_start == 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
+                     dt/12.0_rt * (FIVE*A_1_old(i,j,k,:) - A_2_old(i,j,k,:))
+
+             end do
+          end do
+       end do
+
+    else if (m_start == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
+                     dt/3.0_rt * (A_1_old(i,j,k,:) + A_2_old(i,j,k,:))
+
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine ca_sdc_update_advection_o2_radau
 
 
-    dt_m = HALF * dt
+  subroutine ca_sdc_update_advection_o4_lobatto(lo, hi, dt_m, dt, &
+                                                k_m, kmlo, kmhi, &
+                                                k_n, knlo, knhi, &
+                                                A_m, Amlo, Amhi, &
+                                                A_0_old, A0lo, A0hi, &
+                                                A_1_old, A1lo, A1hi, &
+                                                A_2_old, A2lo, A2hi, &
+                                                m_start) bind(C, name="ca_sdc_update_advection_o4_lobatto")
+    ! update k_m to k_n via advection -- this is a fourth order accurate update
+
+    ! here, dt_m is the update for this stage, from one time node to the next
+    ! dt is the update over the whole timestep, n to n+1
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: dt_m, dt
+    integer, intent(in) :: kmlo(3), kmhi(3)
+    integer, intent(in) :: knlo(3), knhi(3)
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: A2lo(3), A2hi(3)
+    integer, intent(in) :: m_start
+
+
+    real(rt), intent(in) :: k_m(kmlo(1):kmhi(1), kmlo(2):kmhi(2), kmlo(3):kmhi(3), NVAR)
+    real(rt), intent(inout) :: k_n(knlo(1):knhi(1), knlo(2):knhi(2), knlo(3):knhi(3), NVAR)
+
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+    real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
+
+    integer :: i, j, k
+
+    ! Gauss-Lobatto (Simpsons)
 
     if (m_start == 0) then
 
@@ -777,23 +834,118 @@ contains
        enddo
 
     else
-       call castro_error("error in ca_sdc_update_advection_o4 -- should not be here")
+       call castro_error("error in ca_sdc_update_advection_o4_lobatto -- should not be here")
     endif
 
-  end subroutine ca_sdc_update_advection_o4
+  end subroutine ca_sdc_update_advection_o4_lobatto
+
+
+  subroutine ca_sdc_update_advection_o4_radau(lo, hi, dt_m, dt, &
+                                              k_m, kmlo, kmhi, &
+                                              k_n, knlo, knhi, &
+                                              A_m, Amlo, Amhi, &
+                                              A_0_old, A0lo, A0hi, &
+                                              A_1_old, A1lo, A1hi, &
+                                              A_2_old, A2lo, A2hi, &
+                                              A_3_old, A3lo, A3hi, &
+                                              m_start) bind(C, name="ca_sdc_update_advection_o4_radau")
+    ! update k_m to k_n via advection -- this is a fourth-order accurate update
+
+    ! here, dt_m is the update for this stage, from one time node to the next
+    ! dt is the update over the whole timestep, n to n+1
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : HALF, TWO, FIVE, EIGHT
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: dt_m, dt
+    integer, intent(in) :: kmlo(3), kmhi(3)
+    integer, intent(in) :: knlo(3), knhi(3)
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: A2lo(3), A2hi(3)
+    integer, intent(in) :: A3lo(3), A3hi(3)
+    integer, intent(in) :: m_start
+
+
+    real(rt), intent(in) :: k_m(kmlo(1):kmhi(1), kmlo(2):kmhi(2), kmlo(3):kmhi(3), NVAR)
+    real(rt), intent(inout) :: k_n(knlo(1):knhi(1), knlo(2):knhi(2), knlo(3):knhi(3), NVAR)
+
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+    real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
+    real(rt), intent(in) :: A_3_old(A3lo(1):A3hi(1), A3lo(2):A3hi(2), A3lo(3):A3hi(3), NVAR)
+
+    integer :: i, j, k
+
+    ! Gauss-Lobatto (Simpsons)
+
+    if (m_start == 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
+                     dt/1800.0_rt * ((-35.0_rt*sqrt(6.0_rt) + 440.0_rt)*A_1_old(i,j,k,:) + &
+                                     (-169.0_rt*sqrt(6.0_rt) + 296.0_rt)*A_2_old(i,j,k,:) + &
+                                     (-16.0_rt + 24.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,:))
+             enddo
+          enddo
+       enddo
+
+    else if (m_start == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
+                     dt/150.0_rt * ((-12.0_rt + 17.0_rt*sqrt(6.0_rt))*A_1_old(i,j,k,:) + &
+                                    (12.0_rt + 17.0_rt*sqrt(6.0_rt))*A_2_old(i,j,k,:) + &
+                                    (-4.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,:))
+             enddo
+          enddo
+       enddo
+
+    else if (m_start == 2) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                k_n(i,j,k,:) = k_m(i,j,k,:) + &
+                     dt_m * (A_m(i,j,k,:) - A_2_old(i,j,k,:)) + &
+                     dt/600.0_rt * ((168.0_rt - 73.0_rt*sqrt(6.0_rt))*A_1_old(i,j,k,:) + &
+                                    (120.0_rt + 5.0_rt*sqrt(6.0_rt))*A_2_old(i,j,k,:) + &
+                                    (72.0_rt + 8.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,:))
+             enddo
+          enddo
+       enddo
+
+    else
+       call castro_error("error in ca_sdc_update_advection_o4_radau -- should not be here")
+    endif
+
+  end subroutine ca_sdc_update_advection_o4_radau
 
 
 #ifdef REACTIONS
-  subroutine ca_sdc_compute_C4(lo, hi, &
-                               A_m, Amlo, Amhi, &
-                               A_0_old, A0lo, A0hi, &
-                               A_1_old, A1lo, A1hi, &
-                               A_2_old, A2lo, A2hi, &
-                               R_0_old, R0lo, R0hi, &
-                               R_1_old, R1lo, R1hi, &
-                               R_2_old, R2lo, R2hi, &
-                               C, Clo, Chi, &
-                               m_start) bind(C, name="ca_sdc_compute_C4")
+  subroutine ca_sdc_compute_C4_lobatto(lo, hi, &
+                                       dt_m, dt, &
+                                       A_m, Amlo, Amhi, &
+                                       A_0_old, A0lo, A0hi, &
+                                       A_1_old, A1lo, A1hi, &
+                                       A_2_old, A2lo, A2hi, &
+                                       R_0_old, R0lo, R0hi, &
+                                       R_1_old, R1lo, R1hi, &
+                                       R_2_old, R2lo, R2hi, &
+                                       C, Clo, Chi, &
+                                       m_start) bind(C, name="ca_sdc_compute_C4_lobatto")
+
     ! compute the 'C' term for the 4th-order solve with reactions
     ! note: this 'C' is cell-averages
 
@@ -813,6 +965,7 @@ contains
     integer, intent(in) :: Clo(3), Chi(3)
     integer, intent(in) :: m_start
 
+    real(rt), intent(in) :: dt_m, dt
     real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
     real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
     real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
@@ -825,13 +978,14 @@ contains
     integer :: i, j, k
     real(rt) :: integral(NVAR)
 
+    ! Gauss-Lobatto (Simpsons)
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             ! compute the integral (without the dt).  Note that each of these is over
-             ! dt/2
              if (m_start == 0) then
+                ! compute the integral from [t_m, t_{m+1}], normalized by dt_m
                 integral(:) = ONE/12.0_rt * (FIVE*(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
                                              EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
                                              (A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
@@ -839,6 +993,7 @@ contains
                 C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
 
              else if (m_start == 1) then
+                ! compute the integral from [t_m, t_{m+1}], normalized by dt_m
                 integral(:) = ONE/12.0_rt * (-(A_0_old(i,j,k,:) + R_0_old(i,j,k,:)) + &
                                              EIGHT*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
                                              FIVE*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)))
@@ -853,7 +1008,102 @@ contains
        enddo
     enddo
 
-  end subroutine ca_sdc_compute_C4
+  end subroutine ca_sdc_compute_C4_lobatto
+
+
+  subroutine ca_sdc_compute_C4_radau(lo, hi, &
+                                     dt_m, dt, &
+                                     A_m, Amlo, Amhi, &
+                                     A_0_old, A0lo, A0hi, &
+                                     A_1_old, A1lo, A1hi, &
+                                     A_2_old, A2lo, A2hi, &
+                                     A_3_old, A3lo, A3hi, &
+                                     R_0_old, R0lo, R0hi, &
+                                     R_1_old, R1lo, R1hi, &
+                                     R_2_old, R2lo, R2hi, &
+                                     R_3_old, R3lo, R3hi, &
+                                     C, Clo, Chi, &
+                                     m_start) bind(C, name="ca_sdc_compute_C4_radau")
+    ! compute the 'C' term for the 4th-order solve with reactions
+    ! note: this 'C' is cell-averages
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : ONE, HALF, TWO, FIVE, EIGHT
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: A2lo(3), A2hi(3)
+    integer, intent(in) :: A3lo(3), A3hi(3)
+    integer, intent(in) :: R0lo(3), R0hi(3)
+    integer, intent(in) :: R1lo(3), R1hi(3)
+    integer, intent(in) :: R2lo(3), R2hi(3)
+    integer, intent(in) :: R3lo(3), R3hi(3)
+    integer, intent(in) :: Clo(3), Chi(3)
+    integer, intent(in) :: m_start
+
+    real(rt), intent(in) :: dt_m, dt
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+    real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
+    real(rt), intent(in) :: A_3_old(A3lo(1):A3hi(1), A3lo(2):A3hi(2), A3lo(3):A3hi(3), NVAR)
+    real(rt), intent(in) :: R_0_old(R0lo(1):R0hi(1), R0lo(2):R0hi(2), R0lo(3):R0hi(3), NVAR)
+    real(rt), intent(in) :: R_1_old(R1lo(1):R1hi(1), R1lo(2):R1hi(2), R1lo(3):R1hi(3), NVAR)
+    real(rt), intent(in) :: R_2_old(R2lo(1):R2hi(1), R2lo(2):R2hi(2), R2lo(3):R2hi(3), NVAR)
+    real(rt), intent(in) :: R_3_old(R3lo(1):R3hi(1), R3lo(2):R3hi(2), R3lo(3):R3hi(3), NVAR)
+    real(rt), intent(out) :: C(Clo(1):Chi(1), Clo(2):Chi(2), Clo(3):Chi(3), NVAR)
+
+    integer :: i, j, k
+    real(rt) :: integral(NVAR)
+
+    ! Gauss-Lobatto (Simpsons)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (m_start == 0) then
+                ! compute the integral from [t_m, t_{m+1}], normalized by dt_m
+                integral(:) = (dt/dt_m) * (ONE/1800.0_rt) * &
+                     ((-35.0_rt*sqrt(6.0_rt) + 440.0_rt)*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                      (-169.0_rt*sqrt(6.0_rt) + 296.0_rt)*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)) + &
+                      (-16.0_rt + 24.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,:) + R_3_old(i,j,k,:)))
+
+                C(i,j,k,:) = (A_m(i,j,k,:) - A_0_old(i,j,k,:)) - R_1_old(i,j,k,:) + integral
+
+             else if (m_start == 1) then
+                ! compute the integral from [t_m, t_{m+1}], normalized by dt_m
+                integral(:) = (dt/dt_m) * (ONE/150.0_rt) * &
+                     ((-12.0_rt + 17.0_rt*sqrt(6.0_rt))*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                      (12.0_rt + 17.0_rt*sqrt(6.0_rt))*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)) + &
+                      (-4.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,:) + R_3_old(i,j,k,:)))
+
+                C(i,j,k,:) = (A_m(i,j,k,:) - A_1_old(i,j,k,:)) - R_2_old(i,j,k,:) + integral
+
+
+             else if (m_start == 2) then
+                ! compute the integral from [t_m, t_{m+1}], normalized by dt_m
+                integral(:) = (dt/dt_m) * (ONE/600.0_rt) * &
+                     ((168.0_rt - 73.0_rt*sqrt(6.0_rt))*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                     (120.0_rt + 5.0_rt*sqrt(6.0_rt))*(A_2_old(i,j,k,:) + R_2_old(i,j,k,:)) + &
+                     (72.0_rt + 8.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,:) + R_3_old(i,j,k,:)))
+
+                C(i,j,k,:) = (A_m(i,j,k,:) - A_2_old(i,j,k,:)) - R_3_old(i,j,k,:) + integral
+
+             else
+                call castro_error("error in ca_sdc_compute_C4 -- should not be here")
+             endif
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_sdc_compute_C4_radau
+
 
   subroutine ca_sdc_compute_initial_guess(lo, hi, &
                                           U_old, Uo_lo, Uo_hi, &
@@ -885,6 +1135,8 @@ contains
     integer, intent(in) :: sdc_iteration
     integer :: i, j, k
 
+    ! Here dt_m is the timestep to update from time node m to m+1
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -902,17 +1154,157 @@ contains
   end subroutine ca_sdc_compute_initial_guess
 
 
+  subroutine ca_sdc_compute_C2_lobatto(lo, hi, dt_m, dt, &
+                                       A_m, Amlo, Amhi, &
+                                       A_0_old, A0lo, A0hi, &
+                                       A_1_old, A1lo, A1hi, &
+                                       R_0_old, R0lo, R0hi, &
+                                       R_1_old, R1lo, R1hi, &
+                                       C, Clo, Chi, &
+                                       m_start) bind(C, name="ca_sdc_compute_C2_lobatto")
+    ! compute the source term C for the 2nd order Lobatto update
+
+    ! Here, dt_m is the timestep between time-nodes m and m+1
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : ZERO, HALF
+    use burn_type_module, only : burn_t
+    use network, only : nspec, nspec_evolve
+    use react_util_module
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: dt_m, dt
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: R0lo(3), R0hi(3)
+    integer, intent(in) :: R1lo(3), R1hi(3)
+    integer, intent(in) :: Clo(3), Chi(3)
+    integer, intent(in) :: m_start
+
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+
+    real(rt), intent(in) :: R_0_old(R0lo(1):R0hi(1), R0lo(2):R0hi(2), R0lo(3):R0hi(3), NVAR)
+    real(rt), intent(in) :: R_1_old(R1lo(1):R1hi(1), R1lo(2):R1hi(2), R1lo(3):R1hi(3), NVAR)
+
+    real(rt), intent(out) :: C(Clo(1):Chi(1), Clo(2):Chi(2), Clo(3):Chi(3), NVAR)
+
+    integer :: i, j, k
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! construct the source term to the update for 2nd order
+             ! Lobatto, there is no advective correction, and we have
+             ! C = - R(U^{m+1,k}) + I_m^{m+1}/dt
+             C(i,j,k,:) = -R_1_old(i,j,k,:) + &
+                  HALF * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
+                  HALF * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
+          end do
+       end do
+    end do
+
+  end subroutine ca_sdc_compute_C2_lobatto
+
+
+  subroutine ca_sdc_compute_C2_radau(lo, hi, dt_m, dt, &
+                                     A_m, Amlo, Amhi, &
+                                     A_0_old, A0lo, A0hi, &
+                                     A_1_old, A1lo, A1hi, &
+                                     A_2_old, A2lo, A2hi, &
+                                     R_0_old, R0lo, R0hi, &
+                                     R_1_old, R1lo, R1hi, &
+                                     R_2_old, R2lo, R2hi, &
+                                     C, Clo, Chi, &
+                                     m_start) bind(C, name="ca_sdc_compute_C2_radau")
+    ! compute the source term C for the 2nd order Radau update
+
+    ! Here, dt_m is the timestep between time-nodes m and m+1
+
+    use meth_params_module, only : NVAR
+    use amrex_constants_module, only : ZERO, HALF, ONE, FIVE
+    use burn_type_module, only : burn_t
+    use network, only : nspec, nspec_evolve
+    use react_util_module
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    real(rt), intent(in) :: dt_m, dt
+    integer, intent(in) :: Amlo(3), Amhi(3)
+    integer, intent(in) :: A0lo(3), A0hi(3)
+    integer, intent(in) :: A1lo(3), A1hi(3)
+    integer, intent(in) :: A2lo(3), A2hi(3)
+    integer, intent(in) :: R0lo(3), R0hi(3)
+    integer, intent(in) :: R1lo(3), R1hi(3)
+    integer, intent(in) :: R2lo(3), R2hi(3)
+    integer, intent(in) :: Clo(3), Chi(3)
+    integer, intent(in) :: m_start
+
+    real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
+    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
+    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
+    real(rt), intent(in) :: A_2_old(A2lo(1):A2hi(1), A2lo(2):A2hi(2), A2lo(3):A2hi(3), NVAR)
+
+    real(rt), intent(in) :: R_0_old(R0lo(1):R0hi(1), R0lo(2):R0hi(2), R0lo(3):R0hi(3), NVAR)
+    real(rt), intent(in) :: R_1_old(R1lo(1):R1hi(1), R1lo(2):R1hi(2), R1lo(3):R1hi(3), NVAR)
+    real(rt), intent(in) :: R_2_old(R2lo(1):R2hi(1), R2lo(2):R2hi(2), R2lo(3):R2hi(3), NVAR)
+
+    real(rt), intent(out) :: C(Clo(1):Chi(1), Clo(2):Chi(2), Clo(3):Chi(3), NVAR)
+
+    integer :: i, j, k
+
+    ! construct the source term to the update for 2nd order
+    ! Radau
+
+    if (m_start == 0) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                C(i,j,k,:) = -R_1_old(i,j,k,:) + &
+                     (A_m(i,j,k,:) - A_0_old(i,j,k,:)) + &
+                     (dt/dt_m) * (ONE/12.0_rt) * &
+                     FIVE*(A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) - &
+                          (A_2_old(i,j,k,:) + R_2_old(i,j,k,:))
+             end do
+          end do
+       end do
+
+    else if (m_start == 1) then
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                C(i,j,k,:) = -R_2_old(i,j,k,:) + &
+                     (A_m(i,j,k,:) - A_1_old(i,j,k,:)) + &
+                     (dt/dt_m) * (ONE/3.0_rt) * &
+                     (A_1_old(i,j,k,:) + R_1_old(i,j,k,:)) + &
+                     (A_2_old(i,j,k,:) + R_2_old(i,j,k,:))
+             end do
+          end do
+       end do
+    end if
+
+  end subroutine ca_sdc_compute_C2_radau
+
+
   subroutine ca_sdc_update_o2(lo, hi, dt_m, &
                               k_m, kmlo, kmhi, &
                               k_n, knlo, knhi, &
                               A_m, Amlo, Amhi, &
-                              A_0_old, A0lo, A0hi, &
-                              A_1_old, A1lo, A1hi, &
-                              R_0_old, R0lo, R0hi, &
-                              R_1_old, R1lo, R1hi, &
+                              R_m_old, Rmlo, Rmhi, &
+                              C, Clo, Chi, &
                               sdc_iteration, &
                               m_start) bind(C, name="ca_sdc_update_o2")
     ! update k_m to k_n via advection -- this is a second-order accurate update
+
+    ! Here, dt_m is the timestep between time-nodes m and m+1
 
     use meth_params_module, only : NVAR
     use amrex_constants_module, only : ZERO, HALF
@@ -927,10 +1319,8 @@ contains
     integer, intent(in) :: kmlo(3), kmhi(3)
     integer, intent(in) :: knlo(3), knhi(3)
     integer, intent(in) :: Amlo(3), Amhi(3)
-    integer, intent(in) :: A0lo(3), A0hi(3)
-    integer, intent(in) :: A1lo(3), A1hi(3)
-    integer, intent(in) :: R0lo(3), R0hi(3)
-    integer, intent(in) :: R1lo(3), R1hi(3)
+    integer, intent(in) :: Rmlo(3), Rmhi(3)
+    integer, intent(in) :: Clo(3), Chi(3)
     integer, intent(in) :: sdc_iteration, m_start
 
 
@@ -938,32 +1328,21 @@ contains
     real(rt), intent(inout) :: k_n(knlo(1):knhi(1), knlo(2):knhi(2), knlo(3):knhi(3), NVAR)
 
     real(rt), intent(in) :: A_m(Amlo(1):Amhi(1), Amlo(2):Amhi(2), Amlo(3):Amhi(3), NVAR)
-    real(rt), intent(in) :: A_0_old(A0lo(1):A0hi(1), A0lo(2):A0hi(2), A0lo(3):A0hi(3), NVAR)
-    real(rt), intent(in) :: A_1_old(A1lo(1):A1hi(1), A1lo(2):A1hi(2), A1lo(3):A1hi(3), NVAR)
-
-    real(rt), intent(in) :: R_0_old(R0lo(1):R0hi(1), R0lo(2):R0hi(2), R0lo(3):R0hi(3), NVAR)
-    real(rt), intent(in) :: R_1_old(R1lo(1):R1hi(1), R1lo(2):R1hi(2), R1lo(3):R1hi(3), NVAR)
+    real(rt), intent(in) :: R_m_old(Rmlo(1):Rmhi(1), Rmlo(2):Rmhi(2), Rmlo(3):Rmhi(3), NVAR)
+    real(rt), intent(in) :: C(Clo(1):Chi(1), Clo(2):Chi(2), Clo(3):Chi(3), NVAR)
 
     integer :: i, j, k
 
     type(burn_t) :: burn_state
 
-    real(rt) :: U_old(NVAR), U_new(NVAR), C(NVAR), R_full(NVAR)
+    real(rt) :: U_old(NVAR), U_new(NVAR), R_full(NVAR), C_zone(NVAR)
 
-
-    ! now consider the reacting system
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
              U_old(:) = k_m(i,j,k,:)
-
-             ! construct the source term to the update
-             ! for 2nd order, there is no advective correction, and we have
-             ! C = - R(U^{m+1,k}) + I_m^{m+1}/dt
-             C(:) = -R_1_old(i,j,k,:) + &
-                  HALF * (A_0_old(i,j,k,:) + A_1_old(i,j,k,:)) + &
-                  HALF * (R_0_old(i,j,k,:) + R_1_old(i,j,k,:))
+             C_zone(:) = C(i,j,k,:)
 
              ! only burn if we are within the temperature and density
              ! limits for burning
@@ -979,7 +1358,7 @@ contains
                 ! the first iteration, let's try to extrapolate forward
                 ! in time.
                 if (sdc_iteration == 0) then
-                   U_new(:) = U_old(:) + dt_m * A_m(i,j,k,:) + dt_m * R_0_old(i,j,k,:)
+                   U_new(:) = U_old(:) + dt_m * A_m(i,j,k,:) + dt_m * R_m_old(i,j,k,:)
                 else
                    U_new(:) = k_n(i,j,k,:)
                 endif
@@ -992,7 +1371,7 @@ contains
 
              end if
 
-             U_new(:) = U_old(:) + dt_m * R_full(:) + dt_m * C(:)
+             U_new(:) = U_old(:) + dt_m * R_full(:) + dt_m * C_zone(:)
 
              ! copy back to k_n
              k_n(i,j,k,:) = U_new(:)
@@ -1013,7 +1392,7 @@ contains
     ! update U_old to U_new on cell-centers.  This is an implicit
     ! solve because of reactions.  Here U_old corresponds to time node
     ! m and U_new is node m+1.  dt_m is the timestep between m and
-    ! m+1, which is dt_m = dt/2.
+    ! m+1
 
     use meth_params_module, only : NVAR
     use react_util_module, only : okay_to_burn

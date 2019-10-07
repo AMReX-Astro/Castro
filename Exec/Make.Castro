@@ -53,6 +53,9 @@ EBASE = Castro
 # Networks and Util this list will be searched for runtime parameters
 EXTERN_CORE ?=
 
+ifeq ($(USE_SDC), TRUE)
+  $(error USE_SDC is no longer supported.  Use with USE_SIMPLIFIED_SDC or USE_TRUE_SDC)
+endif
 
 # need to put any build suffices before Make.defs
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
@@ -162,7 +165,7 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
 endif
 
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  DEFINES += -DSDC -DPRIM_SPECIES_HAVE_SOURCES
+  DEFINES += -DSIMPLIFIED_SDC -DPRIM_SPECIES_HAVE_SOURCES
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)

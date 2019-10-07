@@ -10,7 +10,7 @@ implemented in Castro. As best as possible, they share the same
 driver routines and use preprocessor or runtime variables to separate
 the different code paths.  These fall into two categories:
 
-.. index:: castro.time_integration_method, USE_SDC
+.. index:: castro.time_integration_method, USE_SIMPLIFIED_SDC
 
 -  Strang-splitting: the Strang evolution does the burning on the
    state for :math:`\Delta t/2`, then updates the hydrodynamics using the
@@ -57,7 +57,7 @@ The time-integration method used is controlled by
   * ``time_integration_method = 3``: this is the simplifed SDC method
     described above.that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
-    state variables, you must compile with ``USE_SDC = TRUE`` for this
+    state variables, you must compile with ``USE_SIMPLIFIED_DC = TRUE`` for this
     method to work.
 
 Several helper functions are used throughout:
@@ -712,7 +712,7 @@ is selected by ``castro.time_integration_method = 3``.
 
 .. note::
 
-   The code must be compiled with ``USE_SDC = TRUE`` to use this
+   The code must be compiled with ``USE_SIMPLIFIED_SDC = TRUE`` to use this
    evolution type.
 
 

@@ -121,8 +121,8 @@ contains
     ! for computing a numerical derivative
     real(rt) :: eps = 1.e-8_rt
 
-#ifdef SDC
-    call castro_error("we shouldn't be here with the simplified SDC method (USE_SDC=TRUE)")
+#ifdef SIMPLIFIED_SDC
+    call castro_error("we shouldn't be here with the simplified SDC method (USE_SIMPLIFIED_SDC=TRUE)")
 #else
     if (sdc_use_analytic_jac == 0) then
        ! note the numerical Jacobian will be returned in terms of X
