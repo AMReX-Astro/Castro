@@ -813,15 +813,25 @@
 </li>
       <li><a href="file/rotation_sources_nd_f.html#f/rotation_sources_module/ca_rsrc"><strong>ca_rsrc() (fortran subroutine in module rotation_sources_module)</strong></a>
 </li>
-      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_compute_c4"><strong>ca_sdc_compute_c4() (fortran subroutine in module sdc_util)</strong></a>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_compute_c2_lobatto"><strong>ca_sdc_compute_c2_lobatto() (fortran subroutine in module sdc_util)</strong></a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_compute_c2_radau"><strong>ca_sdc_compute_c2_radau() (fortran subroutine in module sdc_util)</strong></a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_compute_c4_lobatto"><strong>ca_sdc_compute_c4_lobatto() (fortran subroutine in module sdc_util)</strong></a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_compute_c4_radau"><strong>ca_sdc_compute_c4_radau() (fortran subroutine in module sdc_util)</strong></a>
 </li>
       <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_compute_initial_guess"><strong>ca_sdc_compute_initial_guess() (fortran subroutine in module sdc_util)</strong></a>
 </li>
       <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_conservative_update"><strong>ca_sdc_conservative_update() (fortran subroutine in module sdc_util)</strong></a>
 </li>
-      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_update_advection_o2"><strong>ca_sdc_update_advection_o2() (fortran subroutine in module sdc_util)</strong></a>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_update_advection_o2_lobatto"><strong>ca_sdc_update_advection_o2_lobatto() (fortran subroutine in module sdc_util)</strong></a>
 </li>
-      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_update_advection_o4"><strong>ca_sdc_update_advection_o4() (fortran subroutine in module sdc_util)</strong></a>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_update_advection_o2_radau"><strong>ca_sdc_update_advection_o2_radau() (fortran subroutine in module sdc_util)</strong></a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_update_advection_o4_lobatto"><strong>ca_sdc_update_advection_o4_lobatto() (fortran subroutine in module sdc_util)</strong></a>
+</li>
+      <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_update_advection_o4_radau"><strong>ca_sdc_update_advection_o4_radau() (fortran subroutine in module sdc_util)</strong></a>
 </li>
       <li><a href="file/sdc_util_f.html#f/sdc_util/ca_sdc_update_centers_o4"><strong>ca_sdc_update_centers_o4() (fortran subroutine in module sdc_util)</strong></a>
 </li>
@@ -1105,7 +1115,7 @@
 </li>
       <li><a href="FlowChart.html#index-2">castro.sdc_order</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
-      <li><a href="FlowChart.html#index-2">castro.sdc_quadrature</a>
+      <li><a href="FlowChart.html#index-2">castro.sdc_quadrature</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.sdc_solve_for_rhoe</a>
 </li>
@@ -1127,14 +1137,14 @@
 </li>
       <li><a href="Hydrodynamics.html#index-1">castro.small_dens</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="runtime_parameters.html#index-1">castro.small_ener</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.small_plot_per_is_exact</a>
 </li>
       <li><a href="Hydrodynamics.html#index-1">castro.small_pres</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Hydrodynamics.html#index-1">castro.small_temp</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.source_term_predictor</a>
@@ -2168,8 +2178,6 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/sdc_util_f.html#f/sdc_util/f_ode"><strong>f_ode() (fortran subroutine in module sdc_util)</strong></a>
-</li>
-      <li><a href="file/sdc_util_f.html#f/sdc_util/f_sdc"><strong>f_sdc() (fortran subroutine in module sdc_util)</strong></a>
 </li>
       <li><a href="file/sdc_util_f.html#f/sdc_util/f_sdc_jac"><strong>f_sdc_jac() (fortran subroutine in module sdc_util)</strong></a>
 </li>
@@ -3916,6 +3924,8 @@
       <li><a href="file/sdc_util_f.html#f/sdc_util/sdc_newton_subdivide"><strong>sdc_newton_subdivide() (fortran subroutine in module sdc_util)</strong></a>
 </li>
       <li><a href="file/meth_params_f.html#f/meth_params_module/sdc_order"><strong>sdc_order (fortran variable in module meth_params_module)</strong></a>
+</li>
+      <li><a href="file/meth_params_f.html#f/meth_params_module/sdc_quadrature"><strong>sdc_quadrature (fortran variable in module meth_params_module)</strong></a>
 </li>
       <li><a href="file/sdc_util_f.html#f/sdc_util/sdc_solve"><strong>sdc_solve() (fortran subroutine in module sdc_util)</strong></a>
 </li>
