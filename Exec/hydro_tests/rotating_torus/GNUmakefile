@@ -7,7 +7,7 @@ DIM        = 3
 COMP	   = gnu
 
 USE_MPI    = TRUE
-USE_OMP    = TRUE
+USE_OMP    = FALSE
 
 USE_GRAV      = TRUE
 USE_ROTATION  = TRUE
