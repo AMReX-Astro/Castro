@@ -57,7 +57,7 @@ contains
     type (burn_t) :: burn_state_in, burn_state_out
 
     ! This interface is currently unsupported with simplified SDC.
-#ifndef SDC
+#ifndef SIMPLIFIED_SDC
 
     ! Minimum zone width
 

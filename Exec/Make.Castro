@@ -170,6 +170,7 @@ endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
   DEFINES += -DTRUE_SDC
+  Bdirs += Source/sdc
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)

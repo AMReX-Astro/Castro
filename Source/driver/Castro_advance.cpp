@@ -55,6 +55,7 @@ Castro::advance (Real time,
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
 #ifndef AMREX_USE_CUDA
+#ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
       for (int iter = 0; iter < sdc_order+sdc_extra; ++iter) {
@@ -138,6 +139,7 @@ Castro::advance (Real time,
       }
 
 #endif
+#endif // TRUE_SDC
     }
     else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
