@@ -13,9 +13,6 @@ endif
 CEXE_sources += Castro_setup.cpp
 CEXE_sources += Castro_io.cpp
 CEXE_sources += CastroBld.cpp
-ifneq ($(USE_CUDA), TRUE)
-  CEXE_sources += Castro_sdc.cpp
-endif
 CEXE_sources += main.cpp
 
 CEXE_headers += Castro.H
@@ -51,10 +48,6 @@ ca_f90EXE_sources += io.f90
 ca_F90EXE_sources += math.F90
 ca_F90EXE_sources += meth_params.F90
 ca_F90EXE_sources += set_indices.F90
-ifneq ($(USE_CUDA), TRUE)
-  ca_F90EXE_sources += sdc_util.F90
-  ca_F90EXE_sources += sdc_vode.F90
-endif
 ca_f90EXE_sources += state_sizes.f90
 
 NEED_MGUTIL =
