@@ -190,9 +190,10 @@ public:
 ///
 /// Write job info to file
 ///
-/// @param dir  directory to write to
+/// @param dir       directory to write to
+/// @param io_time   how long it took to generate the plotfile/checkpoint
 ///
-    void writeJobInfo (const std::string& dir);
+    void writeJobInfo (const std::string& dir, const amrex::Real io_time);
 
 
 ///

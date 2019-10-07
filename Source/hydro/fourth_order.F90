@@ -48,9 +48,9 @@ contains
     real(rt), parameter :: C3 = 0.1_rt
 
     integer :: i, j, k, n
-    double precision :: rho, s
+    real(rt) :: rho, s
 
-    double precision :: d2a_lim, d3a_min, d3a_max
+    real(rt) :: d2a_lim, d3a_min, d3a_max
 
     ! our convention here is that:
     !     al(i,j,k)   will be al_{i-1/2,j,k),
@@ -167,7 +167,7 @@ contains
                             d2a_lim = 0.0_rt
                          end if
 
-                         if (abs(d2af) <= 1.e-12*max(abs(a(i-2,j,k,n)), abs(a(i-1,j,k,n)), &
+                         if (abs(d2af) <= 1.e-12_rt*max(abs(a(i-2,j,k,n)), abs(a(i-1,j,k,n)), &
                               abs(a(i,j,k,n)), abs(a(i+1,j,k,n)), abs(a(i+2,j,k,n)))) then
                             rho = 0.0_rt
                          else
@@ -390,7 +390,7 @@ contains
                             d2a_lim = 0.0_rt
                          end if
 
-                         if (abs(d2af) <= 1.e-12*max(abs(a(i,j-2,k,n)), abs(a(i,j-1,k,n)), &
+                         if (abs(d2af) <= 1.e-12_rt*max(abs(a(i,j-2,k,n)), abs(a(i,j-1,k,n)), &
                               abs(a(i,j,k,n)), abs(a(i,j+1,k,n)), abs(a(i,j+2,k,n)))) then
                             rho = 0.0_rt
                          else
@@ -417,7 +417,7 @@ contains
                                else if (abs(dafm) >= 2.0_rt*abs(dafp)) then
                                   ! Eq. 31
                                   ar(i,j,k,n) = a(i,j,k,n) - 2.0_rt*(1.0_rt - rho)*dafp - rho*dafm
-                               else if (abs(dafp) >= 2.0*abs(dafm)) then
+                               else if (abs(dafp) >= 2.0_rt*abs(dafm)) then
                                   ! Eq. 32
                                   al(i,j+1,k,n) = a(i,j,k,n) + 2.0_rt*(1.0_rt - rho)*dafm + rho*dafp
                                end if
@@ -590,7 +590,7 @@ contains
                             d2a_lim = 0.0_rt
                          end if
 
-                         if (abs(d2af) <= 1.e-12*max(abs(a(i,j,k-2,n)), abs(a(i,j,k-1,n)), &
+                         if (abs(d2af) <= 1.e-12_rt*max(abs(a(i,j,k-2,n)), abs(a(i,j,k-1,n)), &
                               abs(a(i,j,k,n)), abs(a(i,j,k+1,n)), abs(a(i,j,k+2,n)))) then
                             rho = 0.0_rt
                          else
@@ -617,7 +617,7 @@ contains
                                else if (abs(dafm) >= 2.0_rt*abs(dafp)) then
                                   ! Eq. 31
                                   ar(i,j,k,n) = a(i,j,k,n) - 2.0_rt*(1.0_rt - rho)*dafp - rho*dafm
-                               else if (abs(dafp) >= 2.0*abs(dafm)) then
+                               else if (abs(dafp) >= 2.0_rt*abs(dafm)) then
                                   ! Eq. 32
                                   al(i,j,k+1,n) = a(i,j,k,n) + 2.0_rt*(1.0_rt - rho)*dafm + rho*dafp
                                end if

@@ -10,6 +10,8 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state, Real ti
 
     BL_PROFILE("Castro::construct_old_rotation_source()");
 
+    const Real strt_time = ParallelDescriptor::second();
+
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
 
@@ -48,6 +50,22 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state, Real ti
 
     }
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_old_rotation_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 
@@ -56,6 +74,8 @@ void
 Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
     BL_PROFILE("Castro::construct_new_rotation_source()");
+
+    const Real strt_time = ParallelDescriptor::second();
 
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
     MultiFab& rot_old = get_old_data(Rotation_Type);
@@ -108,6 +128,22 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
         }
     }
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_new_rotation_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 

@@ -1088,7 +1088,7 @@ contains
                                    Symmetry, SlipWall, NoSlipWall
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
-    use network, only : nspec
+    use network, only : nspec, naux
     use meth_params_module, only: T_guess, riemann_speed_limit
 
     implicit none
@@ -1314,7 +1314,8 @@ contains
                 eos_state % p = pl
                 eos_state % rho = rl
                 eos_state % xn(:) = ql(i,j,k,QFS:QFS-1+nspec,comp)
-                eos_state % T = 100.0 ! initial guess
+                eos_state % aux(:) = ql(i,j,k,QFX:QFX-1+naux,comp)
+                eos_state % T = 100.0e0_rt ! initial guess
 
                 call eos(eos_input_rp, eos_state)
 
@@ -1323,7 +1324,8 @@ contains
                 eos_state % p = pr
                 eos_state % rho = rr
                 eos_state % xn(:) = qr(i,j,k,QFS:QFS-1+nspec,comp)
-                eos_state % T = 100.0 ! initial guess
+                eos_state % aux(:) = qr(i,j,k,QFX:QFX-1+naux,comp)
+                eos_state % T = 100.0e0_rt ! initial guess
 
                 call eos(eos_input_rp, eos_state)
 
@@ -1402,7 +1404,7 @@ contains
                 reo_g = 0.5e0_rt*(rel_g + rer_g)
                 po_r(:) = lambda(:) * reo_r(:)
                 gamco_g = 0.5e0_rt*(gamcgl + gamcgr)
-                po_g = 0.5*(pr_g + pl_g)
+                po_g = 0.5e0_rt*(pr_g + pl_g)
 #endif
 
              endif

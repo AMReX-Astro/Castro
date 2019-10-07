@@ -131,7 +131,7 @@ Castro::restart (Amr&     papa,
     ParallelDescriptor::Bcast(&lastDtBeforePlotLimiting, 1, ParallelDescriptor::IOProcessorNumber());
 
     BL_ASSERT(input_version >= 0);
- 
+
     // also need to mod checkPoint function to store the new version in a text file
 
     AmrLevel::restart(papa,is,bReadSpecial);
@@ -221,7 +221,7 @@ Castro::restart (Amr&     papa,
       get_state_data(State_Type).replaceNewData(std::move(new_data));
 
     }
- 
+
 #endif
 
 #ifdef REACTIONS
@@ -346,7 +346,7 @@ Castro::restart (Amr&     papa,
 	for (int j = 0; j < len; j++)
 	  int_dir_name[j] = (int) dir_for_pass[j];
 
-	problem_restart(int_dir_name.dataPtr(), &len);      
+	problem_restart(int_dir_name.dataPtr(), &len);
 
 	delete [] dir_for_pass;
 
@@ -404,7 +404,7 @@ Castro::restart (Amr&     papa,
                 } else if (grown_factor == 3) {
                    lo =   (dlen)/3    ;
                    hi = 2*(dlen)/3 - 1;
-                } else { 
+                } else {
                    amrex::Abort("Must have grown_factor = 2 or 3");
                 }
                 orig_domain.setSmall(d,lo);
@@ -573,7 +573,11 @@ Castro::checkPoint(const std::string& dir,
       amrex::prefetchToHost(new_MF);
   }
 
+  const Real io_start_time = ParallelDescriptor::second();
+
   AmrLevel::checkPoint(dir, os, how, dump_old);
+
+  const Real io_time = ParallelDescriptor::second() - io_start_time;
 
   for (int s = 0; s < num_state_type; ++s) {
       if (dump_old && state[s].hasOldData()) {
@@ -605,7 +609,7 @@ Castro::checkPoint(const std::string& dir,
 	    CastroHeaderFile << "Checkpoint version: " << current_version << std::endl;
 	    CastroHeaderFile.close();
 
-            writeJobInfo(dir);
+            writeJobInfo(dir, io_time);
 
             // output the list of state variables, so we can do a sanity check on restart
             std::ofstream StateListFile;
@@ -690,7 +694,7 @@ Castro::checkPoint(const std::string& dir,
 	    for (int j = 0; j < len; j++)
 		int_dir_name[j] = (int) dir_for_pass[j];
 
-	    problem_checkpoint(int_dir_name.dataPtr(), &len);      
+	    problem_checkpoint(int_dir_name.dataPtr(), &len);
 
 	    delete [] dir_for_pass;
 	}
@@ -781,8 +785,7 @@ Castro::setPlotVariables ()
 
 
 void
-Castro::writeJobInfo (const std::string& dir)
-
+Castro::writeJobInfo (const std::string& dir, const Real io_time)
 {
 
   // job_info file with details about the run
@@ -825,15 +828,30 @@ Castro::writeJobInfo (const std::string& dir)
 
   // Convert now to tm struct for local timezone
   tm* localtm = localtime(&now);
-  jobInfoFile   << "output data / time: " << asctime(localtm);
+  jobInfoFile   << "output date / time: " << asctime(localtm);
 
   char currentDir[FILENAME_MAX];
   if (getcwd(currentDir, FILENAME_MAX)) {
     jobInfoFile << "output dir:         " << currentDir << "\n";
   }
 
+  jobInfoFile << "I/O time (s):       " << io_time << "\n";
+
   jobInfoFile << "\n\n";
 
+#ifdef AMREX_USE_GPU
+  // This output assumes for simplicity that every rank uses the
+  // same type of GPU.
+
+  jobInfoFile << PrettyLine;
+  jobInfoFile << "GPU Information:       " << "\n";
+  jobInfoFile << PrettyLine;
+
+  jobInfoFile << "GPU model name: " << Gpu::Device::deviceName() << "\n";
+  jobInfoFile << "Number of GPUs used: " << Gpu::Device::numDevicesUsed() << "\n";
+
+  jobInfoFile << "\n\n";
+#endif
 
   // build information
   jobInfoFile << PrettyLine;
@@ -882,7 +900,7 @@ Castro::writeJobInfo (const std::string& dir)
   if (strlen(githash2) > 0) {
     jobInfoFile << "AMReX        git describe: " << githash2 << "\n";
   }
-  if (strlen(githash3) > 0) {	
+  if (strlen(githash3) > 0) {
     jobInfoFile << "Microphysics git describe: " << githash3 << "\n";
   }
 
@@ -1018,15 +1036,15 @@ Castro::writeJobInfo (const std::string& dir)
       //
       ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
       char* spec_name = new char[len+1];
-      for (int j = 0; j < len; j++) 
+      for (int j = 0; j < len; j++)
 	spec_name[j] = int_spec_names[j];
       spec_name[len] = '\0';
 
       // get A and Z
       ca_get_spec_az(&i, &Aion, &Zion);
 
-      jobInfoFile << 
-	std::setw(6) << i << SkipSpace << 
+      jobInfoFile <<
+	std::setw(6) << i << SkipSpace <<
 	std::setw(mlen+1) << std::setfill(' ') << spec_name << SkipSpace <<
 	std::setw(7) << Aion << SkipSpace <<
 	std::setw(7) << Zion << "\n";
@@ -1093,7 +1111,7 @@ Castro::writeBuildInfo ()
   std::cout << "COMP version:  " << buildInfoGetCompVersion() << "\n";
 
   std::cout << "\n";
-  
+
   std::cout << "C++ compiler:  " << buildInfoGetCXXName() << "\n";
   std::cout << "C++ flags:     " << buildInfoGetCXXFlags() << "\n";
 
@@ -1124,7 +1142,7 @@ Castro::writeBuildInfo ()
   if (strlen(githash2) > 0) {
     std::cout << "AMReX        git describe: " << githash2 << "\n";
   }
-  if (strlen(githash3) > 0) {	
+  if (strlen(githash3) > 0) {
     std::cout << "Microphysics git describe: " << githash3 << "\n";
   }
 
@@ -1290,8 +1308,6 @@ Castro::plotFileOutput(const std::string& dir,
 	  groupfile.close();
 	}
 #endif
-	writeJobInfo(dir);
-
     }
     // Build the directory to hold the MultiFab at this level.
     // The name is relative to the directory containing the Header file.
@@ -1389,7 +1405,16 @@ Castro::plotFileOutput(const std::string& dir,
     //
     std::string TheFullPath = FullPath;
     TheFullPath += BaseName;
+
+    const Real io_start_time = ParallelDescriptor::second();
+
     VisMF::Write(plotMF,TheFullPath,how,true);
+
+    const Real io_time = ParallelDescriptor::second() - io_start_time;
+
+    if (level == 0 && ParallelDescriptor::IOProcessor()) {
+        writeJobInfo(dir, io_time);
+    }
 
     if (track_grid_losses && level == 0) {
 

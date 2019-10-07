@@ -103,7 +103,7 @@ contains
     real(rt)         :: fac,xx,yy,dx_frac,dy_frac,vol_frac,vol_frac_fac
     real(rt)         :: lo_i,lo_j,rlo,rhi
 
-    if (abs(center(2) - problo(2)) .lt. 1.e-2 * dx(2)) then
+    if (abs(center(2) - problo(2)) .lt. 1.e-2_rt * dx(2)) then
        octant_factor = TWO
     else
        octant_factor = ONE

@@ -6,6 +6,8 @@ using namespace amrex;
 void
 Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
+    const Real strt_time = ParallelDescriptor::second();
+
     if (!add_ext_src) return;
 
     MultiFab ext_src(grids, dmap, NUM_STATE, 0);
@@ -17,6 +19,23 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, R
     Real mult_factor = 1.0;
 
     MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, NUM_STATE, 0);
+
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_old_ext_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 
@@ -24,6 +43,8 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, R
 void
 Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
+    const Real strt_time = ParallelDescriptor::second();
+
     if (!add_ext_src) return;
 
     MultiFab ext_src(grids, dmap, NUM_STATE, 0);
@@ -49,6 +70,22 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
     MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, NUM_STATE, 0);
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_new_ext_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 
