@@ -334,7 +334,7 @@ contains
                                    first_order_hydro, hybrid_riemann, &
                                    ppm_temp_fix
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
-    use ppm_module, only : ca_ppm_reconstruct
+    use ppm_module, only: ppm_reconstruct
     use amrex_fort_module, only : rt => amrex_real
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
@@ -358,7 +358,8 @@ contains
     integer :: idir, i, j, k, n
     type (eos_t) :: eos_state
 
-    real(rt) :: sm(NQ, AMREX_SPACEDIM), sp(NQ, AMREX_SPACEDIM)
+    real(rt) :: s(-2:2)
+    real(rt) :: sm, sp
 
     !$gpu
 
@@ -368,34 +369,42 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        q, q_lo, q_hi, NQ, 1, NQ, &
-                                        flatn, fl_lo, fl_hi, &
-                                        sm, sp, NQ, 1, NQ)
+                do n = 1, NQ
 
-                if (idir == 1) then
-                   ! right state at i-1/2
-                   qp(i,j,k,:,1) = sm(:,1)
+                   if (idir == 1) then
+                      s(:) = q(i-2:i+2,j,k,n)
+                   else if (idir == 2) then
+                      s(:) = q(i,j-2:j+2,k,n)
+                   else
+                      s(:) = q(i,j,k-2:k+2,n)
+                   end if
 
-                   ! left state at i+1/2
-                   qm(i+1,j,k,:,1) = sp(:,1)
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
-                else if (idir == 2) then
-                   ! right state at j-1/2
-                   qp(i,j,k,:,2) = sm(:,2)
+                   if (idir == 1) then
+                      ! right state at i-1/2
+                      qp(i,j,k,n,1) = sm
 
-                   ! left state at j+1/2
-                   qm(i,j+1,k,:,2) = sp(:,2)
+                      ! left state at i+1/2
+                      qm(i+1,j,k,n,1) = sp
 
-                else
-                   ! right state at k-1/2
-                   qp(i,j,k,:,3) = sm(:,3)
+                   else if (idir == 2) then
+                      ! right state at j-1/2
+                      qp(i,j,k,n,2) = sm
 
-                   ! left state at k+1/2
-                   qm(i,j,k+1,:,3) = sp(:,3)
+                      ! left state at j+1/2
+                      qm(i,j+1,k,n,2) = sp
 
-                end if
+                   else
+                      ! right state at k-1/2
+                      qp(i,j,k,n,3) = sm
+
+                      ! left state at k+1/2
+                      qm(i,j,k+1,n,3) = sp
+
+                   end if
+
+                end do
 
              end do
           end do

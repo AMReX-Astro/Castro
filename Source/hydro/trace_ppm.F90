@@ -256,7 +256,7 @@ contains
                                    ppm_type, ppm_temp_fix, &
                                    ppm_reference_eigenvectors
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none
 
@@ -278,7 +278,7 @@ contains
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQAUX)
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
     real(rt), intent(in) ::  flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
@@ -294,10 +294,11 @@ contains
     ! Local variables
     integer :: i, j, k, n
 
-    real(rt) :: hdt
+    real(rt) :: hdt, dtdx
 
-    real(rt) :: sm(1, AMREX_SPACEDIM), sp(1, AMREX_SPACEDIM)
+    real(rt) :: sm, sp
 
+    real(rt) :: s(-2:2)
     real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
     real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
     real(rt) :: Ip_gc(1:3,1), Im_gc(1:3,1)
@@ -348,6 +349,7 @@ contains
     !$gpu
 
     hdt = HALF * dt
+    dtdx = dt / dx(idir)
 
     !=========================================================================
     ! PPM CODE
@@ -414,59 +416,47 @@ contains
              do n = 1, NQ
                 if (.not. reconstruct_state(n)) cycle
 
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        q, qd_lo, qd_hi, NQ, n, n, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
+                if (idir == 1) then
+                   s(:) = q(i-2:i+2,j,k,n)
+                else if (idir == 2) then
+                   s(:) = q(i,j-2:j+2,k,n)
+                else
+                   s(:) = q(i,j,k-2:k+2,n)
+                end if
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     q, qd_lo, qd_hi, NQ, n, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip, Im, NQ, n, &
-                                     dx, dt)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
              end do
 
 
-             call ca_ppm_reconstruct(i, j, k, &
-                                     idir, &
-                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
-                                     flatn, f_lo, f_hi, &
-                                     sm, sp, &
-                                     1, 1, 1)
+             if (idir == 1) then
+                s(:) = qaux(i-2:i+2,j,k,QGAMC)
+             else if (idir == 2) then
+                s(:) = qaux(i,j-2:j+2,k,QGAMC)
+             else
+                s(:) = qaux(i,j,k-2:k+2,QGAMC)
+             end if
 
-             call ppm_int_profile(i, j, k, &
-                                  idir, &
-                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                  q, qd_lo, qd_hi, &
-                                  qaux, qa_lo, qa_hi, &
-                                  sm, sp, &
-                                  Ip_gc, Im_gc, 1, 1, &
-                                  dx, dt)
+             call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
+             call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_gc, Im_gc)
 
              ! source terms
              do n = 1, NQSRC
                 if (source_nonzero(n)) then
-                   call ca_ppm_reconstruct(i, j, k, &
-                                           idir, &
-                                           srcQ, src_lo, src_hi, NQSRC, n, n, &
-                                           flatn, f_lo, f_hi, &
-                                           sm, sp, &
-                                           1, 1, 1)
 
-                   call ppm_int_profile(i, j, k, &
-                                        idir, &
-                                        srcQ, src_lo, src_hi, NQSRC, n, &
-                                        q, qd_lo, qd_hi, &
-                                        qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
-                                        Ip_src, Im_src, NQSRC, n, &
-                                        dx, dt)
+                   if (idir == 1) then
+                      s(:) = srcQ(i-2:i+2,j,k,n)
+                   else if (idir == 2) then
+                      s(:) = srcQ(i,j-2:j+2,k,n)
+                   else
+                      s(:) = srcQ(i,j,k-2:k+2,n)
+                   end if
+
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
@@ -789,7 +779,7 @@ contains
                                    ppm_type, ppm_temp_fix, &
                                    ppm_reference_eigenvectors
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none
 
@@ -825,10 +815,11 @@ contains
     ! Local variables
     integer :: i, j, k, n
 
-    real(rt) :: hdt
+    real(rt) :: hdt, dtdx
 
-    real(rt) :: sm(1, AMREX_SPACEDIM), sp(1, AMREX_SPACEDIM)
+    real(rt) :: sm, sp
 
+    real(rt) :: s(-2:2)
     real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
     real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
     real(rt) :: Ip_gc(1:3,1), Im_gc(1:3,1)
@@ -882,6 +873,7 @@ contains
     !$gpu
 
     hdt = HALF * dt
+    dtdx = dt / dx(idir)
 
     !=========================================================================
     ! PPM CODE
@@ -952,45 +944,37 @@ contains
              do n = 1, NQ
                 if (.not. reconstruct_state(n)) cycle
 
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        q, qd_lo, qd_hi, NQ, n, n, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
+                if (idir == 1) then
+                   s(:) = q(i-2:i+2,j,k,n)
+                else if (idir == 2) then
+                   s(:) = q(i,j-2:j+2,k,n)
+                else
+                   s(:) = q(i,j,k-2:k+2,n)
+                end if
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     q, qd_lo, qd_hi, NQ, n, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip, Im, NQ, n, &
-                                     dx, dt)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
              end do
 
 
              if (ppm_temp_fix /= 1) then
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip_gc, Im_gc, 1, 1, &
-                                     dx, dt)
+                if (idir == 1) then
+                   s(:) = qaux(i-2:i+2,j,k,QGAMC)
+                else if (idir == 2) then
+                   s(:) = qaux(i,j-2:j+2,k,QGAMC)
+                else
+                   s(:) = qaux(i,j,k-2:k+2,QGAMC)
+                end if
+
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_gc, Im_gc)
              else
 
                 ! temperature-based PPM
-                call ppm_reconstruct_with_eos(Ip, Im, &
-                                              Ip_gc, Im_gc)
+                call ppm_reconstruct_with_eos(Ip, Im, Ip_gc, Im_gc)
 
              end if
 
@@ -998,21 +982,18 @@ contains
              ! source terms
              do n = 1, NQSRC
                 if (source_nonzero(n)) then
-                   call ca_ppm_reconstruct(i, j, k, &
-                                           idir, &
-                                           srcQ, src_lo, src_hi, NQSRC, n, n, &
-                                           flatn, f_lo, f_hi, &
-                                           sm, sp, &
-                                           1, 1, 1)
 
-                   call ppm_int_profile(i, j, k, &
-                                        idir, &
-                                        srcQ, src_lo, src_hi, NQSRC, n, &
-                                        q, qd_lo, qd_hi, &
-                                        qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
-                                        Ip_src, Im_src, NQSRC, n, &
-                                        dx, dt)
+                   if (idir == 1) then
+                      s(:) = srcQ(i-2:i+2,j,k,n)
+                   else if (idir == 2) then
+                      s(:) = srcQ(i,j-2:j+2,k,n)
+                   else
+                      s(:) = srcQ(i,j,k-2:k+2,n)
+                   end if
+
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
@@ -1355,7 +1336,7 @@ contains
                                    ppm_reference_eigenvectors
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
-    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none
 
@@ -1392,10 +1373,11 @@ contains
     ! Local variables
     type(eos_t) :: eos_state
 
-    real(rt) :: hdt
+    real(rt) :: hdt, dtdx
 
-    real(rt) :: sm(1, AMREX_SPACEDIM), sp(1, AMREX_SPACEDIM)
+    real(rt) :: sm, sp
 
+    real(rt) :: s(-2:2)
     real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
     real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
     real(rt) :: Ip_gc(1:3,1), Im_gc(1:3,1)
@@ -1453,7 +1435,7 @@ contains
     !$gpu
 
     hdt = HALF * dt
-
+    dtdx = dt / dx(idir)
 
     !=========================================================================
     ! PPM CODE
@@ -1525,45 +1507,37 @@ contains
              do n = 1, NQ
                 if (.not. reconstruct_state(n)) cycle
 
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        q, qd_lo, qd_hi, NQ, n, n, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
+                if (idir == 1) then
+                   s(:) = q(i-2:i+2,j,k,n)
+                else if (idir == 2) then
+                   s(:) = q(i,j-2:j+2,k,n)
+                else
+                   s(:) = q(i,j,k-2:k+2,n)
+                end if
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     q, qd_lo, qd_hi, NQ, n, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip, Im, NQ, n, &
-                                     dx, dt)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
              end do
 
 
              if (ppm_temp_fix /= 1) then
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
+                
+                if (idir == 1) then
+                   s(:) = qaux(i-2:i+2,j,k,QGAMC)
+                else if (idir == 2) then
+                   s(:) = qaux(i,j-2:j+2,k,QGAMC)
+                else
+                   s(:) = qaux(i,j,k-2:k+2,QGAMC)
+                end if
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip_gc, Im_gc, 1, 1, &
-                                     dx, dt)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_gc, Im_gc)
              else
 
                 ! temperature-based PPM
-                call ppm_reconstruct_with_eos(Ip, Im, &
-                                              Ip_gc, Im_gc)
+                call ppm_reconstruct_with_eos(Ip, Im, Ip_gc, Im_gc)
 
              end if
 
@@ -1571,21 +1545,18 @@ contains
              ! source terms
              do n = 1, NQSRC
                 if (source_nonzero(n)) then
-                   call ca_ppm_reconstruct(i, j, k, &
-                                           idir, &
-                                           srcQ, src_lo, src_hi, NQSRC, n, n, &
-                                           flatn, f_lo, f_hi, &
-                                           sm, sp, &
-                                           1, 1, 1)
+                   
+                   if (idir == 1) then
+                      s(:) = srcQ(i-2:i+2,j,k,n)
+                   else if (idir == 2) then
+                      s(:) = srcQ(i,j-2:j+2,k,n)
+                   else
+                      s(:) = srcQ(i,j,k-2:k+2,n)
+                   end if
 
-                   call ppm_int_profile(i, j, k, &
-                                        idir, &
-                                        srcQ, src_lo, src_hi, NQSRC, n, &
-                                        q, qd_lo, qd_hi, &
-                                        qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
-                                        Ip_src, Im_src, NQSRC, n, &
-                                        dx, dt)
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
