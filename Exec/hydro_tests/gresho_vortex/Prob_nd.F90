@@ -4,7 +4,7 @@
 ! By choosing the reference pressure, p0, we can specify the
 ! Mach number
 
-subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module, only: p0, rho0, t_r, nsub, x_r, q_r
   use prob_params_module, only: center
@@ -18,33 +18,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer,  intent(in   ) :: name(namlen)
   real(rt), intent(in   ) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
-  namelist /fortin/ p0, rho0, t_r, nsub
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character :: probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error('probin file name too long')
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! Set namelist defaults
-  p0 = 1.0
-  rho0 = 1.0
-  t_r = 1.0
-  nsub = 4
-
-  ! read namelists
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! problem center
   center(:) = (problo(:) + probhi(:)) / 2.e0_rt
