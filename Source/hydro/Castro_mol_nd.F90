@@ -358,12 +358,8 @@ contains
     integer :: idir, i, j, k, n
     type (eos_t) :: eos_state
 
-<<<<<<< HEAD
-    real(rt) :: sm(NQ), sp(NQ)
-=======
     real(rt) :: s(-2:2)
     real(rt) :: sm, sp
->>>>>>> development
 
     !$gpu
 
@@ -375,28 +371,6 @@ contains
 
                 do n = 1, NQ
 
-<<<<<<< HEAD
-                if (idir == 1) then
-                   ! right state at i-1/2
-                   qp(i,j,k,:,1) = sm
-
-                   ! left state at i+1/2
-                   qm(i+1,j,k,:,1) = sp
-
-                else if (idir == 2) then
-                   ! right state at j-1/2
-                   qp(i,j,k,:,2) = sm
-
-                   ! left state at j+1/2
-                   qm(i,j+1,k,:,2) = sp
-
-                else
-                   ! right state at k-1/2
-                   qp(i,j,k,:,3) = sm
-
-                   ! left state at k+1/2
-                   qm(i,j,k+1,:,3) = sp
-=======
                    if (idir == 1) then
                       s(:) = q(i-2:i+2,j,k,n)
                    else if (idir == 2) then
@@ -420,7 +394,6 @@ contains
 
                       ! left state at j+1/2
                       qm(i,j+1,k,n,2) = sp
->>>>>>> development
 
                    else
                       ! right state at k-1/2
