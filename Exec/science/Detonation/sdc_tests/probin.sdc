@@ -36,4 +36,6 @@
 !   rtol_enuc = 1.e-8
    call_eos_in_rhs = T
    do_constant_volume_burn = T
+
+   small_x = 1.e-10
 /

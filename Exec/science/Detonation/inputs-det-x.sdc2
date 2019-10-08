@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 400000
-stop_time =  3.e-6
+max_step = 15000
+stop_time =  0.2
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
@@ -23,13 +23,16 @@ castro.do_hydro = 1
 castro.do_react = 1
 
 castro.time_integration_method = 2
-castro.sdc_order = 4
+castro.sdc_order = 2
+castro.sdc_quadrature = 0
+#castro.sdc_extra = 1
 
-castro.sdc_solver = 2
+castro.sdc_solve_for_rhoe  = 1
+
+castro.sdc_solver = 1
 castro.sdc_solver_tol_dens = 1.e-5
 castro.sdc_solver_tol_spec = 1.e-5
 castro.sdc_solver_tol_ener = 1.e-5
-castro.sdc_solver_atol = 1.e-10
 castro.sdc_use_analytic_jac = 1
 
 castro.ppm_type = 0
@@ -45,7 +48,7 @@ castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
-castro.dtnuc_e        = 0.25
+castro.dtnuc_e = 0.25
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -63,7 +66,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = det_x_chk  # root name of checkpoint file
-amr.check_int       = 1000         # number of timesteps between checkpoints
+amr.check_int       = 300         # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = det_x_plt  # root name of plotfile
@@ -71,4 +74,4 @@ amr.plot_per = 1.e-7
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin.sdc
+amr.probin_file = probin-det-x
