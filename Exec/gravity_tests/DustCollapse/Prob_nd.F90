@@ -18,41 +18,9 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
   type (eos_t) :: eos_state
 
-  namelist /fortin/ &
-       rho_0, r_0, r_old, p_0, rho_ambient, smooth_delta, &
-       center_x, center_y, center_z, r_offset, offset_smooth_delta, nsub
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 127
-  character :: probin*(maxlen)
-
-  if (namlen > maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  rho_0 = 1.e9_rt
-  r_0 = 6.5e8_rt
-  r_old = r_0
-  p_0 = 1.e10_rt
-  rho_ambient = 1.e0_rt
-  smooth_delta = 1.e-5_rt
-  r_offset = ZERO
-  offset_smooth_delta = 1.e0_rt
-  nsub = 5
-
-  ! Read namelists in probin file
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   r_old_s = r_old
 
@@ -81,8 +49,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   if (problo(3) /= ZERO) call castro_error("ERROR: zmin should be 0!")
 
   ! set the composition to be uniform
-  allocate(X_0(nspec))
-
   X_0(:) = ZERO
   X_0(1) = ONE
 
