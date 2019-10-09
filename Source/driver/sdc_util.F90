@@ -326,16 +326,16 @@ contains
        U_react(:) = U_react(:) + dU_react(:)
 
        ! we still need to normalize here
-       xn(1:nspec_evolve) = U_react(1:nspec_evolve)/U_react(0)
-       xn(nspec_evolve+1:nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))/U_react(0)
+       ! xn(1:nspec_evolve) = U_react(1:nspec_evolve)/U_react(0)
+       ! xn(nspec_evolve+1:nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))/U_react(0)
+ 
+       ! do k = 1, nspec
+       !    xn(k) = max(small_x, xn(k))
+       ! end do
+       ! xn(:) = xn(:)/sum(xn)
 
-       do k = 1, nspec
-          xn(k) = max(small_x, xn(k))
-       end do
-       xn(:) = xn(:)/sum(xn)
-
-       U_react(1:nspec_evolve) = U_react(0) * xn(1:nspec_evolve)
-       rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = U_react(0) * xn(nspec_evolve+1:nspec)
+       ! U_react(1:nspec_evolve) = U_react(0) * xn(1:nspec_evolve)
+       ! rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = U_react(0) * xn(nspec_evolve+1:nspec)
 
        eps_tot(0) = tol_dens * abs(U_react(0)) + sdc_solver_atol
        ! for species, atol is the mass fraction limit, so we multiply by density to get a partial density limit
