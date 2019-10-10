@@ -4,7 +4,7 @@
   x_half_max = 2.048d4
   x_half_width = 2048.d0
 
-  dx_model = 20.d0
+  dx_model = 10.d0
 
   dens_base = 3.43e6
 
