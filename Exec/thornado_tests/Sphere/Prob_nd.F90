@@ -17,7 +17,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer untin,i
 
-  namelist /fortin/ centx, centy, centz
+  namelist /fortin/ centx, centy, centz, ye_err, ye_grad, ye_grad_rel, max_ye_err_lev, &
+      max_ye_grad_lev, max_ye_grad_rel_lev
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -33,17 +34,27 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      probin(i:i) = char(name(i))
   end do
 
+  ! Initialize centx, centy, centz to default values
+  centx = half * (problo(1)+probhi(1))
+  centy = half * (problo(2)+probhi(2))
+  centz = half * (problo(3)+probhi(3))
+
+  ! Initialize ye tagging to default values
+  ye_err = 1d14
+  ye_grad = 0.01d0
+  ye_grad_rel = 1.d20
+  max_ye_err_lev = -1000
+  max_ye_grad_lev = 1000
+  max_ye_grad_rel_lev = -1
+
   !     Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
   read(untin,fortin)
   close(unit=untin)
 
+  ! Initialize xn(:) in probdata_module
   xn(:) = zero
   xn(1) = one
-
-  centx = half * (problo(1)+probhi(1))
-  centy = half * (problo(2)+probhi(2))
-  centz = half * (problo(3)+probhi(3))
 
 end subroutine amrex_probinit
 
