@@ -839,6 +839,19 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   jobInfoFile << "\n\n";
 
+#ifdef AMREX_USE_GPU
+  // This output assumes for simplicity that every rank uses the
+  // same type of GPU.
+
+  jobInfoFile << PrettyLine;
+  jobInfoFile << "GPU Information:       " << "\n";
+  jobInfoFile << PrettyLine;
+
+  jobInfoFile << "GPU model name: " << Gpu::Device::deviceName() << "\n";
+  jobInfoFile << "Number of GPUs used: " << Gpu::Device::numDevicesUsed() << "\n";
+
+  jobInfoFile << "\n\n";
+#endif
 
   // build information
   jobInfoFile << PrettyLine;

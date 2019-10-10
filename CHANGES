@@ -1,5 +1,10 @@
 changes since the last release
 
+  -- The SDC algorithm can now use Radau quadrature instead of
+     Gauss-Lobatto quadrature. (#666)
+
+# 19.10
+
   -- The SDC algorithm now implements the burning conditionals
      depending on rho and T (react_rho_min, react_rho_max,
      react_T_min, react_T_max) (#598, #654)
@@ -39,6 +44,8 @@ changes since the last release
   -- The time to output is now stored in the job_info file (#365)
 
   -- The SDC time advancement method has been documented
+
+  -- The job_info file now reports the number of GPUs being used.
 
 # 19.09
 

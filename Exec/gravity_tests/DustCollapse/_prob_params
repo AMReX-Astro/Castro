@@ -1,0 +1,31 @@
+r_old                  real            6.5e8_rt       y
+
+r_old_s                real            0.0_rt
+
+rho_0                  real            1.e9_rt        y
+
+rho_ambient            real            1.e0_rt        y
+
+r_0                    real            6.5e8_rt       y
+
+p_0                    real            1.e10_rt       y
+
+T_0                    real            0.0_rt
+
+T_ambient              real            0.0_rt
+
+smooth_delta           real            1.e-5_rt       y
+
+r_offset               real            0.0_rt         y
+
+offset_smooth_delta    real            1.0_rt         y
+
+X_0                    real            0.0_rt         n      (nspec, network)
+
+center_x               real            0.0_rt         y
+
+center_y               real            0.0_rt         y
+
+center_z               real            0.0_rt         y
+
+nsub                   integer         5              y

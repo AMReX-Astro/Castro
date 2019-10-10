@@ -128,12 +128,12 @@ contains
   subroutine ca_recompute_energetics(lo, hi, state, s_lo, s_hi) bind(c,name='ca_recompute_energetics')
     ! Recomputes T and (rho e) from (rho E)
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UEINT
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UFX, UEINT
     use amrex_constants_module, only: HALF, ONE
     use amrex_fort_module, only: rt => amrex_real
     use eos_type_module, only : eos_t, eos_input_re
     use eos_module, only : eos
-    use network, only : nspec
+    use network, only : nspec, naux
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -161,6 +161,7 @@ contains
              eos_state % T = state(i,j,k,UTEMP)
              eos_state % e = state(i,j,k,UEINT) * rhoInv - HALF * (u*u + v*v + w*w)
              eos_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec) * rhoInv
+             eos_state % aux(:) = state(i,j,k,UFX:UFX+naux-1) * rhoInv
 
              call eos(eos_input_re, eos_state)
 

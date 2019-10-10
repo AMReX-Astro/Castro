@@ -69,6 +69,7 @@ endif
 ifeq ($(USE_CUDA),TRUE)
   USE_GPU_PRAGMA = TRUE
   DEFINES += -DCUDA
+  CUDA_VERBOSE = FALSE
 endif
 
 # Allow a problem to specify that we want to initialize

@@ -44,8 +44,8 @@ contains
                                         maximum_density, &
                                         target_h_max) bind(C, name='scf_calculate_target_h_max')
 
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFS
-    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX
+    use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
 
@@ -68,6 +68,7 @@ contains
              eos_state%rho = maximum_density
              eos_state%T   = state(i,j,k,UTEMP)
              eos_state%xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
+             eos_state%aux  = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)
 
              call eos(eos_input_rt, eos_state)
 
@@ -259,8 +260,8 @@ contains
                                 Linf_norm) bind(C, name='scf_update_density')
 
     use amrex_constants_module, only: ZERO, HALF
-    use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMZ, UEDEN, UEINT, UFS
-    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMZ, UEDEN, UEINT, UFS, UFX
+    use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_th, eos_t
 
@@ -301,6 +302,7 @@ contains
                 eos_state%rho = state(i,j,k,URHO) ! Initial guess for the EOS
                 eos_state%T   = state(i,j,k,UTEMP)
                 eos_state%xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
+                eos_state%aux = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)
                 eos_state%h   = enthalpy(i,j,k)
 
                 call eos(eos_input_th, eos_state)
@@ -322,7 +324,7 @@ contains
 
                 drho = abs( state(i,j,k,URHO) - old_rho ) / old_rho
 
-                if (state(i,j,k,URHO) / actual_rho_max > 1.0d-3) then
+                if (state(i,j,k,URHO) / actual_rho_max > 1.0e-3_rt) then
                    Linf_norm = max(Linf_norm, drho)
                 end if
 
@@ -344,8 +346,8 @@ contains
                              kin_eng, pot_eng, int_eng, mass) bind(C, name='scf_diagnostics')
 
     use amrex_constants_module, only: ZERO, HALF
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFS
-    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX
+    use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
 
@@ -385,6 +387,7 @@ contains
                 eos_state%rho = state(i,j,k,URHO)
                 eos_state%T   = state(i,j,k,UTEMP)
                 eos_state%xn  = state(i,j,k,UFS:UFS+nspec-1) / state(i,j,k,URHO)
+                eos_state%aux = state(i,j,k,UFX:UFX+naux-1) / state(i,j,k,URHO)
 
                 call eos(eos_input_rt, eos_state)
 

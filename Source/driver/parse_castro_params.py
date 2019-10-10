@@ -174,17 +174,15 @@ class Param:
         if self.debug_default is not None:
             debug_default = self.debug_default
             if self.dtype == "Real":
-                if "e" in debug_default:
-                    debug_default = debug_default.replace("e", "d")
-                else:
-                    debug_default += "d0"
+                if "d" in debug_default:
+                    debug_default = debug_default.replace("d", "e")
+                debug_default += "_rt"
 
         default = self.default
         if self.dtype == "Real":
-            if "e" in default:
-                default = default.replace("e", "d")
-            else:
-                default += "d0"
+            if "d" in default:
+                default = default.replace("d", "e")
+            default += "_rt"
 
         name = self.f90_name
 
