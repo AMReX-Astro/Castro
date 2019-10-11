@@ -174,7 +174,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       shk.resize(obx, 1);
       Elixir elix_shk = shk.elixir();
       fab_size += shk.nBytes();
-        
+
+      Array4<Real> const shk_arr = shk.array();
+
       // Multidimensional shock detection
       // Used for the hybrid Riemann solver
 
@@ -192,7 +194,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    AMREX_REAL_ANYD(dx));
       }
       else {
-          shk.setVal(0.0);
+        AMREX_PARALLEL_FOR_3D(obx, i, j, k, { shk_arr(i,j,k) = 0.0; });
       }
 
       qxm.resize(obx, NQ);
