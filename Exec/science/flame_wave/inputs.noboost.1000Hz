@@ -6,8 +6,8 @@ stop_time =  3.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
-geometry.prob_hi     = 1.2288e5     3.072e4
-amr.n_cell           = 768         192
+geometry.prob_hi     = 1.84320e5     3.072e4
+amr.n_cell           = 1152          192
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -40,7 +40,7 @@ castro.grav_source_type = 2
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.5e14
 
-castro.rotational_period = 0.0005
+castro.rotational_period = 0.001
 castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
@@ -92,4 +92,4 @@ amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity
 
 #PROBIN FILENAME
-amr.probin_file = probin.noboost
+amr.probin_file = probin.noboost.1000Hz

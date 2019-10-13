@@ -1,4 +1,4 @@
-subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use amrex_constants_module
   use castro_error_module
@@ -14,47 +14,11 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   integer, intent(in) :: init, namlen
   integer, intent(in) :: name(namlen)
-
   real(rt), intent(in) :: problo(3), probhi(3)
 
   type (eos_t) :: eos_state
 
-  integer :: untin, i
-
-  namelist /fortin/ &
-       model_name,  &
-       heating_time, heating_rad, heating_peak, heating_sigma, &
-       prob_type
-
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !
-  integer   :: ipos
-  integer, parameter :: maxlen=127
-  character probin*(maxlen)
-  character (len=256) :: header_line
-
-  if (namlen > maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  heating_time = 0.5e0_rt
-  heating_rad = 0.0e0_rt
-  heating_peak = 1.e16_rt
-  heating_sigma = 1.e7_rt
-  prob_type = 1
-
-
-  ! Read namelists in probin file
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! Read in the initial model
 
@@ -118,8 +82,6 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   ! store the state at the very top of the model for the boundary
   ! conditions
-  allocate (hse_X_top(nspec))
-
   hse_rho_top  = model_state(npts_model, idens_model)
   hse_t_top    = model_state(npts_model, itemp_model)
   hse_X_top(:) = model_state(npts_model, ispec_model:ispec_model-1+nspec)
