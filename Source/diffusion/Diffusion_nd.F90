@@ -47,18 +47,17 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             eos_state%rho    = state(i,j,k,URHO)
-             eos_state%T      = state(i,j,k,UTEMP)   ! needed as an initial guess
-             eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
-             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
-             eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)/ state(i,j,k,URHO)
+             ! Fill in the EOS state for the conductivity call.
+             ! We do not need to actually call the EOS here to
+             ! get T consistent with E, since that should already
+             ! be true due to the clean_state call prior to
+             ! computing the source terms.
 
-             if (eos_state%e < ZERO) then
-                eos_state%T = small_temp
-                call eos(eos_input_rt,eos_state)
-             else
-                call eos(eos_input_re,eos_state)
-             endif
+             eos_state%rho    = state(i,j,k,URHO)
+             eos_state%T      = state(i,j,k,UTEMP)
+             eos_state%e      = state(i,j,k,UEINT) / state(i,j,k,URHO)
+             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec) / state(i,j,k,URHO)
+             eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux) / state(i,j,k,URHO)
 
              if (eos_state%rho > diffuse_cutoff_density) then
                 call conductivity(eos_state)
