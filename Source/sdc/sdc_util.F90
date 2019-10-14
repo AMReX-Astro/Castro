@@ -381,8 +381,6 @@ contains
     type(rwork_t) :: rwork
     integer :: iwork(VODE_LIW)
 
-    real(rt) :: rpar(0:n_rpar_comps-1)
-
     integer :: imode
 
     real(rt) :: time
@@ -395,7 +393,9 @@ contains
     !   1:nspec_evolve  : species
     !   nspec_evolve+1  : (rho E) or (rho e)
 
-    real(rt) :: U_react(0:nspec_evolve+1), C_react(0:nspec_evolve+1)
+    real(rt) :: C_react(0:nspec_evolve+1)
+
+#if (INTEGRATOR == 3)
 
     ! the tolerance we are solving to may depend on the iteration
     relax_fac = sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
@@ -423,28 +423,32 @@ contains
     C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
     C_react(nspec_evolve+1) = C(UEINT)
 
-    rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = C_react(:)
-    rpar(irp_dt) = dt_m
-    rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
+    dvode_state % rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = C_react(:)
+    dvode_state % rpar(irp_dt) = dt_m
+    dvode_state % rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
 
     ! temperature will be used as an initial guess in the EOS
-    rpar(irp_temp) = U_old(UTEMP)
+    dvode_state % rpar(irp_temp) = U_old(UTEMP)
 
     ! we are always solving for rhoe with the VODE predict
-    rpar(irp_evar) = U_new(UEDEN)
+    dvode_state % rpar(irp_evar) = U_new(UEDEN)
 
-    rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = &
+    dvode_state % rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = &
          U_new(UFS+nspec_evolve:UFS-1+nspec)
+
 
     ! store the subset for the nonlinear solve.  We only consider (rho
     ! e), not (rho E).  This is because at present we do not have a
     ! method of updating the velocities during the multistep
     ! integration
-    U_react(0) = U_old(URHO)
-    U_react(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve)
-    U_react(nspec_evolve+1) = U_old(UEINT)
 
-#if (INTEGRATOR == 3)
+    ! Also note that the dvode_state is 1-based, but we'll access it
+    ! as 0-based in our implementation of the RHS routine
+
+    dvode_state % y(1) = U_old(URHO)
+    dvode_state % y(2:nspec_evolve+1) = U_old(UFS:UFS-1+nspec_evolve)
+    dvode_state % y(nspec_evolve+2) = U_old(UEINT)
+
     dvode_state % istate = 1
 
     iwork(:) = 0
@@ -495,16 +499,17 @@ contains
        print *, "VODE error, istate = ", istate
        call castro_error("vode termination poorly")
     endif
-#endif
 
     ! update the full U_new
-    U_new(URHO) = U_react(0)
-    U_new(UFS:UFS-1+nspec_evolve) = U_react(1:nspec_evolve)
-    U_new(UEINT) = U_react(nspec_evolve+1)
+    U_new(URHO) = dvode_state % y(1)
+    U_new(UFS:UFS-1+nspec_evolve) = dvode_state % y(2:nspec_evolve+1)
+    U_new(UEINT) = dvode_state % y(nspec_evolve+2)
     U_new(UEDEN) = U_new(UEINT) + HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
 
     ! keep our temperature guess
-    U_new(UTEMP) = rpar(irp_temp)
+    U_new(UTEMP) = dvode_state % rpar(irp_temp)
+
+#endif
 
   end subroutine sdc_vode_solve
 

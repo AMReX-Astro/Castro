@@ -22,7 +22,7 @@ contains
     real(rt), intent(in) :: t
     real(rt), intent(in) :: U(0:VODE_NEQS-1)
     real(rt), intent(out) :: dUdt(0:VODE_NEQS-1)
-    real(rt), intent(inout) :: rpar(0:n_rpar_comps-1)
+    real(rt), intent(inout) :: rpar(n_rpar_comps)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
     real(rt) :: R_react(0:VODE_NEQS-1), C_react(0:VODE_NEQS-1)
@@ -76,7 +76,7 @@ contains
     implicit none
 
     integer   , intent(IN   ) :: ml, mu, nrowpd
-    real(rt), intent(INOUT) :: U(0:VODE_NEQS-1), rpar(0:n_rpar_comps-1), time
+    real(rt), intent(INOUT) :: U(0:VODE_NEQS-1), rpar(n_rpar_comps), time
     real(rt), intent(  OUT) :: Jacobian(0:VODE_NEQS-1, 0:VODE_NEQS-1)
 
     type(burn_t) :: burn_state
