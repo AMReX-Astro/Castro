@@ -1359,6 +1359,8 @@ contains
              ! in play.  We still need to look at the other wave to determine
              ! if the star state or this state is on the interface.
              sgnm = sign(ONE, ustar)
+             if (ustar == ZERO) sgnm = ZERO
+
              fp = HALF*(ONE + sgnm)
              fm = HALF*(ONE - sgnm)
 
