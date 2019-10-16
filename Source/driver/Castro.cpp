@@ -150,13 +150,9 @@ Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
 
-int          Castro::MOL_STAGES;
-Vector< Vector<Real> > Castro::a_mol;
-Vector<Real> Castro::b_mol;
-Vector<Real> Castro::c_mol;
-
 int          Castro::SDC_NODES;
 Vector<Real> Castro::dt_sdc;
+Vector<Real> Castro::node_weights;
 
 #ifdef AMREX_USE_CUDA
 int          Castro::numBCThreadsMin[3] = {1, 1, 1};
@@ -398,25 +394,18 @@ Castro::read_params ()
     if (cfl <= 0.0 || cfl > 1.0)
       amrex::Error("Invalid CFL factor; must be between zero and one.");
 
-    // The timestep retry mechanism is currently incompatible with MOL.
+    // The timestep retry mechanism is currently incompatible with SDC.
 
     if (time_integration_method != CornerTransportUpwind && use_retry)
-        amrex::Error("Method of lines integration is incompatible with the timestep retry mechanism.");
+        amrex::Error("The timestep retry mechanism is currently only compatible with CTU.");
 
-    // The CUDA MOL implementation is only supported in 3D right now.
-#if defined(AMREX_USE_CUDA) && (AMREX_SPACEDIM < 3)
-    if (time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Only the CTU advance is supported for 1D/2D when using CUDA.");
-    }
-#endif
-
-    // CUDA MOL has a bug that is currently not understood. It is disabled
-    // until this issue can be resolved.
+    // SDC does not support CUDA yet
 #ifdef AMREX_USE_CUDA
-    if (time_integration_method == MethodOfLines) {
-        amrex::Error("CUDA MOL is currently disabled.");
+    if (time_integration_method == SpectralDeferredCorrections) {
+        amrex::Error("CUDA SDC is currently disabled.");
     }
 #endif
+
 
     // Simplified SDC currently requires USE_SDC to be defined.
     // Also, if we have USE_SDC defined, we can't use the other
@@ -474,12 +463,10 @@ Castro::read_params ()
       Radiation::read_static_params();
     }
 
-    // The CUDA MOL implementation doesn't currently do radiation.
-#ifdef AMREX_USE_CUDA
+    // radiation is only supported with CTU
     if (do_radiation && time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Radiation is currently unsupported for MOL when using CUDA.");
+        amrex::Error("Radiation is currently only supported for CTU time advancement.");
     }
-#endif
 #endif
 
 #ifdef ROTATION
@@ -1110,7 +1097,7 @@ Castro::initData ()
          // (to second-order, these are cell-averages, so we're done in that case).
 
 #ifndef AMREX_USE_CUDA
-         if (mol_order == 4 || sdc_order == 4) {
+         if (sdc_order == 4) {
            Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
            AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
@@ -3449,7 +3436,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
   // overwrite the grown state as we work.
   MultiFab Eint_lap;
 
-  if (mol_order == 4 || sdc_order == 4) {
+  if (sdc_order == 4) {
 
     // we need to make the data live at cell-centers first
 
@@ -3486,7 +3473,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
   }
 
-  if (mol_order == 4 || sdc_order == 4) {
+  if (sdc_order == 4) {
     // we need to enforce minimum density here, since the conversion
     // from cell-average to centers could have made rho < 0 near steep
     // gradients
@@ -3504,7 +3491,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
     {
 
       int num_ghost = ng;
-      if (mol_order == 4 || sdc_order == 4) {
+      if (sdc_order == 4) {
         // only one ghost cell is at cell-centers
         num_ghost = 1;
       }
@@ -3528,7 +3515,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
         // general EOS version
 
-        if (mol_order == 4 || sdc_order == 4) {
+        if (sdc_order == 4) {
           // note, this is working on a growntilebox, but we will not have
           // valid cell-centers in the very last ghost cell
           ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
@@ -3544,7 +3531,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 #endif
     }
 
-  if (mol_order == 4 || sdc_order == 4) {
+  if (sdc_order == 4) {
 
     // we need to copy back from Stemp into S_new, making it
     // cell-average in the process.  For temperature, we will
@@ -3661,7 +3648,7 @@ Castro::swap_state_time_levels(const Real dt)
 
 #ifdef REACTIONS
         if (time_integration_method == SpectralDeferredCorrections &&
-            (mol_order == 4 || sdc_order == 4) && k == SDC_Source_Type)
+            sdc_order == 4 && k == SDC_Source_Type)
             state[k].swapTimeLevels(0.0);
 #endif
         state[k].allocOldData();

@@ -15,31 +15,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
 
   integer untin, i
 
-  namelist /fortin/ &
-       model_name, R_pert, pert_temp_factor, pert_rad_factor
-
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !
-  integer, parameter :: maxlen = 127
-  character probin*(maxlen)
-  character model*(maxlen)
-
-  if (namlen > maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-  R_pert = 4.4e8
-  pert_temp_factor = 10.0
-  pert_rad_factor = 2.0
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! read initial model
   call read_model_file(model_name)
@@ -114,13 +90,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   type(eos_t) :: eos_state
 
   do k = lo(3), hi(3)
-     z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF) - center(3)
+     z = problo(3) + delta(3)*(dble(k) + HALF) - center(3)
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF) - center(2)
+        y = problo(2) + delta(2)*(dble(j) + HALF) - center(2)
 
         do i = lo(1), hi(1)
-           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF) - center(1)
+           x = problo(1) + delta(1)*(dble(i) + HALF) - center(1)
 
            dist = sqrt(x**2 + y**2 + z**2)
 
@@ -162,13 +138,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   ! add a perturbation
   do k = lo(3), hi(3)
-     z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF) - center(3)
+     z = problo(3) + delta(3)*(dble(k) + HALF) - center(3)
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF) - center(2)
+        y = problo(2) + delta(2)*(dble(j) + HALF) - center(2)
 
         do i = lo(1), hi(1)
-           x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF) - center(1)
+           x = problo(1) + delta(1)*(dble(i) + HALF) - center(1)
 
            t0 = state(i,j,k,UTEMP)
 

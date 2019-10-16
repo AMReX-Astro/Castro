@@ -7,6 +7,7 @@ using namespace amrex;
 void
 Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
+    const Real strt_time = ParallelDescriptor::second();
 
     if (!do_sponge) return;
 
@@ -31,11 +32,28 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time
                   AMREX_REAL_ANYD(dx), dt, time, mult_factor);
     }
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void
 Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
+    const Real strt_time = ParallelDescriptor::second();
 
     if (!do_sponge) return;
 
@@ -83,6 +101,22 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
                   AMREX_REAL_ANYD(dx), dt, time, mult_factor_new);
     }
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_new_thermo_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void

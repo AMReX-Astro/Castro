@@ -24,11 +24,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   const Real strt_time = ParallelDescriptor::second();
 
   if (verbose && ParallelDescriptor::IOProcessor()) {
-    if (time_integration_method == MethodOfLines) {
-      std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
-    } else if (time_integration_method == SpectralDeferredCorrections) {
-      std::cout << "... SDC iteration: " << sdc_iteration << "; current node: " << current_sdc_node << std::endl;
-    }
+    std::cout << "... construct advection term, SDC iteration: " << sdc_iteration << "; current node: " << current_sdc_node << std::endl;
   }
 
 
@@ -66,7 +62,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
     // The fourth order stuff cannot do tiling because of the Laplacian corrections
-    for (MFIter mfi(S_new, (mol_order == 4 || sdc_order == 4) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, (sdc_order == 4) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	const Box& bx  = mfi.tilebox();
 
@@ -85,13 +81,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         Real stage_weight = 1.0;
 
-        if (time_integration_method == MethodOfLines) {
-          stage_weight = b_mol[mol_iteration];
+        if (time_integration_method == SpectralDeferredCorrections) {
+          stage_weight = node_weights[current_sdc_node];
         }
 
-
 #ifndef AMREX_USE_CUDA
-        if (mol_order == 4 || sdc_order == 4) {
+        if (sdc_order == 4) {
 
           // Allocate fabs for fluxes
           for (int i = 0; i < AMREX_SPACEDIM ; i++)  {
@@ -224,7 +219,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  BL_TO_FORTRAN_ANYD(dq),
                  BL_TO_FORTRAN_ANYD(qm),
                  BL_TO_FORTRAN_ANYD(qp),
-                 AMREX_REAL_ANYD(dx));
+                 AMREX_REAL_ANYD(dx),
+                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
             } else {
 
@@ -490,7 +486,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 	// Store the fluxes from this advance -- we weight them by the
 	// integrator weight for this stage
 
-        for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+        // For SDC, we store node 0 the only time we enter here (the
+        // first iteration) and we store the other nodes only on the
+        // last iteration.
+        if (time_integration_method == SpectralDeferredCorrections &&
+             (current_sdc_node == 0 || sdc_iteration == sdc_order+sdc_extra-1)) {
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
             Array4<Real> const flux_fab = (flux[idir]).array();
             Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
@@ -502,10 +504,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 fluxes_fab(i,j,k,n) += stage_weight * flux_fab(i,j,k,n);
             });
 
-        }
+          }
 
 #if AMREX_SPACEDIM <= 2
-        if (!Geom().IsCartesian()) {
+          if (!Geom().IsCartesian()) {
 
             Array4<Real> pradial_fab = pradial.array();
             Array4<Real> P_radial_fab = P_radial.array(mfi);
@@ -516,8 +518,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 P_radial_fab(i,j,k,0) += scale * pradial_fab(i,j,k,0);
             });
 
-        }
+          }
 #endif
+        }
 
       } // MFIter loop
 

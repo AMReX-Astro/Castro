@@ -10,6 +10,9 @@
   max_denerr_lev = 3
   max_dengrad_lev = 3
 
+  velerr = 0.02
+  max_velerr_lev = 3
+
   presserr = 3
   pressgrad = 0.01
   max_presserr_lev = 3

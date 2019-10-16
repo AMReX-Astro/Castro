@@ -1,15 +1,34 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
-  use probdata_module, only: initialize
-
+  use meth_params_module, only: small_temp, small_pres, small_dens, small_ener
   use amrex_fort_module, only : rt => amrex_real
+  use probdata_module
+  use eos_type_module, only : eos_t, eos_input_rt
+  use eos_module, only : eos
+  use network, only : nspec
+
   implicit none
 
   integer, intent(in)  :: init, namlen
   integer, intent(in)  :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  call initialize(name, namlen)
+  type (eos_t) :: eos_state
+
+  call probdata_init(name, namlen)
+
+  ! Given the inputs of small_dens and small_temp, figure out small_pres.
+
+  if (small_dens > 0.0e0_rt .and. small_temp > 0.0e0_rt) then
+     eos_state % rho = small_dens
+     eos_state % T   = small_temp
+     eos_state % xn  = 1.0e0_rt / nspec
+
+     call eos(eos_input_rt, eos_state)
+
+     small_pres = eos_state % p
+     small_ener = eos_state % e
+  endif
 
 end subroutine amrex_probinit
 
@@ -47,7 +66,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use network, only : nspec
   use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
   use fundamental_constants_module, only: Gconst, M_solar
-  use prob_params_module, only: center
+  use prob_params_module, only: center, problo
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -70,13 +89,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   !$OMP PARALLEL DO PRIVATE(i, j, k, loc, radius, zone_state)
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + delta(3)*dble(k+HALF-lo(3))
+     loc(3) = problo(3) + delta(3)*(dble(k)+HALF)
 
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + delta(2)*dble(j+HALF-lo(2))
+        loc(2) = problo(2) + delta(2)*(dble(j)+HALF)
 
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + delta(1)*dble(i+HALF-lo(1))
+           loc(1) = problo(1) + delta(1)*(dble(i)+HALF)
 
            radius = sum( (loc - center)**2 )**HALF
 

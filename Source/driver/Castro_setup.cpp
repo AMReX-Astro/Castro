@@ -355,7 +355,7 @@ Castro::variableSetUp ()
 
   // Source terms -- for the CTU method, because we do characteristic
   // tracing on the source terms, we need NUM_GROW ghost cells to do
-  // the reconstruction.  For MOL and SDC, on the other hand, we only
+  // the reconstruction.  For SDC, on the other hand, we only
   // need 1 (for the fourth-order stuff). Simplified SDC uses the CTU
   // advance, so it behaves the same way as CTU here.
 
@@ -364,7 +364,7 @@ Castro::variableSetUp ()
   if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       source_ng = NUM_GROW;
   }
-  else if (time_integration_method == MethodOfLines || time_integration_method == SpectralDeferredCorrections) {
+  else if (time_integration_method == SpectralDeferredCorrections) {
       source_ng = 1;
   }
   else {
@@ -751,7 +751,7 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  if (time_integration_method == SpectralDeferredCorrections && (mol_order == 4 || sdc_order == 4)) {
+  if (time_integration_method == SpectralDeferredCorrections && sdc_order == 4) {
 
     // we are doing 4th order reactive SDC.  We need 2 ghost cells here
     SDC_Source_Type = desc_lst.size();
@@ -1163,7 +1163,7 @@ Castro::variableSetUp ()
   // required interior zone. And for reflecting BCs,
   // we need NUM_GROW * 2 == 8 threads anyway. This logic
   // then requires that blocking_factor be a multiple
-  // of 8. It is a little wasteful for MOL/SDC and for
+  // of 8. It is a little wasteful for SDC and for
   // problems that only have outflow BCs, but the BC
   // fill is not the expensive part of the algorithm
   // for our production science problems anyway, so
@@ -1174,93 +1174,64 @@ Castro::variableSetUp ()
   }
 #endif
 
-  // method of lines Butcher tableau
-  if (mol_order == 1) {
 
-      // first order Euler
-      MOL_STAGES = 1;
 
-      a_mol.resize(MOL_STAGES);
-      for (int n = 0; n < MOL_STAGES; ++n)
-        a_mol[n].resize(MOL_STAGES);
+  if (sdc_quadrature == 0) {
+    // Gauss-Lobatto
 
-      a_mol[0] = {1};
-      b_mol = {1.0};
-      c_mol = {0.0};
+    if (sdc_order == 2) {
+      // trapezoid
+      SDC_NODES = 2;
 
-  } else if (mol_order == 2) {
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, 1.0};
 
-    // second order TVD
-    MOL_STAGES = 2;
+      node_weights.resize(SDC_NODES);
+      node_weights = {0.5, 0.5};
 
-    a_mol.resize(MOL_STAGES);
-    for (int n = 0; n < MOL_STAGES; ++n)
-      a_mol[n].resize(MOL_STAGES);
+    } else if (sdc_order == 4) {
+      // Simpsons
+      SDC_NODES = 3;
 
-    a_mol[0] = {0,   0,};
-    a_mol[1] = {1.0, 0,};
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, 0.5, 1.0};
 
-    b_mol = {0.5, 0.5};
+      node_weights.resize(SDC_NODES);
+      node_weights = {1.0/6.0, 4.0/6.0, 1.0/6.0};
 
-    c_mol = {0.0, 1.0};
+    } else {
+      amrex::Error("invalid value of sdc_order");
+    }
 
-  } else if (mol_order == 3) {
+  } else if (sdc_quadrature == 1) {
+    // Radau
 
-    // third order TVD
-    MOL_STAGES = 3;
+    if (sdc_order == 2) {
+      SDC_NODES = 3;
 
-    a_mol.resize(MOL_STAGES);
-    for (int n = 0; n < MOL_STAGES; ++n)
-      a_mol[n].resize(MOL_STAGES);
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, 1.0/3.0, 1.0};
 
-    a_mol[0] = {0.0,  0.0,  0.0};
-    a_mol[1] = {1.0,  0.0,  0.0};
-    a_mol[2] = {0.25, 0.25, 0.0};
+      node_weights.resize(SDC_NODES);
+      node_weights = {0.0, 3.0/4.0, 1.0/4.0};
 
-    b_mol = {1./6., 1./6., 2./3.};
+    } else if (sdc_order == 4) {
+      SDC_NODES = 4;
 
-    c_mol = {0.0, 1.0, 0.5};
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, (4.0 - std::sqrt(6.0))/10.0, (4.0 + std::sqrt(6.0))/10.0, 1.0};
 
-  } else if (mol_order == 4) {
+      node_weights.resize(SDC_NODES);
+      node_weights = {0.0, (16.0 - std::sqrt(6.0))/36.0, (16.0 + std::sqrt(6.0))/36.0, 1.0/9.0};
 
-    // fourth order TVD
-    MOL_STAGES = 4;
+    } else {
+      amrex::Error("invalid value of sdc_order");
+    }
 
-    a_mol.resize(MOL_STAGES);
-    for (int n = 0; n < MOL_STAGES; ++n)
-      a_mol[n].resize(MOL_STAGES);
-
-    a_mol[0] = {0.0,  0.0,  0.0,  0.0};
-    a_mol[1] = {0.5,  0.0,  0.0,  0.0};
-    a_mol[2] = {0.0,  0.5,  0.0,  0.0};
-    a_mol[3] = {0.0,  0.0,  1.0,  0.0};
-
-    b_mol = {1./6., 1./3., 1./3., 1./6.};
-
-    c_mol = {0.0, 0.5, 0.5, 1.0};
+    node_weights.resize(SDC_NODES);
+    node_weights = {1.0/6.0, 4.0/6.0, 1.0/6.0};
 
   } else {
-    amrex::Error("invalid value of mol_order\n");
+    amrex::Error("invalid value of sdc_quadrature");
   }
-
-
-
-  if (sdc_order == 2) {
-
-    SDC_NODES = 2;
-
-    dt_sdc.resize(SDC_NODES);
-    dt_sdc = {0.0, 1.0};
-
-  } else if (sdc_order == 4) {
-
-    SDC_NODES = 3;
-
-    dt_sdc.resize(SDC_NODES);
-    dt_sdc = {0.0, 0.5, 1.0};
-
-  } else {
-    amrex::Error("invalid value of sdc_order");
-  }
-
 }

@@ -732,7 +732,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use meth_params_module, only: URHO, UMX, UMZ, UEINT, UTEMP, UFS, UFX
-    use amrex_constants_module, only : ONE
+    use amrex_constants_module, only : ONE, HALF
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -766,7 +766,7 @@ contains
 
              call eos(eos_input_re, eos_state)
 
-             mach(i,j,k,1) = sum(u(i,j,k,UMX:UMZ)**2)**0.5 / u(i,j,k,URHO) / eos_state % cs
+             mach(i,j,k,1) = sum(u(i,j,k,UMX:UMZ)**2)**HALF / u(i,j,k,URHO) / eos_state % cs
           enddo
        enddo
     enddo

@@ -1,0 +1,25 @@
+p_l            real         116.5_rt              y
+
+u_l            real           7.1447096_rt        y
+
+v_l            real          -4.125_rt            y
+
+rho_l          real           8.0_rt              y
+
+p_r            real           1.0_rt              y
+
+u_r            real           0.0_rt              y
+
+v_r            real           0.0_rt              y
+
+rho_r          real           1.4_rt              y
+
+rhoe_l         real           0.0_rt
+
+rhoe_r         real           0.0_rt
+
+T_l            real           1.0_rt              y
+
+T_r            real           1.0_rt              y
+
+use_Tinit       logical        .false.             y

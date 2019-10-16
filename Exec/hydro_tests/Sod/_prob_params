@@ -1,0 +1,41 @@
+# pressure left of the interface
+p_l                real            1.0_rt        y
+
+# velocity left of the interface
+u_l                real            0.0_rt        y
+
+# density left of the interface
+rho_l              real            1.0_rt        y
+
+# pressure right of the interface
+p_r                real            0.1_rt        y
+
+# velocity right of the interface
+u_r                real            0.0_rt        y
+
+# density right of the interface
+rho_r              real            0.125_rt      y
+
+# (rho e) left of the interface
+rhoe_l             real            0.0_rt
+
+# (rho e) right of the interface
+rhoe_r             real            0.0_rt
+
+# fraction of the domain where we put the interface
+frac               real            0.5_rt        y
+
+# temperature left of the interface (optional)
+T_l                real            1.0_rt        y
+
+# temperature right of the interface (optional)
+T_r                real            1.0_rt        y
+
+# do we use temperature or pressure to set initial conditions?
+use_Tinit          logical         .false.       y
+
+# coordinate direction normal to the interface
+idir               integer         1             y
+
+# internal storage
+split              real            0.0_rt        n       3

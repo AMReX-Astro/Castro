@@ -16,45 +16,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
   type(eos_t) :: eos_state
-
-  namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
-                    r_init, nsub, temp_ambient
 
   real(rt) :: vctr
 
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character :: probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error('probin file name too long')
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  allocate(p_ambient)
-  allocate(dens_ambient)
-  allocate(exp_energy)
-  allocate(temp_ambient)
-  allocate(e_ambient)
-  allocate(xn_zone(1:nspec))
-  allocate(r_init)
-  allocate(nsub)
-  allocate(e_exp)
-
-  ! set namelist defaults
-
-  p_ambient = 1.e-5_rt        ! ambient pressure (in erg/cc)
-  dens_ambient = 1.e0_rt      ! ambient density (in g/cc)
-  exp_energy = 1.e0_rt        ! absolute energy of the explosion (in erg)
-  r_init = 0.05e0_rt          ! initial radius of the explosion (in cm)
-  nsub = 4
-  temp_ambient = -1.e2_rt     ! Set original temp. to negative, which is overwritten in the probin file
 
   ! set local variable defaults
   if (coord_type == 1 .or. coord_type == 2) then
@@ -63,10 +28,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      center = HALF * (problo + probhi)
   end if
 
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   xn_zone(:) = ZERO
   xn_zone(1) = ONE

@@ -1,3 +1,52 @@
+changes since the last release
+
+  -- The SDC algorithm can now use Radau quadrature instead of
+     Gauss-Lobatto quadrature. (#666)
+
+# 19.10
+
+  -- The SDC algorithm now implements the burning conditionals
+     depending on rho and T (react_rho_min, react_rho_max,
+     react_T_min, react_T_max) (#598, #654)
+
+  -- The SDC/MOL PLM reconstruction now implements reflecting BCs on
+     the interface states (#652, #654)
+
+  -- A well-balanced scheme has been added to the piecewise linear SDC
+     method, enabled with castro.plm_well_balanaced=1.  At the moment
+     it only supports constant gravity. (#294, $654))
+
+  -- The weighting of the time-node fluxes stored in the flux registers
+     for SDC has been fixed (#654, #658)
+
+  -- As before, we can choose the reconstruction with PLM using the
+     castro.plm_iorder flag: 1 = piecewise constant, 2 = piecewise
+     linear slopes.  Now we added a way to specify the limiter used
+     with the linear slopes.  castro.plm_limiter = 1 will use the 2nd
+     order MC limiter and castro.plm_limiter = 2 will use the default
+     4th order MC limiter (previously there was no way to select the
+     2nd order limiter). (#654)
+
+  -- The Runge-Kutta based method-of-lines integration method has
+     been removed in favor of the SDC integration. (#657)
+
+  -- A new way of specifying the problem runtime parameters has been
+     introduced.  They can now be specified in a plain text file,
+     _prob_params, and at compile time, the probdata_module is
+     automatically created.  This automates the creation of the
+     probdata variables, the namelist for reading them, setting them
+     as managed for CUDA, and adds the ability to output the values to
+     a file (like job_info).  This feature is opt-in. You need to set
+     USE_PROB_PARAMS in your GNUmakefile and then define the problem
+     parameters in a file _prob_params in the problem directory.
+     (#234, #619, #673)
+
+  -- The time to output is now stored in the job_info file (#365)
+
+  -- The SDC time advancement method has been documented
+
+  -- The job_info file now reports the number of GPUs being used.
+
 # 19.09
 
   -- You can now type ./Castro.gnu.ex --describe to see the list of
@@ -8,6 +57,7 @@
 
   -- The velerr tagging now takes the abs() of the velocity component
      to ensure we tag large positive and negative velocities.
+
 
 # 19.08.1
 

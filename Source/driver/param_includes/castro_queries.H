@@ -26,6 +26,8 @@ pp.query("ppm_temp_fix", ppm_temp_fix);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);
 pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
 pp.query("plm_iorder", plm_iorder);
+pp.query("plm_limiter", plm_limiter);
+pp.query("plm_well_balanced", plm_well_balanced);
 pp.query("hybrid_riemann", hybrid_riemann);
 pp.query("riemann_solver", riemann_solver);
 pp.query("cg_maxiter", cg_maxiter);
@@ -56,8 +58,8 @@ pp.query("zr_ext_bc_type", zr_ext_bc_type);
 pp.query("hse_zero_vels", hse_zero_vels);
 pp.query("hse_interp_temp", hse_interp_temp);
 pp.query("hse_reflect_vels", hse_reflect_vels);
-pp.query("mol_order", mol_order);
 pp.query("sdc_order", sdc_order);
+pp.query("sdc_quadrature", sdc_quadrature);
 pp.query("sdc_extra", sdc_extra);
 pp.query("sdc_solver", sdc_solver);
 pp.query("sdc_solver_tol_dens", sdc_solver_tol_dens);
@@ -122,6 +124,11 @@ pp.query("job_name", job_name);
 pp.query("output_at_completion", output_at_completion);
 pp.query("reset_checkpoint_time", reset_checkpoint_time);
 pp.query("reset_checkpoint_step", reset_checkpoint_step);
+#ifdef GRAVITY
+pp.query("use_point_mass", use_point_mass);
+pp.query("point_mass", point_mass);
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#endif
 #ifdef AMREX_PARTICLES
 pp.query("do_tracer_particles", do_tracer_particles);
 #endif
@@ -135,11 +142,6 @@ pp.query("state_in_rotating_frame", state_in_rotating_frame);
 pp.query("rot_source_type", rot_source_type);
 pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
-#endif
-#ifdef GRAVITY
-pp.query("use_point_mass", use_point_mass);
-pp.query("point_mass", point_mass);
-pp.query("point_mass_fix_solution", point_mass_fix_solution);
 #endif
 #ifdef DIFFUSION
 pp.query("diffuse_temp", diffuse_temp);

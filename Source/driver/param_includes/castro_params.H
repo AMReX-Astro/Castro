@@ -26,6 +26,8 @@ static int ppm_temp_fix;
 static int ppm_predict_gammae;
 static int ppm_reference_eigenvectors;
 static int plm_iorder;
+static int plm_limiter;
+static int plm_well_balanced;
 static int hybrid_riemann;
 static int riemann_solver;
 static int cg_maxiter;
@@ -56,8 +58,8 @@ static std::string zr_ext_bc_type;
 static int hse_zero_vels;
 static int hse_interp_temp;
 static int hse_reflect_vels;
-static int mol_order;
 static int sdc_order;
+static int sdc_quadrature;
 static int sdc_extra;
 static int sdc_solver;
 static amrex::Real sdc_solver_tol_dens;
@@ -122,6 +124,11 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif
 #ifdef AMREX_PARTICLES
 static int do_tracer_particles;
 #endif
@@ -135,11 +142,6 @@ static int state_in_rotating_frame;
 static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
-#endif
-#ifdef GRAVITY
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
 #endif
 #ifdef DIFFUSION
 static int diffuse_temp;
