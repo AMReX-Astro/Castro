@@ -228,7 +228,11 @@ contains
 
              state_new % dx = minval(dx(1:dim))
 
+#ifndef SIMPLIFIED_SDC
              state_new % self_heat = self_heat
+#else
+             state_new % self_heat = .true.
+#endif
              call actual_rhs(state_new)
 
              dedt = state_new % ydot(net_ienuc)
