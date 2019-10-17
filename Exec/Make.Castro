@@ -450,15 +450,7 @@ endif
 ifeq ($(USE_HDF5), TRUE)
   DEFINES += -DBL_HDF5
   INCLUDE_LOCATIONS += $(HDF5_HOME)/include 
-  ifneq ($(HOST), manda)
-     INCLUDE_LOCATIONS += /usr/local/Cellar/gcc/8.2.0/lib/gcc/8/gcc/x86_64-apple-darwin18.0.0/8.2.0/include/ssp
-     INCLUDE_LOCATIONS += /usr/local/Cellar/gcc/8.2.0/include
-     INCLUDE_LOCATIONS += /usr/local/Cellar/mpich/3.3/include
-  endif
   LIBRARIES         += -L$(HDF5_HOME)/lib -lhdf5_fortran -lhdf5
-  ifeq ($(HOST), manda)
-    LIBRARIES         += -L$(HDF5_HOME)/lib -lhdf5_fortran -lhdf5 /home/almgren/bin/miniconda2/lib/libgfortran.so.4
-  endif
 endif
 
 ifeq ($(USE_THORNADO), TRUE)
