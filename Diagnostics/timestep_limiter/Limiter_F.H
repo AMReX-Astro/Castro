@@ -27,6 +27,13 @@ void find_timestep_limiter_burning(const int* lo, const int* hi,
                     const amrex::Real* dx, amrex::Real* dt,
                     amrex::Real* dt_loc);
 
+void find_timestep_limiter_diffusion(const int* lo, const int* hi,
+                    BL_FORT_FAB_ARG_3D(p),const int* nc_p,
+                    const int dens_comp, const int temp_comp, 
+                    const int rhoe_comp, const int spec_comp, 
+                    const amrex::Real* dx, amrex::Real* dt,
+                    amrex::Real* dt_loc);
+
 #ifdef __cplusplus
 }
 #endif

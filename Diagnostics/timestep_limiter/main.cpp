@@ -30,6 +30,9 @@ int main(int argc, char* argv[])
 
 	amrex::Initialize(dummy, argv);
 
+    // Tell AMReX to be quiet
+    amrex::system::verbose = 0;
+
 	// Input arguments
 	string pltfile;
 
@@ -138,8 +141,10 @@ int main(int argc, char* argv[])
 	Vector<int> imask(pow(mask_size, AMREX_SPACEDIM), 1);
     Vector<Real> dt_loc = {0.,0.,0.};
     Vector<Real> burning_dt_loc = {0.,0.,0.};
+    Vector<Real> diffusion_dt_loc = {0.,0.,0.};
     Real dt = 1.e99;
     Real burning_dt = 1.e99;
+    Real diffusion_dt = 1.e99;
 
 	// loop over the data
 	for (int lev=0; lev <= finestLevel; lev++) {
@@ -165,13 +170,28 @@ int main(int argc, char* argv[])
 				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
 				               dens_comp, temp_comp, rhoe_comp, spec_comp,
 				               level_dx.dataPtr(), &burning_dt, burning_dt_loc.dataPtr());
+#ifdef DIFFUSION
+				find_timestep_limiter_diffusion(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+				               dens_comp, temp_comp, rhoe_comp, spec_comp,
+				               level_dx.dataPtr(), &diffusion_dt, diffusion_dt_loc.dataPtr());
+#endif
 		}
 	}
+    Print() << std::endl;
 
     Print() << "dt = " << dt << " at location";
     for (auto i = 0; i < AMREX_SPACEDIM; i++) {
         Print() << ' ' << dt_loc[i];
     }
+    Print() << std::endl;
+
+    Print() << "burning_dt = " << burning_dt << " at location";
+    for (auto i = 0; i < AMREX_SPACEDIM; i++) {
+        Print() << ' ' << burning_dt_loc[i];
+    }
+    Print() << std::endl;
+
     Print() << std::endl;
 
     // finalize microphysics stuff 
@@ -198,7 +218,6 @@ void GetInputArgs ( const int argc, char** argv,
 	}
 
 	Print() << "Finding limiting timestep in plotfile  = \"" << pltfile << "\"" << std::endl;
-	Print() << std::endl;
 }
 
 void ProcessJobInfo(string job_info_file, string inputs_file_name)

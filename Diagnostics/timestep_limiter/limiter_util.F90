@@ -189,15 +189,13 @@ subroutine find_timestep_limiter_burning(lo, hi, state, slo, shi, nc_s, &
 
                 dedt = max(abs(dedt), derivative_floor)
 
-                ! do n = 1, nspec
-                !     if (Xn(n) .ge. dtnuc_X_threshold) then 
-                !         dXdt(n) = max(abs(dXdt(n)), derivative_floor)
-                !     else 
-                !         dXdt(n) = derivative_floor
-                !     endif
-                ! enddo
-
-                write(*,*) "dtnuc_e = ", dtnuc_e
+                do n = 1, nspec
+                    if (Xn(n) .ge. dtnuc_X_threshold) then 
+                        dXdt(n) = max(abs(dXdt(n)), derivative_floor)
+                    else 
+                        dXdt(n) = derivative_floor
+                    endif
+                enddo
 
                 if (dtnuc_e * e / dedt < dt) then 
                     dt = dtnuc_e * e / dedt
@@ -212,3 +210,72 @@ subroutine find_timestep_limiter_burning(lo, hi, state, slo, shi, nc_s, &
     enddo
 
 end subroutine find_timestep_limiter_burning
+
+#ifdef DIFFUSION
+subroutine find_timestep_limiter_diffusion(lo, hi, state, slo, shi, nc_s, &
+    dens_comp, temp_comp, rhoe_comp, spec_comp, dx, dt, dt_loc) &
+    bind(C, name='find_timestep_limiter_diffusion')
+
+    use amrex_fort_module, only : rt => amrex_real, amrex_min
+    use amrex_constants_module
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
+    use conductivity_module, only: conductivity
+    use meth_params_module, only : diffuse_cutoff_density
+
+    implicit none
+
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: slo(3), shi(3), nc_s
+    real(rt), intent(in) :: state(slo(1):shi(1),slo(2):shi(2),slo(3):shi(3),0:nc_s-1)
+    integer, intent(in), value :: dens_comp, temp_comp, rhoe_comp, spec_comp
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(inout) :: dt
+    real(rt), intent(inout) :: dt_loc(3)
+
+    integer :: i, j, k
+    real(rt) :: x, y, z, dt1, dt2, dt3, D
+
+    type (eos_t) :: eos_state
+
+    do k = lo(3), hi(3)
+        z = (dble(k) + HALF)*dx(3)
+        do j = lo(2), hi(2)
+            y = (dble(j) + HALF)*dx(2)
+            do i = lo(1), hi(1)
+                x = (dble(i) + HALF)*dx(1)
+
+                if (state(i,j,k,dens_comp) > diffuse_cutoff_density) then
+
+                    eos_state % rho = state(i,j,k,dens_comp)
+                    eos_state % T = state(i,j,k,temp_comp) 
+                    eos_state % e = state(i,j,k,rhoe_comp) / state(i,j,k,dens_comp)
+                    state_old % xn = state(i,j,k,spec_comp:spec_comp+nspec-1)
+
+                    call eos(eos_input_re, eos_state)
+
+                    call conductivity(eos_state)
+
+                    D = eos_state % conductivity / (eos_state % rho * eos_state % cv)
+
+                    dt1 = HALF * dx(1)**2 / D 
+                    dt2 = dt1 
+                    dt3 = dt1
+
+#if AMREX_SPACEDIM >= 2
+                    dt2 = HALF * dx(2)**2 / D
+#endif 
+#if AMREX_SPACEDIM == 3
+                    dt3 = HALF * dx(3)**2 / D
+#endif
+                    if (min(dt1, dt2, dt3) < dt) then 
+                        dt = min(dt1, dt2, dt3)
+                        dt_loc = (/ x, y, z /)
+                    endif
+                endif
+            enddo
+        enddo
+    enddo
+
+end subroutine find_timestep_limiter_diffusion
+#endif
