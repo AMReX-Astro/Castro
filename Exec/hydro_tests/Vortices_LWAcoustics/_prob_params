@@ -1,0 +1,29 @@
+# reference pressure
+p_ref        real       1.0_rt        y
+
+r_0          real       0.25_rt       y
+
+# rotating Mach number
+mach         real       0.07960_rt    y
+
+# r_c/r_0
+ratio_c      real       0.15e0        y
+
+# circ/r_0*c_0
+r_circ       real       1.0_rt        y
+
+rho_0        real       0.0_rt
+
+c_0          real       0.0_rt
+
+r_c          real       0.0_rt
+
+circ         real       0.0_rt
+
+x_c1         real       0.0_rt
+
+y_c1         real       0.0_rt
+
+x_c2         real       0.0_rt
+
+y_c2         real       0.0_rt

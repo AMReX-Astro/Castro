@@ -3,16 +3,8 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef GRAVITY
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
-#endif
-#ifdef DIFFUSION
-static int diffuse_temp;
-static amrex::Real diffuse_cutoff_density;
-static amrex::Real diffuse_cutoff_density_hi;
-static amrex::Real diffuse_cond_scale_fac;
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
@@ -35,7 +27,6 @@ static int hybrid_hydro;
 static int ppm_type;
 static int ppm_temp_fix;
 static int ppm_predict_gammae;
-static int ppm_reference_eigenvectors;
 static int plm_iorder;
 static int plm_limiter;
 static int plm_well_balanced;
@@ -146,6 +137,14 @@ static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
 #endif
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
+#ifdef DIFFUSION
+static int diffuse_temp;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
+static amrex::Real diffuse_cond_scale_fac;
+#endif
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
 #endif
