@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use amrex_mempool_module, only : bl_allocate, bl_deallocate
   use probdata_module
@@ -18,47 +18,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt), pointer :: qint(:,:,:,:), qaux(:,:,:,:)
 
   integer :: lo(3), hi(3), loa(3), hia(3)
-  integer :: idir
 
-  integer :: untin, i
-
-  namelist /fortin/ rho_l, u_l, p_l, re_l, gc_l, &
-                    rho_r, u_r, p_r, re_r, gc_r, &
-                    cav_s, smallc_s, idir
-
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character :: probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error('probin file name too long')
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! Set namelist defaults
-
-  rho_l = 1.0
-  u_l = 1.0
-  p_l = 1.0
-  re_l = 1.0
-  gc_l = 4.0/3.0
-
-  rho_r = 1.0
-  u_r = 1.0
-  p_r = 1.0
-  re_r = 1.0
-  gc_r = 4.0e0_rt/3.0e0_rt
-
-  cav_s = 1.0
-  smallc_s = 1.e-10_rt
-
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! call the Riemann solver
   lo(:) = [1, 1, 0]

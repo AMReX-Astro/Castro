@@ -100,9 +100,6 @@ ppm_temp_fix                 int           0                  y
 # :math:`\tau = 1/\rho` instead of :math:`\rho`.
 ppm_predict_gammae           int           0                  y
 
-# do we use the reference state in evaluating the eigenvectors?
-ppm_reference_eigenvectors   int           0                  y
-
 # for piecewise linear, reconstruction order to use
 # 1 = piecewise constant, 2 = piecewise linear
 plm_iorder                   int           2                  y
@@ -238,6 +235,9 @@ hse_reflect_vels             int           0                  y
 # integration order for SDC integration
 # valid options are 2 and 4
 sdc_order                    int           2                  y
+
+# which quadrature type to use with SDC?  0 = Gauss-Lobatto, 1 = Radau
+sdc_quadrature               int           0                  y
 
 # number of extra SDC iterations to take beyond the order
 sdc_extra                    int           0                  y

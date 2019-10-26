@@ -540,6 +540,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
       MultiFab& S_old = get_old_data(State_Type);
       k_new.resize(SDC_NODES);
+
       k_new[0].reset(new MultiFab(S_old, amrex::make_alias, 0, NUM_STATE));
       for (int n = 1; n < SDC_NODES; ++n) {
 	k_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));

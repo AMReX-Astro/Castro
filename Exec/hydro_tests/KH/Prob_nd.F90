@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
    use probdata_module
    use amrex_constants_module
@@ -9,48 +9,12 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
    use amrex_fort_module, only : rt => amrex_real
    implicit none
 
-   integer :: init, namlen
-   integer :: name(namlen)
-   real(rt)         :: problo(3), probhi(3)
+   integer, intent(in) :: init, namlen
+   integer, intent(in) :: name(namlen)
+   real(rt), intent(in) :: problo(3), probhi(3)
 
-   integer :: untin
-   integer :: i
 
-   namelist /fortin/ &
-        rho1, rho2, pressure, problem, bulk_velocity
-
-   integer, parameter :: maxlen=127
-   character :: probin*(maxlen)
-   character :: model*(maxlen)
-   integer :: ipp, ierr, ipp1
-
-   ! Temporary storage variables in case we need to switch the primary and secondary.
-
-   ! Build "probin" filename -- the name of file containing fortin namelist.
-   if (namlen .gt. maxlen) then
-      call castro_error("ERROR: probin file name too long")
-   end if
-
-   do i = 1, namlen
-      probin(i:i) = char(name(i))
-   end do
-
-   ! Set namelist defaults
-
-   problem = 2
-
-   rho1 = 1.0
-   rho2 = 2.0
-   pressure = 2.5
-
-   bulk_velocity = 0.0
-
-   ! Read namelists -- override the defaults
-
-   untin = 9
-   open(untin,file=probin(1:namlen),form='formatted',status='old')
-   read(untin,fortin)
-   close(unit=untin)
+   call probdata_init(name, namlen)
 
    ! Force a different pressure choice for problem 5
 

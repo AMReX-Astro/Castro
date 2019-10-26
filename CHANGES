@@ -1,3 +1,8 @@
+changes since the last release
+
+  -- The SDC algorithm can now use Radau quadrature instead of
+     Gauss-Lobatto quadrature. (#666)
+
 # 19.10
 
   -- The SDC algorithm now implements the burning conditionals
