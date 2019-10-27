@@ -1383,7 +1383,7 @@ contains
              reo_r(:) = fp*erl(:) + fm*err(:)
              po_r(:) = lambda(:)*reo_r(:)
              reo_g = fp*rel_g + fm*rer_g
-             gmaco_g = fp*gamcgl + fm*gamcgr
+             gamco_g = fp*gamcgl + fm*gamcgr
 #endif
 
              ro = max(small_dens, ro)
