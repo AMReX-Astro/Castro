@@ -1,5 +1,8 @@
 changes since the last release
 
+  -- The density flux limiter was simplified and fixes a race condition
+     (#646)
+
   -- The SDC algorithm can now use Radau quadrature instead of
      Gauss-Lobatto quadrature. (#666)
 
