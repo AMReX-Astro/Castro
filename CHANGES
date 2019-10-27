@@ -3,6 +3,9 @@ changes since the last release
   -- The SDC algorithm can now use Radau quadrature instead of
      Gauss-Lobatto quadrature. (#666)
 
+  -- The option castro.ppm_reference_eigenvectors has been removed.  This
+     is now used by default with the CTU PPM solver.
+
 # 19.10
 
   -- The SDC algorithm now implements the burning conditionals
