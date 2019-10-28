@@ -55,9 +55,6 @@ subroutine ca_ext_src(lo, hi, &
                 (A1*exp(-(x - 0.5_rt)**2/sigma1**2) + &
                  A2*exp(-(x - 1.0_rt)**2/sigma2**2))
 
-           src(i,j,k,UEINT) = new_state(i,j,k,URHO) * &
-                (A1*exp(-(x - 0.5_rt)**2/sigma1**2) + &
-                 A2*exp(-(x - 1.0_rt)**2/sigma2**2))
            src(i,j,k,UEDEN) = src(i,j,k,UEINT)
 
         end do

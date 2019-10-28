@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 50000
-stop_time = 10
+stop_time = 200
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0    0
@@ -45,12 +45,12 @@ amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 32
 
 # CHECKPOINT FILES
-amr.check_file      = oddeven_chk     # root name of checkpoint file
+amr.check_file      = heating_verification_chk     # root name of checkpoint file
 amr.check_int       = 1000     # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = heating_verification_plt
-amr.plot_per        = 1.0
+amr.plot_per        = 5.0
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
