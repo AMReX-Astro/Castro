@@ -142,9 +142,6 @@ castro.do_rotation = 0
 # Piecewise parabolic with the original limiters (0 is piecewise linear; 2 is new limiters)
 castro.ppm_type = 1
 
-# Whether to evaluate eigenvectors using the reference state
-castro.ppm_reference_eigenvectors = 1
-
 # Use the EOS in calculation of the edge states going into the Riemann solver
 castro.ppm_temp_fix = 0
 
