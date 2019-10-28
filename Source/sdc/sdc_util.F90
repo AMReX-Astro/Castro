@@ -170,7 +170,7 @@ contains
     real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
     real(rt) :: w(0:nspec_evolve+1)
 
-    real(rt) :: rpar(0:n_rpar_comps-1)
+    real(rt) :: rpar(n_rpar_comps)
 
     integer :: ipvt(nspec_evolve+2)
     integer :: info
@@ -536,7 +536,7 @@ contains
     real(rt), intent(out) :: f(0:neq-1)
     real(rt), intent(out) :: Jac(0:ldjac-1,0:neq-1)
     integer, intent(inout) :: iflag  !! leave this untouched
-    real(rt), intent(inout) :: rpar(0:n_rpar_comps-1)
+    real(rt), intent(inout) :: rpar(n_rpar_comps)
 
     real(rt) :: U_full(nvar),  R_full(nvar)
     real(rt) :: R_react(0:neq-1), f_source(0:neq-1)
