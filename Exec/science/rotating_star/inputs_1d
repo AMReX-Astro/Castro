@@ -3,7 +3,7 @@
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
-max_step = 50000
+max_step = 5000
 stop_time = 400.0
 
 geometry.is_periodic = 0 0
@@ -57,8 +57,8 @@ amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 500     # number of timesteps between checkpoints
-amr.plot_file       = plt     # root name of plot file
-amr.plot_int        = 500     # number of timesteps between plotfiles
+amr.plot_file       = plt1d     # root name of plot file
+amr.plot_int        = 200     # number of timesteps between plotfiles
 
 amr.max_grid_size   = 128       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
@@ -73,3 +73,4 @@ amr.probin_file = probin
 castro.small_dens   = 1.e-4
 castro.small_temp   = 1.e6
 
+castro.time_integration_method=3
