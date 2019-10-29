@@ -157,7 +157,9 @@ contains
     use network, only : nspec, nspec_evolve
     use vode_rpar_indices
     use extern_probin_module, only : small_x
-
+#if INTEGRATOR == 3
+    use linpack_module
+#endif
     implicit none
 
     real(rt), intent(in) :: dt_m
@@ -259,7 +261,7 @@ contains
        U_react(nspec_evolve+1) = U_new(UEDEN)
     endif
 
-#if (INTEGRATOR == 0)
+#if (INTEGRATOR == 3)
     ! do a simple Newton solve
 
     ! iterative loop
@@ -273,7 +275,7 @@ contains
        call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, rpar)
 
        ! solve the linear system: Jac dU_react = -f
-       call dgefa(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, info)
+       call dgefa(Jac, ipvt, info)
        if (info /= 0) then
           ierr = SINGULAR_MATRIX
           return
@@ -281,7 +283,7 @@ contains
 
        f_rhs(:) = -f(:)
 
-       call dgesl(Jac, nspec_evolve+2, nspec_evolve+2, ipvt, f_rhs, 0)
+       call dgesl(Jac, ipvt, f_rhs)
 
        dU_react(:) = f_rhs(:)
 
