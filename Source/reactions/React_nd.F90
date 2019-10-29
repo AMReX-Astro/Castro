@@ -226,7 +226,7 @@ contains
 #endif
     use integrator_module, only : integrator
     use amrex_constants_module, only : ZERO, HALF, ONE
-#ifdef SDC
+#ifdef SIMPLIFIED_SDC
     use sdc_type_module, only : sdc_t, SRHO, SMX, SMZ, SEDEN, SEINT, SFS
 #endif
     use amrex_fort_module, only : rt => amrex_real
@@ -253,7 +253,7 @@ contains
 
     ! This interface is currently only supported for simplified SDC.
 
-#ifdef SDC
+#ifdef SIMPLIFIED_SDC
 
     type (sdc_t) :: burn_state_in, burn_state_out
 
