@@ -108,6 +108,7 @@ contains
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
     use numerical_jac_module
+    use castro_error_module
 
     implicit none
 
