@@ -684,7 +684,7 @@ contains
        enddo
 
     enddo
-#emdif
+#endif
 
   end subroutine ca_srctoprim
 
