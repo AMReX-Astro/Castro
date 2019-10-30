@@ -197,7 +197,7 @@ contains
              ! qypo state
              !----------------------------------------------------------------
 
-             volinv = vol(i,j,k)
+             volinv = ONE/vol(i,j,k)
 
              pgp  = qx(i+1,j,k,GDPRES)
              pgm  = qx(i  ,j,k,GDPRES)
@@ -409,7 +409,7 @@ contains
              !-------------------------------------------------------------------
              ! qymo state
              !-------------------------------------------------------------------
-             volinv = vol(i,j-1,k)
+             volinv = ONE/vol(i,j-1,k)
 
              pgp  = qx(i+1,j-1,k,GDPRES)
              pgm  = qx(i  ,j-1,k,GDPRES)
