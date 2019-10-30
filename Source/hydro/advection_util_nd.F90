@@ -1407,7 +1407,7 @@ contains
     !
 
     use meth_params_module, only : NGDNV, GDPRES, GDU, GDV, GDW
-    use amrex_constants_module, only : HALF
+    use amrex_constants_module, only : HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
