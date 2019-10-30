@@ -611,10 +611,10 @@ contains
 
 
   subroutine ca_srctoprim(lo, hi, &
-       q,     q_lo,   q_hi, &
-       qaux, qa_lo,  qa_hi, &
-       src, src_lo, src_hi, &
-       srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
+                          q,     q_lo,   q_hi, &
+                          qaux, qa_lo,  qa_hi, &
+                          src, src_lo, src_hi, &
+                          srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
 
     use actual_network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
@@ -665,6 +665,7 @@ contains
        enddo
     enddo
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
     do ipassive = 1, npassive
        n = upass_map(ipassive)
        iq = qpass_map(ipassive)
@@ -683,6 +684,7 @@ contains
        enddo
 
     enddo
+#emdif
 
   end subroutine ca_srctoprim
 
