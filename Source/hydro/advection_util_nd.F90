@@ -1438,7 +1438,13 @@ contains
 
     integer  :: i, j, k
 
+    real(rt) :: dxinv, dyinv, dzinv
+
     !$gpu
+
+    dxinv = ONE/dx(1)
+    dyinv = ONE/dx(2)
+    dzinv = ONE/dx(3)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -1461,11 +1467,11 @@ contains
 #if AMREX_SPACEDIM == 3
              pdivu(i,j,k) = &
                   HALF*(q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
-                  (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx(1) + &
+                       (q1(i+1,j,k,GDU) - q1(i,j,k,GDU)) * dxinv + &
                   HALF*(q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) * &
-                  (q2(i,j+1,k,GDV) - q2(i,j,k,GDV))/dx(2) + &
+                       (q2(i,j+1,k,GDV) - q2(i,j,k,GDV)) * dyinv + &
                   HALF*(q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) * &
-                  (q3(i,j,k+1,GDW) - q3(i,j,k,GDW))/dx(3)
+                       (q3(i,j,k+1,GDW) - q3(i,j,k,GDW)) * dzinv
 #endif
 
           enddo
