@@ -1,104 +1,85 @@
 module advection_util_module
 
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
-
-  private
-
-  public ca_enforce_minimum_density, ca_compute_cfl, ca_ctoprim, ca_srctoprim, dflux, &
-         limit_hydro_fluxes_on_small_dens, ca_shock, divu, calc_pdivu, normalize_species_fluxes, avisc, &
-         scale_flux, apply_av, ca_construct_hydro_update_cuda
-#ifdef RADIATION
-  public apply_av_rad, scale_rad_flux
-#endif
 
 contains
 
-  subroutine ca_enforce_minimum_density(lo,hi, &
-       uin,uin_lo,uin_hi, &
-       uout,uout_lo,uout_hi, &
-       vol,vol_lo,vol_hi, &
-       frac_change,verbose) bind(c,name='ca_enforce_minimum_density')
+  subroutine ca_enforce_minimum_density(lo, hi, &
+                                        state, s_lo, s_hi, &
+                                        frac_change, verbose) bind(c,name='ca_enforce_minimum_density')
 
     use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, small_dens, density_reset_method
     use amrex_constants_module, only : ZERO
 #ifndef AMREX_USE_GPU
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real, amrex_min
 
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in), value :: verbose
-    integer, intent(in) ::  uin_lo(3),  uin_hi(3)
-    integer, intent(in) :: uout_lo(3), uout_hi(3)
-    integer, intent(in) ::  vol_lo(3),  vol_hi(3)
-
-    real(rt)        , intent(in) ::  uin( uin_lo(1): uin_hi(1), uin_lo(2): uin_hi(2), uin_lo(3): uin_hi(3),NVAR)
-    real(rt)        , intent(inout) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2),uout_lo(3):uout_hi(3),NVAR)
-    real(rt)        , intent(in) ::  vol( vol_lo(1): vol_hi(1), vol_lo(2): vol_hi(2), vol_lo(3): vol_hi(3))
-    real(rt)        , intent(inout) :: frac_change
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(inout) :: frac_change
+    integer,  intent(in   ), value :: verbose
 
     ! Local variables
-    integer          :: i,ii,j,jj,k,kk
-    integer          :: i_set, j_set, k_set
-    real(rt)         :: max_dens
-    real(rt)         :: unew(NVAR)
-    integer          :: num_positive_zones
+    integer  :: i, j, k
+    integer  :: ii, jj, kk
+    integer  :: i_set, j_set, k_set
+    real(rt) :: max_dens, old_rho
+    real(rt) :: uold(NVAR), unew(NVAR)
+    integer  :: num_positive_zones
 
-    logical :: have_reset
+    !$gpu
 
     max_dens = ZERO
 
-    have_reset = .false.
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-
-             if (uout(i,j,k,URHO) .eq. ZERO) then
+             if (state(i,j,k,URHO) .eq. ZERO) then
 
 #ifndef AMREX_USE_GPU
-                print *,'DENSITY EXACTLY ZERO AT CELL ',i,j,k
-                print *,'  in grid ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-                call amrex_error("Error :: ca_enforce_minimum_density")
+                print *,'DENSITY EXACTLY ZERO AT CELL ', i, j, k
+                print *,'  in grid ',lo(1), lo(2), lo(3), hi(1), hi(2), hi(3)
+                call castro_error("Error :: ca_enforce_minimum_density")
 #endif
 
-             else if (uout(i,j,k,URHO) < small_dens) then
+             else if (state(i,j,k,URHO) < small_dens) then
 
-                have_reset = .true.
-
-                ! Store the maximum (negative) fractional change in the density
-
-                if ( uout(i,j,k,URHO) < ZERO .and. &
-                     (uout(i,j,k,URHO) - uin(i,j,k,URHO)) / uin(i,j,k,URHO) < frac_change) then
-
-                   frac_change = (uout(i,j,k,URHO) - uin(i,j,k,URHO)) / uin(i,j,k,URHO)
-
-                endif
+                old_rho = state(i,j,k,URHO)
 
                 if (density_reset_method == 1) then
 
                    ! Reset to the characteristics of the adjacent state with the highest density.
 
-                   max_dens = uout(i,j,k,URHO)
+                   max_dens = state(i,j,k,URHO)
                    i_set = i
                    j_set = j
                    k_set = k
-                   do kk = -1,1
-                      do jj = -1,1
-                         do ii = -1,1
-                            if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. k+kk.ge.lo(3) .and. &
-                                 i+ii.le.hi(1) .and. j+jj.le.hi(2) .and. k+kk.le.hi(3)) then
-                               if (uout(i+ii,j+jj,k+kk,URHO) .gt. max_dens) then
+                   do kk = -1, 1
+                      do jj = -1, 1
+                         do ii = -1, 1
+
+                            if (i+ii >= s_lo(1) .and. j+jj >= s_lo(2) .and. k+kk >= s_lo(3) .and. &
+                                i+ii <= s_hi(1) .and. j+jj <= s_hi(2) .and. k+kk <= s_hi(3)) then
+
+                               if (state(i+ii,j+jj,k+kk,URHO) .gt. max_dens) then
+
                                   i_set = i+ii
                                   j_set = j+jj
                                   k_set = k+kk
-                                  max_dens = uout(i_set,j_set,k_set,URHO)
-                               endif
-                            endif
+                                  max_dens = state(i_set,j_set,k_set,URHO)
+
+                               end if
+
+                            end if
+
                          end do
                       end do
                    end do
@@ -107,13 +88,18 @@ contains
 
                       ! We could not find any nearby zones with sufficient density.
 
-                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], lo, hi, verbose)
+                      uold = state(i,j,k,:)
+                      call reset_to_small_state(uold, [i, j, k], s_lo, s_hi, verbose)
+                      state(i,j,k,:) = uold
 
                    else
 
-                      unew = uout(i_set,j_set,k_set,:)
+                      uold = state(i,j,k,:)
+                      unew = state(i_set,j_set,k_set,:)
 
-                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], lo, hi, verbose)
+                      call reset_to_zone_state(uold, unew, [i, j, k], s_lo, s_hi, verbose)
+
+                      state(i,j,k,:) = uold
 
                    endif
 
@@ -127,85 +113,86 @@ contains
                    do kk = -1, 1
                       do jj = -1, 1
                          do ii = -1, 1
-                            if (i+ii.ge.lo(1) .and. j+jj.ge.lo(2) .and. k+kk.ge.lo(3) .and. &
-                                 i+ii.le.hi(1) .and. j+jj.le.hi(2) .and. k+kk.le.hi(3)) then
-                               if (uout(i+ii,j+jj,k+kk,URHO) .ge. small_dens) then
-                                  unew(:) = unew(:) + uout(i+ii,j+jj,k+kk,:)
+
+                            if (i+ii >= s_lo(1) .and. j+jj >= s_lo(2) .and. k+kk >= s_lo(3) .and. &
+                                i+ii <= s_hi(1) .and. j+jj <= s_hi(2) .and. k+kk <= s_hi(3)) then
+
+                               if (state(i+ii,j+jj,k+kk,URHO) .ge. small_dens) then
+
+                                  unew(:) = unew(:) + state(i+ii,j+jj,k+kk,:)
                                   num_positive_zones = num_positive_zones + 1
-                               endif
-                            endif
-                         enddo
-                      enddo
-                   enddo
+
+                               end if
+
+                            end if
+
+                         end do
+                      end do
+                   end do
 
                    if (num_positive_zones == 0) then
 
                       ! We could not find any nearby zones with sufficient density.
 
-                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], lo, hi, verbose)
+                      uold = state(i,j,k,:)
+                      call reset_to_small_state(uold, [i, j, k], s_lo, s_hi, verbose)
+                      state(i,j,k,:) = uold
 
                    else
 
+                      uold = state(i,j,k,:)
                       unew(:) = unew(:) / num_positive_zones
 
-                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], lo, hi, verbose)
+                      call reset_to_zone_state(uold, unew, [i, j, k], s_lo, s_hi, verbose)
 
-                   endif
-
-                elseif (density_reset_method == 3) then
-
-                   ! Reset to the original zone state.
-
-                   if (uin(i,j,k,URHO) < small_dens) then
-
-                      call reset_to_small_state(uin(i,j,k,:), uout(i,j,k,:), [i, j, k], lo, hi, verbose)
-
-                   else
-
-                      unew(:) = uin(i,j,k,:)
-
-                      call reset_to_zone_state(uin(i,j,k,:), uout(i,j,k,:), unew(:), [i, j, k], lo, hi, verbose)
+                      state(i,j,k,:) = uold
 
                    endif
 
 #ifndef AMREX_USE_CUDA
                 else
 
-                   call amrex_error("Unknown density_reset_method in subroutine ca_enforce_minimum_density.")
+                   call castro_error("Unknown density_reset_method in subroutine ca_enforce_minimum_density.")
 #endif
                 endif
 
+                ! Store the maximum (negative) fractional change in the density from this reset.
+
+                if (old_rho < ZERO) then
+                   call amrex_min(frac_change, (state(i,j,k,URHO) - old_rho) / old_rho)
+                end if
+
              end if
 
-          enddo
-       enddo
-    enddo
+          end do
+       end do
+    end do
 
   end subroutine ca_enforce_minimum_density
 
 
-  !> @brief If no neighboring zones are above small_dens, our only recourse
-  !! is to set the density equal to small_dens, and the temperature
-  !! equal to small_temp. We set the velocities to zero,
-  !! though any choice here would be arbitrary.
-  !!
-  subroutine reset_to_small_state(old_state, new_state, idx, lo, hi, verbose)
+  subroutine reset_to_small_state(state, idx, lo, hi, verbose)
+    ! If no neighboring zones are above small_dens, our only recourse
+    ! is to set the density equal to small_dens, and the temperature
+    ! equal to small_temp. We set the velocities to zero,
+    ! though any choice here would be arbitrary.
+    !
 
     use amrex_constants_module, only: ZERO
     use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS, small_temp, small_dens, npassive, upass_map
     use eos_type_module, only: eos_t, eos_input_rt
     use eos_module, only: eos
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only: linear_to_hybrid
+    use hybrid_advection_module, only: linear_to_hybrid ! function
     use meth_params_module, only: UMR, UMP
 #endif
 
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    real(rt)         :: old_state(NVAR), new_state(NVAR)
+    real(rt)         :: state(NVAR)
     integer          :: idx(3), lo(3), hi(3), verbose
 
     integer          :: n, ipassive
@@ -215,95 +202,96 @@ contains
     real(rt)         :: loc(3)
 #endif
 
+    !$gpu
+
 #ifndef AMREX_USE_CUDA
     if (verbose .gt. 0) then
        print *,'   '
-       if (new_state(URHO) < ZERO) then
-          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
+       if (state(URHO) < ZERO) then
+          print *,'>>> RESETTING NEG.  DENSITY AT ', idx(1), idx(2), idx(3)
        else
-          print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
+          print *,'>>> RESETTING SMALL DENSITY AT ', idx(1), idx(2), idx(3)
        endif
-       print *,'>>> FROM ',new_state(URHO),' TO ',small_dens
-       print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-       print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
+       print *,'>>> FROM ', state(URHO), ' TO ', small_dens
+       print *,'>>> IN GRID ', lo(1), lo(2), lo(3), hi(1), hi(2), hi(3)
        print *,'   '
     end if
 #endif
 
     do ipassive = 1, npassive
        n = upass_map(ipassive)
-       new_state(n) = new_state(n) * (small_dens / new_state(URHO))
+       state(n) = state(n) * (small_dens / state(URHO))
     end do
 
     eos_state % rho = small_dens
     eos_state % T   = small_temp
-    eos_state % xn  = new_state(UFS:UFS+nspec-1) / small_dens
-    eos_state % aux = new_state(UFS:UFS+naux-1) / small_dens
+    eos_state % xn  = state(UFS:UFS+nspec-1) / small_dens
+    eos_state % aux = state(UFS:UFS+naux-1) / small_dens
 
     call eos(eos_input_rt, eos_state)
 
-    new_state(URHO ) = eos_state % rho
-    new_state(UTEMP) = eos_state % T
+    state(URHO ) = eos_state % rho
+    state(UTEMP) = eos_state % T
 
-    new_state(UMX  ) = ZERO
-    new_state(UMY  ) = ZERO
-    new_state(UMZ  ) = ZERO
+    state(UMX  ) = ZERO
+    state(UMY  ) = ZERO
+    state(UMZ  ) = ZERO
 
-    new_state(UEINT) = eos_state % rho * eos_state % e
-    new_state(UEDEN) = new_state(UEINT)
+    state(UEINT) = eos_state % rho * eos_state % e
+    state(UEDEN) = state(UEINT)
 
 #ifdef HYBRID_MOMENTUM
     loc = position(idx(1),idx(2),idx(3))
-    new_state(UMR:UMP) = linear_to_hybrid(loc, new_state(UMX:UMZ))
+    state(UMR:UMP) = linear_to_hybrid(loc, state(UMX:UMZ))
 #endif
 
   end subroutine reset_to_small_state
 
 
 
-  subroutine reset_to_zone_state(old_state, new_state, input_state, idx, lo, hi, verbose)
+  subroutine reset_to_zone_state(state, input_state, idx, lo, hi, verbose)
 
     use amrex_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
-    real(rt)         :: old_state(NVAR), new_state(NVAR), input_state(NVAR)
-    integer          :: idx(3), lo(3), hi(3), verbose
+    real(rt) :: state(NVAR), input_state(NVAR)
+    integer  :: idx(3), lo(3), hi(3), verbose
+
+    !$gpu
 
 #ifndef AMREX_USE_CUDA
     if (verbose .gt. 0) then
-       if (new_state(URHO) < ZERO) then
+       if (state(URHO) < ZERO) then
           print *,'   '
-          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1),idx(2),idx(3)
-          print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
-          print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-          print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
+          print *,'>>> RESETTING NEG.  DENSITY AT ',idx(1), idx(2), idx(3)
+          print *,'>>> FROM ', state(URHO) ,' TO ', input_state(URHO)
+          print *,'>>> IN GRID ', lo(1), lo(2), lo(3), hi(1), hi(2), hi(3)
           print *,'   '
        else
           print *,'   '
-          print *,'>>> RESETTING SMALL DENSITY AT ',idx(1),idx(2),idx(3)
-          print *,'>>> FROM ',new_state(URHO),' TO ',input_state(URHO)
-          print *,'>>> IN GRID ',lo(1),lo(2),lo(3),hi(1),hi(2),hi(3)
-          print *,'>>> ORIGINAL DENSITY FOR OLD STATE WAS ',old_state(URHO)
+          print *,'>>> RESETTING SMALL DENSITY AT ', idx(1), idx(2), idx(3)
+          print *,'>>> FROM ', state(URHO), ' TO ', input_state(URHO)
+          print *,'>>> IN GRID ', lo(1), lo(2), lo(3), hi(1), hi(2), hi(3)
           print *,'   '
        end if
     end if
 #endif
 
-    new_state(:) = input_state(:)
+    state(:) = input_state(:)
 
   end subroutine reset_to_zone_state
 
 
-  !> @brief Compute running max of Courant number over grids
-  !!
   subroutine ca_compute_cfl(lo, hi, &
        q, q_lo, q_hi, &
        qaux, qa_lo, qa_hi, &
        dt, dx, courno, verbose) &
        bind(C, name = "ca_compute_cfl")
+    ! Compute running max of Courant number over grids
+    !
 
     use amrex_constants_module, only: ZERO, ONE
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, time_integration_method
@@ -449,19 +437,19 @@ contains
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, &
-                                   UEDEN, UEINT, UTEMP, &
-                                   QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
-                                   NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
+         UEDEN, UEINT, UTEMP, &
+         QRHO, QU, QV, QW, &
+         QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
+         NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
-                                   QCG, QGAMCG, QLAMS, &
-                                   QPTOT, QRAD, QRADHI, QREITOT, &
+         QCG, QGAMCG, QLAMS, &
+         QPTOT, QRAD, QRADHI, QREITOT, &
 #endif
-                                   npassive, upass_map, qpass_map, dual_energy_eta1, &
-                                   small_dens
+         npassive, upass_map, qpass_map, dual_energy_eta1, &
+         small_dens
 
     use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_error_module
+    use castro_error_module
 #ifdef ROTATION
     use meth_params_module, only: do_rotation, state_in_rotating_frame
     use rotation_module, only: inertial_to_rotational_velocity
@@ -517,12 +505,12 @@ contains
                 print *,'   '
                 print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
                 print *,'>>> ... negative density ', uin(i,j,k,URHO)
-                call amrex_error("Error:: advection_util_nd.f90 :: ctoprim")
+                call castro_error("Error:: advection_util_nd.f90 :: ctoprim")
              else if (uin(i,j,k,URHO) .lt. small_dens) then
                 print *,'   '
                 print *,'>>> Error: advection_util_nd.F90::ctoprim ',i, j, k
                 print *,'>>> ... small density ', uin(i,j,k,URHO)
-                call amrex_error("Error:: advection_util_nd.f90 :: ctoprim")
+                call castro_error("Error:: advection_util_nd.f90 :: ctoprim")
              endif
           end do
 #endif
@@ -558,6 +546,7 @@ contains
              if (do_rotation == 1 .and. state_in_rotating_frame /= 1) then
                 vel = q(i,j,k,QU:QW)
                 call inertial_to_rotational_velocity([i, j, k], amr_time, vel)
+                q(i,j,k,QU:QW) = vel
              endif
 #endif
 
@@ -566,28 +555,14 @@ contains
              q(i,j,k,qrad:qradhi) = Erin(i,j,k,:)
 #endif
 
-          enddo
-       enddo
-    enddo
-
-    ! Load passively advected quatities into q
-    do ipassive = 1, npassive
-       n  = upass_map(ipassive)
-       iq = qpass_map(ipassive)
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
-                q(i,j,k,iq) = uin(i,j,k,n)/q(i,j,k,QRHO)
+             ! Load passively advected quatities into q
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                iq = qpass_map(ipassive)
+                q(i,j,k,iq) = uin(i,j,k,n) * rhoinv
              enddo
-          enddo
-       enddo
-    enddo
 
-    ! get gamc, p, T, c, csml using q state
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
+             ! get gamc, p, T, c, csml using q state
              eos_state % T   = q(i,j,k,QTEMP )
              eos_state % rho = q(i,j,k,QRHO  )
              eos_state % e   = q(i,j,k,QREINT)
@@ -643,9 +618,9 @@ contains
 
     use actual_network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
-                                   NQSRC, QRHO, QU, QV, QW, NQ, &
-                                   QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
-                                   npassive, upass_map, qpass_map
+         NQSRC, QRHO, QU, QV, QW, NQ, &
+         QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
+         npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
 
@@ -694,9 +669,6 @@ contains
        n = upass_map(ipassive)
        iq = qpass_map(ipassive)
 
-       ! we already accounted for velocities above
-       if (iq == QU .or. iq == QV .or. iq == QW) cycle
-
        ! we may not be including the ability to have species sources,
        ! so check to make sure that we are < NQSRC
        if (iq > NQSRC) cycle
@@ -716,10 +688,11 @@ contains
 
 
 
-  !> @brief Given a conservative state and its corresponding primitive state, calculate the
-  !! corresponding flux in a given direction.
-  !!
+
   function dflux(u, q, dir, idx) result(flux)
+    ! Given a conservative state and its corresponding primitive state, calculate the
+    ! corresponding flux in a given direction.
+    !
 
     use amrex_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, &
@@ -793,30 +766,27 @@ contains
   end function dflux
 
 
-  !> @brief The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
-  !! "Positivity-preserving method for high-order conservative schemes solving
-  !! compressible Euler equations." It has been modified to enforce not only positivity
-  !! but also the stronger requirement that rho > small_dens. We do not limit on pressure
-  !! (or, similarly, internal energy) because those cases are easily fixed by calls to
-  !! reset_internal_energy that enforce a thermodynamic floor. The density limiter, by
-  !! contrast, is very important because calls to enforce_minimum_density can yield
-  !! hydrodynamic states that are inconsistent (there is no clear strategy for what to do
-  !! when a density is negative).
-  !!
-  !! We implement the flux limiter on a dimension-by-dimension basis, starting with the x-direction.
-  !!
   subroutine limit_hydro_fluxes_on_small_dens(lo, hi, &
-                                              idir, &
-                                              u, u_lo, u_hi, &
-                                              q, q_lo, q_hi, &
-                                              vol, vol_lo, vol_hi, &
-                                              flux, flux_lo, flux_hi, &
-                                              area, area_lo, area_hi, &
-                                              dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
+       idir, &
+       u, u_lo, u_hi, &
+       q, q_lo, q_hi, &
+       vol, vol_lo, vol_hi, &
+       flux, flux_lo, flux_hi, &
+       area, area_lo, area_hi, &
+       dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
+    ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
+    ! "Positivity-preserving method for high-order conservative schemes solving
+    ! compressible Euler equations." It has been modified to enforce not only positivity
+    ! but also the stronger requirement that rho > small_dens. We do not limit on pressure
+    ! (or, similarly, internal energy) because those cases are easily fixed by calls to
+    ! reset_internal_energy that enforce a thermodynamic floor. The density limiter, by
+    ! contrast, is very important because calls to enforce_minimum_density can yield
+    ! hydrodynamic states that are inconsistent (there is no clear strategy for what to do
+    ! when a density is negative).
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
-    use meth_params_module, only: NVAR, NQ, URHO, small_dens, cfl
+    use meth_params_module, only: NVAR, NQ, URHO, UTEMP, USHK, small_dens, cfl
     use prob_params_module, only: dim
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
 
@@ -840,8 +810,9 @@ contains
 
     integer  :: i, j, k
 
-    real(rt) :: rho, drho, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta, thetap, thetam, alpha, flux_coef
-    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ)
+    real(rt) :: rhoL, rhoR, drhoL, drhoR, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoLF, drhoLF, dtdx, theta, alpha
+    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ), volL, volR, flux_coefL, flux_coefR
+    integer  :: idxL(3), idxR(3)
 
     real(rt), parameter :: density_floor_tolerance = 1.1_rt
     real(rt) :: density_floor
@@ -856,298 +827,154 @@ contains
 
     density_floor = small_dens * density_floor_tolerance
 
-    ! Whether or not to include pressure in the cell-centered fluxes we calculate
-    ! will depend on which dimensionality and coordinate system we are in.
+    dtdx = dt / dx(idir)
+    alpha = ONE / DIM
 
-    if (idir == 1) then
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-       ! x-direction
-       dtdx = dt / dx(1)
-       alpha = ONE / DIM
+             ! Grab the states on either side of the interface we are working with,
+             ! depending on which dimension we're currently calling this with.
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+             uR = u(i,j,k,:)
+             qR = q(i,j,k,:)
+             volR = vol(i,j,k)
+             idxR = [i,j,k]
 
-                ! If an adjacent zone has a floor-violating density, set the flux to zero and move on.
-                ! At that point, the only thing to do is wait for a reset at a later point.
-
-                if (u(i,j,k,URHO) < density_floor .or. u(i-1,j,k,URHO) < density_floor) then
-
-                   flux(i,j,k,:) = ZERO
-                   cycle
-
-                endif
-
-                ! Construct the Lax-Friedrichs flux on the interface (Equation 12).
-                ! Note that we are using the information from Equation 9 to obtain the
-                ! effective maximum wave speed, (|u| + c)_max = CFL / lambda where
-                ! lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
-                ! freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
-
+             if (idir == 1) then
                 uL = u(i-1,j,k,:)
-                uR = u(i  ,j,k,:)
                 qL = q(i-1,j,k,:)
-                qR = q(i  ,j,k,:)
-                fluxL = dflux(uL, qL, idir, [i-1, j, k])
-                fluxR = dflux(uR, qR, idir, [i  , j, k])
-                fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i-1,j,k,:) - u(i,j,k,:)))
-
-                ! Limit the Lax-Friedrichs flux so that it doesn't cause a density < density_floor.
-                ! To do this, first, construct the density change corresponding to the LF density flux.
-                ! Then, if this update would create a density that is less than density_floor, scale all
-                ! fluxes linearly such that the density flux gives density_floor when applied.
-                ! This is not required in the Hu et al. paper because they are only attempting to enforce
-                ! positivity. Our extra requirement on rho > density_floor requires this.
-
-                flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k))
-                drhoLF = flux_coef * fluxLF(URHO)
-
-                if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                   fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
-                else if (u(i-1,j,k,URHO) - drhoLF < density_floor) then
-                   fluxLF(:) = fluxLF(:) * abs((density_floor - u(i-1,j,k,URHO)) / drhoLF)
-                endif
-
-                ! Note that in the below, we are calculating theta_+ and theta_- on the left
-                ! edge of the zone at interface i-1/2, to be consistent with the nodal notation
-                ! that index i corresponds to the flux at interface i-1/2.
-
-                thetap = ONE
-                thetam = ONE
-
-                ! First we'll do the plus state.
-
-                ! Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
-
-                drho = flux_coef * flux(i,j,k,URHO)
-                drhoLF = flux_coef * fluxLF(URHO)
-
-                rho = u(i-1,j,k,URHO) - drho
-
-                if (rho < density_floor) then
-
-                   ! Obtain the final density corresponding to the LF flux.
-
-                   rhoLF = u(i-1,j,k,URHO) - drhoLF
-
-                   ! Solve for theta from (1 - theta) * rhoLF + theta * rho = density_floor.
-
-                   thetap = (density_floor - rhoLF) / (rho - rhoLF)
-
-                end if
-
-                ! Now do the minus state.
-
-                rho = u(i,j,k,URHO) + drho
-
-                if (rho < density_floor) then
-
-                   rhoLF = u(i,j,k,URHO) + drhoLF
-
-                   thetam = (density_floor - rhoLF) / (rho - rhoLF)
-
-                endif
-
-                ! Now figure out the limiting values of theta, which is the strongest of the two limiters.
-
-                theta = min(thetam, thetap)
-
-                ! Assemble the limited flux (Equation 16).
-
-                flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
-
-                ! Now, apply our requirement that the final flux cannot violate the density floor.
-
-                drho = flux_coef * flux(i,j,k,URHO)
-
-                if (u(i,j,k,URHO) + drho < density_floor) then
-                   flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
-                else if (u(i-1,j,k,URHO) - drho < density_floor) then
-                   flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i-1,j,k,URHO)) / drho)
-                endif
-
-             enddo
-          enddo
-       enddo
-
-    else if (idir == 2) then
-
-       ! do the y-direction. The logic is all the same as for the x-direction,
-       ! so the comments are skipped.
-
-       dtdx = dt / dx(2)
-       alpha = ONE / DIM
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                if (u(i,j,k,URHO) < density_floor .or. u(i,j-1,k,URHO) < density_floor) then
-
-                   flux(i,j,k,:) = ZERO
-                   cycle
-
-                endif
-
+                volL = vol(i-1,j,k)
+                idxL = [i-1,j,k]
+             else if (idir == 2) then
                 uL = u(i,j-1,k,:)
-                uR = u(i,j  ,k,:)
                 qL = q(i,j-1,k,:)
-                qR = q(i,j  ,k,:)
-                fluxL = dflux(uL, qL, idir, [i, j-1, k])
-                fluxR = dflux(uR, qR, idir, [i, j  , k])
-                fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j-1,k,:) - u(i,j,k,:)))
-
-                flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k))
-                drhoLF = flux_coef * fluxLF(URHO)
-
-                if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                   fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
-                else if (u(i,j-1,k,URHO) - drhoLF < density_floor) then
-                   fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j-1,k,URHO)) / drhoLF)
-                endif
-                
-                thetap = ONE
-                thetam = ONE
-
-                drho = flux_coef * flux(i,j,k,URHO)
-                drhoLF = flux_coef * fluxLF(URHO)
-
-                rho = u(i,j-1,k,URHO) - drho
-
-                if (rho < density_floor) then
-
-                   rhoLF = u(i,j-1,k,URHO) - drhoLF
-
-                   thetap = (density_floor - rhoLF) / (rho - rhoLF)
-
-                endif
-
-                rho = u(i,j,k,URHO) + drho
-
-                if (rho < density_floor) then
-
-                   rhoLF = u(i,j,k,URHO) + drhoLF
-
-                   thetam = (density_floor - rhoLF) / (rho - rhoLF)
-
-                endif
-
-                theta = min(thetam, thetap)
-
-                flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
-
-                drho = flux_coef * flux(i,j,k,URHO)
-
-                if (u(i,j,k,URHO) + drho < density_floor) then
-                   flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
-                else if (u(i,j-1,k,URHO) - drho < density_floor) then
-                   flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i,j-1,k,URHO)) / drho)
-                endif
-
-             enddo
-          enddo
-       enddo
-
-    else if (idir == 3) then
-
-       ! do the z-direction. The logic is all the same as for the x-direction,
-       ! so the comments are skipped.
-
-       dtdx = dt / dx(3)
-       alpha = ONE / DIM
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                if (u(i,j,k,URHO) < density_floor .or. u(i,j,k-1,URHO) < density_floor) then
-
-                   flux(i,j,k,:) = ZERO
-                   cycle
-
-                endif
-
+                volL = vol(i,j-1,k)
+                idxL = [i,j-1,k]
+             else
                 uL = u(i,j,k-1,:)
-                uR = u(i,j,k  ,:)
                 qL = q(i,j,k-1,:)
-                qR = q(i,j,k  ,:)
-                fluxL = dflux(uL, qL, idir, [i, j, k-1])
-                fluxR = dflux(uR, qR, idir, [i, j, k-1])
-                fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (u(i,j,k-1,:) - u(i,j,k,:)))
+                volL = vol(i,j,k-1)
+                idxL = [i,j,k-1]
+             end if
 
-                flux_coef = TWO * (dt / alpha) * (area(i,j,k) / vol(i,j,k)) 
-                drhoLF = flux_coef * fluxLF(URHO)
+             ! If an adjacent zone has a floor-violating density, set the flux to zero and move on.
+             ! At that point, the only thing to do is wait for a reset at a later point.
 
-                if (u(i,j,k,URHO) + drhoLF < density_floor) then
-                   fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k,URHO)) / drhoLF)
-                else if (u(i,j,k-1,URHO) - drhoLF < density_floor) then
-                   fluxLF(:) = fluxLF(:) * abs((density_floor - u(i,j,k-1,URHO)) / drhoLF)
-                endif
+             if (uR(URHO) < density_floor .or. uL(URHO) < density_floor) then
 
-                thetap = ONE
-                thetam = ONE
+                flux(i,j,k,:) = ZERO
+                cycle
 
-                drho = flux_coef * flux(i,j,k,URHO)
-                drhoLF = flux_coef * fluxLF(URHO)
+             endif
 
-                rho = u(i,j,k-1,URHO) - drho
+             ! Construct cell-centered fluxes.
 
-                if (rho < density_floor) then
+             fluxL = dflux(uL, qL, idir, idxL)
+             fluxR = dflux(uR, qR, idir, idxR)
 
-                   rhoLF = u(i,j,k-1,URHO) - drhoLF
+             ! Construct the Lax-Friedrichs flux on the interface (Equation 12).
+             ! Note that we are using the information from Equation 9 to obtain the
+             ! effective maximum wave speed, (|u| + c)_max = CFL / lambda where
+             ! lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
+             ! freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
 
-                   thetap = (density_floor - rhoLF) / (rho - rhoLF)
+             fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (uL(:) - uR(:)))
 
-                endif
+             ! Coefficients of fluxes on either side of the interface.
 
-                rho = u(i,j,k,URHO) + drho
+             flux_coefR = TWO * (dt / alpha) * area(i,j,k) / volR
+             flux_coefL = TWO * (dt / alpha) * area(i,j,k) / volL
 
-                if (rho < density_floor) then
+             ! Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
+             ! If we would violate the floor, then we need to limit the flux. Since the
+             ! flux adds to the density on one side and subtracts from the other, the floor
+             ! can only be violated in at most one direction, so we'll do an if-else test
+             ! below. This means that we can simplify the approach of Hu et al. -- whereas
+             ! they constructed two thetas for each interface (corresponding to either side)
+             ! we can complete the operation in one step with a single theta.
 
-                   rhoLF = u(i,j,k,URHO) + drhoLF
+             drhoL = flux_coefL * flux(i,j,k,URHO)
+             rhoL = uL(URHO) - drhoL
 
-                   thetam = (density_floor - rhoLF) / (rho - rhoLF)
+             drhoR = flux_coefR * flux(i,j,k,URHO)
+             rhoR = uR(URHO) + drhoR
 
-                endif
+             theta = ONE
 
-                theta = min(thetam, thetap)
+             if (rhoL < density_floor) then
 
-                flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
+                ! Obtain the final density corresponding to the LF flux.
 
-                drho = flux_coef * flux(i,j,k,URHO)
+                drhoLF = flux_coefL * fluxLF(URHO)
+                rhoLF = uL(URHO) - drhoLF
 
-                if (u(i,j,k,URHO) + drho < density_floor) then
-                   flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i,j,k,URHO)) / drho)
-                else if (u(i,j,k-1,URHO) - drho < density_floor) then
-                   flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - u(i,j,k-1,URHO)) / drho)
-                endif
+                ! Solve for theta from (1 - theta) * rhoLF + theta * rho = density_floor.
 
-             enddo
+                theta = (density_floor - rhoLF) / (rhoL - rhoLF)
+
+                ! Limit theta to the valid range (this will deal with roundoff issues).
+
+                theta = min(ONE, max(theta, ZERO))
+
+             else if (rhoR < density_floor) then
+
+                drhoLF = flux_coefR * fluxLF(URHO)
+                rhoLF = uR(URHO) + drhoLF
+
+                theta = (density_floor - rhoLF) / (rhoR - rhoLF)
+
+                theta = min(ONE, max(theta, ZERO))
+
+             endif
+
+             ! Assemble the limited flux (Equation 16).
+
+             flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
+
+             ! Zero out fluxes for quantities that don't advect.
+
+             flux(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
+             flux(i,j,k,USHK) = ZERO
+#endif
+
+             ! Now, apply our requirement that the final flux cannot violate the density floor.
+
+             drhoR = flux_coefR * flux(i,j,k,URHO)
+             drhoL = flux_coefL * flux(i,j,k,URHO)
+
+             if (uR(URHO) + drhoR < density_floor) then
+                flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - uR(URHO)) / drhoR)
+             else if (uL(URHO) - drhoL < density_floor) then
+                flux(i,j,k,:) = flux(i,j,k,:) * abs((density_floor - uL(URHO)) / drhoL)
+             endif
+
           enddo
        enddo
-
-    end if
+    enddo
 
   end subroutine limit_hydro_fluxes_on_small_dens
 
 
-  !> @brief This is a basic multi-dimensional shock detection algorithm.
-  !! This implementation follows Flash, which in turn follows
-  !! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
-  !!
-  !! The spirit of this follows the shock detection in Colella &
-  !! Woodward (1984)
-  !!
+
   subroutine ca_shock(lo, hi, &
        q, qd_lo, qd_hi, &
        shk, s_lo, s_hi, &
        dx) bind(C, name="ca_shock")
+    ! This is a basic multi-dimensional shock detection algorithm.
+    ! This implementation follows Flash, which in turn follows
+    ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
+    !
+    ! The spirit of this follows the shock detection in Colella &
+    ! Woodward (1984)
+    !
 
     use meth_params_module, only : QPRES, QU, QV, QW, NQ
     use prob_params_module, only : coord_type
     use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -1180,7 +1007,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (coord_type /= 0) then
-       call amrex_error("ERROR: invalid geometry in shock()")
+       call castro_error("ERROR: invalid geometry in shock()")
     endif
 #endif
 
@@ -1222,7 +1049,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
              else
-                call amrex_error("ERROR: invalid coord_type in shock")
+                call castro_error("ERROR: invalid coord_type in shock")
 #endif
              endif
 
@@ -1308,11 +1135,12 @@ contains
   ! ::: ------------------------------------------------------------------
   ! :::
 
-  !> @brief this computes the *node-centered* divergence
-  !!
+
   subroutine divu(lo, hi, &
        q, q_lo, q_hi, &
        dx, div, div_lo, div_hi) bind(C, name='divu')
+    ! this computes the *node-centered* divergence
+    !
 
     use meth_params_module, only : QU, QV, QW, NQ
     use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
@@ -1447,10 +1275,9 @@ contains
 
 
   subroutine avisc(lo, hi, &
-                   q, q_lo, q_hi, &
-                   qaux, qa_lo, qa_hi, &
-                   dx, avis, a_lo, a_hi, idir)
-
+       q, q_lo, q_hi, &
+       qaux, qa_lo, qa_hi, &
+       dx, avis, a_lo, a_hi, idir)
     ! this computes the *face-centered* artifical viscosity using the
     ! 4th order expression from McCorquodale & Colella (Eq. 35)
 
@@ -1552,23 +1379,26 @@ contains
   ! :::
 
 
-  !> @brief this computes the *node-centered* divergence
-  !!
+
   subroutine calc_pdivu(lo, hi, &
-       q1, q1_lo, q1_hi, &
-       area1, a1_lo, a1_hi, &
+                        q1, q1_lo, q1_hi, &
+                        area1, a1_lo, a1_hi, &
 #if AMREX_SPACEDIM >= 2
-       q2, q2_lo, q2_hi, &
-       area2, a2_lo, a2_hi, &
+                        q2, q2_lo, q2_hi, &
+                        area2, a2_lo, a2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-       q3, q3_lo, q3_hi, &
-       area3, a3_lo, a3_hi, &
+                        q3, q3_lo, q3_hi, &
+                        area3, a3_lo, a3_hi, &
 #endif
-       vol, v_lo, v_hi, &
-       dx, pdivu, div_lo, div_hi)
+                        vol, v_lo, v_hi, &
+                        dx, pdivu, div_lo, div_hi)
+    ! this computes the cell-centered p div(U) term from the
+    ! edge-centered Godunov state.  This is used in the internal energy
+    ! update
+    !
 
-    use meth_params_module, only : NQ, GDPRES, GDU, GDV, GDW
+    use meth_params_module, only : NGDNV, GDPRES, GDU, GDV, GDW
     use amrex_constants_module, only : HALF
     use amrex_fort_module, only : rt => amrex_real
     implicit none
@@ -1581,18 +1411,18 @@ contains
 
     integer, intent(in) :: q1_lo(3), q1_hi(3)
     integer, intent(in) :: a1_lo(3), a1_hi(3)
-    real(rt), intent(in) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NQ)
+    real(rt), intent(in) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
     real(rt), intent(in) :: area1(a1_lo(1):a1_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #if AMREX_SPACEDIM >= 2
     integer, intent(in) :: q2_lo(3), q2_hi(3)
     integer, intent(in) :: a2_lo(3), a2_hi(3)
-    real(rt), intent(in) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
+    real(rt), intent(in) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
     real(rt), intent(in) :: area2(a2_lo(1):a2_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #endif
 #if AMREX_SPACEDIM == 3
     integer, intent(in) :: q3_lo(3), q3_hi(3)
     integer, intent(in) :: a3_lo(3), a3_hi(3)
-    real(rt), intent(in) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NQ)
+    real(rt), intent(in) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
     real(rt), intent(in) :: area3(a3_lo(1):a3_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #endif
     integer, intent(in) :: v_lo(3), v_hi(3)
@@ -1637,11 +1467,12 @@ contains
   end subroutine calc_pdivu
 
 
-  !> @brief Normalize the fluxes of the mass fractions so that
-  !! they sum to 0.  This is essentially the CMA procedure that is
-  !! defined in Plewa & Muller, 1999, A&A, 342, 179.
-  !!
+
   subroutine normalize_species_fluxes(lo, hi, flux, f_lo, f_hi) bind(c, name="normalize_species_fluxes")
+    ! Normalize the fluxes of the mass fractions so that
+    ! they sum to 0.  This is essentially the CMA procedure that is
+    ! defined in Plewa & Muller, 1999, A&A, 342, 179.
+    !
 
     use network, only: nspec
     use amrex_constants_module, only: ZERO, ONE
@@ -1762,9 +1593,9 @@ contains
 
 #ifdef RADIATION
   subroutine apply_av_rad(lo, hi, idir, dx, &
-                          div, div_lo, div_hi, &
-                          Erin, Ein_lo, Ein_hi, &
-                          radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
+       div, div_lo, div_hi, &
+       Erin, Ein_lo, Ein_hi, &
+       radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
 
     use amrex_constants_module, only: ZERO, FOURTH
     use meth_params_module, only: NVAR, UTEMP, USHK, difmag
@@ -1775,7 +1606,7 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: div_lo(3), div_hi(3)
     integer,  intent(in   ) :: Ein_lo(3), Ein_hi(3)
-   integer,  intent(in   ) :: rf_lo(3), rf_hi(3)
+    integer,  intent(in   ) :: rf_lo(3), rf_hi(3)
     real(rt), intent(in   ) :: dx(3)
     integer,  intent(in   ), value :: idir
 
@@ -1798,21 +1629,21 @@ contains
                 if (idir .eq. 1) then
 
                    div1 = FOURTH * (div(i,j,k        ) + div(i,j+1*dg(2),k        ) + &
-                                    div(i,j,k+1*dg(3)) + div(i,j+1*dg(2),k+1*dg(3)))
+                        div(i,j,k+1*dg(3)) + div(i,j+1*dg(2),k+1*dg(3)))
                    div1 = difmag * min(ZERO, div1)
                    div1 = div1 * (Erin(i,j,k,n) - Erin(i-1*dg(1),j,k,n))
 
                 else if (idir .eq. 2) then
 
                    div1 = FOURTH * (div(i,j,k        ) + div(i+1*dg(1),j,k        ) + &
-                                    div(i,j,k+1*dg(3)) + div(i+1*dg(1),j,k+1*dg(3)))
+                        div(i,j,k+1*dg(3)) + div(i+1*dg(1),j,k+1*dg(3)))
                    div1 = difmag * min(ZERO, div1)
                    div1 = div1 * (Erin(i,j,k,n) - Erin(i,j-1*dg(2),k,n))
 
                 else
 
                    div1 = FOURTH * (div(i,j        ,k) + div(i+1*dg(1),j        ,k) + &
-                                    div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
+                        div(i,j+1*dg(2),k) + div(i+1*dg(1),j+1*dg(2),k))
                    div1 = difmag * min(ZERO, div1)
                    div1 = div1 * (Erin(i,j,k,n) - Erin(i,j,k-1*dg(3),n))
 
@@ -1830,95 +1661,14 @@ contains
 #endif
 
 
-  subroutine ca_construct_hydro_update_cuda(lo, hi, dx, dt, &
-       q1, q1_lo, q1_hi, &
-       q2, q2_lo, q2_hi, &
-       q3, q3_lo, q3_hi, &
-       f1, f1_lo, f1_hi, &
-       f2, f2_lo, f2_hi, &
-       f3, f3_lo, f3_hi, &
-       a1, a1_lo, a1_hi, &
-       a2, a2_lo, a2_hi, &
-       a3, a3_lo, a3_hi, &
-       vol, vol_lo, vol_hi, &
-       srcU, srcU_lo, srcU_hi, &
-       update, u_lo, u_hi) &
-       bind(c,name='ca_construct_hydro_update_cuda')
-
-    use amrex_constants_module, only: HALF, ONE
-    use meth_params_module, only: NVAR, NGDNV
-    use prob_params_module, only: dg
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: q1_lo(3), q1_hi(3)
-    integer,  intent(in   ) :: q2_lo(3), q2_hi(3)
-    integer,  intent(in   ) :: q3_lo(3), q3_hi(3)
-    integer,  intent(in   ) :: f1_lo(3), f1_hi(3)
-    integer,  intent(in   ) :: f2_lo(3), f2_hi(3)
-    integer,  intent(in   ) :: f3_lo(3), f3_hi(3)
-    integer,  intent(in   ) :: a1_lo(3), a1_hi(3)
-    integer,  intent(in   ) :: a2_lo(3), a2_hi(3)
-    integer,  intent(in   ) :: a3_lo(3), a3_hi(3)
-    integer,  intent(in   ) :: vol_lo(3), vol_hi(3)
-    integer,  intent(in   ) :: srcU_lo(3), srcU_hi(3)
-    integer,  intent(in   ) :: u_lo(3), u_hi(3)
-    real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(in   ), value :: dt
-
-    real(rt), intent(in   ) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
-    real(rt), intent(in   ) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
-    real(rt), intent(in   ) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
-    real(rt), intent(in   ) :: f1(f1_lo(1):f1_hi(1),f1_lo(2):f1_hi(2),f1_lo(3):f1_hi(3),NVAR)
-    real(rt), intent(in   ) :: f2(f2_lo(1):f2_hi(1),f2_lo(2):f2_hi(2),f2_lo(3):f2_hi(3),NVAR)
-    real(rt), intent(in   ) :: f3(f3_lo(1):f3_hi(1),f3_lo(2):f3_hi(2),f3_lo(3):f3_hi(3),NVAR)
-    real(rt), intent(in   ) :: a1(a1_lo(1):a1_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
-    real(rt), intent(in   ) :: a2(a2_lo(1):a2_hi(1),a2_lo(2):a2_hi(2),a2_lo(3):a2_hi(3))
-    real(rt), intent(in   ) :: a3(a3_lo(1):a3_hi(1),a3_lo(2):a3_hi(2),a3_lo(3):a3_hi(3))
-    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt), intent(in   ) :: srcU(srcU_lo(1):srcU_hi(1),srcU_lo(2):srcU_hi(2),srcU_lo(3):srcU_hi(3),NVAR)
-    real(rt), intent(inout) :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-
-    integer  :: i, j, k, n
-    real(rt) :: dtinv
-
-    !$gpu
-
-    dtinv = ONE / dt
-
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                ! Note that the fluxes have already been scaled by dt * dA.
-                ! We unscale by dt here, because the dt will be reapplied
-                ! when the update is actually applied to the state.
-
-                update(i,j,k,n) = update(i,j,k,n) + dtinv * (f1(i,j,k,n) - f1(i+1*dg(1),j        ,k        ,n) + &
-                     f2(i,j,k,n) - f2(i        ,j+1*dg(2),k        ,n) + &
-                     f3(i,j,k,n) - f3(i        ,j        ,k+1*dg(3),n) ) / vol(i,j,k)
-
-                update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
-
-             enddo
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_construct_hydro_update_cuda
-
-
-
-    subroutine scale_flux(lo, hi, &
+  subroutine scale_flux(lo, hi, &
 #if AMREX_SPACEDIM == 1
-                          qint, qi_lo, qi_hi, &
+       qint, qi_lo, qi_hi, &
 #endif
-                          flux, f_lo, f_hi, &
-                          area, a_lo, a_hi, dt) bind(c, name="scale_flux")
+       flux, f_lo, f_hi, &
+       area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
-    use meth_params_module, only: NVAR, UMX, GDPRES, NGDNV
+    use meth_params_module, only: NVAR, GDPRES, UMX, NGDNV
     use prob_params_module, only : coord_type
 
     implicit none
@@ -1960,8 +1710,8 @@ contains
 
 #ifdef RADIATION
   subroutine scale_rad_flux(lo, hi, &
-                            rflux, rf_lo, rf_hi, &
-                            area, a_lo, a_hi, dt) bind(c, name="scale_rad_flux")
+       rflux, rf_lo, rf_hi, &
+       area, a_lo, a_hi, dt) bind(c, name="scale_rad_flux")
 
     use rad_params_module, only : ngroups
 

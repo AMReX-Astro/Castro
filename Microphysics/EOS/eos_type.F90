@@ -1,6 +1,6 @@
 module eos_type_module
 
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use amrex_fort_module, only : rt => amrex_real
   use network, only: nspec, naux
 
@@ -491,10 +491,8 @@ contains
 
     case default
 
-#ifdef AMREX_USE_CUDA
-       stop
-#else
-       call amrex_error("EOS: invalid independent variable")
+#ifndef AMREX_USE_CUDA
+       call castro_error("EOS: invalid independent variable")
 #endif
 
     end select

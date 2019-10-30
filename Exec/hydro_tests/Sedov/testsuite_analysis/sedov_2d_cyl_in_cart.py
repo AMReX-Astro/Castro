@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # run as: ./sedov_2d_cyl_in_cart.py castro_dir plotfle
 
@@ -18,17 +18,21 @@ def process(castro_dir, plotfile):
     # 1. make sure that the analysis tool is built
     build_dir = castro_dir + "/Diagnostics/Sedov/"
     os.chdir(build_dir)
-    os.system("make programs=fsedov2d_cyl_in_cartcoords >& /dev/null")
+    os.system("make DIM=2 >& /dev/null")
 
     # find the executable
+    analysis_routine = None
     for file in os.listdir(build_dir):
-        if (os.path.isfile(file) and 
-            file.startswith("fsedov2d_cyl_in_cartcoords") and
-            file.endswith(".exe")):
+        if (os.path.isfile(file) and
+            file.startswith("sedov_2d") and
+            file.endswith(".ex")):
             analysis_routine = file
             break
 
-    print "analysis_routine = ", analysis_routine
+    if analysis_routine is None:
+        sys.exit("Error: could not build the analysis routine")
+
+    print("analysis_routine = ", analysis_routine)
 
     shutil.copy(analysis_routine, run_dir)
 
@@ -36,8 +40,7 @@ def process(castro_dir, plotfile):
 
 
     # 2. analyze the data
-    
-    
+
     # output the average profile
     os.system("./{} -p {} -s {}".format(analysis_routine, plotfile, "sedov_2d_cyl_in_cart.out"))
 
@@ -94,15 +97,17 @@ def process(castro_dir, plotfile):
 
     pylab.tight_layout()
 
-    outfile = plotfile.split("_plt")[0] + ".png"
+    outfile = os.path.basename(plotfile).split("_plt")[0] + ".png"
     pylab.savefig(outfile)
 
 
 
 if __name__ == "__main__":
 
+    if len(sys.argv) < 3:
+        sys.exit("usage: ./sedov_2d_cyl_in_cart.py castro_dir plotfile")
+
     castro_dir = str(sys.argv[1])
     plotfile = str(sys.argv[2])
 
     process(castro_dir, plotfile)
-

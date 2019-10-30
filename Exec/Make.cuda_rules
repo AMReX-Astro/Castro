@@ -5,7 +5,11 @@
 $(objEXETempDir)/Castro_generic_fill.o: Castro_generic_fill.cpp
 	@echo Compiling $(<F)
 	@if [ !-d $(objExeTempDir) ]; then mkdir -p $(objEXETempDir); fi
-	$(SILENT) $(CCACHE) $(CXX) $(patsubst -maxrregcount=$(CUDA_MAXREGCOUNT), -maxrregcount=128, $(CXXFLAGS)) $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_generic_fill.o
+ifeq ($(cap_registers),1)
+	$(SILENT) $(CCACHE) $(CXX) $(patsubst -maxrregcount=$(CUDA_MAXREGCOUNT), -maxrregcount=128, $(CXXFLAGS)) $(CPPFLAGS) $(includes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_generic_fill.o
+else
+	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(includes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_generic_fill.o
+endif
 
 $(objEXETempDir)/generic_fill.o: generic_fill.F90
 	@echo Compiling $(<F) ...
@@ -13,14 +17,32 @@ $(objEXETempDir)/generic_fill.o: generic_fill.F90
 	@if [ ! -d $(srcTempDir) ]; then mkdir -p $(srcTempDir); fi
 	@$(SHELL) -ec 'cp $< $(srcTempDir)'
 	$(AMREX_HOME)/Tools/F_scripts/gpu_fortran.py --fortran "$(srcTempDir)/$(<F)"
-	$(SILENT) $(F90CACHE) $(F90) $(patsubst -Mcuda=maxregcount:$(CUDA_MAXREGCOUNT), -Mcuda=maxregcount:128, $(F90FLAGS)) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/generic_fill.o
+ifeq ($(cap_registers),1)
+	$(SILENT) $(F90CACHE) $(F90) $(patsubst $(cap_register_flag)$(CUDA_MAXREGCOUNT), $(cap_register_flag)128, $(F90FLAGS)) $(FMODULES) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/generic_fill.o
+else
+	$(SILENT) $(F90CACHE) $(F90) $(F90FLAGS) $(FMODULES) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/generic_fill.o
+endif
 
-ifeq ($(DIMENSION_AGNOSTIC), TRUE)
+$(objEXETempDir)/source_fill.o: source_fill.F90
+	@echo Compiling $(<F) ...
+	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
+	@if [ ! -d $(srcTempDir) ]; then mkdir -p $(srcTempDir); fi
+	@$(SHELL) -ec 'cp $< $(srcTempDir)'
+	$(AMREX_HOME)/Tools/F_scripts/gpu_fortran.py --fortran "$(srcTempDir)/$(<F)"
+ifeq ($(cap_registers),1)
+	$(SILENT) $(F90CACHE) $(F90) $(patsubst $(cap_register_flag)$(CUDA_MAXREGCOUNT), $(cap_register_flag)128, $(F90FLAGS)) $(FMODULES) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/source_fill.o
+else
+	$(SILENT) $(F90CACHE) $(F90) $(F90FLAGS) $(FMODULES) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/source_fill.o
+endif
 
 $(objEXETempDir)/Castro_bc_fill_nd.o: Castro_bc_fill_nd.cpp
 	@echo Compiling $(<F)
 	@if [ !-d $(objExeTempDir) ]; then mkdir -p $(objEXETempDir); fi
-	$(SILENT) $(CCACHE) $(CXX) $(patsubst -maxrregcount=$(CUDA_MAXREGCOUNT), -maxrregcount=128, $(CXXFLAGS)) $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_bc_fill_nd.o
+ifeq ($(cap_registers),1)
+	$(SILENT) $(CCACHE) $(CXX) $(patsubst -maxrregcount=$(CUDA_MAXREGCOUNT), -maxrregcount=128, $(CXXFLAGS)) $(CPPFLAGS) $(includes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_bc_fill_nd.o
+else
+	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(includes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/Castro_bc_fill_nd.o
+endif
 
 $(objEXETempDir)/bc_fill_nd.o: bc_fill_nd.F90
 	@echo Compiling $(<F) ...
@@ -28,14 +50,9 @@ $(objEXETempDir)/bc_fill_nd.o: bc_fill_nd.F90
 	@if [ ! -d $(srcTempDir) ]; then mkdir -p $(srcTempDir); fi
 	@$(SHELL) -ec 'cp $< $(srcTempDir)'
 	$(AMREX_HOME)/Tools/F_scripts/gpu_fortran.py --fortran "$(srcTempDir)/$(<F)"
-	$(SILENT) $(F90CACHE) $(F90) $(patsubst -Mcuda=maxregcount:$(CUDA_MAXREGCOUNT), -Mcuda=maxregcount:128, $(F90FLAGS)) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/bc_fill_nd.o
-
-$(objEXETempDir)/bc_ext_fill_nd.o: bc_ext_fill_nd.F90
-	@echo Compiling $(<F) ...
-	@if [ ! -d $(objEXETempDir) ]; then mkdir -p $(objEXETempDir); fi
-	@if [ ! -d $(srcTempDir) ]; then mkdir -p $(srcTempDir); fi
-	@$(SHELL) -ec 'cp $< $(srcTempDir)'
-	$(AMREX_HOME)/Tools/F_scripts/gpu_fortran.py --fortran "$(srcTempDir)/$(<F)"
-	$(SILENT) $(F90CACHE) $(F90) $(patsubst -Mcuda=maxregcount:$(CUDA_MAXREGCOUNT), -Mcuda=maxregcount:128, $(F90FLAGS)) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/bc_ext_fill_nd.o
-
+ifeq ($(cap_registers),1)
+	$(SILENT) $(F90CACHE) $(F90) $(patsubst $(cap_register_flag)$(CUDA_MAXREGCOUNT), $(cap_register_flag)128, $(F90FLAGS)) $(FMODULES) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/bc_fill_nd.o
+else
+	$(SILENT) $(F90CACHE) $(F90) $(F90FLAGS) $(FMODULES) -DBL_LANG_FORT -DAMREX_LANG_FORT $(FCPPFLAGS) $(fincludes) -c $(srcTempDir)/$(<F) -o $(objEXETempDir)/bc_fill_nd.o
 endif
+

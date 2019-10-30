@@ -1,0 +1,15 @@
+# mass of the collapsing sphere
+sphere_mass        real              1.0_rt     y
+
+# radius of the collapsing sphere
+sphere_radius      real              9.e8_rt    y
+
+# smallest allowed mass fraction
+smallx             real              1.e-10_rt  y
+
+# smallest allowed velocity on the grid
+smallu             real              1.e-12_rt  y
+
+# density of ambient gas around the star
+ambient_density    real              1.0_rt     y
+

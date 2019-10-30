@@ -109,7 +109,7 @@ class RadSolve {
 
 ///
 /// @param level
-/// @param amrex::Tuple<amrex::MultiFab
+/// @param amrex::Array<amrex::MultiFab
 /// @param lambda
 /// @param kappa_r
 /// @param kcomp
@@ -117,7 +117,7 @@ class RadSolve {
 /// @param lamcomp
 ///
   void levelBCoeffs(int level,
-                    amrex::Tuple<amrex::MultiFab, BL_SPACEDIM>& lambda,
+                    amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
 		    amrex::MultiFab& kappa_r, int kcomp, amrex::Real c, int lamcomp=0);
 
 
@@ -166,36 +166,36 @@ class RadSolve {
 
 ///
 /// @param level
-/// @param amrex::Tuple<amrex::MultiFab
+/// @param amrex::Array<amrex::MultiFab
 /// @param Flux
 /// @param Er
 /// @param igroup
 ///
   void levelFlux(int level,
-                 amrex::Tuple<amrex::MultiFab, BL_SPACEDIM>& Flux,
+                 amrex::Array<amrex::MultiFab, BL_SPACEDIM>& Flux,
                  amrex::MultiFab& Er, int igroup);
 
 ///
 /// @param level
 /// @param flux_in
 /// @param flux_out
-/// @param amrex::Tuple<amrex::MultiFab
+/// @param amrex::Array<amrex::MultiFab
 /// @param Flux
 /// @param igroup
 ///
   void levelFluxReg(int level,
                     amrex::FluxRegister* flux_in, amrex::FluxRegister* flux_out,
-                    const amrex::Tuple<amrex::MultiFab, BL_SPACEDIM>& Flux,
+                    const amrex::Array<amrex::MultiFab, BL_SPACEDIM>& Flux,
                     int igroup);
 
 ///
 /// @param level
-/// @param amrex::Tuple<amrex::MultiFab
+/// @param amrex::Array<amrex::MultiFab
 /// @param Flux
 /// @param flx
 /// @param iflx
 ///
-  void levelFluxFaceToCenter(int level, const amrex::Tuple<amrex::MultiFab, BL_SPACEDIM>& Flux,
+  void levelFluxFaceToCenter(int level, const amrex::Array<amrex::MultiFab, BL_SPACEDIM>& Flux,
 			     amrex::MultiFab& flx, int iflx);
 
 ///
@@ -267,19 +267,19 @@ class RadSolve {
 		const amrex::MultiFab& Er_step, const amrex::MultiFab& rhoe_step, const amrex::MultiFab& rhoYe_step,
 		const amrex::MultiFab& Er_star, const amrex::MultiFab& rhoe_star, const amrex::MultiFab& rhoYe_star,
 		amrex::Real delta_t, int igroup, int it, amrex::Real ptc_tau);
-  void levelSPas(int level, amrex::Tuple<amrex::MultiFab, BL_SPACEDIM>& lambda, int igroup,
+  void levelSPas(int level, amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda, int igroup,
 		 int lo_bc[], int hi_bc[]);
 
 ///
 /// </ MGFLD routines>
 ///
 /// @param level
-/// @param amrex::Tuple<amrex::MultiFab
+/// @param amrex::Array<amrex::MultiFab
 /// @param lambda
 /// @param vel
 /// @param dcf
 ///
-  void levelDCoeffs(int level, amrex::Tuple<amrex::MultiFab, BL_SPACEDIM>& lambda,
+  void levelDCoeffs(int level, amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
 		    amrex::MultiFab& vel, amrex::MultiFab& dcf);
 
 ///

@@ -1,0 +1,11 @@
+inner_radius              real    0.75_rt       y
+
+outer_radius              real    1.5_rt        y
+
+density_maximum_radius    real    0.0_rt
+
+torus_width               real    0.0_rt
+
+torus_center              real    0.0_rt
+
+ambient_density           real    1.e-8_rt      y

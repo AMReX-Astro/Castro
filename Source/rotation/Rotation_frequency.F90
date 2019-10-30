@@ -1,12 +1,8 @@
 module rotation_frequency_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
-
-  private
-
-  public get_omega, get_domegadt
 
 contains
 
@@ -48,7 +44,7 @@ contains
 
     else
 #ifndef AMREX_USE_GPU
-       call amrex_error("Error:: rotation_nd.f90 :: invalid coord_type")
+       call castro_error("Error:: rotation_nd.f90 :: invalid coord_type")
 #endif
     endif
 
@@ -90,10 +86,22 @@ contains
 
     else
 #ifndef AMREX_USE_GPU
-       call amrex_error("Error:: rotation_nd.f90 :: unknown coord_type")
+       call castro_error("Error:: rotation_nd.f90 :: unknown coord_type")
 #endif
     endif
 
   end function get_domegadt
 
+  subroutine set_rot_period(period) bind(C, name='set_rot_period')
+
+    use meth_params_module, only: rot_period
+
+    implicit none
+
+    real(rt), intent(in) :: period
+
+    rot_period = period
+
+  end subroutine set_rot_period
+  
 end module rotation_frequency_module

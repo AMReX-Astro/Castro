@@ -3,7 +3,7 @@
 ! or add runtime parameters, please edit _cpp_parameters and then run
 ! mk_params.sh
 
-! This module stores the runtime parameters and integer names for 
+! This module stores the runtime parameters and integer names for
 ! indexing arrays.
 !
 ! The Fortran-specific parameters are initialized in set_method_params(),
@@ -12,7 +12,7 @@
 
 module meth_params_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
   use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC
 
@@ -64,6 +64,10 @@ module meth_params_module
   ! Numerical values corresponding to the gravity types
 #ifdef GRAVITY
   integer, save, allocatable :: gravity_type_int
+  integer, parameter :: ConstantGrav = 0
+  integer, parameter :: MonopoleGrav = 1
+  integer, parameter :: PoissonGrav = 2
+  integer, parameter :: PrescribedGrav = 3
 #endif
 
   integer         , save :: numpts_1d
@@ -78,8 +82,8 @@ module meth_params_module
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
-  integer, parameter :: EXT_INTERP = 2 
-  
+  integer, parameter :: EXT_INTERP = 2
+
   integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
@@ -128,7 +132,6 @@ module meth_params_module
   real(rt), allocatable, save :: small_ener
   integer,  allocatable, save :: do_hydro
   integer,  allocatable, save :: time_integration_method
-  integer,  allocatable, save :: fourth_order
   integer,  allocatable, save :: limit_fourth_order
   integer,  allocatable, save :: use_reconstructed_gamma1
   integer,  allocatable, save :: hybrid_hydro
@@ -138,14 +141,16 @@ module meth_params_module
   integer,  allocatable, save :: mhd_plm_slope
   integer,  allocatable, save :: ppm_temp_fix
   integer,  allocatable, save :: ppm_predict_gammae
-  integer,  allocatable, save :: ppm_reference_eigenvectors
   integer,  allocatable, save :: plm_iorder
+  integer,  allocatable, save :: plm_limiter
+  integer,  allocatable, save :: plm_well_balanced
   integer,  allocatable, save :: hybrid_riemann
   integer,  allocatable, save :: riemann_solver
   integer,  allocatable, save :: cg_maxiter
   real(rt), allocatable, save :: cg_tol
   integer,  allocatable, save :: cg_blend
   integer,  allocatable, save :: use_eos_in_riemann
+  real(rt), allocatable, save :: riemann_speed_limit
   integer,  allocatable, save :: use_flattening
   integer,  allocatable, save :: transverse_use_eos
   integer,  allocatable, save :: transverse_reset_density
@@ -153,7 +158,6 @@ module meth_params_module
   real(rt), allocatable, save :: dual_energy_eta1
   real(rt), allocatable, save :: dual_energy_eta2
   integer,  allocatable, save :: use_pslope
-  integer,  allocatable, save :: fix_mass_flux
   integer,  allocatable, save :: limit_fluxes_on_small_dens
   integer,  allocatable, save :: density_reset_method
   integer,  allocatable, save :: allow_small_energy
@@ -169,10 +173,15 @@ module meth_params_module
   integer,  allocatable, save :: hse_zero_vels
   integer,  allocatable, save :: hse_interp_temp
   integer,  allocatable, save :: hse_reflect_vels
-  integer,  allocatable, save :: mol_order
   integer,  allocatable, save :: sdc_order
+  integer,  allocatable, save :: sdc_quadrature
+  integer,  allocatable, save :: sdc_extra
   integer,  allocatable, save :: sdc_solver
-  real(rt), allocatable, save :: sdc_solver_tol
+  real(rt), allocatable, save :: sdc_solver_tol_dens
+  real(rt), allocatable, save :: sdc_solver_tol_spec
+  real(rt), allocatable, save :: sdc_solver_tol_ener
+  real(rt), allocatable, save :: sdc_solver_atol
+  real(rt), allocatable, save :: sdc_solver_relax_factor
   integer,  allocatable, save :: sdc_solve_for_rhoe
   integer,  allocatable, save :: sdc_use_analytic_jac
   real(rt), allocatable, save :: cfl
@@ -186,6 +195,7 @@ module meth_params_module
   real(rt), allocatable, save :: react_rho_max
   integer,  allocatable, save :: disable_shock_burning
   real(rt), allocatable, save :: T_guess
+  integer,  allocatable, save :: diffuse_temp
   real(rt), allocatable, save :: diffuse_cutoff_density
   real(rt), allocatable, save :: diffuse_cutoff_density_hi
   real(rt), allocatable, save :: diffuse_cond_scale_fac
@@ -219,7 +229,6 @@ attributes(managed) :: small_pres
 attributes(managed) :: small_ener
 attributes(managed) :: do_hydro
 attributes(managed) :: time_integration_method
-attributes(managed) :: fourth_order
 attributes(managed) :: limit_fourth_order
 attributes(managed) :: use_reconstructed_gamma1
 attributes(managed) :: hybrid_hydro
@@ -235,14 +244,16 @@ attributes(managed) :: mhd_plm_slope
 #endif
 attributes(managed) :: ppm_temp_fix
 attributes(managed) :: ppm_predict_gammae
-attributes(managed) :: ppm_reference_eigenvectors
 attributes(managed) :: plm_iorder
+attributes(managed) :: plm_limiter
+attributes(managed) :: plm_well_balanced
 attributes(managed) :: hybrid_riemann
 attributes(managed) :: riemann_solver
 attributes(managed) :: cg_maxiter
 attributes(managed) :: cg_tol
 attributes(managed) :: cg_blend
 attributes(managed) :: use_eos_in_riemann
+attributes(managed) :: riemann_speed_limit
 attributes(managed) :: use_flattening
 attributes(managed) :: transverse_use_eos
 attributes(managed) :: transverse_reset_density
@@ -250,7 +261,6 @@ attributes(managed) :: transverse_reset_rhoe
 attributes(managed) :: dual_energy_eta1
 attributes(managed) :: dual_energy_eta2
 attributes(managed) :: use_pslope
-attributes(managed) :: fix_mass_flux
 attributes(managed) :: limit_fluxes_on_small_dens
 attributes(managed) :: density_reset_method
 attributes(managed) :: allow_small_energy
@@ -266,10 +276,15 @@ attributes(managed) :: first_order_hydro
 attributes(managed) :: hse_zero_vels
 attributes(managed) :: hse_interp_temp
 attributes(managed) :: hse_reflect_vels
-attributes(managed) :: mol_order
 attributes(managed) :: sdc_order
+attributes(managed) :: sdc_quadrature
+attributes(managed) :: sdc_extra
 attributes(managed) :: sdc_solver
-attributes(managed) :: sdc_solver_tol
+attributes(managed) :: sdc_solver_tol_dens
+attributes(managed) :: sdc_solver_tol_spec
+attributes(managed) :: sdc_solver_tol_ener
+attributes(managed) :: sdc_solver_atol
+attributes(managed) :: sdc_solver_relax_factor
 attributes(managed) :: sdc_solve_for_rhoe
 attributes(managed) :: sdc_use_analytic_jac
 attributes(managed) :: cfl
@@ -283,6 +298,9 @@ attributes(managed) :: react_rho_min
 attributes(managed) :: react_rho_max
 attributes(managed) :: disable_shock_burning
 attributes(managed) :: T_guess
+#ifdef DIFFUSION
+attributes(managed) :: diffuse_temp
+#endif
 #ifdef DIFFUSION
 attributes(managed) :: diffuse_cutoff_density
 #endif
@@ -322,13 +340,13 @@ attributes(managed) :: implicit_rotation_update
 #ifdef ROTATION
 attributes(managed) :: rot_axis
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
 attributes(managed) :: use_point_mass
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
 attributes(managed) :: point_mass
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
 attributes(managed) :: point_mass_fix_solution
 #endif
 attributes(managed) :: do_acc
@@ -347,7 +365,6 @@ attributes(managed) :: get_g_from_phi
   !$acc create(small_ener) &
   !$acc create(do_hydro) &
   !$acc create(time_integration_method) &
-  !$acc create(fourth_order) &
   !$acc create(limit_fourth_order) &
   !$acc create(use_reconstructed_gamma1) &
   !$acc create(hybrid_hydro) &
@@ -363,14 +380,16 @@ attributes(managed) :: get_g_from_phi
 #endif
   !$acc create(ppm_temp_fix) &
   !$acc create(ppm_predict_gammae) &
-  !$acc create(ppm_reference_eigenvectors) &
   !$acc create(plm_iorder) &
+  !$acc create(plm_limiter) &
+  !$acc create(plm_well_balanced) &
   !$acc create(hybrid_riemann) &
   !$acc create(riemann_solver) &
   !$acc create(cg_maxiter) &
   !$acc create(cg_tol) &
   !$acc create(cg_blend) &
   !$acc create(use_eos_in_riemann) &
+  !$acc create(riemann_speed_limit) &
   !$acc create(use_flattening) &
   !$acc create(transverse_use_eos) &
   !$acc create(transverse_reset_density) &
@@ -378,7 +397,6 @@ attributes(managed) :: get_g_from_phi
   !$acc create(dual_energy_eta1) &
   !$acc create(dual_energy_eta2) &
   !$acc create(use_pslope) &
-  !$acc create(fix_mass_flux) &
   !$acc create(limit_fluxes_on_small_dens) &
   !$acc create(density_reset_method) &
   !$acc create(allow_small_energy) &
@@ -388,10 +406,15 @@ attributes(managed) :: get_g_from_phi
   !$acc create(hse_zero_vels) &
   !$acc create(hse_interp_temp) &
   !$acc create(hse_reflect_vels) &
-  !$acc create(mol_order) &
   !$acc create(sdc_order) &
+  !$acc create(sdc_quadrature) &
+  !$acc create(sdc_extra) &
   !$acc create(sdc_solver) &
-  !$acc create(sdc_solver_tol) &
+  !$acc create(sdc_solver_tol_dens) &
+  !$acc create(sdc_solver_tol_spec) &
+  !$acc create(sdc_solver_tol_ener) &
+  !$acc create(sdc_solver_atol) &
+  !$acc create(sdc_solver_relax_factor) &
   !$acc create(sdc_solve_for_rhoe) &
   !$acc create(sdc_use_analytic_jac) &
   !$acc create(cfl) &
@@ -405,6 +428,9 @@ attributes(managed) :: get_g_from_phi
   !$acc create(react_rho_max) &
   !$acc create(disable_shock_burning) &
   !$acc create(T_guess) &
+#ifdef DIFFUSION
+  !$acc create(diffuse_temp) &
+#endif
 #ifdef DIFFUSION
   !$acc create(diffuse_cutoff_density) &
 #endif
@@ -444,13 +470,13 @@ attributes(managed) :: get_g_from_phi
 #ifdef ROTATION
   !$acc create(rot_axis) &
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
   !$acc create(use_point_mass) &
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
   !$acc create(point_mass) &
 #endif
-#ifdef POINTMASS
+#ifdef GRAVITY
   !$acc create(point_mass_fix_solution) &
 #endif
   !$acc create(do_acc) &
@@ -493,7 +519,7 @@ contains
     allocate(character(len=1)::gravity_type)
     gravity_type = "fillme";
     allocate(const_grav)
-    const_grav = 0.0d0;
+    const_grav = 0.0_rt;
     allocate(get_g_from_phi)
     get_g_from_phi = 0;
 
@@ -504,46 +530,48 @@ contains
     call amrex_parmparse_destroy(pp)
 
 
-#ifdef DIFFUSION
-    allocate(diffuse_cutoff_density)
-    diffuse_cutoff_density = -1.d200;
-    allocate(diffuse_cutoff_density_hi)
-    diffuse_cutoff_density_hi = -1.d200;
-    allocate(diffuse_cond_scale_fac)
-    diffuse_cond_scale_fac = 1.0d0;
+#ifdef ROTATION
+    allocate(rot_period)
+    rot_period = -1.e200_rt;
+    allocate(rot_period_dot)
+    rot_period_dot = 0.0_rt;
+    allocate(rotation_include_centrifugal)
+    rotation_include_centrifugal = 1;
+    allocate(rotation_include_coriolis)
+    rotation_include_coriolis = 1;
+    allocate(rotation_include_domegadt)
+    rotation_include_domegadt = 1;
+    allocate(state_in_rotating_frame)
+    state_in_rotating_frame = 1;
+    allocate(rot_source_type)
+    rot_source_type = 4;
+    allocate(implicit_rotation_update)
+    implicit_rotation_update = 1;
+    allocate(rot_axis)
+    rot_axis = 3;
 #endif
-#ifdef MHD
-    allocate(ppm_reference)
-    ppm_reference = 1;
-    allocate(ppm_flatten_before_integrals)
-    ppm_flatten_before_integrals = 1;
-    allocate(mhd_plm_slope)
-    mhd_plm_slope = 1;
-#endif
-#ifdef POINTMASS
+#ifdef GRAVITY
     allocate(use_point_mass)
-    use_point_mass = 1;
+    use_point_mass = 0;
     allocate(point_mass)
-    point_mass = 0.0d0;
+    point_mass = 0.0_rt;
     allocate(point_mass_fix_solution)
     point_mass_fix_solution = 0;
 #endif
     allocate(difmag)
-    difmag = 0.1d0;
+    difmag = 0.1_rt;
     allocate(small_dens)
-    small_dens = -1.d200;
+    small_dens = -1.e200_rt;
     allocate(small_temp)
-    small_temp = -1.d200;
+    small_temp = -1.e200_rt;
     allocate(small_pres)
-    small_pres = -1.d200;
+    small_pres = -1.e200_rt;
     allocate(small_ener)
-    small_ener = -1.d200;
+    small_ener = -1.e200_rt;
     allocate(do_hydro)
     do_hydro = -1;
     allocate(time_integration_method)
     time_integration_method = 0;
-    allocate(fourth_order)
-    fourth_order = 0;
     allocate(limit_fourth_order)
     limit_fourth_order = 1;
     allocate(use_reconstructed_gamma1)
@@ -556,10 +584,12 @@ contains
     ppm_temp_fix = 0;
     allocate(ppm_predict_gammae)
     ppm_predict_gammae = 0;
-    allocate(ppm_reference_eigenvectors)
-    ppm_reference_eigenvectors = 0;
     allocate(plm_iorder)
     plm_iorder = 2;
+    allocate(plm_limiter)
+    plm_limiter = 2;
+    allocate(plm_well_balanced)
+    plm_well_balanced = 0;
     allocate(hybrid_riemann)
     hybrid_riemann = 0;
     allocate(riemann_solver)
@@ -567,11 +597,13 @@ contains
     allocate(cg_maxiter)
     cg_maxiter = 12;
     allocate(cg_tol)
-    cg_tol = 1.0d-5;
+    cg_tol = 1.0e-5_rt;
     allocate(cg_blend)
     cg_blend = 2;
     allocate(use_eos_in_riemann)
     use_eos_in_riemann = 0;
+    allocate(riemann_speed_limit)
+    riemann_speed_limit = 2.99792458e10_rt;
     allocate(use_flattening)
     use_flattening = 1;
     allocate(transverse_use_eos)
@@ -581,13 +613,11 @@ contains
     allocate(transverse_reset_rhoe)
     transverse_reset_rhoe = 0;
     allocate(dual_energy_eta1)
-    dual_energy_eta1 = 1.0d0;
+    dual_energy_eta1 = 1.0e0_rt;
     allocate(dual_energy_eta2)
-    dual_energy_eta2 = 1.0d-4;
+    dual_energy_eta2 = 1.0e-4_rt;
     allocate(use_pslope)
     use_pslope = 1;
-    allocate(fix_mass_flux)
-    fix_mass_flux = 0;
     allocate(limit_fluxes_on_small_dens)
     limit_fluxes_on_small_dens = 0;
     allocate(density_reset_method)
@@ -618,40 +648,50 @@ contains
     hse_interp_temp = 0;
     allocate(hse_reflect_vels)
     hse_reflect_vels = 0;
-    allocate(mol_order)
-    mol_order = 2;
     allocate(sdc_order)
     sdc_order = 2;
+    allocate(sdc_quadrature)
+    sdc_quadrature = 0;
+    allocate(sdc_extra)
+    sdc_extra = 0;
     allocate(sdc_solver)
     sdc_solver = 1;
-    allocate(sdc_solver_tol)
-    sdc_solver_tol = 1.d-6;
+    allocate(sdc_solver_tol_dens)
+    sdc_solver_tol_dens = 1.e-6_rt;
+    allocate(sdc_solver_tol_spec)
+    sdc_solver_tol_spec = 1.e-6_rt;
+    allocate(sdc_solver_tol_ener)
+    sdc_solver_tol_ener = 1.e-6_rt;
+    allocate(sdc_solver_atol)
+    sdc_solver_atol = 1.e-10_rt;
+    allocate(sdc_solver_relax_factor)
+    sdc_solver_relax_factor = 1.0_rt;
     allocate(sdc_solve_for_rhoe)
     sdc_solve_for_rhoe = 1;
     allocate(sdc_use_analytic_jac)
     sdc_use_analytic_jac = 1;
     allocate(cfl)
-    cfl = 0.8d0;
+    cfl = 0.8_rt;
     allocate(dtnuc_e)
-    dtnuc_e = 1.d200;
+    dtnuc_e = 1.e200_rt;
     allocate(dtnuc_X)
-    dtnuc_X = 1.d200;
+    dtnuc_X = 1.e200_rt;
     allocate(dtnuc_X_threshold)
-    dtnuc_X_threshold = 1.d-3;
+    dtnuc_X_threshold = 1.e-3_rt;
     allocate(do_react)
     do_react = -1;
     allocate(react_T_min)
-    react_T_min = 0.0d0;
+    react_T_min = 0.0_rt;
     allocate(react_T_max)
-    react_T_max = 1.d200;
+    react_T_max = 1.e200_rt;
     allocate(react_rho_min)
-    react_rho_min = 0.0d0;
+    react_rho_min = 0.0_rt;
     allocate(react_rho_max)
-    react_rho_max = 1.d200;
+    react_rho_max = 1.e200_rt;
     allocate(disable_shock_burning)
     disable_shock_burning = 0;
     allocate(T_guess)
-    T_guess = 1.d8;
+    T_guess = 1.e8_rt;
     allocate(do_grav)
     do_grav = -1;
     allocate(grav_source_type)
@@ -664,39 +704,38 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
-#ifdef ROTATION
-    allocate(rot_period)
-    rot_period = -1.d200;
-    allocate(rot_period_dot)
-    rot_period_dot = 0.0d0;
-    allocate(rotation_include_centrifugal)
-    rotation_include_centrifugal = 1;
-    allocate(rotation_include_coriolis)
-    rotation_include_coriolis = 1;
-    allocate(rotation_include_domegadt)
-    rotation_include_domegadt = 1;
-    allocate(state_in_rotating_frame)
-    state_in_rotating_frame = 1;
-    allocate(rot_source_type)
-    rot_source_type = 4;
-    allocate(implicit_rotation_update)
-    implicit_rotation_update = 1;
-    allocate(rot_axis)
-    rot_axis = 3;
+#ifdef MHD
+    allocate(ppm_reference)
+    ppm_reference = 1;
+    allocate(ppm_flatten_before_integrals)
+    ppm_flatten_before_integrals = 1;
+    allocate(mhd_plm_slope)
+    mhd_plm_slope = 1;
+#endif
+#ifdef DIFFUSION
+    allocate(diffuse_temp)
+    diffuse_temp = 0;
+    allocate(diffuse_cutoff_density)
+    diffuse_cutoff_density = -1.e200_rt;
+    allocate(diffuse_cutoff_density_hi)
+    diffuse_cutoff_density_hi = -1.e200_rt;
+    allocate(diffuse_cond_scale_fac)
+    diffuse_cond_scale_fac = 1.0_rt;
 #endif
 
     call amrex_parmparse_build(pp, "castro")
-#ifdef DIFFUSION
-    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
-    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
-    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+    call pp%query("rotational_dPdt", rot_period_dot)
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+    call pp%query("rot_source_type", rot_source_type)
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+    call pp%query("rot_axis", rot_axis)
 #endif
-#ifdef MHD
-    call pp%query("ppm_reference", ppm_reference)
-    call pp%query("ppm_flatten_before_integrals", ppm_flatten_before_integrals)
-    call pp%query("mhd_plm_slope", mhd_plm_slope)
-#endif
-#ifdef POINTMASS
+#ifdef GRAVITY
     call pp%query("use_point_mass", use_point_mass)
     call pp%query("point_mass", point_mass)
     call pp%query("point_mass_fix_solution", point_mass_fix_solution)
@@ -708,21 +747,22 @@ contains
     call pp%query("small_ener", small_ener)
     call pp%query("do_hydro", do_hydro)
     call pp%query("time_integration_method", time_integration_method)
-    call pp%query("fourth_order", fourth_order)
     call pp%query("limit_fourth_order", limit_fourth_order)
     call pp%query("use_reconstructed_gamma1", use_reconstructed_gamma1)
     call pp%query("hybrid_hydro", hybrid_hydro)
     call pp%query("ppm_type", ppm_type)
     call pp%query("ppm_temp_fix", ppm_temp_fix)
     call pp%query("ppm_predict_gammae", ppm_predict_gammae)
-    call pp%query("ppm_reference_eigenvectors", ppm_reference_eigenvectors)
     call pp%query("plm_iorder", plm_iorder)
+    call pp%query("plm_limiter", plm_limiter)
+    call pp%query("plm_well_balanced", plm_well_balanced)
     call pp%query("hybrid_riemann", hybrid_riemann)
     call pp%query("riemann_solver", riemann_solver)
     call pp%query("cg_maxiter", cg_maxiter)
     call pp%query("cg_tol", cg_tol)
     call pp%query("cg_blend", cg_blend)
     call pp%query("use_eos_in_riemann", use_eos_in_riemann)
+    call pp%query("riemann_speed_limit", riemann_speed_limit)
     call pp%query("use_flattening", use_flattening)
     call pp%query("transverse_use_eos", transverse_use_eos)
     call pp%query("transverse_reset_density", transverse_reset_density)
@@ -730,7 +770,6 @@ contains
     call pp%query("dual_energy_eta1", dual_energy_eta1)
     call pp%query("dual_energy_eta2", dual_energy_eta2)
     call pp%query("use_pslope", use_pslope)
-    call pp%query("fix_mass_flux", fix_mass_flux)
     call pp%query("limit_fluxes_on_small_dens", limit_fluxes_on_small_dens)
     call pp%query("density_reset_method", density_reset_method)
     call pp%query("allow_small_energy", allow_small_energy)
@@ -746,10 +785,15 @@ contains
     call pp%query("hse_zero_vels", hse_zero_vels)
     call pp%query("hse_interp_temp", hse_interp_temp)
     call pp%query("hse_reflect_vels", hse_reflect_vels)
-    call pp%query("mol_order", mol_order)
     call pp%query("sdc_order", sdc_order)
+    call pp%query("sdc_quadrature", sdc_quadrature)
+    call pp%query("sdc_extra", sdc_extra)
     call pp%query("sdc_solver", sdc_solver)
-    call pp%query("sdc_solver_tol", sdc_solver_tol)
+    call pp%query("sdc_solver_tol_dens", sdc_solver_tol_dens)
+    call pp%query("sdc_solver_tol_spec", sdc_solver_tol_spec)
+    call pp%query("sdc_solver_tol_ener", sdc_solver_tol_ener)
+    call pp%query("sdc_solver_atol", sdc_solver_atol)
+    call pp%query("sdc_solver_relax_factor", sdc_solver_relax_factor)
     call pp%query("sdc_solve_for_rhoe", sdc_solve_for_rhoe)
     call pp%query("sdc_use_analytic_jac", sdc_use_analytic_jac)
     call pp%query("cfl", cfl)
@@ -769,16 +813,16 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
-#ifdef ROTATION
-    call pp%query("rotational_period", rot_period)
-    call pp%query("rotational_dPdt", rot_period_dot)
-    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
-    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
-    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
-    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-    call pp%query("rot_source_type", rot_source_type)
-    call pp%query("implicit_rotation_update", implicit_rotation_update)
-    call pp%query("rot_axis", rot_axis)
+#ifdef MHD
+    call pp%query("ppm_reference", ppm_reference)
+    call pp%query("ppm_flatten_before_integrals", ppm_flatten_before_integrals)
+    call pp%query("mhd_plm_slope", mhd_plm_slope)
+#endif
+#ifdef DIFFUSION
+    call pp%query("diffuse_temp", diffuse_temp)
+    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
+    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
 #endif
     call amrex_parmparse_destroy(pp)
 
@@ -787,24 +831,26 @@ contains
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
     !$acc device(small_pres, small_ener, do_hydro) &
-    !$acc device(time_integration_method, fourth_order, limit_fourth_order) &
-    !$acc device(use_reconstructed_gamma1, hybrid_hydro, ppm_type) &
-    !$acc device(ppm_reference, ppm_flatten_before_integrals, mhd_plm_slope) &
-    !$acc device(ppm_temp_fix, ppm_predict_gammae, ppm_reference_eigenvectors) &
-    !$acc device(plm_iorder, hybrid_riemann, riemann_solver) &
+    !$acc device(time_integration_method, limit_fourth_order, use_reconstructed_gamma1) &
+    !$acc device(hybrid_hydro, ppm_type, ppm_reference) &
+    !$acc device(ppm_flatten_before_integrals, mhd_plm_slope, ppm_temp_fix) &
+    !$acc device(ppm_predict_gammae, plm_iorder, plm_limiter) &
+    !$acc device(plm_well_balanced, hybrid_riemann, riemann_solver) &
     !$acc device(cg_maxiter, cg_tol, cg_blend) &
-    !$acc device(use_eos_in_riemann, use_flattening, transverse_use_eos) &
-    !$acc device(transverse_reset_density, transverse_reset_rhoe, dual_energy_eta1) &
-    !$acc device(dual_energy_eta2, use_pslope, fix_mass_flux) &
+    !$acc device(use_eos_in_riemann, riemann_speed_limit, use_flattening) &
+    !$acc device(transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
+    !$acc device(dual_energy_eta1, dual_energy_eta2, use_pslope) &
     !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_small_energy) &
     !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
     !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
-    !$acc device(mol_order, sdc_order, sdc_solver) &
-    !$acc device(sdc_solver_tol, sdc_solve_for_rhoe, sdc_use_analytic_jac) &
-    !$acc device(cfl, dtnuc_e, dtnuc_X) &
-    !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
-    !$acc device(react_T_max, react_rho_min, react_rho_max) &
-    !$acc device(disable_shock_burning, T_guess, diffuse_cutoff_density) &
+    !$acc device(sdc_order, sdc_quadrature, sdc_extra) &
+    !$acc device(sdc_solver, sdc_solver_tol_dens, sdc_solver_tol_spec) &
+    !$acc device(sdc_solver_tol_ener, sdc_solver_atol, sdc_solver_relax_factor) &
+    !$acc device(sdc_solve_for_rhoe, sdc_use_analytic_jac, cfl) &
+    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
+    !$acc device(do_react, react_T_min, react_T_max) &
+    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
+    !$acc device(T_guess, diffuse_temp, diffuse_cutoff_density) &
     !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
     !$acc device(grav_source_type, do_rotation, rot_period) &
     !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
@@ -820,13 +866,15 @@ contains
     allocate(gravity_type_int)
 
     if (gravity_type == "ConstantGrav") then
-       gravity_type_int = 0
+       gravity_type_int = ConstantGrav
     else if (gravity_type == "MonopoleGrav") then
-       gravity_type_int = 1
+       gravity_type_int = MonopoleGrav
     else if (gravity_type == "PoissonGrav") then
-       gravity_type_int = 2
+       gravity_type_int = PoissonGrav
+    else if (gravity_type == "PrescribedGrav") then
+       gravity_type_int = PrescribedGrav
     else
-       call amrex_error("Unknown gravity type")
+       call castro_error("Unknown gravity type")
     end if
 #endif
 
@@ -834,7 +882,7 @@ contains
     select case (xl_ext_bc_type)
     case ("hse", "HSE")
        xl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xl_ext = EXT_INTERP
     case default
        xl_ext = EXT_UNDEFINED
@@ -843,7 +891,7 @@ contains
     select case (yl_ext_bc_type)
     case ("hse", "HSE")
        yl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yl_ext = EXT_INTERP
     case default
        yl_ext = EXT_UNDEFINED
@@ -852,7 +900,7 @@ contains
     select case (zl_ext_bc_type)
     case ("hse", "HSE")
        zl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zl_ext = EXT_INTERP
     case default
        zl_ext = EXT_UNDEFINED
@@ -861,7 +909,7 @@ contains
     select case (xr_ext_bc_type)
     case ("hse", "HSE")
        xr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xr_ext = EXT_INTERP
     case default
        xr_ext = EXT_UNDEFINED
@@ -870,7 +918,7 @@ contains
     select case (yr_ext_bc_type)
     case ("hse", "HSE")
        yr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yr_ext = EXT_INTERP
     case default
        yr_ext = EXT_UNDEFINED
@@ -879,7 +927,7 @@ contains
     select case (zr_ext_bc_type)
     case ("hse", "HSE")
        zr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zr_ext = EXT_INTERP
     case default
        zr_ext = EXT_UNDEFINED
@@ -930,9 +978,6 @@ contains
     if (allocated(time_integration_method)) then
         deallocate(time_integration_method)
     end if
-    if (allocated(fourth_order)) then
-        deallocate(fourth_order)
-    end if
     if (allocated(limit_fourth_order)) then
         deallocate(limit_fourth_order)
     end if
@@ -960,11 +1005,14 @@ contains
     if (allocated(ppm_predict_gammae)) then
         deallocate(ppm_predict_gammae)
     end if
-    if (allocated(ppm_reference_eigenvectors)) then
-        deallocate(ppm_reference_eigenvectors)
-    end if
     if (allocated(plm_iorder)) then
         deallocate(plm_iorder)
+    end if
+    if (allocated(plm_limiter)) then
+        deallocate(plm_limiter)
+    end if
+    if (allocated(plm_well_balanced)) then
+        deallocate(plm_well_balanced)
     end if
     if (allocated(hybrid_riemann)) then
         deallocate(hybrid_riemann)
@@ -983,6 +1031,9 @@ contains
     end if
     if (allocated(use_eos_in_riemann)) then
         deallocate(use_eos_in_riemann)
+    end if
+    if (allocated(riemann_speed_limit)) then
+        deallocate(riemann_speed_limit)
     end if
     if (allocated(use_flattening)) then
         deallocate(use_flattening)
@@ -1004,9 +1055,6 @@ contains
     end if
     if (allocated(use_pslope)) then
         deallocate(use_pslope)
-    end if
-    if (allocated(fix_mass_flux)) then
-        deallocate(fix_mass_flux)
     end if
     if (allocated(limit_fluxes_on_small_dens)) then
         deallocate(limit_fluxes_on_small_dens)
@@ -1053,17 +1101,32 @@ contains
     if (allocated(hse_reflect_vels)) then
         deallocate(hse_reflect_vels)
     end if
-    if (allocated(mol_order)) then
-        deallocate(mol_order)
-    end if
     if (allocated(sdc_order)) then
         deallocate(sdc_order)
+    end if
+    if (allocated(sdc_quadrature)) then
+        deallocate(sdc_quadrature)
+    end if
+    if (allocated(sdc_extra)) then
+        deallocate(sdc_extra)
     end if
     if (allocated(sdc_solver)) then
         deallocate(sdc_solver)
     end if
-    if (allocated(sdc_solver_tol)) then
-        deallocate(sdc_solver_tol)
+    if (allocated(sdc_solver_tol_dens)) then
+        deallocate(sdc_solver_tol_dens)
+    end if
+    if (allocated(sdc_solver_tol_spec)) then
+        deallocate(sdc_solver_tol_spec)
+    end if
+    if (allocated(sdc_solver_tol_ener)) then
+        deallocate(sdc_solver_tol_ener)
+    end if
+    if (allocated(sdc_solver_atol)) then
+        deallocate(sdc_solver_atol)
+    end if
+    if (allocated(sdc_solver_relax_factor)) then
+        deallocate(sdc_solver_relax_factor)
     end if
     if (allocated(sdc_solve_for_rhoe)) then
         deallocate(sdc_solve_for_rhoe)
@@ -1103,6 +1166,9 @@ contains
     end if
     if (allocated(T_guess)) then
         deallocate(T_guess)
+    end if
+    if (allocated(diffuse_temp)) then
+        deallocate(diffuse_temp)
     end if
     if (allocated(diffuse_cutoff_density)) then
         deallocate(diffuse_cutoff_density)
@@ -1178,7 +1244,7 @@ contains
     end if
 
 
-    
+
   end subroutine ca_finalize_meth_params
 
 
@@ -1204,24 +1270,25 @@ contains
 
 #ifndef AMREX_USE_GPU
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
-       call amrex_error("Unknown fspace_type", fspace_type)
+       print *, "fspace_type = ", fspace_type
+       call castro_error("Unknown fspace_type")
     end if
 #endif
-    
+
     do_inelastic_scattering = (do_is_in .ne. 0)
-    
+
     if (com_in .eq. 1) then
        comoving = .true.
     else if (com_in .eq. 0) then
        comoving = .false.
     else
 #ifndef AMREX_USE_GPU
-       call amrex_error("Wrong value for comoving", fspace_type)
+       call castro_error("Wrong value for comoving")
 #endif
     end if
-    
+
     flatten_pp_threshold = fppt
-    
+
     !$acc update &
     !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &

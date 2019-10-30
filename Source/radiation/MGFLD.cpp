@@ -463,7 +463,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 			   MultiFab& etaT, MultiFab& etaY, MultiFab& eta1,
 			   MultiFab& thetaT, MultiFab& thetaY, 
 			   MultiFab& mugT, MultiFab& mugY, 
-			   Tuple<MultiFab, BL_SPACEDIM>& lambda,
+			   Array<MultiFab, BL_SPACEDIM>& lambda,
 			   RadSolve& solver, MGRadBndry& mgbd, 
 			   const BoxArray& grids, int level, Real time, 
 			   Real delta_t, Real ptc_tau)
@@ -560,7 +560,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   const DistributionMapping& dm = castro->DistributionMap();
 
   // B & C coefficients
-  Tuple<MultiFab, BL_SPACEDIM> bcoefs, ccoefs, bcgrp;
+  Array<MultiFab, BL_SPACEDIM> bcoefs, ccoefs, bcgrp;
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
     const BoxArray& edge_boxes = castro->getEdgeBoxArray(idim);
 
@@ -1239,8 +1239,7 @@ void Radiation::inelastic_scattering(int level)
 	}
 
 	if (do_real_eos > 0) {
-          int is_new=1;
-	  castro->computeTemp(is_new, S_new.nGrow());
+	  castro->computeTemp(S_new, castro->state[State_Type].curTime(), S_new.nGrow());
 	}
     }
 }

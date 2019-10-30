@@ -25,13 +25,14 @@ Castro::pointmass_update(Real time, Real dt)
 
 	    const Box& bx = mfi.tilebox();
 
-	    pm_compute_delta_mass(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                                  &mass_change_at_center,
+#pragma gpu box(bx)
+	    pm_compute_delta_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                  AMREX_MFITER_REDUCE_SUM(&mass_change_at_center),
 				  BL_TO_FORTRAN_ANYD(S_old[mfi]),
 				  BL_TO_FORTRAN_ANYD(S_new[mfi]),
 				  BL_TO_FORTRAN_ANYD(volume[mfi]),
-				  ZFILL(geom.ProbLo()), ZFILL(dx),
-				  &time, &dt);
+				  AMREX_REAL_ANYD(geom.ProbLo()), AMREX_REAL_ANYD(dx),
+				  time, dt);
 
 	}
 
@@ -39,6 +40,12 @@ Castro::pointmass_update(Real time, Real dt)
 
 	if (mass_change_at_center > 0.0)
         {
+
+            if (verbose > 1) {
+                amrex::Print() << "  Updating point mass from " << point_mass << ", by " << mass_change_at_center
+                               << ", to " << point_mass + mass_change_at_center << std::endl << std::endl;
+            }
+
 	    point_mass += mass_change_at_center;
 
 	    set_pointmass(&point_mass);
@@ -50,9 +57,10 @@ Castro::pointmass_update(Real time, Real dt)
             {
                 const Box& bx = mfi.tilebox();
 
-		pm_fix_solution(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu box(bx)
+		pm_fix_solution(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 				BL_TO_FORTRAN_ANYD(S_old[mfi]), BL_TO_FORTRAN_ANYD(S_new[mfi]),
-				ZFILL(geom.ProbLo()), ZFILL(dx), &time, &dt);
+				AMREX_REAL_ANYD(geom.ProbLo()), AMREX_REAL_ANYD(dx), time, dt);
              }
           }
     }

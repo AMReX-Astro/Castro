@@ -5,13 +5,6 @@ module flatten_module
 
   implicit none
 
-  private
-
-  public :: ca_uflatten
-#ifdef RADIATION
-  public :: ca_rad_flatten
-#endif
-
 contains
 
 ! :::

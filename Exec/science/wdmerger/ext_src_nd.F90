@@ -1,48 +1,48 @@
 
-     subroutine ca_ext_src(lo,hi,&
-                           old_state,os_lo,os_hi,&
-                           new_state,ns_lo,ns_hi,&
-                           src,src_lo,src_hi,problo,dx,time,dt)
+     subroutine ca_ext_src(lo, hi, &
+                           old_state, os_lo, os_hi, &
+                           new_state, ns_lo, ns_hi, &
+                           src, src_lo, src_hi, &
+                           problo, dx, time, dt) bind(C, name='ca_ext_src')
 
-       use meth_params_module,  only: NVAR, URHO, UMX, UMZ, UEDEN
-       use prob_params_module,  only: center
+       use amrex_fort_module, only: rt => amrex_real
+       use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN
+       use prob_params_module, only: center
        use amrex_constants_module, only: ZERO, HALF, ONE, TWO
-       use probdata_module,     only: problem, relaxation_damping_factor, radial_damping_factor, &
-                                      t_ff_P, t_ff_S, axis_1, axis_2, axis_3
-       use castro_util_module,  only: position
-       use wdmerger_util_module, only: inertial_velocity
+       use probdata_module, only: problem, relaxation_damping_factor, radial_damping_factor, &
+                                  t_ff_P, t_ff_S, axis_1, axis_2, axis_3
+       use castro_util_module, only: position ! function
+       use wdmerger_util_module, only: inertial_velocity ! function
 #ifdef HYBRID_MOMENTUM
-       use hybrid_advection_module, only: linear_to_hybrid
+       use hybrid_advection_module, only: linear_to_hybrid ! function
        use meth_params_module, only: UMR, UMP
 #endif
 
        implicit none
 
-       integer          :: lo(3),hi(3)
-       integer          :: os_lo(3),os_hi(3)
-       integer          :: ns_lo(3),ns_hi(3)
-       integer          :: src_lo(3),src_hi(3)
-       double precision :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)
-       double precision :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)
-       double precision :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
-       double precision :: problo(3),dx(3),time,dt
+       integer,  intent(in   ) :: lo(3), hi(3)
+       integer,  intent(in   ) :: os_lo(3), os_hi(3)
+       integer,  intent(in   ) :: ns_lo(3), ns_hi(3)
+       integer,  intent(in   ) :: src_lo(3), src_hi(3)
+       real(rt), intent(in   ) :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)
+       real(rt), intent(in   ) :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)
+       real(rt), intent(inout) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+       real(rt), intent(in   ) :: problo(3), dx(3)
+       real(rt), intent(in   ), value :: time, dt
 
        ! Local variables
 
-       double precision :: relaxation_damping_timescale, radial_damping_timescale
-       double precision :: dynamical_timescale, damping_factor
-       double precision :: loc(3), R_prp, sinTheta, cosTheta, v_rad, Sr(3)
-       integer          :: i, j, k
-       double precision :: new_mom(3), old_mom(3), rhoInv
+       real(rt) :: relaxation_damping_timescale, radial_damping_timescale
+       real(rt) :: dynamical_timescale, damping_factor
+       real(rt) :: loc(3), R_prp, sinTheta, cosTheta, v_rad, Sr(3)
+       integer  :: i, j, k
+       real(rt) :: new_mom(3), old_mom(3), rhoInv
 
-       ! Note that this function exists in a tiling region so we should only 
-       ! modify the zones between lo and hi. 
-
-       src(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
+       !$gpu
 
        ! First do any relaxation source terms.
 
-       if (problem == 3 .and. relaxation_damping_factor > ZERO) then
+       if (problem == 1 .and. relaxation_damping_factor > ZERO) then
 
           ! The relevant dynamical timescale for determining this source term timescale should be
           ! the smaller of the two WD timescales. Generally this should be the primary, but we'll
@@ -97,15 +97,15 @@
 
        ! Now do the radial drift source terms.
 
-       if (problem == 3 .and. radial_damping_factor > ZERO) then
+       if (problem == 1 .and. radial_damping_factor > ZERO) then
 
-          ! For this source term, the relevant dynamical timescale is the larger of the two.
+          ! The logic for which dynamical timescale to use and
+          ! how to do the implicit coupling follows the reasoning
+          ! described above for the relaxation damping.
 
           dynamical_timescale = max(t_ff_P, t_ff_S)
 
           radial_damping_timescale = radial_damping_factor * dynamical_timescale
-
-          ! Use an implicit damping, with the same logic as the damping.
 
           damping_factor = -(ONE - ONE / (ONE + dt / radial_damping_timescale)) / dt
 
@@ -120,7 +120,8 @@
                    cosTheta = loc(axis_1) / R_prp
                    sinTheta = loc(axis_2) / R_prp
 
-                   old_mom = inertial_velocity(loc, new_state(i,j,k,UMX:UMZ), time)
+                   old_mom = new_state(i,j,k,UMX:UMZ)
+                   old_mom = inertial_velocity(loc, old_mom, time)
                    v_rad   = cosTheta * old_mom(UMX + axis_1 - 1) + sinTheta * old_mom(UMX + axis_2 - 1)
 
                    ! What we want to do is insert a negative radial drift acceleration. If continued

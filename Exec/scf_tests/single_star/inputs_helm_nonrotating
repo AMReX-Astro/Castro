@@ -1,0 +1,61 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 0
+
+# PROBLEM SIZE & GEOMETRY
+geometry.coord_sys   =  0
+geometry.is_periodic =  0 0 0
+geometry.prob_lo     = -1.6e9 -1.6e9 -1.6e9
+geometry.prob_hi     =  1.6e9  1.6e9  1.6e9
+amr.n_cell           =  64 64 64
+
+amr.max_level        = 2
+amr.ref_ratio        = 2 2 2 2 2 2 2 2 2 2 2
+amr.n_error_buf      = 0 0 0 0 0 0 0 0 0 0 0
+amr.blocking_factor  = 16
+amr.max_grid_size    = 32
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+
+castro.lo_bc       =  2   2   2
+castro.hi_bc       =  2   2   2
+
+# WHICH PHYSICS
+castro.do_hydro = 1
+castro.do_grav  = 1
+castro.do_rotation = 1
+castro.rotational_period = 100.0
+
+castro.do_scf_initial_model = 1
+castro.scf_maximum_density = 1.3519e6
+castro.scf_equatorial_radius = 1.0e9
+castro.scf_polar_radius = 1.0e9
+castro.scf_relax_tol = 1.e-4
+
+# GRAVITY
+gravity.gravity_type = PoissonGrav # Full self-gravity with the Poisson equation
+gravity.max_multipole_order = 6    # Multipole expansion includes terms up to r**(-max_multipole_order)
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing integrals
+amr.data_log          = grid_diag.out
+
+castro.v = 1
+amr.v = 1
+
+# CHECKPOINT FILES
+amr.checkpoint_files_output = 1
+amr.check_file        = chk      # root name of checkpoint file
+amr.check_int         = 1        # timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_files_output = 1
+amr.plot_file         = plt      # root name of plotfile
+amr.plot_per          = 1        # timesteps between plotfiles
+amr.derive_plot_vars  = ALL
+
+# PROBIN FILENAME
+amr.probin_file = probin_helm_nonrotating

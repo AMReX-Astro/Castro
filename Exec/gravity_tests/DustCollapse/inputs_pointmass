@@ -1,0 +1,67 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 10000000
+stop_time = 2.5
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 0     0
+geometry.coord_sys   = 1
+geometry.prob_lo     = 0.    0. 
+geometry.prob_hi     = 6.4e8 6.4e8
+
+amr.n_cell           = 32    32
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc =  3 3
+castro.hi_bc =  2 2
+
+castro.do_hydro       = 1
+castro.do_grav        = 1
+
+# Disable the main gravity and replace with a point mass
+gravity.gravity_type  = ConstantGrav
+gravity.const_grav    = 0.0
+castro.use_point_mass = 1
+castro.point_mass     = 1.0e33
+castro.point_mass_fix_solution = 1
+
+# RELEVANT FOR EOS
+castro.small_temp    = 1.e-6
+castro.small_dens    = 1.e-6
+
+# TIME STEP CONTROL
+castro.cfl            = 0.5
+castro.init_shrink    = 0.01
+castro.change_max     = 1.0
+castro.dt_cutoff      = 1.e-10
+castro.limit_fluxes_on_small_dens = 1
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1
+castro.v              = 2
+amr.v                 = 1
+
+# REFINEMENT / REGRIDDING
+amr.max_level       = 0       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 # how often to regrid
+amr.blocking_factor = 4       # block factor in grid generation
+amr.max_grid_size   = 32
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+# CHECKPOINT FILES
+amr.check_file      = chk
+amr.check_per       = 1.0e-2
+amr.check_int       = 0
+
+# PLOTFILES
+amr.plot_file       = plt
+amr.plot_per        = 1.0e-2
+amr.plot_int        = 0
+amr.derive_plot_vars = NONE
+
+#PROBIN FILENAME
+amr.probin_file = probin.pointmass

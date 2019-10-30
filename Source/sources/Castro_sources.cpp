@@ -49,9 +49,21 @@ Castro::source_flag(int src)
 	else
 	    return false;
 
+    case thermo_src:
+        if (time_integration_method == SpectralDeferredCorrections)
+          return true;
+        else
+          return false;
+
 #ifdef DIFFUSION
     case diff_src:
-	return true;
+        if (diffuse_temp &&
+            !(time_integration_method == SpectralDeferredCorrections)) {
+          return true;
+        }
+        else {
+          return false;
+        }
 #endif
 
 #ifdef HYBRID_MOMENTUM
@@ -95,11 +107,6 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_in, Real time, Real dt,
 
     for (int n = 0; n < num_src; ++n)
         construct_old_source(n, source, state_in, time, dt, amr_iteration, amr_ncycle);
-
-    // The individual source terms only calculate the source on the valid domain.
-    // FillPatch to get valid data in the ghost zones.
-
-    AmrLevel::FillPatch(*this, source, source.nGrow(), time, Source_Type, 0, NUM_STATE);
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -200,8 +207,11 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real
 
 #ifdef DIFFUSION
     case diff_src:
-	construct_old_diff_source(source, state_in, time, dt);
-	break;
+        if (!(time_integration_method == SpectralDeferredCorrections)) {
+          // for MOL or SDC, we'll compute a diffusive flux in the MOL routine
+          construct_old_diff_source(source, state_in, time, dt);
+        }
+        break;
 #endif
 
 #ifdef HYBRID_MOMENTUM
@@ -451,7 +461,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
     MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, ng);
     MultiFab::Saxpy(S_noreact, dt, A, 0, 0, NUM_STATE, ng);
 
-    clean_state(S_noreact);
+    clean_state(S_noreact, state[State_Type].curTime(), S_noreact.nGrow());
 
     // Compute its primitive counterpart, q*
 

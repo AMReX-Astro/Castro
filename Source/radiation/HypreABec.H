@@ -1,7 +1,7 @@
 #ifndef _HypreABec_H_
 #define _HypreABec_H_
 
-#include <AMReX_Tuple.H>
+#include <AMReX_Array.H>
 #include <AMReX_MultiFab.H>
 
 #include "NGBndry.H"

@@ -7,6 +7,7 @@ using namespace amrex;
 void
 Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
+    const Real strt_time = ParallelDescriptor::second();
 
     if (!do_sponge) return;
 
@@ -19,11 +20,11 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_sponge(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                   BL_TO_FORTRAN_ANYD(state[mfi]),
                   BL_TO_FORTRAN_ANYD(source[mfi]),
@@ -31,11 +32,28 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time
                   AMREX_REAL_ANYD(dx), dt, time, mult_factor);
     }
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void
 Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
+    const Real strt_time = ParallelDescriptor::second();
 
     if (!do_sponge) return;
 
@@ -51,11 +69,11 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state_old, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_sponge(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                   BL_TO_FORTRAN_ANYD(state_old[mfi]),
                   BL_TO_FORTRAN_ANYD(source[mfi]),
@@ -71,11 +89,11 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_sponge(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                   BL_TO_FORTRAN_ANYD(state_new[mfi]),
                   BL_TO_FORTRAN_ANYD(source[mfi]),
@@ -83,6 +101,22 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
                   AMREX_REAL_ANYD(dx), dt, time, mult_factor_new);
     }
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_new_thermo_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 void

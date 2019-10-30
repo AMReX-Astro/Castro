@@ -131,7 +131,7 @@ Castro::restart (Amr&     papa,
     ParallelDescriptor::Bcast(&lastDtBeforePlotLimiting, 1, ParallelDescriptor::IOProcessorNumber());
 
     BL_ASSERT(input_version >= 0);
- 
+
     // also need to mod checkPoint function to store the new version in a text file
 
     AmrLevel::restart(papa,is,bReadSpecial);
@@ -221,7 +221,7 @@ Castro::restart (Amr&     papa,
       get_state_data(State_Type).replaceNewData(std::move(new_data));
 
     }
- 
+
 #endif
 
 #ifdef REACTIONS
@@ -244,11 +244,15 @@ Castro::restart (Amr&     papa,
       FullPathReactFile += "/ReactHeader";
       ReactFile.open(FullPathReactFile.c_str(), std::ios::in);
 
-      // Maximum rate of change of internal energy in last timestep.
+      if (ReactFile.good()) {
 
-      ReactFile >> max_dedt;
+          // Maximum rate of change of internal energy in last timestep.
 
-      ReactFile.close();
+          ReactFile >> max_dedt;
+
+          ReactFile.close();
+
+      }
 
       // Set the energy change to the components of the
       // reactions MultiFab; it will get overwritten later
@@ -274,8 +278,12 @@ Castro::restart (Amr&     papa,
       FullPathCPUFile += "/CPUtime";
       CPUFile.open(FullPathCPUFile.c_str(), std::ios::in);
 
-      CPUFile >> previousCPUTimeUsed;
-      CPUFile.close();
+      if (CPUFile.good()) {
+
+          CPUFile >> previousCPUTimeUsed;
+          CPUFile.close();
+
+      }
 
       std::cout << "read CPU time: " << previousCPUTimeUsed << "\n";
 
@@ -290,14 +298,37 @@ Castro::restart (Amr&     papa,
       FullPathDiagFile += "/Diagnostics";
       DiagFile.open(FullPathDiagFile.c_str(), std::ios::in);
 
-      for (int i = 0; i < n_lost; i++) {
-	DiagFile >> material_lost_through_boundary_cumulative[i];
-	material_lost_through_boundary_temp[i] = 0.0;
+      if (DiagFile.good()) {
+
+          for (int i = 0; i < n_lost; i++) {
+              DiagFile >> material_lost_through_boundary_cumulative[i];
+              material_lost_through_boundary_temp[i] = 0.0;
+          }
+
+          DiagFile.close();
+
       }
 
-      DiagFile.close();
+    }
+
+#ifdef GRAVITY
+    if (use_point_mass && level == 0)
+    {
+
+        // get the current value of the point mass
+        std::ifstream PMFile;
+        std::string FullPathPMFile = parent->theRestartFile();
+        FullPathPMFile += "/point_mass";
+        PMFile.open(FullPathPMFile.c_str(), std::ios::in);
+
+        if (PMFile.good()) {
+            PMFile >> point_mass;
+            set_pointmass(&point_mass);
+            PMFile.close();
+        }
 
     }
+#endif
 
     if (level == 0)
     {
@@ -315,7 +346,7 @@ Castro::restart (Amr&     papa,
 	for (int j = 0; j < len; j++)
 	  int_dir_name[j] = (int) dir_for_pass[j];
 
-	problem_restart(int_dir_name.dataPtr(), &len);      
+	problem_restart(int_dir_name.dataPtr(), &len);
 
 	delete [] dir_for_pass;
 
@@ -345,7 +376,7 @@ Castro::restart (Amr&     papa,
 
           Box domain(geom.Domain());
           int lo=0, hi=0;
-          if (Geometry::IsRZ()) {
+          if (geom.IsRZ()) {
              if (grown_factor != 2) 
                 amrex::Abort("Must have grown_factor = 2");
 
@@ -373,7 +404,7 @@ Castro::restart (Amr&     papa,
                 } else if (grown_factor == 3) {
                    lo =   (dlen)/3    ;
                    hi = 2*(dlen)/3 - 1;
-                } else { 
+                } else {
                    amrex::Abort("Must have grown_factor = 2 or 3");
                 }
                 orig_domain.setSmall(d,lo);
@@ -390,23 +421,30 @@ Castro::restart (Amr&     papa,
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
+           RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
+           const Real* prob_lo = geom.ProbLo();
            const Box& bx      = mfi.validbox();
            const int* lo      = bx.loVect();
            const int* hi      = bx.hiVect();
 
            if (! orig_domain.contains(bx)) {
 
-#ifdef AMREX_DIMENSION_AGNOSTIC
+#ifdef GPU_COMPATIBLE_PROBLEM
+
+#pragma gpu box(bx)
+              ca_initdata(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                          BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                          AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+
+#else
+
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
                 (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
 		 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
-		 ZFILL(geom.ProbLo()), ZFILL(geom.ProbHi()));
-#else
-	      BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-		(level, cur_time, lo, hi, ns,
-		 BL_TO_FORTRAN(S_new[mfi]), dx,
-		 geom.ProbLo(), geom.ProbHi());
+		 ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
+
 #endif
+
 
            }
        }
@@ -525,7 +563,30 @@ Castro::checkPoint(const std::string& dir,
                    VisMF::How     how,
                    bool dump_old_default)
 {
+
+  for (int s = 0; s < num_state_type; ++s) {
+      if (dump_old && state[s].hasOldData()) {
+          MultiFab& old_MF = get_old_data(s);
+          amrex::prefetchToHost(old_MF);
+      }
+      MultiFab& new_MF = get_new_data(s);
+      amrex::prefetchToHost(new_MF);
+  }
+
+  const Real io_start_time = ParallelDescriptor::second();
+
   AmrLevel::checkPoint(dir, os, how, dump_old);
+
+  const Real io_time = ParallelDescriptor::second() - io_start_time;
+
+  for (int s = 0; s < num_state_type; ++s) {
+      if (dump_old && state[s].hasOldData()) {
+          MultiFab& old_MF = get_old_data(s);
+          amrex::prefetchToDevice(old_MF);
+      }
+      MultiFab& new_MF = get_new_data(s);
+      amrex::prefetchToDevice(new_MF);
+  }
 
 #ifdef RADIATION
   if (do_radiation) {
@@ -548,7 +609,7 @@ Castro::checkPoint(const std::string& dir,
 	    CastroHeaderFile << "Checkpoint version: " << current_version << std::endl;
 	    CastroHeaderFile.close();
 
-            writeJobInfo(dir);
+            writeJobInfo(dir, io_time);
 
             // output the list of state variables, so we can do a sanity check on restart
             std::ofstream StateListFile;
@@ -586,7 +647,7 @@ Castro::checkPoint(const std::string& dir,
 	    FullPathCPUFile += "/CPUtime";
 	    CPUFile.open(FullPathCPUFile.c_str(), std::ios::out);
 
-	    CPUFile << std::setprecision(15) << getCPUTime();
+	    CPUFile << std::setprecision(17) << getCPUTime();
 	    CPUFile.close();
 	}
 
@@ -599,11 +660,27 @@ Castro::checkPoint(const std::string& dir,
 	    DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
 
 	    for (int i = 0; i < n_lost; i++)
-	      DiagFile << std::setprecision(15) << material_lost_through_boundary_cumulative[i] << std::endl;
+	      DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
 
 	    DiagFile.close();
 
 	}
+
+#ifdef GRAVITY
+        if (use_point_mass) {
+
+            // store current value of the point mass
+            std::ofstream PMFile;
+            std::string FullPathPMFile = dir;
+            FullPathPMFile += "/point_mass";
+            PMFile.open(FullPathPMFile.c_str(), std::ios::out);
+
+            PMFile << std::setprecision(17) << point_mass << std::endl;
+
+            PMFile.close();
+
+        }
+#endif
 
 	{
 	    // store any problem-specific stuff
@@ -617,7 +694,7 @@ Castro::checkPoint(const std::string& dir,
 	    for (int j = 0; j < len; j++)
 		int_dir_name[j] = (int) dir_for_pass[j];
 
-	    problem_checkpoint(int_dir_name.dataPtr(), &len);      
+	    problem_checkpoint(int_dir_name.dataPtr(), &len);
 
 	    delete [] dir_for_pass;
 	}
@@ -708,8 +785,7 @@ Castro::setPlotVariables ()
 
 
 void
-Castro::writeJobInfo (const std::string& dir)
-
+Castro::writeJobInfo (const std::string& dir, const Real io_time)
 {
 
   // job_info file with details about the run
@@ -752,15 +828,30 @@ Castro::writeJobInfo (const std::string& dir)
 
   // Convert now to tm struct for local timezone
   tm* localtm = localtime(&now);
-  jobInfoFile   << "output data / time: " << asctime(localtm);
+  jobInfoFile   << "output date / time: " << asctime(localtm);
 
   char currentDir[FILENAME_MAX];
   if (getcwd(currentDir, FILENAME_MAX)) {
     jobInfoFile << "output dir:         " << currentDir << "\n";
   }
 
+  jobInfoFile << "I/O time (s):       " << io_time << "\n";
+
   jobInfoFile << "\n\n";
 
+#ifdef AMREX_USE_GPU
+  // This output assumes for simplicity that every rank uses the
+  // same type of GPU.
+
+  jobInfoFile << PrettyLine;
+  jobInfoFile << "GPU Information:       " << "\n";
+  jobInfoFile << PrettyLine;
+
+  jobInfoFile << "GPU model name: " << Gpu::Device::deviceName() << "\n";
+  jobInfoFile << "Number of GPUs used: " << Gpu::Device::numDevicesUsed() << "\n";
+
+  jobInfoFile << "\n\n";
+#endif
 
   // build information
   jobInfoFile << PrettyLine;
@@ -809,7 +900,7 @@ Castro::writeJobInfo (const std::string& dir)
   if (strlen(githash2) > 0) {
     jobInfoFile << "AMReX        git describe: " << githash2 << "\n";
   }
-  if (strlen(githash3) > 0) {	
+  if (strlen(githash3) > 0) {
     jobInfoFile << "Microphysics git describe: " << githash3 << "\n";
   }
 
@@ -871,13 +962,19 @@ Castro::writeJobInfo (const std::string& dir)
 
   jobInfoFile << " Domain geometry info\n";
 
+  Real center[3];
+  ca_get_center(center);
+
+  jobInfoFile << "     center: " << center[0] << " , " << center[1] << " , " << center[2] << "\n";
+  jobInfoFile << "\n";
+
   jobInfoFile << "     geometry.is_periodic: ";
   for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
     jobInfoFile << geom.isPeriodic(dir) << " ";
   }
   jobInfoFile << "\n";
 
-  jobInfoFile << "     geometry.coord_sys:   " << Geometry::Coord() << "\n";
+  jobInfoFile << "     geometry.coord_sys:   " << geom.Coord() << "\n";
 
   jobInfoFile << "     geometry.prob_lo:     ";
   for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
@@ -939,15 +1036,15 @@ Castro::writeJobInfo (const std::string& dir)
       //
       ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
       char* spec_name = new char[len+1];
-      for (int j = 0; j < len; j++) 
+      for (int j = 0; j < len; j++)
 	spec_name[j] = int_spec_names[j];
       spec_name[len] = '\0';
 
       // get A and Z
       ca_get_spec_az(&i, &Aion, &Zion);
 
-      jobInfoFile << 
-	std::setw(6) << i << SkipSpace << 
+      jobInfoFile <<
+	std::setw(6) << i << SkipSpace <<
 	std::setw(mlen+1) << std::setfill(' ') << spec_name << SkipSpace <<
 	std::setw(7) << Aion << SkipSpace <<
 	std::setw(7) << Zion << "\n";
@@ -984,7 +1081,78 @@ Castro::writeJobInfo (const std::string& dir)
 
   runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
 
+#ifdef PROB_PARAMS
+  prob_params_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
+#endif
 
+}
+
+
+void
+Castro::writeBuildInfo ()
+{
+  std::string PrettyLine = std::string(78, '=') + "\n";
+  std::string OtherLine = std::string(78, '-') + "\n";
+  std::string SkipSpace = std::string(8, ' ');
+
+  // build information
+  std::cout << PrettyLine;
+  std::cout << " Castro Build Information\n";
+  std::cout << PrettyLine;
+
+  std::cout << "build date:    " << buildInfoGetBuildDate() << "\n";
+  std::cout << "build machine: " << buildInfoGetBuildMachine() << "\n";
+  std::cout << "build dir:     " << buildInfoGetBuildDir() << "\n";
+  std::cout << "AMReX dir:     " << buildInfoGetAMReXDir() << "\n";
+
+  std::cout << "\n";
+
+  std::cout << "COMP:          " << buildInfoGetComp() << "\n";
+  std::cout << "COMP version:  " << buildInfoGetCompVersion() << "\n";
+
+  std::cout << "\n";
+
+  std::cout << "C++ compiler:  " << buildInfoGetCXXName() << "\n";
+  std::cout << "C++ flags:     " << buildInfoGetCXXFlags() << "\n";
+
+  std::cout << "\n";
+
+  std::cout << "Fortran comp:  " << buildInfoGetFName() << "\n";
+  std::cout << "Fortran flags: " << buildInfoGetFFlags() << "\n";
+
+  std::cout << "\n";
+
+  std::cout << "Link flags:    " << buildInfoGetLinkFlags() << "\n";
+  std::cout << "Libraries:     " << buildInfoGetLibraries() << "\n";
+
+  std::cout << "\n";
+
+  for (int n = 1; n <= buildInfoGetNumModules(); n++) {
+    std::cout << buildInfoGetModuleName(n) << ": " << buildInfoGetModuleVal(n) << "\n";
+  }
+
+  std::cout << "\n";
+
+  const char* githash1 = buildInfoGetGitHash(1);
+  const char* githash2 = buildInfoGetGitHash(2);
+  const char* githash3 = buildInfoGetGitHash(3);
+  if (strlen(githash1) > 0) {
+    std::cout << "Castro       git describe: " << githash1 << "\n";
+  }
+  if (strlen(githash2) > 0) {
+    std::cout << "AMReX        git describe: " << githash2 << "\n";
+  }
+  if (strlen(githash3) > 0) {
+    std::cout << "Microphysics git describe: " << githash3 << "\n";
+  }
+
+  const char* buildgithash = buildInfoGetBuildGitHash();
+  const char* buildgitname = buildInfoGetBuildGitName();
+  if (strlen(buildgithash) > 0){
+    std::cout << buildgitname << " git describe: " << buildgithash << "\n";
+  }
+
+  std::cout << "\n\n";
 }
 
 void
@@ -1105,10 +1273,10 @@ Castro::plotFileOutput(const std::string& dir,
         int f_lev = parent->finestLevel();
         os << f_lev << '\n';
         for (i = 0; i < BL_SPACEDIM; i++)
-            os << Geometry::ProbLo(i) << ' ';
+            os << geom.ProbLo(i) << ' ';
         os << '\n';
         for (i = 0; i < BL_SPACEDIM; i++)
-            os << Geometry::ProbHi(i) << ' ';
+            os << geom.ProbHi(i) << ' ';
         os << '\n';
         for (i = 0; i < f_lev; i++)
             os << parent->refRatio(i)[0] << ' ';
@@ -1125,7 +1293,7 @@ Castro::plotFileOutput(const std::string& dir,
                 os << parent->Geom(i).CellSize()[k] << ' ';
             os << '\n';
         }
-        os << (int) Geometry::Coord() << '\n';
+        os << (int) geom.Coord() << '\n';
         os << "0\n"; // Write bndry data.
 
 #ifdef RADIATION
@@ -1140,8 +1308,6 @@ Castro::plotFileOutput(const std::string& dir,
 	  groupfile.close();
 	}
 #endif
-	writeJobInfo(dir);
-
     }
     // Build the directory to hold the MultiFab at this level.
     // The name is relative to the directory containing the Header file.
@@ -1232,12 +1398,23 @@ Castro::plotFileOutput(const std::string& dir,
     }
 #endif
 
+    amrex::prefetchToHost(plotMF);
+
     //
     // Use the Full pathname when naming the MultiFab.
     //
     std::string TheFullPath = FullPath;
     TheFullPath += BaseName;
+
+    const Real io_start_time = ParallelDescriptor::second();
+
     VisMF::Write(plotMF,TheFullPath,how,true);
+
+    const Real io_time = ParallelDescriptor::second() - io_start_time;
+
+    if (level == 0 && ParallelDescriptor::IOProcessor()) {
+        writeJobInfo(dir, io_time);
+    }
 
     if (track_grid_losses && level == 0) {
 
@@ -1248,10 +1425,27 @@ Castro::plotFileOutput(const std::string& dir,
         DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
 
         for (int i = 0; i < n_lost; i++)
-            DiagFile << std::setprecision(15) << material_lost_through_boundary_cumulative[i] << std::endl;
+            DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
 
         DiagFile.close();
 
     }
+
+
+#ifdef GRAVITY
+    if (use_point_mass && level == 0) {
+
+        // store current value of the point mass
+        std::ofstream PMFile;
+        std::string FullPathPMFile = dir;
+        FullPathPMFile += "/point_mass";
+        PMFile.open(FullPathPMFile.c_str(), std::ios::out);
+
+        PMFile << std::setprecision(17) << point_mass << std::endl;
+
+        PMFile.close();
+
+    }
+#endif
 
 }

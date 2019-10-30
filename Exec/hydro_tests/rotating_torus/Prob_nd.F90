@@ -1,46 +1,40 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
-  use amrex_constants_module
+  use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
   use fundamental_constants_module, only: Gconst
   use actual_eos_module, only: K_const, gamma_const, polytrope_index
-  use probdata_module
+  use probdata_module, only: density_maximum_radius, inner_radius, outer_radius, &
+                             ambient_density, torus_width, torus_center
   use prob_params_module, only: center
   use meth_params_module, only: point_mass
+#ifdef ROTATION
   use rotation_frequency_module, only: get_omega
+#endif
   use amrex_fort_module, only : rt => amrex_real
 
-  implicit none 
+  implicit none
 
-  integer :: init,namlen,untin,i
-  integer :: name(namlen)
-  real(rt)         :: problo(3), probhi(3)
-  
-  namelist /fortin/ inner_radius, outer_radius, density_maximum_radius, ambient_density
+  integer, intent(in) :: init, namlen
+  integer, intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(3), probhi(3)
 
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 127
-  character :: probin*(maxlen)
+  real(rt) :: omega(3)
 
-  real(rt)         :: omega(3)
-  
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-         
-  ! Read namelists in probin file
-  untin = 9
-  open(untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
+#ifdef ROTATION
   omega = get_omega(ZERO)
+#else
+  ! Provide a dummy value so that we can compile without rotation.
+  omega = [ZERO, ZERO, TWO * M_PI]
+#endif
 
   ! Figure out R_0, the maximum pressure radius.
-  
+
   density_maximum_radius = (Gconst * point_mass / sum(omega**2))**THIRD
 
   ! Select the polytrope constant so that the maximum density is one.
-  
+
   K_const = Gconst * point_mass / (TWO * (ONE + polytrope_index) * density_maximum_radius) * &
             (ONE - density_maximum_radius**2 / (inner_radius * outer_radius))
 
@@ -57,15 +51,17 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_lo,state_hi, &
                        dx,xlo,xhi)
 
-  use amrex_constants_module
+  use amrex_constants_module, only: ZERO, HALF, ONE, TWO, M_PI
   use fundamental_constants_module, only: Gconst
-  use probdata_module
+  use probdata_module, only: density_maximum_radius, inner_radius, outer_radius, ambient_density
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use actual_eos_module, only: polytrope_index, K_const
   use network, only: nspec
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, point_mass, do_rotation
+#ifdef ROTATION
   use rotation_frequency_module, only: get_omega
+#endif
   use math_module, only: cross_product
   use prob_params_module, only: center
   use castro_util_module, only: position
@@ -79,7 +75,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
   real(rt)         :: time, dx(3)
   real(rt)         :: xlo(3), xhi(3)
-  
+
   real(rt)         :: loc(3), vel(3), R, Z, dist
   real(rt)         :: rho, rho_s, fac
   integer          :: i, j, k
@@ -88,7 +84,11 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   real(rt)         :: omega(3)
 
+#ifdef ROTATION
   omega = get_omega(time)
+#else
+  omega = [ZERO, ZERO, TWO * M_PI]
+#endif
 
   ! Rotating torus of Papaloizou and Pringle (1984), MNRAS, 208, 721.
   ! http://adsabs.harvard.edu/abs/1985MNRAS.213..799P
@@ -97,7 +97,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
 
   ! The inspiration for this problem comes from Byerly et al. (2014), ApJS, 212, 23.
   ! http://adsabs.harvard.edu/abs/2014ApJS..212...23B
-  
+
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
@@ -116,9 +116,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            ! where R_0 == density_maximum_radius, R_- == inner_radius, and R_+ == outer_radius.
            ! If the term inside square brackets in Equation 2.9 is negative, that means effectively that we're no longer
            ! inside the torus, so at that point we just use a low ambient density instead.
-           
+
            rho_s = ( Gconst * point_mass / ( (ONE + polytrope_index) * K_const * density_maximum_radius ) )**polytrope_index
-           
+
            fac = density_maximum_radius / dist &
                - HALF * density_maximum_radius**2 / R**2 &
                - HALF * density_maximum_radius**2 / (inner_radius * outer_radius)
@@ -142,9 +142,9 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            else
               vel = ZERO
            endif
-           
+
            eos_state % rho = rho
-           eos_state % T   = 1.0 
+           eos_state % T   = 1.0
            eos_state % xn  = 1.0 / nspec
 
            call eos(eos_input_rt, eos_state)
@@ -153,14 +153,13 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
            state(i,j,k,UTEMP)   = eos_state % T
            state(i,j,k,UEINT)   = rho * eos_state % e
 
-           state(i,j,k,UMX:UMZ) = rho * vel           
+           state(i,j,k,UMX:UMZ) = rho * vel
            state(i,j,k,UEDEN)   = state(i,j,k,UEINT) + HALF * rho * sum(vel**2)
 
            state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,URHO) * (ONE / nspec)
-           
+
         enddo
      enddo
   enddo
-  
-end subroutine ca_initdata
 
+end subroutine ca_initdata

@@ -87,10 +87,10 @@ extern "C"
      const int* domlo, const int* domhi,
      const amrex::Real* dx,
      BL_FORT_FAB_ARG_3D(phi),
-     const int* lnum,
+     const int lnum,
      const amrex::Real* qL0, const amrex::Real* qLC, const amrex::Real* qLS,
      const amrex::Real* qU0, const amrex::Real* qUC, const amrex::Real* qUS,
-     const int* npts, const int* boundary_only); 
+     const int npts, const int boundary_only); 
 
   void ca_compute_multipole_moments
     (const int* lo, const int* hi,
@@ -98,10 +98,10 @@ extern "C"
      const amrex::Real* dx,
      const BL_FORT_FAB_ARG_3D(rho),
      const BL_FORT_FAB_ARG_3D(vol),
-     const int* lnum,
+     const int lnum,
      amrex::Real* qL0, amrex::Real* qLC, amrex::Real* qLS,
      amrex::Real* qU0, amrex::Real* qUC, amrex::Real* qUS,
-     const int* npts, const int* boundary_only); 
+     const int npts, const int boundary_only); 
 
   void ca_compute_direct_sum_bc
     (const int* lo, const int* hi, const amrex::Real* dx,
@@ -122,12 +122,10 @@ extern "C"
      const amrex::Real* bcYZLo, const amrex::Real* bcYZHi,
      const int* bclo, const int* bchi);
 
-#ifdef POINTMASS
   void pm_add_to_grav
     (const int* lo, const int* hi,
-     const amrex::Real* point_mass, BL_FORT_FAB_ARG_3D(phi), BL_FORT_FAB_ARG_3D(grav_vector),
+     const amrex::Real point_mass, BL_FORT_FAB_ARG_3D(phi), BL_FORT_FAB_ARG_3D(grav_vector),
      const amrex::Real* problo, const amrex::Real* dx);
-#endif
 
 #ifdef __cplusplus
 }

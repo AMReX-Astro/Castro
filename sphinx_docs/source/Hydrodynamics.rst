@@ -41,9 +41,10 @@ several main data structures that hold the state.
 -  conserved state: these arrays generally begin with ``u``,
    e.g., ``uin``, ``uout``. The ``NVAR``
    components for the state data in the array are accessed using
-   integer keys defined in `[table:consints] <#table:consints>`__.
+   integer keys defined in :numref:`table:consints`.
 
-   .. table:: [table:consints] The integer variables to index the conservative state array
+   .. _table:consints:
+   .. table:: The integer variables to index the conservative state array
 
       +-----------------------+-----------------------+-------------------------+
       | **variable**          | **quantity**          | **note**                |
@@ -99,11 +100,12 @@ several main data structures that hold the state.
    .. note:: if ``RADIATION`` is defined, then only the gas/hydro terms are
       present in ``NQSRC``.  
 
-   Table \ `[table:primlist] <#table:primlist>`__ gives the names of the primitive variable integer
+   :numref:`table:primlist` gives the names of the primitive variable integer
    keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
    are “gas” only and those with the “tot” subscript are “gas + radiation”.
 
-   .. table:: [table:primlist] The integer variable keys for accessing the primitive state vector.
+   .. _table:primlist:
+   .. table:: The integer variable keys for accessing the primitive state vector.
 
       +-----------------------+------------------------+-----------------------+
       | **variable**          | **quantity**           | **note**              |
@@ -148,11 +150,12 @@ several main data structures that hold the state.
    qaux. The main difference between these and the regular
    primitive variables is that we do not attempt to do any
    reconstruction on their profiles. There are ``NQAUX`` quantities, indexed
-   by the integer keys listed in table \ `[table:qauxlist] <#table:qauxlist>`__.
+   by the integer keys listed in :numref:`table:qauxlist`.
    Note, unless otherwise specified the quantities without a subscript are “gas”
    only and those with the “tot” subscript are “gas + radiation”.
 
-   .. table:: [table:qauxlist] The integer variable keys for accessing the auxiliary primitive state vector, quax.
+   .. _table:qauxlist:
+   .. table:: The integer variable keys for accessing the auxiliary primitive state vector, quax.
 
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
@@ -195,11 +198,12 @@ several main data structures that hold the state.
    non-conservative terms in the equations. These arrays are generally
    called ``q1``, ``q2``, and ``q3`` for the x, y, and z
    interfaces respectively. There are ``NGDNV`` components accessed with
-   the integer keys defined in table \ `[table:gdlist] <#table:gdlist>`__
+   the integer keys defined in :numref:`table:gdlist`
    Note, unless otherwise specified the quantities without a subscript are
    “gas” only and those with the “tot” subscript are “gas + radiation”.
 
-   .. table:: [table:gdlist] The integer variable keys for accessing the Godunov interface state vectors.
+   .. _table:gdlist:
+   .. table:: The integer variable keys for accessing the Godunov interface state vectors.
 
       +-----------------------+-----------------------+-----------------------+
       | **variable**          | **quantity**          | **note**              |
@@ -275,7 +279,7 @@ In the code we also carry around :math:`T` and :math:`\rho e` in the conservativ
 state vector even though they are derived from the other conserved
 quantities. The ordering of the elements within :math:`\Ub` is defined
 by integer variables into the array—see
-Table \ `[table:consints] <#table:consints>`__
+:numref:`table:consints`.
 
 Some notes:
 
@@ -390,7 +394,7 @@ The advected quantities appear as:
 All of the primitive variables are derived from the conservative state
 vector, as described in Section `6.1 <#Sec:Compute Primitive Variables>`__.
 When accessing the primitive variable state vector, the integer variable
-keys for the different quantities are listed in Table \ `[table:primlist] <#table:primlist>`__.
+keys for the different quantities are listed in :numref:`table:primlist`.
 
 Internal energy and temperature
 -------------------------------
@@ -440,10 +444,6 @@ the total energy. These parameters are used as follows:
    :math:`e_T > \eta_2 E`. If so, we reset :math:`e` to be equal to :math:`e_T`,
    discarding the results of the internal energy equation. Otherwise,
    we keep :math:`e` as it is.
-
-   Optionally we can also update :math:`E` so that it gains the difference of
-   the old and and new :math:`e`, by setting
-   castro.dual_energy_update_E_from_e to 1.
 
 -  :math:`\eta_3`: Similar to :math:`\eta_1`, if :math:`e_T > \eta_3 E`, we use
    :math:`e_T` for the purposes of our nuclear reactions, otherwise, we use
@@ -581,6 +581,8 @@ There are four major steps in the hydrodynamics update:
 
 #. Doing the conservative update
 
+.. index:: castro.do_hydro, castro.add_ext_src, castro.do_sponge, castro.normalize_species, castro.spherical_star, castro.show_center_of_mass
+
 Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
 runtime parameters for hydrodynamics:
@@ -594,19 +596,10 @@ runtime parameters for hydrodynamics:
 -  ``castro.do_sponge``: call the sponge routine
    after the solution update (0 or 1; default: 0)
 
-   The purpose of the sponge is to damp velocities outside of a star, to
-   prevent them from dominating the timestep constraint. The sponge parameters
-   are set in your ``probin`` file, in the ``&sponge`` namelist. You can sponge either
-   on radius from the center (using ``sponge_lower_radius`` and
-   ``sponge_upper_radius``) or on density (using ``sponge_lower_density``
-   and ``sponge_upper_density``). The timescale of the damping is
-   set through ``sponge_timescale``.
+   See :ref:`sponge_section` for more details on the sponge.
 
 -  ``castro.normalize_species``: enforce that :math:`\sum_i X_i = 1`
    (0 or 1; default: 0)
-
--  ``castro.fix_mass_flux``: enforce constant mass flux at
-   domain boundary (0 or 1; default: 1)
 
 -  ``castro.spherical_star``: this is used to set the boundary
    conditions by assuming the star is spherically symmetric in
@@ -618,6 +611,8 @@ runtime parameters for hydrodynamics:
    implementing the boundary conditions.
 
 -  ``castro.show_center_of_mass``: (0 or 1; default: 0)
+
+.. index:: castro.small_dens, castro.small_temp, castro.small_pres
 
 Several floors are imposed on the thermodynamic quantities to prevet unphysical
 behavior:
@@ -848,7 +843,9 @@ equations in 1D, for simplicity):
 -  **Step 2**: Construct a quadratic profile using :math:`s_{i,-},s_i`,
    and :math:`s_{i,+}`.
 
-   .. math:: s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\label{Quadratic Interp}
+   .. math::
+      s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],
+      :label: Quadratic Interp
 
    .. math:: s_6 = 6s_{i} - 3\left(s_{i,-}+s_{i,+}\right),
 
@@ -868,7 +865,7 @@ equations in 1D, for simplicity):
         \mathcal{I}^{(k)}_{-}(s_i) &= \frac{1}{\sigma_k h}\int_{(i-\myhalf)h}^{(i-\myhalf)h+\sigma_k h}s_i^I(x)dx
         \end{align}
 
-     Plugging in (`[Quadratic Interp] <#Quadratic Interp>`__) gives:
+     Plugging in :eq:`Quadratic Interp` gives:
 
      .. math::
 
@@ -952,6 +949,17 @@ manuscript by Colella, Glaz, & Ferguson, and an HLLC
 solver. The first two are both
 two-shock approximate solvers, but differ in how they approximate
 the thermodynamics in the “star” region.
+
+.. index:: castro.riemann_speed_limit
+
+.. note::
+
+   These Riemann solvers are for Newtonian hydrodynamics, however, we enforce
+   that the interface velocity cannot exceed the speed of light in both the
+   Colella & Glaz and Colella, Glaz, & Ferguson solvers.  This excessive speed
+   usually is a sign of low density regions and density resets or the flux limiter
+   kicking in.  This behavior can be changed with the ``castro.riemann_speed_limit``
+   parameter.
 
 Inputs from the edge state prediction are :math:`\rho_{L/R}, u_{L/R},
 v_{L/R}, p_{L/R}`, and :math:`(\rho e)_{L/R}` (:math:`v` represents all of the

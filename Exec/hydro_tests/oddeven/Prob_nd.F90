@@ -1,8 +1,8 @@
-subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use prob_params_module, only: center
   use probdata_module, only: p_ambient, dens_ambient, dens_pert_factor, vel_pert
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -11,28 +11,10 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer,  intent(in   ) :: name(namlen)
   real(rt), intent(in   ) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
-  namelist /fortin/ p_ambient, dens_ambient, dens_pert_factor, vel_pert
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) call amrex_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
+  call probdata_init(name, namlen)
 
   ! set center, domain extrema
   center(:) = (problo(:) + probhi(:)) / 2.e0_rt
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin,fortin)
-  close(unit=untin)
 
 end subroutine amrex_probinit
 
@@ -46,7 +28,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_type_module, only: eos_t, eos_input_rp
   use network, only: nspec
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
-  use prob_params_module, only: center
+  use prob_params_module, only: center, problo
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -79,13 +61,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 #endif
 
   do k = lo(3), hi(3)
-     zcen = xlo(3) + dx(3)*(dble(k-lo(3)) + HALF)
+     zcen = problo(3) + dx(3)*(dble(k) + HALF)
 
      do j = lo(2), hi(2)
-        ycen = xlo(2) + dx(2)*(dble(j-lo(2)) + HALF)
+        ycen = problo(2) + dx(2)*(dble(j) + HALF)
 
         do i = lo(1), hi(1)
-           xcen = xlo(1) + dx(1)*(dble(i-lo(1)) + HALF)
+           xcen = problo(1) + dx(1)*(dble(i) + HALF)
 
            if (i == icen .and. j == jcen .and. k == kcen) then
               dens = dens_ambient*dens_pert_factor

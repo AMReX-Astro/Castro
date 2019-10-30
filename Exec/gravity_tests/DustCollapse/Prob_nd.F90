@@ -1,55 +1,26 @@
 subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
-  use amrex_constants_module
-  use amrex_error_module
-  use probdata_module
-  use eos_module, only : eos
-  use eos_type_module, only : eos_t, eos_input_rp
-  use network, only : nspec
-  use meth_params_module, only : small_temp
-  use prob_params_module, only : center
+  use amrex_fort_module, only: rt => amrex_real
+  use amrex_constants_module, only: ZERO, ONE
+  use castro_error_module, only: castro_error
+  use probdata_module, only: rho_0, T_0, X_0, p_0, rho_ambient, T_ambient, &
+                             r_old, r_old_s, r_0, smooth_delta, r_offset, offset_smooth_delta, &
+                             center_x, center_y, center_z, nsub
+  use eos_type_module, only: eos_t, eos_input_rp
+  use eos_module, only: eos
+  use network, only: nspec
+  use meth_params_module, only: small_temp
+  use prob_params_module, only: center
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer, intent(in) :: init, namlen
-  integer, intent(in) :: name(namlen)
+  integer,  intent(in) :: init, namlen
+  integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
   type (eos_t) :: eos_state
 
-  namelist /fortin/ &
-       rho_0, r_0, r_old, p_0, rho_ambient, smooth_delta, &
-       center_x, center_y, center_z
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 127
-  character :: probin*(maxlen)
-
-  if (namlen > maxlen) then
-     call amrex_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  is_3d_fullstar = .false.
-
-  rho_0 = 1.e9_rt
-  r_0 = 6.5e8_rt
-  r_old = r_0
-  p_0 = 1.e10_rt
-  rho_ambient = 1.e0_rt
-  smooth_delta = 1.e-5_rt
-
-  ! Read namelists in probin file
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   r_old_s = r_old
 
@@ -73,47 +44,11 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 #endif
 #endif
 
-#if AMREX_SPACEDIM == 1
-  xmin = problo(1)
-  xmax = probhi(1)
-
-  ymin = ZERO
-  ymax = ZERO
-
-  zmin = ZERO
-  zmax = ZERO
-#endif
-
-#if AMREX_SPACEDIM >= 2
-  xmin = problo(1)
-  if (xmin /= ZERO) call amrex_error("ERROR: xmin should be 0!")
-
-  xmax = probhi(1)
-
-  ymin = problo(2)
-  if (ymin /= ZERO) call amrex_error("ERROR: ymin should be 0!")
-
-  ymax = probhi(2)
-
-  zmin = ZERO
-  zmax = ZERO
-#endif
-
-#if AMREX_SPACEDIM == 3
-  xmin = problo(1)
-  xmax = probhi(1)
-
-  ymin = problo(2)
-  ymax = probhi(2)
-
-  zmin = problo(3)
-  zmax = probhi(3)
-#endif
-
+  if (problo(1) /= ZERO) call castro_error("ERROR: xmin should be 0!")
+  if (problo(2) /= ZERO) call castro_error("ERROR: ymin should be 0!")
+  if (problo(3) /= ZERO) call castro_error("ERROR: zmin should be 0!")
 
   ! set the composition to be uniform
-  allocate(X_0(nspec))
-
   X_0(:) = ZERO
   X_0(1) = ONE
 
@@ -162,24 +97,23 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        state, state_lo, state_hi, &
                        delta, xlo, xhi)
 
-  use amrex_constants_module
-  use probdata_module
-  use eos_module, only : eos
+  use amrex_constants_module, only: ZERO, HALF, ONE
+  use probdata_module, only: rho_0, X_0, p_0, rho_ambient, r_0, smooth_delta, r_offset, offset_smooth_delta, nsub
   use eos_type_module, only : eos_t, eos_input_rp
-  use network, only : nspec
-  use interpolate_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
-  use prob_params_module, only : center, dg
-
+  use eos_module, only: eos
+  use network, only: nspec
+  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
+  use prob_params_module, only: problo, center, dg
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
-  integer, intent(in) :: level, nscal
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: state_lo(3), state_hi(3)
+  integer,  intent(in   ) :: level, nscal
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: state_lo(3), state_hi(3)
   real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-  real(rt), intent(in) :: time, delta(3)
-  real(rt), intent(in) :: xlo(3), xhi(3)
+  real(rt), intent(in   ) :: time, delta(3)
+  real(rt), intent(in   ) :: xlo(3), xhi(3)
 
   real(rt) :: xl, yl, zl, xx, yy, zz
   real(rt) :: dist
@@ -189,8 +123,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   integer  :: i, j, k, ii, jj, kk, n
 
   type (eos_t) :: eos_state
-
-  integer, parameter :: nsub = 5
 
 #if AMREX_SPACEDIM == 1
   volinv = ONE/dble(nsub)
@@ -205,13 +137,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   dz_sub = delta(3)/dble(nsub)
 
   do k = lo(3), hi(3)
-     zl = zmin + dble(k) * delta(3)
+     zl = problo(1) + dble(k) * delta(3)
 
      do j = lo(2), hi(2)
-        yl = ymin + dble(j) * delta(2)
+        yl = problo(2) + dble(j) * delta(2)
 
         do i = lo(1), hi(1)
-           xl = xmin + dble(i) * delta(1)
+           xl = problo(3) + dble(i) * delta(1)
 
            avg_rho = ZERO
 
@@ -228,8 +160,12 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
                     ! use a tanh profile to smooth the transition between rho_0
                     ! and rho_ambient
-                    rho_n = rho_0 - HALF*(rho_0 - rho_ambient)* &
-                         (ONE + tanh((dist - r_0)/smooth_delta))
+                    rho_n = rho_0 - HALF * (rho_0 - rho_ambient) * (ONE + tanh((dist - r_0)/smooth_delta))
+
+                    ! allow for the center to be empty
+                    if (r_offset > ZERO) then
+                       rho_n = rho_n - HALF * (rho_n - rho_ambient) * (ONE + tanh((r_offset - dist) / offset_smooth_delta))
+                    end if
 
                     avg_rho = avg_rho + rho_n
 

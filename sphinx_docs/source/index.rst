@@ -37,11 +37,14 @@ https://github.com/amrex-astro/Castro
    gravity
    diffusion
    rotation
+   sponge
    radiation
    Particles
    EOSNetwork
+   sdc
    AMR
    ConvertCheckpoint
+   self_consistent_field
    MAESTRO_restart
    Verification
 
@@ -54,6 +57,7 @@ https://github.com/amrex-astro/Castro
    .. namespacelist
 
 .. toctree::
+   :caption: References
 
    zreferences
 
@@ -61,5 +65,5 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
+.. * :ref:`modindex`
 * :ref:`search`

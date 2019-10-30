@@ -24,15 +24,16 @@ Castro's major capabilities:
 
   * rotation (in the co-rotating frame) in 2-d axisymmetric and 3-d.
 
-  * parallelization via MPI + OpenMP
+  * parallelization via MPI + OpenMP or MPI + CUDA
 
 Units and Conventions
 =====================
 
 Castro works in CGS units unless otherwise specified.
-Table \ `[table:units] <#table:units>`__ shows some of the common symbols / names used
+:numref:`table:units` shows some of the common symbols / names used
 throughout the code documentation and papers.
 
+.. _table:units:
 .. table:: [table:units] Common quantities and units.
 
    +-----------------------+-----------------------+-----------------------+

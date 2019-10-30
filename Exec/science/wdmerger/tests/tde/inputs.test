@@ -112,7 +112,7 @@ castro.source_term_predictor = 1
 castro.hybrid_hydro = 0
 
 # Explicitly limit fluxes to avoid hitting a negative density
-castro.limit_fluxes_on_small_dens = 1
+castro.limit_fluxes_on_small_dens = 0
 
 ############################################################################################
 # Thermodynamics
@@ -202,6 +202,3 @@ amr.derive_plot_vars = ALL
 
 # Name of the diagnostic sum output files
 amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out
-
-# Write out plotfile data in single precision
-fab.format = NATIVE_32

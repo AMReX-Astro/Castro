@@ -7,15 +7,14 @@ DIM        = 3
 COMP	   = gnu
 
 USE_MPI    = TRUE
-USE_OMP    = TRUE
+USE_OMP    = FALSE
 
 USE_GRAV      = TRUE
 USE_ROTATION  = TRUE
-USE_POINTMASS = TRUE
-
-DIMENSION_AGNOSTIC = TRUE
 
 USE_HYBRID_MOMENTUM = TRUE
+
+USE_PROB_PARAMS = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..

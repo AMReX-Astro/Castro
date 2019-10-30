@@ -27,6 +27,8 @@ state_nghost                 int           0
 do_reflux                    int           1
 
 # whether to re-compute new-time source terms after a reflux
+# Note: this only works for the CTU and simple-SDC time_integration_method
+# drivers
 update_sources_after_reflux  int           1
 
 # should we have state data for custom load-balancing weighting?
@@ -56,17 +58,20 @@ small_ener                   Real         -1.e200             y
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
-# how do we advance in time? 0 = CTU + Strang, 1 = MOL + Strang, 2 = SDC
+# how do we advance in time? 0 = CTU + Strang, 1 is not used, 2 = SDC, 3 = simplified-SDC
 time_integration_method      int           0                  y
-
-# do we do fourth-order accurate spatial reconstruction for hydro? (requires SDC or MOL integration)
-fourth_order                 int           0                  y
 
 # do we use a limiter with the fourth-order accurate reconstruction?
 limit_fourth_order           int           1                  y
 
+# for fourth order, we usually assume that the initialization is done
+# to cell centers and we convert to cell-averages.  With this option,
+# we take the initialization as cell-averages (except for T, which we
+# compute to fourth-order through the EOS after initialization).
+initialization_is_cell_average  int        0                  n
+
 # should we use a reconstructed version of Gamma_1 in the Riemann
-# solver? or the default zone average (requires SDC or MOL
+# solver? or the default zone average (requires SDC
 # integration, since we do not trace)
 use_reconstructed_gamma1     int           0                  y
 
@@ -103,11 +108,17 @@ ppm_temp_fix                 int           0                  y
 # :math:`\tau = 1/\rho` instead of :math:`\rho`.
 ppm_predict_gammae           int           0                  y
 
-# do we use the reference state in evaluating the eigenvectors?
-ppm_reference_eigenvectors   int           0                  y
-
 # for piecewise linear, reconstruction order to use
+# 1 = piecewise constant, 2 = piecewise linear
 plm_iorder                   int           2                  y
+
+# for piecewise linear, what limiter to use?
+# 1 = 2nd order MC, 2 = 4th order MC
+plm_limiter                  int           2                  y
+
+# for piecewise linear, MOL or SDC, do well-balanced reconstruction on
+# pressure
+plm_well_balanced            int           0                  y
 
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
@@ -131,12 +142,16 @@ cg_tol                       Real          1.0e-5             y
 # we do not converge to a solution for the star state.
 # 0 = do nothing; print iterations and exit
 # 1 = revert to the original guess for p-star
-# 2 = do a bisection search for another 2 * cg\_maxiter iterations.
+# 2 = do a bisection search for another 2 * cg_maxiter iterations.
 cg_blend                     int           2                  y
 
 # should we use the EOS in the Riemann solver to ensure
 # thermodynamic consistency?
 use_eos_in_riemann           int           0                  y
+
+# Limit the Riemann velocity used for flux construction to
+# this speed limit.
+riemann_speed_limit          Real          2.99792458e10      y
 
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
@@ -170,19 +185,16 @@ dual_energy_eta2             Real          1.0e-4             y
 # from the pressure before limiting?
 use_pslope                   int           1                  y
 
-fix_mass_flux                int           0                  y
-
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0                  y
 
 # Which method to use when resetting a negative/small density
 # 1 = Reset to characteristics of adjacent zone with largest density
 # 2 = Use average of all adjacent zones for all state variables
-# 3 = Reset to the original zone state before the hydro update
 density_reset_method         int           1                  y
 
 # Whether or not to allow the internal energy to be less than the
-# internal energy corresponding to small\_temp
+# internal energy corresponding to small_temp
 allow_small_energy           int           1                  y
 
 # permits sponge to be turned on and off
@@ -221,27 +233,44 @@ zr_ext_bc_type               string        ""                 y
 hse_zero_vels                int           0                  y
 
 # if we are doing HSE boundary conditions, should we get the temperature
-# via interpolation (using model\_parser) or hold it constant?
+# via interpolation (using model_parser) or hold it constant?
 hse_interp_temp              int           0                  y
 
 # if we are doing HSE boundary conditions, how do we treat the velocity?
 # reflect? or outflow?
 hse_reflect_vels             int           0                  y
 
-
-# integration order for MOL integration
-# 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK
-mol_order                    int           2                  y
-
 # integration order for SDC integration
 # valid options are 2 and 4
 sdc_order                    int           2                  y
 
+# which quadrature type to use with SDC?  0 = Gauss-Lobatto, 1 = Radau
+sdc_quadrature               int           0                  y
+
+# number of extra SDC iterations to take beyond the order
+sdc_extra                    int           0                  y
+
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
 sdc_solver                   int           1                  y
 
-# which SDC nonlinear solver to use?  1 = Newton, 2 = VODE
-sdc_solver_tol               Real          1.e-6             y
+# relative tolerance for the nonlinear solve on rho with SDC
+sdc_solver_tol_dens           Real          1.e-6              y
+
+# relative tolerance for the nonlinear solve on rho X_k with SDC
+sdc_solver_tol_spec           Real          1.e-6              y
+
+# relative tolerance for the nonlinear solve on (rho e) or (rho E) with SDC
+sdc_solver_tol_ener           Real          1.e-6              y
+
+# absolute tolerance for species with SDC (this will be multiplied by
+# the current rho in the zone to define the absolute tolerance on (rho
+# X)).
+sdc_solver_atol               Real          1.e-10              y
+
+# factor by which to reduce the SDC solver tol for each iteration before the last
+# (e.g., for iteration k out of kmax iterations, the tol is
+# :math:`\epsilon/f^{(k_\mathrm{max} - k)}`
+sdc_solver_relax_factor      Real          1.0                y
 
 # do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
 sdc_solve_for_rhoe           int           1                  y
@@ -363,7 +392,7 @@ T_guess                     Real           1.e8               y
 #-----------------------------------------------------------------------------
 
 # enable thermal diffusion
-diffuse_temp                 int           0                  n     DIFFUSION
+diffuse_temp                 int           0                  y     DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
 diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION
@@ -430,15 +459,15 @@ implicit_rotation_update     int           1                  y        ROTATION
 rot_axis                     int           3                  y        ROTATION
 
 # include a central point mass
-use_point_mass               int           1                  y        POINTMASS
+use_point_mass               int           0                  y        GRAVITY
 
 # mass of the point mass
-point_mass                   Real          0.0                y        POINTMASS
+point_mass                   Real          0.0                y        GRAVITY
 
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
 # adding their mass to the point mass object
-point_mass_fix_solution      int           0                  y        POINTMASS
+point_mass_fix_solution      int           0                  y        GRAVITY
 
 #-----------------------------------------------------------------------------
 # category: parallelization
@@ -459,6 +488,28 @@ grown_factor                 int           1                  y
 
 # used with the embiggening routines to determine how to extend the domain
 star_at_center               int          -1
+
+
+#-----------------------------------------------------------------------------
+# category: self-consistent field initialization
+#-----------------------------------------------------------------------------
+
+# Should we use SCF to construct the initial model?
+do_scf_initial_model         int           0
+
+# Maximum density on the domain when using SCF
+scf_maximum_density          Real          -1.e6
+
+# Equatorial and polar radii of the star constructed by SCF
+scf_equatorial_radius        Real          -1.e9
+scf_polar_radius             Real          -1.e9
+
+# SCF relaxation tolerance
+scf_relax_tol                Real          1.e-3
+
+# Maximum number of SCF iterations
+scf_max_iterations           int           30
+
 
 
 #-----------------------------------------------------------------------------
@@ -510,14 +561,14 @@ job_name                     string        ""
 output_at_completion         int           1
 
 # Do we want to reset the time in the checkpoint?
-# This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1,
-# (which require that max\_step and stop\_time be less than the value in the checkpoint)
+# This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1,
+# (which require that max_step and stop_time be less than the value in the checkpoint)
 # and you set it to value greater than this default value.
 reset_checkpoint_time        Real          -1.e200
 
 # Do we want to reset the number of steps in the checkpoint?
-# This ONLY takes effect if amr.regrid\_on\_restart = 1 and amr.checkpoint\_on\_restart = 1,
-# (which require that max\_step and stop\_time be less than the value in the checkpoint)
+# This ONLY takes effect if amr.regrid_on_restart = 1 and amr.checkpoint_on_restart = 1,
+# (which require that max_step and stop_time be less than the value in the checkpoint)
 # and you set it to value greater than this default value.
 reset_checkpoint_step        int           -1
 

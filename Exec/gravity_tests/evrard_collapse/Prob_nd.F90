@@ -1,43 +1,42 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
-  use probdata_module, only: initialize
-
+  use meth_params_module, only: small_temp, small_pres, small_dens, small_ener
   use amrex_fort_module, only : rt => amrex_real
+  use probdata_module
+  use eos_type_module, only : eos_t, eos_input_rt
+  use eos_module, only : eos
+  use network, only : nspec
+
   implicit none
 
   integer, intent(in)  :: init, namlen
   integer, intent(in)  :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  call initialize(name, namlen)
+  type (eos_t) :: eos_state
+
+  call probdata_init(name, namlen)
+
+  ! Given the inputs of small_dens and small_temp, figure out small_pres.
+
+  if (small_dens > 0.0e0_rt .and. small_temp > 0.0e0_rt) then
+     eos_state % rho = small_dens
+     eos_state % T   = small_temp
+     eos_state % xn  = 1.0e0_rt / nspec
+
+     call eos(eos_input_rt, eos_state)
+
+     small_pres = eos_state % p
+     small_ener = eos_state % e
+  endif
 
 end subroutine amrex_probinit
 
 
-! ::: -----------------------------------------------------------
-! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.
-! :::
-! ::: NOTE:  all arrays have one cell of ghost zones surrounding
-! :::        the grid interior.  Values in these cells need not
-! :::        be set here.
-! :::
-! ::: INPUTS/OUTPUTS:
-! :::
-! ::: level     => amr level of grid
-! ::: time      => time at which to init data
-! ::: lo,hi     => index limits of grid interior (cell centered)
-! ::: nstate    => number of state components.  You should know
-! :::		   this already!
-! ::: state     <=  Scalar array
-! ::: delta     => cell size
-! ::: xlo,xhi   => physical locations of lower left and upper
-! :::              right hand corner of grid.  (does not include
-! :::		   ghost region).
-! ::: -----------------------------------------------------------
-subroutine ca_initdata(level, time, lo, hi, nscal, &
+
+subroutine ca_initdata(lo, hi, &
                        state, state_lo, state_hi, &
-                       delta, xlo, xhi)
+                       dx, problo) bind(C, name='ca_initdata')
 
   use probdata_module
   use eos_module, only: eos
@@ -52,11 +51,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   implicit none
 
-  integer,  intent(in   ) :: level, nscal
   integer,  intent(in   ) :: lo(3), hi(3)
   integer,  intent(in   ) :: state_lo(3), state_hi(3)
-  real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
   real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+  real(rt), intent(in   ) :: dx(3), problo(3)
 
   real(rt) :: loc(3)
   real(rt) :: radius
@@ -65,18 +63,20 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   integer :: i,j,k
 
+  !$gpu
+
   ! Loop through the zones and set the zone state depending on whether we are
   ! inside the sphere or if we are in an ambient zone.
 
   !$OMP PARALLEL DO PRIVATE(i, j, k, loc, radius, zone_state)
   do k = lo(3), hi(3)
-     loc(3) = xlo(3) + delta(3)*dble(k+HALF-lo(3))
+     loc(3) = problo(3) + dx(3) * (dble(k)+HALF)
 
      do j = lo(2), hi(2)
-        loc(2) = xlo(2) + delta(2)*dble(j+HALF-lo(2))
+        loc(2) = problo(2) + dx(2) * (dble(j)+HALF)
 
         do i = lo(1), hi(1)
-           loc(1) = xlo(1) + delta(1)*dble(i+HALF-lo(1))
+           loc(1) = problo(1) + dx(1) * (dble(i)+HALF)
 
            radius = sum( (loc - center)**2 )**HALF
 

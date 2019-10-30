@@ -1,0 +1,31 @@
+p_l        real       1.0_rt       y
+
+u_l        real       0.0_rt       y
+
+rho_l      real       1.0_rt       y
+
+p_r        real       0.1_rt       y
+
+u_r        real       0.0_rt       y
+
+rho_r      real       0.125_rt     y
+
+rhoe_l     real       0.0_rt
+
+rhoe_r     real       0.0_rt
+
+frac       real       0.5_rt       y
+
+T_l        real       1.0_rt       y
+
+T_r        real       1.0_rt       y
+
+cldradius  real       -1.0_rt      y
+
+xcloud     real       -1.0_rt      y
+
+use_Tinit  logical    .false.      y
+
+idir       integer    1            y
+
+split      real       0.0_rt       n        3

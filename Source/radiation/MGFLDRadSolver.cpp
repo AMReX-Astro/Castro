@@ -46,7 +46,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   MultiFab& S_new = castro->get_new_data(State_Type);
   AmrLevel::FillPatch(*castro,S_new,ngrow,time,State_Type,0,S_new.nComp(),0); 
 
-  Tuple<MultiFab, BL_SPACEDIM> lambda;
+  Array<MultiFab, BL_SPACEDIM> lambda;
   if (limiter > 0) {
     for (int idim = 0; idim < BL_SPACEDIM; idim++) {
 	lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, nGroups, 0);
@@ -237,7 +237,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   FluxRegister* flux_in = (level < fine_level) ? flux_trial[level+1].get() : nullptr;
   FluxRegister* flux_out = (level > 0) ? flux_trial[level].get() : nullptr;
 
-  Tuple<MultiFab, BL_SPACEDIM> Flux;
+  Array<MultiFab, BL_SPACEDIM> Flux;
   for (int n = 0; n < BL_SPACEDIM; n++) {
       Flux[n].define(castro->getEdgeBoxArray(n), dmap, 1, 0);
   }

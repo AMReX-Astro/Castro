@@ -1,0 +1,2 @@
+ca_f90EXE_sources += sedov_util.f90
+CEXE_headers += Sedov_F.H

@@ -1,42 +1,36 @@
-AMREX_HOME ?= /path/to/amrex
+PRECISION = DOUBLE
+PROFILE = FALSE
+DEBUG = TRUE
+DIM = 3
 
-NDEBUG := t
-MPI    :=
-OMP    :=
-MKVERBOSE :=t 
-COMP   := gfortran
+COMP = gnu
 
-# include the main Makefile stuff
-include $(AMREX_HOME)/Tools/F_mk/GMakedefs.mak
+USE_MPI = FALSE
+USE_OMP = FALSE
 
-# define the packages to build these tools
-Fmdirs := Src/F_BaseLib 
+USE_REACT = FALSE
 
-Fmpack := $(foreach dir, $(Fmdirs),     $(AMREX_HOME)/$(dir)/GPackage.mak)
-Fmlocs := $(foreach dir, $(Fmdirs),     $(AMREX_HOME)/$(dir))
-Fmincs := $(foreach dir, $(Fmdirs),     $(AMREX_HOME)/$(dir))
+USE_ACC = FALSE
 
-# include the necessary GPackage.mak files that define this setup
-include $(Fmpack)
+# programs to be compiled
+ALL: dustcollapse_$(DIM)d.ex
 
-# vpath defines the directories to search for the source files
-VPATH_LOCATIONS += $(Fmlocs)
+EOS_DIR := helmholtz
 
-# list of directories to put in the Fortran include path
-FINCLUDE_LOCATIONS += $(Fmincs)
+NETWORK_DIR := aprox13
 
-programs += fdustcollapse1d
-programs += fdustcollapse2d
-programs += fdustcollapse3d
+Bpack   := ./Make.package
+Blocs   := .
+# EXTERN_SEARCH = .
 
-all: $(pnames)
+CASTRO_HOME := ../..
 
-include $(AMREX_HOME)/Tools/F_mk/GMakerules.mak
+INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
+include $(AMREX_HOME)/Src/Extern/amrdata/Make.package
+vpathdir += $(AMREX_HOME)/Src/Extern/amrdata
 
-%.$(suf).exe:%.f90 $(objects)
-ifdef MKVERBOSE
-	$(LINK.f90) -o $@ $< $(objects) $(libraries)
-else	
-	@echo "Linking $@ ... "
-	@$(LINK.f90) -o $@ $< $(objects) $(libraries)
-endif
+include $(CASTRO_HOME)/Exec/Make.Castro
+
+dustcollapse_$(DIM)d.ex: $(objForExecs)
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ $^ $(libraries)

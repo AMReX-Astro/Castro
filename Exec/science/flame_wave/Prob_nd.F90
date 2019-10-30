@@ -1,12 +1,22 @@
 subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
-  use amrex_constants_module
-  use amrex_error_module
-  use initial_model_module
-  use model_parser_module, only : model_parser_init
-  use probdata_module
-  use amrex_fort_module, only : rt => amrex_real
-  use network
+  use amrex_fort_module, only: rt => amrex_real
+  use amrex_constants_module, only: ZERO, ONE, HALF
+  use castro_error_module, only: castro_error
+  use model_parser_module, only: model_parser_init
+  use initial_model_module, only: model_t, init_model_data, gen_model_r, gen_model_state, init_1d_tanh
+  use probdata_module, only: dx_model, dtemp, x_half_max, x_half_width, &
+                             X_min, cutoff_density, dens_base, T_star, &
+                             T_hi, T_lo, H_star, atm_delta, &
+                             fuel1_name, fuel2_name, fuel3_name, &
+                             ash1_name, ash2_name, ash3_name, &
+                             fuel1_frac, fuel2_frac, fuel3_frac, &
+                             ash1_frac, ash2_frac, ash3_frac, &
+                             low_density_cutoff, smallx, &
+                             max_hse_tagging_level, max_base_tagging_level, x_refine_distance
+  use network, only: nspec, network_species_index
+  use prob_params_module, only : center
+  use meth_params_module, only : small_dens
 
   implicit none
 
@@ -14,82 +24,24 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer :: name(namlen)
   real(rt) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
-  namelist /fortin/ nx_model, &
-                    dtemp, x_half_max, x_half_width, &
-                    X_min, cutoff_density, &
-                    dens_base, T_star, T_hi, T_lo, H_star, atm_delta, &
-                    fuel1_name, fuel2_name, fuel3_name, &
-                    ash1_name, ash2_name, ash3_name, &
-                    fuel1_frac, fuel2_frac, fuel3_frac, &
-                    ash1_frac, ash2_frac, ash3_frac, &
-                    low_density_cutoff, smallx, &
-                    max_hse_tagging_level, max_base_tagging_level, x_refine_distance
-
   ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character (len=maxlen) :: probin
-
   type(model_t) :: model_params
 
   integer :: iash1, iash2, iash3, ifuel1, ifuel2, ifuel3
   logical :: species_defined
 
-  real(rt) :: dx_model
+  integer :: nx_model
   integer :: ng
 
-  if (namlen > maxlen) call amrex_error("probin file name too long")
+  ! get the problm parameters
+  call probdata_init(name, namlen)
 
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
 
-  ! set namelist defaults here
-  X_min = 1.e-4_rt
-  cutoff_density = 500.e0_rt
-
-  dtemp = 3.81e8_rt
-  x_half_max = 1.2e5_rt
-  x_half_width = 3.6e4_rt
-
-  dens_base = 2.d6
-
-  T_star = 1.d8
-  T_hi = 5.d8
-  T_lo   = 5.e7
-
-  H_star = 500.d0
-  atm_delta  = 25.d0
-
-  fuel1_name = "helium-4"
-  fuel2_name = ""
-  fuel3_name = ""
-
-  ash1_name  = "iron-56"
-  ash2_name  = ""
-  ash3_name  = ""
-
-  fuel1_frac = ONE
-  fuel2_frac = ZERO
-  fuel3_frac = ZERO
-
-  ash1_frac = ONE
-  ash2_frac = ZERO
-  ash3_frac = ZERO
-
-  low_density_cutoff = 1.d-4
-
-  smallx = 1.d-10
-
-  max_hse_tagging_level = 2
-  max_base_tagging_level = 1
-
-  x_refine_distance = probhi(1)
-
-  open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  ! check to make sure that small_dens is less than low_density_cutoff
+  ! if not, funny things can happen above the atmosphere
+  if (small_dens >= 0.99_rt * low_density_cutoff) then
+     call castro_error("ERROR: small_dens should be set lower than low_density_cutoff")
+  end if
 
   ! get the species indices
   species_defined = .true.
@@ -122,7 +74,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   if (.not. species_defined) then
      print *, ifuel1, ifuel2, ifuel3
      print *, iash1, iash2, iash3
-     call amrex_error("ERROR: species not defined")
+     call castro_error("ERROR: species not defined")
   endif
 
 
@@ -140,18 +92,20 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   ! check if they sum to 1
   if (abs(sum(model_params % xn_star) - ONE) > nspec*smallx) then
-     call amrex_error("ERROR: ash mass fractions don't sum to 1")
+     call castro_error("ERROR: ash mass fractions don't sum to 1")
   endif
 
   if (abs(sum(model_params % xn_base) - ONE) > nspec*smallx) then
-     call amrex_error("ERROR: fuel mass fractions don't sum to 1")
+     call castro_error("ERROR: fuel mass fractions don't sum to 1")
   endif
 
   ! we are going to generate an initial model from problo(2) to
   ! probhi(2) with nx_model zones.  But to allow for a interpolated
   ! lower boundary, we'll add 4 ghostcells to this, so we need to
   ! compute dx
-  dx_model = (probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/nx_model
+  nx_model = int((probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/dx_model)
+
+  !dx_model = (probhi(AMREX_SPACEDIM) - problo(AMREX_SPACEDIM))/nx_model
   ng = 4
 
   ! now generate the initial models
@@ -183,70 +137,61 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
                     problo(AMREX_SPACEDIM)-ng*dx_model, probhi(AMREX_SPACEDIM), &
                     model_params, 2)
 
+  ! set center
+  center(:) = HALF * (problo(:) + probhi(:))
+
+#if AMREX_SPACEDIM == 2
+  ! for axisymmetry, put the x-center on the x-axis
+  center(1) = ZERO
+#endif
+
 end subroutine amrex_probinit
 
 
-! ::: -----------------------------------------------------------
-! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.
-! :::
-! ::: NOTE:  all arrays have one cell of ghost zones surrounding
-! :::        the grid interior.  Values in these cells need not
-! :::        be set here.
-! :::
-! ::: INPUTS/OUTPUTS:
-! :::
-! ::: level     => amr level of grid
-! ::: time      => time at which to init data
-! ::: lo,hi     => index limits of grid interior (cell centered)
-! ::: nstate    => number of state components.  You should know
-! :::		   this already!
-! ::: state     <=  Scalar array
-! ::: delta     => cell size
-! ::: xlo,xhi   => physical locations of lower left and upper
-! :::              right hand corner of grid.  (does not include
-! :::		   ghost region).
-! ::: -----------------------------------------------------------
-subroutine ca_initdata(level, time, lo, hi, nscal, &
-                       state, state_lo, state_hi, &
-                       delta, xlo, xhi)
 
-  use amrex_constants_module
-  use amrex_error_module
-  use probdata_module
-  use interpolate_module
-  use eos_module, only : eos
-  use eos_type_module, only : eos_t, eos_input_rt, eos_input_tp, eos_input_rp
-  use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
-  use prob_params_module, only: problo
+subroutine ca_initdata(lo, hi, &
+                       state, s_lo, s_hi, &
+                       dx, problo) bind(C, name='ca_initdata')
+
+  use amrex_fort_module, only: rt => amrex_real
+  use amrex_constants_module, only: ZERO, HALF, ONE
+#ifndef AMREX_USE_CUDA
+  use castro_error_module, only: castro_error
+#endif
+  use probdata_module, only: x_half_width, x_half_max
+  use eos_module, only: eos
+  use eos_type_module, only: eos_t, eos_input_rt, eos_input_tp, eos_input_rp
+  use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only: nspec
-  use initial_model_module
+  use initial_model_module, only: gen_npts_model, gen_model_r, gen_model_state, &
+                                  idens_model, itemp_model, ipres_model, ispec_model
+  use interpolate_module, only: interpolate ! function
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer, intent(in) :: level, nscal
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: state_lo(3), state_hi(3)
-  real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
-  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: s_lo(3), s_hi(3)
+  real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+  real(rt), intent(in   ) :: dx(3), problo(3)
 
   real(rt) :: x, y, z, r, height
   integer :: i, j, k, n
 
-  real(rt) :: temppres(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3))
+  real(rt) :: temppres
 
   type (eos_t) :: eos_state
   real(rt) :: f
 
+  !$gpu
+
   do k = lo(3), hi(3)
-     z = problo(3) + (dble(k)+HALF)*delta(3)
+     z = problo(3) + (dble(k) + HALF) * dx(3)
 
      do j = lo(2), hi(2)
-        y = problo(2) + (dble(j)+HALF)*delta(2)
+        y = problo(2) + (dble(j) + HALF) * dx(2)
 
         do i = lo(1), hi(1)
-           x = problo(1) + (dble(i)+HALF)*delta(1)
+           x = problo(1) + (dble(i) + HALF) * dx(1)
 
            ! lateral distance
            if (AMREX_SPACEDIM == 2) then
@@ -255,8 +200,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            else if (AMREX_SPACEDIM == 3) then
               r = sqrt(x**2 + y**2)
               height = z
+#ifndef AMREX_USE_CUDA
            else
-              call amrex_error("ERROR: problem not setup for 1D")
+              call castro_error("ERROR: problem not setup for 1D")
+#endif
            end if
 
            if (r < x_half_max) then
@@ -277,7 +224,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                      (1.0_rt - f) * interpolate(height,gen_npts_model,gen_model_r(:,1), &
                                                 gen_model_state(:,itemp_model,1))
 
-           temppres(i,j,k) = f * interpolate(height,gen_npts_model,gen_model_r(:,2), &
+           temppres = f * interpolate(height,gen_npts_model,gen_model_r(:,2), &
                                              gen_model_state(:,ipres_model,2)) + &
                   (1.0_rt - f) * interpolate(height,gen_npts_model,gen_model_r(:,1), &
                                              gen_model_state(:,ipres_model,1))
@@ -293,14 +240,14 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            eos_state%rho = state(i,j,k,URHO)
            eos_state%T = state(i,j,k,UTEMP)
-           eos_state%p = temppres(i,j,k)
+           eos_state%p = temppres
            eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
 
            call eos(eos_input_rp, eos_state)
 
            state(i,j,k,UTEMP) = eos_state % T
            state(i,j,k,UEINT) = eos_state % rho * eos_state % e
-           state(i,j,k,UEDEN) = state(i,j,k,UEDEN)
+           state(i,j,k,UEDEN) = state(i,j,k,UEINT)
 
            ! Initial velocities = 0
            state(i,j,k,UMX:UMZ) = 0.e0_rt

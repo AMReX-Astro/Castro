@@ -1,0 +1,52 @@
+1. run Castro for both heating and cooling tests:
+
+   ./Castro1d.Linux.Intel.Intel.DEBUG.MPI.ex inputs-heating
+
+   ./Castro1d.Linux.Intel.Intel.DEBUG.MPI.ex inputs-cooling
+
+
+
+2. process the output using fradsource from fParallel/data_processing/
+
+   ./fradsource.Linux.Intel.debug.exe plt_heating_* > castro_heating.out
+
+   ./fradsource.Linux.Intel.debug.exe plt_cooling_* > castro_cooling.out
+
+   This will output the gas energy density (rho_e in the plotfile) in
+   the first zone of the first patch on the finest level (along with
+   the simulation time).  The radiation energy density is also output.
+
+
+3. generate the analytic solutions using analytic.f90
+
+   For the heating case, set rhoe_i = 1.d2 in analytic.f90, compile,
+   and run:
+
+   ./analytic > analytic_heating.out
+
+   For the cooling case, set rhoe_i = 1.d9 in analytic.f90, compile,
+   and run:
+
+   ./analytic > analytic_cooling.out
+
+
+4. plot the Castro results over the analytic solution using gnuplot:
+
+   at the gnuplot prompt:
+
+     set xlabel 'time (s)'
+
+     set ylabel 'rho*e (erg/cm^3)'
+
+     set logscale
+
+     set yrange [30:3.e9]
+
+     plot 'analytic_heating.out' using 1:2 title 'analytic heating solution' w l, \
+          'castro_heating.out' using 1:2 title 'Castro heating solution', \
+          'analytic_cooling.out' using 1:2 title 'analytic cooling solution' w l, \
+          'castro_cooling.out' using 1:2 title 'Castro cooling solution'
+
+
+5. reference plot is thermal_relax.ps
+

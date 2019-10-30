@@ -100,12 +100,11 @@ Castro::do_advance_ctu(Real time,
 
       do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
       apply_source_to_state(S_new, old_source, dt, 0);
-      int is_new = 1;
       clean_state(
 #ifdef MHD
 		      Bx_new, By_new, Bz_new,
 #endif 		      
-		      is_new, 0);
+		      S_new, cur_time, 0);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -140,8 +139,7 @@ Castro::do_advance_ctu(Real time,
 
       construct_ctu_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
-      int is_new = 1;
-      clean_state(is_new, 0);
+      clean_state(S_new, cur_time, 0);
 #else
       just_the_mhd(time, dt);
 #endif      
@@ -149,12 +147,11 @@ Castro::do_advance_ctu(Real time,
 
 
     // Sync up state after old sources and hydro source.
-    int is_new=1;
     frac_change = clean_state(
 #ifdef MHD
 		              Bx_new, By_new, Bz_new,
 #endif		    
-		              is_new, Sborder, 0);
+		              S_new, cur_time, 0);
 
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
@@ -195,14 +192,12 @@ Castro::do_advance_ctu(Real time,
     if (apply_sources()) {
 
       do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
-
       apply_source_to_state(S_new, new_source, dt, 0);
-      int is_new=1;
       clean_state(
 #ifdef MHD
 		  Bx_new, By_new, Bz_new,
 #endif		      
-		  is_new, 0);
+		  S_new, cur_time, 0);
 
     } else {
 
@@ -214,11 +209,17 @@ Castro::do_advance_ctu(Real time,
     // since the hydro source only works on the valid zones.
 
     if (S_new.nGrow() > 0) {
+      clean_state(
+#ifdef MHD
+		  Bx_new, By_new, Bz_new,
+#endif		      
+		  S_new, cur_time, 0);
+
       expand_state(
 #ifdef MHD
 		   Bx_new, By_new, Bz_new,   
 #endif		      
-		   S_new, cur_time, 1, S_new.nGrow());
+		   S_new, cur_time, S_new.nGrow());
     }
 
     // Do the second half of the reactions.
@@ -273,7 +274,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_check_timestep(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(S_old[mfi]),
                           BL_TO_FORTRAN_ANYD(S_new[mfi]),
@@ -351,7 +352,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
             mass_fluxes[dir]->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
-        if (!Geometry::IsCartesian())
+        if (!Geom().IsCartesian())
             P_radial.setVal(0.0);
 #endif
 

@@ -1,0 +1,26 @@
+&fortin
+  rho_0 = 1.0d7
+  p_0   = 1.0d8
+  rho_ambient = 1.0d-4
+  r_0   = 4.0e8
+  r_offset = 1.0e8
+  smooth_delta = 1.0e0 ! Effectively disables smoothing
+  offset_smooth_delta = 1.0e0
+  nsub = 1
+
+  center_x = 0.0d0
+  center_y = 0.0d0
+  center_z = 0.0d0
+/
+
+&tagging
+  dengrad_rel = 0.001
+  max_dengrad_rel_lev = 20
+/
+
+&extern
+
+  eos_gamma = 1.66666
+  eos_assume_neutral = T
+
+/

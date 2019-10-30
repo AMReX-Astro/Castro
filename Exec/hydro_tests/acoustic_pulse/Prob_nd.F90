@@ -3,7 +3,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_constants_module, only: ZERO, HALF, ONE
   use probdata_module, only: rho0, drho0, xn_zone
   use prob_params_module, only: center
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -12,31 +12,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
-  namelist /fortin/ rho0, drho0
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character :: probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call amrex_error('probin file name too long')
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! Set namelist defaults
-
-  rho0 = 1.4_rt
-  drho0 = 0.14_rt
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! set explosion center
   center(:) = HALF * (problo(:) + probhi(:))
@@ -54,7 +30,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use probdata_module, only: rho0, drho0, xn_zone
   use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, HALF, ONE
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS
-  use prob_params_module, only: center, coord_type
+  use prob_params_module, only: center, coord_type, problo
   use amrex_fort_module, only: rt => amrex_real
   use network, only: nspec
   use extern_probin_module, only: eos_gamma
@@ -72,11 +48,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   integer  :: i, j, k
 
   do k = lo(3), hi(3)
-     zz = xlo(3) + dx(3) * (dble(k - lo(3)) + HALF)
+     zz = problo(3) + dx(3) * (dble(k) + HALF)
      do j = lo(2), hi(2)
-        yy = xlo(2) + dx(2) * (dble(j - lo(2)) + HALF)
+        yy = problo(2) + dx(2) * (dble(j) + HALF)
         do i = lo(1), hi(1)
-           xx = xlo(1) + dx(1) * (dble(i - lo(1)) + HALF)
+           xx = problo(1) + dx(1) * (dble(i) + HALF)
 
            dist = sqrt((center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2)
 

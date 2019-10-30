@@ -4,9 +4,8 @@ module math_module
 
 contains
 
-  !> @brief Compute the standard cross-product of two three-vectors.
-  !!
   function cross_product(A,B) result(C)
+    ! Compute the standard cross-product of two three-vectors.
 
     use amrex_fort_module, only : rt => amrex_real
 

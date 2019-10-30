@@ -3,25 +3,6 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef DIFFUSION
-pp.query("diffuse_temp", diffuse_temp);
-pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
-pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
-pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
-#endif
-#ifdef POINTMASS
-pp.query("use_point_mass", use_point_mass);
-pp.query("point_mass", point_mass);
-pp.query("point_mass_fix_solution", point_mass_fix_solution);
-#endif
-#ifdef MHD
-pp.query("ppm_reference", ppm_reference);
-pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
-pp.query("mhd_plm_slope", mhd_plm_slope);
-#endif
-#ifdef AMREX_PARTICLES
-pp.query("do_tracer_particles", do_tracer_particles);
-#endif
 #ifdef ROTATION
 pp.query("rotational_period", rotational_period);
 pp.query("rotational_dPdt", rotational_dPdt);
@@ -32,6 +13,11 @@ pp.query("state_in_rotating_frame", state_in_rotating_frame);
 pp.query("rot_source_type", rot_source_type);
 pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
+#endif
+#ifdef GRAVITY
+pp.query("use_point_mass", use_point_mass);
+pp.query("point_mass", point_mass);
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
 #endif
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
@@ -46,22 +32,24 @@ pp.query("small_pres", small_pres);
 pp.query("small_ener", small_ener);
 pp.query("do_hydro", do_hydro);
 pp.query("time_integration_method", time_integration_method);
-pp.query("fourth_order", fourth_order);
 pp.query("limit_fourth_order", limit_fourth_order);
+pp.query("initialization_is_cell_average", initialization_is_cell_average);
 pp.query("use_reconstructed_gamma1", use_reconstructed_gamma1);
 pp.query("add_ext_src", add_ext_src);
 pp.query("hybrid_hydro", hybrid_hydro);
 pp.query("ppm_type", ppm_type);
 pp.query("ppm_temp_fix", ppm_temp_fix);
 pp.query("ppm_predict_gammae", ppm_predict_gammae);
-pp.query("ppm_reference_eigenvectors", ppm_reference_eigenvectors);
 pp.query("plm_iorder", plm_iorder);
+pp.query("plm_limiter", plm_limiter);
+pp.query("plm_well_balanced", plm_well_balanced);
 pp.query("hybrid_riemann", hybrid_riemann);
 pp.query("riemann_solver", riemann_solver);
 pp.query("cg_maxiter", cg_maxiter);
 pp.query("cg_tol", cg_tol);
 pp.query("cg_blend", cg_blend);
 pp.query("use_eos_in_riemann", use_eos_in_riemann);
+pp.query("riemann_speed_limit", riemann_speed_limit);
 pp.query("use_flattening", use_flattening);
 pp.query("transverse_use_eos", transverse_use_eos);
 pp.query("transverse_reset_density", transverse_reset_density);
@@ -69,7 +57,6 @@ pp.query("transverse_reset_rhoe", transverse_reset_rhoe);
 pp.query("dual_energy_eta1", dual_energy_eta1);
 pp.query("dual_energy_eta2", dual_energy_eta2);
 pp.query("use_pslope", use_pslope);
-pp.query("fix_mass_flux", fix_mass_flux);
 pp.query("limit_fluxes_on_small_dens", limit_fluxes_on_small_dens);
 pp.query("density_reset_method", density_reset_method);
 pp.query("allow_small_energy", allow_small_energy);
@@ -86,10 +73,15 @@ pp.query("zr_ext_bc_type", zr_ext_bc_type);
 pp.query("hse_zero_vels", hse_zero_vels);
 pp.query("hse_interp_temp", hse_interp_temp);
 pp.query("hse_reflect_vels", hse_reflect_vels);
-pp.query("mol_order", mol_order);
 pp.query("sdc_order", sdc_order);
+pp.query("sdc_quadrature", sdc_quadrature);
+pp.query("sdc_extra", sdc_extra);
 pp.query("sdc_solver", sdc_solver);
-pp.query("sdc_solver_tol", sdc_solver_tol);
+pp.query("sdc_solver_tol_dens", sdc_solver_tol_dens);
+pp.query("sdc_solver_tol_spec", sdc_solver_tol_spec);
+pp.query("sdc_solver_tol_ener", sdc_solver_tol_ener);
+pp.query("sdc_solver_atol", sdc_solver_atol);
+pp.query("sdc_solver_relax_factor", sdc_solver_relax_factor);
 pp.query("sdc_solve_for_rhoe", sdc_solve_for_rhoe);
 pp.query("sdc_use_analytic_jac", sdc_use_analytic_jac);
 pp.query("fixed_dt", fixed_dt);
@@ -126,6 +118,12 @@ pp.query("do_acc", do_acc);
 pp.query("bndry_func_thread_safe", bndry_func_thread_safe);
 pp.query("grown_factor", grown_factor);
 pp.query("star_at_center", star_at_center);
+pp.query("do_scf_initial_model", do_scf_initial_model);
+pp.query("scf_maximum_density", scf_maximum_density);
+pp.query("scf_equatorial_radius", scf_equatorial_radius);
+pp.query("scf_polar_radius", scf_polar_radius);
+pp.query("scf_relax_tol", scf_relax_tol);
+pp.query("scf_max_iterations", scf_max_iterations);
 pp.query("do_special_tagging", do_special_tagging);
 pp.query("spherical_star", spherical_star);
 pp.query("v", verbose);
@@ -141,3 +139,17 @@ pp.query("job_name", job_name);
 pp.query("output_at_completion", output_at_completion);
 pp.query("reset_checkpoint_time", reset_checkpoint_time);
 pp.query("reset_checkpoint_step", reset_checkpoint_step);
+#ifdef MHD
+pp.query("ppm_reference", ppm_reference);
+pp.query("ppm_flatten_before_integrals", ppm_flatten_before_integrals);
+pp.query("mhd_plm_slope", mhd_plm_slope);
+#endif
+#ifdef DIFFUSION
+pp.query("diffuse_temp", diffuse_temp);
+pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
+pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
+pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
+#endif
+#ifdef AMREX_PARTICLES
+pp.query("do_tracer_particles", do_tracer_particles);
+#endif

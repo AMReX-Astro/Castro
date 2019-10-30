@@ -26,26 +26,26 @@ castro.do_hydro      = 1
 castro.small_temp    = 1.e-10
 castro.small_dens    = 1.e-10
 
-castro.grav_source_type = 4
-castro.rot_source_type = 4
+castro.hybrid_hydro = 1
 
 castro.use_retry = 1
 
-castro.hybrid_hydro = 1
+castro.grav_source_type = 4
+castro.rot_source_type = 4
 
 # THERMODYNAMICS
 
-castro.dual_energy_update_E_from_e = 0
 castro.dual_energy_eta1 = 1.0e-3
 castro.dual_energy_eta2 = 1.0e-4
 
 # GRAVITY
 
 castro.do_grav           = 1
-castro.point_mass        = 6.0e8
-castro.point_mass_fix_solution = 0
 gravity.gravity_type     = ConstantGrav
 gravity.const_grav       = 0.0
+castro.use_point_mass    = 1
+castro.point_mass        = 6.0e8
+castro.point_mass_fix_solution = 0
 
 # ROTATION
 
@@ -69,7 +69,7 @@ castro.print_fortran_warnings = 1
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = -1      # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 32
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 

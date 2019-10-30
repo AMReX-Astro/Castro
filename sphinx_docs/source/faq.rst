@@ -101,7 +101,7 @@ Debugging
    The best thing to do is to recompile the code with TEST=TRUE
    set in the GNUmakefile. This will have AMReX catch the
    signals raised in both C and Fortran functions. Behind the
-   scenes, this defines the BL_TESTING preprocessor flag, which
+   scenes, this defines the AMREX_TESTING preprocessor flag, which
    will initialize memory allocated in fabs or multifabs to
    signaling NaNs (sNaN), and use the BLBackTrace::handler()
    function to handle various signals raised in both C and Fortran
@@ -132,7 +132,7 @@ Debugging
 
    ::
 
-             #ifdef BL_BACKTRACING
+             #ifdef AMREX_BACKTRACING
                 std::ostringstream ss;
                 ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
                 BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
@@ -227,6 +227,14 @@ Managing Runs
    controls this (put this in your inputs file). Note: checkpoint files are unaffected
    by this and will always be written out in the native precision (the ‘fab.format‘ parameter
    is overridden in the checkpoint code in AMReX).
+
+#. *How can I check the compilation parameters of a Castro executable?*
+
+   The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as 
+
+   ::
+
+       ./Castro.exe --display
 
 .. _ch:faq:vis:
 

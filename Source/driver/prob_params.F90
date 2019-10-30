@@ -1,8 +1,6 @@
-
-! This module stores the runtime parameters that define the problem domain.
-! These parameter are initialized in set_problem_params().
-
 module prob_params_module
+    ! This module stores the runtime parameters that define the problem domain.
+    ! These parameter are initialized in set_problem_params().
 
   use meth_params_module, only: UMX, UMZ
   use amrex_fort_module, only: rt => amrex_real
@@ -57,6 +55,7 @@ module prob_params_module
   attributes(managed) :: coord_type
   attributes(managed) :: center, problo, probhi
   attributes(managed) :: domlo_level, domhi_level, dx_level
+  attributes(managed) :: ref_ratio, n_error_buf, blocking_factor
   attributes(managed) :: mom_flux_has_p
 #endif
 

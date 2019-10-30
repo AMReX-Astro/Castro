@@ -40,7 +40,6 @@ castro.sponge_implicit = 0
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
-castro.ppm_reference_eigenvectors = 0
 castro.ppm_predict_gammae = 0
 
 castro.transverse_reset_rhoe = 1
@@ -62,7 +61,7 @@ castro.sum_interval   = 0       # timesteps between computing and printing volum
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 10000   # how often to regrid
-amr.n_error_buf     = 0 0 0 0 # number of buffer cells in error est
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = chk     # root name of checkpoint file

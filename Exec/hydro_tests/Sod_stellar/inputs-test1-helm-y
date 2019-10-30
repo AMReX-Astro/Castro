@@ -5,9 +5,9 @@ stop_time =  0.0008
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     =  0     0     0
-geometry.prob_hi     = 3.125e4 1.e6    3.125e4
-amr.n_cell           = 4       128     4
+geometry.prob_lo     = 0       0       0
+geometry.prob_hi     = 6.25e4  1.e6    6.25e4
+amr.n_cell           = 8       128     8
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -23,7 +23,6 @@ castro.do_react = 0
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
-castro.ppm_reference_eigenvectors = 1
 
 castro.use_flattening = 1
 
@@ -46,7 +45,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 

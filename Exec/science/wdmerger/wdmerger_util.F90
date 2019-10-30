@@ -1,0 +1,2441 @@
+module wdmerger_util_module
+
+  use amrex_fort_module, only: rt => amrex_real
+  use probdata_module
+
+  implicit none
+
+contains
+
+  ! This routine calls all of the other subroutines at the beginning
+  ! of a simulation to fill in the basic problem data.
+
+  subroutine initialize_problem(init_in)
+
+    use castro_error_module, only: castro_error
+    use prob_params_module, only: dim
+
+    implicit none
+
+    integer :: init_in
+
+    allocate(init)
+    init = init_in
+
+    ! Read in the namelist to set problem parameters.
+
+    call read_namelist
+
+    ! Establish binary parameters and create initial models.
+
+    call binary_setup
+
+    ! Set small_pres and small_ener.
+
+    call set_small
+
+  end subroutine initialize_problem
+
+
+
+  ! This routine reads in the namelist
+
+  subroutine read_namelist
+
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, THREE, M_PI, FOUR, SIX, EIGHT
+    use meth_params_module
+    use prob_params_module, only: dim, coord_type
+    use problem_io_module, only: probin
+    use castro_error_module, only: castro_error
+    use network, only: nspec
+    use fundamental_constants_module, only: M_solar
+
+    implicit none
+
+    integer :: untin
+
+    namelist /fortin/ &
+       mass_P, mass_S, &
+       central_density_P, central_density_S, &
+       nsub, &
+       roche_radius_factor, &
+       problem, &
+       collision_separation, &
+       collision_impact_parameter, &
+       collision_velocity, &
+       tde_separation, &
+       tde_beta, &
+       tde_initial_velocity, &
+       interp_temp, &
+       relaxation_damping_factor, &
+       relaxation_density_cutoff, &
+       relaxation_cutoff_time, &
+       initial_radial_velocity_factor, &
+       radial_damping_factor, &
+       ambient_density, &
+       stellar_temp, &
+       ambient_temp, &
+       max_he_wd_mass, &
+       max_hybrid_wd_mass, hybrid_wd_he_shell_mass, &
+       max_co_wd_mass, &
+       co_wd_he_shell_mass, &
+       hybrid_wd_c_frac, hybrid_wd_o_frac, &
+       co_wd_c_frac, co_wd_o_frac, &
+       onemg_wd_o_frac, onemg_wd_ne_frac, onemg_wd_mg_frac, &
+       orbital_eccentricity, orbital_angle, &
+       axis_1, axis_2, axis_3, &
+       max_stellar_tagging_level, &
+       max_temperature_tagging_level, &
+       max_center_tagging_level, &
+       stellar_density_threshold, &
+       temperature_tagging_threshold, &
+       center_tagging_radius, &
+       max_tagging_radius, &
+       roche_tagging_factor, &
+       bulk_velx, bulk_vely, bulk_velz, &
+       smallu, &
+       center_fracx, center_fracy, center_fracz, &
+       initial_model_dx, &
+       initial_model_npts, &
+       initial_model_mass_tol, &
+       initial_model_hse_tol, &
+       gw_dist
+
+    ! Allocate parameters and set defaults.
+
+    allocate(mass_P)
+    allocate(mass_S)
+    allocate(central_density_P)
+    allocate(central_density_S)
+    allocate(stellar_temp)
+    allocate(primary_envelope_mass)
+    allocate(secondary_envelope_mass)
+    allocate(primary_envelope_comp(nspec))
+    allocate(secondary_envelope_comp(nspec))
+
+    mass_P = ONE
+    mass_S = ONE
+    central_density_P = -ONE
+    central_density_S = -ONE
+    stellar_temp = 1.0e7_rt
+
+    allocate(ambient_density)
+    allocate(ambient_temp)
+    allocate(ambient_comp(nspec))
+
+    ambient_density = 1.0e-4_rt
+    ambient_temp = 1.0e7_rt
+
+    allocate(smallu)
+
+    smallu = ZERO
+
+    allocate(nsub)
+    allocate(interp_temp)
+
+    nsub = 1
+    interp_temp = .true.
+
+    allocate(problem)
+
+    problem = 1
+
+    allocate(roche_radius_factor)
+
+    roche_radius_factor = ONE
+
+    allocate(collision_separation)
+    allocate(collision_impact_parameter)
+    allocate(collision_velocity)
+
+    collision_separation = FOUR
+    collision_impact_parameter = ZERO
+    collision_velocity = -ONE
+
+    allocate(tde_separation)
+    allocate(tde_beta)
+    allocate(tde_initial_velocity)
+    allocate(tde_tidal_radius)
+    allocate(tde_schwarzschild_radius)
+    allocate(tde_pericenter_radius)
+
+    tde_separation = EIGHT
+    tde_beta = SIX
+    tde_initial_velocity = 1
+
+    allocate(r_P_initial)
+    allocate(r_S_initial)
+    allocate(a)
+    allocate(center_P_initial(3))
+    allocate(center_S_initial(3))
+    allocate(orbital_eccentricity)
+    allocate(orbital_angle)
+
+    orbital_eccentricity = ZERO
+    orbital_angle = ZERO
+
+    allocate(axis_1)
+    allocate(axis_2)
+    allocate(axis_3)
+    allocate(center_fracx)
+    allocate(center_fracy)
+    allocate(center_fracz)
+    allocate(bulk_velx)
+    allocate(bulk_vely)
+    allocate(bulk_velz)
+    allocate(single_star)
+
+    single_star = .false.
+
+    axis_1 = 1
+    axis_2 = 2
+    axis_3 = 3
+
+    center_fracx = HALF
+    center_fracy = HALF
+    center_fracz = HALF
+
+    bulk_velx = ZERO
+    bulk_vely = ZERO
+    bulk_velz = ZERO
+
+    allocate(model_P)
+    allocate(model_S)
+    allocate(initial_model_dx)
+    allocate(initial_model_npts)
+    allocate(initial_model_mass_tol)
+    allocate(initial_model_hse_tol)
+
+    initial_model_dx = 6.25e5_rt
+    initial_model_npts = 4096
+    initial_model_mass_tol = 1.e-6_rt
+    initial_model_hse_tol = 1.e-10_rt
+
+    allocate(max_he_wd_mass)
+    allocate(max_hybrid_wd_mass)
+    allocate(hybrid_wd_he_shell_mass)
+    allocate(max_co_wd_mass)
+    allocate(co_wd_he_shell_mass)
+    allocate(hybrid_wd_c_frac)
+    allocate(hybrid_wd_o_frac)
+    allocate(co_wd_c_frac)
+    allocate(co_wd_o_frac)
+    allocate(onemg_wd_o_frac)
+    allocate(onemg_wd_ne_frac)
+    allocate(onemg_wd_mg_frac)
+
+    max_he_wd_mass = 0.45e0_rt
+    max_hybrid_wd_mass = 0.6e0_rt
+    hybrid_wd_he_shell_mass = 0.1e0_rt
+    max_co_wd_mass = 1.05e0_rt
+    co_wd_he_shell_mass = 0.0e0_rt
+
+    hybrid_wd_c_frac = 0.50e0_rt
+    hybrid_wd_o_frac = 0.50e0_rt
+
+    co_wd_c_frac = 0.40e0_rt
+    co_wd_o_frac = 0.60e0_rt
+
+    onemg_wd_o_frac  = 0.60e0_rt
+    onemg_wd_ne_frac = 0.35e0_rt
+    onemg_wd_mg_frac = 0.05e0_rt
+
+    allocate(max_stellar_tagging_level)
+    allocate(max_temperature_tagging_level)
+    allocate(max_center_tagging_level)
+    allocate(stellar_density_threshold)
+    allocate(temperature_tagging_threshold)
+    allocate(center_tagging_radius)
+    allocate(max_tagging_radius)
+    allocate(roche_tagging_factor)
+
+    max_stellar_tagging_level = 20
+    max_temperature_tagging_level = 20
+    max_center_tagging_level = 20
+    stellar_density_threshold = ONE
+    temperature_tagging_threshold = 5.0e8_rt
+    center_tagging_radius = 0.0e0_rt
+    max_tagging_radius = 0.75e0_rt
+    roche_tagging_factor = 2.0e0_rt
+
+    allocate(com_P(3))
+    allocate(com_S(3))
+    allocate(vel_P(3))
+    allocate(vel_S(3))
+
+    allocate(roche_rad_P)
+    allocate(roche_rad_S)
+
+    allocate(relaxation_damping_factor)
+    allocate(relaxation_density_cutoff)
+    allocate(relaxation_cutoff_time)
+    allocate(relaxation_is_done)
+    allocate(radial_damping_factor)
+    allocate(initial_radial_velocity_factor)
+
+    relaxation_damping_factor = -1.0e-1_rt
+    relaxation_density_cutoff = 1.0e3_rt
+    relaxation_cutoff_time = -1.e0_rt
+    relaxation_is_done = 1
+    radial_damping_factor = -1.0e3_rt
+    initial_radial_velocity_factor = -1.0e-3_rt
+
+    allocate(gw_dist)
+
+    gw_dist = 10.0e0_rt
+
+    allocate(t_ff_P)
+    allocate(t_ff_S)
+
+    allocate(T_global_max)
+    allocate(rho_global_max)
+    allocate(ts_te_global_max)
+
+    allocate(jobIsDone)
+    allocate(signalJobIsNotDone)
+
+    jobIsDone = .false.
+    signalJobIsNotDone = .false.
+
+
+
+    ! Read namelist to override the module defaults.
+
+    untin = 9
+    open(untin,file=probin,form='formatted',status='old')
+    read(untin,fortin)
+    close(unit=untin)
+
+    ! Convert masses from solar masses to grams.
+
+    mass_P = mass_P * M_solar
+    mass_S = mass_S * M_solar
+
+    max_he_wd_mass = max_he_wd_mass * M_solar
+    max_hybrid_wd_mass = max_hybrid_wd_mass * M_solar
+    max_co_wd_mass = max_co_wd_mass * M_solar
+
+    hybrid_wd_he_shell_mass = hybrid_wd_he_shell_mass * M_solar
+    co_wd_he_shell_mass = co_wd_he_shell_mass * M_solar
+
+    if (mass_S < ZERO .and. central_density_S < ZERO) single_star = .true.
+
+    ! Make sure that the primary mass is really the larger mass
+
+    call ensure_primary_mass_larger
+
+    ! We enforce that the orbital plane is (z, phi) for two-dimensional problems,
+    ! with rotation about z = 0 along the radial axis.
+
+    if (dim .eq. 2) then
+
+       if (coord_type .ne. 1) then
+          call castro_error("We only support cylindrical coordinates in two dimensions. Set coord_type == 1.")
+       endif
+
+       axis_1 = 2
+       axis_2 = 3
+       rot_axis = 1
+
+    endif
+
+    ! Make sure we have a sensible collision impact parameter.
+
+    if (collision_impact_parameter > 1.0) then
+       call castro_error("Impact parameter must be less than one in our specified units.")
+    endif
+
+    ! Safety check: we can't run most problems in one dimension.
+
+    if (dim .eq. 1 .and. problem /= 0) then
+       call castro_error("Can only run a collision or freefall in 1D. Exiting.")
+    endif
+
+    ! Don't do a collision, free-fall, or TDE in a rotating reference frame.
+
+    if (problem .eq. 0 .and. do_rotation .eq. 1) then
+       call castro_error("The free-fall/collision problem does not make sense in a rotating reference frame.")
+    endif
+
+    if (problem .eq. 2 .and. do_rotation .eq. 1) then
+       call castro_error("The TDE problem does not make sense in a rotating reference frame.")
+    end if
+
+    ! Make sure we have a sensible eccentricity.
+
+    if (orbital_eccentricity >= 1.0) then
+       call castro_error("Orbital eccentricity cannot be larger than one.")
+    endif
+
+    ! Make sure we have a sensible angle. Then convert it to radians.
+
+    if (orbital_angle < 0.0 .or. orbital_angle > 360.0) then
+       call castro_error("Orbital angle must be between 0 and 360 degrees.")
+    endif
+
+    orbital_angle = orbital_angle * M_PI / 180.0
+
+    ! If we're doing a relaxation, we need to reset the relaxation_is_done parameter.
+    ! This will be reset as appropriate from the checkpoint if we're performing a restart.
+
+    if (problem .eq. 1 .and. relaxation_damping_factor > ZERO) then
+       relaxation_is_done = 0
+    end if
+
+    ! TDE sanity checks
+
+    if (problem .eq. 2) then
+
+       ! We must have a BH point mass defined.
+
+       if (point_mass <= ZERO) then
+
+          call castro_error("No point mass specified for the TDE problem.")
+
+       end if
+
+       ! This problem cannot have a secondary WD.
+
+       if (mass_S >= ZERO) then
+
+          call castro_error("TDE problem cannot have a secondary WD.")
+
+       end if
+
+       ! Beta parameter must be positive.
+
+       if (tde_beta <= ZERO) then
+
+          call castro_error("TDE beta must be positive.")
+
+       end if
+
+       ! Initial distance must be positive.
+
+       if (tde_separation <= ZERO) then
+
+          call castro_error("TDE separation must be positive.")
+
+       end if
+
+    end if
+
+  end subroutine read_namelist
+
+
+
+  ! Calculate small_pres and small_ener
+
+  subroutine set_small
+
+    use meth_params_module, only: small_temp, small_pres, small_dens, small_ener
+    use eos_type_module, only: eos_t, eos_input_rt
+    use eos_module, only: eos
+
+    implicit none
+
+    type (eos_t) :: eos_state
+
+    ! Given the inputs of small_dens and small_temp, figure out small_pres.
+
+    eos_state % rho = small_dens
+    eos_state % T   = small_temp
+    eos_state % xn  = ambient_comp
+
+    call eos(eos_input_rt, eos_state)
+
+    small_pres = eos_state % p
+    small_ener = eos_state % e
+
+  end subroutine set_small
+
+
+
+  ! Returns the ambient state
+
+  subroutine get_ambient(ambient_state)
+
+    use eos_type_module, only: eos_t, eos_input_rt
+    use eos_module, only: eos
+
+    implicit none
+
+    type (eos_t) :: ambient_state
+
+    !$gpu
+
+    ! Define ambient state, using a composition that is an
+    ! even mixture of the primary and secondary composition, 
+    ! and then call the EOS to get internal energy and pressure.
+
+    ambient_state % rho = ambient_density
+    ambient_state % T   = ambient_temp
+    ambient_state % xn  = ambient_comp
+
+    call eos(eos_input_rt, ambient_state)
+
+  end subroutine get_ambient
+
+
+
+  ! Given a WD mass, set its core and envelope composition.
+
+  subroutine set_wd_composition(model)
+
+    use extern_probin_module, only: small_x
+    use network, only: network_species_index
+    use castro_error_module, only: castro_error
+    use amrex_constants_module, only: ZERO, ONE
+
+    implicit none
+
+    type (initial_model), intent(inout) :: model
+
+    integer :: iHe4, iC12, iO16, iNe20, iMg24
+
+    iHe4 = network_species_index("helium-4")
+    iC12 = network_species_index("carbon-12")
+    iO16 = network_species_index("oxygen-16")
+    iNe20 = network_species_index("neon-20")
+    iMg24 = network_species_index("magnesium-24")
+
+    model % core_comp = small_x
+    model % envelope_comp = small_x
+
+    model % envelope_mass = ZERO
+
+    ! Here we follow the prescription of Dan et al. 2012.
+
+    if (model % mass > ZERO .and. model % mass < max_he_wd_mass) then
+
+       if (iHe4 < 0) call castro_error("Must have He4 in the nuclear network.")
+
+       model % core_comp(iHe4) = ONE
+
+       model % envelope_comp = model % core_comp
+
+    else if (model % mass >= max_he_wd_mass .and. model % mass < max_hybrid_wd_mass) then
+
+       if (iC12 < 0) call castro_error("Must have C12 in the nuclear network.")
+       if (iO16 < 0) call castro_error("Must have O16 in the nuclear network.")
+
+       model % core_comp(iC12) = hybrid_wd_c_frac
+       model % core_comp(iO16) = hybrid_wd_o_frac
+
+       model % envelope_mass = hybrid_wd_he_shell_mass
+
+       if (model % envelope_mass > ZERO) then
+          if (iHe4 < 0) call castro_error("Must have He4 in the nuclear network.")
+          model % envelope_comp(iHe4) = ONE
+       else
+          model % envelope_comp = model % core_comp
+       endif
+
+    else if (model % mass >= max_hybrid_wd_mass .and. model % mass < max_co_wd_mass) then
+
+       if (iC12 < 0) call castro_error("Must have C12 in the nuclear network.")
+       if (iO16 < 0) call castro_error("Must have O16 in the nuclear network.")
+
+       model % core_comp(iC12) = co_wd_c_frac
+       model % core_comp(iO16) = co_wd_o_frac
+
+       model % envelope_mass = co_wd_he_shell_mass
+
+       if (model % envelope_mass > ZERO) then
+          if (iHe4 < 0) call castro_error("Must have He4 in the nuclear network.")
+          model % envelope_comp(iHe4) = ONE
+       else
+          model % envelope_comp = model % core_comp
+       endif
+
+    else if (model % mass > max_co_wd_mass) then
+
+       if (iO16 < 0) call castro_error("Must have O16 in the nuclear network.")
+       if (iNe20 < 0) call castro_error("Must have Ne20 in the nuclear network.")
+       if (iMg24 < 0) call castro_error("Must have Mg24 in the nuclear network.")
+
+       model % core_comp(iO16)  = onemg_wd_o_frac
+       model % core_comp(iNe20) = onemg_wd_ne_frac
+       model % core_comp(iMg24) = onemg_wd_mg_frac
+
+       model % envelope_comp = model % core_comp
+
+    endif
+
+    ! Normalize compositions so that they sum to one.
+
+     model % core_comp = model % core_comp / sum(model % core_comp)
+     model % envelope_comp = model % envelope_comp / sum(model % envelope_comp)
+
+  end subroutine set_wd_composition
+
+
+
+  ! This routine checks to see if the primary mass is actually larger
+  ! than the secondary mass, and switches them if not.
+
+  subroutine ensure_primary_mass_larger
+
+    use problem_io_module, only: ioproc
+
+    implicit none
+
+    real(rt) :: temp_mass
+
+    ! We want the primary WD to be more massive. If what we're calling
+    ! the primary is less massive, switch the stars.
+
+    if ( mass_P < mass_S ) then
+
+      if (ioproc) then
+        print *, "Primary mass is less than secondary mass; switching the stars so that the primary is more massive."
+      endif
+
+      temp_mass = mass_P
+      mass_P = mass_S
+      mass_S = temp_mass
+
+    endif
+
+  end subroutine ensure_primary_mass_larger
+
+
+
+  ! Return the locations of the stellar centers of mass
+
+  subroutine get_star_data(P_com, S_com, P_vel, S_vel, P_mass, S_mass, P_t_ff, S_t_ff) bind(C,name='get_star_data')
+
+    implicit none
+
+    real(rt), intent(inout) :: P_com(3), S_com(3)
+    real(rt), intent(inout) :: P_vel(3), S_vel(3)
+    real(rt), intent(inout) :: P_mass, S_mass
+    real(rt), intent(inout) :: P_t_ff, S_t_ff
+
+    P_com = com_P
+    S_com = com_S
+
+    P_vel = vel_P
+    S_vel = vel_S
+
+    P_mass = mass_P
+    S_mass = mass_S
+
+    P_t_ff = t_ff_P
+    S_t_ff = t_ff_S
+
+  end subroutine get_star_data
+
+
+
+  ! Set the locations of the stellar centers of mass
+
+  subroutine set_star_data(P_com, S_com, P_vel, S_vel, P_mass, S_mass, P_t_ff, S_t_ff) bind(C,name='set_star_data')
+
+    use amrex_constants_module, only: TENTH, ZERO
+    use prob_params_module, only: center
+    use binary_module, only: get_roche_radii
+
+    implicit none
+
+    real(rt), intent(in) :: P_com(3), S_com(3)
+    real(rt), intent(in) :: P_vel(3), S_vel(3)
+    real(rt), intent(in) :: P_mass, S_mass
+    real(rt), intent(in) :: P_t_ff, S_t_ff
+
+    real(rt) :: r
+
+    r = ZERO
+
+    if (mass_P > ZERO) then
+
+       com_P  = P_com
+       vel_P  = P_vel
+       mass_P = P_mass
+       t_ff_P = P_t_ff
+
+    endif
+
+    if (mass_S > ZERO) then
+
+       com_S  = S_com
+       vel_S  = S_vel
+       mass_S = S_mass
+       t_ff_S = S_t_ff
+
+    endif
+
+    if (mass_P > ZERO .and. mass_S > ZERO) then
+
+       r = sum((com_P-com_S)**2)**(0.5)
+
+       call get_roche_radii(mass_S/mass_P, roche_rad_S, roche_rad_P, r)
+
+       ! Beyond a certain point, it doesn't make sense to track the stars separately
+       ! anymore. We'll set the secondary to a fixed constant and keep it there
+       ! if its Roche radius becomes smaller than 10% of the primary's. Also, for exactly 
+       ! equal mass systems sometimes it is the primary that disrupts, perhaps
+       ! just due to numerical noise, so do the same check for the primary.
+
+       if (roche_rad_S < TENTH * roche_rad_P) then
+          com_S = center
+          vel_S = ZERO
+          mass_S = ZERO
+          roche_rad_S = ZERO
+          t_ff_S = ZERO
+       else if (roche_rad_P < TENTH * roche_rad_S) then
+          com_P = center
+          vel_P = ZERO
+          mass_S = ZERO
+          roche_rad_P = ZERO
+          t_ff_P = ZERO
+       endif
+
+    endif
+
+  end subroutine set_star_data
+
+
+
+  ! Set up a binary simulation
+
+  subroutine binary_setup
+
+    use meth_params_module, only: rot_period, point_mass
+    use initial_model_module, only: initialize_model, establish_hse
+    use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
+    use rotation_frequency_module, only: get_omega
+    use math_module, only: cross_product
+    use binary_module, only: get_roche_radii
+    use problem_io_module, only: ioproc
+    use castro_error_module, only: castro_error
+    use fundamental_constants_module, only: Gconst, c_light, AU, M_solar
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO
+
+    implicit none
+
+    real(rt) :: v_ff, collision_offset
+    real(rt) :: omega(3)
+
+    integer :: lev
+
+    real(rt) :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
+
+    omega = get_omega(ZERO)
+
+    ! Safety check: ensure that if we have a symmetric lower boundary, that the
+    ! domain center (and thus the stars) are on that boundary.
+
+    if (physbc_lo(1) .eq. Symmetry .and. center(1) .ne. problo(1)) then
+       call bl_error("Symmetric lower x-boundary but the center is not on this boundary.")
+    end if
+
+    if (physbc_lo(2) .eq. Symmetry .and. center(2) .ne. problo(2)) then
+       call bl_error("Symmetric lower y-boundary but the center is not on this boundary.")
+    end if
+
+    if (physbc_lo(3) .eq. Symmetry .and. center(3) .ne. problo(3)) then
+       call bl_error("Symmetric lower z-boundary but the center is not on this boundary.")
+    end if
+
+    ! Set some default values for these quantities;
+    ! we'll update them soon.
+
+    center_P_initial = center
+    center_S_initial = center
+
+    com_P = center
+    com_S = center
+
+    vel_P = ZERO
+    vel_S = ZERO
+
+    ! Allocate arrays to hold the stellar models.
+
+    call initialize_model(.true.,  initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
+    call initialize_model(.false., initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
+
+    model_P % min_density = ambient_density
+    model_S % min_density = ambient_density
+
+    model_P % central_temp = stellar_temp
+    model_S % central_temp = stellar_temp
+
+
+
+    ! Fill in the model's physical details.
+    ! If we're integrating to reach a desired mass, set the composition accordingly.
+    ! If instead we're fixing the central density, then first we'll assume the composition is
+    ! that of a solar mass WD as a initial guess, and get the corresponding mass. 
+    ! Then we set the composition to match this preliminary mass, and we'll get a final mass later.
+
+    if (mass_P > ZERO) then
+
+       model_P % mass = mass_P
+
+       call set_wd_composition(model_P)
+
+    elseif (central_density_P > ZERO) then
+
+       model_P % mass = M_solar
+
+       call set_wd_composition(model_P)
+
+       model_P % central_density = central_density_P
+
+       call establish_hse(model_P, rho_P, T_P, xn_P, r_P)
+
+       call set_wd_composition(model_P)
+
+    else
+
+       call castro_error("Must specify either a positive primary mass or a positive primary central density.")
+
+    endif
+
+
+
+    if (.not. single_star) then
+
+       if (mass_S > ZERO) then
+
+          model_S % mass = mass_S
+
+          call set_wd_composition(model_S)
+
+       elseif (central_density_S > ZERO) then
+
+          model_S % mass = M_solar
+
+          call set_wd_composition(model_S)
+
+          model_S % central_density = central_density_S
+
+          call establish_hse(model_S, rho_S, T_S, xn_S, r_S)
+
+          call set_wd_composition(model_S)
+
+       else
+
+          call castro_error("If we are doing a binary calculation, we must specify either a " // &
+                           "positive secondary mass or a positive secondary central density.")
+
+       endif
+
+       ambient_comp = (model_P % envelope_comp + model_S % envelope_comp) / 2
+
+    else
+
+       ambient_comp = model_P % envelope_comp
+
+    endif
+
+
+
+    roche_rad_P = ZERO
+    roche_rad_S = ZERO
+
+    ! Generate primary and secondary WD models.
+
+    call establish_hse(model_P, rho_P, T_P, xn_P, r_P)
+
+    if (ioproc .and. init == 1) then
+
+       ! Set the color to bold green for printing to terminal in this section. See:
+       ! http://stackoverflow.com/questions/6402700/coloured-terminal-output-from-fortran
+
+       print *, ''//achar(27)//'[1;32m'
+
+       write (*,1001) model_P % mass / M_solar, model_P % central_density, model_P % radius
+       1001 format ("Generated initial model for primary WD of mass ", f4.2, &
+                    " solar masses, central density ", ES8.2, " g cm**-3, and radius ", ES8.2, " cm.")
+       print *, ""
+    endif
+
+    mass_P = model_P % mass
+    roche_rad_P = model_P % radius
+
+    if (.not. single_star) then
+
+       call establish_hse(model_S, rho_S, T_S, xn_S, r_S)
+
+       if (ioproc .and. init == 1) then
+          write (*,1002) model_S % mass / M_solar, model_S % central_density, model_S % radius
+          1002 format ("Generated initial model for secondary WD of mass ", f4.2, &
+                       " solar masses, central density ", ES8.2, " g cm**-3, and radius ", ES8.2, " cm.")
+          print *, ""
+       endif
+
+       mass_S = model_S % mass
+       roche_rad_S = model_S % radius
+
+       ! Compute initial Roche radii
+
+       call get_roche_radii(mass_S / mass_P, roche_rad_S, roche_rad_P)
+
+       ! Set up the stellar distances and velocities according to the problem choice
+
+       if (problem == 0) then
+
+          collision_separation = collision_separation * model_S % radius
+
+          if (collision_velocity < 0.0d0) then
+
+             call freefall_velocity(mass_P + mass_S, collision_separation, v_ff)
+
+             vel_P(axis_1) =  (mass_P / (mass_S + mass_P)) * v_ff
+             vel_S(axis_1) = -(mass_S / (mass_S + mass_P)) * v_ff
+
+          else
+
+             vel_P(axis_1) =  collision_velocity
+             vel_S(axis_1) = -collision_velocity
+
+          end if
+
+          r_P_initial = -(mass_P / (mass_S + mass_P)) * collision_separation
+          r_S_initial =  (mass_S / (mass_S + mass_P)) * collision_separation
+
+          a = r_S_initial - r_P_initial
+
+          center_P_initial(axis_1) = center_P_initial(axis_1) + r_P_initial
+          center_S_initial(axis_1) = center_S_initial(axis_1) + r_S_initial
+
+          ! We also permit a non-zero impact parameter b in the direction perpendicular
+          ! to the motion of the stars. This is measured in units of the radius of the
+          ! primary, so that b > 1 doesn't make any sense as the stars won't collide.
+          ! Since the secondary's radius is greater than the primary's, measuring in the
+          ! units of the primary's radius will guarantee contact.
+
+          collision_offset = collision_impact_parameter * model_P % radius
+
+          center_P_initial(axis_2) = center_P_initial(axis_2) - collision_offset
+          center_S_initial(axis_2) = center_S_initial(axis_2) + collision_offset
+
+       else if (problem == 1) then
+
+          if (roche_radius_factor < ZERO) then
+
+             ! Determine the orbital distance based on the rotational period.
+
+             a = -ONE
+
+          else
+
+             ! Set the orbital distance, then calculate the rotational period.
+
+             a = roche_radius_factor * (model_S % radius / roche_rad_S)
+
+             rot_period = -ONE
+
+          endif
+
+          call kepler_third_law(model_P % radius, model_P % mass, model_S % radius, model_S % mass, &
+                                rot_period, orbital_eccentricity, orbital_angle, &
+                                a, r_P_initial, r_S_initial, v_P_r, v_S_r, v_P_phi, v_S_phi)
+
+          if (ioproc .and. init == 1) then
+             write (*,1003) a, a / AU
+             write (*,1004) r_P_initial, r_P_initial / AU
+             write (*,1005) r_S_initial, r_S_initial / AU
+             write (*,1006) rot_period
+1003         format ("Generated binary orbit of distance ", ES8.2, " cm = ", ES8.2, " AU.")
+1004         format ("The primary orbits the center of mass at distance ", ES9.2, " cm = ", ES9.2, " AU.")
+1005         format ("The secondary orbits the center of mass at distance ", ES9.2, " cm = ", ES9.2, " AU.")
+1006         format ("The initial orbital period is ", F6.2 " s.")
+          endif
+
+          ! Star center positions -- we'll put them in the midplane, with the center of mass at the center of the domain.
+
+          center_P_initial(axis_1) = center_P_initial(axis_1) + r_P_initial * cos(orbital_angle)
+          center_P_initial(axis_2) = center_P_initial(axis_2) + r_P_initial * sin(orbital_angle)
+
+          center_S_initial(axis_1) = center_S_initial(axis_1) + r_S_initial * cos(orbital_angle)
+          center_S_initial(axis_2) = center_S_initial(axis_2) + r_S_initial * sin(orbital_angle)           
+
+          ! Star velocities, from Kepler's third law. Note that these are the velocities in the inertial frame.
+
+          vel_P(axis_1) = v_P_r   * cos(orbital_angle) - v_P_phi * sin(orbital_angle)
+          vel_P(axis_2) = v_P_phi * cos(orbital_angle) + v_P_r   * sin(orbital_angle)
+
+          vel_S(axis_1) = v_S_r   * cos(orbital_angle) - v_S_phi * sin(orbital_angle)
+          vel_S(axis_2) = v_S_phi * cos(orbital_angle) + v_S_r   * sin(orbital_angle)
+
+       else
+
+          call castro_error("Error: Unknown problem choice.")
+
+       endif
+
+       ! Scale the Roche radii by the initial distance.
+
+       roche_rad_P = roche_rad_P * a
+       roche_rad_S = roche_rad_S * a
+
+    else
+
+       if (problem == 2) then
+
+          ! The tidal radius is given by (M_BH / M_WD)^(1/3) * R_WD.
+
+          tde_tidal_radius = (point_mass / mass_P)**THIRD * model_P % radius
+
+          ! The usual definition for the Schwarzschild radius.
+
+          tde_schwarzschild_radius = TWO * Gconst * point_mass / c_light**TWO
+
+          ! The pericenter radius is the distance of closest approach,
+          ! for a point mass on a parabolic orbit.
+
+          tde_pericenter_radius = tde_tidal_radius / tde_beta
+
+          ! Given the pericenter distance, we can calculate the parameters of
+          ! the parabolic orbit. A parabolic orbit has E = 0, so KE = PE,
+          ! or (1/2) M_WD v**2 = G * M_WD * M_BH / r. This simplifies to
+          ! v = sqrt(2 * G * M_BH / r). The initial distance is set at runtime.
+
+          r_P_initial = tde_separation * tde_tidal_radius
+
+          v_P = sqrt(TWO * Gconst * point_mass / r_P_initial)
+
+          ! Now we need to convert this into angular and radial components. To
+          ! do this, we need the orbital angle, which comes from the orbit equation,
+          ! r = r_0 / (1 - eccentricity * cos(phi)), where for a parabolic orbit,
+          ! r_0 is twice the pericenter distance.
+
+          orbital_eccentricity = ONE
+          orbital_angle = acos(ONE - (TWO * tde_pericenter_radius) / r_P_initial)
+
+          ! Now set the x and y components of the position and velocity. The position is
+          ! straightforward: the orbital angle is the usual angle phi such that x = r cos(phi)
+          ! and y = r sin(phi). The velocity is a little more involved and depends on the orbit
+          ! equation. The Cartesian form of the parabolic orbit equation is x = y**2 / (2 * r_0) + r_0 / 2,
+          ! so dx/dt = (y / r_0) * dy/dt. Given that v**2 = v_x**2 + v_y**2, we have
+          ! v_x = v / sqrt( 1 + (r_0 / (r * sin(phi))) )**2 , and
+          ! v_y = v / sqrt( 1 + (r * sin(phi) / r_0)**2 ).
+
+          center_P_initial(axis_1) = center_P_initial(axis_1) - r_P_initial * cos(orbital_angle)
+          center_P_initial(axis_2) = center_P_initial(axis_2) - r_P_initial * sin(orbital_angle)
+
+          if (tde_initial_velocity == 1) then
+
+             vel_P(axis_1) = v_P / sqrt(ONE + (TWO * tde_pericenter_radius / (r_P_initial * sin(orbital_angle)))**2)
+             vel_P(axis_2) = v_P / sqrt(ONE + (r_P_initial * sin(orbital_angle) / (TWO * tde_pericenter_radius))**2)
+
+          end if
+
+       end if
+
+    endif
+
+    ! Reset the terminal color to its previous state.
+
+    if (ioproc .and. init == 1) then
+       print *, ''//achar(27)//'[0m'
+    endif
+
+    com_P = center_P_initial
+    com_S = center_S_initial
+
+    ! Safety check: make sure the stars are actually inside the computational domain.
+
+    if (.not. (dim .eq. 2 .and. physbc_lo(2) .eq. Symmetry)) then
+
+       if ( (HALF * (probhi(1) - problo(1)) < model_P % radius) .or. &
+            (HALF * (probhi(2) - problo(2)) < model_P % radius) .or. &
+            (HALF * (probhi(3) - problo(3)) < model_P % radius .and. dim .eq. 3) ) then
+          call bl_error("Primary does not fit inside the domain.")
+       endif
+
+       if ( (HALF * (probhi(1) - problo(1)) < model_S % radius) .or. &
+            (HALF * (probhi(2) - problo(2)) < model_S % radius) .or. &
+            (HALF * (probhi(3) - problo(3)) < model_S % radius .and. dim .eq. 3) ) then
+          call bl_error("Secondary does not fit inside the domain.")
+       endif
+
+    else
+
+       if ( (probhi(1) - problo(1) < model_S % radius) .or. &
+            (probhi(2) - problo(2) < 2 * model_S % radius) ) then
+          call bl_error("Secondary does not fit inside the domain.")
+       end if
+
+    end if
+
+  end subroutine binary_setup
+
+
+
+  ! Accepts the masses of two stars (in solar masses)
+  ! and the orbital period of a system,
+  ! and returns the semimajor axis of the orbit (in cm),
+  ! as well as the distances a_1 and a_2 from the center of mass.
+
+  subroutine kepler_third_law(radius_1, mass_1, radius_2, mass_2, period, eccentricity, phi, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p)
+
+    use amrex_constants_module
+    use prob_params_module, only: problo, probhi, physbc_lo, Symmetry
+    use sponge_module, only: sponge_lower_radius
+    use meth_params_module, only: do_sponge
+    use fundamental_constants_module, only: Gconst
+    use castro_error_module, only: castro_error
+
+    implicit none
+
+    real(rt), intent(in   ) :: mass_1, mass_2, eccentricity, phi, radius_1, radius_2
+    real(rt), intent(inout) :: period, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p
+
+    real(rt) :: length
+
+    real(rt) :: mu, M ! Reduced mass, total mass
+    real(rt) :: r     ! Position
+    real(rt) :: v_r, v_phi ! Radial and azimuthal velocity
+
+    ! Definitions of total and reduced mass
+
+    M  = mass_1 + mass_2
+    mu = mass_1 * mass_2 / M
+
+    ! First, solve for the orbit in the reduced one-body problem, where
+    ! an object of mass mu orbits an object with mass M located at r = 0.
+    ! For this we follow Carroll and Ostlie, Chapter 2, but many texts discuss this.
+    ! Note that we use the convention that phi measures angle from aphelion,
+    ! which is opposite to the convention they use.
+
+    if (period > ZERO .and. a < ZERO) then
+
+       a = (Gconst * M * period**2 / (FOUR * M_PI**2))**THIRD ! C + O, Equation 2.37
+
+    else if (period < ZERO .and. a > ZERO) then
+
+       period = (a**3 * FOUR * M_PI**2 / (Gconst * M))**HALF
+
+    else
+
+       call castro_error("Error: overspecified Kepler's third law calculation.")
+
+    endif
+
+    r = a * (ONE - eccentricity**2) / (ONE - eccentricity * cos(phi)) ! C + O, Equation 2.3
+
+    ! To get the radial and azimuthal velocity, we take the appropriate derivatives of the above.
+    ! v_r = dr / dt = dr / d(phi) * d(phi) / dt, with d(phi) / dt being derived from
+    ! C + O, Equation 2.30 for the angular momentum, and the fact that L = mu * r**2 * d(phi) / dt.
+
+    v_r   = -TWO * M_PI * a * eccentricity * sin(phi) / (period * (ONE - eccentricity**2)**HALF)
+    v_phi =  TWO * M_PI * a * (ONE - eccentricity * cos(phi)) / (period * (ONE - eccentricity**2)**HALF)
+
+    ! Now convert everything back to the binary frame, using C+O, Equation 2.23 and 2.24. This applies
+    ! to the velocities as well as the positions because the factor in front of r_1 and r_2 is constant.
+
+    r_1  = -(mu / mass_1) * r
+    r_2  =  (mu / mass_2) * r
+
+    v_1r = -(mu / mass_1) * v_r
+    v_2r =  (mu / mass_2) * v_r
+
+    v_1p = -(mu / mass_1) * v_phi
+    v_2p =  (mu / mass_2) * v_phi
+
+    ! Make sure the domain is big enough to hold stars in an orbit this size.
+
+    if (physbc_lo(axis_1) .eq. Symmetry) then
+
+       ! In this case we're only modelling the secondary.
+       length = r_2 + radius_2
+
+    else
+
+       length = (r_2 - r_1) + radius_1 + radius_2
+
+    end if
+
+    if (length > (probhi(axis_1)-problo(axis_1))) then
+       call castro_error("ERROR: The domain width is too small to include the binary orbit.")
+    endif
+
+    ! We want to do a similar check to make sure that no part of the stars
+    ! land in the sponge region.
+
+    if (do_sponge .eq. 1 .and. sponge_lower_radius > ZERO) then
+
+       if (abs(r_1) + radius_1 .ge. sponge_lower_radius) then
+          call castro_error("ERROR: Primary contains material inside the sponge region.")
+       endif
+
+       if (abs(r_2) + radius_2 .ge. sponge_lower_radius) then
+          call castro_error("ERROR: Secondary contains material inside the sponge region.")
+       endif
+
+    endif
+
+    ! Make sure the stars are not touching.
+    if (radius_1 + radius_2 > a) then
+       call castro_error("ERROR: Stars are touching!")
+    endif
+
+  end subroutine kepler_third_law
+
+
+
+  ! Given total mass of a binary system and the initial separation of
+  ! two point particles, obtain the velocity at this separation 
+  ! assuming the point masses fell in from infinity. This will
+  ! be the velocity in the frame where the center of mass is stationary.
+
+  subroutine freefall_velocity(mass, distance, vel)
+
+    use amrex_constants_module, only: HALF, TWO
+    use fundamental_constants_module, only: Gconst
+
+    implicit none
+
+    real(rt), intent(in   ) :: mass, distance
+    real(rt), intent(inout) :: vel
+
+    vel = (TWO * Gconst * mass / distance)**HALF
+
+  end subroutine freefall_velocity
+
+
+
+  ! Given a zone state, fill it with ambient material.
+
+  subroutine fill_ambient(state, loc, time)
+
+    use amrex_constants_module, only: ZERO, HALF
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UTEMP, UEINT, UEDEN, UFS, do_rotation
+    use network, only: nspec
+    use rotation_frequency_module, only: get_omega
+    use math_module, only: cross_product
+    use eos_type_module, only: eos_input_rt, eos_t
+    use eos_module, only: eos
+
+    implicit none
+
+    real(rt) :: state(NVAR)
+    real(rt) :: loc(3), time
+
+    type (eos_t) :: ambient_state
+    real(rt) :: omega(3)
+
+    omega = get_omega(time)
+
+    call get_ambient(ambient_state)
+
+    state(URHO) = ambient_state % rho
+    state(UTEMP) = ambient_state % T
+    state(UFS:UFS-1+nspec) = ambient_state % rho * ambient_state % xn(:)                 
+
+    ! If we're in the inertial frame, give the material the rigid-body rotation speed.
+    ! Otherwise set it to zero.
+
+    if (do_rotation /= 1 .and. problem == 1) then
+
+       state(UMX:UMZ) = state(URHO) * cross_product(omega, loc)
+
+    else
+
+       state(UMX:UMZ) = ZERO
+
+    endif
+
+    state(UEINT) = ambient_state % rho * ambient_state % e
+    state(UEDEN) = state(UEINT) + HALF * sum(state(UMX:UMZ)**2) / state(URHO)
+
+  end subroutine fill_ambient
+
+
+
+  ! If we are in a rotating reference frame, then rotate a vector
+  ! by an amount corresponding to the time that has passed
+  ! since the beginning of the simulation.
+
+  function inertial_rotation(vec, time) result(vec_i)
+
+    use amrex_constants_module, only: ZERO
+    use rotation_frequency_module, only: get_omega ! function
+    use meth_params_module, only: do_rotation, rot_period, rot_period_dot
+
+    implicit none
+
+    real(rt), intent(in) :: vec(3), time
+
+    real(rt) :: vec_i(3)
+
+    real(rt) :: omega(3), theta(3), rot_matrix(3,3)
+
+    !$gpu
+
+
+    ! To get the angle, we integrate omega over the time of the
+    ! simulation. Since the time rate of change is linear in the
+    ! period, let's work that variable. At some time t the current
+    ! period P is given by P = P_0 + Pdot * t. Then:
+    !
+    ! theta(t) = int( omega(t) * dt )
+    !      theta = int( omega(t) dt )
+    !            = (2 * pi / P_0) * int( dt / (1 + (dPdt / P_0) * t) )
+    !
+    ! if dPdt = 0, then theta = 2 * pi * t / P_0 = omega_0 * t, as expected.
+    ! if dPdt > 0, then theta = (2 * pi / P_0) * (P_0 / dPdt) * ln| (dPdt / P_0) * t + 1 |
+    ! Note that if dPdt << P_0, then we have ln(1 + x) = x, and we again
+    ! recover the original expression as expected.
+
+    if (do_rotation .eq. 1) then
+
+       if (abs(rot_period_dot) > ZERO .and. time > ZERO) then
+          theta = get_omega(ZERO) * (rot_period / rot_period_dot) * &
+                  log( abs( (rot_period_dot / rot_period) * time + 1 ) )
+       else
+          theta = get_omega(ZERO) * time
+       endif
+
+       omega = get_omega(time)
+
+    else
+
+       omega = ZERO
+       theta = ZERO
+
+    endif
+
+    ! This is the 3D rotation matrix for converting between reference frames.
+    ! It is the composition of rotations along the x, y, and z axes. Therefore 
+    ! it allows for the case where we are rotating about multiple axes. Normally 
+    ! we use the right-hand convention for constructing the usual rotation matrix, 
+    ! but this is the transpose of that rotation matrix to account for the fact 
+    ! that we are rotating *back* to the inertial frame, rather than from the 
+    ! inertial frame to the rotating frame.
+
+    rot_matrix(1,1) =  cos(theta(2)) * cos(theta(3))
+    rot_matrix(1,2) = -cos(theta(2)) * sin(theta(3))
+    rot_matrix(1,3) =  sin(theta(2))
+    rot_matrix(2,1) =  cos(theta(1)) * sin(theta(3)) + sin(theta(1)) * sin(theta(2)) * cos(theta(3))
+    rot_matrix(2,2) =  cos(theta(1)) * cos(theta(3)) - sin(theta(1)) * sin(theta(2)) * sin(theta(3))
+    rot_matrix(2,3) = -sin(theta(1)) * cos(theta(2))
+    rot_matrix(3,1) =  sin(theta(1)) * sin(theta(3)) - cos(theta(1)) * sin(theta(2)) * cos(theta(3))
+    rot_matrix(3,2) =  sin(theta(1)) * cos(theta(3)) + cos(theta(1)) * sin(theta(2)) * sin(theta(3))
+    rot_matrix(3,3) =  cos(theta(1)) * cos(theta(2))
+
+    vec_i = matmul(rot_matrix, vec)
+
+  end function inertial_rotation
+
+
+
+  ! Given a rotating frame velocity, get the inertial frame velocity.
+  ! Note that we simply return the original velocity if we're
+  ! already in the inertial frame.
+
+  function inertial_velocity(loc, vel, time) result (vel_i)
+
+    use meth_params_module, only: do_rotation, state_in_rotating_frame
+    use rotation_frequency_module, only: get_omega ! function
+    use math_module, only: cross_product ! function
+
+    implicit none
+
+    real(rt) :: loc(3), vel(3), time
+    real(rt) :: omega(3)
+
+    real(rt) :: vel_i(3)
+
+    !$gpu
+
+    omega = get_omega(time)
+
+    vel_i = vel
+
+    if (do_rotation .eq. 1 .and. state_in_rotating_frame .eq. 1) then
+       vel_i = vel_i + cross_product(omega, loc)
+    endif
+
+  end function inertial_velocity
+
+
+
+  ! C++ interface for inertial_velocity.
+
+  subroutine get_inertial_velocity(loc, vel, time, inertial_vel) bind(C,name='get_inertial_velocity')
+
+    implicit none
+
+    real(rt), intent(in   ) :: loc(3), vel(3), time
+    real(rt), intent(inout) :: inertial_vel(3)
+
+    inertial_vel = inertial_velocity(loc, vel, time)
+
+  end subroutine get_inertial_velocity
+
+
+
+  ! Check whether we should stop the initial relaxation.
+  ! The criterion is that we're outside the critical Roche surface
+  ! and the density is greater than a specified threshold.
+  ! If so, set do_initial_relaxation to false, which will effectively
+  ! turn off the external source terms.
+
+  subroutine check_relaxation(state, s_lo, s_hi, &
+                              phiEff, p_lo, p_hi, &
+                              lo, hi, potential, is_done) bind(C,name='check_relaxation')
+
+    use meth_params_module, only: URHO, NVAR
+    use castro_util_module, only: position_to_index
+
+    implicit none
+
+    integer  :: lo(3), hi(3)
+    integer  :: s_lo(3), s_hi(3)
+    integer  :: p_lo(3), p_hi(3)
+    real(rt) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt) :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt) :: potential
+    integer  :: is_done
+
+    integer  :: i, j, k
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (phiEff(i,j,k) > potential .and. state(i,j,k,URHO) > relaxation_density_cutoff) then
+
+                is_done = 1
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine check_relaxation
+
+
+
+  ! This routine is called when we've satisfied our criterion
+  ! for disabling the initial relaxation phase. We set the
+  ! relaxation damping factor to a negative number, which disables
+  ! the damping, and we set the sponge timescale to a negative
+  ! number, which disables the sponging.
+
+  subroutine turn_off_relaxation(time) bind(C,name='turn_off_relaxation')
+
+    use amrex_constants_module, only: ONE
+    use problem_io_module, only: ioproc
+    use sponge_module, only: sponge_timescale
+
+    implicit none
+
+    real(rt) :: time
+
+    relaxation_damping_factor = -ONE
+    sponge_timescale = -ONE
+
+    ! If we got a valid simulation time, print to the log when we stopped.
+
+    if (ioproc .and. time >= 0.0d0) then
+       print *, ""
+       print *, "Initial relaxation phase terminated at t = ", time
+       print *, ""
+    endif
+
+  end subroutine turn_off_relaxation
+
+
+
+  subroutine get_axes(axis_1_in, axis_2_in, axis_3_in) bind(C,name='get_axes')
+
+    implicit none
+
+    integer, intent(inout) :: axis_1_in, axis_2_in, axis_3_in
+
+    axis_1_in = axis_1
+    axis_2_in = axis_2
+    axis_3_in = axis_3
+
+  end subroutine get_axes
+
+
+
+  ! Return whether we're doing a single star simulation or not.
+
+  subroutine get_single_star(flag) bind(C,name='get_single_star')
+
+    implicit none
+
+    integer, intent(inout) :: flag
+
+    flag = 0
+
+    if (single_star) flag = 1
+
+  end subroutine get_single_star
+
+
+
+  ! Return the problem type.
+
+  subroutine get_problem_number(problem_out) bind(C,name='get_problem_number')
+
+    implicit none
+
+    integer :: problem_out
+
+    problem_out = problem
+
+  end subroutine get_problem_number
+
+
+
+  ! Computes the sum of the hydrodynamic and gravitational forces acting on the WDs.
+
+  subroutine sum_force_on_stars(lo, hi, &
+                                force, f_lo, f_hi, &
+                                state, s_lo, s_hi, &
+                                vol, v_lo, v_hi, &
+                                pmask, pm_lo, pm_hi, &
+                                smask, sm_lo, sm_hi, &
+                                fpx, fpy, fpz, fsx, fsy, fsz) &
+                                bind(C,name='sum_force_on_stars')
+
+    use amrex_constants_module, only: ZERO, ONE, TWO
+    use prob_params_module, only: center, physbc_lo, Symmetry, coord_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ
+    use castro_util_module, only: position
+    use amrex_fort_module, only: amrex_reduce_add
+
+    implicit none
+
+    integer :: lo(3), hi(3)
+    integer :: f_lo(3), f_hi(3)
+    integer :: s_lo(3), s_hi(3)
+    integer :: v_lo(3), v_hi(3)
+    integer :: pm_lo(3), pm_hi(3)
+    integer :: sm_lo(3), sm_hi(3)
+
+    real(rt) :: force(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3), NVAR)
+    real(rt) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3), NVAR)
+    real(rt) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt) :: pmask(pm_lo(1):pm_hi(1),pm_lo(2):pm_hi(2),pm_lo(3):pm_hi(3))
+    real(rt) :: smask(sm_lo(1):sm_hi(1),sm_lo(2):sm_hi(2),sm_lo(3):sm_hi(3))
+
+    real(rt) :: fpx, fpy, fpz, fsx, fsy, fsz, dF(3)
+    real(rt) :: dt
+
+    integer :: i, j, k
+    real(rt) :: primary_factor, secondary_factor
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             dF(:) = vol(i,j,k) * force(i,j,k,UMX:UMZ)
+
+             ! In the following we'll account for symmetry boundaries
+             ! by assuming they're on the lower boundary if they do exist.
+             ! In that case, assume the star's center is on the lower boundary.
+             ! Then we need to double the value of the force in the other dimensions,
+             ! and cancel out the force in that dimension.
+             ! We assume here that only one dimension at most has a symmetry boundary.
+
+             if (coord_type .eq. 0) then
+
+                if (physbc_lo(1) .eq. Symmetry) then
+                   dF(1) = ZERO
+                   dF(2) = TWO * dF(2)
+                   dF(3) = TWO * dF(3)
+                end if
+
+                if (physbc_lo(2) .eq. Symmetry) then
+                   dF(1) = TWO * dF(1)
+                   dF(2) = ZERO
+                   dF(3) = TWO * dF(3)
+                end if
+
+                if (physbc_lo(3) .eq. Symmetry) then
+                   dF(1) = TWO * dF(1)
+                   dF(2) = TWO * dF(2)
+                   dF(3) = ZERO
+                end if
+
+             else if (coord_type .eq. 1) then
+
+                dF(1) = ZERO
+
+             end if
+
+             primary_factor = ZERO
+             secondary_factor = ZERO
+
+             if (pmask(i,j,k) > ZERO) then
+
+                primary_factor = ONE
+
+             else if (smask(i,j,k) > ZERO) then
+
+                secondary_factor = ONE
+
+             endif
+
+             call amrex_reduce_add(fpx, dF(1) * primary_factor)
+             call amrex_reduce_add(fpy, dF(2) * primary_factor)
+             call amrex_reduce_add(fpz, dF(3) * primary_factor)
+
+             call amrex_reduce_add(fsx, dF(1) * secondary_factor)
+             call amrex_reduce_add(fsy, dF(2) * secondary_factor)
+             call amrex_reduce_add(fsz, dF(3) * secondary_factor)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine sum_force_on_stars
+
+
+
+  ! Return the mass-weighted center of mass and velocity
+  ! for the primary and secondary, for a given FAB.
+  ! Since this will rely on a sum over processors,
+  ! we should only add to the relevant variables
+  ! in anticipation of a MPI reduction, and not
+  ! overwrite them. Note that ultimately what we
+  ! are doing here is to use an old guess at the
+  ! effective potential of the primary and secondary
+  ! to generate a new estimate.
+
+  subroutine wdcom(rho,  r_lo, r_hi, &
+                   xmom, px_lo, px_hi, &
+                   ymom, py_lo, py_hi, &
+                   zmom, pz_lo, pz_hi, &
+                   pmask, pm_lo, pm_hi, &
+                   smask, sm_lo, sm_hi, &
+                   vol,  vo_lo, vo_hi, &
+                   lo, hi, dx, time, &
+                   com_p_x, com_p_y, com_p_z, &
+                   com_s_x, com_s_y, com_s_z, &
+                   vel_p_x, vel_p_y, vel_p_z, &
+                   vel_s_x, vel_s_y, vel_s_z, &
+                   m_p, m_s) bind(C,name='wdcom')
+
+    use amrex_fort_module, only: amrex_reduce_add
+    use amrex_constants_module, only: HALF, ZERO, ONE, TWO
+    use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, Symmetry, coord_type
+    use castro_util_module, only: position ! function
+
+    implicit none
+
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: px_lo(3), px_hi(3)
+    integer,  intent(in   ) :: py_lo(3), py_hi(3)
+    integer,  intent(in   ) :: pz_lo(3), pz_hi(3)
+    integer,  intent(in   ) :: pm_lo(3), pm_hi(3)
+    integer,  intent(in   ) :: sm_lo(3), sm_hi(3)
+    integer,  intent(in   ) :: vo_lo(3), vo_hi(3)
+
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: xmom(px_lo(1):px_hi(1),px_lo(2):px_hi(2),px_lo(3):px_hi(3))
+    real(rt), intent(in   ) :: ymom(py_lo(1):py_hi(1),py_lo(2):py_hi(2),py_lo(3):py_hi(3))
+    real(rt), intent(in   ) :: zmom(pz_lo(1):pz_hi(1),pz_lo(2):pz_hi(2),pz_lo(3):pz_hi(3))
+    real(rt), intent(in   ) :: pmask(pm_lo(1):pm_hi(1),pm_lo(2):pm_hi(2),pm_lo(3):pm_hi(3))
+    real(rt), intent(in   ) :: smask(sm_lo(1):sm_hi(1),sm_lo(2):sm_hi(2),sm_lo(3):sm_hi(3))
+    real(rt), intent(in   ) :: vol(vo_lo(1):vo_hi(1),vo_lo(2):vo_hi(2),vo_lo(3):vo_hi(3))
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(inout) :: com_p_x, com_p_y, com_p_z
+    real(rt), intent(inout) :: com_s_x, com_s_y, com_s_z
+    real(rt), intent(inout) :: vel_p_x, vel_p_y, vel_p_z
+    real(rt), intent(inout) :: vel_s_x, vel_s_y, vel_s_z
+    real(rt), intent(inout) :: m_p, m_s
+    real(rt), intent(in   ), value :: time
+
+    integer  :: i, j, k
+    real(rt) :: r(3), rSymmetric(3), dm, dmSymmetric, momSymmetric(3)
+    real(rt) :: primary_factor, secondary_factor
+
+    !$gpu
+
+    ! Add to the COM locations and velocities of the primary and secondary
+    ! depending on which potential dominates, ignoring unbound material.
+    ! Note that in this routine we actually are
+    ! summing mass-weighted quantities for the COM and the velocity; 
+    ! we will account for this at the end of the calculation in 
+    ! post_timestep() by dividing by the mass.
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! Our convention is that the COM locations for the WDs are 
+             ! absolute positions on the grid, not relative to the center.
+
+             r = position(i,j,k)
+
+             ! We account for symmetric boundaries in this sum as usual,
+             ! by adding to the position the locations that would exist
+             ! on the opposite side of the symmetric boundary. Note that
+             ! in axisymmetric coordinates, some of this work is already
+             ! done for us in the definition of the zone volume.
+
+             rSymmetric = r
+             rSymmetric = merge(rSymmetric + (problo - rSymmetric), rSymmetric, physbc_lo(:) .eq. Symmetry)
+             rSymmetric = merge(rSymmetric + (rSymmetric - probhi), rSymmetric, physbc_hi(:) .eq. Symmetry)
+
+             dm = rho(i,j,k) * vol(i,j,k)
+
+             dmSymmetric = dm
+             momSymmetric(1) = xmom(i,j,k)
+             momSymmetric(2) = ymom(i,j,k)
+             momSymmetric(3) = zmom(i,j,k)
+
+             if (coord_type .eq. 0) then
+
+                if (physbc_lo(1) .eq. Symmetry) then
+                   dmSymmetric = TWO * dmSymmetric
+                   momSymmetric = TWO * momSymmetric
+                end if
+
+                if (physbc_lo(2) .eq. Symmetry) then
+                   dmSymmetric = TWO * dmSymmetric
+                   momSymmetric = TWO * momSymmetric
+                end if
+
+                if (physbc_lo(3) .eq. Symmetry) then
+                   dmSymmetric = TWO * dmSymmetric
+                   momSymmetric = TWO * momSymmetric
+                end if
+
+             end if
+
+             primary_factor = ZERO
+             secondary_factor = ZERO
+
+             if (pmask(i,j,k) > ZERO) then
+
+                primary_factor = ONE
+
+             else if (smask(i,j,k) > ZERO) then
+
+                secondary_factor = ONE
+
+             endif
+
+             call amrex_reduce_add(m_p, dmSymmetric * primary_factor)
+
+             call amrex_reduce_add(com_p_x, dmSymmetric * rSymmetric(1) * primary_factor)
+             call amrex_reduce_add(com_p_y, dmSymmetric * rSymmetric(2) * primary_factor)
+             call amrex_reduce_add(com_p_z, dmSymmetric * rSymmetric(3) * primary_factor)
+
+             call amrex_reduce_add(vel_p_x, momSymmetric(1) * vol(i,j,k) * primary_factor)
+             call amrex_reduce_add(vel_p_y, momSymmetric(2) * vol(i,j,k) * primary_factor)
+             call amrex_reduce_add(vel_p_z, momSymmetric(3) * vol(i,j,k) * primary_factor)
+
+             call amrex_reduce_add(m_s, dmSymmetric * secondary_factor)
+
+             call amrex_reduce_add(com_s_x, dmSymmetric * rSymmetric(1) * secondary_factor)
+             call amrex_reduce_add(com_s_y, dmSymmetric * rSymmetric(2) * secondary_factor)
+             call amrex_reduce_add(com_s_z, dmSymmetric * rSymmetric(3) * secondary_factor)
+
+             call amrex_reduce_add(vel_s_x, momSymmetric(1) * vol(i,j,k) * secondary_factor)
+             call amrex_reduce_add(vel_s_y, momSymmetric(2) * vol(i,j,k) * secondary_factor)
+             call amrex_reduce_add(vel_s_z, momSymmetric(3) * vol(i,j,k) * secondary_factor)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine wdcom
+
+
+
+  ! This function uses the known center of mass of the two white dwarfs,
+  ! and given a density cutoff, computes the total volume of all zones
+  ! whose density is greater or equal to that density cutoff.
+  ! We also impose a distance requirement so that we only look
+  ! at zones within the Roche lobe of the white dwarf.
+
+  subroutine ca_volumeindensityboundary(rho, r_lo, r_hi, &
+                                        pmask, pm_lo, pm_hi, &
+                                        smask, sm_lo, sm_hi, &
+                                        vol, v_lo, v_hi, &
+                                        lo, hi, dx, &
+                                        volp, vols, rho_cutoff) &
+                                        bind(C, name='ca_volumeindensityboundary')
+
+    use amrex_constants_module, only: ZERO, ONE
+    use amrex_fort_module, only: amrex_reduce_add
+
+    implicit none
+
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: pm_lo(3), pm_hi(3)
+    integer,  intent(in   ) :: sm_lo(3), sm_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: pmask(pm_lo(1):pm_hi(1),pm_lo(2):pm_hi(2),pm_lo(3):pm_hi(3))
+    real(rt), intent(in   ) :: smask(sm_lo(1):sm_hi(1),sm_lo(2):sm_hi(2),sm_lo(3):sm_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(inout) :: volp, vols
+    real(rt), intent(in   ), value :: rho_cutoff
+
+    integer :: i, j, k
+    real(rt) :: primary_factor, secondary_factor
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             primary_factor = ZERO
+             secondary_factor = ZERO
+
+             if (rho(i,j,k) > rho_cutoff) then
+
+                if (pmask(i,j,k) > ZERO) then
+
+                   primary_factor = ONE
+
+                else if (smask(i,j,k) > ZERO) then
+
+                   secondary_factor = ONE
+
+                endif
+
+             endif
+
+             call amrex_reduce_add(volp, vol(i,j,k) * primary_factor)
+             call amrex_reduce_add(vols, vol(i,j,k) * secondary_factor)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_volumeindensityboundary
+
+
+
+  ! Calculate the second time derivative of the quadrupole moment tensor,
+  ! according to the formula in Equation 6.5 of Blanchet, Damour and Schafer 1990.
+  ! It involves integrating the mass distribution and then taking the symmetric 
+  ! trace-free part of the tensor. We can do the latter operation here since the 
+  ! integral is a linear operator and each part of the domain contributes independently.
+
+  subroutine quadrupole_tensor_double_dot(rho, r_lo, r_hi, &
+                                          xmom, px_lo, px_hi, ymom, py_lo, py_hi, zmom, pz_lo, pz_hi, &
+                                          gravx, gx_lo, gx_hi, gravy, gy_lo, gy_hi, gravz, gz_lo, gz_hi, &
+                                          vol, vo_lo, vo_hi, &
+                                          lo, hi, dx, time, Qtt) bind(C,name='quadrupole_tensor_double_dot')
+
+    use amrex_fort_module, only: amrex_reduce_add
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
+    use prob_params_module, only: center, dim
+    use castro_util_module, only: position ! function
+
+    implicit none
+
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: px_lo(3), px_hi(3)
+    integer,  intent(in   ) :: py_lo(3), py_hi(3)
+    integer,  intent(in   ) :: pz_lo(3), pz_hi(3)
+    integer,  intent(in   ) :: gx_lo(3), gx_hi(3)
+    integer,  intent(in   ) :: gy_lo(3), gy_hi(3)
+    integer,  intent(in   ) :: gz_lo(3), gz_hi(3)
+    integer,  intent(in   ) :: vo_lo(3), vo_hi(3)
+
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: xmom(px_lo(1):px_hi(1),px_lo(2):px_hi(2),px_lo(3):px_hi(3))
+    real(rt), intent(in   ) :: ymom(py_lo(1):py_hi(1),py_lo(2):py_hi(2),py_lo(3):py_hi(3))
+    real(rt), intent(in   ) :: zmom(pz_lo(1):pz_hi(1),pz_lo(2):pz_hi(2),pz_lo(3):pz_hi(3))
+    real(rt), intent(in   ) :: gravx(gx_lo(1):gx_hi(1),gx_lo(2):gx_hi(2),gx_lo(3):gx_hi(3))
+    real(rt), intent(in   ) :: gravy(gy_lo(1):gy_hi(1),gy_lo(2):gy_hi(2),gy_lo(3):gy_hi(3))
+    real(rt), intent(in   ) :: gravz(gz_lo(1):gz_hi(1),gz_lo(2):gz_hi(2),gz_lo(3):gz_hi(3))
+    real(rt), intent(in   ) :: vol(vo_lo(1):vo_hi(1),vo_lo(2):vo_hi(2),vo_lo(3):vo_hi(3))
+    integer,  intent(in   ) :: lo(3), hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: time
+    real(rt), intent(inout) :: Qtt(3,3)
+
+    integer  :: i, j, k, l, m
+    real(rt) :: r(3), pos(3), vel(3), g(3), rhoInv, dm
+    real(rt) :: dQtt(3,3), dQ
+
+    !$gpu
+
+    dQtt(:,:) = ZERO
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             r = position(i,j,k) - center
+
+             if (rho(i,j,k) > ZERO) then
+                rhoInv = ONE / rho(i,j,k)
+             else
+                rhoInv = ZERO
+             endif
+
+             ! Account for rotation, if there is any. These will leave
+             ! r and vel and changed, if not.
+
+             pos = inertial_rotation(r, time)
+
+             ! For constructing the velocity in the inertial frame, we need to
+             ! account for the fact that we have rotated the system already, so that 
+             ! the r in omega x r is actually the position in the inertial frame, and 
+             ! not the usual position in the rotating frame. It has to be on physical 
+             ! grounds, because for binary orbits where the stars aren't moving, that 
+             ! r never changes, and so the contribution from rotation would never change.
+             ! But it must, since the motion vector of the stars changes in the inertial 
+             ! frame depending on where we are in the orbit.
+
+             vel(1) = xmom(i,j,k) * rhoInv
+             vel(2) = ymom(i,j,k) * rhoInv
+             vel(3) = zmom(i,j,k) * rhoInv
+
+             vel = inertial_velocity(pos, vel, time)
+
+             g(1) = gravx(i,j,k)
+             g(2) = gravy(i,j,k)
+             g(3) = gravz(i,j,k)
+
+             ! We need to rotate the gravitational field to be consistent with the rotated position.
+
+             g = inertial_rotation(g, time)
+
+             ! Absorb the factor of 2 outside the integral into the zone mass, for efficiency.
+
+             dm = TWO * rho(i,j,k) * vol(i,j,k)
+
+             if (dim .eq. 3) then
+
+                do m = 1, 3
+                   do l = 1, 3
+                      dQtt(l,m) = dQtt(l,m) + dM * (vel(l) * vel(m) + pos(l) * g(m))
+                   enddo
+                enddo
+
+             else
+
+                ! For axisymmetric coordinates we need to be careful here.
+                ! We want to calculate the quadrupole tensor in terms of
+                ! Cartesian coordinates but our coordinates are cylindrical (R, z).
+                ! What we can do is to first express the Cartesian coordinates
+                ! as (x, y, z) = (R cos(phi), R sin(phi), z). Then we can integrate
+                ! out the phi coordinate for each component. The off-diagonal components
+                ! all then vanish automatically. The on-diagonal components xx and yy
+                ! pick up a factor of cos**2(phi) which when integrated from (0, 2*pi)
+                ! yields pi. Note that we're going to choose that the cylindrical z axis
+                ! coincides with the Cartesian x-axis, which is our default choice.
+
+                ! We also need to then divide by the volume by 2*pi since
+                ! it has already been integrated out.
+
+                dm = dm / (TWO * M_PI)
+
+                dQtt(1,1) = dQtt(1,1) + dm * (TWO * M_PI) * (vel(2)**2 + pos(2) * g(2))
+                dQtt(2,2) = dQtt(2,2) + dm * M_PI * (vel(1)**2 + pos(1) * g(1))
+                dQtt(3,3) = dQtt(3,3) + dm * M_PI * (vel(1)**2 + pos(1) * g(1))
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+    ! Now take the symmetric trace-free part of the quadrupole moment.
+    ! The operator is defined in Equation 6.7 of Blanchet et al. (1990):
+    ! STF(A^{ij}) = 1/2 A^{ij} + 1/2 A^{ji} - 1/3 delta^{ij} sum_{k} A^{kk}.
+
+    do l = 1, 3
+       do m = 1, 3
+
+          dQ = HALF * dQtt(l,m) + HALF * dQtt(m,l)
+          if (l == m) then
+             dQ = dQ - THIRD * dQtt(m,m)
+          end if
+
+          call amrex_reduce_add(Qtt(l,m), dQ)
+
+       enddo
+    enddo
+
+  end subroutine quadrupole_tensor_double_dot
+
+
+
+  ! Determine the critical Roche potential at the Lagrange point L1.
+  ! We will use a tri-linear interpolation that gets a contribution
+  ! from all the zone centers that bracket the Lagrange point.
+
+  subroutine get_critical_roche_potential(phiEff,p_lo,p_hi,lo,hi,L1,potential) &
+                                          bind(C,name='get_critical_roche_potential')
+
+    use amrex_constants_module, only: ZERO, HALF, ONE
+    use castro_util_module, only: position
+    use prob_params_module, only: dim, dx_level
+    use amrinfo_module, only: amr_level
+
+    implicit none
+
+    integer  :: lo(3), hi(3)
+    integer  :: p_lo(3), p_hi(3)
+    real(rt) :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt) :: L1(3), potential
+
+    real(rt) :: r(3), dx(3)
+    integer  :: i, j, k
+
+    dx = dx_level(:,amr_level)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             r = position(i,j,k) - L1
+
+             ! Scale r by dx (in dimensions we're actually simulating).
+
+             r(1:dim) = r(1:dim) / dx(1:dim)
+             r(dim+1:3) = ZERO
+
+             ! We want a contribution from this zone if it is
+             ! less than one zone width away from the Lagrange point.
+
+             if (sum(r**2) < ONE) then
+
+                potential = potential + product(ONE - abs(r)) * phiEff(i,j,k)
+
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine get_critical_roche_potential
+
+
+
+  ! Given state data in the rotating frame, transform it to the inertial frame.
+
+  subroutine transform_to_inertial_frame(state, s_lo, s_hi, lo, hi, time) &
+                                         bind(C,name='transform_to_inertial_frame')
+
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ
+    use castro_util_module, only: position
+
+    implicit none
+
+    integer  :: lo(3), hi(3)
+    integer  :: s_lo(3), s_hi(3)
+    real(rt) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt) :: time
+
+    real(rt) :: loc(3), vel(3)
+    integer  :: i, j, k
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             loc = position(i,j,k)
+             vel = state(i,j,k,UMX:UMZ) / state(i,j,k,URHO)
+
+             state(i,j,k,UMX:UMZ) = state(i,j,k,URHO) * inertial_velocity(loc, vel, time)
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine transform_to_inertial_frame
+
+
+
+  ! Given the above quadrupole tensor, calculate the strain tensor.
+
+  subroutine gw_strain_tensor(h_plus_1, h_cross_1, h_plus_2, h_cross_2, h_plus_3, h_cross_3, Qtt, time) &
+                              bind(C,name='gw_strain_tensor')
+
+    use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+    use fundamental_constants_module, only: Gconst, c_light, parsec
+    use probdata_module, only: gw_dist, axis_1, axis_2, axis_3
+    use prob_params_module, only: dim
+
+    implicit none
+
+    real(rt), intent(inout) :: h_plus_1, h_cross_1, h_plus_2, h_cross_2, h_plus_3, h_cross_3
+    real(rt), intent(in   ) :: Qtt(3,3)
+    real(rt), intent(in   ) :: time
+
+    integer  :: i, j, k, l, dir
+    real(rt) :: h(3,3), proj(3,3,3,3), delta(3,3), n(3), r
+    real(rt) :: dist(3)
+
+    ! Standard Kronecker delta.
+
+    delta(:,:) = ZERO
+
+    do i = 1, 3
+       delta(i,i) = ONE
+    enddo
+
+    ! Unit vector for the wave is simply the distance
+    ! vector to the observer normalized by the total distance.
+    ! We are going to repeat this process by looking along
+    ! all three coordinate axes.
+
+    do dir = 1, 3
+
+       dist(:) = ZERO
+       dist(dir) = gw_dist
+
+       r = sqrt(sum(dist**2))
+
+       n(:) = dist(:) / r
+
+       h = ZERO
+
+       ! Projection operator onto the unit vector n.
+
+       do l = 1, 3
+          do k = 1, 3
+             do j = 1, 3
+                do i = 1, 3
+                   proj(i,j,k,l) = (delta(i,k) - n(i) * n(k)) * (delta(j,l) - n(j) * n(l)) &
+                                 - HALF * (delta(i,j) - n(i) * n(j)) * (delta(k,l) - n(k) * n(l))
+                enddo
+             enddo
+          enddo
+       enddo
+
+       ! Now we can calculate the strain tensor.
+
+       do l = 1, 3
+          do k = 1, 3
+             do j = 1, 3
+                do i = 1, 3
+                   h(i,j) = h(i,j) + proj(i,j,k,l) * Qtt(k,l)
+                enddo
+             enddo
+          enddo
+       enddo
+
+       ! Finally multiply by the coefficients.
+
+       r = r * parsec * 1d3 ! Convert from kpc to cm.
+
+       h(:,:) = h(:,:) * TWO * Gconst / (c_light**4 * r)
+
+       if (dim .eq. 3) then
+
+          ! If rot_axis == 3, then h_+ = h_{11} = -h_{22} and h_x = h_{12} = h_{21}.
+          ! Analogous statements hold along the other axes.
+
+          ! We are adding here so that this calculation makes sense on multiple levels.
+
+          if (dir .eq. axis_1) then
+
+             h_plus_1  = h_plus_1  + h(axis_2,axis_2)
+             h_cross_1 = h_cross_1 + h(axis_2,axis_3)
+
+          else if (dir .eq. axis_2) then
+
+             h_plus_2  = h_plus_2  + h(axis_3,axis_3)
+             h_cross_2 = h_cross_2 + h(axis_3,axis_1)
+
+          else if (dir .eq. axis_3) then
+
+             h_plus_3  = h_plus_3  + h(axis_1,axis_1)
+             h_cross_3 = h_cross_3 + h(axis_1,axis_2)
+
+          endif
+
+       else
+
+          ! In 2D axisymmetric coordinates, enforce that axis_1 is the x-axis,
+          ! axis_2 is the y-axis, and axis_3 is the z-axis.
+
+          if (dir .eq. 1) then
+
+             h_plus_1  = h_plus_1  + h(2,2)
+             h_cross_1 = h_cross_1 + h(2,3)
+
+          else if (dir .eq. 2) then
+
+             h_plus_2  = h_plus_2  + h(3,3)
+             h_cross_2 = h_cross_2 + h(3,1)
+
+          else if (dir .eq. 3) then
+
+             h_plus_3  = h_plus_3  + h(1,1)
+             h_cross_3 = h_cross_3 + h(1,2)
+
+          endif
+
+       endif
+
+    enddo
+
+  end subroutine gw_strain_tensor
+
+
+
+  subroutine update_center(time) bind(C,name='update_center')
+
+    use amrex_constants_module, only: ZERO
+    use castro_error_module, only: castro_error
+    use probdata_module, only: bulk_velx, bulk_vely, bulk_velz, &
+                               center_fracx, center_fracy, center_fracz
+    use prob_params_module, only: center, problo, probhi, dim
+
+    implicit none
+
+    real(rt), intent(in) :: time
+
+    ! Determine the original location of the center.
+
+    if (dim .eq. 3) then
+
+       center(1) = problo(1) + center_fracx * (probhi(1) - problo(1))
+       center(2) = problo(2) + center_fracy * (probhi(2) - problo(2))
+       center(3) = problo(3) + center_fracz * (probhi(3) - problo(3))
+
+    else if (dim .eq. 2) then
+
+       center(1) = problo(1)
+       center(2) = problo(2) + center_fracz * (probhi(2) - problo(2))
+       center(3) = ZERO
+
+    else if (dim .eq. 1) then
+
+       center(1) = problo(1) + center_fracx * (probhi(1) - problo(1))
+       center(2) = ZERO
+       center(3) = ZERO
+
+    else
+
+       call castro_error("Error: unknown dim in subroutine update_center.")
+
+    endif
+
+    ! Now update using the time passed since the beginning of the simulation.
+
+    center(1) = center(1) + bulk_velx * time
+    center(2) = center(2) + bulk_vely * time
+    center(3) = center(3) + bulk_velz * time
+
+  end subroutine update_center
+
+
+
+  ! Updates the CASTRO rotational period.
+
+  subroutine set_period(period) bind(C,name='set_period')
+
+    use meth_params_module, only: rot_period
+
+    implicit none
+
+    real(rt) :: period
+
+    rot_period = period
+
+  end subroutine set_period
+
+
+
+  ! Returns the CASTRO rotational period.
+
+  subroutine get_period(period) bind(C,name='get_period')
+
+    use meth_params_module, only: rot_period
+
+    implicit none
+
+    real(rt) :: period
+
+    period = rot_period
+
+  end subroutine get_period
+
+
+
+  ! Returns the CASTRO rotation frequency vector.
+
+  subroutine get_omega_vec(omega_in, time) bind(C,name='get_omega_vec')
+
+    use rotation_frequency_module, only: get_omega
+
+    implicit none
+
+    real(rt), intent(inout) :: omega_in(3)
+    real(rt), intent(in   ), value :: time
+
+    omega_in = get_omega(time)
+
+  end subroutine get_omega_vec
+
+
+
+  ! Updates the global extrema.
+
+  subroutine set_extrema(T_max, rho_max, ts_te_max) bind(C,name='set_extrema')
+
+    use probdata_module, only: T_global_max, rho_global_max, ts_te_global_max
+
+    implicit none
+
+    real(rt), intent(in) :: T_max, rho_max, ts_te_max
+
+    T_global_max     = T_max
+    rho_global_max   = rho_max
+    ts_te_global_max = ts_te_max
+
+  end subroutine set_extrema
+
+
+
+  ! Retrieves the global extrema.
+
+  subroutine get_extrema(T_max, rho_max, ts_te_max) bind(C,name='get_extrema')
+
+    use probdata_module, only: T_global_max, rho_global_max, ts_te_global_max
+
+    implicit none
+
+    real(rt), intent(inout) :: T_max, rho_max, ts_te_max
+
+    T_max     = T_global_max
+    rho_max   = rho_global_max
+    ts_te_max = ts_te_global_max
+
+  end subroutine get_extrema
+
+
+
+  ! Returns whether the simulation is done.
+
+  subroutine get_job_status(jobDoneStatus) bind(C,name='get_job_status')
+
+    use probdata_module, only: jobIsDone
+
+    implicit none
+
+    integer, intent(inout) :: jobDoneStatus
+
+    if (jobIsDone) then
+       jobDoneStatus = 1
+    else
+       jobDoneStatus = 0
+    endif
+
+  end subroutine get_job_status
+
+
+
+  ! Sets whether the simulation is done.
+
+  subroutine set_job_status(jobDoneStatus) bind(C,name='set_job_status')
+
+    use probdata_module, only: jobIsDone
+
+    implicit none
+
+    integer, intent(in) :: jobDoneStatus
+
+    if (jobDoneStatus == 1) then
+       jobIsDone = .true.
+    else
+       jobIsDone = .false.
+    endif
+
+  end subroutine set_job_status
+
+
+
+  ! Get the relaxation_cutoff_time parameter.
+
+  subroutine get_relaxation_cutoff_time(relaxation_cutoff_time_in) bind(C,name='get_relaxation_cutoff_time')
+
+    use amrex_fort_module, only: rt => amrex_real
+    use probdata_module, only: relaxation_cutoff_time
+
+    implicit none
+
+    real(rt), intent(inout) :: relaxation_cutoff_time_in
+
+    relaxation_cutoff_time_in = relaxation_cutoff_time
+
+  end subroutine get_relaxation_cutoff_time
+
+
+
+  ! Gets whether the relaxation is done.
+
+  subroutine get_relaxation_status(relaxation_status) bind(C,name='get_relaxation_status')
+
+    use probdata_module, only: relaxation_is_done
+
+    implicit none
+
+    integer, intent(inout) :: relaxation_status
+
+    relaxation_status = relaxation_is_done
+
+  end subroutine get_relaxation_status
+
+
+
+  ! Sets whether the relaxation is done.
+
+  subroutine set_relaxation_status(relaxation_status) bind(C,name='set_relaxation_status')
+
+    use probdata_module, only: relaxation_is_done
+
+    implicit none
+
+    integer, intent(in) :: relaxation_status
+
+    relaxation_is_done = relaxation_status
+
+  end subroutine set_relaxation_status
+
+
+
+  ! Retrieve the total energy array.
+
+  subroutine get_total_ener_array(ener_array_in) bind(C,name='get_total_ener_array')
+
+    use probdata_module, only: num_previous_ener_timesteps, total_ener_array
+
+    implicit none
+
+    real(rt), intent(inout) :: ener_array_in(num_previous_ener_timesteps)
+
+    ener_array_in(:) = total_ener_array(:)
+
+  end subroutine get_total_ener_array
+
+
+
+  ! Set the total energy array.
+
+  subroutine set_total_ener_array(ener_array_in) bind(C,name='set_total_ener_array')
+
+    use probdata_module, only: num_previous_ener_timesteps, total_ener_array
+
+    implicit none
+
+    real(rt), intent(in) :: ener_array_in(num_previous_ener_timesteps)
+
+    total_ener_array(:) = ener_array_in(:)
+
+  end subroutine set_total_ener_array
+
+end module wdmerger_util_module

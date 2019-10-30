@@ -11,30 +11,31 @@ end subroutine amrex_probinit
 
 
 ! ::: -----------------------------------------------------------
-!> @brief This routine is called at problem setup time and is used
-!! to initialize data on each grid.
-!!
-!! @note  all arrays have one cell of ghost zones surrounding
-!!        the grid interior.  Values in these cells need not
-!!        be set here.
-!!
-!! INPUTS/OUTPUTS:
-!!
-!! level     => amr level of grid
-!! time      => time at which to init data
-!! lo,hi     => index limits of grid interior (cell centered)
-!! nvar      => number of state components.
-!! state     <= scalar array
-!! dx        => cell size
-!! xlo, xhi  => physical locations of lower left and upper
-!!              right hand corner of grid.  (does not include
-!!		   ghost region).
-! ::: -----------------------------------------------------------
+
 subroutine ca_initdata(level,time,lo,hi,nvar, &
                        state,state_lo,state_hi, &
                        dx,xlo,xhi)
+    ! This routine is called at problem setup time and is used
+    ! to initialize data on each grid.
+    !
+    ! .. note::
+    !    all arrays have one cell of ghost zones surrounding
+    !    the grid interior.  Values in these cells need not
+    !    be set here.
+    !
+    ! INPUTS/OUTPUTS:
+    !
+    ! level     => amr level of grid
+    ! time      => time at which to init data
+    ! lo,hi     => index limits of grid interior (cell centered)
+    ! nvar      => number of state components.
+    ! state     <= scalar array
+    ! dx        => cell size
+    ! xlo, xhi  => physical locations of lower left and upper
+    !              right hand corner of grid.  (does not include
+    !		   ghost region).
 
-  use amrex_error_module
+  use castro_error_module
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -50,6 +51,6 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
   ! Remove this call if you're defining your own problem; it is here to
   ! ensure that you cannot run CASTRO if you haven't got your own copy of this function.
 
-  call amrex_error("Prob_nd.f90 has not been defined for this problem!")
+  call castro_error("Prob_nd.f90 has not been defined for this problem!")
 
 end subroutine ca_initdata

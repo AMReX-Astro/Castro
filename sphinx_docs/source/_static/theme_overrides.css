@@ -1,3 +1,19 @@
+span[id*='MathJax-Span']{
+   color: inherit;
+}
+
+span.eqno {
+   float: right;
+}
+
+
+code.docutils.literal.notranslate {
+   border: 0px;
+   background: inherit;
+   padding: 1px 1px;
+   font-size: 95%;
+}
+
 /* override table width restrictions */
 @media screen and (min-width: 767px) {
 
@@ -11,3 +27,4 @@
       overflow: visible !important;
    }
 }
+

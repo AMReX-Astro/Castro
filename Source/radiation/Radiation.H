@@ -9,7 +9,7 @@
 #include "MGRadBndry.H"
 #include "RadSolve.H"
 #include <AMReX_FluxRegister.H>
-#include <AMReX_Tuple.H>
+#include <AMReX_Array.H>
 
 ///
 /// @class Radiation
@@ -466,7 +466,7 @@ protected:
 /// Computes the scaled gradient for use in flux limiters & Eddington factors
 ///
 /// @param level
-/// @param amrex::Tuple<amrex::MultiFab
+/// @param amrex::Array<amrex::MultiFab
 /// @param R
 /// @param kappa_r
 /// @param kcomp
@@ -477,7 +477,7 @@ protected:
 /// @param Rcomp
 ///
   void scaledGradient(int level,
-                      amrex::Tuple<amrex::MultiFab, BL_SPACEDIM>& R,
+                      amrex::Array<amrex::MultiFab, BL_SPACEDIM>& R,
                       amrex::MultiFab& kappa_r, int kcomp,
                       amrex::MultiFab& Er, int igroup,
                       int limiter, int nGrow_Er=0, int Rcomp=0);
@@ -487,13 +487,13 @@ protected:
 /// On output this will be overwritten with the flux limiter.
 ///
 /// @param level
-/// @param amrex::Tuple<amrex::MultiFab
+/// @param amrex::Array<amrex::MultiFab
 /// @param lambda
 /// @param limiter
 /// @param lamcomp
 ///
   void fluxLimiter(int level,
-                   amrex::Tuple<amrex::MultiFab, BL_SPACEDIM>& lambda,
+                   amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
                    int limiter, int lamcomp=0);
 
 ///
@@ -851,7 +851,7 @@ protected:
 		  amrex::MultiFab& etaT, amrex::MultiFab& etaY, amrex::MultiFab& eta1,
 		  amrex::MultiFab& thetaT, amrex::MultiFab& thetaY,
 		  amrex::MultiFab& mugT, amrex::MultiFab& mugY,
-		  amrex::Tuple<amrex::MultiFab, BL_SPACEDIM>& lambda,
+		  amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
 		  RadSolve& solver, MGRadBndry& mgbd,
 		  const amrex::BoxArray& grids, int level, amrex::Real time, amrex::Real delta_t, amrex::Real ptc_tau);
 
@@ -994,10 +994,10 @@ protected:
 /// </ MGFLD>
 ///
 /// @param level
-/// @param amrex::Tuple<amrex::MultiFab
+/// @param amrex::Array<amrex::MultiFab
 /// @param lambda
 ///
-  void save_lambda_in_plotvar(int level, const amrex::Tuple<amrex::MultiFab,BL_SPACEDIM>& lambda);
+  void save_lambda_in_plotvar(int level, const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda);
 
 ///
 /// @param level
@@ -1012,27 +1012,27 @@ protected:
 ///
 /// @param level
 /// @param Snew
-/// @param amrex::Tuple<amrex::MultiFab
+/// @param amrex::Array<amrex::MultiFab
 /// @param lambda
 /// @param Er
 /// @param F
 /// @param iflx
 ///
   void save_lab_flux_in_plotvar(int level, const amrex::MultiFab& Snew,
-				const amrex::Tuple<amrex::MultiFab,BL_SPACEDIM>& lambda,
+				const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda,
 				const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
 
 ///
 /// @param level
 /// @param Snew
-/// @param amrex::Tuple<amrex::MultiFab
+/// @param amrex::Array<amrex::MultiFab
 /// @param lambda
 /// @param Er
 /// @param F
 /// @param iflx
 ///
   void save_com_flux_in_plotvar(int level, const amrex::MultiFab& Snew,
-				const amrex::Tuple<amrex::MultiFab,BL_SPACEDIM>& lambda,
+				const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda,
 				const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
 
 protected:

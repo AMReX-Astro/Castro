@@ -39,7 +39,7 @@ There are three several Fortran namelists that can be defined in the
 ``probin`` file:
 
   * ``&fortin`` is the main namelist read by the problem’s
-    ``probinit`` subroutine in the ``Prob_?d.F90`` file.
+    ``probinit`` subroutine in the ``Prob_nd.F90`` file.
 
   * ``&extern`` is used to set different microphysics options
 
@@ -83,8 +83,7 @@ computational domain. The main parameters here are:
     center is used for gravity, rotation, and some other quantities.
     This is not necessarily the geometric center of the domain—often
     you should choose it to coincide with the center of mass of your
-    system. See § \ `[soft:prob_params] <#soft:prob_params>`__ for
-    more details.
+    system. See § :ref:`soft:prob_params` for more details.
 
    Note: a number is needed for each dimension in the problem.
 
@@ -137,7 +136,7 @@ As an example, the following::
 This defines a problem with inflow (1) in the low-\ :math:`x` direction,
 outflow (2) in the high-\ :math:`x` direction, slip wall (4) on
 the low and high :math:`y`-faces, and periodic in the :math:`z`-direction.
-See § \ `[soft:phys_bcs] <#soft:phys_bcs>`__ for more information.
+See § :ref:`soft:phys_bcs`.
 
 Resolution
 ----------
@@ -209,7 +208,7 @@ Regridding
 ----------
 
 The details of the regridding strategy are described in
-§ \ `[sec:tagging] <#sec:tagging>`__; here we cover how the input parameters can
+§ :ref:`sec:tagging`; here we cover how the input parameters can
 control the gridding.
 
 As described later, the user defines Fortran subroutines which tag
@@ -265,7 +264,7 @@ The relevant runtime parameters are:
     fraction, but the idea is still the same.
 
   * ``amr.refine_grid_layout``: refine grids more if # of
-     processors :math:`>` # of grids (0 if false, 1 if true; default: 1)
+    processors :math:`>` # of grids (0 if false, 1 if true; default: 1)
 
 Note also that ``amr.n_error_buf``, ``amr.max_grid_size`` and
 ``amr.blocking_factor`` can be read in as a single value which is
@@ -370,13 +369,12 @@ If ``castro.do_hydro = 1``, then typically
 the code chooses a time step based on the CFL number:
 
 .. math::
-
    \Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}},
                                                                   \frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}},
                                                                   \frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]
-   \label{eq:cfl}
+   :label: eq:cfl
 
-If method-of-lines integration is used instead, then we have
+If SDC integration is used instead, then we have
 
 .. math::
 
@@ -389,7 +387,7 @@ If method-of-lines integration is used instead, then we have
 The following parameters affect the timestep choice:
 
   * ``castro.cfl``: CFL number (Real :math:`> 0` and :math:`\leq 1`;
-     default: 0.8)
+    default: 0.8)
 
   * ``castro.init_shrink``: factor by which to shrink the initial
     time step (Real :math:`> 0` and :math:`\leq 1`; default: 1.0)
@@ -417,7 +415,7 @@ As an example, consider::
     castro.change_max = 1.1
     castro.dt_cutoff = 1.e-20
 
-This defines the :math:`\mathtt{cfl}` parameter in Eq. \ `[eq:cfl] <#eq:cfl>`__ to be
+This defines the :math:`\mathtt{cfl}` parameter in :eq:`eq:cfl` to be
 0.9, but sets (via ``init_shrink``) the first timestep we take to
 be 1% of what it would be otherwise. This allows us to ramp up to
 the hydrodynamic timestep at the start of a simulation. The
@@ -455,9 +453,10 @@ grow in subsequent steps by a factor of castro.change_max each step.
                                                       \frac{\Delta y^2}{D_{i,j,k}},
                                                       \frac{\Delta z^2}{D_{i,j,k}}\right\}\right]
 
-where :math:`D \equiv k / (\rho c_V)` if we are diffusing temperature, and
-:math:`D \equiv k / (\rho c_P)` if we are diffusing enthalpy. No input parameter
-is necessary to enable this constraint. See Chapter `[ch:diffusion] <#ch:diffusion>`__ for more details.
+where :math:`D \equiv k / (\rho c_V)` if we are diffusing temperature,
+and :math:`D \equiv k / (\rho c_P)` if we are diffusing enthalpy. No
+input parameter is necessary to enable this constraint. See Chapter
+:ref:`ch:diffusion` for more details.
 
 *reactions*: If reactions are enabled, the timestep will also
 be limited by two constraints:
@@ -554,7 +553,7 @@ checkpoint files (which are really directories):
   * ``amr.check_nfiles``: how parallel is the writing of
     the checkpoint files? (Integer :math:`\geq 1`; default: 64)
 
-    See the § \ `[software:io] <#software:io>`__ for more details on parallel I/O and the
+    See the chapter :ref:`ch:io` for more details on parallel I/O and the
     ``amr.check_nfiles`` parameter.
 
   * ``amr.checkpoint_on_restart``: should we write a

@@ -1,0 +1,11 @@
+p0      real     1.0_rt       y
+
+rho0    real     1.0_rt       y
+
+t_r     real     1.0_rt       y
+
+x_r     real     0.0_rt
+
+q_r     real     0.0_rt
+
+nsub    integer   4           y

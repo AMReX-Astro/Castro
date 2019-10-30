@@ -117,16 +117,11 @@ Castro::sum_integrated_quantities ()
     Real h_plus_3  = 0.0;
     Real h_cross_3 = 0.0;
 
-    // Number of species.
-    
-    int NumSpec;
-    ca_get_num_spec(&NumSpec);    
-
     // Species names and total masses on the domain.
 
-    Real M_solar = 1.9884e33;
+    const Real M_solar = 1.9884e33;
 
-    Real species_mass[NumSpec];
+    std::vector<Real> species_mass(NumSpec);
     std::vector<std::string> species_names(NumSpec);
 
     std::string name1;

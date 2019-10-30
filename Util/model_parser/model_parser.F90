@@ -42,24 +42,24 @@ module model_parser_module
   real (rt), allocatable, save :: model_state(:,:)
   real (rt), allocatable, save :: model_r(:)
 
-#ifdef AMREX_USE_CUDA
-  attributes(managed) :: model_state, model_r, npts_model
-#endif
-
   ! model_initialized will be .true. once the model is read in and the
   ! model data arrays are initialized and filled
   logical, save :: model_initialized = .false.
 
   integer, parameter :: MAX_VARNAME_LENGTH=80
 
-  public :: read_model_file, close_model_file
+  public :: read_model_file, close_model_file, interpolate_sub, locate_sub
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: model_state, model_r, npts_model
+#endif
 
 contains
 
   subroutine read_model_file(model_file)
 
     use amrex_constants_module
-    use amrex_error_module
+    use castro_error_module
 
     character(len=*), intent(in   ) :: model_file
 
@@ -83,7 +83,7 @@ contains
 
     if (ierr .ne. 0) then
        print *,'Couldnt open model_file: ',model_file
-       call amrex_error('Aborting now -- please supply model_file')
+       call castro_error('Aborting now -- please supply model_file')
     end if
 
     ! the first line has the number of points in the model
@@ -281,5 +281,113 @@ contains
       endif
 
   end subroutine model_parser_init
+
+  subroutine interpolate_sub(interp, r, var_index, iloc)
+    ! find the value of model_state component var_index at point r
+    ! using linear interpolation.  Eventually, we can do something
+    ! fancier here.
+
+    use amrex_fort_module, only : rt => amrex_real
+    real(rt), intent(  out) :: interp
+    real(rt), intent(in   ) :: r
+    integer, intent(in) :: var_index
+    integer, intent(in), optional   :: iloc
+
+    ! Local variables
+    integer                         :: id
+    real(rt)                        :: slope,minvar,maxvar
+
+    !$gpu
+
+    !     find the location in the coordinate array where we want to interpolate
+    if (present(iloc)) then
+       id = iloc
+    else
+       call locate_sub(r, npts_model, model_r, id)
+    end if
+
+    if (id .eq. 1) then
+
+       slope = (model_state(id+1, var_index) - model_state(id, var_index)) / &
+            (model_r(id+1) - model_r(id))
+       interp = slope*(r - model_r(id)) + model_state(id, var_index)
+
+       ! safety check to make sure interp lies within the bounding points
+       minvar = min(model_state(id+1, var_index), model_state(id, var_index))
+       maxvar = max(model_state(id+1, var_index), model_state(id, var_index))
+       interp = max(interp, minvar)
+       interp = min(interp, maxvar)
+
+    else if (id .eq. npts_model) then
+
+       slope = (model_state(id, var_index) - model_state(id-1, var_index)) / &
+            (model_r(id) - model_r(id-1))
+       interp = slope*(r - model_r(id)) + model_state(id, var_index)
+
+       ! safety check to make sure interp lies within the bounding points
+       minvar = min(model_state(id, var_index), model_state(id-1, var_index))
+       maxvar = max(model_state(id, var_index), model_state(id-1, var_index))
+       interp = max(interp, minvar)
+       interp = min(interp, maxvar)
+
+    else
+
+       if (r .ge. model_r(id)) then
+
+          slope = (model_state(id+1, var_index) - model_state(id, var_index)) / &
+               (model_r(id+1) - model_r(id))
+          interp = slope*(r - model_r(id)) + model_state(id, var_index)
+
+       else
+
+          slope = (model_state(id, var_index) - model_state(id-1, var_index)) / &
+               (model_r(id) - model_r(id-1))
+          interp = slope*(r - model_r(id)) + model_state(id, var_index)
+
+       end if
+
+    endif
+
+  end subroutine interpolate_sub
+
+
+
+
+  subroutine locate_sub(x, n, xs, loc)
+
+    use amrex_fort_module, only : rt => amrex_real
+    integer,  intent(in   ) :: n
+    real(rt), intent(in   ) :: x, xs(n)
+    integer,  intent(  out) :: loc
+
+    integer :: ilo, ihi, imid
+
+    !$gpu
+
+    if (x .le. xs(1)) then
+       loc = 1
+    else if (x .gt. xs(n-1)) then
+       loc = n
+    else
+
+       ilo = 1
+       ihi = n-1
+
+       do while (ilo+1 .ne. ihi)
+          imid = (ilo+ihi)/2
+          if (x .le. xs(imid)) then
+             ihi = imid
+          else
+             ilo = imid
+          end if
+       end do
+
+       loc = ihi
+
+    end if
+
+  end subroutine locate_sub
+
+
 
 end module model_parser_module

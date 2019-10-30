@@ -1,6 +1,0 @@
-ncell            integer          8
-dt               real             1.0d-3
-dens_min         real             1.0d7
-dens_max         real             5.0d7
-temp_min         real             1.0d9
-temp_max         real             5.0d9

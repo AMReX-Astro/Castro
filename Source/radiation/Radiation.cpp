@@ -2232,7 +2232,7 @@ void Radiation::reflux(int level)
 // Computes the scaled gradient for use in flux limiters
 
 void Radiation::scaledGradient(int level,
-                               Tuple<MultiFab, BL_SPACEDIM>& R,
+                               Array<MultiFab, BL_SPACEDIM>& R,
                                MultiFab& kappa_r, int kcomp,
                                MultiFab& Er, int igroup,
                                int limiter, int nGrow_Er, int Rcomp)
@@ -2332,7 +2332,7 @@ void Radiation::scaledGradient(int level,
 // On output this will be overwritten with the flux limiter.
 
 void Radiation::fluxLimiter(int level,
-                            Tuple<MultiFab, BL_SPACEDIM>& lambda,
+                            Array<MultiFab, BL_SPACEDIM>& lambda,
                             int limiter, int lamcomp)
 {
   BL_PROFILE("Radiation::fluxLimiter");

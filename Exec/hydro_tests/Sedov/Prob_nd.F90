@@ -1,48 +1,25 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use amrex_constants_module
-  use probdata_module
-  use prob_params_module, only : center, coord_type
-  use amrex_error_module
+  use amrex_fort_module, only: rt => amrex_real
+  use amrex_constants_module, only: ZERO, HALF, ONE, FOUR3RD, M_PI
+  use probdata_module, only: p_ambient, dens_ambient, exp_energy, temp_ambient, e_ambient, &
+                             xn_zone, r_init, nsub, e_exp
+  use prob_params_module, only: center, coord_type
+  use castro_error_module, only: castro_error
   use eos_type_module, only: eos_t, eos_input_rt, eos_input_rp
   use eos_module, only: eos
-  use amrex_fort_module, only : rt => amrex_real
+  use network, only: nspec
 
   implicit none
 
-  integer, intent(in) :: init, namlen
-  integer, intent(in) :: name(namlen)
+  integer,  intent(in) :: init, namlen
+  integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
-
-  integer :: untin, i
 
   type(eos_t) :: eos_state
 
-  namelist /fortin/ p_ambient, dens_ambient, exp_energy, &
-       r_init, nsub, temp_ambient
-
   real(rt) :: vctr
 
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character :: probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call amrex_error('probin file name too long')
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  p_ambient = 1.e-5_rt        ! ambient pressure (in erg/cc)
-  dens_ambient = 1.e0_rt      ! ambient density (in g/cc)
-  exp_energy = 1.e0_rt        ! absolute energy of the explosion (in erg)
-  r_init = 0.05e0_rt          ! initial radius of the explosion (in cm)
-  nsub = 4
-  temp_ambient = -1.e2_rt     ! Set original temp. to negative, which is overwritten in the probin file
 
   ! set local variable defaults
   if (coord_type == 1 .or. coord_type == 2) then
@@ -51,10 +28,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      center = HALF * (problo + probhi)
   end if
 
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   xn_zone(:) = ZERO
   xn_zone(1) = ONE
@@ -91,7 +65,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 #if AMREX_SPACEDIM == 1
 
 #ifndef AMREX_USE_CUDA
-     call amrex_error("Sedov problem unsupported in 1D Cartesian geometry.")
+     call castro_error("Sedov problem unsupported in 1D Cartesian geometry.")
 #endif
 
 #elif AMREX_SPACEDIM == 2
@@ -121,7 +95,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 #else
 
 #ifndef AMREX_USE_CUDA
-     call amrex_error("Sedov problem unsupported in 3D axisymmetric geometry.")
+     call castro_error("Sedov problem unsupported in 3D axisymmetric geometry.")
 #endif
 
 #endif
@@ -139,50 +113,27 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 end subroutine amrex_probinit
 
 
-! ::: -----------------------------------------------------------
-! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.
-! :::
-! ::: NOTE:  all arrays have one cell of ghost zones surrounding
-! :::        the grid interior.  Values in these cells need not
-! :::        be set here.
-! :::
-! ::: INPUTS/OUTPUTS:
-! :::
-! ::: level     => amr level of grid
-! ::: time      => time at which to init data
-! ::: lo,hi     => index limits of grid interior (cell centered)
-! ::: nstate    => number of state components.  You should know
-! :::		   this already!
-! ::: state     <=  Scalar array
-! ::: delta     => cell size
-! ::: xlo,xhi   => physical locations of lower left and upper
-! :::              right hand corner of grid.  (does not include
-! :::		   ghost region).
-! ::: -----------------------------------------------------------
-subroutine ca_initdata(level,time,lo,hi,nscal, &
-                       state,state_lo,state_hi, &
-                       delta,xlo,xhi)
 
-  use probdata_module
+subroutine ca_initdata(lo, hi, &
+                       state, s_lo, s_hi, &
+                       dx, problo) bind(C, name='ca_initdata')
+
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, ONE, HALF, FOUR3RD, M_PI
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
-  use prob_params_module, only : center, coord_type, dim
-  use amrex_fort_module, only : rt => amrex_real
-  use network, only : nspec
+  use probdata_module, only: p_ambient, dens_ambient, exp_energy, temp_ambient, e_ambient, &
+                             xn_zone, r_init, nsub, e_exp
+  use prob_params_module, only: center, coord_type, dim
   use eos_module, only : eos
-  use eos_type_module, only : eos_t, eos_input_rp, eos_input_re
-  use amrex_error_module, only: amrex_error
+  use eos_type_module, only: eos_t, eos_input_rp, eos_input_re
 
   implicit none
 
-  integer :: level, nscal
-  integer :: lo(3), hi(3)
-  integer :: state_lo(3), state_hi(3)
-  real(rt) :: xlo(3), xhi(3), time, delta(3)
-  real(rt) :: state(state_lo(1):state_hi(1), &
-                    state_lo(2):state_hi(2), &
-                    state_lo(3):state_hi(3),NVAR)
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: s_lo(3), s_hi(3)
+  real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+  real(rt), intent(in   ) :: dx(3), problo(3)
+
   real(rt) :: xmin,ymin,zmin
   real(rt) :: xx, yy, zz
   real(rt) :: dist
@@ -194,6 +145,8 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt) :: ds(3), xl, xr
   real(rt) :: vol_pert, vol_ambient
   logical :: pert
+
+  !$gpu
 
   if (dim == 1) then
      nsubx = nsub
@@ -209,18 +162,18 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      nsubz = nsub
   end if
 
-  ds(1) = delta(1) / nsubx
-  ds(2) = delta(2) / nsuby
-  ds(3) = delta(3) / nsubz
+  ds(1) = dx(1) / nsubx
+  ds(2) = dx(2) / nsuby
+  ds(3) = dx(3) / nsubz
 
   do k = lo(3), hi(3)
-     zmin = xlo(3) + delta(3)*dble(k-lo(3))
+     zmin = problo(3) + dx(3) * dble(k)
 
      do j = lo(2), hi(2)
-        ymin = xlo(2) + delta(2)*dble(j-lo(2))
+        ymin = problo(2) + dx(2) * dble(j)
 
         do i = lo(1), hi(1)
-           xmin = xlo(1) + delta(1)*dble(i-lo(1))
+           xmin = problo(1) + dx(1) * dble(i)
 
            vol_pert = ZERO
            vol_ambient = ZERO

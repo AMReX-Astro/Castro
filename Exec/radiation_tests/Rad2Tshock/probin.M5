@@ -5,11 +5,19 @@
   rho1 = 1.96434778127d-12
   T1 = 855.719921848
   v1 = 163591.632018d0
+  idir=1
 /
 
 
 &extern
 
   eos_gamma = 1.6666666667
+
+/
+
+&tagging
+
+  max_tempgrad_rel_lev = 20
+  tempgrad_rel = 0.1
 
 /

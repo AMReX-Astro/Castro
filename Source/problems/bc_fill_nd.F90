@@ -14,9 +14,6 @@ contains
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
     use amrex_filcc_module, only: amrex_filccn
-#ifndef AMREX_USE_CUDA
-    use bc_ext_fill_module, only: ext_fill
-#endif
 
     implicit none
 
@@ -34,11 +31,6 @@ contains
 
     call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
-#ifndef AMREX_USE_CUDA
-    ! process the external BCs here
-    call ext_fill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
-#endif
-
   end subroutine hypfill
 
 
@@ -46,9 +38,6 @@ contains
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
     use amrex_filcc_module, only: amrex_filccn
-#ifndef AMREX_USE_CUDA
-    use bc_ext_fill_module, only: ext_denfill
-#endif
 
     implicit none
 
@@ -65,11 +54,6 @@ contains
     !$gpu
 
     call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
-
-#ifndef AMREX_USE_CUDA
-    ! process the external BCs here
-    call ext_denfill(adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc)
-#endif
 
   end subroutine denfill
 
@@ -465,16 +449,17 @@ contains
 #endif
 
 #ifdef MHD
-  subroutine ca_face_fillx(var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) &
-                        bind(C, name="ca_face_fillx")
+  subroutine face_fillx(lo, hi, var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="face_fillx")
+          
     use amrex_fort_module, only : rt => amrex_real
     use fc_fill_module
 
     implicit none
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: var_lo(3), var_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM,2)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
     integer dir
@@ -483,18 +468,20 @@ contains
 
     call filfc(var,var_lo(1),var_lo(2),var_lo(3),var_hi(1),var_hi(2),var_hi(3),domlo,domhi,delta,xlo,bc,dir)
 
-  end subroutine ca_face_fillx
+  end subroutine face_fillx
 
-  subroutine ca_face_filly(var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) &
-                        bind(C, name="ca_face_filly")
+
+  subroutine face_filly(lo, hi, var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="face_filly")
+                       
     use amrex_fort_module, only : rt => amrex_real
     use fc_fill_module
 
     implicit none
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: var_lo(3), var_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM,2)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
     integer dir
@@ -503,18 +490,19 @@ contains
 
     call filfc(var,var_lo(1),var_lo(2),var_lo(3),var_hi(1),var_hi(2),var_hi(3),domlo,domhi,delta,xlo,bc,dir)
 
-  end subroutine ca_face_filly
+  end subroutine face_filly
 
-  subroutine ca_face_fillz(var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) &
-                        bind(C, name="ca_face_fillz")
+  subroutine face_fillz(lo, hi, var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="face_fillz")
+                     
     use amrex_fort_module, only : rt => amrex_real
     use fc_fill_module
 
     implicit none
 
+    integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: var_lo(3), var_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
     integer,  intent(in   ) :: domlo(3), domhi(3)
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM,2)
     real(rt), intent(in   ) :: delta(3), xlo(3), time
     real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
     integer dir
@@ -523,7 +511,7 @@ contains
 
     call filfc(var,var_lo(1),var_lo(2),var_lo(3),var_hi(1),var_hi(2),var_hi(3),domlo,domhi,delta,xlo,bc,dir)
 
-  end subroutine ca_face_fillz
+  end subroutine face_fillz
 #endif
 
 end module bc_fill_module

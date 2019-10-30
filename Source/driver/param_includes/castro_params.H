@@ -3,25 +3,6 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef DIFFUSION
-static int diffuse_temp;
-static amrex::Real diffuse_cutoff_density;
-static amrex::Real diffuse_cutoff_density_hi;
-static amrex::Real diffuse_cond_scale_fac;
-#endif
-#ifdef POINTMASS
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
-#endif
-#ifdef MHD
-static int ppm_reference;
-static int ppm_flatten_before_integrals;
-static int mhd_plm_slope;
-#endif
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
-#endif
 #ifdef ROTATION
 static amrex::Real rotational_period;
 static amrex::Real rotational_dPdt;
@@ -32,6 +13,11 @@ static int state_in_rotating_frame;
 static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
+#endif
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
@@ -46,22 +32,24 @@ static amrex::Real small_pres;
 static amrex::Real small_ener;
 static int do_hydro;
 static int time_integration_method;
-static int fourth_order;
 static int limit_fourth_order;
+static int initialization_is_cell_average;
 static int use_reconstructed_gamma1;
 static int add_ext_src;
 static int hybrid_hydro;
 static int ppm_type;
 static int ppm_temp_fix;
 static int ppm_predict_gammae;
-static int ppm_reference_eigenvectors;
 static int plm_iorder;
+static int plm_limiter;
+static int plm_well_balanced;
 static int hybrid_riemann;
 static int riemann_solver;
 static int cg_maxiter;
 static amrex::Real cg_tol;
 static int cg_blend;
 static int use_eos_in_riemann;
+static amrex::Real riemann_speed_limit;
 static int use_flattening;
 static int transverse_use_eos;
 static int transverse_reset_density;
@@ -69,7 +57,6 @@ static int transverse_reset_rhoe;
 static amrex::Real dual_energy_eta1;
 static amrex::Real dual_energy_eta2;
 static int use_pslope;
-static int fix_mass_flux;
 static int limit_fluxes_on_small_dens;
 static int density_reset_method;
 static int allow_small_energy;
@@ -86,10 +73,15 @@ static std::string zr_ext_bc_type;
 static int hse_zero_vels;
 static int hse_interp_temp;
 static int hse_reflect_vels;
-static int mol_order;
 static int sdc_order;
+static int sdc_quadrature;
+static int sdc_extra;
 static int sdc_solver;
-static amrex::Real sdc_solver_tol;
+static amrex::Real sdc_solver_tol_dens;
+static amrex::Real sdc_solver_tol_spec;
+static amrex::Real sdc_solver_tol_ener;
+static amrex::Real sdc_solver_atol;
+static amrex::Real sdc_solver_relax_factor;
 static int sdc_solve_for_rhoe;
 static int sdc_use_analytic_jac;
 static amrex::Real fixed_dt;
@@ -126,6 +118,12 @@ static int do_acc;
 static int bndry_func_thread_safe;
 static int grown_factor;
 static int star_at_center;
+static int do_scf_initial_model;
+static amrex::Real scf_maximum_density;
+static amrex::Real scf_equatorial_radius;
+static amrex::Real scf_polar_radius;
+static amrex::Real scf_relax_tol;
+static int scf_max_iterations;
 static int do_special_tagging;
 static int spherical_star;
 static int verbose;
@@ -141,3 +139,17 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef MHD
+static int ppm_reference;
+static int ppm_flatten_before_integrals;
+static int mhd_plm_slope;
+#endif
+#ifdef DIFFUSION
+static int diffuse_temp;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
+static amrex::Real diffuse_cond_scale_fac;
+#endif
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
+#endif

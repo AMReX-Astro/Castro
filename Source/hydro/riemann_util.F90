@@ -7,21 +7,9 @@ module riemann_util_module
 contains
 
 
-  !> @brief compute the lagrangian wave speeds -- this is the approximate
-  !! version for the Colella & Glaz algorithm
-  !!
-  !! @param[in] p real(rt)
-  !! @param[in] v real(rt)
-  !! @param[in] gam real(rt)
-  !! @param[in] gdot real(rt)
-  !! @param[in] pstar real(rt)
-  !! @param[in] csq real(rt)
-  !! @param[in] gmin real(rt)
-  !! @param[in] gmax real(rt)
-  !! @param[out] wsq real(rt)
-  !! @param[out] gstar real(rt)
-  !!
   pure subroutine wsqge(p,v,gam,gdot,gstar,pstar,wsq,csq,gmin,gmax)
+    ! compute the lagrangian wave speeds -- this is the approximate
+    ! version for the Colella & Glaz algorithm
 
 
     real(rt)        , intent(in) :: p,v,gam,gdot,pstar,csq,gmin,gmax
@@ -60,39 +48,17 @@ contains
   end subroutine wsqge
 
 
-
-  !> @brief we want to zero
-  !! f(p*) = u*_l(p*) - u*_r(p*)
-  !! we'll do bisection
-  !!
-  !! this version is for the approximate Colella & Glaz
-  !! version
-  !!
-  !! @param[inout] pstar_lo real(rt)
-  !! @param[inout] pstar_hi real(rt)
-  !! @param[in] ul real(rt)
-  !! @param[in] pl real(rt)
-  !! @param[in] taul real(rt)
-  !! @param[in] gamel real(rt)
-  !! @param[in] clsql real(rt)
-  !! @param[in] ur real(rt)
-  !! @param[in] pr real(rt)
-  !! @param[in] taur real(rt)
-  !! @param[in] gamer real(rt)
-  !! @param[in] clsqr real(rt)
-  !! @param[in] gdot real(rt)
-  !! @param[in] gmin real(rt)
-  !! @param[in] gmax real(rt)
-  !! @param[out] pstar real(rt)
-  !! @param[out] gamstar real(rt)
-  !! @param[out] converged logical
-  !! @param[out] pstar_hist_extra real(rt)
-  !!
   pure subroutine pstar_bisection(pstar_lo, pstar_hi, &
        ul, pl, taul, gamel, clsql, &
        ur, pr, taur, gamer, clsqr, &
        gdot, gmin, gmax, &
        pstar, gamstar, converged, pstar_hist_extra)
+    ! we want to zero
+    ! f(p*) = u*_l(p*) - u*_r(p*)
+    ! we'll do bisection
+    !
+    ! this version is for the approximate Colella & Glaz
+    ! version
 
     use meth_params_module, only : cg_maxiter, cg_tol
 
@@ -184,11 +150,6 @@ contains
 
 
 
-  !>
-  !! @param[in] ql real(rt)
-  !! @param[inout] f real(rt)
-  !! @param[in] idir integer
-  !!
   subroutine HLL(ql, qr, cl, cr, idir, f)
 
     use meth_params_module, only : NQ, NVAR, QRHO, QU, QV, QW, QPRES, QREINT, &
@@ -348,10 +309,6 @@ contains
 
 
 
-  !>
-  !! @param[in] q real(rt)
-  !! @param[out] U real(rt)
-  !!
   pure subroutine cons_state(q, U)
 
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QREINT, &
@@ -397,13 +354,6 @@ contains
 
 
 
-  !>
-  !! @param[in] idir integer
-  !! @param[in] S_k real(rt)
-  !! @param[in] S_c real(rt)
-  !! @param[in] q real(rt)
-  !! @param[out] U real(rt)
-  !!
   pure subroutine HLLC_state(idir, S_k, S_c, q, U)
 
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QREINT, QPRES, &
@@ -466,8 +416,7 @@ contains
 
   end subroutine HLLC_state
 
-  !> @brief given a primitive state, compute the flux in direction idir
-  !!
+
   subroutine compute_flux_q(lo, hi, &
                             qint, q_lo, q_hi, &
                             F, F_lo, F_hi, &
@@ -476,6 +425,8 @@ contains
                             rF, rF_lo, rF_hi, &
 #endif
                             idir, enforce_eos)
+    ! given a primitive state, compute the flux in direction idir
+    !
 
     use prob_params_module, only : mom_flux_has_p
     use meth_params_module, only : NQ, NVAR, NQAUX, &
@@ -486,7 +437,7 @@ contains
 #endif
                                    QRHO, QU, QV, QW, &
                                    QPRES, QGAME, QREINT, &
-                                   QC, QGAMC, QFS, &
+                                   QC, QGAMC, QFS, QFX, &
 #ifdef HYBRID_MOMENTUM
                                    NGDNV, GDPRES, GDGAME, &
                                    GDRHO, GDU, GDV, GDW, &
@@ -495,7 +446,7 @@ contains
                                    QRAD, fspace_type, &
                                    GDERADS, GDLAMS, &
 #endif
-                                   npassive, upass_map, qpass_map
+                                   npassive, upass_map, qpass_map, T_guess
 #ifdef RADIATION
     use fluxlimiter_module, only : Edd_factor
     use rad_params_module, only : ngroups
@@ -505,7 +456,7 @@ contains
 #endif
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
-    use network, only : nspec
+    use network, only : nspec, naux
 
     integer, intent(in) :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
@@ -581,7 +532,9 @@ contains
                 eos_state % rho = qint(i,j,k,QRHO)
                 eos_state % p = qint(i,j,k,QPRES)
                 eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)
-                eos_state % T = 100.0  ! initial guess
+                eos_state % T = T_guess  ! initial guess
+                eos_state % aux(:) = qint(i,j,k,QFX:QFX+naux-1)
+
                 call eos(eos_input_rp, eos_state)
                 rhoeint = qint(i,j,k,QRHO) * eos_state % e
              else
@@ -658,25 +611,16 @@ contains
   end subroutine compute_flux_q
 
 
-  !> @brief this copies the full interface state (NQ -- one for each primitive
-  !! variable) over to a smaller subset of size NGDNV for use later in the
-  !! hydro advancement.
-  !!
-  !! @param[in] lo integer
-  !! @param[in] hi integer
-  !! @param[in] qi_lo integer
-  !! @param[in] qi_hi integer
-  !! @param[in] qg_lo integer
-  !! @param[in] qg_hi integer
-  !! @param[in] qint real(rt)
-  !! @param[out] qgdnv real(rt)
-  !!
+
   subroutine ca_store_godunov_state(lo, hi, &
                                     qint, qi_lo, qi_hi, &
 #ifdef RADIATION
                                     lambda, l_lo, l_hi, &
 #endif
                                     qgdnv, qg_lo, qg_hi) bind(C, name="ca_store_godunov_state")
+    ! this copies the full interface state (NQ -- one for each primitive
+    ! variable) over to a smaller subset of size NGDNV for use later in the
+    ! hydro advancement.
 
     use meth_params_module, only : NQ, NVAR, NQAUX, &
                                    URHO, &
@@ -730,15 +674,8 @@ contains
 
 
 
-  !> @brief given a conserved state, compute the flux in direction idir
-  !!
-  !! @param[in] idir integer
-  !! @param[in] bnd_fac integer
-  !! @param[in] U real(rt)
-  !! @param[in] p real(rt)
-  !! @param[out] F real(rt)
-  !!
   pure subroutine compute_flux(idir, bnd_fac, U, p, F)
+    ! given a conserved state, compute the flux in direction idir
 
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
 #ifdef SHOCK_VAR

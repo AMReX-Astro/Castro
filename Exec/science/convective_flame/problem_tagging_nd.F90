@@ -7,36 +7,39 @@ module problem_tagging_module
 
 contains
 
-  subroutine set_problem_tags(lo, hi, tag, tag_lo, tag_hi, &
+  subroutine set_problem_tags(lo, hi, &
+                              tag, tag_lo, tag_hi, &
                               state, state_lo, state_hi, &
-                              set, clear,&
-                              dx, problo, time, level) bind(C, name="set_problem_tags")
+                              dx, problo, &
+                              set, clear, time, level) &
+                              bind(C, name="set_problem_tags")
 
     use amrex_constants_module
     use meth_params_module, only: URHO, NVAR, UFS
     use probdata_module, only: refine_cutoff_height
     use prob_params_module, only : dim
     use amrex_fort_module, only : rt => amrex_real
+    use iso_c_binding, only : c_int8_t
 
     implicit none
 
-    integer,intent(in   ) :: lo(3), hi(3)
-    integer,intent(in   ) :: state_lo(3), state_hi(3)
-    integer,intent(in   ) :: tag_lo(3), tag_hi(3)
-    real(rt), intent(in) :: state(state_lo(1):state_hi(1), &
-                                  state_lo(2):state_hi(2), &
-                                  state_lo(3):state_hi(3),NVAR)
-    integer, intent(inout) :: tag(tag_lo(1):tag_hi(1),tag_lo(2):tag_hi(2),tag_lo(3):tag_hi(3))
-    real(rt),intent(in   ) :: problo(3), dx(3), time
-    integer,intent(in   ) :: level, set, clear
+    integer,    intent(in   ) :: lo(3), hi(3)
+    integer,    intent(in   ) :: tag_lo(3), tag_hi(3)
+    integer,    intent(in   ) :: state_lo(3), state_hi(3)
+    integer(kind=c_int8_t), intent(inout) :: tag(tag_lo(1):tag_hi(1),tag_lo(2):tag_hi(2),tag_lo(3):tag_hi(3))
+    real(rt),   intent(in   ) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    real(rt),   intent(in   ) :: dx(3), problo(3)
+    integer(kind=c_int8_t), intent(in   ), value :: set, clear
+    integer,    intent(in   ), value :: level
+    real(rt),   intent(in   ), value :: time
 
-    integer :: i, j, k
+    integer  :: i, j, k
     real(rt) :: y, z, height
 
     do k = lo(3), hi(3)
-       z = problo(3) + dble(k + HALF)*dx(3)
+       z = problo(3) + (dble(k) + HALF)*dx(3)
        do j = lo(2), hi(2)
-          y = problo(2) + dble(j + HALF)*dx(2)
+          y = problo(2) + (dble(j) + HALF)*dx(2)
           do i = lo(1), hi(1)
              if (dim == 2) then
                 height = y

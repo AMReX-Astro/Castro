@@ -1,0 +1,12 @@
+&fortin
+  rho_0 = 1.d-7
+  rhoe_0 = 1.d9
+  E_rad = 1.d12
+/
+
+
+&extern
+
+  eos_gamma = 1.6666666667
+
+/

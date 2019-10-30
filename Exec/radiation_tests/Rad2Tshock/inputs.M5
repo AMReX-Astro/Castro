@@ -7,7 +7,7 @@ geometry.is_periodic = 0 0 0
 geometry.coord_sys = 0  # 0 => cart, 1 => RZ, 2 => Spherical
 
 geometry.prob_lo   =   -4000. 0.0    0.0
-geometry.prob_hi   =    2000. 187.5. 187.5
+geometry.prob_hi   =    2000. 187.5  187.5
 
 amr.n_cell   = 256  8  8
 

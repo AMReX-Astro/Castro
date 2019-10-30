@@ -2,7 +2,7 @@ subroutine update_sponge_params(time) bind(C)
 
   use sponge_module
   use probdata_module, only: r_old_s
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none    
@@ -40,7 +40,7 @@ subroutine update_sponge_params(time) bind(C)
   enddo
     
   if (.not. converged) then
-     call amrex_error("Newton iterations failed to converge in update_sponge_params.")
+     call castro_error("Newton iterations failed to converge in update_sponge_params.")
   endif
   
   sponge_lower_radius = r + 2.5e7_rt

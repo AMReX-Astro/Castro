@@ -6,7 +6,7 @@ BACKTRACE ?= FALSE
 TEST ?= FALSE
 
 USE_MPI ?= TRUE
-USE_OMP ?= TRUE
+USE_OMP ?= FALSE
 
 DIM ?= 3
 
@@ -16,7 +16,7 @@ USE_ROTATION ?= TRUE
 
 # We want to use the dimension agnostic version of certain source files.
 
-DIMENSION_AGNOSTIC = TRUE
+GPU_COMPATIBLE_PROBLEM = TRUE
 
 # Turn on hybrid momentum, but note that it only is used in 3D at present.
 

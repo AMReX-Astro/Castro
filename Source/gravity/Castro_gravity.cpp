@@ -9,6 +9,8 @@ using namespace amrex;
 void
 Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
+    BL_PROFILE("Castro::construct_old_gravity()");
+
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
 
@@ -28,8 +30,10 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
     // Do level solve at beginning of time step in order to compute the
     // difference between the multilevel and the single level solutions.
+    // Note that we don't need to do this solve for single-level runs,
+    // since the solution at the end of the last timestep won't have changed.
 
-    if (gravity->get_gravity_type() == "PoissonGrav")
+    if (gravity->get_gravity_type() == "PoissonGrav" && parent->finestLevel() > 0)
     {
 
 	// Create a copy of the current (composite) data on this level.
@@ -106,6 +110,8 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 void
 Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 {
+    BL_PROFILE("Castro::construct_new_gravity()");
+
     MultiFab& grav_new = get_new_data(Gravity_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
@@ -223,6 +229,9 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
 void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
+    BL_PROFILE("Castro::construct_old_gravity_source()");
+
+    const Real strt_time = ParallelDescriptor::second();
 
 #ifdef SELF_GRAVITY
     const MultiFab& phi_old = get_old_data(PhiGrav_Type);
@@ -244,7 +253,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
     {
 	const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
 	ca_gsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
 		BL_TO_FORTRAN_ANYD(state[mfi]),
@@ -257,10 +266,30 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
 
     }
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_old_gravity_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
+
 }
 
 void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
+    BL_PROFILE("Castro::construct_new_gravity_source()");
+
+    const Real strt_time = ParallelDescriptor::second();
 
 #ifdef SELF_GRAVITY
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
@@ -284,7 +313,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 	{
 	    const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
 	    ca_corrgsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
 			BL_TO_FORTRAN_ANYD(state_old[mfi]),
@@ -305,4 +334,20 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 	}
     }
 
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_new_gravity_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }

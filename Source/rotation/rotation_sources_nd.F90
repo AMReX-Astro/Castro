@@ -1,6 +1,6 @@
 module rotation_sources_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -19,10 +19,10 @@ contains
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP, state_in_rotating_frame
-    use hybrid_advection_module, only: add_hybrid_momentum_source
+    use hybrid_advection_module, only: set_hybrid_momentum_source
 #endif
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer         , intent(in   ) :: lo(3), hi(3)
@@ -56,6 +56,10 @@ contains
 
     !$gpu
 
+    Sr(:) = ZERO
+    src(:) = ZERO
+    snew(:) = ZERO
+
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -78,7 +82,7 @@ contains
 
 #ifdef HYBRID_MOMENTUM
              if (state_in_rotating_frame == 1) then
-                call add_hybrid_momentum_source(loc, src(UMR:UMP), Sr)
+                call set_hybrid_momentum_source(loc, src(UMR:UMP), Sr)
 
                 snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
              endif
@@ -112,7 +116,7 @@ contains
 
              else
 #ifndef AMREX_USE_GPU
-                call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+                call castro_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
 #endif
              end if
 
@@ -133,7 +137,8 @@ contains
 
 
   subroutine ca_corrrsrc(lo,hi,domlo,domhi, &
-                         phi,p_lo,p_hi, &
+                         phi_old,po_lo,po_hi, &
+                         phi_new,pn_lo,pn_hi, &
                          rold,ro_lo,ro_hi, &
                          rnew,rn_lo,rn_hi, &
                          uold,uo_lo,uo_hi, &
@@ -144,7 +149,6 @@ contains
                          flux3,f3_lo,f3_hi, &
                          dx,dt,time, &
                          vol,vol_lo,vol_hi) bind(C, name="ca_corrrsrc")
-
     ! Corrector step for the rotation source terms. This is applied
     ! after the hydrodynamics update to fix the time-level n
     ! prediction and add the time-level n+1 data.  This subroutine
@@ -163,16 +167,17 @@ contains
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only : UMR, UMP
-    use hybrid_advection_module, only: add_hybrid_momentum_source
+    use hybrid_advection_module, only: set_hybrid_momentum_source
 #endif
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer          :: lo(3), hi(3)
     integer          :: domlo(3), domhi(3)
 
-    integer          :: p_lo(3),p_hi(3)
+    integer          :: po_lo(3),po_hi(3)
+    integer          :: pn_lo(3),pn_hi(3)
     integer          :: ro_lo(3),ro_hi(3)
     integer          :: rn_lo(3),rn_hi(3)
     integer          :: uo_lo(3),uo_hi(3)
@@ -185,7 +190,8 @@ contains
 
     ! Time centered rotational potential
 
-    real(rt)         :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt)         :: phi_old(po_lo(1):po_hi(1),po_lo(2):po_hi(2),po_lo(3):po_hi(3))
+    real(rt)         :: phi_new(pn_lo(1):pn_hi(1),pn_lo(2):pn_hi(2),pn_lo(3):pn_hi(3))
 
     ! Old and new time rotational acceleration
 
@@ -223,6 +229,8 @@ contains
 
     real(rt)         :: src(NVAR)
 
+    real(rt)         :: phi, phixl, phixr, phiyl, phiyr, phizl, phizr
+
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
     real(rt)         :: snew(NVAR)
@@ -238,6 +246,12 @@ contains
     ! is the new time at time-level n+1.
 
     !$gpu
+
+    Sr_old(:) = ZERO
+    Sr_new(:) = ZERO
+    Srcorr(:) = ZERO
+    src(:) = ZERO
+    snew(:) = ZERO
 
     omega_old = get_omega(time-dt)
     omega_new = get_omega(time   )
@@ -367,7 +381,7 @@ contains
              ! inertial frame; see wdmerger paper III.
 
              if (state_in_rotating_frame == 1) then
-                call add_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
+                call set_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr)
 
                 snew(UMR:UMP) = snew(UMR:UMP) + dt * src(UMR:UMP)
              endif
@@ -427,12 +441,20 @@ contains
                 ! so that we get the source term and not the actual update, which will
                 ! be applied later by multiplying by dt.
 
-                SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k) * (phi(i,j,k) - phi(i-1,j,k)) - &
-                                                    flux1(i+1*dg(1),j,k) * (phi(i,j,k) - phi(i+1,j,k)) + &
-                                                    flux2(i,j        ,k) * (phi(i,j,k) - phi(i,j-dg(2),k)) - &
-                                                    flux2(i,j+1*dg(2),k) * (phi(i,j,k) - phi(i,j+dg(2),k)) + &
-                                                    flux3(i,j,k        ) * (phi(i,j,k) - phi(i,j,k-dg(3))) - &
-                                                    flux3(i,j,k+1*dg(3)) * (phi(i,j,k) - phi(i,j,k+dg(3))) ) / vol(i,j,k)
+                phi = HALF * (phi_new(i,j,k) + phi_old(i,j,k))
+                phixl = HALF * (phi_new(i-1*dg(1),j,k) + phi_old(i-1*dg(1),j,k))
+                phixr = HALF * (phi_new(i+1*dg(1),j,k) + phi_old(i+1*dg(1),j,k))
+                phiyl = HALF * (phi_new(i,j-1*dg(2),k) + phi_old(i,j-1*dg(2),k))
+                phiyr = HALF * (phi_new(i,j+1*dg(2),k) + phi_old(i,j+1*dg(2),k))
+                phizl = HALF * (phi_new(i,j,k-1*dg(3)) + phi_old(i,j,k-1*dg(3)))
+                phizr = HALF * (phi_new(i,j,k+1*dg(3)) + phi_old(i,j,k+1*dg(3)))
+
+                SrEcorr = SrEcorr - (HALF / dt) * ( flux1(i        ,j,k) * (phi - phixl) - &
+                                                    flux1(i+1*dg(1),j,k) * (phi - phixr) + &
+                                                    flux2(i,j        ,k) * (phi - phiyl) - &
+                                                    flux2(i,j+1*dg(2),k) * (phi - phiyr) + &
+                                                    flux3(i,j,k        ) * (phi - phizl) - &
+                                                    flux3(i,j,k+1*dg(3)) * (phi - phizr) ) / vol(i,j,k)
 
                 ! Correct for the time rate of change of the potential, which acts
                 ! purely as a source term. This is only necessary for this source type;
@@ -448,7 +470,7 @@ contains
 
              else
 #ifndef AMREX_USE_GPU
-                call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+                call castro_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
 #endif
              end if
 

@@ -4,32 +4,23 @@ FEXE_headers += Problem_F.H
 CEXE_headers += Problem.H
 CEXE_headers += Problem_Derives.H
 CEXE_headers += Problem_Derive.H
+CEXE_sources += Problem_Derive.cpp
 FEXE_headers += Problem_Derive_F.H
-
-CEXE_headers += Castro_prob_err_list.H
-CEXE_sources += Castro_prob_err.cpp
-FEXE_headers += Castro_prob_err_F.H
 
 ca_F90EXE_sources += generic_fill.F90
 
-ifneq ($(DIMENSION_AGNOSTIC), TRUE)
-  ca_F90EXE_sources += bc_fill_$(DIM)d.F90
-  ca_F90EXE_sources += bc_ext_fill_$(DIM)d.F90
-  ca_f90EXE_sources += Prob_$(DIM)d.f90
-  ca_f90EXE_sources += problem_tagging_$(DIM)d.f90
-  FEXE_headers += Castro_bc_fill_F.H
-  CEXE_headers += Castro_bc_fill.H
-  CEXE_sources += Castro_bc_fill.cpp
-else
-  ca_F90EXE_sources += bc_fill_nd.F90
-  ca_F90EXE_sources += bc_ext_fill_nd.F90
-  ca_F90EXE_sources += Prob_nd.F90
-  ca_F90EXE_sources += problem_tagging_nd.F90
-  FEXE_headers += Castro_bc_fill_nd_F.H
-  CEXE_headers += Castro_bc_fill_nd.H
-  CEXE_sources += Castro_bc_fill_nd.cpp
-endif
+ca_F90EXE_sources += bc_fill_nd.F90
+ca_F90EXE_sources += bc_ext_fill_nd.F90
+ca_F90EXE_sources += Prob_nd.F90
+ca_F90EXE_sources += problem_tagging_nd.F90
+FEXE_headers += Castro_bc_fill_nd_F.H
+CEXE_headers += Castro_bc_fill_nd.H
+CEXE_sources += Castro_bc_fill_nd.cpp
+FEXE_headers += Castro_bc_ext_fill_nd_F.H
+CEXE_headers += Castro_bc_ext_fill_nd.H
+CEXE_sources += Castro_bc_ext_fill_nd.cpp
 
-ca_f90EXE_sources += problem_derive_nd.f90
+ca_F90EXE_sources += problem_derive_nd.F90
 ca_f90EXE_sources += Problem.f90
+
 

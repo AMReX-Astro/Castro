@@ -464,8 +464,6 @@ protected:
   void unweight_edges(int level, const amrex::Vector<amrex::MultiFab*>& edges);
 #endif
 
-#ifdef POINTMASS
-
 ///
 /// @param level        Index of level
 /// @param phi          Gravitational potential
@@ -473,7 +471,6 @@ protected:
 /// @param point_mass   Mass of pointmass
 ///
     void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector, amrex::Real point_mass);
-#endif
 
 private:
 
