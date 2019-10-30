@@ -125,6 +125,8 @@ contains
 
     logical :: reset_state
 
+    real(rt) :: volinv
+
     !$gpu
 
     !-------------------------------------------------------------------------
@@ -149,11 +151,13 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 #if AMREX_SPACEDIM == 2
+                volinv = ONE/vol(i,j,k)
+
                 rrnew = qyp(i,j,k,QRHO) - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) - &
-                                               area1(i,j,k)*fx(i,j,k,URHO))/vol(i,j,k)
+                                               area1(i,j,k)*fx(i,j,k,URHO)) * volinv
                 compu = qyp(i,j,k,QRHO)*qyp(i,j,k,nqp) - &
                      hdt*(area1(i+1,j,k)*fx(i+1,j,k,n) - &
-                             area1(i,j,k)*fx(i,j,k,n))/vol(i,j,k)
+                             area1(i,j,k)*fx(i,j,k,n)) * volinv
                 qypo(i,j,k,nqp) = compu/rrnew
 #else
                 rrnew = qyp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
@@ -162,11 +166,13 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 2
+                volinv = ONE/vol(i,j-1,k)
+
                 rrnew = qym(i,j,k,QRHO) - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,URHO) - &
-                                               area1(i,j-1,k)*fx(i,j-1,k,URHO))/vol(i,j-1,k)
+                                               area1(i,j-1,k)*fx(i,j-1,k,URHO)) * volinv
                 compu = qym(i,j,k,QRHO)*qym(i,j,k,nqp) - &
                      hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,n) - &
-                          area1(i,j-1,k)*fx(i,j-1,k,n))/vol(i,j-1,k)
+                          area1(i,j-1,k)*fx(i,j-1,k,n)) * volinv
                 qymo(i,j,k,nqp) = compu/rrnew
 #else
                 rrnew = qym(i,j,k,QRHO) - cdtdx*(fx(i+1,j-1,k,URHO) - fx(i,j-1,k,URHO))
@@ -190,6 +196,8 @@ contains
              !----------------------------------------------------------------
              ! qypo state
              !----------------------------------------------------------------
+
+             volinv = vol(i,j,k)
 
              pgp  = qx(i+1,j,k,GDPRES)
              pgm  = qx(i  ,j,k,GDPRES)
@@ -242,7 +250,7 @@ contains
                 end do
              else if (fspace_type .eq. 2) then
 #if AMREX_SPACEDIM == 2
-                divu = (area1(i+1,j,k)*ugp-area1(i,j,k)*ugm)/vol(i,j,k)
+                divu = (area1(i+1,j,k)*ugp-area1(i,j,k)*ugm) * volinv
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = 0.5e0_rt*(1.e0_rt-eddf)
@@ -274,7 +282,7 @@ contains
 #if AMREX_SPACEDIM == 2
              ! Add transverse predictor
              rrnewry = rrry - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) -  &
-                                   area1(i,j,k)*fx(i,j,k,URHO))/vol(i,j,k)
+                                   area1(i,j,k)*fx(i,j,k,URHO)) * volinv
 
              ! Note that pressure may be treated specially here, depending on
              ! the geometry.  Our y-interface equation for (rho u) is:
@@ -286,22 +294,22 @@ contains
              ! geometry, we do not include p in our definition of the
              ! flux in the x-direction, for we need to fix this now.
              runewry = rury - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMX)  -  &
-                                   area1(i,j,k)*fx(i,j,k,UMX))/vol(i,j,k)
+                                   area1(i,j,k)*fx(i,j,k,UMX)) * volinv
              if (.not. mom_flux_has_p(1)%comp(UMX)) then
                 runewry = runewry - cdtdx *(pgp-pgm)
              endif
              rvnewry = rvry - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMY)  -  &
-                                   area1(i,j,k)*fx(i,j,k,UMY))/vol(i,j,k)
+                                   area1(i,j,k)*fx(i,j,k,UMY)) * volinv
              rwnewry = rwry - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMZ)  -  &
-                                   area1(i,j,k)*fx(i,j,k,UMZ))/vol(i,j,k)
+                                   area1(i,j,k)*fx(i,j,k,UMZ)) * volinv
              renewry = rery - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UEDEN)-  &
-                                  area1(i,j,k)*fx(i,j,k,UEDEN))/vol(i,j,k)
+                                  area1(i,j,k)*fx(i,j,k,UEDEN)) * volinv
 
 #ifdef RADIATION
-             runewry = runewry - HALF*hdt*(area1(i+1,j,k)+area1(i,j,k))*sum(lamge)/vol(i,j,k)
+             runewry = runewry - HALF*hdt*(area1(i+1,j,k)+area1(i,j,k))*sum(lamge) * volinv
              renewry = renewry + dre
              ernewr(:) = err(:) - hdt*(area1(i+1,j,k)*rfx(i+1,j,k,:)-  &
-                                       area1(i,j,k)*rfx(i,j,k,:))/vol(i,j,k) + der(:)
+                                       area1(i,j,k)*rfx(i,j,k,:)) * volinv + der(:)
 #endif
 
 #else
@@ -352,7 +360,7 @@ contains
 #if AMREX_SPACEDIM == 2
                    qypo(i,j,k,QREINT) = qyp(i,j,k,QREINT) - &
                         hdt*(area1(i+1,j,k)*fx(i+1,j,k,UEINT)-  &
-                             area1(i,j,k)*fx(i,j,k,UEINT) + pav*du)/vol(i,j,k)
+                             area1(i,j,k)*fx(i,j,k,UEINT) + pav*du) * volinv
 #else
                    qypo(i,j,k,QREINT) = qyp(i,j,k,QREINT) - &
                         cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
@@ -366,7 +374,7 @@ contains
                    ! add the transverse term to the p evolution eq here
 #if AMREX_SPACEDIM == 2
                    ! the divergences here, dup and du, already have area factors
-                   pnewry = qyp(i,j,k,QPRES) - hdt*(dup + pav*du*(gamc - ONE))/vol(i,j,k)
+                   pnewry = qyp(i,j,k,QPRES) - hdt*(dup + pav*du*(gamc - ONE)) * volinv
 #else
                    pnewry = qyp(i,j,k,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
 #endif
@@ -375,7 +383,7 @@ contains
                    ! Update gammae with its transverse terms
 #if AMREX_SPACEDIM == 2
                    qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME) + &
-                        hdt*( (geav-ONE)*(geav - gamc)*du)/vol(i,j,k) - cdtdx*uav*dge
+                        hdt*( (geav-ONE)*(geav - gamc)*du) * volinv - cdtdx*uav*dge
 #else
                    qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME) + &
                         cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
@@ -401,6 +409,8 @@ contains
              !-------------------------------------------------------------------
              ! qymo state
              !-------------------------------------------------------------------
+             volinv = vol(i,j-1,k)
+
              pgp  = qx(i+1,j-1,k,GDPRES)
              pgm  = qx(i  ,j-1,k,GDPRES)
              ugp  = qx(i+1,j-1,k,GDU   )
@@ -452,7 +462,7 @@ contains
                 end do
              else if (fspace_type .eq. 2) then
 #if AMREX_SPACEDIM == 2
-                divu = (area1(i+1,j-1,k)*ugp-area1(i,j-1,k)*ugm)/vol(i,j-1,k)
+                divu = (area1(i+1,j-1,k)*ugp-area1(i,j-1,k)*ugm) * volinv
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = 0.5e0_rt*(1.e0_rt-eddf)
@@ -483,24 +493,24 @@ contains
 
 #if AMREX_SPACEDIM == 2
              rrnewly = rrly - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,URHO) -  &
-                                   area1(i,j-1,k)*fx(i,j-1,k,URHO))/vol(i,j-1,k)
+                                   area1(i,j-1,k)*fx(i,j-1,k,URHO)) * volinv
              runewly = ruly - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,UMX)  -  &
-                                   area1(i,j-1,k)*fx(i,j-1,k,UMX))/vol(i,j-1,k)
+                                   area1(i,j-1,k)*fx(i,j-1,k,UMX)) * volinv
              if (.not. mom_flux_has_p(1)%comp(UMX)) then
                 runewly = runewly - cdtdx *(pgp-pgm)
              endif
              rvnewly = rvly - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,UMY)  -  &
-                                   area1(i,j-1,k)*fx(i,j-1,k,UMY))/vol(i,j-1,k)
+                                   area1(i,j-1,k)*fx(i,j-1,k,UMY)) * volinv
              rwnewly = rwly - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,UMZ)  -  &
-                                   area1(i,j-1,k)*fx(i,j-1,k,UMZ))/vol(i,j-1,k)
+                                   area1(i,j-1,k)*fx(i,j-1,k,UMZ)) * volinv
              renewly = rely - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,UEDEN)-  &
-                                   area1(i,j-1,k)*fx(i,j-1,k,UEDEN))/vol(i,j-1,k)
+                                   area1(i,j-1,k)*fx(i,j-1,k,UEDEN)) * volinv
 
 #ifdef RADIATION
-             runewly = runewly - HALF*hdt*(area1(i+1,j-1,k)+area1(i,j-1,k))*sum(lamge)/vol(i,j-1,k)
+             runewly = runewly - HALF*hdt*(area1(i+1,j-1,k)+area1(i,j-1,k))*sum(lamge) * volinv
              renewly = renewly + dre
              ernewl(:) = erl(:) - hdt*(area1(i+1,j-1,k)*rfx(i+1,j-1,k,:)-  &
-                                       area1(i,j-1,k)*rfx(i,j-1,k,:))/vol(i,j-1,k) + der(:)
+                                       area1(i,j-1,k)*rfx(i,j-1,k,:)) * volinv + der(:)
 #endif
 
 #else
@@ -550,7 +560,7 @@ contains
 #if AMREX_SPACEDIM == 2
                    qymo(i,j,k,QREINT) = qym(i,j,k,QREINT) - &
                         hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,UEINT)-  &
-                             area1(i,j-1,k)*fx(i,j-1,k,UEINT) + pav*du)/vol(i,j-1,k)
+                             area1(i,j-1,k)*fx(i,j-1,k,UEINT) + pav*du) * volinv
 #else
                    qymo(i,j,k,QREINT) = qym(i,j,k,QREINT) - &
                         cdtdx*(fx(i+1,j-1,k,UEINT) - fx(i,j-1,k,UEINT) + pav*du)
@@ -563,7 +573,7 @@ contains
                 if (ppm_predict_gammae == 0) then
                    ! add the transverse term to the p evolution eq here
 #if AMREX_SPACEDIM == 2
-                   pnewly = qym(i,j,k,QPRES) - hdt*(dup + pav*du*(gamc - ONE))/vol(i,j-1,k)
+                   pnewly = qym(i,j,k,QPRES) - hdt*(dup + pav*du*(gamc - ONE)) * volinv
 #else
                    pnewly = qym(i,j,k,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
 #endif
@@ -572,7 +582,7 @@ contains
                    ! Update gammae with its transverse terms
 #if AMREX_SPACEDIM == 2
                    qymo(i,j,k,QGAME) = qym(i,j,k,QGAME) + &
-                        hdt*( (geav-ONE)*(geav - gamc)*du)/vol(i,j-1,k) - cdtdx*uav*dge
+                        hdt*( (geav-ONE)*(geav - gamc)*du) * volinv - cdtdx*uav*dge
 #else
                    qymo(i,j,k,QGAME) = qym(i,j,k,QGAME) + &
                         cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
@@ -703,6 +713,7 @@ contains
 #endif
 
     logical :: reset_state
+
 
     !$gpu
 
