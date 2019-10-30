@@ -198,7 +198,7 @@ contains
              !----------------------------------------------------------------
 
 #if AMREX_SPACEDIM == 2
-             volinv = vol(i,j,k)
+             volinv = ONE/vol(i,j,k)
 #endif
 
              pgp  = qx(i+1,j,k,GDPRES)
@@ -413,7 +413,7 @@ contains
              !-------------------------------------------------------------------
 
 #if AMREX_SPACEDIM == 2
-             volinv = vol(i,j-1,k)
+             volinv = ONE/vol(i,j-1,k)
 #endif
 
              pgp  = qx(i+1,j-1,k,GDPRES)
