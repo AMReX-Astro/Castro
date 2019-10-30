@@ -197,7 +197,9 @@ contains
              ! qypo state
              !----------------------------------------------------------------
 
+#if AMREX_SPACEDIM == 2
              volinv = vol(i,j,k)
+#endif
 
              pgp  = qx(i+1,j,k,GDPRES)
              pgm  = qx(i  ,j,k,GDPRES)
@@ -409,7 +411,10 @@ contains
              !-------------------------------------------------------------------
              ! qymo state
              !-------------------------------------------------------------------
+
+#if AMREX_SPACEDIM == 2
              volinv = vol(i,j-1,k)
+#endif
 
              pgp  = qx(i+1,j-1,k,GDPRES)
              pgm  = qx(i  ,j-1,k,GDPRES)
