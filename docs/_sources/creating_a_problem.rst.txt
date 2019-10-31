@@ -11,11 +11,14 @@ then placed in a sub-directory of the appropriate group (for example,
 To create a new problem, you will create a new directory under one
 of the groups and place in it the following files:
 
+  * ``GNUmakefile`` : the makefile for this problem.  This will tell
+    Castro what options to use and what network and EOS to build.
+
   * ``Prob_nd.F90`` : this holds the problem initialization routines
 
-  * ``probdata.F90`` (optional) : this is usually where
-    problem-specific runtime parameters are defined.  These parameters
-    are controlled by the ``probin`` file.
+  * ``_prob_params`` (optional) : a list of runtime parameters that
+    you problem will read.  These parameters are controlled by the
+    ``probin`` file.
 
   * ``Make.package`` : this is a makefile fragment that is included
     during the build process.  It tells the build system about any
@@ -32,11 +35,37 @@ of the groups and place in it the following files:
 The best way to get started writing a new problem is to copy an
 existing problem setup into a new directory.
 
+.. index:: _prob_params
+
+Runtime parameters
+------------------
+
+The problem-specific runtime parameters are defined in ``_prob_params``.
+This has the form::
+
+   name       datatype    default      namelist?     size
+
+where datatype is one of ``real``, ``integer``, ``character``, or
+``logical``.  The namelist column should have a ``y`` if you want the
+parameter to be read from the ``&fortin`` namelist in the ``probin``
+file at runtime.  If it is empty or marked with ``n``, then the
+variable will still be put into the ``probdata_module`` but it will
+not be initialized via the namelist.  The size column is for arrays
+and can be any integer or variable that is known to the
+``probdata_module``.  If you need a variable from a different module
+to specify the size (for example, ``nspec`` from ``network``), then
+you express the size as a tuple: ``(nspec, network)`` and the
+appropriate use statement will be added.
+
+The variables will all be initialized for the GPU as well.
+
 
 ``Prob_nd.F90``
 ---------------
 
 Here we describe the main problem initialization routines.
+
+.. index:: probdata
 
 * ``probinit()``:
 
@@ -46,7 +75,8 @@ Here we describe the main problem initialization routines.
   initial model through the ``model_parser_module``—see the
   ``toy_convect`` problem setup for an example).
 
-  By convention, the parameters that are initialized here stored in the
+  By convention, this is where we read and initialize the problem parameters
+  by calling ``probdata_init()``.  The parameters will then be defined in
   ``probdata_module`` defined in ``probdata.F90``.
 
   .. note:: many problems set the value of the ``center()`` array

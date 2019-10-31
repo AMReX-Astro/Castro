@@ -93,6 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Setting Up Your Own Problem</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#runtime-parameters">Runtime parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#prob-nd-f90"><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#boundary-conditions">Boundary conditions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#optional-files">Optional Files</a></li>
@@ -206,10 +207,12 @@ then placed in a sub-directory of the appropriate group (for example,
 of the groups and place in it the following files:</p>
 <blockquote>
 <div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> : the makefile for this problem.  This will tell
+Castro what options to use and what network and EOS to build.</li>
 <li><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> : this holds the problem initialization routines</li>
-<li><code class="docutils literal notranslate"><span class="pre">probdata.F90</span></code> (optional) : this is usually where
-problem-specific runtime parameters are defined.  These parameters
-are controlled by the <code class="docutils literal notranslate"><span class="pre">probin</span></code> file.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> (optional) : a list of runtime parameters that
+you problem will read.  These parameters are controlled by the
+<code class="docutils literal notranslate"><span class="pre">probin</span></code> file.</li>
 <li><code class="docutils literal notranslate"><span class="pre">Make.package</span></code> : this is a makefile fragment that is included
 during the build process.  It tells the build system about any
 problem-specific files that need to be compiled.</li>
@@ -223,17 +226,38 @@ Microphysics)</li>
 </div></blockquote>
 <p>The best way to get started writing a new problem is to copy an
 existing problem setup into a new directory.</p>
+<div class="section" id="runtime-parameters">
+<span id="index-0"></span><h2>Runtime parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this headline">¶</a></h2>
+<p>The problem-specific runtime parameters are defined in <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code>.
+This has the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>name       datatype    default      namelist?     size
+</pre></div>
+</div>
+<p>where datatype is one of <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">integer</span></code>, <code class="docutils literal notranslate"><span class="pre">character</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">logical</span></code>.  The namelist column should have a <code class="docutils literal notranslate"><span class="pre">y</span></code> if you want the
+parameter to be read from the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist in the <code class="docutils literal notranslate"><span class="pre">probin</span></code>
+file at runtime.  If it is empty or marked with <code class="docutils literal notranslate"><span class="pre">n</span></code>, then the
+variable will still be put into the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> but it will
+not be initialized via the namelist.  The size column is for arrays
+and can be any integer or variable that is known to the
+<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.  If you need a variable from a different module
+to specify the size (for example, <code class="docutils literal notranslate"><span class="pre">nspec</span></code> from <code class="docutils literal notranslate"><span class="pre">network</span></code>), then
+you express the size as a tuple: <code class="docutils literal notranslate"><span class="pre">(nspec,</span> <span class="pre">network)</span></code> and the
+appropriate use statement will be added.</p>
+<p>The variables will all be initialized for the GPU as well.</p>
+</div>
 <div class="section" id="prob-nd-f90">
 <h2><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code><a class="headerlink" href="#prob-nd-f90" title="Permalink to this headline">¶</a></h2>
 <p>Here we describe the main problem initialization routines.</p>
-<ul>
+<ul id="index-1">
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">probinit()</span></code>:</p>
 <p>This routine is primarily responsible for reading in the <code class="docutils literal notranslate"><span class="pre">probin</span></code>
 file (by defining the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist) and doing any one-time
 initialization for the problem (like reading in an
 initial model through the <code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code>—see the
 <code class="docutils literal notranslate"><span class="pre">toy_convect</span></code> problem setup for an example).</p>
-<p>By convention, the parameters that are initialized here stored in the
+<p>By convention, this is where we read and initialize the problem parameters
+by calling <code class="docutils literal notranslate"><span class="pre">probdata_init()</span></code>.  The parameters will then be defined in
 <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> defined in <code class="docutils literal notranslate"><span class="pre">probdata.F90</span></code>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
