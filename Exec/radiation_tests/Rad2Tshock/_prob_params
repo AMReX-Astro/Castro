@@ -1,0 +1,21 @@
+rho0     real      5.4588672836e-13_rt    y
+
+T0       real      100.e0_rt              y
+
+v0       real      235435.371882e0_rt     y
+
+rho1     real      1.24793794736e-12_rt   y
+
+T1       real      207.756999533e0_rt     y
+
+v1       real      102986.727159e0_rt     y
+
+idir     integer   1                      y
+
+eint0    real      0.0_rt
+
+etot0    real      0.0_rt
+
+eint1    real      0.0_rt
+
+etot1    real      0.0_rt

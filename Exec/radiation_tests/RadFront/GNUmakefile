@@ -10,6 +10,8 @@ PROFILE    = FALSE
 USE_RAD = TRUE
 USE_NEUTRINO = FALSE
 
+USE_PROB_PARAMS = TRUE
+
 CASTRO_HOME = ../../..
 
 EOS_DIR     := gamma_law
