@@ -45,17 +45,35 @@ This has the form::
 
    name       datatype    default      namelist?     size
 
-where datatype is one of ``real``, ``integer``, ``character``, or
-``logical``.  The namelist column should have a ``y`` if you want the
-parameter to be read from the ``&fortin`` namelist in the ``probin``
-file at runtime.  If it is empty or marked with ``n``, then the
-variable will still be put into the ``probdata_module`` but it will
-not be initialized via the namelist.  The size column is for arrays
-and can be any integer or variable that is known to the
-``probdata_module``.  If you need a variable from a different module
-to specify the size (for example, ``nspec`` from ``network``), then
-you express the size as a tuple: ``(nspec, network)`` and the
-appropriate use statement will be added.
+Here:
+
+* `name` is the name of the variable to put into ``probdata_module``
+
+* `datatype` is one of ``real``, ``integer``, ``character``, or
+  ``logical``. 
+
+* `default` is the default value of the runtime parameter.  It may be
+  overridden at runtime by reading from the namelist.
+
+* `namelist` indicates if the variable should be in the namelist and
+  controlled at runtime.  The namelist column should have a ``y`` if
+  you want the parameter to be read from the ``&fortin`` namelist in
+  the ``probin`` file at runtime.  If it is empty or marked with
+  ``n``, then the variable will still be put into the
+  ``probdata_module`` but it will not be initialized via the namelist.
+
+* `size` is for arrays, and gives their size.  It can be any integer
+  or variable that is known to the ``probdata_module``.  If you need a
+  variable from a different module to specify the size (for example,
+  ``nspec`` from ``network``), then you express the size as a tuple:
+  ``(nspec, network)`` and the appropriate use statement will be
+  added.
+
+.. note::
+
+   The ``GNUmakefile`` needs to have ``USE_PROB_PARAMS = TRUE`` to
+   tell the build system to parse ``_prob_params`` and write the 
+   ``probdata_module``.
 
 The variables will all be initialized for the GPU as well.
 

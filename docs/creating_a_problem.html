@@ -233,17 +233,32 @@ This has the form:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>name       datatype    default      namelist?     size
 </pre></div>
 </div>
-<p>where datatype is one of <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">integer</span></code>, <code class="docutils literal notranslate"><span class="pre">character</span></code>, or
-<code class="docutils literal notranslate"><span class="pre">logical</span></code>.  The namelist column should have a <code class="docutils literal notranslate"><span class="pre">y</span></code> if you want the
-parameter to be read from the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist in the <code class="docutils literal notranslate"><span class="pre">probin</span></code>
-file at runtime.  If it is empty or marked with <code class="docutils literal notranslate"><span class="pre">n</span></code>, then the
-variable will still be put into the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> but it will
-not be initialized via the namelist.  The size column is for arrays
-and can be any integer or variable that is known to the
-<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.  If you need a variable from a different module
-to specify the size (for example, <code class="docutils literal notranslate"><span class="pre">nspec</span></code> from <code class="docutils literal notranslate"><span class="pre">network</span></code>), then
-you express the size as a tuple: <code class="docutils literal notranslate"><span class="pre">(nspec,</span> <span class="pre">network)</span></code> and the
-appropriate use statement will be added.</p>
+<p>Here:</p>
+<ul class="simple">
+<li><cite>name</cite> is the name of the variable to put into <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code></li>
+<li><cite>datatype</cite> is one of <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">integer</span></code>, <code class="docutils literal notranslate"><span class="pre">character</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">logical</span></code>.</li>
+<li><cite>default</cite> is the default value of the runtime parameter.  It may be
+overridden at runtime by reading from the namelist.</li>
+<li><cite>namelist</cite> indicates if the variable should be in the namelist and
+controlled at runtime.  The namelist column should have a <code class="docutils literal notranslate"><span class="pre">y</span></code> if
+you want the parameter to be read from the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist in
+the <code class="docutils literal notranslate"><span class="pre">probin</span></code> file at runtime.  If it is empty or marked with
+<code class="docutils literal notranslate"><span class="pre">n</span></code>, then the variable will still be put into the
+<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> but it will not be initialized via the namelist.</li>
+<li><cite>size</cite> is for arrays, and gives their size.  It can be any integer
+or variable that is known to the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.  If you need a
+variable from a different module to specify the size (for example,
+<code class="docutils literal notranslate"><span class="pre">nspec</span></code> from <code class="docutils literal notranslate"><span class="pre">network</span></code>), then you express the size as a tuple:
+<code class="docutils literal notranslate"><span class="pre">(nspec,</span> <span class="pre">network)</span></code> and the appropriate use statement will be
+added.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> needs to have <code class="docutils literal notranslate"><span class="pre">USE_PROB_PARAMS</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to
+tell the build system to parse <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> and write the
+<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.</p>
+</div>
 <p>The variables will all be initialized for the GPU as well.</p>
 </div>
 <div class="section" id="prob-nd-f90">
