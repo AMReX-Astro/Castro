@@ -215,11 +215,7 @@ Castro::do_advance_ctu(Real time,
 #endif		      
 		  S_new, cur_time, 0);
 
-      expand_state(
-#ifdef MHD
-		   Bx_new, By_new, Bz_new,   
-#endif		      
-		   S_new, cur_time, S_new.nGrow());
+      expand_state(S_new, cur_time, S_new.nGrow());
     }
 
     // Do the second half of the reactions.

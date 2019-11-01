@@ -490,7 +490,7 @@ subroutine ConsToPrim(q, u, q_l1 ,q_l2 ,q_l3 ,q_h1 ,q_h2 ,q_h3)
  use meth_params_module
  use eos_module, only : eos
  use eos_type_module, only : eos_t, eos_input_re
- use actual_network, only : nspec
+ use network, only : nspec
 
  implicit none
 

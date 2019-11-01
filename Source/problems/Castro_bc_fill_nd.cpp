@@ -93,6 +93,74 @@ extern "C"
 #endif
   }
 
+#ifdef MHD
+  void ca_face_fillx(Real* var, const int* var_lo, const int* var_hi,
+                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
+                     const Real* time, const int* bc)
+  {
+    int lo[3] = {0};
+    int hi[3] = {0};
+
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+      lo[i] = var_lo[i];
+      hi[i] = var_hi[i];
+    }
+
+    const int* bc_f = bc;
+
+
+    face_fillx(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+               var, AMREX_INT_ANYD(var_lo), AMREX_INT_ANYD(var_hi),
+               AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+
+  }
+
+  void ca_face_filly(Real* var, const int* var_lo, const int* var_hi,
+                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
+                     const Real* time, const int* bc)
+  {
+    int lo[3] = {0};
+    int hi[3] = {0};
+
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+      lo[i] = var_lo[i];
+      hi[i] = var_hi[i];
+    }
+
+    const int* bc_f = bc;
+
+
+    face_filly(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+               var, AMREX_INT_ANYD(var_lo), AMREX_INT_ANYD(var_hi),
+               AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+
+  }
+
+  void ca_face_fillz(Real* var, const int* var_lo, const int* var_hi,
+                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
+                     const Real* time, const int* bc)
+  {
+    int lo[3] = {0};
+    int hi[3] = {0};
+
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+      lo[i] = var_lo[i];
+      hi[i] = var_hi[i];
+    }
+
+    const int* bc_f = bc;
+
+
+    face_fillz(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+               var, AMREX_INT_ANYD(var_lo), AMREX_INT_ANYD(var_hi),
+               AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
+               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+
+  }
+#endif  
+
 #ifdef GRAVITY
   void ca_phigravfill(Real* phi, const int* phi_lo, const int* phi_hi,
                       const int* domlo, const int* domhi, const Real* dx, const Real* xlo,

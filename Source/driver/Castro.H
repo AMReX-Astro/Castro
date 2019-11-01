@@ -1582,13 +1582,7 @@ public:
 /// @param time     current time
 /// @param ng       number of ghost cells
 ///
-    void expand_state(
-#ifdef MHD
-                      amrex::MultiFab& Bx,
-		      amrex::MultiFab& By,
-		      amrex::MultiFab& Bz,
-#endif
-                      amrex::MultiFab& S, amrex::Real time, int ng);
+    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
 #ifdef SELF_GRAVITY
 

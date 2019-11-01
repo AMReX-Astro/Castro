@@ -314,14 +314,10 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
       clean_state(
 #ifdef MHD
-                     Bx_new, By_new, Bz_new,
+                     Bx_old, By_old, Bz_old,
 #endif	
 		     S_old, prev_time, 0);
-      expand_state(
-#ifdef MHD
-                     Bx_new, By_new, Bz_new,
-#endif	      
-		     Sborder, prev_time, NUM_GROW);
+      expand_state(Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == SpectralDeferredCorrections) {
 

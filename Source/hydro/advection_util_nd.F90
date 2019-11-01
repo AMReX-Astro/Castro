@@ -433,7 +433,7 @@ contains
        q,     q_lo,   q_hi, &
        qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
 
-    use actual_network, only : nspec, naux
+    use network, only : nspec, naux
     use eos_module, only : eos
     use eos_type_module, only : eos_t, eos_input_re
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, &
@@ -616,7 +616,7 @@ contains
        src, src_lo, src_hi, &
        srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
 
-    use actual_network, only : nspec, naux
+    use network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
          NQSRC, QRHO, QU, QV, QW, NQ, &
          QREINT, QPRES, QDPDR, QDPDE, NQAUX, &

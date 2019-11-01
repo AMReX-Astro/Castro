@@ -113,7 +113,7 @@ contains
 
     use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
     use meth_params_module, only: sponge_implicit, NVAR, URHO, UTEMP, UFS, UFX
-    use actual_network, only: nspec, naux
+    use network, only: nspec, naux
     use eos_type_module, only: eos_t, eos_input_rt
     use eos_module, only: eos
 

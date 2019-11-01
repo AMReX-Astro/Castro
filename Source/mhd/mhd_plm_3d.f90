@@ -836,7 +836,7 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rp
-    use actual_network, only: nspec
+    use network, only: nspec
     implicit none
 
     real(rt), intent(in)	:: Q(NQ)
