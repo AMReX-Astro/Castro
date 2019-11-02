@@ -939,7 +939,7 @@ contains
              ro = max(small_dens, ONE/tauo)
              tauo = ONE/ro
 
-             co = sqrt(abs(gamco*po/ro))
+             co = sqrt(abs(gamco*po*tauo))
              co = max(csmall, co)
              clsq = (co*ro)**2
 
@@ -967,7 +967,7 @@ contains
              spin = cstar - sgnm*ustar
 
              !ushock = HALF*(spin + spout)
-             ushock = wo/ro - sgnm*uo
+             ushock = wo*tauo - sgnm*uo
 
              if (pstar-po >= ZERO) then
                 spin = ushock
@@ -1773,7 +1773,7 @@ contains
              rstar = ro + (pstar - po)*co2inv
              rstar = max(small_dens, rstar)
 
-             entho = (reo + po)*co2inv/ro
+             entho = (reo + po)*co2inv * roinv
              estar = reo + (pstar - po)*entho
 
              cstar = sqrt(abs(gamco*pstar/rstar))
