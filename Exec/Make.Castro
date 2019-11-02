@@ -149,8 +149,11 @@ endif
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
-  # we need the compositional derivatives for SDC
-  DEFINES += -DEXTRA_THERMO
+
+  ifeq ($(USE_TRUE_SDC), TRUE)
+    # we need the compositional derivatives for SDC
+    DEFINES += -DEXTRA_THERMO
+  endif
 endif
 
 ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
