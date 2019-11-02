@@ -1,3 +1,7 @@
+# changes since the last release
+
+   * We now use VODE90 instead of VODE by default. (#677)
+
 # 19.11
 
    * The density flux limiter was simplified and fixes a race condition
