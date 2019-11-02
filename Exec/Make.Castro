@@ -16,6 +16,9 @@ NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
 VISC_HOME ?= $(TOP)/Microphysics/viscosity
 
+# default integrator
+INTEGRATOR_DIR ?= VODE90
+
 # number of passively advected quantities that are not species or auxillary
 NUMADV ?= 0
 
@@ -50,10 +53,17 @@ EBASE = Castro
 # Networks and Util this list will be searched for runtime parameters
 EXTERN_CORE ?=
 
+ifeq ($(USE_SDC), TRUE)
+  $(error USE_SDC is no longer supported.  Use with USE_SIMPLIFIED_SDC or USE_TRUE_SDC)
+endif
 
 # need to put any build suffices before Make.defs
-ifeq ($(USE_SDC), TRUE)
-  USERSuffix = .SDC
+ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+  USERSuffix = .SMPLSDC
+endif
+
+ifeq ($(USE_TRUE_SDC), TRUE)
+  USERSuffix = .TRUESDC
 endif
 
 ifeq ($(USE_RAD), TRUE)
@@ -154,9 +164,13 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
   endif
 endif
 
-ifeq ($(USE_SDC), TRUE)
-  DEFINES += -DSDC -DSIMPLIFIED_SDC -DPRIM_SPECIES_HAVE_SOURCES
-  USE_SIMPLIFIED_SDC = TRUE
+ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+  DEFINES += -DSIMPLIFIED_SDC -DPRIM_SPECIES_HAVE_SOURCES
+endif
+
+ifeq ($(USE_TRUE_SDC), TRUE)
+  DEFINES += -DTRUE_SDC
+  Bdirs += Source/sdc
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)

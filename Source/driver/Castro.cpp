@@ -391,17 +391,17 @@ Castro::read_params ()
 #endif
 
 
-    // Simplified SDC currently requires USE_SDC to be defined.
-    // Also, if we have USE_SDC defined, we can't use the other
+    // Simplified SDC currently requires USE_SIMPLIFIED_SDC to be defined.
+    // Also, if we have USE_SIMPLIFIED_SDC defined, we can't use the other
     // time integration_methods, because only the SDC burner
     // interface is available in Microphysics in this case.
-#ifndef SDC
+#ifndef SIMPLIFIED_SDC
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        amrex::Error("Simplified SDC currently requires USE_SDC=TRUE when compiling.");
+        amrex::Error("Simplified SDC currently requires USE_SIMPLIFIED_SDC=TRUE when compiling.");
     }
 #else
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
-        amrex::Error("When building with USE_SDC=TRUE, only simplified SDC can be used.");
+        amrex::Error("When building with USE_SIMPLFIIED_SDC=TRUE, only simplified SDC can be used.");
     }
 #endif
 

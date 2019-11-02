@@ -4,7 +4,7 @@ module burner_module
   use amrex_constants_module
   use network
   use eos_module
-#ifndef SDC
+#ifndef SIMPLIFIED_SDC
   use actual_burner_module
 #else
   use integrator_module
@@ -19,7 +19,7 @@ contains
 
     implicit none
 
-#ifdef SDC
+#ifdef SIMPLIFIED_SDC
     call integrator_init()
 #else
     call actual_burner_init()
@@ -55,7 +55,7 @@ contains
 
 
 
-#ifndef SDC
+#ifndef SIMPLIFIED_SDC
   subroutine burner(state_in, state_out, dt, time)
 
     !$gpu
