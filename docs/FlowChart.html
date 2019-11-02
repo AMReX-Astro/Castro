@@ -261,7 +261,7 @@ multilevel domains.</li>
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>: this is the simplifed SDC method
 described above.that uses the CTU hydro advection and an ODE
 reaction solve.  Note: because this requires a different set of
-state variables, you must compile with <code class="docutils literal notranslate"><span class="pre">USE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> for this
+state variables, you must compile with <code class="docutils literal notranslate"><span class="pre">USE_SIMPLIFIED_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> for this
 method to work.</li>
 </ul>
 </div></blockquote>
@@ -915,7 +915,7 @@ an ODE solution to update the compute advective-reacting system.  This
 is selected by <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
+<p class="last">The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_SIMPLIFIED_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
 evolution type.</p>
 </div>
 <p>We express our system as:</p>

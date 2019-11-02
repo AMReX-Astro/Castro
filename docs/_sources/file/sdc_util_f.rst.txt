@@ -1,11 +1,6 @@
 sdc_util.F90
 ============
 
-rpar\_sdc\_module
------------------
-
-.. f:automodule:: rpar_sdc_module
-
 sdc\_util
 ---------
 

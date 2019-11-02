@@ -14,5 +14,6 @@ File list
    reactions_files
    rotation_files
    scf_files
+   sdc_files
    sources_files
    
