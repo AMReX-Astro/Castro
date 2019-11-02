@@ -57,7 +57,7 @@ The time-integration method used is controlled by
   * ``time_integration_method = 3``: this is the simplifed SDC method
     described above.that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
-    state variables, you must compile with ``USE_SIMPLIFIED_DC = TRUE`` for this
+    state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
     method to work.
 
 Several helper functions are used throughout:
