@@ -220,6 +220,7 @@ contains
     to_eos % abar = from_eos % abar
     to_eos % zbar = from_eos % zbar
 
+#ifdef EXTRA_THERMO
     to_eos % dpdA = from_eos % dpdA
     to_eos % dpdZ = from_eos % dpdZ
     to_eos % dedA = from_eos % dedA

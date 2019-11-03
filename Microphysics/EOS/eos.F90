@@ -119,7 +119,8 @@ contains
 
   subroutine eos(input, state)
 
-    use eos_type_module, only: eos_t, composition
+    use eos_type_module, only: eos_t
+    use eos_composition_module, only : composition
     use actual_eos_module, only: actual_eos
     use eos_override_module, only: eos_override
 #if (!(defined(AMREX_USE_CUDA) || defined(AMREX_USE_ACC)))

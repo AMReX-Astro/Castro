@@ -526,6 +526,7 @@ contains
     use react_util_module
     use eos_type_module, only : eos_t, eos_input_re
     use eos_module, only : eos
+    use eos_composition_module, only : eos_comp_t, composition_derivatives
     use amrex_constants_module, only : ZERO, HALF, ONE
     use vode_rpar_indices
     use extern_probin_module, only : small_x
@@ -544,6 +545,7 @@ contains
     real(rt) :: R_react(0:neq-1), f_source(0:neq-1)
     type(burn_t) :: burn_state
     type(eos_t) :: eos_state
+    type(eos_comp_t) :: eos_comp
     real(rt) :: dt_m
 
     real(rt) :: denom
@@ -620,19 +622,21 @@ contains
        dwdU(m,m) = ONE/U(0)
     enddo
 
+    call composition_derivatives(eos_state, eos_comp)
+
     ! now the T row -- this depends on whether we are evolving (rho E) or (rho e)
     denom = ONE/(eos_state % rho * eos_state % dedT)
     if (sdc_solve_for_rhoe == 1) then
-       dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
+       dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_comp % dedX(1:nspec_evolve)) - &
                                        eos_state % rho * eos_state % dedr - eos_state % e)
     else
-       dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_state % dedX(1:nspec_evolve)) - &
+       dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_comp % dedX(1:nspec_evolve)) - &
                                        eos_state % rho * eos_state % dedr - eos_state % e + &
                                        HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho**2)
     endif
 
     do m = 1, nspec_evolve
-       dwdU(nspec_evolve+1,m) = -denom * eos_state % dedX(m)
+       dwdU(nspec_evolve+1,m) = -denom * eos_comp % dedX(m)
     enddo
 
     dwdU(nspec_evolve+1, nspec_evolve+1) = denom
