@@ -322,8 +322,8 @@ ifndef GENERAL_NET_INPUTS
    endif
 endif
 
-EXTERN_CORE += $(EOS_HOME)
 EXTERN_CORE += $(EOS_PATH)
+EXTERN_CORE += $(EOS_HOME)
 
 # the helmholtz EOS has an include file -- also add a target to link
 # the table into the problem directory.
