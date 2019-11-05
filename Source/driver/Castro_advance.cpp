@@ -54,6 +54,7 @@ Castro::advance (Real time,
 
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
+#ifndef MHD	
 #ifndef AMREX_USE_CUDA
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
@@ -182,6 +183,7 @@ Castro::advance (Real time,
         }
 
 #endif // AMREX_USE_CUDA
+#endif //MHD	
     }
 
     // Optionally kill the job at this point, if we've detected a violation.

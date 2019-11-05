@@ -137,6 +137,12 @@ Castro::cons_to_prim_fourth(const Real time)
 
     MultiFab& S_new = get_new_data(State_Type);
 
+#ifdef MHD
+    MultiFab& Bx = get_new_data(Mag_Type_x);
+    MultiFab& By = get_new_data(Mag_Type_y);
+    MultiFab& Bz = get_new_data(Mag_Type_z);
+#endif
+
     // we don't support radiation here
 #ifdef RADIATION
     amrex::Abort("radiation not supported to fourth order");
@@ -172,6 +178,11 @@ Castro::cons_to_prim_fourth(const Real time)
 
       // and ensure that the internal energy is positive
       ca_reset_internal_e(AMREX_ARLIM_ANYD(qbxm1.loVect()), AMREX_ARLIM_ANYD(qbxm1.hiVect()),
+#ifdef MHD
+                            BL_TO_FORTRAN_3D(Bx[mfi]),
+                            BL_TO_FORTRAN_3D(By[mfi]),
+                            BL_TO_FORTRAN_3D(Bz[mfi]),
+#endif
                           BL_TO_FORTRAN_ANYD(U_cc),
                           print_fortran_warnings);
 

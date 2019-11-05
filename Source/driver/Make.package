@@ -10,6 +10,9 @@ CEXE_sources += Castro_advance_ctu.cpp
 ifneq ($(USE_CUDA), TRUE)
   CEXE_sources += Castro_advance_sdc.cpp
 endif
+ifneq ($(USE_MHD), TRUE)
+  CEXE_sources += Castro_advance_sdc.cpp
+endif
 CEXE_sources += Castro_setup.cpp
 CEXE_sources += Castro_io.cpp
 CEXE_sources += CastroBld.cpp
