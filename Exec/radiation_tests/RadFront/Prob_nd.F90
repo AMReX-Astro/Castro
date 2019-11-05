@@ -13,32 +13,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   type(eos_t) :: eos_state
 
-  integer :: untin, i
-
-  namelist /fortin/ rho_0, T_0
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen=127
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  !default density and temp in domain
-  rho_0 = 1.0e-5
-  T_0 = 3.0e2
-
-
-  !Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   eos_state % rho = rho_0
   eos_state % T   = T_0
@@ -48,13 +23,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   call eos(eos_input_rt, eos_state)
 
   rhoe_0 = rho_0 * eos_state % e
-
-  !     domain extrema
-  xmin = problo(1)
-  xmax = probhi(1)
-
-  ymin = problo(2)
-  ymax = probhi(2)
 
 end subroutine amrex_probinit
 

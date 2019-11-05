@@ -34,7 +34,6 @@ castro.small_temp = 1.e6
 castro.small_dens = 1.e-5
 
 castro.ppm_type = 1
-castro.ppm_reference_eigenvectors = 1
 castro.grav_source_type = 2
 
 gravity.gravity_type = ConstantGrav
@@ -47,7 +46,7 @@ castro.diffuse_temp = 1
 castro.diffuse_cutoff_density_hi = 5.e4
 castro.diffuse_cutoff_density = 2.e4
 
-castro.diffuse_cond_scale_fac = 10.0
+castro.diffuse_cond_scale_fac = 1.0
 
 castro.react_rho_min = 1.e2
 castro.react_rho_max = 1.5e7
@@ -70,7 +69,7 @@ castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 3       # maximum level number allowed
+amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 4 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 16       # block factor in grid generation
@@ -79,7 +78,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = flame_wave_chk        # root name of checkpoint file
-amr.check_int       = 100        # number of timesteps between checkpoints
+amr.check_int       = 250        # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = flame_wave_plt        # root name of plotfile
@@ -92,4 +91,4 @@ amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity
 
 #PROBIN FILENAME
-amr.probin_file = probin.boost_10_10
+amr.probin_file = probin.H_He

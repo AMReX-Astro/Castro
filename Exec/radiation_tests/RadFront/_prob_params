@@ -1,0 +1,8 @@
+rho_0    real     1.e-5_rt     y
+
+T_0      real     3.e2_rt      y
+
+rhoe_0   real     0.0_rt
+
+
+

@@ -611,10 +611,10 @@ contains
 
 
   subroutine ca_srctoprim(lo, hi, &
-       q,     q_lo,   q_hi, &
-       qaux, qa_lo,  qa_hi, &
-       src, src_lo, src_hi, &
-       srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
+                          q,     q_lo,   q_hi, &
+                          qaux, qa_lo,  qa_hi, &
+                          src, src_lo, src_hi, &
+                          srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
 
     use actual_network, only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
@@ -665,6 +665,7 @@ contains
        enddo
     enddo
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
     do ipassive = 1, npassive
        n = upass_map(ipassive)
        iq = qpass_map(ipassive)
@@ -683,6 +684,7 @@ contains
        enddo
 
     enddo
+#endif
 
   end subroutine ca_srctoprim
 
@@ -1036,7 +1038,7 @@ contains
 #endif
 #if (AMREX_SPACEDIM == 2)
                 div_u = HALF*(rp*q(i+1,j,k,QU) - rm*q(i-1,j,k,QU))/(rc*dx(1)) + &
-                     HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV))/dx(2)
+                     HALF*(q(i,j+1,k,QV) - q(i,j-1,k,QV)) * dyinv
 #endif
 
              elseif (coord_type == 2) then
@@ -1304,6 +1306,12 @@ contains
 
     integer :: i, j, k
 
+    real(rt) :: dxinv, dyinv, dzinv
+
+    dxinv = ONE/dx(1)
+    dyinv = ONE/dx(2)
+    dzinv = ONE/dx(3)
+
     do k = lo(3), hi(3)+dg(3)
        do j = lo(2), hi(2)+dg(2)
           do i = lo(1), hi(1)+1
@@ -1311,16 +1319,16 @@ contains
              if (idir == 1) then
 
                 ! normal direction
-                avis(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU))/dx(1)
+                avis(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) * dxinv
 #if BL_SPACEDIM >= 2
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
                      q(i,j+1,k,QV) - q(i,j-1,k,QV) + &
-                     q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV))/dx(2)
+                     q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV)) * dyinv
 #endif
 #if BL_SPACEDIM >= 3
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
                      q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
-                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
+                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW)) * dzinv
 #endif
 
                 cmin = min(qaux(i,j,k,QC), qaux(i-1,j,k,QC))
@@ -1328,16 +1336,16 @@ contains
              else if (idir == 2) then
 
                 ! normal direction
-                avis(i,j,k) = (q(i,j,k,QV) - q(i,j-1,k,QV))/dx(2)
+                avis(i,j,k) = (q(i,j,k,QV) - q(i,j-1,k,QV)) * dyinv
 
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
                      q(i+1,j,k,QU) - q(i-1,j,k,QU) + &
-                     q(i+1,j-1,k,QU) - q(i-1,j-1,k,QU))/dx(1)
+                     q(i+1,j-1,k,QU) - q(i-1,j-1,k,QU)) * dxinv
 
 #if BL_SPACEDIM >= 3
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
                      q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
-                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
+                     q(i,j-1,k+1,QW) - q(i,j-1,k-1,QW)) * dzinv
 #endif
 
                 cmin = min(qaux(i,j,k,QC), qaux(i,j-1,k,QC))
@@ -1345,15 +1353,15 @@ contains
              else
 
                 ! normal direction
-                avis(i,j,k) = (q(i,j,k,QW) - q(i,j,k-1,QW))/dx(1)
+                avis(i,j,k) = (q(i,j,k,QW) - q(i,j,k-1,QW)) * dzinv
 
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
                      q(i,j+1,k,QV) - q(i,j-1,k,QV) + &
-                     q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV))/dx(2)
+                     q(i,j+1,k-1,QV) - q(i,j-1,k-1,QV)) * dyinv
 
                 avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
-                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW))/dx(3)
+                     q(i+1,j,k,QU) - q(i-1,j,k,QU) + &
+                     q(i+1,j,k-1,QU) - q(i-1,j,k-1,QU)) * dxinv
 
                 cmin = min(qaux(i,j,k,QC), qaux(i,j,k-1,QC))
 
@@ -1378,36 +1386,29 @@ contains
   ! ::: ------------------------------------------------------------------
   ! :::
 
-
-
-  subroutine calc_pdivu(lo, hi, &
-                        q1, q1_lo, q1_hi, &
-                        area1, a1_lo, a1_hi, &
+  function pdivu(i, j, k, &
+                 q1, q1_lo, q1_hi, &
+                 area1, a1_lo, a1_hi, &
 #if AMREX_SPACEDIM >= 2
-                        q2, q2_lo, q2_hi, &
-                        area2, a2_lo, a2_hi, &
+                 q2, q2_lo, q2_hi, &
+                 area2, a2_lo, a2_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                        q3, q3_lo, q3_hi, &
-                        area3, a3_lo, a3_hi, &
+                 q3, q3_lo, q3_hi, &
+                 area3, a3_lo, a3_hi, &
 #endif
-                        vol, v_lo, v_hi, &
-                        dx, pdivu, div_lo, div_hi)
+                 vol, v_lo, v_hi) result(pdu)
     ! this computes the cell-centered p div(U) term from the
     ! edge-centered Godunov state.  This is used in the internal energy
     ! update
-    !
 
-    use meth_params_module, only : NGDNV, GDPRES, GDU, GDV, GDW
-    use amrex_constants_module, only : HALF
+    use meth_params_module, only: NGDNV, GDPRES, GDU, GDV, GDW
+    use amrex_constants_module, only: HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
-    integer, intent(in) :: lo(3), hi(3)
-
-    integer, intent(in) :: div_lo(3), div_hi(3)
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(inout) :: pdivu(div_lo(1):div_hi(1),div_lo(2):div_hi(2),div_lo(3):div_hi(3))
+    integer, intent(in) :: i, j, k
 
     integer, intent(in) :: q1_lo(3), q1_hi(3)
     integer, intent(in) :: a1_lo(3), a1_hi(3)
@@ -1428,43 +1429,32 @@ contains
     integer, intent(in) :: v_lo(3), v_hi(3)
     real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
-    integer  :: i, j, k
+    real(rt) :: volinv
+    real(rt) :: pdu
+
+    real(rt) :: dxinv, dyinv, dzinv
 
     !$gpu
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+    pdu = (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
+            (q1(i+1,j,k,GDU) * area1(i+1,j,k) - q1(i,j,k,GDU) * area1(i,j,k))
 
-#if AMREX_SPACEDIM == 1
-             pdivu(i,j,k) = HALF * &
-                  (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES))* &
-                  (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) / vol(i,j,k)
-#endif
-
-#if AMREX_SPACEDIM == 2
-             pdivu(i,j,k) = HALF*( &
-                  (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
-                  (q1(i+1,j,k,GDU)*area1(i+1,j,k) - q1(i,j,k,GDU)*area1(i,j,k)) + &
-                  (q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) * &
-                  (q2(i,j+1,k,GDV)*area2(i,j+1,k) - q2(i,j,k,GDV)*area2(i,j,k)) ) / vol(i,j,k)
+#if AMREX_SPACEDIM >= 2
+    pdu = pdu + &
+            (q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) * &
+            (q2(i,j+1,k,GDV) * area2(i,j+1,k) - q2(i,j,k,GDV) * area2(i,j,k))
 #endif
 
 #if AMREX_SPACEDIM == 3
-             pdivu(i,j,k) = &
-                  HALF*(q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
-                  (q1(i+1,j,k,GDU) - q1(i,j,k,GDU))/dx(1) + &
-                  HALF*(q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) * &
-                  (q2(i,j+1,k,GDV) - q2(i,j,k,GDV))/dx(2) + &
-                  HALF*(q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) * &
-                  (q3(i,j,k+1,GDW) - q3(i,j,k,GDW))/dx(3)
+    pdu = pdu + &
+            (q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) * &
+            (q3(i,j,k+1,GDW) * area3(i,j,k+1) - q3(i,j,k,GDW) * area3(i,j,k))
 #endif
 
-          enddo
-       enddo
-    enddo
+    volinv = ONE / vol(i,j,k)
+    pdu = HALF * pdu * volinv
 
-  end subroutine calc_pdivu
+  end function pdivu
 
 
 

@@ -87,7 +87,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(area2),
 #endif
      const BL_FORT_FAB_ARG_3D(volume),
-     const BL_FORT_FAB_ARG_3D(pdivu),
      const amrex::Real* dx, const amrex::Real dt);
 
   void scale_flux

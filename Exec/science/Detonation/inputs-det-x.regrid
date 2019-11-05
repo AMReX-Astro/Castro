@@ -23,7 +23,6 @@ castro.do_react = 1
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
-castro.ppm_reference_eigenvectors = 1
 
 castro.transverse_reset_density = 1
 

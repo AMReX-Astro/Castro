@@ -81,13 +81,13 @@ Most of these are parameters from AMReX.
 General Physics Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  * ``USE_SDC``: use the alternate spectral deferred corrections (SDC)
+  * ``USE_SIMPLIFIED_SDC``: use the alternate spectral deferred corrections (SDC)
     solver for coupling hydro and reactions.  At the moment, this
     works with the CTU hydrodynamics solver.  Note, there is another
     SDC method in development that may replace this in the near
     future.
 
-    .. index:: USE_SDC
+    .. index:: USE_SIMPLIFIED_SDC
 
 
 Radiation Parameters
