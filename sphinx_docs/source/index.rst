@@ -23,6 +23,7 @@ https://github.com/amrex-astro/Castro
    creating_a_problem
    io
    visualization
+   retry
    faq
 
 .. toctree::
