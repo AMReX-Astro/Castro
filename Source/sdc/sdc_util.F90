@@ -136,7 +136,7 @@ contains
           sum_rhoX = sum(U_begin(UFS:UFS-1+nspec))
           U_begin(UFS:UFS-1+nspec) = U_begin(UFS:UFS-1+nspec) * U_begin(URHO)/sum_rhoX
 
-          call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, ierr)
+          call sdc_newton_solve(dt_sub, U_begin, U_new, C, sdc_iteration, err_out, ierr)
           U_begin(:) = U_new(:)
 
        end do
