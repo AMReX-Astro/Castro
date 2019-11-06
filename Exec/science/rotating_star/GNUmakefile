@@ -20,9 +20,9 @@ ifdef MICROPHYSICS_HOME
   EOS_DIR     := helmholtz
 
   # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-  NETWORK_DIR := subch
+  NETWORK_DIR := aprox21
 
-  INTEGRATOR_DIR := VODE
+  INTEGRATOR_DIR := VODE90
 else
 
   $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)

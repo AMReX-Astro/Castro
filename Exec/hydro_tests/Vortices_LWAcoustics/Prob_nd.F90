@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use castro_error_module
   use amrex_constants_module
@@ -12,43 +12,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
-  namelist /fortin/ p_ref, r_0, mach, ratio_c, r_circ
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  ! These values are based on Lee & Koo, 1995 AIAA Journal, Figure 6
-
-  ! Define reference pressure
-  p_ref = 1.0e0_rt
-
-  ! Define r_0
-  r_0   = 0.25e0_rt
-
-  ! Define rotating mach
-  mach  = 0.0796e0_rt
-
-  ! Define ratio_c = r_c/r_0
-  ratio_c = 0.15e0_rt
-
-  ! Define r_circ = circ/r_0*c_0
-  r_circ  = 1.0e0_rt
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! Define rho_0
   rho_0 = p_ref**(1e0_rt/gamma_const)

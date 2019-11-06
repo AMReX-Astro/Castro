@@ -66,13 +66,12 @@ castro.implicit_rotation_update = 1                # Implicit rotation coupling
 ############################################################################################
 
 castro.ppm_type = 1                                # Piecewise parabolic with the original limiters (0 is piecewise linear; 2 is new limiters)
-castro.ppm_reference_eigenvectors = 1              # Whether to evaluate eigenvectors using the reference state
 castro.ppm_temp_fix = 0                            # Use the EOS in calculation of the edge states going into the Riemann solver
 castro.grav_source_type = 4                        # How to include the gravity source term in the hydro equations
 castro.rot_source_type = 4                         # How to include the rotation source term in the hydro equations
 
 # Explicitly limit fluxes to avoid hitting a negative density
-castro.limit_fluxes_on_small_dens = 1
+castro.limit_fluxes_on_small_dens = 0
 
 ############################################################################################
 # Thermodynamics

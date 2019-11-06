@@ -5,6 +5,27 @@ module react_util_module
 
 contains
 
+  pure function okay_to_burn(state) result(burn_flag)
+
+    use meth_params_module, only : NVAR, URHO, UTEMP, &
+                                   react_T_min, react_T_max, react_rho_min, react_rho_max
+    implicit none
+
+    real(rt), intent(in) :: state(NVAR)
+    logical :: burn_flag
+
+    burn_flag = .true.
+
+    if (state(UTEMP) < react_T_min .or. state(UTEMP) > react_T_max .or. &
+        state(URHO) < react_rho_min .or. state(URHO) > react_rho_max) then
+       burn_flag = .false.
+    end if
+
+    return
+
+  end function okay_to_burn
+
+
   subroutine single_zone_react_source(state, R, i, j, k, burn_state)
 
     use burn_type_module, only : burn_t, net_ienuc
@@ -87,6 +108,7 @@ contains
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
     use numerical_jac_module
+    use castro_error_module
 
     implicit none
 
@@ -100,8 +122,8 @@ contains
     ! for computing a numerical derivative
     real(rt) :: eps = 1.e-8_rt
 
-#ifdef SDC
-    call castro_error("we shouldn't be here with the simplified SDC method (USE_SDC=TRUE)")
+#ifdef SIMPLIFIED_SDC
+    call castro_error("we shouldn't be here with the simplified SDC method (USE_SIMPLIFIED_SDC=TRUE)")
 #else
     if (sdc_use_analytic_jac == 0) then
        ! note the numerical Jacobian will be returned in terms of X

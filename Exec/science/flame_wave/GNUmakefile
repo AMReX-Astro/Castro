@@ -20,6 +20,8 @@ CASTRO_HOME  := ../../..
 
 GPU_COMPATIBLE_PROBLEM = TRUE
 
+USE_PROB_PARAMS = TRUE
+
 ifdef MICROPHYSICS_HOME
 
   # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
@@ -28,7 +30,7 @@ ifdef MICROPHYSICS_HOME
   # This sets the network directory in $(MICROPHYSICS_HOME)/networks
   NETWORK_DIR := aprox13
 
-  INTEGRATOR_DIR := VODE
+  INTEGRATOR_DIR := VODE90
 else
 
   $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)

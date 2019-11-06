@@ -95,7 +95,7 @@ contains
              if (time_integration_method == 0) then
                 call amrex_min(dt, min(dt1,dt2,dt3))
              else
-                ! method of lines constraint is tougher
+                ! method of lines-style constraint is tougher
                 dt_tmp = ONE/dt1
                 if (dim >= 2) then
                    dt_tmp = dt_tmp + ONE/dt2
@@ -228,7 +228,11 @@ contains
 
              state_new % dx = minval(dx(1:dim))
 
+#ifndef SIMPLIFIED_SDC
              state_new % self_heat = self_heat
+#else
+             state_new % self_heat = .true.
+#endif
              call actual_rhs(state_new)
 
              dedt = state_new % ydot(net_ienuc)

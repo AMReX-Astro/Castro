@@ -1,0 +1,7 @@
+ifneq ($(USE_CUDA), TRUE)
+  CEXE_sources += Castro_sdc.cpp
+  ca_F90EXE_sources += sdc_util.F90
+ifeq ($(USE_REACT), TRUE)
+  ca_F90EXE_sources += sdc_vode.F90
+endif
+endif

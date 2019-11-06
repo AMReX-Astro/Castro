@@ -114,7 +114,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox qmxz, qpxz;
     FArrayBox qmyz, qpyz;
 #endif
-    FArrayBox pdivu;
 
     size_t starting_size = MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level));
     size_t current_size = starting_size;
@@ -174,7 +173,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       shk.resize(obx, 1);
       Elixir elix_shk = shk.elixir();
       fab_size += shk.nBytes();
-        
+
+      Array4<Real> const shk_arr = shk.array();
+
       // Multidimensional shock detection
       // Used for the hybrid Riemann solver
 
@@ -192,7 +193,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    AMREX_REAL_ANYD(dx));
       }
       else {
-          shk.setVal(0.0);
+        AMREX_PARALLEL_FOR_3D(obx, i, j, k, { shk_arr(i,j,k) = 0.0; });
       }
 
       qxm.resize(obx, NQ);
@@ -1109,10 +1110,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
 
-      pdivu.resize(bx, 1);
-      Elixir elix_pdivu = pdivu.elixir();
-      fab_size += pdivu.nBytes();
-
       // conservative update
 
 #pragma gpu box(bx)
@@ -1156,7 +1153,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                  BL_TO_FORTRAN_ANYD(area[2][mfi]),
 #endif
                  BL_TO_FORTRAN_ANYD(volume[mfi]),
-                 BL_TO_FORTRAN_ANYD(pdivu),
                  AMREX_REAL_ANYD(dx), dt);
 
 #ifdef RADIATION

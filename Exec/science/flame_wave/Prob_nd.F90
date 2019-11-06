@@ -8,9 +8,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   use probdata_module, only: dx_model, dtemp, x_half_max, x_half_width, &
                              X_min, cutoff_density, dens_base, T_star, &
                              T_hi, T_lo, H_star, atm_delta, &
-                             fuel1_name, fuel2_name, fuel3_name, &
+                             fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
                              ash1_name, ash2_name, ash3_name, &
-                             fuel1_frac, fuel2_frac, fuel3_frac, &
+                             fuel1_frac, fuel2_frac, fuel3_frac, fuel4_frac, &
                              ash1_frac, ash2_frac, ash3_frac, &
                              low_density_cutoff, smallx, &
                              max_hse_tagging_level, max_base_tagging_level, x_refine_distance
@@ -24,93 +24,18 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer :: name(namlen)
   real(rt) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
-  namelist /fortin/ dx_model, &
-                    dtemp, x_half_max, x_half_width, &
-                    X_min, cutoff_density, &
-                    dens_base, T_star, T_hi, T_lo, H_star, atm_delta, &
-                    fuel1_name, fuel2_name, fuel3_name, &
-                    ash1_name, ash2_name, ash3_name, &
-                    fuel1_frac, fuel2_frac, fuel3_frac, &
-                    ash1_frac, ash2_frac, ash3_frac, &
-                    low_density_cutoff, smallx, &
-                    max_hse_tagging_level, max_base_tagging_level, x_refine_distance
-
   ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character (len=maxlen) :: probin
-
   type(model_t) :: model_params
 
-  integer :: iash1, iash2, iash3, ifuel1, ifuel2, ifuel3
+  integer :: iash1, iash2, iash3, ifuel1, ifuel2, ifuel3, ifuel4
   logical :: species_defined
 
   integer :: nx_model
   integer :: ng
 
-  if (namlen > maxlen) call castro_error("probin file name too long")
+  ! get the problm parameters
+  call probdata_init(name, namlen)
 
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  allocate(x_half_max)
-  allocate(x_half_width)
-
-  allocate(X_min)
-  allocate(cutoff_density)
-
-  allocate(x_refine_distance)
-
-  allocate(max_hse_tagging_level)
-  allocate(max_base_tagging_level)
-
-  ! set namelist defaults here
-  X_min = 1.e-4_rt
-  cutoff_density = 500.e0_rt
-
-  dtemp = 3.81e8_rt
-  x_half_max = 1.2e5_rt
-  x_half_width = 3.6e4_rt
-
-  dens_base = 2.d6
-
-  T_star = 1.d8
-  T_hi = 5.d8
-  T_lo   = 5.e7
-
-  H_star = 500.d0
-  atm_delta  = 25.d0
-
-  fuel1_name = "helium-4"
-  fuel2_name = ""
-  fuel3_name = ""
-
-  ash1_name  = "iron-56"
-  ash2_name  = ""
-  ash3_name  = ""
-
-  fuel1_frac = ONE
-  fuel2_frac = ZERO
-  fuel3_frac = ZERO
-
-  ash1_frac = ONE
-  ash2_frac = ZERO
-  ash3_frac = ZERO
-
-  low_density_cutoff = 1.d-4
-
-  smallx = 1.d-10
-
-  max_hse_tagging_level = 2
-  max_base_tagging_level = 1
-
-  x_refine_distance = probhi(1)
-
-  open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
-  close(unit=untin)
 
   ! check to make sure that small_dens is less than low_density_cutoff
   ! if not, funny things can happen above the atmosphere
@@ -133,6 +58,11 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
      if (ifuel3 < 0) species_defined = .false.
   endif
 
+  if (fuel4_name /= "") then
+     ifuel4 = network_species_index(trim(fuel4_name))
+     if (ifuel4 < 0) species_defined = .false.
+  endif
+
   iash1 = network_species_index(trim(ash1_name))
   if (iash1 < 0) species_defined = .false.
 
@@ -147,7 +77,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   endif
 
   if (.not. species_defined) then
-     print *, ifuel1, ifuel2, ifuel3
+     print *, ifuel1, ifuel2, ifuel3, ifuel4
      print *, iash1, iash2, iash3
      call castro_error("ERROR: species not defined")
   endif
@@ -164,6 +94,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   model_params % xn_base(ifuel1) = fuel1_frac
   if (fuel2_name /= "") model_params % xn_base(ifuel2) = fuel2_frac
   if (fuel3_name /= "") model_params % xn_base(ifuel3) = fuel3_frac
+  if (fuel4_name /= "") model_params % xn_base(ifuel4) = fuel4_frac
 
   ! check if they sum to 1
   if (abs(sum(model_params % xn_star) - ONE) > nspec*smallx) then

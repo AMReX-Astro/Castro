@@ -3,25 +3,8 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef DIFFUSION
-static int diffuse_temp;
-static amrex::Real diffuse_cutoff_density;
-static amrex::Real diffuse_cutoff_density_hi;
-static amrex::Real diffuse_cond_scale_fac;
-#endif
 #ifdef AMREX_PARTICLES
 static int do_tracer_particles;
-#endif
-#ifdef ROTATION
-static amrex::Real rotational_period;
-static amrex::Real rotational_dPdt;
-static int rotation_include_centrifugal;
-static int rotation_include_coriolis;
-static int rotation_include_domegadt;
-static int state_in_rotating_frame;
-static int rot_source_type;
-static int implicit_rotation_update;
-static int rot_axis;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
@@ -44,8 +27,9 @@ static int hybrid_hydro;
 static int ppm_type;
 static int ppm_temp_fix;
 static int ppm_predict_gammae;
-static int ppm_reference_eigenvectors;
 static int plm_iorder;
+static int plm_limiter;
+static int plm_well_balanced;
 static int hybrid_riemann;
 static int riemann_solver;
 static int cg_maxiter;
@@ -76,8 +60,8 @@ static std::string zr_ext_bc_type;
 static int hse_zero_vels;
 static int hse_interp_temp;
 static int hse_reflect_vels;
-static int mol_order;
 static int sdc_order;
+static int sdc_quadrature;
 static int sdc_extra;
 static int sdc_solver;
 static amrex::Real sdc_solver_tol_dens;
@@ -142,6 +126,23 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef ROTATION
+static amrex::Real rotational_period;
+static amrex::Real rotational_dPdt;
+static int rotation_include_centrifugal;
+static int rotation_include_coriolis;
+static int rotation_include_domegadt;
+static int state_in_rotating_frame;
+static int rot_source_type;
+static int implicit_rotation_update;
+static int rot_axis;
+#endif
+#ifdef DIFFUSION
+static int diffuse_temp;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
+static amrex::Real diffuse_cond_scale_fac;
+#endif
 #ifdef GRAVITY
 static int use_point_mass;
 static amrex::Real point_mass;

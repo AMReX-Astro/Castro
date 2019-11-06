@@ -123,6 +123,8 @@ with open('mathsymbols.tex', 'r') as f:
                     "{" + macro[3] + "}", int(macro[2])]
 
 
+numfig = True
+
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for

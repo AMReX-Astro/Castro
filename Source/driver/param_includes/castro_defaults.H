@@ -3,25 +3,8 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef DIFFUSION
-int         Castro::diffuse_temp = 0;
-amrex::Real Castro::diffuse_cutoff_density = -1.e200;
-amrex::Real Castro::diffuse_cutoff_density_hi = -1.e200;
-amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
-#endif
 #ifdef AMREX_PARTICLES
 int         Castro::do_tracer_particles = 0;
-#endif
-#ifdef ROTATION
-amrex::Real Castro::rotational_period = -1.e200;
-amrex::Real Castro::rotational_dPdt = 0.0;
-int         Castro::rotation_include_centrifugal = 1;
-int         Castro::rotation_include_coriolis = 1;
-int         Castro::rotation_include_domegadt = 1;
-int         Castro::state_in_rotating_frame = 1;
-int         Castro::rot_source_type = 4;
-int         Castro::implicit_rotation_update = 1;
-int         Castro::rot_axis = 3;
 #endif
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
@@ -44,8 +27,9 @@ int         Castro::hybrid_hydro = 0;
 int         Castro::ppm_type = 1;
 int         Castro::ppm_temp_fix = 0;
 int         Castro::ppm_predict_gammae = 0;
-int         Castro::ppm_reference_eigenvectors = 0;
 int         Castro::plm_iorder = 2;
+int         Castro::plm_limiter = 2;
+int         Castro::plm_well_balanced = 0;
 int         Castro::hybrid_riemann = 0;
 int         Castro::riemann_solver = 0;
 int         Castro::cg_maxiter = 12;
@@ -76,8 +60,8 @@ std::string Castro::zr_ext_bc_type = "";
 int         Castro::hse_zero_vels = 0;
 int         Castro::hse_interp_temp = 0;
 int         Castro::hse_reflect_vels = 0;
-int         Castro::mol_order = 2;
 int         Castro::sdc_order = 2;
+int         Castro::sdc_quadrature = 0;
 int         Castro::sdc_extra = 0;
 int         Castro::sdc_solver = 1;
 amrex::Real Castro::sdc_solver_tol_dens = 1.e-6;
@@ -150,6 +134,23 @@ std::string Castro::job_name = "";
 int         Castro::output_at_completion = 1;
 amrex::Real Castro::reset_checkpoint_time = -1.e200;
 int         Castro::reset_checkpoint_step = -1;
+#ifdef ROTATION
+amrex::Real Castro::rotational_period = -1.e200;
+amrex::Real Castro::rotational_dPdt = 0.0;
+int         Castro::rotation_include_centrifugal = 1;
+int         Castro::rotation_include_coriolis = 1;
+int         Castro::rotation_include_domegadt = 1;
+int         Castro::state_in_rotating_frame = 1;
+int         Castro::rot_source_type = 4;
+int         Castro::implicit_rotation_update = 1;
+int         Castro::rot_axis = 3;
+#endif
+#ifdef DIFFUSION
+int         Castro::diffuse_temp = 0;
+amrex::Real Castro::diffuse_cutoff_density = -1.e200;
+amrex::Real Castro::diffuse_cutoff_density_hi = -1.e200;
+amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
+#endif
 #ifdef GRAVITY
 int         Castro::use_point_mass = 0;
 amrex::Real Castro::point_mass = 0.0;

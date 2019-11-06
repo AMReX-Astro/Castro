@@ -3,8 +3,8 @@
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
-max_step = 20000
-stop_time = 1.0
+max_step = 5000
+stop_time = 400.0
 
 geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
@@ -14,7 +14,7 @@ geometry.prob_hi   =  7.4e8 1.48e9
 
 amr.n_cell         = 256 512
 
-amr.max_level      = 3       # maximum level number allowed
+amr.max_level      = 2      # maximum level number allowed
 
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
@@ -32,7 +32,6 @@ castro.do_sponge = 1
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
-castro.ppm_reference_eigenvectors = 1
 
 castro.use_flattening = 1
 
@@ -55,16 +54,16 @@ amr.regrid_int      = 10000   # how often to regrid
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
-amr.check_file      = subch_chk     # root name of checkpoint file
+amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 250     # number of timesteps between checkpoints
-amr.plot_file       = subch_plt     # root name of plot file
+amr.plot_file       = plt     # root name of plot file
 amr.plot_int        = 50     # number of timesteps between plotfiles
 
 amr.max_grid_size   = 128       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
 
 amr.v               = 1       # control verbosity in Amr.cpp
-castro.v            = 0       # control verbosity in Castro.cpp
+castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 

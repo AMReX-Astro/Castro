@@ -6,7 +6,7 @@ BACKTRACE ?= FALSE
 TEST ?= FALSE
 
 USE_MPI ?= TRUE
-USE_OMP ?= TRUE
+USE_OMP ?= FALSE
 
 DIM ?= 3
 
@@ -26,7 +26,7 @@ endif
 
 # Set the default integrator for the burner.
 
-INTEGRATOR_DIR ?= VODE
+INTEGRATOR_DIR ?= VODE90
 
 # Default compiler.
 

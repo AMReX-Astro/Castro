@@ -1,56 +1,20 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
    use probdata_module
    use amrex_constants_module
    use castro_error_module
    use fundamental_constants_module
    use meth_params_module, only: small_temp, small_pres, small_dens
-   
+
    use amrex_fort_module, only : rt => amrex_real
    implicit none
 
-   integer :: init, namlen
-   integer :: name(namlen)
-   real(rt)         :: problo(3), probhi(3)
+   integer, intent(in) :: init, namlen
+   integer, intent(in) :: name(namlen)
+   real(rt), intent(in) :: problo(3), probhi(3)
 
-   integer :: untin
-   integer :: i
 
-   namelist /fortin/ &
-        rho1, rho2, pressure, problem, bulk_velocity
-
-   integer, parameter :: maxlen=127
-   character :: probin*(maxlen)
-   character :: model*(maxlen)
-   integer :: ipp, ierr, ipp1
-
-   ! Temporary storage variables in case we need to switch the primary and secondary.
-
-   ! Build "probin" filename -- the name of file containing fortin namelist.
-   if (namlen .gt. maxlen) then
-      call castro_error("ERROR: probin file name too long")
-   end if
-
-   do i = 1, namlen
-      probin(i:i) = char(name(i))
-   end do
-
-   ! Set namelist defaults
-
-   problem = 2
-
-   rho1 = 1.0
-   rho2 = 2.0
-   pressure = 2.5
-
-   bulk_velocity = 0.0
-
-   ! Read namelists -- override the defaults
-   
-   untin = 9 
-   open(untin,file=probin(1:namlen),form='formatted',status='old')
-   read(untin,fortin)
-   close(unit=untin)
+   call probdata_init(name, namlen)
 
    ! Force a different pressure choice for problem 5
 
@@ -63,16 +27,16 @@ end subroutine amrex_probinit
 
 ! ::: -----------------------------------------------------------
 ! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.  
-! ::: 
+! ::: to initialize data on each grid.
+! :::
 ! ::: NOTE:  all arrays have one cell of ghost zones surrounding
 ! :::        the grid interior.  Values in these cells need not
 ! :::        be set here.
-! ::: 
+! :::
 ! ::: INPUTS/OUTPUTS:
-! ::: 
+! :::
 ! ::: level     => amr level of grid
-! ::: time      => time at which to init data             
+! ::: time      => time at which to init data
 ! ::: lo,hi     => index limits of grid interior (cell centered)
 ! ::: nstate    => number of state components.  You should know
 ! :::		   this already!
@@ -97,7 +61,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
        UEDEN, UEINT, UFS, UFA
    use probdata_module
    use prob_params_module, only: problo, center, probhi
-  
+
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -118,7 +82,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
   real(rt)         :: vel1, vel2
   real(rt)         :: y1, y2
   real(rt)         :: dye
-  
+
   integer :: sine_n
 
   vel1 = -0.5
@@ -144,32 +108,32 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
      sine_n = 2
      w0 = 0.01
      delta_y = 0.05
-     sigma = 0.2     
+     sigma = 0.2
      vel1 = ONE
      vel2 = ONE
   endif
 
   y1 = center(2) - (probhi(2) - problo(2)) * 0.25e0_rt
-  y2 = center(2) + (probhi(2) - problo(2)) * 0.25e0_rt  
+  y2 = center(2) + (probhi(2) - problo(2)) * 0.25e0_rt
 
   velz = 0.0
 
   !$OMP PARALLEL DO PRIVATE(i, j, k, xx, yy, zz, dens, velx, vely, ramp, eos_state)
   do k = lo(3), hi(3)
-     zz = xlo(3) + delta(3)*dble(k-lo(3)+HALF)
+     zz = problo(3) + delta(3)*(dble(k)+HALF)
 
-     do j = lo(2), hi(2)     
-        yy = xlo(2) + delta(2)*dble(j-lo(2)+HALF)
+     do j = lo(2), hi(2)
+        yy = problo(2) + delta(2)*(dble(j)+HALF)
 
-        do i = lo(1), hi(1)   
-           xx = xlo(1) + delta(1)*dble(i-lo(1)+HALF)
+        do i = lo(1), hi(1)
+           xx = problo(1) + delta(1)*(dble(i)+HALF)
 
            ! Assume the initial y-velocity represents the bulk flow
            ! which will be perturbed in the following step
 
            vely = bulk_velocity
            dye = ZERO
-           
+
            if (problem .eq. 1) then
 
               if (abs(yy - HALF * (y1 + y2)) < HALF * (y2 - y1)) then
@@ -215,7 +179,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               velx = vel1 * (tanh( (yy - y1) / delta_y) - tanh( (yy - y2) / delta_y ) - ONE)
               vely = vely + w0 * sin(sine_n*M_PI*xx) * (exp(-(yy - y1)**2 / sigma**2) + exp(-(yy - y2)**2 / sigma**2))
               dye  = HALF * (tanh( (yy - y2) / delta_y) - tanh( (yy - y1) / delta_y ) + TWO)
-              
+
            else
 
               call castro_error("Error: This problem choice is undefined.")
@@ -250,7 +214,6 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
         enddo
      enddo
   enddo
-  !$OMP END PARALLEL DO  
+  !$OMP END PARALLEL DO
 
 end subroutine ca_initdata
-

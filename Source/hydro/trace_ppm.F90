@@ -253,10 +253,9 @@ contains
     use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
-                                   ppm_type, ppm_temp_fix, &
-                                   ppm_reference_eigenvectors
+                                   ppm_type, ppm_temp_fix
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none
 
@@ -278,7 +277,7 @@ contains
 
     real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
     real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQAUX)
+    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
     real(rt), intent(in) ::  flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
@@ -294,10 +293,11 @@ contains
     ! Local variables
     integer :: i, j, k, n
 
-    real(rt) :: hdt
+    real(rt) :: hdt, dtdx
 
-    real(rt) :: sm(1, AMREX_SPACEDIM), sp(1, AMREX_SPACEDIM)
+    real(rt) :: sm, sp
 
+    real(rt) :: s(-2:2)
     real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
     real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
     real(rt) :: Ip_gc(1:3,1), Im_gc(1:3,1)
@@ -323,17 +323,14 @@ contains
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
     real(rt) :: cc, csq
-    real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g
-    real(rt) :: gam_g
+    real(rt) :: rho, un
 
     real(rt) :: drho, dptot, drhoe_g
     real(rt) :: dup, dptotp
     real(rt) :: dum, dptotm
 
-    real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, h_g_ref
-
-    real(rt) :: cc_ref, csq_ref, gam_g_ref
-    real(rt) :: cc_ev, csq_ev, rho_ev, h_g_ev
+    real(rt) :: rho_ref, rho_ref_inv, un_ref, p_ref, rhoe_g_ref, h_g_ref
+    real(rt) :: cc_ref, cc_ref_inv, csq_ref, gam_g_ref
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -348,6 +345,7 @@ contains
     !$gpu
 
     hdt = HALF * dt
+    dtdx = dt / dx(idir)
 
     !=========================================================================
     ! PPM CODE
@@ -400,73 +398,55 @@ contains
              csq = cc**2
 
              un = q(i,j,k,QUN)
-             ut = q(i,j,k,QUT)
-             utt = q(i,j,k,QUTT)
-
-             p = q(i,j,k,QPRES)
-             rhoe_g = q(i,j,k,QREINT)
-             h_g = ( (p + rhoe_g)/rho)/csq
-
-             gam_g = qaux(i,j,k,QGAMC)
 
              ! do the parabolic reconstruction and compute the
              ! integrals under the characteristic waves
              do n = 1, NQ
                 if (.not. reconstruct_state(n)) cycle
 
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        q, qd_lo, qd_hi, NQ, n, n, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
+                if (idir == 1) then
+                   s(:) = q(i-2:i+2,j,k,n)
+                else if (idir == 2) then
+                   s(:) = q(i,j-2:j+2,k,n)
+                else
+                   s(:) = q(i,j,k-2:k+2,n)
+                end if
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     q, qd_lo, qd_hi, NQ, n, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip, Im, NQ, n, &
-                                     dx, dt)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
+
              end do
 
 
-             call ca_ppm_reconstruct(i, j, k, &
-                                     idir, &
-                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
-                                     flatn, f_lo, f_hi, &
-                                     sm, sp, &
-                                     1, 1, 1)
+             if (idir == 1) then
+                s(:) = qaux(i-2:i+2,j,k,QGAMC)
+             else if (idir == 2) then
+                s(:) = qaux(i,j-2:j+2,k,QGAMC)
+             else
+                s(:) = qaux(i,j,k-2:k+2,QGAMC)
+             end if
 
-             call ppm_int_profile(i, j, k, &
-                                  idir, &
-                                  qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                  q, qd_lo, qd_hi, &
-                                  qaux, qa_lo, qa_hi, &
-                                  sm, sp, &
-                                  Ip_gc, Im_gc, 1, 1, &
-                                  dx, dt)
+             call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
 
+             call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_gc, Im_gc)
 
              ! source terms
              do n = 1, NQSRC
                 if (source_nonzero(n)) then
-                   call ca_ppm_reconstruct(i, j, k, &
-                                           idir, &
-                                           srcQ, src_lo, src_hi, NQSRC, n, n, &
-                                           flatn, f_lo, f_hi, &
-                                           sm, sp, &
-                                           1, 1, 1)
 
-                   call ppm_int_profile(i, j, k, &
-                                        idir, &
-                                        srcQ, src_lo, src_hi, NQSRC, n, &
-                                        q, qd_lo, qd_hi, &
-                                        qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
-                                        Ip_src, Im_src, NQSRC, n, &
-                                        dx, dt)
+                   if (idir == 1) then
+                      s(:) = srcQ(i-2:i+2,j,k,n)
+                   else if (idir == 2) then
+                      s(:) = srcQ(i,j-2:j+2,k,n)
+                   else
+                      s(:) = srcQ(i,j,k-2:k+2,n)
+                   end if
+
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
+
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
@@ -507,12 +487,14 @@ contains
                 gam_g_ref  = Im_gc(1,1)
 
                 rho_ref = max(rho_ref, small_dens)
+                rho_ref_inv = ONE/rho_ref
                 p_ref = max(p_ref, small_pres)
 
                 ! For tracing (optionally)
-                csq_ref = gam_g_ref*p_ref/rho_ref
+                csq_ref = gam_g_ref*p_ref*rho_ref_inv
                 cc_ref = sqrt(csq_ref)
-                h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
+                cc_ref_inv = ONE/cc_ref
+                h_g_ref = (p_ref + rhoe_g_ref)*rho_ref_inv
 
                 ! *m are the jumps carried by un-c
                 ! *p are the jumps carried by un+c
@@ -532,31 +514,16 @@ contains
                 dup = un_ref - Im(3,QUN) - hdt*Im_src(3,QUN)
                 dptotp = p_ref - Im(3,QPRES) - hdt*Im_src(3,QPRES)
 
-
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   rho_ev  = rho
-                   cc_ev   = cc
-                   csq_ev  = csq
-                   h_g_ev = h_g
-                else
-                   rho_ev  = rho_ref
-                   cc_ev   = cc_ref
-                   csq_ev  = csq_ref
-                   h_g_ev = h_g_ref
-                endif
-
                 ! (rho, u, p, (rho e) eigensystem
 
                 ! These are analogous to the beta's from the original PPM
                 ! paper (except we work with rho instead of tau).  This is
                 ! simply (l . dq), where dq = qref - I(q)
 
-                alpham = HALF*(dptotm*(ONE/(rho_ev*cc_ev)) - dum)*(rho_ev/cc_ev)
-                alphap = HALF*(dptotp*(ONE/(rho_ev*cc_ev)) + dup)*(rho_ev/cc_ev)
-                alpha0r = drho - dptot/csq_ev
-                alpha0e_g = drhoe_g - dptot*h_g_ev  ! note h_g has a 1/c**2 in it
+                alpham = HALF*(dptotm*rho_ref_inv*cc_ref_inv - dum)*rho_ref*cc_ref_inv
+                alphap = HALF*(dptotp*rho_ref_inv*cc_ref_inv + dup)*rho_ref*cc_ref_inv
+                alpha0r = drho - dptot/csq_ref
+                alpha0e_g = drhoe_g - dptot*h_g_ref/csq_ref
 
                 if (un-cc > ZERO) then
                    alpham = ZERO
@@ -586,9 +553,9 @@ contains
                 ! q_s = q_ref - sum(l . dq) r
                 ! note that the a{mpz}right as defined above have the minus already
                 qp(i,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                qp(i,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv
+                qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
+                qp(i,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
 
                 ! Transverse velocities -- there's no projection here, so
@@ -622,12 +589,14 @@ contains
                 gam_g_ref  = Ip_gc(3,1)
 
                 rho_ref = max(rho_ref, small_dens)
+                rho_ref_inv = ONE/rho_ref
                 p_ref = max(p_ref, small_pres)
 
                 ! For tracing (optionally)
-                csq_ref = gam_g_ref*p_ref/rho_ref
+                csq_ref = gam_g_ref*p_ref*rho_ref_inv
                 cc_ref = sqrt(csq_ref)
-                h_g_ref = ( (p_ref + rhoe_g_ref)/rho_ref)/csq_ref
+                cc_ref_inv = ONE/cc_ref
+                h_g_ref = (p_ref + rhoe_g_ref)*rho_ref_inv
 
                 ! *m are the jumps carried by u-c
                 ! *p are the jumps carried by u+c
@@ -642,30 +611,16 @@ contains
                 dup = un_ref - Ip(3,QUN) - hdt*Ip_src(3,QUN)
                 dptotp = p_ref - Ip(3,QPRES) - hdt*Ip_src(3,QPRES)
 
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   rho_ev  = rho
-                   cc_ev   = cc
-                   csq_ev  = csq
-                   h_g_ev = h_g
-                else
-                   rho_ev  = rho_ref
-                   cc_ev   = cc_ref
-                   csq_ev  = csq_ref
-                   h_g_ev = h_g_ref
-                endif
-
                 ! (rho, u, p, (rho e)) eigensystem
 
                 ! These are analogous to the beta's from the original PPM
                 ! paper (except we work with rho instead of tau).  This is
                 ! simply (l . dq), where dq = qref - I(q)
 
-                alpham = HALF*(dptotm*(ONE/(rho_ev*cc_ev)) - dum)*(rho_ev/cc_ev)
-                alphap = HALF*(dptotp*(ONE/(rho_ev*cc_ev)) + dup)*(rho_ev/cc_ev)
-                alpha0r = drho - dptot/csq_ev
-                alpha0e_g = drhoe_g - dptot*h_g_ev  ! h_g has a 1/c**2 in it
+                alpham = HALF*(dptotm*rho_ref_inv*cc_ref_inv - dum)*rho_ref*cc_ref_inv
+                alphap = HALF*(dptotp*rho_ref_inv*cc_ref_inv + dup)*rho_ref*cc_ref_inv
+                alpha0r = drho - dptot/csq_ref
+                alpha0e_g = drhoe_g - dptot*h_g_ref/csq_ref
 
                 if (un-cc > ZERO) then
                    alpham = -alpham
@@ -696,9 +651,9 @@ contains
                 ! note that the a{mpz}left as defined above have the minus already
                 if (idir == 1) then
                    qm(i+1,j,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                   qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                   qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv
+                   qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
+                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
                    ! transverse velocities
                    qm(i+1,j,k,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
@@ -706,9 +661,9 @@ contains
 
                 else if (idir == 2) then
                    qm(i,j+1,k,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                   qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                   qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv
+                   qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
+                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
                    ! transverse velocities
                    qm(i,j+1,k,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
@@ -716,9 +671,9 @@ contains
 
                 else if (idir == 3) then
                    qm(i,j,k+1,QRHO) = max(small_dens, rho_ref +  alphap + alpham + alpha0r)
-                   qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ev/rho_ev
-                   qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ev*csq_ev + alpha0e_g
-                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ev)
+                   qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv
+                   qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g
+                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref)
 
                    ! transverse velocities
                    qm(i,j,k+1,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
@@ -739,7 +694,7 @@ contains
                 dlogatmp = min(eta, ONE)*dloga(i,j,k)
                 sourcr = -HALF*dt*rho*dlogatmp*un
                 sourcp = sourcr*csq
-                source = sourcp*h_g
+                source = sourcp*( (q(i,j,k,QPRES) + q(i,j,k,QREINT))/rho)/csq
 
                 if (i <= vhi(1)) then
 
@@ -786,10 +741,9 @@ contains
     use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
-                                   ppm_type, ppm_temp_fix, &
-                                   ppm_reference_eigenvectors
+                                   ppm_type, ppm_temp_fix
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none
 
@@ -825,10 +779,11 @@ contains
     ! Local variables
     integer :: i, j, k, n
 
-    real(rt) :: hdt
+    real(rt) :: hdt, dtdx
 
-    real(rt) :: sm(1, AMREX_SPACEDIM), sp(1, AMREX_SPACEDIM)
+    real(rt) :: sm, sp
 
+    real(rt) :: s(-2:2)
     real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
     real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
     real(rt) :: Ip_gc(1:3,1), Im_gc(1:3,1)
@@ -866,7 +821,6 @@ contains
     real(rt) :: tau_ref
 
     real(rt) :: Clag_ref, gam_g_ref, game_ref, gfactor
-    real(rt) :: Clag_ev, tau_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -882,6 +836,7 @@ contains
     !$gpu
 
     hdt = HALF * dt
+    dtdx = dt / dx(idir)
 
     !=========================================================================
     ! PPM CODE
@@ -952,45 +907,39 @@ contains
              do n = 1, NQ
                 if (.not. reconstruct_state(n)) cycle
 
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        q, qd_lo, qd_hi, NQ, n, n, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
+                if (idir == 1) then
+                   s(:) = q(i-2:i+2,j,k,n)
+                else if (idir == 2) then
+                   s(:) = q(i,j-2:j+2,k,n)
+                else
+                   s(:) = q(i,j,k-2:k+2,n)
+                end if
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     q, qd_lo, qd_hi, NQ, n, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip, Im, NQ, n, &
-                                     dx, dt)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
+
              end do
 
 
              if (ppm_temp_fix /= 1) then
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip_gc, Im_gc, 1, 1, &
-                                     dx, dt)
+                if (idir == 1) then
+                   s(:) = qaux(i-2:i+2,j,k,QGAMC)
+                else if (idir == 2) then
+                   s(:) = qaux(i,j-2:j+2,k,QGAMC)
+                else
+                   s(:) = qaux(i,j,k-2:k+2,QGAMC)
+                end if
+
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_gc, Im_gc)
+
              else
 
                 ! temperature-based PPM
-                call ppm_reconstruct_with_eos(Ip, Im, &
-                                              Ip_gc, Im_gc)
+                call ppm_reconstruct_with_eos(Ip, Im, Ip_gc, Im_gc)
 
              end if
 
@@ -998,21 +947,19 @@ contains
              ! source terms
              do n = 1, NQSRC
                 if (source_nonzero(n)) then
-                   call ca_ppm_reconstruct(i, j, k, &
-                                           idir, &
-                                           srcQ, src_lo, src_hi, NQSRC, n, n, &
-                                           flatn, f_lo, f_hi, &
-                                           sm, sp, &
-                                           1, 1, 1)
 
-                   call ppm_int_profile(i, j, k, &
-                                        idir, &
-                                        srcQ, src_lo, src_hi, NQSRC, n, &
-                                        q, qd_lo, qd_hi, &
-                                        qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
-                                        Ip_src, Im_src, NQSRC, n, &
-                                        dx, dt)
+                   if (idir == 1) then
+                      s(:) = srcQ(i-2:i+2,j,k,n)
+                   else if (idir == 2) then
+                      s(:) = srcQ(i,j-2:j+2,k,n)
+                   else
+                      s(:) = srcQ(i,j,k-2:k+2,n)
+                   end if
+
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
+
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
@@ -1080,30 +1027,19 @@ contains
                 dup = un_ref - Im(3,QUN) - hdt*Im_src(3,QUN)
                 dptotp = p_ref - Im(3,QPRES) - hdt*Im_src(3,QPRES)
 
-
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   Clag_ev = Clag
-                   tau_ev  = ONE/rho
-                else
-                   Clag_ev = Clag_ref
-                   tau_ev  = tau_ref
-                endif
-
                 ! (tau, u, p, game) eigensystem
 
                 ! This is the way things were done in the original PPM
                 ! paper -- here we work with tau in the characteristic
                 ! system
 
-                alpham = HALF*( dum - dptotm*(ONE/Clag_ev))*(ONE/Clag_ev)
-                alphap = HALF*(-dup - dptotp*(ONE/Clag_ev))*(ONE/Clag_ev)
-                alpha0r = dtau + dptot*(ONE/Clag_ev)**2
+                alpham = HALF*( dum - dptotm*(ONE/Clag_ref))*(ONE/Clag_ref)
+                alphap = HALF*(-dup - dptotp*(ONE/Clag_ref))*(ONE/Clag_ref)
+                alpha0r = dtau + dptot*(ONE/Clag_ref)**2
 
                 dge   = game_ref - Im(2,QGAME)
                 gfactor = (game - ONE)*(game - gam_g)
-                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
+                alpha0e_g = gfactor*dptot/(tau_ref*Clag_ref**2) + dge
 
                 if (un-cc > ZERO) then
                    alpham = ZERO
@@ -1135,10 +1071,10 @@ contains
                 tau_s = tau_ref + alphap + alpham + alpha0r
                 qp(i,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                qp(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                qp(i,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                qp(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                qp(i,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ref**2)
 
-                qp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                qp(i,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ref + alpha0e_g
                 qp(i,j,k,QREINT) = qp(i,j,k,QPRES )/(qp(i,j,k,QGAME) - ONE)
 
 
@@ -1197,28 +1133,18 @@ contains
                 dup = un_ref - Ip(3,QUN) - hdt*Ip_src(3,QUN)
                 dptotp = p_ref - Ip(3,QPRES) - hdt*Ip_src(3,QPRES)
 
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   Clag_ev = Clag
-                   tau_ev  = ONE/rho
-                else
-                   Clag_ev = Clag_ref
-                   tau_ev  = tau_ref
-                endif
-
                 ! (tau, u, p, game) eigensystem
 
                 ! This is the way things were done in the original PPM
                 ! paper -- here we work with tau in the characteristic
                 ! system
-                alpham = HALF*( dum - dptotm*(ONE/Clag_ev))*(ONE/Clag_ev)
-                alphap = HALF*(-dup - dptotp*(ONE/Clag_ev))*(ONE/Clag_ev)
-                alpha0r = dtau + dptot*(ONE/Clag_ev)**2
+                alpham = HALF*( dum - dptotm*(ONE/Clag_ref))*(ONE/Clag_ref)
+                alphap = HALF*(-dup - dptotp*(ONE/Clag_ref))*(ONE/Clag_ref)
+                alpha0r = dtau + dptot*(ONE/Clag_ref)**2
 
                 dge = game_ref - Ip(2,QGAME)
                 gfactor = (game - ONE)*(game - gam_g)
-                alpha0e_g = gfactor*dptot/(tau_ev*Clag_ev**2) + dge
+                alpha0e_g = gfactor*dptot/(tau_ref*Clag_ref**2) + dge
 
                 if (un-cc > ZERO) then
                    alpham = -alpham
@@ -1252,10 +1178,10 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i+1,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ref**2)
 
-                   qm(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm(i+1,j,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ref + alpha0e_g
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QPRES )/(qm(i+1,j,k,QGAME) - ONE)
 
                    ! transverse velocities
@@ -1266,10 +1192,10 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i,j+1,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ref**2)
 
-                   qm(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm(i,j+1,k,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ref + alpha0e_g
                    qm(i,j+1,k,QREINT) = qm(i,j+1,k,QPRES )/(qm(i,j+1,k,QGAME) - ONE)
 
                    ! transverse velocities
@@ -1280,10 +1206,10 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i,j,k+1,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ev**2)
+                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref - (alphap + alpham)*Clag_ref**2)
 
-                   qm(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ev + alpha0e_g
+                   qm(i,j,k+1,QGAME) = game_ref + gfactor*(alpham + alphap)/tau_ref + alpha0e_g
                    qm(i,j,k+1,QREINT) = qm(i,j,k+1,QPRES )/(qm(i,j,k+1,QGAME) - ONE)
 
                    ! transverse velocities
@@ -1351,11 +1277,10 @@ contains
     use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QTEMP, QGAME, QC, QGAMC, QFS, QFX, &
                                    small_dens, small_pres, &
-                                   ppm_type, ppm_temp_fix, &
-                                   ppm_reference_eigenvectors
+                                   ppm_type, ppm_temp_fix
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
-    use ppm_module, only : ca_ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none
 
@@ -1392,10 +1317,11 @@ contains
     ! Local variables
     type(eos_t) :: eos_state
 
-    real(rt) :: hdt
+    real(rt) :: hdt, dtdx
 
-    real(rt) :: sm(1, AMREX_SPACEDIM), sp(1, AMREX_SPACEDIM)
+    real(rt) :: sm, sp
 
+    real(rt) :: s(-2:2)
     real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
     real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
     real(rt) :: Ip_gc(1:3,1), Im_gc(1:3,1)
@@ -1422,7 +1348,7 @@ contains
     ! for pure hydro, we will only consider:
     !   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    real(rt) :: cc, csq, Clag
+    real(rt) :: cc, csq
     real(rt) :: rho, un, ut, utt, p, rhoe_g, h_g, temp
     real(rt) :: gam_g, game
 
@@ -1437,7 +1363,6 @@ contains
     real(rt) :: tau_ref
 
     real(rt) :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
-    real(rt) :: cc_ev, csq_ev, Clag_ev, rho_ev, tau_ev, temp_ev
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
     real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
@@ -1453,7 +1378,7 @@ contains
     !$gpu
 
     hdt = HALF * dt
-
+    dtdx = dt / dx(idir)
 
     !=========================================================================
     ! PPM CODE
@@ -1506,7 +1431,6 @@ contains
 
              cc = qaux(i,j,k,QC)
              csq = cc**2
-             Clag = rho*cc
 
              un = q(i,j,k,QUN)
              ut = q(i,j,k,QUT)
@@ -1525,45 +1449,39 @@ contains
              do n = 1, NQ
                 if (.not. reconstruct_state(n)) cycle
 
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        q, qd_lo, qd_hi, NQ, n, n, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
+                if (idir == 1) then
+                   s(:) = q(i-2:i+2,j,k,n)
+                else if (idir == 2) then
+                   s(:) = q(i,j-2:j+2,k,n)
+                else
+                   s(:) = q(i,j,k-2:k+2,n)
+                end if
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     q, qd_lo, qd_hi, NQ, n, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip, Im, NQ, n, &
-                                     dx, dt)
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
+
              end do
 
 
              if (ppm_temp_fix /= 1) then
-                call ca_ppm_reconstruct(i, j, k, &
-                                        idir, &
-                                        qaux, qa_lo, qa_hi, NQAUX, QGAMC, QGAMC, &
-                                        flatn, f_lo, f_hi, &
-                                        sm, sp, &
-                                        1, 1, 1)
 
-                call ppm_int_profile(i, j, k, &
-                                     idir, &
-                                     qaux, qa_lo, qa_hi, NQAUX, QGAMC, &
-                                     q, qd_lo, qd_hi, &
-                                     qaux, qa_lo, qa_hi, &
-                                     sm, sp, &
-                                     Ip_gc, Im_gc, 1, 1, &
-                                     dx, dt)
+                if (idir == 1) then
+                   s(:) = qaux(i-2:i+2,j,k,QGAMC)
+                else if (idir == 2) then
+                   s(:) = qaux(i,j-2:j+2,k,QGAMC)
+                else
+                   s(:) = qaux(i,j,k-2:k+2,QGAMC)
+                end if
+
+                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_gc, Im_gc)
+
              else
 
                 ! temperature-based PPM
-                call ppm_reconstruct_with_eos(Ip, Im, &
-                                              Ip_gc, Im_gc)
+                call ppm_reconstruct_with_eos(Ip, Im, Ip_gc, Im_gc)
 
              end if
 
@@ -1571,21 +1489,19 @@ contains
              ! source terms
              do n = 1, NQSRC
                 if (source_nonzero(n)) then
-                   call ca_ppm_reconstruct(i, j, k, &
-                                           idir, &
-                                           srcQ, src_lo, src_hi, NQSRC, n, n, &
-                                           flatn, f_lo, f_hi, &
-                                           sm, sp, &
-                                           1, 1, 1)
 
-                   call ppm_int_profile(i, j, k, &
-                                        idir, &
-                                        srcQ, src_lo, src_hi, NQSRC, n, &
-                                        q, qd_lo, qd_hi, &
-                                        qaux, qa_lo, qa_hi, &
-                                        sm, sp, &
-                                        Ip_src, Im_src, NQSRC, n, &
-                                        dx, dt)
+                   if (idir == 1) then
+                      s(:) = srcQ(i-2:i+2,j,k,n)
+                   else if (idir == 2) then
+                      s(:) = srcQ(i,j-2:j+2,k,n)
+                   else
+                      s(:) = srcQ(i,j,k-2:k+2,n)
+                   end if
+
+                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+
+                   call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
+
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
@@ -1663,29 +1579,11 @@ contains
                 dptotp = p_ref - Im(3,QPRES) - hdt*Im_src(3,QPRES)
 
 
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   rho_ev  = rho
-                   cc_ev   = cc
-                   csq_ev  = csq
-                   Clag_ev = Clag
-                   tau_ev  = ONE/rho
-                   temp_ev = temp
-                else
-                   rho_ev  = rho_ref
-                   cc_ev   = cc_ref
-                   csq_ev  = csq_ref
-                   Clag_ev = Clag_ref
-                   tau_ev  = tau_ref
-                   temp_ev = temp_ref
-                endif
-
                 ! (tau, u T) eigensystem
 
                 ! eos to get some thermodynamics
-                eos_state%T = temp_ev
-                eos_state%rho = rho_ev
+                eos_state%T = temp_ref
+                eos_state%rho = rho_ref
                 eos_state%xn(:) = q(i,j,k,QFS:QFS-1+nspec)
                 eos_state%aux(:) = q(i,j,k,QFX:QFX-1+naux)
 
@@ -1694,9 +1592,9 @@ contains
                 p_r = eos_state%dpdr
                 p_T = eos_state%dpdT
 
-                alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dum - p_T*dTm/Clag_ev)/Clag_ev
-                alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dup - p_T*dTp/Clag_ev)/Clag_ev
-                alpha0r = dtau + (-rho_ev**2*p_r*dtau + p_T*dT0)/Clag_ev**2
+                alpham = HALF*(rho_ref**2*p_r*dtaum/Clag_ref + dum - p_T*dTm/Clag_ref)/Clag_ref
+                alphap = HALF*(rho_ref**2*p_r*dtaup/Clag_ref - dup - p_T*dTp/Clag_ref)/Clag_ref
+                alpha0r = dtau + (-rho_ref**2*p_r*dtau + p_T*dT0)/Clag_ref**2
 
                 ! not used, but needed to prevent bad invalid ops
                 alpha0e_g = ZERO
@@ -1725,9 +1623,9 @@ contains
                 tau_s = tau_ref + alphap + alpham + alpha0r
                 qp(i,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                qp(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                qp(i,j,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
-                     rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+                qp(i,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                qp(i,j,k,QTEMP) = temp_ref + (-Clag_ref**2 - rho_ref**2*p_r)*alpham/p_T + &
+                     rho_ref**2*p_r*alpha0r/p_T - (-Clag_ref**2 - rho_ref**2*p_r)*alphap/p_T
 
                 ! we defer getting the pressure until later, once we do the species
                 qp(i,j,k,QPRES) = small_pres ! just to make it defined
@@ -1794,29 +1692,11 @@ contains
                 dup = un_ref - Ip(3,QUN) - hdt*Ip_src(3,QUN)
                 dptotp = p_ref - Ip(3,QPRES) - hdt*Ip_src(3,QPRES)
 
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors
-                if (ppm_reference_eigenvectors == 0) then
-                   rho_ev  = rho
-                   cc_ev   = cc
-                   csq_ev  = csq
-                   Clag_ev = Clag
-                   tau_ev  = ONE/rho
-                   temp_ev = temp
-                else
-                   rho_ev  = rho_ref
-                   cc_ev   = cc_ref
-                   csq_ev  = csq_ref
-                   Clag_ev = Clag_ref
-                   tau_ev  = tau_ref
-                   temp_ev = temp_ref
-                endif
-
                 ! (tau, u T) eigensystem
 
                 ! eos to get some thermodynamics
-                eos_state%T = temp_ev
-                eos_state%rho = rho_ev
+                eos_state%T = temp_ref
+                eos_state%rho = rho_ref
                 eos_state%xn(:) = q(i,j,k,QFS:QFS-1+nspec)
                 eos_state%aux(:) = q(i,j,k,QFX:QFX-1+naux)
 
@@ -1825,9 +1705,9 @@ contains
                 p_r = eos_state%dpdr
                 p_T = eos_state%dpdT
 
-                alpham = HALF*(rho_ev**2*p_r*dtaum/Clag_ev + dum - p_T*dTm/Clag_ev)/Clag_ev
-                alphap = HALF*(rho_ev**2*p_r*dtaup/Clag_ev - dup - p_T*dTp/Clag_ev)/Clag_ev
-                alpha0r = dtau + (-rho_ev**2*p_r*dtau + p_T*dT0)/Clag_ev**2
+                alpham = HALF*(rho_ref**2*p_r*dtaum/Clag_ref + dum - p_T*dTm/Clag_ref)/Clag_ref
+                alphap = HALF*(rho_ref**2*p_r*dtaup/Clag_ref - dup - p_T*dTp/Clag_ref)/Clag_ref
+                alpha0r = dtau + (-rho_ref**2*p_r*dtau + p_T*dT0)/Clag_ref**2
 
                 ! not used, but needed to prevent bad invalid ops
                 alpha0e_g = ZERO
@@ -1858,9 +1738,9 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i+1,j,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i+1,j,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
-                        rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+                   qm(i+1,j,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i+1,j,k,QTEMP) = temp_ref + (-Clag_ref**2 - rho_ref**2*p_r)*alpham/p_T + &
+                        rho_ref**2*p_r*alpha0r/p_T - (-Clag_ref**2 - rho_ref**2*p_r)*alphap/p_T
 
                    ! we defer getting the pressure until later, once
                    ! we do the species
@@ -1874,9 +1754,9 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i,j+1,k,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j+1,k,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
-                        rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+                   qm(i,j+1,k,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i,j+1,k,QTEMP) = temp_ref + (-Clag_ref**2 - rho_ref**2*p_r)*alpham/p_T + &
+                        rho_ref**2*p_r*alpha0r/p_T - (-Clag_ref**2 - rho_ref**2*p_r)*alphap/p_T
 
                    ! we defer getting the pressure until later, once
                    ! we do the species
@@ -1890,9 +1770,9 @@ contains
                    tau_s = tau_ref + alphap + alpham + alpha0r
                    qm(i,j,k+1,QRHO) = max(small_dens, ONE/tau_s)
 
-                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ev
-                   qm(i,j,k+1,QTEMP) = temp_ref + (-Clag_ev**2 - rho_ev**2*p_r)*alpham/p_T + &
-                        rho_ev**2*p_r*alpha0r/p_T - (-Clag_ev**2 - rho_ev**2*p_r)*alphap/p_T
+                   qm(i,j,k+1,QUN) = un_ref + (alpham - alphap)*Clag_ref
+                   qm(i,j,k+1,QTEMP) = temp_ref + (-Clag_ref**2 - rho_ref**2*p_r)*alpham/p_T + &
+                        rho_ref**2*p_r*alpha0r/p_T - (-Clag_ref**2 - rho_ref**2*p_r)*alphap/p_T
 
                    ! we defer getting the pressure until later, once
                    ! we do the species
