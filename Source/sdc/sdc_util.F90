@@ -112,7 +112,7 @@ contains
     integer :: n
     real(rt) :: sum_rhoX
 
-    integer, parameter :: MAX_NSUB = 1024
+    integer, parameter :: MAX_NSUB = 64
 
     ! subdivide the timestep and do multiple Newtons.  We come in here
     ! with an initial guess for the new solution stored in U_new.
@@ -268,10 +268,6 @@ contains
     else
        U_react(nspec_evolve+1) = U_new(UEDEN)
     endif
-
-    !U_react(0) = f_source(0) + dt_m * U_old(URHO)
-    !U_react(1:nspec_evolve) = f_source(1:nspec_evolve) + dt_m * U_old(UFS:UFS-1+nspec_evolve)
-    !U_react(nspec_evolve+1) = f_source(nspec_evolve+1) + dt_m * U_old(nspec_evolve+1)
 
 #if (INTEGRATOR == 3)
 
