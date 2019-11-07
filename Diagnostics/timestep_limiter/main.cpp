@@ -7,6 +7,7 @@
 #include <regex>
 #include "AMReX_DataServices.H"
 #include <AMReX_ParmParse.H>
+#include <AMReX_BaseFab.H>
 #include <Limiter_F.H>
 #include "Castro_F.H"
 
@@ -141,24 +142,40 @@ int main(int argc, char* argv[])
 		const DistributionMapping& dm = data.DistributionMap(lev);
 
 		MultiFab lev_data_mf(ba, dm, data.NComp(), data.NGrow());
-		data.FillVar(lev_data_mf, lev, varNames, fill_comps);
 
         for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
 			const Box& bx = mfi.tilebox();
 
-				find_timestep_limiter(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				               dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp, spec_comp,
-                               time_integration_method,
-				               level_dx.dataPtr(), &dt, dt_loc.dataPtr());
+            // we only want to load the data a Fab at the time as otherwise 
+            // we can experience memory issues. 
+            // Therefore, we'll iterate over the variables using FillVar
+            // to fill a temporary fab, then copy this over the to MultiFab
+            Array4<Real> lev_data_arr = lev_data_mf.array(mfi);
+            FArrayBox tmp_fab(bx);
 
-				find_timestep_limiter_burning(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				               dens_comp, temp_comp, rhoe_comp, spec_comp,
-				               level_dx.dataPtr(), &burning_dt, burning_dt_loc.dataPtr());
+            for (auto n = 0; n < data.NComp(); n++) {
+                data.FillVar(&tmp_fab, bx, lev, varNames[n], ParallelDescriptor::IOProcessorNumber());
+
+                Array4<Real> tmp_arr = tmp_fab.array();
+
+                AMREX_PARALLEL_FOR_3D(bx, i, j, k, {
+                    lev_data_arr(i,j,k,n) = tmp_arr(i,j,k);
+                });
+            }
+
+            find_timestep_limiter(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                            BL_TO_FORTRAN_FAB(lev_data_mf[mfi]), 
+                            dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp, spec_comp,
+                            time_integration_method,
+                            level_dx.dataPtr(), &dt, dt_loc.dataPtr());
+
+            find_timestep_limiter_burning(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                            BL_TO_FORTRAN_FAB(lev_data_mf[mfi]), 
+                            dens_comp, temp_comp, rhoe_comp, spec_comp,
+                            level_dx.dataPtr(), &burning_dt, burning_dt_loc.dataPtr());
 #ifdef DIFFUSION
 				find_timestep_limiter_diffusion(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]), 
 				               dens_comp, temp_comp, rhoe_comp, spec_comp,
 				               level_dx.dataPtr(), &diffusion_dt, diffusion_dt_loc.dataPtr());
 #endif
@@ -203,7 +220,6 @@ int main(int argc, char* argv[])
 void GetInputArgs ( const int argc, char** argv,
                     string& pltfile)
 {
-
     pltfile = argv[1];
 
 	if (pltfile.empty())
