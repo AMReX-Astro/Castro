@@ -4,7 +4,7 @@
 
   problem = 1
 
-  roche_radius_factor = 1.1d0
+  roche_radius_factor = 1.0d0
 
   stellar_temp = 1.0d7
 
