@@ -142,9 +142,6 @@ castro.do_rotation = 1
 # Piecewise parabolic with the original limiters (0 is piecewise linear; 2 is new limiters)
 castro.ppm_type = 1
 
-# Whether to evaluate eigenvectors using the reference state
-castro.ppm_reference_eigenvectors = 1
-
 # Use the EOS in calculation of the edge states going into the Riemann solver
 castro.ppm_temp_fix = 0
 
@@ -157,6 +154,9 @@ castro.riemann_solver = 0
 # For the CG Riemann solver, we need to tell the solver not to quit when 
 # the iterations don't converge, but instead to do additional bisection iteration.
 castro.cg_blend = 2
+
+# Limit the maximum speed in the Riemann solver
+castro.riemann_speed_limit = 2.99792458e9
 
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
@@ -174,7 +174,7 @@ castro.transverse_reset_density = 1
 castro.density_reset_method = 2
 
 # Explicitly limit fluxes to avoid hitting a negative density
-castro.limit_fluxes_on_small_dens = 1
+castro.limit_fluxes_on_small_dens = 0
 
 ############################################################################################
 # Thermodynamics
@@ -344,6 +344,3 @@ amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
 amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
-
-# Write out plotfile data in single precision
-fab.format = NATIVE_32

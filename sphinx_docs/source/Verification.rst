@@ -55,6 +55,7 @@ kept constant. We use a CFL number of 0.9, an initial timestep shrink
 (castro.init_shrink) of 0.1, and the maximum factor by which
 the timestep can increase (castro.change_max) of 1.05.
 
+.. _fig:sod:
 .. figure:: sod_3d.png
    :alt: sod problem
    :align: center
@@ -66,6 +67,7 @@ the timestep can increase (castro.change_max) of 1.05.
    levels of refinement was used. The analytic solution appears as the
    red line.
 
+.. _fig:sod_ppm0:
 .. figure:: sod_3d_ppm0.png
    :alt: sod problem
    :align: center
@@ -77,10 +79,10 @@ the timestep can increase (castro.change_max) of 1.05.
    direction of propagation, with 2 levels of refinement was used. The
    analytic solution appears as the red line.
 
-Figure \ `[fig:sod] <#fig:sod>`__ shows the Castro solution using the newest PPM limiters
+:numref:`fig:sod` shows the Castro solution using the newest PPM limiters
 compared to the analytic
 solution, showing the density, velocity, pressure, and internal energy.
-Figure \ `[fig:sod_ppm0] <#fig:sod_ppm0>`__ is the same as Figure \ `[fig:sod] <#fig:sod>`__,
+:numref:`fig:sod_ppm0` is the same as :numref:`fig:sod`,
 but with the piecewise-linear Godunov method with limiters,
 shown for comparison.
 
@@ -165,6 +167,7 @@ We use a CFL number of 0.8, an initial timestep shrink
 timestep can increase (``castro.change_max``) of 1.05. The PPM solver with
 the new limiters are used.
 
+.. _fig:test2:
 .. figure:: test2_3d.png
    :alt: double rarefaction
    :align: center
@@ -175,7 +178,7 @@ the new limiters are used.
    of 32 zones in the direction of propagation, with 2 levels of
    refinement was used. The analytic solution appears as the red line.
 
-Figure \ `[fig:test2] <#fig:test2>`__ shows the Castro output, run along all 3
+:numref:`fig:test2` shows the Castro output, run along all 3
 coordinate axes in 3-d, compared to the analytic solution.
 
 The comparison to the analytic solution follows the same procedure as
@@ -231,6 +234,7 @@ timestep shrink (``castro.init_shrink``) of 0.1, and the maximum factor by which
 the timestep can increase (``castro.change_max``) of 1.05. The PPM
 solver with the new limiters are used.
 
+.. _fig:test3:
 .. figure:: test3_3d.png
    :alt: strong shock
    :align: center
@@ -241,7 +245,7 @@ solver with the new limiters are used.
    in the direction of propagation, with 2 levels of refinement was
    used. The analytic solution appears as the red line.
 
-Figure \ `[fig:test3] <#fig:test3>`__ shows the Castro output, run along all 3
+:numref:`fig:test3` shows the Castro output, run along all 3
 coordinate axes in 3-d, compared to the analytic solution.
 
 The comparison to the analytic solution follows the same procedure as
@@ -271,6 +275,27 @@ Exec/hydro_tests/Sedov/``.  A number of different inputs/probin files
 are provided, corresponding to different Sedov/Castro geometries. The
 main ones are:
 
+
+.. _table:sedov_inputs:
+.. table:: Sedov problem inputs and probin files
+
+     +---------------------------------+--------------------------------+---------------------------------------------+
+     | inputs file                     | probin file                    | description                                 |
+     +=================================+================================+=============================================+
+     | ``inputs.1d.sph``               | ``probin.1d.sph``              |  Spherical Sedov explosion modeled          |
+     |                                 |                                |  in 1-d spherical coordinates               |
+     +---------------------------------+--------------------------------+---------------------------------------------+
+     | ``inputs.2d.sph_in_cylcoords``  | ``probin.2d.sph_in_cylcoords`` |  Spherical Sedov explosion modeled          |
+     |                                 |                                |  in 2-d cylindrical (axisymmetric)          |
+     |                                 |                                |  coordinates.                               |
+     +---------------------------------+--------------------------------+---------------------------------------------+
+     | ``inputs.2d.cyl_in_cartcoords`` | ``probin.2d.cyl_in_cartcoords``|  Cylindrical Sedov explosion modeled in     |
+     |                                 |                                |  2-d Cartesian coordinates.                 |
+     +---------------------------------+--------------------------------+---------------------------------------------+
+     | ``inputs.3d.sph``               | ``probin.3d.sph``              |  Spherical Sedov explosion modeled in       |
+     |                                 |                                |  3-d Cartesian coordinates.                 |
+     +---------------------------------+--------------------------------+---------------------------------------------+
+
 In the Sedov problem, the explosion energy, :math:`E_\mathrm{exp}` (in units
 of energy, not energy/mass or energy/volume)
 is to be deposited into a single point, in a medium of uniform ambient
@@ -282,7 +307,7 @@ and the references therein)
 is to convert the explosion energy into a pressure contained within a
 certain volume, :math:`V_\mathrm{init}`, of radius :math:`r_\mathrm{init}` as
 
-.. math:: p_\mathrm{init} = \frac{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}} 
+.. math:: p_\mathrm{init} = \frac{(\gamma - 1) E_\mathrm{exp}}{V_\mathrm{init}}
 
 This pressure is then deposited in all of the cells where :math:`r <
 r_\mathrm{init}`.
@@ -301,20 +326,16 @@ coordinate direction plus 3 levels of refinement is used (the finest
 mesh would coorespond to 256 zones in a coordinate direction). The
 domain runs from 0 to 1 in each coordinate direction.
 
-Analysis routines for the Sedov problem are provided in
-Castro/Diagnostics/Sedov/. These routines will
-average the Castro solution over angles, using the proper geometric
-weighting, to produce an average profile as a function of radius.
-The following routines correspond to the inputs files described above:
+An analysis routines for the Sedov problem is provided in
+``Castro/Diagnostics/Sedov/``.  Typing ``make`` should build it (you
+can specify the dimensionality with the ``DIM`` variable in the
+build).
 
-Spherical Blast Wave
-~~~~~~~~~~~~~~~~~~~~
 
 A spherical Sedov explosion can be modeled in 1-d spherical, 2-d
 cylindrical (axisymmetric), or 3-d Cartesian coordinates, using the
-inputs files described in Table \ `[table:sedov_inputs] <#table:sedov_inputs>`__. A 1-d radial
-profile can be extracted using the appropriate fsedov routine,
-as listed in Table \ `[table:fsedov] <#table:fsedov>`__. For example, to run and process
+inputs files described in :numref:`table:sedov_inputs`. A 1-d radial
+profile can be extracted using the analysis routine. For example, to run and process
 the 2-d cylindrical Sedov explosion, one would do:
 
 #. in ``Exec/hydro_tests/Sedov``, build the Castro executable in 2-d
@@ -323,23 +344,24 @@ the 2-d cylindrical Sedov explosion, one would do:
 
     ./Castro2d.Linux.Intel.Intel.ex inputs.2d.sph_in_cylcoords
 
-#. build the ``fsedov2d_sph_in_cylcoords`` tool in
+#. build the ``sedov_2d_ex`` tool in
    ``Castro/Diagnostics/Sedov``.
 
-#. run ``fsedov2d_sph_in_cylcoords`` on the Castro output to generate 1-d radial
-     profiles::
+#. run the analysis script  on the Castro output to generate 1-d radial
+   profiles::
 
-       fsedov2d_sph_in_cylcoords.Linux.Intel.exe -s sedov_2d_sph_in_cyl.out \
+      ./sedov_2d.ex --sphr --yctr 0.5 -s sedov_2d_sph_in_cyl.out \
           -p sedov_2d_sph_in_cyl_plt00246
 
 A similar procedure can be used for the 1-d and 3-d spherical Sedov
-explosions (with the output named sedov_1d_sph.out and
-sedov_3d_sph.out respectively). Once this is done, the
-sedov_sph.gp gnuplot script can be used to make a plot comparing
-the 3 solutions to the analytic solution, spherical_sedov.dat.
+explosions (with the output named ``sedov_1d_sph.out`` and
+``sedov_3d_sph.out`` respectively). Once this is done, the
+``sedov_sph.gp`` gnuplot script can be used to make a plot comparing
+the 3 solutions to the analytic solution, ``spherical_sedov.dat``.
 
-Figure \ `[fig:sedov_sph] <#fig:sedov_sph>`__ shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.
+:numref:`fig:sedov_sph` shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.
 
+.. _fig:sedov_sph:
 .. figure:: sedov_sph.png
    :alt: Sedov blast wave
    :align: center
@@ -384,8 +406,9 @@ to smooth the transition between the high and low density material:
 Hydrostatic pressure with :math:`p=5.0` at bottom of domain, assuming
 :math:`\rho=1` on the lower half of the domain, and :math:`\rho=2` on the upper
 half and no density perturbation. We run to :math:`t=2.5` with piecewise
-linear, old PPM, and new PPM. CFL=0.9. See Figure `[fig:RT] <#fig:RT>`__.
+linear, old PPM, and new PPM. CFL=0.9. See :numref:`fig:RT`.
 
+.. _fig:RT:
 .. figure:: RT_ppm_type.png
    :alt: Rayleigh-Taylor with different PPM types.
    :align: center
@@ -407,7 +430,7 @@ of:
 
 .. math::
 
-   \frac{\partial E_R}{\partial t} = 
+   \frac{\partial E_R}{\partial t} =
     \nabla \cdot \left ( \frac{c \lambda(E_R)}{\kappa_R} \nabla E_R \right ) +
     \kappa_P (4 \sigma T^4 - c E_R )
 
@@ -456,7 +479,7 @@ Our implementation of this problem follows that of
 :cite:`swestymyra:2009`.
 
 .. figure:: radiating_source.png
-   :alt: radiatin source 
+   :alt: radiatin source
    :align: center
    :width: 5in
 

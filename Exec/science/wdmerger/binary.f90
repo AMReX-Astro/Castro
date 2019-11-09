@@ -117,7 +117,7 @@ contains
   subroutine lagrange_iterate(r, mass_1, mass_2, r1, r2, a, r_min, r_max)
 
     use amrex_constants_module, only: ZERO, HALF
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
     
     implicit none
 
@@ -138,7 +138,7 @@ contains
     integer  :: i
 
     if (.not. (present(r_min) .or. present(r_max))) then
-       call amrex_error("Lagrange point iteration must have at least one bound provided.")
+       call castro_error("Lagrange point iteration must have at least one bound provided.")
     else if (present(r_min) .and. present(r_max)) then
        rm = r_min
        rp = r_max

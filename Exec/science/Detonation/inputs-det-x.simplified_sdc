@@ -25,7 +25,6 @@ castro.time_integration_method = 3
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
-castro.ppm_reference_eigenvectors = 1
 
 castro.transverse_reset_density = 1
 

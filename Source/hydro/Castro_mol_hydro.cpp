@@ -24,11 +24,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   const Real strt_time = ParallelDescriptor::second();
 
   if (verbose && ParallelDescriptor::IOProcessor()) {
-    if (time_integration_method == MethodOfLines) {
-      std::cout << "... hydro MOL stage " << mol_iteration << std::endl;
-    } else if (time_integration_method == SpectralDeferredCorrections) {
-      std::cout << "... SDC iteration: " << sdc_iteration << "; current node: " << current_sdc_node << std::endl;
-    }
+    std::cout << "... construct advection term, SDC iteration: " << sdc_iteration << "; current node: " << current_sdc_node << std::endl;
   }
 
 
@@ -53,6 +49,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     // longer needed (only relevant for the asynchronous case, usually on GPUs).
 
     FArrayBox flatn;
+    FArrayBox cond;
     FArrayBox dq;
     FArrayBox shk;
     FArrayBox qm, qp;
@@ -65,7 +62,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
     // The fourth order stuff cannot do tiling because of the Laplacian corrections
-    for (MFIter mfi(S_new, (mol_order == 4 || sdc_order == 4) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, (sdc_order == 4) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
       {
 	const Box& bx  = mfi.tilebox();
 
@@ -84,13 +81,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         Real stage_weight = 1.0;
 
-        if (time_integration_method == MethodOfLines) {
-          stage_weight = b_mol[mol_iteration];
+        if (time_integration_method == SpectralDeferredCorrections) {
+          stage_weight = node_weights[current_sdc_node];
         }
 
-
 #ifndef AMREX_USE_CUDA
-        if (mol_order == 4 || sdc_order == 4) {
+        if (sdc_order == 4) {
 
           // Allocate fabs for fluxes
           for (int i = 0; i < AMREX_SPACEDIM ; i++)  {
@@ -99,9 +95,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           }
 
 #if (AMREX_SPACEDIM <= 2)
-          if (!Geometry::IsCartesian()) {
-            pradial.resize(amrex::surroundingNodes(bx,0),1);
-          }
+          pradial.resize(amrex::surroundingNodes(bx,0),1);
 #endif
 
           ca_fourth_single_stage
@@ -113,6 +107,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              BL_TO_FORTRAN_ANYD(q_bar[mfi]),
              BL_TO_FORTRAN_ANYD(qaux[mfi]),
              BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
+#ifdef DIFFUSION
+             BL_TO_FORTRAN_ANYD(T_cc[mfi]),
+#endif
              BL_TO_FORTRAN_ANYD(source_in),
              BL_TO_FORTRAN_ANYD(source_out),
              ZFILL(dx), &dt,
@@ -151,7 +148,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           if (do_hydro) {
 
-#pragma gpu
+#pragma gpu box(obx)
             divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  AMREX_REAL_ANYD(dx),
@@ -166,7 +163,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             if (first_order_hydro == 1) {
               AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
             } else if (use_flattening == 1) {
-#pragma gpu
+#pragma gpu box(obx)
               ca_uflatten
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
@@ -180,6 +177,26 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           shk.resize(obx, 1);
           Elixir elix_shk = shk.elixir();
+                  
+          // Multidimensional shock detection
+          // Used for the hybrid Riemann solver
+
+#ifdef SHOCK_VAR
+          bool compute_shock = true;
+#else
+          bool compute_shock = false;
+#endif
+
+          if (hybrid_riemann == 1 || compute_shock) {
+#pragma gpu box(obx)
+              ca_shock(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                       BL_TO_FORTRAN_ANYD(q[mfi]),
+                       BL_TO_FORTRAN_ANYD(shk),
+                       AMREX_REAL_ANYD(dx));
+          }
+          else {
+              shk.setVal(0.0);
+          }
 
           qm.resize(tbx, NQ*AMREX_SPACEDIM);
           Elixir elix_qm = qm.elixir();
@@ -194,25 +211,24 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               dq.resize(obx, NQ);
               Elixir elix_dq = dq.elixir();
 
-#pragma gpu
+#pragma gpu box(obx)
               ca_mol_plm_reconstruct
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(flatn),
-                 BL_TO_FORTRAN_ANYD(shk),
                  BL_TO_FORTRAN_ANYD(dq),
                  BL_TO_FORTRAN_ANYD(qm),
                  BL_TO_FORTRAN_ANYD(qp),
-                 AMREX_REAL_ANYD(dx));
+                 AMREX_REAL_ANYD(dx),
+                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
             } else {
 
-#pragma gpu
+#pragma gpu box(obx)
               ca_mol_ppm_reconstruct
                 (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
                  BL_TO_FORTRAN_ANYD(flatn),
-                 BL_TO_FORTRAN_ANYD(shk),
                  BL_TO_FORTRAN_ANYD(qm),
                  BL_TO_FORTRAN_ANYD(qp),
                  AMREX_REAL_ANYD(dx));
@@ -261,7 +277,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
 #if AMREX_SPACEDIM <= 2
-          if (!Geometry::IsCartesian()) {
+          if (!Geom().IsCartesian()) {
             pradial.resize(xbx, 1);
           }
           Elixir elix_pradial = pradial.elixir();
@@ -275,7 +291,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               int idir_f = idir + 1;
 
-#pragma gpu
+#pragma gpu box(nbx)
               cmpflx_plus_godunov
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  BL_TO_FORTRAN_ANYD(qm),
@@ -304,7 +320,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
               // apply artificial viscosity
-#pragma gpu
+#pragma gpu box(nbx)
               apply_av
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  idir_f, AMREX_REAL_ANYD(dx),
@@ -314,7 +330,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               // apply the density flux limiter
               if (limit_fluxes_on_small_dens == 1) {
-#pragma gpu
+#pragma gpu box(nbx)
                 limit_hydro_fluxes_on_small_dens
                   (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                    idir_f,
@@ -327,7 +343,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               }
 
               // ensure that the species fluxes are normalized
-#pragma gpu
+#pragma gpu box(nbx)
               normalize_species_fluxes
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  BL_TO_FORTRAN_ANYD(flux[idir]));
@@ -358,10 +374,36 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             }
           } // end do_hydro
 
+          // add a diffusive flux
+          cond.resize(obx, 1);
+          Elixir elix_cond = cond.elixir();
+
+#ifdef DIFFUSION
+          ca_fill_temp_cond
+            (AMREX_ARLIM_ANYD(obx.loVect()), AMREX_ARLIM_ANYD(obx.hiVect()),
+             BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+             BL_TO_FORTRAN_ANYD(cond));
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+            int idir_f = idir + 1;
+
+            ca_mol_diffusive_flux
+              (AMREX_ARLIM_ANYD(nbx.loVect()), AMREX_ARLIM_ANYD(nbx.hiVect()),
+               idir_f,
+               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+               BL_TO_FORTRAN_ANYD(cond),
+               BL_TO_FORTRAN_ANYD(flux[idir]),
+               AMREX_ZFILL(dx));
+
+          }
+#endif
+
           // do the conservative update -- and store the shock variable
-#pragma gpu
+#pragma gpu box(bx)
           ca_mol_consup
-            (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(statein),
              BL_TO_FORTRAN_ANYD(stateout),
              BL_TO_FORTRAN_ANYD(source_in),
@@ -401,7 +443,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-#pragma gpu
+#pragma gpu box(nbx)
             scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
 #if AMREX_SPACEDIM == 1
                        BL_TO_FORTRAN_ANYD(qe[idir]),
@@ -416,7 +458,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               const int prescomp = GDPRES;
 
 #if AMREX_SPACEDIM == 1
-              if (!Geometry::IsCartesian()) {
+              if (!Geom().IsCartesian()) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                                       {
                                         pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
@@ -444,7 +486,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 	// Store the fluxes from this advance -- we weight them by the
 	// integrator weight for this stage
 
-        for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+        // For SDC, we store node 0 the only time we enter here (the
+        // first iteration) and we store the other nodes only on the
+        // last iteration.
+        if (time_integration_method == SpectralDeferredCorrections &&
+             (current_sdc_node == 0 || sdc_iteration == sdc_order+sdc_extra-1)) {
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
             Array4<Real> const flux_fab = (flux[idir]).array();
             Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
@@ -456,10 +504,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 fluxes_fab(i,j,k,n) += stage_weight * flux_fab(i,j,k,n);
             });
 
-        }
+          }
 
 #if AMREX_SPACEDIM <= 2
-        if (!Geometry::IsCartesian()) {
+          if (!Geom().IsCartesian()) {
 
             Array4<Real> pradial_fab = pradial.array();
             Array4<Real> P_radial_fab = P_radial.array(mfi);
@@ -470,8 +518,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 P_radial_fab(i,j,k,0) += scale * pradial_fab(i,j,k,0);
             });
 
-        }
+          }
 #endif
+        }
 
       } // MFIter loop
 

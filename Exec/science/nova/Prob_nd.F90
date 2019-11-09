@@ -2,7 +2,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module
   use model_parser_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_paralleldescriptor_module, only: parallel_IOProcessor => amrex_pd_ioprocessor
 
   use amrex_fort_module, only : rt => amrex_real
@@ -25,7 +25,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   ! the name of file containing fortin namelist.
 
 
-  if (namlen > maxlen) call amrex_error("probin file name too long")
+  if (namlen > maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -92,12 +92,12 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   use amrex_constants_module
   use probdata_module
-  use interpolate_module
   use eos_module
   use eos_type_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only: nspec
   use model_parser_module
+  use prob_params_module, only : problo
 
   use amrex_fort_module, only : rt => amrex_real
   implicit none
@@ -118,10 +118,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   type (eos_t) :: eos_state
 
   do k = lo(3), hi(3)
-     z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
+     z = problo(3) + delta(3)*(dble(k) + HALF)
 
      do j = lo(2), hi(2)
-        y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
+        y = problo(2) + delta(2)*(dble(j) + HALF)
 
         do i = lo(1), hi(1)
 
@@ -131,13 +131,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            height = z
 #endif
 
-           state(i,j,k,URHO)  = interpolate(height,npts_model,model_r, &
-                                            model_state(:,idens_model))
-           state(i,j,k,UTEMP) = interpolate(height,npts_model,model_r, &
-                                            model_state(:,itemp_model))
+           call interpolate_sub(state(i,j,k,URHO), height, idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), height, itemp_model)
            do n = 1, nspec
-              state(i,j,k,UFS-1+n) = interpolate(height,npts_model,model_r, &
-                                                 model_state(:,ispec_model-1+n))
+              call interpolate_sub(state(i,j,k,UFS-1+n), height, ispec_model-1+n)
            end do
            state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,UFS:UFS-1+nspec)/sum(state(i,j,k,UFS:UFS-1+nspec))
 
@@ -183,15 +180,15 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   if (apply_vel_field) then
 
      do k = lo(3), hi(3)
-        z = xlo(3) + delta(3)*(dble(k-lo(3)) + HALF)
+        z = problo(3) + delta(3)*(dble(k) + HALF)
         zdist = ZERO
 
         do j = lo(2), hi(2)
-           y = xlo(2) + delta(2)*(dble(j-lo(2)) + HALF)
+           y = problo(2) + delta(2)*(dble(j) + HALF)
            ydist = y - velpert_height_loc
 
            do i = lo(1), hi(1)
-              x = xlo(1) + delta(1)*(dble(i-lo(1)) + HALF)
+              x = problo(1) + delta(1)*(dble(i) + HALF)
 
               upert = ZERO
 

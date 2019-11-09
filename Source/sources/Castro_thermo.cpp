@@ -6,9 +6,9 @@ using namespace amrex;
 void
 Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time, Real dt)
 {
-  // we only include p divU in method of lines integration
-  if (!(time_integration_method == MethodOfLines ||
-        time_integration_method == SpectralDeferredCorrections)) return;
+  if (!(time_integration_method == SpectralDeferredCorrections)) return;
+
+  const Real strt_time = ParallelDescriptor::second();
 
   MultiFab thermo_src(grids, dmap, NUM_STATE, 0);
 
@@ -19,6 +19,23 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time
   Real mult_factor = 1.0;
 
   MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, NUM_STATE, 0);
+
+  if (verbose > 1)
+  {
+      const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+      Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+      Lazy::QueueReduction( [=] () mutable {
+#endif
+      ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+      if (ParallelDescriptor::IOProcessor())
+	  std::cout << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+      });
+#endif
+    }
 }
 
 
@@ -26,10 +43,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time
 void
 Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-
-  // we only include p divU in method of lines integration
-  if (!(time_integration_method == MethodOfLines ||
-        time_integration_method == SpectralDeferredCorrections)) return;
+  if (!(time_integration_method == SpectralDeferredCorrections)) return;
 
   amrex::Abort("you should not get here!");
 }
@@ -52,7 +66,7 @@ Castro::fill_thermo_source (Real time, Real dt,
 
       const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
       ca_thermo_src(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                     BL_TO_FORTRAN_ANYD(state_old[mfi]),
                     BL_TO_FORTRAN_ANYD(state_new[mfi]),

@@ -8,9 +8,28 @@ Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state, Real time
 {
     BL_PROFILE("Castro::construct_old_hybrid_source()");
 
+    const Real strt_time = ParallelDescriptor::second();
+
     Real mult_factor = 1.0;
 
     fill_hybrid_hydro_source(source, state, mult_factor);
+
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_old_hybrid_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 
@@ -18,8 +37,9 @@ Castro::construct_old_hybrid_source(MultiFab& source, MultiFab& state, Real time
 void
 Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
-
     BL_PROFILE("Castro::construct_new_hybrid_source()");
+
+    const Real strt_time = ParallelDescriptor::second();
 
     // Start by subtracting off the old-time data.
 
@@ -32,6 +52,23 @@ Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, Multi
     mult_factor = 0.5;
 
     fill_hybrid_hydro_source(source, state_new, mult_factor);
+
+    if (verbose > 1)
+    {
+        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+        Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+        if (ParallelDescriptor::IOProcessor())
+            std::cout << "Castro::construct_new_hybrid_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }
 
 
@@ -49,7 +86,7 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 
     const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
     ca_hybrid_hydro_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			   BL_TO_FORTRAN_ANYD(state[mfi]),
 			   BL_TO_FORTRAN_ANYD(sources[mfi]),
@@ -62,25 +99,37 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 
 
 void
-Castro::hybrid_sync(MultiFab& state, int ng)
+Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
 {
-
-    BL_PROFILE("Castro::hybrid_sync()");
-
-    if (hybrid_hydro) {
+    BL_PROFILE("Castro::linear_to_hybrid_momentum()");
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-        for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.growntilebox(ng);
 
-	    const Box& bx = mfi.growntilebox(ng);
-
-#pragma gpu
-	    ca_hybrid_update(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
-
-	}
-
+#pragma gpu box(bx)
+        ca_linear_to_hybrid_momentum(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
     }
+}
 
+
+
+void
+Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
+{
+    BL_PROFILE("Castro::hybrid_to_linear_momentum()");
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.growntilebox(ng);
+
+#pragma gpu box(bx)
+        ca_hybrid_to_linear_momentum(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
+    }
 }

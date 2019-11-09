@@ -2,212 +2,208 @@
 Setting Up Your Own Problem
 ***************************
 
-To define a new problem, we create a new directory in one
-of the subdirectories of ``Exec/``,
-and place in it a ``Prob_2d.f90`` file (or 1d/3d,
-depending on the dimensionality of the problem), a ``probdata.f90``
-file, the ``inputs`` and ``probin`` files, and a
-``Make.package`` file that tells the build system what problem-specific
-routines exist. Finally, if you need custom boundary conditions, a
-``bc_fill_2d.F90`` (or 1d/3d) file is needed. The
-simplest way to get started is to copy these files from an existing
-problem. Here we describe how to customize your problem.
+Castro problems are organized loosely into groups describing their
+intent (e.g., science, hydro tests, ...).  These groups are
+sub-directories under the `Castro/Exec/` directory.  Each problem is
+then placed in a sub-directory of the appropriate group (for example, 
+``Castro/Exec/hydro_tests/Sedov`` holds the Sedov test problem).
 
-The purpose of these files is:
+To create a new problem, you will create a new directory under one
+of the groups and place in it the following files:
 
--  ``probdata.f90``: this holds the ``probdata_module`` Fortran module
-   that allocates storage for all the problem-specific runtime parameters that
-   are used by the problem (including those that are read from the ``probin``
-   file.
+  * ``GNUmakefile`` : the makefile for this problem.  This will tell
+    Castro what options to use and what network and EOS to build.
 
--  ``Prob_?d.f90``: this holds the main routines to
-   initialize the problem and grid and perform problem-specific boundary
-   conditions:
+  * ``Prob_nd.F90`` : this holds the problem initialization routines
 
-   -  ``probinit()``:
+  * ``_prob_params`` (optional) : a list of runtime parameters that
+    you problem will read.  These parameters are controlled by the
+    ``probin`` file.
 
-      This routine is primarily responsible for reading in the
-      ``probin`` file (by defining the ``&fortin`` namelist and
-      reading in an initial model (usually through the
-      ``model_parser_module``—see the ``toy_convect`` problem
-      setup for an example). The parameters that are initialized
-      here are those stored in the ``probdata_module``.
+  * ``Make.package`` : this is a makefile fragment that is included
+    during the build process.  It tells the build system about any
+    problem-specific files that need to be compiled.
 
-      .. note:: many problems set the value of the ``center()`` array
-         from ``prob_params_module`` here.  This is used to note the
-         center of the problem (which does not necessarily need to be
-         the center of the domain, e.g., for axisymmetric problems).
-         ``center`` is used in source terms (including rotation and
-         gravity) and in computing some of the derived variables (like
-         angular momentum).
+  * ``inputs`` : this is the main inputs file that controls Castro and
+    AMReX's behavior.
 
-   -  ``ca_initdata()``:
+  * ``probin`` : this is the problem-specific inputs file that
+    contains Fortran namelists with problem parameters as well as any
+    paramters for external physics (e.g., from the StarKiller
+    Microphysics)
 
-      This routine will initialize the state data for a single grid.
-      The inputs to this routine are:
+The best way to get started writing a new problem is to copy an
+existing problem setup into a new directory.
 
-      -  ``level``: the level of refinement of the grid we are filling
+.. index:: _prob_params
 
-      -  ``time``: the simulation time
+Runtime parameters
+------------------
 
-      -  ``lo()``, ``hi()``: the integer indices of the box’s
-         *valid data region* lower left and upper right corners. These
-         integers refer to a global index space for the level and
-         identify where in the computational domain the box lives.
+The problem-specific runtime parameters are defined in ``_prob_params``.
+This has the form::
 
-      -  ``nscal``: the number of scalar quantities—this is not typically
-         used in Castro.
+   name       datatype    default      namelist?     size
 
-      -  ``state_l1``, ``state_l2``, (``state_l3``): the
-         integer indices of the lower left corner of the box in each
-         coordinate direction. These are for the box as allocated in memory,
-         so they include any ghost cells as well as the valid data regions.
+Here:
 
-      -  ``state_h1``, ``state_h2``, (``state_h3``): the
-         integer indices of the upper right corner of the box in each
-         coordinate direction. These are for the box as allocated in memory,
-         so they include any ghost cells as well as the valid data regions.
+* `name` is the name of the variable to put into ``probdata_module``
 
-      -  ``state()``: the main state array. This is dimensioned as::
+* `datatype` is one of ``real``, ``integer``, ``character``, or
+  ``logical``. 
 
-             double precision state(state_l1:state_h1,state_l2:state_h2,NVAR)
+* `default` is the default value of the runtime parameter.  It may be
+  overridden at runtime by reading from the namelist.
 
-         (in 2-d), where ``NVAR`` comes from the ``meth_params_module``.
+* `namelist` indicates if the variable should be in the namelist and
+  controlled at runtime.  The namelist column should have a ``y`` if
+  you want the parameter to be read from the ``&fortin`` namelist in
+  the ``probin`` file at runtime.  If it is empty or marked with
+  ``n``, then the variable will still be put into the
+  ``probdata_module`` but it will not be initialized via the namelist.
 
-         When accessing this array, we use the index keys provided by
-         meth_params_module (e.g., ``URHO``) to refer to specific
-         quantities
+* `size` is for arrays, and gives their size.  It can be any integer
+  or variable that is known to the ``probdata_module``.  If you need a
+  variable from a different module to specify the size (for example,
+  ``nspec`` from ``network``), then you express the size as a tuple:
+  ``(nspec, network)`` and the appropriate use statement will be
+  added.
 
-      -  ``delta()``: this is an array containing the zone width (:math:`\Delta x`)
-         in each coordinate direction: :math:`\mathtt{delta(1)} = \Delta x`,
-         :math:`\mathtt{delta(2)} = \Delta y`, :math:`\ldots`.
+.. note::
 
-      -  ``xlo()``, ``xhi()``: these are the physical coordinates of the
-         lower left and upper right corners of the *valid region*
-         of the box. These can be used to compute the coordinates of the
-         cell-centers of a zone as::
+   The ``GNUmakefile`` needs to have ``USE_PROB_PARAMS = TRUE`` to
+   tell the build system to parse ``_prob_params`` and write the 
+   ``probdata_module``.
 
-               do j = lo(2), hi(2)
-                  y = xlo(2) + delta(2)*(dble(j-lo(2)) + 0.5d0)
-                  ...
+The variables will all be initialized for the GPU as well.
 
-         .. note:: this method works fine for the problem
-            initialization stuff, but for routines that implement
-            tiling, as discussed below, ``lo`` and ``xlo`` may not
-            refer to the same corner, and instead coordinates should
-            be computed using ``problo()`` from the
-            ``prob_params_module``.
 
--  ``bc_fill_?d.F90``:
+``Prob_nd.F90``
+---------------
 
-   These routines handle how Castro fills ghostcells
-   *at physical boundaries* for specific data. Most problem
-   setups won’t need to do anything special here, and inclusion
-   of this file is optional–only use it if you need to set
-   specific boundary conditions.
+Here we describe the main problem initialization routines.
 
-   These routines are registered in ``Castro_setup.cpp``, and
-   called as needed. By default, they just
-   pass the arguments through to ``filcc``, which handles all of
-   the generic boundary conditions (like reflecting, extrapolation,
-   etc.). The specific ‘fill’ routines can then supply the
-   problem-specific boundary conditions, which are typically just
-   Dirichlet boundary conditions (usually this means looking to see
-   if the ``bc()`` flag at a boundary is ``EXT_DIR``). The
-   problem-specific code implementing these specific conditions
-   should *follow* the ``filcc`` call.
+.. index:: probdata
 
-   -  ``ca_hypfill``:
-      This handles the boundary filling for the hyperbolic system.
+* ``probinit()``:
 
-   -  ``ca_denfill``: At times, we need to fill just the density
-      (always assumed to be the first element in the hyperbolic state)
-      instead of the entire state. When the fill patch routine is called
-      with ``first_comp`` = ``Density`` and ``num_comp`` = 1, then we
-      use ``ca_denfill`` instead of ``ca_hypfill``.
+  This routine is primarily responsible for reading in the ``probin``
+  file (by defining the ``&fortin`` namelist) and doing any one-time
+  initialization for the problem (like reading in an
+  initial model through the ``model_parser_module``—see the
+  ``toy_convect`` problem setup for an example).
 
-      (Note: it seems that this may be used for more than just
-      density, but it is only used for tagging and the plotfile)
+  By convention, this is where we read and initialize the problem parameters
+  by calling ``probdata_init()``.  The parameters will then be defined in
+  ``probdata_module`` defined in ``probdata.F90``.
 
-   -  ``ca_grav?fill``: These routines fill will the ghostcells
-      of the gravitational acceleration grids with the gravitational
-      acceleration.
+  .. note:: many problems set the value of the ``center()`` array
+     from ``prob_params_module`` here.  This is used to note the
+     center of the problem (which does not necessarily need to be
+     the center of the domain, e.g., for axisymmetric problems).
+     ``center`` is used in source terms (including rotation and
+     gravity) and in computing some of the derived variables (like
+     angular momentum).
 
-      Note: for constant gravity, these routines will never be called.
-      For one of the Poisson-type gravities, you only need to do
-      something special here if you are implementing an Interior
-      boundary type (which you can test for by comparing
-      ``bc(:,:,:)`` to ``EXT_DIR``.
+  The arguments include the name and length of the probin file
+  as well as the physical values of the domain's lower-left corner
+  (``problo``) and upper-right corner (``probhi``).
 
-      For the other standard physical boundary types, the ghost cell
-      filling will be handled automatically by the default ``filcc``
-      call in these routines.
 
-      The gravitational acceleration in the ghost cells is used during
-      the hydrodynamics portion of the code in predicting the
-      interface states.
+* ``ca_initdata()``:
 
-   -  ``ca_reactfill``: This handles boundary filling for any ``Reactions_Type``
-      ``MultiFab``, which are sometimes used to interface
-      with the nuclear burning module. It stores the normal state data
-      in addition to components for the energy release and species change.
+  This routine will initialize the state data for a single grid.
+  The inputs to this routine are:
 
-   These routines take the following arguments:
+  -  ``level``: the level of refinement of the grid we are filling
 
-   -  ``adv_l1``, ``adv_l2``, (``adv_l3``): the indicies of
-      the lower left corner of the box holding the data we are working on.
-      These indices refer to the entire box, including ghost cells.
+  -  ``time``: the simulation time
 
-   -  ``adv_h1``, ``adv_h2``, (``adv_h3``): the indicies of
-      the upper right corner of the box holding the data we are working on.
-      These indices refer to the entire box, including ghost cells.
+  -  ``lo()``, ``hi()``: the integer indices of the box’s
+     *valid data region* lower left and upper right corners. These
+     integers refer to a global index space for the level and
+     identify where in the computational domain the box lives.
 
-   -  ``adv()``: the array of data whose ghost cells we are filling.
-      Depending on the routine, this may have an additional index refering
-      to the variable.
+  -  ``nscal``: the number of scalar quantities—this is not typically
+     used in Castro.
 
-      This is dimensioned as::
+  -  ``state()``: the main state array. This is dimensioned as::
 
-            double precision adv(adv_l1:adv_h1,adv_l2:adv_h2)
+       real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
 
-   -  ``domlo()``, ``domhi()``: the integer indices of the lower
-      left and upper right corners of the valid region of the *entire
-      domain*. These are used to test against to see if we are filling
-      physical boundary ghost cells.
+     where ``NVAR`` comes from the ``meth_params_module``.  The
+     spatial dimensions of the array come in through the arguments
+     ``s_lo`` and ``s_hi``.
 
-      This changes according to refinement level: level-0 will
-      range from 0 to ``castro.max_grid_size``,
-      and level-n will range from 0 to
-      :math:`\mathtt{castro.max\_grid\_size} \cdot \prod_n \mathtt{castro.ref\_ratio(n)}`.
+     When accessing this array, we use the index keys provided by
+     meth_params_module (e.g., ``URHO``) to refer to specific
+     quantities
 
-   -  ``delta()``: is the zone width in each coordinate direction,
-      as in ``initdata()`` above.
+  -  ``delta()``: this is an array containing the zone width (:math:`\Delta x`)
+     in each coordinate direction: ``delta(1)`` = :math:`\Delta x`,
+     ``delta(2)`` = :math:`\Delta y`, ...
 
-   -  ``xlo()``: this is the physical coordinate of the lower
-      left corner of the box we are filling—including the ghost cells.
+  -  ``xlo()``, ``xhi()``: these are the physical coordinates of the
+     lower left and upper right corners of the *valid region*
+     of the box.  These should not be used, and will be removed in a future
+     version of Castro.
 
-      .. note:: this is different than how ``xlo()`` was defined in
-         ``initdata()`` above.
+Filling data is typically done in a loop like::
 
-   -  ``time``: the simulation time
+     do k = lo(3), hi(3)
+        z = (dble(k)+HALF)*delta(3) + problo(3)
 
-   -  ``bc()``: an array that holds the type of boundary conditions
-      to enforce at the physical boundaries for ``adv``.
+        do j=lo(2),hi(2)
+           y = (dble(j)+HALF)*delta(2) + problo(2)
 
-      Sometimes it appears of the form ``bc(:,:)`` and sometimes
-      ``bc(:,:,:)``—the last index of the latter holds the variable
-      index, i.e., density, pressure, species, etc.
+           do i=lo(1),hi(1)
+              x = (dble(i)+HALF)*delta(1) + problo(1)
 
-      The first index is the coordinate direction and the second index
-      is the domain face (1 is low, 2 is hi), so
-      ``bc(1,1)`` is the lower :math:`x` boundary type, ``bc(1,2)`` is
-      the upper :math:`x` boundary type, ``bc(2,1)`` is the lower
-      :math:`y` boundary type, etc.
+              state(i,j,k,URHO) = ...
 
-      To interpret the array values, we test against the quantities
-      defined in ``bc_types.fi`` included in each subroutine,
-      for example, ``EXT_DIR``, ``FOEXTRAP``, :math:`\ldots`. The
-      meaning of these are explained below.
+           end do
+        end do
+     end do
+
+Here, we compute the coordinates of the zone center, ``x``, ``y``, and ``z``
+from the zone indices, ``i``, ``j``, and ``k``.
+
+
+
+Boundary conditions
+-------------------
+
+Standard boundary conditions, including outflow (zero-gradient), periodic,
+and symmetry (reflect) are handled by AMReX directly.  Castro has a special
+hydrostatic boundary condition that can be used for the lower boundary.  It
+is accessed by setting the ``castro.lo_bc`` flag to 1 in the vertical coordinate
+direction, e.g., for 2-d as::
+
+   castro.lo_bc       =  0   1
+
+The flag value 1 is traditionally named "inflow" by AMReX, but generally means that
+the boundary implementation is left to the user.  To tell Castro to use the 
+hydrostatic boundary condition here, we set::
+
+   castro.yl_ext_bc_type = "hse"
+   castro.hse_interp_temp = 1
+   castro.hse_reflect_vels = 1
+
+The first parameter tells Castro to use the HSE boundary condition.  The next two
+control how the temperature and velocity are treated.
+
+A different special boundary condition, ``"interp"`` is available at
+the upper boundary.  This works together with the ``model_parser``
+module to fill the ghost cells at the upper boundary with the initial
+model data.
+
+The implementations of these boundary conditions is found in
+``Castro/Source/problems/bc_ext_fill_nd.F90``.
+
+If a problem requires different initial conditions, then they should
+put a version of ``bc_ext_fill_nd.F90`` into the problem directory and
+modify it as needed.  See the ``double_mach_reflection`` problem for
+an example of this.
 
 Optional Files
 --------------
@@ -221,9 +217,9 @@ each of these in the main source tree.
    ``problem_restart`` that can be used to add information to the
    checkpoint files and read it in upon restart. This is useful for
    some global problem-specific quantities. For instance, the
-   wdmerger [5]_ problem uses this
-   to store center of mass position and velocity information in the
-   checkpoint files that are used for runtime diagnostics.
+   ``wdmerger`` problem uses this to store center of mass position and
+   velocity information in the checkpoint files that are used for
+   runtime diagnostics.
 
    The name of the checkpoint directory is passed in as an argument.
    ``Problem_F.H`` provides the C++ interfaces for these routines.
@@ -265,22 +261,3 @@ each of these in the main source tree.
    of the flame speed is computed by integrating the mass of fuel on
    the grid.
 
-Dimension Agnostic Problem Initialization
------------------------------------------
-
-Most of the problem setups have separate implementations for 1-, 2-,
-and 3D. A new method exists that allows you to write just a single
-set of files for any dimensionality (this is called the *dimension
-agnostic* format). To use this mode, set
-``DIMENSION_AGNOSTIC`` = ``TRUE`` in your ``GNUmakefile``.
-Then write you problem initialization in ``Prob_nd.F90``.
-Analogous routines exist for tagging and boundary conditions. See the
-``rotating_torus`` and ``Noh`` problem setups for an
-example.
-
-.. _software:io:
-
-
-.. [5]
-   available separately at
-   https://github.com/BoxLib-Codes/wdmerger

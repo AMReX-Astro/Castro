@@ -1,6 +1,6 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   use model_parser_module, only: read_model_file
   use probdata_module
@@ -18,7 +18,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer, parameter :: maxlen = 256
   character (len=maxlen) :: probin
 
-  if (namlen > maxlen) call amrex_error("probin file name too long")
+  if (namlen > maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -39,7 +39,7 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
      state,state_lo,state_hi, &
      dx,xlo,xhi) 
 
-  use amrex_error_module
+  use castro_error_module
 
   use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module, only: ZERO
@@ -63,7 +63,7 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
   ! Check to make sure model is initialized
   if (.not. model_initialized) then
 #if !(defined(CUDA) || defined(ACC))
-     call amrex_error("Model has not been initialized")
+     call castro_error("Model has not been initialized")
 #endif
   endif
 

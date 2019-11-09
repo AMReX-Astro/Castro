@@ -514,7 +514,7 @@ void HypreABec::getFaceMetric(Vector<Real>& r,
                               const Geometry& geom)
 {
   if (ori.coordDir() == 0) {
-    if (Geometry::IsCartesian()) {
+    if (geom.IsCartesian()) {
       r.resize(1, 1.0);
     }
     else { // RZ or Spherical
@@ -525,18 +525,18 @@ void HypreABec::getFaceMetric(Vector<Real>& r,
       else {
         r[0] = geom.HiEdge(reg.bigEnd(0), 0);
       }
-      if (Geometry::IsSPHERICAL()) {
+      if (geom.IsSPHERICAL()) {
         r[0] *= r[0];
       }
     }
   }
   else {
-    if (Geometry::IsCartesian()) {
+    if (geom.IsCartesian()) {
       r.resize(reg.length(0), 1.0);
     }
     else { // RZ
       // We only support spherical coordinates in 1D
-      BL_ASSERT(Geometry::IsRZ());
+      BL_ASSERT(geom.IsRZ());
       geom.GetCellLoc(r, reg, 0);
     }
   }

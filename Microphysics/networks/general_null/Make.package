@@ -1,7 +1,7 @@
 F90EXE_sources += actual_network.F90
 
 ifeq ($(USE_REACT),TRUE)
-ifneq ($(USE_SDC), TRUE)
+ifneq ($(USE_SIMPLIFIED_SDC), TRUE)
 f90EXE_sources += actual_burner.f90
 endif
 f90EXE_sources += actual_rhs.f90

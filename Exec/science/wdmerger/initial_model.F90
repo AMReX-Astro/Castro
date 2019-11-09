@@ -6,7 +6,7 @@ module initial_model_module
 
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use eos_type_module, only: eos_t, eos_input_rt
   use network, only: nspec
   use model_parser_module, only: itemp_model, idens_model, ipres_model, ispec_model
@@ -149,7 +149,7 @@ contains
     ! Check to make sure we've specified at least one of them.
 
     if (model % mass < ZERO .and. model % central_density < ZERO) then
-       call amrex_error('Error: Must specify either mass or central density in the initial model generator.')
+       call castro_error('Error: Must specify either mass or central density in the initial model generator.')
     endif
 
     ! If we are specifying the mass, then we don't know what WD central density
@@ -180,7 +180,7 @@ contains
     ! Check to make sure the initial temperature makes sense.
 
     if (model % central_temp < small_temp) then
-       call amrex_error("Error: WD central temperature is less than small_temp. Aborting.")
+       call castro_error("Error: WD central temperature is less than small_temp. Aborting.")
     endif
 
     mass_converged = .false.
@@ -223,6 +223,7 @@ contains
           ! As the initial guess for the density, use the underlying zone.
 
           rho(i) = rho(i-1)
+          model % state(i) % rho = model % state(i-1) % rho
 
           if (model % mass > ZERO .and. model % M_enclosed(i-1) .ge. model % mass - model % envelope_mass) then
              xn(i,:) = model % envelope_comp
@@ -247,6 +248,7 @@ contains
 
              if (fluff) then
                 rho(i) = model % min_density
+                model % state(i) % rho = model % min_density
                 exit
              endif
 
@@ -284,7 +286,7 @@ contains
              print *, rho(i), T(i)
              print *, p_want, model % state(i) % p
              print *, drho, model % hse_tol * rho(i)
-             call amrex_error('Error: HSE non-convergence.')
+             call castro_error('Error: HSE non-convergence.')
 
           endif
 
@@ -334,7 +336,7 @@ contains
     enddo  ! End mass constraint loop
 
     if (.not. mass_converged .and. max_mass_iter .gt. 1) then
-       call amrex_error("ERROR: WD mass did not converge.")
+       call castro_error("ERROR: WD mass did not converge.")
     endif
 
     model % central_density = rho(1)

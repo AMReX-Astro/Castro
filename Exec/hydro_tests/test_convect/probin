@@ -8,14 +8,7 @@
  velpert_amplitude = 1.d5
  num_vortices = 2
 
- zero_vels = F
- interp_BC = F
-
 /
-
-&sponge
-
-  sponge_upper_density = 
 
 &extern
  use_eos_coulomb = F

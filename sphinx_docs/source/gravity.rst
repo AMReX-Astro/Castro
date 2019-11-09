@@ -1,6 +1,9 @@
+.. _ch:gravity:
+
 *******
 Gravity
 *******
+
 
 Introduction
 ============
@@ -80,7 +83,7 @@ the discussion in :cite:`castro_I`. Briefly:
    strategy
 
 -  At an AMR synchronization step across levels (see Section
-   `[sec:amr_synchronization] <#sec:amr_synchronization>`__ for a
+   :ref:`sec:amr_synchronization` for a
    description of when these synchronizations occur), if we’re
    choosing to synchronize the gravitational field across levels
    (``gravity.no_sync`` = 0) we then do a solve starting from the coarse
@@ -284,7 +287,9 @@ The most general case is a self-induced gravitational field,
 
 where :math:`\phi` is defined by solving
 
-.. math:: \mathbf{\Delta} \phi = 4 \pi G \rho .\label{eq:Self Gravity}
+.. math::
+   \mathbf{\Delta} \phi = 4 \pi G \rho
+   :label: eq:Self Gravity
 
 We only allow ``PoissonGrav`` in 2D or 3D because in 1D, computing
 the monopole approximation in spherical coordinates is faster and more
@@ -319,7 +324,9 @@ is :cite:`katz:2016`.
    Poisson’s equation for electric charges and gravitational
    ”charges”), an expansion in spherical harmonics for :math:`\phi` is
 
-   .. math:: \phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} \frac{4\pi}{2l + 1} q_{lm} \frac{Y_{lm}(\theta,\phi)}{r^{l+1}}, \label{spherical_harmonic_expansion}
+   .. math::
+      \phi(\mathbf{x}) = -G\sum_{l=0}^{\infty}\sum_{m=-l}^{l} \frac{4\pi}{2l + 1} q_{lm} \frac{Y_{lm}(\theta,\phi)}{r^{l+1}},
+      :label: spherical_harmonic_expansion
 
    The origin of the coordinate system is taken to be the ``center``
    variable, that must be declared and stored in the ``probdata``
@@ -338,7 +345,7 @@ is :cite:`katz:2016`.
 
    .. math:: q_{lm} = \int Y^*_{lm}(\theta^\prime, \phi^\prime)\, {r^\prime}^l \rho(\mathbf{x}^\prime)\, d^3x^\prime. \label{multipole_moments_original}
 
-   Some simplification of Equation `[spherical_harmonic_expansion] <#spherical_harmonic_expansion>`__ can
+   Some simplification of :eq:`spherical_harmonic_expansion` can
    be achieved by using the addition theorem for spherical harmonics:
 
    .. math::
@@ -467,10 +474,9 @@ The formulae of GR-correction here are based on
 field, we need to use Einstein field equations
 
 .. math::
-
-   \label{field}
    R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
    \kappa=\frac{8\pi G}{c^{2}}\quad ,
+   :label: field
 
 where :math:`R_{ik}` is the Ricci tensor, :math:`g_{ik}` is the metric
 tensor, :math:`R` is the Riemann curvature, :math:`c` is the speed of
@@ -490,33 +496,30 @@ spherically symmetric mass distribution. Then the line element
      \vartheta d\varphi) \quad ,
 
 with :math:`\nu = \nu(r)`, :math:`\lambda = \lambda(r)`. Now we can
-put the expression of :math:`T_{ik}` and :math:`ds` into (`[field]
-<#field>`__), then field equations can be reduced to 3 ordinary
-differential equations:
+put the expression of :math:`T_{ik}` and :math:`ds` into :eq:`field`,
+then field equations can be reduced to 3 ordinary differential
+equations:
 
 .. math::
-
-   \label{diff1}
-      \frac{\kappa P}{c^{2}} =
+   \frac{\kappa P}{c^{2}} =
       e^{-\lambda}\left (\frac{\nu^{\prime}}{r}+\frac{1}{r^{2}} \right )-\frac{1}{r^{2}}
       \quad ,
+   :label: diff1
 
 .. math::
-
-   \label{diff2}
-     \frac{\kappa P}{c^{2}} =
+   \frac{\kappa P}{c^{2}} =
      \frac{1}{2}e^{-\lambda}\left (\nu^{\prime\prime}+\frac{1}{2}{\nu^{\prime}}^{2}+\frac{\nu^
        {\prime}-\lambda^{\prime}}{r}
       -\frac{\nu^{\prime}\lambda^{\prime}}{2} \right ) \quad ,
+   :label: diff2
 
 .. math::
-
-   \label{diff3}
-     \kappa \varrho =
+   \kappa \varrho =
      e^{-\lambda}\left (\frac{\lambda^{\prime}}{r}-\frac{1}{r^{2}}\right )+\frac{1}{r^{2}} \quad ,
+   :label: diff3
 
 where primes means the derivatives with respect to :math:`r`. After
-multiplying with :math:`4\pi r^2`, (`[diff3] <#diff3>`__) can be
+multiplying with :math:`4\pi r^2`, :eq:`diff3` can be
 integrated and yields
 
 .. math::
@@ -536,19 +539,18 @@ star. :math:`M` contains not only the rest mass but the whole energy
 (divided by :math:`c^2`), that includes the internal and gravitational
 energy. So the :math:`\varrho = \varrho_0 +U/c^2` contains the whole
 energy density :math:`U` and rest-mass density
-:math:`\varrho_0`. Differentiation of (`[diff1] <#diff1>`__) with
-respect to :math:`r` gives :math:`P =
-P^{\prime}(\lambda,\lambda^{\prime}, \nu,\nu^{\prime},r)`, where
+:math:`\varrho_0`. Differentiation of :eq:`diff1` with respect to
+:math:`r` gives :math:`P = P^{\prime}(\lambda,\lambda^{\prime},
+\nu,\nu^{\prime},r)`, where
 :math:`\lambda,\lambda^{\prime},\nu,\nu^{\prime}` can be eliminated by
-(`[diff1] <#diff1>`__), (`[diff2] <#diff2>`__), (`[diff3]
-<#diff3>`__). Finally we reach *Tolman-Oppenheinmer-Volkoff(TOV)*
-equation for hydrostatic equilibrium in general relativity:
+:eq:`diff1`, :eq:`diff2`, :eq:`diff3`. Finally we reach
+*Tolman-Oppenheinmer-Volkoff (TOV)* equation for hydrostatic
+equilibrium in general relativity:
 
 .. math::
-
-   \label{tov}
-     \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \left (1+\frac{P}{\varrho
+   \frac{dP}{dr} = -\frac{Gm}{r^{2}}\varrho \left (1+\frac{P}{\varrho
        c^{2}}\right )\left (1+\frac{4\pi r^3 P}{m c^{2}}\right ) \left (1-\frac{2Gm}{r c^{2}} \right)^{-1} \quad .
+   :label: tov
 
 For Newtonian case :math:`c^2 \rightarrow  \infty`, it reverts to usual form
 
@@ -560,16 +562,15 @@ For Newtonian case :math:`c^2 \rightarrow  \infty`, it reverts to usual form
 Now we take effective monopole gravity as
 
 .. math::
-
-   \label{tov2}
    \tilde{g} = -\frac{Gm}{r^{2}} (1+\frac{P}{\varrho
      c^{2}})(1+\frac{4\pi r^3 P}{m c^{2}}) (1-\frac{2Gm}{r c^{2}})^{-1}  \quad .
+   :label: tov2
 
 For general situations, we neglect the :math:`U/c^2` and potential
 energy in m because they are usually much smaller than
 :math:`\varrho_0`. Only when :math:`T` reaches :math:`10^{13} K`
 (:math:`KT \approx m_{p} c^2`, :math:`m_p` is proton mass) before it
-really makes a difference. So (`[tov2] <#tov2>`__) can be expressed as
+really makes a difference. So :eq:`tov2` can be expressed as
 
 .. math::
 
@@ -610,8 +611,8 @@ the hydrodynamics system. The main parameter here is
 - ``castro.grav_source_type`` = 3 : we do the same momentum update as
   the previous two, but for the energy update, we put all of the work
   into updating the kinetic energy alone. In particular, we explicitly
-  ensure that :math:`(rho e)` maintains the same, and update
-  :math:`(rho K)` with the work due to gravity, adding the new kinetic
+  ensure that :math:`(\rho e)` remains the same, and update
+  :math:`(\rho K)` with the work due to gravity, adding the new kinetic
   energy to the old internal energy to determine the final total gas
   energy. The physical motivation is that work should be done on the
   velocity, and should not directly update the temperature—only

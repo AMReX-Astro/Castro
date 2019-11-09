@@ -1,6 +1,5 @@
 #include "Castro.H"
 #include "Castro_F.H"
-#include "Castro_prob_err_F.H"
 
 #include "Gravity.H"
 #include <Gravity_F.H>
@@ -202,7 +201,7 @@ Castro::wd_update (Real time, Real dt)
 	  const int* lo   = box.loVect();
 	  const int* hi   = box.hiVect();
 
-#pragma gpu
+#pragma gpu box(box)
 	  wdcom(BL_TO_FORTRAN_ANYD(fabrho),
 		BL_TO_FORTRAN_ANYD(fabxmom),
 		BL_TO_FORTRAN_ANYD(fabymom),
@@ -405,7 +404,7 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 	  const int* lo   = box.loVect();
 	  const int* hi   = box.hiVect();
 
-#pragma gpu
+#pragma gpu box(box)
 	  ca_volumeindensityboundary(BL_TO_FORTRAN_ANYD(fab),
 		                     BL_TO_FORTRAN_ANYD(fabpmask),
 				     BL_TO_FORTRAN_ANYD(fabsmask),
@@ -509,7 +508,7 @@ Castro::gwstrain (Real time,
 	    const int* lo   = box.loVect();
 	    const int* hi   = box.hiVect();
 
-#pragma gpu
+#pragma gpu box(box)
 	    quadrupole_tensor_double_dot(BL_TO_FORTRAN_ANYD((*mfrho)[mfi]),
 					 BL_TO_FORTRAN_ANYD((*mfxmom)[mfi]),
 					 BL_TO_FORTRAN_ANYD((*mfymom)[mfi]),
@@ -710,7 +709,7 @@ void Castro::problem_post_restart() {
               do_sums = true;
           log.close();
 
-          if (do_sums)
+          if (do_sums && (sum_interval > 0 || sum_per > 0))
               sum_integrated_quantities();
 
       }
@@ -1071,13 +1070,19 @@ Castro::update_relaxation(Real time, Real dt) {
             const int* lo  = box.loVect();
             const int* hi  = box.hiVect();
 
-            sum_force_on_stars(ARLIM_3D(lo), ARLIM_3D(hi),
+#pragma gpu box(box)
+            sum_force_on_stars(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                                BL_TO_FORTRAN_ANYD((*rot_force[lev])[mfi]),
                                BL_TO_FORTRAN_ANYD(S_new[mfi]),
                                BL_TO_FORTRAN_ANYD(vol[mfi]),
                                BL_TO_FORTRAN_ANYD((*pmask)[mfi]),
                                BL_TO_FORTRAN_ANYD((*smask)[mfi]),
-                               &fpx, &fpy, &fpz, &fsx, &fsy, &fsz);
+                               AMREX_MFITER_REDUCE_SUM(&fpx),
+                               AMREX_MFITER_REDUCE_SUM(&fpy),
+                               AMREX_MFITER_REDUCE_SUM(&fpz),
+                               AMREX_MFITER_REDUCE_SUM(&fsx),
+                               AMREX_MFITER_REDUCE_SUM(&fsy),
+                               AMREX_MFITER_REDUCE_SUM(&fsz));
 
         }
 

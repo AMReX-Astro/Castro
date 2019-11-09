@@ -1,6 +1,6 @@
 module gravity_1D_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -62,7 +62,7 @@ contains
 
     else
        print *,'Bogus coord_type in test_residual ' ,coord_type
-       call amrex_error("Error:: Gravity_1d.f90 :: ca_test_residual")
+       call castro_error("Error:: Gravity_1d.f90 :: ca_test_residual")
     end if
 
   end subroutine ca_test_residual
@@ -99,11 +99,11 @@ contains
     real(rt)         :: lo_i, rlo, rhi
 
     if (physbc_lo(1) .ne. Symmetry) then
-       call amrex_error("Error: Gravity_1d.f90 :: 1D gravity assumes symmetric lower boundary.")
+       call castro_error("Error: Gravity_1d.f90 :: 1D gravity assumes symmetric lower boundary.")
     endif
 
     if (coord_type .ne. 2) then
-       call amrex_error("Error: Gravity_1d.f90 :: 1D gravity assumes spherical coordinates.")
+       call castro_error("Error: Gravity_1d.f90 :: 1D gravity assumes spherical coordinates.")
     endif
 
     fac = dble(drdxfac)
@@ -123,7 +123,7 @@ contains
              print *,'>>> ... index too big: ', index,' > ',n1d-1
              print *,'>>> ... at i     : ', i
              print *,'    '
-             call amrex_error("Error:: Gravity_1d.f90 :: ca_compute_radial_mass")
+             call castro_error("Error:: Gravity_1d.f90 :: ca_compute_radial_mass")
           end if
 
        else
@@ -214,7 +214,7 @@ contains
              print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ', index, ' > ', n1d-1
              print *,'AT i ', i
              print *,'R / DR IS ', r, dr
-             call amrex_error("Error:: Gravity_1d.f90 :: ca_put_radial_grav")
+             call castro_error("Error:: Gravity_1d.f90 :: ca_put_radial_grav")
           else
              ! NOTE: we don't do anything to this point if it's outside the
              !       radial grid and level > 0
@@ -293,7 +293,7 @@ contains
           print *,'PUT_RADIAL_PHI: INDEX TOO BIG ', index, ' > ', numpts_1d-1
           print *,'AT (i) ',i
           print *,'R / DR IS ', r, dr
-          call amrex_error("Error:: Gravity_1d.f90 :: ca_put_radial_phi")
+          call castro_error("Error:: Gravity_1d.f90 :: ca_put_radial_phi")
        end if
 
        if ( (fill_interior .eq. 1) .or. (i .lt. domlo(1) .or. i.gt.domhi(1)) ) then

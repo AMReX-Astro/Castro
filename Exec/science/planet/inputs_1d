@@ -1,26 +1,31 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10000000
-stop_time = 1.0e4
+stop_time = 1000000
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 0      
+geometry.is_periodic = 0   
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0.0      
-geometry.prob_hi     = 4.0e9
-amr.n_cell           = 1024
+geometry.prob_hi     = 3926990816.987241395066
+amr.n_cell           = 512
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  1   
-castro.hi_bc       =  1   
+castro.lo_bc       =  1
+castro.hi_bc       =  1
+
 
 castro.xl_ext_bc_type = "hse"
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
-#castro.hse_zero_vels=1
+castro.hse_zero_vels=0
+
+castro.xr_ext_base_type = "interp"
+
+fab.format=NATIVE_32
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -29,28 +34,43 @@ castro.add_ext_src = 0
 castro.do_grav = 1
 castro.do_sponge = 1
 castro.do_radiation = 1
+castro.do_rotation = 0
+castro.do_reflux      = 1
 
-castro.ppm_type = 1
+
+#castro.do_tracer_particles      = 1
+#particles.particle_init_file    = particle_file   # initial position of particles
+#particles.particle_restart_file = xxxxx           # we can add new particles at restart
+#particles.timestamp_dir         = particle_dir    # directory for output
+#particles.timestamp_density     = 1
+#particles.timestamp_temperature = 1
+#particles.v                     = 1               # verbosity
+#particles.write_in_plotfile     = 1
+
+
+
+
+#castro.ppm_type = 1
+#castro.ppm_reference = 1
+#castro.ppm_reference_edge_limit = 1
 #castro.riemann_solver = 1
 
+castro.allow_negative_energy = 0
+
 gravity.gravity_type = ConstantGrav
-gravity.const_grav   = -1.00e3
+gravity.const_grav   = -1.0e3
 
 # TIME STEP CONTROL
-castro.cfl            = 0.1     # cfl number for hyperbolic system
+castro.cfl            = 0.01     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep
-castro.change_max     = 1.01     # max time step growth
+castro.change_max     = 1.001     # max time step growth
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
-
+#castro.fixed_dt = 1.3e-10
+#castro.initial_dt = 1e-4
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval    = 1       # timesteps between computing mass
+castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
-
-
-# RESTART
-#amr.restart = chk30241
-
 
 # REFINEMENT / REGRIDDING 
 amr.max_level       = 0       # maximum level number allowed
@@ -62,16 +82,34 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = chk        # root name of checkpoint file
-amr.check_int       = 1000       # number of timesteps between checkpoints
-
+amr.check_per       = 1000       # number of timesteps between checkpoints
+#amr.restart        = 100
 # PLOTFILES
 amr.plot_file        = plt        # root name of plotfile
-amr.plot_int         = 500         # number of timesteps between plotfiles
-amr.derive_plot_vars = ALL
+amr.plot_per         = 100000         # number of timesteps between plotfiles
+amr.derive_plot_vars = X(X) rad pressure
+amr.plot_vars = density Temp xmom x_velocity rad pressure
+
+
+
+# Root name of small plot files
+amr.small_plot_file = smallplt
+
+# Simulation time between small plotfiles
+amr.small_plot_per = 10000
+
+# Number of timesteps between small plotfiles
+#amr.small_plot_int = 1000
+
+# State variables to add to small plot files
+amr.small_plot_vars = density Temp xmom ymom zmom rad
+amr.derive_small_plot_vars = rad pressure
 
 
 
 
+#RESTART
+amr.restart          = chk329846
 
 #PROBIN FILENAME
 amr.probin_file = probin
@@ -87,23 +125,23 @@ amr.data_log = log
 # 5: SGFLD       6: MGFLD
 radiation.SolverType = 5
 
-radiation.comoving =  1
+radiation.comoving = 0
 
 radiation.Er_Lorentz_term = 0
 
 # RADIATION TOLERANCES
-radiation.reltol  = 2.e-5 # relative tolerance for implicit update loop
-radiation.abstol  = 0.0   # absolute tolerance for implicit update loop
+radiation.reltol  = 1.e-8 # relative tolerance for implicit update loop
+radiation.abstol  = 1.0e-10   # absolute tolerance for implicit update loop
 radiation.maxiter = 300    # return after numiter iterations if not converged
 
 # RADIATION LIMITER
 radiation.limiter = 2     # 0 = no limiter
                           # 2 = correct form of Lev-Pom limiter
 
-radiation.delta_temp            = 0.001
+radiation.delta_temp            = 1e-13
 
 # RADIATION VERBOSITY
-radiation.v               = 2    # verbosity
+radiation.v               = 0    # verbosity
 
 # We set radiation boundary conditions directly since they do not
 # correspond neatly to the physical boundary conditions used for the fluid.
@@ -111,8 +149,8 @@ radiation.v               = 2    # verbosity
 # 101 = LO_DIRICHLET           102 = LO_NEUMANN
 # 104 = LO_MARSHAK             105 = LO_SANCHEZ_POMRANING
 
-radiation.lo_bc     = 102   102   102
-radiation.hi_bc     = 105   102   102
+radiation.lo_bc     = 102
+radiation.hi_bc     = 101
 
 # For each boundary, we can specify either a constant boundary value
 # or use a Fortran function FORT_RADBNDRY to specify values that vary
@@ -129,8 +167,8 @@ radiation.hi_bcflag = 0  0  0
 # 104 = LO_MARSHAK             bcval is incident flux
 # 105 = LO_SANCHEZ_POMRANING   bcval is incident flux
 
-radiation.lo_bcval = 0.0    0  0
-radiation.hi_bcval = 1.148250575025e9    0  0
+radiation.lo_bcval =  1e-10
+radiation.hi_bcval =  0.0793671
 
 radiation.do_real_eos = 1
 
@@ -151,6 +189,15 @@ radiation.const_kappa_r =  6.35e-3
 radiation.kappa_r_exp_m =  2.0
 radiation.kappa_r_exp_n = -1.0
 
+
+radiation.plot_lab_Er =	1
+radiation.plot_com_flux = 1
+radiation.plot_lab_flux = 1
+
+#radiation.kappa_r_floor = 1.e-16
+radiation.plot_lambda = 1
+radiation.plot_kappa_p = 1
+radiation.plot_kappa_r = 1
 # ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
 
 # solver flag values <  100 use HypreABec, support symmetric matrices only
@@ -173,11 +220,11 @@ radiation.kappa_r_exp_n = -1.0
 
 radsolve.level_solver_flag = 1003   # can be any supported hypre solver flag
 
-radsolve.reltol     = 1.0e-11 # relative tolerance
+radsolve.reltol     = 1.0e-10 # relative tolerance
 radsolve.abstol     = 0.0     # absolute tolerance (often not necessary)
 radsolve.maxiter    = 200     # linear solver iteration limit
 
-radsolve.v = 1      # verbosity
+radsolve.v = 0      # verbosity
 
-hmabec.verbose = 2  # verbosity for HypreMultiABec solvers
-habec.verbose  = 2  # verbosity for HypreABec solvers
+hmabec.verbose = 0  # verbosity for HypreMultiABec solvers
+habec.verbose  = 0  # verbosity for HypreABec solvers

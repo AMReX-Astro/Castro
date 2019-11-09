@@ -1,0 +1,25 @@
+rho_l      real          1.0_rt           y
+
+u_l        real          1.0_rt           y
+
+p_l        real          1.0_rt           y
+
+re_l       real          1.0_rt           y
+
+gc_l       real          4.0_rt/3.0_rt    y
+
+rho_r      real          1.0_rt           y
+
+u_r        real          1.0_rt           y
+
+p_r        real          1.0_rt           y
+
+re_r       real          1.0_rt           y
+
+gc_r       real          4.0_rt/3.0_rt    y
+
+cav_s      real          1.0_rt           y
+
+smallc_s   real          1.e-10_rt        y
+
+idir       integer       1                y

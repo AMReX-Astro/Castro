@@ -1,6 +1,6 @@
 module rotation_sources_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -116,7 +116,7 @@ contains
 
              else
 #ifndef AMREX_USE_GPU
-                call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+                call castro_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
 #endif
              end if
 
@@ -470,7 +470,7 @@ contains
 
              else
 #ifndef AMREX_USE_GPU
-                call amrex_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
+                call castro_error("Error:: rotation_sources_nd.F90 :: invalid rot_source_type")
 #endif
              end if
 

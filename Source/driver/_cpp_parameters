@@ -58,14 +58,20 @@ small_ener                   Real         -1.e200             y
 # permits hydro to be turned on and off for running pure rad problems
 do_hydro                     int          -1                  y
 
-# how do we advance in time? 0 = CTU + Strang, 1 = MOL + Strang, 2 = SDC, 3 = simplified-SDC
+# how do we advance in time? 0 = CTU + Strang, 1 is not used, 2 = SDC, 3 = simplified-SDC
 time_integration_method      int           0                  y
 
 # do we use a limiter with the fourth-order accurate reconstruction?
 limit_fourth_order           int           1                  y
 
+# for fourth order, we usually assume that the initialization is done
+# to cell centers and we convert to cell-averages.  With this option,
+# we take the initialization as cell-averages (except for T, which we
+# compute to fourth-order through the EOS after initialization).
+initialization_is_cell_average  int        0                  n
+
 # should we use a reconstructed version of Gamma_1 in the Riemann
-# solver? or the default zone average (requires SDC or MOL
+# solver? or the default zone average (requires SDC
 # integration, since we do not trace)
 use_reconstructed_gamma1     int           0                  y
 
@@ -94,11 +100,17 @@ ppm_temp_fix                 int           0                  y
 # :math:`\tau = 1/\rho` instead of :math:`\rho`.
 ppm_predict_gammae           int           0                  y
 
-# do we use the reference state in evaluating the eigenvectors?
-ppm_reference_eigenvectors   int           0                  y
-
 # for piecewise linear, reconstruction order to use
+# 1 = piecewise constant, 2 = piecewise linear
 plm_iorder                   int           2                  y
+
+# for piecewise linear, what limiter to use?
+# 1 = 2nd order MC, 2 = 4th order MC
+plm_limiter                  int           2                  y
+
+# for piecewise linear, MOL or SDC, do well-balanced reconstruction on
+# pressure
+plm_well_balanced            int           0                  y
 
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
@@ -226,13 +238,15 @@ fill_ambient_bc              int           0                  y
 # clamps the ambient material to the ambient temperature
 clamp_ambient_temp           int           0                  y
 
-# integration order for MOL integration
-# 1 = first order, 2 = second order TVD, 3 = 3rd order TVD, 4 = 4th order RK
-mol_order                    int           2                  y
-
 # integration order for SDC integration
 # valid options are 2 and 4
 sdc_order                    int           2                  y
+
+# which quadrature type to use with SDC?  0 = Gauss-Lobatto, 1 = Radau
+sdc_quadrature               int           0                  y
+
+# number of extra SDC iterations to take beyond the order
+sdc_extra                    int           0                  y
 
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
 sdc_solver                   int           1                  y
@@ -376,7 +390,7 @@ T_guess                     Real           1.e8               y
 #-----------------------------------------------------------------------------
 
 # enable thermal diffusion
-diffuse_temp                 int           0                  n     DIFFUSION
+diffuse_temp                 int           0                  y     DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
 diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION

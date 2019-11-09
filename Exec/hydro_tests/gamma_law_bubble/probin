@@ -1,0 +1,30 @@
+&fortin
+
+  boundary_type = 1
+
+  pert_factor = 8.1d-3
+  dens_base = 1.65d-3
+  pres_base = 1.65d6
+  y_pert_center = 0.7d0
+  pert_width = 0.025d0
+
+  do_isentropic = T
+/
+
+&tagging 
+  denerr = 1.d20
+  dengrad = 0.01
+  max_denerr_lev = 5
+  max_dengrad_lev = 5
+
+  presserr = 1.d20
+  pressgrad = 1.d20
+  max_presserr_lev = 5
+  max_pressgrad_lev = 5
+
+/
+
+
+&extern
+
+/

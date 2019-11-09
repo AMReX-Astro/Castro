@@ -83,6 +83,8 @@ Gravity::read_params ()
 
     if (!done)
     {
+        const Geometry& dgeom = DefaultGeometry();
+
         ParmParse pp("gravity");
 
 #include "gravity_queries.H"
@@ -98,7 +100,7 @@ Gravity::read_params ()
 
         if (  gravity_type == "ConstantGrav")
         {
-	  if ( Geometry::IsSPHERICAL() )
+	  if ( dgeom.IsSPHERICAL() )
 	      amrex::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
         }
 
@@ -107,17 +109,17 @@ Gravity::read_params ()
         {
 	  amrex::Abort(" gravity_type = PoissonGrav doesn't work well in 1-d -- please set gravity_type = MonopoleGrav");
         }
-        else if (gravity_type == "MonopoleGrav" && !(Geometry::IsSPHERICAL()))
+        else if (gravity_type == "MonopoleGrav" && !(dgeom.IsSPHERICAL()))
         {
 	  amrex::Abort("Only use MonopoleGrav in 1D spherical coordinates");
         }
-        else if (gravity_type == "ConstantGrav" && Geometry::IsSPHERICAL())
+        else if (gravity_type == "ConstantGrav" && dgeom.IsSPHERICAL())
         {
 	  amrex::Abort("Can't use constant gravity in 1D spherical coordinates");
         }
 
 #elif (BL_SPACEDIM == 2)
-        if (gravity_type == "MonopoleGrav" && Geometry::IsCartesian() )
+        if (gravity_type == "MonopoleGrav" && dgeom.IsCartesian() )
         {
 	  amrex::Abort(" gravity_type = MonopoleGrav doesn't make sense in 2D Cartesian coordinates");
         }
@@ -147,7 +149,7 @@ Gravity::read_params ()
 
 	    } else {
 
-		if (Geometry::IsCartesian())
+		if (dgeom.IsCartesian())
 		    tol = 1.e-11;
 		else
 		    tol = 1.e-10;
@@ -277,6 +279,8 @@ Gravity::install_level (int                   level,
 
     level_solver_resnorm[level] = 0.0;
 
+    const Geometry& geom = level_data->Geom();
+
     if (gravity_type == "PoissonGrav") {
 
        const DistributionMapping& dm = level_data->DistributionMap();
@@ -291,7 +295,7 @@ Gravity::install_level (int                   level,
 
     } else if (gravity_type == "MonopoleGrav") {
 
-        if (!Geometry::isAllPeriodic())
+        if (!geom.isAllPeriodic())
         {
            int n1d = drdxfac*numpts_at_level;
 
@@ -313,11 +317,11 @@ Gravity::install_level (int                   level,
     {
         Real center[3];
         ca_get_center(center);
-        Real x = Geometry::ProbHi(0) - center[0];
-        Real y = Geometry::ProbHi(1) - center[1];
+        Real x = geom.ProbHi(0) - center[0];
+        Real y = geom.ProbHi(1) - center[1];
         max_radius_all_in_domain = std::min(x,y);
 #if (BL_SPACEDIM == 3)
-        Real z = Geometry::ProbHi(2) - center[2];
+        Real z = geom.ProbHi(2) - center[2];
         max_radius_all_in_domain = std::min(max_radius_all_in_domain,z);
 #endif
         if (verbose > 1 && ParallelDescriptor::IOProcessor())
@@ -736,7 +740,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
 
     const auto& rhs = get_rhs(crse_level, nlevels, is_new);
 
-    if (!use_previous_phi_as_guess && crse_level == 0 && !Geometry::isAllPeriodic())
+    if (!use_previous_phi_as_guess && crse_level == 0 && !(parent->Geom(0).isAllPeriodic()))
     {
 	make_radial_phi(0, *rhs[0], *phi_p[0], 1);
     }
@@ -1006,8 +1010,10 @@ Gravity::test_level_grad_phi_prev(int level)
     MultiFab Rhs(grids[level],dmap[level],1,0);
     MultiFab::Copy(Rhs,S_old,Density,0,1,0);
 
+    const Geometry& geom = parent->Geom(level);
+
     // This is a correction for fully periodic domains only
-    if ( Geometry::isAllPeriodic() )
+    if ( geom.isAllPeriodic() )
     {
        if (verbose > 1 && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density from RHS at level ... "
@@ -1027,7 +1033,7 @@ Gravity::test_level_grad_phi_prev(int level)
 
     const Real* dx     = parent->Geom(level).CellSize();
     const Real* problo = parent->Geom(level).ProbLo();
-    const int coord_type     = Geometry::Coord();
+    const int coord_type     = geom.Coord();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1076,8 +1082,10 @@ Gravity::test_level_grad_phi_curr(int level)
     MultiFab Rhs(grids[level],dmap[level],1,0);
     MultiFab::Copy(Rhs,S_new,Density,0,1,0);
 
+    const Geometry& geom = parent->Geom(level);
+
     // This is a correction for fully periodic domains only
-    if ( Geometry::isAllPeriodic() )
+    if ( geom.isAllPeriodic() )
     {
        if (verbose > 1 && ParallelDescriptor::IOProcessor() && mass_offset != 0.0)
           std::cout << " ... subtracting average density from RHS in solve ... " << mass_offset << std::endl;
@@ -1094,9 +1102,9 @@ Gravity::test_level_grad_phi_curr(int level)
         }
     }
 
-    const Real*     dx = parent->Geom(level).CellSize();
-    const Real* problo = parent->Geom(level).ProbLo();
-    const int coord_type     = Geometry::Coord();
+    const Real*     dx   = geom.CellSize();
+    const Real* problo   = geom.ProbLo();
+    const int coord_type = geom.Coord();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1575,7 +1583,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 	    {
 	        const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
 		ca_compute_multipole_moments(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		                             AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
 					     AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(source[mfi]),
@@ -1710,7 +1718,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     {
         const Box& bx = mfi.growntilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_put_multipole_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			     AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
 			     AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
@@ -1977,7 +1985,7 @@ void
 Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coeffs)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    int coord_type = Geometry::Coord();
+    int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2008,7 +2016,7 @@ void
 Gravity::unweight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    const int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2025,7 +2033,7 @@ void
 Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    const int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2066,7 +2074,7 @@ Gravity::make_mg_bc ()
     }
 
     // Set Neumann bc at r=0.
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+    if (geom.IsSPHERICAL() || geom.IsRZ() ) {
         mlmg_lobc[0] = MLLinOp::BCType::Neumann;
     }
 }
@@ -2128,7 +2136,7 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
     {
         const Box& bx = mfi.growntilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         pm_add_to_grav(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                        point_mass, BL_TO_FORTRAN_ANYD(phi[mfi]),
                        BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
@@ -2493,13 +2501,14 @@ Gravity::sanity_check (int level)
     //  then ask if the grids at this level are contained in the shrunken domain.  If not, then grids
     //  at this level touch the domain boundary and we must abort.
 
-    if (level > 0  && !Geometry::isAllPeriodic())
+    const Geometry& geom = parent->Geom(level);
+
+    if (level > 0  && !geom.isAllPeriodic())
     {
-	const Geometry& geom = parent->Geom(level);
 	Box shrunk_domain(geom.Domain());
 	for (int dir = 0; dir < BL_SPACEDIM; dir++)
 	{
-	    if (!Geometry::isPeriodic(dir))
+	    if (!geom.isPeriodic(dir))
 	    {
 		if (phys_bc->lo(dir) != Symmetry)
 		    shrunk_domain.growLo(dir,-1);
@@ -2542,8 +2551,10 @@ Gravity::update_max_rhs()
 
     const auto& rhs = get_rhs(crse_level, nlevs, is_new);
 
+    const Geometry& geom0 = parent->Geom(0);
+
 #if (BL_SPACEDIM == 3)
-    if ( Geometry::isAllPeriodic() )
+    if ( geom0.isAllPeriodic() )
     {
 	for (int lev = 0; lev < nlevs; ++lev)
 	    rhs[lev]->plus(-mass_offset,0,1,0);
@@ -2556,7 +2567,7 @@ Gravity::update_max_rhs()
     }
 
 #if (BL_SPACEDIM < 3)
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() )
+    if (geom0.IsSPHERICAL() || geom0.IsRZ() )
     {
 	Vector<Vector<std::unique_ptr<MultiFab> > > coeffs(nlevs);
 
@@ -2599,7 +2610,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 
     int nlevs = fine_level-crse_level+1;
 
-    if (crse_level == 0 && !Geometry::isAllPeriodic())
+    if (crse_level == 0 && !(parent->Geom(0).isAllPeriodic()))
     {
         if (verbose > 1) {
             amrex::Print() << " ... Making bc's for phi at level 0\n";
@@ -2747,7 +2758,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
 
     if (!grad_phi.empty())
     {
-        if (!Geometry::isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
+        if (!gmv[0].isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
 
         mlmg.setNSolve(mlmg_nsolve);
         final_resnorm = mlmg.solve(phi, rhs, rel_eps, abs_eps);

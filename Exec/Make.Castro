@@ -16,6 +16,9 @@ NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
 VISC_HOME ?= $(TOP)/Microphysics/viscosity
 
+# default integrator
+INTEGRATOR_DIR ?= VODE90
+
 # number of passively advected quantities that are not species or auxillary
 NUMADV ?= 0
 
@@ -41,6 +44,8 @@ ifeq ($(USE_CUDA),TRUE)
   DEFINES += -DEXTRA_THERMO
 endif
 
+# all Castro problems use a dimension-agnostic interface
+DIMENSION_AGNOSTIC = TRUE
 
 EBASE = Castro
 
@@ -48,10 +53,17 @@ EBASE = Castro
 # Networks and Util this list will be searched for runtime parameters
 EXTERN_CORE ?=
 
+ifeq ($(USE_SDC), TRUE)
+  $(error USE_SDC is no longer supported.  Use with USE_SIMPLIFIED_SDC or USE_TRUE_SDC)
+endif
 
 # need to put any build suffices before Make.defs
-ifeq ($(USE_SDC), TRUE)
-  USERSuffix = .SDC
+ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+  USERSuffix = .SMPLSDC
+endif
+
+ifeq ($(USE_TRUE_SDC), TRUE)
+  USERSuffix = .TRUESDC
 endif
 
 ifeq ($(USE_RAD), TRUE)
@@ -67,6 +79,7 @@ endif
 ifeq ($(USE_CUDA),TRUE)
   USE_GPU_PRAGMA = TRUE
   DEFINES += -DCUDA
+  CUDA_VERBOSE = FALSE
 endif
 
 # Allow a problem to specify that we want to initialize
@@ -76,11 +89,7 @@ endif
 # if we're not using CUDA.
 
 ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
-  ifeq ($(DIMENSION_AGNOSTIC),TRUE)
     DEFINES += -DGPU_COMPATIBLE_PROBLEM
-  else
-    $(error GPU_COMPATIBLE_PROBLEM is only supported if DIMENSION_AGNOSTIC=TRUE)
-  endif
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
@@ -113,7 +122,7 @@ USE_MLMG = FALSE
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/driver/param_includes \
            Source/hydro Source/problems Source/sources \
-           Source/scf constants Util/model_parser
+           Source/scf constants Util/model_parser Util/conservative_interpolate
 else
   Bdirs := constants
 endif
@@ -140,8 +149,11 @@ endif
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
-  # we need the compositional derivatives for SDC
-  DEFINES += -DEXTRA_THERMO
+
+  ifeq ($(USE_TRUE_SDC), TRUE)
+    # we need the compositional derivatives for SDC
+    DEFINES += -DEXTRA_THERMO
+  endif
 endif
 
 ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
@@ -155,8 +167,13 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
   endif
 endif
 
-ifeq ($(USE_SDC), TRUE)
-  DEFINES += -DSDC -DPRIM_SPECIES_HAVE_SOURCES
+ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+  DEFINES += -DSIMPLIFIED_SDC -DPRIM_SPECIES_HAVE_SOURCES
+endif
+
+ifeq ($(USE_TRUE_SDC), TRUE)
+  DEFINES += -DTRUE_SDC
+  Bdirs += Source/sdc
 endif
 
 ifeq ($(USE_DIFFUSION), TRUE)
@@ -305,8 +322,8 @@ ifndef GENERAL_NET_INPUTS
    endif
 endif
 
-EXTERN_CORE += $(EOS_HOME)
 EXTERN_CORE += $(EOS_PATH)
+EXTERN_CORE += $(EOS_HOME)
 
 # the helmholtz EOS has an include file -- also add a target to link
 # the table into the problem directory.
@@ -413,7 +430,7 @@ F90EXE_sources += extern.F90
 EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
 # these are for finding runtime parameters
-EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser
+EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)/Util/conservative_interpolate
 ifdef MICROPHYSICS_HOME
    EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 endif
@@ -425,6 +442,24 @@ extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
            -t $(EXTERN_TEMPLATE) -o extern.F90 -n extern \
            --pa "$(EXTERN_PARAMETERS)" --managed
+
+
+#------------------------------------------------------------------------------
+# problem specific parameters
+#------------------------------------------------------------------------------
+
+# runtime parameter support for extern/ routines
+ifeq ($(USE_PROB_PARAMS), TRUE)
+   F90EXE_sources += prob_params_auto.F90
+   DEFINES += -DPROB_PARAMS
+endif
+
+PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
+PROB_PARAMETERS := ./_prob_params
+
+prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
+	$(TOP)/Util/scripts/write_probdata.py \
+           -t $(PROB_PARAMS_TEMPLATE) -o prob_params_auto.F90 -p $(PROB_PARAMETERS)
 
 #------------------------------------------------------------------------------
 # state variable info
@@ -508,7 +543,7 @@ endif
 endif
 
 clean::
-	$(SILENT) $(RM) extern.F90
+	$(SILENT) $(RM) extern.F90 prob_params_auto.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 

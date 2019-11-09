@@ -14,3 +14,10 @@
   eos_gamma = 1.6666666667
 
 /
+
+&tagging
+
+  max_tempgrad_rel_lev = 20
+  tempgrad_rel = 0.1
+
+/

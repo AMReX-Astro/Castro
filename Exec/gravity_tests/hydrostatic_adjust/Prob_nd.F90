@@ -1,7 +1,7 @@
-subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use amrex_constants_module
-  use amrex_error_module
+  use castro_error_module
   use probdata_module
   use prob_params_module, only: center
   use eos_module
@@ -14,65 +14,17 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   integer, intent(in) :: init, namlen
   integer, intent(in) :: name(namlen)
-
   real(rt), intent(in) :: problo(3), probhi(3)
 
   type (eos_t) :: eos_state
 
-  integer :: untin, i
-
-  namelist /fortin/ &
-       model_name,  &
-       heating_time, heating_rad, heating_peak, heating_sigma, &
-       prob_type
-
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !
-  integer   :: ipos
-  integer, parameter :: maxlen=127
-  character probin*(maxlen)
-  character (len=256) :: header_line
-
-  if (namlen > maxlen) then
-     call amrex_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  heating_time = 0.5e0_rt
-  heating_rad = 0.0e0_rt
-  heating_peak = 1.e16_rt
-  heating_sigma = 1.e7_rt
-  prob_type = 1
-
-
-  ! Read namelists in probin file
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! Read in the initial model
 
   call read_model_file(model_name)
 
   ! Save some of the data locally
-
-  allocate(hse_r(npts_model),hse_rho(npts_model), &
-           hse_t(npts_model),hse_p(npts_model))
-  allocate(hse_s(nspec,npts_model))
-
-  hse_r   = model_r(:)
-  hse_rho = model_state(:,idens_model)
-  hse_t   = model_state(:,itemp_model)
-  hse_p   = model_state(:,ipres_model)
-  do i = 1, nspec
-     hse_s(i,:) = model_state(:,ispec_model+i-1)
-  enddo
 
 #if AMREX_SPACEDIM == 1
   ! 1-d assumes spherical, with center at origin
@@ -95,7 +47,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   xmax = probhi(1)
 
   if (xmin /= 0.e0_rt) then
-     call amrex_error("ERROR: xmin should be 0!")
+     call castro_error("ERROR: xmin should be 0!")
   endif
 
   ymin = ZERO
@@ -106,7 +58,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 #elif AMREX_SPACEDIM == 2
   xmin = problo(1)
   if (xmin /= 0.e0_rt) then
-     call amrex_error("ERROR: xmin should be 0!")
+     call castro_error("ERROR: xmin should be 0!")
   endif
 
   xmax = probhi(1)
@@ -130,11 +82,9 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   ! store the state at the very top of the model for the boundary
   ! conditions
-  allocate (hse_X_top(nspec))
-
-  hse_rho_top  = hse_rho(npts_model)
-  hse_t_top    = hse_t(npts_model)
-  hse_X_top(:) = hse_s(:,npts_model)
+  hse_rho_top  = model_state(npts_model, idens_model)
+  hse_t_top    = model_state(npts_model, itemp_model)
+  hse_X_top(:) = model_state(npts_model, ispec_model:ispec_model-1+nspec)
 
   ! set hse_eint_top and hse_p_top via the EOS
   eos_state%rho   = hse_rho_top
@@ -177,8 +127,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_module
   use eos_type_module
   use network, only : nspec
-  use interpolate_module
-  use model_parser_module, only: npts_model
+  use model_parser_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
   use prob_params_module, only : center
   use amrex_fort_module, only : rt => amrex_real
@@ -214,11 +163,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            dist = sqrt(x*x + y*y + z*z)
 #endif
 
-           state(i,j,k,URHO ) = interpolate(dist, npts_model, hse_r, hse_rho)
-           state(i,j,k,UTEMP) = interpolate(dist, npts_model, hse_r, hse_t)
+           call interpolate_sub(state(i,j,k,URHO), dist, idens_model)
+           call interpolate_sub(state(i,j,k,UTEMP), dist, itemp_model)
 
            do n= 1, nspec
-              state(i,j,k,UFS+n-1) = interpolate(dist, npts_model, hse_r, hse_s(n,:))
+              call interpolate_sub(state(i,j,k,UFS+n-1), dist, ispec_model-1+n)
            end do
 
         end do

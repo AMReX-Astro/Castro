@@ -6,7 +6,9 @@ set -x
 DIM=1
 EXEC=./Castro${DIM}d.gnu.MPI.ex
 
-RUNPARAMS="castro.time_integration_method=0 castro.ppm_type=1"
+RUNPARAMS="
+castro.time_integration_method=0
+castro.ppm_type=1"
 
 mpiexec -n 16 ${EXEC} inputs.1d.sdc ${RUNPARAMS} amr.n_cell=1024 amr.plot_file=flame_1024_strang_plt &> strang_1024.out
 mpiexec -n 16 ${EXEC} inputs.1d.sdc ${RUNPARAMS} amr.n_cell=2048 amr.plot_file=flame_2048_strang_plt &> strang_2048.out

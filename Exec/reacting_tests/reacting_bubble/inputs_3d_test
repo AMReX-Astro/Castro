@@ -18,6 +18,8 @@ amr.n_cell           = 64 64 64
 castro.lo_bc       =  0   0   3
 castro.hi_bc       =  0   0   1
 
+castro.zr_ext_bc_type = "interp"
+
 # this is here just for test suite coverage
 castro.state_nghost = 1
 
@@ -28,7 +30,6 @@ castro.do_grav = 1
 castro.do_sponge = 1
 
 castro.ppm_type = 1
-castro.ppm_reference_eigenvectors = 1
 castro.use_flattening = 1
 
 gravity.gravity_type = ConstantGrav

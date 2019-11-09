@@ -13,8 +13,6 @@ USE_REACT  = TRUE
 
 CASTRO_HOME = ../../..
 
-DIMENSION_AGNOSTIC = TRUE
-
 ifdef MICROPHYSICS_HOME
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
@@ -23,7 +21,7 @@ EOS_DIR     := helmholtz
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := aprox19
 
-INTEGRATOR_DIR := VODE
+INTEGRATOR_DIR := VODE90
 
 else
 

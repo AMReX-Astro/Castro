@@ -1,7 +1,8 @@
-subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
-                    u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                    domhi,dx,xlo,time,dt,bc,level,grid_no) &
-                    bind(C, name="ca_derpi")
+subroutine derpi(p, p_lo, p_hi, ncomp_p, &
+                 u, u_lo, u_hi, ncomp_u, &
+                 lo, hi, domlo, domhi, &
+                 dx, time) &
+                 bind(C, name="derpi")
 
   use network, only : nspec, naux
   use eos_module, only : eos
@@ -9,34 +10,45 @@ subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
   use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
 
   use probdata_module
-  use interpolate_module
   use model_parser_module
-
+  use prob_params_module, only: problo
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
-  integer          :: p_lo(3),p_hi(3),ncomp_p
-  integer          :: u_lo(3),u_hi(3),ncomp_u
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  real(rt)         :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  real(rt)         :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ), value :: ncomp_p
+  integer,  intent(in   ), value :: ncomp_u
+  real(rt), intent(in   ), value :: time
+
+  integer,  intent(in   ) :: p_lo(3), p_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
 
   ! local
   integer :: i,j,k
 
-  real(rt)         :: y,pres,pres_local
+  real(rt) :: y, z, pres, pres_local, height
 
   type (eos_t) :: eos_state
 
-  do k=lo(3),hi(3)
-     do j=lo(2),hi(2)
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
-        pres = interpolate(y,npts_model,model_r, &
-                           model_state(:,ipres_model))
+  do k = lo(3), hi(3)
+     z = problo(3) + dx(3)*(dble(k) + 0.5e0_rt)
 
-        do i=lo(1),hi(1)
+     do j = lo(2), hi(2)
+        y = problo(2) + dx(2)*(dble(j) + 0.5e0_rt)
+
+#if AMREX_SPACEDIM == 2
+        height = y
+#else
+        height = z
+#endif
+
+        call interpolate_sub(pres, height, ipres_model)
+
+        do i = lo(1), hi(1)
 
            eos_state%rho = u(i,j,k,URHO)
            eos_state%T = u(i,j,k,UTEMP)
@@ -44,7 +56,6 @@ subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
 
            call eos(eos_input_rt, eos_state)
 
-           u(i,j,k,UEINT) = eos_state%e
            pres_local = eos_state%p
 
            p(i,j,k,1) = pres_local - pres
@@ -53,14 +64,15 @@ subroutine ca_derpi(p,p_lo,p_hi,ncomp_p, &
      end do
   end do
 
-end subroutine ca_derpi
+end subroutine derpi
 
 !-----------------------------------------------------------------------
 
-subroutine ca_derpioverp0(p,p_lo,p_hi,ncomp_p, &
-                          u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                          domhi,dx,xlo,time,dt,bc,level,grid_no) &
-                          bind(C, name="ca_derpioverp0")
+subroutine derpioverp0(p, p_lo, p_hi, ncomp_p, &
+                       u, u_lo, u_hi, ncomp_u, &
+                       lo, hi, domlo, domhi, &
+                       dx, time) &
+                       bind(C, name="derpioverp0")
 
   use network, only : nspec, naux
   use eos_module, only : eos
@@ -69,32 +81,45 @@ subroutine ca_derpioverp0(p,p_lo,p_hi,ncomp_p, &
   use probdata_module
   use interpolate_module
   use model_parser_module
-
+  use prob_params_module, only: problo
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
-  integer          :: p_lo(3),p_hi(3),ncomp_p
-  integer          :: u_lo(3),u_hi(3),ncomp_u
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  real(rt)         :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  real(rt)         :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ), value :: ncomp_p
+  integer,  intent(in   ), value :: ncomp_u
+  real(rt), intent(in   ), value :: time
+
+  integer,  intent(in   ) :: p_lo(3), p_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
+
 
   ! local
-  integer :: i,j,k
+  integer :: i, j, k
 
-  real(rt)         :: y,pres,pres_local
+  real(rt) :: y, z, pres, pres_local, height
 
   type (eos_t) :: eos_state
 
-  do k=lo(3),hi(3)
-     do j=lo(2),hi(2)
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
-        pres = interpolate(y,npts_model,model_r, &
-                           model_state(:,ipres_model))
+  do k = lo(3), hi(3)
+     z = problo(3) + dx(3)*(dble(k) + 0.5e0_rt)
 
-        do i=lo(1),hi(1)
+     do j = lo(2), hi(2)
+        y = problo(2) + dx(2)*(dble(j) + 0.5e0_rt)
+
+#if AMREX_SPACEDIM == 2
+        height = y
+#else
+        height = z
+#endif
+
+        call interpolate_sub(pres, height, ipres_model)
+
+        do i = lo(1), hi(1)
 
            eos_state%rho = u(i,j,k,URHO)
            eos_state%T = u(i,j,k,UTEMP)
@@ -102,7 +127,6 @@ subroutine ca_derpioverp0(p,p_lo,p_hi,ncomp_p, &
 
            call eos(eos_input_rt, eos_state)
 
-           u(i,j,k,UEINT) = eos_state%e
            pres_local = eos_state%p
 
            p(i,j,k,1) = (pres_local - pres) / pres
@@ -111,94 +135,118 @@ subroutine ca_derpioverp0(p,p_lo,p_hi,ncomp_p, &
      end do
   end do
 
-end subroutine ca_derpioverp0
+end subroutine derpioverp0
 
 !-----------------------------------------------------------------------
 
-subroutine ca_derrhopert(p,p_lo,p_hi,ncomp_p, &
-                         u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                         domhi,dx,xlo,time,dt,bc,level,grid_no) &
-                         bind(C, name="ca_derrhopert")
+subroutine derrhopert(p, p_lo, p_hi, ncomp_p, &
+                      u, u_lo, u_hi, ncomp_u, &
+                      lo, hi, domlo, domhi, &
+                      dx, time) &
+                      bind(C, name="derrhopert")
 
   use network, only : nspec, naux
   use meth_params_module, only : URHO, UEINT, UTEMP
   use probdata_module
   use interpolate_module
   use model_parser_module
-
+  use prob_params_module, only: problo
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
-  integer          :: p_lo(3),p_hi(3),ncomp_p
-  integer          :: u_lo(3),u_hi(3),ncomp_u
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  real(rt)         :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  real(rt)         :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ), value :: ncomp_p
+  integer,  intent(in   ), value :: ncomp_u
+  real(rt), intent(in   ), value :: time
+
+  integer,  intent(in   ) :: p_lo(3), p_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
 
   ! local
-  integer :: i,j,k
+  integer :: i, j, k
 
-  real(rt)         :: y,dens
+  real(rt) :: y, z, dens, height
 
-  do k=lo(3),hi(3)
-     do j=lo(2),hi(2)
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
+  do k = lo(3), hi(3)
+     z = problo(3) + dx(3)*(dble(k) + 0.5e0_rt)
 
-        dens = interpolate(y,npts_model,model_r, &
-                           model_state(:,idens_model))
+     do j = lo(2), hi(2)
+        y = problo(2) + dx(2)*(dble(j) + 0.5e0_rt)
 
-        do i=lo(1),hi(1)
+#if AMREX_SPACEDIM == 2
+        height = y
+#else
+        height = z
+#endif
+
+        call interpolate_sub(dens, height, idens_model)
+
+        do i = lo(1), hi(1)
            p(i,j,k,1) = u(i,j,k,URHO) - dens
         end do
 
      end do
   end do
 
-end subroutine ca_derrhopert
+end subroutine derrhopert
 
 !-----------------------------------------------------------------------
 
-subroutine ca_dertpert(p,p_lo,p_hi,ncomp_p, &
-                       u,u_lo,u_hi,ncomp_u,lo,hi,domlo, &
-                       domhi,dx,xlo,time,dt,bc,level,grid_no) &
-                       bind(C, name="ca_dertpert")
+subroutine dertpert(p, p_lo, p_hi, ncomp_p, &
+                    u, u_lo, u_hi, ncomp_u, &
+                    lo, hi, domlo, domhi, &
+                    dx, time) &
+                    bind(C, name="dertpert")
 
   use network, only : nspec, naux
   use meth_params_module, only : URHO, UEINT, UTEMP
   use probdata_module
   use interpolate_module
   use model_parser_module
-
+  use prob_params_module, only: problo
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
-  integer          :: p_lo(3),p_hi(3),ncomp_p
-  integer          :: u_lo(3),u_hi(3),ncomp_u
-  integer          :: lo(3), hi(3), domlo(3), domhi(3)
-  real(rt)         :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
-  real(rt)         :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
-  real(rt)         :: dx(3), xlo(3), time, dt
-  integer          :: bc(3,2,ncomp_u), level, grid_no
+  integer,  intent(in   ), value :: ncomp_p
+  integer,  intent(in   ), value :: ncomp_u
+  real(rt), intent(in   ), value :: time
+
+  integer,  intent(in   ) :: p_lo(3), p_hi(3)
+  integer,  intent(in   ) :: u_lo(3), u_hi(3)
+  integer,  intent(in   ) :: lo(3), hi(3), domlo(3), domhi(3)
+  real(rt), intent(inout) :: p(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3),ncomp_p)
+  real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),ncomp_u)
+  real(rt), intent(in   ) :: dx(3)
 
   ! local
-  integer :: i,j,k
+  integer :: i, j, k
 
-  real(rt)         :: y,temp
+  real(rt) :: y, z, temp, height
 
-  do k=lo(3),hi(3)
-     do j=lo(2),hi(2)
-        y = xlo(2) + dx(2)*(float(j-lo(2)) + 0.5e0_rt)
+  do k = lo(3), hi(3)
+     z = problo(3) + dx(3)*(dble(k) + 0.5e0_rt)
 
-        temp = interpolate(y,npts_model,model_r, &
-                           model_state(:,itemp_model))
+     do j = lo(2), hi(2)
+        y = problo(2) + dx(2)*(dble(j) + 0.5e0_rt)
 
-        do i=lo(1),hi(1)
+#if AMREX_SPACEDIM == 2
+        height = y
+#else
+        height = z
+#endif
+
+        call interpolate_sub(temp, height, itemp_model)
+
+        do i = lo(1), hi(1)
            p(i,j,k,1) = u(i,j,k,UTEMP) - temp
         end do
 
      end do
   end do
 
-end subroutine ca_dertpert
+end subroutine dertpert

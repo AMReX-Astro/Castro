@@ -37,8 +37,8 @@
   axis_2 = 2 
 
   max_stellar_tagging_level = 20
-  max_temperature_tagging_level = 20
-  max_center_tagging_level = 20
+  max_temperature_tagging_level = 0
+  max_center_tagging_level = 0
   stellar_density_threshold = 1.0d0
   temperature_tagging_threshold = 5.0d8
   center_tagging_radius = 0.0d0
@@ -88,9 +88,6 @@
 /
 
 &tagging
-
-  ! Limit zone size based on nuclear burning considerations
-  dxnuc_min = 0.1
 
 /
 

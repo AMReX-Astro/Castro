@@ -1,3 +1,12 @@
+#ifndef _scf_relax_F_H_
+#define _scf_relax_F_H_
+
+#include <AMReX_BLFort.H>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
   void scf_setup_relaxation(amrex::Real d_A, int axis_A, amrex::Real d_B, int axis_B);
 
@@ -37,6 +46,13 @@
                        BL_FORT_FAB_ARG_3D(phi),
                        BL_FORT_FAB_ARG_3D(psi),
                        const amrex::Real* dx,
-                       amrex::Real* kin_eng, amrex::Real* pot_eng, amrex::Real* int_eng, amrex::Real* mass);
+                       amrex::Real* kin_eng, amrex::Real* pot_eng,
+                       amrex::Real* int_eng, amrex::Real* mass);
 
   void scf_get_solar_mass(amrex::Real* M_solar);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

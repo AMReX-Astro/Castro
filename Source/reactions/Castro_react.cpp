@@ -14,7 +14,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     // Sanity check: should only be in here if we're doing CTU or MOL.
 
-    if (time_integration_method != CornerTransportUpwind && time_integration_method != MethodOfLines) {
+    if (time_integration_method != CornerTransportUpwind) {
         amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
     }
 
@@ -159,7 +159,7 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     // Sanity check: should only be in here if we're doing CTU or MOL.
 
-    if (time_integration_method != CornerTransportUpwind && time_integration_method != MethodOfLines) {
+    if (time_integration_method != CornerTransportUpwind) {
         amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
     }
 
@@ -269,7 +269,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     // Sanity check: should only be in here if we're doing CTU or MOL.
 
-    if (time_integration_method != CornerTransportUpwind && time_integration_method != MethodOfLines) {
+    if (time_integration_method != CornerTransportUpwind) {
         amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
     }
 
@@ -293,7 +293,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 	const Box& bx = mfi.growntilebox(ngrow);
 
 	// Note that box is *not* necessarily just the valid region!
-#pragma gpu
+#pragma gpu box(bx)
 	ca_react_state(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		       BL_TO_FORTRAN_ANYD(s[mfi]),
 		       BL_TO_FORTRAN_ANYD(r[mfi]),

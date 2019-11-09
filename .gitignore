@@ -43,6 +43,7 @@ AMReX_buildInfo.cpp
 
 # These files are created at build time
 Exec/**/extern.F90
+Exec/**/prob_params_auto.F90
 Exec/**/actual_network.F90
 Exec/**/helm_table.dat
 Exec/**/state_sizes.f90

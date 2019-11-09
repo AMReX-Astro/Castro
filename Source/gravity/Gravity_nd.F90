@@ -440,7 +440,7 @@ contains
                                    bind(C, name="ca_put_multipole_phi")
 
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use prob_params_module, only: problo, center, dim, coord_type
     use fundamental_constants_module, only: Gconst
@@ -480,7 +480,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (lnum > lnum_max) then
-       call amrex_error("Error: ca_put_multipole_phi: requested more multipole moments than we allocated data for.")
+       call castro_error("Error: ca_put_multipole_phi: requested more multipole moments than we allocated data for.")
     endif
 #endif
 
@@ -604,7 +604,7 @@ contains
                                           bind(C, name="ca_compute_multipole_moments")
 
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use prob_params_module, only: problo, center, probhi, dim, coord_type
     use amrex_constants_module
@@ -649,7 +649,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
     if (lnum > lnum_max) then
-       call amrex_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
+       call castro_error("Error: ca_compute_multipole_moments: requested more multipole moments than we allocated data for.")
     endif
 #endif
 
@@ -930,7 +930,7 @@ contains
                            lnum, npts, nlo, index, do_parity)
 
     use amrex_constants_module, only: ONE
-    use amrex_fort_module, only: amrex_add
+    use amrex_fort_module, only: amrex_reduce_add
 
     implicit none
 
@@ -975,7 +975,8 @@ contains
              if (parity) then
                 dQ = dQ * parity_q0(l)
              end if
-             call amrex_add(qL0(l,n), dQ)
+
+             call amrex_reduce_add(qL0(l,n), dQ)
 
           else
 
@@ -985,7 +986,7 @@ contains
              if (parity) then
                 dQ = dQ * parity_q0(l)
              end if
-             call amrex_add(qU0(l,n), dQ)
+             call amrex_reduce_add(qU0(l,n), dQ)
 
           end if
 
@@ -1011,13 +1012,13 @@ contains
                 if (parity) then
                    dQ = dQ * parity_qC_qS(l,m)
                 end if
-                call amrex_add(qLC(l,m,n), dQ)
+                call amrex_reduce_add(qLC(l,m,n), dQ)
 
                 dQ = assocLegPolyLM * sin(m * phiAngle) * rho_r_L * vol * factArray(l,m)
                 if (parity) then
                    dQ = dQ * parity_qC_qS(l,m)
                 end if
-                call amrex_add(qLS(l,m,n), dQ)
+                call amrex_reduce_add(qLS(l,m,n), dQ)
 
              else
 
@@ -1027,13 +1028,13 @@ contains
                 if (parity) then
                    dQ = dQ * parity_qC_qS(l,m)
                 end if
-                call amrex_add(qUC(l,m,n), dQ)
+                call amrex_reduce_add(qUC(l,m,n), dQ)
 
                 dQ = assocLegPolyLM * sin(m * phiAngle) * rho_r_U * vol * factArray(l,m)
                 if (parity) then
                    dQ = dQ * parity_qC_qS(l,m)
                 end if
-                call amrex_add(qUS(l,m,n), dQ)
+                call amrex_reduce_add(qUS(l,m,n), dQ)
 
              end if
 

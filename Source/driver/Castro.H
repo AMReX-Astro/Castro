@@ -69,7 +69,7 @@ enum sources { ext_src = 0,
 // time integration method
 
 enum int_method { CornerTransportUpwind = 0,
-                  MethodOfLines,
+                  UnusedTimeIntegration,
                   SpectralDeferredCorrections,
                   SimplifiedSpectralDeferredCorrections
                 };
@@ -190,9 +190,16 @@ public:
 ///
 /// Write job info to file
 ///
-/// @param dir  directory to write to
+/// @param dir       directory to write to
+/// @param io_time   how long it took to generate the plotfile/checkpoint
 ///
-    void writeJobInfo (const std::string& dir);
+    void writeJobInfo (const std::string& dir, const amrex::Real io_time);
+
+
+///
+/// Dump build info 
+///
+    static void writeBuildInfo ();
 
 
 ///
@@ -383,29 +390,6 @@ public:
                                int  amr_iteration,
                                int  amr_ncycle);
 
-///
-/// This routine will advance the old state data (called ``S_old`` here)
-/// to the new time, for a single level.  The new data is called
-/// ``S_new`` here.  The update includes reactions (if we are not doing
-/// SDC), hydro, and the source terms. The advance is doing using the MOL
-/// (method of lines) approach.
-///
-/// @note the time that passes through here is the time for the
-/// current stage
-///
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
-///
-    amrex::Real do_advance_mol (amrex::Real time,
-                                amrex::Real dt,
-                                int  amr_iteration,
-                                int  amr_ncycle);
 
 #ifndef AMREX_USE_CUDA
     amrex::Real do_advance_sdc (amrex::Real time,
@@ -997,42 +981,20 @@ public:
 /// Apply the ::set_problem_tags routine.
 ///
 /// @param tags         TagBoxArray of tags
-/// @param clearval
-/// @param setval
 /// @param time         current time
 ///
-    void apply_problem_tags (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time);
+    void apply_problem_tags (amrex::TagBoxArray& tags, amrex::Real time);
 
 
 ///
 /// Apply a given tagging function.
 ///
 /// @param tags         TagBoxArray of tags
-/// @param clearval
-/// @param setval
 /// @param time         current time
 /// @param j            integer
 ///
-    void apply_tagging_func (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time, int j);
+    void apply_tagging_func (amrex::TagBoxArray& tags, amrex::Real time, int j);
 
-
-///
-/// Hooks for problem-specific operations before and after applying custom tagging.
-///
-/// @param tags     TagBoxArray of tags
-/// @param clearval
-/// @param tagval
-/// @param time     current time
-///
-    void problem_pre_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
-
-///
-/// @param tags     TagBoxArray of tags
-/// @param clearval
-/// @param tagval
-/// @param time     current time
-///
-    void problem_post_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
 ///
 /// Returns a MultiFab containing the derived data for this level.
@@ -1556,12 +1518,21 @@ public:
 
 
 ///
-/// Update state to account for hybrid advection
+/// Synchronize linear momentum with hybrid momentum
 ///
 /// @param state    Current state
 /// @param ng       Number of ghost cells
 ///
-    void hybrid_sync(amrex::MultiFab& state, int ng);
+    void hybrid_to_linear_momentum(amrex::MultiFab& state, int ng = 0);
+
+
+///
+/// Synchronize hybrid momentum with linear momentum
+///
+/// @param state    Current state
+/// @param ng       Number of ghost cells
+///
+    void linear_to_hybrid_momentum(amrex::MultiFab& state, int ng = 0);
 #endif
 
 
@@ -1760,7 +1731,7 @@ protected:
 
 
 ///
-/// A state array for the post burn state to be used in MOL integration
+/// A state array for the some reaction stuff with SDC
 ///
     amrex::MultiFab Sburn;
 
@@ -1776,6 +1747,13 @@ protected:
 ///
     amrex::MultiFab q_bar;
 
+
+///
+/// for diffusion in fourth order we need the cell-center temperature
+//
+#ifdef DIFFUSION
+    amrex::MultiFab T_cc;
+#endif
 
 ///
 /// The auxiliary primitive variable state array.
@@ -1876,21 +1854,6 @@ protected:
     bool keep_prev_state;
 
 
-///
-/// Storage for the method of lines stages
-///
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_mol;
-
-
-///
-/// MOL Butcher tableau
-///
-    static int MOL_STAGES;
-
-    static amrex::Vector< amrex::Vector<amrex::Real> > a_mol;
-    static amrex::Vector<amrex::Real> b_mol;
-    static amrex::Vector<amrex::Real> c_mol;
-
 
     //
     // Storage for the SDC time integration
@@ -1914,6 +1877,7 @@ protected:
 
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;
+    static amrex::Vector<amrex::Real> node_weights;
 
 
 ///
@@ -2059,6 +2023,17 @@ protected:
 
     void stopJob ();
 
+///
+/// Returns true if we're on the GPU and the total
+/// memory on this level oversubscribes GPU memory.
+///
+    bool oversubscribing() {
+#ifdef AMREX_USE_GPU
+        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= amrex::Gpu::Device::totalGlobalMem());
+#else
+        return false;
+#endif
+    }
 
 ///
 /// The data.
@@ -2085,7 +2060,8 @@ protected:
 
     static bool      signalStopJob;
     static int       radius_grow;
-    static amrex::ErrorList err_list;
+    static std::vector<std::string> err_list_names;
+    static std::vector<int> err_list_ng;
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
@@ -2189,10 +2165,6 @@ protected:
     int current_sdc_node;
 
 
-///
-/// method of lines
-///
-    int mol_iteration;
 
 /* problem-specific includes */
 #include <Problem.H>

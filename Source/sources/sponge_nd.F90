@@ -84,6 +84,11 @@ contains
 
              src(UMX:UMZ) = Sr(:)
 
+             ! Kinetic energy is 1/2 rho u**2, or (rho u)**2 / (2 rho). This means
+             ! that d(KE)/dt = u d(rho u)/dt - 1/2 u**2 d(rho)/dt. In this case
+             ! the sponge has no contribution to rho, so the kinetic energy source
+             ! term, and thus the total energy source term, is u * momentum source.
+
              SrE = dot_product(state(i,j,k,UMX:UMZ) * rhoInv, Sr)
 
              src(UEDEN) = SrE

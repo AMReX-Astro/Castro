@@ -243,7 +243,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_check_timestep(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(S_old[mfi]),
                           BL_TO_FORTRAN_ANYD(S_new[mfi]),
@@ -321,7 +321,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
             mass_fluxes[dir]->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
-        if (!Geometry::IsCartesian())
+        if (!Geom().IsCartesian())
             P_radial.setVal(0.0);
 #endif
 

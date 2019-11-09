@@ -3,26 +3,6 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef DIFFUSION
-static int diffuse_temp;
-static amrex::Real diffuse_cutoff_density;
-static amrex::Real diffuse_cutoff_density_hi;
-static amrex::Real diffuse_cond_scale_fac;
-#endif
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
-#endif
-#ifdef ROTATION
-static amrex::Real rotational_period;
-static amrex::Real rotational_dPdt;
-static int rotation_include_centrifugal;
-static int rotation_include_coriolis;
-static int rotation_include_domegadt;
-static int state_in_rotating_frame;
-static int rot_source_type;
-static int implicit_rotation_update;
-static int rot_axis;
-#endif
 static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
@@ -37,14 +17,16 @@ static amrex::Real small_ener;
 static int do_hydro;
 static int time_integration_method;
 static int limit_fourth_order;
+static int initialization_is_cell_average;
 static int use_reconstructed_gamma1;
 static int add_ext_src;
 static int hybrid_hydro;
 static int ppm_type;
 static int ppm_temp_fix;
 static int ppm_predict_gammae;
-static int ppm_reference_eigenvectors;
 static int plm_iorder;
+static int plm_limiter;
+static int plm_well_balanced;
 static int hybrid_riemann;
 static int riemann_solver;
 static int cg_maxiter;
@@ -77,8 +59,9 @@ static int hse_interp_temp;
 static int hse_reflect_vels;
 static int fill_ambient_bc;
 static int clamp_ambient_temp;
-static int mol_order;
 static int sdc_order;
+static int sdc_quadrature;
+static int sdc_extra;
 static int sdc_solver;
 static amrex::Real sdc_solver_tol_dens;
 static amrex::Real sdc_solver_tol_spec;
@@ -146,4 +129,24 @@ static int reset_checkpoint_step;
 static int use_point_mass;
 static amrex::Real point_mass;
 static int point_mass_fix_solution;
+#endif
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
+#endif
+#ifdef ROTATION
+static amrex::Real rotational_period;
+static amrex::Real rotational_dPdt;
+static int rotation_include_centrifugal;
+static int rotation_include_coriolis;
+static int rotation_include_domegadt;
+static int state_in_rotating_frame;
+static int rot_source_type;
+static int implicit_rotation_update;
+static int rot_axis;
+#endif
+#ifdef DIFFUSION
+static int diffuse_temp;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
+static amrex::Real diffuse_cond_scale_fac;
 #endif
