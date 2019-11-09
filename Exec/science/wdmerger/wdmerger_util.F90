@@ -699,15 +699,15 @@ contains
     ! domain center (and thus the stars) are on that boundary.
 
     if (physbc_lo(1) .eq. Symmetry .and. center(1) .ne. problo(1)) then
-       call bl_error("Symmetric lower x-boundary but the center is not on this boundary.")
+       call castro_error("Symmetric lower x-boundary but the center is not on this boundary.")
     end if
 
     if (physbc_lo(2) .eq. Symmetry .and. center(2) .ne. problo(2)) then
-       call bl_error("Symmetric lower y-boundary but the center is not on this boundary.")
+       call castro_error("Symmetric lower y-boundary but the center is not on this boundary.")
     end if
 
     if (physbc_lo(3) .eq. Symmetry .and. center(3) .ne. problo(3)) then
-       call bl_error("Symmetric lower z-boundary but the center is not on this boundary.")
+       call castro_error("Symmetric lower z-boundary but the center is not on this boundary.")
     end if
 
     ! Set some default values for these quantities;
@@ -1025,20 +1025,20 @@ contains
        if ( (HALF * (probhi(1) - problo(1)) < model_P % radius) .or. &
             (HALF * (probhi(2) - problo(2)) < model_P % radius) .or. &
             (HALF * (probhi(3) - problo(3)) < model_P % radius .and. dim .eq. 3) ) then
-          call bl_error("Primary does not fit inside the domain.")
+          call castro_error("Primary does not fit inside the domain.")
        endif
 
        if ( (HALF * (probhi(1) - problo(1)) < model_S % radius) .or. &
             (HALF * (probhi(2) - problo(2)) < model_S % radius) .or. &
             (HALF * (probhi(3) - problo(3)) < model_S % radius .and. dim .eq. 3) ) then
-          call bl_error("Secondary does not fit inside the domain.")
+          call castro_error("Secondary does not fit inside the domain.")
        endif
 
     else
 
        if ( (probhi(1) - problo(1) < model_S % radius) .or. &
             (probhi(2) - problo(2) < 2 * model_S % radius) ) then
-          call bl_error("Secondary does not fit inside the domain.")
+          call castro_error("Secondary does not fit inside the domain.")
        end if
 
     end if
