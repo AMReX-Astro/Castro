@@ -675,7 +675,7 @@ contains
     use math_module, only: cross_product
     use binary_module, only: get_roche_radii
     use problem_io_module, only: ioproc
-    use amrex_error_module, only: castro_error
+    use castro_error_module, only: castro_error
     use ambient_module, only: ambient_state, get_ambient_eos
     use eos_type_module, only: eos_input_rt, eos_t
     use eos_module, only: eos
