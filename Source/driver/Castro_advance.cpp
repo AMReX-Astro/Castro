@@ -218,27 +218,6 @@ Castro::advance (Real time,
         pointmass_update(time, dt);
 #endif
 
-    if (clamp_ambient_temp) {
-
-        MultiFab& S_old = get_old_data(State_Type);
-        MultiFab& S_new = get_new_data(State_Type);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-
-            const Box& bx = mfi.validbox();
-
-#pragma gpu
-            ca_clamp_ambient_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                  BL_TO_FORTRAN_ANYD(S_old[mfi]),
-                                  BL_TO_FORTRAN_ANYD(S_new[mfi]));
-
-        }
-
-    }
-
 #ifdef RADIATION
     MultiFab& S_new = get_new_data(State_Type);
     final_radiation_call(S_new, amr_iteration, amr_ncycle);

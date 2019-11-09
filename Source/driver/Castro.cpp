@@ -3928,6 +3928,25 @@ Castro::check_for_nan(MultiFab& state, int check_ghost)
     }
 }
 
+void
+Castro::clamp_to_ambient_temp(MultiFab& state, int ng) {
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
+
+        const Box& bx = mfi.growntilebox(ng);
+
+#pragma gpu
+        ca_clamp_ambient_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(state[mfi]));
+
+    }
+
+}
+
+
 // Given State_Type state data, perform a number of cleaning steps to make
 // sure the data is sensible. The return value is the same as the return
 // value of enforce_min_density.
@@ -3957,6 +3976,12 @@ Castro::clean_state(MultiFab& state, Real time, int ng) {
     // the internal energy for consistency with the total energy).
 
     computeTemp(state, time, ng);
+
+    // Limit the temperature of ambient material.
+
+    if (clamp_ambient_temp) {
+        clamp_to_ambient_temp(state, ng);
+    }
 
     return frac_change;
 

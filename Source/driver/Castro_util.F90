@@ -513,24 +513,24 @@ contains
 
 
   subroutine ca_clamp_ambient_temp(lo, hi, &
-                                   u_old, uo_lo, uo_hi, &
-                                   u_new, un_lo, un_hi) &
+                                   state, s_lo, s_hi) &
                                    bind(c,name='ca_clamp_ambient_temp')
     ! Clamp the temperature so the ambient material doesn't heat up
 
     use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: ONE
     use meth_params_module, only: NVAR, URHO, UTEMP
     use ambient_module, only: ambient_state
 
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: uo_lo(3), uo_hi(3)
-    integer,  intent(in   ) :: un_lo(3), un_hi(3)
-    real(rt), intent(in   ) :: u_old(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
-    real(rt), intent(inout) :: u_new(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
     integer :: i, j, k
+
+    real(rt), parameter :: safety_factor = 1.0d-1
 
     !$gpu
 
@@ -538,8 +538,8 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (u_old(i,j,k,URHO) <= 1.01d0 * ambient_state(URHO)) then
-                u_new(i,j,k,UTEMP) = ambient_state(UTEMP)
+             if (state(i,j,k,URHO) <= (ONE + safety_factor) * ambient_state(URHO)) then
+                state(i,j,k,UTEMP) = ambient_state(UTEMP)
              end if
 
           enddo
