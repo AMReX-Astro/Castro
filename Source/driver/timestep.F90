@@ -26,7 +26,8 @@ contains
     use rotation_module, only: inertial_to_rotational_velocity
     use amrinfo_module, only: amr_time
 #endif
-    use amrex_fort_module, only : rt => amrex_real, amrex_min
+    use amrex_fort_module, only : rt => amrex_real
+    use reduction_module, only: reduce_min
 
     implicit none
 
@@ -93,7 +94,7 @@ contains
              endif
 
              if (time_integration_method == 0) then
-                call amrex_min(dt, min(dt1,dt2,dt3))
+                call reduce_min(dt, min(dt1,dt2,dt3))
              else
                 ! method of lines-style constraint is tougher
                 dt_tmp = ONE/dt1
@@ -104,7 +105,7 @@ contains
                    dt_tmp = dt_tmp + ONE/dt3
                 endif
 
-                call amrex_min(dt, ONE/dt_tmp)
+                call reduce_min(dt, ONE/dt_tmp)
              endif
 
           enddo
@@ -283,7 +284,8 @@ contains
     use prob_params_module, only: dim
     use amrex_constants_module, only : ONE, HALF
     use conductivity_module, only: conductivity
-    use amrex_fort_module, only: rt => amrex_real, amrex_min
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_min
 
     implicit none
 
@@ -342,7 +344,7 @@ contains
                    dt3 = dt1
                 endif
 
-                call amrex_min(dt, min(dt1,dt2,dt3))
+                call reduce_min(dt, min(dt1,dt2,dt3))
 
              endif
 
