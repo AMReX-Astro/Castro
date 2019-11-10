@@ -1620,10 +1620,10 @@ contains
                    vel_s_x, vel_s_y, vel_s_z, &
                    m_p, m_s) bind(C,name='wdcom')
 
-    use amrex_fort_module, only: reduce_add
     use amrex_constants_module, only: HALF, ZERO, ONE, TWO
     use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, Symmetry, coord_type
     use castro_util_module, only: position ! function
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -1766,7 +1766,7 @@ contains
                                         bind(C, name='ca_volumeindensityboundary')
 
     use amrex_constants_module, only: ZERO, ONE
-    use amrex_fort_module, only: reduce_add
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -1832,10 +1832,10 @@ contains
                                           vol, vo_lo, vo_hi, &
                                           lo, hi, dx, time, Qtt) bind(C,name='quadrupole_tensor_double_dot')
 
-    use amrex_fort_module, only: reduce_add
     use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
     use prob_params_module, only: center, dim
     use castro_util_module, only: position ! function
+    use reduction_module, only: reduce_add
 
     implicit none
 
