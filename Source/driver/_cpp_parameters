@@ -238,6 +238,9 @@ fill_ambient_bc              int           0                  y
 # clamps the ambient material to the ambient temperature
 clamp_ambient_temp           int           0                  y
 
+# specifies how much higher than the ambient density we should apply clamping
+clamp_ambient_temp_factor    Real          1.1e0              y
+
 # integration order for SDC integration
 # valid options are 2 and 4
 sdc_order                    int           2                  y

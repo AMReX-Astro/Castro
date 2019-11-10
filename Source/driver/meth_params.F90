@@ -164,6 +164,7 @@ module meth_params_module
   integer,  allocatable, save :: hse_reflect_vels
   integer,  allocatable, save :: fill_ambient_bc
   integer,  allocatable, save :: clamp_ambient_temp
+  real(rt), allocatable, save :: clamp_ambient_temp_factor
   integer,  allocatable, save :: sdc_order
   integer,  allocatable, save :: sdc_quadrature
   integer,  allocatable, save :: sdc_extra
@@ -260,6 +261,7 @@ attributes(managed) :: hse_interp_temp
 attributes(managed) :: hse_reflect_vels
 attributes(managed) :: fill_ambient_bc
 attributes(managed) :: clamp_ambient_temp
+attributes(managed) :: clamp_ambient_temp_factor
 attributes(managed) :: sdc_order
 attributes(managed) :: sdc_quadrature
 attributes(managed) :: sdc_extra
@@ -383,6 +385,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(hse_reflect_vels) &
   !$acc create(fill_ambient_bc) &
   !$acc create(clamp_ambient_temp) &
+  !$acc create(clamp_ambient_temp_factor) &
   !$acc create(sdc_order) &
   !$acc create(sdc_quadrature) &
   !$acc create(sdc_extra) &
@@ -493,6 +496,24 @@ contains
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
+#ifdef DIFFUSION
+    allocate(diffuse_temp)
+    diffuse_temp = 0;
+    allocate(diffuse_cutoff_density)
+    diffuse_cutoff_density = -1.e200_rt;
+    allocate(diffuse_cutoff_density_hi)
+    diffuse_cutoff_density_hi = -1.e200_rt;
+    allocate(diffuse_cond_scale_fac)
+    diffuse_cond_scale_fac = 1.0_rt;
+#endif
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0_rt;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
 #ifdef ROTATION
     allocate(rot_period)
     rot_period = -1.e200_rt;
@@ -512,24 +533,6 @@ contains
     implicit_rotation_update = 1;
     allocate(rot_axis)
     rot_axis = 3;
-#endif
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0_rt;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
-#ifdef DIFFUSION
-    allocate(diffuse_temp)
-    diffuse_temp = 0;
-    allocate(diffuse_cutoff_density)
-    diffuse_cutoff_density = -1.e200_rt;
-    allocate(diffuse_cutoff_density_hi)
-    diffuse_cutoff_density_hi = -1.e200_rt;
-    allocate(diffuse_cond_scale_fac)
-    diffuse_cond_scale_fac = 1.0_rt;
 #endif
     allocate(difmag)
     difmag = 0.1_rt;
@@ -625,6 +628,8 @@ contains
     fill_ambient_bc = 0;
     allocate(clamp_ambient_temp)
     clamp_ambient_temp = 0;
+    allocate(clamp_ambient_temp_factor)
+    clamp_ambient_temp_factor = 1.1e0_rt;
     allocate(sdc_order)
     sdc_order = 2;
     allocate(sdc_quadrature)
@@ -683,6 +688,17 @@ contains
     track_grid_losses = 0;
 
     call amrex_parmparse_build(pp, "castro")
+#ifdef DIFFUSION
+    call pp%query("diffuse_temp", diffuse_temp)
+    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
+    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+#endif
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
 #ifdef ROTATION
     call pp%query("rotational_period", rot_period)
     call pp%query("rotational_dPdt", rot_period_dot)
@@ -693,17 +709,6 @@ contains
     call pp%query("rot_source_type", rot_source_type)
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
-#endif
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
-#endif
-#ifdef DIFFUSION
-    call pp%query("diffuse_temp", diffuse_temp)
-    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
-    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
-    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -752,6 +757,7 @@ contains
     call pp%query("hse_reflect_vels", hse_reflect_vels)
     call pp%query("fill_ambient_bc", fill_ambient_bc)
     call pp%query("clamp_ambient_temp", clamp_ambient_temp)
+    call pp%query("clamp_ambient_temp_factor", clamp_ambient_temp_factor)
     call pp%query("sdc_order", sdc_order)
     call pp%query("sdc_quadrature", sdc_quadrature)
     call pp%query("sdc_extra", sdc_extra)
@@ -812,23 +818,22 @@ contains
     !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_small_energy) &
     !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
     !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
-    !$acc device(fill_ambient_bc, clamp_ambient_temp, sdc_order) &
-    !$acc device(sdc_quadrature, sdc_extra, sdc_solver) &
-    !$acc device(sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener) &
-    !$acc device(sdc_solver_atol, sdc_solver_relax_factor, sdc_solve_for_rhoe) &
-    !$acc device(sdc_use_analytic_jac, cfl, dtnuc_e) &
-    !$acc device(dtnuc_X, dtnuc_X_threshold, do_react) &
-    !$acc device(react_T_min, react_T_max, react_rho_min) &
-    !$acc device(react_rho_max, disable_shock_burning, T_guess) &
-    !$acc device(diffuse_temp, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
-    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
-    !$acc device(do_rotation, rot_period, rot_period_dot) &
-    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
-    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
-    !$acc device(rot_axis, use_point_mass, point_mass) &
-    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
-    !$acc device(track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(fill_ambient_bc, clamp_ambient_temp, clamp_ambient_temp_factor) &
+    !$acc device(sdc_order, sdc_quadrature, sdc_extra) &
+    !$acc device(sdc_solver, sdc_solver_tol_dens, sdc_solver_tol_spec) &
+    !$acc device(sdc_solver_tol_ener, sdc_solver_atol, sdc_solver_relax_factor) &
+    !$acc device(sdc_solve_for_rhoe, sdc_use_analytic_jac, cfl) &
+    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
+    !$acc device(do_react, react_T_min, react_T_max) &
+    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
+    !$acc device(T_guess, diffuse_temp, diffuse_cutoff_density) &
+    !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
+    !$acc device(grav_source_type, do_rotation, rot_period) &
+    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
+    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
+    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
+    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
+    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
 
 
 #ifdef GRAVITY
@@ -1068,6 +1073,9 @@ contains
     end if
     if (allocated(clamp_ambient_temp)) then
         deallocate(clamp_ambient_temp)
+    end if
+    if (allocated(clamp_ambient_temp_factor)) then
+        deallocate(clamp_ambient_temp_factor)
     end if
     if (allocated(sdc_order)) then
         deallocate(sdc_order)

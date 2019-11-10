@@ -519,7 +519,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ONE
-    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT
+    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, clamp_ambient_temp_factor
     use ambient_module, only: ambient_state
 
     implicit none
@@ -532,15 +532,13 @@ contains
 
     real(rt) :: rhoInv
 
-    real(rt), parameter :: safety_factor = 1.0d-1
-
     !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (state(i,j,k,URHO) <= (ONE + safety_factor) * ambient_state(URHO)) then
+             if (state(i,j,k,URHO) <= clamp_ambient_temp_factor * ambient_state(URHO)) then
                 state(i,j,k,UTEMP) = ambient_state(UTEMP)
                 rhoInv = ONE / ambient_state(URHO)
                 state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
