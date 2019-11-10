@@ -123,6 +123,7 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
 
 }
 
+#ifdef TRUE_SDC
 void
 Castro::cons_to_prim_fourth(const Real time)
 {
@@ -235,6 +236,7 @@ Castro::cons_to_prim_fourth(const Real time)
 
 #endif // RADIATION
 }
+#endif
 
 void
 Castro::check_for_cfl_violation(const Real dt)

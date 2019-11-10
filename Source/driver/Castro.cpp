@@ -1068,6 +1068,7 @@ Castro::initData ()
                                   BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 
+#ifdef TRUE_SDC
        if (initialization_is_cell_average == 0) {
          // we are assuming that the initialization was done to cell-centers
 
@@ -1143,6 +1144,7 @@ Castro::initData ()
          Sborder.clear();
 
        }
+#endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
 
@@ -3387,6 +3389,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
   // overwrite the grown state as we work.
   MultiFab Eint_lap;
 
+#ifdef TRUE_SDC
   if (sdc_order == 4) {
 
     // we need to make the data live at cell-centers first
@@ -3423,7 +3426,9 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
     }
 
   }
+#endif
 
+#ifdef TRUE_SDC
   if (sdc_order == 4) {
     // we need to enforce minimum density here, since the conversion
     // from cell-average to centers could have made rho < 0 near steep
@@ -3431,8 +3436,11 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
     enforce_min_density(Stemp, Stemp.nGrow());
     reset_internal_energy(Stemp, Stemp.nGrow());
   } else {
+#endif
     reset_internal_energy(State, ng);
+#ifdef TRUE_SDC
   }
+#endif
 
 
 #ifdef _OPENMP
@@ -3482,6 +3490,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 #endif
     }
 
+#ifdef TRUE_SDC
   if (sdc_order == 4) {
 
     // we need to copy back from Stemp into S_new, making it
@@ -3525,6 +3534,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
     Stemp.clear();
   }
+#endif
 
 }
 
