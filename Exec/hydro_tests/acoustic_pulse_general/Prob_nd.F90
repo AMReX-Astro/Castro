@@ -6,7 +6,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   use eos_type_module, only : eos_t, eos_input_rt
-  use eos_module, only : eos
+  use eos_module, only : eos_on_host
 
   implicit none
 
@@ -35,7 +35,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   eos_state % T = T0
   eos_state % xn(:) = xn_zone(:)
 
-  call eos(eos_input_rt, eos_state)
+  call eos_on_host(eos_input_rt, eos_state)
 
   p0 = eos_state % p
   s0 = eos_state % s

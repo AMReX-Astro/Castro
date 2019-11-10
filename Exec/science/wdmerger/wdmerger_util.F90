@@ -430,7 +430,7 @@ contains
 
     use meth_params_module, only: small_temp, small_pres, small_dens, small_ener
     use eos_type_module, only: eos_t, eos_input_rt
-    use eos_module, only: eos
+    use eos_module, only: eos_on_host
 
     implicit none
 
@@ -442,7 +442,7 @@ contains
     eos_state % T   = small_temp
     eos_state % xn  = ambient_comp
 
-    call eos(eos_input_rt, eos_state)
+    call eos_on_host(eos_input_rt, eos_state)
 
     small_pres = eos_state % p
     small_ener = eos_state % e

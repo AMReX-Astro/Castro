@@ -55,7 +55,7 @@ subroutine ca_initdata_maestro(lo,hi,MAESTRO_init_type, &
            eos_state % T   = state(i,j,UTEMP)
            eos_state % xn  = state(i,j,UFS:UFS+nspec-1)
 
-           call eos(eos_input_rp, eos_state)
+           call eos_on_host(eos_input_rp, eos_state)
 
            state(i,j,UTEMP) = state(i,j,UTEMP)
            state(i,j,UEINT) = eos_state % e
@@ -93,7 +93,7 @@ subroutine ca_initdata_maestro(lo,hi,MAESTRO_init_type, &
            eos_state % p  = pressure
            eos_state % xn = state(i,j,UFS:UFS+nspec-1)
 
-           call eos(eos_input_pt, eos_state)
+           call eos_on_host(eos_input_pt, eos_state)
 
            state(i,j,URHO)  = eos_state % rho
            state(i,j,UEINT) = eos_state % e
@@ -137,7 +137,7 @@ subroutine ca_initdata_maestro(lo,hi,MAESTRO_init_type, &
            eos_state % s  = entropy
            eos_state % xn = state(i,j,UFS:UFS+nspec-1)
 
-           call eos(eos_input_ps, eos_state)
+           call eos_on_host(eos_input_ps, eos_state)
 
            state(i,j,URHO)  = eos_state % rho
            state(i,j,UEINT) = eos_state % e
@@ -220,7 +220,7 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
   eos_state % T    = tempbar(r_model_start)
   eos_state % xn   = xn(:)
 
-  call eos(eos_input_rt, eos_state)
+  call eos_on_host(eos_input_rt, eos_state)
 
   model(1,r_model_start) = rho0(r_model_start)
   model(2,r_model_start) = tempbar(r_model_start)
@@ -291,7 +291,7 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
               eos_state % rho = dens_zone
               eos_state % xn  = xn(:)
 
-              call eos(eos_input_rt, eos_state)
+              call eos_on_host(eos_input_rt, eos_state)
 
               entropy = eos_state % s
               pres_zone = eos_state % p
@@ -347,7 +347,7 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
               eos_state % rho = dens_zone
               eos_state % xn  = xn(:)
 
-              call eos(eos_input_rt, eos_state)
+              call eos_on_host(eos_input_rt, eos_state)
 
               entropy = eos_state % s
               pres_zone = eos_state % p
@@ -405,7 +405,7 @@ subroutine ca_initdata_makemodel(model,model_size,MAESTRO_npts_model, &
      eos_state % rho = dens_zone
      eos_state % xn  = xn(:)
 
-     call eos(eos_input_rt, eos_state)
+     call eos_on_host(eos_input_rt, eos_state)
 
      pres_zone = eos_state % p
 
@@ -469,7 +469,7 @@ subroutine ca_initdata_overwrite(lo,hi, &
            eos_state % T   = state(i,j,UTEMP)
            eos_state % xn  = state(i,j,UFS:UFS+nspec-1)
 
-           call eos(eos_input_rt, eos_state)
+           call eos_on_host(eos_input_rt, eos_state)
 
            state(i,j,UEINT) = eos_state % e
 
