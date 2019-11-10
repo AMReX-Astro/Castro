@@ -74,7 +74,7 @@ contains
     use amrex_constants_module, only: HALF, ZERO, M_PI, ONE
     use amrex_fort_module, only : rt => amrex_real
     use eos_type_module, only: eos_input_rp, eos_t
-    use eos_module, only: eos
+    use eos_module, only: eos_on_host
     use prescribe_grav_module, only : grav_zone ! function
     use probdata_module, only: gamma1
     use meth_params_module, only : T_guess
@@ -89,14 +89,12 @@ contains
     ! U(1) = rho
     ! U(2) = p
 
-    !$gpu
-
     eos_state % rho = U(1)
     eos_state % p = U(2)
     eos_state % xn = set_species(y)
     eos_state % T = T_guess
 
-    call eos(eos_input_rp, eos_state)
+    call eos_on_host(eos_input_rp, eos_state)
 
     gamma0 = eos_state % gam1
     gamma = gamma0 + fv(y) * (gamma1 - gamma0)
@@ -117,7 +115,7 @@ contains
     use model_parser_module, only: model_r, model_state, npts_model, nvars_model, idens_model, ipres_model, ispec_model, itemp_model
     use network, only : nspec
     use eos_type_module, only : eos_t, eos_input_rp
-    use eos_module, only : eos
+    use eos_module, only : eos_on_host
 
     implicit none
 
@@ -199,7 +197,7 @@ contains
        eos_state % xn(1:nspec) = model_state(j, ispec_model:ispec_model-1+nspec)
        eos_state % p = model_state(j, ipres_model)
 
-       call eos(eos_input_rp, eos_state)
+       call eos_on_host(eos_input_rp, eos_state)
 
        model_state(j, itemp_model) = eos_state % T
 

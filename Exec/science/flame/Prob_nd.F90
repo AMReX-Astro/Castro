@@ -148,7 +148,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state % T = T_fuel
   eos_state % xn(:) = xn_fuel(:)
 
-  call eos(eos_input_rt, eos_state)
+  call eos_on_host(eos_input_rt, eos_state)
 
   e_fuel = eos_state % e
   p_fuel = eos_state % p
@@ -159,7 +159,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state % T = T_ash
   eos_state % xn(:) = xn_ash(:)
 
-  call eos(eos_input_tp, eos_state)
+  call eos_on_host(eos_input_tp, eos_state)
 
   rho_ash = eos_state % rho
   e_ash = eos_state % e
