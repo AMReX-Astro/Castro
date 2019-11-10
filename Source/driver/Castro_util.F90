@@ -519,7 +519,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ONE
-    use meth_params_module, only: NVAR, URHO, UTEMP
+    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT
     use ambient_module, only: ambient_state
 
     implicit none
@@ -529,6 +529,8 @@ contains
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
     integer :: i, j, k
+
+    real(rt) :: rhoInv
 
     real(rt), parameter :: safety_factor = 1.0d-1
 
@@ -540,6 +542,8 @@ contains
 
              if (state(i,j,k,URHO) <= (ONE + safety_factor) * ambient_state(URHO)) then
                 state(i,j,k,UTEMP) = ambient_state(UTEMP)
+                rhoInv = ONE / ambient_state(URHO)
+                state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
              end if
 
           enddo
