@@ -1503,7 +1503,7 @@ contains
     use prob_params_module, only: center, physbc_lo, Symmetry, coord_type
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ
     use castro_util_module, only: position
-    use amrex_fort_module, only: amrex_reduce_add
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -1580,13 +1580,13 @@ contains
 
              endif
 
-             call amrex_reduce_add(fpx, dF(1) * primary_factor)
-             call amrex_reduce_add(fpy, dF(2) * primary_factor)
-             call amrex_reduce_add(fpz, dF(3) * primary_factor)
+             call reduce_add(fpx, dF(1) * primary_factor)
+             call reduce_add(fpy, dF(2) * primary_factor)
+             call reduce_add(fpz, dF(3) * primary_factor)
 
-             call amrex_reduce_add(fsx, dF(1) * secondary_factor)
-             call amrex_reduce_add(fsy, dF(2) * secondary_factor)
-             call amrex_reduce_add(fsz, dF(3) * secondary_factor)
+             call reduce_add(fsx, dF(1) * secondary_factor)
+             call reduce_add(fsy, dF(2) * secondary_factor)
+             call reduce_add(fsz, dF(3) * secondary_factor)
 
           enddo
        enddo
@@ -1620,7 +1620,7 @@ contains
                    vel_s_x, vel_s_y, vel_s_z, &
                    m_p, m_s) bind(C,name='wdcom')
 
-    use amrex_fort_module, only: amrex_reduce_add
+    use amrex_fort_module, only: reduce_add
     use amrex_constants_module, only: HALF, ZERO, ONE, TWO
     use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, Symmetry, coord_type
     use castro_util_module, only: position ! function
@@ -1723,25 +1723,25 @@ contains
 
              endif
 
-             call amrex_reduce_add(m_p, dmSymmetric * primary_factor)
+             call reduce_add(m_p, dmSymmetric * primary_factor)
 
-             call amrex_reduce_add(com_p_x, dmSymmetric * rSymmetric(1) * primary_factor)
-             call amrex_reduce_add(com_p_y, dmSymmetric * rSymmetric(2) * primary_factor)
-             call amrex_reduce_add(com_p_z, dmSymmetric * rSymmetric(3) * primary_factor)
+             call reduce_add(com_p_x, dmSymmetric * rSymmetric(1) * primary_factor)
+             call reduce_add(com_p_y, dmSymmetric * rSymmetric(2) * primary_factor)
+             call reduce_add(com_p_z, dmSymmetric * rSymmetric(3) * primary_factor)
 
-             call amrex_reduce_add(vel_p_x, momSymmetric(1) * vol(i,j,k) * primary_factor)
-             call amrex_reduce_add(vel_p_y, momSymmetric(2) * vol(i,j,k) * primary_factor)
-             call amrex_reduce_add(vel_p_z, momSymmetric(3) * vol(i,j,k) * primary_factor)
+             call reduce_add(vel_p_x, momSymmetric(1) * vol(i,j,k) * primary_factor)
+             call reduce_add(vel_p_y, momSymmetric(2) * vol(i,j,k) * primary_factor)
+             call reduce_add(vel_p_z, momSymmetric(3) * vol(i,j,k) * primary_factor)
 
-             call amrex_reduce_add(m_s, dmSymmetric * secondary_factor)
+             call reduce_add(m_s, dmSymmetric * secondary_factor)
 
-             call amrex_reduce_add(com_s_x, dmSymmetric * rSymmetric(1) * secondary_factor)
-             call amrex_reduce_add(com_s_y, dmSymmetric * rSymmetric(2) * secondary_factor)
-             call amrex_reduce_add(com_s_z, dmSymmetric * rSymmetric(3) * secondary_factor)
+             call reduce_add(com_s_x, dmSymmetric * rSymmetric(1) * secondary_factor)
+             call reduce_add(com_s_y, dmSymmetric * rSymmetric(2) * secondary_factor)
+             call reduce_add(com_s_z, dmSymmetric * rSymmetric(3) * secondary_factor)
 
-             call amrex_reduce_add(vel_s_x, momSymmetric(1) * vol(i,j,k) * secondary_factor)
-             call amrex_reduce_add(vel_s_y, momSymmetric(2) * vol(i,j,k) * secondary_factor)
-             call amrex_reduce_add(vel_s_z, momSymmetric(3) * vol(i,j,k) * secondary_factor)
+             call reduce_add(vel_s_x, momSymmetric(1) * vol(i,j,k) * secondary_factor)
+             call reduce_add(vel_s_y, momSymmetric(2) * vol(i,j,k) * secondary_factor)
+             call reduce_add(vel_s_z, momSymmetric(3) * vol(i,j,k) * secondary_factor)
 
           enddo
        enddo
@@ -1766,7 +1766,7 @@ contains
                                         bind(C, name='ca_volumeindensityboundary')
 
     use amrex_constants_module, only: ZERO, ONE
-    use amrex_fort_module, only: amrex_reduce_add
+    use amrex_fort_module, only: reduce_add
 
     implicit none
 
@@ -1809,8 +1809,8 @@ contains
 
              endif
 
-             call amrex_reduce_add(volp, vol(i,j,k) * primary_factor)
-             call amrex_reduce_add(vols, vol(i,j,k) * secondary_factor)
+             call reduce_add(volp, vol(i,j,k) * primary_factor)
+             call reduce_add(vols, vol(i,j,k) * secondary_factor)
 
           enddo
        enddo
@@ -1832,7 +1832,7 @@ contains
                                           vol, vo_lo, vo_hi, &
                                           lo, hi, dx, time, Qtt) bind(C,name='quadrupole_tensor_double_dot')
 
-    use amrex_fort_module, only: amrex_reduce_add
+    use amrex_fort_module, only: reduce_add
     use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
     use prob_params_module, only: center, dim
     use castro_util_module, only: position ! function
@@ -1961,7 +1961,7 @@ contains
              dQ = dQ - THIRD * dQtt(m,m)
           end if
 
-          call amrex_reduce_add(Qtt(l,m), dQ)
+          call reduce_add(Qtt(l,m), dQ)
 
        enddo
     enddo

@@ -896,7 +896,7 @@ contains
     use prob_params_module, only : domlo_level, domhi_level, center
     use castro_util_module, only: position ! function
     use castro_util_module, only: linear_to_angular_momentum ! function
-    use amrex_fort_module, only: amrex_reduce_add
+    use reduction_module, only: reduce_add
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
@@ -931,17 +931,17 @@ contains
 
              loc = position(i,j,k,ccz=.false.) - center
 
-             call amrex_reduce_add(mass_lost, -flux3(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, -flux3(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, -flux3(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, -flux3(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, -flux3(i,j,k,UEDEN))
+             call reduce_add(mass_lost, -flux3(i,j,k,URHO))
+             call reduce_add(xmom_lost, -flux3(i,j,k,UMX))
+             call reduce_add(ymom_lost, -flux3(i,j,k,UMY))
+             call reduce_add(zmom_lost, -flux3(i,j,k,UMZ))
+             call reduce_add(eden_lost, -flux3(i,j,k,UEDEN))
 
              flux(:) = flux3(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, -ang_mom(1))
-             call amrex_reduce_add(yang_lost, -ang_mom(2))
-             call amrex_reduce_add(zang_lost, -ang_mom(3))
+             call reduce_add(xang_lost, -ang_mom(1))
+             call reduce_add(yang_lost, -ang_mom(2))
+             call reduce_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -956,17 +956,17 @@ contains
 
              loc = position(i,j,k,ccz=.false.) - center
 
-             call amrex_reduce_add(mass_lost, flux3(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, flux3(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, flux3(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, flux3(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, flux3(i,j,k,UEDEN))
+             call reduce_add(mass_lost, flux3(i,j,k,URHO))
+             call reduce_add(xmom_lost, flux3(i,j,k,UMX))
+             call reduce_add(ymom_lost, flux3(i,j,k,UMY))
+             call reduce_add(zmom_lost, flux3(i,j,k,UMZ))
+             call reduce_add(eden_lost, flux3(i,j,k,UEDEN))
 
              flux(:) = flux3(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, ang_mom(1))
-             call amrex_reduce_add(yang_lost, ang_mom(2))
-             call amrex_reduce_add(zang_lost, ang_mom(3))
+             call reduce_add(xang_lost, ang_mom(1))
+             call reduce_add(yang_lost, ang_mom(2))
+             call reduce_add(zang_lost, ang_mom(3))
 
           enddo
        enddo
@@ -983,17 +983,17 @@ contains
 
              loc = position(i,j,k,ccy=.false.) - center
 
-             call amrex_reduce_add(mass_lost, -flux2(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, -flux2(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, -flux2(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, -flux2(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, -flux2(i,j,k,UEDEN))
+             call reduce_add(mass_lost, -flux2(i,j,k,URHO))
+             call reduce_add(xmom_lost, -flux2(i,j,k,UMX))
+             call reduce_add(ymom_lost, -flux2(i,j,k,UMY))
+             call reduce_add(zmom_lost, -flux2(i,j,k,UMZ))
+             call reduce_add(eden_lost, -flux2(i,j,k,UEDEN))
 
              flux(:) = flux2(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, -ang_mom(1))
-             call amrex_reduce_add(yang_lost, -ang_mom(2))
-             call amrex_reduce_add(zang_lost, -ang_mom(3))
+             call reduce_add(xang_lost, -ang_mom(1))
+             call reduce_add(yang_lost, -ang_mom(2))
+             call reduce_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -1008,17 +1008,17 @@ contains
 
              loc = position(i,j,k,ccy=.false.) - center
 
-             call amrex_reduce_add(mass_lost, flux2(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, flux2(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, flux2(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, flux2(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, flux2(i,j,k,UEDEN))
+             call reduce_add(mass_lost, flux2(i,j,k,URHO))
+             call reduce_add(xmom_lost, flux2(i,j,k,UMX))
+             call reduce_add(ymom_lost, flux2(i,j,k,UMY))
+             call reduce_add(zmom_lost, flux2(i,j,k,UMZ))
+             call reduce_add(eden_lost, flux2(i,j,k,UEDEN))
 
              flux(:) = flux2(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, ang_mom(1))
-             call amrex_reduce_add(yang_lost, ang_mom(2))
-             call amrex_reduce_add(zang_lost, ang_mom(3))
+             call reduce_add(xang_lost, ang_mom(1))
+             call reduce_add(yang_lost, ang_mom(2))
+             call reduce_add(zang_lost, ang_mom(3))
 
           enddo
        enddo
@@ -1034,17 +1034,17 @@ contains
 
              loc = position(i,j,k,ccx=.false.) - center
 
-             call amrex_reduce_add(mass_lost, -flux1(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, -flux1(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, -flux1(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, -flux1(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, -flux1(i,j,k,UEDEN))
+             call reduce_add(mass_lost, -flux1(i,j,k,URHO))
+             call reduce_add(xmom_lost, -flux1(i,j,k,UMX))
+             call reduce_add(ymom_lost, -flux1(i,j,k,UMY))
+             call reduce_add(zmom_lost, -flux1(i,j,k,UMZ))
+             call reduce_add(eden_lost, -flux1(i,j,k,UEDEN))
 
              flux(:) = flux1(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, -ang_mom(1))
-             call amrex_reduce_add(yang_lost, -ang_mom(2))
-             call amrex_reduce_add(zang_lost, -ang_mom(3))
+             call reduce_add(xang_lost, -ang_mom(1))
+             call reduce_add(yang_lost, -ang_mom(2))
+             call reduce_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -1059,17 +1059,17 @@ contains
 
              loc = position(i,j,k,ccx=.false.) - center
 
-             call amrex_reduce_add(mass_lost, flux1(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, flux1(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, flux1(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, flux1(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, flux1(i,j,k,UEDEN))
+             call reduce_add(mass_lost, flux1(i,j,k,URHO))
+             call reduce_add(xmom_lost, flux1(i,j,k,UMX))
+             call reduce_add(ymom_lost, flux1(i,j,k,UMY))
+             call reduce_add(zmom_lost, flux1(i,j,k,UMZ))
+             call reduce_add(eden_lost, flux1(i,j,k,UEDEN))
 
              flux(:) = flux1(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, ang_mom(1))
-             call amrex_reduce_add(yang_lost, ang_mom(2))
-             call amrex_reduce_add(zang_lost, ang_mom(3))
+             call reduce_add(xang_lost, ang_mom(1))
+             call reduce_add(yang_lost, ang_mom(2))
+             call reduce_add(zang_lost, ang_mom(3))
 
           enddo
        enddo

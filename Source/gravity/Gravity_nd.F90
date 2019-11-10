@@ -930,7 +930,7 @@ contains
                            lnum, npts, nlo, index, do_parity)
 
     use amrex_constants_module, only: ONE
-    use amrex_fort_module, only: amrex_reduce_add
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -976,7 +976,7 @@ contains
                 dQ = dQ * parity_q0(l)
              end if
 
-             call amrex_reduce_add(qL0(l,n), dQ)
+             call reduce_add(qL0(l,n), dQ)
 
           else
 
@@ -986,7 +986,7 @@ contains
              if (parity) then
                 dQ = dQ * parity_q0(l)
              end if
-             call amrex_reduce_add(qU0(l,n), dQ)
+             call reduce_add(qU0(l,n), dQ)
 
           end if
 
@@ -1012,13 +1012,13 @@ contains
                 if (parity) then
                    dQ = dQ * parity_qC_qS(l,m)
                 end if
-                call amrex_reduce_add(qLC(l,m,n), dQ)
+                call reduce_add(qLC(l,m,n), dQ)
 
                 dQ = assocLegPolyLM * sin(m * phiAngle) * rho_r_L * vol * factArray(l,m)
                 if (parity) then
                    dQ = dQ * parity_qC_qS(l,m)
                 end if
-                call amrex_reduce_add(qLS(l,m,n), dQ)
+                call reduce_add(qLS(l,m,n), dQ)
 
              else
 
@@ -1028,13 +1028,13 @@ contains
                 if (parity) then
                    dQ = dQ * parity_qC_qS(l,m)
                 end if
-                call amrex_reduce_add(qUC(l,m,n), dQ)
+                call reduce_add(qUC(l,m,n), dQ)
 
                 dQ = assocLegPolyLM * sin(m * phiAngle) * rho_r_U * vol * factArray(l,m)
                 if (parity) then
                    dQ = dQ * parity_qC_qS(l,m)
                 end if
-                call amrex_reduce_add(qUS(l,m,n), dQ)
+                call reduce_add(qUS(l,m,n), dQ)
 
              end if
 
