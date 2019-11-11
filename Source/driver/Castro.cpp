@@ -1150,6 +1150,9 @@ Castro::initData ()
          Sborder.clear();
 
        }
+#else
+       // Enforce that the total and internal energies are consistent.
+       enforce_consistent_e(S_new);
 #endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
