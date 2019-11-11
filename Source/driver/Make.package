@@ -2,7 +2,6 @@
 
 ca_F90EXE_sources += amrinfo.F90
 ca_F90EXE_sources += Castro_error.F90
-ca_F90EXE_sources += filcc_nd.F90
 
 CEXE_sources += Castro.cpp
 CEXE_sources += Castro_advance.cpp
