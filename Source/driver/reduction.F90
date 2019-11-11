@@ -6,7 +6,7 @@ module reduction_module
 
 contains
 
-#ifndef AMREX_USE_CUDA
+#if !(defined(AMREX_USE_CUDA) && defined(AMREX_GPU_PRAGMA_NO_HOST))
 
   subroutine reduce_max(x, y)
 
@@ -21,9 +21,16 @@ contains
 
   end subroutine reduce_max
 
-#else
+#endif
 
+#ifdef AMREX_USE_CUDA
+  ! Select function name based on GPU pragma choice.
+
+#ifdef AMREX_GPU_PRAGMA_NO_HOST
   attributes(device) subroutine reduce_max(x, y)
+#else
+  attributes(device) subroutine reduce_max_device(x, y)
+#endif
 
     implicit none
 
@@ -36,13 +43,16 @@ contains
 
     t = atomicMax(x, y)
 
+#ifdef AMREX_GPU_PRAGMA_NO_HOST
   end subroutine reduce_max
-
+#else
+  end subroutine reduce_max_device
+#endif
 #endif
 
 
 
-#ifndef AMREX_USE_CUDA
+#if !(defined(AMREX_USE_CUDA) && defined(AMREX_GPU_PRAGMA_NO_HOST))
 
   subroutine reduce_min(x, y)
 
@@ -57,9 +67,15 @@ contains
 
   end subroutine reduce_min
 
-#else
+#endif
 
+#ifdef AMREX_USE_CUDA
+
+#ifdef AMREX_GPU_PRAGMA_NO_HOST
   attributes(device) subroutine reduce_min(x, y)
+#else
+  attributes(device) subroutine reduce_min_device(x, y)
+#endif
 
     implicit none
 
@@ -72,13 +88,16 @@ contains
 
     t = atomicMin(x, y)
 
+#ifdef AMREX_GPU_PRAGMA_NO_HOST
   end subroutine reduce_min
-
+#else
+  end subroutine reduce_min_device
+#endif
 #endif
 
 
 
-#ifndef AMREX_USE_CUDA
+#if !(defined(AMREX_USE_CUDA) && defined(AMREX_GPU_PRAGMA_NO_HOST))
 
   subroutine reduce_add(x, y)
 
@@ -91,7 +110,9 @@ contains
 
   end subroutine reduce_add
 
-#else
+#endif
+
+#ifdef AMREX_USE_CUDA
 
   attributes(device) function warpReduceSum(x) result(y)
     ! Reduce within a warp.
@@ -164,7 +185,11 @@ contains
 
   end function blockReduceSum
 
+#ifdef AMREX_GPU_PRAGMA_NO_HOST
   attributes(device) subroutine reduce_add(x, y)
+#else
+  attributes(device) subroutine reduce_add_device(x, y)
+#endif
     ! Do a shared memory reduction within a threadblock,
     ! then do an atomic add with a single thread in the block.
 
@@ -185,7 +210,11 @@ contains
 
     end if
 
+#ifdef AMREX_GPU_PRAGMA_NO_HOST
   end subroutine reduce_add
+#else
+  end subroutine reduce_add_device
+#endif
 
 #endif
 

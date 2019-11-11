@@ -181,7 +181,11 @@ contains
 
     ! Wrapper kernel for calling the device EOS.
 
+#ifdef AMREX_GPU_PRAGMA_NO_HOST
     call eos(input, state)
+#else
+    call eos_device(input, state)
+#endif
 
   end subroutine launch_eos
 #endif
