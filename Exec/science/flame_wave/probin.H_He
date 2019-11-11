@@ -16,10 +16,16 @@
   atm_delta  = 50.0
 
   fuel1_name = "hydrogen-1"
-  fuel1_frac = 0.75d0
+  fuel1_frac = 0.74d0
 
   fuel2_name = "helium-4"
   fuel2_frac = 0.25d0
+
+  fuel3_name = "oxygen-14"
+  fuel3_frac = 3.5e-3
+
+  fuel4_name = "oxygen-15"
+  fuel4_frac = 6.5e-3
 
   ash1_name  = "nickel-56"
   ash1_frac = 1.0d0
@@ -50,4 +56,8 @@
   atol_spec = 1.d-6
 
   use_tables = T
+
+  retry_burn = F
+  abort_on_failure = F
+  
 /
