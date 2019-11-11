@@ -475,6 +475,12 @@ Castro::read_params ()
    }
 #endif
 
+#ifdef AMREX_USE_CUDA
+   if (do_scf_initial_model) {
+       amrex::Error("SCF initial model construction is currently not permitted if USE_CUDA=TRUE at compile time.");
+   }
+#endif
+
    StateDescriptor::setBndryFuncThreadSafety(bndry_func_thread_safe);
 
    ParmParse ppa("amr");
@@ -2276,9 +2282,11 @@ Castro::post_init (Real stop_time)
 
 #ifdef GRAVITY
 #ifdef ROTATION
+#ifndef AMREX_USE_CUDA
     if (do_scf_initial_model) {
         scf_relaxation();
     }
+#endif
 #endif
 #endif
 
