@@ -3461,10 +3461,12 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
     {
 
       int num_ghost = ng;
+#ifdef TRUE_SDC
       if (sdc_order == 4) {
         // only one ghost cell is at cell-centers
         num_ghost = 1;
       }
+#endif
 
       const Box& bx = mfi.growntilebox(num_ghost);
 
