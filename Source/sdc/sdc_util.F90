@@ -377,8 +377,6 @@ contains
     real(rt), intent(in) :: C(NVAR)
     integer, intent(in) :: sdc_iteration
 
-    integer :: istate
-
     type(dvode_t) :: dvode_state
     type(rwork_t) :: rwork
     integer :: iwork(VODE_LIW)
@@ -497,8 +495,8 @@ contains
 
     call dvode(dvode_state, rwork, iwork, ITASK, IOPT, imode)
 
-    if (istate < 0) then
-       print *, "VODE error, istate = ", istate
+    if (dvode_state % istate < 0) then
+       print *, "VODE error, istate = ", dvode_state % istate
        call castro_error("vode termination poorly")
     endif
 
