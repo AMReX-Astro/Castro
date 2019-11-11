@@ -3474,16 +3474,20 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
         // general EOS version
 
+#ifdef TRUE_SDC
         if (sdc_order == 4) {
           // note, this is working on a growntilebox, but we will not have
           // valid cell-centers in the very last ghost cell
           ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(Stemp[mfi]));
         } else {
+#endif
 #pragma gpu box(bx)
           ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(State[mfi]));
+#ifdef TRUE_SDC
         }
+#endif
 
 #ifdef RADIATION
       }
