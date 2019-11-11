@@ -6,6 +6,8 @@ module reduction_module
 
 contains
 
+#ifndef AMREX_USE_CUDA
+
   subroutine reduce_max(x, y)
 
     implicit none
@@ -19,8 +21,9 @@ contains
 
   end subroutine reduce_max
 
-#ifdef AMREX_USE_CUDA
-  attributes(device) subroutine reduce_max_device(x, y)
+#else
+
+  attributes(device) subroutine reduce_max(x, y)
 
     implicit none
 
@@ -33,10 +36,13 @@ contains
 
     t = atomicMax(x, y)
 
-  end subroutine reduce_max_device
+  end subroutine reduce_max
+
 #endif
 
 
+
+#ifndef AMREX_USE_CUDA
 
   subroutine reduce_min(x, y)
 
@@ -51,8 +57,9 @@ contains
 
   end subroutine reduce_min
 
-#ifdef AMREX_USE_CUDA
-  attributes(device) subroutine reduce_min_device(x, y)
+#else
+
+  attributes(device) subroutine reduce_min(x, y)
 
     implicit none
 
@@ -65,10 +72,13 @@ contains
 
     t = atomicMin(x, y)
 
-  end subroutine reduce_min_device
+  end subroutine reduce_min
+
 #endif
 
 
+
+#ifndef AMREX_USE_CUDA
 
   subroutine reduce_add(x, y)
 
@@ -81,7 +91,8 @@ contains
 
   end subroutine reduce_add
 
-#ifdef AMREX_USE_CUDA
+#else
+
   attributes(device) function warpReduceSum(x) result(y)
     ! Reduce within a warp.
     ! https://devblogs.nvidia.com/faster-parallel-reductions-kepler/
@@ -153,7 +164,7 @@ contains
 
   end function blockReduceSum
 
-  attributes(device) subroutine reduce_add_device(x, y)
+  attributes(device) subroutine reduce_add(x, y)
     ! Do a shared memory reduction within a threadblock,
     ! then do an atomic add with a single thread in the block.
 
@@ -174,7 +185,8 @@ contains
 
     end if
 
-  end subroutine reduce_add_device
+  end subroutine reduce_add
+
 #endif
 
 end module reduction_module

@@ -169,7 +169,7 @@ contains
 
 
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
   attributes(global) subroutine launch_eos(input, state)
 
     use eos_type_module, only: eos_t
@@ -181,7 +181,7 @@ contains
 
     ! Wrapper kernel for calling the device EOS.
 
-    call eos_device(input, state)
+    call eos(input, state)
 
   end subroutine launch_eos
 #endif
