@@ -75,7 +75,7 @@ contains
 
     integer :: iter
 
-    !gpu
+    !$gpu
 
     ! lo bounds
     call wsqge(pl, taul, gamel, gdot,  &
