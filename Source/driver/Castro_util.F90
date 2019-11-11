@@ -546,7 +546,7 @@ contains
     use amrinfo_module, only: amr_level
     use amrex_constants_module, only: ZERO, ONE, TWO, M_PI, FOUR
     use prob_params_module, only: dim, coord_type, dx_level
-    use castro_error_module
+    use castro_error_module, only: castro_error
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -557,6 +557,8 @@ contains
 
     logical :: cc(3) = .true.
     real(rt) :: dx(3), loc(3)
+
+    !$gpu
 
     ! Force edge-centering along the direction of interest
 
@@ -680,7 +682,7 @@ contains
     ! in 2D, and Spherical in 1D.
 
     use amrinfo_module, only: amr_level
-    use castro_error_module
+    use castro_error_module, only: castro_error
     use amrex_constants_module, only: ZERO, HALF, FOUR3RD, TWO, M_PI
     use prob_params_module, only: dim, coord_type, dx_level
     use amrex_fort_module, only: rt => amrex_real
@@ -692,6 +694,8 @@ contains
     real(rt) :: volume
 
     real(rt) :: dx(3), loc_l(3), loc_r(3)
+
+    !$gpu
 
     dx = dx_level(:,amr_level)
 
