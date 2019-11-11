@@ -405,6 +405,16 @@ Castro::read_params ()
     }
 #endif
 
+#ifndef TRUE_SDC
+    if (time_integration_method == SpectralDeferredCorrections) {
+        amrex::Error("True SDC currently requires USE_TRUE_SDC=TRUE when compiling.");
+    }
+#else
+    if (time_integration_method != SpectralDeferredCorrections) {
+        amrex::Error("When building with USE_TRUE_SDC=TRUE, only true SDC can be used.");
+    }
+#endif
+
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
