@@ -297,7 +297,8 @@ contains
     use amrex_constants_module, only: ZERO, ONE
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, time_integration_method
     use prob_params_module, only: dim
-    use amrex_fort_module, only : rt => amrex_real, amrex_max
+    use amrex_fort_module, only : rt => amrex_real
+    use reduction_module, only: reduce_max
 
     implicit none
 
@@ -411,14 +412,14 @@ contains
                 end if
 #endif
 
-                call amrex_max(courno, courtmp)
+                call reduce_max(courno, courtmp)
              endif
           enddo
        enddo
     enddo
 
     if (time_integration_method == 0) then
-       call amrex_max(courno, max(courmx, courmy, courmz))
+       call reduce_max(courno, max(courmx, courmy, courmz))
     endif
 
   end subroutine ca_compute_cfl

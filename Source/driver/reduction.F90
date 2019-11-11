@@ -6,6 +6,38 @@ module reduction_module
 
 contains
 
+  subroutine reduce_max(x, y)
+
+    implicit none
+
+    ! Set in x the maximum of x and y.
+
+    real(rt), intent(in   ) :: y
+    real(rt), intent(inout) :: x
+
+    x = max(x, y)
+
+  end subroutine reduce_max
+
+#ifdef AMREX_USE_CUDA
+  attributes(device) subroutine reduce_max_device(x, y)
+
+    implicit none
+
+    ! Set in x the maximum of x and y atomically on the GPU.
+
+    real(rt), intent(in   ) :: y
+    real(rt), intent(inout) :: x
+
+    real(rt) :: t
+
+    t = atomicMax(x, y)
+
+  end subroutine reduce_max_device
+#endif
+
+
+
   subroutine reduce_min(x, y)
 
     implicit none
