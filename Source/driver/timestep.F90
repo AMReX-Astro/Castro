@@ -117,11 +117,11 @@ contains
 #ifdef REACTIONS
 
   subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
-       snew, sn_lo, sn_hi, &
-       rold, ro_lo, ro_hi, &
-       rnew, rn_lo, rn_hi, &
-       dx, dt_old, dt) &
-       bind(C, name="ca_estdt_burning")
+                              snew, sn_lo, sn_hi, &
+                              rold, ro_lo, ro_hi, &
+                              rnew, rn_lo, rn_hi, &
+                              dx, dt) &
+                              bind(C, name="ca_estdt_burning")
     ! Reactions-limited timestep
     !
     ! .. note::
@@ -154,7 +154,7 @@ contains
     real(rt), intent(in) :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
     real(rt), intent(in) :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
     real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
-    real(rt), intent(in) :: dx(3), dt_old
+    real(rt), intent(in) :: dx(3)
     real(rt), intent(inout) :: dt
 
     real(rt)      :: e, X(nspec), dedt, dXdt(nspec)
@@ -169,6 +169,8 @@ contains
     ! is small enough such that it will result in no timestep limiting.
 
     real(rt), parameter :: derivative_floor = 1.e-50_rt
+
+    !$gpu
 
     ! We want to limit the timestep so that it is not larger than
     ! dtnuc_e * (e / (de/dt)).  If the timestep factor dtnuc is
