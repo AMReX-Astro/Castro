@@ -711,8 +711,6 @@ contains
     integer :: n, i
     real(rt) :: fact
 
-    !$gpu
-
     fact = ONE
 
     do i = 2, n
