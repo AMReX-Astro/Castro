@@ -2005,7 +2005,7 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
 #endif
     for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
-        const Box& bx = mfi.tilebox();
+        const Box& bx = mfi.growntilebox(1);
 	const Box& xbx = mfi.nodaltilebox(0);
 #if AMREX_SPACEDIM >= 2
         const Box& ybx = mfi.nodaltilebox(1);
