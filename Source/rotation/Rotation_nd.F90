@@ -339,6 +339,8 @@ contains
     integer  :: i, j, k
     real(rt) :: r(3), omega(3)
 
+    !$gpu
+
     omega = get_omega(time)
 
     do k = lo(3), hi(3)
