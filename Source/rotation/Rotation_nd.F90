@@ -19,8 +19,8 @@ contains
     use castro_util_module, only: position ! function
     use math_module, only: cross_product ! function
     use rotation_frequency_module, only: get_omega ! function
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: idx(3)
@@ -186,8 +186,8 @@ contains
     use meth_params_module, only: state_in_rotating_frame, rotation_include_centrifugal
     use math_module, only: cross_product ! function
     use rotation_frequency_module, only: get_omega ! function
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     real(rt)         :: r(3), time
@@ -326,7 +326,7 @@ contains
 
     use amrex_constants_module, only: HALF
     use prob_params_module, only: problo, center
-    use rotation_frequency_module, only: get_omega
+    use rotation_frequency_module, only: get_omega ! function
 
     implicit none
 
