@@ -52,37 +52,39 @@ contains
     ! r-z
     if (coord_type == 1) then
 
-       ! At centers
-       do i = lo(1), hi(1)
-          r = (dble(i) + 0.5e0_rt) * dx(1)
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-                rhs(i,j,k) = rhs(i,j,k) * r
-             end do
-          end do
-       end do
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-       ! On x-edges
-       do i = xlo(1), xhi(1)
-          r = dble(i) * dx(1)
-          do k = xlo(3), xhi(3)
-             do j = xlo(2), xhi(2)
-                ecx(i,j,k) = ecx(i,j,k) * r
-             end do
-          end do
-       end do
+                ! At centers
+                if (i .ge. rlo(1) .and. i .le. rhi(1) .and. &
+                    j .ge. rlo(2) .and. j .le. rhi(2) .and. &
+                    k .ge. rlo(3) .and. k .le. rhi(3)) then
+                   r = (dble(i) + 0.5e0_rt) * dx(1)
+                   rhs(i,j,k) = rhs(i,j,k) * r
+                end if
+
+                ! On x-edges
+                if (i .ge. xlo(1) .and. i .le. xhi(1) .and. &
+                    j .ge. xlo(2) .and. j .le. xhi(2) .and. &
+                    k .ge. xlo(3) .and. k .le. xhi(3)) then
+                   r = dble(i) * dx(1)
+                   ecx(i,j,k) = ecx(i,j,k) * r
+                end if
 
 #if AMREX_SPACEDIM >= 2
-       ! On y-edges
-       do i = ylo(1), yhi(1)
-          r = (dble(i) + 0.5e0_rt) * dx(1)
-          do k = ylo(3), yhi(3)
-             do j = ylo(2), yhi(2)
-                ecy(i,j,k) = ecy(i,j,k) * r
+                ! On y-edges
+                if (i .ge. ylo(1) .and. i .le. yhi(1) .and. &
+                    j .ge. ylo(2) .and. j .le. yhi(2) .and. &
+                    k .ge. ylo(3) .and. k .le. yhi(3)) then
+                   r = (dble(i) + 0.5e0_rt) * dx(1)
+                   ecy(i,j,k) = ecy(i,j,k) * r
+                end if
+#endif
+
              end do
           end do
        end do
-#endif
 
 #ifndef AMREX_USE_CUDA
     else
