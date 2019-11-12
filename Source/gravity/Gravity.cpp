@@ -1998,17 +1998,18 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
 #endif
 
         // Modify Rhs and coeffs with the appropriate metric terms.
-        ca_apply_metric(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-		        AMREX_ARLIM_ANYD(xbx.loVect()), AMREX_ARLIM_ANYD(xbx.hiVect()),
+#pragma gpu box(bx)
+        ca_apply_metric(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		        AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
 #if AMREX_SPACEDIM >= 2
-                        AMREX_ARLIM_ANYD(ybx.loVect()), AMREX_ARLIM_ANYD(ybx.hiVect()),
+                        AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
 #endif
 			BL_TO_FORTRAN_ANYD(Rhs[mfi]),
 			BL_TO_FORTRAN_ANYD((*coeffs[0])[mfi]),
 #if AMREX_SPACEDIM >= 2
                         BL_TO_FORTRAN_ANYD((*coeffs[1])[mfi]),
 #endif
-			AMREX_ZFILL(dx), coord_type);
+			AMREX_REAL_ANYD(dx), coord_type);
     }
 }
 
@@ -2043,9 +2044,11 @@ Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
 	for (MFIter mfi(*edges[idir],true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-	    ca_unweight_edges(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+
+#pragma gpu box(bx)
+	    ca_unweight_edges(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			      BL_TO_FORTRAN_ANYD((*edges[idir])[mfi]),
-			      AMREX_ZFILL(dx),
+			      AMREX_REAL_ANYD(dx),
                               coord_type, idir);
 	}
     }

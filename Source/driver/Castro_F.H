@@ -145,7 +145,7 @@ extern "C"
     (const int* lo, const int* hi,
      const int* xlo, const int* xhi,
 #if AMREX_SPACEDIM >= 2
-     const int* ylo, const int *yhi,
+     const int* ylo, const int* yhi,
 #endif
      BL_FORT_FAB_ARG_3D(cc),
      const BL_FORT_FAB_ARG_3D(xedge),
