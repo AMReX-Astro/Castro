@@ -4,7 +4,7 @@ module model_util_module
 
 contains
 
-  pure function set_species(y) result (xn)
+  function set_species(y) result (xn)
 
     use network, only : nspec
     use amrex_constants_module, only: HALF, ZERO, M_PI, ONE
@@ -15,19 +15,20 @@ contains
 
     !$gpu
 
-    xn(:) = ZERO
+    xn(1:nspec) = ZERO
     xn(1) = ONE - fv(y)
     xn(2) = fv(y)
 
   end function set_species
 
-  pure function fv(y) result (f_v)
+  function fv(y) result (f_v)
 
     use amrex_constants_module, only: HALF, ZERO, M_PI, ONE
     use amrex_fort_module, only : rt => amrex_real
 
     real(rt), intent(in) :: y
     real(rt) :: f_v
+    real(rt) :: x
 
     !$gpu
 
@@ -38,29 +39,32 @@ contains
        f_v = ONE
 
     else
-       f_v = HALF * (ONE + sin(8.e0_rt * M_PI * (y/4.e8_rt - 2.e0_rt)))
+       x = 8.e0_rt * M_PI * (y/4.e8_rt - 2.e0_rt)
+       f_v = HALF * (ONE + sin(x))
     endif
 
   end function fv
 
-  pure function dfvdy(y) result (df_vdy)
+  function dfvdy(y) result (dfv_dy)
 
     use amrex_constants_module, only: HALF, ZERO, M_PI, ONE
     use amrex_fort_module, only : rt => amrex_real
 
     real(rt), intent(in) :: y
-    real(rt) :: df_vdy
+    real(rt) :: dfv_dy
+    real(rt) :: x
 
     !$gpu
 
     if (y < 1.9375e0_rt * 4.e8_rt) then
-       df_vdy = ZERO
+       dfv_dy = ZERO
 
     else if (y > 2.0625e0_rt * 4.e8_rt) then
-       df_vdy = ZERO
+       dfv_dy = ZERO
 
     else
-       df_vdy = HALF*8.e0_rt*M_PI * cos(8.e0_rt * M_PI* (y/4.e8_rt - 2.e0_rt))/4.e8_rt
+       x = 8.e0_rt * M_PI * (y/4.e8_rt - 2.e0_rt)
+       dfv_dy = HALF*8.e0_rt*M_PI * cos(x)/4.e8_rt
     endif
 
   end function dfvdy
@@ -69,8 +73,8 @@ contains
 
     use amrex_constants_module, only: HALF, ZERO, M_PI, ONE
     use amrex_fort_module, only : rt => amrex_real
-    use eos_type_module
-    use eos_module
+    use eos_type_module, only: eos_input_rp, eos_t
+    use eos_module, only: eos_on_host
     use prescribe_grav_module, only : grav_zone ! function
     use probdata_module, only: gamma1
     use meth_params_module, only : T_guess
@@ -85,14 +89,12 @@ contains
     ! U(1) = rho
     ! U(2) = p
 
-    !$gpu
-
     eos_state % rho = U(1)
     eos_state % p = U(2)
     eos_state % xn = set_species(y)
     eos_state % T = T_guess
 
-    call eos(eos_input_rp, eos_state)
+    call eos_on_host(eos_input_rp, eos_state)
 
     gamma0 = eos_state % gam1
     gamma = gamma0 + fv(y) * (gamma1 - gamma0)
@@ -110,23 +112,21 @@ contains
     use amrex_constants_module, only: HALF, ZERO, M_PI, ONE, TWO
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : sdc_order, T_guess
-    use model_parser_module
+    use model_parser_module, only: model_r, model_state, npts_model, nvars_model, idens_model, ipres_model, ispec_model, itemp_model
     use network, only : nspec
     use eos_type_module, only : eos_t, eos_input_rp
-    use eos_module, only : eos
+    use eos_module, only : eos_on_host
 
     implicit none
 
     integer, intent(in) :: ny
     real(rt), intent(in) :: rho0, p0, ymin, ymax
 
-    real(rt) :: ystart, y, dy, k1(2), k2(2), k3(2), k4(2)
+    real(rt) :: ystart, y, dy, k1(2), k2(2), k3(2), k4(2), ytmp
     real(rt) :: U_old(2), U_new(2), h, U_star(2)
 
     integer :: j
     type (eos_t) :: eos_state
-
-    !$gpu
 
     ! allocate the storage in the model_parser_module
     npts_model = ny
@@ -156,32 +156,35 @@ contains
 
        ystart = y - h
 
-
        if (sdc_order /= 4) then
 
           ! do HSE using RK2
 
-          k1(:) = dUdy(ystart, U_old)
+          k1 = dUdy(ystart, U_old)
 
-          U_star(:) = U_old + HALF*h * k1
-          U_new(:) = U_old(:) + h * dUdy(ystart + HALF*h, U_star)
+          U_star = U_old + HALF*h * k1
+          ytmp = ystart + HALF*h
+          U_new = U_old + h * dUdy(ytmp, U_star)
 
        else
 
           ! do HSE using RK4
 
-          k1(:) = dUdy(ystart, U_old)
-          U_star(:) = U_old(:) + HALF*h * k1(:)
+          k1 = dUdy(ystart, U_old)
+          U_star = U_old + HALF*h * k1
 
-          k2(:) = dUdy(ystart + HALF*h, U_star)
-          U_star(:) = U_old(:) + HALF*h * k2(:)
+          ytmp = ystart + HALF*h
+          k2= dUdy(ytmp, U_star)
+          U_star = U_old + HALF*h * k2
 
-          k3(:) = dUdy(ystart + HALF*h, U_star)
-          U_star(:) = U_old(:) + h * k3(:)
+          ytmp = ystart + HALF*h
+          k3 = dUdy(ytmp, U_star)
+          U_star = U_old + h * k3
 
-          k4(:) = dUdy(ystart + h, U_star)
+          ytmp = ystart + h
+          k4 = dUdy(ytmp, U_star)
 
-          U_new = U_old(:) + (1.0_rt/6.0_rt) * h * (k1(:) + TWO*k2(:) + TWO*k3(:) + k4(:))
+          U_new = U_old + (1.0_rt/6.0_rt) * h * (k1 + TWO*k2 + TWO*k3 + k4)
 
        end if
 
@@ -191,14 +194,14 @@ contains
 
        eos_state % T = T_guess
        eos_state % rho = model_state(j, idens_model)
-       eos_state % xn(:) = model_state(j, ispec_model:ispec_model-1+nspec)
+       eos_state % xn(1:nspec) = model_state(j, ispec_model:ispec_model-1+nspec)
        eos_state % p = model_state(j, ipres_model)
 
-       call eos(eos_input_rp, eos_state)
+       call eos_on_host(eos_input_rp, eos_state)
 
        model_state(j, itemp_model) = eos_state % T
 
-       U_old(:) = U_new(:)
+       U_old = U_new
 
     end do
 

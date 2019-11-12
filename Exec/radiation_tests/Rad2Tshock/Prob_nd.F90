@@ -21,7 +21,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state % T   =   T0
   eos_state % xn  = 1.e0_rt
 
-  call eos(eos_input_rt, eos_state)
+  call eos_on_host(eos_input_rt, eos_state)
 
   eint0 = rho0 * eos_state % e
   etot0 = eint0 + 0.5*rho0*v0**2
@@ -29,7 +29,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state % rho = rho1
   eos_state % T   =   T1
 
-  call eos(eos_input_rt, eos_state)
+  call eos_on_host(eos_input_rt, eos_state)
 
   eint1 = rho1 * eos_state % e
   etot1 = eint1 + 0.5*rho1*v1**2

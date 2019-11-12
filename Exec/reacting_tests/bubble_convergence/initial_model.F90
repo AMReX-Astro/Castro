@@ -26,7 +26,7 @@ contains
     use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
 
-    use eos_module, only: eos
+    use eos_module, only: eos_on_host
     use eos_type_module, only: eos_t, eos_input_rt, eos_input_ps
     use network, only : nspec
     use meth_params_module, only : const_grav, sdc_order
@@ -69,7 +69,7 @@ contains
     eos_state % T = model_params % T_base
     eos_state % xn(:) = model_params % xn(:)
 
-    call eos(eos_input_rt, eos_state)
+    call eos_on_host(eos_input_rt, eos_state)
 
     entropy_fixed = eos_state % s
 
@@ -130,7 +130,7 @@ contains
           eos_state % p = pnew
           eos_state % s = s
 
-          call eos(eos_input_ps, eos_state)
+          call eos_on_host(eos_input_ps, eos_state)
 
           ! update the thermodynamics in this zone
           model_state(i, idens_model) = eos_state % rho
@@ -171,7 +171,7 @@ contains
           eos_state % p = pnew
           eos_state % s = s
 
-          call eos(eos_input_ps, eos_state)
+          call eos_on_host(eos_input_ps, eos_state)
 
           ! update the thermodynamics in this zone
           model_state(i, idens_model) = eos_state % rho
@@ -201,7 +201,7 @@ contains
              eos_state % xn(:) = model_params % xn(:)
              eos_state % s = entropy_fixed
 
-             call eos(eos_input_ps, eos_state)
+             call eos_on_host(eos_input_ps, eos_state)
 
              model_state(i, idens_model) = eos_state % rho
              model_state(i, itemp_model) = eos_state % T
@@ -223,7 +223,7 @@ contains
                 eos_state % s = entropy_fixed
                 eos_state % xn(:) = model_params % xn(:)
 
-                call eos(eos_input_ps, eos_state)
+                call eos_on_host(eos_input_ps, eos_state)
 
                 drho = eos_state % rho - dens_zone
                 dens_zone = eos_state % rho
@@ -267,7 +267,7 @@ contains
              eos_state % s = entropy_fixed
              eos_state % xn(:) = model_params % xn(:)
 
-             call eos(eos_input_ps, eos_state)
+             call eos_on_host(eos_input_ps, eos_state)
 
              drho = eos_state % rho - dens_zone
              dens_zone = eos_state % rho
@@ -298,7 +298,7 @@ contains
   function f(p, s, g, rho, T, xn) result (rhs)
 
     use eos_type_module, only : eos_t, eos_input_ps
-    use eos_module, only : eos
+    use eos_module, only : eos_on_host
 
     real(rt), intent(in) :: p, s, g, rho, T, xn(nspec)
 
@@ -311,7 +311,7 @@ contains
     eos_state % p = p
     eos_state % s = s
 
-    call eos(eos_input_ps, eos_state)
+    call eos_on_host(eos_input_ps, eos_state)
 
     rhs = eos_state % rho * g
 

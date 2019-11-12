@@ -2,7 +2,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   use probdata_module
   use network, only : network_init
-  use eos_module, only: eos
+  use eos_module, only: eos_on_host
   use eos_type_module, only: eos_t, eos_input_re
   use network, only : nspec
   use amrex_fort_module, only : rt => amrex_real
@@ -55,7 +55,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state % e = e_0
   eos_state % xn = X_in
 
-  call eos(eos_input_re, eos_state)
+  call eos_on_host(eos_input_re, eos_state)
 
   T_0 = eos_state % T
 

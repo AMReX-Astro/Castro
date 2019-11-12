@@ -14,6 +14,8 @@ contains
     real(rt), intent(in) :: state(NVAR)
     logical :: burn_flag
 
+    !$gpu
+
     burn_flag = .true.
 
     if (state(UTEMP) < react_T_min .or. state(UTEMP) > react_T_max .or. &
@@ -48,6 +50,8 @@ contains
     real(rt) :: rhoInv
     integer :: n
     real(rt) :: small_temp
+
+    !$gpu
 
     rhoInv = ONE / state(URHO)
 
@@ -108,7 +112,9 @@ contains
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
     use numerical_jac_module
-    use castro_error_module
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
 
     implicit none
 
@@ -122,8 +128,12 @@ contains
     ! for computing a numerical derivative
     real(rt) :: eps = 1.e-8_rt
 
+    !$gpu
+
 #ifdef SIMPLIFIED_SDC
+#ifndef AMREX_USE_GPU
     call castro_error("we shouldn't be here with the simplified SDC method (USE_SIMPLIFIED_SDC=TRUE)")
+#endif
 #else
     if (sdc_use_analytic_jac == 0) then
        ! note the numerical Jacobian will be returned in terms of X

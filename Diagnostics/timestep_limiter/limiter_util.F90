@@ -1,5 +1,4 @@
-! Process a sedov problem to produce rho, u, p and e as a
-! function of r, for comparison to the analytic solution.
+! Process a plotfile to find the location where the timestep is being limited.
 
 subroutine microphysics_initialize(name, namlen) bind(C, name='microphysics_initialize')
     use eos_module, only: eos_init
@@ -30,7 +29,6 @@ subroutine microphysics_finalize() bind(C, name='microphysics_finalize')
     call network_finalize()
 
 end subroutine microphysics_finalize
-
 
 subroutine find_timestep_limiter(lo, hi, state, slo, shi, nc_s, &
      dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp, spec_comp, time_integration_method, dx, dt, dt_loc) &

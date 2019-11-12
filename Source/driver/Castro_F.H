@@ -145,7 +145,7 @@ extern "C"
     (const int* lo, const int* hi,
      const int* xlo, const int* xhi,
 #if AMREX_SPACEDIM >= 2
-     const int* ylo, const int *yhi,
+     const int* ylo, const int* yhi,
 #endif
      BL_FORT_FAB_ARG_3D(cc),
      const BL_FORT_FAB_ARG_3D(xedge),
@@ -240,7 +240,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state_new),
      const BL_FORT_FAB_ARG_3D(reactions_old),
      const BL_FORT_FAB_ARG_3D(reactions_new),
-     const amrex::Real* dx, const amrex::Real* dt_old, amrex::Real* dt);
+     const amrex::Real* dx, amrex::Real* dt);
 #endif
 
   void ca_check_timestep

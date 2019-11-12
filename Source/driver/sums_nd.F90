@@ -11,7 +11,8 @@ contains
   subroutine ca_summass(lo, hi, rho, r_lo, r_hi, dx, &
                         vol, v_lo, v_hi, mass) bind(C, name='ca_summass')
 
-    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -34,7 +35,7 @@ contains
 
              dm = rho(i,j,k) * vol(i,j,k)
 
-             call amrex_reduce_add(mass, dm)
+             call reduce_add(mass, dm)
 
           enddo
        enddo
@@ -47,7 +48,8 @@ contains
   subroutine ca_sumsquared(lo, hi, rho, r_lo, r_hi, dx,&
                            vol, v_lo, v_hi, mass) bind(C, name="ca_sumsquared")
 
-    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -69,7 +71,7 @@ contains
 
              dm2 = rho(i,j,k) * rho(i,j,k) * vol(i,j,k)
 
-             call amrex_reduce_add(mass, dm2)
+             call reduce_add(mass, dm2)
 
           enddo
        enddo
@@ -84,7 +86,8 @@ contains
 
     use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
     use amrex_constants_module, only: ZERO, HALF
-    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -118,7 +121,7 @@ contains
           x = x + symlo + symhi
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
-                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x)
+                call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x)
              enddo
           enddo
        enddo
@@ -134,7 +137,7 @@ contains
           y = y + symlo + symhi
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
-                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y)
+                call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y)
              enddo
           enddo
        enddo
@@ -150,7 +153,7 @@ contains
           z = z + symlo + symhi
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z)
+                call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z)
              enddo
           enddo
        enddo
@@ -165,7 +168,8 @@ contains
 
     use prob_params_module, only: problo, center, probhi, dim, physbc_lo, physbc_hi, Symmetry
     use amrex_constants_module, only: ZERO, HALF
-    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -202,7 +206,7 @@ contains
           if (idir2 .eq. 0) then
              do k = lo(3), hi(3)
                 do j = lo(2), hi(2)
-                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x * x)
+                   call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x * x)
                 enddo
              enddo
           elseif (idir2 .eq. 1 .and. dim .ge. 2) then
@@ -216,7 +220,7 @@ contains
                 endif
                 y = y + symlo2 + symhi2
                 do k = lo(3), hi(3)
-                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x * y)
+                   call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x * y)
                 enddo
              enddo
           elseif (dim .eq. 3) then
@@ -230,7 +234,7 @@ contains
                 endif
                 z = z + symlo2 + symhi2
                 do j = lo(2), hi(2)
-                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x * z)
+                   call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * x * z)
                 enddo
              enddo
           endif
@@ -256,13 +260,13 @@ contains
                 endif
                 x = x + symlo2 + symhi2
                 do k = lo(3), hi(3)
-                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y * x)
+                   call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y * x)
                 enddo
              enddo
           elseif (idir2 .eq. 1) then
              do i = lo(1), hi(1)
                 do k = lo(3), hi(3)
-                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y * y)
+                   call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y * y)
                 enddo
              enddo
           elseif (dim .eq. 3) then
@@ -276,7 +280,7 @@ contains
                 endif
                 z = z + symlo2 + symhi2                   
                 do i = lo(1), hi(1)
-                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y * z)
+                   call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * y * z)
                 enddo
              enddo
           endif
@@ -302,7 +306,7 @@ contains
                 endif
                 x = x + symlo2 + symhi2
                 do j = lo(2), hi(2)
-                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z * x)
+                   call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z * x)
                 enddo
              enddo
           elseif (idir2 .eq. 1) then
@@ -316,13 +320,13 @@ contains
                 endif
                 y = y + symlo2 + symhi2
                 do i = lo(1), hi(1)
-                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z * y)
+                   call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z * y)
                 enddo
              enddo
           else
              do j = lo(2), hi(2)
                 do i = lo(1), hi(1)
-                   call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z * z)
+                   call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * z * z)
                 enddo
              enddo
           endif
@@ -338,7 +342,8 @@ contains
 
     use prob_params_module, only: problo, center, dim
     use amrex_constants_module, only: HALF
-    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -361,7 +366,7 @@ contains
           x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
-                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (x**2))
+                call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (x**2))
              enddo
           enddo
        enddo
@@ -370,7 +375,7 @@ contains
           y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
           do k = lo(3), hi(3)
              do i = lo(1), hi(1)
-                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (y**2))
+                call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (y**2))
              enddo
           enddo
        enddo
@@ -379,7 +384,7 @@ contains
           z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                call amrex_reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (z**2))
+                call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (z**2))
              enddo
           enddo
        enddo
@@ -392,7 +397,8 @@ contains
   subroutine ca_sumproduct(lo, hi, f1, f1_lo, f1_hi, f2, f2_lo, f2_hi, dx,&
                            vol, v_lo, v_hi, product) bind(C, name="ca_sumproduct")
 
-    use amrex_fort_module, only: rt => amrex_real, amrex_reduce_add
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -413,7 +419,7 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             call amrex_reduce_add(product, f1(i,j,k) * f2(i,j,k) * vol(i,j,k))
+             call reduce_add(product, f1(i,j,k) * f2(i,j,k) * vol(i,j,k))
           enddo
        enddo
     enddo

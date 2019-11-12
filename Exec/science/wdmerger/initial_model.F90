@@ -116,7 +116,7 @@ contains
 
   subroutine establish_hse(model, rho, T, xn, r)
 
-    use eos_module, only: eos
+    use eos_module, only: eos_on_host
 
     implicit none
 
@@ -200,7 +200,7 @@ contains
        model % state(1) % T    = T(1)
        model % state(1) % xn   = xn(1,:)
 
-       call eos(eos_input_rt, model % state(1))
+       call eos_on_host(eos_input_rt, model % state(1))
 
        ! Make the initial guess be completely uniform.
 
@@ -261,7 +261,7 @@ contains
              rho_avg = HALF * (rho(i) + rho(i-1))
              p_want = model % state(i-1) % p + model % dx * rho_avg * model % g(i)
 
-             call eos(eos_input_rt, model % state(i))
+             call eos_on_host(eos_input_rt, model % state(i))
 
              drho = (p_want - model % state(i) % p) / (model % state(i) % dpdr - HALF * model % dx * model % g(i))
 
@@ -292,7 +292,7 @@ contains
 
           ! Call the EOS to establish the final properties of this zone.
 
-          call eos(eos_input_rt, model % state(i))
+          call eos_on_host(eos_input_rt, model % state(i))
 
           ! Discretize the mass enclose as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
 
