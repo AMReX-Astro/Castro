@@ -29,7 +29,7 @@ ifdef MICROPHYSICS_HOME
 EOS_DIR     := helmholtz
 
 # This sets the Network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := ignition_simple
+NETWORK_DIR := aprox21
 
 # This sets the integrator directory in $(MICROPHYSICS_HOME)/integration
 INTEGRATOR_DIR := VODE90
