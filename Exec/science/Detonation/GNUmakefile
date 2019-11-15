@@ -11,8 +11,6 @@ USE_MPI    = FALSE
 
 USE_REACT  = TRUE
 
-USE_TRUE_SDC = TRUE
-
 CASTRO_HOME = ../../..
 
 GPU_COMPATIBLE_PROBLEM = TRUE
@@ -23,7 +21,7 @@ ifdef MICROPHYSICS_HOME
 EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := aprox13
+NETWORK_DIR := aprox19
 
 
 else
