@@ -174,7 +174,9 @@ Castro::advance (Real time,
 
                 // Check for NaN's.
 
+#ifndef AMREX_USE_CUDA
                 check_for_nan(S_new);
+#endif
 
             }
 #endif
