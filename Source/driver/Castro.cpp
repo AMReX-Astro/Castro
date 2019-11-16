@@ -380,8 +380,8 @@ Castro::read_params ()
 
     // The timestep retry mechanism is currently incompatible with SDC.
 
-    if (time_integration_method != CornerTransportUpwind && use_retry)
-        amrex::Error("The timestep retry mechanism is currently only compatible with CTU.");
+    if (use_retry && !(time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections))
+        amrex::Error("The timestep retry mechanism is currently only compatible with CTU and simplified SDC.");
 
     // SDC does not support CUDA yet
 #ifdef AMREX_USE_CUDA

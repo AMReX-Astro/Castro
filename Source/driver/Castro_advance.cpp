@@ -150,11 +150,9 @@ Castro::advance (Real time,
 	    amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
 
             // First do the non-reacting advance and construct the relevant source terms.
-            // We use the CTU advance here, with the Strang-split reactions skipped,
-            // but we call do_advance_ctu directly rather than subcycle_advance_ctu,
-            // as the simplified SDC logic is not compatible with the subcycling.
+            // We use the CTU advance here, with the Strang-split reactions skipped.
 
-            dt_new = do_advance_ctu(time, dt, amr_iteration, amr_ncycle);
+            dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
 #ifdef REACTIONS
             if (do_react) {
