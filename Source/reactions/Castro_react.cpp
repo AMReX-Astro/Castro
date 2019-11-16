@@ -384,12 +384,13 @@ Castro::react_state(Real time, Real dt)
 	FArrayBox& r       = reactions[mfi];
 	const IArrayBox& m = interior_mask[mfi];
 
-	ca_react_state_simplified_sdc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                                      uold.dataPtr(), ARLIM_3D(uold.loVect()), ARLIM_3D(uold.hiVect()),
-                                      unew.dataPtr(), ARLIM_3D(unew.loVect()), ARLIM_3D(unew.hiVect()),
-                                      a.dataPtr(), ARLIM_3D(a.loVect()), ARLIM_3D(a.hiVect()),
-                                      r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
-                                      m.dataPtr(), ARLIM_3D(m.loVect()), ARLIM_3D(m.hiVect()),
+#pragma gpu box(bx)
+	ca_react_state_simplified_sdc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                      BL_TO_FORTRAN_ANYD(uold),
+                                      BL_TO_FORTRAN_ANYD(unew),
+                                      BL_TO_FORTRAN_ANYD(a),
+                                      BL_TO_FORTRAN_ANYD(r),
+                                      BL_TO_FORTRAN_ANYD(m),
                                       time, dt, sdc_iteration);
 
     }
