@@ -17,10 +17,10 @@ space for variables that are not used.
 General Build Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. index:: USE_ALL_CASTRO, USE_AMR_CORE, USE_SYSTEM_BLAS, USE_HYPRE, USE_PROB_PARAMS
+
 These Parameters affect the build (parallelism, performance, etc.)
 Most of these are parameters from AMReX.
-
-.. index:: USE_ALL_CASTRO, USE_AMR_CORE, USE_SYSTEM_BLAS, USE_HYPRE, USE_PROB_PARAMS
 
   * ``USE_ALL_CASTRO``: compile all of the core Castro directories.
     This is the defailt (``TRUE``), and should not be changed for
@@ -53,6 +53,8 @@ Parallelization and GPUs
 
 .. index:: USE_MPI, USE_OMP, USE_CUDA, USE_ACC
 
+The following parameters control how work is divided across nodes, cores, and GPUs.
+
   * ``USE_CUDA``: compile with GPU support using CUDA. 
 
   * ``USE_ACC``: compile with OpenACC. Note: this is a work in
@@ -69,6 +71,9 @@ General Physics Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. index:: USE_SIMPLIFIED_SDC, USE_TRUE_SDC
+
+The following parameters control how the coupling between hydro and reactions
+is handled.
 
   * ``USE_SIMPLIFIED_SDC``: use the simplified spectral deferred corrections (SDC)
     solver for coupling hydro and reactions.  At the moment, this
