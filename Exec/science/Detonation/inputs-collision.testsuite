@@ -1,0 +1,69 @@
+
+# Intended to be compiled with USE_GRAV = TRUE, USE_REACT = TRUE, and NETWORK_DIR = aprox13
+
+max_step = 100000000
+stop_time = 3.5
+
+amr.probin_file = probin-collision.testsuite
+
+geometry.is_periodic = 0
+geometry.coord_sys   = 0
+geometry.prob_lo     = 0.0
+geometry.prob_hi     = 1.6384e9
+amr.n_cell           = 256
+
+castro.use_retry = 1
+castro.max_subcycles = 128
+
+castro.lo_bc = 3
+castro.hi_bc = 2
+
+castro.do_hydro = 1
+castro.do_react = 1
+castro.do_grav  = 1
+
+castro.cfl            = 0.5
+castro.init_shrink    = 0.1
+castro.change_max     = 1.05
+castro.dt_cutoff      = 1.e-20
+
+castro.small_temp     = 1.e7
+castro.allow_small_energy = 0
+
+castro.sum_interval   = 0
+castro.v              = 0
+amr.v                 = 1
+gravity.v             = 0
+
+amr.max_level       = 0
+amr.ref_ratio       = 4
+amr.regrid_int      = 1
+amr.blocking_factor = 64
+amr.max_grid_size   = 64
+
+amr.n_error_buf     = 2
+
+amr.check_file       = det_x_chk
+amr.check_per        = 0.1
+amr.plot_file        = det_x_plt
+amr.plot_per         = 0.1
+amr.plot_vars        = ALL
+amr.derive_plot_vars = ALL
+amr.small_plot_per   = 0.01
+amr.small_plot_vars   = density Temp rho_e rho_c12 rho_o16 rho_si28 rho_ni56 enuc
+amr.derive_small_plot_vars = pressure soundspeed x_velocity t_sound_t_enuc
+
+amr.plotfile_on_restart = 0
+amr.checkpoint_on_restart = 0
+amr.write_plotfile_with_checkpoint = 0
+castro.plot_per_is_exact = 1
+castro.small_plot_per_is_exact = 1
+castro.output_at_completion = 1
+
+amr.message_int = 1
+castro.use_stopping_criterion = 1
+castro.T_stopping_criterion = 4.e9
+castro.ts_te_stopping_criterion = 1.e200
+
+gravity.gravity_type = ConstantGrav
+gravity.const_grav = -1.1e8
