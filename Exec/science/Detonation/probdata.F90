@@ -20,11 +20,11 @@ module probdata_module
   attributes(managed) :: T_l, T_r, dens, cfrac, ofrac, w_T, center_T, smallx, vel
   attributes(managed) :: idir
   attributes(managed) :: ihe4, ic12, io16
-  attributes(managed) :: xn(:)
+  attributes(managed) :: xn
   attributes(managed) :: fill_ambient_bc
   attributes(managed) :: ambient_dens
   attributes(managed) :: ambient_temp
-  attributes(managed) :: ambient_comp(:)
+  attributes(managed) :: ambient_comp
   attributes(managed) :: ambient_e_l, ambient_e_r
 #endif
 
