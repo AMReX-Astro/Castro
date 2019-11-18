@@ -612,12 +612,12 @@ contains
     dwdU(:, :) = ZERO
 
     ! the density row
-    dwdU(0, 0) = ONE
+    dwdU(iwrho, 0) = ONE
 
     ! the X_k rows
     do m = 1, nspec_evolve
-       dwdU(m,0) = -U(m)/U(0)**2
-       dwdU(m,m) = ONE/U(0)
+       dwdU(iwfs-1+m,0) = -U(m)/U(0)**2
+       dwdU(iwfs-1+m,m) = ONE/U(0)
     enddo
 
     call composition_derivatives(eos_state, eos_xderivs)
@@ -625,19 +625,19 @@ contains
     ! now the T row -- this depends on whether we are evolving (rho E) or (rho e)
     denom = ONE/(eos_state % rho * eos_state % dedT)
     if (sdc_solve_for_rhoe == 1) then
-       dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_xderivs % dedX(1:nspec_evolve)) - &
+       dwdU(iwT,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_xderivs % dedX(1:nspec_evolve)) - &
                                        eos_state % rho * eos_state % dedr - eos_state % e)
     else
-       dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_xderivs % dedX(1:nspec_evolve)) - &
+       dwdU(iwT,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_xderivs % dedX(1:nspec_evolve)) - &
                                        eos_state % rho * eos_state % dedr - eos_state % e - &
                                        HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho**2)
     endif
 
     do m = 1, nspec_evolve
-       dwdU(nspec_evolve+1,m) = -denom * eos_xderivs % dedX(m)
+       dwdU(iwT,m) = -denom * eos_xderivs % dedX(m)
     enddo
 
-    dwdU(nspec_evolve+1, nspec_evolve+1) = denom
+    dwdU(iwT, nspec_evolve+1) = denom
 
     ! construct the Jacobian -- we can get most of the
     ! terms from the network itself, but we do not rely on
