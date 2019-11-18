@@ -158,11 +158,11 @@ contains
 
     ! Our jacobian, dR/dw has the form:
     !
-    !  /      0               0               0                    0       \
-    !  | d(rho X1)/drho  d(rho X1)/dX1   d(rho X1)/dX2   ...  d(rho X1)/dT |
-    !  | d(rho X1)/drho  d(rho X1)/dX1   d(rho X1)/dX2   ...  d(rho X1)/dT |
-    !  |   ...                                                             |
-    !  \ d(rho E)/drho   d(rho E)/dX1    d(rho E)/dX2    ...  d(rho E)/dT  /
+    !  /      0                  0                  0                       0          \
+    !  | d(rho X1dot)/drho  d(rho X1dot)/dX1   d(rho X1dit)/dX2   ...  d(rho X1dot)/dT |
+    !  | d(rho X2dot)/drho  d(rho X2dot)/dX1   d(rho X2dot)/dX2   ...  d(rho X2dot)/dT |
+    !  |   ...                                                                         |
+    !  \ d(rho Edot)/drho   d(rho Edot)/dX1    d(rho Edot)/dX2    ...  d(rho Edot)/dT  /
 
     dRdw(:,:) = ZERO
 
