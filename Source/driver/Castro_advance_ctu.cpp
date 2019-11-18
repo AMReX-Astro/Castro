@@ -477,7 +477,36 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         for (int k = 0; k < num_state_type; k++)
             state[k].setTimeLevel(subcycle_time + dt_subcycle, dt_subcycle, 0.0);
 
+        // Do the advance and construct the relevant source terms. For CTU this
+        // will include Strang-split reactions; for simplified SDC, we defer the
+        // burn until after the advance.
+
         do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
+
+#ifdef REACTIONS
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections && do_react) {
+
+            // Do the ODE integration to capture the reaction source terms.
+
+            react_state(time, dt);
+
+            MultiFab& S_new = get_new_data(State_Type);
+
+            clean_state(S_new, state[State_Type].curTime(), S_new.nGrow());
+
+            // Compute the reactive source term for use in the next iteration.
+
+            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+            get_react_source_prim(SDC_react_new, time, dt);
+
+            // Check for NaN's.
+
+#ifndef AMREX_USE_CUDA
+            check_for_nan(S_new);
+#endif
+
+        }
+#endif
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << "  Subcycle completed" << std::endl << std::endl;

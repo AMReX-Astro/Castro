@@ -216,7 +216,8 @@ contains
                                            asrc,as_lo,as_hi, &
                                            reactions,r_lo,r_hi, &
                                            mask,m_lo,m_hi, &
-                                           time,dt_react,sdc_iter) bind(C, name="ca_react_state_simplified_sdc")
+                                           time,dt_react,sdc_iter, &
+                                           failed) bind(C, name="ca_react_state_simplified_sdc")
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
@@ -247,6 +248,7 @@ contains
     integer , intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
     real(rt), intent(in   ), value :: time, dt_react
     integer , intent(in   ), value :: sdc_iter
+    real(rt) , intent(inout) :: failed
 
     integer  :: i, j, k, n
     real(rt) :: rhooInv, rhonInv, delta_e, delta_rho_e
@@ -323,6 +325,15 @@ contains
              burn_state_in % sdc_iter = sdc_iter
 
              call integrator(burn_state_in, burn_state_out, dt_react, time)
+
+             ! If we were unsuccessful, update the success flag and exit.
+
+             if (.not. burn_state_out % success) then
+
+                failed = 1.0_rt
+                return
+
+             end if
 
              ! Update the state data.
 

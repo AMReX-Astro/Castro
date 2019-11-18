@@ -149,35 +149,7 @@ Castro::advance (Real time,
 
 	    amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
 
-            // First do the non-reacting advance and construct the relevant source terms.
-            // We use the CTU advance here, with the Strang-split reactions skipped.
-
             dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
-
-#ifdef REACTIONS
-            if (do_react) {
-
-                // Do the ODE integration to capture the reaction source terms.
-
-                react_state(time, dt);
-
-                MultiFab& S_new = get_new_data(State_Type);
-
-                clean_state(S_new, state[State_Type].curTime(), S_new.nGrow());
-
-                // Compute the reactive source term for use in the next iteration.
-
-                MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-                get_react_source_prim(SDC_react_new, time, dt);
-
-                // Check for NaN's.
-
-#ifndef AMREX_USE_CUDA
-                check_for_nan(S_new);
-#endif
-
-            }
-#endif
 
             amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
 

@@ -370,8 +370,13 @@ Castro::react_state(Real time, Real dt)
 
     reactions.setVal(0.0);
 
+    // Start off assuming a successful burn.
+
+    burn_success = 1;
+    Real burn_failed = 0.0;
+
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(+:burn_failed)
 #endif
     for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi)
     {
@@ -391,9 +396,14 @@ Castro::react_state(Real time, Real dt)
                                       BL_TO_FORTRAN_ANYD(a),
                                       BL_TO_FORTRAN_ANYD(r),
                                       BL_TO_FORTRAN_ANYD(m),
-                                      time, dt, sdc_iteration);
+                                      time, dt, sdc_iteration,
+                                      AMREX_MFITER_REDUCE_SUM(&burn_failed));
 
     }
+
+    if (burn_failed != 0.0) burn_success = 0;
+
+    ParallelDescriptor::ReduceIntMin(burn_success);
 
     if (ng > 0)
         S_new.FillBoundary(geom.periodicity());
