@@ -248,8 +248,9 @@ contains
     real(rt), intent(in   ), value :: time, dt_react
     integer , intent(in   ), value :: sdc_iter
 
-    integer          :: i, j, k, n
-    real(rt)         :: rhooInv, rhonInv, delta_e, delta_rho_e
+    integer  :: i, j, k, n
+    real(rt) :: rhooInv, rhonInv, delta_e, delta_rho_e
+    real(rt) :: sold(NVAR)
 
     ! This interface is currently only supported for simplified SDC.
 
@@ -283,7 +284,8 @@ contains
 
              ! Don't burn if we're outside of the relevant (rho, T) range.
 
-             if (.not. okay_to_burn(burn_state_in % y(SFS:SFS+nspec-1))) cycle
+             sold(:) = uold(i,j,k,:)
+             if (.not. okay_to_burn(sold)) cycle
 
              ! Tell the integrator about the non-reacting source terms.
 

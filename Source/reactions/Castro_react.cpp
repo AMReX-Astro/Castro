@@ -285,7 +285,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
     Real burn_failed = 0.0;
 
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(+:burn_failed)
 #endif
     for (MFIter mfi(s, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {

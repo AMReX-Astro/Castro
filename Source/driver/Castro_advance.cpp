@@ -138,10 +138,10 @@ Castro::advance (Real time,
         Sborder.clear();
       }
 
-#endif
+#endif // REACTIONS
 #endif // TRUE_SDC
-    }
-    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+#endif // AMREX_USE_CUDA
+    } else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
         for (int n = 0; n < sdc_iters; ++n) {
 
@@ -184,8 +184,6 @@ Castro::advance (Real time,
             amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
 
         }
-
-#endif // AMREX_USE_CUDA
     }
 
     // Optionally kill the job at this point, if we've detected a violation.
