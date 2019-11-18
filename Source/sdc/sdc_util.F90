@@ -629,7 +629,7 @@ contains
                                        eos_state % rho * eos_state % dedr - eos_state % e)
     else
        dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_xderivs % dedX(1:nspec_evolve)) - &
-                                       eos_state % rho * eos_state % dedr - eos_state % e + &
+                                       eos_state % rho * eos_state % dedr - eos_state % e - &
                                        HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho**2)
     endif
 
