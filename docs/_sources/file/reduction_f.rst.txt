@@ -1,0 +1,8 @@
+reduction.F90
+=============
+
+reduction\_module
+-----------------
+
+.. f:automodule:: reduction_module
+

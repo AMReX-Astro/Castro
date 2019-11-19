@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>react_util.F90 &mdash; Castro 19.11
- documentation</title>
+  <title>react_util.F90 &mdash; Castro  documentation</title>
   
 
   
@@ -62,11 +61,6 @@
 
           
             
-            
-              <div class="version">
-                19.11
-
-              </div>
             
           
 
@@ -231,13 +225,37 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/react_util_module/okay_to_burn" title="f/react_util_module/okay_to_burn"><code class="xref f f-func docutils literal notranslate"><span class="pre">okay_to_burn()</span></code></a>, <a class="reference internal" href="#f/react_util_module/single_zone_jac" title="f/react_util_module/single_zone_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_jac()</span></code></a>, <a class="reference internal" href="#f/react_util_module/single_zone_react_source" title="f/react_util_module/single_zone_react_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_react_source()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#f/react_util_module/iwfs" title="f/react_util_module/iwfs"><code class="xref f f-var docutils literal notranslate"><span class="pre">iwfs</span></code></a>, <a class="reference internal" href="#f/react_util_module/iwrho" title="f/react_util_module/iwrho"><code class="xref f f-var docutils literal notranslate"><span class="pre">iwrho</span></code></a>, <a class="reference internal" href="#f/react_util_module/iwt" title="f/react_util_module/iwt"><code class="xref f f-var docutils literal notranslate"><span class="pre">iwt</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/react_util_module/okay_to_burn" title="f/react_util_module/okay_to_burn"><code class="xref f f-func docutils literal notranslate"><span class="pre">okay_to_burn()</span></code></a>, <a class="reference internal" href="#f/react_util_module/single_zone_jac" title="f/react_util_module/single_zone_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_jac()</span></code></a>, <a class="reference internal" href="#f/react_util_module/single_zone_react_source" title="f/react_util_module/single_zone_react_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">single_zone_react_source()</span></code></a></td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Needed modules</p>
 <ul class="simple">
 <li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec_evolve()</span></code>)</li>
+</ul>
+<p class="rubric">Variables</p>
+<ul>
+<li><dl class="variable">
+<dt id="f/react_util_module/iwfs">
+<code class="descclassname">react_util_module/</code><code class="descname">iwfs</code><em> [</em><em>integer</em><em>,</em><em>parameter=</em>1<em>]</em><a class="headerlink" href="#f/react_util_module/iwfs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/react_util_module/iwrho">
+<code class="descclassname">react_util_module/</code><code class="descname">iwrho</code><em> [</em><em>integer</em><em>,</em><em>parameter=</em>0<em>]</em><a class="headerlink" href="#f/react_util_module/iwrho" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/react_util_module/iwt">
+<code class="descclassname">react_util_module/</code><code class="descname">iwt</code><em> [</em><em>integer</em><em>,</em><em>parameter=</em>nspec_evolve+1<em>]</em><a class="headerlink" href="#f/react_util_module/iwt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
 </ul>
 <p class="rubric">Subroutines and functions</p>
 <dl class="function">
@@ -300,7 +318,7 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">burn_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">burn_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">net_ienuc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">net_itemp()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nspec_evolve()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">aion()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">aion_inv()</span></code>), <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/sdc_use_analytic_jac" title="f/meth_params_module/sdc_use_analytic_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_use_analytic_jac()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">actual_rhs_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">numerical_jac_module</span></code>, <a class="reference internal" href="Castro_error_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">burn_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">burn_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">net_ienuc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">net_itemp()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nspec_evolve()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">aion()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">aion_inv()</span></code>), <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/sdc_use_analytic_jac" title="f/meth_params_module/sdc_use_analytic_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_use_analytic_jac()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">actual_rhs_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">numerical_jac_module</span></code>, <a class="reference internal" href="Castro_error_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a> (<a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>)</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="sdc_util_f.html#f/sdc_util/f_sdc_jac" title="f/sdc_util/f_sdc_jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">f_sdc_jac()</span></code></a>, <a class="reference internal" href="sdc_vode_f.html#f/sdc_vode_rhs_module/jac" title="f/sdc_vode_rhs_module/jac"><code class="xref f f-func docutils literal notranslate"><span class="pre">jac()</span></code></a></p>

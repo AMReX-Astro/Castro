@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>filcc_nd.F90 &mdash; Castro 19.11
- documentation</title>
+  <title>reduction.F90 &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +38,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="generic_fill.F90" href="generic_fill_f.html" />
-    <link rel="prev" title="check_for_nan.f90" href="check_for_nan_f.html" /> 
+    <link rel="next" title="source_fill.F90" href="source_fill_f.html" />
+    <link rel="prev" title="prob_params.F90" href="prob_params_f.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -62,11 +61,6 @@
 
           
             
-            
-              <div class="version">
-                19.11
-
-              </div>
             
           
 
@@ -143,17 +137,16 @@
 <li class="toctree-l3"><a class="reference internal" href="Tagging_nd_f.html">Tagging_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="amrinfo_f.html">amrinfo.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="check_for_nan_f.html">check_for_nan.f90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">filcc_nd.F90</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#filcc-nd-wrapper-subroutine">filcc_nd_wrapper subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#filcc-nd-subroutine">filcc_nd subroutine</a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="generic_fill_f.html">generic_fill.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="interpolate_f.html">interpolate.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="io_f.html">io.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="math_f.html">math.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="meth_params_f.html">meth_params.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="prob_params_f.html">prob_params.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">reduction.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/reduction_module">reduction_module</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="source_fill_f.html">source_fill.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="sums_nd_f.html">sums_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="timestep_f.html">timestep.F90</a></li>
@@ -225,13 +218,13 @@
         
           <li><a href="../driver_files.html">Driver</a> &raquo;</li>
         
-      <li>filcc_nd.F90</li>
+      <li>reduction.F90</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/filcc_nd_f.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/reduction_f.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -244,65 +237,78 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="filcc-nd-f90">
-<h1>filcc_nd.F90<a class="headerlink" href="#filcc-nd-f90" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="filcc-nd-wrapper-subroutine">
-<h2>filcc_nd_wrapper subroutine<a class="headerlink" href="#filcc-nd-wrapper-subroutine" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="reduction-f90">
+<h1>reduction.F90<a class="headerlink" href="#reduction-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/reduction_module">
+<span id="reduction-module"></span><h2>reduction_module<a class="headerlink" href="#f/reduction_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/reduction_module/reduce_add" title="f/reduction_module/reduce_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_add()</span></code></a>, <a class="reference internal" href="#f/reduction_module/reduce_max" title="f/reduction_module/reduce_max"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_max()</span></code></a>, <a class="reference internal" href="#f/reduction_module/reduce_min" title="f/reduction_module/reduce_min"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_min()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Needed modules</p>
+<ul class="simple">
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+</ul>
+<p class="rubric">Subroutines and functions</p>
 <dl class="subroutine">
-<dt id="f/_/filcc_nd_wrapper">
-<em class="property">subroutine  </em><code class="descname">filcc_nd_wrapper</code><span class="sig-paren">(</span><em>adv</em>, <em>adv_lo</em>, <em>adv_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em>, <em>xlo</em>, <em>bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/filcc_nd_wrapper" title="Permalink to this definition">¶</a></dt>
+<dt id="f/reduction_module/reduce_max">
+<em class="property">subroutine  </em><code class="descclassname">reduction_module/</code><code class="descname">reduce_max</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#f/reduction_module/reduce_max" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>adv</strong> (adv_hi(1)-(adv_lo(1))+1,adv_hi(2)-(adv_lo(2))+1,adv_hi(3)-(adv_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>adv_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>adv_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bc</strong> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim">dim</a>,2)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>x</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>y</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_filcc_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">amrex_filccn()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/_/filcc_nd" title="f/_/filcc_nd"><code class="xref f f-func docutils literal notranslate"><span class="pre">filcc_nd()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/ca_compute_cfl" title="f/advection_util_module/ca_compute_cfl"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_cfl()</span></code></a></p>
 </td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
-</div>
-<div class="section" id="filcc-nd-subroutine">
-<h2>filcc_nd subroutine<a class="headerlink" href="#filcc-nd-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/filcc_nd">
-<em class="property">subroutine  </em><code class="descname">filcc_nd</code><span class="sig-paren">(</span><em>adv</em>, <em>adv_lo</em>, <em>adv_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em>, <em>xlo</em>, <em>bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/filcc_nd" title="Permalink to this definition">¶</a></dt>
+<dt id="f/reduction_module/reduce_min">
+<em class="property">subroutine  </em><code class="descclassname">reduction_module/</code><code class="descname">reduce_min</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#f/reduction_module/reduce_min" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>adv</strong> (adv_hi(1)-(adv_lo(1))+1,adv_hi(2)-(adv_lo(2))+1,adv_hi(3)-(adv_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>adv_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>adv_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bc</strong> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim">dim</a>,2)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>x</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>y</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/ca_enforce_minimum_density" title="f/advection_util_module/ca_enforce_minimum_density"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_enforce_minimum_density()</span></code></a>, <a class="reference internal" href="timestep_f.html#f/timestep_module/ca_estdt" title="f/timestep_module/ca_estdt"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_estdt()</span></code></a>, <a class="reference internal" href="timestep_f.html#f/timestep_module/ca_estdt_temp_diffusion" title="f/timestep_module/ca_estdt_temp_diffusion"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_estdt_temp_diffusion()</span></code></a></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/_/filcc_nd_wrapper" title="f/_/filcc_nd_wrapper"><code class="xref f f-func docutils literal notranslate"><span class="pre">filcc_nd_wrapper()</span></code></a></p>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/reduction_module/reduce_add">
+<em class="property">subroutine  </em><code class="descclassname">reduction_module/</code><code class="descname">reduce_add</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#f/reduction_module/reduce_add" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>y</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_ctu_nd_f.html#f/ctu_module/ca_track_grid_losses" title="f/ctu_module/ca_track_grid_losses"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_track_grid_losses()</span></code></a>, <a class="reference internal" href="Gravity_nd_f.html#f/gravity_module/multipole_add" title="f/gravity_module/multipole_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_add()</span></code></a>, <a class="reference internal" href="sums_nd_f.html#f/castro_sums_module/ca_summass" title="f/castro_sums_module/ca_summass"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_summass()</span></code></a>, <a class="reference internal" href="sums_nd_f.html#f/castro_sums_module/ca_sumsquared" title="f/castro_sums_module/ca_sumsquared"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sumsquared()</span></code></a>, <a class="reference internal" href="sums_nd_f.html#f/castro_sums_module/ca_sumlocmass" title="f/castro_sums_module/ca_sumlocmass"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sumlocmass()</span></code></a>, <a class="reference internal" href="sums_nd_f.html#f/castro_sums_module/ca_sumlocmass2d" title="f/castro_sums_module/ca_sumlocmass2d"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sumlocmass2d()</span></code></a>, <a class="reference internal" href="sums_nd_f.html#f/castro_sums_module/ca_sumlocsquaredmass" title="f/castro_sums_module/ca_sumlocsquaredmass"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sumlocsquaredmass()</span></code></a>, <a class="reference internal" href="sums_nd_f.html#f/castro_sums_module/ca_sumproduct" title="f/castro_sums_module/ca_sumproduct"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sumproduct()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -320,10 +326,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="generic_fill_f.html" class="btn btn-neutral float-right" title="generic_fill.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="source_fill_f.html" class="btn btn-neutral float-right" title="source_fill.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="check_for_nan_f.html" class="btn btn-neutral float-left" title="check_for_nan.f90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="prob_params_f.html" class="btn btn-neutral float-left" title="prob_params.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

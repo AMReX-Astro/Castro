@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Build System Overview &mdash; Castro 19.11
- documentation</title>
+  <title>Build System Overview &mdash; Castro  documentation</title>
   
 
   
@@ -63,11 +62,6 @@
           
             
             
-              <div class="version">
-                19.11
-
-              </div>
-            
           
 
           
@@ -109,6 +103,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Build System Overview</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#make-parameters">Make Parameters</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#general-build-parameters">General Build Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parallelization-and-gpus">Parallelization and GPUs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#general-physics-parameters">General Physics Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#radiation-parameters">Radiation Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#gravity-parameters">Gravity Parameters</a></li>
@@ -223,73 +218,72 @@ Castro to reduce the memory footprint of the state arrays by not allocating
 space for variables that are not used.</p>
 <div class="section" id="general-build-parameters">
 <h3>General Build Parameters<a class="headerlink" href="#general-build-parameters" title="Permalink to this headline">¶</a></h3>
-<p>These Parameters affect the build (parallelism, performance, etc.)
+<p id="index-0">These Parameters affect the build (parallelism, performance, etc.)
 Most of these are parameters from AMReX.</p>
 <blockquote>
-<div><ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_ALL_CASTRO</span></code>: compile all of the core Castro directories.
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">USE_ALL_CASTRO</span></code>: compile all of the core Castro directories.
 This is the defailt (<code class="docutils literal notranslate"><span class="pre">TRUE</span></code>), and should not be changed for
 general simulations.  The purpose of this flag is for unit tests, which
-do not need all of the Castro directories compiled.</p>
-</li>
-<li id="index-0"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_AMR_CORE</span></code>: compile all of the core AMReX directories, including
+do not need all of the Castro directories compiled.</li>
+<li><code class="docutils literal notranslate"><span class="pre">USE_AMR_CORE</span></code>: compile all of the core AMReX directories, including
 <code class="docutils literal notranslate"><span class="pre">Base/</span></code>, <code class="docutils literal notranslate"><span class="pre">AmrCore/</span></code>, <code class="docutils literal notranslate"><span class="pre">Amr/</span></code>, and <code class="docutils literal notranslate"><span class="pre">Boundary/</span></code>.  This defaults
 to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code> and should be left set for Castro simulations.  The purpose
-of this flag is for unit tests that don’t need all of AMReX.</p>
-</li>
-<li id="index-1"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_CUDA</span></code>: compile with GPU support using CUDA.  At present only
-the method-of-lines hydrodynamics solver supports GPU offloading with
-CUDA, but this is under active development.</p>
-</li>
-<li id="index-2"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_ACC</span></code>: compile with OpenACC. Note: this is a work in
-progress and should not be used presented.</p>
-</li>
-<li id="index-3"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SYSTEM_BLAS</span></code>: for the linear algebra routines provided by
+of this flag is for unit tests that don’t need all of AMReX.</li>
+<li><code class="docutils literal notranslate"><span class="pre">USE_SYSTEM_BLAS</span></code>: for the linear algebra routines provided by
 BLAS, should we compile our own versions or should we use a system
 library that provides the BLAS routines?  If we set
 <code class="docutils literal notranslate"><span class="pre">USE_SYSTEM_BLAS</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>, then we need to provide the name on
-the library in the <code class="docutils literal notranslate"><span class="pre">BLAS_LIBRARY</span></code> build parameter.</p>
-</li>
-<li id="index-4"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_MPI</span></code>: compile with the MPI library to allow for distributed parallelism.</p>
-</li>
-<li id="index-5"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_OMP</span></code>: compile with OpenMP to allow for shared memory parallelism.</p>
-</li>
-<li id="index-6"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_MLMG</span></code>: use the (newer) AMReX multi-level multigrid solver for gravity
-and diffusion.  This should always be set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.</p>
-</li>
-<li id="index-7"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_HYPRE</span></code>: compile in the Hypre library.  This will be automatically enabled
+the library in the <code class="docutils literal notranslate"><span class="pre">BLAS_LIBRARY</span></code> build parameter.</li>
+<li><code class="docutils literal notranslate"><span class="pre">USE_MLMG</span></code>: use the AMReX multi-level multigrid solver for gravity
+and diffusion.  This should always be set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">USE_HYPRE</span></code>: compile in the Hypre library.  This will be automatically enabled
 for radiation.  You need to specify the path to the Hypre library via either
-<code class="docutils literal notranslate"><span class="pre">HYPRE_DIR</span></code> or <code class="docutils literal notranslate"><span class="pre">HYPRE_OMP_DIR</span></code>.</p>
-</li>
-<li id="index-8"><p class="first"><code class="docutils literal notranslate"><span class="pre">DIMENSION_AGNOSTIC</span></code>: originally Castro had separate routines
-for each of spatial dimension, files ending with <code class="docutils literal notranslate"><span class="pre">_1D.F90</span></code>,
-<code class="docutils literal notranslate"><span class="pre">_2D.F90</span></code>, or <code class="docutils literal notranslate"><span class="pre">_3D.F90</span></code>.</p>
-</li>
+<code class="docutils literal notranslate"><span class="pre">HYPRE_DIR</span></code> or <code class="docutils literal notranslate"><span class="pre">HYPRE_OMP_DIR</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">USE_PROB_PARAMS</span></code>: generate the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> at runtime by parsing
+the problem’s <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> file.</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="parallelization-and-gpus">
+<h3>Parallelization and GPUs<a class="headerlink" href="#parallelization-and-gpus" title="Permalink to this headline">¶</a></h3>
+<p id="index-1">The following parameters control how work is divided across nodes, cores, and GPUs.</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">USE_CUDA</span></code>: compile with GPU support using CUDA.</li>
+<li><code class="docutils literal notranslate"><span class="pre">USE_ACC</span></code>: compile with OpenACC. Note: this is a work in
+progress and should not be used presented.</li>
+<li><code class="docutils literal notranslate"><span class="pre">USE_MPI</span></code>: compile with the MPI library to allow for distributed parallelism.</li>
+<li><code class="docutils literal notranslate"><span class="pre">USE_OMP</span></code>: compile with OpenMP to allow for shared memory parallelism.</li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="general-physics-parameters">
-<span id="index-9"></span><h3>General Physics Parameters<a class="headerlink" href="#general-physics-parameters" title="Permalink to this headline">¶</a></h3>
+<h3>General Physics Parameters<a class="headerlink" href="#general-physics-parameters" title="Permalink to this headline">¶</a></h3>
+<p id="index-2">The following parameters control how the coupling between hydro and reactions
+is handled.</p>
 <blockquote>
-<div><ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SIMPLIFIED_SDC</span></code>: use the alternate spectral deferred corrections (SDC)
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">USE_SIMPLIFIED_SDC</span></code>: use the simplified spectral deferred corrections (SDC)
 solver for coupling hydro and reactions.  At the moment, this
-works with the CTU hydrodynamics solver.  Note, there is another
-SDC method in development that may replace this in the near
-future.</p>
-</li>
+works with the CTU hydrodynamics solver.  This requires running with
+<code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span></code>: use the true SDC method to couple hydro and
+reactions.  This can do 2nd order or 4th order accuracy.  At the
+moment, this works on single level only.  This requires running
+with <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">2</span></code>.</li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="radiation-parameters">
-<span id="index-10"></span><h3>Radiation Parameters<a class="headerlink" href="#radiation-parameters" title="Permalink to this headline">¶</a></h3>
+<h3>Radiation Parameters<a class="headerlink" href="#radiation-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_RAD</span></code>: use radiation (photon or neutrino).  Note, For
 multigroup radiation, you need to set the number of radiation
 groups.  This is controlled by the <code class="docutils literal notranslate"><span class="pre">NGROUPS</span></code> parameter.</p>
 </li>
-<li id="index-11"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_NEUTRINO</span></code>: use neutrino radiation.  This requires
+<li id="index-3"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_NEUTRINO</span></code>: use neutrino radiation.  This requires
 <code class="docutils literal notranslate"><span class="pre">USE_RAD</span></code>.  The number of neutrino species and groups can be set
 via the parameters:</p>
 <blockquote>
@@ -302,7 +296,7 @@ species / flavors.</li>
 </ul>
 </div></blockquote>
 </li>
-<li id="index-12"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_DUMPMODEL</span></code>: this is used with 1-d neutrino simulations to
+<li id="index-4"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_DUMPMODEL</span></code>: this is used with 1-d neutrino simulations to
 dump out a file called <code class="docutils literal notranslate"><span class="pre">modelDump</span></code> at the end of a simulation
 that can then be used to initialize higher-dimension simulations.</p>
 </li>
@@ -310,24 +304,24 @@ that can then be used to initialize higher-dimension simulations.</p>
 </div></blockquote>
 </div>
 <div class="section" id="gravity-parameters">
-<span id="index-13"></span><h3>Gravity Parameters<a class="headerlink" href="#gravity-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="index-5"></span><h3>Gravity Parameters<a class="headerlink" href="#gravity-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_GRAV</span></code>: use gravity (this could be constant or self-gravity)</p>
 </li>
-<li id="index-14"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SELF_GRAV</span></code>: use self-gravity.  At the moment, this is always set
+<li id="index-6"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SELF_GRAV</span></code>: use self-gravity.  At the moment, this is always set
 if <code class="docutils literal notranslate"><span class="pre">USE_GRAV</span></code> is enabled.</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_GR</span></code>: use a post-Newtonian approximation for GR gravity for the monopole
 solver.</p>
 </li>
-<li id="index-15"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_POINTMASS</span></code>: include a pointmass source to the gravitational potential.</p>
+<li id="index-7"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_POINTMASS</span></code>: include a pointmass source to the gravitational potential.</p>
 </li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="microphysics-parameters">
-<span id="index-16"></span><h3>Microphysics Parameters<a class="headerlink" href="#microphysics-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="index-8"></span><h3>Microphysics Parameters<a class="headerlink" href="#microphysics-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_DIFFUSION</span></code>: enable diffusion.  This usually means thermal
@@ -335,7 +329,7 @@ diffusion, but viscosity is also supported in 1-d.  For thermal
 diffusion, the conductivity is set via <code class="docutils literal notranslate"><span class="pre">CONDUCTIVITY_DIR</span></code>, which
 should be a directory in the Microphysics repo.</p>
 </li>
-<li id="index-17"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_REACT</span></code>: enable reactions.  When reactions are set, we need
+<li id="index-9"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_REACT</span></code>: enable reactions.  When reactions are set, we need
 to specify a network and an integrator.  Typically these come from
 the Microphysics repo, but one common exception is the
 <code class="docutils literal notranslate"><span class="pre">general_null</span></code> network, which just defines a composition.  The
@@ -350,7 +344,7 @@ reaction system.  This is expected to be a subdirectory in the Microphysics
 repo.</li>
 </ul>
 </li>
-<li id="index-18"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_REACT_SPARSE_JACOBIAN</span></code></p>
+<li id="index-10"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_REACT_SPARSE_JACOBIAN</span></code></p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SPARSE_STOP_ON_OOB</span></code></p>
 </li>
@@ -361,22 +355,22 @@ Microphysics repo.</p>
 </div></blockquote>
 </div>
 <div class="section" id="hydrodynamics-and-source-term-parameters">
-<span id="index-19"></span><h3>Hydrodynamics and Source Term Parameters<a class="headerlink" href="#hydrodynamics-and-source-term-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="index-11"></span><h3>Hydrodynamics and Source Term Parameters<a class="headerlink" href="#hydrodynamics-and-source-term-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_ROTATION</span></code>: include rotation sources</p>
 </li>
-<li id="index-20"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_HYBRID_MOMENTUM</span></code>: have Castro evolve angular momentum in addition to linear
+<li id="index-12"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_HYBRID_MOMENTUM</span></code>: have Castro evolve angular momentum in addition to linear
 momentum.</p>
 </li>
-<li id="index-21"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SHOCK_VAR</span></code>: include a variable in the State_Type StateData that marks the
+<li id="index-13"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SHOCK_VAR</span></code>: include a variable in the State_Type StateData that marks the
 location of a shock.</p>
 </li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="simulation-flow-parameters">
-<span id="index-22"></span><h3>Simulation Flow Parameters<a class="headerlink" href="#simulation-flow-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="index-14"></span><h3>Simulation Flow Parameters<a class="headerlink" href="#simulation-flow-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_AUX_UPDATE</span></code>: some networks define auxillary quantities, which in general
@@ -384,22 +378,22 @@ Castro will advect, but not otherwise change.  If we set <code class="docutils l
 then Castro will call a user-supplied routine <code class="docutils literal notranslate"><span class="pre">advance_aux()</span></code> that can
 change the auxillary quantities.</p>
 </li>
-<li id="index-23"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_POST_SIM</span></code>: if this is defined, then Castro will call the user-defined
+<li id="index-15"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_POST_SIM</span></code>: if this is defined, then Castro will call the user-defined
 routine <code class="docutils literal notranslate"><span class="pre">problem_post_simulation()</span></code> after the full evolution of the problem
 has ended.</p>
 </li>
-<li id="index-24"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_MAESTRO_INIT</span></code>: this enables the code to allow Castro to restart from a
+<li id="index-16"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_MAESTRO_INIT</span></code>: this enables the code to allow Castro to restart from a
 Maestro simulation.  This will need to be updated in the future to allow for
 restarts from MAESTROeX.</p>
 </li>
-<li id="index-25"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_HDF5</span></code>: compile in support for HDF5.  This is needed for some tables used
+<li id="index-17"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_HDF5</span></code>: compile in support for HDF5.  This is needed for some tables used
 by Microphysics routines.</p>
 </li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="tracer-particle-parameters">
-<span id="index-26"></span><h3>Tracer Particle Parameters<a class="headerlink" href="#tracer-particle-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="index-18"></span><h3>Tracer Particle Parameters<a class="headerlink" href="#tracer-particle-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">USE_PARTICLES</span></code>: compile in support for tracer particles.</li>
@@ -412,7 +406,7 @@ by Microphysics routines.</p>
 <p>This is the current build system process, for a CUDA build.</p>
 <ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">set_variables.py</span></code> is called</p>
-<ul id="index-27">
+<ul id="index-19">
 <li><p class="first">this processes the Castro <code class="docutils literal notranslate"><span class="pre">_variables</span></code> file and writes
 <code class="docutils literal notranslate"><span class="pre">set_conserved.H</span></code>, <code class="docutils literal notranslate"><span class="pre">set_indices.F90</span></code>, and <code class="docutils literal notranslate"><span class="pre">state_sizes.f90</span></code> into the
 build directory.</p>
@@ -425,13 +419,13 @@ build directory.</p>
 </ul>
 </li>
 <li><p class="first">(for <code class="docutils literal notranslate"><span class="pre">general_null</span> <span class="pre">networks</span></code>), <code class="docutils literal notranslate"><span class="pre">actual_network.F90</span></code> is created</p>
-<ul class="simple" id="index-28">
+<ul class="simple" id="index-20">
 <li>This is done by <code class="docutils literal notranslate"><span class="pre">write_network.py</span></code></li>
 <li>The hook for this is in <code class="docutils literal notranslate"><span class="pre">$(CASTRO_HOME)/Microphysics/networks/general_null/Make.package</span></code></li>
 </ul>
 </li>
 <li><p class="first">Runtime parameter files are parsed by <code class="docutils literal notranslate"><span class="pre">write_probin.py</span></code></p>
-<ul class="simple" id="index-29">
+<ul class="simple" id="index-21">
 <li>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the rule for <code class="docutils literal notranslate"><span class="pre">extern.F90</span></code></li>
 </ul>
 </li>
