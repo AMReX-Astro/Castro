@@ -46,17 +46,21 @@
   do_constant_volume_burn = T
   call_eos_in_rhs = T
 
-  rtol_spec = 1.d-10
-  atol_spec = 1.d-10
+  rtol_spec = 1.d-6
+  atol_spec = 1.d-6
 
-  rtol_temp = 1.d-10
-  atol_temp = 1.d-10
+  rtol_temp = 1.d-6
+  atol_temp = 1.d-6
 
-  rtol_enuc = 1.d-10
-  atol_enuc = 1.d-10
+  rtol_enuc = 1.d-6
+  atol_enuc = 1.d-6
+
+  ode_max_steps = 50000
 
   abort_on_failure = F
   retry_burn = F
+
+  jacobian = 2
 
   renormalize_abundances = T
 
