@@ -7,6 +7,10 @@
 
    * We now use VODE90 instead of VODE by default. (#677)
 
+   * A new unit test was added, model_burner, which reads in a 1-d
+     initial model and calls the reaction network on it.  This can
+     be used to test tolerances, etc.
+
 # 19.11
 
    * The density flux limiter was simplified and fixes a race condition

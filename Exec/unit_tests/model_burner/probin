@@ -1,0 +1,7 @@
+&fortin
+
+  model_name =  "15m_500_sec.hse.6400"
+  burn_dt = 1.e-7
+
+/
+

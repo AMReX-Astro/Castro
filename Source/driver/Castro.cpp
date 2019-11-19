@@ -401,7 +401,7 @@ Castro::read_params ()
     }
 #else
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
-        amrex::Error("When building with USE_SIMPLFIIED_SDC=TRUE, only simplified SDC can be used.");
+        amrex::Error("When building with USE_SIMPLIFIED_SDC=TRUE, only simplified SDC can be used.");
     }
 #endif
 
