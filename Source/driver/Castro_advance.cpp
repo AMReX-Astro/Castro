@@ -667,4 +667,12 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     num_zones_advanced += grids.numPts() / getLevel(0).grids.numPts();
 
+    Real wall_time = ParallelDescriptor::second() - wall_time_start;
+    Real fom_advance = grids.numPts() / wall_time / 1.e6;
+
+    if (verbose >= 1) {
+        amrex::Print() << "  Zones advanced per microsecond at this level: "
+                       << fom_advance << std::endl << std::endl;
+    }
+
 }
