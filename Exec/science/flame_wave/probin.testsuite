@@ -47,5 +47,5 @@
   atol_spec = 1.d-6
 
   react_boost = 10.0
-  use_tables = F
+  use_tables = T
 /
