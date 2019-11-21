@@ -112,7 +112,7 @@ contains
     ! we assume that we are coming in with a valid burn_state, e.g., as called
     ! from single_zone_react_source
 
-    use burn_type_module, only : burn_t, net_ienuc, net_itemp
+    use burn_type_module, only : burn_t, net_ienuc, net_itemp, neqs
     use network, only : nspec, nspec_evolve, aion, aion_inv
     use meth_params_module, only : NVAR, URHO, &
                                    sdc_use_analytic_jac
@@ -134,8 +134,8 @@ contains
 
     ! for computing a numerical derivative
     real(rt) :: eps = 1.e-8_rt
+    real(rt) :: jac(neqs, neqs)
 
-    !$gpu
 
 #ifdef SIMPLIFIED_SDC
 #ifndef AMREX_USE_GPU
@@ -144,15 +144,15 @@ contains
 #else
     if (sdc_use_analytic_jac == 0) then
        ! note the numerical Jacobian will be returned in terms of X
-       call numerical_jac(burn_state)
+       call numerical_jac(burn_state, jac)
     else
-       call actual_jac(burn_state)
+       call actual_jac(burn_state, jac)
 
        ! The Jacobian from the nets is in terms of dYdot/dY, but we want
        ! it was dXdot/dX, so convert here.
        do n = 1, nspec_evolve
-          burn_state % jac(n,:) = burn_state % jac(n,:) * aion(n)
-          burn_state % jac(:,n) = burn_state % jac(:,n) * aion_inv(n)
+          jac(n,:) = jac(n,:) * aion(n)
+          jac(:,n) = jac(:,n) * aion_inv(n)
        enddo
 
     endif
@@ -206,11 +206,11 @@ contains
 
        do m = 1, nspec_evolve
           ! d( d(rho X_m)/dt)/dX_n
-          dRdw(m, iwfs-1+n) = state(URHO) * burn_state % jac(m, n)
+          dRdw(m, iwfs-1+n) = state(URHO) * jac(m, n)
        enddo
 
        ! d( d(rho E)/dt)/dX_n
-       dRdw(nspec_evolve+1, iwfs-1+n) = state(URHO) * burn_state % jac(net_ienuc, n)
+       dRdw(nspec_evolve+1, iwfs-1+n) = state(URHO) * jac(net_ienuc, n)
 
     enddo
 
@@ -220,11 +220,11 @@ contains
 
     ! d( d(rho X_m)/dt)/dT
     do m = 1, nspec_evolve
-       dRdw(m, iwT) = state(URHO) * burn_state % jac(m, net_itemp)
+       dRdw(m, iwT) = state(URHO) * jac(m, net_itemp)
     enddo
 
     ! d( d(rho E)/dt)/dT
-    dRdw(nspec_evolve+1, iwT) = state(URHO) * burn_state % jac(net_ienuc, net_itemp)
+    dRdw(nspec_evolve+1, iwT) = state(URHO) * jac(net_ienuc, net_itemp)
 
 
   end subroutine single_zone_jac

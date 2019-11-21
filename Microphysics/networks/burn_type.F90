@@ -57,12 +57,6 @@ module burn_type_module
 
     real(rt) :: ydot(neqs)
 
-#ifdef REACT_SPARSE_JACOBIAN
-    real(rt) :: sparse_jac(NETWORK_SPARSE_JAC_NNZ)
-#else
-    real(rt) :: jac(neqs, neqs)
-#endif
-
     ! Whether we are self-heating or not.
 
     logical          :: self_heat
@@ -125,12 +119,6 @@ contains
     to_state % dcpdT = from_state % dcpdT
 
     to_state % ydot(1:neqs) = from_state % ydot(1:neqs)
-
-#ifdef REACT_SPARSE_JACOBIAN
-    to_state % sparse_jac(1:NETWORK_SPARSE_JAC_NNZ) = from_state % sparse_jac(1:NETWORK_SPARSE_JAC_NNZ)
-#else
-    to_state % jac(1:neqs, 1:neqs) = from_state % jac(1:neqs, 1:neqs)
-#endif
 
     to_state % self_heat = from_state % self_heat
 
