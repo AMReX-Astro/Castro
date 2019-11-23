@@ -98,13 +98,13 @@ subroutine derpi(p, p_lo, p_hi, ncomp_p, &
            rhoInv = ONE/u(i,j,k,URHO)
            T = u(i,j,k,UTEMP)
 
-           eos_state%rho = u(i,j,k,URHO)
-           eos_state%T = u(i,j,k,UTEMP)
-           eos_state%e = u(i,j,k,UEINT)*rhoInv
-           eos_state%xn(:) = u(i,j,k,UFS:UFS-1+nspec)/u(i,j,k,URHO)
-           eos_state%aux(:) = u(i,j,k,UFX:UFX-1+naux)/u(i,j,k,URHO)
+           eos_state % rho = u(i,j,k,URHO)
+           eos_state % T = u(i,j,k,UTEMP)
+           eos_state % e = u(i,j,k,UEINT)*rhoInv
+           eos_state % xn(:) = u(i,j,k,UFS:UFS-1+nspec)/u(i,j,k,URHO)
+           eos_state % aux(:) = u(i,j,k,UFX:UFX-1+naux)/u(i,j,k,URHO)
 
-           if (e <= ZERO) then
+           if (eos_state % e <= ZERO) then
               call eos(eos_input_rt, eos_state)
               p(i,j,k,1) = eos_state%p
 
