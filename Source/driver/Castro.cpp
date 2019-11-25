@@ -125,6 +125,7 @@ int          Castro::Shock         = -1;
 #endif
 
 int          Castro::NQSRC         = -1;
+int          Castro::NSRC          = -1;
 int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
 

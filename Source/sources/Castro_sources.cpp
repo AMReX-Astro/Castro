@@ -15,7 +15,7 @@ Castro::apply_source_to_state(MultiFab& target_state, MultiFab& source, Real dt,
     AMREX_ASSERT(source.nGrow() >= ng);
     AMREX_ASSERT(target_state.nGrow() >= ng);
 
-    MultiFab::Saxpy(target_state, dt, source, 0, 0, NUM_STATE, ng);
+    MultiFab::Saxpy(target_state, dt, source, 0, 0, source.nComp(), ng);
 }
 
 void
@@ -152,7 +152,7 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
     // The individual source terms only calculate the source on the valid domain.
     // FillPatch to get valid data in the ghost zones.
 
-    AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, source.nComp());
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -424,15 +424,16 @@ Castro::sum_of_sources(MultiFab& source)
   MultiFab& old_sources = get_old_data(Source_Type);
   MultiFab& new_sources = get_new_data(Source_Type);
 
-  MultiFab::Add(source, old_sources, 0, 0, NUM_STATE, ng);
+  MultiFab::Add(source, old_sources, 0, 0, old_sources.nComp(), ng);
 
   MultiFab::Add(source, hydro_source, 0, 0, NUM_STATE, ng);
 
-  MultiFab::Add(source, new_sources, 0, 0, NUM_STATE, ng);
+  MultiFab::Add(source, new_sources, 0, 0, new_sources.nComp(), ng);
 
 }
 
 // Obtain the effective source term due to reactions on the primitive variables.
+// This is done with simplified_SDC
 
 #ifdef REACTIONS
 void
