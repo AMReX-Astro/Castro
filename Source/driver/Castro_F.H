@@ -36,6 +36,8 @@ extern "C"
 
   void ca_get_nqaux(int* nqaux);
 
+  void ca_get_nqtherm(int* nqtherm);
+
   void ca_get_nqsrc(int* nqsrc);
 
   void ca_get_ngdnv(int* ngdnv);

@@ -242,6 +242,9 @@ Castro::variableSetUp ()
   // and the auxiliary variables
   ca_get_nqaux(&NQAUX);
 
+  // and the number of thermodynamic variables
+  ca_get_nqtherm(&NQTHERM);
+
   // and the number of primitive variable source terms
   ca_get_nqsrc(&NQSRC);
 

@@ -9,7 +9,7 @@ module meth_params_module
 
   use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
-  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC
+  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC, NQTHERM
 
   implicit none
 

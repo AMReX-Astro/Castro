@@ -258,6 +258,21 @@ subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
 end subroutine ca_get_nqaux
 
 
+subroutine ca_get_nqtherm(nqtherm_in) bind(C, name="ca_get_nqtherm")
+    !
+    ! Binds to C function `ca_get_nqthermx`
+
+  use meth_params_module, only: NQTHERM
+
+  implicit none
+
+  integer, intent(inout) :: nqtherm_in
+
+  nqtherm_in = NQTHERM
+
+end subroutine ca_get_nqtherm
+
+
 subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
     !
     ! Binds to C function `ca_get_ngdnv`
@@ -713,7 +728,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !$acc device(USHK) &
   !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC) &
   !$acc device(QFA, QFS, QFX) &
-  !$acc device(NQAUX, NQSRC, QGAMC, QC, QDPDR, QDPDE) &
+  !$acc device(NQAUX, NQSRC, NQTHERM, QGAMC, QC, QDPDR, QDPDE) &
 #ifdef RADIATION
   !$acc device(QGAMCG, QCG, QLAMS) &
 #endif

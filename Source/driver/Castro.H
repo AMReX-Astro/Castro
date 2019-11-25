@@ -1658,6 +1658,7 @@ public:
 ///
     static int       NQSRC;
     static int       NQAUX;
+    static int       NQTHERM;
     static int       NQ;
     static int       NGDNV;
 
