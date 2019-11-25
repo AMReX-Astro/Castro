@@ -36,12 +36,12 @@
    B-y                    QMAGY        QMAGY     NQSRC                                   1                 MHD
    B-z                    QMAGZ        QMAGZ     NQSRC                                   1                 MHD
    temperature            QTEMP        QTEMP     NQSRC                                   1                 None
-   advected               QFA          QFA       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)      None
-   species                QFS          QFS       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)    None
-   auxiliary              QFX          QFX       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)      None
    total-pressure         QPTOT        QPTOT     None                                    1                 RADIATION
    total-reint            QREITOT      QREITOT   None                                    1                 RADIATION
    radiation              QRAD         QRAD      None                                  (ngroups, NGROUPS)  RADIATION
+   advected               QFA          QFA       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)      None
+   species                QFS          QFS       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)    None
+   auxiliary              QFX          QFX       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)      None
 
 
 # the auxiliary quantities
