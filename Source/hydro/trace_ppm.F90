@@ -131,6 +131,17 @@ contains
        call castro_error("ppm_temp_fix >= 3 not valid")
     end if
 
+    ! do the passives separately
+    call trace_ppm_species(lo, hi, &
+                           idir, &
+                           q, qd_lo, qd_hi, &
+                           Ip, Im, &
+                           Ip_src, Im_src, &
+                           qm, qm_lo, qm_hi, &
+                           qp, qp_lo, qp_hi, &
+                           vlo, vhi, domlo, domhi, &
+                           dx, dt)
+
   end subroutine trace_ppm
 
 
@@ -285,7 +296,7 @@ contains
     real(rt) :: sm, sp
 
     real(rt) :: s(-2:2)
-    real(rt) :: Ip(1:3,NQ), Im(1:3,NQ)
+    real(rt) :: Ip(1:3,NQTHERM), Im(1:3,NQTHERM)
     real(rt) :: Ip_src(1:3,NQSRC), Im_src(1:3,NQSRC)
     real(rt) :: Ip_gc(1:3,1), Im_gc(1:3,1)
 
@@ -388,7 +399,7 @@ contains
 
              ! do the parabolic reconstruction and compute the
              ! integrals under the characteristic waves
-             do n = 1, NQ
+             do n = 1, NQTHERM
                 if (.not. reconstruct_state(n)) cycle
 
                 if (idir == 1) then
@@ -440,18 +451,6 @@ contains
                 end if
 
              end do
-
-
-             ! do the passives separately
-             call trace_ppm_species(i, j, k, &
-                                    idir, &
-                                    q, qd_lo, qd_hi, &
-                                    Ip, Im, &
-                                    Ip_src, Im_src, &
-                                    qm, qm_lo, qm_hi, &
-                                    qp, qp_lo, qp_hi, &
-                                    vlo, vhi, domlo, domhi, &
-                                    dx, dt)
 
              !-------------------------------------------------------------------
              ! plus state on face i
