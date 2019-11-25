@@ -24,24 +24,24 @@
 
 # the primitive variable state
 @set: primitive NQ
-   density                QRHO         QRHO      NQSRC                                   1                 None
-   x-velocity             QU           QU        NQSRC                                   1                 None
-   y-velocity             QV           QV        NQSRC                                   1                 None
-   z-velocity             QW           QW        NQSRC                                   1                 None
-   gamma_e                QGAME        QGAME     NQSRC                                   1                 None
-   gamma_c                QGC          QGC       NQSRC                                   1                 None
-   pressure               QPRES        QPRES     NQSRC                                   1                 None
-   rho-e                  QREINT       QREINT    NQSRC                                   1                 None
-   B-x                    QMAGX        QMAGX     NQSRC                                   1                 MHD
-   B-y                    QMAGY        QMAGY     NQSRC                                   1                 MHD
-   B-z                    QMAGZ        QMAGZ     NQSRC                                   1                 MHD
-   temperature            QTEMP        QTEMP     NQSRC                                   1                 None
-   total-pressure         QPTOT        QPTOT     None                                    1                 RADIATION
-   total-reint            QREITOT      QREITOT   None                                    1                 RADIATION
-   radiation              QRAD         QRAD      None                                  (ngroups, NGROUPS)  RADIATION
-   advected               QFA          QFA       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)      None
-   species                QFS          QFS       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)    None
-   auxiliary              QFX          QFX       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)      None
+   density                QRHO         QRHO      [NQSRC, NQTHERM]                         1                   None
+   x-velocity             QU           QU        [NQSRC, NQTHERM]                         1                   None
+   y-velocity             QV           QV        [NQSRC, NQTHERM]                         1                   None
+   z-velocity             QW           QW        [NQSRC, NQTHERM]                         1                   None
+   gamma_e                QGAME        QGAME     [NQSRC, NQTHERM]                         1                   None
+   gamma_c                QGC          QGC       [NQSRC, NQTHERM]                         1                   None
+   pressure               QPRES        QPRES     [NQSRC, NQTHERM]                         1                   None
+   rho-e                  QREINT       QREINT    [NQSRC, NQTHERM]                         1                   None
+   B-x                    QMAGX        QMAGX     [NQSRC, NQTHERM]                         1                   MHD
+   B-y                    QMAGY        QMAGY     [NQSRC, NQTHERM]                         1                   MHD
+   B-z                    QMAGZ        QMAGZ     [NQSRC, NQTHERM]                         1                   MHD
+   temperature            QTEMP        QTEMP     [NQSRC, NQTHERM]                         1                   None
+   total-pressure         QPTOT        QPTOT     [NQTHERM]                                1                   RADIATION
+   total-reint            QREITOT      QREITOT   [NQTHERM]                                1                   RADIATION
+   radiation              QRAD         QRAD      [NQTHERM]                               (ngroups, NGROUPS)   RADIATION
+   advected               QFA          QFA       [(NQSRC, PRIM_SPECIES_HAVE_SOURCES)]    (nadv, NumAdv)       None
+   species                QFS          QFS       [(NQSRC, PRIM_SPECIES_HAVE_SOURCES)]    (nspec, NumSpec)     None
+   auxiliary              QFX          QFX       [(NQSRC, PRIM_SPECIES_HAVE_SOURCES)]    (naux, NumAux)       None
 
 
 # the auxiliary quantities

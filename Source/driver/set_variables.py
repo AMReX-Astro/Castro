@@ -52,10 +52,18 @@ end subroutine check_equal
 
 """
 
+LINE_SPLIT = r"[\w\"\+\.-]+|\[[\w\.\-\(\)\s,]+\]|\([\w\.\-\s,]+\)"
+ADDS_TO_PAIR = r"[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)"
+
 def split_pair(pair_string):
     """given an option of the form "(val1, val2)", split it into val1 and
     val2"""
     return pair_string.replace("(", "").replace(")", "").replace(" ", "").split(",")
+
+def split_adds_to_list(pair_string):
+    """given an option of the form "[val1, val2]", split it into val1 and
+    val2.  Note, each of val1 and val2 could itself be a pair like "(a, b)". """
+    return re.findall(ADDS_TO_PAIR, pair_string)
 
 class Index:
     """an index that we want to set"""
@@ -163,6 +171,7 @@ class Counter:
         self.starting_val = starting_val
 
     def increment(self, value):
+        """increment the pointer to the variable start by value"""
         try:
             i = int(value)
         except ValueError:
@@ -187,7 +196,8 @@ class Counter:
 
 def doit(variables_file, odir, defines, nadv,
          ngroups,
-         n_neutrino_species, neutrino_groups):
+         n_neutrino_species, neutrino_groups, debug=0):
+    """the main driver for reading _variables and writing the include files"""
 
     # are we doing radiation?
     if not "RADIATION" in defines:
@@ -216,34 +226,42 @@ def doit(variables_file, odir, defines, nadv,
 
                 # this splits the line into separate fields.  A field is a
                 # single word or a pair in parentheses like "(a, b)"
-                fields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', line)
+                fields = re.findall(LINE_SPLIT, line)
 
                 name = fields[0]
                 cxx_var = fields[1]
                 f90_var = fields[2]
-                adds_to = fields[3]
+                adds_to_raw = fields[3]
                 count = fields[4]
                 ifdef = fields[5]
 
-                # we may be fed a pair of the form (SET, DEFINE),
-                # in which case we only add to SET if we define
-                # DEFINE
-                if adds_to.startswith("("):
-                    add_set, define = split_pair(adds_to)
-                    if not define in defines:
-                        adds_to = None
-                    else:
-                        adds_to = add_set
+                # the adds_to column can use [] to hold a list of
+                # variables that we need to add to.  Split this into
+                # a list now
+                if adds_to_raw == "None":
+                    adds_to = []
+                else:
+                    adds_to = split_adds_to_list(adds_to_raw)
 
-                if adds_to == "None":
-                    adds_to = None
+                # each item in the adds_to list may be of the form
+                # (SET, DEFINE), in which case we only add to SET if
+                # we define DEFINE
+                all_adds = []
+                for a in adds_to:
+                    if a.startswith("("):
+                        add_set, define = split_pair(a)
+                        if define in defines:
+                            all_adds.append(add_set)
+                    else:
+                        all_adds.append(a)
+
                 if cxx_var == "None":
                     cxx_var = None
                 if ifdef == "None":
                     ifdef = None
 
                 indices.append(Index(name, f90_var, default_group=default_group,
-                                     iset=current_set, also_adds_to=adds_to,
+                                     iset=current_set, also_adds_to=all_adds,
                                      count=count, cxx_var=cxx_var, ifdef=ifdef))
 
 
@@ -265,13 +283,19 @@ def doit(variables_file, odir, defines, nadv,
         for s in sorted(unique_sets):
             subname = "ca_set_{}_indices".format(s)
 
+            if debug: print("working on set: {}".format(s))
+
             set_indices = [q for q in indices if q.iset == s]
 
             # cxx names in this set
             cxx_names = [q.cxx_var for q in set_indices if q.cxx_var is not None]
 
             # add to
-            adds_to = set([q.adds_to for q in set_indices if q.adds_to is not None])
+            adds_to = []
+            for idx in set_indices:
+                adds_to += [q for q in idx.adds_to]
+            adds_to = set(adds_to)
+            if debug: print("adds to = ", adds_to)
 
             # write the function heading
             sub = ""
@@ -330,10 +354,15 @@ def doit(variables_file, odir, defines, nadv,
             # write the lines to set the indices
             for i in set_indices:
 
+                if debug:
+                    print("considering variable {}".format(i.f90_var))
+                    print("   should add to: ", i.adds_to)
+
                 # if this variable has an ifdef, make sure it is in
                 # defines, otherwise skip
                 if i.ifdef is not None:
                     if i.ifdef not in defines:
+                        print(" ")
                         continue
 
                 # get the index value for the main counter
@@ -341,9 +370,10 @@ def doit(variables_file, odir, defines, nadv,
 
                 # increment the counters
                 counter_main.increment(i.count)
-                if i.adds_to is not None:
+                for add_var in i.adds_to:
                     for ca in counter_adds:
-                        if ca.name == i.adds_to:
+                        if ca.name == add_var:
+                            if debug: print("   incrementing counter {} by {}".format(ca.name, i.count))
                             ca.increment(i.count)
 
 
@@ -355,6 +385,8 @@ def doit(variables_file, odir, defines, nadv,
                     sub += i.get_set_string(val, set_default=0)
                 else:
                     sub += i.get_set_string(val)
+
+                if debug: print(" ")
 
             # end the function
             sub += "end subroutine {}\n\n".format(subname)
@@ -402,6 +434,7 @@ def doit(variables_file, odir, defines, nadv,
             f.write(g.get_cxx_set_string())
 
 def main():
+    """read the commandline arguments and pass them to the driver"""
 
     # note: you need to put a space at the start of the string
     # that gives defines so that the '-' is not interpreted as
