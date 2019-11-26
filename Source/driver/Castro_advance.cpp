@@ -562,20 +562,23 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         A_new[n]->setVal(0.0);
       }
 
-#ifdef REACTIONS
-      // We use Sburn in 2 ways for the SDC integration.  First, we
+      // We use Sburn a few ways for the SDC integration.  First, we
       // use it to store the initial guess to the nonlinear solve.
       // Second, at the end of the SDC update, we copy the cell-center
       // reaction source into it, including one ghost cell, for later
-      // filling of the plotfile.
+      // filling of the plotfile.  Finally, we use it as a temporary
+      // buffer for when we convert the state to centers while making the
+      // source term
       Sburn.define(grids, dmap, NUM_STATE, 2);
 
+#ifdef REACTIONS
       R_old.resize(SDC_NODES);
       for (int n = 0; n < SDC_NODES; ++n) {
 	R_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
         R_old[n]->setVal(0.0);
       }
 #endif
+
     }
 
     // Zero out the current fluxes.
