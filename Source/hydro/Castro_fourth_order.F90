@@ -777,7 +777,9 @@ contains
                 endif
 #endif
 
-                update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
+                if (n <= NSRC) then
+                   update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
+                end if
 
              end do
           end do
