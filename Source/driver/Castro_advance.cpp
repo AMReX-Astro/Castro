@@ -456,7 +456,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // the new-time sources, so that we can compute the time
     // derivative of the source terms.
 
-    sources_for_hydro.define(grids, dmap, NUM_STATE, NUM_GROW);
+    sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW);
     sources_for_hydro.setVal(0.0, NUM_GROW);
 
     // Add the source term predictor.
@@ -474,7 +474,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // time-centered value.
 
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
     }
 
     // Swap the new data from the last timestep into the old state data.

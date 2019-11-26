@@ -347,8 +347,6 @@ void
 Castro::print_source_change(Vector<Real> update)
 {
 
-  BL_ASSERT(update.size() == NUM_STATE);
-
   if (ParallelDescriptor::IOProcessor()) {
 
     std::cout << "       mass added: " << update[Density] << std::endl;
@@ -388,7 +386,7 @@ Castro::print_all_source_changes(Real dt, bool is_new)
   Lazy::QueueReduction( [=] () mutable {
 #endif
 
-      ParallelDescriptor::ReduceRealSum(summed_updates.dataPtr(), NUM_STATE, ParallelDescriptor::IOProcessorNumber());
+      ParallelDescriptor::ReduceRealSum(summed_updates.dataPtr(), source.nComp(), ParallelDescriptor::IOProcessorNumber());
 
       std::string time = is_new ? "new" : "old";
 
