@@ -81,7 +81,7 @@ castro.retry_neg_dens_factor = -1.0
 ############################################################################################
 
 # Number of cells on the coarse grid
-amr.n_cell = 256 256 256
+amr.n_cell = 128 128 128
 
 # Maximum level number allowed
 amr.max_level = 0
