@@ -55,6 +55,7 @@ Castro::advance (Real time,
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
 #ifndef AMREX_USE_CUDA
+#ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
       for (int iter = 0; iter < sdc_order+sdc_extra; ++iter) {
@@ -137,9 +138,10 @@ Castro::advance (Real time,
         Sborder.clear();
       }
 
-#endif
-    }
-    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+#endif // REACTIONS
+#endif // TRUE_SDC
+#endif // AMREX_USE_CUDA
+    } else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
         for (int n = 0; n < sdc_iters; ++n) {
 
@@ -172,7 +174,9 @@ Castro::advance (Real time,
 
                 // Check for NaN's.
 
+#ifndef AMREX_USE_CUDA
                 check_for_nan(S_new);
+#endif
 
             }
 #endif
@@ -180,8 +184,6 @@ Castro::advance (Real time,
             amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
 
         }
-
-#endif // AMREX_USE_CUDA
     }
 
     // Optionally kill the job at this point, if we've detected a violation.
@@ -664,5 +666,13 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     // Record how many zones we have advanced.
 
     num_zones_advanced += grids.numPts() / getLevel(0).grids.numPts();
+
+    Real wall_time = ParallelDescriptor::second() - wall_time_start;
+    Real fom_advance = grids.numPts() / wall_time / 1.e6;
+
+    if (verbose >= 1) {
+        amrex::Print() << "  Zones advanced per microsecond at this level: "
+                       << fom_advance << std::endl << std::endl;
+    }
 
 }

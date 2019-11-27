@@ -17,6 +17,8 @@ space for variables that are not used.
 General Build Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. index:: USE_ALL_CASTRO, USE_AMR_CORE, USE_SYSTEM_BLAS, USE_HYPRE, USE_PROB_PARAMS
+
 These Parameters affect the build (parallelism, performance, etc.)
 Most of these are parameters from AMReX.
 
@@ -25,25 +27,10 @@ Most of these are parameters from AMReX.
     general simulations.  The purpose of this flag is for unit tests, which
     do not need all of the Castro directories compiled.  
 
-    .. index:: USE_ALL_CASTRO
-
   * ``USE_AMR_CORE``: compile all of the core AMReX directories, including
     ``Base/``, ``AmrCore/``, ``Amr/``, and ``Boundary/``.  This defaults
     to ``TRUE`` and should be left set for Castro simulations.  The purpose
     of this flag is for unit tests that don't need all of AMReX.
-
-    .. index:: USE_AMR_CORE
-
-  * ``USE_CUDA``: compile with GPU support using CUDA.  At present only
-    the method-of-lines hydrodynamics solver supports GPU offloading with
-    CUDA, but this is under active development.
-
-    .. index:: USE_CUDA
-
-  * ``USE_ACC``: compile with OpenACC. Note: this is a work in
-    progress and should not be used presented.
-
-    .. index:: USE_ACC
 
   * ``USE_SYSTEM_BLAS``: for the linear algebra routines provided by
     BLAS, should we compile our own versions or should we use a system
@@ -51,43 +38,53 @@ Most of these are parameters from AMReX.
     ``USE_SYSTEM_BLAS = TRUE``, then we need to provide the name on
     the library in the ``BLAS_LIBRARY`` build parameter.
 
-    .. index:: USE_SYSTEM_BLAS, BLAS_LIBRARY
-
-  * ``USE_MPI``: compile with the MPI library to allow for distributed parallelism.
-
-    .. index:: USE_MPI
-
-  * ``USE_OMP``: compile with OpenMP to allow for shared memory parallelism.
-
-    .. index:: USE_OMP
-
-  * ``USE_MLMG``: use the (newer) AMReX multi-level multigrid solver for gravity
+  * ``USE_MLMG``: use the AMReX multi-level multigrid solver for gravity
     and diffusion.  This should always be set to ``TRUE``.
-
-    .. index:: USE_MLMG
 
   * ``USE_HYPRE``: compile in the Hypre library.  This will be automatically enabled
     for radiation.  You need to specify the path to the Hypre library via either
     ``HYPRE_DIR`` or ``HYPRE_OMP_DIR``.
 
-    .. index:: USE_HYPRE, HYPRE_DIR, HYPRE_OMP_DIR
+  * ``USE_PROB_PARAMS``: generate the ``probdata_module`` at runtime by parsing
+    the problem's ``_prob_params`` file.
 
-  * ``DIMENSION_AGNOSTIC``: originally Castro had separate routines
-    for each of spatial dimension, files ending with ``_1D.F90``,
-    ``_2D.F90``, or ``_3D.F90``.  
+Parallelization and GPUs
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-    .. index:: DIMENSION_AGNOSTIC
+.. index:: USE_MPI, USE_OMP, USE_CUDA, USE_ACC
+
+The following parameters control how work is divided across nodes, cores, and GPUs.
+
+  * ``USE_CUDA``: compile with GPU support using CUDA. 
+
+  * ``USE_ACC``: compile with OpenACC. Note: this is a work in
+    progress and should not be used presented.
+
+
+  * ``USE_MPI``: compile with the MPI library to allow for distributed parallelism.
+
+  * ``USE_OMP``: compile with OpenMP to allow for shared memory parallelism.
+
+
 
 General Physics Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  * ``USE_SDC``: use the alternate spectral deferred corrections (SDC)
-    solver for coupling hydro and reactions.  At the moment, this
-    works with the CTU hydrodynamics solver.  Note, there is another
-    SDC method in development that may replace this in the near
-    future.
+.. index:: USE_SIMPLIFIED_SDC, USE_TRUE_SDC
 
-    .. index:: USE_SDC
+The following parameters control how the coupling between hydro and reactions
+is handled.
+
+  * ``USE_SIMPLIFIED_SDC``: use the simplified spectral deferred corrections (SDC)
+    solver for coupling hydro and reactions.  At the moment, this
+    works with the CTU hydrodynamics solver.  This requires running with
+    ``castro.time_integration_method = 3``.
+
+  * ``USE_TRUE_SDC``: use the true SDC method to couple hydro and
+    reactions.  This can do 2nd order or 4th order accuracy.  At the
+    moment, this works on single level only.  This requires running
+    with ``castro.time_integration_method = 2``.
+
 
 
 Radiation Parameters

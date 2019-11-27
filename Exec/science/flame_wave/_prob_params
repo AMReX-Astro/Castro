@@ -29,6 +29,8 @@ fuel2_name              character         ""                        y
 
 fuel3_name              character         ""                        y
 
+fuel4_name              character         ""                        y
+
 ash1_name               character         "iron-56"                 y
 
 ash2_name               character         ""                        y
@@ -40,6 +42,8 @@ fuel1_frac              real              1.0_rt                    y
 fuel2_frac              real              0.0_rt                    y
 
 fuel3_frac              real              0.0_rt                    y
+
+fuel4_frac              real              0.0_rt                    y
 
 ash1_frac               real              1.0_rt                    y
 

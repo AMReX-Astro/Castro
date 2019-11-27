@@ -391,6 +391,8 @@ Gravity::plus_grad_phi_curr(int level, Vector<std::unique_ptr<MultiFab> >& adden
 void
 Gravity::swapTimeLevels (int level)
 {
+    BL_PROFILE("Gravity::swapTimeLevels()");
+    
     if (gravity_type == "PoissonGrav") {
 	for (int n=0; n < BL_SPACEDIM; n++) {
 	    std::swap(grad_phi_prev[level][n], grad_phi_curr[level][n]);
@@ -656,6 +658,8 @@ Gravity::GetCrsePhi(int level,
                     MultiFab& phi_crse,
                     Real      time      )
 {
+    BL_PROFILE("Gravity::GetCrsePhi()");
+    
     BL_ASSERT(level!=0);
 
     const Real t_old = LevelData[level-1]->get_state_data(PhiGrav_Type).prevTime();
@@ -1281,6 +1285,8 @@ Gravity::test_composite_phi (int crse_level)
 void
 Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, MultiFab& phi)
 {
+    BL_PROFILE("Gravity::make_prescribed_grav()");
+    
     const Real strt = ParallelDescriptor::second();
 
     const Geometry& geom = parent->Geom(level);
@@ -1326,6 +1332,8 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
 void
 Gravity::interpolate_monopole_grav(int level, Vector<Real>& radial_grav, MultiFab& grav_vector)
 {
+    BL_PROFILE("Gravity::interpolate_monopole_grav()");
+    
     int n1d = radial_grav.size();
 
     const Geometry& geom = parent->Geom(level);
@@ -1474,6 +1482,8 @@ Gravity::init_multipole_grav()
 void
 Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFab*>& Rhs, MultiFab& phi)
 {
+    BL_PROFILE("Gravity::fill_multipole_BCs()");
+
     // Multipole BCs only make sense to construct if we are starting from the coarse level.
 
     BL_ASSERT(crse_level == 0);
@@ -1751,6 +1761,8 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 void
 Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiFab*>& Rhs, MultiFab& phi)
 {
+    BL_PROFILE("Gravity::fill_direct_sum_BCs()");
+    
     BL_ASSERT(crse_level==0);
 
     const Real strt = ParallelDescriptor::second();
@@ -1984,6 +1996,8 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 void
 Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coeffs)
 {
+    BL_PROFILE("Gravity::applyMetricTerms()");
+    
     const Real* dx = parent->Geom(level).CellSize();
     int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
@@ -1991,30 +2005,33 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
 #endif
     for (MFIter mfi(Rhs,true); mfi.isValid(); ++mfi)
     {
-        const Box& bx = mfi.tilebox();
+        const Box& bx = mfi.growntilebox(1);
 	const Box& xbx = mfi.nodaltilebox(0);
 #if AMREX_SPACEDIM >= 2
         const Box& ybx = mfi.nodaltilebox(1);
 #endif
 
         // Modify Rhs and coeffs with the appropriate metric terms.
-        ca_apply_metric(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-		        AMREX_ARLIM_ANYD(xbx.loVect()), AMREX_ARLIM_ANYD(xbx.hiVect()),
+#pragma gpu box(bx)
+        ca_apply_metric(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		        AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
 #if AMREX_SPACEDIM >= 2
-                        AMREX_ARLIM_ANYD(ybx.loVect()), AMREX_ARLIM_ANYD(ybx.hiVect()),
+                        AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
 #endif
 			BL_TO_FORTRAN_ANYD(Rhs[mfi]),
 			BL_TO_FORTRAN_ANYD((*coeffs[0])[mfi]),
 #if AMREX_SPACEDIM >= 2
                         BL_TO_FORTRAN_ANYD((*coeffs[1])[mfi]),
 #endif
-			AMREX_ZFILL(dx), coord_type);
+			AMREX_REAL_ANYD(dx), coord_type);
     }
 }
 
 void
 Gravity::unweight_cc(int level, MultiFab& cc)
 {
+    BL_PROFILE("Gravity::unweight_cc()");
+    
     const Real* dx = parent->Geom(level).CellSize();
     const int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
@@ -2023,15 +2040,19 @@ Gravity::unweight_cc(int level, MultiFab& cc)
     for (MFIter mfi(cc,true); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        ca_unweight_cc(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+
+#pragma gpu box(bx)
+        ca_unweight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		       BL_TO_FORTRAN_ANYD(cc[mfi]),
-                       AMREX_ZFILL(dx), coord_type);
+                       AMREX_REAL_ANYD(dx), coord_type);
     }
 }
 
 void
 Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
 {
+    BL_PROFILE("Gravity::unweight_edges()");
+    
     const Real* dx = parent->Geom(level).CellSize();
     const int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
@@ -2041,9 +2062,11 @@ Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
 	for (MFIter mfi(*edges[idir],true); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-	    ca_unweight_edges(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+
+#pragma gpu box(bx)
+	    ca_unweight_edges(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 			      BL_TO_FORTRAN_ANYD((*edges[idir])[mfi]),
-			      AMREX_ZFILL(dx),
+			      AMREX_REAL_ANYD(dx),
                               coord_type, idir);
 	}
     }
@@ -2082,6 +2105,8 @@ Gravity::make_mg_bc ()
 void
 Gravity::set_mass_offset (Real time, bool multi_level)
 {
+    BL_PROFILE("Gravity::set_mass_offset()");
+
     const Geometry& geom = parent->Geom(0);
 
     if (!geom.isAllPeriodic()) {
@@ -2125,7 +2150,8 @@ Gravity::set_mass_offset (Real time, bool multi_level)
 void
 Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vector, Real point_mass)
 {
-
+    BL_PROFILE("Gravity::add_pointmass_to_gravity()");
+    
     const Real* dx     = parent->Geom(level).CellSize();
     const Real* problo = parent->Geom(level).ProbLo();
 
@@ -2539,6 +2565,8 @@ GradPhiPhysBCFunct::FillBoundary (MultiFab& mf, int dcomp, int scomp, Real time,
 void
 Gravity::update_max_rhs()
 {
+    BL_PROFILE("Gravity::update_max_rhs()");
+
     // Calculate the maximum value of the RHS over all levels.
     // This should only be called at a synchronization point where
     // all Castro levels have valid new time data at the same simulation time.
@@ -2580,7 +2608,7 @@ Gravity::update_max_rhs()
 
 	    for (int i = 0; i < BL_SPACEDIM ; i++) {
 		coeffs[lev][i].reset(new MultiFab(amrex::convert(grids[lev],
-                                                                 IntVect::TheDimensionVector(i)),
+                                                  IntVect::TheDimensionVector(i)),
                                                   dmap[lev], 1, 0));
 
 		coeffs[lev][i]->setVal(1.0);

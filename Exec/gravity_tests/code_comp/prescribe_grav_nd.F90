@@ -1,25 +1,27 @@
 module prescribe_grav_module
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 contains
 
-  pure function grav_zone(y) result (g)
+  function grav_zone(y) result (g)
 
     use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
     use probdata_module, only : g0
+    use amrex_fort_module, only : rt => amrex_real
 
     real(rt), intent(in) :: y
     real(rt) :: g
-    real(rt) :: fg
+    real(rt) :: fg, x
 
     !$gpu
 
     if (y < 1.0625e0_rt * 4.e8_rt) then 
-       fg = HALF * (ONE + sin(16.e0_rt * M_PI * (y/4.e8_rt - 1.03125e0_rt)))
+       x = 16.e0_rt * M_PI * (y/4.e8_rt - 1.03125e0_rt)
+       fg = HALF * (ONE + sin(x))
     else if (y > 2.9375e0_rt * 4.e8_rt) then
-       fg = HALF * (ONE - sin(16.e0_rt * M_PI * (y/4.e8_rt - 2.96875e0_rt)))
+       x = 16.e0_rt * M_PI * (y/4.e8_rt - 2.96875e0_rt)
+       fg = HALF * (ONE - sin(x))
     else
        fg = ONE
     endif
@@ -36,6 +38,7 @@ contains
     use interpolate_module
     use prob_params_module, only: dim, center, problo
     use probdata_module, only : g0
+    use amrex_fort_module, only : rt => amrex_real
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: g_lo(3), g_hi(3)
@@ -45,6 +48,8 @@ contains
     ! Local variables
     integer          :: i, j, k
     real(rt)         :: y, fg
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

@@ -31,6 +31,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
     // derive the analytic solution
     auto analytic = castro.derive("analytic", time, 1);
 
+#ifdef TRUE_SDC
     // if we are fourth-order, we need to convert to averages
     if (sdc_order == 4) {
       for (MFIter mfi(*analytic); mfi.isValid(); ++mfi) {
@@ -42,6 +43,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 
       }
     }
+#endif
 
     // compute the norm of the error
     MultiFab::Subtract(*analytic, S, Temp, 0, 1, 0);

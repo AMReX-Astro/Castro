@@ -5,8 +5,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use network, only: network_species_index, nspec
   use castro_error_module, only: castro_error
   use amrex_fort_module, only: rt => amrex_real
-  use eos_type_module, only: eos_t, eos_input_rt
-  use eos_module, only: eos
   use prob_params_module, only : center
 
   implicit none
@@ -14,8 +12,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: init, namlen
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
-
-  type(eos_t) :: eos_state
 
   integer :: untin,i
 

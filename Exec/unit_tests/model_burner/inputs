@@ -1,0 +1,29 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+
+#PROBIN FILENAME
+amr.probin_file = probin
+
+max_step = 1
+stop_time = 0.1
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 0       0      0
+geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     = -1.0    -1.0   -1.0
+geometry.prob_hi     =  1.0     1.0    1.0
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  3   3   3
+castro.hi_bc       =  3   3   3
+
+castro.small_temp = 1.e6
+
+
+# REFINEMENT / REGRIDDING 
+amr.max_level        = 0        # maximum level number allowed
+amr.n_cell           = 16 16 16
+

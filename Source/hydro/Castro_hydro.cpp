@@ -110,7 +110,8 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
 
         const Box& bx = mfi.growntilebox(ng);
 
-	ca_ctoprim(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+#pragma gpu box(bx)
+	ca_ctoprim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		   BL_TO_FORTRAN_ANYD(u[mfi]),
 #ifdef RADIATION
                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),
@@ -123,6 +124,7 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
 
 }
 
+#ifdef TRUE_SDC
 void
 Castro::cons_to_prim_fourth(const Real time)
 {
@@ -235,6 +237,7 @@ Castro::cons_to_prim_fourth(const Real time)
 
 #endif // RADIATION
 }
+#endif
 
 void
 Castro::check_for_cfl_violation(const Real dt)

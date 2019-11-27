@@ -12,43 +12,16 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer untin, i
-
   type(eos_t) :: eos_state
 
-  ! build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter ::  maxlen = 256
-  character probin*(maxlen)
-
-  if (namlen > maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set defaults
-  idir = 1
-
-  ! read namelists -- this will override any defaults
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
-
-  xmin = problo(1)
-  xmax = probhi(1)
-
-  ymin = problo(2)
-  ymax = probhi(2)
-
-  zmin = problo(3)
-  zmax = probhi(3)
+  call probdata_init(name, namlen)
 
   ! set some defaults we will need later in the BCs
   eos_state % rho = rho0
   eos_state % T   =   T0
   eos_state % xn  = 1.e0_rt
 
-  call eos(eos_input_rt, eos_state)
+  call eos_on_host(eos_input_rt, eos_state)
 
   eint0 = rho0 * eos_state % e
   etot0 = eint0 + 0.5*rho0*v0**2
@@ -56,7 +29,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state % rho = rho1
   eos_state % T   =   T1
 
-  call eos(eos_input_rt, eos_state)
+  call eos_on_host(eos_input_rt, eos_state)
 
   eint1 = rho1 * eos_state % e
   etot1 = eint1 + 0.5*rho1*v1**2
@@ -96,6 +69,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use castro_error_module
 
   use amrex_fort_module, only : rt => amrex_real
+  use prob_params_module, only : problo
 
   implicit none
 
@@ -118,11 +92,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            !Provides the simulation to be run in the x,y,or z direction
            !where length direction is the length side in a square prism
            if (idir == 1) then
-              length_cell = xmin + delta(1) * (dble(i) + 0.5e0_rt)
+              length_cell = problo(1) + delta(1) * (dble(i) + 0.5e0_rt)
            else if (idir == 2) then
-              length_cell = ymin + delta(2) * (dble(j) + 0.5e0_rt)
+              length_cell = problo(2) + delta(2) * (dble(j) + 0.5e0_rt)
            else if (idir == 3) then
-              length_cell = zmin + delta(3) * (dble(k) + 0.5e0_rt)
+              length_cell = problo(3) + delta(3) * (dble(k) + 0.5e0_rt)
            else
               call castro_error("Invalid direction please input idir = [1,3]")
            endif
@@ -212,7 +186,7 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
   use rad_params_module, only : xnu
   use blackbody_module, only : BGroup
   use castro_error_module
-
+  use prob_params_module, only : problo
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -237,11 +211,11 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
            !where length direction is the length side in a square prism
 
            if (idir == 1) then
-              length_cell = xmin + delta(1) * (dble(i) + 0.5e0_rt)
+              length_cell = problo(1) + delta(1) * (dble(i) + 0.5e0_rt)
            else if (idir == 2) then
-              length_cell = ymin + delta(2) * (dble(j) + 0.5e0_rt)
+              length_cell = problo(2) + delta(2) * (dble(j) + 0.5e0_rt)
            else if (idir == 3) then
-              length_cell = zmin + delta(3) * (dble(k) + 0.5e0_rt)
+              length_cell = problo(3) + delta(3) * (dble(k) + 0.5e0_rt)
            else
               call castro_error("Invalid direction please input idir = [1,3]")
            endif
