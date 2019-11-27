@@ -41,13 +41,13 @@ ca_F90EXE_sources += derive_two_moment_nd.F90
   ca_f90EXE_sources += ReferenceElementModuleE_Lagrange.f90
   ca_F90EXE_sources += ReferenceElementModule_Lagrange.F90
   ca_f90EXE_sources += TimersModule.f90
-  ca_f90EXE_sources += UtilitiesModule.f90
+  ca_F90EXE_sources += UtilitiesModule.F90
   ca_F90EXE_sources += ArrayUtilitiesModule.F90
 
   ca_f90EXE_sources += SubcellReconstructionModule.f90
 
 # In Modules/Mesh
-  ca_f90EXE_sources += MeshModule.f90
+  ca_F90EXE_sources += MeshModule.F90
 
 # In Modules/Geometry
   ca_f90EXE_sources += GeometryFieldsModuleE.f90	    
