@@ -422,6 +422,21 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         if (subcycle_time + dt_subcycle > (time + dt))
             dt_subcycle = (time + dt) - subcycle_time;
 
+        // Relatedly, lengthen the last timestep so that we don't
+        // have to take a very short final timestep to get to
+        // the desired time. We'll use a slightly larger tolerance
+        // factor than we do in the outer while loop, to avoid
+        // roundoff issues, under the logic that as long as the
+        // tolerance is still small, there is no meaningful harm
+        // from the timestep being slightly larger than our recommended
+        // safe dt in the subcycling.
+
+        Real eps2 = 1.0e-10;
+
+        if (subcycle_time + dt_subcycle > (1.0 - eps2) * (time + dt)) {
+            dt_subcycle = (time + dt) - subcycle_time;
+        }
+
         // Check on whether we are going to take too many subcycles.
 
         int num_subcycles_remaining = int(round(((time + dt) - subcycle_time) / dt_subcycle));
