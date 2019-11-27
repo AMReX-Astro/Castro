@@ -40,3 +40,11 @@
   sponge_timescale     = 1.d-3
 
 /
+
+&extern
+
+  eos_input_is_constant = .true.
+  weaklib_eos_table_name = "EquationOfStateTable.h5"
+  small_x = 1.d-30
+
+/
