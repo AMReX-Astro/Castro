@@ -488,16 +488,16 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             // Do the ODE integration to capture the reaction source terms.
 
-            react_state(time, dt);
+            react_state(subcycle_time, dt_subcycle);
 
             MultiFab& S_new = get_new_data(State_Type);
 
-            clean_state(S_new, state[State_Type].curTime(), S_new.nGrow());
+            clean_state(S_new, subcycle_time + dt_subcycle, S_new.nGrow());
 
             // Compute the reactive source term for use in the next iteration.
 
             MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            get_react_source_prim(SDC_react_new, time, dt);
+            get_react_source_prim(SDC_react_new, subcycle_time, dt_subcycle);
 
             // Check for NaN's.
 
