@@ -6,20 +6,20 @@
 
 # the conserved variable state
 @set: conserved NVAR
-   density                Density      URHO      None             1                None
-   x-momentum             Xmom         UMX       None             1                None
-   y-momentum             Ymom         UMY       None             1                None
-   z-momentum             Zmom         UMZ       None             1                None
-   radial-momentum        Rmom         UMR       None             1                HYBRID_MOMENTUM
-   angular-momentum       Lmom         UML       None             1                HYBRID_MOMENTUM
-   perpendicular-momentum Pmom         UMP       None             1                HYBRID_MOMENTUM
-   energy-density         Eden         UEDEN     None             1                None
-   internal-energy        Eint         UEINT     None             1                None
-   temperature            Temp         UTEMP     None             1                None
-   advected               FirstAdv     UFA       None           (nadv, NumAdv)     None
-   species                FirstSpec    UFS       None           (nspec, NumSpec)   None
-   auxiliary              FirstAux     UFX       None           (naux, NumAux)     None
-   shock                  Shock        USHK      None             1                SHOCK_VAR
+   density                Density      URHO      NSRC                                  1                 None
+   x-momentum             Xmom         UMX       NSRC                                  1                 None
+   y-momentum             Ymom         UMY       NSRC                                  1                 None
+   z-momentum             Zmom         UMZ       NSRC                                  1                 None
+   radial-momentum        Rmom         UMR       NSRC                                  1                 HYBRID_MOMENTUM
+   angular-momentum       Lmom         UML       NSRC                                  1                 HYBRID_MOMENTUM
+   perpendicular-momentum Pmom         UMP       NSRC                                  1                 HYBRID_MOMENTUM
+   energy-density         Eden         UEDEN     NSRC                                  1                 None
+   internal-energy        Eint         UEINT     NSRC                                  1                 None
+   temperature            Temp         UTEMP     NSRC                                  1                 None
+   advected               FirstAdv     UFA       (NSRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)     None
+   species                FirstSpec    UFS       (NSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)   None
+   auxiliary              FirstAux     UFX       (NSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)     None
+   shock                  Shock        USHK      None                                  1                 SHOCK_VAR
 
 
 # the primitive variable state

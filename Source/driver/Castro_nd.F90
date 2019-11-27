@@ -226,6 +226,21 @@ subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
 end subroutine ca_get_nqsrc
 
 
+subroutine ca_get_nsrc(nsrc_in) bind(C, name="ca_get_nsrc")
+    !
+    ! Binds to C function `ca_get_nsrc`
+
+  use meth_params_module, only: NSRC
+
+  implicit none
+
+  integer, intent(inout) :: nsrc_in
+
+  nsrc_in = NSRC
+
+end subroutine ca_get_nsrc
+
+
 
 subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
     !
