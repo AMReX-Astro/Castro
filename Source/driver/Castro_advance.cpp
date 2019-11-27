@@ -478,7 +478,26 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       // Store the old and new time levels.
 
       for (int k = 0; k < num_state_type; k++) {
+
+        // We want to store the previous state in pinned memory
+        // if we're running on a GPU. This helps us alleviate
+        // pressure on the GPU memory, at the slight cost of
+        // lower bandwidth when we are saving/restoring the state.
+        // Since we're using operator= to copy the StateData,
+        // we'll use a trick where we temporarily change the
+        // the arena used by the main state and then immediately
+        // restore it.
+
+#ifdef AMREX_USE_GPU
+        Arena* old_arena = state[k].getArena();
+        state[k].setArena(The_Pinned_Arena());
+#endif
+
         *prev_state[k] = state[k];
+
+#ifdef AMREX_USE_GPU
+        state[k].setArena(old_arena);
+#endif
       }
 
     }
@@ -636,5 +655,13 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     // Record how many zones we have advanced.
 
     num_zones_advanced += grids.numPts() / getLevel(0).grids.numPts();
+
+    Real wall_time = ParallelDescriptor::second() - wall_time_start;
+    Real fom_advance = grids.numPts() / wall_time / 1.e6;
+
+    if (verbose >= 1) {
+        amrex::Print() << "  Zones advanced per microsecond at this level: "
+                       << fom_advance << std::endl << std::endl;
+    }
 
 }
