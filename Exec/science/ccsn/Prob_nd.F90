@@ -167,3 +167,155 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   end do
 
 end subroutine ca_initdata
+
+! hardwired assuming 4 moments
+subroutine get_rad_ncomp(rad_ncomp) bind(C,name="ca_get_rad_ncomp")
+
+  use RadiationFieldsModule, only : nSpecies
+  use ProgramHeaderModule, only : nE, nNodesE
+
+  integer :: rad_ncomp
+  integer :: n_moments = 4
+
+  rad_ncomp =  nSpecies * n_moments * nE * nNodesE
+
+end subroutine get_rad_ncomp
+
+! hardwired assuming 4 moments
+subroutine get_thornado_node_averages(n_node_avgs) bind(C,name="ca_get_thornado_node_averages")
+
+  use RadiationFieldsModule, only : nSpecies
+  use ProgramHeaderModule  , only : nE
+
+  integer :: n_node_avgs
+  integer :: n_moments = 4
+
+  n_node_avgs =  nSpecies * n_moments * nE
+
+end subroutine get_thornado_node_averages
+
+! hardwired assuming 4 moments
+! streaming sine wave, J = H_x = 1 + sin(2*pi*x)
+subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
+                                 rad_state, rad_state_lo, rad_state_hi, &
+                                 state, state_lo, state_hi, &
+                                 delta, xlo, xhi) bind(C,name="ca_init_thornado_data")
+
+  use probdata_module
+  use RadiationFieldsModule, only : nSpecies
+  use ProgramHeaderModule, only : nE, nNodesE
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_error_module
+  use amrex_constants_module, only : M_PI, zero, one
+  use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFX
+  use MeshModule, only: MeshE, NodeCoordinate
+  use UnitsModule
+  use wlEOSInversionModule, only: DescribeEOSInversionError
+  use NeutrinoOpacitiesComputationModule, only: FermiDirac
+  use EquationOfStateModule_TABLE, only: ComputeTemperatureFromSpecificInternalEnergy_TABLE, &
+      ComputeElectronChemicalPotential_TABLE, &
+      ComputeProtonChemicalPotential_TABLE, &
+      ComputeNeutronChemicalPotential_TABLE
+
+  implicit none
+
+  integer,  intent(in   ) :: level, nrad_comp
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: rad_state_lo(3), rad_state_hi(3)
+  real(rt), intent(inout) :: rad_state(rad_state_lo(1):rad_state_hi(1),&
+                                       rad_state_lo(2):rad_state_hi(2),&
+                                       rad_state_lo(3):rad_state_hi(3),&
+                                       0:nrad_comp-1)
+  integer,  intent(in   ) :: state_lo(3), state_hi(3)
+  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),&
+                                   state_lo(2):state_hi(2),&
+                                   state_lo(3):state_hi(3),NVAR)
+  real(rt), intent(in   ) :: xlo(3), xhi(3), time, delta(3)
+
+  ! Local parameter
+  integer, parameter :: n_moments = 4
+  real(rt), parameter :: Log1d100 = LOG( 1.0d100 )
+
+  ! local variables
+  integer :: i,j,k,ienode,Error
+  integer :: ii,ii_0,is,im,ie
+  real(rt) :: rho_in, T_in, Ye_in, Evol, Ne_loc, Em_in, M_e, M_p, M_n, M_nu, E
+
+  ! zero it out, just in case
+  rad_state = zero
+
+  ! print *,'nrad_comp ',nrad_comp
+  ! print *,'nSpecies  ',nSpecies
+  ! print *,'n_moments ',n_moments
+  ! print *,'nE        ',nE
+  ! print *,'nNodesE   ',nNodesE
+  ! print *,'MULT ', nSpecies * n_moments * nE * nNodesE
+
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+
+           ! Get Castro fluid variables unit convert to thornado units
+           rho_in = state(i,j,k,URHO ) * Gram / Centimeter**3
+           T_in   = state(i,j,k,UTEMP) * Kelvin
+           Evol   = state(i,j,k,UEINT) * (Erg/Centimeter**3)
+           Ne_loc = state(i,j,k,UFX  ) / Centimeter**3
+
+           ! Calculate chemical potentials via thornado subroutines
+           Em_in  = Evol / rho_in
+           Ye_in  = Ne_loc / rho_in * AtomicMassUnit
+           call ComputeTemperatureFromSpecificInternalEnergy_TABLE(rho_in,Em_in,Ye_in,T_in,Error_Option=Error)
+           if ( Error > 0 ) then
+             call DescribeEOSInversionError( Error )
+             stop
+           end if
+           call ComputeElectronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_e)
+           call ComputeProtonChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_p)
+           call ComputeNeutronChemicalPotential_TABLE(rho_in,T_in,Ye_in,M_n)
+
+           M_nu = M_e + M_p - M_n
+
+           do is = 1, nSpecies
+           do im = 1, n_moments
+           do ie = 1, nE
+
+              ii_0 = (is-1)*(n_moments*nE*nNodesE) + (im-1)*(nE*nNodesE) + (ie-1)*nNodesE
+
+              do ienode = 1, nNodesE
+
+                 ! Calculate the indices
+                 ii = ii_0 + (ienode-1)
+
+                 ! Get energy at given node coordinate via thornado subroutine
+                 E = NodeCoordinate( MeshE, ie, ienode)
+
+                 ! J moment, im = 1, is = 1
+                 if (im .eq. 1 .and. is .eq. 1) then
+                    rad_state(i,j,k,ii) = FermiDirac( E, +M_nu, BoltzmannConstant * T_in )
+                 end if
+
+                 ! J moment, im = 1, is = 2
+                 if (im .eq. 1 .and. is .eq. 2) then
+                    rad_state(i,j,k,ii) = FermiDirac( E, -M_nu, BoltzmannConstant * T_in )
+                 end if
+
+                 ! H_x moment, im = 2
+                 if (im .eq. 2) rad_state(i,j,k,ii) = zero
+
+                 ! H_y moment, im = 3
+                 if (im .eq. 3) rad_state(i,j,k,ii) = zero
+
+                 ! H_z moment, im = 4
+                 if (im .eq. 4) rad_state(i,j,k,ii) = zero
+
+              end do
+
+           end do
+           end do
+           end do
+
+        enddo
+     enddo
+  enddo
+
+end subroutine ca_init_thornado_data
