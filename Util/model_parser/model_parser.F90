@@ -29,11 +29,18 @@ module model_parser_module
   implicit none
 
   ! integer keys for indexing the model_state array
-  integer, parameter :: nvars_model = 3 + nspec
   integer, parameter :: idens_model = 1
   integer, parameter :: itemp_model = 2
   integer, parameter :: ipres_model = 3
+
+#ifdef INTERPOLATE_MODEL_VELOCITY
+  integer, parameter :: ivelr_model = 4
+  integer, parameter :: ispec_model = 5
+#else
   integer, parameter :: ispec_model = 4
+#endif
+
+  integer, parameter :: nvars_model = ispec_model + nspec - 1
 
   ! number of points in the model file
   integer,   allocatable, save :: npts_model
@@ -71,7 +78,7 @@ contains
 
     real(rt), allocatable :: vars_stored(:)
     character(len=MAX_VARNAME_LENGTH), allocatable :: varnames_stored(:)
-    logical :: found_model, found_dens, found_temp, found_pres
+    logical :: found_model, found_dens, found_temp, found_pres, found_velr
     logical :: found_spec(nspec)
     integer :: ipos
     character (len=256) :: header_line
@@ -133,6 +140,9 @@ contains
        found_dens = .false.
        found_temp = .false.
        found_pres = .false.
+#ifdef INTERPOLATE_MODEL_VELOCITY
+       found_velr = .false.
+#endif
        found_spec(:) = .false.
 
        do j = 1,nvars_model_file
@@ -156,6 +166,13 @@ contains
              model_state(i,ipres_model) = vars_stored(j)
              found_model = .true.
              found_pres  = .true.
+
+#ifdef INTERPOLATE_MODEL_VELOCITY
+          else if (varnames_stored(j) == "radial velocity") then
+             model_state(i,ivelr_model) = vars_stored(j)
+             found_model = .true.
+             found_velr  = .true.
+#endif
 
           else
              do comp = 1, nspec
@@ -198,6 +215,14 @@ contains
                 print *, 'WARNING: pressure not provided in inputs file'
              end if
           endif
+
+#ifdef INTERPOLATE_MODEL_VELOCITY
+          if (.not. found_velr) then
+             if ( amrex_pd_ioprocessor() ) then
+                print *, 'WARNING: radial velocity not provided in inputs file'
+             end if
+          endif
+#endif
 
           do comp = 1, nspec
              if (.not. found_spec(comp)) then

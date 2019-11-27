@@ -184,6 +184,10 @@ ifeq ($(findstring stellarcollapse, $(EOS_DIR)), stellarcollapse)
    DEFINES += -DNUCLEAR_EOS
 endif
 
+ifeq ($(USE_INTERPOLATE_MODEL_VELOCITY), TRUE)
+  DEFINES += -DINTERPOLATE_MODEL_VELOCITY
+endif
+
 ifeq ($(USE_REACT), TRUE)
   Bdirs += Source/reactions
   DEFINES += -DREACTIONS
