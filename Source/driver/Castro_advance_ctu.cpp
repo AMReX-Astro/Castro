@@ -402,6 +402,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     bool do_swap = false;
 
+    Real last_dt_subcycle = 1.e200;
+
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
 
         sub_iteration += 1;
@@ -428,6 +430,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         // safe dt in the subcycling.       
 
         const Real eps2 = 1.0e-10;
+
+        // Save the dt_subcycle before modifying it, we will use it later.
+
+        last_dt_subcycle = dt_subcycle;
 
         if (subcycle_time + dt_subcycle > (1.0 - eps2) * (time + dt))
             dt_subcycle = (time + dt) - subcycle_time;
@@ -561,6 +567,11 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
     }
 
     // We want to return the subcycled timestep as a suggestion.
+    // Let's be sure to return the subcycled timestep that was
+    // unmodified by anything we had to do in the last subcycle
+    // to reach the target time.
+
+    dt_subcycle = last_dt_subcycle;
 
     dt_new = std::min(dt_new, dt_subcycle);
 
