@@ -1,6 +1,6 @@
 
 max_step = 100000000
-stop_time = 3.5
+stop_time = 4.0
 
 amr.probin_file = probin-collision.testsuite
 
