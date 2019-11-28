@@ -385,10 +385,10 @@ public:
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    amrex::Real do_advance_ctu(amrex::Real time,
-                               amrex::Real dt,
-                               int  amr_iteration,
-                               int  amr_ncycle);
+    bool do_advance_ctu(amrex::Real time,
+                        amrex::Real dt,
+                        int  amr_iteration,
+                        int  amr_ncycle);
 
 
 #ifndef AMREX_USE_CUDA
@@ -411,8 +411,9 @@ public:
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
+/// @param advance_success  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle, bool advance_success);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.
@@ -1038,7 +1039,7 @@ public:
 /// @param strang_half  Is this a Strang-split half timestep?
 /// @param ngrow        Number of ghost cells
 ///
-    void react_state(amrex::MultiFab& state,
+    bool react_state(amrex::MultiFab& state,
 		     amrex::MultiFab& reactions,
 		     const amrex::iMultiFab& mask,
 		     amrex::MultiFab& weights,
@@ -1052,7 +1053,7 @@ public:
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void react_state(amrex::Real time, amrex::Real dt);
+    bool react_state(amrex::Real time, amrex::Real dt);
 
 ///
 /// React through first half timestep
@@ -1060,7 +1061,7 @@ public:
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void strang_react_first_half(amrex::Real time, amrex::Real dt);
+    bool strang_react_first_half(amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -1069,7 +1070,7 @@ public:
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void strang_react_second_half(amrex::Real time, amrex::Real dt);
+    bool strang_react_second_half(amrex::Real time, amrex::Real dt);
 
 ///
 /// Obtain the effective source term due to reactions on the primitive variables
@@ -1826,12 +1827,6 @@ protected:
 /// Did we trigger a CFL violation?
 ///
     int cfl_violation;
-
-
-///
-/// Did we have a successful burn?
-///
-    int burn_success;
 
 
 ///

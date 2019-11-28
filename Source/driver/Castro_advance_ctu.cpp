@@ -12,7 +12,7 @@
 
 using namespace amrex;
 
-Real
+bool
 Castro::do_advance_ctu(Real time,
                        Real dt,
                        int  amr_iteration,
@@ -44,13 +44,14 @@ Castro::do_advance_ctu(Real time,
 
     // Since we are Strang splitting the reactions, do them now
 
+    bool burn_success = true;
 
 #ifdef REACTIONS
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
         // this operates on Sborder (which is initially S_old).  The result
         // of the reactions is added directly back to Sborder.
-        strang_react_first_half(prev_time, 0.5 * dt);
+        burn_success = strang_react_first_half(prev_time, 0.5 * dt);
 
     }
 #endif
@@ -72,8 +73,8 @@ Castro::do_advance_ctu(Real time,
 
         // Skip the rest of the advance if the burn was unsuccessful.
 
-        if (burn_success != 1)
-            return dt;
+        if (!burn_success)
+            return false;
 
     }
 #endif
@@ -124,7 +125,7 @@ Castro::do_advance_ctu(Real time,
 
       // If we detect one, return immediately.
       if (cfl_violation && hard_cfl_limit)
-          return dt;
+          return false;
 
       construct_ctu_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
@@ -196,19 +197,19 @@ Castro::do_advance_ctu(Real time,
 #ifdef REACTIONS
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
-        strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+        burn_success = strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
 
         // Skip the rest of the advance if the burn was unsuccessful.
 
-        if (burn_success != 1)
-            return dt;
+        if (!burn_success)
+            return false;
 
     }
 #endif
 
     finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
-    return dt;
+    return true;
 }
 
 
@@ -216,7 +217,7 @@ Castro::do_advance_ctu(Real time,
 
 
 bool
-Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle, bool advance_success)
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
 
@@ -281,7 +282,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
     // case, we end up saving a lot of timesteps relative to the potentially very
     // small timestep recommended by the above limiters.
 
-    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle) || burn_success != 1) {
+    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle) || !advance_success) {
 
         do_retry = true;
 
@@ -503,6 +504,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             num_sub_iters = sdc_iters;
         }
 
+        bool advance_success = true;
+
         for (int n = 0; n < num_sub_iters; ++n) {
 
             if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
@@ -510,15 +513,19 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
                 amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
             }
 
-            do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
+            // We do the hydro advance here, and record whether we completed it.
+            // If we are doing simplified SDC, there is no point in doing the burn
+            // or the subsequent SDC iterations if the advance was incomplete.
 
-            if (time_integration_method == SimplifiedSpectralDeferredCorrections && do_react) {
+            advance_success = do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
+
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 #ifdef REACTIONS
-                if (do_react) {
+                if (do_react && advance_success) {
 
                     // Do the ODE integration to capture the reaction source terms.
 
-                    react_state(subcycle_time, dt_subcycle);
+                    advance_success = react_state(subcycle_time, dt_subcycle);
 
                     MultiFab& S_new = get_new_data(State_Type);
 
@@ -538,6 +545,15 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
                 }
 #endif
 
+                if (!advance_success) {
+                    if (use_retry) {
+                        amrex::Print() << "Advance was unsuccessful; proceeding to a retry." << std::endl << std::endl;
+                    } else {
+                        amrex::Abort("Advance was unsuccessful.");
+                    }
+                    break;
+                }
+
                 amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
             }
 
@@ -554,9 +570,6 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         if (cfl_violation && hard_cfl_limit && !use_retry)
             amrex::Abort("CFL is too high at this level, and we are already inside a retry -- go back to a checkpoint and restart with lower cfl number");
 
-        if (burn_success != 1 && !use_retry)
-            amrex::Abort("Burn was unsuccessful");
-
         // If we're allowing for retries, check for that here.
 
         if (use_retry) {
@@ -565,7 +578,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // The retry function will handle resetting the state,
             // and updating dt_subcycle.
 
-            if (retry_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle)) {
+            if (retry_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle, advance_success)) {
                 do_swap = false;
                 sub_iteration = 0;
                 subcycle_time = time;

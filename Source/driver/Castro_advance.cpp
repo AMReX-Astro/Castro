@@ -204,10 +204,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
     cfl_violation = 0;
 
-    // Reset the burn success flag.
-
-    burn_success = 1;
-
     int finest_level = parent->finestLevel();
 
 #ifdef RADIATION
