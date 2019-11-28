@@ -497,32 +497,51 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         // will include Strang-split reactions; for simplified SDC, we defer the
         // burn until after the advance.
 
-        do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
+        int num_sub_iters = 1;
 
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+            num_sub_iters = sdc_iters;
+        }
+
+        for (int n = 0; n < num_sub_iters; ++n) {
+
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+                sdc_iteration = n;
+                amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
+            }
+
+            do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
+
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections && do_react) {
 #ifdef REACTIONS
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections && do_react) {
+                if (do_react) {
 
-            // Do the ODE integration to capture the reaction source terms.
+                    // Do the ODE integration to capture the reaction source terms.
 
-            react_state(subcycle_time, dt_subcycle);
+                    react_state(subcycle_time, dt_subcycle);
 
-            MultiFab& S_new = get_new_data(State_Type);
+                    MultiFab& S_new = get_new_data(State_Type);
 
-            clean_state(S_new, subcycle_time + dt_subcycle, S_new.nGrow());
+                    clean_state(S_new, subcycle_time + dt_subcycle, S_new.nGrow());
 
-            // Compute the reactive source term for use in the next iteration.
+                    // Compute the reactive source term for use in the next iteration.
 
-            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-            get_react_source_prim(SDC_react_new, subcycle_time, dt_subcycle);
+                    MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+                    get_react_source_prim(SDC_react_new, subcycle_time, dt_subcycle);
 
-            // Check for NaN's.
+                    // Check for NaN's.
 
 #ifndef AMREX_USE_CUDA
-            check_for_nan(S_new);
+                    check_for_nan(S_new);
 #endif
 
-        }
+                }
 #endif
+
+                amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
+            }
+
+        }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << "  Subcycle completed" << std::endl << std::endl;

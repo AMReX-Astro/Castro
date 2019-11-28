@@ -50,7 +50,7 @@ Castro::advance (Real time,
 
     // Do the advance.
 
-    if (time_integration_method == CornerTransportUpwind) {
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
@@ -141,19 +141,6 @@ Castro::advance (Real time,
 #endif // REACTIONS
 #endif // TRUE_SDC
 #endif // AMREX_USE_CUDA
-    } else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-        for (int n = 0; n < sdc_iters; ++n) {
-
-            sdc_iteration = n;
-
-	    amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
-
-            dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
-
-            amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
-
-        }
     }
 
     // Optionally kill the job at this point, if we've detected a violation.
