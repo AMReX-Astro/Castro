@@ -45,6 +45,8 @@ subroutine ca_ext_src(lo, hi, &
   integer  :: i, j, k
   real(rt) :: x, g, c_T
 
+  !$gpu
+
   ! Add a mock gravitational acceleration which points to the center
   ! with uniform magnitude on either side of the center.
 
