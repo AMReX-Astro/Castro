@@ -1,6 +1,4 @@
 
-# Intended to be compiled with USE_GRAV = TRUE, USE_REACT = TRUE, and NETWORK_DIR = aprox13
-
 max_step = 100000000
 stop_time = 3.5
 
@@ -8,19 +6,20 @@ amr.probin_file = probin-collision.testsuite
 
 geometry.is_periodic = 0
 geometry.coord_sys   = 0
-geometry.prob_lo     = 0.0
-geometry.prob_hi     = 1.6384e9
-amr.n_cell           = 256
+geometry.prob_lo     = -1.6384e9
+geometry.prob_hi     =  1.6384e9
+amr.n_cell           = 512
 
 castro.use_retry = 1
 castro.max_subcycles = 128
 
-castro.lo_bc = 3
+castro.add_ext_src = 1
+
+castro.lo_bc = 2
 castro.hi_bc = 2
 
 castro.do_hydro = 1
 castro.do_react = 1
-castro.do_grav  = 1
 
 castro.cfl            = 0.5
 castro.init_shrink    = 0.1
@@ -33,7 +32,6 @@ castro.allow_small_energy = 0
 castro.sum_interval   = 0
 castro.v              = 0
 amr.v                 = 1
-gravity.v             = 0
 
 amr.max_level       = 0
 amr.ref_ratio       = 4
@@ -64,6 +62,3 @@ amr.message_int = 1
 castro.use_stopping_criterion = 1
 castro.T_stopping_criterion = 4.e9
 castro.ts_te_stopping_criterion = 1.e200
-
-gravity.gravity_type = ConstantGrav
-gravity.const_grav = -1.1e8

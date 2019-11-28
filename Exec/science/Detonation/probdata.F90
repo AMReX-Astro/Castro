@@ -2,7 +2,7 @@ module probdata_module
 
   use amrex_fort_module, only : rt => amrex_real
 
-  real(rt), allocatable :: T_l, T_r, dens, cfrac, ofrac, w_T, center_T, smallx, vel
+  real(rt), allocatable :: T_l, T_r, dens, cfrac, ofrac, w_T, center_T, smallx, vel, grav_acceleration
 
   integer,  allocatable :: idir
 
@@ -17,7 +17,7 @@ module probdata_module
   real(rt), allocatable :: ambient_e_l, ambient_e_r
 
 #ifdef AMREX_USE_CUDA
-  attributes(managed) :: T_l, T_r, dens, cfrac, ofrac, w_T, center_T, smallx, vel
+  attributes(managed) :: T_l, T_r, dens, cfrac, ofrac, w_T, center_T, smallx, vel, grav_acceleration
   attributes(managed) :: idir
   attributes(managed) :: ihe4, ic12, io16
   attributes(managed) :: xn
