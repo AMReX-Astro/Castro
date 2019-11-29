@@ -56,6 +56,11 @@ ca\_get\_nqsrc subroutine
 
 .. f:autosubroutine:: ca_get_nqsrc
 
+ca\_get\_nsrc subroutine
+------------------------
+
+.. f:autosubroutine:: ca_get_nsrc
+
 ca\_get\_nq subroutine
 ----------------------
 
