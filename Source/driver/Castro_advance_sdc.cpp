@@ -97,19 +97,19 @@ Castro::do_advance_sdc (Real time,
 #ifndef AMREX_USE_CUDA
         if (sdc_order == 4) {
           // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
-          // we'll reuse sources_for_hydro for this memory buffer at the moment
+          // we'll use Sburn for this memory buffer at the moment
 
           for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
             const Box& gbx = mfi.growntilebox(1);
             ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
                                 BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]),
+                                BL_TO_FORTRAN_FAB(Sburn[mfi]),
                                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
           }
 
           // we pass in the stage time here
-          do_old_sources(old_source, sources_for_hydro, node_time, dt, amr_iteration, amr_ncycle);
+          do_old_sources(old_source, Sburn, node_time, dt, amr_iteration, amr_ncycle);
 
           // fill the ghost cells for the sources -- note since we have
           // not defined the new_source yet, we either need to copy this
@@ -117,7 +117,7 @@ Castro::do_advance_sdc (Real time,
           // fill to make sense, or so long as we are not multilevel,
           // just use the old time (prev_time) in the fill instead of
           // the node time (time)
-          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
+          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
 
           // Now convert to cell averages.  This loop cannot be tiled.
           for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
@@ -141,7 +141,7 @@ Castro::do_advance_sdc (Real time,
 
         // store the result in sources_for_hydro -- this is what will
         // be used in the final conservative update
-        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NUM_STATE, 0);
+        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NSRC, 0);
 
       } else {
         sources_for_hydro.setVal(0.0, 0);
@@ -265,12 +265,12 @@ Castro::do_advance_sdc (Real time,
     clean_state(S_old, prev_time, 0);
     expand_state(Sborder, prev_time, Sborder.nGrow());
     do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
-    AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
 
     clean_state(S_new, cur_time, 0);
     expand_state(Sborder, cur_time, Sborder.nGrow());
     do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
-    AmrLevel::FillPatch(*this, new_source, new_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
+    AmrLevel::FillPatch(*this, new_source, new_source.nGrow(), cur_time, Source_Type, 0, NSRC);
   }
 
   finalize_do_advance(time, dt, amr_iteration, amr_ncycle);

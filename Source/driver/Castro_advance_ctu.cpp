@@ -102,7 +102,7 @@ Castro::do_advance_ctu(Real time,
       // terms (e.g. the source term predictor, or the SDC source).
 
       if (do_hydro) {
-          AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+          AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
       }
 
     } else {
