@@ -252,12 +252,15 @@ splitting for reactions.)</li>
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">2</span></code>: this is a full implementation of
 the spectral deferred corrections formalism, with both 2nd and 4th
 order integration implemented.  At the moment, this does not support
-multilevel domains.</li>
+multilevel domains.  Note: because of differences in the interfaces with the
+default Strang method, you must compile with <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> for this
+method to work (in particular, this defines <code class="docutils literal notranslate"><span class="pre">EXTRA_THERMO</span></code> which enables some
+additional EOS derivatives).</li>
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>: this is the simplifed SDC method
 described above.that uses the CTU hydro advection and an ODE
 reaction solve.  Note: because this requires a different set of
 state variables, you must compile with <code class="docutils literal notranslate"><span class="pre">USE_SIMPLIFIED_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> for this
-method to work.</li>
+method to work (in particular, this defines <code class="docutils literal notranslate"><span class="pre">PRIM_SPECIES_HAVE_SOURCES</span></code>).</li>
 </ul>
 </div></blockquote>
 <p>Several helper functions are used throughout:</p>
@@ -711,6 +714,11 @@ together directly.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">At the moment, the SDC solvers do not support multilevel or AMR
 simulation.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
+evolution type.</p>
 </div>
 <p>The SDC solver follows the algorithm detailed in <a class="reference internal" href="zreferences.html#castro-sdc" id="id6">[castro_sdc]</a>.
 We write our evolution equation as:</p>
