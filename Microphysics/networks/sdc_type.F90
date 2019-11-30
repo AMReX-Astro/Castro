@@ -38,6 +38,8 @@ module sdc_type_module
      integer :: n_jac
 
      integer :: sdc_iter
+
+     logical :: success
   end type sdc_t
 
 end module sdc_type_module
