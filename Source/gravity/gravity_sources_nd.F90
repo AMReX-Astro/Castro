@@ -21,7 +21,7 @@ contains
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
 #endif
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, NSRC
     use castro_util_module, only: position ! function
     use prob_params_module, only: center
 #ifdef HYBRID_MOMENTUM
@@ -49,7 +49,7 @@ contains
     real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     real(rt), intent(in   ) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
 #endif
-    real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NSRC)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ), value :: dt, time
 
@@ -62,7 +62,7 @@ contains
 
     ! Temporary array for holding the update to the state.
     
-    real(rt) :: src(NVAR)
+    real(rt) :: src(NSRC)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
@@ -193,7 +193,7 @@ contains
 #endif
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, NSRC, &
                                   grav_source_type, gravity_type_int, PoissonGrav, MonopoleGrav, get_g_from_phi
     use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use castro_util_module, only: position ! function
@@ -254,7 +254,7 @@ contains
 
     ! The source term to send back
 
-    real(rt), intent(inout) :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
+    real(rt), intent(inout) :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NSRC)
 
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ), value :: dt, time
@@ -274,7 +274,7 @@ contains
     real(rt) :: phi, phixl, phixr, phiyl, phiyr, phizl, phizr
     real(rt) :: g(3), gxl, gxr, gyl, gyr, gzl, gzr
 
-    real(rt) :: src(NVAR)
+    real(rt) :: src(NSRC)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 

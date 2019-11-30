@@ -6,6 +6,10 @@
    * A case where use_retry could result in a very small last
      subcycle has been avoided. (#701)
 
+   * We no longer allocate memory for sources for the species
+     in the conserved state unless PRIM_SPECIES_HAVE_SOURCES is set
+     (#699)
+
    * A subroutine eos_on_host has been added to the EOS module.
      This is a wrapper for the EOS that must be used for CUDA
      builds if the EOS is being called in probinit or other
