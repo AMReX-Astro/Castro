@@ -577,7 +577,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_ctu__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a52c87e194c3f347fe20778d51d17844d"></span>amrex::Real <code class="descname">do_advance_ctu</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_ctu__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a6283b1259ed271875ca90cfaef2069c0"></span>bool <code class="descname">do_advance_ctu</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>This routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms. The advance is doing using the CTU (corner transport upwind) approach. We also use this interface for the simplified SDC update.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -598,8 +598,8 @@
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::retry_advance_ctu__amrex::RealR.amrex::Real.i.i"></span><span class="target" id="classCastro_1aeea21f94337a8a9f9eec64f5949a27ee"></span>bool <code class="descname">retry_advance_ctu</code><span class="sig-paren">(</span>amrex::Real &amp;<em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv4N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEiib">
+<span id="_CPPv3N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEiib"></span><span id="_CPPv2N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEiib"></span><span id="Castro::retry_advance_ctu__amrex::RealR.amrex::Real.i.i.b"></span><span class="target" id="classCastro_1ac186bc2ab09893196225dedce27b51e5"></span>bool <code class="descname">retry_advance_ctu</code><span class="sig-paren">(</span>amrex::Real &amp;<em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em>, bool <em>advance_success</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEiib" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Should we retry advancing the simulation? By default, we don’t do a retry unless the criteria are violated. This is used only for the CTU advance.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -608,6 +608,7 @@
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </li>
+<li><code class="docutils literal notranslate"><span class="pre">advance_success</span></code>: was the advance successful? </li>
 </ul>
 </dd>
 </dl>
@@ -1375,7 +1376,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro11react_stateERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro11react_stateERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro11react_stateERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::react_state__amrex::MultiFabR.amrex::MultiFabR.amrex::iMultiFabCR.amrex::MultiFabR.amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a757d90b254fe48d87b7704507630abff"></span>void <code class="descname">react_state</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, amrex::MultiFab &amp;<em>reactions</em>, <em class="property">const</em> amrex::iMultiFab &amp;<em>mask</em>, amrex::MultiFab &amp;<em>weights</em>, amrex::Real <em>time</em>, amrex::Real <em>dt_react</em>, int <em>strang_half</em>, int <em>ngrow</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11react_stateERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N6Castro11react_stateERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro11react_stateERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::react_state__amrex::MultiFabR.amrex::MultiFabR.amrex::iMultiFabCR.amrex::MultiFabR.amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a67c59fd5e920301f549baf4faea33b09"></span>bool <code class="descname">react_state</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, amrex::MultiFab &amp;<em>reactions</em>, <em class="property">const</em> amrex::iMultiFab &amp;<em>mask</em>, amrex::MultiFab &amp;<em>weights</em>, amrex::Real <em>time</em>, amrex::Real <em>dt_react</em>, int <em>strang_half</em>, int <em>ngrow</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11react_stateERN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>React state through a single reaction timestep, saving reaction source terms to <code class="docutils literal notranslate"><span class="pre">reactions</span></code> MultiFab. This is the CTU version.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1396,7 +1397,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro11react_stateEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv3N6Castro11react_stateEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro11react_stateEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::react_state__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1aa33cc14e623155f3415bc90dc21c423e"></span>void <code class="descname">react_state</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11react_stateEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N6Castro11react_stateEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro11react_stateEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::react_state__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1ae3f0e4ed723936d8306b6a9f5261c9d7"></span>bool <code class="descname">react_state</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11react_stateEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Simplified SDC version of react_state. Reacts the current state through a single timestep.</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1411,7 +1412,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro23strang_react_first_halfEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv3N6Castro23strang_react_first_halfEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro23strang_react_first_halfEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::strang_react_first_half__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a81d01207224e1cf2ba0ea804c0c8766d"></span>void <code class="descname">strang_react_first_half</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro23strang_react_first_halfEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N6Castro23strang_react_first_halfEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro23strang_react_first_halfEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::strang_react_first_half__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1ae4e2c74ed870fd4a09996f3f3a81b9ea"></span>bool <code class="descname">strang_react_first_half</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro23strang_react_first_halfEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>React through first half timestep</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -1426,7 +1427,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro24strang_react_second_halfEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv3N6Castro24strang_react_second_halfEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro24strang_react_second_halfEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::strang_react_second_half__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1ae9ef5d50ca19cb34483312c8af52538e"></span>void <code class="descname">strang_react_second_half</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro24strang_react_second_halfEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N6Castro24strang_react_second_halfEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro24strang_react_second_halfEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::strang_react_second_half__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a994e87e1449f854e10c857263d455d59"></span>bool <code class="descname">strang_react_second_half</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro24strang_react_second_halfEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>React through second half stimestep</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -2934,12 +2935,6 @@
 <dt id="_CPPv4N6Castro13cfl_violationE">
 <span id="_CPPv3N6Castro13cfl_violationE"></span><span id="_CPPv2N6Castro13cfl_violationE"></span><span id="Castro::cfl_violation__i"></span><span class="target" id="classCastro_1a143416888b324a5cb506ab12e776a49f"></span>int <code class="descname">cfl_violation</code><a class="headerlink" href="#_CPPv4N6Castro13cfl_violationE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Did we trigger a CFL violation? </p>
-</dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro12burn_successE">
-<span id="_CPPv3N6Castro12burn_successE"></span><span id="_CPPv2N6Castro12burn_successE"></span><span id="Castro::burn_success__i"></span><span class="target" id="classCastro_1af05f5c2b8216434a9160b0180f3612d4"></span>int <code class="descname">burn_success</code><a class="headerlink" href="#_CPPv4N6Castro12burn_successE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Did we have a successful burn? </p>
 </dd></dl>
 
 <dl class="member">
