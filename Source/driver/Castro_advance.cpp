@@ -508,6 +508,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 
 
+#ifdef TRUE_SDC
     if (time_integration_method == SpectralDeferredCorrections) {
 
       MultiFab& S_old = get_old_data(State_Type);
@@ -550,6 +551,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #endif
 
     }
+#endif
 
     // Zero out the current fluxes.
 
@@ -625,6 +627,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (!keep_prev_state)
         amrex::FillNull(prev_state);
 
+#ifdef TRUE_SDC
     if (time_integration_method == SpectralDeferredCorrections) {
       k_new.clear();
       A_new.clear();
@@ -634,6 +637,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       Sburn.clear();
 #endif
     }
+#endif
 
     // Record how many zones we have advanced.
 

@@ -135,9 +135,11 @@ Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
 
+#ifdef TRUE_SDC
 int          Castro::SDC_NODES;
 Vector<Real> Castro::dt_sdc;
 Vector<Real> Castro::node_weights;
+#endif
 
 #ifdef AMREX_USE_CUDA
 int          Castro::numBCThreadsMin[3] = {1, 1, 1};
