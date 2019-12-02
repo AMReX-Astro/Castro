@@ -48,8 +48,6 @@ extern "C"
 
   void ctu_consup
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(Sborder),
-     const BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(shk),
      BL_FORT_FAB_ARG_3D(hydro_source),
      const BL_FORT_FAB_ARG_3D(flux0),
