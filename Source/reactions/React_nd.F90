@@ -251,7 +251,7 @@ contains
     real(rt) , intent(inout) :: failed
 
     integer  :: i, j, k, n
-    real(rt) :: rhooInv, rhonInv, delta_e, delta_rho_e
+    real(rt) :: rhooInv, rhonInv
     real(rt) :: sold(NVAR)
 
     ! This interface is currently only supported for simplified SDC.

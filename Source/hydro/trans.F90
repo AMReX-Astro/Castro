@@ -34,7 +34,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -636,7 +636,7 @@ contains
 
   use network, only : nspec, naux
   use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                 QPRES, QREINT, QGAME, QFS, QFX, &
+                                 QPRES, QREINT, QGAME, &
                                  QC, QGAMC, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
@@ -1078,7 +1078,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -1512,7 +1512,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
                                    GDU, GDV, GDW, &
 #ifdef RADIATION
@@ -1953,7 +1953,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -2384,7 +2384,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -2823,7 +2823,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -3334,7 +3334,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -3845,7 +3845,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
