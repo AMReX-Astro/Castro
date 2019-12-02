@@ -1,4 +1,4 @@
-# changes since the last release
+# 19.12
 
    * The use_retry mechanism has been enabled for the simplified
      SDC time integration method. (#695)
