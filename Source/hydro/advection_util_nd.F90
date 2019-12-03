@@ -587,7 +587,7 @@ contains
              qaux(i,j,k,QCG)      = eos_state % cs
 
              call compute_ptot_ctot(lam(i,j,k,:), q(i,j,k,:), qaux(i,j,k,QCG), &
-                  ptot, ctot, gamc_tot)
+                                    ptot, ctot, gamc_tot)
 
              q(i,j,k,QPTOT) = ptot
 
@@ -620,9 +620,9 @@ contains
 
     use actual_network, only : nspec, naux
     use meth_params_module, only : NVAR, NSRC, URHO, UMX, UMY, UMZ, UEINT, &
-         NQSRC, QRHO, QU, QV, QW, NQ, &
-         QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
-         npassive, upass_map, qpass_map
+                                   NQSRC, QRHO, QU, QV, QW, NQ, &
+                                   QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
+                                   npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
 
@@ -640,7 +640,10 @@ contains
     real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),NQSRC)
 
     integer          :: i, j, k
+#ifdef PRIM_SPECIES_HAVE_SOURCES
     integer          :: n, iq, ipassive
+#endif
+
     real(rt)         :: rhoinv
 
     !$gpu
@@ -1287,7 +1290,7 @@ contains
 
     use meth_params_module, only : QU, QV, QW, QC, NQ, NQAUX
     use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
-    use prob_params_module, only : dg, coord_type, problo
+    use prob_params_module, only : dg
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -1433,8 +1436,6 @@ contains
 
     real(rt) :: volinv
     real(rt) :: pdu
-
-    real(rt) :: dxinv, dyinv, dzinv
 
     !$gpu
 
@@ -1661,7 +1662,9 @@ contains
        area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
     use meth_params_module, only: NVAR, GDPRES, UMX, NGDNV
+#if AMREX_SPACEDIM == 1
     use prob_params_module, only : coord_type
+#endif
 
     implicit none
 

@@ -969,30 +969,30 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.is_periodic: ";
-  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
-    jobInfoFile << geom.isPeriodic(dir) << " ";
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+    jobInfoFile << geom.isPeriodic(idir) << " ";
   }
   jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.coord_sys:   " << geom.Coord() << "\n";
 
   jobInfoFile << "     geometry.prob_lo:     ";
-  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
-    jobInfoFile << geom.ProbLo(dir) << " ";
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+    jobInfoFile << geom.ProbLo(idir) << " ";
   }
   jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.prob_hi:     ";
-  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
-    jobInfoFile << geom.ProbHi(dir) << " ";
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+    jobInfoFile << geom.ProbHi(idir) << " ";
   }
   jobInfoFile << "\n";
 
   jobInfoFile << "     amr.n_cell:           ";
   const int*  domain_lo = geom.Domain().loVect();
   const int*  domain_hi = geom.Domain().hiVect();
-  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
-    jobInfoFile << domain_hi[dir] - domain_lo[dir] + 1 << " ";
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+    jobInfoFile << domain_hi[idir] - domain_lo[idir] + 1 << " ";
   }
   jobInfoFile << "\n";
 

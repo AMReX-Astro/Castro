@@ -1850,7 +1850,7 @@ protected:
     bool keep_prev_state;
 
 
-
+#ifdef TRUE_SDC
     //
     // Storage for the SDC time integration
 
@@ -1874,7 +1874,7 @@ protected:
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;
     static amrex::Vector<amrex::Real> node_weights;
-
+#endif
 
 ///
 /// Wall time that we started the timestep

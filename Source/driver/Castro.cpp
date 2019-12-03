@@ -135,9 +135,11 @@ Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
 
+#ifdef TRUE_SDC
 int          Castro::SDC_NODES;
 Vector<Real> Castro::dt_sdc;
 Vector<Real> Castro::node_weights;
+#endif
 
 #ifdef AMREX_USE_CUDA
 int          Castro::numBCThreadsMin[3] = {1, 1, 1};
@@ -535,8 +537,8 @@ Castro::Castro (Amr&            papa,
     // Coterminous AMR boundaries are not supported in Castro if we're doing refluxing.
 
     if (do_hydro && do_reflux) {
-        for (int lev = 0; lev <= parent->maxLevel(); ++lev) {
-            if (parent->nErrorBuf(lev) == 0) {
+        for (int ilev = 0; ilev <= parent->maxLevel(); ++ilev) {
+            if (parent->nErrorBuf(ilev) == 0) {
                 amrex::Error("n_error_buf = 0 is unsupported when using hydro.");
             }
         }
@@ -545,8 +547,8 @@ Castro::Castro (Amr&            papa,
 #ifdef AMREX_USE_CUDA
     // Enforce our requirement on the blocking factor for CUDA. See Castro::variableSetUp() for details.
     for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
-        for (int lev = 0; lev <= parent->maxLevel(); ++lev) {
-            if (parent->blockingFactor(lev)[dim] % numBCThreadsMin[dim] != 0) {
+        for (int ilev = 0; ilev <= parent->maxLevel(); ++ilev) {
+            if (parent->blockingFactor(ilev)[dim] % numBCThreadsMin[dim] != 0) {
                 amrex::Error("Using CUDA requires a blocking factor that is a multiple of 8.");
             }
         }
@@ -3079,11 +3081,6 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
             TagBox&     tagfab  = tags[mfi];
 
-            // data pointer and index space
-	    char*       tptr    = tagfab.dataPtr();
-	    const int*  tlo     = tagfab.loVect();
-	    const int*  thi     = tagfab.hiVect();
-
             const int8_t tagval   = (int8_t) TagBox::SET;
             const int8_t clearval = (int8_t) TagBox::CLEAR;
 
@@ -3134,17 +3131,9 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
             // tile box
             const Box&  bx      = mfi.validbox();
 
-            // data pointer and index space
-            char*       tptr    = tagfab.dataPtr();
-            const int*  tlo     = tagfab.loVect();
-            const int*  thi     = tagfab.hiVect();
-            //
             const int*  lo      = bx.loVect();
             const int*  hi      = bx.hiVect();
             //
-            Real*       dat     = datfab.dataPtr();
-            const int*  dlo     = datfab.loVect();
-            const int*  dhi     = datfab.hiVect();
             const int   ncomp   = datfab.nComp();
 
             const int8_t tagval   = (int8_t) TagBox::SET;
