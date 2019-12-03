@@ -32,7 +32,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
-    use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model, interpolate_sub
+    use model_parser_module, only: idens_model, itemp_model, ispec_model, interpolate_sub
     use amrex_filcc_module, only: amrex_filccn
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -43,7 +43,7 @@ contains
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3),NVAR)
     real(rt), intent(in   ), value :: time
 
-    integer :: i, j, k, q, iter, m, d
+    integer :: i, j, k, q, iter, m
     integer :: ioff, joff, koff
     integer :: imin, imax, jmin, jmax, kmin, kmax
     real(rt) :: x, y, z
@@ -1256,7 +1256,7 @@ contains
                          bind(C, name="ext_denfill")
 
     use prob_params_module, only: problo
-    use model_parser_module, only: npts_model, model_r, model_state, idens_model, interpolate_sub
+    use model_parser_module, only: idens_model, interpolate_sub
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
 #endif
@@ -1415,8 +1415,6 @@ contains
                            domlo, domhi, delta, xlo, time, bc) &
                            bind(C, name="ext_gravxfill")
 
-    use prob_params_module, only: problo
-
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -1439,8 +1437,6 @@ contains
                            domlo, domhi, delta, xlo, time, bc) &
                            bind(C, name="ext_gravyfill")
 
-    use prob_params_module, only: problo
-
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -1462,8 +1458,6 @@ contains
   subroutine ext_gravzfill(lo, hi, grav, grav_lo, grav_hi, &
                            domlo, domhi, delta, xlo, time, bc) &
                            bind(C, name="ext_gravzfill")
-
-    use prob_params_module, only: problo
 
     implicit none
 

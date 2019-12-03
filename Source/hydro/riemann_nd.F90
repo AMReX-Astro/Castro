@@ -52,7 +52,6 @@ contains
     use network, only: nspec, naux
     use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
 
     implicit none
 
@@ -136,7 +135,7 @@ contains
     use network, only: nspec, naux
     use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+    use meth_params_module, only : hybrid_riemann, riemann_solver
 
     implicit none
 
@@ -183,7 +182,6 @@ contains
 
     integer :: is_shock
     real(rt) :: cl, cr
-    type (eos_t) :: eos_state
 
     !$gpu
 
@@ -325,7 +323,6 @@ contains
 
     integer i, j, k
 
-    real(rt) :: cl, cr
     type (eos_t) :: eos_state
 
     logical :: compute_interface_gamma
@@ -1127,7 +1124,7 @@ contains
     real(rt) :: rstar, cstar, estar, pstar, ustar
     real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
     real(rt) :: sgnm, spin, spout, ushock, frac
-    real(rt) :: wsmall, csmall, qavg
+    real(rt) :: wsmall, csmall
     real(rt) :: cavg, gamcl, gamcr
 
 #ifdef RADIATION

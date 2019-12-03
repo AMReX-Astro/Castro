@@ -34,7 +34,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -636,7 +636,7 @@ contains
 
   use network, only : nspec, naux
   use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                 QPRES, QREINT, QGAME, QFS, QFX, &
+                                 QPRES, QREINT, QGAME, &
                                  QC, QGAMC, &
 #ifdef RADIATION
                                  qrad, qradhi, qptot, qreitot, &
@@ -1078,7 +1078,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -1512,8 +1512,9 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
+                                   GDU, GDV, GDW, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
                                    fspace_type, comoving, &
@@ -1521,7 +1522,7 @@ contains
                                    QCG, QGAMCG, QLAMS, &
 #endif
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                   NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+                                   NGDNV, GDPRES, GDGAME, &
                                    small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
                                    transverse_reset_density, transverse_reset_rhoe, &
@@ -1952,7 +1953,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -2383,7 +2384,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -2822,7 +2823,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -3333,7 +3334,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &
@@ -3844,7 +3845,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qradhi, qptot, qreitot, &

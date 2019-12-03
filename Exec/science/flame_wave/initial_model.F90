@@ -140,7 +140,7 @@ contains
 
     real (rt) :: pres_base, entropy_base
 
-    real :: A, B
+    real (rt) :: A, B
 
     real (rt) :: dCoord
 

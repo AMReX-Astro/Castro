@@ -438,7 +438,7 @@ contains
 #endif
                                    QRHO, QU, QV, QW, &
                                    QPRES, QGAME, QREINT, &
-                                   QC, QGAMC, QFS, QFX, &
+                                   QGAMC, QFS, QFX, &
 #ifdef HYBRID_MOMENTUM
                                    NGDNV, GDPRES, GDGAME, &
                                    GDRHO, GDU, GDV, GDW, &
@@ -624,7 +624,6 @@ contains
     ! hydro advancement.
 
     use meth_params_module, only : NQ, NVAR, NQAUX, &
-                                   URHO, &
                                    QRHO, QU, QV, QW, &
                                    QPRES, QGAME, &
                                    NGDNV, GDRHO, GDPRES, GDGAME, &
