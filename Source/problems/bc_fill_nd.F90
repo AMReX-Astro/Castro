@@ -483,8 +483,9 @@ contains
     integer,  intent(in   ) :: var_lo(3), var_hi(3)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     integer,  intent(in   ) :: bc(AMREX_SPACEDIM,2)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
+    real(rt), intent(in   ), value :: time 
     integer dir
 
     dir = 2
@@ -504,8 +505,9 @@ contains
     integer,  intent(in   ) :: var_lo(3), var_hi(3)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     integer,  intent(in   ) :: bc(AMREX_SPACEDIM,2)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
+    real(rt), intent(in   ), value :: time
     integer dir
 
     dir = 3
