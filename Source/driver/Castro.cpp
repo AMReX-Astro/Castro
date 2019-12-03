@@ -1206,7 +1206,11 @@ Castro::initData ()
        }
 #else
        // Enforce that the total and internal energies are consistent.
-       enforce_consistent_e(S_new);
+       enforce_consistent_e(
+#ifdef MHD
+                            Bx_new, By_new,Bz_new,
+#endif
+		            S_new);
 #endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
