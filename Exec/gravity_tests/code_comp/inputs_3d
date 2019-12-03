@@ -35,7 +35,6 @@ castro.add_ext_src   = 1
 castro.ppm_type = 1
 
 gravity.gravity_type = PrescribedGrav
-gravity.drdxfac = 2
 
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.9     # cfl number for hyperbolic system

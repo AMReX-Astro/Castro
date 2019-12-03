@@ -486,7 +486,7 @@ contains
                            vol, vol_lo, vol_hi) bind(C, name="ca_mol_consup")
 
     use castro_error_module
-    use meth_params_module, only : NQ, NVAR, NGDNV, GDPRES, &
+    use meth_params_module, only : NQ, NVAR, NGDNV, NSRC, GDPRES, &
                                    UTEMP, UMX, &
                                    QPRES, &
                                    QTEMP, QFS, QFX, QREINT, QRHO, &
@@ -526,7 +526,7 @@ contains
 
     real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
     real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR)
-    real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
+    real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NSRC)
     real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
 
     real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
@@ -593,8 +593,9 @@ contains
 #endif
 
                 ! for storage
-                update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
-
+                if (n <= NSRC) then
+                   update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
+                end if
              enddo
           enddo
        enddo

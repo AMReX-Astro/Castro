@@ -23,7 +23,6 @@ EOS_DIR     := helmholtz
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := aprox19
 
-INTEGRATOR_DIR := VODE
 
 else
 

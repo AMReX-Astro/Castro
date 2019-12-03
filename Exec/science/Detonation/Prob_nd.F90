@@ -1,13 +1,13 @@
 subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   use probdata_module, only: T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, &
-                             xn, ihe4, ic12, io16, smallx, vel, fill_ambient_bc, &
+                             xn, ihe4, ic12, io16, smallx, vel, grav_acceleration, fill_ambient_bc, &
                              ambient_dens, ambient_temp, ambient_comp, ambient_e_l, ambient_e_r
   use network, only: network_species_index, nspec
   use castro_error_module, only: castro_error
   use amrex_fort_module, only: rt => amrex_real
   use eos_type_module, only: eos_t, eos_input_rt
-  use eos_module, only: eos
+  use eos_module, only: eos_on_host
 
   implicit none
 
@@ -19,7 +19,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer :: untin,i
 
-  namelist /fortin/ T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, smallx, vel, fill_ambient_bc
+  namelist /fortin/ T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, smallx, vel, grav_acceleration, fill_ambient_bc
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
@@ -34,7 +34,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   allocate(T_l, T_r, dens, cfrac, ofrac, idir)
   allocate(w_T, center_T, xn(nspec), ihe4, ic12, io16)
-  allocate(smallx, vel, fill_ambient_bc)
+  allocate(smallx, vel, grav_acceleration, fill_ambient_bc)
   allocate(ambient_dens, ambient_temp, ambient_comp(nspec))
   allocate(ambient_e_l, ambient_e_r)
 
@@ -53,6 +53,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   center_T = 3.e-1_rt      ! central position parameter of teperature profile transition zone
 
   vel = 0.e0_rt           ! infall velocity towards the transition point
+  grav_acceleration = 0.e0_rt ! gravitational acceleration towards the transition point
 
   fill_ambient_bc = .false.
 
@@ -102,13 +103,13 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   eos_state % T   = T_l
 
-  call eos(eos_input_rt, eos_state)
+  call eos_on_host(eos_input_rt, eos_state)
 
   ambient_e_l = eos_state % e
 
   eos_state % T   = T_r
 
-  call eos(eos_input_rt, eos_state)
+  call eos_on_host(eos_input_rt, eos_state)
 
   ambient_e_r = eos_state % e
 

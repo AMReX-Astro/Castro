@@ -30,13 +30,13 @@ extern "C"
 
   void ca_get_aux_names(int* aux_names,  const int* iaux, int* len);
 
-  void ca_get_nqsrc(int* nqsrc);
-
   void ca_get_nq(int* nq);
 
   void ca_get_nqaux(int* nqaux);
 
   void ca_get_nqsrc(int* nqsrc);
+
+  void ca_get_nsrc(int* nsrc);
 
   void ca_get_ngdnv(int* ngdnv);
 
@@ -145,7 +145,7 @@ extern "C"
     (const int* lo, const int* hi,
      const int* xlo, const int* xhi,
 #if AMREX_SPACEDIM >= 2
-     const int* ylo, const int *yhi,
+     const int* ylo, const int* yhi,
 #endif
      BL_FORT_FAB_ARG_3D(cc),
      const BL_FORT_FAB_ARG_3D(xedge),
@@ -262,7 +262,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state_new),
      const BL_FORT_FAB_ARG_3D(reactions_old),
      const BL_FORT_FAB_ARG_3D(reactions_new),
-     const amrex::Real* dx, const amrex::Real* dt_old, amrex::Real* dt);
+     const amrex::Real* dx, amrex::Real* dt);
 #endif
 
   void ca_check_timestep
@@ -469,7 +469,8 @@ extern "C"
      const amrex::Real* asrc, const int* as_lo, const int* as_hi,
      amrex::Real* reactions, const int* r_lo, const int* r_hi,
      const int* mask, const int* m_lo, const int* m_hi,
-     const amrex::Real& time, const amrex::Real& dt_react, const int& sdc_iter);
+     const amrex::Real time, const amrex::Real dt_react, const int sdc_iter,
+     amrex::Real* burn_failure);
 
   void ca_react_state
     (const int* lo, const int* hi,

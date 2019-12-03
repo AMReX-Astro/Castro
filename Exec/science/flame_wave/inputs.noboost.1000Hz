@@ -86,7 +86,7 @@ amr.plot_per         = 2.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
 amr.small_plot_file        = flame_wave_smallplt        # root name of plotfile
-amr.small_plot_per         = 5.e-5      # number of seconds between plotfiles
+amr.small_plot_per         = 1.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity
 

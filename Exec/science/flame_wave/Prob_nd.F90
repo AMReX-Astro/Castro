@@ -8,9 +8,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   use probdata_module, only: dx_model, dtemp, x_half_max, x_half_width, &
                              X_min, cutoff_density, dens_base, T_star, &
                              T_hi, T_lo, H_star, atm_delta, &
-                             fuel1_name, fuel2_name, fuel3_name, &
+                             fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
                              ash1_name, ash2_name, ash3_name, &
-                             fuel1_frac, fuel2_frac, fuel3_frac, &
+                             fuel1_frac, fuel2_frac, fuel3_frac, fuel4_frac, &
                              ash1_frac, ash2_frac, ash3_frac, &
                              low_density_cutoff, smallx, &
                              max_hse_tagging_level, max_base_tagging_level, x_refine_distance
@@ -27,7 +27,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ! Build "probin" filename -- the name of file containing fortin namelist.
   type(model_t) :: model_params
 
-  integer :: iash1, iash2, iash3, ifuel1, ifuel2, ifuel3
+  integer :: iash1, iash2, iash3, ifuel1, ifuel2, ifuel3, ifuel4
   logical :: species_defined
 
   integer :: nx_model
@@ -58,6 +58,11 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
      if (ifuel3 < 0) species_defined = .false.
   endif
 
+  if (fuel4_name /= "") then
+     ifuel4 = network_species_index(trim(fuel4_name))
+     if (ifuel4 < 0) species_defined = .false.
+  endif
+
   iash1 = network_species_index(trim(ash1_name))
   if (iash1 < 0) species_defined = .false.
 
@@ -72,7 +77,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   endif
 
   if (.not. species_defined) then
-     print *, ifuel1, ifuel2, ifuel3
+     print *, ifuel1, ifuel2, ifuel3, ifuel4
      print *, iash1, iash2, iash3
      call castro_error("ERROR: species not defined")
   endif
@@ -89,6 +94,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   model_params % xn_base(ifuel1) = fuel1_frac
   if (fuel2_name /= "") model_params % xn_base(ifuel2) = fuel2_frac
   if (fuel3_name /= "") model_params % xn_base(ifuel3) = fuel3_frac
+  if (fuel4_name /= "") model_params % xn_base(ifuel4) = fuel4_frac
 
   ! check if they sum to 1
   if (abs(sum(model_params % xn_star) - ONE) > nspec*smallx) then

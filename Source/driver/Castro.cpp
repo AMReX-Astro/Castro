@@ -125,6 +125,7 @@ int          Castro::Shock         = -1;
 #endif
 
 int          Castro::NQSRC         = -1;
+int          Castro::NSRC          = -1;
 int          Castro::NQAUX         = -1;
 int          Castro::NQ            = -1;
 
@@ -176,7 +177,7 @@ IntVect      Castro::no_tile_size(1024);
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16);
 #else
-IntVect      Castro::hydro_tile_size(1024,64);
+IntVect      Castro::hydro_tile_size(1024,1024);
 #endif
 IntVect      Castro::no_tile_size(1024,1024);
 #else
@@ -380,8 +381,8 @@ Castro::read_params ()
 
     // The timestep retry mechanism is currently incompatible with SDC.
 
-    if (time_integration_method != CornerTransportUpwind && use_retry)
-        amrex::Error("The timestep retry mechanism is currently only compatible with CTU.");
+    if (use_retry && !(time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections))
+        amrex::Error("The timestep retry mechanism is currently only compatible with CTU and simplified SDC.");
 
     // SDC does not support CUDA yet
 #ifdef AMREX_USE_CUDA
@@ -391,17 +392,27 @@ Castro::read_params ()
 #endif
 
 
-    // Simplified SDC currently requires USE_SDC to be defined.
-    // Also, if we have USE_SDC defined, we can't use the other
+    // Simplified SDC currently requires USE_SIMPLIFIED_SDC to be defined.
+    // Also, if we have USE_SIMPLIFIED_SDC defined, we can't use the other
     // time integration_methods, because only the SDC burner
     // interface is available in Microphysics in this case.
-#ifndef SDC
+#ifndef SIMPLIFIED_SDC
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        amrex::Error("Simplified SDC currently requires USE_SDC=TRUE when compiling.");
+        amrex::Error("Simplified SDC currently requires USE_SIMPLIFIED_SDC=TRUE when compiling.");
     }
 #else
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
-        amrex::Error("When building with USE_SDC=TRUE, only simplified SDC can be used.");
+        amrex::Error("When building with USE_SIMPLIFIED_SDC=TRUE, only simplified SDC can be used.");
+    }
+#endif
+
+#ifndef TRUE_SDC
+    if (time_integration_method == SpectralDeferredCorrections) {
+        amrex::Error("True SDC currently requires USE_TRUE_SDC=TRUE when compiling.");
+    }
+#else
+    if (time_integration_method != SpectralDeferredCorrections) {
+        amrex::Error("When building with USE_TRUE_SDC=TRUE, only true SDC can be used.");
     }
 #endif
 
@@ -472,6 +483,12 @@ Castro::read_params ()
 #if (!defined(GRAVITY) || !defined(ROTATION))
    if (do_scf_initial_model) {
        amrex::Error("SCF initial model construction is only permitted if USE_GRAV=TRUE and USE_ROTATION=TRUE at compile time.");
+   }
+#endif
+
+#ifdef AMREX_USE_CUDA
+   if (do_scf_initial_model) {
+       amrex::Error("SCF initial model construction is currently not permitted if USE_CUDA=TRUE at compile time.");
    }
 #endif
 
@@ -1107,6 +1124,7 @@ Castro::initData ()
                                   BL_TO_FORTRAN_ANYD(S_new[mfi]));
        }
 
+#ifdef TRUE_SDC
        if (initialization_is_cell_average == 0) {
          // we are assuming that the initialization was done to cell-centers
 
@@ -1186,6 +1204,10 @@ Castro::initData ()
          Sborder.clear();
 
        }
+#else
+       // Enforce that the total and internal energies are consistent.
+       enforce_consistent_e(S_new);
+#endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
 
@@ -1544,21 +1566,23 @@ Castro::estTimeStep (Real dt_old)
                     MultiFab& S_old = get_old_data(State_Type);
                     MultiFab& R_old = get_old_data(Reactions_Type);
 
-                    ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+#pragma gpu box(box)
+                    ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
                                      BL_TO_FORTRAN_ANYD(S_old[mfi]),
                                      BL_TO_FORTRAN_ANYD(S_new[mfi]),
                                      BL_TO_FORTRAN_ANYD(R_old[mfi]),
                                      BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     ZFILL(dx),&dt_old,&dt);
+                                     AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
 
                 } else {
 
-                    ca_estdt_burning(ARLIM_3D(box.loVect()),ARLIM_3D(box.hiVect()),
+#pragma gpu box(box)
+                    ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
                                      BL_TO_FORTRAN_ANYD(S_new[mfi]),
                                      BL_TO_FORTRAN_ANYD(S_new[mfi]),
                                      BL_TO_FORTRAN_ANYD(R_new[mfi]),
                                      BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     ZFILL(dx),&dt_old,&dt);
+                                     AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
 
                 }
 
@@ -2351,9 +2375,11 @@ Castro::post_init (Real stop_time)
 
 #ifdef GRAVITY
 #ifdef ROTATION
+#ifndef AMREX_USE_CUDA
     if (do_scf_initial_model) {
         scf_relaxation();
     }
+#endif
 #endif
 #endif
 
@@ -3510,6 +3536,7 @@ Castro::computeTemp(
   // overwrite the grown state as we work.
   MultiFab Eint_lap;
 
+#ifdef TRUE_SDC
   if (sdc_order == 4) {
 
     // we need to make the data live at cell-centers first
@@ -3546,24 +3573,25 @@ Castro::computeTemp(
     }
 
   }
+#endif
 
+#ifdef TRUE_SDC
   if (sdc_order == 4) {
     // we need to enforce minimum density here, since the conversion
     // from cell-average to centers could have made rho < 0 near steep
     // gradients
     enforce_min_density(Stemp, Stemp.nGrow());
-    reset_internal_energy(
-#ifdef MHD
-		          Bx, By, Bz,
-#endif	    
-		          Stemp, Stemp.nGrow());
+    reset_internal_energy(Stemp, Stemp.nGrow());
   } else {
+#endif	  
     reset_internal_energy(
 #ifdef MHD
 		          Bx, By, Bz,
 #endif
 		          State, ng);
+#ifdef TRUE_SDC
   }
+#endif
 
 
 #ifdef _OPENMP
@@ -3573,10 +3601,12 @@ Castro::computeTemp(
     {
 
       int num_ghost = ng;
+#ifdef TRUE_SDC
       if (sdc_order == 4) {
         // only one ghost cell is at cell-centers
         num_ghost = 1;
       }
+#endif
 
       const Box& bx = mfi.growntilebox(num_ghost);
 
@@ -3597,22 +3627,27 @@ Castro::computeTemp(
 
         // general EOS version
 
+#ifdef TRUE_SDC
         if (sdc_order == 4) {
           // note, this is working on a growntilebox, but we will not have
           // valid cell-centers in the very last ghost cell
           ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(Stemp[mfi]));
         } else {
+#endif
 #pragma gpu box(bx)
           ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(State[mfi]));
+#ifdef TRUE_SDC
         }
+#endif
 
 #ifdef RADIATION
       }
 #endif
     }
 
+#ifdef TRUE_SDC
   if (sdc_order == 4) {
 
     // we need to copy back from Stemp into S_new, making it
@@ -3656,6 +3691,7 @@ Castro::computeTemp(
 
     Stemp.clear();
   }
+#endif
 
 }
 

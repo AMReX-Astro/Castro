@@ -14,7 +14,7 @@ module meth_params_module
 
   use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
-  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC
+  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC, NSRC
 
   implicit none
 
@@ -136,9 +136,8 @@ module meth_params_module
   integer,  allocatable, save :: use_reconstructed_gamma1
   integer,  allocatable, save :: hybrid_hydro
   integer,  allocatable, save :: ppm_type
-  integer,  allocatable, save :: ppm_reference
-  integer,  allocatable, save :: ppm_flatten_before_integrals
   integer,  allocatable, save :: mhd_plm_slope
+  integer,  allocatable, save :: use_flattening
   integer,  allocatable, save :: ppm_temp_fix
   integer,  allocatable, save :: ppm_predict_gammae
   integer,  allocatable, save :: plm_iorder
@@ -234,13 +233,10 @@ attributes(managed) :: use_reconstructed_gamma1
 attributes(managed) :: hybrid_hydro
 attributes(managed) :: ppm_type
 #ifdef MHD
-attributes(managed) :: ppm_reference
-#endif
-#ifdef MHD
-attributes(managed) :: ppm_flatten_before_integrals
-#endif
-#ifdef MHD
 attributes(managed) :: mhd_plm_slope
+#endif
+#ifdef MHD
+attributes(managed) :: use_flattening
 #endif
 attributes(managed) :: ppm_temp_fix
 attributes(managed) :: ppm_predict_gammae
@@ -370,13 +366,10 @@ attributes(managed) :: get_g_from_phi
   !$acc create(hybrid_hydro) &
   !$acc create(ppm_type) &
 #ifdef MHD
-  !$acc create(ppm_reference) &
-#endif
-#ifdef MHD
-  !$acc create(ppm_flatten_before_integrals) &
-#endif
-#ifdef MHD
   !$acc create(mhd_plm_slope) &
+#endif
+#ifdef MHD
+  !$acc create(use_flattening) &
 #endif
   !$acc create(ppm_temp_fix) &
   !$acc create(ppm_predict_gammae) &
@@ -516,40 +509,6 @@ contains
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
-    allocate(character(len=1)::gravity_type)
-    gravity_type = "fillme";
-    allocate(const_grav)
-    const_grav = 0.0_rt;
-    allocate(get_g_from_phi)
-    get_g_from_phi = 0;
-
-    call amrex_parmparse_build(pp, "gravity")
-    call pp%query("gravity_type", gravity_type)
-    call pp%query("const_grav", const_grav)
-    call pp%query("get_g_from_phi", get_g_from_phi)
-    call amrex_parmparse_destroy(pp)
-
-
-#ifdef ROTATION
-    allocate(rot_period)
-    rot_period = -1.e200_rt;
-    allocate(rot_period_dot)
-    rot_period_dot = 0.0_rt;
-    allocate(rotation_include_centrifugal)
-    rotation_include_centrifugal = 1;
-    allocate(rotation_include_coriolis)
-    rotation_include_coriolis = 1;
-    allocate(rotation_include_domegadt)
-    rotation_include_domegadt = 1;
-    allocate(state_in_rotating_frame)
-    state_in_rotating_frame = 1;
-    allocate(rot_source_type)
-    rot_source_type = 4;
-    allocate(implicit_rotation_update)
-    implicit_rotation_update = 1;
-    allocate(rot_axis)
-    rot_axis = 3;
-#endif
 #ifdef GRAVITY
     allocate(use_point_mass)
     use_point_mass = 0;
@@ -704,13 +663,31 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
+#ifdef ROTATION
+    allocate(rot_period)
+    rot_period = -1.e200_rt;
+    allocate(rot_period_dot)
+    rot_period_dot = 0.0_rt;
+    allocate(rotation_include_centrifugal)
+    rotation_include_centrifugal = 1;
+    allocate(rotation_include_coriolis)
+    rotation_include_coriolis = 1;
+    allocate(rotation_include_domegadt)
+    rotation_include_domegadt = 1;
+    allocate(state_in_rotating_frame)
+    state_in_rotating_frame = 1;
+    allocate(rot_source_type)
+    rot_source_type = 4;
+    allocate(implicit_rotation_update)
+    implicit_rotation_update = 1;
+    allocate(rot_axis)
+    rot_axis = 3;
+#endif
 #ifdef MHD
-    allocate(ppm_reference)
-    ppm_reference = 1;
-    allocate(ppm_flatten_before_integrals)
-    ppm_flatten_before_integrals = 1;
     allocate(mhd_plm_slope)
     mhd_plm_slope = 1;
+    allocate(use_flattening)
+    use_flattening = 0;
 #endif
 #ifdef DIFFUSION
     allocate(diffuse_temp)
@@ -724,17 +701,6 @@ contains
 #endif
 
     call amrex_parmparse_build(pp, "castro")
-#ifdef ROTATION
-    call pp%query("rotational_period", rot_period)
-    call pp%query("rotational_dPdt", rot_period_dot)
-    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
-    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
-    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
-    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-    call pp%query("rot_source_type", rot_source_type)
-    call pp%query("implicit_rotation_update", implicit_rotation_update)
-    call pp%query("rot_axis", rot_axis)
-#endif
 #ifdef GRAVITY
     call pp%query("use_point_mass", use_point_mass)
     call pp%query("point_mass", point_mass)
@@ -813,10 +779,20 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+    call pp%query("rotational_dPdt", rot_period_dot)
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+    call pp%query("rot_source_type", rot_source_type)
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+    call pp%query("rot_axis", rot_axis)
+#endif
 #ifdef MHD
-    call pp%query("ppm_reference", ppm_reference)
-    call pp%query("ppm_flatten_before_integrals", ppm_flatten_before_integrals)
     call pp%query("mhd_plm_slope", mhd_plm_slope)
+    call pp%query("use_flattening", use_flattening)
 #endif
 #ifdef DIFFUSION
     call pp%query("diffuse_temp", diffuse_temp)
@@ -827,37 +803,52 @@ contains
     call amrex_parmparse_destroy(pp)
 
 
+    allocate(character(len=1)::gravity_type)
+    gravity_type = "fillme";
+    allocate(const_grav)
+    const_grav = 0.0_rt;
+    allocate(get_g_from_phi)
+    get_g_from_phi = 0;
+
+    call amrex_parmparse_build(pp, "gravity")
+    call pp%query("gravity_type", gravity_type)
+    call pp%query("const_grav", const_grav)
+    call pp%query("get_g_from_phi", get_g_from_phi)
+    call amrex_parmparse_destroy(pp)
+
+
 
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
     !$acc device(small_pres, small_ener, do_hydro) &
     !$acc device(time_integration_method, limit_fourth_order, use_reconstructed_gamma1) &
-    !$acc device(hybrid_hydro, ppm_type, ppm_reference) &
-    !$acc device(ppm_flatten_before_integrals, mhd_plm_slope, ppm_temp_fix) &
-    !$acc device(ppm_predict_gammae, plm_iorder, plm_limiter) &
-    !$acc device(plm_well_balanced, hybrid_riemann, riemann_solver) &
-    !$acc device(cg_maxiter, cg_tol, cg_blend) &
-    !$acc device(use_eos_in_riemann, riemann_speed_limit, use_flattening) &
-    !$acc device(transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
-    !$acc device(dual_energy_eta1, dual_energy_eta2, use_pslope) &
-    !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_small_energy) &
-    !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
-    !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
-    !$acc device(sdc_order, sdc_quadrature, sdc_extra) &
-    !$acc device(sdc_solver, sdc_solver_tol_dens, sdc_solver_tol_spec) &
-    !$acc device(sdc_solver_tol_ener, sdc_solver_atol, sdc_solver_relax_factor) &
-    !$acc device(sdc_solve_for_rhoe, sdc_use_analytic_jac, cfl) &
-    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
-    !$acc device(do_react, react_T_min, react_T_max) &
-    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
-    !$acc device(T_guess, diffuse_temp, diffuse_cutoff_density) &
-    !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
-    !$acc device(grav_source_type, do_rotation, rot_period) &
-    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
-    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
-    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(hybrid_hydro, ppm_type, mhd_plm_slope) &
+    !$acc device(use_flattening, ppm_temp_fix, ppm_predict_gammae) &
+    !$acc device(plm_iorder, plm_limiter, plm_well_balanced) &
+    !$acc device(hybrid_riemann, riemann_solver, cg_maxiter) &
+    !$acc device(cg_tol, cg_blend, use_eos_in_riemann) &
+    !$acc device(riemann_speed_limit, use_flattening, transverse_use_eos) &
+    !$acc device(transverse_reset_density, transverse_reset_rhoe, dual_energy_eta1) &
+    !$acc device(dual_energy_eta2, use_pslope, limit_fluxes_on_small_dens) &
+    !$acc device(density_reset_method, allow_small_energy, do_sponge) &
+    !$acc device(sponge_implicit, first_order_hydro, hse_zero_vels) &
+    !$acc device(hse_interp_temp, hse_reflect_vels, sdc_order) &
+    !$acc device(sdc_quadrature, sdc_extra, sdc_solver) &
+    !$acc device(sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener) &
+    !$acc device(sdc_solver_atol, sdc_solver_relax_factor, sdc_solve_for_rhoe) &
+    !$acc device(sdc_use_analytic_jac, cfl, dtnuc_e) &
+    !$acc device(dtnuc_X, dtnuc_X_threshold, do_react) &
+    !$acc device(react_T_min, react_T_max, react_rho_min) &
+    !$acc device(react_rho_max, disable_shock_burning, T_guess) &
+    !$acc device(diffuse_temp, diffuse_cutoff_density, diffuse_cutoff_density_hi) &
+    !$acc device(diffuse_cond_scale_fac, do_grav, grav_source_type) &
+    !$acc device(do_rotation, rot_period, rot_period_dot) &
+    !$acc device(rotation_include_centrifugal, rotation_include_coriolis, rotation_include_domegadt) &
+    !$acc device(state_in_rotating_frame, rot_source_type, implicit_rotation_update) &
+    !$acc device(rot_axis, use_point_mass, point_mass) &
+    !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
+    !$acc device(track_grid_losses, const_grav) &
+    !$acc device(get_g_from_phi)
 
 
 #ifdef GRAVITY
@@ -990,14 +981,11 @@ contains
     if (allocated(ppm_type)) then
         deallocate(ppm_type)
     end if
-    if (allocated(ppm_reference)) then
-        deallocate(ppm_reference)
-    end if
-    if (allocated(ppm_flatten_before_integrals)) then
-        deallocate(ppm_flatten_before_integrals)
-    end if
     if (allocated(mhd_plm_slope)) then
         deallocate(mhd_plm_slope)
+    end if
+    if (allocated(use_flattening)) then
+        deallocate(use_flattening)
     end if
     if (allocated(ppm_temp_fix)) then
         deallocate(ppm_temp_fix)

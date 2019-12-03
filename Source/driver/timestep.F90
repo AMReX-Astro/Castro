@@ -26,7 +26,8 @@ contains
     use rotation_module, only: inertial_to_rotational_velocity
     use amrinfo_module, only: amr_time
 #endif
-    use amrex_fort_module, only : rt => amrex_real, amrex_min
+    use amrex_fort_module, only : rt => amrex_real
+    use reduction_module, only: reduce_min
 
     implicit none
 
@@ -93,7 +94,7 @@ contains
              endif
 
              if (time_integration_method == 0) then
-                call amrex_min(dt, min(dt1,dt2,dt3))
+                call reduce_min(dt, min(dt1,dt2,dt3))
              else
                 ! method of lines-style constraint is tougher
                 dt_tmp = ONE/dt1
@@ -104,7 +105,7 @@ contains
                    dt_tmp = dt_tmp + ONE/dt3
                 endif
 
-                call amrex_min(dt, ONE/dt_tmp)
+                call reduce_min(dt, ONE/dt_tmp)
              endif
 
           enddo
@@ -209,11 +210,11 @@ contains
 #ifdef REACTIONS
 
   subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
-       snew, sn_lo, sn_hi, &
-       rold, ro_lo, ro_hi, &
-       rnew, rn_lo, rn_hi, &
-       dx, dt_old, dt) &
-       bind(C, name="ca_estdt_burning")
+                              snew, sn_lo, sn_hi, &
+                              rold, ro_lo, ro_hi, &
+                              rnew, rn_lo, rn_hi, &
+                              dx, dt) &
+                              bind(C, name="ca_estdt_burning")
     ! Reactions-limited timestep
     !
     ! .. note::
@@ -229,7 +230,7 @@ contains
     use actual_rhs_module, only: actual_rhs
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
-    use burner_module, only: ok_to_burn
+    use burner_module, only: ok_to_burn ! function
     use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn
     use temperature_integration_module, only: self_heat
     use amrex_fort_module, only : rt => amrex_real
@@ -246,7 +247,7 @@ contains
     real(rt), intent(in) :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
     real(rt), intent(in) :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
     real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
-    real(rt), intent(in) :: dx(3), dt_old
+    real(rt), intent(in) :: dx(3)
     real(rt), intent(inout) :: dt
 
     real(rt)      :: e, X(nspec), dedt, dXdt(nspec)
@@ -261,6 +262,8 @@ contains
     ! is small enough such that it will result in no timestep limiting.
 
     real(rt), parameter :: derivative_floor = 1.e-50_rt
+
+    !$gpu
 
     ! We want to limit the timestep so that it is not larger than
     ! dtnuc_e * (e / (de/dt)).  If the timestep factor dtnuc is
@@ -376,7 +379,8 @@ contains
     use prob_params_module, only: dim
     use amrex_constants_module, only : ONE, HALF
     use conductivity_module, only: conductivity
-    use amrex_fort_module, only: rt => amrex_real, amrex_min
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_min
 
     implicit none
 
@@ -435,7 +439,7 @@ contains
                    dt3 = dt1
                 endif
 
-                call amrex_min(dt, min(dt1,dt2,dt3))
+                call reduce_min(dt, min(dt1,dt2,dt3))
 
              endif
 

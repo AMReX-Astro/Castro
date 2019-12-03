@@ -57,7 +57,7 @@ contains
     type (burn_t) :: burn_state_in, burn_state_out
 
     ! This interface is currently unsupported with simplified SDC.
-#ifndef SDC
+#ifndef SIMPLIFIED_SDC
 
     ! Minimum zone width
 
@@ -216,7 +216,8 @@ contains
                                            asrc,as_lo,as_hi, &
                                            reactions,r_lo,r_hi, &
                                            mask,m_lo,m_hi, &
-                                           time,dt_react,sdc_iter) bind(C, name="ca_react_state_simplified_sdc")
+                                           time,dt_react,sdc_iter, &
+                                           failed) bind(C, name="ca_react_state_simplified_sdc")
 
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UTEMP, &
@@ -226,11 +227,11 @@ contains
 #endif
     use integrator_module, only : integrator
     use amrex_constants_module, only : ZERO, HALF, ONE
-#ifdef SDC
+#ifdef SIMPLIFIED_SDC
     use sdc_type_module, only : sdc_t, SRHO, SMX, SMZ, SEDEN, SEINT, SFS
 #endif
     use amrex_fort_module, only : rt => amrex_real
-    use react_util_module
+    use react_util_module, only: okay_to_burn ! function
 
     implicit none
 
@@ -245,17 +246,21 @@ contains
     real(rt), intent(in   ) :: asrc(as_lo(1):as_hi(1),as_lo(2):as_hi(2),as_lo(3):as_hi(3),NVAR)
     real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
     integer , intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
-    real(rt), intent(inout) :: time, dt_react
-    integer , intent(in   ) :: sdc_iter
+    real(rt), intent(in   ), value :: time, dt_react
+    integer , intent(in   ), value :: sdc_iter
+    real(rt) , intent(inout) :: failed
 
-    integer          :: i, j, k, n
-    real(rt)         :: rhooInv, rhonInv, delta_e, delta_rho_e
+    integer  :: i, j, k, n
+    real(rt) :: rhooInv, rhonInv, delta_e, delta_rho_e
+    real(rt) :: sold(NVAR)
 
     ! This interface is currently only supported for simplified SDC.
 
-#ifdef SDC
+#ifdef SIMPLIFIED_SDC
 
     type (sdc_t) :: burn_state_in, burn_state_out
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -271,10 +276,6 @@ contains
              if (unew(i,j,k,USHK) > ZERO .and. disable_shock_burning == 1) cycle
 #endif
 
-             ! Don't burn if we're outside of the relevant (rho, T) range.
-
-             if (.not. okay_to_burn(uold(i,j,k,:))) cycle
-
              ! Feed in the old-time state data.
 
              burn_state_in % y(SRHO)            = uold(i,j,k,URHO)
@@ -282,6 +283,11 @@ contains
              burn_state_in % y(SEDEN)           = uold(i,j,k,UEDEN)
              burn_state_in % y(SEINT)           = uold(i,j,k,UEINT)
              burn_state_in % y(SFS:SFS+nspec-1) = uold(i,j,k,UFS:UFS+nspec-1)
+
+             ! Don't burn if we're outside of the relevant (rho, T) range.
+
+             sold(:) = uold(i,j,k,:)
+             if (.not. okay_to_burn(sold)) cycle
 
              ! Tell the integrator about the non-reacting source terms.
 
@@ -319,6 +325,15 @@ contains
              burn_state_in % sdc_iter = sdc_iter
 
              call integrator(burn_state_in, burn_state_out, dt_react, time)
+
+             ! If we were unsuccessful, update the success flag and exit.
+
+             if (.not. burn_state_out % success) then
+
+                failed = 1.0_rt
+                return
+
+             end if
 
              ! Update the state data.
 

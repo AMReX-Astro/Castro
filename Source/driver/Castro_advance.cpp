@@ -50,12 +50,13 @@ Castro::advance (Real time,
 
     // Do the advance.
 
-    if (time_integration_method == CornerTransportUpwind) {
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
 #ifndef MHD	
 #ifndef AMREX_USE_CUDA
+#ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
       for (int iter = 0; iter < sdc_order+sdc_extra; ++iter) {
@@ -138,50 +139,8 @@ Castro::advance (Real time,
         Sborder.clear();
       }
 
-#endif
-    }
-    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-        for (int n = 0; n < sdc_iters; ++n) {
-
-            sdc_iteration = n;
-
-	    amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
-
-            // First do the non-reacting advance and construct the relevant source terms.
-            // We use the CTU advance here, with the Strang-split reactions skipped,
-            // but we call do_advance_ctu directly rather than subcycle_advance_ctu,
-            // as the simplified SDC logic is not compatible with the subcycling.
-
-            dt_new = do_advance_ctu(time, dt, amr_iteration, amr_ncycle);
-
-#ifdef REACTIONS
-            if (do_react) {
-
-                // Do the ODE integration to capture the reaction source terms.
-
-                react_state(time, dt);
-
-                MultiFab& S_new = get_new_data(State_Type);
-
-                clean_state(S_new, state[State_Type].curTime(), S_new.nGrow());
-
-                // Compute the reactive source term for use in the next iteration.
-
-                MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-                get_react_source_prim(SDC_react_new, time, dt);
-
-                // Check for NaN's.
-
-                check_for_nan(S_new);
-
-            }
-#endif
-
-            amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
-
-        }
-
+#endif // REACTIONS
+#endif // TRUE_SDC
 #endif // AMREX_USE_CUDA
 #endif //MHD	
     }
@@ -245,10 +204,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // Reset the CFL violation flag.
 
     cfl_violation = 0;
-
-    // Reset the burn success flag.
-
-    burn_success = 1;
 
     int finest_level = parent->finestLevel();
 
@@ -473,7 +428,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // the new-time sources, so that we can compute the time
     // derivative of the source terms.
 
-    sources_for_hydro.define(grids, dmap, NUM_STATE, NUM_GROW);
+    sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW);
     sources_for_hydro.setVal(0.0, NUM_GROW);
 
     // Add the source term predictor.
@@ -491,7 +446,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // time-centered value.
 
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
     }
 
     // Swap the new data from the last timestep into the old state data.
@@ -532,7 +487,26 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       // Store the old and new time levels.
 
       for (int k = 0; k < num_state_type; k++) {
+
+        // We want to store the previous state in pinned memory
+        // if we're running on a GPU. This helps us alleviate
+        // pressure on the GPU memory, at the slight cost of
+        // lower bandwidth when we are saving/restoring the state.
+        // Since we're using operator= to copy the StateData,
+        // we'll use a trick where we temporarily change the
+        // the arena used by the main state and then immediately
+        // restore it.
+
+#ifdef AMREX_USE_GPU
+        Arena* old_arena = state[k].getArena();
+        state[k].setArena(The_Pinned_Arena());
+#endif
+
         *prev_state[k] = state[k];
+
+#ifdef AMREX_USE_GPU
+        state[k].setArena(old_arena);
+#endif
       }
 
     }
@@ -586,20 +560,23 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         A_new[n]->setVal(0.0);
       }
 
-#ifdef REACTIONS
-      // We use Sburn in 2 ways for the SDC integration.  First, we
+      // We use Sburn a few ways for the SDC integration.  First, we
       // use it to store the initial guess to the nonlinear solve.
       // Second, at the end of the SDC update, we copy the cell-center
       // reaction source into it, including one ghost cell, for later
-      // filling of the plotfile.
+      // filling of the plotfile.  Finally, we use it as a temporary
+      // buffer for when we convert the state to centers while making the
+      // source term
       Sburn.define(grids, dmap, NUM_STATE, 2);
 
+#ifdef REACTIONS
       R_old.resize(SDC_NODES);
       for (int n = 0; n < SDC_NODES; ++n) {
 	R_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
         R_old[n]->setVal(0.0);
       }
 #endif
+
     }
 
     // Zero out the current fluxes.
@@ -690,5 +667,13 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     // Record how many zones we have advanced.
 
     num_zones_advanced += grids.numPts() / getLevel(0).grids.numPts();
+
+    Real wall_time = ParallelDescriptor::second() - wall_time_start;
+    Real fom_advance = grids.numPts() / wall_time / 1.e6;
+
+    if (verbose >= 1) {
+        amrex::Print() << "  Zones advanced per microsecond at this level: "
+                       << fom_advance << std::endl << std::endl;
+    }
 
 }

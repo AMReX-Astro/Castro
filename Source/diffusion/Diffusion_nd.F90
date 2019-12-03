@@ -18,7 +18,7 @@ contains
     ! .. note::
     !    Binds to C function ``ca_fill_temp_cond``
 
-    use amrex_constants_module, only: ZERO
+    use amrex_constants_module, only: ZERO, ONE
     use network, only: nspec, naux
     use meth_params_module, only : NVAR, URHO, UTEMP, UEINt, UFS, UFX, &
                                    diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac, &
@@ -39,7 +39,7 @@ contains
     integer  :: i, j, k
 
     type (eos_t) :: eos_state
-    real(rt) :: multiplier
+    real(rt) :: multiplier, rhoinv
 
     !$gpu
 
@@ -47,11 +47,12 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             eos_state%rho    = state(i,j,k,URHO)
-             eos_state%T      = state(i,j,k,UTEMP)   ! needed as an initial guess
-             eos_state%e      = state(i,j,k,UEINT)/state(i,j,k,URHO)
-             eos_state%xn(:)  = state(i,j,k,UFS:UFS-1+nspec)/ state(i,j,k,URHO)
-             eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)/ state(i,j,k,URHO)
+             eos_state % rho    = state(i,j,k,URHO)
+             rhoinv = ONE/eos_state % rho
+             eos_state % T      = state(i,j,k,UTEMP)   ! needed as an initial guess
+             eos_state % e      = state(i,j,k,UEINT) * rhoinv
+             eos_state % xn(:)  = state(i,j,k,UFS:UFS-1+nspec) * rhoinv
+             eos_state % aux(:) = state(i,j,k,UFX:UFX-1+naux) * rhoinv
 
              if (eos_state%e < ZERO) then
                 eos_state%T = small_temp
@@ -64,7 +65,7 @@ contains
                 call conductivity(eos_state)
 
                 if (eos_state%rho < diffuse_cutoff_density_hi) then
-                    multiplier = (eos_state%rho - diffuse_cutoff_density) / &
+                    multiplier = (eos_state % rho - diffuse_cutoff_density) / &
                             (diffuse_cutoff_density_hi - diffuse_cutoff_density)
                     eos_state % conductivity = eos_state % conductivity * multiplier
                 endif

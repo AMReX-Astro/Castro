@@ -79,14 +79,15 @@ subroutine derpi(p, p_lo, p_hi, ncomp_p, &
              dx(AMREX_SPACEDIM) * HALF * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
-     eos_state%rho = density(j)
-     eos_state%T = temp(j)
-     eos_state%xn(:) = xn(:)
+     eos_state % rho = density(j)
+     eos_state % T = temp(j)
+     eos_state % xn(:) = xn(:)
+     eos_state % p = pressure(j)
 
      call eos(eos_input_rp, eos_state)
 
-     eint(j) = eos_state%e
-     temp(j) = eos_state%T
+     eint(j) = eos_state % e
+     temp(j) = eos_state % T
 
   end do
 
@@ -98,13 +99,13 @@ subroutine derpi(p, p_lo, p_hi, ncomp_p, &
            rhoInv = ONE/u(i,j,k,URHO)
            T = u(i,j,k,UTEMP)
 
-           eos_state%rho = u(i,j,k,URHO)
-           eos_state%T = u(i,j,k,UTEMP)
-           eos_state%e = u(i,j,k,UEINT)*rhoInv
-           eos_state%xn(:) = u(i,j,k,UFS:UFS-1+nspec)/u(i,j,k,URHO)
-           eos_state%aux(:) = u(i,j,k,UFX:UFX-1+naux)/u(i,j,k,URHO)
+           eos_state % rho = u(i,j,k,URHO)
+           eos_state % T = u(i,j,k,UTEMP)
+           eos_state % e = u(i,j,k,UEINT)*rhoInv
+           eos_state % xn(:) = u(i,j,k,UFS:UFS-1+nspec)/u(i,j,k,URHO)
+           eos_state % aux(:) = u(i,j,k,UFX:UFX-1+naux)/u(i,j,k,URHO)
 
-           if (e <= ZERO) then
+           if (eos_state % e <= ZERO) then
               call eos(eos_input_rt, eos_state)
               p(i,j,k,1) = eos_state%p
 
@@ -209,14 +210,15 @@ subroutine derpioverp0(p, p_lo, p_hi, ncomp_p, &
              dx(AMREX_SPACEDIM) * HALF * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
-     eos_state%rho = density(j)
-     eos_state%T = temp(j)
-     eos_state%xn(:) = xn(:)
+     eos_state % rho = density(j)
+     eos_state % T = temp(j)
+     eos_state % xn(:) = xn(:)
+     eos_state % p = pressure(j)
 
      call eos(eos_input_rp, eos_state)
 
-     eint(j) = eos_state%e
-     temp(j) = eos_state%T
+     eint(j) = eos_state % e
+     temp(j) = eos_state % T
 
   end do
 
@@ -229,19 +231,19 @@ subroutine derpioverp0(p, p_lo, p_hi, ncomp_p, &
            e = u(i,j,k,UEINT)*rhoInv
            T = u(i,j,k,UTEMP)
 
-           eos_state%rho = u(i,j,k,URHO)
-           eos_state%T = T
-           eos_state%xn(:) = u(i,j,k,UFS:UFS-1+nspec)*rhoInv
-           eos_state%aux(:) = u(i,j,k,UFX:UFX-1+naux)*rhoInv
-           eos_state%e = e
+           eos_state % rho = u(i,j,k,URHO)
+           eos_state % T = T
+           eos_state % xn(:) = u(i,j,k,UFS:UFS-1+nspec)*rhoInv
+           eos_state % aux(:) = u(i,j,k,UFX:UFX-1+naux)*rhoInv
+           eos_state % e = e
 
            if (e <= ZERO) then
               call eos(eos_input_rt, eos_state)
-              p(i,j,k,1) = eos_state%p
+              p(i,j,k,1) = eos_state % p
 
            else
               call eos(eos_input_re, eos_state)
-              p(i,j,k,1) = eos_state%p
+              p(i,j,k,1) = eos_state % p
 
            end if
 
@@ -410,15 +412,15 @@ subroutine dertpert(p, p_lo, p_hi, ncomp_p, &
              dx(AMREX_SPACEDIM) * HALF * (density(j)+density(j-1)) * abs(const_grav)
      end if
 
-     eos_state%rho = density(j)
-     eos_state%T = temp(j)
-     eos_state%xn(:) = xn(:)
-     eos_state%p = pressure(j)
+     eos_state % rho = density(j)
+     eos_state % T = temp(j)
+     eos_state % xn(:) = xn(:)
+     eos_state % p = pressure(j)
 
      call eos(eos_input_rp, eos_state)
 
-     eint(j) = eos_state%e
-     temp(j) = eos_state%T
+     eint(j) = eos_state % e
+     temp(j) = eos_state % T
 
   end do
 

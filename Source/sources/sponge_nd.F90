@@ -31,7 +31,7 @@ contains
        bind(C, name="ca_sponge")
 
     use prob_params_module,   only: problo, center
-    use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR
+    use meth_params_module,   only: URHO, UMX, UMZ, UEDEN, NVAR, NSRC
     use amrex_constants_module,  only: ZERO, HALF, ONE
 #ifdef HYBRID_MOMENTUM
     use meth_params_module,   only: UMR, UMP
@@ -46,7 +46,7 @@ contains
     integer          :: src_lo(3), src_hi(3)
     integer          :: vol_lo(3), vol_hi(3)
     real(rt)         :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-    real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)         :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NSRC)
     real(rt)         :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt)         :: dx(3)
     real(rt), value  :: dt, time, mult_factor
@@ -59,7 +59,7 @@ contains
 
     integer  :: i, j, k
 
-    real(rt) :: src(NVAR)
+    real(rt) :: src(NSRC)
     real(rt) :: local_state(NVAR)
 
     !$gpu

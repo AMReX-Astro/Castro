@@ -428,7 +428,6 @@ contains
        area3, area3_lo, area3_hi, &
 #endif
        vol, vol_lo, vol_hi, &
-       pdivu, pdivu_lo, pdivu_hi, &
        dx, dt) bind(C, name="ctu_consup")
 
     use meth_params_module, only : difmag, NVAR, URHO, UMX, UMY, UMZ, &
@@ -438,7 +437,7 @@ contains
          GDU, GDV, GDW, GDLAMS, GDERADS, &
 #endif
          GDPRES
-    use advection_util_module, only : calc_pdivu
+    use advection_util_module, only: pdivu ! function
     use prob_params_module, only : mom_flux_has_p, center, dg
 #ifdef RADIATION
     use rad_params_module, only : ngroups, nugroup, dlognu
@@ -472,7 +471,6 @@ contains
 #endif
     integer, intent(in) ::    qx_lo(3),    qx_hi(3)
     integer, intent(in) ::   vol_lo(3),   vol_hi(3)
-    integer, intent(in) ::   pdivu_lo(3),   pdivu_hi(3)
 #ifdef RADIATION
     integer, intent(in) ::  uout_lo(3),  uout_hi(3)
     integer, intent(in) :: Erout_lo(3), Erout_hi(3)
@@ -509,7 +507,6 @@ contains
 #endif
 
     real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-    real(rt), intent(inout) :: pdivu(pdivu_lo(1):pdivu_hi(1),pdivu_lo(2):pdivu_hi(2),pdivu_lo(3):pdivu_hi(3))
     real(rt), intent(in) :: dx(3)
     real(rt), intent(in), value :: dt
 
@@ -557,21 +554,6 @@ contains
     end if
 #endif
 
-    call calc_pdivu(lo, hi, &
-         qx, qx_lo, qx_hi, &
-         area1, area1_lo, area1_hi, &
-#if AMREX_SPACEDIM >= 2
-         qy, qy_lo, qy_hi, &
-         area2, area2_lo, area2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-         qz, qz_lo, qz_hi, &
-         area3, area3_lo, area3_hi, &
-#endif
-         vol, vol_lo, vol_hi, &
-         dx, pdivu, pdivu_lo, pdivu_hi)
-
-
     ! For hydro, we will create an update source term that is
     ! essentially the flux divergence.  This can be added with dt to
     ! get the update
@@ -595,7 +577,18 @@ contains
 
                 ! Add the p div(u) source term to (rho e).
                 if (n .eq. UEINT) then
-                   update(i,j,k,n) = update(i,j,k,n) - pdivu(i,j,k)
+                   update(i,j,k,n) = update(i,j,k,n) - pdivu(i, j, k, &
+                                                             qx, qx_lo, qx_hi, &
+                                                             area1, area1_lo, area1_hi, &
+#if AMREX_SPACEDIM >= 2
+                                                             qy, qy_lo, qy_hi, &
+                                                             area2, area2_lo, area2_hi, &
+#endif
+#if AMREX_SPACEDIM == 3
+                                                             qz, qz_lo, qz_hi, &
+                                                             area3, area3_lo, area3_hi, &
+#endif
+                                                             vol, vol_lo, vol_hi)
                 endif
 
              enddo
@@ -903,7 +896,7 @@ contains
     use prob_params_module, only : domlo_level, domhi_level, center
     use castro_util_module, only: position ! function
     use castro_util_module, only: linear_to_angular_momentum ! function
-    use amrex_fort_module, only: amrex_reduce_add
+    use reduction_module, only: reduce_add
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
@@ -938,17 +931,17 @@ contains
 
              loc = position(i,j,k,ccz=.false.) - center
 
-             call amrex_reduce_add(mass_lost, -flux3(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, -flux3(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, -flux3(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, -flux3(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, -flux3(i,j,k,UEDEN))
+             call reduce_add(mass_lost, -flux3(i,j,k,URHO))
+             call reduce_add(xmom_lost, -flux3(i,j,k,UMX))
+             call reduce_add(ymom_lost, -flux3(i,j,k,UMY))
+             call reduce_add(zmom_lost, -flux3(i,j,k,UMZ))
+             call reduce_add(eden_lost, -flux3(i,j,k,UEDEN))
 
              flux(:) = flux3(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, -ang_mom(1))
-             call amrex_reduce_add(yang_lost, -ang_mom(2))
-             call amrex_reduce_add(zang_lost, -ang_mom(3))
+             call reduce_add(xang_lost, -ang_mom(1))
+             call reduce_add(yang_lost, -ang_mom(2))
+             call reduce_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -963,17 +956,17 @@ contains
 
              loc = position(i,j,k,ccz=.false.) - center
 
-             call amrex_reduce_add(mass_lost, flux3(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, flux3(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, flux3(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, flux3(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, flux3(i,j,k,UEDEN))
+             call reduce_add(mass_lost, flux3(i,j,k,URHO))
+             call reduce_add(xmom_lost, flux3(i,j,k,UMX))
+             call reduce_add(ymom_lost, flux3(i,j,k,UMY))
+             call reduce_add(zmom_lost, flux3(i,j,k,UMZ))
+             call reduce_add(eden_lost, flux3(i,j,k,UEDEN))
 
              flux(:) = flux3(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, ang_mom(1))
-             call amrex_reduce_add(yang_lost, ang_mom(2))
-             call amrex_reduce_add(zang_lost, ang_mom(3))
+             call reduce_add(xang_lost, ang_mom(1))
+             call reduce_add(yang_lost, ang_mom(2))
+             call reduce_add(zang_lost, ang_mom(3))
 
           enddo
        enddo
@@ -990,17 +983,17 @@ contains
 
              loc = position(i,j,k,ccy=.false.) - center
 
-             call amrex_reduce_add(mass_lost, -flux2(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, -flux2(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, -flux2(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, -flux2(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, -flux2(i,j,k,UEDEN))
+             call reduce_add(mass_lost, -flux2(i,j,k,URHO))
+             call reduce_add(xmom_lost, -flux2(i,j,k,UMX))
+             call reduce_add(ymom_lost, -flux2(i,j,k,UMY))
+             call reduce_add(zmom_lost, -flux2(i,j,k,UMZ))
+             call reduce_add(eden_lost, -flux2(i,j,k,UEDEN))
 
              flux(:) = flux2(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, -ang_mom(1))
-             call amrex_reduce_add(yang_lost, -ang_mom(2))
-             call amrex_reduce_add(zang_lost, -ang_mom(3))
+             call reduce_add(xang_lost, -ang_mom(1))
+             call reduce_add(yang_lost, -ang_mom(2))
+             call reduce_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -1015,17 +1008,17 @@ contains
 
              loc = position(i,j,k,ccy=.false.) - center
 
-             call amrex_reduce_add(mass_lost, flux2(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, flux2(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, flux2(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, flux2(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, flux2(i,j,k,UEDEN))
+             call reduce_add(mass_lost, flux2(i,j,k,URHO))
+             call reduce_add(xmom_lost, flux2(i,j,k,UMX))
+             call reduce_add(ymom_lost, flux2(i,j,k,UMY))
+             call reduce_add(zmom_lost, flux2(i,j,k,UMZ))
+             call reduce_add(eden_lost, flux2(i,j,k,UEDEN))
 
              flux(:) = flux2(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, ang_mom(1))
-             call amrex_reduce_add(yang_lost, ang_mom(2))
-             call amrex_reduce_add(zang_lost, ang_mom(3))
+             call reduce_add(xang_lost, ang_mom(1))
+             call reduce_add(yang_lost, ang_mom(2))
+             call reduce_add(zang_lost, ang_mom(3))
 
           enddo
        enddo
@@ -1041,17 +1034,17 @@ contains
 
              loc = position(i,j,k,ccx=.false.) - center
 
-             call amrex_reduce_add(mass_lost, -flux1(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, -flux1(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, -flux1(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, -flux1(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, -flux1(i,j,k,UEDEN))
+             call reduce_add(mass_lost, -flux1(i,j,k,URHO))
+             call reduce_add(xmom_lost, -flux1(i,j,k,UMX))
+             call reduce_add(ymom_lost, -flux1(i,j,k,UMY))
+             call reduce_add(zmom_lost, -flux1(i,j,k,UMZ))
+             call reduce_add(eden_lost, -flux1(i,j,k,UEDEN))
 
              flux(:) = flux1(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, -ang_mom(1))
-             call amrex_reduce_add(yang_lost, -ang_mom(2))
-             call amrex_reduce_add(zang_lost, -ang_mom(3))
+             call reduce_add(xang_lost, -ang_mom(1))
+             call reduce_add(yang_lost, -ang_mom(2))
+             call reduce_add(zang_lost, -ang_mom(3))
 
           enddo
        enddo
@@ -1066,17 +1059,17 @@ contains
 
              loc = position(i,j,k,ccx=.false.) - center
 
-             call amrex_reduce_add(mass_lost, flux1(i,j,k,URHO))
-             call amrex_reduce_add(xmom_lost, flux1(i,j,k,UMX))
-             call amrex_reduce_add(ymom_lost, flux1(i,j,k,UMY))
-             call amrex_reduce_add(zmom_lost, flux1(i,j,k,UMZ))
-             call amrex_reduce_add(eden_lost, flux1(i,j,k,UEDEN))
+             call reduce_add(mass_lost, flux1(i,j,k,URHO))
+             call reduce_add(xmom_lost, flux1(i,j,k,UMX))
+             call reduce_add(ymom_lost, flux1(i,j,k,UMY))
+             call reduce_add(zmom_lost, flux1(i,j,k,UMZ))
+             call reduce_add(eden_lost, flux1(i,j,k,UEDEN))
 
              flux(:) = flux1(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call amrex_reduce_add(xang_lost, ang_mom(1))
-             call amrex_reduce_add(yang_lost, ang_mom(2))
-             call amrex_reduce_add(zang_lost, ang_mom(3))
+             call reduce_add(xang_lost, ang_mom(1))
+             call reduce_add(yang_lost, ang_mom(2))
+             call reduce_add(zang_lost, ang_mom(3))
 
           enddo
        enddo

@@ -7,6 +7,7 @@
 #include <regex>
 #include "AMReX_DataServices.H"
 #include <AMReX_ParmParse.H>
+#include <AMReX_BaseFab.H>
 #include <Limiter_F.H>
 #include "Castro_F.H"
 
@@ -30,6 +31,9 @@ int main(int argc, char* argv[])
 
 	amrex::Initialize(dummy, argv);
 
+	// timer for profiling
+	BL_PROFILE_VAR("main()", pmain);
+
     // Tell AMReX to be quiet
     amrex::system::verbose = 0;
 
@@ -43,17 +47,14 @@ int main(int argc, char* argv[])
 
     ProcessJobInfo(job_info, inputs_file);
 
+    // this will process the input parameters from the job_info file 
     amrex::ParmParse::Initialize(0,0,inputs_file.c_str());
 
+    // Read in the input values to Fortran.
     int NUM_GROW;
 
     ca_get_method_params(&NUM_GROW);
-
-  // Read in the input values to Fortran.
     ca_set_castro_method_params();
-
-	// timer for profiling
-	BL_PROFILE_VAR("main()", pmain);
 
 	// Start dataservices
 	DataServices::SetBatchMode();
@@ -78,16 +79,8 @@ int main(int argc, char* argv[])
 	// get data from plot file
 	AmrData& data = dataServices.AmrDataRef();
 
-	int finestLevel = data.FinestLevel();
-
 	// get variable names
 	const Vector<string>& varNames = data.PlotVarNames();
-
-	// get the index bounds and dx.
-	Box domain = data.ProbDomain()[finestLevel];
-	Vector<Real> dx = data.CellSize(finestLevel);
-	const Vector<Real>& problo = data.ProbLo();
-	const Vector<Real>& probhi = data.ProbHi();
 
     int dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp, spec_comp, temp_comp;
     int time_integration_method = 3;
@@ -133,12 +126,6 @@ int main(int argc, char* argv[])
 	for (auto i = 0; i < data.NComp(); i++)
 		fill_comps[i] = i;
 
-	// imask will be set to false if we've already output the data.
-	// Note, imask is defined in terms of the finest level.  As we loop
-	// over levels, we will compare to the finest level index space to
-	// determine if we've already output here
-	int mask_size = domain.length().max();
-	Vector<int> imask(pow(mask_size, AMREX_SPACEDIM), 1);
     Vector<Real> dt_loc = {0.,0.,0.};
     Vector<Real> burning_dt_loc = {0.,0.,0.};
     Vector<Real> diffusion_dt_loc = {0.,0.,0.};
@@ -147,7 +134,7 @@ int main(int argc, char* argv[])
     Real diffusion_dt = 1.e99;
 
 	// loop over the data
-	for (int lev=0; lev <= finestLevel; lev++) {
+	for (int lev=0; lev <= data.FinestLevel(); lev++) {
 
         Vector<Real> level_dx = data.DxLevel()[lev];
 
@@ -155,24 +142,40 @@ int main(int argc, char* argv[])
 		const DistributionMapping& dm = data.DistributionMap(lev);
 
 		MultiFab lev_data_mf(ba, dm, data.NComp(), data.NGrow());
-		data.FillVar(lev_data_mf, lev, varNames, fill_comps);
 
         for (MFIter mfi(lev_data_mf, true); mfi.isValid(); ++mfi) {
 			const Box& bx = mfi.tilebox();
 
-				find_timestep_limiter(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				               dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp, spec_comp,
-                               time_integration_method,
-				               level_dx.dataPtr(), &dt, dt_loc.dataPtr());
+            // we only want to load the data a Fab at the time as otherwise 
+            // we can experience memory issues. 
+            // Therefore, we'll iterate over the variables using FillVar
+            // to fill a temporary fab, then copy this over the to MultiFab
+            Array4<Real> lev_data_arr = lev_data_mf.array(mfi);
+            FArrayBox tmp_fab(bx);
 
-				find_timestep_limiter_burning(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
-				               dens_comp, temp_comp, rhoe_comp, spec_comp,
-				               level_dx.dataPtr(), &burning_dt, burning_dt_loc.dataPtr());
+            for (auto n = 0; n < data.NComp(); n++) {
+                data.FillVar(&tmp_fab, bx, lev, varNames[n], ParallelDescriptor::IOProcessorNumber());
+
+                Array4<Real> tmp_arr = tmp_fab.array();
+
+                AMREX_PARALLEL_FOR_3D(bx, i, j, k, {
+                    lev_data_arr(i,j,k,n) = tmp_arr(i,j,k);
+                });
+            }
+
+            find_timestep_limiter(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                            BL_TO_FORTRAN_FAB(lev_data_mf[mfi]), 
+                            dens_comp, xmom_comp, ymom_comp, zmom_comp, pres_comp, rhoe_comp, spec_comp,
+                            time_integration_method,
+                            level_dx.dataPtr(), &dt, dt_loc.dataPtr());
+
+            find_timestep_limiter_burning(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
+                            BL_TO_FORTRAN_FAB(lev_data_mf[mfi]), 
+                            dens_comp, temp_comp, rhoe_comp, spec_comp,
+                            level_dx.dataPtr(), &burning_dt, burning_dt_loc.dataPtr());
 #ifdef DIFFUSION
 				find_timestep_limiter_diffusion(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]),
+				               BL_TO_FORTRAN_FAB(lev_data_mf[mfi]), 
 				               dens_comp, temp_comp, rhoe_comp, spec_comp,
 				               level_dx.dataPtr(), &diffusion_dt, diffusion_dt_loc.dataPtr());
 #endif
@@ -192,6 +195,14 @@ int main(int argc, char* argv[])
     }
     Print() << std::endl;
 
+#ifdef DIFFUSION
+    Print() << "diffusion_dt = " << diffusion_dt << " at location";
+    for (auto i = 0; i < AMREX_SPACEDIM; i++) {
+        Print() << ' ' << diffusion_dt_loc[i];
+    }
+    Print() << std::endl;
+#endif
+
     Print() << std::endl;
 
     // finalize microphysics stuff 
@@ -209,7 +220,6 @@ int main(int argc, char* argv[])
 void GetInputArgs ( const int argc, char** argv,
                     string& pltfile)
 {
-
     pltfile = argv[1];
 
 	if (pltfile.empty())
@@ -220,6 +230,10 @@ void GetInputArgs ( const int argc, char** argv,
 	Print() << "Finding limiting timestep in plotfile  = \"" << pltfile << "\"" << std::endl;
 }
 
+//
+// Reads in a job_info file, extracts the inputs parameters and saves 
+// them to a new file 
+//
 void ProcessJobInfo(string job_info_file, string inputs_file_name)
 {
     std::ifstream job_info (job_info_file);

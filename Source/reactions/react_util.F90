@@ -1,7 +1,13 @@
 module react_util_module
 
   use amrex_fort_module, only : rt => amrex_real
+  use network, only : nspec_evolve
   implicit none
+
+  ! indices for working with the intermediate "w" state for the SDC Jacobian
+  integer, parameter :: iwrho = 0
+  integer, parameter :: iwfs = 1
+  integer, parameter :: iwT = nspec_evolve + 1
 
 contains
 
@@ -13,6 +19,8 @@ contains
 
     real(rt), intent(in) :: state(NVAR)
     logical :: burn_flag
+
+    !$gpu
 
     burn_flag = .true.
 
@@ -32,6 +40,7 @@ contains
     use network, only : nspec, nspec_evolve, aion
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_re, eos_get_small_temp
+
     use meth_params_module, only : NVAR, URHO, UTEMP, UEDEN, UEINT, UFS, UFX
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
@@ -48,6 +57,8 @@ contains
     real(rt) :: rhoInv
     integer :: n
     real(rt) :: small_temp
+
+    !$gpu
 
     rhoInv = ONE / state(URHO)
 
@@ -108,6 +119,9 @@ contains
     use amrex_constants_module, only : ZERO, HALF, ONE
     use actual_rhs_module
     use numerical_jac_module
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
 
     implicit none
 
@@ -121,8 +135,12 @@ contains
     ! for computing a numerical derivative
     real(rt) :: eps = 1.e-8_rt
 
-#ifdef SDC
-    call castro_error("we shouldn't be here with the simplified SDC method (USE_SDC=TRUE)")
+    !$gpu
+
+#ifdef SIMPLIFIED_SDC
+#ifndef AMREX_USE_GPU
+    call castro_error("we shouldn't be here with the simplified SDC method (USE_SIMPLIFIED_SDC=TRUE)")
+#endif
 #else
     if (sdc_use_analytic_jac == 0) then
        ! note the numerical Jacobian will be returned in terms of X
@@ -147,11 +165,11 @@ contains
 
     ! Our jacobian, dR/dw has the form:
     !
-    !  /      0               0               0                    0       \
-    !  | d(rho X1)/drho  d(rho X1)/dX1   d(rho X1)/dX2   ...  d(rho X1)/dT |
-    !  | d(rho X1)/drho  d(rho X1)/dX1   d(rho X1)/dX2   ...  d(rho X1)/dT |
-    !  |   ...                                                             |
-    !  \ d(rho E)/drho   d(rho E)/dX1    d(rho E)/dX2    ...  d(rho E)/dT  /
+    !  /      0                  0                  0                       0          \
+    !  | d(rho X1dot)/drho  d(rho X1dot)/dX1   d(rho X1dit)/dX2   ...  d(rho X1dot)/dT |
+    !  | d(rho X2dot)/drho  d(rho X2dot)/dX1   d(rho X2dot)/dX2   ...  d(rho X2dot)/dT |
+    !  |   ...                                                                         |
+    !  \ d(rho Edot)/drho   d(rho Edot)/dX1    d(rho Edot)/dX2    ...  d(rho Edot)/dT  /
 
     dRdw(:,:) = ZERO
 
@@ -173,40 +191,40 @@ contains
     ! with respect to rho
     do m = 1, nspec_evolve
        ! d( d(rho X_m)/dt)/drho
-       dRdw(m, 0) = burn_state % ydot(m) + &
+       dRdw(m, iwrho) = burn_state % ydot(m) + &
             state(URHO) * (burn_state_pert % ydot(m) - burn_state % ydot(m))/(eps * burn_state % rho)
     enddo
 
     ! d( d(rho E)/dt)/drho
-    dRdw(nspec_evolve+1, 0) = burn_state % ydot(net_ienuc) + &
+    dRdw(nspec_evolve+1, iwrho) = burn_state % ydot(net_ienuc) + &
          state(URHO) * (burn_state_pert % ydot(net_ienuc) - burn_state % ydot(net_ienuc))/(eps * burn_state % rho)
 
     ! fill the columns of dRdw corresponding to each derivative
     ! with respect to species mass fraction
     do n = 1, nspec_evolve
-       dRdw(0, n) = ZERO  ! density source
+       dRdw(0, iwfs-1+n) = ZERO  ! density source
 
        do m = 1, nspec_evolve
           ! d( d(rho X_m)/dt)/dX_n
-          dRdw(m, n) = state(URHO) * burn_state % jac(m, n)
+          dRdw(m, iwfs-1+n) = state(URHO) * burn_state % jac(m, n)
        enddo
 
        ! d( d(rho E)/dt)/dX_n
-       dRdw(nspec_evolve+1, n) = state(URHO) * burn_state % jac(net_ienuc, n)
+       dRdw(nspec_evolve+1, iwfs-1+n) = state(URHO) * burn_state % jac(net_ienuc, n)
 
     enddo
 
     ! now fill the column corresponding to derivatives with respect to
-    ! temperature -- this column is nspec_evolve+1
-    dRdw(0, nspec_evolve+1) = ZERO
+    ! temperature -- this column is iwT
+    dRdw(0, iwT) = ZERO
 
     ! d( d(rho X_m)/dt)/dT
     do m = 1, nspec_evolve
-       dRdw(m, nspec_evolve+1) = state(URHO) * burn_state % jac(m, net_itemp)
+       dRdw(m, iwT) = state(URHO) * burn_state % jac(m, net_itemp)
     enddo
 
     ! d( d(rho E)/dt)/dT
-    dRdw(nspec_evolve+1, nspec_evolve+1) = state(URHO) * burn_state % jac(net_ienuc, net_itemp)
+    dRdw(nspec_evolve+1, iwT) = state(URHO) * burn_state % jac(net_ienuc, net_itemp)
 
 
   end subroutine single_zone_jac

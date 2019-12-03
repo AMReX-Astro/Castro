@@ -418,7 +418,9 @@ contains
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, &
          UFS, UFX
     use amrex_constants_module, only: ZERO, ONE
-    use castro_error_module
+#ifndef AMREX_USE_CUDA
+    use castro_error_module, only: castro_error
+#endif
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -593,7 +595,7 @@ contains
 
 
 
-  function area(i, j, k, dir)
+  function area(i, j, k, dir) result(arear)
     ! Given 3D indices (i,j,k) and a direction dir, return the
     ! area of the face perpendicular to direction d. We assume
     ! the coordinates perpendicular to the dir axies are edge-centered.
@@ -604,17 +606,21 @@ contains
     use amrinfo_module, only: amr_level
     use amrex_constants_module, only: ZERO, ONE, TWO, M_PI, FOUR
     use prob_params_module, only: dim, coord_type, dx_level
-    use castro_error_module
+#ifndef AMREX_USE_CUDA
+    use castro_error_module, only: castro_error
+#endif
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
     integer, intent(in) :: i, j, k, dir
 
-    real(rt) :: area
+    real(rt) :: arear
 
     logical :: cc(3) = .true.
     real(rt) :: dx(3), loc(3)
+
+    !$gpu
 
     ! Force edge-centering along the direction of interest
 
@@ -631,9 +637,9 @@ contains
           select case (dir)
 
           case (1)
-             area = ONE
+             arear = ONE
           case default
-             area = ZERO
+             arear = ZERO
 
           end select
 
@@ -642,11 +648,11 @@ contains
           select case (dir)
 
           case (1)
-             area = dx(2)
+             arear = dx(2)
           case (2)
-             area = dx(1)
+             arear = dx(1)
           case default
-             area = ZERO
+             arear = ZERO
 
           end select
 
@@ -655,13 +661,13 @@ contains
           select case (dir)
 
           case (1)
-             area = dx(2) * dx(3)
+             arear = dx(2) * dx(3)
           case (2)
-             area = dx(1) * dx(3)
+             arear = dx(1) * dx(3)
           case (3)
-             area = dx(1) * dx(2)
+             arear = dx(1) * dx(2)
           case default
-             area = ZERO
+             arear = ZERO
 
           end select
 
@@ -680,11 +686,11 @@ contains
           select case (dir)
 
           case (1)
-             area = TWO * M_PI * loc(1) * dx(2)
+             arear = TWO * M_PI * loc(1) * dx(2)
           case (2)
-             area = TWO * M_PI * loc(1) * dx(1)
+             arear = TWO * M_PI * loc(1) * dx(1)
           case default
-             area = ZERO
+             arear = ZERO
 
           end select
 
@@ -709,9 +715,9 @@ contains
           select case (dir)
 
           case (1)
-             area = FOUR * M_PI * loc(1)**2
+             arear = FOUR * M_PI * loc(1)**2
           case default
-             area = ZERO
+             arear = ZERO
 
           end select
 
@@ -731,14 +737,16 @@ contains
 
 
 
-  function volume(i, j, k)
+  function volume(i, j, k) result(volumer)
     ! Given 3D cell-centered indices (i,j,k), return the volume of the zone.
     ! Note that Castro has no support for angular coordinates, so
     ! this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
     ! in 2D, and Spherical in 1D.
 
     use amrinfo_module, only: amr_level
-    use castro_error_module
+#ifndef AMREX_USE_CUDA
+    use castro_error_module, only: castro_error
+#endif
     use amrex_constants_module, only: ZERO, HALF, FOUR3RD, TWO, M_PI
     use prob_params_module, only: dim, coord_type, dx_level
     use amrex_fort_module, only: rt => amrex_real
@@ -747,9 +755,11 @@ contains
 
     integer, intent(in) :: i, j, k
 
-    real(rt) :: volume
+    real(rt) :: volumer
 
     real(rt) :: dx(3), loc_l(3), loc_r(3)
+
+    !$gpu
 
     dx = dx_level(:,amr_level)
 
@@ -759,15 +769,15 @@ contains
 
        if (dim .eq. 1) then
 
-          volume = dx(1)
+          volumer = dx(1)
 
        else if (dim .eq. 2) then
 
-          volume = dx(1) * dx(2)
+          volumer = dx(1) * dx(2)
 
        else if (dim .eq. 3) then
 
-          volume = dx(1) * dx(2) * dx(3)
+          volumer = dx(1) * dx(2) * dx(3)
 
        endif
 
@@ -782,7 +792,7 @@ contains
 
        if (dim .eq. 2) then
 
-          volume = TWO * M_PI * (HALF * (loc_l(1) + loc_r(1))) * dx(1) * dx(2)
+          volumer = TWO * M_PI * (HALF * (loc_l(1) + loc_r(1))) * dx(1) * dx(2)
 
 #ifndef AMREX_USE_CUDA
        else
@@ -803,7 +813,7 @@ contains
 
        if (dim .eq. 1) then
 
-          volume = FOUR3RD * M_PI * (loc_r(1)**3 - loc_l(1)**3)
+          volumer = FOUR3RD * M_PI * (loc_r(1)**3 - loc_l(1)**3)
 
 #ifndef AMREX_USE_CUDA
        else
@@ -977,7 +987,9 @@ contains
     use meth_params_module, only: URHO, UMX, UMY, UMZ
     use prob_params_module, only: center, dim
     use amrex_constants_module, only: HALF
-    use castro_error_module
+#ifndef AMREX_USE_CUDA
+    use castro_error_module, only: castro_error
+#endif
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none

@@ -82,7 +82,7 @@ contains
     ! equations.
 
     use amrex_constants_module, only: ONE
-    use meth_params_module, only: NVAR, URHO, UMR, UML
+    use meth_params_module, only: NVAR, NSRC, URHO, UMR, UML
     use prob_params_module, only: center
     use castro_util_module, only: position ! function
     use network, only: nspec, naux
@@ -93,7 +93,7 @@ contains
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     integer,  intent(in   ) :: e_lo(3), e_hi(3)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(inout) :: ext_src(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),NVAR)
+    real(rt), intent(inout) :: ext_src(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3),NSRC)
     real(rt), intent(in   ), value :: mult_factor
 
     integer  :: i, j, k
