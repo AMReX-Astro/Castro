@@ -587,7 +587,7 @@ contains
              qaux(i,j,k,QCG)      = eos_state % cs
 
              call compute_ptot_ctot(lam(i,j,k,:), q(i,j,k,:), qaux(i,j,k,QCG), &
-                  ptot, ctot, gamc_tot)
+                                    ptot, ctot, gamc_tot)
 
              q(i,j,k,QPTOT) = ptot
 
@@ -619,10 +619,10 @@ contains
                           srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
 
     use actual_network, only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, &
-         NQSRC, QRHO, QU, QV, QW, NQ, &
-         QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
-         npassive, upass_map, qpass_map
+    use meth_params_module, only : NVAR, NSRC, URHO, UMX, UMY, UMZ, UEINT, &
+                                   NQSRC, QRHO, QU, QV, QW, NQ, &
+                                   QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
+                                   npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only : rt => amrex_real
 
@@ -636,11 +636,14 @@ contains
 
     real(rt)        , intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt)        , intent(in   ) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt)        , intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)        , intent(in   ) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NSRC)
     real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),NQSRC)
 
     integer          :: i, j, k
+#ifdef PRIM_SPECIES_HAVE_SOURCES
     integer          :: n, iq, ipassive
+#endif
+
     real(rt)         :: rhoinv
 
     !$gpu
@@ -1287,7 +1290,7 @@ contains
 
     use meth_params_module, only : QU, QV, QW, QC, NQ, NQAUX
     use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
-    use prob_params_module, only : dg, coord_type, problo
+    use prob_params_module, only : dg
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -1433,8 +1436,6 @@ contains
 
     real(rt) :: volinv
     real(rt) :: pdu
-
-    real(rt) :: dxinv, dyinv, dzinv
 
     !$gpu
 
@@ -1661,7 +1662,9 @@ contains
        area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
     use meth_params_module, only: NVAR, GDPRES, UMX, NGDNV
+#if AMREX_SPACEDIM == 1
     use prob_params_module, only : coord_type
+#endif
 
     implicit none
 

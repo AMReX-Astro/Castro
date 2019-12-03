@@ -464,7 +464,7 @@ contains
     real(rt) :: x, y, z, r, cosTheta, phiAngle
     real(rt) :: legPolyL, legPolyL1, legPolyL2
     real(rt) :: assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2
-    real(rt) :: r_L, r_U
+    real(rt) :: r_U
     real(rt) :: rmax_cubed
 
     !$gpu

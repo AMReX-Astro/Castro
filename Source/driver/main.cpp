@@ -224,10 +224,6 @@ main (int   argc,
         std::cout << "Run time = " << runtime_total << std::endl;
         std::cout << "Run time without initialization = " << runtime_timestep << std::endl;
 
-	int nProcs = ParallelDescriptor::NProcs();
-#ifdef _OPENMP
-	nProcs *= omp_get_max_threads();
-#endif
 	fom = fom / runtime_timestep / 1.e6;
 
 	std::cout << "\n";

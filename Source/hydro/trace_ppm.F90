@@ -30,8 +30,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, NQSRC, ppm_predict_gammae, &
-                                   ppm_temp_fix, QU, QV, QW, QGAME, QREINT, QTEMP, npassive, qpass_map
-    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
+                                   ppm_temp_fix, QGAME, QREINT, QTEMP
 
     implicit none
 
@@ -62,7 +61,7 @@ contains
 #endif
     real(rt), intent(in) :: dt, dx(3)
 
-    integer :: n, i, j, k
+    integer :: n
 
     logical :: source_nonzero(NQSRC)
     logical :: reconstruct_state(NQ)
@@ -158,9 +157,7 @@ contains
     ! vlo and vhi are the bounds of the valid box (no ghost cells)
 
     use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQSRC, ppm_predict_gammae, &
-                                   ppm_temp_fix, QU, QV, QW, npassive, qpass_map
-    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
+    use meth_params_module, only : NQ, NQSRC, npassive, qpass_map
 
     implicit none
 
@@ -252,7 +249,6 @@ contains
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, ppm_temp_fix
-    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none
@@ -728,7 +724,6 @@ contains
                                    QREINT, QPRES, QGAME, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type, ppm_temp_fix
-    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
 
     implicit none

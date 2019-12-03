@@ -1102,7 +1102,7 @@ Castro::variableSetUp ()
 #endif
 
 
-
+#ifdef TRUE_SDC
   if (sdc_quadrature == 0) {
     // Gauss-Lobatto
 
@@ -1161,4 +1161,6 @@ Castro::variableSetUp ()
   } else {
     amrex::Error("invalid value of sdc_quadrature");
   }
+#endif
+
 }
