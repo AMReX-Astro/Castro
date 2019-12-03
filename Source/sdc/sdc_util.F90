@@ -164,7 +164,7 @@ contains
     use network, only : nspec, nspec_evolve
     use vode_rpar_indices
     use extern_probin_module, only : small_x
-#if INTEGRATOR == 3
+#if INTEGRATOR == 0
     use linpack_module
 #endif
     implicit none
@@ -269,7 +269,7 @@ contains
        U_react(nspec_evolve+1) = U_new(UEDEN)
     endif
 
-#if (INTEGRATOR == 3)
+#if (INTEGRATOR == 0)
 
     ! do a simple Newton solve
 
@@ -406,7 +406,7 @@ contains
 
     real(rt) :: C_react(0:nspec_evolve+1)
 
-#if (INTEGRATOR == 3)
+#if (INTEGRATOR == 0)
 
     ! the tolerance we are solving to may depend on the iteration
     relax_fac = sdc_solver_relax_factor**(sdc_order - sdc_iteration - 1)
