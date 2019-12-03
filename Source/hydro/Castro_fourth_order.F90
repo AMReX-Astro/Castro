@@ -41,7 +41,7 @@ contains
                                     verbose) bind(C, name="ca_fourth_single_stage")
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only : NQ, NVAR, NGDNV, NQAUX, GDPRES, &
+    use meth_params_module, only : NQ, NVAR, NGDNV, NQAUX, GDPRES, NSRC, &
                                    UTEMP, UEINT, USHK, GDU, GDV, GDW, UMX, &
                                    use_flattening, QPRES, NQAUX, &
                                    QTEMP, QFS, QFX, QREINT, QRHO, QGAME, QGC, &
@@ -110,7 +110,7 @@ contains
 #ifdef DIFFUSION
     real(rt), intent(inout) :: T_cc(Tcc_lo(1):Tcc_hi(1), Tcc_lo(2):Tcc_hi(2), Tcc_lo(3):Tcc_hi(3), 1)
 #endif
-    real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NVAR)
+    real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NSRC)
     real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
     real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1), flx_lo(2):flx_hi(2), flx_lo(3):flx_hi(3), NVAR)
     real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
@@ -777,7 +777,9 @@ contains
                 endif
 #endif
 
-                update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
+                if (n <= NSRC) then
+                   update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
+                end if
 
              end do
           end do

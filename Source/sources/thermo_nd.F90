@@ -18,7 +18,7 @@ contains
    ! SDC method (the `-` is because it is on the RHS of the equation)
 
     use amrex_constants_module, only: ZERO, HALF, FOURTH
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UFX, UEINT
+    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UFX, UEINT, NSRC
     use amrex_fort_module, only : rt => amrex_real
     use network, only : nspec, naux
     use eos_type_module, only : eos_t, eos_input_rt
@@ -33,7 +33,7 @@ contains
     integer, intent(in) :: src_lo(3),src_hi(3)   ! bounds of the src array
     real(rt), intent(in) :: old_state(os_lo(1):os_hi(1),os_lo(2):os_hi(2),os_lo(3):os_hi(3),NVAR)   ! the old-time hydrodynamic conserved state
     real(rt), intent(in) :: new_state(ns_lo(1):ns_hi(1),ns_lo(2):ns_hi(2),ns_lo(3):ns_hi(3),NVAR)   ! the new-time hydrodynamic conserved state
-    real(rt), intent(inout) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)   ! the source terms for the conserved variables
+    real(rt), intent(inout) :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NSRC)   ! the source terms for the conserved variables
     real(rt), intent(in) :: problo(3)   ! physical coordinates of the lower left corner of the domain
     real(rt), intent(in) :: dx(3)   ! grid spacing
     real(rt), intent(in), value :: time   ! current simulation time
