@@ -36,7 +36,7 @@ contains
 
   subroutine single_zone_react_source(state, R, i, j, k, burn_state)
 
-    use burn_type_module, only : burn_t, net_ienuc
+    use burn_type_module, only : burn_t, net_ienuc, neqs
     use network, only : nspec, nspec_evolve, aion
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_re, eos_get_small_temp
@@ -52,6 +52,7 @@ contains
     real(rt), intent(in) :: state(NVAR)
     real(rt), intent(out) :: R(NVAR)
     type(burn_t), intent(inout) :: burn_state
+    real(rt) :: ydot(neqs)
 
     type(eos_t) :: eos_state
     real(rt) :: rhoInv
@@ -92,17 +93,17 @@ contains
 
     burn_state % self_heat = .false.
 
-    call actual_rhs(burn_state)
+    call actual_rhs(burn_state, ydot)
 
     ! store the instantaneous R
     R(:) = ZERO
 
     ! species rates come back in terms of molar fractions
     R(UFS:UFS-1+nspec_evolve) = &
-         state(URHO) * aion(1:nspec_evolve) * burn_state % ydot(1:nspec_evolve)
+         state(URHO) * aion(1:nspec_evolve) * ydot(1:nspec_evolve)
 
-    R(UEDEN) = state(URHO) * burn_state % ydot(net_ienuc)
-    R(UEINT) = state(URHO) * burn_state % ydot(net_ienuc)
+    R(UEDEN) = state(URHO) * ydot(net_ienuc)
+    R(UEINT) = state(URHO) * ydot(net_ienuc)
 
   end subroutine single_zone_react_source
 
@@ -135,13 +136,16 @@ contains
     ! for computing a numerical derivative
     real(rt) :: eps = 1.e-8_rt
     real(rt) :: jac(neqs, neqs)
-
+    real(rt) :: ydot(neqs), ydot_pert(neqs)
 
 #ifdef SIMPLIFIED_SDC
 #ifndef AMREX_USE_GPU
     call castro_error("we shouldn't be here with the simplified SDC method (USE_SIMPLIFIED_SDC=TRUE)")
 #endif
 #else
+
+    call actual_rhs(burn_state, ydot)
+
     if (sdc_use_analytic_jac == 0) then
        ! note the numerical Jacobian will be returned in terms of X
        call numerical_jac(burn_state, jac)
@@ -161,7 +165,7 @@ contains
     ! at this point, our Jacobian should be entirely in terms of X,
     ! not Y.  Let's now fix the rhs terms themselves to be in terms of
     ! dX/dt and not dY/dt.
-    burn_state % ydot(1:nspec_evolve) = burn_state % ydot(1:nspec_evolve) * aion(1:nspec_evolve)
+    ydot(1:nspec_evolve) = ydot(1:nspec_evolve) * aion(1:nspec_evolve)
 
     ! Our jacobian, dR/dw has the form:
     !
@@ -182,22 +186,22 @@ contains
     burn_state_pert % j = burn_state % j
     burn_state_pert % k = burn_state % k
 
-    call actual_rhs(burn_state_pert)
+    call actual_rhs(burn_state_pert, ydot_pert)
 
     ! make the rates dX/dt and not dY/dt
-    burn_state_pert % ydot(1:nspec_evolve) = burn_state_pert % ydot(1:nspec_evolve) * aion(1:nspec_evolve)
+    ydot_pert(1:nspec_evolve) = ydot_pert(1:nspec_evolve) * aion(1:nspec_evolve)
 
     ! fill the column of dRdw corresponding to the derivative
     ! with respect to rho
     do m = 1, nspec_evolve
        ! d( d(rho X_m)/dt)/drho
-       dRdw(m, iwrho) = burn_state % ydot(m) + &
-            state(URHO) * (burn_state_pert % ydot(m) - burn_state % ydot(m))/(eps * burn_state % rho)
+       dRdw(m, iwrho) = ydot(m) + &
+            state(URHO) * (ydot_pert(m) - ydot(m))/(eps * burn_state % rho)
     enddo
 
     ! d( d(rho E)/dt)/drho
-    dRdw(nspec_evolve+1, iwrho) = burn_state % ydot(net_ienuc) + &
-         state(URHO) * (burn_state_pert % ydot(net_ienuc) - burn_state % ydot(net_ienuc))/(eps * burn_state % rho)
+    dRdw(nspec_evolve+1, iwrho) = ydot(net_ienuc) + &
+         state(URHO) * (ydot_pert(net_ienuc) - ydot(net_ienuc))/(eps * burn_state % rho)
 
     ! fill the columns of dRdw corresponding to each derivative
     ! with respect to species mass fraction
