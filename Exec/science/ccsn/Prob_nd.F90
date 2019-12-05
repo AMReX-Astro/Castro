@@ -185,6 +185,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            do n = 1,nspec
               state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
            end do
+
+           ! Store Ne as an auxiliary quantity
+           state(i,j,k,UFX) = state(i,j,k,UFS) * Gram / AtomicMassUnit
         end do
      end do
   end do
