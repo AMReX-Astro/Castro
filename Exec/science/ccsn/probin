@@ -1,6 +1,17 @@
 &fortin
 
-  model_name =  "16wh07.hse.6400"
+  ! name of the collapsing star input model
+  model_name =  "16wh07.castro.6400"
+
+  ! default the minimum model density to just above the Weaklib EOS table lower limit in density
+  ! material less dense than min_density will be denoted "fluff"
+  min_density = 2.0d3
+
+  ! default the fluff electron fraction to 0.5.
+  fluff_ye = 0.5d0
+
+  ! default the minimum model temperature to just above the Weaklib EOS table lower limit in temperature
+  min_temperature = 2.0d9
 
 /
 

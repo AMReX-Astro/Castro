@@ -16,7 +16,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
   integer untin, i
 
   namelist /fortin/ &
-       model_name
+       model_name, min_density, min_temperature, fluff_ye
 
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
@@ -32,6 +32,15 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
   end do
 
   ! set namelist defaults if applicable here
+
+  ! default the minimum model density to just above the Weaklib EOS table lower limit in density
+  min_density = 2.0d3
+
+  ! default the fluff electron fraction to 0.5
+  fluff_ye = 0.5d0
+
+  ! default the minimum model temperature to just above the Weaklib EOS table lower limit in temperature
+  min_temperature = 2.0d9
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
@@ -87,13 +96,14 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use probdata_module
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
-                                 UEDEN, UEINT, UFS
+                                 UEDEN, UEINT, UFS, UFX, small_dens
   use network, only : nspec
   use model_parser_module
   use prob_params_module, only : center, problo, probhi
   use eos_type_module
   use amrex_constants_module, only : ZERO, HALF, ONE, TWO
   use amrex_fort_module, only : rt => amrex_real
+  use UnitsModule, only: Gram, AtomicMassUnit
 
   implicit none
 
@@ -123,12 +133,25 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            rad_sph = sqrt(x**2 + y**2 + z**2)
            rad_cyl = sqrt(x**2 + y**2)
 
-           call interpolate_sub(state(i,j,k,URHO), rad_sph, idens_model)
            call interpolate_sub(state(i,j,k,UTEMP), rad_sph, itemp_model)
 
-           do n = 1, nspec
-              call interpolate_sub(state(i,j,k,UFS-1+n), rad_sph, ispec_model-1+n)
-           end do
+           ! enforce the minimum temperature in the problem parameters
+           state(i,j,k,UTEMP) = max(state(i,j,k,UTEMP), min_temperature)
+
+           call interpolate_sub(state(i,j,k,URHO), rad_sph, idens_model)
+
+           ! enforce the minimum density in the problem parameters
+           ! and set Ye below this density to fluff_ye in the problem parameters
+           if (state(i,j,k,URHO) .le. min_density) then
+               state(i,j,k,URHO) = min_density
+               do n = 1, nspec
+                  state(i,j,k,UFS-1+n) = fluff_ye
+               end do
+           else
+               do n = 1, nspec
+                  call interpolate_sub(state(i,j,k,UFS-1+n), rad_sph, ispec_model-1+n)
+               end do
+           end if
 
            ! get interpolated radial velocity
            call interpolate_sub(velr, rad_sph, ivelr_model)
