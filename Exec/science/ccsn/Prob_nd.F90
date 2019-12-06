@@ -105,6 +105,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use amrex_fort_module, only : rt => amrex_real
   use UnitsModule, only: Gram, AtomicMassUnit
 
+! Geometry Notes:
+! 1D is not yet supported
+! For 2D, we use Cylindrical r-z coordinates
+! For 3D, we use Cartesian coordinates
+
   implicit none
 
   integer, intent(in) :: level, nscal
@@ -113,11 +118,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
   real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-  real(rt) :: x, y, z, pres, r1, t0, zc, velr, rad_cyl, rad_sph
+  real(rt) :: x, y, z, pres, r1, t0, zc, velr, rad_sph
   integer :: i, j, k, n
 
-  ! direction angles for radial -> cartesian projection
-  real(rt) :: sin_theta, cos_theta, sin_phi, cos_phi
+  ! direction angles for radial -> cartesian projection and cylindrical radius
+  real(rt) :: sin_theta, cos_theta, sin_phi, cos_phi, rad_cyl
 
   type(eos_t) :: eos_state
 
@@ -131,7 +136,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            x = problo(1) + delta(1)*(dble(i) + HALF) - center(1)
 
            rad_sph = sqrt(x**2 + y**2 + z**2)
-           rad_cyl = sqrt(x**2 + y**2)
 
            call interpolate_sub(state(i,j,k,UTEMP), rad_sph, itemp_model)
 
@@ -156,7 +160,23 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            ! get interpolated radial velocity
            call interpolate_sub(velr, rad_sph, ivelr_model)
 
+#if (AMREX_SPACEDIM==2)
+           ! project spherical radial velocity onto cylindrical r-z velocity components
+           rad_cyl = x
+           sin_theta = rad_cyl/rad_sph
+           cos_theta = y/rad_sph
+
+           ! Cylindrical radial velocity
+           state(i,j,k,UMX) = state(i,j,k,URHO) * velr * sin_theta
+
+           ! Cylindrical axial velocity
+           state(i,j,k,UMY) = state(i,j,k,URHO) * velr * cos_theta
+
+           ! Out-of-plane velocity
+           state(i,j,k,UMZ) = ZERO
+#elif (AMREX_SPACEDIM==3)
            ! get angle sin, cos for spherical coordinates
+           rad_cyl = sqrt(x**2 + y**2)
            sin_theta = rad_cyl/rad_sph
            cos_theta = z/rad_sph
            sin_phi = y/rad_cyl
@@ -166,6 +186,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            state(i,j,k,UMX) = state(i,j,k,URHO) * velr * sin_theta * cos_phi
            state(i,j,k,UMY) = state(i,j,k,URHO) * velr * sin_theta * sin_phi
            state(i,j,k,UMZ) = state(i,j,k,URHO) * velr * cos_theta
+#endif
         end do
      end do
   end do
