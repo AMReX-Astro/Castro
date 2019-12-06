@@ -157,15 +157,15 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            call interpolate_sub(velr, rad_sph, ivelr_model)
 
            ! get angle sin, cos for spherical coordinates
-           sin_phi = rad_cyl/rad_sph
-           cos_phi = z/rad_sph
-           sin_theta = y/rad_cyl
-           cos_theta = x/rad_cyl
+           sin_theta = rad_cyl/rad_sph
+           cos_theta = z/rad_sph
+           sin_phi = y/rad_cyl
+           cos_phi = x/rad_cyl
 
            ! project radial velocity onto cartesian velocity components
-           state(i,j,k,UMX) = state(i,j,k,URHO) * velr * sin_phi * cos_theta
-           state(i,j,k,UMY) = state(i,j,k,URHO) * velr * sin_phi * sin_theta
-           state(i,j,k,UMZ) = state(i,j,k,URHO) * velr * cos_phi
+           state(i,j,k,UMX) = state(i,j,k,URHO) * velr * sin_theta * cos_phi
+           state(i,j,k,UMY) = state(i,j,k,URHO) * velr * sin_theta * sin_phi
+           state(i,j,k,UMZ) = state(i,j,k,URHO) * velr * cos_theta
         end do
      end do
   end do
