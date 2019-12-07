@@ -238,7 +238,7 @@ subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
   use UnitsModule
   use wlEOSInversionModule, only: DescribeEOSInversionError
   use NeutrinoOpacitiesComputationModule, only: FermiDirac
-  use EquationOfStateModule_TABLE, only: ComputeTemperatureFromSpecificInternalEnergyPoint_TABLE, &
+  use EquationOfStateModule_TABLE, only: ComputeTemperatureFromSpecificInternalEnergy_TABLE, &
       ComputeElectronChemicalPotential_TABLE, &
       ComputeProtonChemicalPotential_TABLE, &
       ComputeNeutronChemicalPotential_TABLE
@@ -290,7 +290,7 @@ subroutine ca_init_thornado_data(level, time, lo, hi, nrad_comp, &
            ! Calculate chemical potentials via thornado subroutines
            Em_in  = Evol / rho_in
            Ye_in  = Ne_loc / rho_in * AtomicMassUnit
-           call ComputeTemperatureFromSpecificInternalEnergyPoint_TABLE(rho_in,Em_in,Ye_in,T_in,Error_Option=Error)
+           call ComputeTemperatureFromSpecificInternalEnergy_TABLE(rho_in,Em_in,Ye_in,T_in,Error_Option=Error)
            if ( Error > 0 ) then
              call DescribeEOSInversionError( Error )
              stop
