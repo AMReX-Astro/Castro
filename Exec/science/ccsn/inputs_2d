@@ -278,28 +278,28 @@ amr.check_file = chk
 castro.dump_old = 1
 
 # Simulation time between checkpoints
-amr.check_per = 10.0
+amr.check_per = -1
 
 # Number of timesteps between checkpoints
-amr.check_int = -1
+amr.check_int = 100
 
 # Root name of plot files
 amr.plot_file = plt
 
 # Simulation time between plotfiles
-amr.plot_per = 10.0
+amr.plot_per = -1
 
 # Number of timesteps between plotfiles
-amr.plot_int = -1
+amr.plot_int = 100
 
 # Root name of small plot files
 amr.small_plot_file = smallplt
 
 # Simulation time between small plotfiles
-amr.small_plot_per = 1.0
+amr.small_plot_per = -1
 
 # Number of timesteps between small plotfiles
-amr.small_plot_int = -1
+amr.small_plot_int = 10
 
 # Do not write plotfiles when we dump checkpoints
 amr.write_plotfile_with_checkpoint = 0
