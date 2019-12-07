@@ -3,15 +3,28 @@
   ! name of the collapsing star input model
   model_name =  "16wh07.castro.6400"
 
-  ! default the minimum model density to just above the Weaklib EOS table lower limit in density
-  ! material less dense than min_density will be denoted "fluff"
+  ! Initial model mapping parameters
+
+  !- default the minimum model density to just above the Weaklib EOS table lower limit in density
+  !- material less dense than min_density will be denoted "fluff"
   min_density = 2.0d3
 
-  ! default the fluff electron fraction to 0.5.
+  !- default the fluff electron fraction to 0.5.
   fluff_ye = 0.5d0
 
-  ! default the minimum model temperature to just above the Weaklib EOS table lower limit in temperature
+  !- default the minimum model temperature to just above the Weaklib EOS table lower limit in temperature
   min_temperature = 2.0d9
+
+  ! Custom tagging parameters
+
+  !- Maximum level at which to apply the tag_density
+  max_base_tagging_level = 2
+
+  !- Tag above this density
+  tag_density = 2.0e9
+
+  !- Always tag if the density exceeds this fraction of the EOS density maximum
+  tag_max_density_fraction = 0.1
 
 /
 
