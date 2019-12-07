@@ -16,8 +16,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
   integer untin, i
 
   namelist /fortin/ &
-       model_name, min_density, min_temperature, fluff_ye
-
+        model_name, min_density, min_temperature, fluff_ye, &
+        max_base_tagging_level, tag_density, tag_max_density_fraction
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
   !
@@ -31,16 +31,27 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
      probin(i:i) = char(name(i))
   end do
 
-  ! set namelist defaults if applicable here
+  ! Initial model mapping parameter defaults
 
-  ! default the minimum model density to just above the Weaklib EOS table lower limit in density
-  min_density = 2.0d3
+  !! default the minimum model density to just above the Weaklib EOS table lower limit in density
+  min_density = 2.0e3_rt
 
-  ! default the fluff electron fraction to 0.5
-  fluff_ye = 0.5d0
+  !! default the fluff electron fraction to 0.5
+  fluff_ye = 0.5e0_rt
 
-  ! default the minimum model temperature to just above the Weaklib EOS table lower limit in temperature
-  min_temperature = 2.0d9
+  !! default the minimum model temperature to just above the Weaklib EOS table lower limit in temperature
+  min_temperature = 2.0e9_rt
+
+  ! Tagging parameter defaults
+
+  !! default the max_base_tagging_level to 0 (no AMR)
+  max_base_tagging_level = 0
+
+  !! default the tag_density to 2.0e9 g/cm^3
+  tag_density = 2.0e9_rt
+
+  !! default the tag_max_density_fraction to 0.1
+  tag_max_density_fraction = 0.1_rt
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
