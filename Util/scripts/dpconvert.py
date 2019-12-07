@@ -81,7 +81,7 @@ def main():
     # this matches stuff like -1.25d-10, and gives us separate groups for the
     # prefix and exponent.  The [^\w] makes sure a letter isn't right in front
     # of the match (like 'k3d-1')
-    d_re = re.compile(r"([^\w][\+\-0-9.]+)[dD]([\+\-]?[0-9]+)", re.IGNORECASE|re.DOTALL)
+    d_re = re.compile(r"([^\w][\+\-0-9.][0-9.]+)[dD]([\+\-]?[0-9]+)", re.IGNORECASE|re.DOTALL)
 
     # find the source files
     sfiles = []
