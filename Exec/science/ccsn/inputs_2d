@@ -50,7 +50,7 @@ stop_time = 100.0
 castro.use_stopping_criterion = 1
 
 # Level 0 timestep below which we halt
-castro.dt_cutoff = 1.e-8
+castro.dt_cutoff = 1.e-12
 
 # CFL number for hyperbolic system
 castro.cfl = 0.5
@@ -81,10 +81,10 @@ castro.retry_neg_dens_factor = -1.0
 ############################################################################################
 
 # Number of cells on the coarse grid
-amr.n_cell = 256 512
+amr.n_cell = 128 256
 
 # Maximum level number allowed
-amr.max_level = 0
+amr.max_level = 10
 
 # Refinement ratio
 amr.ref_ratio = 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
