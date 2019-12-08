@@ -41,8 +41,8 @@ castro.hi_bc       =  2   2   2
 
 # WHICH PHYSICS
 castro.do_hydro = 0 
-
 castro.do_react = 0
+castro.do_thornado = 1
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0

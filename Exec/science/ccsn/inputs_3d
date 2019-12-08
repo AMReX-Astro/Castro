@@ -135,6 +135,9 @@ castro.add_ext_src = 0
 # Whether or not to include the rotation source term
 castro.do_rotation = 0
 
+# Whether or not to do two moment radiation with Thornado
+castro.do_thornado = 1
+
 ############################################################################################
 # PPM/Hydro options
 ############################################################################################
