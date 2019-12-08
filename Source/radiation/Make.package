@@ -57,6 +57,6 @@ ca_F90EXE_sources += fluxlimiter.F90
 ca_f90EXE_sources += RadHydro_nd.f90
 ca_f90EXE_sources += filter.f90
 ca_f90EXE_sources += RadDerive_nd.f90
-ca_f90EXE_sources += rad_util.f90
+ca_F90EXE_sources += rad_util.F90
 
 ca_F90EXE_sources += kavg.F90

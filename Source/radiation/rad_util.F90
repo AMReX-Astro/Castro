@@ -3,7 +3,6 @@ module rad_util_module
   use castro_error_module
   use amrex_constants_module
   use amrex_fort_module, only : rt => amrex_real
-
   use rad_params_module, only : ngroups
 
   implicit none
@@ -13,19 +12,21 @@ contains
   subroutine compute_ptot_ctot(lam, q, cg, ptot, ctot, gamc_tot)
 
     use meth_params_module, only : QPRES, QRHO, comoving, QRAD, QPTOT, NQ
-    use fluxlimiter_module, only : Edd_factor
-
+    use fluxlimiter_module, only : Edd_factor ! function
     use amrex_fort_module, only : rt => amrex_real
-    real(rt)        , intent(in) :: lam(0:ngroups-1)
-    real(rt)        , intent(in) :: q(NQ)
-    real(rt)        , intent(in) :: cg
-    real(rt)        , intent(out) :: ptot
-    real(rt)        , intent(out) :: ctot
-    real(rt)        , intent(out) :: gamc_tot
+
+    real(rt), intent(in) :: lam(0:ngroups-1)
+    real(rt), intent(in) :: q(NQ)
+    real(rt), intent(in) :: cg
+    real(rt), intent(out) :: ptot
+    real(rt), intent(out) :: ctot
+    real(rt), intent(out) :: gamc_tot
 
     integer :: g
 
-    real(rt)         :: csrad2, Eddf, gamr, prad
+    real(rt) :: csrad2, Eddf, gamr, prad
+
+    !$gpu
 
     csrad2 = ZERO
     prad = ZERO
@@ -54,10 +55,14 @@ contains
   function FLDlambda(r, limiter) result (lambda)
 
     use amrex_fort_module, only : rt => amrex_real
-    real(rt)         :: r
-    integer :: limiter
 
-    real(rt)         :: lambda
+    implicit none
+
+    real(rt), intent(in) :: r
+    integer,  intent(in) :: limiter
+    real(rt) :: lambda
+
+    !$gpu
 
     if (limiter .eq. 0) then
        ! no limiter
@@ -84,8 +89,10 @@ contains
        end if
 
     else
+#ifndef AMREX_USE_GPU
        print *, "limiter = ", limiter
        call castro_error("Unknown limiter type")
+#endif
     endif
   end function FLDlambda
 
