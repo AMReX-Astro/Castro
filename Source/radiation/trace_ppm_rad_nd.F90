@@ -9,10 +9,6 @@ module trace_ppm_rad_module
 
   implicit none
 
-  private
-
-  public trace_ppm_rad
-
 contains
 
 
@@ -144,11 +140,12 @@ contains
     hdt = HALF * dt
     dtdx = dt / dx(idir)
 
+#ifndef AMREX_USE_GPU
     if (ppm_type == 0) then
        print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
        call castro_error("Error:: trace_ppm_rad_nd.f90 :: tracexy_ppm_rad")
     end if
-
+#endif
 
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing
