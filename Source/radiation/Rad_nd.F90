@@ -6,20 +6,19 @@
 !! -----------------------------------------------------------
 subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_initradconstants")
 
-  use fundamental_constants_module, only : c_fcm=>c_light, h_fcm=>hplanck, &
-       k_fcm=>k_B, s_fcm=>sigma_SB, a_fcm=>n_A, ev2erg_fcm=>ev2erg
-
+  use fundamental_constants_module, only: c_fcm=>c_light, h_fcm=>hplanck, &
+                                          k_fcm=>k_B, s_fcm=>sigma_SB, a_fcm=>n_A, ev2erg_fcm=>ev2erg
   use rad_params_module, only: pi, clight, hplanck
   use rad_params_module, only: kboltz, stefbol, arad, avogadro
   use rad_params_module, only: Hz2MeV, mev2erg, tiny
   use rad_params_module, only: radtoE  !, radtoJ, Etorad, radfluxtoF
   use rad_params_module, only: etafactor
-
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
-  real(rt)         p, c, h, k, s, a, m
-  integer J_is_used
+  real(rt) :: p, c, h, k, s, a, m
+  integer :: J_is_used
 
   c = c_fcm
   h = h_fcm
@@ -58,13 +57,15 @@ end subroutine ca_initradconstants
 ! For single group, let set ngroups to 1.
 subroutine ca_initsinglegroup(ngr) bind(C, name="ca_initsinglegroup")
 
-  use rad_params_module, only : ngroups, nugroup, dnugroup, ng0, ng1
-  use amrex_fort_module, only : rt => amrex_real
+  use rad_params_module, only: ngroups, nugroup, dnugroup, ng0, ng1
+  use amrex_fort_module, only: rt => amrex_real
+
   implicit none
-  integer ngr
+
+  integer :: ngr
 
   ! Local variables
-  integer   :: i
+  integer :: i
 
   ng0 = 0
   ng1 = 0
@@ -76,6 +77,7 @@ subroutine ca_initsinglegroup(ngr) bind(C, name="ca_initsinglegroup")
      nugroup(i)  = 1.e0_rt  ! dummy
      dnugroup(i) = 1.e0_rt
   enddo
+
 end subroutine ca_initsinglegroup
 
 !! -----------------------------------------------------------
@@ -88,15 +90,15 @@ end subroutine ca_initsinglegroup
 subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
 
   use rad_params_module, only: ngroups, ng0, ng1, nugroup, dnugroup
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  real(rt)         nugr(0:ngr-1), dnugr(0:ngr-1)
-  integer ngr, ngr0, ngr1
+  real(rt) :: nugr(0:ngr-1), dnugr(0:ngr-1)
+  integer :: ngr, ngr0, ngr1
 
   ! Local variables
-  integer   :: i
+  integer :: i
 
   ng0     = ngr0
   ng1     = ngr1
@@ -114,12 +116,12 @@ end subroutine ca_initgroups
 subroutine ca_initgroups2(nugr, dnugr, xnugr, ngr)
 
   use rad_params_module, only: ngroups, nugroup, dnugroup, xnu, dlognu, lognugroup
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  real(rt)        , intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), xnugr(0:ngr)
-  integer ngr
+  real(rt), intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), xnugr(0:ngr)
+  integer :: ngr
 
   ! Local variables
   integer   :: i
@@ -143,16 +145,16 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
   ! used by MGFLDSolver
 
   use rad_params_module, only: ngroups, ng0, ng1, nnuspec, nradspec, nugroup, dnugroup, &
-       xnu, dlognu, lognugroup, erg2rhoYe, avogadro, hplanck
+                               xnu, dlognu, lognugroup, erg2rhoYe, avogadro, hplanck
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  real(rt)        , intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr+2)
-  integer ngr, ngr0, ngr1
+  real(rt), intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr+2)
+  integer :: ngr, ngr0, ngr1
 
   ! Local variables
-  integer   :: i
+  integer :: i
 
   ng0     = ngr0
   ng1     = ngr1
@@ -199,10 +201,11 @@ end subroutine ca_initgroups3
 subroutine ca_setgroup(igroup)
 
   use rad_params_module, only: current_group
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
-  integer igroup
+
+  integer :: igroup
 
   current_group = igroup
 
@@ -210,17 +213,19 @@ end subroutine ca_setgroup
 
 !! -----------------------------------------------------------
 
-subroutine ca_inelastic_sct (lo, hi, &
-     uu,uu_lo,uu_hi, &
-     Er,Er_lo,Er_hi, &
-     ks,ks_lo,ks_hi, &
-     dt) bind(C)
+subroutine ca_inelastic_sct(lo, hi, &
+                            uu,uu_lo,uu_hi, &
+                            Er,Er_lo,Er_hi, &
+                            ks,ks_lo,ks_hi, &
+                            dt) bind(C)
 
-  use meth_params_module, only : NVAR, UEDEN, UEINT, UTEMP
-  use rad_params_module, only : ngroups, nugroup, dlognu
+  use meth_params_module, only: NVAR, UEDEN, UEINT, UTEMP
+  use rad_params_module, only: ngroups, nugroup, dlognu
   use radhydro_nd_module, only: inelastic_scatter
-  use amrex_fort_module, only : rt => amrex_real
+  use amrex_fort_module, only: rt => amrex_real
+
   implicit none
+
   integer, intent(in) :: lo(3), hi(3)
   integer, intent(in) :: uu_lo(3),uu_hi(3)
   integer, intent(in) :: Er_lo(3),Er_hi(3)
@@ -231,8 +236,8 @@ subroutine ca_inelastic_sct (lo, hi, &
   real(rt), intent(in) :: dt
 
   integer :: i, j, k
-  real(rt)         :: Ertotold, Ertmp(0:ngroups-1), dEr
-  real(rt)         :: Erscale(0:ngroups-1)
+  real(rt) :: Ertotold, Ertmp(0:ngroups-1), dEr
+  real(rt) :: Erscale(0:ngroups-1)
 
   Erscale = nugroup*dlognu
 
@@ -259,15 +264,15 @@ end subroutine ca_inelastic_sct
 !! -----------------------------------------------------------
 
 subroutine ca_compute_scattering(lo, hi, &
-     kps,kps_lo,kps_hi, &
-     sta,sta_lo,sta_hi)
+                                 kps,kps_lo,kps_hi, &
+                                 sta,sta_lo,sta_hi)
 
   use rad_params_module, only : ngroups, nugroup
   use opacity_table_module, only : get_opacities
   use network, only : naux
   use meth_params_module, only : NVAR, URHO, UTEMP, UFX
-
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -277,7 +282,7 @@ subroutine ca_compute_scattering(lo, hi, &
   real(rt), intent(in   ) :: sta(sta_lo(1):sta_hi(2),sta_lo(2):sta_hi(2),sta_lo(3):sta_hi(3),NVAR)
 
   integer :: i, j, k
-  real(rt)         :: kp, kr, nu, rho, temp, Ye
+  real(rt) :: kp, kr, nu, rho, temp, Ye
   logical, parameter :: comp_kp = .true.
   logical, parameter :: comp_kr = .true.
 
@@ -307,16 +312,16 @@ subroutine ca_compute_scattering(lo, hi, &
 end subroutine ca_compute_scattering
 
 subroutine ca_compute_scattering_2(lo, hi, &
-     kps,kps_lo,kps_hi, &
-     sta,sta_lo,sta_hi, &
-     k0_p, m_p, n_p, &
-     k0_r, m_r, n_r, &
-     Tfloor, kfloor)
+                                   kps,kps_lo,kps_hi, &
+                                   sta,sta_lo,sta_hi, &
+                                   k0_p, m_p, n_p, &
+                                   k0_r, m_r, n_r, &
+                                   Tfloor, kfloor)
 
-  use rad_params_module, only : ngroups, nugroup
-  use meth_params_module, only : NVAR, URHO, UTEMP
+  use rad_params_module, only: ngroups, nugroup
+  use meth_params_module, only: NVAR, URHO, UTEMP
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
   integer, intent(in) :: lo(3), hi(3)
@@ -329,8 +334,8 @@ subroutine ca_compute_scattering_2(lo, hi, &
   real(rt), intent(in) :: Tfloor, kfloor
 
   integer :: i, j, k
-  real(rt)        , parameter :: tiny = 1.0e-50_rt
-  real(rt)         :: Teff, k_p, k_r
+  real(rt), parameter :: tiny = 1.0e-50_rt
+  real(rt) :: Teff, k_p, k_r
 
   ! scattering is assumed to be independent of nu.
 
