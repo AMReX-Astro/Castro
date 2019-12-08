@@ -1,4 +1,4 @@
-Rad_nd.f90
+Rad_nd.F90
 ==========
 
 ca\_initradconstants subroutine

@@ -1,4 +1,4 @@
-rad_params.f90
+rad_params.F90
 ==============
 
 rad\_params\_module

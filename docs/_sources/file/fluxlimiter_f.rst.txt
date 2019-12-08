@@ -1,4 +1,4 @@
-fluxlimiter.f90
+fluxlimiter.F90
 ===============
 
 fluxlimiter\_module
