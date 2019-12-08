@@ -454,7 +454,7 @@ contains
 #endif
                                    npassive, upass_map, qpass_map, T_guess
 #ifdef RADIATION
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only: Edd_factor ! function
     use rad_params_module, only : ngroups
 #endif
 #ifdef HYBRID_MOMENTUM
