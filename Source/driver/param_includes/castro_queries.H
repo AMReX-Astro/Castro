@@ -69,6 +69,7 @@ pp.query("sdc_solver_atol", sdc_solver_atol);
 pp.query("sdc_solver_relax_factor", sdc_solver_relax_factor);
 pp.query("sdc_solve_for_rhoe", sdc_solve_for_rhoe);
 pp.query("sdc_use_analytic_jac", sdc_use_analytic_jac);
+pp.query("do_thornado", do_thornado);
 pp.query("fixed_dt", fixed_dt);
 pp.query("initial_dt", initial_dt);
 pp.query("dt_cutoff", dt_cutoff);
@@ -129,9 +130,6 @@ pp.query("use_point_mass", use_point_mass);
 pp.query("point_mass", point_mass);
 pp.query("point_mass_fix_solution", point_mass_fix_solution);
 #endif
-#ifdef AMREX_PARTICLES
-pp.query("do_tracer_particles", do_tracer_particles);
-#endif
 #ifdef ROTATION
 pp.query("rotational_period", rotational_period);
 pp.query("rotational_dPdt", rotational_dPdt);
@@ -142,6 +140,9 @@ pp.query("state_in_rotating_frame", state_in_rotating_frame);
 pp.query("rot_source_type", rot_source_type);
 pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
+#endif
+#ifdef AMREX_PARTICLES
+pp.query("do_tracer_particles", do_tracer_particles);
 #endif
 #ifdef DIFFUSION
 pp.query("diffuse_temp", diffuse_temp);

@@ -274,6 +274,13 @@ sdc_solve_for_rhoe           int           1                  y
 sdc_use_analytic_jac         int           1                  y
 
 #-----------------------------------------------------------------------------
+# category: Thornado
+#-----------------------------------------------------------------------------
+
+# permits Thornado to be turned on and off independent of compiling it in
+do_thornado                  int          -1                  n
+
+#-----------------------------------------------------------------------------
 # category: timestep control
 #-----------------------------------------------------------------------------
 

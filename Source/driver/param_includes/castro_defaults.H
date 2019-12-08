@@ -69,6 +69,7 @@ amrex::Real Castro::sdc_solver_atol = 1.e-10;
 amrex::Real Castro::sdc_solver_relax_factor = 1.0;
 int         Castro::sdc_solve_for_rhoe = 1;
 int         Castro::sdc_use_analytic_jac = 1;
+int         Castro::do_thornado = -1;
 amrex::Real Castro::fixed_dt = -1.0;
 amrex::Real Castro::initial_dt = -1.0;
 amrex::Real Castro::dt_cutoff = 0.0;
@@ -137,9 +138,6 @@ int         Castro::use_point_mass = 0;
 amrex::Real Castro::point_mass = 0.0;
 int         Castro::point_mass_fix_solution = 0;
 #endif
-#ifdef AMREX_PARTICLES
-int         Castro::do_tracer_particles = 0;
-#endif
 #ifdef ROTATION
 amrex::Real Castro::rotational_period = -1.e200;
 amrex::Real Castro::rotational_dPdt = 0.0;
@@ -150,6 +148,9 @@ int         Castro::state_in_rotating_frame = 1;
 int         Castro::rot_source_type = 4;
 int         Castro::implicit_rotation_update = 1;
 int         Castro::rot_axis = 3;
+#endif
+#ifdef AMREX_PARTICLES
+int         Castro::do_tracer_particles = 0;
 #endif
 #ifdef DIFFUSION
 int         Castro::diffuse_temp = 0;

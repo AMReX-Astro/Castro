@@ -69,6 +69,7 @@ static amrex::Real sdc_solver_atol;
 static amrex::Real sdc_solver_relax_factor;
 static int sdc_solve_for_rhoe;
 static int sdc_use_analytic_jac;
+static int do_thornado;
 static amrex::Real fixed_dt;
 static amrex::Real initial_dt;
 static amrex::Real dt_cutoff;
@@ -129,9 +130,6 @@ static int use_point_mass;
 static amrex::Real point_mass;
 static int point_mass_fix_solution;
 #endif
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
-#endif
 #ifdef ROTATION
 static amrex::Real rotational_period;
 static amrex::Real rotational_dPdt;
@@ -142,6 +140,9 @@ static int state_in_rotating_frame;
 static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
+#endif
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
 #endif
 #ifdef DIFFUSION
 static int diffuse_temp;
