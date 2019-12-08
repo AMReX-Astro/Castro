@@ -17,7 +17,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
 
   namelist /fortin/ &
         model_name, min_density, min_temperature, fluff_ye, &
-        max_base_tagging_level, tag_density, tag_max_density_fraction
+        tag_max_density_fraction
+
   !
   !     Build "probin" filename -- the name of file containing fortin namelist.
   !
@@ -43,12 +44,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
   min_temperature = 2.0e9_rt
 
   ! Tagging parameter defaults
-
-  !! default the max_base_tagging_level to 0 (no AMR)
-  max_base_tagging_level = 0
-
-  !! default the tag_density to 2.0e9 g/cm^3
-  tag_density = 2.0e9_rt
 
   !! default the tag_max_density_fraction to 0.1
   tag_max_density_fraction = 0.1_rt

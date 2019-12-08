@@ -17,7 +17,7 @@ contains
 
     use amrex_constants_module, only: HALF
     use meth_params_module, only: URHO, NVAR, UFS
-    use probdata_module, only: max_base_tagging_level, tag_density, tag_max_density_fraction
+    use probdata_module, only: tag_max_density_fraction
     use eos_type_module, only: maxdens
     use prob_params_module, only: center
     use iso_c_binding, only : c_int8_t
@@ -39,16 +39,12 @@ contains
 
     !$gpu
 
-    ! Tag cells for refinement based on tag_density and the EOS maximum density
+    ! Tag cells for refinement based on the EOS maximum density
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-             if (state(i,j,k,URHO) > tag_density) then
-                if (level < max_base_tagging_level) then
-                   tag(i,j,k) = set
-                end if
-             else if (state(i,j,k,URHO) >= maxdens * tag_max_density_fraction) then
+             if (state(i,j,k,URHO) >= maxdens * tag_max_density_fraction) then
                  tag(i,j,k) = set
              end if
           end do
