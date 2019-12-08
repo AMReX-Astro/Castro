@@ -24,8 +24,8 @@
 
 &tagging
 
-  max_dengrad_lev    = 3
-  max_denerr_lev     = 3
+  max_dengrad_lev    = 6
+  max_denerr_lev     = 6
 
   max_pressgrad_lev  = -1
   max_presserr_lev   = -1
