@@ -17,21 +17,15 @@
 
   ! Custom tagging parameters
 
-  !- Maximum level at which to apply the tag_density
-  max_base_tagging_level = 2
-
-  !- Tag above this density
-  tag_density = 2.0e9
-
   !- Always tag if the density exceeds this fraction of the EOS density maximum
-  tag_max_density_fraction = 0.1
+  tag_max_density_fraction = 0.1d0
 
 /
 
 &tagging
 
-  max_dengrad_lev    = -1
-  max_denerr_lev     =  3
+  max_dengrad_lev    = 3
+  max_denerr_lev     = 3
 
   max_pressgrad_lev  = -1
   max_presserr_lev   = -1
@@ -40,10 +34,10 @@
   max_velerr_lev     = -1
 
   max_temperr_lev    = -1
-  max_tempgrad_lev   = 10
+  max_tempgrad_lev   = -1
 
-  dengrad            = 1.e18
-  denerr             = 1.e0
+  dengrad            = 1.d5
+  denerr             = 1.d10
 
   velgrad            = 1.e18
   velerr             = 1.e18
