@@ -355,6 +355,10 @@ Castro::create_thornado_source(Real dt)
               FreeThornado_Patch();
           }
 
+          // Check dS, dR for NaNs
+          check_for_nan(dS);
+          check_for_nan(dR);
+
           // Add the source term to all components even though there should
           //     only be non-zero source terms for (Rho, Xmom, Ymom, Zmom, RhoE, UFX)
           MultiFab::Add( S_border, dS, Density, 0, S_new.nComp(), 0);
