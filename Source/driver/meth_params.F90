@@ -34,12 +34,11 @@ module meth_params_module
   integer, allocatable, save :: QFA, QFS, QFX
 
 #ifdef RADIATION
-  integer, save :: QRAD, QRADHI, QPTOT, QREITOT
-  integer, save :: fspace_type
-  logical, save :: do_inelastic_scattering
-  logical, save :: comoving
-
-  real(rt)        , save :: flatten_pp_threshold = -1.e0_rt
+  integer,  allocatable, save :: QRAD, QRADHI, QPTOT, QREITOT
+  integer,  allocatable, save :: fspace_type
+  logical,  allocatable, save :: do_inelastic_scattering
+  logical,  allocatable, save :: comoving
+  real(rt), allocatable, save :: flatten_pp_threshold
 #endif
 
   integer, save, allocatable :: npassive
@@ -62,14 +61,14 @@ module meth_params_module
   integer, parameter :: PrescribedGrav = 3
 #endif
 
-  integer         , save :: numpts_1d
+  integer, save :: numpts_1d
 
-  real(rt)        , save, allocatable :: outflow_data_old(:,:)
-  real(rt)        , save, allocatable :: outflow_data_new(:,:)
-  real(rt)        , save :: outflow_data_old_time
-  real(rt)        , save :: outflow_data_new_time
-  logical         , save :: outflow_data_allocated
-  real(rt)        , save :: max_dist
+  real(rt), save, allocatable :: outflow_data_old(:,:)
+  real(rt), save, allocatable :: outflow_data_new(:,:)
+  real(rt), save :: outflow_data_old_time
+  real(rt), save :: outflow_data_new_time
+  logical,  save :: outflow_data_allocated
+  real(rt), save :: max_dist
 
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
@@ -88,14 +87,17 @@ module meth_params_module
   attributes(managed) :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   attributes(managed) :: QGAMCG, QCG, QLAMS
+  attributes(managed) :: QRAD, QRADHI, QPTOT, QREITOT
+  attributes(managed) :: fspace_type
+  attributes(managed) :: do_inelastic_scattering
+  attributes(managed) :: comoving
+  attributes(managed) :: flatten_pp_threshold
+  attributes(managed) :: GDLAMS, GDERADS
 #endif
   attributes(managed) :: QFA, QFS, QFX
   attributes(managed) :: npassive
   attributes(managed) :: qpass_map, upass_map
   attributes(managed) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
-#ifdef RADIATION
-  attributes(managed) :: GDLAMS, GDERADS
-#endif
 #ifdef GRAVITY
   attributes(managed) :: gravity_type_int
 #endif
@@ -458,7 +460,7 @@ attributes(managed) :: get_g_from_phi
 
   ! End the declarations of the ParmParse parameters
 
-  real(rt)        , save :: rot_vec(3)
+  real(rt), save :: rot_vec(3)
 
 contains
 
@@ -484,6 +486,12 @@ contains
     allocate(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
 #ifdef RADIATION
     allocate(GDLAMS, GDERADS)
+    allocate(QRAD, QRADHI, QPTOT, QREITOT)
+    allocate(fspace_type)
+    allocate(do_inelastic_scattering)
+    allocate(comoving)
+    allocate(flatten_pp_threshold)
+    flatten_pp_threshold = -1.e0_rt
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
@@ -511,6 +519,14 @@ contains
     allocate(diffuse_cond_scale_fac)
     diffuse_cond_scale_fac = 1.0_rt;
 #endif
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0_rt;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
 #ifdef ROTATION
     allocate(rot_period)
     rot_period = -1.e200_rt;
@@ -530,14 +546,6 @@ contains
     implicit_rotation_update = 1;
     allocate(rot_axis)
     rot_axis = 3;
-#endif
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0_rt;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
 #endif
     allocate(difmag)
     difmag = 0.1_rt;
@@ -693,6 +701,11 @@ contains
     call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
     call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
 #endif
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
 #ifdef ROTATION
     call pp%query("rotational_period", rot_period)
     call pp%query("rotational_dPdt", rot_period_dot)
@@ -703,11 +716,6 @@ contains
     call pp%query("rot_source_type", rot_source_type)
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
-#endif
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -905,6 +913,11 @@ contains
     deallocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     deallocate(QGAMCG, QCG, QLAMS)
+    deallocate(QRAD, QRADHI, QPTOT, QREITOT)
+    deallocate(fspace_type)
+    deallocate(do_inelastic_scattering)
+    deallocate(comoving)
+    deallocate(flatten_pp_threshold)
 #endif
     deallocate(QFA, QFS, QFX)
     deallocate(npassive)
@@ -1198,17 +1211,15 @@ contains
 
 #ifdef RADIATION
   subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in,fppt) &
-       bind(C, name="ca_init_radhydro_pars")
+                                   bind(C, name="ca_init_radhydro_pars")
 
-    use rad_params_module, only : ngroups
-
-    use amrex_fort_module, only : rt => amrex_real
+    use rad_params_module, only: ngroups
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
-    integer, intent(in) :: fsp_type_in, do_is_in, com_in
-    real(rt)        , intent(in) :: fppt
-
+    integer,  intent(in) :: fsp_type_in, do_is_in, com_in
+    real(rt), intent(in) :: fppt
 
     if (ngroups .eq. 1) then
        fspace_type = 1
@@ -1216,12 +1227,10 @@ contains
        fspace_type = fsp_type_in
     end if
 
-#ifndef AMREX_USE_GPU
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
        print *, "fspace_type = ", fspace_type
        call castro_error("Unknown fspace_type")
     end if
-#endif
 
     do_inelastic_scattering = (do_is_in .ne. 0)
 
@@ -1230,9 +1239,7 @@ contains
     else if (com_in .eq. 0) then
        comoving = .false.
     else
-#ifndef AMREX_USE_GPU
        call castro_error("Wrong value for comoving")
-#endif
     end if
 
     flatten_pp_threshold = fppt
@@ -1242,7 +1249,7 @@ contains
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)
-    !$acc device(flatten_pp_threshold = -1.e0_rt)
+    !$acc device(flatten_pp_threshold)
 
   end subroutine ca_init_radhydro_pars
 #endif
