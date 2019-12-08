@@ -192,7 +192,9 @@ Castro::do_advance_ctu(Real time,
     }
 
 #ifdef THORNADO
-    create_thornado_source(dt);
+    if (do_thornado) {
+        create_thornado_source(dt);
+    }
 #endif
 
     // Do the second half of the reactions.
