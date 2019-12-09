@@ -13,7 +13,7 @@ module rad_params_module
 
   implicit none
 
-  integer, save :: current_group, ng0, ng1, nnuspec
+  integer, allocatable, save :: current_group, ng0, ng1, nnuspec
   integer, save :: nradspec = 1
   real(rt), save, allocatable :: nugroup(:), dnugroup(:), xnu(:), dlognu(:), &
                                  erg2rhoYe(:), lognugroup(:)
@@ -30,6 +30,11 @@ module rad_params_module
   ! (yes, I know pi isn't a physical constant)
   ! (stefbol is derived from the other constants)
   ! (tiny a generic very small quantity without units, currently 1.e-50_rt)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: current_group, ng0, ng1, nnuspec
+  attributes(managed) :: nugroup, dnugroup, xnu, dlognu, erg2rhoYe, lognugroup
+#endif
 
 contains
 

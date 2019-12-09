@@ -89,7 +89,8 @@ end subroutine ca_initsinglegroup
 !! -----------------------------------------------------------
 subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
 
-  use rad_params_module, only: ngroups, ng0, ng1, nugroup, dnugroup
+  use rad_params_module, only: ngroups, ng0, ng1, nugroup, dnugroup, &
+                               current_group, nnuspec
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -99,6 +100,8 @@ subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
 
   ! Local variables
   integer :: i
+
+  allocate(current_group, ng0, ng1, nnuspec)
 
   ng0     = ngr0
   ng1     = ngr1
@@ -126,6 +129,8 @@ subroutine ca_initgroups2(nugr, dnugr, xnugr, ngr)
   ! Local variables
   integer   :: i
 
+  allocate(current_group, ng0, ng1, nnuspec)
+
   allocate(nugroup( 0:ngroups-1))
   allocate(dnugroup(0:ngroups-1))
   allocate(xnu(0:ngroups))
@@ -145,7 +150,8 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
   ! used by MGFLDSolver
 
   use rad_params_module, only: ngroups, ng0, ng1, nnuspec, nradspec, nugroup, dnugroup, &
-                               xnu, dlognu, lognugroup, erg2rhoYe, avogadro, hplanck
+                               xnu, dlognu, lognugroup, erg2rhoYe, avogadro, hplanck, &
+                               current_group
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -155,6 +161,8 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
 
   ! Local variables
   integer :: i
+
+  allocate(current_group, ng0, ng1, nnuspec)
 
   ng0     = ngr0
   ng1     = ngr1
