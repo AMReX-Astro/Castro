@@ -36,6 +36,8 @@ contains
     integer, intent(inout) :: nstep_fsp
     integer :: ng2
 
+    !$gpu
+
     if (nnuspec .eq. 0) then
 
        call update_one_species(ngroups, ustar, af, dlognu, dt, nstep_fsp)
@@ -82,6 +84,8 @@ contains
     real(rt) :: dt, acfl
     real(rt) :: f(0:n), u1(0:n-1), u2(0:n-1), u3(0:n-1), u4(0:n-1), u5(0:n-1)
     integer :: i, istep, nstep
+
+    !$gpu
 
     dt = 1.e50_rt
     do i=0, n-1
@@ -143,6 +147,8 @@ contains
     real(rt) :: f(0:n), ag(-2:n+1), ug(-2:n+1)
     real(rt) :: ul, ur, al, ar, fl, fr, r, a_plus, a_minus
     real(rt) :: fg(-2:n+1), fp(5), fm(5), fpw, fmw, alpha
+
+    !$gpu
 
     if (use_WENO) then
 
@@ -216,23 +222,25 @@ contains
   end function dudt
 
 
-  function MC(r)
+  function MC(r) result(MCr)
 
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
     real(rt), intent(in) :: r
-    real(rt) :: MC
+    real(rt) :: MCr
 
-    MC = max(0.e0_rt, min(2.e0_rt*r, 0.5e0_rt*(1.e0_rt+r), 2.e0_rt))
+    !$gpu
+
+    MCr = max(0.e0_rt, min(2.e0_rt*r, 0.5e0_rt*(1.e0_rt+r), 2.e0_rt))
 
   end function MC
 
 
   subroutine weno5(vm2, vm1, v, vp1, vp2, v_weno5)
 
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -243,6 +251,8 @@ contains
 
     real(rt) :: djm1, ejm1, dj, ej, djp1, ejp1, dis0, dis1, dis2, &
                 q30, q31, q32, d01, d02, a1ba0, a2ba0, w0, w1, w2
+
+    !$gpu
 
     djm1 = vm2 - 2.e0_rt*vm1 + v
     ejm1 = vm2 - 4.e0_rt*vm1 + 3.e0_rt*v
