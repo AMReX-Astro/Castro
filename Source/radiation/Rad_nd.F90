@@ -118,7 +118,8 @@ end subroutine ca_initgroups
 
 subroutine ca_initgroups2(nugr, dnugr, xnugr, ngr)
 
-  use rad_params_module, only: ngroups, nugroup, dnugroup, xnu, dlognu, lognugroup
+  use rad_params_module, only: ngroups, nugroup, dnugroup, xnu, dlognu, lognugroup, &
+                               current_group, ng0, ng1, nnuspec
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
