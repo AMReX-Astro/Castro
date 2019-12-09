@@ -291,6 +291,7 @@ contains
 
     use rad_params_module, only: ngroups, xnu, nugroup, dlognu
     use fundamental_constants_module, only: k_B, m_e, c_light, hplanck
+    use lapack_module, only: dgtsv
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
