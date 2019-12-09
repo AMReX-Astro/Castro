@@ -51,7 +51,7 @@ contains
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only : Edd_factor ! function
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
@@ -653,7 +653,7 @@ contains
 
 #ifdef RADIATION
   use rad_params_module, only : ngroups
-  use fluxlimiter_module, only : Edd_factor
+  use fluxlimiter_module, only : Edd_factor ! function
 #endif
   use eos_module, only: eos
   use eos_type_module, only: eos_input_rt, eos_t
@@ -1095,7 +1095,7 @@ contains
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only : Edd_factor ! function
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
@@ -1530,7 +1530,7 @@ contains
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only : Edd_factor ! function
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
@@ -1970,7 +1970,7 @@ contains
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only : Edd_factor ! function
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
@@ -2401,7 +2401,7 @@ contains
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only : Edd_factor ! function
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
@@ -2840,7 +2840,7 @@ contains
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only : Edd_factor ! function
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
@@ -3351,7 +3351,7 @@ contains
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only : Edd_factor ! function
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
@@ -3862,7 +3862,7 @@ contains
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only : Edd_factor ! function
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
