@@ -1,0 +1,15 @@
+# name                      data type             default                  in namelist?           size
+
+model_name                  character              ""                      y
+
+# default the minimum model density to just above the Weaklib EOS table lower limit in density
+min_density                 real                  2.0e3_rt                 y
+
+# default the minimum model temperature to just above the Weaklib EOS table lower limit in temperature
+min_temperature             real                  2.0e9_rt                 y
+
+# default the fluff electron fraction to 0.5
+fluff_ye                    real                  0.5e0_rt                 y
+
+# default the tag_max_density_fraction to 0.1
+tag_max_density_fraction    real                  0.1_rt                   y

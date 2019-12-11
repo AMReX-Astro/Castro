@@ -13,45 +13,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer untin, i
-
-  namelist /fortin/ &
-        model_name, min_density, min_temperature, fluff_ye, &
-        tag_max_density_fraction
-
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !
-  integer, parameter :: maxlen = 127
-  character probin*(maxlen)
-  character model*(maxlen)
-
-  if (namlen > maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! Initial model mapping parameter defaults
-
-  !! default the minimum model density to just above the Weaklib EOS table lower limit in density
-  min_density = 2.0e3_rt
-
-  !! default the fluff electron fraction to 0.5
-  fluff_ye = 0.5e0_rt
-
-  !! default the minimum model temperature to just above the Weaklib EOS table lower limit in temperature
-  min_temperature = 2.0e9_rt
-
-  ! Tagging parameter defaults
-
-  !! default the tag_max_density_fraction to 0.1
-  tag_max_density_fraction = 0.1_rt
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! read initial model
   call read_model_file(model_name)
