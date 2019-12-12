@@ -100,7 +100,7 @@ subroutine electric_edge_x(work_lo, work_hi, &
            endif
 
            !Calculate the "second derivative" in the y direction for d^2Ex/dy^2 i, j-1/2, k-1/2
-           dd1 = 0.125d0*(d2 - d1)
+           dd1 = 0.125d0*(d1 - d2)
 
            !------------------ Z derivatives --------------------
            !dEx/dz i, j-1/2, k - 3/4
@@ -134,7 +134,7 @@ subroutine electric_edge_x(work_lo, work_hi, &
            endif
 
            !calculate second derivative 
-           dd2 = 0.125d0*(d2 - d1)
+           dd2 = 0.125d0*(d1 - d2)
 
            !----------------------Prescribe Ex i, j -1/2, k -1/2 ------------------------
            E(i,j,k) = 0.25d0*(-flxy(i,j,k,UMAGZ) - flxy(i,j,k-1,UMAGZ) + flxz(i,j-1,k,UMAGY) + flxz(i,j,k,UMAGY)) + dd1 + dd2
@@ -219,7 +219,7 @@ subroutine electric_edge_y(work_lo, work_hi, &
            endif
 
            !Calculate the "second derivative" in the y direction for d^2Ey/dz^2 i-1/2, j, k-1/2
-           dd1 = 0.125d0*(d2 - d1)
+           dd1 = 0.125d0*(d1-d2)
 
          !------------------ X derivatives --------------------
            !dEy/dx i -3/4, j, k - 1/2
@@ -253,7 +253,7 @@ subroutine electric_edge_y(work_lo, work_hi, &
            endif
 
            !calculate second derivative 
-           dd2 = 0.125d0*(d2 - d1)
+           dd2 = 0.125d0*(d1-d2)
 
            !----------------------Prescribe Ex i-1/2, j , k -1/2 ------------------------
            E(i,j,k) = 0.25d0*(-flxz(i,j,k,UMAGX) - flxz(i-1,j,k,UMAGX) + flxx(i,j,k-1,UMAGZ) + flxx(i,j,k,UMAGZ)) + dd1 + dd2
@@ -338,7 +338,7 @@ subroutine electric_edge_z(work_lo, work_hi, &
            endif
 
            !Calculate the "second derivative" in the x direction for d^2Ez/dx^2 i-1/2, j-1/2, k
-           dd1 = 0.125d0*(d2 - d1)
+           dd1 = 0.125d0*(d1-d2) 
 
            !------------------ Y derivatives --------------------
            !dEz/dy i-1/2, j-3/4, k 
@@ -372,7 +372,7 @@ subroutine electric_edge_z(work_lo, work_hi, &
            endif
 
            !calculate second derivative 
-           dd2 = 0.125d0*(d2 - d1)
+           dd2 = 0.125d0*(d1-d2)
 
            !----------------------Prescribe Ez i -1/2, j -1/2, k ------------------------
            E(i,j,k) = 0.25d0*(-flxx(i,j,k,UMAGY) - flxx(i,j-1,k,UMAGY) + flxy(i-1,j,k,UMAGX) + flxy(i,j,k,UMAGX)) + dd1 + dd2
