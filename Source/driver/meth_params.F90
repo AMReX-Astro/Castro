@@ -154,6 +154,7 @@ module meth_params_module
   integer,  allocatable, save :: allow_small_energy
   integer,  allocatable, save :: do_sponge
   integer,  allocatable, save :: sponge_implicit
+  integer,  allocatable, save :: ext_src_implicit
   integer,  allocatable, save :: first_order_hydro
   character (len=:), allocatable, save :: xl_ext_bc_type
   character (len=:), allocatable, save :: xr_ext_bc_type
@@ -248,6 +249,7 @@ attributes(managed) :: density_reset_method
 attributes(managed) :: allow_small_energy
 attributes(managed) :: do_sponge
 attributes(managed) :: sponge_implicit
+attributes(managed) :: ext_src_implicit
 attributes(managed) :: first_order_hydro
 
 
@@ -375,6 +377,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(allow_small_energy) &
   !$acc create(do_sponge) &
   !$acc create(sponge_implicit) &
+  !$acc create(ext_src_implicit) &
   !$acc create(first_order_hydro) &
   !$acc create(hse_zero_vels) &
   !$acc create(hse_interp_temp) &
@@ -495,20 +498,6 @@ contains
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
-    allocate(character(len=1)::gravity_type)
-    gravity_type = "fillme";
-    allocate(const_grav)
-    const_grav = 0.0_rt;
-    allocate(get_g_from_phi)
-    get_g_from_phi = 0;
-
-    call amrex_parmparse_build(pp, "gravity")
-    call pp%query("gravity_type", gravity_type)
-    call pp%query("const_grav", const_grav)
-    call pp%query("get_g_from_phi", get_g_from_phi)
-    call amrex_parmparse_destroy(pp)
-
-
 #ifdef DIFFUSION
     allocate(diffuse_temp)
     diffuse_temp = 0;
@@ -617,6 +606,8 @@ contains
     do_sponge = 0;
     allocate(sponge_implicit)
     sponge_implicit = 1;
+    allocate(ext_src_implicit)
+    ext_src_implicit = 0;
     allocate(first_order_hydro)
     first_order_hydro = 0;
     allocate(character(len=1)::xl_ext_bc_type)
@@ -752,6 +743,7 @@ contains
     call pp%query("allow_small_energy", allow_small_energy)
     call pp%query("do_sponge", do_sponge)
     call pp%query("sponge_implicit", sponge_implicit)
+    call pp%query("ext_src_implicit", ext_src_implicit)
     call pp%query("first_order_hydro", first_order_hydro)
     call pp%query("xl_ext_bc_type", xl_ext_bc_type)
     call pp%query("xr_ext_bc_type", xr_ext_bc_type)
@@ -793,6 +785,20 @@ contains
     call amrex_parmparse_destroy(pp)
 
 
+    allocate(character(len=1)::gravity_type)
+    gravity_type = "fillme";
+    allocate(const_grav)
+    const_grav = 0.0_rt;
+    allocate(get_g_from_phi)
+    get_g_from_phi = 0;
+
+    call amrex_parmparse_build(pp, "gravity")
+    call pp%query("gravity_type", gravity_type)
+    call pp%query("const_grav", const_grav)
+    call pp%query("get_g_from_phi", get_g_from_phi)
+    call amrex_parmparse_destroy(pp)
+
+
 
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
@@ -806,23 +812,24 @@ contains
     !$acc device(transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
     !$acc device(dual_energy_eta1, dual_energy_eta2, use_pslope) &
     !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_small_energy) &
-    !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
-    !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
-    !$acc device(sdc_order, sdc_quadrature, sdc_extra) &
-    !$acc device(sdc_solver, sdc_solver_tol_dens, sdc_solver_tol_spec) &
-    !$acc device(sdc_solver_tol_ener, sdc_solver_atol, sdc_solver_relax_factor) &
-    !$acc device(sdc_solve_for_rhoe, sdc_use_analytic_jac, cfl) &
-    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
-    !$acc device(do_react, react_T_min, react_T_max) &
-    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
-    !$acc device(T_guess, diffuse_temp, diffuse_cutoff_density) &
-    !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
-    !$acc device(grav_source_type, do_rotation, rot_period) &
-    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
-    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
-    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(do_sponge, sponge_implicit, ext_src_implicit) &
+    !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
+    !$acc device(hse_reflect_vels, sdc_order, sdc_quadrature) &
+    !$acc device(sdc_extra, sdc_solver, sdc_solver_tol_dens) &
+    !$acc device(sdc_solver_tol_spec, sdc_solver_tol_ener, sdc_solver_atol) &
+    !$acc device(sdc_solver_relax_factor, sdc_solve_for_rhoe, sdc_use_analytic_jac) &
+    !$acc device(cfl, dtnuc_e, dtnuc_X) &
+    !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
+    !$acc device(react_T_max, react_rho_min, react_rho_max) &
+    !$acc device(disable_shock_burning, T_guess, diffuse_temp) &
+    !$acc device(diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac) &
+    !$acc device(do_grav, grav_source_type, do_rotation) &
+    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
+    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
+    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
+    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
 #ifdef GRAVITY
@@ -1031,6 +1038,9 @@ contains
     end if
     if (allocated(sponge_implicit)) then
         deallocate(sponge_implicit)
+    end if
+    if (allocated(ext_src_implicit)) then
+        deallocate(ext_src_implicit)
     end if
     if (allocated(first_order_hydro)) then
         deallocate(first_order_hydro)

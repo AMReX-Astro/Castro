@@ -1,3 +1,14 @@
+# 20.01
+
+   * A new option castro.ext_src_implicit has been added. The external source
+     terms were previously only implemented as an explicit predictor-corrector
+     scheme. The new option, if turned on, changes the handling of the external
+     source terms to allow an implicit solve. This is done by subtracting the
+     full old-time source and adding the full new-time source in the corrector,
+     rather than -0.5 and +0.5 of each, respectively. It is still up to the
+     individual problem to make sure it is consistent with this scheme if the
+     option is turned on. (#709)
+
 # 19.12
 
    * The use_retry mechanism has been enabled for the simplified
