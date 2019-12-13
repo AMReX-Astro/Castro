@@ -474,26 +474,27 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
-    real(rt)        , intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    real(rt), intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
 #ifdef RADIATION
-    real(rt)        , intent(in   ) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
-    real(rt)        , intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
 #endif
 
-    real(rt)        , intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt)        , intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt)        , parameter :: small = 1.e-8_rt
+    real(rt), parameter :: small = 1.e-8_rt
 
-    integer          :: i, j, k, g
-    integer          :: n, iq, ipassive
-    real(rt)         :: kineng, rhoinv
-    real(rt)         :: vel(3)
+    integer  :: i, j, k, g
+    integer  :: n, iq, ipassive
+    real(rt) :: kineng, rhoinv
+    real(rt) :: vel(3)
 
     type (eos_t) :: eos_state
 
 #ifdef RADIATION
-    real(rt)         :: ptot, ctot, gamc_tot
+    real(rt) :: ptot, ctot, gamc_tot
+    real(rt) :: lams(0:ngroups-1), qs(NQ)
 #endif
 
     !$gpu
@@ -586,7 +587,9 @@ contains
              qaux(i,j,k,QGAMCG)   = eos_state % gam1
              qaux(i,j,k,QCG)      = eos_state % cs
 
-             call compute_ptot_ctot(lam(i,j,k,:), q(i,j,k,:), qaux(i,j,k,QCG), &
+             lams(:) = lam(i,j,k,:)
+             qs(:) = q(i,j,k,:)
+             call compute_ptot_ctot(lams, qs, qaux(i,j,k,QCG), &
                                     ptot, ctot, gamc_tot)
 
              q(i,j,k,QPTOT) = ptot

@@ -50,13 +50,13 @@ ifeq ($(USE_NEUTRINO), TRUE)
   ca_f90EXE_sources += MGFLDneut_$(DIM)d.f90
 endif
 
-ca_f90EXE_sources += rad_params.f90
-ca_f90EXE_sources += blackbody.f90
-ca_f90EXE_sources += Rad_nd.f90
-ca_f90EXE_sources += fluxlimiter.f90
-ca_f90EXE_sources += RadHydro_nd.f90
-ca_f90EXE_sources += filter.f90
-ca_f90EXE_sources += RadDerive_nd.f90
-ca_f90EXE_sources += rad_util.f90
+ca_F90EXE_sources += rad_params.F90
+ca_F90EXE_sources += blackbody.F90
+ca_F90EXE_sources += Rad_nd.F90
+ca_F90EXE_sources += fluxlimiter.F90
+ca_F90EXE_sources += RadHydro_nd.F90
+ca_F90EXE_sources += filter.F90
+ca_F90EXE_sources += RadDerive_nd.F90
+ca_F90EXE_sources += rad_util.F90
 
 ca_F90EXE_sources += kavg.F90

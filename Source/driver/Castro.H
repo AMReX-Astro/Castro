@@ -46,11 +46,7 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
-enum sources { ext_src = 0,
-               thermo_src,
-#ifdef SPONGE
-               sponge_src,
-#endif
+enum sources { thermo_src = 0,
 #ifdef DIFFUSION
                diff_src,
 #endif
@@ -63,6 +59,10 @@ enum sources { ext_src = 0,
 #ifdef ROTATION
                rot_src,
 #endif
+#ifdef SPONGE
+               sponge_src,
+#endif
+               ext_src,
 	       num_src };
 
 

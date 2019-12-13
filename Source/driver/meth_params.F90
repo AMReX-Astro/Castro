@@ -34,12 +34,11 @@ module meth_params_module
   integer, allocatable, save :: QFA, QFS, QFX
 
 #ifdef RADIATION
-  integer, save :: QRAD, QRADHI, QPTOT, QREITOT
-  integer, save :: fspace_type
-  logical, save :: do_inelastic_scattering
-  logical, save :: comoving
-
-  real(rt)        , save :: flatten_pp_threshold = -1.e0_rt
+  integer,  allocatable, save :: QRAD, QRADHI, QPTOT, QREITOT
+  integer,  allocatable, save :: fspace_type
+  logical,  allocatable, save :: do_inelastic_scattering
+  logical,  allocatable, save :: comoving
+  real(rt), allocatable, save :: flatten_pp_threshold
 #endif
 
   integer, save, allocatable :: npassive
@@ -62,14 +61,14 @@ module meth_params_module
   integer, parameter :: PrescribedGrav = 3
 #endif
 
-  integer         , save :: numpts_1d
+  integer, save :: numpts_1d
 
-  real(rt)        , save, allocatable :: outflow_data_old(:,:)
-  real(rt)        , save, allocatable :: outflow_data_new(:,:)
-  real(rt)        , save :: outflow_data_old_time
-  real(rt)        , save :: outflow_data_new_time
-  logical         , save :: outflow_data_allocated
-  real(rt)        , save :: max_dist
+  real(rt), save, allocatable :: outflow_data_old(:,:)
+  real(rt), save, allocatable :: outflow_data_new(:,:)
+  real(rt), save :: outflow_data_old_time
+  real(rt), save :: outflow_data_new_time
+  logical,  save :: outflow_data_allocated
+  real(rt), save :: max_dist
 
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
@@ -88,14 +87,17 @@ module meth_params_module
   attributes(managed) :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   attributes(managed) :: QGAMCG, QCG, QLAMS
+  attributes(managed) :: QRAD, QRADHI, QPTOT, QREITOT
+  attributes(managed) :: fspace_type
+  attributes(managed) :: do_inelastic_scattering
+  attributes(managed) :: comoving
+  attributes(managed) :: flatten_pp_threshold
+  attributes(managed) :: GDLAMS, GDERADS
 #endif
   attributes(managed) :: QFA, QFS, QFX
   attributes(managed) :: npassive
   attributes(managed) :: qpass_map, upass_map
   attributes(managed) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
-#ifdef RADIATION
-  attributes(managed) :: GDLAMS, GDERADS
-#endif
 #ifdef GRAVITY
   attributes(managed) :: gravity_type_int
 #endif
@@ -152,6 +154,7 @@ module meth_params_module
   integer,  allocatable, save :: allow_small_energy
   integer,  allocatable, save :: do_sponge
   integer,  allocatable, save :: sponge_implicit
+  integer,  allocatable, save :: ext_src_implicit
   integer,  allocatable, save :: first_order_hydro
   character (len=:), allocatable, save :: xl_ext_bc_type
   character (len=:), allocatable, save :: xr_ext_bc_type
@@ -246,6 +249,7 @@ attributes(managed) :: density_reset_method
 attributes(managed) :: allow_small_energy
 attributes(managed) :: do_sponge
 attributes(managed) :: sponge_implicit
+attributes(managed) :: ext_src_implicit
 attributes(managed) :: first_order_hydro
 
 
@@ -373,6 +377,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(allow_small_energy) &
   !$acc create(do_sponge) &
   !$acc create(sponge_implicit) &
+  !$acc create(ext_src_implicit) &
   !$acc create(first_order_hydro) &
   !$acc create(hse_zero_vels) &
   !$acc create(hse_interp_temp) &
@@ -458,7 +463,7 @@ attributes(managed) :: get_g_from_phi
 
   ! End the declarations of the ParmParse parameters
 
-  real(rt)        , save :: rot_vec(3)
+  real(rt), save :: rot_vec(3)
 
 contains
 
@@ -484,22 +489,14 @@ contains
     allocate(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
 #ifdef RADIATION
     allocate(GDLAMS, GDERADS)
+    allocate(QRAD, QRADHI, QPTOT, QREITOT)
+    allocate(fspace_type)
+    allocate(do_inelastic_scattering)
+    allocate(comoving)
+    allocate(flatten_pp_threshold)
+    flatten_pp_threshold = -1.e0_rt
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
-
-    allocate(character(len=1)::gravity_type)
-    gravity_type = "fillme";
-    allocate(const_grav)
-    const_grav = 0.0_rt;
-    allocate(get_g_from_phi)
-    get_g_from_phi = 0;
-
-    call amrex_parmparse_build(pp, "gravity")
-    call pp%query("gravity_type", gravity_type)
-    call pp%query("const_grav", const_grav)
-    call pp%query("get_g_from_phi", get_g_from_phi)
-    call amrex_parmparse_destroy(pp)
-
 
 #ifdef DIFFUSION
     allocate(diffuse_temp)
@@ -510,6 +507,14 @@ contains
     diffuse_cutoff_density_hi = -1.e200_rt;
     allocate(diffuse_cond_scale_fac)
     diffuse_cond_scale_fac = 1.0_rt;
+#endif
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0_rt;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
 #endif
 #ifdef ROTATION
     allocate(rot_period)
@@ -530,14 +535,6 @@ contains
     implicit_rotation_update = 1;
     allocate(rot_axis)
     rot_axis = 3;
-#endif
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0_rt;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
 #endif
     allocate(difmag)
     difmag = 0.1_rt;
@@ -609,6 +606,8 @@ contains
     do_sponge = 0;
     allocate(sponge_implicit)
     sponge_implicit = 1;
+    allocate(ext_src_implicit)
+    ext_src_implicit = 0;
     allocate(first_order_hydro)
     first_order_hydro = 0;
     allocate(character(len=1)::xl_ext_bc_type)
@@ -693,6 +692,11 @@ contains
     call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
     call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
 #endif
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
 #ifdef ROTATION
     call pp%query("rotational_period", rot_period)
     call pp%query("rotational_dPdt", rot_period_dot)
@@ -703,11 +707,6 @@ contains
     call pp%query("rot_source_type", rot_source_type)
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
-#endif
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -744,6 +743,7 @@ contains
     call pp%query("allow_small_energy", allow_small_energy)
     call pp%query("do_sponge", do_sponge)
     call pp%query("sponge_implicit", sponge_implicit)
+    call pp%query("ext_src_implicit", ext_src_implicit)
     call pp%query("first_order_hydro", first_order_hydro)
     call pp%query("xl_ext_bc_type", xl_ext_bc_type)
     call pp%query("xr_ext_bc_type", xr_ext_bc_type)
@@ -785,6 +785,20 @@ contains
     call amrex_parmparse_destroy(pp)
 
 
+    allocate(character(len=1)::gravity_type)
+    gravity_type = "fillme";
+    allocate(const_grav)
+    const_grav = 0.0_rt;
+    allocate(get_g_from_phi)
+    get_g_from_phi = 0;
+
+    call amrex_parmparse_build(pp, "gravity")
+    call pp%query("gravity_type", gravity_type)
+    call pp%query("const_grav", const_grav)
+    call pp%query("get_g_from_phi", get_g_from_phi)
+    call amrex_parmparse_destroy(pp)
+
+
 
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
@@ -798,23 +812,24 @@ contains
     !$acc device(transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
     !$acc device(dual_energy_eta1, dual_energy_eta2, use_pslope) &
     !$acc device(limit_fluxes_on_small_dens, density_reset_method, allow_small_energy) &
-    !$acc device(do_sponge, sponge_implicit, first_order_hydro) &
-    !$acc device(hse_zero_vels, hse_interp_temp, hse_reflect_vels) &
-    !$acc device(sdc_order, sdc_quadrature, sdc_extra) &
-    !$acc device(sdc_solver, sdc_solver_tol_dens, sdc_solver_tol_spec) &
-    !$acc device(sdc_solver_tol_ener, sdc_solver_atol, sdc_solver_relax_factor) &
-    !$acc device(sdc_solve_for_rhoe, sdc_use_analytic_jac, cfl) &
-    !$acc device(dtnuc_e, dtnuc_X, dtnuc_X_threshold) &
-    !$acc device(do_react, react_T_min, react_T_max) &
-    !$acc device(react_rho_min, react_rho_max, disable_shock_burning) &
-    !$acc device(T_guess, diffuse_temp, diffuse_cutoff_density) &
-    !$acc device(diffuse_cutoff_density_hi, diffuse_cond_scale_fac, do_grav) &
-    !$acc device(grav_source_type, do_rotation, rot_period) &
-    !$acc device(rot_period_dot, rotation_include_centrifugal, rotation_include_coriolis) &
-    !$acc device(rotation_include_domegadt, state_in_rotating_frame, rot_source_type) &
-    !$acc device(implicit_rotation_update, rot_axis, use_point_mass) &
-    !$acc device(point_mass, point_mass_fix_solution, do_acc) &
-    !$acc device(grown_factor, track_grid_losses, const_grav, get_g_from_phi)
+    !$acc device(do_sponge, sponge_implicit, ext_src_implicit) &
+    !$acc device(first_order_hydro, hse_zero_vels, hse_interp_temp) &
+    !$acc device(hse_reflect_vels, sdc_order, sdc_quadrature) &
+    !$acc device(sdc_extra, sdc_solver, sdc_solver_tol_dens) &
+    !$acc device(sdc_solver_tol_spec, sdc_solver_tol_ener, sdc_solver_atol) &
+    !$acc device(sdc_solver_relax_factor, sdc_solve_for_rhoe, sdc_use_analytic_jac) &
+    !$acc device(cfl, dtnuc_e, dtnuc_X) &
+    !$acc device(dtnuc_X_threshold, do_react, react_T_min) &
+    !$acc device(react_T_max, react_rho_min, react_rho_max) &
+    !$acc device(disable_shock_burning, T_guess, diffuse_temp) &
+    !$acc device(diffuse_cutoff_density, diffuse_cutoff_density_hi, diffuse_cond_scale_fac) &
+    !$acc device(do_grav, grav_source_type, do_rotation) &
+    !$acc device(rot_period, rot_period_dot, rotation_include_centrifugal) &
+    !$acc device(rotation_include_coriolis, rotation_include_domegadt, state_in_rotating_frame) &
+    !$acc device(rot_source_type, implicit_rotation_update, rot_axis) &
+    !$acc device(use_point_mass, point_mass, point_mass_fix_solution) &
+    !$acc device(do_acc, grown_factor, track_grid_losses) &
+    !$acc device(const_grav, get_g_from_phi)
 
 
 #ifdef GRAVITY
@@ -905,6 +920,11 @@ contains
     deallocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     deallocate(QGAMCG, QCG, QLAMS)
+    deallocate(QRAD, QRADHI, QPTOT, QREITOT)
+    deallocate(fspace_type)
+    deallocate(do_inelastic_scattering)
+    deallocate(comoving)
+    deallocate(flatten_pp_threshold)
 #endif
     deallocate(QFA, QFS, QFX)
     deallocate(npassive)
@@ -1018,6 +1038,9 @@ contains
     end if
     if (allocated(sponge_implicit)) then
         deallocate(sponge_implicit)
+    end if
+    if (allocated(ext_src_implicit)) then
+        deallocate(ext_src_implicit)
     end if
     if (allocated(first_order_hydro)) then
         deallocate(first_order_hydro)
@@ -1198,17 +1221,15 @@ contains
 
 #ifdef RADIATION
   subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in,fppt) &
-       bind(C, name="ca_init_radhydro_pars")
+                                   bind(C, name="ca_init_radhydro_pars")
 
-    use rad_params_module, only : ngroups
-
-    use amrex_fort_module, only : rt => amrex_real
+    use rad_params_module, only: ngroups
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
-    integer, intent(in) :: fsp_type_in, do_is_in, com_in
-    real(rt)        , intent(in) :: fppt
-
+    integer,  intent(in) :: fsp_type_in, do_is_in, com_in
+    real(rt), intent(in) :: fppt
 
     if (ngroups .eq. 1) then
        fspace_type = 1
@@ -1216,12 +1237,10 @@ contains
        fspace_type = fsp_type_in
     end if
 
-#ifndef AMREX_USE_GPU
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
        print *, "fspace_type = ", fspace_type
        call castro_error("Unknown fspace_type")
     end if
-#endif
 
     do_inelastic_scattering = (do_is_in .ne. 0)
 
@@ -1230,9 +1249,7 @@ contains
     else if (com_in .eq. 0) then
        comoving = .false.
     else
-#ifndef AMREX_USE_GPU
        call castro_error("Wrong value for comoving")
-#endif
     end if
 
     flatten_pp_threshold = fppt
@@ -1242,7 +1259,7 @@ contains
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)
-    !$acc device(flatten_pp_threshold = -1.e0_rt)
+    !$acc device(flatten_pp_threshold)
 
   end subroutine ca_init_radhydro_pars
 #endif

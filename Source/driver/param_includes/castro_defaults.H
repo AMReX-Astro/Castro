@@ -3,21 +3,8 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef ROTATION
-amrex::Real Castro::rotational_period = -1.e200;
-amrex::Real Castro::rotational_dPdt = 0.0;
-int         Castro::rotation_include_centrifugal = 1;
-int         Castro::rotation_include_coriolis = 1;
-int         Castro::rotation_include_domegadt = 1;
-int         Castro::state_in_rotating_frame = 1;
-int         Castro::rot_source_type = 4;
-int         Castro::implicit_rotation_update = 1;
-int         Castro::rot_axis = 3;
-#endif
-#ifdef GRAVITY
-int         Castro::use_point_mass = 0;
-amrex::Real Castro::point_mass = 0.0;
-int         Castro::point_mass_fix_solution = 0;
+#ifdef AMREX_PARTICLES
+int         Castro::do_tracer_particles = 0;
 #endif
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
@@ -62,6 +49,7 @@ int         Castro::density_reset_method = 1;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
+int         Castro::ext_src_implicit = 0;
 int         Castro::source_term_predictor = 0;
 int         Castro::first_order_hydro = 0;
 std::string Castro::xl_ext_bc_type = "";
@@ -147,12 +135,25 @@ std::string Castro::job_name = "";
 int         Castro::output_at_completion = 1;
 amrex::Real Castro::reset_checkpoint_time = -1.e200;
 int         Castro::reset_checkpoint_step = -1;
+#ifdef ROTATION
+amrex::Real Castro::rotational_period = -1.e200;
+amrex::Real Castro::rotational_dPdt = 0.0;
+int         Castro::rotation_include_centrifugal = 1;
+int         Castro::rotation_include_coriolis = 1;
+int         Castro::rotation_include_domegadt = 1;
+int         Castro::state_in_rotating_frame = 1;
+int         Castro::rot_source_type = 4;
+int         Castro::implicit_rotation_update = 1;
+int         Castro::rot_axis = 3;
+#endif
 #ifdef DIFFUSION
 int         Castro::diffuse_temp = 0;
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 amrex::Real Castro::diffuse_cutoff_density_hi = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
 #endif
-#ifdef AMREX_PARTICLES
-int         Castro::do_tracer_particles = 0;
+#ifdef GRAVITY
+int         Castro::use_point_mass = 0;
+amrex::Real Castro::point_mass = 0.0;
+int         Castro::point_mass_fix_solution = 0;
 #endif

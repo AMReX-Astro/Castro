@@ -434,7 +434,7 @@ contains
 #ifdef RADIATION
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only : Edd_factor ! function
 #endif
 #ifdef HYBRID_MOMENTUM
     use hybrid_advection_module, only : add_hybrid_advection_source
