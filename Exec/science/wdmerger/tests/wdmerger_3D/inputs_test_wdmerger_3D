@@ -22,6 +22,7 @@ castro.cfl = 0.5                                   # CFL number for hyperbolic s
 castro.init_shrink = 0.1                           # Scale back initial timestep by this factor
 castro.change_max = 1.1                            # Factor by which dt is allowed to change each timestep
 castro.hard_cfl_limit = 0			   # Whether to abort a simulation if the CFL criterion is locally violated
+amr.subcycling_mode = None                         # Disable subcycling so the relaxation can proceed
 
 ############################################################################################
 # Boundary conditions
