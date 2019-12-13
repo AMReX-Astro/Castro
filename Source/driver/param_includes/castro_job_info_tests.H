@@ -1,11 +1,9 @@
-#ifdef AMREX_PARTICLES
-jobInfoFile << (Castro::do_tracer_particles == 0 ? "    " : "[*] ") << "castro.do_tracer_particles = " << Castro::do_tracer_particles << std::endl;
-#endif
 jobInfoFile << (Castro::state_interp_order == 1 ? "    " : "[*] ") << "castro.state_interp_order = " << Castro::state_interp_order << std::endl;
 jobInfoFile << (Castro::lin_limit_state_interp == 0 ? "    " : "[*] ") << "castro.lin_limit_state_interp = " << Castro::lin_limit_state_interp << std::endl;
 jobInfoFile << (Castro::state_nghost == 0 ? "    " : "[*] ") << "castro.state_nghost = " << Castro::state_nghost << std::endl;
 jobInfoFile << (Castro::do_reflux == 1 ? "    " : "[*] ") << "castro.do_reflux = " << Castro::do_reflux << std::endl;
 jobInfoFile << (Castro::update_sources_after_reflux == 1 ? "    " : "[*] ") << "castro.update_sources_after_reflux = " << Castro::update_sources_after_reflux << std::endl;
+jobInfoFile << (Castro::apply_sources_consecutively == 0 ? "    " : "[*] ") << "castro.apply_sources_consecutively = " << Castro::apply_sources_consecutively << std::endl;
 jobInfoFile << (Castro::use_custom_knapsack_weights == 0 ? "    " : "[*] ") << "castro.use_custom_knapsack_weights = " << Castro::use_custom_knapsack_weights << std::endl;
 jobInfoFile << (Castro::difmag == 0.1 ? "    " : "[*] ") << "castro.difmag = " << Castro::difmag << std::endl;
 jobInfoFile << (Castro::small_dens == -1.e200 ? "    " : "[*] ") << "castro.small_dens = " << Castro::small_dens << std::endl;
@@ -121,16 +119,19 @@ jobInfoFile << (Castro::job_name == "" ? "    " : "[*] ") << "castro.job_name = 
 jobInfoFile << (Castro::output_at_completion == 1 ? "    " : "[*] ") << "castro.output_at_completion = " << Castro::output_at_completion << std::endl;
 jobInfoFile << (Castro::reset_checkpoint_time == -1.e200 ? "    " : "[*] ") << "castro.reset_checkpoint_time = " << Castro::reset_checkpoint_time << std::endl;
 jobInfoFile << (Castro::reset_checkpoint_step == -1 ? "    " : "[*] ") << "castro.reset_checkpoint_step = " << Castro::reset_checkpoint_step << std::endl;
+#ifdef GRAVITY
+jobInfoFile << (Castro::use_point_mass == 0 ? "    " : "[*] ") << "castro.use_point_mass = " << Castro::use_point_mass << std::endl;
+jobInfoFile << (Castro::point_mass == 0.0 ? "    " : "[*] ") << "castro.point_mass = " << Castro::point_mass << std::endl;
+jobInfoFile << (Castro::point_mass_fix_solution == 0 ? "    " : "[*] ") << "castro.point_mass_fix_solution = " << Castro::point_mass_fix_solution << std::endl;
+#endif
 #ifdef DIFFUSION
 jobInfoFile << (Castro::diffuse_temp == 0 ? "    " : "[*] ") << "castro.diffuse_temp = " << Castro::diffuse_temp << std::endl;
 jobInfoFile << (Castro::diffuse_cutoff_density == -1.e200 ? "    " : "[*] ") << "castro.diffuse_cutoff_density = " << Castro::diffuse_cutoff_density << std::endl;
 jobInfoFile << (Castro::diffuse_cutoff_density_hi == -1.e200 ? "    " : "[*] ") << "castro.diffuse_cutoff_density_hi = " << Castro::diffuse_cutoff_density_hi << std::endl;
 jobInfoFile << (Castro::diffuse_cond_scale_fac == 1.0 ? "    " : "[*] ") << "castro.diffuse_cond_scale_fac = " << Castro::diffuse_cond_scale_fac << std::endl;
 #endif
-#ifdef GRAVITY
-jobInfoFile << (Castro::use_point_mass == 0 ? "    " : "[*] ") << "castro.use_point_mass = " << Castro::use_point_mass << std::endl;
-jobInfoFile << (Castro::point_mass == 0.0 ? "    " : "[*] ") << "castro.point_mass = " << Castro::point_mass << std::endl;
-jobInfoFile << (Castro::point_mass_fix_solution == 0 ? "    " : "[*] ") << "castro.point_mass_fix_solution = " << Castro::point_mass_fix_solution << std::endl;
+#ifdef AMREX_PARTICLES
+jobInfoFile << (Castro::do_tracer_particles == 0 ? "    " : "[*] ") << "castro.do_tracer_particles = " << Castro::do_tracer_particles << std::endl;
 #endif
 #ifdef ROTATION
 jobInfoFile << (Castro::rotational_period == -1.e200 ? "    " : "[*] ") << "castro.rotational_period = " << Castro::rotational_period << std::endl;

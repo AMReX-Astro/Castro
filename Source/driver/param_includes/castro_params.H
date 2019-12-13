@@ -3,14 +3,12 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
-#endif
 static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
 static int do_reflux;
 static int update_sources_after_reflux;
+static int apply_sources_consecutively;
 static int use_custom_knapsack_weights;
 static amrex::Real difmag;
 static amrex::Real small_dens;
@@ -126,16 +124,19 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
+#endif
 #ifdef DIFFUSION
 static int diffuse_temp;
 static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cutoff_density_hi;
 static amrex::Real diffuse_cond_scale_fac;
 #endif
-#ifdef GRAVITY
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
 #endif
 #ifdef ROTATION
 static amrex::Real rotational_period;

@@ -522,7 +522,8 @@ public:
 /// Construct source terms at old time
 ///
 /// @param source   MultiFab to save sources to
-/// @param state    Current state
+/// @param state_old   Old state
+/// @param state_new   New state
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
@@ -532,7 +533,7 @@ public:
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
 
 ///
 /// Construct the old-time source
