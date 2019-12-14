@@ -198,6 +198,9 @@ do_sponge                    int           0                  y
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
 
+# if we are using user-defined source terms, are these solved implicitly?
+ext_src_implicit             int           0                  y
+
 # extrapolate the source terms (gravity and rotation) to :math:`n+1/2`
 # timelevel for use in the interface state prediction
 source_term_predictor        int           0
