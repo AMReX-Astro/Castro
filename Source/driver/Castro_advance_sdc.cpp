@@ -54,6 +54,8 @@ Castro::do_advance_sdc (Real time,
   MultiFab& old_source = get_old_data(Source_Type);
   MultiFab& new_source = get_new_data(Source_Type);
 
+  bool apply_sources_to_state = false;
+
   // we loop over all nodes, even the last, since we need to compute
   // the advective update source at each node
 
@@ -109,7 +111,7 @@ Castro::do_advance_sdc (Real time,
           }
 
           // we pass in the stage time here
-          do_old_sources(old_source, Sburn, node_time, dt, amr_iteration, amr_ncycle);
+          do_old_sources(old_source, Sburn, Sburn, node_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
           // fill the ghost cells for the sources -- note since we have
           // not defined the new_source yet, we either need to copy this
@@ -130,7 +132,7 @@ Castro::do_advance_sdc (Real time,
         } else {
           // there is a ghost cell fill hidden in diffusion, so we need
           // to pass in the time associate with Sborder
-          do_old_sources(old_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
+          do_old_sources(old_source, Sborder, Sborder, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
         }
 
         // note: we don't need a FillPatch on the sources, since they
@@ -264,12 +266,12 @@ Castro::do_advance_sdc (Real time,
     // TODO: we also need to make these 4th order!
     clean_state(S_old, prev_time, 0);
     expand_state(Sborder, prev_time, Sborder.nGrow());
-    do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
+    do_old_sources(old_source, Sborder, Sborder, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
     AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
 
     clean_state(S_new, cur_time, 0);
     expand_state(Sborder, cur_time, Sborder.nGrow());
-    do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
+    do_old_sources(new_source, Sborder, Sborder, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
     AmrLevel::FillPatch(*this, new_source, new_source.nGrow(), cur_time, Source_Type, 0, NSRC);
   }
 
