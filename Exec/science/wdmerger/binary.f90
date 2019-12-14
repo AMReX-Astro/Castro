@@ -35,8 +35,8 @@ contains
        scale = ONE
     endif
 
-    c1 = 0.49d0
-    c2 = 0.60d0
+    c1 = 0.49e0_rt
+    c2 = 0.60e0_rt
 
     q = mass_ratio
 
@@ -129,7 +129,7 @@ contains
     
     ! Root-find parameters
     
-    real(rt) :: tolerance = 1.0d-8
+    real(rt) :: tolerance = 1.0e-8_rt
     integer  :: max_iters = 200
 
     ! Local variables
@@ -144,16 +144,16 @@ contains
        rp = r_max
     else if (present(r_min) .and. (.not. present(r_max))) then
        rm = r_min
-       rp = abs(r_min) * 1000.0d0
+       rp = abs(r_min) * 1000.0e0_rt
     else if (present(r_max) .and. (.not. present(r_min))) then
-       rm = -abs(r_max) * 1000.0d0
+       rm = -abs(r_max) * 1000.0e0_rt
        rp = r_max
     endif
 
     width = (rp - rm)
     
-    rm = rm + width / 1000.0d0
-    rp = rp - width / 1000.0d0
+    rm = rm + width / 1000.0e0_rt
+    rp = rp - width / 1000.0e0_rt
 
     ! Use a bisection search to find the root of the force-balance equation.
     ! The reason we don't use something faster like Newton-Raphson is that

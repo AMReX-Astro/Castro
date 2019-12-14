@@ -879,7 +879,7 @@ contains
 
           collision_separation = collision_separation * model_S % radius
 
-          if (collision_velocity < 0.0d0) then
+          if (collision_velocity < 0.0e0_rt) then
 
              call freefall_velocity(mass_P + mass_S, collision_separation, v_ff)
 
@@ -1434,7 +1434,7 @@ contains
 
     ! If we got a valid simulation time, print to the log when we stopped.
 
-    if (ioproc .and. time >= 0.0d0) then
+    if (ioproc .and. time >= 0.0e0_rt) then
        print *, ""
        print *, "Initial relaxation phase terminated at t = ", time
        print *, ""
