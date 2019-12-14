@@ -93,7 +93,7 @@ Castro::source_flag(int src)
 }
 
 void
-Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
 {
 
     BL_PROFILE("Castro::do_old_sources()");
@@ -106,7 +106,7 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
 
     MultiFab temp_source;
 
-    if (apply_sources_consecutively) {
+    if (apply_sources_consecutively && apply_to_state) {
         temp_source.define(grids, dmap, NSRC, NUM_GROW);
         temp_source.setVal(0.0, NUM_GROW);
     }
@@ -117,7 +117,7 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
         // We can either apply the sources to the state one by one, or we can
         // group them all together at the end.
 
-        if (apply_sources_consecutively) {
+        if (apply_sources_consecutively && apply_to_state) {
 
             apply_source_to_state(state_new, source, dt, 0);
             clean_state(state_new, time + dt, 0);
@@ -136,11 +136,15 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
 
     }
 
-    if (apply_sources_consecutively) {
-        MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
-    } else {
-        apply_source_to_state(state_new, source, dt, 0);
-        clean_state(state_new, time, 0);
+    if (apply_to_state) {
+
+        if (apply_sources_consecutively) {
+            MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
+        } else {
+            apply_source_to_state(state_new, source, dt, 0);
+            clean_state(state_new, time, 0);
+        }
+
     }
 
     // Optionally print out diagnostic information about how much
@@ -171,7 +175,7 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
 }
 
 void
-Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
 {
 
     BL_PROFILE("Castro::do_new_sources()");
@@ -182,7 +186,7 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
 
     MultiFab temp_source;
 
-    if (apply_sources_consecutively) {
+    if (apply_sources_consecutively && apply_to_state) {
         temp_source.define(grids, dmap, NSRC, NUM_GROW);
         temp_source.setVal(0.0, NUM_GROW);
     }
@@ -195,7 +199,7 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
         // We can either apply the sources to the state one by one, or we can
         // group them all together at the end.
 
-        if (apply_sources_consecutively) {
+        if (apply_sources_consecutively && apply_to_state) {
 
             // The individual source terms only calculate the source on the valid domain.
             // FillPatch to get valid data in the ghost zones.
@@ -219,11 +223,15 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
 
     }
 
-    if (apply_sources_consecutively) {
-        MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
-    } else {
-        apply_source_to_state(state_new, source, dt, 0);
-        clean_state(state_new, time, 0);
+    if (apply_to_state) {
+
+        if (apply_sources_consecutively) {
+            MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
+        } else {
+            apply_source_to_state(state_new, source, dt, 0);
+            clean_state(state_new, time, 0);
+        }
+
     }
 
     // Optionally print out diagnostic information about how much

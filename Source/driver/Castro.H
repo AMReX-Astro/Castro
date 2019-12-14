@@ -527,13 +527,16 @@ public:
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
+/// @param apply_to_state   whether to apply the source to state_new
 /// @param amr_iteration    where we are in the current AMR subcycle.  Each
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+                        amrex::Real time, amrex::Real dt, bool apply_to_state,
+                        int amr_iteration = -1, int amr_ncycle = -1);
 
 ///
 /// Construct the old-time source
@@ -562,13 +565,16 @@ public:
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
+/// @param apply_to_state   whether to apply the source to state_new
 /// @param amr_iteration    where we are in the current AMR subcycle.  Each
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+                        amrex::Real time, amrex::Real dt, bool apply_to_state,
+                        int amr_iteration = -1, int amr_ncycle = -1);
 
 ///
 /// Construct the new-time sources.
