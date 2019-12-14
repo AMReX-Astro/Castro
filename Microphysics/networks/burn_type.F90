@@ -18,6 +18,17 @@ module burn_type_module
 
   integer, parameter :: neqs = 2 + nspec_evolve
 
+  ! for dimensioning the Jacobian
+
+#ifdef REACT_SPARSE_JACOBIAN
+  integer, parameter :: njrows = NETWORK_SPARSE_JAC_NNZ
+  integer, parameter :: njcols = 1
+#else
+  integer, parameter :: njrows = neqs
+  integer, parameter :: njcols = neqs
+#endif
+
+
   ! Indices of the temperature and energy variables in the work arrays.
 
   integer, parameter :: net_itemp = nspec_evolve + 1
