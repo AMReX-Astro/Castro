@@ -14,7 +14,11 @@ outdir = "source/preprocessed_files"
 
 def strip_directives(filename, filepath, outpath):
     """
-    Read in file, remove all preprocessor directives and output
+    Read in file, remove all preprocessor directives and output.
+
+    This is also going to strip out all dimension expressions that look like 
+        dimension(2:4,1:4)
+    as sphinxfortran seems to be confused by these.
     """
 
     # r = re.compile(r"(^#.*$\n)")
@@ -23,6 +27,7 @@ def strip_directives(filename, filepath, outpath):
         txt = infile.read()
 
         outtxt = re.sub(r"(^#.*$\n)", '', txt, flags=re.M)
+        outtxt = re.sub(r"dimension\s*\(.*\)\s*,", '', outtxt)
 
         with open(os.path.join(outpath, filename), 'w') as outfile:
             outfile.write(outtxt)
