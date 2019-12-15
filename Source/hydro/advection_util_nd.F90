@@ -1068,8 +1068,6 @@ contains
 
              theta = ONE
 
-             if (uL(UMOM) < ZERO .or. uR(UMOM) < ZERO) cycle
-
              ! Loop over all three momenta, and choose the strictest
              ! limiter among them.
 
