@@ -3,18 +3,18 @@
 amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
-max_step = 5000
-stop_time = 400.0
+max_step = 50000
+stop_time = 0.03
 
 geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
 
 geometry.prob_lo   =  0.    0.
-geometry.prob_hi   =  7.4e8 1.48e9
+geometry.prob_hi   =  1.73205e10 1.73205e10
 
-amr.n_cell         = 256 512
+amr.n_cell         = 2048 2048
 
-amr.max_level      = 2      # maximum level number allowed
+amr.max_level      = 0      # maximum level number allowed
 
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
@@ -54,10 +54,12 @@ amr.regrid_int      = 10000   # how often to regrid
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
-amr.check_file      = /home/alice/raid/Castro/rotating_star/chk     # root name of checkpoint file
+amr.check_file      = /raid2/aliceharpole/castro/rotating_star/chk     # root name of checkpoint file
 amr.check_int       = 250     # number of timesteps between checkpoints
-amr.plot_file       = /home/alice/raid/Castro/rotating_star/plt     # root name of plot file
-amr.plot_int        = 50     # number of timesteps between plotfiles
+amr.plot_file       = /raid2/aliceharpole/castro/rotating_star/plt     # root name of plot file
+amr.plot_int        = 100     # number of timesteps between plotfiles
+castro.plot_per_is_exact = 1
+amr.plot_per = 0.001
 
 amr.max_grid_size   = 128       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation

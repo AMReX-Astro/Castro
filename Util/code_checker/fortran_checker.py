@@ -23,6 +23,7 @@ def idfunc(argvalue):
 
 def pytest_generate_tests(metafunc):
     files = find_fortran_files()
+
     metafunc.parametrize('filename', files, ids=idfunc, scope="module")
 
 
@@ -111,16 +112,16 @@ def test_fortran_saved_variables(filename):
         type, save :: var = value
     """
 
-    fortran_datatypes = ['integer', 'real(rt)', 'logical', 'double precision', 'char']
+    fortran_datatypes = ['integer', 'real(rt)', 'real (rt)', 'real(kind=rt)', 'real (kind=rt)', 'logical', 'double precision', 'char']
 
     with open(filename, 'r') as file_dat:
         
         r = re.compile(r'(\w[\w \t,]+)::\s*\w+\s*=')
 
         for m in re.finditer(r, file_dat.read()):
-            assert 'save' in m.group(1)
+            assert 'save' in m.group(1).lower() or 'parameter' in m.group(1).lower()
 
         # sometimes variable definitions don't include colons. We'll check that here
-        r = re.compile(f'(?:{"|".join(fortran_datatypes)})([\w \t,]+)\s\w+\s*=')
+        r = re.compile(rf'(?:{"|".join(fortran_datatypes)})([\w \t,]+)\s\w+\s*=')
         for m in re.finditer(r, file_dat.read()):
-            assert 'save' in m.group(1)
+            assert 'save' in m.group(1).lower() or 'parameter' in m.group(1).lower()
