@@ -3,14 +3,23 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef AMREX_PARTICLES
-pp.query("do_tracer_particles", do_tracer_particles);
+#ifdef GRAVITY
+pp.query("use_point_mass", use_point_mass);
+pp.query("point_mass", point_mass);
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#endif
+#ifdef DIFFUSION
+pp.query("diffuse_temp", diffuse_temp);
+pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
+pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
+pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
 #endif
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
 pp.query("state_nghost", state_nghost);
 pp.query("do_reflux", do_reflux);
 pp.query("update_sources_after_reflux", update_sources_after_reflux);
+pp.query("apply_sources_consecutively", apply_sources_consecutively);
 pp.query("use_custom_knapsack_weights", use_custom_knapsack_weights);
 pp.query("difmag", difmag);
 pp.query("small_dens", small_dens);
@@ -138,14 +147,6 @@ pp.query("rot_source_type", rot_source_type);
 pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
 #endif
-#ifdef DIFFUSION
-pp.query("diffuse_temp", diffuse_temp);
-pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
-pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
-pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
-#endif
-#ifdef GRAVITY
-pp.query("use_point_mass", use_point_mass);
-pp.query("point_mass", point_mass);
-pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#ifdef AMREX_PARTICLES
+pp.query("do_tracer_particles", do_tracer_particles);
 #endif

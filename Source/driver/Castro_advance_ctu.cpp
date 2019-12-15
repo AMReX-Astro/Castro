@@ -89,13 +89,13 @@ Castro::do_advance_ctu(Real time,
     construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
+    bool apply_sources_to_state = true;
+
     MultiFab& old_source = get_old_data(Source_Type);
 
     if (apply_sources()) {
 
-      do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
-      apply_source_to_state(S_new, old_source, dt, 0);
-      clean_state(S_new, cur_time, 0);
+      do_old_sources(old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -174,9 +174,7 @@ Castro::do_advance_ctu(Real time,
 
     if (apply_sources()) {
 
-      do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
-      apply_source_to_state(S_new, new_source, dt, 0);
-      clean_state(S_new, cur_time, 0);
+      do_new_sources(new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
     } else {
 

@@ -31,6 +31,9 @@ do_reflux                    int           1
 # drivers
 update_sources_after_reflux  int           1
 
+# should we apply the sources one by one or all at once?
+apply_sources_consecutively  int           0
+
 # should we have state data for custom load-balancing weighting?
 use_custom_knapsack_weights  int           0
 
