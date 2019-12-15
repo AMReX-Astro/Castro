@@ -1006,7 +1006,9 @@ contains
 
     integer  :: i, j, k, n
 
-    real(rt) :: rhouL, rhouR, drhouL, drhouR, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhouLF, drhouLF, dtdx, theta, alpha
+    real(rt) :: fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), dtdx, theta, alpha
+    real(rt) :: rhouL, rhouR, drhouL, drhouR, rhouLF, drhouLF
+    real(rt) :: rhoL, rhoR, drhoL, drhoR
     real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ), volL, volR, flux_coefL, flux_coefR
     integer  :: idxL(3), idxR(3), UMOM
 
@@ -1043,15 +1045,6 @@ contains
                 idxL = [i,j,k-1]
              end if
 
-             ! Calculate the ceiling on the momentum that we want to use for
-             ! enforce the limiter. The goal is to ensure that the velocity
-             ! of the new-time state is capped, but we do not yet know what
-             ! the new-time density is, and in any case limiting the momentum
-             ! would change the new-time density, so for simplicity we use
-             ! the old-time density here.
-
-             momentum_ceiling = min(uL(URHO), uR(URHO)) * riemann_speed_limit
-
              ! Construct cell-centered fluxes.
 
              fluxL = dflux(uL, qL, idir, idxL)
@@ -1080,10 +1073,16 @@ contains
                 drhouL = flux_coefL * flux(i,j,k,UMOM)
                 rhouL = abs(uL(UMOM) - drhouL)
 
+                drhoL = flux_coefL * flux(i,j,k,URHO)
+                rhoL = uL(URHO) - drhoL
+
                 drhouR = flux_coefR * flux(i,j,k,UMOM)
                 rhouR = abs(uR(UMOM) + drhouR)
 
-                if (rhouL > momentum_ceiling) then
+                drhoR = flux_coefR * flux(i,j,k,URHO)
+                rhoR = uR(uRHO) + drhoR
+
+                if (abs(rhouL) > rhoL * riemann_speed_limit) then
 
                    ! Obtain the final density corresponding to the LF flux.
 
@@ -1098,7 +1097,7 @@ contains
 
                    theta = min(ONE, max(theta, ZERO))
 
-                else if (abs(rhouR) > momentum_ceiling) then
+                else if (abs(rhouR) > rhoR * riemann_speed_limit) then
 
                    drhouLF = flux_coefR * fluxLF(UMOM)
                    rhouLF = abs(uR(UMOM) + drhouLF)
@@ -1131,9 +1130,12 @@ contains
                 drhouR = flux_coefR * flux(i,j,k,UMOM)
                 drhouL = flux_coefL * flux(i,j,k,UMOM)
 
-                if (abs(uR(UMOM) + drhouR) > momentum_ceiling) then
+                drhoR = flux_coefR * flux(i,j,k,URHO)
+                drhoL = flux_coefL * flux(i,j,k,URHO)
+
+                if (abs(uR(UMOM) + drhouR) > (uR(URHO) + drhoR) * riemann_speed_limit) then
                    flux(i,j,k,:) = flux(i,j,k,:) * abs((momentum_ceiling - abs(uR(UMOM))) / drhouR)
-                else if (abs(uL(UMOM) - drhouL) > momentum_ceiling) then
+                else if (abs(uL(UMOM) - drhouL) > (uL(URHO) - drhoL) * riemann_speed_limit) then
                    flux(i,j,k,:) = flux(i,j,k,:) * abs((momentum_ceiling - abs(uL(UMOM))) / drhouL)
                 endif
 
