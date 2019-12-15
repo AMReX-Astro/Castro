@@ -27,7 +27,7 @@ def strip_directives(filename, filepath, outpath):
         txt = infile.read()
 
         outtxt = re.sub(r"(^#.*$\n)", '', txt, flags=re.M)
-        outtxt = re.sub(r"dimension\s*\(.*\)\s*,", '', outtxt)
+        outtxt = re.sub(r"(dimension\s*\(.*\)\s*,)", '', outtxt)
 
         with open(os.path.join(outpath, filename), 'w') as outfile:
             outfile.write(outtxt)
