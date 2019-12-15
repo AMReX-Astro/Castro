@@ -280,9 +280,13 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
     // case, we end up saving a lot of timesteps relative to the potentially very
     // small timestep recommended by the above limiters.
 
-    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle) || !advance_success) {
-
+    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle))
         do_retry = true;
+
+    if (!advance_success)
+        do_retry = true;
+
+    if (do_retry) {
 
         dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
 
