@@ -969,6 +969,186 @@ contains
 
 
 
+  subroutine limit_hydro_fluxes_on_large_vel(lo, hi, &
+                                             idir, &
+                                             u, u_lo, u_hi, &
+                                             q, q_lo, q_hi, &
+                                             vol, vol_lo, vol_hi, &
+                                             flux, flux_lo, flux_hi, &
+                                             area, area_lo, area_hi, &
+                                             dt, dx) bind(c, name="limit_hydro_fluxes_on_large_vel")
+    ! This limiter is similar to the density-based limiter above, but limits
+    ! on velocities that are too large instead. The comments are minimal since
+    ! the algorithm is effectively the same.
+
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+    use meth_params_module, only: NVAR, NQ, URHO, UMX, UTEMP, USHK, cfl, riemann_speed_limit
+    use prob_params_module, only: dim
+
+    implicit none
+
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    integer, intent(in), value :: idir
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: vol_lo(3), vol_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: flux_lo(3), flux_hi(3)
+    integer, intent(in) :: area_lo(3), area_hi(3)
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
+
+    real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
+    real(rt), intent(in   ) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
+
+    integer  :: i, j, k, n
+
+    real(rt) :: rhouL, rhouR, drhouL, drhouR, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhouLF, drhouLF, dtdx, theta, alpha
+    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ), volL, volR, flux_coefL, flux_coefR
+    integer  :: idxL(3), idxR(3), UMOM
+
+    real(rt) :: momentum_ceiling
+
+    !$gpu
+
+    dtdx = dt / dx(idir)
+    alpha = ONE / DIM
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             uR = u(i,j,k,:)
+             qR = q(i,j,k,:)
+             volR = vol(i,j,k)
+             idxR = [i,j,k]
+
+             if (idir == 1) then
+                uL = u(i-1,j,k,:)
+                qL = q(i-1,j,k,:)
+                volL = vol(i-1,j,k)
+                idxL = [i-1,j,k]
+             else if (idir == 2) then
+                uL = u(i,j-1,k,:)
+                qL = q(i,j-1,k,:)
+                volL = vol(i,j-1,k)
+                idxL = [i,j-1,k]
+             else
+                uL = u(i,j,k-1,:)
+                qL = q(i,j,k-1,:)
+                volL = vol(i,j,k-1)
+                idxL = [i,j,k-1]
+             end if
+
+             ! Calculate the ceiling on the momentum that we want to use for
+             ! enforce the limiter. The goal is to ensure that the velocity
+             ! of the new-time state is capped, but we do not yet know what
+             ! the new-time density is, and in any case limiting the momentum
+             ! would change the new-time density, so for simplicity we use
+             ! the old-time density here.
+
+             momentum_ceiling = min(uL(URHO), uR(URHO)) * riemann_speed_limit
+
+             ! Construct cell-centered fluxes.
+
+             fluxL = dflux(uL, qL, idir, idxL)
+             fluxR = dflux(uR, qR, idir, idxR)
+
+             ! Construct the Lax-Friedrichs flux on the interface.
+
+             fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (uL(:) - uR(:)))
+
+             ! Coefficients of fluxes on either side of the interface.
+
+             flux_coefR = TWO * (dt / alpha) * area(i,j,k) / volR
+             flux_coefL = TWO * (dt / alpha) * area(i,j,k) / volL
+
+             theta = ONE
+
+             if (uL(UMOM) < ZERO .or. uR(UMOM) < ZERO) cycle
+
+             ! Loop over all three momenta, and choose the strictest
+             ! limiter among them.
+
+             do n = 1, 3
+
+                UMOM = UMX + n - 1
+
+                ! Obtain the one-sided update to the momentum.
+
+                drhouL = flux_coefL * flux(i,j,k,UMOM)
+                rhouL = abs(uL(UMOM) - drhouL)
+
+                drhouR = flux_coefR * flux(i,j,k,UMOM)
+                rhouR = abs(uR(UMOM) + drhouR)
+
+                if (rhouL > momentum_ceiling) then
+
+                   ! Obtain the final density corresponding to the LF flux.
+
+                   drhouLF = flux_coefL * fluxLF(UMOM)
+                   rhouLF = abs(uL(UMOM) - drhouLF)
+
+                   ! Solve for theta from (1 - theta) * rhouLF + theta * rhou = momentum_ceiling.
+
+                   theta = (momentum_ceiling - rhouLF) / (rhouL - rhouLF)
+
+                   ! Limit theta to the valid range (this will deal with roundoff issues).
+
+                   theta = min(ONE, max(theta, ZERO))
+
+                else if (abs(rhouR) > momentum_ceiling) then
+
+                   drhouLF = flux_coefR * fluxLF(UMOM)
+                   rhouLF = abs(uR(UMOM) + drhouLF)
+
+                   theta = (momentum_ceiling - abs(rhouLF)) / (abs(rhouR - rhouLF))
+
+                   theta = min(ONE, max(theta, ZERO))
+
+                endif
+
+             end do
+
+             ! Assemble the limited flux (Equation 16).
+
+             flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
+
+             ! Zero out fluxes for quantities that don't advect.
+
+             flux(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
+             flux(i,j,k,USHK) = ZERO
+#endif
+
+             ! Now, apply our requirement that the final flux cannot violate the momentum ceiling.
+
+             do n = 1, 3
+
+                UMOM = UMX + n - 1
+
+                drhouR = flux_coefR * flux(i,j,k,UMOM)
+                drhouL = flux_coefL * flux(i,j,k,UMOM)
+
+                if (abs(uR(UMOM) + drhouR) > momentum_ceiling) then
+                   flux(i,j,k,:) = flux(i,j,k,:) * abs((momentum_ceiling - abs(uR(UMOM))) / drhouR)
+                else if (abs(uL(UMOM) - drhouL) > momentum_ceiling) then
+                   flux(i,j,k,:) = flux(i,j,k,:) * abs((momentum_ceiling - abs(uL(UMOM))) / drhouL)
+                endif
+
+             end do
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine limit_hydro_fluxes_on_large_vel
+
+
+
   subroutine ca_shock(lo, hi, &
                       q, qd_lo, qd_hi, &
                       shk, s_lo, s_hi, &
