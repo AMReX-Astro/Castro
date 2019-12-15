@@ -46,11 +46,7 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
-enum sources { ext_src = 0,
-               thermo_src,
-#ifdef SPONGE
-               sponge_src,
-#endif
+enum sources { thermo_src = 0,
 #ifdef DIFFUSION
                diff_src,
 #endif
@@ -63,6 +59,10 @@ enum sources { ext_src = 0,
 #ifdef ROTATION
                rot_src,
 #endif
+#ifdef SPONGE
+               sponge_src,
+#endif
+               ext_src,
 	       num_src };
 
 
@@ -385,10 +385,10 @@ public:
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    amrex::Real do_advance_ctu(amrex::Real time,
-                               amrex::Real dt,
-                               int  amr_iteration,
-                               int  amr_ncycle);
+    bool do_advance_ctu(amrex::Real time,
+                        amrex::Real dt,
+                        int  amr_iteration,
+                        int  amr_ncycle);
 
 
 #ifndef AMREX_USE_CUDA
@@ -411,8 +411,9 @@ public:
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
+/// @param advance_success  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle, bool advance_success);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.
@@ -521,17 +522,21 @@ public:
 /// Construct source terms at old time
 ///
 /// @param source   MultiFab to save sources to
-/// @param state    Current state
+/// @param state_old   Old state
+/// @param state_new   New state
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
+/// @param apply_to_state   whether to apply the source to state_new
 /// @param amr_iteration    where we are in the current AMR subcycle.  Each
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+                        amrex::Real time, amrex::Real dt, bool apply_to_state,
+                        int amr_iteration = -1, int amr_ncycle = -1);
 
 ///
 /// Construct the old-time source
@@ -560,13 +565,16 @@ public:
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
+/// @param apply_to_state   whether to apply the source to state_new
 /// @param amr_iteration    where we are in the current AMR subcycle.  Each
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+                        amrex::Real time, amrex::Real dt, bool apply_to_state,
+                        int amr_iteration = -1, int amr_ncycle = -1);
 
 ///
 /// Construct the new-time sources.
@@ -1038,7 +1046,7 @@ public:
 /// @param strang_half  Is this a Strang-split half timestep?
 /// @param ngrow        Number of ghost cells
 ///
-    void react_state(amrex::MultiFab& state,
+    bool react_state(amrex::MultiFab& state,
 		     amrex::MultiFab& reactions,
 		     const amrex::iMultiFab& mask,
 		     amrex::MultiFab& weights,
@@ -1052,7 +1060,7 @@ public:
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void react_state(amrex::Real time, amrex::Real dt);
+    bool react_state(amrex::Real time, amrex::Real dt);
 
 ///
 /// React through first half timestep
@@ -1060,7 +1068,7 @@ public:
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void strang_react_first_half(amrex::Real time, amrex::Real dt);
+    bool strang_react_first_half(amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -1069,7 +1077,7 @@ public:
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void strang_react_second_half(amrex::Real time, amrex::Real dt);
+    bool strang_react_second_half(amrex::Real time, amrex::Real dt);
 
 ///
 /// Obtain the effective source term due to reactions on the primitive variables
@@ -1657,6 +1665,7 @@ public:
 /// variable counts
 ///
     static int       NQSRC;
+    static int       NSRC;
     static int       NQAUX;
     static int       NQ;
     static int       NGDNV;
@@ -1829,12 +1838,6 @@ protected:
 
 
 ///
-/// Did we have a successful burn?
-///
-    int burn_success;
-
-
-///
 /// State data to hold if we want to do a retry.
 ///
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
@@ -1854,7 +1857,7 @@ protected:
     bool keep_prev_state;
 
 
-
+#ifdef TRUE_SDC
     //
     // Storage for the SDC time integration
 
@@ -1878,7 +1881,7 @@ protected:
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;
     static amrex::Vector<amrex::Real> node_weights;
-
+#endif
 
 ///
 /// Wall time that we started the timestep

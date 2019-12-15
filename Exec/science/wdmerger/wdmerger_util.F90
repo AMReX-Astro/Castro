@@ -710,7 +710,7 @@ contains
     use problem_io_module, only: ioproc
     use castro_error_module, only: castro_error
     use fundamental_constants_module, only: Gconst, c_light, AU, M_solar
-    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
 
     implicit none
 
@@ -939,10 +939,14 @@ contains
              write (*,1004) r_P_initial, r_P_initial / AU
              write (*,1005) r_S_initial, r_S_initial / AU
              write (*,1006) rot_period
+             write (*,1007) TWO * M_PI * r_P_initial / rot_period
+             write (*,1008) TWO * M_PI * r_S_initial / rot_period
 1003         format ("Generated binary orbit of distance ", ES8.2, " cm = ", ES8.2, " AU.")
 1004         format ("The primary orbits the center of mass at distance ", ES9.2, " cm = ", ES9.2, " AU.")
 1005         format ("The secondary orbits the center of mass at distance ", ES9.2, " cm = ", ES9.2, " AU.")
 1006         format ("The initial orbital period is ", F6.2 " s.")
+1007         format ("The initial orbital speed of the primary is ", ES9.2 " cm/s.")
+1008         format ("The initial orbital speed of the secondary is ", ES9.2 " cm/s.")
           endif
 
           ! Star center positions -- we'll put them in the midplane, with the center of mass at the center of the domain.

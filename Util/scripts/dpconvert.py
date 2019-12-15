@@ -81,7 +81,7 @@ def main():
     # this matches stuff like -1.25d-10, and gives us separate groups for the
     # prefix and exponent.  The [^\w] makes sure a letter isn't right in front
     # of the match (like 'k3d-1')
-    d_re = re.compile(r"([^\w][\+\-0-9.]+)[dD]([\+\-]?[0-9]+)", re.IGNORECASE|re.DOTALL)
+    d_re = re.compile(r"([^\w][\+\-0-9.][0-9.]+)[dD]([\+\-]?[0-9]+)", re.IGNORECASE|re.DOTALL)
 
     # find the source files
     sfiles = []
@@ -172,6 +172,8 @@ def main():
 
             line = lines.pop(0)
 
+            print("working on: ", line)
+
             # is this the start of a routine?
             rout = routine_re.search(line.strip())
             fout = func_re.search(line.strip())
@@ -185,6 +187,11 @@ def main():
                 while has_decl:
 
                     new_lines.append(line)
+
+                    # sometimes we are dealing with a stub and there will never
+                    # be any declarations
+                    if not lines:
+                        break
 
                     # we need to add the use line before any declarations or
                     # and implicit none.  We don't simply add it after first
@@ -219,6 +226,8 @@ def main():
                     lo = len(old_decl) - len(new_decl)
                     if lo > 0:
                         new_decl_out = new_decl + lo*" "
+                    else:
+                        new_decl_out = new_decl
                     line = line.replace(old_decl, new_decl_out)
 
             # replace constants

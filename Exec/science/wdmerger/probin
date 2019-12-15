@@ -91,8 +91,8 @@
 
   sponge_lower_radius  = 0.0d0
   sponge_upper_radius  = 0.0d0
-  sponge_lower_density = 0.0d0
-  sponge_upper_density = 0.0d0
+  sponge_lower_density = 1.0d0
+  sponge_upper_density = 1.0d0
   sponge_timescale     = 0.01d0
 
 /
