@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>filter.f90 &mdash; Castro 19.12
+  <title>filter.F90 &mdash; Castro 19.12
  documentation</title>
   
 
@@ -153,11 +153,11 @@
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_1d_f.html">RadBndry_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_2d_f.html">RadBndry_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_3d_f.html">RadBndry_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="RadDerive_nd_f.html">RadDerive_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadDerive_nd_f.html">RadDerive_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadEOS_1d_f.html">RadEOS_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadEOS_2d_f.html">RadEOS_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadEOS_3d_f.html">RadEOS_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="RadHydro_nd_f.html">RadHydro_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadHydro_nd_f.html">RadHydro_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_1d_f.html">RadPlotvar_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_2d_f.html">RadPlotvar_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_3d_f.html">RadPlotvar_3d.f90</a></li>
@@ -166,11 +166,11 @@
 <li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Rad_nd_f.html">Rad_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="blackbody_f.html">blackbody.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blackbody_f.html">blackbody.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="filt_prim_1d_f.html">filt_prim_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="filt_prim_2d_f.html">filt_prim_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="filt_prim_3d_f.html">filt_prim_3d.f90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">filter.f90</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">filter.F90</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#f/filter_module">filter_module</a></li>
 </ul>
 </li>
@@ -241,7 +241,7 @@
         
           <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
         
-      <li>filter.f90</li>
+      <li>filter.F90</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -261,7 +261,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="filter-f90">
-<h1>filter.f90<a class="headerlink" href="#filter-f90" title="Permalink to this headline">¶</a></h1>
+<h1>filter.F90<a class="headerlink" href="#filter-f90" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="f/filter_module">
 <span id="filter-module"></span><h2>filter_module<a class="headerlink" href="#f/filter_module" title="Permalink to this headline">¶</a></h2>
 <p class="rubric">Quick access</p>
@@ -281,85 +281,85 @@
 <ul>
 <li><dl class="variable">
 <dt id="f/filter_module/ff1">
-<code class="descclassname">filter_module/</code><code class="descname">ff1</code> (2)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/0.5e0_rt<em>,</em><em>0.25e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff1" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff1</code> (2)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(\0.5e0_rt<em>,</em><em>0.25e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff1b">
-<code class="descclassname">filter_module/</code><code class="descname">ff1b</code> (2)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/0.75e0_rt<em>,</em><em>0.25e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff1b" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff1b</code> (2)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(\0.75e0_rt<em>,</em><em>0.25e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff1b" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff2">
-<code class="descclassname">filter_module/</code><code class="descname">ff2</code> (3,2)<em> [</em><em>real</em><em>,</em><em>parameter=</em>reshape([0.625e0_rt<em>,</em><em>0.25e0_rt</em><em>,</em><em>-0.0625e0_rt</em><em>,</em><em>0.375e0_rt</em><em>,</em><em>0.25e0_rt</em><em>,</em><em>0.0625e0_rt]</em><em>,</em><em>[3</em><em>,</em><em>2])</em><em>]</em><a class="headerlink" href="#f/filter_module/ff2" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff2</code> (3,2)<em> [</em><em>real</em><em>,</em><em>parameter=</em>reshape((\ 0.625e0_rt<em>,</em><em>0.25e0_rt</em><em>,</em><em>-0.0625e0_rt</em><em>,</em><em>0.375e0_rt</em><em>,</em><em>0.25e0_rt</em><em>,</em><em>0.0625e0_rt \)</em><em>,</em><em>(\3</em><em>,</em><em>2\))</em><em>]</em><a class="headerlink" href="#f/filter_module/ff2" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff2b0">
-<code class="descclassname">filter_module/</code><code class="descname">ff2b0</code> (3)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/17.e0_rt/16.e0_rt<em>,</em><em>-2.e0_rt/16.e0_rt</em><em>,</em><em>1.e0_rt/16.e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff2b0" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff2b0</code> (3)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(\17.e0_rt/16.e0_rt<em>,</em><em>-2.e0_rt/16.e0_rt</em><em>,</em><em>1.e0_rt/16.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff2b0" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff2b1">
-<code class="descclassname">filter_module/</code><code class="descname">ff2b1</code> (4)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/-2.e0_rt/16.e0_rt<em>,</em><em>21.e0_rt/16.e0_rt</em><em>,</em><em>-4.e0_rt/16.e0_rt</em><em>,</em><em>1.e0_rt/16.e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff2b1" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff2b1</code> (4)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(-2.e0_rt/16.e0_rt<em>,</em><em>21.e0_rt/16.e0_rt</em><em>,</em><em>-4.e0_rt/16.e0_rt</em><em>,</em><em>1.e0_rt/16.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff2b1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff3">
-<code class="descclassname">filter_module/</code><code class="descname">ff3</code> (4,3)<em> [</em><em>real</em><em>,</em><em>parameter=</em>reshape([44.e0_rt/64.e0_rt<em>,</em><em>15.e0_rt/64.e0_rt</em><em>,</em><em>-6.e0_rt/64.e0_rt</em><em>,</em><em>1.e0_rt/64.e0_rt</em><em>,</em><em>32.e0_rt/64.e0_rt</em><em>,</em><em>18.e0_rt/64.e0_rt</em><em>,</em><em>0.e0_rt</em><em>,</em><em>-2.e0_rt/64.e0_rt</em><em>,</em><em>20.e0_rt/64.e0_rt</em><em>,</em><em>15.e0_rt/64.e0_rt</em><em>,</em><em>6.e0_rt/64.e0_rt</em><em>,</em><em>1.e0_rt/64.e0_rt]</em><em>,</em><em>[4</em><em>,</em><em>3])</em><em>]</em><a class="headerlink" href="#f/filter_module/ff3" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff3</code> (4,3)<em> [</em><em>real</em><em>,</em><em>parameter=</em>reshape((\44.e0_rt/64.e0_rt<em>,</em><em>15.e0_rt/64.e0_rt</em><em>,</em><em>-6.e0_rt/64.e0_rt</em><em>,</em><em>1.e0_rt/64.e0_rt</em><em>,</em><em>32.e0_rt/64.e0_rt</em><em>,</em><em>18.e0_rt/64.e0_rt</em><em>,</em><em>0.e0_rt</em><em>,</em><em>-2.e0_rt/64.e0_rt</em><em>,</em><em>&amp; 20.e0_rt/64.e0_rt</em><em>,</em><em>15.e0_rt/64.e0_rt</em><em>,</em><em>6.e0_rt/64.e0_rt</em><em>,</em><em>1.e0_rt/64.e0_rt \)</em><em>,</em><em>(\4</em><em>,</em><em>3\))</em><em>]</em><a class="headerlink" href="#f/filter_module/ff3" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff3b0">
-<code class="descclassname">filter_module/</code><code class="descname">ff3b0</code> (4)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/63.e0_rt/64.e0_rt<em>,</em><em>3.e0_rt/64.e0_rt</em><em>,</em><em>-3.e0_rt/64.e0_rt</em><em>,</em><em>1.e0_rt/64.e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff3b0" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff3b0</code> (4)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(\63.e0_rt/64.e0_rt<em>,</em><em>3.e0_rt/64.e0_rt</em><em>,</em><em>-3.e0_rt/64.e0_rt</em><em>,</em><em>1.e0_rt/64.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff3b0" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff3b1">
-<code class="descclassname">filter_module/</code><code class="descname">ff3b1</code> (5)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/3.e0_rt/64.e0_rt<em>,</em><em>54.e0_rt/64.e0_rt</em><em>,</em><em>12.e0_rt/64.e0_rt</em><em>,</em><em>-6.e0_rt/64.e0_rt</em><em>,</em><em>1.e0_rt/64.e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff3b1" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff3b1</code> (5)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(\3.e0_rt/64.e0_rt<em>,</em><em>54.e0_rt/64.e0_rt</em><em>,</em><em>12.e0_rt/64.e0_rt</em><em>,</em><em>-6.e0_rt/64.e0_rt</em><em>,</em><em>1.e0_rt/64.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff3b1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff3b2">
-<code class="descclassname">filter_module/</code><code class="descname">ff3b2</code> (6)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/-3.e0_rt/64.e0_rt<em>,</em><em>12.e0_rt/64.e0_rt</em><em>,</em><em>45.e0_rt/64.e0_rt</em><em>,</em><em>15.e0_rt/64.e0_rt</em><em>,</em><em>-6.e0_rt/64.e0_rt</em><em>,</em><em>1.e0_rt/64.e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff3b2" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff3b2</code> (6)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(-3.e0_rt/64.e0_rt<em>,</em><em>12.e0_rt/64.e0_rt</em><em>,</em><em>45.e0_rt/64.e0_rt</em><em>,</em><em>15.e0_rt/64.e0_rt</em><em>,</em><em>-6.e0_rt/64.e0_rt</em><em>,</em><em>1.e0_rt/64.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff3b2" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff4">
-<code class="descclassname">filter_module/</code><code class="descname">ff4</code> (5,4)<em> [</em><em>real</em><em>,</em><em>parameter=</em>reshape([186.e0_rt/256.e0_rt<em>,</em><em>56.e0_rt/256.e0_rt</em><em>,</em><em>-28.e0_rt/256.e0_rt</em><em>,</em><em>8.e0_rt/256.e0_rt</em><em>,</em><em>-1.e0_rt/256.e0_rt</em><em>,</em><em>146.e0_rt/256.e0_rt</em><em>,</em><em>72.e0_rt/256.e0_rt</em><em>,</em><em>-12.e0_rt/256.e0_rt</em><em>,</em><em>-8.e0_rt/256.e0_rt</em><em>,</em><em>3.e0_rt/256.e0_rt</em><em>,</em><em>110.e0_rt/256.e0_rt</em><em>,</em><em>72.e0_rt/256.e0_rt</em><em>,</em><em>12.e0_rt/256.e0_rt</em><em>,</em><em>-8.e0_rt/256.e0_rt</em><em>,</em><em>-3.e0_rt/256.e0_rt</em><em>,</em><em>70.e0_rt/256.e0_rt</em><em>,</em><em>56.e0_rt/256.e0_rt</em><em>,</em><em>28.e0_rt/256.e0_rt</em><em>,</em><em>8.e0_rt/256.e0_rt</em><em>,</em><em>1.e0_rt/256.e0_rt]</em><em>,</em><em>[5</em><em>,</em><em>4])</em><em>]</em><a class="headerlink" href="#f/filter_module/ff4" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff4</code> (5,4)<em> [</em><em>real</em><em>,</em><em>parameter=</em>reshape((\ 186.e0_rt/256.e0_rt<em>,</em><em>56.e0_rt/256.e0_rt</em><em>,</em><em>-28.e0_rt/256.e0_rt</em><em>,</em><em>8.e0_rt/256.e0_rt</em><em>,</em><em>-1.e0_rt/256.e0_rt</em><em>,</em><em>146.e0_rt/256.e0_rt</em><em>,</em><em>72.e0_rt/256.e0_rt</em><em>,</em><em>-12.e0_rt/256.e0_rt</em><em>,</em><em>-8.e0_rt/256.e0_rt</em><em>,</em><em>3.e0_rt/256.e0_rt</em><em>,</em><em>110.e0_rt/256.e0_rt</em><em>,</em><em>72.e0_rt/256.e0_rt</em><em>,</em><em>12.e0_rt/256.e0_rt</em><em>,</em><em>-8.e0_rt/256.e0_rt</em><em>,</em><em>-3.e0_rt/256.e0_rt</em><em>,</em><em>70.e0_rt/256.e0_rt</em><em>,</em><em>56.e0_rt/256.e0_rt</em><em>,</em><em>28.e0_rt/256.e0_rt</em><em>,</em><em>8.e0_rt/256.e0_rt</em><em>,</em><em>1.e0_rt/256.e0_rt \)</em><em>,</em><em>(\5</em><em>,</em><em>4\))</em><em>]</em><a class="headerlink" href="#f/filter_module/ff4" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff4b0">
-<code class="descclassname">filter_module/</code><code class="descname">ff4b0</code> (5)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/257.e0_rt/256.e0_rt<em>,</em><em>-4.e0_rt/256.e0_rt</em><em>,</em><em>6.e0_rt/256.e0_rt</em><em>,</em><em>-4.e0_rt/256.e0_rt</em><em>,</em><em>1.e0_rt/256.e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff4b0" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff4b0</code> (5)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(\257.e0_rt/256.e0_rt<em>,</em><em>-4.e0_rt/256.e0_rt</em><em>,</em><em>6.e0_rt/256.e0_rt</em><em>,</em><em>-4.e0_rt/256.e0_rt</em><em>,</em><em>1.e0_rt/256.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff4b0" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff4b1">
-<code class="descclassname">filter_module/</code><code class="descname">ff4b1</code> (6)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/-4.e0_rt/256.e0_rt<em>,</em><em>273.e0_rt/256.e0_rt</em><em>,</em><em>-28.e0_rt/256.e0_rt</em><em>,</em><em>22.e0_rt/256.e0_rt</em><em>,</em><em>-8.e0_rt/256.e0_rt</em><em>,</em><em>1.e0_rt/256.e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff4b1" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff4b1</code> (6)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(-4.e0_rt/256.e0_rt<em>,</em><em>273.e0_rt/256.e0_rt</em><em>,</em><em>-28.e0_rt/256.e0_rt</em><em>,</em><em>22.e0_rt/256.e0_rt</em><em>,</em><em>-8.e0_rt/256.e0_rt</em><em>,</em><em>1.e0_rt/256.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff4b1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff4b2">
-<code class="descclassname">filter_module/</code><code class="descname">ff4b2</code> (7)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/6.e0_rt/256.e0_rt<em>,</em><em>-28.e0_rt/256.e0_rt</em><em>,</em><em>309.e0_rt/256.e0_rt</em><em>,</em><em>-52.e0_rt/256.e0_rt</em><em>,</em><em>28.e0_rt/256.e0_rt</em><em>,</em><em>-8.e0_rt/256.e0_rt</em><em>,</em><em>1.e0_rt/256.e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff4b2" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff4b2</code> (7)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(\6.e0_rt/256.e0_rt<em>,</em><em>-28.e0_rt/256.e0_rt</em><em>,</em><em>309.e0_rt/256.e0_rt</em><em>,</em><em>-52.e0_rt/256.e0_rt</em><em>,</em><em>28.e0_rt/256.e0_rt</em><em>,</em><em>-8.e0_rt/256.e0_rt</em><em>,</em><em>1.e0_rt/256.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff4b2" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/filter_module/ff4b3">
-<code class="descclassname">filter_module/</code><code class="descname">ff4b3</code> (8)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(/-4.e0_rt/256.e0_rt<em>,</em><em>22.e0_rt/256.e0_rt</em><em>,</em><em>-52.e0_rt/256.e0_rt</em><em>,</em><em>325.e0_rt/256.e0_rt</em><em>,</em><em>-56.e0_rt/256.e0_rt</em><em>,</em><em>28.e0_rt/256.e0_rt</em><em>,</em><em>-8.e0_rt/256.e0_rt</em><em>,</em><em>1.e0_rt/256.e0_rt/)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff4b3" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">filter_module/</code><code class="descname">ff4b3</code> (8)<em> [</em><em>real</em><em>,</em><em>parameter=</em>(-4.e0_rt/256.e0_rt<em>,</em><em>22.e0_rt/256.e0_rt</em><em>,</em><em>-52.e0_rt/256.e0_rt</em><em>,</em><em>325.e0_rt/256.e0_rt</em><em>,</em><em>-56.e0_rt/256.e0_rt</em><em>,</em><em>28.e0_rt/256.e0_rt</em><em>,</em><em>-8.e0_rt/256.e0_rt</em><em>,</em><em>1.e0_rt/256.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/filter_module/ff4b3" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>

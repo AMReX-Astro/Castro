@@ -393,23 +393,23 @@ gives the mass contained in each radial shell.</p>
 <blockquote>
 <div>laplacian(phi) = 4*pi*G*rho</div></blockquote>
 <p>The gravitational acceleration is then
-f[</p>
+f(</p>
 <blockquote>
 <div>g(r) = -G M(r) / r^2</div></blockquote>
-<p>f]
+<p>f)
 where f$M(r)f$ is the mass interior to radius r.</p>
 <p>The strategy for calculating the potential is to calculate the potential
 at the boundary assuming all the mass is enclosed:
-f[</p>
+f(</p>
 <blockquote>
 <div>phi(R) = -G M / R</div></blockquote>
-<p>f]
+<p>f)
 Then, the potential in all other zones can be found using
-f[</p>
+f(</p>
 <blockquote>
 <div>frac{d(phi)}{dr} = g   ; Rightarrow ;
 phi(r &lt; R) = phi(R) - int(g dr)</div></blockquote>
-<p>f]</p>
+<p>f)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

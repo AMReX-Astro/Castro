@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>blackbody.f90 &mdash; Castro 19.12
+  <title>blackbody.F90 &mdash; Castro 19.12
  documentation</title>
   
 
@@ -153,11 +153,11 @@
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_1d_f.html">RadBndry_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_2d_f.html">RadBndry_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_3d_f.html">RadBndry_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="RadDerive_nd_f.html">RadDerive_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadDerive_nd_f.html">RadDerive_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadEOS_1d_f.html">RadEOS_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadEOS_2d_f.html">RadEOS_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadEOS_3d_f.html">RadEOS_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="RadHydro_nd_f.html">RadHydro_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadHydro_nd_f.html">RadHydro_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_1d_f.html">RadPlotvar_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_2d_f.html">RadPlotvar_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_3d_f.html">RadPlotvar_3d.f90</a></li>
@@ -166,14 +166,14 @@
 <li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Rad_nd_f.html">Rad_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">blackbody.f90</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">blackbody.F90</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#f/blackbody_module">blackbody_module</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="filt_prim_1d_f.html">filt_prim_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="filt_prim_2d_f.html">filt_prim_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="filt_prim_3d_f.html">filt_prim_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="filter_f.html">filter.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filter_f.html">filter.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fluxlimiter_f.html">fluxlimiter.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rad_params_f.html">rad_params.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rad_util_f.html">rad_util.F90</a></li>
@@ -241,7 +241,7 @@
         
           <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
         
-      <li>blackbody.f90</li>
+      <li>blackbody.F90</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -261,7 +261,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="blackbody-f90">
-<h1>blackbody.f90<a class="headerlink" href="#blackbody-f90" title="Permalink to this headline">¶</a></h1>
+<h1>blackbody.F90<a class="headerlink" href="#blackbody-f90" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="f/blackbody_module">
 <span id="blackbody-module"></span><h2>blackbody_module<a class="headerlink" href="#f/blackbody_module" title="Permalink to this headline">¶</a></h2>
 <p class="rubric">Quick access</p>
@@ -284,19 +284,19 @@
 <ul>
 <li><dl class="variable">
 <dt id="f/blackbody_module/bk_const">
-<code class="descclassname">blackbody_module/</code><code class="descname">bk_const</code><em> [</em><em>real</em><em>,</em><em>private/optional/default=a_rad*15.e0_rt/pi**4</em><em>]</em><a class="headerlink" href="#f/blackbody_module/bk_const" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">blackbody_module/</code><code class="descname">bk_const</code><em> [</em><em>real</em><em>,</em><em>private/parameter/optional/default=a_rad*15.e0_rt/pi**4</em><em>]</em><a class="headerlink" href="#f/blackbody_module/bk_const" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/blackbody_module/coefs">
-<code class="descclassname">blackbody_module/</code><code class="descname">coefs</code> (9)<em> [</em><em>real</em><em>,</em><em>private/optional/default=(/1.e0_rt/60.e0_rt</em><em>,</em><em>-1.e0_rt/5040.e0_rt</em><em>,</em><em>1.e0_rt/272160.e0_rt</em><em>,</em><em>-1.e0_rt/13305600.e0_rt</em><em>,</em><em>1.e0_rt/622702080.e0_rt</em><em>,</em><em>-691.e0_rt/19615115520000.e0_rt</em><em>,</em><em>1.e0_rt/1270312243200.e0_rt</em><em>,</em><em>-3617.e0_rt/202741834014720000.e0_rt</em><em>,</em><em>43867.e0_rt/107290978560589824000.e0_rt/)</em><em>]</em><a class="headerlink" href="#f/blackbody_module/coefs" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">blackbody_module/</code><code class="descname">coefs</code> (9)<em> [</em><em>real</em><em>,</em><em>private/optional/default=(\1.e0_rt/60.e0_rt</em><em>,</em><em>-1.e0_rt/5040.e0_rt</em><em>,</em><em>1.e0_rt/272160.e0_rt</em><em>,</em><em>-1.e0_rt/13305600.e0_rt</em><em>,</em><em>1.e0_rt/622702080.e0_rt</em><em>,</em><em>-691.e0_rt/19615115520000.e0_rt</em><em>,</em><em>1.e0_rt/1270312243200.e0_rt</em><em>,</em><em>-3617.e0_rt/202741834014720000.e0_rt</em><em>,</em><em>43867.e0_rt/107290978560589824000.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/blackbody_module/coefs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
 <li><dl class="variable">
 <dt id="f/blackbody_module/magic_const">
-<code class="descclassname">blackbody_module/</code><code class="descname">magic_const</code><em> [</em><em>real</em><em>,</em><em>private/optional/default=pi**4/15.e0_rt</em><em>]</em><a class="headerlink" href="#f/blackbody_module/magic_const" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">blackbody_module/</code><code class="descname">magic_const</code><em> [</em><em>real</em><em>,</em><em>private/parameter/optional/default=pi**4/15.e0_rt</em><em>]</em><a class="headerlink" href="#f/blackbody_module/magic_const" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>

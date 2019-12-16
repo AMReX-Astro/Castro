@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>RadDerive_nd.f90 &mdash; Castro 19.12
+  <title>RadDerive_nd.F90 &mdash; Castro 19.12
  documentation</title>
   
 
@@ -153,7 +153,7 @@
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_1d_f.html">RadBndry_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_2d_f.html">RadBndry_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_3d_f.html">RadBndry_3d.f90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">RadDerive_nd.f90</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">RadDerive_nd.F90</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#ca-derneut-subroutine">ca_derneut subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-derrhoyl-subroutine">ca_derrhoyl subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-deryl-subroutine">ca_deryl subroutine</a></li>
@@ -167,7 +167,7 @@
 <li class="toctree-l3"><a class="reference internal" href="RadEOS_1d_f.html">RadEOS_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadEOS_2d_f.html">RadEOS_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadEOS_3d_f.html">RadEOS_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="RadHydro_nd_f.html">RadHydro_nd.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadHydro_nd_f.html">RadHydro_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_1d_f.html">RadPlotvar_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_2d_f.html">RadPlotvar_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_3d_f.html">RadPlotvar_3d.f90</a></li>
@@ -176,11 +176,11 @@
 <li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Rad_nd_f.html">Rad_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="blackbody_f.html">blackbody.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blackbody_f.html">blackbody.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="filt_prim_1d_f.html">filt_prim_1d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="filt_prim_2d_f.html">filt_prim_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="filt_prim_3d_f.html">filt_prim_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="filter_f.html">filter.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filter_f.html">filter.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fluxlimiter_f.html">fluxlimiter.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rad_params_f.html">rad_params.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rad_util_f.html">rad_util.F90</a></li>
@@ -248,7 +248,7 @@
         
           <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
         
-      <li>RadDerive_nd.f90</li>
+      <li>RadDerive_nd.F90</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -268,7 +268,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="radderive-nd-f90">
-<h1>RadDerive_nd.f90<a class="headerlink" href="#radderive-nd-f90" title="Permalink to this headline">¶</a></h1>
+<h1>RadDerive_nd.F90<a class="headerlink" href="#radderive-nd-f90" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="ca-derneut-subroutine">
 <h2>ca_derneut subroutine<a class="headerlink" href="#ca-derneut-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
@@ -279,25 +279,25 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>neut</strong> (n_hi(1)-(n_lo(1))+1,n_hi(2)-(n_lo(2))+1,n_hi(3)-(n_lo(3))+1,nv)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>n_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>n_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>nv</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,ncomp)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>time</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>bc</strong> (3,2,ncomp)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>level</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>grid_no</strong><em> [</em><em>integer</em><em>]</em></li>
+<li><strong>neut</strong> (n_hi(1)-(n_lo(1))+1,n_hi(2)-(n_lo(2))+1,n_hi(3)-(n_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>n_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>n_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,ncomp)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc</strong> (3,2,ncomp)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grid_no</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
@@ -319,25 +319,25 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>rhoyl</strong> (y_hi(1)-(y_lo(1))+1,y_hi(2)-(y_lo(2))+1,y_hi(3)-(y_lo(3))+1,nv)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>y_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>y_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>nv</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,ncomp)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>time</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>bc</strong> (3,2,ncomp)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>level</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>grid_no</strong><em> [</em><em>integer</em><em>]</em></li>
+<li><strong>rhoyl</strong> (y_hi(1)-(y_lo(1))+1,y_hi(2)-(y_lo(2))+1,y_hi(3)-(y_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>y_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>y_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,ncomp)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc</strong> (3,2,ncomp)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grid_no</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
@@ -359,25 +359,25 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>yl</strong> (y_hi(1)-(y_lo(1))+1,y_hi(2)-(y_lo(2))+1,y_hi(3)-(y_lo(3))+1,nv)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>y_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>y_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>nv</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,ncomp)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>time</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>bc</strong> (3,2,ncomp)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>level</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>grid_no</strong><em> [</em><em>integer</em><em>]</em></li>
+<li><strong>yl</strong> (y_hi(1)-(y_lo(1))+1,y_hi(2)-(y_lo(2))+1,y_hi(3)-(y_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>y_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>y_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,ncomp)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc</strong> (3,2,ncomp)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grid_no</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
@@ -399,25 +399,25 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>y</strong> (y_hi(1)-(y_lo(1))+1,y_hi(2)-(y_lo(2))+1,y_hi(3)-(y_lo(3))+1,nv)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>y_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>y_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>nv</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,ncomp)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>time</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>bc</strong> (3,2,ncomp)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>level</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>grid_no</strong><em> [</em><em>integer</em><em>]</em></li>
+<li><strong>y</strong> (y_hi(1)-(y_lo(1))+1,y_hi(2)-(y_lo(2))+1,y_hi(3)-(y_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>y_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>y_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,ncomp)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc</strong> (3,2,ncomp)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grid_no</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
@@ -439,25 +439,25 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>y</strong> (y_hi(1)-(y_lo(1))+1,y_hi(2)-(y_lo(2))+1,y_hi(3)-(y_lo(3))+1,nv)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>y_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>y_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>nv</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,ncomp)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>time</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>bc</strong> (3,2,ncomp)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>level</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>grid_no</strong><em> [</em><em>integer</em><em>]</em></li>
+<li><strong>y</strong> (y_hi(1)-(y_lo(1))+1,y_hi(2)-(y_lo(2))+1,y_hi(3)-(y_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>y_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>y_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,ncomp)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc</strong> (3,2,ncomp)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grid_no</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
@@ -479,25 +479,25 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>et</strong> (et_hi(1)-(et_lo(1))+1,et_hi(2)-(et_lo(2))+1,et_hi(3)-(et_lo(3))+1,ncomp_et)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>et_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>et_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp_et</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>er</strong> (er_hi(1)-(er_lo(1))+1,er_hi(2)-(er_lo(2))+1,er_hi(3)-(er_lo(3))+1,ncomp_er)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>er_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>er_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp_er</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>time</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>bc</strong> (3,2,ncomp_er)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>level</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>grid_no</strong><em> [</em><em>integer</em><em>]</em></li>
+<li><strong>et</strong> (et_hi(1)-(et_lo(1))+1,et_hi(2)-(et_lo(2))+1,et_hi(3)-(et_lo(3))+1,ncomp_et)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>et_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>et_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_et</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>er</strong> (er_hi(1)-(er_lo(1))+1,er_hi(2)-(er_lo(2))+1,er_hi(3)-(er_lo(3))+1,ncomp_er)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_er</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc</strong> (3,2,ncomp_er)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grid_no</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
@@ -513,31 +513,31 @@
 <h2>ca_derenue subroutine<a class="headerlink" href="#ca-derenue-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
 <dt id="f/_/ca_derenue">
-<em class="property">subroutine  </em><code class="descname">ca_derenue</code><span class="sig-paren">(</span><em>enue</em>, <em>enue_lo</em>, <em>enue_hi</em>, <em>ncomp_enue</em>, <em>er</em>, <em>er_lo</em>, <em>er_hi</em>, <em>ncomp_er</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em>, <em>xlo</em>, <em>time</em>, <em>dt</em>, <em>bc</em>, <em>level</em>, <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_derenue" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descname">ca_derenue</code><span class="sig-paren">(</span><em>enue</em>, <em>en_lo</em>, <em>en_hi</em>, <em>ncomp_en</em>, <em>er</em>, <em>er_lo</em>, <em>er_hi</em>, <em>ncomp_er</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em>, <em>xlo</em>, <em>time</em>, <em>dt</em>, <em>bc</em>, <em>level</em>, <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_derenue" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>enue</strong> (enue_hi(1)-(enue_lo(1))+1,enue_hi(2)-(enue_lo(2))+1,enue_hi(3)-(enue_lo(3))+1,ncomp_enue)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>enue_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>enue_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp_enue</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>er</strong> (er_hi(1)-(er_lo(1))+1,er_hi(2)-(er_lo(2))+1,er_hi(3)-(er_lo(3))+1,ncomp_er)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>er_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>er_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp_er</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>time</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>bc</strong> (3,2,ncomp_er)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>level</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>grid_no</strong><em> [</em><em>integer</em><em>]</em></li>
+<li><strong>enue</strong> (en_hi(1)-(en_lo(1))+1,en_hi(2)-(en_lo(2))+1,en_hi(3)-(en_lo(3))+1,ncomp_en)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>en_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>en_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_en</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>er</strong> (er_hi(1)-(er_lo(1))+1,er_hi(2)-(er_lo(2))+1,er_hi(3)-(er_lo(3))+1,ncomp_er)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_er</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc</strong> (3,2,ncomp_er)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grid_no</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
@@ -553,31 +553,31 @@
 <h2>ca_derenuae subroutine<a class="headerlink" href="#ca-derenuae-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
 <dt id="f/_/ca_derenuae">
-<em class="property">subroutine  </em><code class="descname">ca_derenuae</code><span class="sig-paren">(</span><em>enuae</em>, <em>enuae_lo</em>, <em>enuae_hi</em>, <em>ncomp_enuae</em>, <em>er</em>, <em>er_lo</em>, <em>er_hi</em>, <em>ncomp_er</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em>, <em>xlo</em>, <em>time</em>, <em>dt</em>, <em>bc</em>, <em>level</em>, <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_derenuae" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descname">ca_derenuae</code><span class="sig-paren">(</span><em>enuae</em>, <em>en_lo</em>, <em>en_hi</em>, <em>ncomp_en</em>, <em>er</em>, <em>er_lo</em>, <em>er_hi</em>, <em>ncomp_er</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em>, <em>xlo</em>, <em>time</em>, <em>dt</em>, <em>bc</em>, <em>level</em>, <em>grid_no</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_derenuae" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>enuae</strong> (enuae_hi(1)-(enuae_lo(1))+1,enuae_hi(2)-(enuae_lo(2))+1,enuae_hi(3)-(enuae_lo(3))+1,ncomp_enuae)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>enuae_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>enuae_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp_enuae</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>er</strong> (er_hi(1)-(er_lo(1))+1,er_hi(2)-(er_lo(2))+1,er_hi(3)-(er_lo(3))+1,ncomp_er)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>er_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>er_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>ncomp_er</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>time</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>bc</strong> (3,2,ncomp_er)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>level</strong><em> [</em><em>integer</em><em>]</em></li>
-<li><strong>grid_no</strong><em> [</em><em>integer</em><em>]</em></li>
+<li><strong>enuae</strong> (en_hi(1)-(en_lo(1))+1,en_hi(2)-(en_lo(2))+1,en_hi(3)-(en_lo(3))+1,ncomp_en)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>en_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>en_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_en</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>er</strong> (er_hi(1)-(er_lo(1))+1,er_hi(2)-(er_lo(2))+1,er_hi(3)-(er_lo(3))+1,ncomp_er)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_er</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc</strong> (3,2,ncomp_er)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grid_no</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>

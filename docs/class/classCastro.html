@@ -488,13 +488,12 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro4AreaEi">
-<span id="_CPPv3N6Castro4AreaEi"></span><span id="_CPPv2N6Castro4AreaEi"></span><span id="Castro::Area__i"></span><span class="target" id="classCastro_1a36b4d46ca4d7a043887118b8d2778592"></span>amrex::MultiFab &amp;<code class="descname">Area</code><span class="sig-paren">(</span>int <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro4AreaEi" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N6Castro4AreaEi"></span><span id="_CPPv2N6Castro4AreaEi"></span><span id="Castro::Area__i"></span><span class="target" id="classCastro_1a5ab47bf7d9f329128e716eb7cbc50fb5"></span>amrex::MultiFab &amp;<code class="descname">Area</code><span class="sig-paren">(</span>int <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro4AreaEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Area of the multifab with surface normal along <code class="docutils literal notranslate"><span class="pre">dir</span></code></p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: direction of normal</li>
-<li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: direction of normal </li>
 </ul>
 </dd>
 </dl>
@@ -503,7 +502,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro6VolumeEv">
-<span id="_CPPv3N6Castro6VolumeEv"></span><span id="_CPPv2N6Castro6VolumeEv"></span><span id="Castro::Volume"></span><span class="target" id="classCastro_1ad5c5bbeccb660d6295b99e2427e8ca33"></span>amrex::MultiFab &amp;<code class="descname">Volume</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro6VolumeEv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N6Castro6VolumeEv"></span><span id="_CPPv2N6Castro6VolumeEv"></span><span id="Castro::Volume"></span><span class="target" id="classCastro_1a3a64344256426defc47bbb1e27e16dc4"></span>amrex::MultiFab &amp;<code class="descname">Volume</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro6VolumeEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>The volume of the multifab. </p>
 </dd></dl>
 
@@ -742,16 +741,18 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_old_sources__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a17c9e719677ec00561b1b981e207a9c4"></span>void <code class="descname">do_old_sources</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv4N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii">
+<span id="_CPPv3N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii"></span><span id="_CPPv2N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii"></span><span id="Castro::do_old_sources__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.b.i.i"></span><span class="target" id="classCastro_1afc9ed7a892fbadf0682f4e40382ba9b2"></span>void <code class="descname">do_old_sources</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, bool <em>apply_to_state</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Construct source terms at old time</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </li>
-<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">apply_to_state</span></code>: whether to apply the source to state_new </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </li>
 </ul>
@@ -781,8 +782,8 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_new_sources__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a0c6decd6ddd45bf329eec23d7e33f249"></span>void <code class="descname">do_new_sources</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv4N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii">
+<span id="_CPPv3N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii"></span><span id="_CPPv2N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii"></span><span id="Castro::do_new_sources__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.b.i.i"></span><span class="target" id="classCastro_1a5267ebfd57f6d46de0f3da3581e87af0"></span>void <code class="descname">do_new_sources</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, bool <em>apply_to_state</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Construct new time sources</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -792,6 +793,7 @@
 <li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </li>
 <li><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </li>
 <li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </li>
+<li><code class="docutils literal notranslate"><span class="pre">apply_to_state</span></code>: whether to apply the source to state_new </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </li>
 <li><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </li>
 </ul>
@@ -2284,6 +2286,12 @@
 <dd></dd></dl>
 
 <dl class="function">
+<dt>
+<span class="target" id="classCastro_1a01f599073a5e24c90775f310f76a2d05"></span><code class="descname">static int Castro::numBCThreadsMin(3)</code></dt>
+<dd><p>Minimum CUDA threadblock size for BC fills. </p>
+</dd></dl>
+
+<dl class="function">
 <dt id="_CPPv4N6Castro12minBCThreadsEi">
 <span id="_CPPv3N6Castro12minBCThreadsEi"></span><span id="_CPPv2N6Castro12minBCThreadsEi"></span><span id="Castro::minBCThreads__i"></span><span class="target" id="classCastro_1a40ef8d943b0be650fa6293c41be5d533"></span><em class="property">static</em> int <code class="descname">minBCThreads</code><span class="sig-paren">(</span>int <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro12minBCThreadsEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
@@ -2550,12 +2558,6 @@
 <dd><p>A record of how many cells we have advanced throughout the simulation. This is saved as a real because we will be storing the number of zones advanced as a ratio with the number of zones on the coarse grid (to help prevent the number from getting too large), and that may be a non-integer number. </p>
 </dd></dl>
 
-<dl class="member">
-<dt id="_CPPv4N6Castro15numBCThreadsMinE">
-<span id="_CPPv3N6Castro15numBCThreadsMinE"></span><span id="_CPPv2N6Castro15numBCThreadsMinE"></span><span id="Castro::numBCThreadsMin__iA"></span><span class="target" id="classCastro_1a50dde0c77458af0db577b035e8f37b99"></span>int <code class="descname">numBCThreadsMin</code>[3]<a class="headerlink" href="#_CPPv4N6Castro15numBCThreadsMinE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Minimum CUDA threadblock size for BC fills. </p>
-</dd></dl>
-
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Protected Functions</p>
@@ -2579,7 +2581,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro8getLevelEi">
-<span id="_CPPv3N6Castro8getLevelEi"></span><span id="_CPPv2N6Castro8getLevelEi"></span><span id="Castro::getLevel__i"></span><span class="target" id="classCastro_1a3b6d83fb0569da5071dd5e36bc06abdd"></span><a class="reference internal" href="#_CPPv46Castro" title="Castro">Castro</a> &amp;<code class="descname">getLevel</code><span class="sig-paren">(</span>int <em>lev</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro8getLevelEi" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N6Castro8getLevelEi"></span><span id="_CPPv2N6Castro8getLevelEi"></span><span id="Castro::getLevel__i"></span><span class="target" id="classCastro_1a817d0ad40f1d77c97a5ab3f5ff1fe28e"></span><a class="reference internal" href="#_CPPv46Castro" title="Castro">Castro</a> &amp;<code class="descname">getLevel</code><span class="sig-paren">(</span>int <em>lev</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro8getLevelEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
@@ -2633,9 +2635,7 @@
 <dl class="function">
 <dt id="_CPPv4N6Castro20enforce_consistent_eERN5amrex8MultiFabE">
 <span id="_CPPv3N6Castro20enforce_consistent_eERN5amrex8MultiFabE"></span><span id="_CPPv2N6Castro20enforce_consistent_eERN5amrex8MultiFabE"></span><span id="Castro::enforce_consistent_e__amrex::MultiFabR"></span><span class="target" id="classCastro_1ade69dce123381b03723ec579175cc57d"></span>void <code class="descname">enforce_consistent_e</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>S</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro20enforce_consistent_eERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Enforces <div class="math notranslate nohighlight">
-\[ \rho E = \rho e + \frac{1}{2} \rho (u^2 + v^2 + w^2) \]</div>
-</p>
+<dd><p>Enforces (\  E =  e + {1}{2}  (u^2 + v^2 + w^2) )</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
@@ -2780,6 +2780,26 @@
 <span id="_CPPv3N6Castro15oversubscribingEv"></span><span id="_CPPv2N6Castro15oversubscribingEv"></span><span id="Castro::oversubscribing"></span><span class="target" id="classCastro_1a2ec4b1e7ec6827608631429b3798ea38"></span>bool <code class="descname">oversubscribing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro15oversubscribingEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns true if we’re on the GPU and the total memory on this level oversubscribes GPU memory. </p>
 </dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="classCastro_1a7b2146affb38f88ecf55d69da8333e43"></span><code class="descname">amrex::MultiFab Castro::area(3)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="classCastro_1a4e1556a32449cd5576c5c373f58c1350"></span><code class="descname">amrex::MultiFab Castro::dLogArea(1)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro41material_lost_through_boundary_cumulativeE6n_lost">
+<span id="_CPPv3N6Castro41material_lost_through_boundary_cumulativeE6n_lost"></span><span id="_CPPv2N6Castro41material_lost_through_boundary_cumulativeE6n_lost"></span><span id="Castro::material_lost_through_boundary_cumulative__n_lost"></span><span class="target" id="classCastro_1aa25af2330c4023e1e88d4c43d59036f2"></span>amrex::Real <code class="descname">material_lost_through_boundary_cumulative</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N6Castro6n_lostE" title="Castro::n_lost">n_lost</a><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro41material_lost_through_boundary_cumulativeE6n_lost" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro35material_lost_through_boundary_tempE6n_lost">
+<span id="_CPPv3N6Castro35material_lost_through_boundary_tempE6n_lost"></span><span id="_CPPv2N6Castro35material_lost_through_boundary_tempE6n_lost"></span><span id="Castro::material_lost_through_boundary_temp__n_lost"></span><span class="target" id="classCastro_1af18cb55a67616bcb8aeb58dd922daece"></span>amrex::Real <code class="descname">material_lost_through_boundary_temp</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N6Castro6n_lostE" title="Castro::n_lost">n_lost</a><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro35material_lost_through_boundary_tempE6n_lost" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 </div>
 <div class="breathe-sectiondef docutils container">
@@ -3004,16 +3024,6 @@
 </dd></dl>
 
 <dl class="member">
-<dt id="_CPPv4N6Castro4areaE">
-<span id="_CPPv3N6Castro4areaE"></span><span id="_CPPv2N6Castro4areaE"></span><span id="Castro::area__amrex::MultiFabA"></span><span class="target" id="classCastro_1a27df3a006180a5b61571c6973623245c"></span>amrex::MultiFab <code class="descname">area</code>[3]<a class="headerlink" href="#_CPPv4N6Castro4areaE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro8dLogAreaE">
-<span id="_CPPv3N6Castro8dLogAreaE"></span><span id="_CPPv2N6Castro8dLogAreaE"></span><span id="Castro::dLogArea__amrex::MultiFabA"></span><span class="target" id="classCastro_1a38b98bdd5afd1efe0167c1dd6f15d8b3"></span>amrex::MultiFab <code class="descname">dLogArea</code>[1]<a class="headerlink" href="#_CPPv4N6Castro8dLogAreaE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
 <dt id="_CPPv4N6Castro6radiusE">
 <span id="_CPPv3N6Castro6radiusE"></span><span id="_CPPv2N6Castro6radiusE"></span><span id="Castro::radius__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classCastro_1aa73762f77c5f2ee3e84784afdaa6d1a3"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radius</code><a class="headerlink" href="#_CPPv4N6Castro6radiusE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
@@ -3032,16 +3042,6 @@
 <dl class="member">
 <dt id="_CPPv4N6Castro15lastDtFromRetryE">
 <span id="_CPPv3N6Castro15lastDtFromRetryE"></span><span id="_CPPv2N6Castro15lastDtFromRetryE"></span><span id="Castro::lastDtFromRetry__amrex::Real"></span><span class="target" id="classCastro_1a5d7331e93f676c1f4c3a174b4736e7f9"></span>amrex::Real <code class="descname">lastDtFromRetry</code><a class="headerlink" href="#_CPPv4N6Castro15lastDtFromRetryE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro41material_lost_through_boundary_cumulativeE">
-<span id="_CPPv3N6Castro41material_lost_through_boundary_cumulativeE"></span><span id="_CPPv2N6Castro41material_lost_through_boundary_cumulativeE"></span><span id="Castro::material_lost_through_boundary_cumulative__amrex::RealA"></span><span class="target" id="classCastro_1a55db8e0cad040f6ce4e6ac09872b5ef7"></span>amrex::Real <code class="descname">material_lost_through_boundary_cumulative</code>[<code class="descname">n_lost</code>]<a class="headerlink" href="#_CPPv4N6Castro41material_lost_through_boundary_cumulativeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro35material_lost_through_boundary_tempE">
-<span id="_CPPv3N6Castro35material_lost_through_boundary_tempE"></span><span id="_CPPv2N6Castro35material_lost_through_boundary_tempE"></span><span id="Castro::material_lost_through_boundary_temp__amrex::RealA"></span><span class="target" id="classCastro_1adbb40e267577a1c0c0ad51994cb779f9"></span>amrex::Real <code class="descname">material_lost_through_boundary_temp</code>[<code class="descname">n_lost</code>]<a class="headerlink" href="#_CPPv4N6Castro35material_lost_through_boundary_tempE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">

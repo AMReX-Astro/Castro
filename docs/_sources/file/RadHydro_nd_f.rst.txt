@@ -1,4 +1,4 @@
-RadHydro_nd.f90
+RadHydro_nd.F90
 ===============
 
 radhydro\_nd\_module

@@ -1,4 +1,4 @@
-blackbody.f90
+blackbody.F90
 =============
 
 blackbody\_module

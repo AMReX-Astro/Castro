@@ -934,6 +934,8 @@
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.allow_small_energy</a>
 </li>
+      <li><a href="runtime_parameters.html#index-0">castro.apply_sources_consecutively</a>
+</li>
       <li><a href="runtime_parameters.html#index-6">castro.bndry_func_thread_safe</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.cfl</a>
@@ -997,6 +999,8 @@
       <li><a href="runtime_parameters.html#index-1">castro.dual_energy_eta2</a>
 </li>
       <li><a href="runtime_parameters.html#index-10">castro.dump_old</a>
+</li>
+      <li><a href="runtime_parameters.html#index-1">castro.ext_src_implicit</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.first_order_hydro</a>
 </li>
@@ -1138,12 +1142,12 @@
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.sdc_use_analytic_jac</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Hydrodynamics.html#index-0">castro.show_center_of_mass</a>, <a href="runtime_parameters.html#index-10">[1]</a>
 </li>
       <li><a href="Hydrodynamics.html#index-1">castro.small_dens</a>, <a href="runtime_parameters.html#index-1">[1]</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="runtime_parameters.html#index-1">castro.small_ener</a>
 </li>
       <li><a href="runtime_parameters.html#index-2">castro.small_plot_per_is_exact</a>
@@ -1252,8 +1256,6 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro4AreaEi">Castro::Area (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6Castro4AreaEv">[1]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro4AreaEi">[2]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro4AreaEv">[3]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro4areaE">Castro::area (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro4areaE">[1]</a>
-</li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro7avgDownEi">Castro::avgDown (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6Castro7avgDownEv">[1]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro7avgDownEi">[2]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro7avgDownEv">[3]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro15build_fine_maskEv">Castro::build_fine_mask (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro15build_fine_maskEv">[1]</a>
@@ -1332,8 +1334,6 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro9diffusionE">Castro::diffusion (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro9diffusionE">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro8dLogAreaE">Castro::dLogArea (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro8dLogAreaE">[1]</a>
-</li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii">Castro::do_advance_ctu (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii">Castro::do_advance_sdc (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14do_advance_sdcEN5amrex4RealEN5amrex4RealEii">[1]</a>
@@ -1342,9 +1342,9 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro13do_hscf_solveEv">Castro::do_hscf_solve (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro13do_hscf_solveEv">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">Castro::do_new_sources (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">[1]</a>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii">Castro::do_new_sources (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14do_new_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">Castro::do_old_sources (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">[1]</a>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii">Castro::do_old_sources (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14do_old_sourcesERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro12do_radiationE">Castro::do_radiation (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro12do_radiationE">[1]</a>
 </li>
@@ -1528,9 +1528,9 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro11mass_fluxesE">Castro::mass_fluxes (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro11mass_fluxesE">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro41material_lost_through_boundary_cumulativeE">Castro::material_lost_through_boundary_cumulative (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro41material_lost_through_boundary_cumulativeE">[1]</a>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro41material_lost_through_boundary_cumulativeE6n_lost">Castro::material_lost_through_boundary_cumulative (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro41material_lost_through_boundary_cumulativeE6n_lost">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro35material_lost_through_boundary_tempE">Castro::material_lost_through_boundary_temp (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro35material_lost_through_boundary_tempE">[1]</a>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro35material_lost_through_boundary_tempE6n_lost">Castro::material_lost_through_boundary_temp (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro35material_lost_through_boundary_tempE6n_lost">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro12minBCThreadsEi">Castro::minBCThreads (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro12minBCThreadsEi">[1]</a>
 </li>
@@ -1571,8 +1571,6 @@
       <li><a href="class/classCastro.html#_CPPv4N6Castro6NumAdvE">Castro::NumAdv (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6NumAdvE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro6NumAuxE">Castro::NumAux (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6NumAuxE">[1]</a>
-</li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro15numBCThreadsMinE">Castro::numBCThreadsMin (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro15numBCThreadsMinE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro7numGrowEv">Castro::numGrow (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro7numGrowEv">[1]</a>
 </li>
@@ -2176,6 +2174,8 @@
 </li>
       <li><a href="file/Castro_8H.html#_CPPv47ext_src">ext_src (C++ enumerator)</a>
 </li>
+      <li><a href="file/meth_params_f.html#f/meth_params_module/ext_src_implicit"><strong>ext_src_implicit (fortran variable in module meth_params_module)</strong></a>
+</li>
       <li><a href="file/meth_params_f.html#f/meth_params_module/ext_undefined"><strong>ext_undefined (fortran variable in module meth_params_module)</strong></a>
 </li>
   </ul></td>
@@ -2600,7 +2600,7 @@
 </li>
       <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec13bCoefficientsERKN5amrex8MultiFabEi">HypreABec::bCoefficients (C++ function)</a>, <a href="class/classHypreABec.html#_CPPv4N9HypreABec13bCoefficientsEi">[1]</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec13bCoefficientsERKN5amrex8MultiFabEi">[2]</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec13bCoefficientsEi">[3]</a>
 </li>
-      <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec6bcoefsE">HypreABec::bcoefs (C++ member)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec6bcoefsE">[1]</a>
+      <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec6bcoefsE11BL_SPACEDIM">HypreABec::bcoefs (C++ function)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec6bcoefsE11BL_SPACEDIM">[1]</a>
 </li>
       <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec6bdcompE">HypreABec::bdcomp (C++ member)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec6bdcompE">[1]</a>
 </li>
@@ -2614,7 +2614,7 @@
 </li>
       <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec11clearSolverEv">HypreABec::clearSolver (C++ function)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec11clearSolverEv">[1]</a>
 </li>
-      <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec2dxE">HypreABec::dx (C++ member)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec2dxE">[1]</a>
+      <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec2dxE11BL_SPACEDIM">HypreABec::dx (C++ function)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec2dxE11BL_SPACEDIM">[1]</a>
 </li>
       <li><a href="class/classHypreABec.html#_CPPv4N9HypreABec11flux_factorE">HypreABec::flux_factor (C++ member)</a>, <a href="file/HypreABec_8H.html#_CPPv4N9HypreABec11flux_factorE">[1]</a>
 </li>
@@ -2959,8 +2959,6 @@
       <li><a href="file/rad_params_f.html#f/rad_params_module/ng1"><strong>ng1 (fortran variable in module rad_params_module)</strong></a>
 </li>
       <li><a href="class/classNGBndry.html#_CPPv47NGBndry">NGBndry (C++ class)</a>, <a href="file/NGBndry_8H.html#_CPPv47NGBndry">[1]</a>
-</li>
-      <li><a href="class/classNGBndry.html#_CPPv4N7NGBndry11bctypearrayE">NGBndry::bctypearray (C++ member)</a>, <a href="file/NGBndry_8H.html#_CPPv4N7NGBndry11bctypearrayE">[1]</a>
 </li>
       <li><a href="class/classNGBndry.html#_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE">NGBndry::bndryTypes (C++ function)</a>, <a href="file/NGBndry_8H.html#_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE">[1]</a>
 </li>
@@ -3550,10 +3548,10 @@
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation16nNeutrinoSpeciesE">Radiation::nNeutrinoSpecies (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation16nNeutrinoSpeciesE">[1]</a>
 </li>
-      <li><a href="class/classRadiation.html#_CPPv4N9Radiation29nonconservative_energy_updateERN5amrex4RealERN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">Radiation::nonconservative_energy_update (C++ function)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation29nonconservative_energy_updateERN5amrex4RealERN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">[1]</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="class/classRadiation.html#_CPPv4N9Radiation29nonconservative_energy_updateERN5amrex4RealERN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">Radiation::nonconservative_energy_update (C++ function)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation29nonconservative_energy_updateERN5amrex4RealERN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">[1]</a>
+</li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation8nplotvarE">Radiation::nplotvar (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation8nplotvarE">[1]</a>
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation7nugroupE">Radiation::nugroup (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation7nugroupE">[1]</a>
@@ -3761,8 +3759,6 @@
       <li><a href="class/classRadSolve.html#_CPPv4N8RadSolve8levelRhsEiRN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabEN5amrex4RealEiiN5amrex4RealE">RadSolve::levelRhs (C++ function)</a>, <a href="class/classRadSolve.html#_CPPv4N8RadSolve8levelRhsEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEN5amrex4RealEN5amrex4RealEPN5amrex12FluxRegisterEN5amrex4RealEiN5amrex4RealEN5amrex4RealE">[1]</a>, <a href="file/RadSolve_8H.html#_CPPv4N8RadSolve8levelRhsEiRN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabERKN5amrex8MultiFabEN5amrex4RealEiiN5amrex4RealE">[2]</a>, <a href="file/RadSolve_8H.html#_CPPv4N8RadSolve8levelRhsEiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEN5amrex4RealEN5amrex4RealEPN5amrex12FluxRegisterEN5amrex4RealEiN5amrex4RealEN5amrex4RealE">[3]</a>
 </li>
       <li><a href="class/classRadSolve.html#_CPPv4N8RadSolve10levelSolveEiRN5amrex8MultiFabEiRN5amrex8MultiFabEN5amrex4RealE">RadSolve::levelSolve (C++ function)</a>, <a href="file/RadSolve_8H.html#_CPPv4N8RadSolve10levelSolveEiRN5amrex8MultiFabEiRN5amrex8MultiFabEN5amrex4RealE">[1]</a>
-</li>
-      <li><a href="class/classRadSolve.html#_CPPv4N8RadSolve9levelSPasEiRN5amrex5ArrayIN5amrex8MultiFabE11BL_SPACEDIMEEiA_iA_i">RadSolve::levelSPas (C++ function)</a>, <a href="file/RadSolve_8H.html#_CPPv4N8RadSolve9levelSPasEiRN5amrex5ArrayIN5amrex8MultiFabE11BL_SPACEDIMEEiA_iA_i">[1]</a>
 </li>
       <li><a href="class/classRadSolve.html#_CPPv4N8RadSolve7maxiterE">RadSolve::maxiter (C++ member)</a>, <a href="file/RadSolve_8H.html#_CPPv4N8RadSolve7maxiterE">[1]</a>
 </li>
