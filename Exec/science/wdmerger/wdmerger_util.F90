@@ -1426,7 +1426,6 @@ contains
   subroutine turn_off_relaxation(time) bind(C,name='turn_off_relaxation')
 
     use amrex_constants_module, only: ONE
-    use problem_io_module, only: ioproc
     use sponge_module, only: sponge_timescale
 
     implicit none
@@ -1435,14 +1434,6 @@ contains
 
     relaxation_damping_factor = -ONE
     sponge_timescale = -ONE
-
-    ! If we got a valid simulation time, print to the log when we stopped.
-
-    if (ioproc .and. time >= 0.0d0) then
-       print *, ""
-       print *, "Initial relaxation phase terminated at t = ", time
-       print *, ""
-    endif
 
   end subroutine turn_off_relaxation
 

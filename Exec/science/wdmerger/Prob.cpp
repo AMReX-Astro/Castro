@@ -1189,6 +1189,9 @@ Castro::update_relaxation(Real time, Real dt) {
 
     if (is_done > 0) {
         relaxation_is_done = 1;
+        amrex::Print() << "Disabling relaxation at time " << time
+                       << "s because the critical density threshold has been passed."
+                       << std::endl;
     }
 
     // We can also turn off the relaxation if we've passed
@@ -1199,6 +1202,9 @@ Castro::update_relaxation(Real time, Real dt) {
 
     if (relaxation_cutoff_time > 0.0 && time > relaxation_cutoff_time * std::max(t_ff_p, t_ff_s)) {
         relaxation_is_done = 1;
+        amrex::Print() << "Disabling relaxation at time " << time
+                       << "s because the maximum number of dynamical timescales has passed."
+                       << std::endl;
     }
 
     if (relaxation_is_done > 0) {
