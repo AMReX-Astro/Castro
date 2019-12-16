@@ -88,7 +88,7 @@ extern "C"
 			const int* lo, const int* hi,
 			const amrex::Real* potential, int* is_done);
 
-  void turn_off_relaxation(const amrex::Real* time);
+  void set_relaxation_damping_factor(const amrex::Real factor);
 
   void sum_force_on_stars(const int* lo, const int* hi,
                           BL_FORT_FAB_ARG_3D(force),

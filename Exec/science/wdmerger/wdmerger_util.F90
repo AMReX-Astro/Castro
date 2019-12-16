@@ -1417,22 +1417,15 @@ contains
 
 
 
-  ! This routine is called when we've satisfied our criterion
-  ! for disabling the initial relaxation phase. We set the
-  ! relaxation damping factor to a negative number, which disables
-  ! the damping.
-
-  subroutine turn_off_relaxation(time) bind(C,name='turn_off_relaxation')
-
-    use amrex_constants_module, only: ONE
+  subroutine set_relaxation_damping_factor(factor) bind(C,name='set_relaxation_damping_factor')
 
     implicit none
 
-    real(rt) :: time
+    real(rt), intent(in) :: factor
 
-    relaxation_damping_factor = -ONE
+    relaxation_damping_factor = factor
 
-  end subroutine turn_off_relaxation
+  end subroutine set_relaxation_damping_factor
 
 
 

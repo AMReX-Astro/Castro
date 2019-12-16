@@ -1209,7 +1209,8 @@ Castro::update_relaxation(Real time, Real dt) {
 
     if (relaxation_is_done > 0) {
 	set_relaxation_status(&relaxation_is_done);
-	turn_off_relaxation(&time);
+        const Real factor = -1.0;
+	set_relaxation_damping_factor(factor);
     }
 
 }
