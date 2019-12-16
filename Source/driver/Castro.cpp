@@ -2785,12 +2785,8 @@ Castro::reflux(int crse_level, int fine_level)
             }
 
             if (getLevel(lev).apply_sources()) {
-
-                getLevel(lev).do_new_sources(source, S_old, S_new, time, dt_advance);
-
-                getLevel(lev).apply_source_to_state(S_new, source, dt_advance, 0);
-                getLevel(lev).clean_state(S_new, time, 0);
-
+                bool apply_sources_to_state = true;
+                getLevel(lev).do_new_sources(source, S_old, S_new, time, dt_advance, apply_sources_to_state);
             }
 
             if (use_retry && dt_advance < dt_amr && getLevel(lev).keep_prev_state) {

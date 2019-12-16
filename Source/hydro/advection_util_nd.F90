@@ -1,6 +1,6 @@
 module advection_util_module
 
-  use amrex_fort_module, only : rt => amrex_real
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
@@ -10,9 +10,9 @@ contains
                                         state, s_lo, s_hi, &
                                         frac_change, verbose) bind(c,name='ca_enforce_minimum_density')
 
-    use network, only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, small_dens, density_reset_method
-    use amrex_constants_module, only : ZERO
+    use network, only: nspec, naux
+    use meth_params_module, only: NVAR, URHO, small_dens, density_reset_method
+    use amrex_constants_module, only: ZERO
 #ifndef AMREX_USE_GPU
     use castro_error_module, only: castro_error
 #endif
@@ -190,7 +190,7 @@ contains
     use meth_params_module, only: UMR, UMP
 #endif
 
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
     implicit none
 
     real(rt)         :: state(NVAR)
@@ -254,7 +254,7 @@ contains
 
     use amrex_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -287,17 +287,17 @@ contains
 
 
   subroutine ca_compute_cfl(lo, hi, &
-       q, q_lo, q_hi, &
-       qaux, qa_lo, qa_hi, &
-       dt, dx, courno, verbose) &
-       bind(C, name = "ca_compute_cfl")
+                            q, q_lo, q_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            dt, dx, courno, verbose) &
+                            bind(C, name = "ca_compute_cfl")
     ! Compute running max of Courant number over grids
     !
 
     use amrex_constants_module, only: ZERO, ONE
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, time_integration_method
     use prob_params_module, only: dim
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
     use reduction_module, only: reduce_max
 
     implicit none
@@ -427,18 +427,18 @@ contains
 
 
   subroutine ca_ctoprim(lo, hi, &
-       uin, uin_lo, uin_hi, &
+                        uin, uin_lo, uin_hi, &
 #ifdef RADIATION
-       Erin, Erin_lo, Erin_hi, &
-       lam, lam_lo, lam_hi, &
+                        Erin, Erin_lo, Erin_hi, &
+                        lam, lam_lo, lam_hi, &
 #endif
-       q,     q_lo,   q_hi, &
-       qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
+                        q,     q_lo,   q_hi, &
+                        qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
 
-    use actual_network, only : nspec, naux
-    use eos_module, only : eos
-    use eos_type_module, only : eos_t, eos_input_re
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, &
+    use actual_network, only: nspec, naux
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, &
          UEDEN, UEINT, UTEMP, &
          QRHO, QU, QV, QW, &
          QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
@@ -458,11 +458,11 @@ contains
     use amrinfo_module, only: amr_time
 #endif
 #ifdef RADIATION
-    use rad_params_module, only : ngroups
-    use rad_util_module, only : compute_ptot_ctot
+    use rad_params_module, only: ngroups
+    use rad_util_module, only: compute_ptot_ctot
 #endif
 
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -474,26 +474,27 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
-    real(rt)        , intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    real(rt), intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
 #ifdef RADIATION
-    real(rt)        , intent(in   ) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
-    real(rt)        , intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
 #endif
 
-    real(rt)        , intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt)        , intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt)        , parameter :: small = 1.e-8_rt
+    real(rt), parameter :: small = 1.e-8_rt
 
-    integer          :: i, j, k, g
-    integer          :: n, iq, ipassive
-    real(rt)         :: kineng, rhoinv
-    real(rt)         :: vel(3)
+    integer  :: i, j, k, g
+    integer  :: n, iq, ipassive
+    real(rt) :: kineng, rhoinv
+    real(rt) :: vel(3)
 
     type (eos_t) :: eos_state
 
 #ifdef RADIATION
-    real(rt)         :: ptot, ctot, gamc_tot
+    real(rt) :: ptot, ctot, gamc_tot
+    real(rt) :: lams(0:ngroups-1), qs(NQ)
 #endif
 
     !$gpu
@@ -586,7 +587,9 @@ contains
              qaux(i,j,k,QGAMCG)   = eos_state % gam1
              qaux(i,j,k,QCG)      = eos_state % cs
 
-             call compute_ptot_ctot(lam(i,j,k,:), q(i,j,k,:), qaux(i,j,k,QCG), &
+             lams(:) = lam(i,j,k,:)
+             qs(:) = q(i,j,k,:)
+             call compute_ptot_ctot(lams, qs, qaux(i,j,k,QCG), &
                                     ptot, ctot, gamc_tot)
 
              q(i,j,k,QPTOT) = ptot
@@ -618,13 +621,13 @@ contains
                           src, src_lo, src_hi, &
                           srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
 
-    use actual_network, only : nspec, naux
-    use meth_params_module, only : NVAR, NSRC, URHO, UMX, UMY, UMZ, UEINT, &
+    use actual_network, only: nspec, naux
+    use meth_params_module, only: NVAR, NSRC, URHO, UMX, UMY, UMZ, UEINT, &
                                    NQSRC, QRHO, QU, QV, QW, NQ, &
                                    QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
                                    npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -710,7 +713,7 @@ contains
     use meth_params_module, only: NGDNV, GDRHO, GDU, GDW, GDPRES, QRHO, QW
 #endif
     use prob_params_module, only: mom_flux_has_p
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
     implicit none
 
     integer :: dir, idx(3)
@@ -774,13 +777,13 @@ contains
 
 
   subroutine limit_hydro_fluxes_on_small_dens(lo, hi, &
-       idir, &
-       u, u_lo, u_hi, &
-       q, q_lo, q_hi, &
-       vol, vol_lo, vol_hi, &
-       flux, flux_lo, flux_hi, &
-       area, area_lo, area_hi, &
-       dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
+                                              idir, &
+                                              u, u_lo, u_hi, &
+                                              q, q_lo, q_hi, &
+                                              vol, vol_lo, vol_hi, &
+                                              flux, flux_lo, flux_hi, &
+                                              area, area_lo, area_hi, &
+                                              dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
     ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
     ! "Positivity-preserving method for high-order conservative schemes solving
     ! compressible Euler equations." It has been modified to enforce not only positivity
@@ -967,9 +970,9 @@ contains
 
 
   subroutine ca_shock(lo, hi, &
-       q, qd_lo, qd_hi, &
-       shk, s_lo, s_hi, &
-       dx) bind(C, name="ca_shock")
+                      q, qd_lo, qd_hi, &
+                      shk, s_lo, s_hi, &
+                      dx) bind(C, name="ca_shock")
     ! This is a basic multi-dimensional shock detection algorithm.
     ! This implementation follows Flash, which in turn follows
     ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
@@ -978,11 +981,11 @@ contains
     ! Woodward (1984)
     !
 
-    use meth_params_module, only : QPRES, QU, QV, QW, NQ
-    use prob_params_module, only : coord_type
+    use meth_params_module, only: QPRES, QU, QV, QW, NQ
+    use prob_params_module, only: coord_type
     use amrex_constants_module, only: ZERO, HALF, ONE
     use castro_error_module
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -1144,15 +1147,15 @@ contains
 
 
   subroutine divu(lo, hi, &
-       q, q_lo, q_hi, &
-       dx, div, div_lo, div_hi) bind(C, name='divu')
+                  q, q_lo, q_hi, &
+                  dx, div, div_lo, div_hi) bind(C, name='divu')
     ! this computes the *node-centered* divergence
     !
 
-    use meth_params_module, only : QU, QV, QW, NQ
-    use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
-    use prob_params_module, only : dg, coord_type, problo
-    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module, only: QU, QV, QW, NQ
+    use amrex_constants_module, only: HALF, FOURTH, ONE, ZERO
+    use prob_params_module, only: dg, coord_type, problo
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -1282,16 +1285,16 @@ contains
 
 
   subroutine avisc(lo, hi, &
-       q, q_lo, q_hi, &
-       qaux, qa_lo, qa_hi, &
-       dx, avis, a_lo, a_hi, idir)
+                   q, q_lo, q_hi, &
+                   qaux, qa_lo, qa_hi, &
+                   dx, avis, a_lo, a_hi, idir)
     ! this computes the *face-centered* artifical viscosity using the
     ! 4th order expression from McCorquodale & Colella (Eq. 35)
 
-    use meth_params_module, only : QU, QV, QW, QC, NQ, NQAUX
-    use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
-    use prob_params_module, only : dg
-    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module, only: QU, QV, QW, QC, NQ, NQAUX
+    use amrex_constants_module, only: HALF, FOURTH, ONE, ZERO
+    use prob_params_module, only: dg
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -1409,7 +1412,7 @@ contains
 
     use meth_params_module, only: NGDNV, GDPRES, GDU, GDV, GDW
     use amrex_constants_module, only: HALF, ONE
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -1513,9 +1516,9 @@ contains
 
 
   subroutine apply_av(lo, hi, idir, dx, &
-       div, div_lo, div_hi, &
-       uin, uin_lo, uin_hi, &
-       flux, f_lo, f_hi) bind(c, name="apply_av")
+                      div, div_lo, div_hi, &
+                      uin, uin_lo, uin_hi, &
+                      flux, f_lo, f_hi) bind(c, name="apply_av")
 
     use amrex_constants_module, only: ZERO, FOURTH
     use meth_params_module, only: NVAR, UTEMP, USHK, difmag
@@ -1586,14 +1589,14 @@ contains
 
 #ifdef RADIATION
   subroutine apply_av_rad(lo, hi, idir, dx, &
-       div, div_lo, div_hi, &
-       Erin, Ein_lo, Ein_hi, &
-       radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
+                          div, div_lo, div_hi, &
+                          Erin, Ein_lo, Ein_hi, &
+                          radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
 
     use amrex_constants_module, only: ZERO, FOURTH
     use meth_params_module, only: NVAR, UTEMP, USHK, difmag
     use prob_params_module, only: dg
-    use rad_params_module, only : ngroups
+    use rad_params_module, only: ngroups
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -1656,14 +1659,14 @@ contains
 
   subroutine scale_flux(lo, hi, &
 #if AMREX_SPACEDIM == 1
-       qint, qi_lo, qi_hi, &
+                        qint, qi_lo, qi_hi, &
 #endif
-       flux, f_lo, f_hi, &
-       area, a_lo, a_hi, dt) bind(c, name="scale_flux")
+                        flux, f_lo, f_hi, &
+                        area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
     use meth_params_module, only: NVAR, GDPRES, UMX, NGDNV
 #if AMREX_SPACEDIM == 1
-    use prob_params_module, only : coord_type
+    use prob_params_module, only: coord_type
 #endif
 
     implicit none
@@ -1705,10 +1708,10 @@ contains
 
 #ifdef RADIATION
   subroutine scale_rad_flux(lo, hi, &
-       rflux, rf_lo, rf_hi, &
-       area, a_lo, a_hi, dt) bind(c, name="scale_rad_flux")
+                            rflux, rf_lo, rf_hi, &
+                            area, a_lo, a_hi, dt) bind(c, name="scale_rad_flux")
 
-    use rad_params_module, only : ngroups
+    use rad_params_module, only: ngroups
 
     implicit none
 

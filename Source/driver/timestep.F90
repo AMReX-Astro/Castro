@@ -138,7 +138,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use burner_module, only: ok_to_burn ! function
-    use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn
+    use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn, neqs
     use temperature_integration_module, only: self_heat
     use amrex_fort_module, only : rt => amrex_real
     use extern_probin_module, only: small_x
@@ -162,6 +162,7 @@ contains
     integer       :: n
 
     type (burn_t) :: state_old, state_new
+    real(rt) :: ydot(neqs)
     type (eos_t)  :: eos_state
     real(rt)      :: rhooinv, rhoninv
 
@@ -236,10 +237,10 @@ contains
 #else
              state_new % self_heat = .true.
 #endif
-             call actual_rhs(state_new)
+             call actual_rhs(state_new, ydot)
 
-             dedt = state_new % ydot(net_ienuc)
-             dXdt = state_new % ydot(1:nspec) * aion
+             dedt = ydot(net_ienuc)
+             dXdt = ydot(1:nspec) * aion
 
              ! Apply a floor to the derivatives. This ensures that we don't
              ! divide by zero; it also gives us a quick method to disable

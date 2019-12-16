@@ -18,6 +18,17 @@ module burn_type_module
 
   integer, parameter :: neqs = 2 + nspec_evolve
 
+  ! for dimensioning the Jacobian
+
+#ifdef REACT_SPARSE_JACOBIAN
+  integer, parameter :: njrows = NETWORK_SPARSE_JAC_NNZ
+  integer, parameter :: njcols = 1
+#else
+  integer, parameter :: njrows = neqs
+  integer, parameter :: njcols = neqs
+#endif
+
+
   ! Indices of the temperature and energy variables in the work arrays.
 
   integer, parameter :: net_itemp = nspec_evolve + 1
@@ -49,19 +60,6 @@ module burn_type_module
     real(rt) :: dcvdT
     real(rt) :: dcpdT
 
-    ! The following are the actual integration data.
-    ! To avoid potential incompatibilities we won't
-    ! include the integration array y itself here.
-    ! It can be reconstructed from all of the above
-    ! data, particularly xn, e, and T.
-
-    real(rt) :: ydot(neqs)
-
-#ifdef REACT_SPARSE_JACOBIAN
-    real(rt) :: sparse_jac(NETWORK_SPARSE_JAC_NNZ)
-#else
-    real(rt) :: jac(neqs, neqs)
-#endif
 
     ! Whether we are self-heating or not.
 
@@ -123,14 +121,6 @@ contains
 
     to_state % dcvdT = from_state % dcvdT
     to_state % dcpdT = from_state % dcpdT
-
-    to_state % ydot(1:neqs) = from_state % ydot(1:neqs)
-
-#ifdef REACT_SPARSE_JACOBIAN
-    to_state % sparse_jac(1:NETWORK_SPARSE_JAC_NNZ) = from_state % sparse_jac(1:NETWORK_SPARSE_JAC_NNZ)
-#else
-    to_state % jac(1:neqs, 1:neqs) = from_state % jac(1:neqs, 1:neqs)
-#endif
 
     to_state % self_heat = from_state % self_heat
 
