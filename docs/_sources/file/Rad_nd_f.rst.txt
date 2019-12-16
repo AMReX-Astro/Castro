@@ -1,6 +1,11 @@
 Rad_nd.F90
 ==========
 
+rad\_nd\_module
+---------------
+
+.. f:automodule:: rad_nd_module
+
 ca\_initradconstants subroutine
 -------------------------------
 

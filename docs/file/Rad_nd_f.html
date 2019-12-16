@@ -165,6 +165,7 @@
 <li class="toctree-l3"><a class="reference internal" href="RadTests_8H.html">File RadTests.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Rad_nd.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/rad_nd_module">rad_nd_module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-initradconstants-subroutine">ca_initradconstants subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-initsinglegroup-subroutine">ca_initsinglegroup subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-initgroups-subroutine">ca_initgroups subroutine</a></li>
@@ -270,11 +271,50 @@
             
   <div class="section" id="rad-nd-f90">
 <h1>Rad_nd.F90<a class="headerlink" href="#rad-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/rad_nd_module">
+<span id="rad-nd-module"></span><h2>rad_nd_module<a class="headerlink" href="#f/rad_nd_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/rad_nd_module/cfrhoe" title="f/rad_nd_module/cfrhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">cfrhoe()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/rad_nd_module/cfrhoe">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">cfrhoe</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>frhoe</em>, <em>f_lo</em>, <em>f_hi</em>, <em>state</em>, <em>s_lo</em>, <em>s_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/cfrhoe" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>frhoe</strong> (f_hi(1)-(f_lo(1))+1,f_hi(2)-(f_lo(2))+1,f_hi(3)-(f_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>f_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ueint" title="f/meth_params_module/ueint"><code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code></a>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
 <div class="section" id="ca-initradconstants-subroutine">
 <h2>ca_initradconstants subroutine<a class="headerlink" href="#ca-initradconstants-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_initradconstants">
-<em class="property">subroutine  </em><code class="descname">ca_initradconstants</code><span class="sig-paren">(</span><em>p</em>, <em>c</em>, <em>h</em>, <em>k</em>, <em>s</em>, <em>a</em>, <em>m</em>, <em>j_is_used</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_initradconstants" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_nd_module/ca_initradconstants">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">ca_initradconstants</code><span class="sig-paren">(</span><em>p</em>, <em>c</em>, <em>h</em>, <em>k</em>, <em>s</em>, <em>a</em>, <em>m</em>, <em>j_is_used</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/ca_initradconstants" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -302,8 +342,8 @@
 <div class="section" id="ca-initsinglegroup-subroutine">
 <h2>ca_initsinglegroup subroutine<a class="headerlink" href="#ca-initsinglegroup-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_initsinglegroup">
-<em class="property">subroutine  </em><code class="descname">ca_initsinglegroup</code><span class="sig-paren">(</span><em>ngr</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_initsinglegroup" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_nd_module/ca_initsinglegroup">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">ca_initsinglegroup</code><span class="sig-paren">(</span><em>ngr</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/ca_initsinglegroup" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -320,8 +360,8 @@
 <div class="section" id="ca-initgroups-subroutine">
 <h2>ca_initgroups subroutine<a class="headerlink" href="#ca-initgroups-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_initgroups">
-<em class="property">subroutine  </em><code class="descname">ca_initgroups</code><span class="sig-paren">(</span><em>nugr</em>, <em>dnugr</em>, <em>ngr</em>, <em>ngr0</em>, <em>ngr1</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_initgroups" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_nd_module/ca_initgroups">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">ca_initgroups</code><span class="sig-paren">(</span><em>nugr</em>, <em>dnugr</em>, <em>ngr</em>, <em>ngr0</em>, <em>ngr1</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/ca_initgroups" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -348,8 +388,8 @@
 <div class="section" id="ca-initgroups2-subroutine">
 <h2>ca_initgroups2 subroutine<a class="headerlink" href="#ca-initgroups2-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_initgroups2">
-<em class="property">subroutine  </em><code class="descname">ca_initgroups2</code><span class="sig-paren">(</span><em>nugr</em>, <em>dnugr</em>, <em>xnugr</em>, <em>ngr</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_initgroups2" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_nd_module/ca_initgroups2">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">ca_initgroups2</code><span class="sig-paren">(</span><em>nugr</em>, <em>dnugr</em>, <em>xnugr</em>, <em>ngr</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/ca_initgroups2" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -375,8 +415,8 @@
 <div class="section" id="ca-initgroups3-subroutine">
 <h2>ca_initgroups3 subroutine<a class="headerlink" href="#ca-initgroups3-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_initgroups3">
-<em class="property">subroutine  </em><code class="descname">ca_initgroups3</code><span class="sig-paren">(</span><em>nugr</em>, <em>dnugr</em>, <em>dlognugr</em>, <em>xnugr</em>, <em>ngr</em>, <em>ngr0</em>, <em>ngr1</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_initgroups3" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_nd_module/ca_initgroups3">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">ca_initgroups3</code><span class="sig-paren">(</span><em>nugr</em>, <em>dnugr</em>, <em>dlognugr</em>, <em>xnugr</em>, <em>ngr</em>, <em>ngr0</em>, <em>ngr1</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/ca_initgroups3" title="Permalink to this definition">¶</a></dt>
 <dd><p>used by MGFLDSolver</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -406,8 +446,8 @@
 <div class="section" id="ca-setgroup-subroutine">
 <h2>ca_setgroup subroutine<a class="headerlink" href="#ca-setgroup-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_setgroup">
-<em class="property">subroutine  </em><code class="descname">ca_setgroup</code><span class="sig-paren">(</span><em>igroup</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_setgroup" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_nd_module/ca_setgroup">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">ca_setgroup</code><span class="sig-paren">(</span><em>igroup</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/ca_setgroup" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -424,8 +464,8 @@
 <div class="section" id="ca-inelastic-sct-subroutine">
 <h2>ca_inelastic_sct subroutine<a class="headerlink" href="#ca-inelastic-sct-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_inelastic_sct">
-<em class="property">subroutine  </em><code class="descname">ca_inelastic_sct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>uu</em>, <em>uu_lo</em>, <em>uu_hi</em>, <em>er</em>, <em>er_lo</em>, <em>er_hi</em>, <em>ks</em>, <em>ks_lo</em>, <em>ks_hi</em>, <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_inelastic_sct" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_nd_module/ca_inelastic_sct">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">ca_inelastic_sct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>uu</em>, <em>uu_lo</em>, <em>uu_hi</em>, <em>er</em>, <em>er_lo</em>, <em>er_hi</em>, <em>ks</em>, <em>ks_lo</em>, <em>ks_hi</em>, <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/ca_inelastic_sct" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -460,8 +500,8 @@
 <div class="section" id="ca-compute-scattering-subroutine">
 <h2>ca_compute_scattering subroutine<a class="headerlink" href="#ca-compute-scattering-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_compute_scattering">
-<em class="property">subroutine  </em><code class="descname">ca_compute_scattering</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>kps</em>, <em>kps_lo</em>, <em>kps_hi</em>, <em>sta</em>, <em>sta_lo</em>, <em>sta_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_compute_scattering" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_nd_module/ca_compute_scattering">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">ca_compute_scattering</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>kps</em>, <em>kps_lo</em>, <em>kps_hi</em>, <em>sta</em>, <em>sta_lo</em>, <em>sta_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/ca_compute_scattering" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -489,8 +529,8 @@
 <div class="section" id="ca-compute-scattering-2-subroutine">
 <h2>ca_compute_scattering_2 subroutine<a class="headerlink" href="#ca-compute-scattering-2-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
-<dt id="f/_/ca_compute_scattering_2">
-<em class="property">subroutine  </em><code class="descname">ca_compute_scattering_2</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>kps</em>, <em>kps_lo</em>, <em>kps_hi</em>, <em>sta</em>, <em>sta_lo</em>, <em>sta_hi</em>, <em>k0_p</em>, <em>m_p</em>, <em>n_p</em>, <em>k0_r</em>, <em>m_r</em>, <em>n_r</em>, <em>tfloor</em>, <em>kfloor</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_compute_scattering_2" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_nd_module/ca_compute_scattering_2">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">ca_compute_scattering_2</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>kps</em>, <em>kps_lo</em>, <em>kps_hi</em>, <em>sta</em>, <em>sta_lo</em>, <em>sta_hi</em>, <em>k0_p</em>, <em>m_p</em>, <em>n_p</em>, <em>k0_r</em>, <em>m_r</em>, <em>n_r</em>, <em>tfloor</em>, <em>kfloor</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/ca_compute_scattering_2" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
