@@ -1420,20 +1420,17 @@ contains
   ! This routine is called when we've satisfied our criterion
   ! for disabling the initial relaxation phase. We set the
   ! relaxation damping factor to a negative number, which disables
-  ! the damping, and we set the sponge timescale to a negative
-  ! number, which disables the sponging.
+  ! the damping.
 
   subroutine turn_off_relaxation(time) bind(C,name='turn_off_relaxation')
 
     use amrex_constants_module, only: ONE
-    use sponge_module, only: sponge_timescale
 
     implicit none
 
     real(rt) :: time
 
     relaxation_damping_factor = -ONE
-    sponge_timescale = -ONE
 
   end subroutine turn_off_relaxation
 
