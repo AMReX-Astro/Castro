@@ -759,34 +759,6 @@ subroutine anatw2(test, &
   enddo
 end subroutine anatw2
 
-subroutine cfrhoe(DIMS(reg), &
-                  frhoe, &
-                  DIMS(fb), &
-                  state, &
-                  DIMS(sb)) bind(C, name="cfrhoe")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(fb)
-  integer :: DIMDEC(sb)
-  real(rt)         :: frhoe(DIMV(fb))
-  real(rt)         :: state(DIMV(sb), NVAR)
-  !      real(rt)         kin
-  integer :: i, j, k
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           !               kin = 0.5e0_rt * (state(i,j,k,XMOM)   ** 2 +
-           !     @                        state(i,j,k,XMOM+1) ** 2 +
-           !     @                        state(i,j,k,XMOM+2) ** 2) /
-           !     @                       state(i,j,k,DEN)
-           !               frhoe(i,j,k) = state(i,j,k,EDEN) - kin
-           frhoe(i,j,k) = state(i,j,k, UEINT)
-        enddo
-     enddo
-  enddo
-end subroutine cfrhoe
-
 ! temp contains frhoe on input:
 
 subroutine gtemp(DIMS(reg), &
