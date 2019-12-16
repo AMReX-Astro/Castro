@@ -1594,9 +1594,10 @@ void Radiation::get_frhoe(FArrayBox& frhoe,
                           FArrayBox& state,
                           const Box& reg)
 {
-    cfrhoe(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   BL_TO_FORTRAN(frhoe),
-	   BL_TO_FORTRAN(state));
+#pragma gpu box(reg)
+    cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+	   BL_TO_FORTRAN_ANYD(frhoe),
+	   BL_TO_FORTRAN_ANYD(state));
 }
 
 void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
@@ -1784,12 +1785,13 @@ void Radiation::get_frhoe(MultiFab& frhoe,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter si(state,true); si.isValid(); ++si) {
+    for (MFIter si(state,TilingIfNotGPU()); si.isValid(); ++si) {
 	const Box& reg = si.tilebox();
 
-	cfrhoe(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	       BL_TO_FORTRAN(frhoe[si]),
-	       BL_TO_FORTRAN(state[si]));
+#pragma gpu box(reg)
+	cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+	       BL_TO_FORTRAN_ANYD(frhoe[si]),
+	       BL_TO_FORTRAN_ANYD(state[si]));
     }
 }
 
