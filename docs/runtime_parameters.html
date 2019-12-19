@@ -465,143 +465,149 @@ off <span class="math notranslate nohighlight">\((\rho g)\)</span> from the pres
 create small densities?</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">density_reset_method</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_large_vel</span></code></td>
+<td>Should we limit the momentum fluxes so that we do not
+create large velocities? If so, riemann_speed_limit
+will be used as the velocity cap.</td>
+<td>0</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">density_reset_method</span></code></td>
 <td>Which method to use when resetting a negative/small
 density 1 = Reset to characteristics of adjacent zone
 with largest density 2 = Use average of all adjacent
 zones for all state variables</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">allow_small_energy</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">allow_small_energy</span></code></td>
 <td>Whether or not to allow the internal energy to be less
 than the internal energy corresponding to small_temp</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_sponge</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_sponge</span></code></td>
 <td>permits sponge to be turned on and off</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sponge_implicit</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sponge_implicit</span></code></td>
 <td>if we are using the sponge, whether to use the implicit
 solve for it</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">ext_src_implicit</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">ext_src_implicit</span></code></td>
 <td>if we are using user-defined source terms, are these
 solved implicitly?</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">source_term_predictor</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">source_term_predictor</span></code></td>
 <td>extrapolate the source terms (gravity and rotation) to
 <span class="math notranslate nohighlight">\(n+1/2\)</span> timelevel for use in the interface state
 prediction</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">first_order_hydro</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">first_order_hydro</span></code></td>
 <td>set the flattening parameter to zero to force the
 reconstructed profiles to be flat, resulting in a
 first-order method</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">xl_ext_bc_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">xl_ext_bc_type</span></code></td>
 <td>if we are doing an external -x boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">xr_ext_bc_type</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">xr_ext_bc_type</span></code></td>
 <td>if we are doing an external +x boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">yl_ext_bc_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">yl_ext_bc_type</span></code></td>
 <td>if we are doing an external -y boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">yr_ext_bc_type</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">yr_ext_bc_type</span></code></td>
 <td>if we are doing an external +y boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">zl_ext_bc_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">zl_ext_bc_type</span></code></td>
 <td>if we are doing an external -z boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">zr_ext_bc_type</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">zr_ext_bc_type</span></code></td>
 <td>if we are doing an external +z boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hse_zero_vels</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hse_zero_vels</span></code></td>
 <td>if we are doing HSE boundary conditions, do we zero the
 velocity?</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hse_interp_temp</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hse_interp_temp</span></code></td>
 <td>if we are doing HSE boundary conditions, should we get
 the temperature via interpolation (using model_parser)
 or hold it constant?</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hse_reflect_vels</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hse_reflect_vels</span></code></td>
 <td>if we are doing HSE boundary conditions, how do we
 treat the velocity? reflect? or outflow?</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_order</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_order</span></code></td>
 <td>integration order for SDC integration valid options are
 2 and 4</td>
 <td>2</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_quadrature</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_quadrature</span></code></td>
 <td>which quadrature type to use with SDC?  0 = Gauss-
 Lobatto, 1 = Radau</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_extra</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_extra</span></code></td>
 <td>number of extra SDC iterations to take beyond the order</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver</span></code></td>
 <td>which SDC nonlinear solver to use?  1 = Newton, 2 =
 VODE, 3 = VODE for first iter</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_dens</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_dens</span></code></td>
 <td>relative tolerance for the nonlinear solve on rho with
 SDC</td>
 <td>1.e-6</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_spec</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_spec</span></code></td>
 <td>relative tolerance for the nonlinear solve on rho X_k
 with SDC</td>
 <td>1.e-6</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_ener</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_ener</span></code></td>
 <td>relative tolerance for the nonlinear solve on (rho e)
 or (rho E) with SDC</td>
 <td>1.e-6</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_atol</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_atol</span></code></td>
 <td>absolute tolerance for species with SDC (this will be
 multiplied by the current rho in the zone to define the
 absolute tolerance on (rho X)).</td>
 <td>1.e-10</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_relax_factor</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_relax_factor</span></code></td>
 <td>factor by which to reduce the SDC solver tol for each
 iteration before the last (e.g., for iteration k out of
 kmax iterations, the tol is
 <span class="math notranslate nohighlight">\(\epsilon/f^{(k_\mathrm{max} - k)}\)</span></td>
 <td>1.0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code></td>
 <td>do we solve for (rho e) or (rho E) in the SDC nonlinear
 solve?</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_use_analytic_jac</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_use_analytic_jac</span></code></td>
 <td>do we use the analytic or numerical Jacobian?</td>
 <td>1</td>
 </tr>
