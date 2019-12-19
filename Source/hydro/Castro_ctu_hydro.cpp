@@ -1102,6 +1102,19 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    dt, AMREX_REAL_ANYD(dx));
           }
 
+          if (limit_fluxes_on_large_vel == 1) {
+#pragma gpu box(nbx)
+              limit_hydro_fluxes_on_large_vel
+                  (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                   idir_f,
+                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(volume[mfi]),
+                   BL_TO_FORTRAN_ANYD(flux[idir]),
+                   BL_TO_FORTRAN_ANYD(area[idir][mfi]),
+                   dt, AMREX_REAL_ANYD(dx));
+          }
+
 #pragma gpu box(nbx)
           normalize_species_fluxes(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                                    BL_TO_FORTRAN_ANYD(flux[idir]));

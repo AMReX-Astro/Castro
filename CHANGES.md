@@ -1,5 +1,10 @@
 # 20.01
 
+   * A new option castro.limit_fluxes_on_large_vel has been added. It is similar
+     to the existing option limit_fluxes_on_small_dens -- fluxes are limited to
+     prevent the velocity in any zone from getting too high. The largest legal
+     speed is set by castro.riemann_speed_limit. (#712)
+
    * A new option castro.apply_sources_consecutively has been added. By default
      we add all source terms together at once. This option, if enabled, adds the
      sources one at a time, so that each source sees the effect of the previously
