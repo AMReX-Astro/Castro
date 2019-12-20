@@ -4,7 +4,7 @@ amr.plot_files_output = 1
 amr.checkpoint_files_output = 1
 
 max_step = 50000
-stop_time = 0.03
+stop_time = 0.2
 
 geometry.is_periodic = 0 0
 geometry.coord_sys = 1         # r-z coordinates
@@ -75,3 +75,6 @@ castro.small_dens   = 1.e-4
 castro.small_temp   = 1.e6
 
 castro.time_integration_method = 3
+castro.use_retry = 1
+castro.hard_cfl_limit = 0
+castro.max_subcycles = 16
