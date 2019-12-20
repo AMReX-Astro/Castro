@@ -541,22 +541,6 @@ private:
 /// @class GradPhiPhysBCFunct
 /// @brief A physical boundary condition function for grad phi
 ///
-class GradPhiPhysBCFunct
-    : public amrex::PhysBCFunctBase
-{
-public:
-    GradPhiPhysBCFunct ();
+using GradPhiPhysBCFunct = amrex::PhysBCFunctNoOp;
 
-///
-/// We should never need to actually fill physical ghost zones for
-/// grad phi, so this does nothing
-///
-/// @param mf       MultiFab
-/// @param dcomp    destonation component
-/// @param ncomp    Number of components
-/// @param time     Current time
-/// @param bccomp   Boundary conditions component
-///
-    virtual void FillBoundary (amrex::MultiFab& mf, int dcomp, int ncomp, amrex::Real time, int bccomp);
-};
 #endif

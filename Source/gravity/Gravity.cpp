@@ -2547,21 +2547,6 @@ Gravity::sanity_check (int level)
     }
 }
 
-// Instantiate the necessary functions to call InterpFromCoarseLevel on grad_phi.
-
-GradPhiPhysBCFunct::GradPhiPhysBCFunct () { }
-
-void
-GradPhiPhysBCFunct::FillBoundary (MultiFab& mf, int dcomp, int scomp, Real time, int bccomp)
-{
-    BL_PROFILE("GradPhiPhysBCFunct::FillBoundary");
-
-    // We should never need to actually fill physical ghost zones for grad_phi.
-    // So we do not need to do anything here.
-
-    return;
-}
-
 void
 Gravity::update_max_rhs()
 {
