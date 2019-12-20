@@ -971,13 +971,18 @@ Castro::update_relaxation(Real time, Real dt) {
 
     if (problem != 1 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
 
-    // Construct the update to the rotation frequency.
+    // Construct the update to the rotation frequency. We calculate
+    // the gravitational force at the end of the timestep, set the
+    // rotational force to be equal to it, and infer the required
+    // rotation frequency. Then we apply it so that the next timestep
+    // has an updated rotation force that is a better balance against
+    // the gravitational force.
 
     int coarse_level = 0;
     int finest_level = parent->finestLevel();
     int n_levs = finest_level + 1;
 
-    Vector< std::unique_ptr<MultiFab> > rot_force(n_levs);
+    Vector< std::unique_ptr<MultiFab> > force(n_levs);
 
     for (int lev = coarse_level; lev <= finest_level; ++lev) {
 
@@ -986,31 +991,30 @@ Castro::update_relaxation(Real time, Real dt) {
 
         const Real dt = new_time - old_time;
 
-        rot_force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
-        rot_force[lev]->setVal(0.0);
+        force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+        force[lev]->setVal(0.0);
 
         MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 
-        // Use the rot_force MultiFab as temporary data to hold the
-        // non-rotation forces that were applied during the step. The inspiration
-        // for this approach is the method of Rosswog, Speith & Wynn (2004)
-        // (which was in the context of neutron star mergers; it was extended
-        // to white dwarf mergers by Dan et al. (2011)). In that paper, the rotation
-        // force is calculated by exactly balancing against the gravitational and hydrodynamic
-        // forces. We will just use the gravitational force, since the desired equilibrium
-        // state is for the hydrodynamic forces to be zero.
+        // Store the non-rotation forces. The inspiration for this approach is
+        // the method of Rosswog, Speith & Wynn (2004) (which was in the context
+        // of neutron star mergers; it was extended to white dwarf mergers by Dan et al.
+        // (2011)). In that paper, the rotation force is calculated by exactly balancing
+        // against the gravitational and hydrodynamic forces. We will just use the
+        // gravitational force, since the desired equilibrium state is for the hydrodynamic
+        // forces to be zero.
 
         // We'll use the "old" gravity source constructor, which is really just a first-order
         // predictor for rho * g, and apply it at the new time.
 
-        getLevel(lev).construct_old_gravity_source(*rot_force[lev], S_new, new_time, dt);
+        getLevel(lev).construct_old_gravity_source(*force[lev], S_new, new_time, dt);
 
         // Mask out regions covered by fine grids.
 
         if (lev < parent->finestLevel()) {
             const MultiFab& mask = getLevel(lev+1).build_fine_mask();
             for (int n = 0; n < NUM_STATE; ++n)
-                MultiFab::Multiply(*rot_force[lev], mask, 0, n, 1, 0);
+                MultiFab::Multiply(*force[lev], mask, 0, n, 1, 0);
         }
 
     }
@@ -1048,7 +1052,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
 #pragma gpu box(box)
             sum_force_on_stars(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                               BL_TO_FORTRAN_ANYD((*rot_force[lev])[mfi]),
+                               BL_TO_FORTRAN_ANYD((*force[lev])[mfi]),
                                BL_TO_FORTRAN_ANYD(S_new[mfi]),
                                BL_TO_FORTRAN_ANYD(vol[mfi]),
                                BL_TO_FORTRAN_ANYD((*pmask)[mfi]),
