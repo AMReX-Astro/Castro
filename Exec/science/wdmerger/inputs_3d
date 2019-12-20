@@ -175,7 +175,7 @@ castro.transverse_reset_density = 1
 castro.density_reset_method = 2
 
 # Explicitly limit fluxes to avoid hitting a negative density
-castro.limit_fluxes_on_small_dens = 0
+castro.limit_fluxes_on_small_dens = 1
 
 ############################################################################################
 # Thermodynamics
