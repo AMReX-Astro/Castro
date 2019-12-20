@@ -1014,7 +1014,6 @@ Castro::update_relaxation(Real time, Real dt) {
         rot_force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
         rot_force[lev]->setVal(0.0);
 
-        MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
         MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 
         // Use the rot_force MultiFab as temporary data to hold the
@@ -1026,8 +1025,10 @@ Castro::update_relaxation(Real time, Real dt) {
         // forces. We will just use the gravitational force, since the desired equilibrium
         // state is for the hydrodynamic forces to be zero.
 
-        getLevel(lev).construct_old_gravity_source(*rot_force[lev], S_old, old_time, dt);
-        getLevel(lev).construct_new_gravity_source(*rot_force[lev], S_old, S_new, new_time, dt);
+        // We'll use the "old" gravity source constructor, which is really just a first-order
+        // predictor for rho * g, and apply it at the new time.
+
+        getLevel(lev).construct_old_gravity_source(*rot_force[lev], S_new, new_time, dt);
 
         // Mask out regions covered by fine grids.
 
