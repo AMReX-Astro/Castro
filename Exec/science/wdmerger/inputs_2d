@@ -174,6 +174,9 @@ castro.density_reset_method = 2
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 1
 
+# Explicitly limit fluxes to avoid large velocities
+castro.limit_fluxes_on_large_vel = 1
+
 ############################################################################################
 # Thermodynamics
 ############################################################################################
