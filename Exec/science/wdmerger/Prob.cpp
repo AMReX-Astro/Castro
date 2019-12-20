@@ -622,11 +622,6 @@ void Castro::problem_post_init() {
 
   get_relaxation_status(&relaxation_is_done);
 
-  // If we're doing an initial relaxation step, ensure that we are not subcycling.
-
-  if (problem == 1 && !relaxation_is_done && parent->subCycle() && parent->finestLevel() > 0)
-      amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
-
   // Update the rotational period; some problems change this from what's in the inputs parameters.
 
   get_period(&rotational_period);
@@ -976,27 +971,7 @@ Castro::update_relaxation(Real time, Real dt) {
 
     if (problem != 1 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
 
-    // Reconstruct the rotation force at the old and new times.
-    // For the old time we can simply use the old state data; for
-    // the new time, we need to reconstruct the state as it was
-    // before the new-time sources were applied, so we'll temporarily
-    // subtract off all the new-time sources before doing so.
-
-    // This process is technically incorrect if reactions are
-    // enabled. We reconstruct the new-time rotation force by
-    // subtracting the new-time sources, but ignore the fact that
-    // a Strang-split burn happened in between. We will not worry
-    // about this for two reasons: first, reactions are generally
-    // not going to be enabled during the relaxation step, and if
-    // they are enabled, they will contribute negligibly anyway
-    // since the relaxation step happens prior to the merger;
-    // second, the reactions do not directly affect the gravity
-    // or rotation source terms, so even if there were substantial
-    // reactions occurring, the error introduced by not accounting
-    // for them here would be small.
-
-    // Note that this process only really makes sense if we are
-    // not subcycling.
+    // Construct the update to the rotation frequency.
 
     int coarse_level = 0;
     int finest_level = parent->finestLevel();
