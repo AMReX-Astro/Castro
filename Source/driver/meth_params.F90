@@ -141,7 +141,6 @@ module meth_params_module
   real(rt), allocatable, save :: cg_tol
   integer,  allocatable, save :: cg_blend
   integer,  allocatable, save :: use_eos_in_riemann
-  real(rt), allocatable, save :: riemann_speed_limit
   integer,  allocatable, save :: use_flattening
   integer,  allocatable, save :: transverse_use_eos
   integer,  allocatable, save :: transverse_reset_density
@@ -151,6 +150,7 @@ module meth_params_module
   integer,  allocatable, save :: use_pslope
   integer,  allocatable, save :: limit_fluxes_on_small_dens
   integer,  allocatable, save :: limit_fluxes_on_large_vel
+  real(rt), allocatable, save :: speed_limit
   integer,  allocatable, save :: density_reset_method
   integer,  allocatable, save :: allow_small_energy
   integer,  allocatable, save :: do_sponge
@@ -237,7 +237,6 @@ attributes(managed) :: cg_maxiter
 attributes(managed) :: cg_tol
 attributes(managed) :: cg_blend
 attributes(managed) :: use_eos_in_riemann
-attributes(managed) :: riemann_speed_limit
 attributes(managed) :: use_flattening
 attributes(managed) :: transverse_use_eos
 attributes(managed) :: transverse_reset_density
@@ -247,6 +246,7 @@ attributes(managed) :: dual_energy_eta2
 attributes(managed) :: use_pslope
 attributes(managed) :: limit_fluxes_on_small_dens
 attributes(managed) :: limit_fluxes_on_large_vel
+attributes(managed) :: speed_limit
 attributes(managed) :: density_reset_method
 attributes(managed) :: allow_small_energy
 attributes(managed) :: do_sponge
@@ -366,7 +366,6 @@ attributes(managed) :: get_g_from_phi
   !$acc create(cg_tol) &
   !$acc create(cg_blend) &
   !$acc create(use_eos_in_riemann) &
-  !$acc create(riemann_speed_limit) &
   !$acc create(use_flattening) &
   !$acc create(transverse_use_eos) &
   !$acc create(transverse_reset_density) &
@@ -376,6 +375,7 @@ attributes(managed) :: get_g_from_phi
   !$acc create(use_pslope) &
   !$acc create(limit_fluxes_on_small_dens) &
   !$acc create(limit_fluxes_on_large_vel) &
+  !$acc create(speed_limit) &
   !$acc create(density_reset_method) &
   !$acc create(allow_small_energy) &
   !$acc create(do_sponge) &
@@ -501,40 +501,6 @@ contains
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
-    allocate(character(len=1)::gravity_type)
-    gravity_type = "fillme";
-    allocate(const_grav)
-    const_grav = 0.0_rt;
-    allocate(get_g_from_phi)
-    get_g_from_phi = 0;
-
-    call amrex_parmparse_build(pp, "gravity")
-    call pp%query("gravity_type", gravity_type)
-    call pp%query("const_grav", const_grav)
-    call pp%query("get_g_from_phi", get_g_from_phi)
-    call amrex_parmparse_destroy(pp)
-
-
-#ifdef ROTATION
-    allocate(rot_period)
-    rot_period = -1.e200_rt;
-    allocate(rot_period_dot)
-    rot_period_dot = 0.0_rt;
-    allocate(rotation_include_centrifugal)
-    rotation_include_centrifugal = 1;
-    allocate(rotation_include_coriolis)
-    rotation_include_coriolis = 1;
-    allocate(rotation_include_domegadt)
-    rotation_include_domegadt = 1;
-    allocate(state_in_rotating_frame)
-    state_in_rotating_frame = 1;
-    allocate(rot_source_type)
-    rot_source_type = 4;
-    allocate(implicit_rotation_update)
-    implicit_rotation_update = 1;
-    allocate(rot_axis)
-    rot_axis = 3;
-#endif
 #ifdef DIFFUSION
     allocate(diffuse_temp)
     diffuse_temp = 0;
@@ -544,14 +510,6 @@ contains
     diffuse_cutoff_density_hi = -1.e200_rt;
     allocate(diffuse_cond_scale_fac)
     diffuse_cond_scale_fac = 1.0_rt;
-#endif
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0_rt;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
 #endif
     allocate(difmag)
     difmag = 0.1_rt;
@@ -597,8 +555,6 @@ contains
     cg_blend = 2;
     allocate(use_eos_in_riemann)
     use_eos_in_riemann = 0;
-    allocate(riemann_speed_limit)
-    riemann_speed_limit = 2.99792458e10_rt;
     allocate(use_flattening)
     use_flattening = 1;
     allocate(transverse_use_eos)
@@ -617,6 +573,8 @@ contains
     limit_fluxes_on_small_dens = 0;
     allocate(limit_fluxes_on_large_vel)
     limit_fluxes_on_large_vel = 0;
+    allocate(speed_limit)
+    speed_limit = 2.99792458e10_rt;
     allocate(density_reset_method)
     density_reset_method = 1;
     allocate(allow_small_energy)
@@ -703,29 +661,41 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
+#ifdef ROTATION
+    allocate(rot_period)
+    rot_period = -1.e200_rt;
+    allocate(rot_period_dot)
+    rot_period_dot = 0.0_rt;
+    allocate(rotation_include_centrifugal)
+    rotation_include_centrifugal = 1;
+    allocate(rotation_include_coriolis)
+    rotation_include_coriolis = 1;
+    allocate(rotation_include_domegadt)
+    rotation_include_domegadt = 1;
+    allocate(state_in_rotating_frame)
+    state_in_rotating_frame = 1;
+    allocate(rot_source_type)
+    rot_source_type = 4;
+    allocate(implicit_rotation_update)
+    implicit_rotation_update = 1;
+    allocate(rot_axis)
+    rot_axis = 3;
+#endif
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0_rt;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
 
     call amrex_parmparse_build(pp, "castro")
-#ifdef ROTATION
-    call pp%query("rotational_period", rot_period)
-    call pp%query("rotational_dPdt", rot_period_dot)
-    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
-    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
-    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
-    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-    call pp%query("rot_source_type", rot_source_type)
-    call pp%query("implicit_rotation_update", implicit_rotation_update)
-    call pp%query("rot_axis", rot_axis)
-#endif
 #ifdef DIFFUSION
     call pp%query("diffuse_temp", diffuse_temp)
     call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
     call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
     call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
-#endif
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
     call pp%query("difmag", difmag)
     call pp%query("small_dens", small_dens)
@@ -749,7 +719,6 @@ contains
     call pp%query("cg_tol", cg_tol)
     call pp%query("cg_blend", cg_blend)
     call pp%query("use_eos_in_riemann", use_eos_in_riemann)
-    call pp%query("riemann_speed_limit", riemann_speed_limit)
     call pp%query("use_flattening", use_flattening)
     call pp%query("transverse_use_eos", transverse_use_eos)
     call pp%query("transverse_reset_density", transverse_reset_density)
@@ -759,6 +728,7 @@ contains
     call pp%query("use_pslope", use_pslope)
     call pp%query("limit_fluxes_on_small_dens", limit_fluxes_on_small_dens)
     call pp%query("limit_fluxes_on_large_vel", limit_fluxes_on_large_vel)
+    call pp%query("speed_limit", speed_limit)
     call pp%query("density_reset_method", density_reset_method)
     call pp%query("allow_small_energy", allow_small_energy)
     call pp%query("do_sponge", do_sponge)
@@ -802,6 +772,36 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+    call pp%query("rotational_dPdt", rot_period_dot)
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+    call pp%query("rot_source_type", rot_source_type)
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+    call pp%query("rot_axis", rot_axis)
+#endif
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
+    call amrex_parmparse_destroy(pp)
+
+
+    allocate(character(len=1)::gravity_type)
+    gravity_type = "fillme";
+    allocate(const_grav)
+    const_grav = 0.0_rt;
+    allocate(get_g_from_phi)
+    get_g_from_phi = 0;
+
+    call amrex_parmparse_build(pp, "gravity")
+    call pp%query("gravity_type", gravity_type)
+    call pp%query("const_grav", const_grav)
+    call pp%query("get_g_from_phi", get_g_from_phi)
     call amrex_parmparse_destroy(pp)
 
 
@@ -814,10 +814,10 @@ contains
     !$acc device(ppm_predict_gammae, plm_iorder, plm_limiter) &
     !$acc device(plm_well_balanced, hybrid_riemann, riemann_solver) &
     !$acc device(cg_maxiter, cg_tol, cg_blend) &
-    !$acc device(use_eos_in_riemann, riemann_speed_limit, use_flattening) &
-    !$acc device(transverse_use_eos, transverse_reset_density, transverse_reset_rhoe) &
-    !$acc device(dual_energy_eta1, dual_energy_eta2, use_pslope) &
-    !$acc device(limit_fluxes_on_small_dens, limit_fluxes_on_large_vel, density_reset_method) &
+    !$acc device(use_eos_in_riemann, use_flattening, transverse_use_eos) &
+    !$acc device(transverse_reset_density, transverse_reset_rhoe, dual_energy_eta1) &
+    !$acc device(dual_energy_eta2, use_pslope, limit_fluxes_on_small_dens) &
+    !$acc device(limit_fluxes_on_large_vel, speed_limit, density_reset_method) &
     !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
     !$acc device(ext_src_implicit, first_order_hydro, hse_zero_vels) &
     !$acc device(hse_interp_temp, hse_reflect_vels, sdc_order) &
@@ -1007,9 +1007,6 @@ contains
     if (allocated(use_eos_in_riemann)) then
         deallocate(use_eos_in_riemann)
     end if
-    if (allocated(riemann_speed_limit)) then
-        deallocate(riemann_speed_limit)
-    end if
     if (allocated(use_flattening)) then
         deallocate(use_flattening)
     end if
@@ -1036,6 +1033,9 @@ contains
     end if
     if (allocated(limit_fluxes_on_large_vel)) then
         deallocate(limit_fluxes_on_large_vel)
+    end if
+    if (allocated(speed_limit)) then
+        deallocate(speed_limit)
     end if
     if (allocated(density_reset_method)) then
         deallocate(density_reset_method)

@@ -3,14 +3,14 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
-#endif
 #ifdef DIFFUSION
 static int diffuse_temp;
 static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cutoff_density_hi;
 static amrex::Real diffuse_cond_scale_fac;
+#endif
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
 #endif
 #ifdef ROTATION
 static amrex::Real rotational_period;
@@ -22,6 +22,11 @@ static int state_in_rotating_frame;
 static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
+#endif
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
@@ -54,7 +59,6 @@ static int cg_maxiter;
 static amrex::Real cg_tol;
 static int cg_blend;
 static int use_eos_in_riemann;
-static amrex::Real riemann_speed_limit;
 static int use_flattening;
 static int transverse_use_eos;
 static int transverse_reset_density;
@@ -64,6 +68,7 @@ static amrex::Real dual_energy_eta2;
 static int use_pslope;
 static int limit_fluxes_on_small_dens;
 static int limit_fluxes_on_large_vel;
+static amrex::Real speed_limit;
 static int density_reset_method;
 static int allow_small_energy;
 static int do_sponge;
@@ -146,8 +151,3 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
-#ifdef GRAVITY
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
-#endif
