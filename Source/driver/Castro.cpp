@@ -1375,7 +1375,7 @@ Castro::estTimeStep (Real dt_old)
                 const MultiFab& radMF = get_new_data(Rad_Type);
                 FArrayBox gPr;
 
-                for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi)
+                for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
                 {
                     const Box& tbox = mfi.tilebox();
                     const Box& vbox = mfi.validbox();
@@ -1402,7 +1402,7 @@ Castro::estTimeStep (Real dt_old)
             {
                 Real dt = max_dt / cfl;
 
-                for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+                for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
                 {
                     const Box& box = mfi.tilebox();
 
@@ -1449,7 +1449,7 @@ Castro::estTimeStep (Real dt_old)
         {
             Real dt = max_dt / cfl;
 
-            for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+            for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
                 const Box& box = mfi.tilebox();
 
@@ -2456,7 +2456,7 @@ Castro::advance_aux(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& box = mfi.tilebox();
         FArrayBox& old_fab = S_old[mfi];
@@ -2884,7 +2884,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.growntilebox(ng);
 
@@ -2903,7 +2903,7 @@ Castro::enforce_consistent_e (MultiFab& S)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& box     = mfi.tilebox();
         const int* lo      = box.loVect();
@@ -2941,7 +2941,7 @@ Castro::enforce_min_density (MultiFab& state, int ng)
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dens_change)
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
 	const Box& bx = mfi.growntilebox(ng);
 
@@ -3330,7 +3330,7 @@ Castro::reset_internal_energy(MultiFab& S_new, int ng)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
 
@@ -3455,7 +3455,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
+  for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
       int num_ghost = ng;
