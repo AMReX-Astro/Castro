@@ -14,8 +14,6 @@ int Castro::problem = -1;
 Real Castro::diameter = 0.0;
 Real Castro::density = 0.0;
 
-#ifdef DO_PROBLEM_POST_INIT
-
 void Castro::problem_post_init() {
 
   // Read in inputs.
@@ -60,11 +58,9 @@ void Castro::problem_post_init() {
 
       // Now update the density given this factor.
 
-      if (ParallelDescriptor::IOProcessor()) {
-	  std::cout << "\n";
-	  std::cout << "  Updating density by the factor " << update_factor << " to ensure total mass matches target mass.\n";
-	  std::cout << "\n";
-      }
+      amrex::Print() << "\n";
+      amrex::Print() << "  Updating density by the factor " << update_factor << " to ensure total mass matches target mass.\n";
+      amrex::Print() << "\n";
 
       for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
@@ -75,16 +71,17 @@ void Castro::problem_post_init() {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	  for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
+	  for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
 	    const Box& box = mfi.tilebox();
 
 	    const int* lo  = box.loVect();
 	    const int* hi  = box.hiVect();
 
-	    update_density(lo, hi, dx,
-			   state[mfi].dataPtr(), ARLIM_3D(state[mfi].loVect()), ARLIM_3D(state[mfi].hiVect()),
-			   &update_factor);
+#pragma gpu box(box)
+	    update_density(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+			   BL_TO_FORTRAN_ANYD(state[mfi]),
+			   dx, update_factor);
 
 	  }
 
@@ -100,17 +97,13 @@ void Castro::problem_post_init() {
       ParallelDescriptor::ReduceRealSum(actual_mass);
 
       if (std::abs( (actual_mass - target_mass) / target_mass ) > 1.0e-6) {
-	  if (ParallelDescriptor::IOProcessor()) {
-	      std::cout << "\n";
-	      std::cout << "Actual mass: " << actual_mass << "\n";
-	      std::cout << "Target mass: " << target_mass << "\n";
-	      std::cout << "\n";
-	  }
+          amrex::Print() << "\n";
+          amrex::Print() << "Actual mass: " << actual_mass << "\n";
+          amrex::Print() << "Target mass: " << target_mass << "\n";
+          amrex::Print() << "\n";
 	  amrex::Abort("Sphere does not have the right amount of mass.");
       }
 
   }
 
 }
-
-#endif
