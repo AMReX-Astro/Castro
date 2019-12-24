@@ -27,8 +27,8 @@ CEXE_headers += RadTypes.H
 CEXE_headers += MGRadBndry.H
 CEXE_headers += RadTests.H
 
-ca_FEXE_headers += RAD_F.H
-ca_FEXE_headers += HABEC_F.H
+FEXE_headers += RAD_F.H
+FEXE_headers += HABEC_F.H
 
 ifeq ($(DIM), 1)
   CEXE_sources += DumpModel1d.cpp

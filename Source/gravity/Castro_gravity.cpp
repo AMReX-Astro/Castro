@@ -249,7 +249,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
 
@@ -309,7 +309,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 #pragma omp parallel
 #endif
     {
-	for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
+	for (MFIter mfi(state_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
 
