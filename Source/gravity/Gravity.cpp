@@ -1517,13 +1517,35 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     FArrayBox qUC(boxqC);
     FArrayBox qUS(boxqS);
 
-    qL0.setVal(0.0);
-    qLC.setVal(0.0);
-    qLS.setVal(0.0);
+    Array4<Real> const& qL0_arr = qL0.array();
+    Array4<Real> const& qU0_arr = qU0.array();
 
-    qU0.setVal(0.0);
-    qUC.setVal(0.0);
-    qUS.setVal(0.0);
+    amrex::ParallelFor(boxq0,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+    {
+        qL0_arr(i,j,k) = 0.0;
+        qU0_arr(i,j,k) = 0.0;
+    });
+
+    Array4<Real> const& qLC_arr = qLC.array();
+    Array4<Real> const& qUC_arr = qUC.array();
+
+    amrex::ParallelFor(boxqC,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+    {
+        qLC_arr(i,j,k) = 0.0;
+        qUC_arr(i,j,k) = 0.0;
+    });
+
+    Array4<Real> const& qLS_arr = qLS.array();
+    Array4<Real> const& qUS_arr = qUS.array();
+
+    amrex::ParallelFor(boxqS,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+    {
+        qLS_arr(i,j,k) = 0.0;
+        qUS_arr(i,j,k) = 0.0;
+    });
 
     // This section needs to be generalized for computing
     // full multipole gravity, not just BCs. At present this
@@ -1810,12 +1832,35 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     FArrayBox bcYZLo(boxYZ);
     FArrayBox bcYZHi(boxYZ);
 
-    bcXYLo.setVal(0.0);
-    bcXYHi.setVal(0.0);
-    bcXZLo.setVal(0.0);
-    bcXZHi.setVal(0.0);
-    bcYZLo.setVal(0.0);
-    bcYZHi.setVal(0.0);
+    Array4<Real> const& bcXYLo_arr = bcXYLo.array();
+    Array4<Real> const& bcXYHi_arr = bcXYHi.array();
+
+    amrex::ParallelFor(boxXY,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+    {
+        bcXYLo_arr(i,j,k) = 0.0;
+        bcXYHi_arr(i,j,k) = 0.0;
+    });
+
+    Array4<Real> const& bcXZLo_arr = bcXZLo.array();
+    Array4<Real> const& bcXZHi_arr = bcXZHi.array();
+
+    amrex::ParallelFor(boxXZ,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+    {
+        bcXZLo_arr(i,j,k) = 0.0;
+        bcXZHi_arr(i,j,k) = 0.0;
+    });
+
+    Array4<Real> const& bcYZLo_arr = bcYZLo.array();
+    Array4<Real> const& bcYZHi_arr = bcYZHi.array();
+
+    amrex::ParallelFor(boxYZ,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k)
+    {
+        bcYZLo_arr(i,j,k) = 0.0;
+        bcYZHi_arr(i,j,k) = 0.0;
+    });
 
     // Loop through the grids and compute the individual contributions
     // to the BCs. The BC constructor is coded to only add to the
