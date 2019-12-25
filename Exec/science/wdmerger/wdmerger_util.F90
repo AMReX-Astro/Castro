@@ -882,7 +882,7 @@ contains
 
           collision_separation = collision_separation * model_S % radius
 
-          if (collision_velocity < 0.0d0) then
+          if (collision_velocity < 0.0e0_rt) then
 
              call freefall_velocity(mass_P + mass_S, collision_separation, v_ff)
 
