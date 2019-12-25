@@ -241,7 +241,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/gravity_3d_module/ca_compute_direct_sum_bc" title="f/gravity_3d_module/ca_compute_direct_sum_bc"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_direct_sum_bc()</span></code></a>, <a class="reference internal" href="#f/gravity_3d_module/ca_compute_radial_mass" title="f/gravity_3d_module/ca_compute_radial_mass"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_radial_mass()</span></code></a>, <a class="reference internal" href="#f/gravity_3d_module/ca_put_direct_sum_bc" title="f/gravity_3d_module/ca_put_direct_sum_bc"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_direct_sum_bc()</span></code></a>, <a class="reference internal" href="#f/gravity_3d_module/ca_put_radial_grav" title="f/gravity_3d_module/ca_put_radial_grav"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_radial_grav()</span></code></a>, <a class="reference internal" href="#f/gravity_3d_module/ca_put_radial_phi" title="f/gravity_3d_module/ca_put_radial_phi"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_radial_phi()</span></code></a>, <a class="reference internal" href="#f/gravity_3d_module/ca_test_residual" title="f/gravity_3d_module/ca_test_residual"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_test_residual()</span></code></a>, <a class="reference internal" href="#f/gravity_3d_module/direct_sum_symmetric_add" title="f/gravity_3d_module/direct_sum_symmetric_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">direct_sum_symmetric_add()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/gravity_3d_module/ca_compute_radial_mass" title="f/gravity_3d_module/ca_compute_radial_mass"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_radial_mass()</span></code></a>, <a class="reference internal" href="#f/gravity_3d_module/ca_put_radial_grav" title="f/gravity_3d_module/ca_put_radial_grav"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_radial_grav()</span></code></a>, <a class="reference internal" href="#f/gravity_3d_module/ca_put_radial_phi" title="f/gravity_3d_module/ca_put_radial_phi"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_radial_phi()</span></code></a>, <a class="reference internal" href="#f/gravity_3d_module/ca_test_residual" title="f/gravity_3d_module/ca_test_residual"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_test_residual()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -414,113 +414,6 @@
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/gravity_3d_module/ca_compute_direct_sum_bc">
-<em class="property">subroutine  </em><code class="descclassname">gravity_3d_module/</code><code class="descname">ca_compute_direct_sum_bc</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dx</em>, <em>symmetry_type</em>, <em>lo_bc</em>, <em>hi_bc</em>, <em>rho</em>, <em>r_lo</em>, <em>r_hi</em>, <em>vol</em>, <em>v_lo</em>, <em>v_hi</em>, <em>problo</em>, <em>probhi</em>, <em>bcxylo</em>, <em>bcxyhi</em>, <em>bcxzlo</em>, <em>bcxzhi</em>, <em>bcyzlo</em>, <em>bcyzhi</em>, <em>bclo</em>, <em>bchi</em>, <em>bcdx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_3d_module/ca_compute_direct_sum_bc" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>symmetry_type</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lo_bc</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi_bc</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rho</strong> (r_hi(1)-(r_lo(1))+1,r_hi(2)-(r_lo(2))+1,r_hi(3)-(r_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>r_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>r_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>vol</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>problo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>probhi</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bcxylo</strong> (bchi(1)-(bclo(1))+1,bchi(2)-(bclo(2))+1)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>bcxyhi</strong> (bchi(1)-(bclo(1))+1,bchi(2)-(bclo(2))+1)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>bcxzlo</strong> (bchi(1)-(bclo(1))+1,bchi(3)-(bclo(3))+1)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>bcxzhi</strong> (bchi(1)-(bclo(1))+1,bchi(3)-(bclo(3))+1)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>bcyzlo</strong> (bchi(2)-(bclo(2))+1,bchi(3)-(bclo(3))+1)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>bcyzhi</strong> (bchi(2)-(bclo(2))+1,bchi(3)-(bclo(3))+1)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>bclo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bchi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bcdx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_3d_module/direct_sum_symmetric_add" title="f/gravity_3d_module/direct_sum_symmetric_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">direct_sum_symmetric_add()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/gravity_3d_module/ca_put_direct_sum_bc">
-<em class="property">subroutine  </em><code class="descclassname">gravity_3d_module/</code><code class="descname">ca_put_direct_sum_bc</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>phi</em>, <em>p_lo</em>, <em>p_hi</em>, <em>bcxylo</em>, <em>bcxyhi</em>, <em>bcxzlo</em>, <em>bcxzhi</em>, <em>bcyzlo</em>, <em>bcyzhi</em>, <em>bclo</em>, <em>bchi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_3d_module/ca_put_direct_sum_bc" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>phi</strong> (p_hi(1)-(p_lo(1))+1,p_hi(2)-(p_lo(2))+1,p_hi(3)-(p_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>p_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>p_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bcxylo</strong> (bchi(1)-(bclo(1))+1,bchi(2)-(bclo(2))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bcxyhi</strong> (bchi(1)-(bclo(1))+1,bchi(2)-(bclo(2))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bcxzlo</strong> (bchi(1)-(bclo(1))+1,bchi(3)-(bclo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bcxzhi</strong> (bchi(1)-(bclo(1))+1,bchi(3)-(bclo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bcyzlo</strong> (bchi(2)-(bclo(2))+1,bchi(3)-(bclo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bcyzhi</strong> (bchi(2)-(bclo(2))+1,bchi(3)-(bclo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bclo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>bchi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="f/gravity_3d_module/direct_sum_symmetric_add">
-<em class="property">function  </em><code class="descclassname">gravity_3d_module/</code><code class="descname">direct_sum_symmetric_add</code><span class="sig-paren">(</span><em>loc</em>, <em>locb</em>, <em>problo</em>, <em>probhi</em>, <em>rho</em>, <em>dv</em>, <em>dosymmetricaddlo</em>, <em>dosymmetricaddhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_3d_module/direct_sum_symmetric_add" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>loc</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>locb</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>problo</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>probhi</strong> (3)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>rho</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>dv</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>dosymmetricaddlo</strong> (3)<em> [</em><em>logical</em><em>]</em></li>
-<li><strong>dosymmetricaddhi</strong> (3)<em> [</em><em>logical</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>bcterm</strong><em> [</em><em>real</em><em>]</em></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_3d_module/ca_compute_direct_sum_bc" title="f/gravity_3d_module/ca_compute_direct_sum_bc"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_direct_sum_bc()</span></code></a></p>
 </td>
 </tr>
 </tbody>
