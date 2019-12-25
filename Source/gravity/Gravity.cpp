@@ -1810,10 +1810,10 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     const int loVectYZ[3] = {0         , domlo[1]-1, domlo[2]-1};
     const int hiVectYZ[3] = {0         , domhi[1]+1, domhi[1]+1};
 
-    const int bclo[3] = {domlo[0]-1, domlo[1]-1, domlo[2]-1};
-    const int bchi[3] = {domhi[0]+1, domhi[1]+1, domhi[2]+1};
+    const int bc_lo[3] = {domlo[0]-1, domlo[1]-1, domlo[2]-1};
+    const int bc_hi[3] = {domhi[0]+1, domhi[1]+1, domhi[2]+1};
 
-    const Real* bcdx = crse_geom.CellSize();
+    const Real* bc_dx = crse_geom.CellSize();
 
     IntVect smallEndXY( loVectXY );
     IntVect bigEndXY  ( hiVectXY );
@@ -1871,13 +1871,13 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     // to the BCs. The BC constructor is coded to only add to the
     // BCs, so it is safe to directly hand the arrays to them.
 
-    int lo_bc[3];
-    int hi_bc[3];
+    int physbc_lo[3];
+    int physbc_hi[3];
 
     for (int dir = 0; dir < 3; dir++)
     {
-      lo_bc[dir] = phys_bc->lo(dir);
-      hi_bc[dir] = phys_bc->hi(dir);
+      physbc_lo[dir] = phys_bc->lo(dir);
+      physbc_lo[dir] = phys_bc->hi(dir);
     }
 
     int symmetry_type = Symmetry;
@@ -1934,11 +1934,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 		const FArrayBox& r = source[mfi];
 		const FArrayBox& v = (*volume[lev])[mfi];
 
-		ca_compute_direct_sum_bc(bx.loVect(), bx.hiVect(), dx,
-					 &symmetry_type, lo_bc, hi_bc,
-					 r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
-					 v.dataPtr(), ARLIM_3D(v.loVect()), ARLIM_3D(v.hiVect()),
-					 crse_geom.ProbLo(),crse_geom.ProbHi(),
+#pragma gpu box(bx)
+		ca_compute_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), AMREX_REAL_ANYD(dx),
+					 symmetry_type, AMREX_INT_ANYD(physbc_lo), AMREX_INT_ANYD(physbc_hi),
+					 BL_TO_FORTRAN_ANYD(r),
+					 BL_TO_FORTRAN_ANYD(v),
+					 AMREX_REAL_ANYD(crse_geom.ProbLo()), AMREX_REAL_ANYD(crse_geom.ProbHi()),
 #ifdef _OPENMP
 					 priv_bcXYLo[tid]->dataPtr(),
 					 priv_bcXYHi[tid]->dataPtr(),
@@ -1951,7 +1952,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 					 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
 					 bcYZLo.dataPtr(), bcYZHi.dataPtr(),
 #endif
-	                                 bclo, bchi, bcdx);
+	                                 AMREX_INT_ANYD(bc_lo), AMREX_INT_ANYD(bc_hi), AMREX_REAL_ANYD(bc_dx));
 	    }
 
 #ifdef _OPENMP
@@ -2015,12 +2016,13 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 
 	FArrayBox& p = phi[mfi];
 
-        ca_put_direct_sum_bc(bx.loVect(), bx.hiVect(),
-			     p.dataPtr(), ARLIM_3D(p.loVect()), ARLIM_3D(p.hiVect()),
+#pragma gpu box(bx)
+        ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+			     BL_TO_FORTRAN_ANYD(p),
 			     bcXYLo.dataPtr(), bcXYHi.dataPtr(),
 			     bcXZLo.dataPtr(), bcXZHi.dataPtr(),
 			     bcYZLo.dataPtr(), bcYZHi.dataPtr(),
-	                     bclo, bchi);
+	                     AMREX_INT_ANYD(bc_lo), AMREX_INT_ANYD(bc_hi));
     }
 
     if (verbose)
