@@ -111,6 +111,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
   ! called by ALL processors during restart 
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_IO_module
   use probdata_module, only: com_P, com_S, vel_P, vel_S, mass_P, mass_S, t_ff_P, t_ff_S, problem, &
                              T_global_max, rho_global_max, ts_te_global_max, &
