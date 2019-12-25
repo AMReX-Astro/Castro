@@ -1481,7 +1481,9 @@ Gravity::init_multipole_grav()
       hi_bc[dir] = -1;
     }
 
-    init_multipole_gravity(&lnum, lo_bc, hi_bc);
+    if (lnum >= 0) {
+        init_multipole_gravity(&lnum, lo_bc, hi_bc);
+    }
 }
 
 void
@@ -1492,6 +1494,8 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     // Multipole BCs only make sense to construct if we are starting from the coarse level.
 
     BL_ASSERT(crse_level == 0);
+
+    BL_ASSERT(lnum >= 0);
 
     const Real strt = ParallelDescriptor::second();
 
