@@ -1,5 +1,17 @@
 # 20.01
 
+   * A new option castro.limit_fluxes_on_large_vel has been added. It is similar
+     to the existing option limit_fluxes_on_small_dens -- fluxes are limited to
+     prevent the velocity in any zone from getting too high. The largest legal
+     speed is set by castro.riemann_speed_limit. (#712)
+
+   * A new option castro.apply_sources_consecutively has been added. By default
+     we add all source terms together at once. This option, if enabled, adds the
+     sources one at a time, so that each source sees the effect of the previously
+     added sources. This can matter, as an example, for the sponge source term,
+     which may be more effective if it is added after source terms such as gravity
+     that update the velocity. (#710)
+
    * A new option castro.ext_src_implicit has been added. The external source
      terms were previously only implemented as an explicit predictor-corrector
      scheme. The new option, if turned on, changes the handling of the external

@@ -76,24 +76,22 @@ Castro::construct_new_hybrid_source(MultiFab& source, MultiFab& state_old, Multi
 void
 Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_factor)
 {
-
     BL_PROFILE("Castro::fill_hybrid_hydro_source()");
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-    const Box& bx = mfi.tilebox();
+        const Box& bx = mfi.tilebox();
 
 #pragma gpu box(bx)
-    ca_hybrid_hydro_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-			   BL_TO_FORTRAN_ANYD(state[mfi]),
-			   BL_TO_FORTRAN_ANYD(sources[mfi]),
-                           mult_factor);
+        ca_hybrid_hydro_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                               BL_TO_FORTRAN_ANYD(state[mfi]),
+                               BL_TO_FORTRAN_ANYD(sources[mfi]),
+                               mult_factor);
 
-  }
-
+    }
 }
 
 
@@ -106,7 +104,7 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
 
@@ -125,7 +123,7 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
 

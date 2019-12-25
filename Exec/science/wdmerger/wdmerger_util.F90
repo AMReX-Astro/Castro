@@ -180,6 +180,9 @@ contains
     allocate(center_fracx)
     allocate(center_fracy)
     allocate(center_fracz)
+    allocate(L1(3))
+    allocate(L2(3))
+    allocate(L3(3))
     allocate(bulk_velx)
     allocate(bulk_vely)
     allocate(bulk_velz)
@@ -710,7 +713,7 @@ contains
     use problem_io_module, only: ioproc
     use castro_error_module, only: castro_error
     use fundamental_constants_module, only: Gconst, c_light, AU, M_solar
-    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
 
     implicit none
 
@@ -939,10 +942,14 @@ contains
              write (*,1004) r_P_initial, r_P_initial / AU
              write (*,1005) r_S_initial, r_S_initial / AU
              write (*,1006) rot_period
+             write (*,1007) TWO * M_PI * r_P_initial / rot_period
+             write (*,1008) TWO * M_PI * r_S_initial / rot_period
 1003         format ("Generated binary orbit of distance ", ES8.2, " cm = ", ES8.2, " AU.")
 1004         format ("The primary orbits the center of mass at distance ", ES9.2, " cm = ", ES9.2, " AU.")
 1005         format ("The secondary orbits the center of mass at distance ", ES9.2, " cm = ", ES9.2, " AU.")
 1006         format ("The initial orbital period is ", F6.2 " s.")
+1007         format ("The initial orbital speed of the primary is ", ES9.2 " cm/s.")
+1008         format ("The initial orbital speed of the secondary is ", ES9.2 " cm/s.")
           endif
 
           ! Star center positions -- we'll put them in the midplane, with the center of mass at the center of the domain.
@@ -1376,34 +1383,45 @@ contains
   ! If so, set do_initial_relaxation to false, which will effectively
   ! turn off the external source terms.
 
-  subroutine check_relaxation(state, s_lo, s_hi, &
+  subroutine check_relaxation(lo, hi, &
+                              state, s_lo, s_hi, &
                               phiEff, p_lo, p_hi, &
-                              lo, hi, potential, is_done) bind(C,name='check_relaxation')
+                              potential, is_done) bind(C,name='check_relaxation')
 
+    use amrex_constants_module, only: ZERO, ONE
     use meth_params_module, only: URHO, NVAR
     use castro_util_module, only: position_to_index
+    use reduction_module, only: reduce_add
+    use probdata_module, only: relaxation_density_cutoff
 
     implicit none
 
-    integer  :: lo(3), hi(3)
-    integer  :: s_lo(3), s_hi(3)
-    integer  :: p_lo(3), p_hi(3)
-    real(rt) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt) :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-    real(rt) :: potential
-    integer  :: is_done
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: p_lo(3), p_hi(3)
+    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ) :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(in   ), value :: potential
+    real(rt), intent(inout) :: is_done
 
     integer  :: i, j, k
+    real(rt) :: done
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             done = ZERO
+
              if (phiEff(i,j,k) > potential .and. state(i,j,k,URHO) > relaxation_density_cutoff) then
 
-                is_done = 1
+                done = ONE
 
              endif
+
+             call reduce_add(is_done, done)
 
           enddo
        enddo
@@ -1413,34 +1431,15 @@ contains
 
 
 
-  ! This routine is called when we've satisfied our criterion
-  ! for disabling the initial relaxation phase. We set the
-  ! relaxation damping factor to a negative number, which disables
-  ! the damping, and we set the sponge timescale to a negative
-  ! number, which disables the sponging.
-
-  subroutine turn_off_relaxation(time) bind(C,name='turn_off_relaxation')
-
-    use amrex_constants_module, only: ONE
-    use problem_io_module, only: ioproc
-    use sponge_module, only: sponge_timescale
+  subroutine set_relaxation_damping_factor(factor) bind(C,name='set_relaxation_damping_factor')
 
     implicit none
 
-    real(rt) :: time
+    real(rt), intent(in) :: factor
 
-    relaxation_damping_factor = -ONE
-    sponge_timescale = -ONE
+    relaxation_damping_factor = factor
 
-    ! If we got a valid simulation time, print to the log when we stopped.
-
-    if (ioproc .and. time >= 0.0e0_rt) then
-       print *, ""
-       print *, "Initial relaxation phase terminated at t = ", time
-       print *, ""
-    endif
-
-  end subroutine turn_off_relaxation
+  end subroutine set_relaxation_damping_factor
 
 
 
@@ -1502,7 +1501,6 @@ contains
     use amrex_constants_module, only: ZERO, ONE, TWO
     use prob_params_module, only: center, physbc_lo, Symmetry, coord_type
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ
-    use castro_util_module, only: position
     use reduction_module, only: reduce_add
 
     implicit none
@@ -1974,23 +1972,27 @@ contains
   ! We will use a tri-linear interpolation that gets a contribution
   ! from all the zone centers that bracket the Lagrange point.
 
-  subroutine get_critical_roche_potential(phiEff,p_lo,p_hi,lo,hi,L1,potential) &
-                                          bind(C,name='get_critical_roche_potential')
+  subroutine get_critical_roche_potential(lo, hi, phiEff, p_lo, p_hi, potential) &
+                                          bind(C, name='get_critical_roche_potential')
 
     use amrex_constants_module, only: ZERO, HALF, ONE
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
+    use reduction_module, only: reduce_add
     use prob_params_module, only: dim, dx_level
+    use probdata_module, only: L1
     use amrinfo_module, only: amr_level
 
     implicit none
 
-    integer  :: lo(3), hi(3)
-    integer  :: p_lo(3), p_hi(3)
-    real(rt) :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-    real(rt) :: L1(3), potential
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: p_lo(3), p_hi(3)
+    real(rt), intent(in   ) :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(inout) :: potential
 
-    real(rt) :: r(3), dx(3)
+    real(rt) :: r(3), dx(3), dP
     integer  :: i, j, k
+
+    !$gpu
 
     dx = dx_level(:,amr_level)
 
@@ -2008,11 +2010,13 @@ contains
              ! We want a contribution from this zone if it is
              ! less than one zone width away from the Lagrange point.
 
+             dP = ZERO
+
              if (sum(r**2) < ONE) then
-
-                potential = potential + product(ONE - abs(r)) * phiEff(i,j,k)
-
+                dP = product(ONE - abs(r)) * phiEff(i,j,k)
              endif
+
+             call reduce_add(potential, dP)
 
           enddo
        enddo

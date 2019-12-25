@@ -1,17 +1,11 @@
 subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
-  use amrex_constants_module
-  use probdata_module
-  use amrex_constants_module
-  use castro_error_module
-  use fundamental_constants_module
-  use eos_module
+  use amrex_fort_module, only: rt => amrex_real
 
-  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer, intent(in) :: init, namlen
-  integer, intent(in) :: name(namlen)
+  integer,  intent(in) :: init, namlen
+  integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
   call probdata_init(name, namlen)
@@ -19,99 +13,204 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 end subroutine amrex_probinit
 
 
-! ::: -----------------------------------------------------------
-! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.
-! :::
-! ::: NOTE:  all arrays have one cell of ghost zones surrounding
-! :::        the grid interior.  Values in these cells need not
-! :::        be set here.
-! :::
-! ::: INPUTS/OUTPUTS:
-! :::
-! ::: level     => amr level of grid
-! ::: time      => time at which to init data
-! ::: lo,hi     => index limits of grid interior (cell centered)
-! ::: nstate    => number of state components.  You should know
-! :::		   this already!
-! ::: state     <=  Scalar array
-! ::: delta     => cell size
-! ::: xlo,xhi   => physical locations of lower left and upper
-! :::              right hand corner of grid.  (does not include
-! :::		   ghost region).
-! ::: -----------------------------------------------------------
-subroutine ca_initdata(level, time, lo, hi, nscal, &
-                       state, state_lo, state_hi, &
-                       delta, xlo, xhi)
 
-  use amrex_constants_module
-  use castro_error_module
-  use amrex_fort_module, only : rt => amrex_real
-
-  use probdata_module
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
-                                 UEDEN, UEINT, UFS, UFA
-  use network, only : nspec
-  use prob_params_module, only: problo, probhi, center
+module initdata_module
 
   implicit none
 
-  integer :: level, nscal
-  integer :: lo(3), hi(3)
-  integer :: state_lo(3), state_hi(3)
-  real(rt) :: xlo(3), xhi(3), time, delta(3)
-  real(rt) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+contains
 
-  real(rt) :: xx, yy, zz
+  subroutine ca_initdata(lo, hi, &
+                         state, s_lo, s_hi, &
+                         dx, problo) bind(C, name='ca_initdata')
 
-  integer :: i, j, k
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: HALF
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
+    use probdata_module, only: density, ambient_dens, diameter, problem
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
+                                  UEDEN, UEINT, UFS
+    use network, only: nspec
+    use prob_params_module, only: center
 
-  !$OMP PARALLEL DO PRIVATE(i, j, k, xx, yy, zz)
-  do k = lo(3), hi(3)
-     zz = problo(3) + delta(3) * (dble(k)+HALF) - center(3)
+    implicit none
 
-     do j = lo(2), hi(2)
-        yy = problo(2) + delta(2) * (dble(j)+HALF) - center(2)
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ) :: dx(3), problo(3)
 
-        do i = lo(1), hi(1)
-           xx = problo(1) + delta(1) * (dble(i)+HALF) - center(1)
+    integer  :: i, j, k, n
+    real(rt) :: xx, yy, zz
 
-           ! Establish the cube or sphere
+    !$gpu
 
-           if (problem .eq. 1 .or. problem .eq. 2) then
+    !$OMP PARALLEL DO PRIVATE(i, j, k, n, xx, yy, zz)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             xx = problo(1) + dx(1) * (dble(i) + HALF) - center(1)
+             yy = problo(2) + dx(2) * (dble(j) + HALF) - center(2)
+             zz = problo(3) + dx(3) * (dble(k) + HALF) - center(3)
 
-              if ((xx**2 + yy**2 + zz**2)**0.5 < diameter / 2) then
-                 state(i,j,k,URHO) = density
-              else
-                 state(i,j,k,URHO) = ambient_dens
-              endif
+             ! Establish the cube or sphere
 
-           else if (problem .eq. 3) then
+             if (problem .eq. 1 .or. problem .eq. 2) then
 
-              if (abs(xx) < diameter/2 .and. abs(yy) < diameter/2 .and. abs(zz) < diameter/2) then
-                 state(i,j,k,URHO) = density
-              else
-                 state(i,j,k,URHO) = ambient_dens
-              endif
+                if ((xx**2 + yy**2 + zz**2)**0.5 < diameter / 2) then
+                   state(i,j,k,URHO) = density
+                else
+                   state(i,j,k,URHO) = ambient_dens
+                endif
 
-           else
+             else if (problem .eq. 3) then
 
-              call castro_error("Problem not defined.")
+                if (abs(xx) < diameter/2 .and. abs(yy) < diameter/2 .and. abs(zz) < diameter/2) then
+                   state(i,j,k,URHO) = density
+                else
+                   state(i,j,k,URHO) = ambient_dens
+                endif
 
-           endif
+#ifndef AMREX_USE_GPU
+             else
 
-           ! Establish the thermodynamic quantities. They don't have to be
-           ! valid because this test will never do a hydro step.
+                call castro_error("Problem not defined.")
+#endif
 
-           state(i,j,k,UTEMP) = 1.0e0_rt
-           state(i,j,k,UEINT) = 1.0e0_rt
-           state(i,j,k,UEDEN) = 1.0e0_rt
+             endif
 
-           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,URHO) / nspec
+             ! Establish the thermodynamic quantities. They don't have to be
+             ! valid because this test will never do a hydro step.
 
-        enddo
-     enddo
-  enddo
-  !$OMP END PARALLEL DO
+             state(i,j,k,UTEMP) = 1.0e0_rt
+             state(i,j,k,UEINT) = 1.0e0_rt
+             state(i,j,k,UEDEN) = 1.0e0_rt
 
-end subroutine ca_initdata
+             do n = 1, nspec
+                state(i,j,k,UFS+n-1) = state(i,j,k,URHO) / nspec
+             end do
+
+          enddo
+       enddo
+    enddo
+    !$OMP END PARALLEL DO
+
+  end subroutine ca_initdata
+
+end module initdata_module
+
+
+
+module problem_module
+
+  implicit none
+
+contains
+
+  ! Return the problem type.
+
+  subroutine get_problem_number(problem_out) bind(C,name='get_problem_number')
+
+    use probdata_module, only: problem
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer :: problem_out
+
+    problem_out = problem
+
+  end subroutine get_problem_number
+
+
+
+  ! Return the diameter.
+
+  subroutine get_diameter(diameter_out) bind(C,name='get_diameter')
+
+    use probdata_module, only: diameter
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    real(rt) :: diameter_out
+
+    diameter_out = diameter
+
+  end subroutine get_diameter
+
+
+
+  ! Return the density.
+
+  subroutine get_density(density_out) bind(C,name='get_density')
+
+    use probdata_module, only: density
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    real(rt) :: density_out
+
+    density_out = density
+
+  end subroutine get_density
+
+
+
+  ! Update the density field. This ensures
+  ! that the sum of the mass on the domain
+  ! is what we intend it to be.
+
+  subroutine update_density(lo, hi, &
+                            state, s_lo, s_hi, &
+                            dx, update_factor) bind(C, name='update_density')
+
+    use amrex_constants_module, only: HALF
+    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UFS
+    use prob_params_module, only: problo, center
+    use probdata_module, only: problem, diameter
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: update_factor
+
+    integer  :: i, j, k
+    real(rt) :: xx, yy, zz
+
+    !$gpu
+
+    if (problem .eq. 2) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                xx = problo(1) + dx(1) * (dble(i) + HALF) - center(1)
+                yy = problo(2) + dx(2) * (dble(j) + HALF) - center(2)
+                zz = problo(3) + dx(3) * (dble(k) + HALF) - center(3)
+
+                if ((xx**2 + yy**2 + zz**2)**0.5 < diameter / 2) then
+
+                   state(i,j,k,URHO) = state(i,j,k,URHO) * update_factor
+                   state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,UFS:UFS-1+nspec) * update_factor
+
+                endif
+
+             enddo
+          enddo
+       enddo
+
+    endif
+
+  end subroutine update_density
+
+end module problem_module

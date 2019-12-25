@@ -106,7 +106,7 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q, MultiFab& qaux, Real time)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(u, true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(u, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
         const Box& bx = mfi.growntilebox(ng);
 

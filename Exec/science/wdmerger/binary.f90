@@ -4,7 +4,7 @@ module binary_module
   ! calculate generic properties of binary orbits.
 
   use amrex_fort_module, only: rt => amrex_real
-  
+
   implicit none
 
 contains
@@ -53,16 +53,15 @@ contains
   ! Calculate Lagrange points. In each case we give the zone index
   ! closest to it (assuming we're on the coarse grid).
 
-  subroutine get_lagrange_points(mass_1, mass_2, com_1, com_2, &
-                                 L1, L2, L3) bind(C, name="get_lagrange_points")
+  subroutine get_lagrange_points(mass_1, mass_2, com_1, com_2) bind(C, name="get_lagrange_points")
 
-    use amrex_constants_module
+    use amrex_constants_module, only: ZERO, HALF
+    use probdata_module, only: L1, L2, L3
 
     implicit none
 
     real(rt), intent(in   ), value :: mass_1, mass_2
     real(rt), intent(in   ) :: com_1(3), com_2(3)
-    real(rt), intent(inout) :: L1(3), L2(3), L3(3)
     
     real(rt) :: r ! Distance from Lagrange point to primary
     real(rt) :: a ! Distance between secondary and primary

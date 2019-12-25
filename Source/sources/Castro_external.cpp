@@ -119,7 +119,7 @@ Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& stat
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(ext_src, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
         const Box& bx = mfi.tilebox();

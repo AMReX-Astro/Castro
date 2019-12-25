@@ -21,7 +21,7 @@ Castro::pointmass_update(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:mass_change_at_center)
 #endif
-        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
 	    const Box& bx = mfi.tilebox();
 
@@ -53,7 +53,7 @@ Castro::pointmass_update(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi)
+	    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
                 const Box& bx = mfi.tilebox();
 

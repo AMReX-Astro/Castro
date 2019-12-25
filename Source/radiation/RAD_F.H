@@ -888,9 +888,9 @@ extern "C" {
 	      const amrex::Real& p, const amrex::Real& xf, const amrex::Real& Tc,
 	      const amrex::Real* dx, const amrex::Real* xlo, const int* lo);
 
-  void cfrhoe(ARLIM_P(reglo), ARLIM_P(reghi), 
-	      BL_FORT_FAB_ARG(frhoe), 
-	      BL_FORT_FAB_ARG(state));
+  void cfrhoe(const int* lo, const int* hi, 
+	      BL_FORT_FAB_ARG_3D(frhoe), 
+	      BL_FORT_FAB_ARG_3D(state));
 
   void gtemp(ARLIM_P(reglo), ARLIM_P(reghi),
 	     BL_FORT_FAB_ARG(temp), 

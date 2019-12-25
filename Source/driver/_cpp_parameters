@@ -31,6 +31,9 @@ do_reflux                    int           1
 # drivers
 update_sources_after_reflux  int           1
 
+# should we apply the sources one by one or all at once?
+apply_sources_consecutively  int           0
+
 # should we have state data for custom load-balancing weighting?
 use_custom_knapsack_weights  int           0
 
@@ -179,6 +182,10 @@ use_pslope                   int           1                  y
 
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0                  y
+
+# Should we limit the momentum fluxes so that we do not create large velocities?
+# If so, riemann_speed_limit will be used as the velocity cap.
+limit_fluxes_on_large_vel    int           0                  y
 
 # Which method to use when resetting a negative/small density
 # 1 = Reset to characteristics of adjacent zone with largest density
