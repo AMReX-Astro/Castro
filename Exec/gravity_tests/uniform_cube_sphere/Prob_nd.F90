@@ -306,14 +306,46 @@ contains
                 do ii = 0, 1
                    do jj = 0, 1
                       do kk = 0, 1
+
                          r = (x(ii)**2 + y(jj)**2 + z(kk)**2)**HALF
-                         phiExact = phiExact - Gconst * density * &
-                                               (x(ii) * y(jj) * atanh(z(kk) / r) + &
-                                                y(jj) * z(kk) * atanh(x(ii) / r) + &
-                                                z(kk) * x(ii) * atanh(y(jj) / r) - &
-                                                x(ii)**2 / 2.0_rt * atan(y(jj) * z(kk) / (x(ii) * r)) - &
-                                                y(jj)**2 / 2.0_rt * atan(z(kk) * x(ii) / (y(jj) * r)) - &
-                                                z(kk)**2 / 2.0_rt * atan(x(ii) * y(jj) / (z(kk) * r)))
+
+                         ! This is Equation 20 in Katz et al. (2016). There is a special case
+                         ! where, e.g., x(ii) = y(jj) = 0, in which case z(kk) = r and the
+                         ! atanh will evaluate to infinity, making the product ill-defined.
+                         ! Handle this case by only doing the atanh evaluation away from those
+                         ! points, since the product should be zero anyway. We also want to
+                         ! avoid a divide by zero, so we'll skip all the cases where r = 0.
+
+                         if (r / radius .gt. 1.e-6_rt) then
+
+                            if (abs(x(ii)) / radius .gt. 1.e-6_rt .and. abs(y(jj)) / radius .gt. 1.e-6_rt) then
+                               phiExact = phiExact - Gconst * density * (x(ii) * y(jj) * atanh(z(kk) / r))
+                            end if
+
+                            if (abs(y(jj)) / radius .gt. 1.e-6_rt .and. abs(z(kk)) / radius .gt. 1.e-6_rt) then
+                               phiExact = phiExact - Gconst * density * (y(jj) * z(kk) * atanh(x(ii) / r))
+                            end if
+
+                            if (abs(z(kk)) / radius .gt. 1.e-6_rt .and. abs(x(ii)) / radius .gt. 1.e-6_rt) then
+                               phiExact = phiExact - Gconst * density * (z(kk) * x(ii) * atanh(y(jj) / r))
+                            end if
+
+                            ! Also, avoid a divide-by-zero for the atan terms.
+
+                            if (abs(x(ii)) / radius .gt. 1.e-6_rt) then
+                               phiExact = phiExact + Gconst * density * (x(ii)**2 / 2.0_rt * atan(y(jj) * z(kk) / (x(ii) * r)))
+                            end if
+
+                            if (abs(y(jj)) / radius .gt. 1.e-6_rt) then
+                               phiExact = phiExact + Gconst * density * (y(jj)**2 / 2.0_rt * atan(z(kk) * x(ii) / (y(jj) * r)))
+                            end if
+
+                            if (abs(z(kk)) / radius .gt. 1.e-6_rt) then
+                               phiExact = phiExact + Gconst * density * (z(kk)**2 / 2.0_rt * atan(x(ii) * y(jj) / (z(kk) * r)))
+                            end if
+
+                         end if
+
                       end do
                    end do
                 end do
