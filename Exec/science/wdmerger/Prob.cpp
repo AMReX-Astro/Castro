@@ -52,7 +52,6 @@ Real Castro::ts_te_curr_max = 0.0;
 
 Real Castro::total_ener_array[num_previous_ener_timesteps] = { 0.0 };
 
-#ifdef DO_PROBLEM_POST_TIMESTEP
 void
 Castro::problem_post_timestep()
 {
@@ -88,7 +87,6 @@ Castro::problem_post_timestep()
     check_to_stop(time);
 
 }
-#endif
 
 
 
@@ -188,7 +186,7 @@ Castro::wd_update (Real time, Real dt)
                      reduction(+:vel_p_x,vel_p_y,vel_p_z,vel_s_x,vel_s_y,vel_s_z) \
                      reduction(+:mp, ms)
 #endif
-      for (MFIter mfi(*mfrho,true); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           FArrayBox& fabrho   = (*mfrho )[mfi];
 	  FArrayBox& fabxmom  = (*mfxmom)[mfi];
 	  FArrayBox& fabymom  = (*mfymom)[mfi];
@@ -394,7 +392,7 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:vp,vs)
 #endif
-      for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           FArrayBox& fab      = (*mf)[mfi];
           FArrayBox& fabpmask = (*mfpmask)[mfi];
           FArrayBox& fabsmask = (*mfsmask)[mfi];
@@ -502,7 +500,7 @@ Castro::gwstrain (Real time,
 	int tid = omp_get_thread_num();
 	priv_Qtt[tid]->setVal(0.0);
 #endif
-	for (MFIter mfi(*mfrho,true); mfi.isValid(); ++mfi) {
+	for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
 	    const Box& box  = mfi.tilebox();
 	    const int* lo   = box.loVect();
@@ -601,8 +599,6 @@ Real Castro::norm(const Real a[]) {
 
 
 
-#ifdef DO_PROBLEM_POST_INIT
-
 void Castro::problem_post_init() {
 
   // Read in inputs.
@@ -642,11 +638,7 @@ void Castro::problem_post_init() {
 
 }
 
-#endif
 
-
-
-#ifdef DO_PROBLEM_POST_RESTART
 
 void Castro::problem_post_restart() {
 
@@ -722,8 +714,6 @@ void Castro::problem_post_restart() {
   check_to_stop(time, dump);
 
 }
-
-#endif
 
 
 
@@ -1043,7 +1033,7 @@ Castro::update_relaxation(Real time, Real dt) {
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:fpx, fpy, fpz, fsx, fsy, fsz)
 #endif
-        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
             const Box& box = mfi.tilebox();
 
@@ -1109,13 +1099,9 @@ Castro::update_relaxation(Real time, Real dt) {
     // For the merger problem, we're going to turn the relaxation off
     // when we've reached the L1 Lagrange point.
 
-    Real L1[3] = { -1.0e200 };
-    Real L2[3] = { -1.0e200 };
-    Real L3[3] = { -1.0e200 };
-
     // First, calculate the location of the L1 Lagrange point.
 
-    get_lagrange_points(mass_p, mass_s, com_p, com_s, L1, L2, L3);
+    get_lagrange_points(mass_p, mass_s, com_p, com_s);
 
     // Then, figure out the effective potential corresponding to that
     // Lagrange point.
@@ -1127,15 +1113,17 @@ Castro::update_relaxation(Real time, Real dt) {
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:potential)
 #endif
-    for (MFIter mfi(*mfphieff,true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(*mfphieff, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
         const Box& box = mfi.tilebox();
 
         const int* lo  = box.loVect();
         const int* hi  = box.hiVect();
 
-        get_critical_roche_potential(BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
-                                     lo, hi, L1, &potential);
+#pragma gpu box(box)
+        get_critical_roche_potential(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                                     BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
+                                     AMREX_MFITER_REDUCE_SUM(&potential));
 
     }
 
@@ -1146,28 +1134,29 @@ Castro::update_relaxation(Real time, Real dt) {
 
     MultiFab& S_new = get_new_data(State_Type);
 
-    int is_done = 0;
+    Real is_done = 0.0;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:is_done)
 #endif
-    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
         const Box& box  = mfi.tilebox();
 
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-        check_relaxation(BL_TO_FORTRAN_ANYD(S_new[mfi]),
+#pragma gpu box(box)
+        check_relaxation(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                         BL_TO_FORTRAN_ANYD(S_new[mfi]),
                          BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
-                         ARLIM_3D(lo),ARLIM_3D(hi),
-                         &potential,&is_done);
+                         potential, AMREX_MFITER_REDUCE_SUM(&is_done));
 
     }
 
-    amrex::ParallelDescriptor::ReduceIntSum(is_done);
+    amrex::ParallelDescriptor::ReduceRealSum(is_done);
 
-    if (is_done > 0) {
+    if (is_done > 0.0) {
         relaxation_is_done = 1;
         amrex::Print() << "Disabling relaxation at time " << time
                        << "s because the critical density threshold has been passed."
