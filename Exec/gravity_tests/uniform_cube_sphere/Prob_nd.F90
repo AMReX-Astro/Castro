@@ -51,6 +51,7 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
              xx = problo(1) + dx(1) * (dble(i) + HALF) - center(1)
              yy = problo(2) + dx(2) * (dble(j) + HALF) - center(2)
              zz = problo(3) + dx(3) * (dble(k) + HALF) - center(3)
@@ -152,11 +153,28 @@ contains
 
     implicit none
 
-    real(rt) :: density_out
+    real(rt), intent(inout) :: density_out
 
     density_out = density
 
   end subroutine get_density
+
+
+
+  ! Set the density.
+
+  subroutine set_density(density_in) bind(C,name='set_density')
+
+    use probdata_module, only: density
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    real(rt), intent(in), value :: density_in
+
+    density = density_in
+
+  end subroutine set_density
 
 
 
@@ -199,18 +217,123 @@ contains
                 zz = problo(3) + dx(3) * (dble(k) + HALF) - center(3)
 
                 if ((xx**2 + yy**2 + zz**2)**0.5 < diameter / 2) then
-
                    state(i,j,k,URHO) = state(i,j,k,URHO) * update_factor
                    state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,UFS:UFS-1+nspec) * update_factor
+                end if
 
-                endif
+             end do
+          end do
+       end do
 
-             enddo
-          enddo
-       enddo
-
-    endif
+    end if
 
   end subroutine update_density
+
+
+
+
+  ! Compute the norm of the difference between the calculate potential
+  ! and the analytical solution.
+
+  subroutine compute_norm(lo, hi, &
+                          phi, p_lo, p_hi, &
+                          vol, v_lo, v_hi, &
+                          dx, norm_power, &
+                          norm_diff, norm_exact) bind(C, name='compute_norm')
+
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: ZERO, HALF, FOUR3RD, M_PI
+#ifndef AMREX_USE_GPU
+    use castro_eror_module, only: castro_error
+#endif
+    use fundamental_constants_module, only: Gconst
+    use prob_params_module, only: problo, center
+    use probdata_module, only: problem, diameter, density
+    use reduction_module, only: reduce_add
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: p_lo(3), p_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
+    real(rt), intent(in   ) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: norm_power
+    real(rt), intent(inout) :: norm_diff, norm_exact
+
+    integer  :: i, j, k
+    integer  :: ii, jj, kk
+    real(rt) :: xx, yy, zz, rr
+    real(rt) :: x(0:1), y(0:1), z(0:1), r
+
+    real(rt) :: mass, radius, phiExact
+
+    radius = HALF * diameter
+    mass = FOUR3RD * M_PI * radius**3 * density
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             xx = problo(1) + dx(1) * (dble(i) + HALF) - center(1)
+             yy = problo(2) + dx(2) * (dble(j) + HALF) - center(2)
+             zz = problo(3) + dx(3) * (dble(k) + HALF) - center(3)
+
+             rr = (xx**2 + yy**2 + zz**2)**HALF
+
+             if (problem .eq. 1 .or. problem .eq. 2) then
+
+                if (rr <= radius) then
+                   phiExact = -Gconst * mass * (3 * radius**2 - rr**2) / (2 * radius**3)
+                else
+                   phiExact = -Gconst * mass / rr
+                end if
+
+             else if (problem .eq. 3) then
+
+                x(0) = radius + xx
+                x(1) = radius - xx
+                y(0) = radius + yy
+                y(1) = radius - yy
+                z(0) = radius + zz
+                z(1) = radius - zz
+
+                phiExact = ZERO
+
+                do ii = 0, 1
+                   do jj = 0, 1
+                      do kk = 0, 1
+                         r = (x(ii)**2 + y(jj)**2 + z(kk)**2)**HALF
+                         phiExact = phiExact - Gconst * density * &
+                                               (x(ii) * y(jj) * atanh(z(kk) / r) + &
+                                                y(jj) * z(kk) * atanh(x(ii) / r) + &
+                                                z(kk) * x(ii) * atanh(y(jj) / r) - &
+                                                x(ii)**2 / 2.0_rt * atan(y(jj) * z(kk) / (x(ii) * r)) - &
+                                                y(jj)**2 / 2.0_rt * atan(z(kk) * x(ii) / (y(jj) * r)) - &
+                                                z(kk)**2 / 2.0_rt * atan(x(ii) * y(jj) / (z(kk) * r)))
+                      end do
+                   end do
+                end do
+
+
+#ifndef AMREX_USE_GPU
+             else
+
+                call castro_error("Problem not defined.")
+#endif
+
+             end if
+
+             call reduce_add(norm_diff, vol(i,j,k) * (phi(i,j,k) - phiExact)**norm_power)
+             call reduce_add(norm_exact, vol(i,j,k) * phiExact**norm_power)
+
+          end do
+       end do
+    end do
+
+  end subroutine compute_norm
 
 end module problem_module
