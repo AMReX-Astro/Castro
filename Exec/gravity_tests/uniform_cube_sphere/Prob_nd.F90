@@ -244,7 +244,7 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, FOUR3RD, M_PI
 #ifndef AMREX_USE_GPU
-    use castro_eror_module, only: castro_error
+    use castro_error_module, only: castro_error
 #endif
     use fundamental_constants_module, only: Gconst
     use prob_params_module, only: problo, center
