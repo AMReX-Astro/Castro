@@ -548,14 +548,19 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
       if ( direct_sum_bcs )
           fill_direct_sum_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       else {
-          fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
+          if (lnum >= 0) {
+              fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
+          } else {
+              int fill_interior = 0;
+              make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
+          }
       }
 #elif (BL_SPACEDIM == 2)
-      if (lnum > 0) {
+      if (lnum >= 0) {
           fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       } else {
-	int fill_interior = 0;
-	make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
+          int fill_interior = 0;
+          make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
       }
 #else
       int fill_interior = 0;
@@ -2678,10 +2683,15 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
 	if ( direct_sum_bcs ) {
 	    fill_direct_sum_BCs(crse_level, fine_level, rhs, *phi[0]);
         } else {
-	    fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
+            if (lnum >= 0) {
+                fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
+            } else {
+                int fill_interior = 0;
+                make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
+            }
 	}
 #elif (BL_SPACEDIM == 2)
-	if (lnum > 0) {
+	if (lnum >= 0) {
             fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
 	} else {
             int fill_interior = 0;
