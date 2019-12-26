@@ -1373,7 +1373,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
     RealVector radial_mass(n1d,0.0);
     RealVector radial_vol(n1d,0.0);
     RealVector radial_phi(n1d,0.0);
-    RealVector radial_grav(n1d+1,0.0);
+    RealVector radial_grav(n1d,0.0);
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
@@ -1425,7 +1425,19 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
     ParallelDescriptor::ReduceRealSum(radial_mass.dataPtr(),n1d);
 
+    RealVector radial_den(n1d, 0.0);
+
+    for (int i = 0; i < n1d; ++i)
+    {
+        radial_den[i] = radial_mass[i];
+        if (radial_vol[i] > 0.0) radial_den[i] /= radial_vol[i];
+    }
+
     // Integrate radially outward to define the gravity
+    ca_integrate_grav(radial_mass.dataPtr(), radial_den.dataPtr(),
+		      radial_grav.dataPtr(), &max_radius_all_in_domain, &dr, &n1d);
+
+    // Integrate radially inward to define the potential
     ca_integrate_phi(radial_mass.dataPtr(),radial_grav.dataPtr(),
 		     radial_phi.dataPtr(),&dr,&n1d);
 

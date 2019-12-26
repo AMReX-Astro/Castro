@@ -137,9 +137,8 @@ contains
 
   subroutine ca_integrate_phi (mass,grav,phi,dr,numpts_1d) &
        bind(C, name="ca_integrate_phi")
-    ! Integrates radial mass elements of a spherically symmetric
-    ! mass distribution to calculate both the gravitational acceleration,
-    ! grav, and the gravitational potential, phi. Here the mass variable
+    ! Integrates a radial gravitational acceleration, grav, to get the
+    ! gravitational potential, phi. Here the mass variable
     ! gives the mass contained in each radial shell.
     !
     ! The convention in Castro for Poisson's equation is
@@ -163,33 +162,26 @@ contains
     !     \phi(r < R) = \phi(R) - \int(g \dr)
     ! \f]
 
-    use fundamental_constants_module, only : Gconst
+    use fundamental_constants_module, only: Gconst
 
     implicit none
+
     integer , intent(in   ) :: numpts_1d   ! number of points in radial direction
     real(rt), intent(in   ) :: mass(0:numpts_1d-1)   ! radial mass distribution
     real(rt), intent(inout) :: grav(0:numpts_1d-1)   ! radial gravitational acceleration
     real(rt), intent(inout) :: phi(0:numpts_1d-1)   ! radial gravitational potential
     real(rt), intent(in   ) :: dr   ! radial cell spacing
 
-    real(rt)         :: gravBC, phiBC
-    integer          :: i
-    real(rt)         :: mass_encl,rhi
+    real(rt) :: gravBC, phiBC
+    integer  :: i
+    real(rt) :: mass_encl, rhi
 
-    mass_encl = 0.e0_rt
-    grav(0)   = 0.e0_rt
-    do i = 1,numpts_1d-1
-       rhi = dble(i) * dr
-       mass_encl = mass_encl + mass(i-1)
-       grav(i) = -Gconst * mass_encl / rhi**2
-    enddo
-
-    mass_encl = mass_encl + mass(numpts_1d-1)
-    phiBC = -Gconst * mass_encl / (numpts_1d*dr)
-    gravBC = -Gconst * mass_encl / (numpts_1d*dr)**2
+    mass_encl = sum(mass)
+    phiBC = -Gconst * mass_encl / (numpts_1d * dr)
+    gravBC = -Gconst * mass_encl / (numpts_1d * dr)**2
     phi(numpts_1d-1) = phiBC + gravBC * dr
 
-    do i = numpts_1d-2,0,-1
+    do i = numpts_1d-2, 0, -1
        phi(i) = phi(i+1) + grav(i+1) * dr
     enddo
 
