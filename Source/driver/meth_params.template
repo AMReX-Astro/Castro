@@ -1,4 +1,4 @@
-! This module stores the runtime parameters and integer names for 
+! This module stores the runtime parameters and integer names for
 ! indexing arrays.
 !
 ! The Fortran-specific parameters are initialized in set_method_params(),
@@ -7,9 +7,9 @@
 
 module meth_params_module
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
-  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC
+  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC, NSRC
 
   implicit none
 
@@ -29,12 +29,11 @@ module meth_params_module
   integer, allocatable, save :: QFA, QFS, QFX
 
 #ifdef RADIATION
-  integer, save :: QRAD, QRADHI, QPTOT, QREITOT
-  integer, save :: fspace_type
-  logical, save :: do_inelastic_scattering
-  logical, save :: comoving
-
-  real(rt)        , save :: flatten_pp_threshold = -1.e0_rt
+  integer,  allocatable, save :: QRAD, QRADHI, QPTOT, QREITOT
+  integer,  allocatable, save :: fspace_type
+  logical,  allocatable, save :: do_inelastic_scattering
+  logical,  allocatable, save :: comoving
+  real(rt), allocatable, save :: flatten_pp_threshold
 #endif
 
   integer, save, allocatable :: npassive
@@ -51,22 +50,26 @@ module meth_params_module
   ! Numerical values corresponding to the gravity types
 #ifdef GRAVITY
   integer, save, allocatable :: gravity_type_int
+  integer, parameter :: ConstantGrav = 0
+  integer, parameter :: MonopoleGrav = 1
+  integer, parameter :: PoissonGrav = 2
+  integer, parameter :: PrescribedGrav = 3
 #endif
 
-  integer         , save :: numpts_1d
+  integer, save :: numpts_1d
 
-  real(rt)        , save, allocatable :: outflow_data_old(:,:)
-  real(rt)        , save, allocatable :: outflow_data_new(:,:)
-  real(rt)        , save :: outflow_data_old_time
-  real(rt)        , save :: outflow_data_new_time
-  logical         , save :: outflow_data_allocated
-  real(rt)        , save :: max_dist
+  real(rt), save, allocatable :: outflow_data_old(:,:)
+  real(rt), save, allocatable :: outflow_data_new(:,:)
+  real(rt), save :: outflow_data_old_time
+  real(rt), save :: outflow_data_new_time
+  logical,  save :: outflow_data_allocated
+  real(rt), save :: max_dist
 
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
-  integer, parameter :: EXT_INTERP = 2 
-  
+  integer, parameter :: EXT_INTERP = 2
+
   integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
   ! Create versions of these variables on the GPU
@@ -79,14 +82,17 @@ module meth_params_module
   attributes(managed) :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
   attributes(managed) :: QGAMCG, QCG, QLAMS
+  attributes(managed) :: QRAD, QRADHI, QPTOT, QREITOT
+  attributes(managed) :: fspace_type
+  attributes(managed) :: do_inelastic_scattering
+  attributes(managed) :: comoving
+  attributes(managed) :: flatten_pp_threshold
+  attributes(managed) :: GDLAMS, GDERADS
 #endif
   attributes(managed) :: QFA, QFS, QFX
   attributes(managed) :: npassive
   attributes(managed) :: qpass_map, upass_map
   attributes(managed) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
-#ifdef RADIATION
-  attributes(managed) :: GDLAMS, GDERADS
-#endif
 #ifdef GRAVITY
   attributes(managed) :: gravity_type_int
 #endif
@@ -112,7 +118,7 @@ module meth_params_module
 
   ! End the declarations of the ParmParse parameters
 
-  real(rt)        , save :: rot_vec(3)
+  real(rt), save :: rot_vec(3)
 
 contains
 
@@ -138,6 +144,12 @@ contains
     allocate(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
 #ifdef RADIATION
     allocate(GDLAMS, GDERADS)
+    allocate(QRAD, QRADHI, QPTOT, QREITOT)
+    allocate(fspace_type)
+    allocate(do_inelastic_scattering)
+    allocate(comoving)
+    allocate(flatten_pp_threshold)
+    flatten_pp_threshold = -1.e0_rt
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
@@ -150,13 +162,15 @@ contains
     allocate(gravity_type_int)
 
     if (gravity_type == "ConstantGrav") then
-       gravity_type_int = 0
+       gravity_type_int = ConstantGrav
     else if (gravity_type == "MonopoleGrav") then
-       gravity_type_int = 1
+       gravity_type_int = MonopoleGrav
     else if (gravity_type == "PoissonGrav") then
-       gravity_type_int = 2
+       gravity_type_int = PoissonGrav
+    else if (gravity_type == "PrescribedGrav") then
+       gravity_type_int = PrescribedGrav
     else
-       call amrex_error("Unknown gravity type")
+       call castro_error("Unknown gravity type")
     end if
 #endif
 
@@ -164,7 +178,7 @@ contains
     select case (xl_ext_bc_type)
     case ("hse", "HSE")
        xl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xl_ext = EXT_INTERP
     case default
        xl_ext = EXT_UNDEFINED
@@ -173,7 +187,7 @@ contains
     select case (yl_ext_bc_type)
     case ("hse", "HSE")
        yl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yl_ext = EXT_INTERP
     case default
        yl_ext = EXT_UNDEFINED
@@ -182,7 +196,7 @@ contains
     select case (zl_ext_bc_type)
     case ("hse", "HSE")
        zl_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zl_ext = EXT_INTERP
     case default
        zl_ext = EXT_UNDEFINED
@@ -191,7 +205,7 @@ contains
     select case (xr_ext_bc_type)
     case ("hse", "HSE")
        xr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        xr_ext = EXT_INTERP
     case default
        xr_ext = EXT_UNDEFINED
@@ -200,7 +214,7 @@ contains
     select case (yr_ext_bc_type)
     case ("hse", "HSE")
        yr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        yr_ext = EXT_INTERP
     case default
        yr_ext = EXT_UNDEFINED
@@ -209,7 +223,7 @@ contains
     select case (zr_ext_bc_type)
     case ("hse", "HSE")
        zr_ext = EXT_HSE
-    case ("interp", "INTERP")       
+    case ("interp", "INTERP")
        zr_ext = EXT_INTERP
     case default
        zr_ext = EXT_UNDEFINED
@@ -230,6 +244,11 @@ contains
     deallocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
     deallocate(QGAMCG, QCG, QLAMS)
+    deallocate(QRAD, QRADHI, QPTOT, QREITOT)
+    deallocate(fspace_type)
+    deallocate(do_inelastic_scattering)
+    deallocate(comoving)
+    deallocate(flatten_pp_threshold)
 #endif
     deallocate(QFA, QFS, QFX)
     deallocate(npassive)
@@ -240,23 +259,21 @@ contains
 #endif
 
     @@free_castro_params@@
-    
+
   end subroutine ca_finalize_meth_params
 
 
 #ifdef RADIATION
   subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in,fppt) &
-       bind(C, name="ca_init_radhydro_pars")
+                                   bind(C, name="ca_init_radhydro_pars")
 
-    use rad_params_module, only : ngroups
-
-    use amrex_fort_module, only : rt => amrex_real
+    use rad_params_module, only: ngroups
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
-    integer, intent(in) :: fsp_type_in, do_is_in, com_in
-    real(rt)        , intent(in) :: fppt
-
+    integer,  intent(in) :: fsp_type_in, do_is_in, com_in
+    real(rt), intent(in) :: fppt
 
     if (ngroups .eq. 1) then
        fspace_type = 1
@@ -264,32 +281,29 @@ contains
        fspace_type = fsp_type_in
     end if
 
-#ifndef AMREX_USE_GPU
     if (fsp_type_in .ne. 1 .and. fsp_type_in .ne. 2) then
-       call amrex_error("Unknown fspace_type", fspace_type)
+       print *, "fspace_type = ", fspace_type
+       call castro_error("Unknown fspace_type")
     end if
-#endif
-    
+
     do_inelastic_scattering = (do_is_in .ne. 0)
-    
+
     if (com_in .eq. 1) then
        comoving = .true.
     else if (com_in .eq. 0) then
        comoving = .false.
     else
-#ifndef AMREX_USE_GPU
-       call amrex_error("Wrong value for comoving", fspace_type)
-#endif
+       call castro_error("Wrong value for comoving")
     end if
-    
+
     flatten_pp_threshold = fppt
-    
+
     !$acc update &
     !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)
-    !$acc device(flatten_pp_threshold = -1.e0_rt)
+    !$acc device(flatten_pp_threshold)
 
   end subroutine ca_init_radhydro_pars
 #endif

@@ -94,7 +94,7 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:target_h_max)
 #endif
-        for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
             const Box& bx = mfi.tilebox();
 
@@ -140,7 +140,7 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-            for (MFIter mfi((*psi[lev]), true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*psi[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
@@ -204,7 +204,7 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:phi_A, psi_A, phi_B, psi_B)
 #endif
-            for (MFIter mfi((*phi[lev]), true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
@@ -264,7 +264,7 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-            for (MFIter mfi((*phi_rot[lev]), true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi_rot[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
@@ -289,7 +289,7 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:bernoulli)
 #endif
-            for (MFIter mfi((*phi[lev]), true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
@@ -318,7 +318,7 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-            for (MFIter mfi((*phi[lev]), true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
@@ -353,7 +353,7 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:Linf_norm)
 #endif
-            for (MFIter mfi((*state[lev]), true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*state[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
@@ -405,7 +405,7 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:kin_eng,pot_eng,int_eng,mass)
 #endif
-            for (MFIter mfi((*state[lev]), true); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*state[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 

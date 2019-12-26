@@ -2,7 +2,7 @@
   mass_P = 0.90
   mass_S = 0.90
 
-  problem = 2
+  problem = 1
 
   roche_radius_factor = 1.0d0
 
@@ -10,6 +10,9 @@
 
   stellar_temp = 1.0d7
   ambient_temp = 1.0d7
+
+  relaxation_damping_factor = 1.0d-4
+  relaxation_density_cutoff = 1.0d10
 
   orbital_eccentricity = 0.0d0
   orbital_angle = 0.0d0

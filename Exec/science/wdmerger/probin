@@ -8,9 +8,9 @@
 
   nsub = 4
 
-  problem = 2
+  problem = 1
 
-  roche_radius_factor = 2.0d0
+  roche_radius_factor = 1.0d0
 
   collision_separation = 4.0d0
   collision_impact_parameter = 0.0d0
@@ -21,10 +21,11 @@
 
   interp_temp = T
 
-  relaxation_damping_factor = 1.0d-1
+  relaxation_damping_factor = -1.0d-1
   relaxation_density_cutoff = 1.0d3
+  relaxation_cutoff_time = -1.0d2
 
-  radial_damping_factor = 1.0d3
+  radial_damping_factor = -1.0d3
   initial_radial_velocity_factor = -1.0d-3
 
   ambient_density = 1.0d-4
@@ -39,8 +40,8 @@
   axis_2 = 2 
 
   max_stellar_tagging_level = 20
-  max_temperature_tagging_level = 20
-  max_center_tagging_level = 20
+  max_temperature_tagging_level = 0
+  max_center_tagging_level = 0
   stellar_density_threshold = 1.0d0
   temperature_tagging_threshold = 5.0d8
   center_tagging_radius = 0.0d0
@@ -84,17 +85,14 @@
 
 &tagging
 
-  ! Limit zone size based on nuclear burning considerations
-  dxnuc_min = 0.1
-
 /
 
 &sponge
 
   sponge_lower_radius  = 0.0d0
   sponge_upper_radius  = 0.0d0
-  sponge_lower_density = 0.0d0
-  sponge_upper_density = 0.0d0
+  sponge_lower_density = 1.0d0
+  sponge_upper_density = 1.0d0
   sponge_timescale     = 0.01d0
 
 /

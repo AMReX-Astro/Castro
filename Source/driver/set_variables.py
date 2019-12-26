@@ -21,6 +21,7 @@
 import argparse
 import os
 import re
+import sys
 
 HEADER = """
 ! DO NOT EDIT!!!
@@ -34,7 +35,7 @@ HEADER = """
 CHECK_EQUAL = """
 subroutine check_equal(index1, index2)
 
-  use amrex_error_module
+  use castro_error_module
 
   implicit none
 
@@ -42,7 +43,7 @@ subroutine check_equal(index1, index2)
 
 #ifndef AMREX_USE_CUDA
   if (index1 /= index2) then
-    call amrex_error("ERROR: mismatch of indices")
+    call castro_error("ERROR: mismatch of indices")
   endif
 #endif
 
@@ -54,9 +55,9 @@ end subroutine check_equal
 def split_pair(pair_string):
     """given an option of the form "(val1, val2)", split it into val1 and
     val2"""
-    return pair_string.replace("(", "").replace(")", "").replace(" ","").split(",")
+    return pair_string.replace("(", "").replace(")", "").replace(" ", "").split(",")
 
-class Index(object):
+class Index:
     """an index that we want to set"""
 
     def __init__(self, name, f90_var, default_group=None, iset=None,
@@ -148,7 +149,7 @@ class Index(object):
         return sstr
 
 
-class Counter(object):
+class Counter:
     """a simple object to keep track of how many variables there are in a
     set"""
 
@@ -171,7 +172,7 @@ class Counter(object):
 
     def get_value(self, offset=0):
         """return the current value of the counter"""
-        if len(self.strings) != 0:
+        if self.strings:
             val = "{} + {}".format(self.numeric-offset, " + ".join(self.strings))
         else:
             val = "{}".format(self.numeric-offset)
@@ -247,7 +248,7 @@ def doit(variables_file, odir, defines, nadv,
 
 
     # find the set of set names
-    unique_sets = set([q.iset for q in indices])
+    unique_sets = {q.iset for q in indices}
 
     # we'll keep track of all the counters across all the sets.  This
     # will be used later to write a module that sets parameters with
@@ -400,8 +401,7 @@ def doit(variables_file, odir, defines, nadv,
         for g in godunov_indices:
             f.write(g.get_cxx_set_string())
 
-
-if __name__ == "__main__":
+def main():
 
     # note: you need to put a space at the start of the string
     # that gives defines so that the '-' is not interpreted as
@@ -445,3 +445,5 @@ if __name__ == "__main__":
          args.n_neutrino_species, neutrino_groups)
 
 
+if __name__ == "__main__":
+    main()

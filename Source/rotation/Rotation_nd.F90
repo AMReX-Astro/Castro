@@ -3,7 +3,7 @@ module rotation_module
   use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
        rotation_include_domegadt
 
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -19,8 +19,8 @@ contains
     use castro_util_module, only: position ! function
     use math_module, only: cross_product ! function
     use rotation_frequency_module, only: get_omega ! function
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     integer, intent(in) :: idx(3)
@@ -41,7 +41,7 @@ contains
           loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
        else
 #ifndef AMREX_USE_GPU
-          call amrex_error("Error: unknown direction in inertial_to_rotational_velocity.")
+          call castro_error("Error: unknown direction in inertial_to_rotational_velocity.")
 #endif
        endif
     else
@@ -186,8 +186,8 @@ contains
     use meth_params_module, only: state_in_rotating_frame, rotation_include_centrifugal
     use math_module, only: cross_product ! function
     use rotation_frequency_module, only: get_omega ! function
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     real(rt)         :: r(3), time
@@ -326,7 +326,7 @@ contains
 
     use amrex_constants_module, only: HALF
     use prob_params_module, only: problo, center
-    use rotation_frequency_module, only: get_omega
+    use rotation_frequency_module, only: get_omega ! function
 
     implicit none
 
@@ -338,6 +338,8 @@ contains
 
     integer  :: i, j, k
     real(rt) :: r(3), omega(3)
+
+    !$gpu
 
     omega = get_omega(time)
 

@@ -87,10 +87,10 @@ extern "C"
      const int* domlo, const int* domhi,
      const amrex::Real* dx,
      BL_FORT_FAB_ARG_3D(phi),
-     const int* lnum,
+     const int lnum,
      const amrex::Real* qL0, const amrex::Real* qLC, const amrex::Real* qLS,
      const amrex::Real* qU0, const amrex::Real* qUC, const amrex::Real* qUS,
-     const int* npts, const int* boundary_only); 
+     const int npts, const int boundary_only); 
 
   void ca_compute_multipole_moments
     (const int* lo, const int* hi,
@@ -98,21 +98,21 @@ extern "C"
      const amrex::Real* dx,
      const BL_FORT_FAB_ARG_3D(rho),
      const BL_FORT_FAB_ARG_3D(vol),
-     const int* lnum,
+     const int lnum,
      amrex::Real* qL0, amrex::Real* qLC, amrex::Real* qLS,
      amrex::Real* qU0, amrex::Real* qUC, amrex::Real* qUS,
-     const int* npts, const int* boundary_only); 
+     const int npts, const int boundary_only); 
 
   void ca_compute_direct_sum_bc
     (const int* lo, const int* hi, const amrex::Real* dx,
-     const int* symmetry_type, const int* lo_bc, const int* hi_bc,
-     const amrex::Real* rho, const int* r_lo, const int* r_hi,
-     const amrex::Real* vol, const int* v_lo, const int* v_hi,
+     const int symmetry_type, const int* physbc_lo, const int* physbc_hi,
+     const BL_FORT_FAB_ARG_3D(rho),
+     const BL_FORT_FAB_ARG_3D(vol),
      const amrex::Real* problo, const amrex::Real* probhi,
      amrex::Real* bcXYLo, amrex::Real* bcXYHi,
      amrex::Real* bcXZLo, amrex::Real* bcXZHi,
      amrex::Real* bcYZLo, amrex::Real* bcYZHi,
-     const int* bclo, const int* bchi, const amrex::Real* bcdx);
+     const int* bc_lo, const int* bc_hi, const amrex::Real* bc_dx);
 
   void ca_put_direct_sum_bc
     (const int* lo, const int* hi, 
@@ -120,7 +120,7 @@ extern "C"
      const amrex::Real* bcXYLo, const amrex::Real* bcXYHi,
      const amrex::Real* bcXZLo, const amrex::Real* bcXZHi,
      const amrex::Real* bcYZLo, const amrex::Real* bcYZHi,
-     const int* bclo, const int* bchi);
+     const int* bc_lo, const int* bc_hi);
 
   void pm_add_to_grav
     (const int* lo, const int* hi,

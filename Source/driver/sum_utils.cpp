@@ -30,7 +30,7 @@ Castro::sumDerive (const std::string& name,
 #pragma omp parallel reduction(+:sum)
 #endif
     {
-	for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+	for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
 	{
 	    sum += (*mf)[mfi].sum(mfi.tilebox(),0);
 	}
@@ -65,7 +65,7 @@ Castro::volWgtSum (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
 
@@ -78,7 +78,7 @@ Castro::volWgtSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-#pragma gpu
+#pragma gpu box(box)
 	ca_summass(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                    BL_TO_FORTRAN_ANYD(fab),
 		   AMREX_REAL_ANYD(dx),
@@ -115,11 +115,10 @@ Castro::volWgtSquaredSum (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
     
-        Real s = 0.0;
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
@@ -129,10 +128,9 @@ Castro::volWgtSquaredSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-	ca_sumsquared(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
-		      ZFILL(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),&s);
-
-        sum += s;
+#pragma gpu box(box)
+	ca_sumsquared(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(fab),
+		      AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum));
     }
 
     if (!local)
@@ -164,11 +162,10 @@ Castro::locWgtSum (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const FArrayBox& fab = (*mf)[mfi];
     
-        Real s = 0.0;
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
@@ -178,10 +175,10 @@ Castro::locWgtSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-	ca_sumlocmass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
-		      ZFILL(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),&s,idir);
+#pragma gpu box(box)
+	ca_sumlocmass(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(fab),
+		      AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum), idir);
 
-        sum += s;
     }
 
     if (!local)
@@ -214,11 +211,10 @@ Castro::locWgtSum2D (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const FArrayBox& fab = (*mf)[mfi];
     
-        Real s = 0.0;
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
@@ -228,10 +224,9 @@ Castro::locWgtSum2D (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-	ca_sumlocmass2d(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
-			ZFILL(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),&s,idir1,idir2);
-
-        sum += s;
+#pragma gpu box(box)
+	ca_sumlocmass2d(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(fab),
+			AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum), idir1, idir2);
     }
 
     if (!local)
@@ -251,7 +246,7 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const FArrayBox& fab = mf[mfi];
 
@@ -264,7 +259,7 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-#pragma gpu
+#pragma gpu box(box)
 	ca_summass(AMREX_INT_ANYD(lo),AMREX_INT_ANYD(hi),BL_TO_FORTRAN_N_ANYD(fab,comp),
 		   AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
                    AMREX_MFITER_REDUCE_SUM(&sum));
@@ -306,7 +301,7 @@ Castro::volWgtSumOneSide (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
     
@@ -356,7 +351,7 @@ Castro::volWgtSumOneSide (const std::string& name,
 
         if ( doSum ) {
 
-#pragma gpu
+#pragma gpu box(box)
           ca_summass(AMREX_INT_ANYD(loFinal),AMREX_INT_ANYD(hiFinal),BL_TO_FORTRAN_ANYD(fab),
 		     AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
                      AMREX_MFITER_REDUCE_SUM(&sum));
@@ -402,11 +397,10 @@ Castro::locWgtSumOneSide (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif        
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
 
-        Real s = 0.0;
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
@@ -452,12 +446,11 @@ Castro::locWgtSumOneSide (const std::string& name,
 
         if ( doSum ) {
 
-          ca_sumlocmass(ARLIM_3D(loFinal),ARLIM_3D(hiFinal),BL_TO_FORTRAN_ANYD(fab),
-			ZFILL(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),&s,idir);
+#pragma gpu box(box)
+          ca_sumlocmass(AMREX_INT_ANYD(loFinal), AMREX_INT_ANYD(hiFinal), BL_TO_FORTRAN_ANYD(fab),
+			AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum), idir);
 
         }
-     
-        sum += s;
         
     }
 
@@ -493,7 +486,7 @@ Castro::volProductSum (const std::string& name1,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf1,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf1, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const FArrayBox& fab1 = (*mf1)[mfi];
         const FArrayBox& fab2 = (*mf2)[mfi];
@@ -502,7 +495,7 @@ Castro::volProductSum (const std::string& name1,
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-#pragma gpu
+#pragma gpu box(box)
 	ca_sumproduct(AMREX_INT_ANYD(lo),AMREX_INT_ANYD(hi),BL_TO_FORTRAN_ANYD(fab1),
 		      BL_TO_FORTRAN_ANYD(fab2),AMREX_REAL_ANYD(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),
                       AMREX_MFITER_REDUCE_SUM(&sum));
@@ -537,19 +530,17 @@ Castro::locSquaredSum (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const FArrayBox& fab = (*mf)[mfi];
     
-        Real s = 0.0;
         const Box& box  = mfi.tilebox();
         const int* lo   = box.loVect();
         const int* hi   = box.hiVect();
 
-	ca_sumlocsquaredmass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
-			     ZFILL(dx),BL_TO_FORTRAN_ANYD(volume[mfi]),&s,idir);
-
-        sum += s;
+#pragma gpu box(box)
+	ca_sumlocsquaredmass(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(fab),
+			     AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum), idir);
     }
 
     if (!local)

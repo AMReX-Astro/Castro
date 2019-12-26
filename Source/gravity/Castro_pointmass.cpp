@@ -21,11 +21,11 @@ Castro::pointmass_update(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:mass_change_at_center)
 #endif
-        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
 	    const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
 	    pm_compute_delta_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                   AMREX_MFITER_REDUCE_SUM(&mass_change_at_center),
 				  BL_TO_FORTRAN_ANYD(S_old[mfi]),
@@ -53,11 +53,11 @@ Castro::pointmass_update(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi)
+	    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
                 const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
 		pm_fix_solution(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 				BL_TO_FORTRAN_ANYD(S_old[mfi]), BL_TO_FORTRAN_ANYD(S_new[mfi]),
 				AMREX_REAL_ANYD(geom.ProbLo()), AMREX_REAL_ANYD(dx), time, dt);

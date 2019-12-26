@@ -25,6 +25,11 @@ C++
   code to include value so that the Fortran knows the variables are
   being passed by value rather than by reference. If you don’t do
   this, the code is liable to segfault
+
+- FArrayBox functions like `setVal()` and `saxpy()` are not on the
+  GPU, so you should explicitly write out these operations in C++.
+  The MultiFab counterparts are on the GPU.
+
 - Use ``BL_TO_FORTRAN_ANYD()`` to wrap MultiFab arguments (and in the header file wrap with ``BL_FORT_FAB_ARG_3D``)
 
 To illustrate these modifications, consider the function ``divu``. To call the function on the CPU, we would write
@@ -187,6 +192,7 @@ How to debug
 - Run under ``cuda-gdb``
 
 - Turn off GPU offloading for some part of the code with
+
 .. code-block:: c++
 
     Gpu::setLaunchRegion(0);

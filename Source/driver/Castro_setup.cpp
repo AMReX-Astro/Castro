@@ -4,15 +4,12 @@
 #include <AMReX_ParmParse.H>
 #include "Castro.H"
 #include "Castro_F.H"
-#ifdef AMREX_DIMENSION_AGNOSTIC
 #include "Castro_bc_fill_nd_F.H"
 #include "Castro_bc_fill_nd.H"
-#else
-#include "Castro_bc_fill_F.H"
-#include "Castro_bc_fill.H"
-#endif
 #include "Castro_generic_fill_F.H"
 #include "Castro_generic_fill.H"
+#include "Castro_source_fill_F.H"
+#include "Castro_source_fill.H"
 #include <Derive_F.H>
 #include "Derive.H"
 #ifdef RADIATION
@@ -239,14 +236,14 @@ Castro::variableSetUp ()
                        GDRHO, GDU, GDV, GDW,
                        GDPRES, GDGAME);
 
-  // Get the number of primitive variables from Fortran.
-  ca_get_nqsrc(&NQSRC);
-
   // and the auxiliary variables
   ca_get_nqaux(&NQAUX);
 
   // and the number of primitive variable source terms
   ca_get_nqsrc(&NQSRC);
+
+  // and the number of conserved variable source terms
+  ca_get_nsrc(&NSRC);
 
   // initialize the Godunov state array used in hydro
   ca_get_ngdnv(&NGDNV);
@@ -264,7 +261,9 @@ Castro::variableSetUp ()
   if (ParallelDescriptor::IOProcessor())
     std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
 
-  const int coord_type = Geometry::Coord();
+  const Geometry& dgeom = DefaultGeometry();
+
+  const int coord_type = dgeom.Coord();
 
   // Get the center variable from the inputs and pass it directly to Fortran.
   Vector<Real> center(BL_SPACEDIM, 0.0);
@@ -273,7 +272,7 @@ Castro::variableSetUp ()
 
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
 			Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-			Geometry::ProbLo(),Geometry::ProbHi(),center.dataPtr());
+			dgeom.ProbLo(),dgeom.ProbHi(),center.dataPtr());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
@@ -311,7 +310,7 @@ Castro::variableSetUp ()
   // neutrino problems for now so as not to change the results of
   // other people's tests.  Better to fix cell_cons_interp!
 
-  if (Geometry::IsSPHERICAL() && Radiation::nNeutrinoSpecies > 0) {
+  if (dgeom.IsSPHERICAL() && Radiation::nNeutrinoSpecies > 0) {
     interp = &pc_interp;
   }
 #endif
@@ -352,7 +351,7 @@ Castro::variableSetUp ()
 
   // Source terms -- for the CTU method, because we do characteristic
   // tracing on the source terms, we need NUM_GROW ghost cells to do
-  // the reconstruction.  For MOL and SDC, on the other hand, we only
+  // the reconstruction.  For SDC, on the other hand, we only
   // need 1 (for the fourth-order stuff). Simplified SDC uses the CTU
   // advance, so it behaves the same way as CTU here.
 
@@ -361,14 +360,14 @@ Castro::variableSetUp ()
   if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       source_ng = NUM_GROW;
   }
-  else if (time_integration_method == MethodOfLines || time_integration_method == SpectralDeferredCorrections) {
+  else if (time_integration_method == SpectralDeferredCorrections) {
       source_ng = 1;
   }
   else {
       amrex::Error("Unknown time_integration_method");
   }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, source_ng, NUM_STATE,
+			 StateDescriptor::Point, source_ng, NSRC,
 			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
@@ -555,28 +554,19 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,BndryFunc(ca_rotzfill));
 #endif
 
-  // Source term array will use standard hyperbolic fill.
+  // Source term array will use source fill
 
-  Vector<BCRec> source_bcs(NUM_STATE);
-  Vector<std::string> state_type_source_names(NUM_STATE);
+  Vector<BCRec> source_bcs(NSRC);
+  Vector<std::string> state_type_source_names(NSRC);
 
-  for (int i = 0; i < NUM_STATE; ++i) {
+  for (int i = 0; i < NSRC; ++i) {
     state_type_source_names[i] = name[i] + "_source";
     source_bcs[i] = bcs[i];
 
-    // Replace inflow BCs with FOEXTRAP.
-
-    for (int j = 0; j < AMREX_SPACEDIM; ++j) {
-        if (source_bcs[i].lo(j) == EXT_DIR)
-            source_bcs[i].setLo(j, FOEXTRAP);
-
-        if (source_bcs[i].hi(j) == EXT_DIR)
-            source_bcs[i].setHi(j, FOEXTRAP);
-    }
   }
 
-  desc_lst.setComponent(Source_Type,Density,state_type_source_names,source_bcs,
-                        BndryFunc(ca_generic_single_fill,ca_generic_multi_fill));
+  desc_lst.setComponent(Source_Type, Density, state_type_source_names, source_bcs,
+                        BndryFunc(ca_source_single_fill,ca_source_multi_fill));
 
 #ifdef REACTIONS
   std::string name_react;
@@ -596,16 +586,6 @@ Castro::variableSetUp ()
           char buf[64];
           sprintf(buf, "sdc_react_source_%d", i);
           set_scalar_bc(bc,phys_bc);
-
-          // Replace inflow BCs with FOEXTRAP.
-
-          for (int j = 0; j < AMREX_SPACEDIM; ++j) {
-              if (bc.lo(j) == EXT_DIR)
-                  bc.setLo(j, FOEXTRAP);
-
-              if (bc.hi(j) == EXT_DIR)
-                  bc.setHi(j, FOEXTRAP);
-          }
 
           desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
       }
@@ -686,7 +666,7 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  if (time_integration_method == SpectralDeferredCorrections && (mol_order == 4 || sdc_order == 4)) {
+  if (time_integration_method == SpectralDeferredCorrections && sdc_order == 4) {
 
     // we are doing 4th order reactive SDC.  We need 2 ghost cells here
     SDC_Source_Type = desc_lst.size();
@@ -696,8 +676,17 @@ Castro::variableSetUp ()
                            StateDescriptor::Point, 2, NUM_STATE,
                            interp, state_data_extrap, store_in_checkpoint);
 
-    // this is the same thing we do for the sources
-    desc_lst.setComponent(SDC_Source_Type, Density, state_type_source_names, source_bcs,
+    // this is the same thing we do for the sources, but now we use the generic fill
+    Vector<BCRec> sdc_source_bcs(NUM_STATE);
+    Vector<std::string> sdc_source_names(NUM_STATE);
+
+    for (int i = 0; i < NUM_STATE; ++i) {
+      sdc_source_names[i] = name[i] + "_sdc_source";
+      sdc_source_bcs[i] = bcs[i];
+
+    }
+
+    desc_lst.setComponent(SDC_Source_Type, Density, sdc_source_names, sdc_source_bcs,
                           BndryFunc(ca_generic_single_fill, ca_generic_multi_fill));
   }
 #endif
@@ -1006,7 +995,47 @@ Castro::variableSetUp ()
   //
   // DEFINE ERROR ESTIMATION QUANTITIES
   //
-  ErrorSetUp();
+  err_list_names.push_back("density");
+  err_list_ng.push_back(1);
+
+  err_list_names.push_back("Temp");
+  err_list_ng.push_back(1);
+
+  err_list_names.push_back("pressure");
+  err_list_ng.push_back(1);
+
+  err_list_names.push_back("x_velocity");
+  err_list_ng.push_back(1);
+
+#if (BL_SPACEDIM >= 2)
+  err_list_names.push_back("y_velocity");
+  err_list_ng.push_back(1);
+#endif
+
+#if (BL_SPACEDIM == 3)
+  err_list_names.push_back("z_velocity");
+  err_list_ng.push_back(1);
+#endif
+
+#ifdef REACTIONS
+  err_list_names.push_back("t_sound_t_enuc");
+  err_list_ng.push_back(0);
+
+  err_list_names.push_back("enuc");
+  err_list_ng.push_back(0);
+#endif
+
+#ifdef RADIATION
+  if (do_radiation && !Radiation::do_multigroup) {
+      err_list_names.push_back("rad");
+      err_list_ng.push_back(1);
+  }
+#endif
+
+  // Save the number of built-in functions; this will help us
+  // distinguish between those, and the ones the user is about to add.
+
+  num_err_list_default = err_list_names.size();
 
   //
   // Construct an array holding the names of the source terms.
@@ -1058,7 +1087,7 @@ Castro::variableSetUp ()
   // required interior zone. And for reflecting BCs,
   // we need NUM_GROW * 2 == 8 threads anyway. This logic
   // then requires that blocking_factor be a multiple
-  // of 8. It is a little wasteful for MOL/SDC and for
+  // of 8. It is a little wasteful for SDC and for
   // problems that only have outflow BCs, but the BC
   // fill is not the expensive part of the algorithm
   // for our production science problems anyway, so
@@ -1069,93 +1098,66 @@ Castro::variableSetUp ()
   }
 #endif
 
-  // method of lines Butcher tableau
-  if (mol_order == 1) {
 
-      // first order Euler
-      MOL_STAGES = 1;
+#ifdef TRUE_SDC
+  if (sdc_quadrature == 0) {
+    // Gauss-Lobatto
 
-      a_mol.resize(MOL_STAGES);
-      for (int n = 0; n < MOL_STAGES; ++n)
-        a_mol[n].resize(MOL_STAGES);
+    if (sdc_order == 2) {
+      // trapezoid
+      SDC_NODES = 2;
 
-      a_mol[0] = {1};
-      b_mol = {1.0};
-      c_mol = {0.0};
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, 1.0};
 
-  } else if (mol_order == 2) {
+      node_weights.resize(SDC_NODES);
+      node_weights = {0.5, 0.5};
 
-    // second order TVD
-    MOL_STAGES = 2;
+    } else if (sdc_order == 4) {
+      // Simpsons
+      SDC_NODES = 3;
 
-    a_mol.resize(MOL_STAGES);
-    for (int n = 0; n < MOL_STAGES; ++n)
-      a_mol[n].resize(MOL_STAGES);
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, 0.5, 1.0};
 
-    a_mol[0] = {0,   0,};
-    a_mol[1] = {1.0, 0,};
+      node_weights.resize(SDC_NODES);
+      node_weights = {1.0/6.0, 4.0/6.0, 1.0/6.0};
 
-    b_mol = {0.5, 0.5};
+    } else {
+      amrex::Error("invalid value of sdc_order");
+    }
 
-    c_mol = {0.0, 1.0};
+  } else if (sdc_quadrature == 1) {
+    // Radau
 
-  } else if (mol_order == 3) {
+    if (sdc_order == 2) {
+      SDC_NODES = 3;
 
-    // third order TVD
-    MOL_STAGES = 3;
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, 1.0/3.0, 1.0};
 
-    a_mol.resize(MOL_STAGES);
-    for (int n = 0; n < MOL_STAGES; ++n)
-      a_mol[n].resize(MOL_STAGES);
+      node_weights.resize(SDC_NODES);
+      node_weights = {0.0, 3.0/4.0, 1.0/4.0};
 
-    a_mol[0] = {0.0,  0.0,  0.0};
-    a_mol[1] = {1.0,  0.0,  0.0};
-    a_mol[2] = {0.25, 0.25, 0.0};
+    } else if (sdc_order == 4) {
+      SDC_NODES = 4;
 
-    b_mol = {1./6., 1./6., 2./3.};
+      dt_sdc.resize(SDC_NODES);
+      dt_sdc = {0.0, (4.0 - std::sqrt(6.0))/10.0, (4.0 + std::sqrt(6.0))/10.0, 1.0};
 
-    c_mol = {0.0, 1.0, 0.5};
+      node_weights.resize(SDC_NODES);
+      node_weights = {0.0, (16.0 - std::sqrt(6.0))/36.0, (16.0 + std::sqrt(6.0))/36.0, 1.0/9.0};
 
-  } else if (mol_order == 4) {
+    } else {
+      amrex::Error("invalid value of sdc_order");
+    }
 
-    // fourth order TVD
-    MOL_STAGES = 4;
-
-    a_mol.resize(MOL_STAGES);
-    for (int n = 0; n < MOL_STAGES; ++n)
-      a_mol[n].resize(MOL_STAGES);
-
-    a_mol[0] = {0.0,  0.0,  0.0,  0.0};
-    a_mol[1] = {0.5,  0.0,  0.0,  0.0};
-    a_mol[2] = {0.0,  0.5,  0.0,  0.0};
-    a_mol[3] = {0.0,  0.0,  1.0,  0.0};
-
-    b_mol = {1./6., 1./3., 1./3., 1./6.};
-
-    c_mol = {0.0, 0.5, 0.5, 1.0};
+    node_weights.resize(SDC_NODES);
+    node_weights = {1.0/6.0, 4.0/6.0, 1.0/6.0};
 
   } else {
-    amrex::Error("invalid value of mol_order\n");
+    amrex::Error("invalid value of sdc_quadrature");
   }
-
-
-
-  if (sdc_order == 2) {
-
-    SDC_NODES = 2;
-
-    dt_sdc.resize(SDC_NODES);
-    dt_sdc = {0.0, 1.0};
-
-  } else if (sdc_order == 4) {
-
-    SDC_NODES = 3;
-
-    dt_sdc.resize(SDC_NODES);
-    dt_sdc = {0.0, 0.5, 1.0};
-
-  } else {
-    amrex::Error("invalid value of sdc_order");
-  }
+#endif
 
 }

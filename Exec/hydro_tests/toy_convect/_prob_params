@@ -1,0 +1,25 @@
+H_min               real                1.e-4_rt      y
+
+cutoff_density      real                50.0_rt       y
+
+model_name          character           ""            y
+
+apply_vel_field     logical             .false.       y
+
+velpert_scale       real                1.0e2_rt      y
+
+velpert_amplitude   real                1.0e2_rt      y
+
+velpert_height_loc  real                6.5e3_rt      y
+
+num_vortices        integer             1             y
+
+xloc_vortices       real                0.0_rt        n       num_vortices
+
+ih1                 integer             -1
+
+ic12                integer             -1
+
+in14                integer             -1
+
+io16                integer             -1

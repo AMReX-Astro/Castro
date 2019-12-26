@@ -46,11 +46,7 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
-enum sources { ext_src = 0,
-               thermo_src,
-#ifdef SPONGE
-               sponge_src,
-#endif
+enum sources { thermo_src = 0,
 #ifdef DIFFUSION
                diff_src,
 #endif
@@ -63,13 +59,17 @@ enum sources { ext_src = 0,
 #ifdef ROTATION
                rot_src,
 #endif
+#ifdef SPONGE
+               sponge_src,
+#endif
+               ext_src,
 	       num_src };
 
 
 // time integration method
 
 enum int_method { CornerTransportUpwind = 0,
-                  MethodOfLines,
+                  UnusedTimeIntegration,
                   SpectralDeferredCorrections,
                   SimplifiedSpectralDeferredCorrections
                 };
@@ -190,9 +190,16 @@ public:
 ///
 /// Write job info to file
 ///
-/// @param dir  directory to write to
+/// @param dir       directory to write to
+/// @param io_time   how long it took to generate the plotfile/checkpoint
 ///
-    void writeJobInfo (const std::string& dir);
+    void writeJobInfo (const std::string& dir, const amrex::Real io_time);
+
+
+///
+/// Dump build info 
+///
+    static void writeBuildInfo ();
 
 
 ///
@@ -378,34 +385,11 @@ public:
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    amrex::Real do_advance_ctu(amrex::Real time,
-                               amrex::Real dt,
-                               int  amr_iteration,
-                               int  amr_ncycle);
+    bool do_advance_ctu(amrex::Real time,
+                        amrex::Real dt,
+                        int  amr_iteration,
+                        int  amr_ncycle);
 
-///
-/// This routine will advance the old state data (called ``S_old`` here)
-/// to the new time, for a single level.  The new data is called
-/// ``S_new`` here.  The update includes reactions (if we are not doing
-/// SDC), hydro, and the source terms. The advance is doing using the MOL
-/// (method of lines) approach.
-///
-/// @note the time that passes through here is the time for the
-/// current stage
-///
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
-///
-    amrex::Real do_advance_mol (amrex::Real time,
-                                amrex::Real dt,
-                                int  amr_iteration,
-                                int  amr_ncycle);
 
 #ifndef AMREX_USE_CUDA
     amrex::Real do_advance_sdc (amrex::Real time,
@@ -427,8 +411,9 @@ public:
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
+/// @param advance_success  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle, bool advance_success);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.
@@ -537,17 +522,21 @@ public:
 /// Construct source terms at old time
 ///
 /// @param source   MultiFab to save sources to
-/// @param state    Current state
+/// @param state_old   Old state
+/// @param state_new   New state
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
+/// @param apply_to_state   whether to apply the source to state_new
 /// @param amr_iteration    where we are in the current AMR subcycle.  Each
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+                        amrex::Real time, amrex::Real dt, bool apply_to_state,
+                        int amr_iteration = -1, int amr_ncycle = -1);
 
 ///
 /// Construct the old-time source
@@ -576,13 +565,16 @@ public:
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
+/// @param apply_to_state   whether to apply the source to state_new
 /// @param amr_iteration    where we are in the current AMR subcycle.  Each
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+                        amrex::Real time, amrex::Real dt, bool apply_to_state,
+                        int amr_iteration = -1, int amr_ncycle = -1);
 
 ///
 /// Construct the new-time sources.
@@ -997,42 +989,20 @@ public:
 /// Apply the ::set_problem_tags routine.
 ///
 /// @param tags         TagBoxArray of tags
-/// @param clearval
-/// @param setval
 /// @param time         current time
 ///
-    void apply_problem_tags (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time);
+    void apply_problem_tags (amrex::TagBoxArray& tags, amrex::Real time);
 
 
 ///
 /// Apply a given tagging function.
 ///
 /// @param tags         TagBoxArray of tags
-/// @param clearval
-/// @param setval
 /// @param time         current time
 /// @param j            integer
 ///
-    void apply_tagging_func (amrex::TagBoxArray& tags, int clearval, int setval, amrex::Real time, int j);
+    void apply_tagging_func (amrex::TagBoxArray& tags, amrex::Real time, int j);
 
-
-///
-/// Hooks for problem-specific operations before and after applying custom tagging.
-///
-/// @param tags     TagBoxArray of tags
-/// @param clearval
-/// @param tagval
-/// @param time     current time
-///
-    void problem_pre_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
-
-///
-/// @param tags     TagBoxArray of tags
-/// @param clearval
-/// @param tagval
-/// @param time     current time
-///
-    void problem_post_tagging_hook (amrex::TagBoxArray& tags, int clearval, int tagval, amrex::Real time);
 
 ///
 /// Returns a MultiFab containing the derived data for this level.
@@ -1076,7 +1046,7 @@ public:
 /// @param strang_half  Is this a Strang-split half timestep?
 /// @param ngrow        Number of ghost cells
 ///
-    void react_state(amrex::MultiFab& state,
+    bool react_state(amrex::MultiFab& state,
 		     amrex::MultiFab& reactions,
 		     const amrex::iMultiFab& mask,
 		     amrex::MultiFab& weights,
@@ -1090,7 +1060,7 @@ public:
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void react_state(amrex::Real time, amrex::Real dt);
+    bool react_state(amrex::Real time, amrex::Real dt);
 
 ///
 /// React through first half timestep
@@ -1098,7 +1068,7 @@ public:
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void strang_react_first_half(amrex::Real time, amrex::Real dt);
+    bool strang_react_first_half(amrex::Real time, amrex::Real dt);
 
 
 ///
@@ -1107,7 +1077,7 @@ public:
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void strang_react_second_half(amrex::Real time, amrex::Real dt);
+    bool strang_react_second_half(amrex::Real time, amrex::Real dt);
 
 ///
 /// Obtain the effective source term due to reactions on the primitive variables
@@ -1198,19 +1168,11 @@ public:
 ///
 /// Compute the current temperature
 ///
-/// @param is_new   do we use the old or new StateData?
-/// @param ng number of ghost cells
-///
-    void computeTemp (int is_new, int ng);
-
-
-///
-/// Compute the current temperature
-///
 /// @param state    the state to operate on
+/// @param time     current time
 /// @param ng       number of ghost cells
 ///
-    void computeTemp(amrex::MultiFab& state, int ng);
+    void computeTemp(amrex::MultiFab& state, amrex::Real time, int ng);
 
 
 ///
@@ -1564,11 +1526,21 @@ public:
 
 
 ///
-/// Update state to account for hybrid advection
+/// Synchronize linear momentum with hybrid momentum
 ///
 /// @param state    Current state
+/// @param ng       Number of ghost cells
 ///
-    void hybrid_sync(amrex::MultiFab& state);
+    void hybrid_to_linear_momentum(amrex::MultiFab& state, int ng = 0);
+
+
+///
+/// Synchronize hybrid momentum with linear momentum
+///
+/// @param state    Current state
+/// @param ng       Number of ghost cells
+///
+    void linear_to_hybrid_momentum(amrex::MultiFab& state, int ng = 0);
 #endif
 
 
@@ -1593,24 +1565,13 @@ public:
 
 ///
 /// Fill a version of the state with ``ng`` ghost zones from the state data.
-///
-/// S is the multifab we are filling with ``State_Type`` ``StateData``,
-/// including a ghost cell fill at the end.  Before we do the fill,
-/// we do a ``clean_state`` on the ``State_Type data``.  iclean = 0 means
-/// clean the "old" time data, iclean = 1 means clean the "new time
-/// data", and iclean = 2 means clean both the old and new time data
-/// (in case we are interpolating in time).  For any other value, no
-/// cleaning is done
-
-// note: we don't clean ghost cells here, since we are doing a fill
-// right afterwards
+/// After we do the fill, optionally clean the data using the iclean parameter.
 ///
 /// @param S        MultiFab to be filled
 /// @param time     current time
-/// @param iclean   What data do we clean?
 /// @param ng       number of ghost cells
 ///
-    void expand_state(amrex::MultiFab& S, amrex::Real time, int iclean, int ng);
+    void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
 #ifdef SELF_GRAVITY
 
@@ -1704,6 +1665,7 @@ public:
 /// variable counts
 ///
     static int       NQSRC;
+    static int       NSRC;
     static int       NQAUX;
     static int       NQ;
     static int       NGDNV;
@@ -1778,7 +1740,7 @@ protected:
 
 
 ///
-/// A state array for the post burn state to be used in MOL integration
+/// A state array for the some reaction stuff with SDC
 ///
     amrex::MultiFab Sburn;
 
@@ -1794,6 +1756,13 @@ protected:
 ///
     amrex::MultiFab q_bar;
 
+
+///
+/// for diffusion in fourth order we need the cell-center temperature
+//
+#ifdef DIFFUSION
+    amrex::MultiFab T_cc;
+#endif
 
 ///
 /// The auxiliary primitive variable state array.
@@ -1869,12 +1838,6 @@ protected:
 
 
 ///
-/// Did we have a successful burn?
-///
-    int burn_success;
-
-
-///
 /// State data to hold if we want to do a retry.
 ///
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
@@ -1894,22 +1857,7 @@ protected:
     bool keep_prev_state;
 
 
-///
-/// Storage for the method of lines stages
-///
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_mol;
-
-
-///
-/// MOL Butcher tableau
-///
-    static int MOL_STAGES;
-
-    static amrex::Vector< amrex::Vector<amrex::Real> > a_mol;
-    static amrex::Vector<amrex::Real> b_mol;
-    static amrex::Vector<amrex::Real> c_mol;
-
-
+#ifdef TRUE_SDC
     //
     // Storage for the SDC time integration
 
@@ -1932,7 +1880,8 @@ protected:
 
     static int SDC_NODES;
     static amrex::Vector<amrex::Real> dt_sdc;
-
+    static amrex::Vector<amrex::Real> node_weights;
+#endif
 
 ///
 /// Wall time that we started the timestep
@@ -1996,47 +1945,16 @@ protected:
     void enforce_consistent_e (amrex::MultiFab& S);
 
 ///
-/// This routine sets the density in ``S_new`` to be larger than the density floor.
-/// Note that it will operate everywhere on ``S_new``, including ghost zones.
-/// ``S_old`` is present so that, after the hydro call, we know what the old density
-/// was so that we have a reference for comparison. If you are calling it elsewhere
-/// and there's no meaningful reference state, just pass in the same MultiFab twice.
+/// This routine sets the density in ``state`` to be larger than the density floor.
+/// Note that it will operate everywhere on ``state``, including ghost zones.
 ///
 /// The return value is the the negative fractional change in the state that has the
 /// largest magnitude. If there is no reference state, this is meaningless.
 ///
-/// @param S_old        Old state
-/// @param S_new        New state
+/// @param state        state
 /// @param ng           number of ghost cells
 ///
-    amrex::Real enforce_min_density (amrex::MultiFab& S_old, amrex::MultiFab& S_new, int ng);
-
-///
-/// Given ``State_Type`` state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
-/// value of enforce_min_density.
-///
-/// @param is_new   do we use new (0) or old (1) data?
-/// @param state    State data
-/// @param ng       number of ghost cells
-///
-    amrex::Real clean_state (int is_new, amrex::MultiFab& state, int ng);
-
-///
-/// Given ``State_Type`` state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
-/// value of enforce_min_density.
-///
-/// this is the "preferred" clean_state interface -- it will work
-/// directly on the StateData.  ``is_new``=0 means the old data is used,
-/// ``is_new``=1 means the new data is used.
-///
-///
-/// @param is_new   do we use new (0) or old (1) data?
-/// @param ng       number of ghost cells
-///
-    amrex::Real clean_state (int is_new, int ng);
-
+    amrex::Real enforce_min_density (amrex::MultiFab& state, int ng);
 
 ///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
@@ -2044,8 +1962,10 @@ protected:
 /// value of ::enforce_min_density.
 ///
 /// @param state    State data
+/// @param time     current time
+/// @param ng       number of ghost cells
 ///
-    amrex::Real clean_state (amrex::MultiFab& state);
+    amrex::Real clean_state (amrex::MultiFab& state, amrex::Real time, int ng);
 
 ///
 /// Average new state from ``level+1`` down to ``level``
@@ -2106,6 +2026,17 @@ protected:
 
     void stopJob ();
 
+///
+/// Returns true if we're on the GPU and the total
+/// memory on this level oversubscribes GPU memory.
+///
+    bool oversubscribing() {
+#ifdef AMREX_USE_GPU
+        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= amrex::Gpu::Device::totalGlobalMem());
+#else
+        return false;
+#endif
+    }
 
 ///
 /// The data.
@@ -2132,7 +2063,8 @@ protected:
 
     static bool      signalStopJob;
     static int       radius_grow;
-    static amrex::ErrorList err_list;
+    static std::vector<std::string> err_list_names;
+    static std::vector<int> err_list_ng;
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
@@ -2236,10 +2168,6 @@ protected:
     int current_sdc_node;
 
 
-///
-/// method of lines
-///
-    int mol_iteration;
 
 /* problem-specific includes */
 #include <Problem.H>

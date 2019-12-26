@@ -865,7 +865,14 @@ static void ConvertData() {
       }
    }
 
-   fakeAmr.geom[0].ProbDomain(rb);
+   Geometry::ResetDefaultProbDomain(rb);
+   for (auto& g : fakeAmr.geom) {
+       g.ProbDomain(rb);
+   }
+   for (auto& l : fakeAmr.fakeAmrLevels) {
+       l.geom.ProbDomain(rb);
+   }
+
    const Real* xlo = fakeAmr.geom[0].ProbLo();
 
    // This sets the CoordSys member "offset" which should be identical to Geometry's problo

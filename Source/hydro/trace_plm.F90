@@ -1,6 +1,6 @@
 module trace_plm_module
 
-  use amrex_error_module, only : amrex_error
+  use castro_error_module, only : castro_error
   use amrex_fort_module, only : rt => amrex_real
   use prob_params_module, only : dg
 
@@ -30,7 +30,6 @@ contains
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type
     use amrex_constants_module
-    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -92,7 +91,7 @@ contains
 #ifndef AMREX_USE_CUDA
     if (ppm_type .ne. 0) then
        print *,'Oops -- shouldnt be in tracexy with ppm_type != 0'
-       call amrex_error("Error:: trace_3d.f90 :: tracexy")
+       call castro_error("Error:: trace_3d.f90 :: tracexy")
     end if
 #endif
 
@@ -292,11 +291,6 @@ contains
 
     do ipassive = 1, npassive
        n = qpass_map(ipassive)
-
-       ! For DIM < 3, the velocities are included in the passive
-       ! quantities.  But we already dealt with all 3 velocity
-       ! components above, so don't process them here.
-       if (n == QU .or. n == QV .or. n == QW) cycle
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)

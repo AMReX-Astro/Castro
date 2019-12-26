@@ -81,7 +81,7 @@ void
 Diffusion::weight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    const int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
@@ -89,7 +89,7 @@ Diffusion::weight_cc(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_weight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		     BL_TO_FORTRAN_ANYD(cc[mfi]),
                      AMREX_REAL_ANYD(dx), coord_type);
@@ -100,7 +100,7 @@ void
 Diffusion::unweight_cc(int level, MultiFab& cc)
 {
     const Real* dx = parent->Geom(level).CellSize();
-    const int coord_type = Geometry::Coord();
+    const int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
 #pragma omp parallel	  
 #endif
@@ -108,7 +108,7 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_unweight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		       BL_TO_FORTRAN_ANYD(cc[mfi]),
                        AMREX_REAL_ANYD(dx), coord_type);
@@ -140,7 +140,7 @@ Diffusion::make_mg_bc ()
     }
 
     // Set Neumann bc at r=0.
-    if (Geometry::IsSPHERICAL() || Geometry::IsRZ() ) {
+    if (geom.IsSPHERICAL() || geom.IsRZ() ) {
         mlmg_lobc[0] = MLLinOp::BCType::Neumann;
     }
 

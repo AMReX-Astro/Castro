@@ -1,7 +1,9 @@
 [![Build Status](https://travis-ci.com/AMReX-Astro/Castro.svg?branch=development)](https://travis-ci.com/AMReX-Astro/Castro)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2301848.svg)](https://doi.org/10.5281/zenodo.2301848)
+[![AMReX](https://amrex-codes.github.io/badges/powered%20by-AMReX-red.svg)](https://amrex-codes.github.io)
 
-# Castro
+![Castro](https://github.com/AMReX-Astro/Castro/blob/development/Util/logo/castro_logo_hot_200.png)
+
 *an adaptive mesh, astrophysical radiation hydrodynamics simulation code*
 
 `Castro` is an adaptive-mesh compressible radiation hydrodynamics
@@ -93,8 +95,8 @@ People who make a number of substantive contributions will be named
 "core developers" of Castro.  The criteria for becoming a core
 developer are flexible, but generally involve one of the following:
 
-  * 10 non-merge commits to `Castro/Source/` or `Castro/Docs/` or one
-    of the problems that is not your own science problem *or*
+  * 10 non-merge commits to `Castro/Source/` or `Castro/sphinx_docs/`
+    or one of the problems that is not your own science problem *or*
 
   * addition of a new algorithm / module  *or*
 

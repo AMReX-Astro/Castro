@@ -3,14 +3,14 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
+#ifdef AMREX_PARTICLES
+int         Castro::do_tracer_particles = 0;
+#endif
 #ifdef DIFFUSION
 int         Castro::diffuse_temp = 0;
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 amrex::Real Castro::diffuse_cutoff_density_hi = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
-#endif
-#ifdef AMREX_PARTICLES
-int         Castro::do_tracer_particles = 0;
 #endif
 #ifdef ROTATION
 amrex::Real Castro::rotational_period = -1.e200;
@@ -27,6 +27,7 @@ int         Castro::lin_limit_state_interp = 0;
 int         Castro::state_nghost = 0;
 int         Castro::do_reflux = 1;
 int         Castro::update_sources_after_reflux = 1;
+int         Castro::apply_sources_consecutively = 0;
 int         Castro::use_custom_knapsack_weights = 0;
 amrex::Real Castro::difmag = 0.1;
 amrex::Real Castro::small_dens = -1.e200;
@@ -36,20 +37,23 @@ amrex::Real Castro::small_ener = -1.e200;
 int         Castro::do_hydro = -1;
 int         Castro::time_integration_method = 0;
 int         Castro::limit_fourth_order = 1;
+int         Castro::initialization_is_cell_average = 0;
 int         Castro::use_reconstructed_gamma1 = 0;
 int         Castro::add_ext_src = 0;
 int         Castro::hybrid_hydro = 0;
 int         Castro::ppm_type = 1;
 int         Castro::ppm_temp_fix = 0;
 int         Castro::ppm_predict_gammae = 0;
-int         Castro::ppm_reference_eigenvectors = 0;
 int         Castro::plm_iorder = 2;
+int         Castro::plm_limiter = 2;
+int         Castro::plm_well_balanced = 0;
 int         Castro::hybrid_riemann = 0;
 int         Castro::riemann_solver = 0;
 int         Castro::cg_maxiter = 12;
 amrex::Real Castro::cg_tol = 1.0e-5;
 int         Castro::cg_blend = 2;
 int         Castro::use_eos_in_riemann = 0;
+amrex::Real Castro::riemann_speed_limit = 2.99792458e10;
 int         Castro::use_flattening = 1;
 int         Castro::transverse_use_eos = 0;
 int         Castro::transverse_reset_density = 1;
@@ -58,10 +62,12 @@ amrex::Real Castro::dual_energy_eta1 = 1.0e0;
 amrex::Real Castro::dual_energy_eta2 = 1.0e-4;
 int         Castro::use_pslope = 1;
 int         Castro::limit_fluxes_on_small_dens = 0;
+int         Castro::limit_fluxes_on_large_vel = 0;
 int         Castro::density_reset_method = 1;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
+int         Castro::ext_src_implicit = 0;
 int         Castro::source_term_predictor = 0;
 int         Castro::first_order_hydro = 0;
 std::string Castro::xl_ext_bc_type = "";
@@ -73,10 +79,14 @@ std::string Castro::zr_ext_bc_type = "";
 int         Castro::hse_zero_vels = 0;
 int         Castro::hse_interp_temp = 0;
 int         Castro::hse_reflect_vels = 0;
-int         Castro::mol_order = 2;
 int         Castro::sdc_order = 2;
+int         Castro::sdc_quadrature = 0;
+int         Castro::sdc_extra = 0;
 int         Castro::sdc_solver = 1;
-amrex::Real Castro::sdc_solver_tol = 1.e-6;
+amrex::Real Castro::sdc_solver_tol_dens = 1.e-6;
+amrex::Real Castro::sdc_solver_tol_spec = 1.e-6;
+amrex::Real Castro::sdc_solver_tol_ener = 1.e-6;
+amrex::Real Castro::sdc_solver_atol = 1.e-10;
 amrex::Real Castro::sdc_solver_relax_factor = 1.0;
 int         Castro::sdc_solve_for_rhoe = 1;
 int         Castro::sdc_use_analytic_jac = 1;

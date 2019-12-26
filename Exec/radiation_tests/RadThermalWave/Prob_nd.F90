@@ -3,7 +3,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   use amrex_constants_module
   use probdata_module
   use amrex_fort_module, only : rt => amrex_real
-  use amrex_error_module
+  use castro_error_module
 
   implicit none
 
@@ -21,7 +21,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   character probin*(maxlen)
 
   if (namlen .gt. maxlen) then
-     call amrex_error("probin file name too long")
+     call castro_error("probin file name too long")
   end if
 
   do i = 1, namlen
@@ -86,7 +86,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use network, only : nspec
   use eos_module, only : eos
   use eos_type_module, only : eos_t, eos_input_rt
-  use prob_params_module, only : dg, coord_type
+  use prob_params_module, only : dg, coord_type, problo
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -140,21 +140,21 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   do k = lo(3), hi(3)
 
-     zcl = xlo(3) + delta(3) * dble(k-lo(3))
+     zcl = problo(3) + delta(3) * dble(k)
      zcr = zcl + delta(3)
      zcmin = min(abs(zcl), abs(zcr))
      zcmax = max(abs(zcl), abs(zcr))
 
      do j = lo(2), hi(2)
 
-        ycl = xlo(2) + delta(2)*dble(j-lo(2))
+        ycl = problo(2) + delta(2)*dble(j)
         ycr = ycl + delta(2)
         ycmin = min(abs(ycl), abs(ycr))
         ycmax = max(abs(ycl), abs(ycr))
 
         do i = lo(1), hi(1)
 
-           xcl = xlo(1) + delta(1)*dble(i-lo(1))
+           xcl = problo(1) + delta(1)*dble(i)
            xcr = xcl + delta(1)
            xcmin = min(abs(xcl), abs(xcr))
            xcmax = max(abs(xcl), abs(xcr))
@@ -243,6 +243,6 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
                                        rad_state_lo(2):rad_state_hi(2), &
                                        rad_state_lo(3):rad_state_hi(3), 0:nrad-1)
 
-  rad_state(:,:,:,:) = ZERO
+  rad_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
 
 end subroutine ca_initrad

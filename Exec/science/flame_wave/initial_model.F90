@@ -118,10 +118,10 @@ contains
   subroutine init_1d_tanh(nx, xmin, xmax, model_params, model_num)
 
     use amrex_constants_module
-    use amrex_error_module
+    use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
 
-    use eos_module, only: eos
+    use eos_module, only: eos_on_host
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only : nspec, network_species_index
     use fundamental_constants_module, only: Gconst
@@ -138,18 +138,18 @@ contains
 
     integer :: i
 
-    real (rt) :: pres_base, entropy_base
+    real(rt)  :: pres_base, entropy_base
 
-    real :: A, B
+    real(rt)  :: A, B
 
-    real (rt) :: dCoord
+    real(rt)  :: dCoord
 
-    real (rt) :: dens_zone, temp_zone, pres_zone, entropy
-    real (rt) :: dpd, dpt, dsd, dst
+    real(rt)  :: dens_zone, temp_zone, pres_zone, entropy
+    real(rt)  :: dpd, dpt, dsd, dst
 
-    real (rt) :: p_want, drho, dtemp, delx
+    real(rt)  :: p_want, drho, dtemp, delx
 
-    real (rt), parameter :: TOL = 1.e-10
+    real(rt) , parameter :: TOL = 1.e-10
 
     integer, parameter :: MAX_ITER = 250
 
@@ -157,7 +157,7 @@ contains
 
     logical :: converged_hse, fluff
 
-    real (rt), dimension(nspec) :: xn
+    real(rt) , dimension(nspec) :: xn
 
     integer :: index_base
 
@@ -194,7 +194,7 @@ contains
 
     if (index_base == -1) then
        print *, 'ERROR: base_height not found on grid'
-       call amrex_error('ERROR: invalid base_height')
+       call castro_error('ERROR: invalid base_height')
     endif
 
 
@@ -208,7 +208,7 @@ contains
     eos_state%rho   = model_params % dens_base
     eos_state%xn(:) = model_params % xn_star(:)
 
-    call eos(eos_input_rt, eos_state)
+    call eos_on_host(eos_input_rt, eos_state)
 
     ! store the conditions at the base -- we'll use the entropy later
     ! to constrain the isentropic layer
@@ -247,7 +247,7 @@ contains
     eos_state%T = gen_model_state(index_base,itemp_model,model_num)
     eos_state%xn(:) = gen_model_state(index_base,ispec_model:ispec_model-1+nspec,model_num)
 
-    call eos(eos_input_rt, eos_state)
+    call eos_on_host(eos_input_rt, eos_state)
 
     gen_model_state(index_base,ipres_model,model_num) = eos_state%p
 
@@ -277,7 +277,7 @@ contains
           eos_state % T = gen_model_state(i-1,itemp_model,model_num)
           eos_state % xn(:) = gen_model_state(i-1,ispec_model:ispec_model-1+nspec,model_num)
 
-          call eos(eos_input_rt, eos_state)
+          call eos_on_host(eos_input_rt, eos_state)
 
           entropy_base = eos_state % s
 
@@ -340,7 +340,7 @@ contains
                 eos_state%rho   = dens_zone
                 eos_state%xn(:) = xn(:)
 
-                call eos(eos_input_rt, eos_state)
+                call eos_on_host(eos_input_rt, eos_state)
 
                 entropy = eos_state%s
                 pres_zone = eos_state%p
@@ -399,7 +399,7 @@ contains
                 eos_state%rho = dens_zone
                 eos_state%xn(:) = xn(:)
 
-                call eos(eos_input_rt, eos_state)
+                call eos_on_host(eos_input_rt, eos_state)
 
                 entropy = eos_state%s
                 pres_zone = eos_state%p
@@ -443,7 +443,7 @@ contains
              print *, dens_zone, temp_zone
              print *, p_want, entropy_base, entropy
              print *, drho, dtemp
-             call amrex_error('Error: HSE non-convergence')
+             call castro_error('Error: HSE non-convergence')
 
           endif
 
@@ -459,7 +459,7 @@ contains
        eos_state%rho   = dens_zone
        eos_state%xn(:) = xn(:)
 
-       call eos(eos_input_rt, eos_state)
+       call eos_on_host(eos_input_rt, eos_state)
 
        pres_zone = eos_state%p
 
@@ -520,7 +520,7 @@ contains
           eos_state%rho   = dens_zone
           eos_state%xn(:) = xn(:)
 
-          call eos(eos_input_rt, eos_state)
+          call eos_on_host(eos_input_rt, eos_state)
 
           pres_zone = eos_state%p
 
@@ -548,7 +548,7 @@ contains
           print *, dens_zone, temp_zone
           print *, p_want
           print *, drho
-          call amrex_error('Error: HSE non-convergence')
+          call castro_error('Error: HSE non-convergence')
 
        endif
 
@@ -559,7 +559,7 @@ contains
        eos_state%rho   = dens_zone
        eos_state%xn(:) = xn(:)
 
-       call eos(eos_input_rt, eos_state)
+       call eos_on_host(eos_input_rt, eos_state)
 
        pres_zone = eos_state%p
 

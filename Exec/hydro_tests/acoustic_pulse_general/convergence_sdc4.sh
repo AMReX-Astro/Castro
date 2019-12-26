@@ -1,14 +1,21 @@
 #!/bin/bash
 
-mpiexec -n 8 ./Castro2d.gnu.MPI.ex inputs.64 castro.sdc_order=4 castro.time_integration_method=2 castro.limit_fourth_order=1 castro.use_reconstructed_gamma1=1
-mpiexec -n 8 ./Castro2d.gnu.MPI.ex inputs.128 castro.sdc_order=4 castro.time_integration_method=2 castro.limit_fourth_order=1 castro.use_reconstructed_gamma1=1
-mpiexec -n 8 ./Castro2d.gnu.MPI.ex inputs.256 castro.sdc_order=4 castro.time_integration_method=2 castro.limit_fourth_order=1 castro.use_reconstructed_gamma1=1
 
-RichardsonConvergenceTest2d.gnu.ex coarFile=acoustic_pulse_64_plt00101 mediFile=acoustic_pulse_128_plt00201 fineFile=acoustic_pulse_256_plt00401 > convergence_sdc4.1.out
+# echo the commands
+set -x
 
-mpiexec -n 8 ./Castro2d.gnu.MPI.ex inputs.512 castro.sdc_order=4 castro.time_integration_method=2 castro.limit_fourth_order=1 castro.use_reconstructed_gamma1=1
+DIM=2
+EXEC=./Castro${DIM}d.gnu.MPI.ex
 
-RichardsonConvergenceTest2d.gnu.ex coarFile=acoustic_pulse_128_plt00201 mediFile=acoustic_pulse_256_plt00401 fineFile=acoustic_pulse_512_plt00801 > convergence_sdc4.2.out
+RUNPARAMS="castro.sdc_order=4 castro.time_integration_method=2"
+
+mpiexec -n 4 ${EXEC} inputs.64 ${RUNPARAMS} amr.plot_file=acoustic_pulse_64_sdc4_plt &> 64.out
+mpiexec -n 4 ${EXEC} inputs.128 ${RUNPARAMS} amr.plot_file=acoustic_pulse_128_sdc4_plt &> 128.out
+mpiexec -n 4 ${EXEC} inputs.256 ${RUNPARAMS} amr.plot_file=acoustic_pulse_256_sdc4_plt &> 256.out
+mpiexec -n 4 ${EXEC} inputs.512 ${RUNPARAMS} amr.plot_file=acoustic_pulse_512_sdc4_plt &> 512.out
+
+RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=acoustic_pulse_64_sdc4_plt00101 mediFile=acoustic_pulse_128_sdc4_plt00201 fineFile=acoustic_pulse_256_sdc4_plt00401 > convergence.${DIM}d.lo.sdc4.out
+RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=acoustic_pulse_128_sdc4_plt00201 mediFile=acoustic_pulse_256_sdc4_plt00401 fineFile=acoustic_pulse_512_sdc4_plt00801 > convergence.${DIM}d.hi.sdc4.out
 
 
 

@@ -35,6 +35,16 @@ new_decl = "real(rt)"
 const_spec = "_rt"
 
 
+class Unit:
+    """a program unit"""
+    def __init__(self, name):
+        self.name = name
+        self.has_decl = False
+        self.has_rt_use = False
+
+    def __str__(self):
+        return self.name
+
 def find_files(top_dir, extension):
     """ find files with a given extension -- return a list """
 
@@ -81,7 +91,7 @@ def main():
     # this matches stuff like -1.25d-10, and gives us separate groups for the
     # prefix and exponent.  The [^\w] makes sure a letter isn't right in front
     # of the match (like 'k3d-1')
-    d_re = re.compile(r"([^\w][\+\-0-9.]+)[dD]([\+\-]?[0-9]+)", re.IGNORECASE|re.DOTALL)
+    d_re = re.compile(r"([^\w][\+\-0-9.][0-9.]+)[dD]([\+\-]?[0-9]+)", re.IGNORECASE|re.DOTALL)
 
     # find the source files
     sfiles = []
@@ -113,39 +123,42 @@ def main():
 
         # parse it first looking for subroutine and function
         # definitions, marking which have any double precision
-        # definitions
+        # definitions, also check if it needs the amrex_real added?
+
 
         # keep track of all the program units in file file (modules,
         # subroutines, etc.)
-        units = {}
+        units = []
 
         current_unit = None
+
         has_decl = False
+        has_rt_use = False
 
         for line in lines:
             tline = line.strip()
 
-            # are we a routine?
+            # are we a routine or function?
             rout = routine_re.search(tline)
-            if rout:
-                # save the old info
-                if current_unit is not None:
-                    units[current_unit] = has_decl
-
-                # start the next unit
-                current_unit = rout.group(2)
-                has_decl = False
-
             fout = func_re.search(tline)
-            if fout:
+
+            if rout or fout:
                 # save the old info
                 if current_unit is not None:
-                    units[current_unit] = has_decl
+                    unit = Unit(current_unit)
+                    unit.has_decl = has_decl
+                    unit.has_rt_use = has_rt_use
+                    units.append(unit)
 
                 # start the next unit
-                current_unit = fout.group(2)
+                if rout:
+                    current_unit = rout.group(2)
+                elif fout:
+                    current_unit = fout.group(2)
+
                 has_decl = False
-                
+                hse_rt_use = False
+
             # are there any declarations that we need to replace?
             for r in regexs:
                 decl = r.search(line)
@@ -156,21 +169,28 @@ def main():
             if d_re.finditer(line):
                 has_decl = True
 
+            if "amrex_fort_module" in line:
+                has_rt_use = True
+
         # we never stored the last found unit
         if current_unit is not None and current_unit not in units:
-            units[current_unit] = has_decl
+            unit = Unit(current_unit)
+            unit.has_decl = has_decl
+            unit.has_rt_use = has_rt_use
+            units.append(unit)
 
 
         # now write out the file, line by line.  When we encounter a
         # subroutine or function, add the necessary module line.  When
         # we encounter a declaration, convert it to the new form
-        current_unit = None
         has_decl = False
 
         new_lines = []
         while lines:
 
             line = lines.pop(0)
+
+            print("working on: ", line)
 
             # is this the start of a routine?
             rout = routine_re.search(line.strip())
@@ -180,11 +200,17 @@ def main():
                     current_unit = rout.group(2)
                 elif fout:
                     current_unit = fout.group(2)
-                has_decl = units[current_unit]
+                unit = [q for q in units if q.name == current_unit][0]
+                has_decl = unit.has_decl
 
                 while has_decl:
 
                     new_lines.append(line)
+
+                    # sometimes we are dealing with a stub and there will never
+                    # be any declarations
+                    if not lines:
+                        break
 
                     # we need to add the use line before any declarations or
                     # and implicit none.  We don't simply add it after first
@@ -206,7 +232,8 @@ def main():
                         indent = max(0, indent)
 
                         # we need to add the module use statement
-                        new_lines.append("{}{}\n".format(indent*" ", mod_incl))
+                        if not unit.has_rt_use:
+                            new_lines.append("{}{}\n".format(indent*" ", mod_incl))
                         has_decl = False
 
 
@@ -219,6 +246,8 @@ def main():
                     lo = len(old_decl) - len(new_decl)
                     if lo > 0:
                         new_decl_out = new_decl + lo*" "
+                    else:
+                        new_decl_out = new_decl
                     line = line.replace(old_decl, new_decl_out)
 
             # replace constants

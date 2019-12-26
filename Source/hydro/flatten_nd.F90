@@ -121,7 +121,7 @@ contains
 
              tmp = min(q(i+1,j,k,pres_comp), q(i-1,j,k,pres_comp))
 
-             if ((abs(dp)/tmp) .gt. shktst) then
+             if (abs(dp) .gt. shktst*tmp) then
                 chi = tst
              else
                 chi = ZERO
@@ -141,7 +141,7 @@ contains
 
              tmp = min(q(i+1-ishft,j,k,pres_comp), q(i-1-ishft,j,k,pres_comp))
 
-             if ((abs(dp)/tmp) .gt. shktst) then
+             if (abs(dp) .gt. shktst*tmp) then
                 chi2 = tst
              else
                 chi2 = ZERO
@@ -178,7 +178,7 @@ contains
              endif
 
              tmp = min(q(i,j+1,k,pres_comp), q(i,j-1,k,pres_comp))
-             if ((abs(dp)/tmp) .gt. shktst) then
+             if (abs(dp) .gt. shktst*tmp) then
                 chi = tst
              else
                 chi = ZERO
@@ -197,7 +197,7 @@ contains
              endif
 
              tmp = min(q(i,j+1-ishft,k,pres_comp), q(i,j-1-ishft,k,pres_comp))
-             if ((abs(dp)/tmp) .gt. shktst) then
+             if (abs(dp) .gt. shktst*tmp) then
                 chi2 = tst
              else
                 chi2 = ZERO
@@ -236,7 +236,7 @@ contains
              endif
 
              tmp = min(q(i,j,k+1,pres_comp),q(i,j,k-1,pres_comp))
-             if ((abs(dp)/tmp) .gt. shktst) then
+             if (abs(dp) .gt. shktst*tmp) then
                 chi = tst
              else
                 chi = ZERO
@@ -255,7 +255,7 @@ contains
              endif
 
              tmp = min(q(i,j,k+1-ishft,pres_comp),q(i,j,k-1-ishft,pres_comp))
-             if ((abs(dp)/tmp) .gt. shktst) then
+             if (abs(dp) .gt. shktst*tmp) then
                 chi2 = tst
              else
                 chi2 = ZERO

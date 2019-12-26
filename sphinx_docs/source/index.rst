@@ -23,6 +23,7 @@ https://github.com/amrex-astro/Castro
    creating_a_problem
    io
    visualization
+   retry
    faq
 
 .. toctree::
@@ -37,9 +38,11 @@ https://github.com/amrex-astro/Castro
    gravity
    diffusion
    rotation
+   sponge
    radiation
    Particles
    EOSNetwork
+   sdc
    AMR
    ConvertCheckpoint
    self_consistent_field

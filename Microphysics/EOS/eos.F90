@@ -14,7 +14,7 @@ contains
   subroutine eos_init(small_temp, small_dens)
 
     use amrex_fort_module, only: rt => amrex_real
-    use amrex_error_module
+    use castro_error_module
     use amrex_paralleldescriptor_module, only : amrex_pd_ioprocessor
     use eos_type_module, only: mintemp, mindens, maxtemp, maxdens, &
                                minx, maxx, minye, maxye, mine, maxe, &
@@ -119,14 +119,12 @@ contains
 
   subroutine eos(input, state)
 
-    use eos_type_module, only: eos_t, composition
-#ifdef EXTRA_THERMO
-    use eos_type_module, only : composition_derivatives
-#endif
+    use eos_type_module, only: eos_t
+    use eos_composition_module, only : composition
     use actual_eos_module, only: actual_eos
     use eos_override_module, only: eos_override
 #if (!(defined(AMREX_USE_CUDA) || defined(AMREX_USE_ACC)))
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
 
     implicit none
@@ -143,7 +141,7 @@ contains
     ! Local variables
 
 #if (!(defined(AMREX_USE_CUDA) || defined(AMREX_USE_ACC)))
-    if (.not. initialized) call amrex_error('EOS: not initialized')
+    if (.not. initialized) call castro_error('EOS: not initialized')
 #endif
 
     ! Get abar, zbar, etc.
@@ -167,13 +165,67 @@ contains
        call actual_eos(input, state)
     endif
 
-#if EXTRA_THERMO
-    ! Get dpdX, dedX, dhdX.
+  end subroutine eos
 
-    call composition_derivatives(state)
+
+
+#ifdef AMREX_USE_GPU
+  attributes(global) subroutine launch_eos(input, state)
+
+    use eos_type_module, only: eos_t
+
+    implicit none
+
+    integer,      intent(in   ) :: input
+    type (eos_t), intent(inout) :: state
+
+    ! Wrapper kernel for calling the device EOS.
+
+#ifdef AMREX_GPU_PRAGMA_NO_HOST
+    call eos(input, state)
+#else
+    call eos_device(input, state)
 #endif
 
-  end subroutine eos
+  end subroutine launch_eos
+#endif
+
+
+
+  subroutine eos_on_host(input, state)
+
+    use eos_type_module, only: eos_t
+
+#ifdef AMREX_USE_CUDA
+    use cudafor, only: cudaDeviceSynchronize
+#endif
+
+    implicit none
+
+    integer,      intent(in   ) :: input
+    type (eos_t), intent(inout) :: state
+
+#ifdef AMREX_USE_CUDA
+    integer,      device :: input_device
+    type (eos_t), device :: state_device
+#endif
+
+    ! Evaluate the EOS on a single thread on the GPU.
+    ! If we're in a CPU-only build, fall back to the
+    ! normal EOS call.
+
+#ifdef AMREX_USE_CUDA
+    input_device = input
+    state_device = state
+
+    call launch_eos<<<1,1>>>(input_device, state_device)
+
+    state = state_device
+#else
+    call eos(input, state)
+#endif
+
+  end subroutine eos_on_host
 
 
 
@@ -383,7 +435,7 @@ contains
 #if (!(defined(AMREX_USE_CUDA) || defined(AMREX_USE_ACC)))
   subroutine check_inputs(input, state)
 
-    use amrex_error_module
+    use castro_error_module
     use network, only: nspec
     use eos_type_module, only: eos_t, print_state, minx, maxx, minye, maxye, &
                                eos_input_rt, eos_input_re, eos_input_rp, eos_input_rh, &
@@ -401,19 +453,19 @@ contains
     do n = 1, nspec
        if (state % xn(n) .lt. minx) then
           call print_state(state)
-          call amrex_error('EOS: mass fraction less than minimum possible mass fraction.')
+          call castro_error('EOS: mass fraction less than minimum possible mass fraction.')
        else if (state % xn(n) .gt. maxx) then
           call print_state(state)
-          call amrex_error('EOS: mass fraction more than maximum possible mass fraction.')
+          call castro_error('EOS: mass fraction more than maximum possible mass fraction.')
        endif
     enddo
 
     if (state % y_e .lt. minye) then
        call print_state(state)
-       call amrex_error('EOS: y_e less than minimum possible electron fraction.')
+       call castro_error('EOS: y_e less than minimum possible electron fraction.')
     else if (state % y_e .gt. maxye) then
        call print_state(state)
-       call amrex_error('EOS: y_e greater than maximum possible electron fraction.')
+       call castro_error('EOS: y_e greater than maximum possible electron fraction.')
     endif
 
     if (input .eq. eos_input_rt) then
@@ -464,7 +516,7 @@ contains
 
   subroutine check_rho(state)
 
-    use amrex_error_module
+    use castro_error_module
     use eos_type_module, only: eos_t, mindens, maxdens, print_state
 
     implicit none
@@ -473,10 +525,10 @@ contains
 
     if (state % rho .lt. mindens) then
        call print_state(state)
-       call amrex_error('EOS: rho smaller than mindens.')
+       call castro_error('EOS: rho smaller than mindens.')
     else if (state % rho .gt. maxdens) then
        call print_state(state)
-       call amrex_error('EOS: rho greater than maxdens.')
+       call castro_error('EOS: rho greater than maxdens.')
     endif
 
   end subroutine check_rho
@@ -485,7 +537,7 @@ contains
 
   subroutine check_T(state)
 
-    use amrex_error_module
+    use castro_error_module
     use eos_type_module, only: eos_t, mintemp, maxtemp, print_state
 
     implicit none
@@ -494,10 +546,10 @@ contains
 
     if (state % T .lt. mintemp) then
        call print_state(state)
-       call amrex_error('EOS: T smaller than mintemp.')
+       call castro_error('EOS: T smaller than mintemp.')
     else if (state % T .gt. maxtemp) then
        call print_state(state)
-       call amrex_error('EOS: T greater than maxtemp.')
+       call castro_error('EOS: T greater than maxtemp.')
     endif
 
   end subroutine check_T
@@ -506,7 +558,7 @@ contains
 
   subroutine check_e(state)
 
-    use amrex_error_module
+    use castro_error_module
     use eos_type_module, only: eos_t, mine, maxe, print_state
 
     implicit none
@@ -515,10 +567,10 @@ contains
 
     if (state % e .lt. mine) then
        call print_state(state)
-       call amrex_error('EOS: e smaller than mine.')
+       call castro_error('EOS: e smaller than mine.')
     else if (state % e .gt. maxe) then
        call print_state(state)
-       call amrex_error('EOS: e greater than maxe.')
+       call castro_error('EOS: e greater than maxe.')
     endif
 
   end subroutine check_e
@@ -527,7 +579,7 @@ contains
 
   subroutine check_h(state)
 
-    use amrex_error_module
+    use castro_error_module
     use eos_type_module, only: eos_t, minh, maxh, print_state
 
     implicit none
@@ -536,10 +588,10 @@ contains
 
     if (state % h .lt. minh) then
        call print_state(state)
-       call amrex_error('EOS: h smaller than minh.')
+       call castro_error('EOS: h smaller than minh.')
     else if (state % h .gt. maxh) then
        call print_state(state)
-       call amrex_error('EOS: h greater than maxh.')
+       call castro_error('EOS: h greater than maxh.')
     endif
 
   end subroutine check_h
@@ -548,7 +600,7 @@ contains
 
   subroutine check_s(state)
 
-    use amrex_error_module
+    use castro_error_module
     use eos_type_module, only: eos_t, mins, maxs, print_state
 
     implicit none
@@ -557,10 +609,10 @@ contains
 
     if (state % s .lt. mins) then
        call print_state(state)
-       call amrex_error('EOS: s smaller than mins.')
+       call castro_error('EOS: s smaller than mins.')
     else if (state % s .gt. maxs) then
        call print_state(state)
-       call amrex_error('EOS: s greater than maxs.')
+       call castro_error('EOS: s greater than maxs.')
     endif
 
   end subroutine check_s
@@ -569,7 +621,7 @@ contains
 
   subroutine check_p(state)
 
-    use amrex_error_module
+    use castro_error_module
     use eos_type_module, only: eos_t, minp, maxp, print_state
 
     implicit none
@@ -578,10 +630,10 @@ contains
 
     if (state % p .lt. minp) then
        call print_state(state)
-       call amrex_error('EOS: p smaller than minp.')
+       call castro_error('EOS: p smaller than minp.')
     else if (state % p .gt. maxp) then
        call print_state(state)
-       call amrex_error('EOS: p greater than maxp.')
+       call castro_error('EOS: p greater than maxp.')
     endif
 
   end subroutine check_p

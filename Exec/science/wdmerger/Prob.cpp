@@ -1,6 +1,5 @@
 #include "Castro.H"
 #include "Castro_F.H"
-#include "Castro_prob_err_F.H"
 
 #include "Gravity.H"
 #include <Gravity_F.H>
@@ -53,10 +52,11 @@ Real Castro::ts_te_curr_max = 0.0;
 
 Real Castro::total_ener_array[num_previous_ener_timesteps] = { 0.0 };
 
-#ifdef DO_PROBLEM_POST_TIMESTEP
 void
 Castro::problem_post_timestep()
 {
+
+    BL_PROFILE("Castro::problem_post_timestep()");
 
     if (level != 0) return;
 
@@ -70,7 +70,7 @@ Castro::problem_post_timestep()
 
     wd_update(time, dt);
 
-    // If we are doing problem 3, which has an initial relaxation step,
+    // If we are doing the merger problem with an initial relaxation step,
     // perform any post-timestep updates to assist with the relaxation, then
     // determine whether the criterion for terminating the relaxation
     // has been satisfied.
@@ -87,7 +87,6 @@ Castro::problem_post_timestep()
     check_to_stop(time);
 
 }
-#endif
 
 
 
@@ -187,7 +186,7 @@ Castro::wd_update (Real time, Real dt)
                      reduction(+:vel_p_x,vel_p_y,vel_p_z,vel_s_x,vel_s_y,vel_s_z) \
                      reduction(+:mp, ms)
 #endif
-      for (MFIter mfi(*mfrho,true); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           FArrayBox& fabrho   = (*mfrho )[mfi];
 	  FArrayBox& fabxmom  = (*mfxmom)[mfi];
 	  FArrayBox& fabymom  = (*mfymom)[mfi];
@@ -200,6 +199,7 @@ Castro::wd_update (Real time, Real dt)
 	  const int* lo   = box.loVect();
 	  const int* hi   = box.hiVect();
 
+#pragma gpu box(box)
 	  wdcom(BL_TO_FORTRAN_ANYD(fabrho),
 		BL_TO_FORTRAN_ANYD(fabxmom),
 		BL_TO_FORTRAN_ANYD(fabymom),
@@ -207,13 +207,13 @@ Castro::wd_update (Real time, Real dt)
 		BL_TO_FORTRAN_ANYD(fabpmask),
 		BL_TO_FORTRAN_ANYD(fabsmask),
 		BL_TO_FORTRAN_ANYD(vol),
-		ARLIM_3D(lo),ARLIM_3D(hi),
-		ZFILL(dx),&time,
-		&com_p_x, &com_p_y, &com_p_z,
-		&com_s_x, &com_s_y, &com_s_z,
-		&vel_p_x, &vel_p_y, &vel_p_z,
-		&vel_s_x, &vel_s_y, &vel_s_z,
-		&mp, &ms);
+		AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+		AMREX_REAL_ANYD(dx), time,
+		AMREX_MFITER_REDUCE_SUM(&com_p_x), AMREX_MFITER_REDUCE_SUM(&com_p_y), AMREX_MFITER_REDUCE_SUM(&com_p_z),
+		AMREX_MFITER_REDUCE_SUM(&com_s_x), AMREX_MFITER_REDUCE_SUM(&com_s_y), AMREX_MFITER_REDUCE_SUM(&com_s_z),
+                AMREX_MFITER_REDUCE_SUM(&vel_p_x), AMREX_MFITER_REDUCE_SUM(&vel_p_y), AMREX_MFITER_REDUCE_SUM(&vel_p_z),
+                AMREX_MFITER_REDUCE_SUM(&vel_s_x), AMREX_MFITER_REDUCE_SUM(&vel_s_y), AMREX_MFITER_REDUCE_SUM(&vel_s_z),
+		AMREX_MFITER_REDUCE_SUM(&mp), AMREX_MFITER_REDUCE_SUM(&ms));
 	}
 
     }
@@ -392,27 +392,26 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:vp,vs)
 #endif
-      for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi) {
+      for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           FArrayBox& fab      = (*mf)[mfi];
           FArrayBox& fabpmask = (*mfpmask)[mfi];
           FArrayBox& fabsmask = (*mfsmask)[mfi];
           FArrayBox& vol      = c_lev.volume[mfi];
 
-	  Real sp = 0.0;
-	  Real ss = 0.0;
-
 	  const Box& box  = mfi.tilebox();
 	  const int* lo   = box.loVect();
 	  const int* hi   = box.hiVect();
 
+#pragma gpu box(box)
 	  ca_volumeindensityboundary(BL_TO_FORTRAN_ANYD(fab),
 		                     BL_TO_FORTRAN_ANYD(fabpmask),
 				     BL_TO_FORTRAN_ANYD(fabsmask),
 				     BL_TO_FORTRAN_ANYD(vol),
-				     ARLIM_3D(lo),ARLIM_3D(hi),
-				     ZFILL(dx),&sp,&ss,&rho_cutoff);
-	  vp += sp;
-	  vs += ss;
+				     AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+				     AMREX_REAL_ANYD(dx),
+                                     AMREX_MFITER_REDUCE_SUM(&vp), AMREX_MFITER_REDUCE_SUM(&vs),
+                                     rho_cutoff);
+
       }
 
       vol_p += vp;
@@ -501,12 +500,13 @@ Castro::gwstrain (Real time,
 	int tid = omp_get_thread_num();
 	priv_Qtt[tid]->setVal(0.0);
 #endif
-	for (MFIter mfi(*mfrho,true); mfi.isValid(); ++mfi) {
+	for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
 	    const Box& box  = mfi.tilebox();
 	    const int* lo   = box.loVect();
 	    const int* hi   = box.hiVect();
 
+#pragma gpu box(box)
 	    quadrupole_tensor_double_dot(BL_TO_FORTRAN_ANYD((*mfrho)[mfi]),
 					 BL_TO_FORTRAN_ANYD((*mfxmom)[mfi]),
 					 BL_TO_FORTRAN_ANYD((*mfymom)[mfi]),
@@ -515,12 +515,14 @@ Castro::gwstrain (Real time,
 					 BL_TO_FORTRAN_ANYD((*mfgravy)[mfi]),
 					 BL_TO_FORTRAN_ANYD((*mfgravz)[mfi]),
 					 BL_TO_FORTRAN_ANYD(volume[mfi]),
-					 ARLIM_3D(lo),ARLIM_3D(hi),ZFILL(dx),&time,
+					 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                                         AMREX_REAL_ANYD(dx), time,
 #ifdef _OPENMP
-					 priv_Qtt[tid]->dataPtr());
+					 priv_Qtt[tid]->dataPtr()
 #else
-	                                 Qtt.dataPtr());
+	                                 Qtt.dataPtr()
 #endif
+                                         );
         }
     }
 
@@ -597,8 +599,6 @@ Real Castro::norm(const Real a[]) {
 
 
 
-#ifdef DO_PROBLEM_POST_INIT
-
 void Castro::problem_post_init() {
 
   // Read in inputs.
@@ -617,11 +617,6 @@ void Castro::problem_post_init() {
   // Get the relaxation status.
 
   get_relaxation_status(&relaxation_is_done);
-
-  // If we're doing an initial relaxation step, ensure that we are not subcycling.
-
-  if (problem == 3 && !relaxation_is_done && parent->subCycle() && parent->finestLevel() > 0)
-      amrex::Abort("Error: cannot perform relaxation step if we are sub-cycling in the AMR.");
 
   // Update the rotational period; some problems change this from what's in the inputs parameters.
 
@@ -643,11 +638,7 @@ void Castro::problem_post_init() {
 
 }
 
-#endif
 
-
-
-#ifdef DO_PROBLEM_POST_RESTART
 
 void Castro::problem_post_restart() {
 
@@ -705,7 +696,7 @@ void Castro::problem_post_restart() {
               do_sums = true;
           log.close();
 
-          if (do_sums)
+          if (do_sums && (sum_interval > 0 || sum_per > 0))
               sum_integrated_quantities();
 
       }
@@ -723,8 +714,6 @@ void Castro::problem_post_restart() {
   check_to_stop(time, dump);
 
 }
-
-#endif
 
 
 
@@ -865,24 +854,6 @@ void Castro::check_to_stop(Real time, bool dump) {
 
           }
 
-      } else if (problem == 4) {
-
-	// We can work out the stopping time using the formula
-	// t_freefall = rotational_period / (4 * sqrt(2)).
-	// We'll stop 90% of the way there because that's about
-	// when the stars start coming into contact, and the
-	// assumption of spherically symmetric stars breaks down.
-
-	Real stopping_time = 0.90 * rotational_period / (4.0 * std::sqrt(2));
-
-	if (time >= stopping_time) {
-
-	  jobDoneStatus = 1;
-
-	  set_job_status(&jobDoneStatus);
-
-	}
-
       }
 
     }
@@ -988,35 +959,20 @@ Castro::update_relaxation(Real time, Real dt) {
     // Check to make sure whether we should be doing the relaxation here.
     // Update the relaxation conditions if we are not stopping.
 
-    if (problem != 3 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
+    if (problem != 1 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
 
-    // Reconstruct the rotation force at the old and new times.
-    // For the old time we can simply use the old state data; for
-    // the new time, we need to reconstruct the state as it was
-    // before the new-time sources were applied, so we'll temporarily
-    // subtract off all the new-time sources before doing so.
-
-    // This process is technically incorrect if reactions are
-    // enabled. We reconstruct the new-time rotation force by
-    // subtracting the new-time sources, but ignore the fact that
-    // a Strang-split burn happened in between. We will not worry
-    // about this for two reasons: first, reactions are generally
-    // not going to be enabled during the relaxation step, and if
-    // they are enabled, they will contribute negligibly anyway
-    // since the relaxation step happens prior to the merger;
-    // second, the reactions do not directly affect the gravity
-    // or rotation source terms, so even if there were substantial
-    // reactions occurring, the error introduced by not accounting
-    // for them here would be small.
-
-    // Note that this process only really makes sense if we are
-    // not subcycling.
+    // Construct the update to the rotation frequency. We calculate
+    // the gravitational force at the end of the timestep, set the
+    // rotational force to be equal to it, and infer the required
+    // rotation frequency. Then we apply it so that the next timestep
+    // has an updated rotation force that is a better balance against
+    // the gravitational force.
 
     int coarse_level = 0;
     int finest_level = parent->finestLevel();
     int n_levs = finest_level + 1;
 
-    Vector< std::unique_ptr<MultiFab> > rot_force(n_levs);
+    Vector< std::unique_ptr<MultiFab> > force(n_levs);
 
     for (int lev = coarse_level; lev <= finest_level; ++lev) {
 
@@ -1025,30 +981,30 @@ Castro::update_relaxation(Real time, Real dt) {
 
         const Real dt = new_time - old_time;
 
-        rot_force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
-        rot_force[lev]->setVal(0.0);
+        force[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+        force[lev]->setVal(0.0);
 
-        MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
         MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
 
-        // Use the rot_force MultiFab as temporary data to hold the
-        // non-rotation forces that were applied during the step. The inspiration
-        // for this approach is the method of Rosswog, Speith & Wynn (2004)
-        // (which was in the context of neutron star mergers; it was extended
-        // to white dwarf mergers by Dan et al. (2011)). In that paper, the rotation
-        // force is calculated by exactly balancing against the gravitational and hydrodynamic
-        // forces. We will just use the gravitational force, since the desired equilibrium
-        // state is for the hydrodynamic forces to be zero.
+        // Store the non-rotation forces. The inspiration for this approach is
+        // the method of Rosswog, Speith & Wynn (2004) (which was in the context
+        // of neutron star mergers; it was extended to white dwarf mergers by Dan et al.
+        // (2011)). In that paper, the rotation force is calculated by exactly balancing
+        // against the gravitational and hydrodynamic forces. We will just use the
+        // gravitational force, since the desired equilibrium state is for the hydrodynamic
+        // forces to be zero.
 
-        getLevel(lev).construct_old_gravity_source(*rot_force[lev], S_old, old_time, dt);
-        getLevel(lev).construct_new_gravity_source(*rot_force[lev], S_old, S_new, new_time, dt);
+        // We'll use the "old" gravity source constructor, which is really just a first-order
+        // predictor for rho * g, and apply it at the new time.
+
+        getLevel(lev).construct_old_gravity_source(*force[lev], S_new, new_time, dt);
 
         // Mask out regions covered by fine grids.
 
         if (lev < parent->finestLevel()) {
             const MultiFab& mask = getLevel(lev+1).build_fine_mask();
             for (int n = 0; n < NUM_STATE; ++n)
-                MultiFab::Multiply(*rot_force[lev], mask, 0, n, 1, 0);
+                MultiFab::Multiply(*force[lev], mask, 0, n, 1, 0);
         }
 
     }
@@ -1077,20 +1033,26 @@ Castro::update_relaxation(Real time, Real dt) {
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:fpx, fpy, fpz, fsx, fsy, fsz)
 #endif
-        for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
             const Box& box = mfi.tilebox();
 
             const int* lo  = box.loVect();
             const int* hi  = box.hiVect();
 
-            sum_force_on_stars(lo, hi,
-                               BL_TO_FORTRAN_ANYD((*rot_force[lev])[mfi]),
+#pragma gpu box(box)
+            sum_force_on_stars(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                               BL_TO_FORTRAN_ANYD((*force[lev])[mfi]),
                                BL_TO_FORTRAN_ANYD(S_new[mfi]),
                                BL_TO_FORTRAN_ANYD(vol[mfi]),
                                BL_TO_FORTRAN_ANYD((*pmask)[mfi]),
                                BL_TO_FORTRAN_ANYD((*smask)[mfi]),
-                               &fpx, &fpy, &fpz, &fsx, &fsy, &fsz);
+                               AMREX_MFITER_REDUCE_SUM(&fpx),
+                               AMREX_MFITER_REDUCE_SUM(&fpy),
+                               AMREX_MFITER_REDUCE_SUM(&fpz),
+                               AMREX_MFITER_REDUCE_SUM(&fsx),
+                               AMREX_MFITER_REDUCE_SUM(&fsy),
+                               AMREX_MFITER_REDUCE_SUM(&fsz));
 
         }
 
@@ -1134,13 +1096,12 @@ Castro::update_relaxation(Real time, Real dt) {
     // coarse grid but if we wanted more accuracy we could do a loop
     // over levels as above.
 
-    Real L1[3] = { -1.0e200 };
-    Real L2[3] = { -1.0e200 };
-    Real L3[3] = { -1.0e200 };
+    // For the merger problem, we're going to turn the relaxation off
+    // when we've reached the L1 Lagrange point.
 
     // First, calculate the location of the L1 Lagrange point.
 
-    get_lagrange_points(mass_p, mass_s, com_p, com_s, L1, L2, L3);
+    get_lagrange_points(mass_p, mass_s, com_p, com_s);
 
     // Then, figure out the effective potential corresponding to that
     // Lagrange point.
@@ -1152,15 +1113,17 @@ Castro::update_relaxation(Real time, Real dt) {
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:potential)
 #endif
-    for (MFIter mfi(*mfphieff,true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(*mfphieff, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-	const Box& box = mfi.tilebox();
+        const Box& box = mfi.tilebox();
 
-	const int* lo  = box.loVect();
-	const int* hi  = box.hiVect();
+        const int* lo  = box.loVect();
+        const int* hi  = box.hiVect();
 
-	get_critical_roche_potential(BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
-				     lo, hi, L1, &potential);
+#pragma gpu box(box)
+        get_critical_roche_potential(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                                     BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
+                                     AMREX_MFITER_REDUCE_SUM(&potential));
 
     }
 
@@ -1171,36 +1134,52 @@ Castro::update_relaxation(Real time, Real dt) {
 
     MultiFab& S_new = get_new_data(State_Type);
 
-    int is_done = 0;
+    Real is_done = 0.0;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:is_done)
 #endif
-    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-	const Box& box  = mfi.tilebox();
+        const Box& box  = mfi.tilebox();
 
-	const int* lo   = box.loVect();
-	const int* hi   = box.hiVect();
+        const int* lo   = box.loVect();
+        const int* hi   = box.hiVect();
 
-	check_relaxation(BL_TO_FORTRAN_ANYD(S_new[mfi]),
-			 BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
-			 ARLIM_3D(lo),ARLIM_3D(hi),
-			 &potential,&is_done);
+#pragma gpu box(box)
+        check_relaxation(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                         BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                         BL_TO_FORTRAN_ANYD((*mfphieff)[mfi]),
+                         potential, AMREX_MFITER_REDUCE_SUM(&is_done));
 
     }
 
-    amrex::ParallelDescriptor::ReduceIntSum(is_done);
+    amrex::ParallelDescriptor::ReduceRealSum(is_done);
 
-    if (is_done > 0) {
-	relaxation_is_done = 1;
+    if (is_done > 0.0) {
+        relaxation_is_done = 1;
+        amrex::Print() << "Disabling relaxation at time " << time
+                       << "s because the critical density threshold has been passed."
+                       << std::endl;
+    }
+
+    // We can also turn off the relaxation if we've passed
+    // a certain number of dynamical timescales.
+
+    Real relaxation_cutoff_time;
+    get_relaxation_cutoff_time(&relaxation_cutoff_time);
+
+    if (relaxation_cutoff_time > 0.0 && time > relaxation_cutoff_time * std::max(t_ff_p, t_ff_s)) {
+        relaxation_is_done = 1;
+        amrex::Print() << "Disabling relaxation at time " << time
+                       << "s because the maximum number of dynamical timescales has passed."
+                       << std::endl;
+    }
+
+    if (relaxation_is_done > 0) {
 	set_relaxation_status(&relaxation_is_done);
-    }
-
-    if (relaxation_is_done) {
-
-	turn_off_relaxation(&time);
-
+        const Real factor = -1.0;
+	set_relaxation_damping_factor(factor);
     }
 
 }

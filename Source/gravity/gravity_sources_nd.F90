@@ -19,9 +19,9 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, grav_source_type, NSRC
     use castro_util_module, only: position ! function
     use prob_params_module, only: center
 #ifdef HYBRID_MOMENTUM
@@ -49,7 +49,7 @@ contains
     real(rt), intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     real(rt), intent(in   ) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3),3)
 #endif
-    real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt), intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NSRC)
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ), value :: dt, time
 
@@ -62,7 +62,7 @@ contains
 
     ! Temporary array for holding the update to the state.
     
-    real(rt) :: src(NVAR)
+    real(rt) :: src(NSRC)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
@@ -121,7 +121,15 @@ contains
              ! do, for consistency. We will fully subtract this predictor value
              ! during the corrector step, so that the final result is correct.
 
-             SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
+                SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
+
+#ifndef AMREX_USE_CUDA
+             else
+
+                call castro_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+#endif
+
+             end if
 
              src(UEDEN) = SrE
 
@@ -160,12 +168,12 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, &
-                                  gravity_type_int, get_g_from_phi
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, NSRC, &
+                                  grav_source_type, gravity_type_int, PoissonGrav, MonopoleGrav, get_g_from_phi
     use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
@@ -225,7 +233,7 @@ contains
 
     ! The source term to send back
 
-    real(rt), intent(inout) :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
+    real(rt), intent(inout) :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NSRC)
 
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ), value :: dt, time
@@ -245,7 +253,7 @@ contains
     real(rt) :: phi, phixl, phixr, phiyl, phiyr, phizl, phizr
     real(rt) :: g(3), gxl, gxr, gyl, gyr, gzl, gzr
 
-    real(rt) :: src(NVAR)
+    real(rt) :: src(NSRC)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
@@ -414,19 +422,112 @@ contains
                                                flux3(i,j,k        ) * gzl * dx(3) + &
                                                flux3(i,j,k+1*dg(3)) * gzr * dx(3) ) / vol(i,j,k)
 
-             endif
-#else
-             ! For constant gravity, the only contribution is from the dimension that the gravity points in.
+#ifdef SELF_GRAVITY
+                if (gravity_type_int == PoissonGrav .or. (gravity_type_int == MonopoleGrav .and. get_g_from_phi == 1) ) then
 
-             if (dim .eq. 1) then
-                SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k) * const_grav * dx(1) + &
-                                                    flux1(i+1*dg(1),j,k) * const_grav * dx(1) ) / vol(i,j,k)
-             else if (dim .eq. 2) then
-                SrEcorr = SrEcorr + (HALF / dt) * ( flux2(i,j        ,k) * const_grav * dx(2) + &
-                                                    flux2(i,j+1*dg(2),k) * const_grav * dx(2) ) / vol(i,j,k)
-             else if (dim .eq. 3) then
-                SrEcorr = SrEcorr + (HALF / dt) * ( flux3(i,j,k        ) * const_grav * dx(3) + &
-                                                    flux3(i,j,k+1*dg(3)) * const_grav * dx(3) ) / vol(i,j,k)
+                   ! For our purposes, we want the time-level n+1/2 phi because we are
+                   ! using fluxes evaluated at that time. To second order we can
+                   ! average the new and old potentials.
+
+                   phi = HALF * (pnew(i,j,k) + pold(i,j,k))
+                   phixl = HALF * (pnew(i-1*dg(1),j,k) + pold(i-1*dg(1),j,k))
+                   phixr = HALF * (pnew(i+1*dg(1),j,k) + pold(i+1*dg(1),j,k))
+                   phiyl = HALF * (pnew(i,j-1*dg(2),k) + pold(i,j-1*dg(2),k))
+                   phiyr = HALF * (pnew(i,j+1*dg(2),k) + pold(i,j+1*dg(2),k))
+                   phizl = HALF * (pnew(i,j,k-1*dg(3)) + pold(i,j,k-1*dg(3)))
+                   phizr = HALF * (pnew(i,j,k+1*dg(3)) + pold(i,j,k+1*dg(3)))
+
+                   ! We need to perform the following hack to deal with the fact that
+                   ! the potential is defined on cell edges, not cell centers, for ghost
+                   ! zones. We redefine the boundary zone values as equal to the adjacent
+                   ! cell minus the original value. Then later when we do the adjacent zone
+                   ! minus the boundary zone, we'll get the boundary value, which is what we want.
+                   ! We don't need to reset this at the end because phi is a temporary array.
+                   ! Note that this is needed for Poisson gravity only; the other gravity methods
+                   ! generally define phi on cell centers even outside the domain.
+                   ! Note also that we do not want to apply it on symmetry boundaries,
+                   ! because in that case the value in the ghost zone is the cell-centered value.
+                   ! We also want to skip the corners, because the potential is undefined there.
+
+                   if (gravity_type_int == PoissonGrav) then
+
+                      if (i .eq. domlo(1) .and. physbc_lo(1) .ne. Symmetry) then
+                         phixl = phi - phixl
+                      endif
+                      if (i .eq. domhi(1) .and. physbc_hi(1) .ne. Symmetry) then
+                         phixr = phi - phixr
+                      endif
+                      if (j .eq. domlo(2) .and. physbc_lo(2) .ne. Symmetry) then
+                         phiyl = phi - phiyl
+                      endif
+                      if (j .eq. domhi(2) .and. physbc_hi(2) .ne. Symmetry) then
+                         phiyr = phi - phiyr
+                      endif
+                      if (k .eq. domlo(3) .and. physbc_lo(3) .ne. Symmetry) then
+                         phizl = phi - phizl
+                      endif
+                      if (k .eq. domhi(3) .and. physbc_hi(3) .ne. Symmetry) then
+                         phizr = phi - phizr
+                      endif
+
+                   end if
+
+                   SrEcorr = SrEcorr + (ONE / dt) * ((flux1(i        ,j,k) * HALF * (phixl + phi) - &
+                                                      flux1(i+1*dg(1),j,k) * HALF * (phixr + phi) + &
+                                                      flux2(i,j        ,k) * HALF * (phiyl + phi) - &
+                                                      flux2(i,j+1*dg(2),k) * HALF * (phiyr + phi) + &
+                                                      flux3(i,j,k        ) * HALF * (phizl + phi) - &
+                                                      flux3(i,j,k+1*dg(3)) * HALF * (phizr + phi)) / vol(i,j,k) - &
+                                                      (rhon - rhoo) * phi)
+
+                else
+
+                   ! However, at present phi is usually only actually filled for Poisson gravity.
+                   ! Here's an alternate version that only requires the use of the
+                   ! gravitational acceleration. It relies on the concept that, to second order,
+                   ! g_{i+1/2} = -( phi_{i+1} - phi_{i} ) / dx.
+
+                   ! Construct the time-averaged edge-centered gravity.
+
+                   g(:) = HALF * (gnew(i,j,k,:) + gold(i,j,k,:))
+
+                   gxl = HALF * (g(1) + HALF * (gnew(i-1*dg(1),j,k,1) + gold(i-1*dg(1),j,k,1)))
+                   gxr = HALF * (g(1) + HALF * (gnew(i+1*dg(1),j,k,1) + gold(i+1*dg(1),j,k,1)))
+
+                   gyl = HALF * (g(2) + HALF * (gnew(i,j-1*dg(2),k,2) + gold(i,j-1*dg(2),k,2)))
+                   gyr = HALF * (g(2) + HALF * (gnew(i,j+1*dg(2),k,2) + gold(i,j+1*dg(2),k,2)))
+
+                   gzl = HALF * (g(3) + HALF * (gnew(i,j,k-1*dg(3),3) + gold(i,j,k-1*dg(3),3)))
+                   gzr = HALF * (g(3) + HALF * (gnew(i,j,k+1*dg(3),3) + gold(i,j,k+1*dg(3),3)))
+
+                   SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k) * gxl * dx(1) + &
+                                                  flux1(i+1*dg(1),j,k) * gxr * dx(1) + &
+                                                  flux2(i,j        ,k) * gyl * dx(2) + &
+                                                  flux2(i,j+1*dg(2),k) * gyr * dx(2) + &
+                                                  flux3(i,j,k        ) * gzl * dx(3) + &
+                                                  flux3(i,j,k+1*dg(3)) * gzr * dx(3) ) / vol(i,j,k)
+
+                endif
+#else
+                ! For constant gravity, the only contribution is from the dimension that the gravity points in.
+
+                if (dim .eq. 1) then
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux1(i        ,j,k) * const_grav * dx(1) + &
+                                                       flux1(i+1*dg(1),j,k) * const_grav * dx(1) ) / vol(i,j,k)
+                else if (dim .eq. 2) then
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux2(i,j        ,k) * const_grav * dx(2) + &
+                                                       flux2(i,j+1*dg(2),k) * const_grav * dx(2) ) / vol(i,j,k)
+                else if (dim .eq. 3) then
+                   SrEcorr = SrEcorr + (HALF / dt) * ( flux3(i,j,k        ) * const_grav * dx(3) + &
+                                                       flux3(i,j,k+1*dg(3)) * const_grav * dx(3) ) / vol(i,j,k)
+                end if
+#endif
+
+#ifndef AMREX_USE_CUDA
+             else
+
+                call castro_error("Error:: gravity_sources_nd.F90 :: invalid grav_source_type")
+#endif
              end if
 #endif
 

@@ -1,6 +1,6 @@
 &fortin
 
-  model_name =  "18m_500_s_rot_b_eq_1.hse.6144"
+  model_name =  "15m_500_sec.hse.6400"
 
 /
 
@@ -16,16 +16,16 @@
   max_velerr_lev     = -1
 
   max_temperr_lev    = -1
-  max_tempgrad_lev   = 10
+  max_tempgrad_lev   = -1
 
   dengrad            = 1.e18
-  denerr             = 1.e0
+  denerr             = 0.5e9
 
   velgrad            = 1.e18
   velerr             = 1.e18
 
-  pressgrad          = 1.e18
-  presserr           = 1.e10
+  pressgrad          = 1.e27
+  presserr           = 1.e27
 
   temperr            = 1.d20
   tempgrad           = 100.e0
@@ -38,5 +38,16 @@
   sponge_upper_density = 1.d4
   sponge_lower_density = 1.d2
   sponge_timescale     = 1.d-3
+
+/
+
+
+&extern 
+
+  rtol_spec = 1.d-8
+  atol_spec = 1.d-8
+
+  retry_burn = F
+  abort_on_failure = F
 
 /

@@ -22,7 +22,9 @@ USE_OMP     ?= FALSE
 
 USE_GRAV    ?= TRUE
 
-DIMENSION_AGNOSTIC = TRUE
+GPU_COMPATIBLE_PROBLEM = TRUE
+
+USE_PROB_PARAMS = TRUE
 
 # This sets the EOS directory in $(CASTRO_HOME)/EOS
 EOS_DIR     := gamma_law

@@ -106,9 +106,6 @@ contains
 
     !$gpu
 
-    !
-    ! Enforces (rho E) = (rho e) + 1/2 rho (u^2 + v^2 + w^2)
-    !
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -126,6 +123,57 @@ contains
     end do
 
   end subroutine ca_enforce_consistent_e
+
+
+  subroutine ca_recompute_energetics(lo, hi, state, s_lo, s_hi) bind(c,name='ca_recompute_energetics')
+    ! Recomputes T and (rho e) from (rho E)
+
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS, UFX, UEINT
+    use amrex_constants_module, only: HALF, ONE
+    use amrex_fort_module, only: rt => amrex_real
+    use eos_type_module, only : eos_t, eos_input_re
+    use eos_module, only : eos
+    use network, only : nspec, naux
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+
+    ! Local variables
+    integer  :: i,j,k
+    real(rt) :: u, v, w, rhoInv
+
+    type(eos_t) :: eos_state
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             rhoInv = ONE / state(i,j,k,URHO)
+             u = state(i,j,k,UMX) * rhoInv
+             v = state(i,j,k,UMY) * rhoInv
+             w = state(i,j,k,UMZ) * rhoInv
+
+             eos_state % rho = state(i,j,k,URHO)
+             eos_state % T = state(i,j,k,UTEMP)
+             eos_state % e = state(i,j,k,UEINT) * rhoInv - HALF * (u*u + v*v + w*w)
+             eos_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec) * rhoInv
+             eos_state % aux(:) = state(i,j,k,UFX:UFX+naux-1) * rhoInv
+
+             call eos(eos_input_re, eos_state)
+
+             state(i,j,k,UTEMP) = eos_state % T
+
+             state(i,j,k,UEINT) = eos_state % rho * eos_state % e
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_recompute_energetics
 
 
   subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) bind(c,name='ca_reset_internal_e')
@@ -312,7 +360,9 @@ contains
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, &
          UFS, UFX
     use amrex_constants_module, only: ZERO, ONE
-    use amrex_error_module
+#ifndef AMREX_USE_CUDA
+    use castro_error_module, only: castro_error
+#endif
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -340,7 +390,7 @@ contains
                 print *,'>>> Error: Castro_util.F90::ca_compute_temp ',i,j,k
                 print *,'>>> ... negative density ',state(i,j,k,URHO)
                 print *,'    '
-                call amrex_error("Error:: compute_temp_nd.f90")
+                call castro_error("Error:: compute_temp_nd.f90")
              end if
 
              if (state(i,j,k,UEINT) <= ZERO) then
@@ -348,7 +398,7 @@ contains
                 print *,'>>> Warning: Castro_util.F90::ca_compute_temp ',i,j,k
                 print *,'>>> ... negative (rho e) ',state(i,j,k,UEINT)
                 print *,'   '
-                call amrex_error("Error:: compute_temp_nd.f90")
+                call castro_error("Error:: compute_temp_nd.f90")
              end if
 
           enddo
@@ -385,7 +435,7 @@ contains
     use network           , only: nspec
     use meth_params_module, only: NVAR, URHO, UFS
 #ifndef AMREX_USE_CUDA
-    use amrex_error_module, only: amrex_error
+    use castro_error_module, only: castro_error
 #endif
     use amrex_fort_module, only: rt => amrex_real
 
@@ -411,7 +461,7 @@ contains
              if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.e-8_rt * state(i,j,k,URHO)) then
 
                 print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
-                call amrex_error("Error:: Failed check of initial species summing to 1")
+                call castro_error("Error:: Failed check of initial species summing to 1")
 
              end if
 #endif
@@ -487,7 +537,7 @@ contains
 
 
 
-  function area(i, j, k, dir)
+  function area(i, j, k, dir) result(arear)
     ! Given 3D indices (i,j,k) and a direction dir, return the
     ! area of the face perpendicular to direction d. We assume
     ! the coordinates perpendicular to the dir axies are edge-centered.
@@ -498,17 +548,21 @@ contains
     use amrinfo_module, only: amr_level
     use amrex_constants_module, only: ZERO, ONE, TWO, M_PI, FOUR
     use prob_params_module, only: dim, coord_type, dx_level
-    use amrex_error_module
+#ifndef AMREX_USE_CUDA
+    use castro_error_module, only: castro_error
+#endif
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
     integer, intent(in) :: i, j, k, dir
 
-    real(rt) :: area
+    real(rt) :: arear
 
     logical :: cc(3) = .true.
     real(rt) :: dx(3), loc(3)
+
+    !$gpu
 
     ! Force edge-centering along the direction of interest
 
@@ -525,9 +579,9 @@ contains
           select case (dir)
 
           case (1)
-             area = ONE
+             arear = ONE
           case default
-             area = ZERO
+             arear = ZERO
 
           end select
 
@@ -536,11 +590,11 @@ contains
           select case (dir)
 
           case (1)
-             area = dx(2)
+             arear = dx(2)
           case (2)
-             area = dx(1)
+             arear = dx(1)
           case default
-             area = ZERO
+             arear = ZERO
 
           end select
 
@@ -549,13 +603,13 @@ contains
           select case (dir)
 
           case (1)
-             area = dx(2) * dx(3)
+             arear = dx(2) * dx(3)
           case (2)
-             area = dx(1) * dx(3)
+             arear = dx(1) * dx(3)
           case (3)
-             area = dx(1) * dx(2)
+             arear = dx(1) * dx(2)
           case default
-             area = ZERO
+             arear = ZERO
 
           end select
 
@@ -574,18 +628,18 @@ contains
           select case (dir)
 
           case (1)
-             area = TWO * M_PI * loc(1) * dx(2)
+             arear = TWO * M_PI * loc(1) * dx(2)
           case (2)
-             area = TWO * M_PI * loc(1) * dx(1)
+             arear = TWO * M_PI * loc(1) * dx(1)
           case default
-             area = ZERO
+             arear = ZERO
 
           end select
 
 #ifndef AMREX_USE_CUDA
        else
 
-          call amrex_error("Cylindrical coordinates only supported in 2D.")
+          call castro_error("Cylindrical coordinates only supported in 2D.")
 #endif
 
        endif
@@ -603,16 +657,16 @@ contains
           select case (dir)
 
           case (1)
-             area = FOUR * M_PI * loc(1)**2
+             arear = FOUR * M_PI * loc(1)**2
           case default
-             area = ZERO
+             arear = ZERO
 
           end select
 
 #ifndef AMREX_USE_CUDA
        else
 
-          call amrex_error("Spherical coordinates only supported in 1D.")
+          call castro_error("Spherical coordinates only supported in 1D.")
 #endif
 
        endif
@@ -625,14 +679,16 @@ contains
 
 
 
-  function volume(i, j, k)
+  function volume(i, j, k) result(volumer)
     ! Given 3D cell-centered indices (i,j,k), return the volume of the zone.
     ! Note that Castro has no support for angular coordinates, so
     ! this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
     ! in 2D, and Spherical in 1D.
 
     use amrinfo_module, only: amr_level
-    use amrex_error_module
+#ifndef AMREX_USE_CUDA
+    use castro_error_module, only: castro_error
+#endif
     use amrex_constants_module, only: ZERO, HALF, FOUR3RD, TWO, M_PI
     use prob_params_module, only: dim, coord_type, dx_level
     use amrex_fort_module, only: rt => amrex_real
@@ -641,9 +697,11 @@ contains
 
     integer, intent(in) :: i, j, k
 
-    real(rt) :: volume
+    real(rt) :: volumer
 
     real(rt) :: dx(3), loc_l(3), loc_r(3)
+
+    !$gpu
 
     dx = dx_level(:,amr_level)
 
@@ -653,15 +711,15 @@ contains
 
        if (dim .eq. 1) then
 
-          volume = dx(1)
+          volumer = dx(1)
 
        else if (dim .eq. 2) then
 
-          volume = dx(1) * dx(2)
+          volumer = dx(1) * dx(2)
 
        else if (dim .eq. 3) then
 
-          volume = dx(1) * dx(2) * dx(3)
+          volumer = dx(1) * dx(2) * dx(3)
 
        endif
 
@@ -676,12 +734,12 @@ contains
 
        if (dim .eq. 2) then
 
-          volume = TWO * M_PI * (HALF * (loc_l(1) + loc_r(1))) * dx(1) * dx(2)
+          volumer = TWO * M_PI * (HALF * (loc_l(1) + loc_r(1))) * dx(1) * dx(2)
 
 #ifndef AMREX_USE_CUDA
        else
 
-          call amrex_error("Cylindrical coordinates only supported in 2D.")
+          call castro_error("Cylindrical coordinates only supported in 2D.")
 #endif
 
        endif
@@ -697,12 +755,12 @@ contains
 
        if (dim .eq. 1) then
 
-          volume = FOUR3RD * M_PI * (loc_r(1)**3 - loc_l(1)**3)
+          volumer = FOUR3RD * M_PI * (loc_r(1)**3 - loc_l(1)**3)
 
 #ifndef AMREX_USE_CUDA
        else
 
-          call amrex_error("Spherical coordinates only supported in 1D.")
+          call castro_error("Spherical coordinates only supported in 1D.")
 #endif
 
        endif
@@ -871,7 +929,9 @@ contains
     use meth_params_module, only: URHO, UMX, UMY, UMZ
     use prob_params_module, only: center, dim
     use amrex_constants_module, only: HALF
-    use amrex_error_module
+#ifndef AMREX_USE_CUDA
+    use castro_error_module, only: castro_error
+#endif
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -894,7 +954,7 @@ contains
     real(rt) :: x_mom,y_mom,z_mom,radial_mom
 
 #ifndef AMREX_USE_CUDA
-    if (dim .eq. 1) call amrex_error("Error: cannot do ca_compute_avgstate in 1D.")
+    if (dim .eq. 1) call castro_error("Error: cannot do ca_compute_avgstate in 1D.")
 #endif
 
     !
@@ -913,7 +973,7 @@ contains
                 print *,'COMPUTE_AVGSTATE: INDEX TOO BIG ',index,' > ',numpts_1d-1
                 print *,'AT (i,j,k) ',i,j,k
                 print *,'R / DR ',r,dr
-                call amrex_error("Error:: Castro_util.F90 :: ca_compute_avgstate")
+                call castro_error("Error:: Castro_util.F90 :: ca_compute_avgstate")
              end if
 #endif
              radial_state(URHO,index) = radial_state(URHO,index) &

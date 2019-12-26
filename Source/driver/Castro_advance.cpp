@@ -42,95 +42,104 @@ Castro::advance (Real time,
 
     wall_time_start = ParallelDescriptor::second();
 
+    MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(level));
+
     Real dt_new = dt;
 
     initialize_advance(time, dt, amr_iteration, amr_ncycle);
 
     // Do the advance.
 
-    if (time_integration_method == CornerTransportUpwind) {
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
-    } else if (time_integration_method == MethodOfLines) {
-
-      for (int iter = 0; iter < MOL_STAGES; ++iter) {
-	mol_iteration = iter;
-	dt_new = do_advance_mol(time + c_mol[iter]*dt, dt, amr_iteration, amr_ncycle);
-      }
-
 #ifndef AMREX_USE_CUDA
+#ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
-      for (int iter = 0; iter < sdc_order; ++iter) {
+      for (int iter = 0; iter < sdc_order+sdc_extra; ++iter) {
 	sdc_iteration = iter;
 	dt_new = do_advance_sdc(time, dt, amr_iteration, amr_ncycle);
       }
 
 #ifdef REACTIONS
-      // store the reaction information as well -- note: this will be
-      // the instantaneous reactive source.  In the future, we might
-      // want to do a quadrature over R_new[]
+      // store the reaction information as well.  Note: this will be
+      // the instantaneous reactive source from the last burn.  In the
+      // future, we might want to do a quadrature over R_old[]
+
+      // At this point, Sburn contains the cell-center reaction source
+      // on one ghost-cell.  So we can use this to derive what we need.
 
       // this is done only for the plotfile
       MultiFab& R_new = get_new_data(Reactions_Type);
       MultiFab& S_new = get_new_data(State_Type);
 
-      for (MFIter mfi(R_new, hydro_tile_size); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.tilebox();
-        const int idx = mfi.tileIndex();
+      if (sdc_order == 4) {
+        // fill ghost cells on S_new -- we'll need these to convert to
+        // centers
+        Real cur_time = state[State_Type].curTime();
+        // we'll use Sborder to expand the state, but we already cleared
+        // it at the end of the andance
+        Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
 
-        ca_store_reaction_state(BL_TO_FORTRAN_BOX(bx),
-                                BL_TO_FORTRAN_3D((*R_old[SDC_NODES-1])[mfi]),
-                                BL_TO_FORTRAN_3D(S_new[mfi]),
-                                BL_TO_FORTRAN_3D(R_new[mfi]));
-
+        expand_state(Sborder, cur_time, 2);
       }
-#endif
-    }
-    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
-        for (int n = 0; n < sdc_iters; ++n) {
+      FArrayBox U_center;
+      FArrayBox R_center;
 
-            sdc_iteration = n;
+      // this cannot be tiled
+      for (MFIter mfi(R_new); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
+        const Box& obx = mfi.growntilebox(1);
 
-	    amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
+        if (sdc_order == 4) {
 
-            // First do the non-reacting advance and construct the relevant source terms.
-            // We use the CTU advance here, with the Strang-split reactions skipped,
-            // but we call do_advance_ctu directly rather than subcycle_advance_ctu,
-            // as the simplified SDC logic is not compatible with the subcycling.
+          const int* domain_lo = geom.Domain().loVect();
+          const int* domain_hi = geom.Domain().hiVect();
 
-            dt_new = do_advance_ctu(time, dt, amr_iteration, amr_ncycle);
+          // convert S_new to cell-centers
+          U_center.resize(obx, NUM_STATE);
+          ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
+                              BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                              BL_TO_FORTRAN_FAB(U_center),
+                              AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
-#ifdef REACTIONS
-            if (do_react) {
+          // pass in the reaction source and state at centers, including one ghost cell
+          // and derive everything that is needed including 1 ghost cell
+          R_center.resize(obx, R_new.nComp());
+          ca_store_reaction_state(BL_TO_FORTRAN_BOX(obx),
+                                  BL_TO_FORTRAN_3D(Sburn[mfi]),
+                                  BL_TO_FORTRAN_3D(U_center),
+                                  BL_TO_FORTRAN_3D(R_center));
 
-                // Do the ODE integration to capture the reaction source terms.
+          // convert R_new from centers to averages in place
+          ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
+                                  BL_TO_FORTRAN_FAB(R_center),
+                                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
-                react_state(time, dt);
 
-                MultiFab& S_new = get_new_data(State_Type);
+          // store
+          R_new[mfi].copy(R_center, bx, 0, bx, 0, R_new.nComp());
 
-                int is_new=1;
-                clean_state(is_new, S_new.nGrow());
+        } else {
 
-                // Compute the reactive source term for use in the next iteration.
-
-                MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-                get_react_source_prim(SDC_react_new, time, dt);
-
-                // Check for NaN's.
-
-                check_for_nan(S_new);
-
-            }
-#endif
-
-            amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
-
+          // we don't worry about the difference between centers and averages
+          ca_store_reaction_state(BL_TO_FORTRAN_BOX(bx),
+                                  BL_TO_FORTRAN_3D((*R_old[SDC_NODES-1])[mfi]),
+                                  BL_TO_FORTRAN_3D(S_new[mfi]),
+                                  BL_TO_FORTRAN_3D(R_new[mfi]));
         }
 
+      }
+
+      if (sdc_order == 4) {
+        Sborder.clear();
+      }
+
+#endif // REACTIONS
+#endif // TRUE_SDC
 #endif // AMREX_USE_CUDA
     }
 
@@ -195,12 +204,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
     cfl_violation = 0;
 
-    // Reset the burn success flag.
-
-    burn_success = 1;
-
-    int finest_level = parent->finestLevel();
-
 #ifdef RADIATION
     // make sure these are filled to avoid check/plot file errors:
     if (do_radiation) {
@@ -243,58 +246,31 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // zones. So we use a FillPatch using the state data to give us
     // Sborder, which does have ghost zones.
 
+    MultiFab& S_old = get_old_data(State_Type);
+
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       // for the CTU unsplit method, we always start with the old state
-      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
       const Real prev_time = state[State_Type].prevTime();
-      expand_state(Sborder, prev_time, 0, NUM_GROW);
-
-    } else if (time_integration_method == MethodOfLines) {
-
-      // for Method of lines, our initialization of Sborder depends on
-      // which stage in the RK update we are working on
-
-      if (mol_iteration == 0) {
-
-	// first MOL stage
-	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
-	const Real prev_time = state[State_Type].prevTime();
-	expand_state(Sborder, prev_time, 0, NUM_GROW);
-
-      } else {
-
-	// the initial state for the kth stage follows the Butcher
-	// tableau.  We need to create the proper state starting with
-	// the result after the first dt/2 burn (which we copied into
-	// Sburn) and we need to fill ghost cells.
-
-	// We'll overwrite S_new with this information, since we don't
-	// need it anymorebuild this state temporarily in S_new (which
-	// is State_Data) to allow for ghost filling.
-	MultiFab& S_new = get_new_data(State_Type);
-
-	MultiFab::Copy(S_new, Sburn, 0, 0, S_new.nComp(), 0);
-	for (int i = 0; i < mol_iteration; ++i)
-	  MultiFab::Saxpy(S_new, dt*a_mol[mol_iteration][i], *k_mol[i], 0, 0, S_new.nComp(), 0);
-
-        // not sure if this is needed
-        int is_new=1;
-        clean_state(is_new, S_new.nGrow());
-
-	Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
-	const Real new_time = state[State_Type].curTime();
-	expand_state(Sborder, new_time, 1, NUM_GROW);
-
-      }
+      clean_state(S_old, prev_time, 0);
+      expand_state(Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
       // we'll handle the filling inside of do_advance_sdc 
-      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
+      Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
 
     } else {
       amrex::Abort("invalid time_integration_method");
     }
+
+#ifdef SHOCK_VAR
+    // Zero out the shock data, and fill it during the advance.
+    // For subcycling cases this will always give the shock
+    // variable for the latest subcycle, rather than averaging.
+
+    Sborder.setVal(0.0, Shock, 1, Sborder.nGrow());
+#endif
 
 }
 
@@ -431,7 +407,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // the new-time sources, so that we can compute the time
     // derivative of the source terms.
 
-    sources_for_hydro.define(grids, dmap, NUM_STATE, NUM_GROW);
+    sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW);
     sources_for_hydro.setVal(0.0, NUM_GROW);
 
     // Add the source term predictor.
@@ -449,7 +425,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // time-centered value.
 
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NUM_STATE);
+        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
     }
 
     // Swap the new data from the last timestep into the old state data.
@@ -467,9 +443,8 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // trusted to respect the consistency between certain state variables
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
-    int is_new=0;
     MultiFab& S_old = get_old_data(State_Type);
-    clean_state(is_new, S_old.nGrow());
+    clean_state(S_old, time, S_old.nGrow());
 
     // Initialize the previous state data container now, so that we can
     // always ask if it has valid data.
@@ -484,15 +459,34 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       // Store the old and new time levels.
 
       for (int k = 0; k < num_state_type; k++) {
+
+        // We want to store the previous state in pinned memory
+        // if we're running on a GPU. This helps us alleviate
+        // pressure on the GPU memory, at the slight cost of
+        // lower bandwidth when we are saving/restoring the state.
+        // Since we're using operator= to copy the StateData,
+        // we'll use a trick where we temporarily change the
+        // the arena used by the main state and then immediately
+        // restore it.
+
+#ifdef AMREX_USE_GPU
+        Arena* old_arena = state[k].getArena();
+        state[k].setArena(The_Pinned_Arena());
+#endif
+
         *prev_state[k] = state[k];
+
+#ifdef AMREX_USE_GPU
+        state[k].setArena(old_arena);
+#endif
       }
 
     }
 
     // This array holds the hydrodynamics update.
-
-    hydro_source.define(grids,dmap,NUM_STATE,0);
-
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      hydro_source.define(grids,dmap,NUM_STATE,0);
+    }
 
 
     // Allocate space for the primitive variables.
@@ -505,28 +499,21 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
       src_q.define(grids, dmap, NQSRC, NUM_GROW);
     }
 
-    if (mol_order == 4 || sdc_order == 4) {
+    if (sdc_order == 4) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
       qaux_bar.define(grids, dmap, NQAUX, NUM_GROW);
+#ifdef DIFFUSION
+      T_cc.define(grids, dmap, 1, NUM_GROW);
+#endif
     }
 
-    if (time_integration_method == MethodOfLines) {
-      // if we are not doing CTU advection, then we are doing a method
-      // of lines, and need storage for hte intermediate stages
-      k_mol.resize(MOL_STAGES);
-      for (int n = 0; n < MOL_STAGES; ++n) {
-	k_mol[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
-	k_mol[n]->setVal(0.0);
-      }
 
-      // for the post-burn state
-      Sburn.define(grids, dmap, NUM_STATE, 0);
-    }
-
+#ifdef TRUE_SDC
     if (time_integration_method == SpectralDeferredCorrections) {
 
       MultiFab& S_old = get_old_data(State_Type);
       k_new.resize(SDC_NODES);
+
       k_new[0].reset(new MultiFab(S_old, amrex::make_alias, 0, NUM_STATE));
       for (int n = 1; n < SDC_NODES; ++n) {
 	k_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
@@ -546,17 +533,25 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         A_new[n]->setVal(0.0);
       }
 
-#ifdef REACTIONS
-      // for the temporary storage of the reaction terms
+      // We use Sburn a few ways for the SDC integration.  First, we
+      // use it to store the initial guess to the nonlinear solve.
+      // Second, at the end of the SDC update, we copy the cell-center
+      // reaction source into it, including one ghost cell, for later
+      // filling of the plotfile.  Finally, we use it as a temporary
+      // buffer for when we convert the state to centers while making the
+      // source term
       Sburn.define(grids, dmap, NUM_STATE, 2);
 
+#ifdef REACTIONS
       R_old.resize(SDC_NODES);
       for (int n = 0; n < SDC_NODES; ++n) {
 	R_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
         R_old[n]->setVal(0.0);
       }
 #endif
+
     }
+#endif
 
     // Zero out the current fluxes.
 
@@ -567,7 +562,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
         mass_fluxes[dir]->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geometry::IsCartesian())
+    if (!Geom().IsCartesian())
 	P_radial.setVal(0.0);
 #endif
 
@@ -602,9 +597,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 	FluxRegFineAdd();
     }
 
-    Real cur_time = state[State_Type].curTime();
 
-    hydro_source.clear();
+    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+      hydro_source.clear();
+    }
 
     q.clear();
     qaux.clear();
@@ -613,9 +609,12 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       src_q.clear();
     }
 
-    if (mol_order == 4 || sdc_order == 4) {
+    if (sdc_order == 4) {
       q_bar.clear();
       qaux_bar.clear();
+#ifdef DIFFUSION
+      T_cc.clear();
+#endif
     }
 
 #ifdef RADIATION
@@ -628,11 +627,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     if (!keep_prev_state)
         amrex::FillNull(prev_state);
 
-    if (time_integration_method == MethodOfLines) {
-      k_mol.clear();
-      Sburn.clear();
-    }
-
+#ifdef TRUE_SDC
     if (time_integration_method == SpectralDeferredCorrections) {
       k_new.clear();
       A_new.clear();
@@ -642,9 +637,18 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       Sburn.clear();
 #endif
     }
+#endif
 
     // Record how many zones we have advanced.
 
     num_zones_advanced += grids.numPts() / getLevel(0).grids.numPts();
+
+    Real wall_time = ParallelDescriptor::second() - wall_time_start;
+    Real fom_advance = grids.numPts() / wall_time / 1.e6;
+
+    if (verbose >= 1) {
+        amrex::Print() << "  Zones advanced per microsecond at this level: "
+                       << fom_advance << std::endl << std::endl;
+    }
 
 }

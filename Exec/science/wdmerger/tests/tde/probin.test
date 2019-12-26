@@ -3,7 +3,7 @@
   mass_P = 0.60
   mass_S = -1.0
 
-  problem = 5
+  problem = 2
 
   tde_separation = 8.0d0
   tde_beta = 6.0d0

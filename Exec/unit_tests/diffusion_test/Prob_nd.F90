@@ -1,15 +1,16 @@
 subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   use amrex_constants_module, only: ZERO, HALF
-  use amrex_error_module, only: amrex_error
+  use castro_error_module, only: castro_error
   use amrex_fort_module, only : rt => amrex_real
   use prob_params_module, only: center, coord_type
   use probdata_module
   use eos_type_module, only: eos_t, eos_input_rt
-  use eos_module, only : eos
+  use eos_module, only : eos_on_host
   use network, only : nspec
-  use extern_probin_module, only: const_conductivity
-
+#ifdef DIFFUSION
+  use conductivity_module
+#endif
   implicit none
 
   integer, intent(in) :: init, namlen
@@ -28,7 +29,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  if (namlen > maxlen) call amrex_error("probin file name too long")
+  if (namlen > maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -67,12 +68,11 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   close(unit=untin)
 
   ! the conductivity is the physical quantity that appears in the
-  ! diffusion term of the energy equation.  It is set via
-  ! diffusion.conductivity in the inputs file.  For this test problem,
-  ! we want to set the diffusion coefficient, D = k/(rho c_v), so the
-  ! free parameter we have to play with is rho.  Note that for an
-  ! ideal gas, c_v does not depend on rho, so we can call it the EOS
-  ! with any density.
+  ! diffusion term of the energy equation.  It is set in the probin
+  ! file.  For this test problem, we want to set the diffusion
+  ! coefficient, D = k/(rho c_v), so the free parameter we have to
+  ! play with is rho.  Note that for an ideal gas, c_v does not depend
+  ! on rho, so we can call it the EOS with any density.
   X(:) = 0.e0_rt
   X(1) = 1.e0_rt
 
@@ -80,12 +80,19 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   eos_state%rho = 1.0
   eos_state%xn(:) = X(:)
 
-  call eos(eos_input_rt, eos_state)
+  call eos_on_host(eos_input_rt, eos_state)
+
+#ifdef DIFFUSION
+  ! get the conductivity
+  call conductivity(eos_state)
 
   ! diffusion coefficient is D = k/(rho c_v). we are doing an ideal
   ! gas, so c_v is constant, so find the rho that combines with
   ! the conductivity
-  rho0 = const_conductivity/(diff_coeff*eos_state%cv)
+  rho0 = eos_state % conductivity/(diff_coeff*eos_state % cv)
+#else
+  rho0 = 1.0_rt
+#endif
 
 end subroutine amrex_probinit
 

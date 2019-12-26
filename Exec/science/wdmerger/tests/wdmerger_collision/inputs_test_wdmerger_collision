@@ -56,6 +56,7 @@ castro.do_grav = 1                                 # Whether or not to do gravit
 castro.do_react = 1                                # Whether or not to do reactions
 castro.do_sponge = 0                               # Whether or not to apply the sponge
 castro.add_ext_src = 1                             # Whether or not to apply external source terms
+castro.ext_src_implicit = 1
 castro.do_rotation = 0                             # Whether or not to include the rotation source term
 castro.rotational_period = 100.0                   # Rotational period of the rotating reference frame
 castro.rotational_dPdt = -0.0                      # Time rate of change of the rotational period
@@ -66,7 +67,6 @@ castro.implicit_rotation_update = 1                # Implicit rotation coupling
 ############################################################################################
 
 castro.ppm_type = 1                                # Piecewise parabolic with the original limiters (0 is piecewise linear; 2 is new limiters)
-castro.ppm_reference_eigenvectors = 1              # Whether to evaluate eigenvectors using the reference state
 castro.ppm_temp_fix = 0                            # Use the EOS in calculation of the edge states going into the Riemann solver
 
 ############################################################################################

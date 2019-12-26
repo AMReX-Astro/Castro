@@ -1,7 +1,7 @@
 subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   use amrex_constants_module, only: ZERO, HALF
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
 
   use prob_params_module, only: center, coord_type
@@ -22,14 +22,14 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   integer, parameter :: maxlen = 256
   character probin*(maxlen)
 
-  if (namlen > maxlen) call amrex_error("probin file name too long")
+  if (namlen > maxlen) call castro_error("probin file name too long")
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
   end do
 
   ! Set namelist defaults
-  vel_amp = 1.0d0
+  vel_amp = 1.0e0_rt
 
   ! set center, domain extrema
   if (coord_type == 0) then

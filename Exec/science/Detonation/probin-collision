@@ -6,16 +6,18 @@
   cfrac = 0.5d0
   ofrac = 0.45d0
 
-  smallx = 1.e-12
+  smallx = 1.d-12
 
   idir = 1
 
-  w_T = 0.d0
-  center_T = 0.d0
+  w_T = 1.d-12
+  center_T = 0.5d0
 
   vel = 2.0d8
 
   fill_ambient_bc = T
+
+  grav_acceleration = 1.1d8
 /
 
 &tagging

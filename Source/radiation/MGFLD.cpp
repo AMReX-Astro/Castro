@@ -1239,8 +1239,7 @@ void Radiation::inelastic_scattering(int level)
 	}
 
 	if (do_real_eos > 0) {
-          int is_new=1;
-	  castro->computeTemp(is_new, S_new.nGrow());
+	  castro->computeTemp(S_new, castro->state[State_Type].curTime(), S_new.nGrow());
 	}
     }
 }

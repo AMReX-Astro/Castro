@@ -226,6 +226,21 @@ subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
 end subroutine ca_get_nqsrc
 
 
+subroutine ca_get_nsrc(nsrc_in) bind(C, name="ca_get_nsrc")
+    !
+    ! Binds to C function `ca_get_nsrc`
+
+  use meth_params_module, only: NSRC
+
+  implicit none
+
+  integer, intent(inout) :: nsrc_in
+
+  nsrc_in = NSRC
+
+end subroutine ca_get_nsrc
+
+
 
 subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
     !
@@ -284,6 +299,7 @@ subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
     !
 
   use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
+  use amrex_fort_module, only: rt => amrex_real
 
   allocate(amr_level)
   amr_level = 0
@@ -292,9 +308,9 @@ subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
   allocate(amr_ncycle)
   amr_ncycle = 0
   allocate(amr_time)
-  amr_time = 0.0d0
+  amr_time = 0.0e0_rt
   allocate(amr_dt)
-  amr_dt = 0.0d0
+  amr_dt = 0.0e0_rt
 
 end subroutine ca_amrinfo_init
 
@@ -350,11 +366,11 @@ subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
      amr_ncycle = ncycle_in
   endif
 
-  if (time_in .ge. 0.0) then
+  if (time_in .ge. 0.0e0_rt) then
      amr_time = time_in
   endif
 
-  if (dt_in .ge. 0.0) then
+  if (dt_in .ge. 0.0e0_rt) then
      amr_dt = dt_in
   endif
 
@@ -482,7 +498,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 
   use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
        outflow_data_old, outflow_data_old_time
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -501,7 +517,7 @@ subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
 #ifndef AMREX_USE_CUDA
   if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
      print *,'size of old and new dont match in swap_outflow_data '
-     call amrex_error("Error:: Castro_nd.f90 :: swap_outflow_data")
+     call castro_error("Error:: Castro_nd.f90 :: swap_outflow_data")
   end if
 #endif
 
@@ -583,7 +599,6 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 
   integer :: iadv, ispec
 
-  integer :: i
   integer :: ioproc
 
 
@@ -627,35 +642,19 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   ! sanity check
 #ifndef AMREX_USE_CUDA
   if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-     call amrex_error("ERROR: velocity components for godunov and primitive state are not aligned")
+     call castro_error("ERROR: velocity components for godunov and primitive state are not aligned")
   endif
 #endif
 
   ! easy indexing for the passively advected quantities.  This lets us
   ! loop over all groups (advected, species, aux) in a single loop.
   ! Note: these sizes are the maximum size we expect for passives.
-  allocate(qpass_map(NQ))
-  allocate(upass_map(NVAR))
+  allocate(qpass_map(nadv + nspec + naux))
+  allocate(upass_map(nadv + nspec + naux))
 
   ! Transverse velocities
 
-  if (dm == 1) then
-     upass_map(1) = UMY
-     qpass_map(1) = QV
-
-     upass_map(2) = UMZ
-     qpass_map(2) = QW
-
-     npassive = 2
-
-  else if (dm == 2) then
-     upass_map(1) = UMZ
-     qpass_map(1) = QW
-
-     npassive = 1
-  else
-     npassive = 0
-  endif
+  npassive = 0
 
   do iadv = 1, nadv
      upass_map(npassive + iadv) = UFA + iadv - 1
@@ -755,7 +754,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
      ! Binds to C function `ca_set_problem_params`
 
   use amrex_constants_module, only: ZERO
-  use amrex_error_module
+  use castro_error_module
   use prob_params_module
   use meth_params_module, only: UMX, UMY, UMZ
 #ifdef ROTATION
@@ -836,7 +835,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   ! sanity check on our allocations
 #ifndef AMREX_USE_CUDA
   if (UMZ > MAX_MOM_INDEX) then
-     call amrex_error("ERROR: not enough space in comp in mom_flux_has_p")
+     call castro_error("ERROR: not enough space in comp in mom_flux_has_p")
   endif
 #endif
 
@@ -946,7 +945,7 @@ subroutine ca_get_tagging_params(name, namlen) &
      ! Binds to C function `ca_get_tagging_params`
 
   use tagging_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -962,8 +961,6 @@ subroutine ca_get_tagging_params(name, namlen) &
   namelist /tagging/ &
        denerr, dengrad, dengrad_rel, &
        max_denerr_lev, max_dengrad_lev, max_dengrad_rel_lev, &
-       enterr, entgrad, entgrad_rel, &
-       max_enterr_lev, max_entgrad_lev, max_entgrad_rel_lev, &
        velerr, velgrad, velgrad_rel, &
        max_velerr_lev, max_velgrad_lev, max_velgrad_rel_lev, &
        presserr, pressgrad, pressgrad_rel, &
@@ -975,6 +972,13 @@ subroutine ca_get_tagging_params(name, namlen) &
        enucerr, max_enucerr_lev, &
        dxnuc_min, dxnuc_max, max_dxnuc_lev
 
+  allocate(denerr)
+  allocate(dengrad)
+  allocate(dengrad_rel)
+  allocate(max_denerr_lev)
+  allocate(max_dengrad_lev)
+  allocate(max_dengrad_rel_lev)
+
   ! Set namelist defaults
   denerr = 1.e20_rt
   dengrad = 1.e20_rt
@@ -983,12 +987,12 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_dengrad_lev = -1
   max_dengrad_rel_lev = -1
 
-  enterr = 1.e20_rt
-  entgrad = 1.e20_rt
-  entgrad_rel = 1.e20_rt
-  max_enterr_lev = -1
-  max_entgrad_lev = -1
-  max_entgrad_rel_lev = -1
+  allocate(presserr)
+  allocate(pressgrad)
+  allocate(pressgrad_rel)
+  allocate(max_presserr_lev)
+  allocate(max_pressgrad_lev)
+  allocate(max_pressgrad_rel_lev)
 
   presserr = 1.e20_rt
   pressgrad = 1.e20_rt
@@ -997,12 +1001,26 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_pressgrad_lev = -1
   max_pressgrad_rel_lev = -1
 
+  allocate(velerr)
+  allocate(velgrad)
+  allocate(velgrad_rel)
+  allocate(max_velerr_lev)
+  allocate(max_velgrad_lev)
+  allocate(max_velgrad_rel_lev)
+
   velerr  = 1.e20_rt
   velgrad = 1.e20_rt
   velgrad_rel = 1.e20_rt
   max_velerr_lev = -1
   max_velgrad_lev = -1
   max_velgrad_rel_lev = -1
+
+  allocate(temperr)
+  allocate(tempgrad)
+  allocate(tempgrad_rel)
+  allocate(max_temperr_lev)
+  allocate(max_tempgrad_lev)
+  allocate(max_tempgrad_rel_lev)
 
   temperr  = 1.e20_rt
   tempgrad = 1.e20_rt
@@ -1011,6 +1029,13 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_tempgrad_lev = -1
   max_tempgrad_rel_lev = -1
 
+  allocate(raderr)
+  allocate(radgrad)
+  allocate(radgrad_rel)
+  allocate(max_raderr_lev)
+  allocate(max_radgrad_lev)
+  allocate(max_radgrad_rel_lev)
+
   raderr  = 1.e20_rt
   radgrad = 1.e20_rt
   radgrad_rel = 1.e20_rt
@@ -1018,8 +1043,15 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_radgrad_lev = -1
   max_radgrad_rel_lev = -1
 
+  allocate(enucerr)
+  allocate(max_enucerr_lev)
+
   enucerr = 1.e200_rt
   max_enucerr_lev = -1
+
+  allocate(dxnuc_min)
+  allocate(dxnuc_max)
+  allocate(max_dxnuc_lev)
 
   dxnuc_min = 1.e200_rt
   dxnuc_max = 1.e200_rt
@@ -1028,7 +1060,7 @@ subroutine ca_get_tagging_params(name, namlen) &
   ! create the filename
 #ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
-     call amrex_error('probin file name too long')
+     call castro_error('probin file name too long')
   endif
 #endif
 
@@ -1048,7 +1080,7 @@ subroutine ca_get_tagging_params(name, namlen) &
   else if (status > 0) then
      ! some problem in the namelist
 #ifndef AMREX_USE_CUDA
-     call amrex_error('ERROR: problem in the tagging namelist')
+     call castro_error('ERROR: problem in the tagging namelist')
 #endif
   endif
 
@@ -1069,7 +1101,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
     ! Binds to C function `ca_get_sponge_params`
 
   use sponge_module
-  use amrex_error_module
+  use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -1119,7 +1151,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   ! create the filename
 #ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
-     call amrex_error('probin file name too long')
+     call castro_error('probin file name too long')
   endif
 #endif
 
@@ -1139,7 +1171,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   else if (status > 0) then
      ! some problem in the namelist
 #ifndef AMREX_USE_CUDA
-     call amrex_error('ERROR: problem in the sponge namelist')
+     call castro_error('ERROR: problem in the sponge namelist')
 #endif
   endif
 
@@ -1153,11 +1185,11 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
 
 #ifndef AMREX_USE_CUDA
   if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
-     call amrex_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
+     call castro_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
   endif
 
   if (sponge_upper_factor < 0.e0_rt .or. sponge_upper_factor > 1.e0_rt) then
-     call amrex_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
+     call castro_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
   endif
 #endif
 

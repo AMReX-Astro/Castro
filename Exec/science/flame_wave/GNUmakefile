@@ -18,8 +18,9 @@ USE_DIFFUSION = TRUE
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
 
-DIMENSION_AGNOSTIC = TRUE
 GPU_COMPATIBLE_PROBLEM = TRUE
+
+USE_PROB_PARAMS = TRUE
 
 ifdef MICROPHYSICS_HOME
 
@@ -29,7 +30,7 @@ ifdef MICROPHYSICS_HOME
   # This sets the network directory in $(MICROPHYSICS_HOME)/networks
   NETWORK_DIR := aprox13
 
-  INTEGRATOR_DIR := VODE
+  INTEGRATOR_DIR := VODE90
 else
 
   $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
