@@ -1,5 +1,7 @@
 # 20.01
 
+   * grav_source_type and rot_source_type have been removed. (#580)
+
    * A new option castro.limit_fluxes_on_large_vel has been added. It
      is similar to the existing option limit_fluxes_on_small_dens --
      fluxes are limited to prevent the velocity in any zone from
