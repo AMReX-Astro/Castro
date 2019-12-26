@@ -426,12 +426,12 @@ protected:
 
   static int   test_solves;
   static amrex::Real  mass_offset;
-  static amrex::Vector< RealVector > radial_grav_old;
-  static amrex::Vector< RealVector > radial_grav_new;
-  static amrex::Vector< RealVector > radial_mass;
-  static amrex::Vector< RealVector > radial_vol;
+  amrex::Vector< RealVector > radial_grav_old;
+  amrex::Vector< RealVector > radial_grav_new;
+  amrex::Vector< RealVector > radial_mass;
+  amrex::Vector< RealVector > radial_vol;
 #ifdef GR_GRAV
-  static amrex::Vector< RealVector > radial_pres;
+  amrex::Vector< RealVector > radial_pres;
 #endif
   static int   stencil_type;
 

@@ -41,14 +41,6 @@ Real Gravity::mass_offset    =  0.0;
 
 static Real Ggravity = 0.;
 
-Vector< RealVector > Gravity::radial_grav_old(MAX_LEV);
-Vector< RealVector > Gravity::radial_grav_new(MAX_LEV);
-Vector< RealVector > Gravity::radial_mass(MAX_LEV);
-Vector< RealVector > Gravity::radial_vol(MAX_LEV);
-#ifdef GR_GRAV
-Vector< RealVector > Gravity::radial_pres(MAX_LEV);
-#endif
-
 Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
   :
     parent(Parent),
@@ -67,6 +59,15 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
      Density = _Density;
      read_params();
      finest_level_allocated = -1;
+
+     radial_grav_old.resize(MAX_LEV);
+     radial_grav_new.resize(MAX_LEV);
+     radial_mass.resize(MAX_LEV);
+     radial_vol.resize(MAX_LEV);
+#ifdef GR_GRAV
+     radial_pres.resize(MAX_LEV);
+#endif
+
      if (gravity_type == "PoissonGrav") make_mg_bc();
 #if (BL_SPACEDIM > 1)
      if (gravity_type == "PoissonGrav") init_multipole_grav();
