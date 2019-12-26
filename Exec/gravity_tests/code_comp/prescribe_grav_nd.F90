@@ -1,5 +1,6 @@
 module prescribe_grav_module
 
+  use amrex_fort_module, only : rt => amrex_real
   implicit none
 
 contains

@@ -4,6 +4,9 @@
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
 
+// This vector can be accessed on the GPU.
+using RealVector = amrex::Gpu::ManagedVector<amrex::Real>;
+
 ///
 /// @class Gravity
 /// @brief
@@ -299,7 +302,7 @@ public:
 /// @param time         Current time
 /// @param radial_grav  Vector containing gravity in radial direction
 ///
-  void make_radial_gravity(int level, amrex::Real time, amrex::Vector<amrex::Real>& radial_grav);
+  void make_radial_gravity(int level, amrex::Real time, RealVector& radial_grav);
 
 ///
 /// Interpolate monopole gravitational field in the radial direction
@@ -308,7 +311,7 @@ public:
 /// @param radial_grav  Radial gravity
 /// @param grav_vector  Gravity vector
 ///
-  void interpolate_monopole_grav(int level, amrex::Vector<amrex::Real>& radial_grav, amrex::MultiFab& grav_vector);
+  void interpolate_monopole_grav(int level, RealVector& radial_grav, amrex::MultiFab& grav_vector);
 
 
 ///
@@ -423,12 +426,12 @@ protected:
 
   static int   test_solves;
   static amrex::Real  mass_offset;
-  static amrex::Vector< amrex::Vector<amrex::Real> > radial_grav_old;
-  static amrex::Vector< amrex::Vector<amrex::Real> > radial_grav_new;
-  static amrex::Vector< amrex::Vector<amrex::Real> > radial_mass;
-  static amrex::Vector< amrex::Vector<amrex::Real> > radial_vol;
+  amrex::Vector< RealVector > radial_grav_old;
+  amrex::Vector< RealVector > radial_grav_new;
+  amrex::Vector< RealVector > radial_mass;
+  amrex::Vector< RealVector > radial_vol;
 #ifdef GR_GRAV
-  static amrex::Vector< amrex::Vector<amrex::Real> > radial_pres;
+  amrex::Vector< RealVector > radial_pres;
 #endif
   static int   stencil_type;
 

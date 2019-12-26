@@ -173,7 +173,7 @@ contains
        max_mass_iter = max_hse_iter
 
        rho_c_old = -ONE
-       rho_c     = 1.d7     ! A reasonable starting guess for moderate-mass WDs
+       rho_c     = 1.e7_rt     ! A reasonable starting guess for moderate-mass WDs
 
     endif
 
@@ -327,7 +327,7 @@ contains
           drho_c = (model % mass - mass) / ( (mass  - mass_old) / (rho_c - rho_c_old) )
 
           rho_c_old = rho_c
-          rho_c = min(1.1d0 * rho_c_old, max((rho_c + drho_c), 0.9d0 * rho_c_old))
+          rho_c = min(1.1e0_rt * rho_c_old, max((rho_c + drho_c), 0.9e0_rt * rho_c_old))
 
        endif
 

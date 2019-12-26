@@ -238,7 +238,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dt_sub)
 #endif
-    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
         const Box& bx = mfi.tilebox();
 

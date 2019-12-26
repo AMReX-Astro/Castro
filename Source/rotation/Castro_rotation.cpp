@@ -35,7 +35,7 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state, Real ti
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 #pragma gpu box(bx)
@@ -106,7 +106,7 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
 #pragma omp parallel
 #endif
     {
-        for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
+        for (MFIter mfi(state_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
         {
             const Box& bx = mfi.tilebox();
 
@@ -162,7 +162,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(phi, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(phi, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
         const Box& bx = mfi.growntilebox(ng);
@@ -183,7 +183,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state, 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
         const Box& bx = mfi.growntilebox(ng);
