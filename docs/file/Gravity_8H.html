@@ -234,6 +234,11 @@
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Typedefs</p>
 <dl class="type">
+<dt id="_CPPv410RealVector">
+<span id="_CPPv310RealVector"></span><span id="_CPPv210RealVector"></span><span class="target" id="Gravity_8H_1aaf97af07ebc7e4ff37321a935bb572a9"></span><em class="property">using </em><code class="descname">RealVector</code> = amrex::Gpu::ManagedVector&lt;amrex::Real&gt;<a class="headerlink" href="#_CPPv410RealVector" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="type">
 <dt id="_CPPv418GradPhiPhysBCFunct">
 <span id="_CPPv318GradPhiPhysBCFunct"></span><span id="_CPPv218GradPhiPhysBCFunct"></span><span class="target" id="Gravity_8H_1a50bebeafed8b75d7626c8cb90873b8e1"></span><em class="property">using </em><code class="descname">GradPhiPhysBCFunct</code> = amrex::PhysBCFunctNoOp<br /></dt>
 <dd></dd></dl>
@@ -668,8 +673,8 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N7Gravity19make_radial_gravityEiN5amrex4RealERN5amrex6VectorIN5amrex4RealEEE">
-<span id="_CPPv3N7Gravity19make_radial_gravityEiN5amrex4RealERN5amrex6VectorIN5amrex4RealEEE"></span><span id="_CPPv2N7Gravity19make_radial_gravityEiN5amrex4RealERN5amrex6VectorIN5amrex4RealEEE"></span><span id="Gravity::make_radial_gravity__i.amrex::Real.amrex::Vector:amrex::Real:R"></span><span class="target" id="classGravity_1a6f689ce215824e078ae82fd4f2469558"></span>void <code class="descname">make_radial_gravity</code><span class="sig-paren">(</span>int <em>level</em>, amrex::Real <em>time</em>, amrex::Vector&lt;amrex::Real&gt; &amp;<em>radial_grav</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N7Gravity19make_radial_gravityEiN5amrex4RealER10RealVector">
+<span id="_CPPv3N7Gravity19make_radial_gravityEiN5amrex4RealER10RealVector"></span><span id="_CPPv2N7Gravity19make_radial_gravityEiN5amrex4RealER10RealVector"></span><span id="Gravity::make_radial_gravity__i.amrex::Real.RealVectorR"></span><span class="target" id="classGravity_1a378aab2e7f1d2e1805706cdd7fa67e19"></span>void <code class="descname">make_radial_gravity</code><span class="sig-paren">(</span>int <em>level</em>, amrex::Real <em>time</em>, <a class="reference internal" href="#_CPPv410RealVector" title="RealVector">RealVector</a> &amp;<em>radial_grav</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Make radial gravity</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -684,8 +689,8 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N7Gravity25interpolate_monopole_gravEiRN5amrex6VectorIN5amrex4RealEEERN5amrex8MultiFabE">
-<span id="_CPPv3N7Gravity25interpolate_monopole_gravEiRN5amrex6VectorIN5amrex4RealEEERN5amrex8MultiFabE"></span><span id="_CPPv2N7Gravity25interpolate_monopole_gravEiRN5amrex6VectorIN5amrex4RealEEERN5amrex8MultiFabE"></span><span id="Gravity::interpolate_monopole_grav__i.amrex::Vector:amrex::Real:R.amrex::MultiFabR"></span><span class="target" id="classGravity_1ac4a4a611f59dd889de6dec6f06889d0f"></span>void <code class="descname">interpolate_monopole_grav</code><span class="sig-paren">(</span>int <em>level</em>, amrex::Vector&lt;amrex::Real&gt; &amp;<em>radial_grav</em>, amrex::MultiFab &amp;<em>grav_vector</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N7Gravity25interpolate_monopole_gravEiR10RealVectorRN5amrex8MultiFabE">
+<span id="_CPPv3N7Gravity25interpolate_monopole_gravEiR10RealVectorRN5amrex8MultiFabE"></span><span id="_CPPv2N7Gravity25interpolate_monopole_gravEiR10RealVectorRN5amrex8MultiFabE"></span><span id="Gravity::interpolate_monopole_grav__i.RealVectorR.amrex::MultiFabR"></span><span class="target" id="classGravity_1a1e0f48ba89153d7dbe1974cda49f76d1"></span>void <code class="descname">interpolate_monopole_grav</code><span class="sig-paren">(</span>int <em>level</em>, <a class="reference internal" href="#_CPPv410RealVector" title="RealVector">RealVector</a> &amp;<em>radial_grav</em>, amrex::MultiFab &amp;<em>grav_vector</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Interpolate monopole gravitational field in the radial direction</p>
 <p><dl class="docutils">
 <dt><strong>Parameters</strong></dt>
@@ -962,27 +967,27 @@
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity15radial_grav_oldE">
-<span id="_CPPv3N7Gravity15radial_grav_oldE"></span><span id="_CPPv2N7Gravity15radial_grav_oldE"></span><span id="Gravity::radial_grav_old__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classGravity_1a2ac11c821b61f47e54c8965671c4c59d"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radial_grav_old</code><br /></dt>
+<span id="_CPPv3N7Gravity15radial_grav_oldE"></span><span id="_CPPv2N7Gravity15radial_grav_oldE"></span><span id="Gravity::radial_grav_old__amrex::Vector:RealVector:"></span><span class="target" id="classGravity_1aad304a1fc75cdfd3cdb963f00aecd9f2"></span>amrex::Vector&lt;<a class="reference internal" href="#_CPPv410RealVector" title="RealVector">RealVector</a>&gt; <code class="descname">radial_grav_old</code><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity15radial_grav_newE">
-<span id="_CPPv3N7Gravity15radial_grav_newE"></span><span id="_CPPv2N7Gravity15radial_grav_newE"></span><span id="Gravity::radial_grav_new__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classGravity_1aa5fb5d81165ffee8998130cf6cdb817c"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radial_grav_new</code><br /></dt>
+<span id="_CPPv3N7Gravity15radial_grav_newE"></span><span id="_CPPv2N7Gravity15radial_grav_newE"></span><span id="Gravity::radial_grav_new__amrex::Vector:RealVector:"></span><span class="target" id="classGravity_1ad23d8234a75f4e4adabcae11b4c7c9fa"></span>amrex::Vector&lt;<a class="reference internal" href="#_CPPv410RealVector" title="RealVector">RealVector</a>&gt; <code class="descname">radial_grav_new</code><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity11radial_massE">
-<span id="_CPPv3N7Gravity11radial_massE"></span><span id="_CPPv2N7Gravity11radial_massE"></span><span id="Gravity::radial_mass__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classGravity_1a1531f6e1f5d6dfe05b63587733efa184"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radial_mass</code><br /></dt>
+<span id="_CPPv3N7Gravity11radial_massE"></span><span id="_CPPv2N7Gravity11radial_massE"></span><span id="Gravity::radial_mass__amrex::Vector:RealVector:"></span><span class="target" id="classGravity_1a46930329fee38a58a0851dbbd8917d88"></span>amrex::Vector&lt;<a class="reference internal" href="#_CPPv410RealVector" title="RealVector">RealVector</a>&gt; <code class="descname">radial_mass</code><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity10radial_volE">
-<span id="_CPPv3N7Gravity10radial_volE"></span><span id="_CPPv2N7Gravity10radial_volE"></span><span id="Gravity::radial_vol__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classGravity_1a396f48e5cce574a9324ec08704f79953"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radial_vol</code><br /></dt>
+<span id="_CPPv3N7Gravity10radial_volE"></span><span id="_CPPv2N7Gravity10radial_volE"></span><span id="Gravity::radial_vol__amrex::Vector:RealVector:"></span><span class="target" id="classGravity_1a37fae5475a1e5627f18b8674cc95b0bc"></span>amrex::Vector&lt;<a class="reference internal" href="#_CPPv410RealVector" title="RealVector">RealVector</a>&gt; <code class="descname">radial_vol</code><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv4N7Gravity11radial_presE">
-<span id="_CPPv3N7Gravity11radial_presE"></span><span id="_CPPv2N7Gravity11radial_presE"></span><span id="Gravity::radial_pres__amrex::Vector:amrex::Vector:amrex::Real::"></span><span class="target" id="classGravity_1a42a451ce14a6232c9c2f191685c84f4a"></span>amrex::Vector&lt;amrex::Vector&lt;amrex::Real&gt;&gt; <code class="descname">radial_pres</code><br /></dt>
+<span id="_CPPv3N7Gravity11radial_presE"></span><span id="_CPPv2N7Gravity11radial_presE"></span><span id="Gravity::radial_pres__amrex::Vector:RealVector:"></span><span class="target" id="classGravity_1a26b8b6b0d575266e3c5d949504cc3749"></span>amrex::Vector&lt;<a class="reference internal" href="#_CPPv410RealVector" title="RealVector">RealVector</a>&gt; <code class="descname">radial_pres</code><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
