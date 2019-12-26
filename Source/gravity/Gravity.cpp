@@ -41,12 +41,12 @@ Real Gravity::mass_offset    =  0.0;
 
 static Real Ggravity = 0.;
 
-Vector< Vector<Real> > Gravity::radial_grav_old(MAX_LEV);
-Vector< Vector<Real> > Gravity::radial_grav_new(MAX_LEV);
-Vector< Vector<Real> > Gravity::radial_mass(MAX_LEV);
-Vector< Vector<Real> > Gravity::radial_vol(MAX_LEV);
+Vector< RealVector > Gravity::radial_grav_old(MAX_LEV);
+Vector< RealVector > Gravity::radial_grav_new(MAX_LEV);
+Vector< RealVector > Gravity::radial_mass(MAX_LEV);
+Vector< RealVector > Gravity::radial_vol(MAX_LEV);
 #ifdef GR_GRAV
-Vector< Vector<Real> > Gravity::radial_pres(MAX_LEV);
+Vector< RealVector > Gravity::radial_pres(MAX_LEV);
 #endif
 
 Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
@@ -1335,7 +1335,7 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
 }
 
 void
-Gravity::interpolate_monopole_grav(int level, Vector<Real>& radial_grav, MultiFab& grav_vector)
+Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab& grav_vector)
 {
     BL_PROFILE("Gravity::interpolate_monopole_grav()");
     
@@ -1369,10 +1369,10 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
     int n1d = drdxfac*numpts_at_level;
 
-    Vector<Real> radial_mass(n1d,0.0);
-    Vector<Real> radial_vol(n1d,0.0);
-    Vector<Real> radial_phi(n1d,0.0);
-    Vector<Real> radial_grav(n1d+1,0.0);
+    RealVector radial_mass(n1d,0.0);
+    RealVector radial_vol(n1d,0.0);
+    RealVector radial_phi(n1d,0.0);
+    RealVector radial_grav(n1d+1,0.0);
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
@@ -1383,8 +1383,8 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
-    Vector< Vector<Real> > priv_radial_mass(nthreads);
-    Vector< Vector<Real> > priv_radial_vol (nthreads);
+    Vector< RealVector > priv_radial_mass(nthreads);
+    Vector< RealVector > priv_radial_vol (nthreads);
     for (int i=0; i<nthreads; i++) {
 	priv_radial_mass[i].resize(n1d,0.0);
 	priv_radial_vol [i].resize(n1d,0.0);
@@ -2275,7 +2275,7 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
 #endif
 
 void
-Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
+Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 {
     BL_PROFILE("Gravity::make_radial_gravity()");
 
@@ -2357,10 +2357,10 @@ Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
 #ifdef _OPENMP
 	int nthreads = omp_get_max_threads();
 #ifdef GR_GRAV
-	Vector< Vector<Real> > priv_radial_pres(nthreads);
+	Vector< RealVector > priv_radial_pres(nthreads);
 #endif
-	Vector< Vector<Real> > priv_radial_mass(nthreads);
-	Vector< Vector<Real> > priv_radial_vol (nthreads);
+	Vector< RealVector > priv_radial_mass(nthreads);
+	Vector< RealVector > priv_radial_vol (nthreads);
 	for (int i=0; i<nthreads; i++) {
 #ifdef GR_GRAV
 	    priv_radial_pres[i].resize(n1d,0.0);
@@ -2435,7 +2435,7 @@ Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
         std::cout << "Gravity::make_radial_gravity: Sum of mass over all levels " << sum_over_levels << std::endl;
 
     int n1d = radial_mass[level].size();
-    Vector<Real> radial_mass_summed(n1d,0);
+    RealVector radial_mass_summed(n1d,0);
 
     // First add the contribution from this level
     for (int i = 0; i < n1d; i++)
@@ -2477,8 +2477,8 @@ Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
     //   the domain.
     // ***************************************************************** //
 
-    Vector<Real> radial_vol_summed(n1d,0);
-    Vector<Real> radial_den_summed(n1d,0);
+    RealVector radial_vol_summed(n1d,0);
+    RealVector radial_den_summed(n1d,0);
 
     // First add the contribution from this level
     for (int i = 0; i < n1d; i++)
@@ -2508,7 +2508,7 @@ Gravity::make_radial_gravity(int level, Real time, Vector<Real>& radial_grav)
     }
 
 #ifdef GR_GRAV
-    Vector<Real> radial_pres_summed(n1d,0);
+    RealVector radial_pres_summed(n1d,0);
 
     // First add the contribution from this level
     for (int i = 0; i < n1d; i++)
