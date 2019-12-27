@@ -268,34 +268,31 @@ so you already have all the Castro code and problem setups
 to exercise radiation. The only other requirement is a copy
 of the Hypre library. Hypre provides the algebraic multigrid
 solvers used by the implicit radiation update. You can get
-a copy at <a class="reference external" href="https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html">https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html</a>. You will need to follow their installation instructions.</p>
-<p>In addition to the environment variables you set for the main
-Castro hydrodynamics problems, you also need to tell the code
-where to find Hypre. This is done via one of two variables:</p>
-<ul class="simple">
-<li>the environment variable HYPRE_DIR should
-point to the location of your Hypre installation
-(e.g., ) or
-can be set directly in
-.
-This applies is you build with USE_OMP=FALSE</li>
-<li>the variable HYPRE_OMP_DIR should be set (either as an
-environment variable or in
-) to the directory
-for openmp enabled Hypre (e.g.,
-) if you build with
-USE_OMP=TRUE</li>
-</ul>
-<p>Now go to a “run” directory, say
-,
-edit the file GNUmakefile, and set</p>
-<ul class="simple">
-<li>COMP = your favorite compiler suite (e.g., gnu, pgi, intel)</li>
-<li>DIM = 1 or 2 or 3</li>
-<li>USE_RAD = TRUE—this is important. This tells the build system to
-compile in, and link the the radiation code.</li>
-</ul>
-<p>Then type make to generate an executable file.</p>
+a copy at <a class="reference external" href="https://github.com/hypre-space/hypre">https://github.com/hypre-space/hypre</a>. Their install
+instructions describe what to do; we recommend using the autotools
+and GNU Make build. On HPC clusters, you typically want to build
+with the same compiler you’re using to build Castro, and you also
+want to make sure that the options you’re using for Castro are
+compatible with the Hypre options, in particular when it comes to
+<code class="docutils literal notranslate"><span class="pre">USE_MPI</span></code>, <code class="docutils literal notranslate"><span class="pre">USE_OMP</span></code>, and <code class="docutils literal notranslate"><span class="pre">USE_CUDA</span></code>.</p>
+<p>As an example, to build Hypre on Summit with MPI and CUDA, you
+should load the <code class="docutils literal notranslate"><span class="pre">gcc/4.8.5</span></code> and <code class="docutils literal notranslate"><span class="pre">spectrum-mpi</span></code> modules and
+then do the following from the Hypre <code class="docutils literal notranslate"><span class="pre">src/</span></code> directory,
+replacing <code class="docutils literal notranslate"><span class="pre">/path/to/Hypre/install</span></code> with the target location
+where you want the Hypre files to be installed.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HYPRE_CUDA_SM</span><span class="o">=</span><span class="mi">70</span> <span class="n">CXX</span><span class="o">=</span><span class="n">mpicxx</span> <span class="n">CC</span><span class="o">=</span><span class="n">mpicc</span> <span class="n">FC</span><span class="o">=</span><span class="n">mpifort</span> <span class="o">./</span><span class="n">configure</span> <span class="o">--</span><span class="n">prefix</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">Hypre</span><span class="o">/</span><span class="n">install</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">MPI</span> <span class="o">--</span><span class="k">with</span><span class="o">-</span><span class="n">cuda</span> <span class="o">--</span><span class="n">enable</span><span class="o">-</span><span class="n">unified</span><span class="o">-</span><span class="n">memory</span>
+<span class="n">make</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>Then, when you are building Castro, you would build with
+<code class="docutils literal notranslate"><span class="pre">USE_MPI=TRUE</span></code> and <code class="docutils literal notranslate"><span class="pre">USE_CUDA=TRUE</span></code> (note that the CUDA build
+of Castro requires the <code class="docutils literal notranslate"><span class="pre">pgi</span></code> module to be loaded; you only
+need to use gcc for the Hypre build, which only has to be done
+once).</p>
+<p>Castro looks for Hypre in the environment variable <code class="docutils literal notranslate"><span class="pre">HYPRE_DIR</span></code>,
+which you should point to the install directory you chose above.
+Other than that, the only difference for builds with radiation
+is that you must set <code class="docutils literal notranslate"><span class="pre">USE_RAD=TRUE</span></code>.</p>
 </div>
 </div>
 <div class="section" id="microphysics-eos-network-and-opacity">
