@@ -1591,16 +1591,6 @@ void Radiation::filBndry(BndryRegister& bdry, int level, Real time)
   }
 }
 
-void Radiation::get_frhoe(FArrayBox& frhoe,
-                          FArrayBox& state,
-                          const Box& reg)
-{
-#pragma gpu box(reg) sync
-    cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-	   BL_TO_FORTRAN_ANYD(frhoe),
-	   BL_TO_FORTRAN_ANYD(state));
-}
-
 void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
                         const Box& reg)
 {
@@ -1675,65 +1665,6 @@ void Radiation::get_planck_and_temp(FArrayBox& fkp, FArrayBox& temp,
     if (verbose > 2 && numfloor > 0) {
 	std::cout << numfloor << " temperatures raised to floor" << std::endl;
     }
-}
-
-void Radiation::get_rosseland_and_temp(FArrayBox& kappa_r,
-                                       FArrayBox& temp,
-                                       FArrayBox& state,
-                                       const Box& reg,
-				       int igroup)
-{
-  BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
-
-  const Box& sbox = state.box();
-  const Box& tbox = temp.box();
-
-  if (do_real_eos > 0) {
-#pragma gpu box(reg) sync
-    ca_compute_temp_given_rhoe
-        (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-         BL_TO_FORTRAN_ANYD(temp),
-         BL_TO_FORTRAN_ANYD(state));
-  }
-  else if (do_real_eos == 0) {
-#pragma gpu box(reg) sync
-      gtemp(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-	    BL_TO_FORTRAN_ANYD(temp),
-	    const_c_v, c_v_exp_m, c_v_exp_n,
-	    BL_TO_FORTRAN_ANYD(state));
-  }
-  else {
-    amrex::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
-  }
-
-  state.copy(temp,reg,0,reg,Temp,1);
-
-  if (use_opacity_table_module) {
-#pragma gpu box(reg) sync
-      ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                           BL_TO_FORTRAN_ANYD(kappa_r),
-                           BL_TO_FORTRAN_ANYD(state));
-  }
-  else if (const_scattering > 0.0) {
-#pragma gpu box(reg) sync
-    rosse1s(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
-	    const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
-	    const_scattering, kappa_r_exp_p,
-            scattering_exp_m, scattering_exp_n,
-	    scattering_exp_p, nugroup[igroup],
-            prop_temp_floor, kappa_r_floor,
-	    BL_TO_FORTRAN_ANYD(state),
-            BL_TO_FORTRAN_N_ANYD(kappa_r, igroup));
-  }
-  else {
-#pragma gpu box(reg) sync
-      rosse1(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
-	     const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
-	     kappa_r_exp_p, nugroup[igroup],
-             prop_temp_floor, kappa_r_floor,
-	     BL_TO_FORTRAN_ANYD(state),
-             BL_TO_FORTRAN_N_ANYD(kappa_r, igroup));
-  }
 }
 
 // temp contains temp on input:
@@ -1861,8 +1792,59 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
       {
 	  const Box& reg = mfi.growntilebox();
 	  temp.resize(reg);
-	  get_frhoe(temp, state[mfi], reg);
-	  get_rosseland_and_temp(kappa_r[mfi], temp, state[mfi], reg, igroup);
+
+#pragma gpu box(reg) sync
+          cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                 BL_TO_FORTRAN_ANYD(temp),
+                 BL_TO_FORTRAN_ANYD(state[mfi]));
+
+          if (do_real_eos > 0) {
+#pragma gpu box(reg) sync
+              ca_compute_temp_given_rhoe
+                  (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                   BL_TO_FORTRAN_ANYD(temp),
+                   BL_TO_FORTRAN_ANYD(state[mfi]));
+          }
+          else if (do_real_eos == 0) {
+#pragma gpu box(reg) sync
+              gtemp(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                    BL_TO_FORTRAN_ANYD(temp),
+                    const_c_v, c_v_exp_m, c_v_exp_n,
+                    BL_TO_FORTRAN_ANYD(state[mfi]));
+          }
+          else {
+              amrex::Error("ERROR Radiation::get_rosseland do_real_eos < 0");
+          }
+
+          state[mfi].copy(temp, reg, 0, reg, Temp, 1);
+
+          if (use_opacity_table_module) {
+#pragma gpu box(reg) sync
+              ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                                   BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                                   BL_TO_FORTRAN_ANYD(state[mfi]));
+          }
+          else if (const_scattering > 0.0) {
+#pragma gpu box(reg) sync
+              rosse1s(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+                      const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+                      const_scattering, kappa_r_exp_p,
+                      scattering_exp_m, scattering_exp_n,
+                      scattering_exp_p, nugroup[igroup],
+                      prop_temp_floor, kappa_r_floor,
+                      BL_TO_FORTRAN_ANYD(state[mfi]),
+                      BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
+          }
+          else {
+#pragma gpu box(reg) sync
+              rosse1(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+                     const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+                     kappa_r_exp_p, nugroup[igroup],
+                     prop_temp_floor, kappa_r_floor,
+                     BL_TO_FORTRAN_ANYD(state[mfi]),
+                     BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
+          }
+
       }
   }
 }
@@ -2394,7 +2376,11 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	    const Box& reg = mfi.growntilebox();
 
 	    temp.resize(reg);
-	    get_frhoe(temp, S[mfi], reg);
+
+#pragma gpu box(reg) sync
+            cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                   BL_TO_FORTRAN_ANYD(temp),
+                   BL_TO_FORTRAN_ANYD(S[mfi]));
 
 	    if (do_real_eos > 0) {
 #pragma gpu box(reg) sync

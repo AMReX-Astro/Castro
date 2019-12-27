@@ -71,7 +71,11 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 #endif
   for (MFIter mfi(frhoem,true); mfi.isValid(); ++mfi) {
       const Box& reg = mfi.tilebox();
-      get_frhoe(frhoem[mfi], S_new[mfi], reg);
+
+#pragma gpu box(reg)
+      cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+             BL_TO_FORTRAN_ANYD(frhoem[mfi]),
+             BL_TO_FORTRAN_ANYD(S_new[mfi]));
   }
 
   MultiFab::Copy(frhoes, frhoem, 0, 0, 1, 0);

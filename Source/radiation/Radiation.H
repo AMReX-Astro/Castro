@@ -497,14 +497,8 @@ protected:
                    int limiter, int lamcomp=0);
 
 ///
-/// Fab versions of conversion functions.  All except frhoe use eos data.
+/// Fab versions of conversion functions.
 ///
-/// @param rhoe
-/// @param state
-/// @param reg
-///
-  void get_frhoe(amrex::FArrayBox& rhoe, amrex::FArrayBox& state, const amrex::Box& reg);
-
 
 ///
 /// @param c_v
