@@ -857,7 +857,8 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 		  ca_compute_temp_given_rhoe
                       (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
                        BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-                       BL_TO_FORTRAN_ANYD(S_new[mfi]));
+                       BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                       0);
 		}
 		else if (do_real_eos == 0) {
 #pragma gpu box(bx) sync
@@ -921,7 +922,8 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 	      ca_compute_temp_given_rhoe
                   (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
                    BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-                   BL_TO_FORTRAN_ANYD(S_new[mfi]));
+                   BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                   0);
 	    }
 	    else if (do_real_eos == 0) {
 #pragma gpu box(bx) sync

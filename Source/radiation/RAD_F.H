@@ -757,7 +757,8 @@ extern "C"
   void ca_compute_temp_given_rhoe
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(temp),
-     const BL_FORT_FAB_ARG_3D(state));
+     const BL_FORT_FAB_ARG_3D(state),
+     int update_state);
 
   void ca_compute_temp_given_cv
     (const int* lo, const int* hi,
@@ -896,7 +897,8 @@ extern "C" {
   void gtemp(const int* lo, const int* hi,
 	     BL_FORT_FAB_ARG_3D(temp), 
 	     amrex::Real con, amrex::Real em, amrex::Real en,
-	     BL_FORT_FAB_ARG_3D(state));
+	     BL_FORT_FAB_ARG_3D(state),
+             int update_state);
 
   void gcv(const int* lo, const int* hi,
 	   BL_FORT_FAB_ARG_3D(c_v), 

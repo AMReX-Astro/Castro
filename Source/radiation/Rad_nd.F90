@@ -219,10 +219,11 @@ contains
   subroutine gtemp(lo, hi, &
                    temp, t_lo, t_hi, &
                    const, em, en, &
-                   state, s_lo, s_hi) bind(C, name="gtemp")
+                   state, s_lo, s_hi, &
+                   update_state) bind(C, name="gtemp")
 
     use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO
+    use meth_params_module, only: NVAR, URHO, UTEMP
 #ifndef AMREX_USE_GPU
     use castro_error_module, only: castro_error
 #endif
@@ -231,8 +232,9 @@ contains
     integer,  intent(in   ) :: t_lo(3), t_hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))  ! temp contains frhoe on input
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value  :: const, em, en
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ), value :: const, em, en
+    integer,  intent(in   ), value :: update_state
 
     real(rt) :: alpha, teff, ex, frhoal
     integer  :: i, j, k
@@ -265,6 +267,10 @@ contains
                 temp(i,j,k) = ((1.e0_rt - en) * teff / frhoal)**ex
              end if
 
+             if (update_state == 1) then
+                state(i,j,k,UTEMP) = temp(i,j,k)
+             end if
+
           end do
        end do
     end do
@@ -275,7 +281,8 @@ contains
 
   subroutine ca_compute_temp_given_rhoe(lo, hi, &
                                         temp, t_lo, t_hi, &
-                                        state, s_lo, s_hi) &
+                                        state, s_lo, s_hi, &
+                                        update_state) &
                                         bind(C, name="ca_compute_temp_given_rhoe")
 
     use network, only: nspec, naux
@@ -289,8 +296,9 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: t_lo(3), t_hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(inout) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains rhoe as input
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    integer,  intent(in   ), value :: update_state
 
     integer      :: i, j, k
     real(rt)     :: rhoInv
@@ -319,6 +327,10 @@ contains
 
                 temp(i,j,k) = eos_state % T
 
+             end if
+
+             if (update_state == 1) then
+                state(i,j,k,UTEMP) = temp(i,j,k)
              end if
 
           end do
