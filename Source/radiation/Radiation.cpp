@@ -1594,7 +1594,7 @@ void Radiation::get_frhoe(FArrayBox& frhoe,
                           FArrayBox& state,
                           const Box& reg)
 {
-#pragma gpu box(reg)
+#pragma gpu box(reg) sync
     cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
 	   BL_TO_FORTRAN_ANYD(frhoe),
 	   BL_TO_FORTRAN_ANYD(state));
