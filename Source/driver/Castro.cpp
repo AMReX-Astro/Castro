@@ -3473,11 +3473,12 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 	temp.resize(bx);
 	temp.copy(State[mfi],bx,Eint,bx,0,1);
 
+#pragma gpu box(bx) sync
 	ca_compute_temp_given_cv
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(temp),
-	   BL_TO_FORTRAN(State[mfi]),
-	   &Radiation::const_c_v, &Radiation::c_v_exp_m, &Radiation::c_v_exp_n);
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(temp),
+             BL_TO_FORTRAN_ANYD(State[mfi]),
+             Radiation::const_c_v, Radiation::c_v_exp_m, Radiation::c_v_exp_n);
 
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {

@@ -1394,11 +1394,12 @@ void Radiation::state_update(MultiFab& state,
 
 	    temp[si].copy(frhoes[si],reg);
 
+#pragma gpu box(reg) sync
 	    ca_compute_temp_given_cv
-		(reg.loVect(), reg.hiVect(),
-		 BL_TO_FORTRAN(temp[si]),
-		 BL_TO_FORTRAN(state[si]),
-		 &const_c_v, &c_v_exp_m, &c_v_exp_n);
+		(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		 BL_TO_FORTRAN_ANYD(temp[si]),
+		 BL_TO_FORTRAN_ANYD(state[si]),
+		 const_c_v, c_v_exp_m, c_v_exp_n);
 
 	    state[si].copy(temp[si],reg,0,reg,Temp,1);
 	}
@@ -1604,20 +1605,25 @@ void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
                         const Box& reg)
 {
     if (do_real_eos == 1) {
+#pragma gpu box(reg) sync
       ca_compute_c_v
-	(reg.loVect(), reg.hiVect(),
-	 BL_TO_FORTRAN(c_v), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
+          (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+           BL_TO_FORTRAN_ANYD(c_v),
+           BL_TO_FORTRAN_ANYD(temp),
+           BL_TO_FORTRAN_ANYD(state));
     }
     else if (do_real_eos == 0) {
 	if (c_v_exp_m == 0.0 && c_v_exp_n == 0.0) {
 	    c_v.setVal(const_c_v,reg,0,1);
 	}
 	else {
-	    gcv(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		BL_TO_FORTRAN(c_v),
-		BL_TO_FORTRAN(temp),
-		&const_c_v, &c_v_exp_m, &c_v_exp_n, &prop_temp_floor,
-		BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+	    gcv(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		BL_TO_FORTRAN_ANYD(c_v),
+		BL_TO_FORTRAN_ANYD(temp),
+		const_c_v, c_v_exp_m, c_v_exp_n,
+                prop_temp_floor,
+		BL_TO_FORTRAN_ANYD(state));
 	}
     }
     else {
@@ -1631,14 +1637,18 @@ void Radiation::get_planck_and_temp(FArrayBox& fkp, FArrayBox& temp,
 				    int igroup, Real delta_t)
 {
     if (do_real_eos > 0) {
+#pragma gpu box(reg) sync
       ca_compute_temp_given_rhoe
-	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
+          (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+           BL_TO_FORTRAN_ANYD(temp),
+           BL_TO_FORTRAN_ANYD(state));
     }
     else if (do_real_eos == 0) {
-	gtemp(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN(temp),
-	      &const_c_v, &c_v_exp_m, &c_v_exp_n,
-	      BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+	gtemp(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+	      BL_TO_FORTRAN_ANYD(temp),
+	      const_c_v, c_v_exp_m, c_v_exp_n,
+	      BL_TO_FORTRAN_ANYD(state));
     }
     else {
 	amrex::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
@@ -1679,14 +1689,18 @@ void Radiation::get_rosseland_and_temp(FArrayBox& kappa_r,
   const Box& tbox = temp.box();
 
   if (do_real_eos > 0) {
+#pragma gpu box(reg) sync
     ca_compute_temp_given_rhoe
-      (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
+        (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+         BL_TO_FORTRAN_ANYD(temp),
+         BL_TO_FORTRAN_ANYD(state));
   }
   else if (do_real_eos == 0) {
-      gtemp(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	    BL_TO_FORTRAN(temp),
-	    &const_c_v, &c_v_exp_m, &c_v_exp_n,
-	    BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+      gtemp(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+	    BL_TO_FORTRAN_ANYD(temp),
+	    const_c_v, c_v_exp_m, c_v_exp_n,
+	    BL_TO_FORTRAN_ANYD(state));
   }
   else {
     amrex::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
@@ -2379,14 +2393,18 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	    get_frhoe(temp, S[mfi], reg);
 
 	    if (do_real_eos > 0) {
+#pragma gpu box(reg) sync
 	      ca_compute_temp_given_rhoe
-		(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(S[mfi]));
+                  (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                   BL_TO_FORTRAN_ANYD(temp),
+                   BL_TO_FORTRAN_ANYD(S[mfi]));
 	    }
 	    else if (do_real_eos == 0) {
-		gtemp(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		      BL_TO_FORTRAN(temp),
-		      &const_c_v, &c_v_exp_m, &c_v_exp_n,
-		      BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+		gtemp(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		      BL_TO_FORTRAN_ANYD(temp),
+		      const_c_v, c_v_exp_m, c_v_exp_n,
+		      BL_TO_FORTRAN_ANYD(S[mfi]));
 	    }
 
 	    c_v.resize(reg);

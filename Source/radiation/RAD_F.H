@@ -743,48 +743,49 @@ extern "C"
 {
 #endif
   void ca_compute_c_v
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(cv),
-     const BL_FORT_FAB_ARG(temp),
-     const BL_FORT_FAB_ARG(state));
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(cv),
+     const BL_FORT_FAB_ARG_3D(temp),
+     const BL_FORT_FAB_ARG_3D(state));
 
   void ca_get_rhoe
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(rhoe),
-     const BL_FORT_FAB_ARG(temp),
-     const BL_FORT_FAB_ARG(state));
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(rhoe),
+     const BL_FORT_FAB_ARG_3D(temp),
+     const BL_FORT_FAB_ARG_3D(state));
 
   void ca_compute_temp_given_rhoe
-    (const int lo[], const int hi[],
-     BL_FORT_FAB_ARG(temp),
-     const BL_FORT_FAB_ARG(state));
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(temp),
+     const BL_FORT_FAB_ARG_3D(state));
 
   void ca_compute_temp_given_cv
-    (const int lo[], const int hi[],
-     BL_FORT_FAB_ARG(temp), 
-     const BL_FORT_FAB_ARG(state),
-     const amrex::Real* const_c_v,
-     const amrex::Real* c_v_exp_m,
-     const amrex::Real* c_v_exp_n);
-#ifdef __cplusplus
-}
-#endif
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(temp), 
+     const BL_FORT_FAB_ARG_3D(state),
+     const amrex::Real const_c_v,
+     const amrex::Real c_v_exp_m,
+     const amrex::Real c_v_exp_n);
 
 #ifdef NEUTRINO
-BL_FORT_PROC_DECL(CA_COMPUTE_TEMP_GIVEN_REYE,ca_compute_temp_given_reye)
-  (const int lo[], const int hi[],
-   BL_FORT_FAB_ARG(temp),
-   const BL_FORT_FAB_ARG(rhoe),
-   const BL_FORT_FAB_ARG(ye),
-   const BL_FORT_FAB_ARG(state));
+  ca_compute_temp_given_reye
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(temp),
+     const BL_FORT_FAB_ARG_3D(rhoe),
+     const BL_FORT_FAB_ARG_3D(ye),
+     const BL_FORT_FAB_ARG_3D(state));
 
-BL_FORT_PROC_DECL(CA_COMPUTE_REYE_GIVEN_TY,ca_compute_reye_given_ty)
-  (const int lo[], const int hi[],
-   BL_FORT_FAB_ARG(rhoe),
-   BL_FORT_FAB_ARG(rhoYe),
-   const BL_FORT_FAB_ARG(temp),
-   const BL_FORT_FAB_ARG(ye),
-   const BL_FORT_FAB_ARG(state));
+  ca_compute_reye_given_ty
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(rhoe),
+     BL_FORT_FAB_ARG_3D(rhoYe),
+     const BL_FORT_FAB_ARG_3D(temp),
+     const BL_FORT_FAB_ARG_3D(ye),
+     const BL_FORT_FAB_ARG_3D(state));
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 BL_FORT_PROC_DECL(CA_ER_COM2LAB, ca_er_com2lab)
@@ -892,16 +893,17 @@ extern "C" {
 	      BL_FORT_FAB_ARG_3D(frhoe), 
 	      BL_FORT_FAB_ARG_3D(state));
 
-  void gtemp(ARLIM_P(reglo), ARLIM_P(reghi),
-	     BL_FORT_FAB_ARG(temp), 
-	     amrex::Real* con, amrex::Real* em, amrex::Real* en,
-	     BL_FORT_FAB_ARG(state));
+  void gtemp(const int* lo, const int* hi,
+	     BL_FORT_FAB_ARG_3D(temp), 
+	     amrex::Real con, amrex::Real em, amrex::Real en,
+	     BL_FORT_FAB_ARG_3D(state));
 
-  void gcv(ARLIM_P(reglo), ARLIM_P(reghi),
-	   BL_FORT_FAB_ARG(c_v), 
-	   const BL_FORT_FAB_ARG(temp), 
-	   const amrex::Real* con, const amrex::Real* em, const amrex::Real* en, const amrex::Real* tf,
-	   const BL_FORT_FAB_ARG(state));
+  void gcv(const int* lo, const int* hi,
+	   BL_FORT_FAB_ARG_3D(c_v), 
+	   const BL_FORT_FAB_ARG_3D(temp), 
+	   amrex::Real con, amrex::Real em, amrex::Real en,
+           amrex::Real tf,
+	   const BL_FORT_FAB_ARG_3D(state));
 
   void cexch(ARLIM_P(reglo), ARLIM_P(reghi),
 	     BL_FORT_FAB_ARG(exch), 
