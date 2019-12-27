@@ -1060,8 +1060,10 @@ void Radiation::MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
 #endif
     
     if (use_opacity_table_module) {
-      ca_compute_rosseland(kbox.loVect(), kbox.hiVect(),
-			   BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
+#pragma gpu box(kbox) sync
+        ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
+                             BL_TO_FORTRAN_ANYD(kappa_r),
+                             BL_TO_FORTRAN_ANYD(state));
     }
     else if (const_kappa_r < 0.0) {
       ca_compute_powerlaw_kappa_s(kbox.loVect(), kbox.hiVect(),
@@ -1100,8 +1102,10 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
 	else {
 #endif
 	    if (use_opacity_table_module) {
-	      ca_compute_rosseland(bx.loVect(), bx.hiVect(),
-				   BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]));
+#pragma gpu box(bx) sync
+                ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                     BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                                     BL_TO_FORTRAN_ANYD(state[mfi]));
 	    }
 	    else if (const_kappa_r < 0.0) {
 	      ca_compute_powerlaw_kappa_s(bx.loVect(), bx.hiVect(),

@@ -564,9 +564,9 @@ BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
 extern "C" {
 #endif
   void ca_compute_rosseland
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(kpr),
-    const BL_FORT_FAB_ARG(state));
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(kpr),
+     const BL_FORT_FAB_ARG_3D(state));
 #ifdef __cplusplus
 }
 #endif

@@ -1709,8 +1709,10 @@ void Radiation::get_rosseland_and_temp(FArrayBox& kappa_r,
   state.copy(temp,reg,0,reg,Temp,1);
 
   if (use_opacity_table_module) {
-    ca_compute_rosseland(reg.loVect(), reg.hiVect(),
-			 BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+      ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                           BL_TO_FORTRAN_ANYD(kappa_r),
+                           BL_TO_FORTRAN_ANYD(state));
   }
   else if (const_scattering > 0.0) {
 #pragma gpu box(reg) sync
@@ -1766,8 +1768,10 @@ void Radiation::get_rosseland_from_temp(FArrayBox& kappa_r,
   state.copy(temp,reg,0,reg,Temp,1);
 
   if (use_opacity_table_module) {
-    ca_compute_rosseland(reg.loVect(), reg.hiVect(),
-			 BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+      ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                           BL_TO_FORTRAN_ANYD(kappa_r),
+                           BL_TO_FORTRAN_ANYD(state));
   }
   else if (const_scattering > 0.0) {
 #pragma gpu box(reg) sync
@@ -2414,8 +2418,10 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 
 	    // compute rosseland
 	    if (use_opacity_table_module) {
-	      ca_compute_rosseland(reg.loVect(), reg.hiVect(),
-				   BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+                ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                                     BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                                     BL_TO_FORTRAN_ANYD(S[mfi]));
 	    }
 	    else if (const_scattering > 0.0) {
 #pragma gpu box(reg) sync

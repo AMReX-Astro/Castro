@@ -1040,56 +1040,6 @@ subroutine ca_opacs( lo, hi,  &
 end subroutine ca_opacs
 
 
-subroutine ca_compute_rosseland( lo, hi,   &
-     kpr , kpr_l1, kpr_l2, kpr_l3, kpr_h1, kpr_h2, kpr_h3, &
-     stat,stat_l1,stat_l2,stat_l3,stat_h1,stat_h2,stat_h3 ) bind(C, name="ca_compute_rosseland")
-
-  use rad_params_module, only : ngroups, nugroup
-  use opacity_table_module, only : get_opacities
-  use network, only : naux
-  use meth_params_module, only : NVAR, URHO, UTEMP, UFX
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) ::  kpr_l1, kpr_l2, kpr_l3, kpr_h1, kpr_h2, kpr_h3
-  integer, intent(in) :: stat_l1,stat_l2,stat_l3,stat_h1,stat_h2,stat_h3
-  real(rt)                   ::kpr ( kpr_l1: kpr_h1, kpr_l2: kpr_h2, kpr_l3: kpr_h3,0:ngroups-1)
-  real(rt)        ,intent(in)::stat(stat_l1:stat_h1,stat_l2:stat_h2,stat_l3:stat_h3,NVAR)
-
-  integer :: i, j, k, g
-  real(rt)         :: kp, kr, nu, rho, temp, Ye
-  logical, parameter :: comp_kp = .false. 
-  logical, parameter :: comp_kr = .true.
-
-  do g=0, ngroups-1
-
-     nu = nugroup(g)
-
-     do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-     do i = lo(1), hi(1)
-
-        rho = stat(i,j,k,URHO)
-        temp = stat(i,j,k,UTEMP)
-        if (naux > 0) then
-           Ye = stat(i,j,k,UFX)
-        else
-           Ye = 0.e0_rt
-        end if
-
-        call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
-
-        kpr(i,j,k,g) = kr
-
-     end do
-     end do
-     end do
-  end do
-
-end subroutine ca_compute_rosseland
-
 
 subroutine ca_compute_planck( lo, hi,  &
      kpp , kpp_l1, kpp_l2, kpp_l3, kpp_h1, kpp_h2, kpp_h3, &
