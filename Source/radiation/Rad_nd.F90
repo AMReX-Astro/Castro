@@ -65,6 +65,139 @@ contains
 
 
 
+  subroutine ca_compute_planck(lo, hi, &
+                               kpp, k_lo, k_hi, &
+                               state, s_lo, s_hi) &
+                               bind(C, name="ca_compute_planck")
+
+    use rad_params_module, only: ngroups, nugroup
+    use opacity_table_module, only: get_opacities
+    use network, only: naux
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFX
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: k_lo(3), k_hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: kpp(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+
+    integer  :: i, j, k, g
+    real(rt) :: kp, kr, nu, rho, temp, Ye
+    logical, parameter :: comp_kp = .true. 
+    logical, parameter :: comp_kr = .false.
+
+    !$gpu
+
+    do g = 0, ngroups-1
+
+       nu = nugroup(g)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                rho = state(i,j,k,URHO)
+                temp = state(i,j,k,UTEMP)
+                if (naux > 0) then
+                   Ye = state(i,j,k,UFX)
+                else
+                   Ye = 0.e0_rt
+                end if
+
+                call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
+
+                kpp(i,j,k,g) = kp
+
+             end do
+          end do
+       end do
+    end do
+
+  end subroutine ca_compute_planck
+
+
+
+  subroutine fkpn(lo, hi, &
+                  fkp, f_lo, f_hi, &
+                  const, em, en, &
+                  ep, nu, tf, &
+                  temp, t_lo, t_hi, &
+                  state, s_lo, s_hi) &
+                  bind(C, name="fkpn")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: NVAR, URHO
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    integer,  intent(in   ) :: t_lo(3), t_hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: fkp(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
+    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ), value :: const, em, en, tf, ep, nu
+
+    real(rt) :: teff
+    integer  :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             teff = max(temp(i,j,k), tiny)
+             teff = teff + tf * exp(-teff / (tf + tiny))
+
+             fkp(i,j,k) = const * &
+                          (state(i,j,k,URHO)**em) * &
+                          (teff**(-en)) * &
+                          (nu**(ep))
+
+          end do
+       end do
+    end do
+
+  end subroutine fkpn
+
+
+
+  subroutine nfloor(lo, hi, &
+                    dest, d_lo, d_hi, &
+                    flr, nvar) &
+                    bind(C, name="nfloor")
+
+    use amrex_fort_module, only: rt => amrex_real
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    real(rt), intent(inout) :: dest(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nvar-1)
+    integer,  intent(in   ), value :: nvar
+    real(rt), intent(in   ), value :: flr
+
+    integer :: i, j, k, n
+
+    !$gpu
+
+    do n = 0, nvar-1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                if (dest(i,j,k,n) < flr) then
+                   dest(i,j,k,n) = flr
+                end if
+             end do
+          end do
+       end do
+    end do
+
+  end subroutine nfloor
+
+
+
   subroutine gcv(lo, hi, &
                  cv, c_lo, c_hi, &
                  temp, t_lo, t_hi, &

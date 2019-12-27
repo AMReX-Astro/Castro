@@ -1020,66 +1020,6 @@ subroutine cetot(DIMS(reg), &
   enddo
 end subroutine cetot
 
-subroutine fkpn(DIMS(reg), &
-                fkp, DIMS(fb), &
-                const, em, en, &
-                ep, nu, tf, &
-                temp, DIMS(tb), &
-                state, DIMS(sb)) bind(C, name="fkpn")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(fb)
-  integer :: DIMDEC(tb)
-  integer :: DIMDEC(sb)
-  real(rt)         :: fkp(DIMV(fb))
-  real(rt)         :: const(0:1), em(0:1), en(0:1), tf(0:1)
-  real(rt)         :: ep(0:1), nu
-  real(rt)         :: temp(DIMV(tb))
-  real(rt)         :: state(DIMV(sb), NVAR)
-  real(rt)         :: teff
-  integer :: i, j, k
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           teff = max(temp(i,j,k), tiny)
-           teff = teff + tf(0) * exp(-teff / (tf(0) + tiny))
-           fkp(i,j,k) = const(0) * &
-                (state(i,j,k, URHO) ** em(0)) * &
-                (teff ** (-en(0))) * &
-                (nu ** (ep(0)))
-        enddo
-     enddo
-  enddo
-end subroutine fkpn
-
-subroutine nfloor(dest, &
-                  DIMS(dbox), &
-                  DIMS(reg), &
-                  nflr, flr, nvar) bind(C, name="nfloor")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(dbox)
-  integer :: DIMDEC(reg)
-  integer :: nvar, nflr
-  real(rt)         :: dest(DIMV(dbox), 0:nvar-1)
-  real(rt)         :: flr
-  integer :: i, j, k, n
-  nflr = 0
-  do n = 0, nvar-1
-     do k = reg_l3, reg_h3
-        do j = reg_l2, reg_h2
-           do i = reg_l1, reg_h1
-              if (dest(i,j,k,n) < flr) then
-                 dest(i,j,k,n) = flr
-                 nflr = nflr + 1
-              endif
-           enddo
-        enddo
-     enddo
-  enddo
-end subroutine nfloor
-
 ! *********************************
 ! ** BEGIN MGFLD routines        **
 ! *********************************

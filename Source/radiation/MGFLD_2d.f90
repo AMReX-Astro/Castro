@@ -1003,55 +1003,6 @@ subroutine ca_opacs( lo, hi,  &
 end subroutine ca_opacs
 
 
-subroutine ca_compute_planck( lo, hi,  &
-     kpp , kpp_l1, kpp_l2, kpp_h1, kpp_h2, &
-     stat,stat_l1,stat_l2,stat_h1,stat_h2 ) bind(C, name="ca_compute_planck")
-
-  use rad_params_module, only : ngroups, nugroup
-  use opacity_table_module, only : get_opacities
-  use network, only : naux
-  use meth_params_module, only : NVAR, URHO, UTEMP, UFX
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(2), hi(2)
-  integer, intent(in) ::  kpp_l1, kpp_l2, kpp_h1, kpp_h2
-  integer, intent(in) :: stat_l1,stat_l2,stat_h1,stat_h2
-  real(rt)                     :: kpp ( kpp_l1: kpp_h1, kpp_l2: kpp_h2,0:ngroups-1)
-  real(rt)        , intent(in) :: stat(stat_l1:stat_h1,stat_l2:stat_h2,NVAR)
-
-  integer :: i, j, g
-  real(rt)         :: kp, kr, nu, rho, temp, Ye
-  logical, parameter :: comp_kp = .true. 
-  logical, parameter :: comp_kr = .false.
-
-  do g=0, ngroups-1
-
-     nu = nugroup(g)
-
-     do j = lo(2), hi(2)
-     do i = lo(1), hi(1)
-
-        rho = stat(i,j,URHO)
-        temp = stat(i,j,UTEMP)
-        if (naux > 0) then
-           Ye = stat(i,j,UFX)
-        else
-           Ye = 0.e0_rt
-        end if
-
-        call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
-
-        kpp(i,j,g) = kp
-
-     end do
-     end do
-  end do
-
-end subroutine ca_compute_planck
-
-
 ! end photon routines
 ! ========================================================================
 

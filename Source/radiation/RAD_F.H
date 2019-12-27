@@ -587,9 +587,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)
 extern "C" {
 #endif
   void ca_compute_planck
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(kpp),
-    const BL_FORT_FAB_ARG(state));
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(kpp),
+     const BL_FORT_FAB_ARG_3D(state));
 
   void ca_filt_prim
     (const int lo[], const int hi[],
@@ -954,12 +954,12 @@ extern "C" {
 	     BL_FORT_FAB_ARG(state), 
 	     BL_FORT_FAB_ARG(rhoe));
 
-  void fkpn(ARLIM_P(reglo), ARLIM_P(reghi),
-	    BL_FORT_FAB_ARG(fkp),	   
-	    amrex::Real* con, amrex::Real* em, amrex::Real* en,
-	    amrex::Real* ep, const amrex::Real& xnu, amrex::Real* tf,
-	    BL_FORT_FAB_ARG(temp), 
-	    BL_FORT_FAB_ARG(state));
+  void fkpn(const int* lo, const int* hi,
+	    BL_FORT_FAB_ARG_3D(fkp),	   
+	    amrex::Real con, amrex::Real em, amrex::Real en,
+	    amrex::Real ep, amrex::Real xnu, amrex::Real tf,
+	    BL_FORT_FAB_ARG_3D(temp), 
+	    BL_FORT_FAB_ARG_3D(state));
 
   void rosse1(const int* lo, const int* hi,
 	      amrex::Real con, amrex::Real em, amrex::Real en,
@@ -977,9 +977,9 @@ extern "C" {
 	       BL_FORT_FAB_ARG_3D(state),
       	       BL_FORT_FAB_ARG_3D(kappar));
   
-  void nfloor(BL_FORT_FAB_ARG(dest), 
-	      ARLIM_P(reglo), ARLIM_P(reghi),
-	      int& nflr, const amrex::Real& flr, const int& nvar);
+  void nfloor(const int* lo, const int* hi,
+              BL_FORT_FAB_ARG_3D(dest), 
+	      amrex::Real flr, int nvar);
 
   void lacoefmgfld(BL_FORT_FAB_ARG(a), 
 		   ARLIM_P(reglo), ARLIM_P(reghi),

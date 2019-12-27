@@ -1621,54 +1621,6 @@ void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
     }
 }
 
-// temp contains frhoe on input:
-void Radiation::get_planck_and_temp(FArrayBox& fkp, FArrayBox& temp,
-                                    FArrayBox& state, const Box& reg,
-				    int igroup, Real delta_t)
-{
-    if (do_real_eos > 0) {
-#pragma gpu box(reg) sync
-      ca_compute_temp_given_rhoe
-          (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-           BL_TO_FORTRAN_ANYD(temp),
-           BL_TO_FORTRAN_ANYD(state),
-           0);
-    }
-    else if (do_real_eos == 0) {
-#pragma gpu box(reg) sync
-	gtemp(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-	      BL_TO_FORTRAN_ANYD(temp),
-	      const_c_v, c_v_exp_m, c_v_exp_n,
-	      BL_TO_FORTRAN_ANYD(state),
-              0);
-    }
-    else {
-	amrex::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
-    }
-
-    if (use_opacity_table_module) {
-      ca_compute_planck(reg.loVect(), reg.hiVect(),
-			BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
-    }
-    else {
-	fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	     BL_TO_FORTRAN(fkp),
-	     &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-	     &kappa_p_exp_p, nugroup[igroup], &prop_temp_floor,
-	     BL_TO_FORTRAN(temp),
-	     BL_TO_FORTRAN(state));
-    }
-
-    int numfloor = 0;
-    nfloor(BL_TO_FORTRAN(temp),
-	   ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   numfloor, temp_floor, temp.nComp());
-
-    if (verbose > 2 && numfloor > 0) {
-	std::cout << numfloor << " temperatures raised to floor" << std::endl;
-    }
-}
-
 // temp contains temp on input:
 
 void Radiation::get_planck_from_temp(FArrayBox& fkp, FArrayBox& temp,
@@ -1676,17 +1628,19 @@ void Radiation::get_planck_from_temp(FArrayBox& fkp, FArrayBox& temp,
 				     int igroup)
 {
   if (use_opacity_table_module) {
-      ca_compute_planck(reg.loVect(), reg.hiVect(),
-			BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+      ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+			BL_TO_FORTRAN_ANYD(fkp),
+                        BL_TO_FORTRAN_ANYD(state));
   }
   else {
-      fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   BL_TO_FORTRAN(fkp),
-	   &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-	   &kappa_p_exp_p, nugroup[igroup],
-	   &prop_temp_floor,
-	   BL_TO_FORTRAN(temp),
-	   BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+      fkpn(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+	   BL_TO_FORTRAN_ANYD(fkp),
+	   const_kappa_p, kappa_p_exp_m, kappa_p_exp_n,
+	   kappa_p_exp_p, nugroup[igroup], prop_temp_floor,
+	   BL_TO_FORTRAN_ANYD(temp),
+	   BL_TO_FORTRAN_ANYD(state));
   }
 }
 
@@ -1752,12 +1706,55 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
 				    int igroup, Real delta_t)
 {
     BL_PROFILE("Radiation::get_planck_and_temp");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter si(state,true); si.isValid(); ++si) {
-	get_planck_and_temp(fkp[si], temp[si], state[si], si.tilebox(),
-			    igroup, delta_t);
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+
+        const Box& bx = mfi.tilebox();
+
+        if (do_real_eos > 0) {
+#pragma gpu box(bx)
+            ca_compute_temp_given_rhoe
+                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                 BL_TO_FORTRAN_ANYD(temp[mfi]),
+                 BL_TO_FORTRAN_ANYD(state[mfi]),
+                 0);
+        }
+        else if (do_real_eos == 0) {
+#pragma gpu box(bx)
+            gtemp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                  BL_TO_FORTRAN_ANYD(temp[mfi]),
+                  const_c_v, c_v_exp_m, c_v_exp_n,
+                  BL_TO_FORTRAN_ANYD(state[mfi]),
+                  0);
+        }
+        else {
+            amrex::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
+        }
+
+        if (use_opacity_table_module) {
+#pragma gpu box(bx)
+            ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(fkp[mfi]),
+                              BL_TO_FORTRAN_ANYD(state[mfi]));
+        }
+        else {
+#pragma gpu box(bx) sync
+            fkpn(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                 BL_TO_FORTRAN_ANYD(fkp[mfi]),
+                 const_kappa_p, kappa_p_exp_m, kappa_p_exp_n,
+                 kappa_p_exp_p, nugroup[igroup], prop_temp_floor,
+                 BL_TO_FORTRAN_ANYD(temp[mfi]),
+                 BL_TO_FORTRAN_ANYD(state[mfi]));
+        }
+
+#pragma gpu box(bx) sync
+        nfloor(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+               BL_TO_FORTRAN_ANYD(temp[mfi]),
+               temp_floor, temp[mfi].nComp());
+
     }
 }
 
@@ -2444,24 +2441,24 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 
 
 	    kp.resize(reg);
-	    fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 BL_TO_FORTRAN(kp),
-		 &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-		 &kappa_p_exp_p, nugroup[igroup],
-		 &prop_temp_floor,
-		 BL_TO_FORTRAN(temp),
-		 BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+	    fkpn(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		 BL_TO_FORTRAN_ANYD(kp),
+		 const_kappa_p, kappa_p_exp_m, kappa_p_exp_n,
+		 kappa_p_exp_p, nugroup[igroup], prop_temp_floor,
+		 BL_TO_FORTRAN_ANYD(temp),
+		 BL_TO_FORTRAN_ANYD(S[mfi]));
 
 	    kp2.resize(reg);
 	    temp.plus(dT, 0, 1);
 
-	    fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 BL_TO_FORTRAN(kp2),
-		 &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-		 &kappa_p_exp_p, nugroup[igroup],
-		 &prop_temp_floor,
-		 BL_TO_FORTRAN(temp),
-		 BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+	    fkpn(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		 BL_TO_FORTRAN_ANYD(kp2),
+		 const_kappa_p, kappa_p_exp_m, kappa_p_exp_n,
+		 kappa_p_exp_p, nugroup[igroup], prop_temp_floor,
+		 BL_TO_FORTRAN_ANYD(temp),
+		 BL_TO_FORTRAN_ANYD(S[mfi]));
 
 	    temp.plus(-dT, 0, 1);
 
