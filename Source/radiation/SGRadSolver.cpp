@@ -72,8 +72,9 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   for (MFIter mfi(frhoem,true); mfi.isValid(); ++mfi) {
       const Box& reg = mfi.tilebox();
       get_frhoe(frhoem[mfi], S_new[mfi], reg);
-      frhoes[mfi].copy(frhoem[mfi],reg);
   }
+
+  MultiFab::Copy(frhoes, frhoem, 0, 0, 1, 0);
 
   // Rosseland mean in grid interiors can be updated within the loop,
   // but ghost cell values are set once and never updated.
