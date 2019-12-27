@@ -1,5 +1,10 @@
 # 20.01
 
+   * We have added calls into Hypre that only exist as of version
+     2.15.0, so that is the new minimum requirement for Castro
+     radiation. Note that Hypre is now hosted on GitHub at
+     https://github.com/hypre-space/hypre.
+
    * A new option castro.limit_fluxes_on_large_vel has been added. It
      is similar to the existing option limit_fluxes_on_small_dens --
      fluxes are limited to prevent the velocity in any zone from
