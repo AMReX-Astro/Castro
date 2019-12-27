@@ -38,38 +38,34 @@ so you already have all the Castro code and problem setups
 to exercise radiation. The only other requirement is a copy
 of the Hypre library. Hypre provides the algebraic multigrid
 solvers used by the implicit radiation update. You can get
-a copy at https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html. You will need to follow their installation instructions.
+a copy at https://github.com/hypre-space/hypre. Their install
+instructions describe what to do; we recommend using the autotools
+and GNU Make build. On HPC clusters, you typically want to build
+with the same compiler you're using to build Castro, and you also
+want to make sure that the options you're using for Castro are
+compatible with the Hypre options, in particular when it comes to
+``USE_MPI``, ``USE_OMP``, and ``USE_CUDA``.
 
-In addition to the environment variables you set for the main
-Castro hydrodynamics problems, you also need to tell the code
-where to find Hypre. This is done via one of two variables:
+As an example, to build Hypre on Summit with MPI and CUDA, you
+should load the ``gcc/4.8.5`` and ``spectrum-mpi`` modules and
+then do the following from the Hypre ``src/`` directory,
+replacing ``/path/to/Hypre/install`` with the target location
+where you want the Hypre files to be installed.
+::
 
--  the environment variable HYPRE_DIR should
-   point to the location of your Hypre installation
-   (e.g., ) or
-   can be set directly in
-   .
-   This applies is you build with USE_OMP=FALSE
+   HYPRE_CUDA_SM=70 CXX=mpicxx CC=mpicc FC=mpifort ./configure --prefix=/path/to/Hypre/install --with-MPI --with-cuda --enable-unified-memory
+   make install
 
--  the variable HYPRE_OMP_DIR should be set (either as an
-   environment variable or in
-   ) to the directory
-   for openmp enabled Hypre (e.g.,
-   ) if you build with
-   USE_OMP=TRUE
+Then, when you are building Castro, you would build with
+``USE_MPI=TRUE`` and ``USE_CUDA=TRUE`` (note that the CUDA build
+of Castro requires the ``pgi`` module to be loaded; you only
+need to use gcc for the Hypre build, which only has to be done
+once).
 
-Now go to a “run” directory, say
-,
-edit the file GNUmakefile, and set
-
--  COMP = your favorite compiler suite (e.g., gnu, pgi, intel)
-
--  DIM = 1 or 2 or 3
-
--  USE_RAD = TRUE—this is important. This tells the build system to
-   compile in, and link the the radiation code.
-
-Then type make to generate an executable file.
+Castro looks for Hypre in the environment variable ``HYPRE_DIR``,
+which you should point to the install directory you chose above.
+Other than that, the only difference for builds with radiation
+is that you must set ``USE_RAD=TRUE``.
 
 Microphysics: EOS, Network, and Opacity
 =======================================
