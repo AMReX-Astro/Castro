@@ -3,7 +3,6 @@ CASTRO_HOME ?= /path/to/Castro
 
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
-HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
 
 # system blas
 BLAS_LIBRARY ?= -lopenblas
@@ -380,13 +379,9 @@ endif
 #------------------------------------------------------------------------------
 
 ifeq ($(USE_HYPRE), TRUE)
-  ifeq ($(USE_OMP), TRUE)
-    INCLUDE_LOCATIONS += $(HYPRE_OMP_DIR)/include
-    LIBRARY_LOCATIONS += $(HYPRE_OMP_DIR)/lib
-  else
-    INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
-    LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
-  endif
+  INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
+  LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
+
   LIBRARIES += -lHYPRE
 endif
 
