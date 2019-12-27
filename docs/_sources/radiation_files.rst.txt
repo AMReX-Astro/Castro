@@ -24,9 +24,6 @@ Radiation
    file/RadBndry_2d_f
    file/RadBndry_3d_f
    file/RadDerive_nd_f
-   file/RadEOS_1d_f
-   file/RadEOS_2d_f
-   file/RadEOS_3d_f
    file/RadHydro_nd_f
    file/RadPlotvar_1d_f
    file/RadPlotvar_2d_f
