@@ -1699,25 +1699,24 @@ void Radiation::get_rosseland_and_temp(FArrayBox& kappa_r,
 			 BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
   }
   else if (const_scattering > 0.0) {
-    rosse1s(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	    BL_TO_FORTRAN_N(kappa_r, igroup),
-	    &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	    &kappa_r_exp_p,
-	    &const_scattering, &scattering_exp_m, &scattering_exp_n,
-	    &scattering_exp_p,
-	    nugroup[igroup],
-	    &prop_temp_floor, kappa_r_floor,
-	    BL_TO_FORTRAN(temp),
-	    BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+    rosse1s(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+	    const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+	    const_scattering, kappa_r_exp_p,
+            scattering_exp_m, scattering_exp_n,
+	    scattering_exp_p, nugroup[igroup],
+            prop_temp_floor, kappa_r_floor,
+	    BL_TO_FORTRAN_ANYD(state),
+            BL_TO_FORTRAN_N_ANYD(kappa_r, igroup));
   }
   else {
-      rosse1(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	     BL_TO_FORTRAN_N(kappa_r, igroup),
-	     &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	     &kappa_r_exp_p, nugroup[igroup],
-	     &prop_temp_floor, kappa_r_floor,
-	     BL_TO_FORTRAN(temp),
-	     BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+      rosse1(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+	     const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+	     kappa_r_exp_p, nugroup[igroup],
+             prop_temp_floor, kappa_r_floor,
+	     BL_TO_FORTRAN_ANYD(state),
+             BL_TO_FORTRAN_N_ANYD(kappa_r, igroup));
   }
 }
 
@@ -1757,25 +1756,24 @@ void Radiation::get_rosseland_from_temp(FArrayBox& kappa_r,
 			 BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
   }
   else if (const_scattering > 0.0) {
-      rosse1s(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN_N(kappa_r, igroup),
-	      &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	      &kappa_r_exp_p,
-	      &const_scattering, &scattering_exp_m, &scattering_exp_n,
-	      &scattering_exp_p,
-	      nugroup[igroup],
-	      &prop_temp_floor, kappa_r_floor,
-	      BL_TO_FORTRAN(temp),
-	      BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+      rosse1s(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+	      const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+	      kappa_r_exp_p, const_scattering,
+              scattering_exp_m, scattering_exp_n,
+	      scattering_exp_p, nugroup[igroup],
+	      prop_temp_floor, kappa_r_floor,
+	      BL_TO_FORTRAN_ANYD(state),
+              BL_TO_FORTRAN_N_ANYD(kappa_r, igroup));
   }
   else {
-    rosse1(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   BL_TO_FORTRAN_N(kappa_r, igroup),
-	   &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	   &kappa_r_exp_p, nugroup[igroup],
-	   &prop_temp_floor, kappa_r_floor,
-	   BL_TO_FORTRAN(temp),
-	   BL_TO_FORTRAN(state));
+#pragma gpu box(reg) sync
+    rosse1(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+	   const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+	   kappa_r_exp_p, nugroup[igroup],
+	   prop_temp_floor, kappa_r_floor,
+	   BL_TO_FORTRAN_ANYD(state),
+           BL_TO_FORTRAN_N_ANYD(kappa_r, igroup));
   }
 }
 
@@ -2402,25 +2400,24 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 				   BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(S[mfi]));
 	    }
 	    else if (const_scattering > 0.0) {
-	      rosse1s(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		      BL_TO_FORTRAN_N(kappa_r[mfi], igroup),
-		      &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-		      &kappa_r_exp_p,
-		      &const_scattering, &scattering_exp_m, &scattering_exp_n,
-		      &scattering_exp_p,
-		      nugroup[igroup],
-		      &prop_temp_floor, kappa_r_floor,
-		      BL_TO_FORTRAN(temp),
-		      BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+	      rosse1s(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+		      const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+		      kappa_r_exp_p, const_scattering,
+                      scattering_exp_m, scattering_exp_n,
+		      scattering_exp_p, nugroup[igroup],
+		      prop_temp_floor, kappa_r_floor,
+		      BL_TO_FORTRAN_ANYD(S[mfi]),
+                      BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
 	    }
 	    else {
-	      rosse1(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		     BL_TO_FORTRAN_N(kappa_r[mfi], igroup),
-		     &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-		     &kappa_r_exp_p, nugroup[igroup],
-		     &prop_temp_floor, kappa_r_floor,
-		     BL_TO_FORTRAN(temp),
-		     BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+	      rosse1(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+		     const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+		     kappa_r_exp_p, nugroup[igroup],
+		     prop_temp_floor, kappa_r_floor,
+		     BL_TO_FORTRAN_ANYD(S[mfi]),
+                     BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
 	    }
 
 	    if (use_opacity_table_module) {

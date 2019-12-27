@@ -1,7 +1,12 @@
 
 module rad_nd_module
 
+  use amrex_fort_module, only: rt => amrex_real
+
   implicit none
+
+  real(rt), parameter, private :: tiny = 1.e-50_rt
+  real(rt), parameter, private :: BIGKR = 1.e25_rt
 
 contains
 
@@ -39,6 +44,101 @@ contains
     end do
 
   end subroutine cfrhoe
+
+
+
+  subroutine rosse1(lo, hi, &
+                    const, em, en, &
+                    ep, nu, &
+                    tf, kfloor, &
+                    state, s_lo, s_hi, &
+                    kappar, k_lo, k_hi) bind(C, name="rosse1")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: NVAR, URHO, UTEMP
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: k_lo(3), k_hi(3)
+    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(inout) :: kappar(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
+    real(rt), intent(in   ), value :: const, em, en, ep, nu, tf, kfloor
+
+    real(rt) :: kf, teff
+    integer  :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             teff = max(state(i,j,k,UTEMP), tiny)
+             teff = teff + tf * exp(-teff / (tf + tiny))
+
+             kf = const * &
+                  (state(i,j,k,URHO) ** em) * &
+                  (teff ** (-en)) * &
+                  (nu ** (ep))
+
+             kappar(i,j,k) = max(kf, kfloor)
+
+          end do
+       end do
+    end do
+
+  end subroutine rosse1
+
+
+
+  subroutine rosse1s(lo, hi, &
+                     const, em, en, &
+                     ep, sconst, &
+                     sem, sen, &
+                     sep, nu, &
+                     tf, kfloor, &
+                     state, s_lo, s_hi, &
+                     kappar, k_lo, k_hi) bind(C, name="rosse1s")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: NVAR, URHO, UTEMP
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: k_lo(3), k_hi(3)
+    real(rt), intent(inout) :: kappar(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
+    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ), value :: const, em, en, ep, sconst, sem, sen, sep, nu, tf, kfloor
+
+    real(rt) :: kf, teff, sct
+    integer  :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             teff = max(state(i,j,k,UTEMP), tiny)
+             teff = teff + tf * exp(-teff / (tf + tiny))
+
+             kf = const * &
+                  (state(i,j,k,URHO) ** em) * &
+                  (teff ** (-en)) * &
+                  (nu ** (ep))
+
+             sct = sconst * &
+                  (state(i,j,k,URHO) ** sem) * &
+                  (teff ** (-sen)) * &
+                  (nu ** (sep))
+
+             kappar(i,j,k) = max(kf + sct, kfloor)
+
+          end do
+       end do
+    end do
+
+  end subroutine rosse1s
 
 end module rad_nd_module
 

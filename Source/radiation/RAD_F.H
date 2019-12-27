@@ -957,24 +957,21 @@ extern "C" {
 	    BL_FORT_FAB_ARG(temp), 
 	    BL_FORT_FAB_ARG(state));
 
-  void rosse1(ARLIM_P(reglo), ARLIM_P(reghi),
-	      BL_FORT_FAB_ARG(kappar), 
-	      amrex::Real* con, amrex::Real* em, amrex::Real* en,
-	      amrex::Real* ep, const amrex::Real& xnu,
-	      amrex::Real* tf, const amrex::Real& kfloor,
-	      BL_FORT_FAB_ARG(temp), 
-	      BL_FORT_FAB_ARG(state));
+  void rosse1(const int* lo, const int* hi,
+	      amrex::Real con, amrex::Real em, amrex::Real en,
+	      amrex::Real ep, amrex::Real nu,
+              amrex::Real tf, amrex::Real kfloor,
+	      BL_FORT_FAB_ARG_3D(state),
+      	      BL_FORT_FAB_ARG_3D(kappar));
 
-  void rosse1s(ARLIM_P(reglo), ARLIM_P(reghi),
-	       BL_FORT_FAB_ARG(kappar), 
-	       amrex::Real* con, amrex::Real* em, amrex::Real* en,
-	       amrex::Real* ep, 
-	       amrex::Real* scon, amrex::Real* sem, amrex::Real* sen,
-	       amrex::Real* sep, 
-	       const amrex::Real& xnu,
-	       amrex::Real* tf, const amrex::Real& kfloor,
-	       BL_FORT_FAB_ARG(temp), 
-	       BL_FORT_FAB_ARG(state));
+  void rosse1s(const int* lo, const int* hi,
+	       amrex::Real con, amrex::Real em, amrex::Real en,
+	       amrex::Real ep,  amrex::Real scon,
+               amrex::Real sem, amrex::Real sen,
+	       amrex::Real sep, amrex::Real nu,
+	       amrex::Real tf, amrex::Real kfloor,
+	       BL_FORT_FAB_ARG_3D(state),
+      	       BL_FORT_FAB_ARG_3D(kappar));
   
   void nfloor(BL_FORT_FAB_ARG(dest), 
 	      ARLIM_P(reglo), ARLIM_P(reghi),
