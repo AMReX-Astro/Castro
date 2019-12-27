@@ -67,7 +67,8 @@ contains
 
   subroutine ca_compute_planck(lo, hi, &
                                kpp, k_lo, k_hi, &
-                               state, s_lo, s_hi) &
+                               state, s_lo, s_hi, &
+                               temp_offset) &
                                bind(C, name="ca_compute_planck")
 
     use rad_params_module, only: ngroups, nugroup
@@ -83,6 +84,7 @@ contains
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: kpp(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),0:ngroups-1)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ), value :: temp_offset
 
     integer  :: i, j, k, g
     real(rt) :: kp, kr, nu, rho, temp, Ye
@@ -100,7 +102,7 @@ contains
              do i = lo(1), hi(1)
 
                 rho = state(i,j,k,URHO)
-                temp = state(i,j,k,UTEMP)
+                temp = state(i,j,k,UTEMP) + temp_offset
                 if (naux > 0) then
                    Ye = state(i,j,k,UFX)
                 else
@@ -125,7 +127,8 @@ contains
                   const, em, en, &
                   ep, nu, tf, &
                   temp, t_lo, t_hi, &
-                  state, s_lo, s_hi) &
+                  state, s_lo, s_hi, &
+                  temp_offset) &
                   bind(C, name="fkpn")
 
     use amrex_fort_module, only: rt => amrex_real
@@ -138,7 +141,7 @@ contains
     real(rt), intent(inout) :: fkp(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
     real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: const, em, en, tf, ep, nu
+    real(rt), intent(in   ), value :: const, em, en, tf, ep, nu, temp_offset
 
     real(rt) :: teff
     integer  :: i, j, k
@@ -149,7 +152,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             teff = max(temp(i,j,k), tiny)
+             teff = max(temp(i,j,k) + temp_offset, tiny)
              teff = teff + tf * exp(-teff / (tf + tiny))
 
              fkp(i,j,k) = const * &
@@ -195,6 +198,88 @@ contains
     end do
 
   end subroutine nfloor
+
+
+
+  subroutine ceta2(lo, hi, &
+                   eta, et_lo, et_hi, &
+                   etainv, ei_lo, ei_hi, &
+                   frho, fr_lo, fr_hi, &
+                   temp, t_lo, t_hi, &
+                   cv, c_lo, c_hi, &
+                   fkp, fk_lo, fk_hi, &
+                   er, er_lo, er_hi, &
+                   dtemp, dtime, sigma, &
+                   c, underr, lagpla) &
+                   bind(C, name="ceta2")
+
+    use amrex_fort_module, only: rt => amrex_real
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: et_lo(3), et_hi(3)
+    integer,  intent(in   ) :: ei_lo(3), ei_hi(3)
+    integer,  intent(in   ) :: fr_lo(3), fr_hi(3)
+    integer,  intent(in   ) :: t_lo(3), t_hi(3)
+    integer,  intent(in   ) :: c_lo(3), c_hi(3)
+    integer,  intent(in   ) :: fk_lo(3), fk_hi(3)
+    integer,  intent(in   ) :: er_lo(3), er_hi(3)
+    real(rt), intent(inout) :: eta(et_lo(1):et_hi(1),et_lo(2):et_hi(2),et_lo(3):et_hi(3))
+    real(rt), intent(inout) :: etainv(ei_lo(1):ei_hi(1),ei_lo(2):ei_hi(2),ei_lo(3):ei_hi(3))
+    real(rt), intent(in   ) :: frho(fr_lo(1):fr_hi(1),fr_lo(2):fr_hi(2),fr_lo(3):fr_hi(3))
+    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
+    real(rt), intent(in   ) :: cv(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
+    real(rt), intent(in   ) :: fkp(fk_lo(1):fk_hi(1),fk_lo(2):fk_hi(2),fk_lo(3):fk_hi(3))
+    real(rt), intent(in   ) :: er(er_lo(1):er_hi(1),er_lo(2):er_hi(2),er_lo(3):er_hi(3))
+    real(rt), intent(in   ), value :: dtemp, dtime, sigma, c, underr
+    integer,  intent(in   ), value :: lagpla
+
+    real(rt) :: d, frc, fac0, fac1, fac2
+    integer  :: i, j, k
+
+    !$gpu
+
+    fac1 = 16.e0_rt * sigma * dtime
+    if (lagpla == 0) then
+       fac0 = 0.25e0_rt * fac1 / dtemp
+       fac2 = dtime * c / dtemp
+    endif
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (lagpla /= 0) then
+
+                ! assume eta and fkp are the same
+                d = fac1 * fkp(i,j,k) * temp(i,j,k) ** 3
+
+             else
+
+                d = fac0 * (eta(i,j,k) * (temp(i,j,k) + dtemp) ** 4 - &
+                            fkp(i,j,k) * (temp(i,j,k)        ) ** 4) - &
+                            fac2 * (eta(i,j,k) - fkp(i,j,k)) * er(i,j,k)
+                ! alternate form, sometimes worse, sometimes better:
+                !                  d = fac1 * fkp(i,j,k) * temp(i,j,k) ** 3 +
+                !     @                fac0 * (eta(i,j,k) - fkp(i,j,k)) * temp(i,j,k) ** 4 -
+                !     @                fac2 * (eta(i,j,k) - fkp(i,j,k)) * er(i,j,k)
+                ! another alternate form (much worse):
+                !                  d = fac1 * fkp(i,j,k) * (temp(i,j,k) + dtemp) ** 3 +
+                !     @                fac0 * (eta(i,j,k) - fkp(i,j,k))
+                !     @                     * (temp(i,j,k) + dtemp) ** 4 -
+                !     @                fac2 * (eta(i,j,k) - fkp(i,j,k)) * er(i,j,k)
+             end if
+
+             frc = frho(i,j,k) * cv(i,j,k) + tiny
+             eta(i,j,k) = d / (d + frc)
+             etainv(i,j,k) = underr * frc / (d + frc)
+             eta(i,j,k) = 1.e0_rt - etainv(i,j,k)
+             !               eta(i,j,k) = 1.e0_rt - underr * (1.e0_rt - eta(i,j,k))
+
+          end do
+       end do
+    end do
+
+  end subroutine ceta2
 
 
 

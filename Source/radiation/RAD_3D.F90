@@ -788,69 +788,6 @@ subroutine cexch(DIMS(reg), &
   enddo
 end subroutine cexch
 
-subroutine ceta2(DIMS(reg), &
-                 eta, etainv, DIMS(etab), &
-                 frho, DIMS(sb), &
-                 temp, DIMS(tb), &
-                 cv, DIMS(cb), &
-                 fkp, DIMS(fb), &
-                 er, DIMS(ebox), &
-                 dtemp, dtime, sigma, c, underr, lagpla) bind(C, name="ceta2")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(etab)
-  integer :: DIMDEC(sb)
-  integer :: DIMDEC(tb)
-  integer :: DIMDEC(cb)
-  integer :: DIMDEC(fb)
-  integer :: DIMDEC(ebox)
-  real(rt)         :: eta(DIMV(etab))
-  real(rt)         :: etainv(DIMV(etab))
-  real(rt)         :: frho(DIMV(sb))
-  real(rt)         :: temp(DIMV(tb))
-  real(rt)         :: cv(DIMV(cb))
-  real(rt)         :: fkp(DIMV(fb))
-  real(rt)         :: er(DIMV(ebox))
-  real(rt)         :: dtemp, dtime, sigma, c, underr
-  integer :: lagpla
-  real(rt)         :: d, frc, fac0, fac1, fac2
-  integer :: i, j, k
-  fac1 = 16.e0_rt * sigma * dtime
-  if (lagpla == 0) then
-     fac0 = 0.25e0_rt * fac1 / dtemp
-     fac2 = dtime * c / dtemp
-  endif
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           if (lagpla /= 0) then
-              ! assume eta and fkp are the same
-              d = fac1 * fkp(i,j,k) * temp(i,j,k) ** 3
-           else
-              d = fac0 * (eta(i,j,k) * (temp(i,j,k) + dtemp) ** 4 - &
-                   fkp(i,j,k) * (temp(i,j,k)        ) ** 4) - &
-                   fac2 * (eta(i,j,k) - fkp(i,j,k)) * er(i,j,k)
-              ! alternate form, sometimes worse, sometimes better:
-              !                  d = fac1 * fkp(i,j,k) * temp(i,j,k) ** 3 +
-              !     @                fac0 * (eta(i,j,k) - fkp(i,j,k)) * temp(i,j,k) ** 4 -
-              !     @                fac2 * (eta(i,j,k) - fkp(i,j,k)) * er(i,j,k)
-              ! another alternate form (much worse):
-              !                  d = fac1 * fkp(i,j,k) * (temp(i,j,k) + dtemp) ** 3 +
-              !     @                fac0 * (eta(i,j,k) - fkp(i,j,k))
-              !     @                     * (temp(i,j,k) + dtemp) ** 4 -
-              !     @                fac2 * (eta(i,j,k) - fkp(i,j,k)) * er(i,j,k)
-           endif
-           frc = frho(i,j,k) * cv(i,j,k) + tiny
-           eta(i,j,k) = d / (d + frc)
-           etainv(i,j,k) = underr * frc / (d + frc)
-           eta(i,j,k) = 1.e0_rt - etainv(i,j,k)
-           !               eta(i,j,k) = 1.e0_rt - underr * (1.e0_rt - eta(i,j,k))
-        enddo
-     enddo
-  enddo
-end subroutine ceta2
-
 subroutine ceup(DIMS(reg), relres, absres, &
                 frhoes, DIMS(grd), &
                 frhoem, eta, etainv, dfo, dfn, exch, &

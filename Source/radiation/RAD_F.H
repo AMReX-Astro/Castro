@@ -589,7 +589,8 @@ extern "C" {
   void ca_compute_planck
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(kpp),
-     const BL_FORT_FAB_ARG_3D(state));
+     const BL_FORT_FAB_ARG_3D(state),
+     amrex::Real temp_offset);
 
   void ca_filt_prim
     (const int lo[], const int hi[],
@@ -913,16 +914,16 @@ extern "C" {
 	     BL_FORT_FAB_ARG(fkp), 
 	     const amrex::Real& sigma, const amrex::Real& c);
 
-  void ceta2(ARLIM_P(reglo), ARLIM_P(reghi),
-	     amrex::Real* eta, 
-	     amrex::Real* etainv, ARLIM_P(elo), ARLIM_P(ehi),
-	     BL_FORT_FAB_ARG(frho), 
-	     BL_FORT_FAB_ARG(temp), 
-	     BL_FORT_FAB_ARG(c_v), 
-	     BL_FORT_FAB_ARG(fkp), 
-	     BL_FORT_FAB_ARG(er), 
-	     const amrex::Real& dT, const amrex::Real& delta_t, const amrex::Real& sigma,
-	     const amrex::Real& c, const amrex::Real& underr, const int& lagpla);
+  void ceta2(const int* lo, const int* hi,
+	     BL_FORT_FAB_ARG_3D(eta),
+             BL_FORT_FAB_ARG_3D(etainv),
+	     BL_FORT_FAB_ARG_3D(frho), 
+	     BL_FORT_FAB_ARG_3D(temp), 
+	     BL_FORT_FAB_ARG_3D(c_v), 
+	     BL_FORT_FAB_ARG_3D(fkp), 
+	     BL_FORT_FAB_ARG_3D(er), 
+	     amrex::Real dT, amrex::Real delta_t, amrex::Real sigma,
+	     amrex::Real c, amrex::Real underr, int lagpla);
 
   void ceup(ARLIM_P(reglo), ARLIM_P(reghi), amrex::Real& relres, amrex::Real& absres,
 	    BL_FORT_FAB_ARG(frhoes), 
@@ -959,7 +960,8 @@ extern "C" {
 	    amrex::Real con, amrex::Real em, amrex::Real en,
 	    amrex::Real ep, amrex::Real xnu, amrex::Real tf,
 	    BL_FORT_FAB_ARG_3D(temp), 
-	    BL_FORT_FAB_ARG_3D(state));
+	    BL_FORT_FAB_ARG_3D(state),
+            amrex::Real temp_offset);
 
   void rosse1(const int* lo, const int* hi,
 	      amrex::Real con, amrex::Real em, amrex::Real en,
