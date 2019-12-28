@@ -22,7 +22,12 @@ extern "C"
                      const Real* time, const int* bc)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         ext_fill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                  adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -36,7 +41,12 @@ extern "C"
                         const Real* time, const int* bc)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
       ext_denfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                   adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
                   AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -52,7 +62,12 @@ extern "C"
                           const Real* time, const int* bc)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
       ext_gravxfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                     adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
                     AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -66,7 +81,12 @@ extern "C"
                           const Real* time, const int* bc)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
       ext_gravyfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                     adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
                     AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
@@ -80,7 +100,12 @@ extern "C"
                           const Real* time, const int* bc)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
       ext_gravzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                     adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
                     AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),

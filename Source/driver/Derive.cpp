@@ -27,7 +27,12 @@ extern "C"
                     const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derpres(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -45,7 +50,12 @@ extern "C"
                      const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dereint1(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -63,7 +73,12 @@ extern "C"
                      const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dereint2(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -81,7 +96,12 @@ extern "C"
                       const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derlogden(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -99,7 +119,12 @@ extern "C"
                       const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         deruplusc(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -117,7 +142,12 @@ extern "C"
                        const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         deruminusc(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -135,7 +165,12 @@ extern "C"
                           const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dersoundspeed(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                       data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                       AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -153,7 +188,12 @@ extern "C"
                       const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dergamma1(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -171,7 +211,12 @@ extern "C"
                           const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dermachnumber(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                       data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                       AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -189,7 +234,12 @@ extern "C"
                        const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derentropy(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -208,7 +258,12 @@ extern "C"
                     const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dercond(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                 der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
@@ -226,7 +281,12 @@ extern "C"
                          const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derdiffcoeff(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                      der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                      data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
@@ -266,7 +326,7 @@ extern "C"
         Elixir elix_coeffs_y = coeffs[1].elixir();
         Elixir elix_coeffs_z = coeffs[2].elixir();
 
-#pragma gpu
+#pragma gpu box(obx)
         ca_fill_temp_cond(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
                           data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
                           BL_TO_FORTRAN_ANYD(coeff_cc));
@@ -279,7 +339,7 @@ extern "C"
 
             const int idir_f = idir + 1;
 
-#pragma gpu
+#pragma gpu box(nbx)
             ca_average_coef_cc_to_ec(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                                      BL_TO_FORTRAN_ANYD(coeff_cc),
                                      BL_TO_FORTRAN_ANYD(coeffs[idir]),
@@ -287,7 +347,7 @@ extern "C"
 
         }
 
-#pragma gpu
+#pragma gpu box(bx)
         derdiffterm(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                     der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                     data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
@@ -314,7 +374,12 @@ extern "C"
                              const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derenuctimescale(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                          data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                          AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -333,7 +398,12 @@ extern "C"
                    const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dervel(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -351,7 +421,12 @@ extern "C"
                       const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dermagvel(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -369,7 +444,12 @@ extern "C"
                        const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dermaggrav(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -387,7 +467,12 @@ extern "C"
                          const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derradialvel(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                      data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                      AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -405,7 +490,12 @@ extern "C"
                       const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dermagmom(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -423,7 +513,12 @@ extern "C"
                        const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derangmomx(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -441,7 +536,12 @@ extern "C"
                        const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derangmomy(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -459,7 +559,12 @@ extern "C"
                        const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derangmomz(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -477,7 +582,12 @@ extern "C"
                       const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derkineng(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -508,7 +618,12 @@ extern "C"
                     const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derspec(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -527,7 +642,12 @@ extern "C"
                     const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derabar(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -545,7 +665,12 @@ extern "C"
                        const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         dermagvort(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                    AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -563,7 +688,12 @@ extern "C"
                     const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derdivu(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -581,7 +711,12 @@ extern "C"
                      const int* level, const int* grid_no)
     {
 
-#pragma gpu
+        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+        Box bx(ilo, ihi);
+
+#pragma gpu box(bx)
         derstate(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
