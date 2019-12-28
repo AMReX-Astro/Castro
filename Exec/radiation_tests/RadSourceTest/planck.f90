@@ -6,13 +6,13 @@ module constants_module
   use amrex_fort_module, only : rt => amrex_real
 
   ! fundamental constants
-  real(rt), parameter :: h_planck = 6.62606896d-27  ! erg s
-  real(rt), parameter :: k_B = 1.3806504d-16  ! erg / K
-  real(rt), parameter :: c_light = 2.99792458d10  ! cm / s
-  real(rt), parameter :: ev2erg = 1.602176487d-12 ! erg/eV
-  real(rt), parameter :: pi = 3.14159265358979323846d0
-  real(rt), parameter :: sigma_SB = 5.670400d-5  ! erg/s/cm^2/K^4
-  real(rt), parameter :: a_rad = 4.0d0*sigma_SB/c_light
+  real(rt), parameter :: h_planck = 6.62606896e-27_rt  ! erg s
+  real(rt), parameter :: k_B = 1.3806504e-16_rt  ! erg / K
+  real(rt), parameter :: c_light = 2.99792458e10_rt  ! cm / s
+  real(rt), parameter :: ev2erg = 1.602176487e-12_rt ! erg/eV
+  real(rt), parameter :: pi = 3.14159265358979323846e0_rt
+  real(rt), parameter :: sigma_SB = 5.670400e-5_rt  ! erg/s/cm^2/K^4
+  real(rt), parameter :: a_rad = 4.0e0_rt*sigma_SB/c_light
 
   ! problem parameters
 
@@ -22,16 +22,16 @@ module constants_module
   ! note: E_min and E_max MUST match the parameters used in CASTRO
   ! to define the group structure.
   integer, parameter :: ngroups_derive = 128          ! number of groups to compute
-  real(rt), parameter :: E_min = 0.5d0*ev2erg ! min group energy (erg)
-  real(rt), parameter :: E_max = 306d3*ev2erg ! max group energy (erg)
+  real(rt), parameter :: E_min = 0.5e0_rt*ev2erg ! min group energy (erg)
+  real(rt), parameter :: E_max = 306e3_rt*ev2erg ! max group energy (erg)
 
   ! instead of computing the group structure based on the above, read the group
   ! structure in from group_structure.dat
   logical, parameter :: use_group_file = .false.
 
   ! physical parameters
-  real(rt), parameter :: E_rad = 1.d12 ! initial radiation energy density
-  real(rt), parameter :: T_0 = (E_rad/a_rad)**0.25d0
+  real(rt), parameter :: E_rad = 1.e12_rt ! initial radiation energy density
+  real(rt), parameter :: T_0 = (E_rad/a_rad)**0.25e0_rt
 
 
 end module constants_module
@@ -40,7 +40,7 @@ function safe_print(x) result (sx)
   implicit none
   real(rt) :: x, sx
   sx = x
-  if (x < 1.d-99) sx = 0.d0
+  if (x < 1.e-99_rt) sx = 0.e0_rt
 
   return
 end function safe_print
@@ -63,7 +63,7 @@ function planck(nu,T) result (B)
   real(rt), intent(in) :: nu, T
   real(rt) :: B
 
-  B = (8.d0*pi*h_planck*nu**3/c_light**3)/(exp(h_planck*nu/(k_B*T)) - 1.d0)
+  B = (8.e0_rt*pi*h_planck*nu**3/c_light**3)/(exp(h_planck*nu/(k_B*T)) - 1.e0_rt)
 
 
   return
@@ -118,25 +118,25 @@ program analytic
 
      ! do geometrically spaced group BOUNDARIES
      xnu(1) = E_min/h_planck
-     alpha = (E_max/E_min)**(1.d0/(ngroups))
+     alpha = (E_max/E_min)**(1.e0_rt/(ngroups))
 
      do n = 2, ngroups+1
         xnu(n) = alpha*xnu(n-1)
      enddo
 
      do n = 1, ngroups
-        nu_groups(n) = 0.5d0*(xnu(n) + xnu(n+1))
+        nu_groups(n) = 0.5e0_rt*(xnu(n) + xnu(n+1))
      enddo
 
      do n = 1, ngroups
         if (n == 1) then
-           dnu_groups(n) = 0.5d0*(nu_groups(2) - nu_groups(1))
+           dnu_groups(n) = 0.5e0_rt*(nu_groups(2) - nu_groups(1))
 
         else if (n < ngroups) then
-           dnu_groups(n) = 0.5d0*(nu_groups(n+1) - nu_groups(n-1))
+           dnu_groups(n) = 0.5e0_rt*(nu_groups(n+1) - nu_groups(n-1))
 
         else
-           dnu_groups(n) = 0.5d0*(nu_groups(n) - nu_groups(n-1))
+           dnu_groups(n) = 0.5e0_rt*(nu_groups(n) - nu_groups(n-1))
         endif
 
      enddo
@@ -149,9 +149,9 @@ program analytic
 
   print *, "# group, group center (Hz), ambient BB spectrum x dnu (erg/cm^3)"
   do n = 1, ngroups
-     P_simpsonrule = (dnu_groups(n)/6.0d0)* &
+     P_simpsonrule = (dnu_groups(n)/6.0e0_rt)* &
           (     planck(xnu(n),T_0) + &
-          4.0d0*planck(nu_groups(n),T_0) + &
+          4.0e0_rt*planck(nu_groups(n),T_0) + &
           planck(xnu(n+1),T_0))
 
      write(*,1000) n, nu_groups(n), dnu_groups(n), &
