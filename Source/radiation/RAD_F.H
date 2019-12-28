@@ -840,8 +840,9 @@ extern "C" {
 	     amrex::Real* r, amrex::Real* s,
 	     const amrex::Real& c, const amrex::Real* dx);
 
-  void flxlim(BL_FORT_FAB_ARG(lambda), 
-	      ARLIM_P(reglo), ARLIM_P(reghi), const int& limiter);
+  void flxlim(const int* lo, const int* hi,
+              BL_FORT_FAB_ARG_3D(lambda), 
+	      int limiter);
 
   void eddfac(amrex::Real* efact, ARLIM_P(rlo), ARLIM_P(rhi),
 	      ARLIM_P(reglo), ARLIM_P(reghi), const int& limiter, const int& idim);

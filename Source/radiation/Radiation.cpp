@@ -2337,18 +2337,21 @@ void Radiation::fluxLimiter(int level,
                             Array<MultiFab, BL_SPACEDIM>& lambda,
                             int limiter, int lamcomp)
 {
-  BL_PROFILE("Radiation::fluxLimiter");
+    BL_PROFILE("Radiation:fluxLimiter");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-      for (MFIter mfi(lambda[idim],true); mfi.isValid(); ++mfi) {
-	  const Box &reg  = mfi.tilebox();
+    for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
+        for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
 
-	  flxlim(BL_TO_FORTRAN_N(lambda[idim][mfi], lamcomp),
-		 ARLIM(reg.loVect()), ARLIM(reg.hiVect()), limiter);
-      }
-  }
+#pragma gpu box(bx)
+            flxlim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                   BL_TO_FORTRAN_N_ANYD(lambda[idim][mfi], lamcomp),
+                   limiter);
+        }
+    }
 }
 
 void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dcf,

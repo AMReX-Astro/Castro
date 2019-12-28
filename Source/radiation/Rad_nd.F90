@@ -10,6 +10,37 @@ module rad_nd_module
 
 contains
 
+  subroutine flxlim(lo, hi, &
+                    lambda, l_lo, l_hi, &
+                    limiter) &
+                    bind(C, name="flxlim")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use rad_util_module, only: FLDlambda ! function
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: l_lo(3), l_hi(3)
+    real(rt), intent(inout) :: lambda(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3))
+    integer,  intent(in   ), value :: limiter
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             lambda(i,j,k) = FLDlambda(lambda(i,j,k), limiter)
+
+          end do
+       end do
+    end do
+
+  end subroutine flxlim
+
+
+
   subroutine scgrd(lo, hi, &
                    r, r_lo, r_hi, &
                    idir, dx, &

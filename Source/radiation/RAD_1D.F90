@@ -90,21 +90,6 @@ subroutine bclim(b, &
   enddo
 end subroutine bclim
 
-subroutine flxlim(lambda, &
-                  DIMS(rbox), &
-                  DIMS(reg), limiter) bind(C, name="flxlim")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(rbox)
-  integer :: DIMDEC(reg)
-  integer :: limiter
-  real(rt)         :: lambda(DIMV(rbox))
-  integer :: i
-  do i = reg_l1, reg_h1
-     lambda(i) = FLDlambda(lambda(i),limiter)
-  enddo
-end subroutine flxlim
-
 subroutine eddfac(efact, &
                   DIMS(rbox), &
                   DIMS(reg), limiter, n)
