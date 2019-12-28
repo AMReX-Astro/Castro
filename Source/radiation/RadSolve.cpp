@@ -237,6 +237,8 @@ void RadSolve::levelACoeffs(int level,
   BL_PROFILE("RadSolve::levelACoeffs");
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
+  const Geometry& geom = parent->Geom(level);
+  const Real* dx       = geom.CellSize();
 
   // Allocate space for ABecLapacian acoeffs, fill with values
 
@@ -248,19 +250,17 @@ void RadSolve::levelACoeffs(int level,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
+  for (MFIter mfi(fkp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box &bx = mfi.tilebox();
 
-      for (MFIter mfi(fkp,true); mfi.isValid(); ++mfi) {
-	  const Box &reg  = mfi.tilebox();
-
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-
-	  lacoef(BL_TO_FORTRAN(acoefs[mfi]),
-		 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 fkp[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-		 r.dataPtr(), s.dataPtr(), c, delta_t, theta);
-      }
+#pragma gpu box(bx)
+      lacoef(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(acoefs[mfi]),
+             BL_TO_FORTRAN_ANYD(fkp[mfi]),
+             BL_TO_FORTRAN_ANYD(eta[mfi]),
+             BL_TO_FORTRAN_ANYD(etainv[mfi]),
+             AMREX_REAL_ANYD(dx),
+             c, delta_t, theta);
   }
 
   if (hd) {

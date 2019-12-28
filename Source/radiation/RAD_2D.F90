@@ -88,33 +88,6 @@ subroutine sphe(r, s, n, &
   endif
 end subroutine sphe
 
-subroutine lacoef(a, &
-                  DIMS(abox), &
-                  DIMS(reg), &
-                  fkp, eta, etainv, r, s, c, dt, theta) bind(C, name="lacoef")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(abox)
-  integer :: DIMDEC(reg)
-  real(rt)         :: a(DIMV(abox))
-  real(rt)         :: fkp(DIMV(abox))
-  real(rt)         :: eta(DIMV(abox))
-  real(rt)         :: etainv(DIMV(abox))
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(reg_l2:reg_h2)
-  real(rt)         :: c, dt, theta
-  integer :: i, j
-  real(rt)         :: dtm
-  dtm = 1.e0_rt / dt
-  do j = reg_l2, reg_h2
-     do i = reg_l1, reg_h1
-        a(i,j) = r(i) * s(j) * &
-             (fkp(i,j) * etainv(i,j) * c + dtm) / &
-             (1.e0_rt - (1.e0_rt - theta) * eta(i,j))
-     enddo
-  enddo
-end subroutine lacoef
-
 subroutine bclim(b, &
                  lambda, DIMS(bbox), &
                  DIMS(reg), &
