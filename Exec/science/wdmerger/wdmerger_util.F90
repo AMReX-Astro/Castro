@@ -1435,7 +1435,7 @@ contains
 
     implicit none
 
-    real(rt), intent(in) :: factor
+    real(rt), intent(in), value :: factor
 
     relaxation_damping_factor = factor
 
