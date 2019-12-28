@@ -10,6 +10,324 @@ module rad_nd_module
 
 contains
 
+  subroutine scgrd(lo, hi, &
+                   r, r_lo, r_hi, &
+                   idir, dx, &
+                   kappar, k_lo, k_hi, &
+                   er, e_lo, e_hi, &
+                   include_cross_terms) &
+                   bind(C, name="scgrd")
+
+    use amrex_constants_module, only: FOURTH, HALF
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: k_lo(3), k_hi(3)
+    integer,  intent(in   ) :: e_lo(3), e_hi(3)
+    real(rt), intent(inout) :: r(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: kappar(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
+    real(rt), intent(in   ) :: er(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: idir, include_cross_terms
+
+    integer  :: i, j, k, d
+    real(rt) :: kap
+    real(rt) :: rg, dal, dar, dbl, dbr
+    real(rt) :: dxInv(3)
+
+    !$gpu
+
+    do d = 1, dim
+       dxInv(d) = 1.e0_rt / dx(d)
+    end do
+    do d = dim+1, 3
+       dxInv(d) = 0.e0_rt
+    end do
+
+    if (idir == 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                if (include_cross_terms == 1) then
+
+#if (BL_SPACEDIM >= 2)
+                   dal = er(i-1,j+1,k) - er(i-1,j-1,k)
+                   dar = er(i  ,j+1,k) - er(i  ,j-1,k)
+
+                   if      (er(i-1,j-1,k) == -1.e0_rt) then
+                      dal = 2.e0_rt * (er(i-1,j+1,k) - er(i-1,j  ,k))
+                   else if (er(i-1,j+1,k) == -1.e0_rt) then
+                      dal = 2.e0_rt * (er(i-1,j  ,k) - er(i-1,j-1,k))
+                   end if
+
+                   if      (er(i  ,j-1,k) == -1.e0_rt) then
+                      dar = 2.e0_rt * (er(i  ,j+1,k) - er(i  ,j  ,k))
+                   else if (er(i  ,j+1,k) == -1.e0_rt) then
+                      dar = 2.e0_rt * (er(i  ,j  ,k) - er(i  ,j-1,k))
+                   end if
+#else
+                   dal = 0.e0_rt
+                   dar = 0.e0_rt
+#endif
+
+#if (BL_SPACEDIM == 3)
+                   dbl = er(i-1,j,k+1) - er(i-1,j,k-1)
+                   dbr = er(i  ,j,k+1) - er(i  ,j,k-1)
+
+                   if      (er(i-1,j,k-1) == -1.e0_rt) then
+                      dbl = 2.e0_rt * (er(i-1,j,k+1) - er(i-1,j,k  ))
+                   else if (er(i-1,j,k+1) == -1.e0_rt) then
+                      dbl = 2.e0_rt * (er(i-1,j,k  ) - er(i-1,j,k-1))
+                   end if
+
+                   if      (er(i  ,j,k-1) == -1.e0_rt) then
+                      dbr = 2.e0_rt * (er(i  ,j,k+1) - er(i  ,j,k  ))
+                   else if (er(i  ,j,k+1) == -1.e0_rt) then
+                      dbr = 2.e0_rt * (er(i  ,j,k  ) - er(i  ,j,k-1))
+                   end if
+#else
+                   dbl = 0.e0_rt
+                   dbr = 0.e0_rt
+#endif
+
+                else
+
+                   dal = 0.e0_rt
+                   dar = 0.e0_rt
+                   dbl = 0.e0_rt
+                   dbr = 0.e0_rt
+
+                end if
+                   
+
+                if (er(i-1,j,k) == -1.e0_rt) then
+
+                   rg = ((er(i+1,j,k) - er(i,j,k)) * dxInv(1))**2 + &
+                         (HALF * dar * dxInv(2))**2 + (HALF * dbr * dxInv(3))**2
+
+                else if (er(i,j,k) == -1.e0_rt) then
+
+                   rg = ((er(i-1,j,k) - er(i-2,j,k)) * dxInv(1))**2 + &
+                        (HALF * dal * dxInv(2))**2 + (HALF * dbl * dxInv(3))**2
+
+                else
+
+                   rg = ((er(i,j,k) - er(i-1,j,k)) * dxInv(1))**2 + &
+                        (FOURTH * (dal + dar) * dxInv(2))**2 + (FOURTH * (dbl + dbr) * dxInv(3))**2
+
+                end if
+
+                kap = kavg(kappar(i-1,j,k), kappar(i,j,k), dx(1), -1)
+                r(i,j,k) = sqrt(rg) / (kap * max(er(i-1,j,k), er(i,j,k), tiny))
+
+             end do
+          end do
+       end do
+
+    else if (idir == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                if (include_cross_terms == 1) then
+
+                   dal = er(i+1,j-1,k  ) - er(i-1,j-1,k  )
+                   dar = er(i+1,j  ,k  ) - er(i-1,j  ,k  )
+
+                   if      (er(i-1,j-1,k  ) == -1.e0_rt) then
+                      dal = 2.e0_rt * (er(i+1,j-1,k  ) - er(i  ,j-1,k  ))
+                   else if (er(i+1,j-1,k  ) == -1.e0_rt) then
+                      dal = 2.e0_rt * (er(i  ,j-1,k  ) - er(i-1,j-1,k  ))
+                   end if
+
+                   if      (er(i-1,j  ,k  ) == -1.e0_rt) then
+                      dar = 2.e0_rt * (er(i+1,j  ,k  ) - er(i  ,j  ,k  ))
+                   else if (er(i+1,j  ,k  ) == -1.e0_rt) then
+                      dar = 2.e0_rt * (er(i  ,j  ,k  ) - er(i-1,j  ,k  ))
+                   end if
+
+#if (BL_SPACEDIM == 3)
+                   dbl = er(i  ,j-1,k+1) - er(i  ,j-1,k-1)
+                   dbr = er(i  ,j  ,k+1) - er(i  ,j  ,k-1)
+
+                   if      (er(i  ,j-1,k-1) == -1.e0_rt) then
+                      dbl = 2.e0_rt * (er(i  ,j-1,k+1) - er(i  ,j-1,k  ))
+                   else if (er(i  ,j-1,k+1) == -1.e0_rt) then
+                      dbl = 2.e0_rt * (er(i  ,j-1,k  ) - er(i  ,j-1,k-1))
+                   end if
+
+                   if      (er(i  ,j  ,k-1) == -1.e0_rt) then
+                      dbr = 2.e0_rt * (er(i  ,j  ,k+1) - er(i  ,j,  k  ))
+                   else if (er(i  ,j  ,k+1) == -1.e0_rt) then
+                      dbr = 2.e0_rt * (er(i  ,j  ,k  ) - er(i  ,j,  k-1))
+                   end if
+#else
+                   dbl = 0.e0_rt
+                   dbr = 0.e0_rt
+#endif
+
+                else
+
+                   dal = 0.e0_rt
+                   dar = 0.e0_rt
+                   dbl = 0.e0_rt
+                   dbr = 0.e0_rt
+
+                end if
+                   
+
+                if (er(i,j-1,k) == -1.e0_rt) then
+
+                   rg = ((er(i,j+1,k) - er(i,j,k)) * dxInv(2))**2 + &
+                        (HALF * dar * dxInv(1))**2 + (HALF * dbr * dxInv(3))**2
+
+                else if (er(i,j,k) == -1.e0_rt) then
+
+                   rg = ((er(i,j-1,k) - er(i,j-2,k)) * dxInv(2))**2 + &
+                        (HALF * dal * dxInv(1))**2 + (HALF * dbl * dxInv(3))**2
+
+                else
+
+                   rg = ((er(i,j,k) - er(i,j-1,k)) * dxInv(2))**2 + &
+                        (FOURTH * (dal + dar) * dxInv(1))**2 + (FOURTH * (dbl + dbr) * dxInv(3))**2
+
+                end if
+
+                kap = kavg(kappar(i,j-1,k), kappar(i,j,k), dx(2), -1)
+                r(i,j,k) = sqrt(rg) / (kap * max(er(i,j-1,k), er(i,j,k), tiny))
+
+             end do
+          end do
+       end do
+
+    else
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                if (include_cross_terms == 1) then
+
+                   dal = er(i+1,j  ,k-1) - er(i-1,j  ,k-1)
+                   dar = er(i+1,j  ,k  ) - er(i-1,j  ,k  )
+
+                   if      (er(i-1,j  ,k-1) == -1.e0_rt) then
+                      dal = 2.e0_rt * (er(i+1,j  ,k-1) - er(i  ,j  ,k-1))
+                   else if (er(i+1,j  ,k-1) == -1.e0_rt) then
+                      dal = 2.e0_rt * (er(i  ,j  ,k-1) - er(i-1,j  ,k-1))
+                   end if
+
+                   if      (er(i-1,j  ,k  ) == -1.e0_rt) then
+                      dar = 2.e0_rt * (er(i+1,j  ,k  ) - er(i  ,j  ,k  ))
+                   else if (er(i+1,j  ,k  ) == -1.e0_rt) then
+                      dar = 2.e0_rt * (er(i  ,j  ,k  ) - er(i-1,j  ,k  ))
+                   end if
+
+                   dbl = er(i  ,j+1,k-1) - er(i  ,j-1,k-1)
+                   dbr = er(i  ,j+1,k  ) - er(i  ,j-1,k  )
+
+                   if      (er(i  ,j-1,k-1) == -1.e0_rt) then
+                      dbl = 2.e0_rt * (er(i  ,j+1,k-1) - er(i  ,j  ,k-1))
+                   else if (er(i  ,j+1,k-1) == -1.e0_rt) then
+                      dbl = 2.e0_rt * (er(i  ,j  ,k-1) - er(i  ,j-1,k-1))
+                   end if
+
+                   if      (er(i  ,j-1,k  ) == -1.e0_rt) then
+                      dbr = 2.e0_rt * (er(i  ,j+1,k  ) - er(i  ,j,  k  ))
+                   else if (er(i  ,j+1,k  ) == -1.e0_rt) then
+                      dbr = 2.e0_rt * (er(i  ,j  ,k  ) - er(i  ,j-1,k  ))
+                   end if
+
+                else
+
+                   dal = 0.e0_rt
+                   dar = 0.e0_rt
+                   dbl = 0.e0_rt
+                   dbr = 0.e0_rt
+
+                end if
+
+                if (er(i,j,k-1) == -1.e0_rt) then
+
+                   rg = ((er(i,j,k+1) - er(i,j,k)) * dxInv(3))**2 + &
+                        (HALF * dar * dxInv(1))**2 + (HALF * dbr * dxInv(2))**2
+
+                else if (er(i,j,k) == -1.e0_rt) then
+
+                   rg = ((er(i,j,k-1) - er(i,j,k-2)) * dxInv(3))**2 + &
+                        (HALF * dal * dxInv(1))**2 + (HALF * dbl * dxInv(2))**2
+
+                else
+
+                   rg = ((er(i,j,k) - er(i,j,k-1)) * dxInv(3))**2 + &
+                        (FOURTH * (dal + dar) * dxInv(1))**2 + (FOURTH * (dbl + dbr) * dxInv(2))**2
+
+                end if
+
+                kap = kavg(kappar(i,j,k-1), kappar(i,j,k), dx(3), -1)
+                r(i,j,k) = sqrt(rg) / (kap * max(er(i,j,k-1), er(i,j,k), tiny))
+
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine scgrd
+
+
+
+  function kavg(a, b, d, opt) result(k)
+
+    use amrex_fort_module, only: rt => amrex_real
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
+
+    implicit none
+
+    real(rt), intent(in   ) :: a, b, d
+    integer,  intent(in   ) :: opt
+
+    real(rt) :: k
+
+    !$gpu
+
+#ifndef AMREX_USE_GPU
+    if (opt > 2) then
+       call castro_error("kavg: invalid averaging option")
+    end if
+#endif
+
+    if (opt == 0) then
+
+       ! arithmetic average, geometrically correct(?) but underestimates surface flux
+       k = 0.5e0_rt * (a + b + tiny)
+
+    else if (opt == 1) then
+
+       ! harmonic average, overestimates surface flux
+       k = (2.e0_rt * a * b) / (a + b + tiny) + tiny
+
+    else
+
+       ! chooses arithmetic where optically thin, harmonic where optically thick,
+       ! surface flux approximation at a thick/thin boundary
+       k = min(0.5e0_rt * (a + b + tiny), &
+               max((2.e0_rt * a * b) / (a + b + tiny) + tiny, &
+                   4.e0_rt / (3.e0_rt * d)))
+
+    end if
+
+  end function kavg
+
+
+
   subroutine cell_center_metric(i, j, k, dx, r, s)
 
     use amrex_constants_module, only: ONE

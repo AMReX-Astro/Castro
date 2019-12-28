@@ -846,37 +846,12 @@ extern "C" {
   void eddfac(amrex::Real* efact, ARLIM_P(rlo), ARLIM_P(rhi),
 	      ARLIM_P(reglo), ARLIM_P(reghi), const int& limiter, const int& idim);
 
-  void scgrd1(BL_FORT_FAB_ARG(R), 
-	      ARLIM_P(reglo), ARLIM_P(reghi), 
-	      const int& idim,
-	      BL_FORT_FAB_ARG(kappa_r), 
-	      amrex::Real* Er, const amrex::Real* dx);
-
-  void scgrd2(BL_FORT_FAB_ARG(R), 
-	      ARLIM_P(reglo), ARLIM_P(reghi), 
-	      const int& idim,
-	      BL_FORT_FAB_ARG(kappa_r), 
-	      amrex::Real* Er, 
-#if (BL_SPACEDIM >= 2)
-	      ARLIM_P(dlo), ARLIM_P(dhi), amrex::Real* dtmp1, 
-#endif
-#if (BL_SPACEDIM == 3)
-	      amrex::Real* dtmp2,
-#endif
-	      const amrex::Real* dx);
-
-  void scgrd3(BL_FORT_FAB_ARG(R), 
-	      ARLIM_P(reglo), ARLIM_P(reghi), 
-	      const int& idim,
-	      BL_FORT_FAB_ARG(kappa_r), 
-	      amrex::Real* Er, 
-#if (BL_SPACEDIM >= 2)
-	      ARLIM_P(dlo), ARLIM_P(dhi), amrex::Real* dtmp1, 
-#endif
-#if (BL_SPACEDIM == 3)
-	      amrex::Real* dtmp2,
-#endif
-	      const amrex::Real* dx);
+  void scgrd(const int* lo, const int* hi,
+             BL_FORT_FAB_ARG_3D(R), 
+             int idim, const amrex::Real* dx,
+             BL_FORT_FAB_ARG_3D(kappa_r), 
+             BL_FORT_FAB_ARG_3D(Er),
+             int include_cross_terms);
 
   void lrhs(BL_FORT_FAB_ARG(rhs), 
 	    ARLIM_P(reglo), ARLIM_P(reghi),

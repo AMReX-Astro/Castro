@@ -501,11 +501,11 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   convergence_check_type = 0;
   pp.query("convergence_check_type", convergence_check_type);
   limiter  = 2;              pp.query("limiter", limiter);
-  if (SolverType == SGFLDSolver && limiter%10 == 1) {
-    amrex::Abort("SGFLDSolver does not supports limiter = 1");
+  if (SolverType == SGFLDSolver && limiter == 1) {
+    amrex::Abort("SGFLDSolver does not support limiter = 1");
   }
-  if (SolverType == MGFLDSolver && limiter%10 == 1) {
-    amrex::Abort("MGFLDSolver does not supports limiter = 1");
+  if (SolverType == MGFLDSolver && limiter == 1) {
+    amrex::Abort("MGFLDSolver does not support limiter = 1");
   }
 
   closure = 3;
@@ -2289,63 +2289,45 @@ void Radiation::scaledGradient(int level,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      FArrayBox dtmp;
-      for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
 
-	  for (MFIter mfi(R[idim],true); mfi.isValid(); ++mfi) {
-	      const Box &nbox  = mfi.tilebox();  // note that R is edge based
-	      const Box& reg = amrex::enclosedCells(nbox);
+      for (MFIter mfi(R[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-	      if (limiter == 0) {
-		  R[idim][mfi].setVal(0.0, nbox, Rcomp, 1);
-	      }
-	      else if (limiter%10 == 1) {
-		  scgrd1(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp),
-			 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			 idim,
-			 BL_TO_FORTRAN_N(kappa_r[mfi], kcomp),
-			 Erborder[mfi].dataPtr(Ercomp), dx);
-	      }
-	      else if (limiter%10 == 2) {
-#if (BL_SPACEDIM >= 2)
-		  const Box& dbox = amrex::grow(reg,1);
-		  dtmp.resize(dbox, BL_SPACEDIM - 1);
-#endif
-		  scgrd2(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp),
-			 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			 idim,
-			 BL_TO_FORTRAN_N(kappa_r[mfi], kcomp),
-			 Erborder[mfi].dataPtr(Ercomp),
-#if (BL_SPACEDIM >= 2)
-			 ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dtmp.dataPtr(0),
-#endif
-#if (BL_SPACEDIM == 3)
-			 dtmp.dataPtr(1),
-#endif
-			 dx);
-	      }
-	      else {
-#if (BL_SPACEDIM >= 2)
-		  const Box& dbox = amrex::grow(reg,1);
-		  dtmp.resize(dbox, BL_SPACEDIM - 1);
-#endif
-		  scgrd3(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp),
-			 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			 idim,
-			 BL_TO_FORTRAN_N(kappa_r[mfi], kcomp),
-			 Erborder[mfi].dataPtr(Ercomp),
-#if (BL_SPACEDIM >= 2)
-			 ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dtmp.dataPtr(0),
-#endif
-#if (BL_SPACEDIM == 3)
-			 dtmp.dataPtr(1),
-#endif
-			 dx);
-	      }
-	  }
+          const Box& nbx = mfi.tilebox();  // note that R is edge based
+          const Box& bx = amrex::enclosedCells(nbx);
+
+          Array4<Real> const R_arr = R[idim].array(mfi);
+
+          if (limiter == 0) {
+
+              int comp = Rcomp;
+              AMREX_PARALLEL_FOR_3D(nbx, i, j, k, { R_arr(i,j,k,comp) = 0.0; });
+
+          }
+          else {
+
+              int include_cross_terms = 0;
+
+              if (limiter == 1) {
+                  include_cross_terms = 0;
+              } else if (limiter == 2) {
+                  include_cross_terms = 1;
+              } else {
+                  amrex::Abort("Unknown limiter");
+              }
+
+#pragma gpu box(bx)
+              scgrd(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                    BL_TO_FORTRAN_N_ANYD(R[idim][mfi], Rcomp),
+                    idim, AMREX_REAL_ANYD(dx),
+                    BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp),
+                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                    include_cross_terms);
+
+          }
       }
   }
+
 }
 
 // On input, lambda should contain scaled gradient.
