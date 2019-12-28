@@ -385,9 +385,8 @@ in successive spherical shells.</p>
 <dl class="subroutine">
 <dt id="f/gravity_module/ca_integrate_phi">
 <em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">ca_integrate_phi</code><span class="sig-paren">(</span><em>mass</em>, <em>grav</em>, <em>phi</em>, <em>dr</em>, <em>numpts_1d</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/ca_integrate_phi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Integrates radial mass elements of a spherically symmetric
-:p real mass(numpts_1d) [in]: distribution to calculate both the gravitational acceleration,
-:p real grav(numpts_1d) [inout]: and the gravitational potential, phi. Here the mass variable
+<dd><p>Integrates a radial gravitational acceleration, grav, to get the
+gravitational potential, phi. Here the mass variable
 gives the mass contained in each radial shell.</p>
 <p>The convention in Castro for Poisson’s equation is</p>
 <blockquote>
@@ -415,6 +414,8 @@ phi(r &lt; R) = phi(R) - int(g dr)</div></blockquote>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mass</strong> (<a class="reference internal" href="meth_params_f.html#f/meth_params_module/numpts_1d" title="f/meth_params_module/numpts_1d">numpts_1d</a>)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav</strong> (<a class="reference internal" href="meth_params_f.html#f/meth_params_module/numpts_1d" title="f/meth_params_module/numpts_1d">numpts_1d</a>)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>phi</strong> (<a class="reference internal" href="meth_params_f.html#f/meth_params_module/numpts_1d" title="f/meth_params_module/numpts_1d">numpts_1d</a>)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>dr</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em> :: radial cell spacing</li>
 </ul>
