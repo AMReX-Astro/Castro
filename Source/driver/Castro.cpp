@@ -172,21 +172,21 @@ std::string  Castro::probin_file = "probin";
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024);
 #else
-IntVect      Castro::hydro_tile_size(1024);
+IntVect      Castro::hydro_tile_size(1048576);
 #endif
 IntVect      Castro::no_tile_size(1024);
 #elif BL_SPACEDIM == 2
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16);
 #else
-IntVect      Castro::hydro_tile_size(1024,1024);
+IntVect      Castro::hydro_tile_size(1048576,1048576);
 #endif
 IntVect      Castro::no_tile_size(1024,1024);
 #else
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16,16);
 #else
-IntVect      Castro::hydro_tile_size(1024,64,64);
+IntVect      Castro::hydro_tile_size(1048576,1048576,1048576);
 #endif
 IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
