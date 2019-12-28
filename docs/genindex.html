@@ -464,7 +464,7 @@
 </li>
       <li><a href="file/Gravity_nd_f.html#f/gravity_module/ca_compute_multipole_moments"><strong>ca_compute_multipole_moments() (fortran subroutine in module gravity_module)</strong></a>
 </li>
-      <li><a href="file/MGFLD_1d_f.html#f/_/ca_compute_planck"><strong>ca_compute_planck() (fortran subroutine)</strong></a>, <a href="file/MGFLD_2d_f.html#f/_/ca_compute_planck"><strong>[1]</strong></a>, <a href="file/MGFLD_3d_f.html#f/_/ca_compute_planck"><strong>[2]</strong></a>
+      <li><a href="file/Rad_nd_f.html#f/rad_nd_module/ca_compute_planck"><strong>ca_compute_planck() (fortran subroutine in module rad_nd_module)</strong></a>
 </li>
       <li><a href="file/MGFLDneut_1d_f.html#f/_/ca_compute_planck_neut"><strong>ca_compute_planck_neut() (fortran subroutine)</strong></a>, <a href="file/MGFLDneut_2d_f.html#f/_/ca_compute_planck_neut"><strong>[1]</strong></a>, <a href="file/MGFLDneut_3d_f.html#f/_/ca_compute_planck_neut"><strong>[2]</strong></a>
 </li>
@@ -488,7 +488,7 @@
 </li>
       <li><a href="file/MGFLD_1d_f.html#f/_/ca_compute_rhs_so"><strong>ca_compute_rhs_so() (fortran subroutine)</strong></a>, <a href="file/MGFLD_2d_f.html#f/_/ca_compute_rhs_so"><strong>[1]</strong></a>, <a href="file/MGFLD_3d_f.html#f/_/ca_compute_rhs_so"><strong>[2]</strong></a>
 </li>
-      <li><a href="file/MGFLD_1d_f.html#f/_/ca_compute_rosseland"><strong>ca_compute_rosseland() (fortran subroutine)</strong></a>, <a href="file/MGFLD_2d_f.html#f/_/ca_compute_rosseland"><strong>[1]</strong></a>, <a href="file/MGFLD_3d_f.html#f/_/ca_compute_rosseland"><strong>[2]</strong></a>
+      <li><a href="file/Rad_nd_f.html#f/rad_nd_module/ca_compute_rosseland"><strong>ca_compute_rosseland() (fortran subroutine in module rad_nd_module)</strong></a>
 </li>
       <li><a href="file/MGFLDneut_1d_f.html#f/_/ca_compute_rosseland_neut"><strong>ca_compute_rosseland_neut() (fortran subroutine)</strong></a>, <a href="file/MGFLDneut_2d_f.html#f/_/ca_compute_rosseland_neut"><strong>[1]</strong></a>, <a href="file/MGFLDneut_3d_f.html#f/_/ca_compute_rosseland_neut"><strong>[2]</strong></a>
 </li>
@@ -1848,6 +1848,8 @@
 </li>
       <li><a href="file/prob_params_f.html#f/prob_params_module/center"><strong>center (fortran variable in module prob_params_module)</strong></a>
 </li>
+      <li><a href="file/Rad_nd_f.html#f/rad_nd_module/ceta2"><strong>ceta2() (fortran subroutine in module rad_nd_module)</strong></a>
+</li>
       <li><a href="file/meth_params_f.html#f/meth_params_module/cfl"><strong>cfl (fortran variable in module meth_params_module)</strong></a>
 
       <ul>
@@ -2220,10 +2222,10 @@
 </li>
       <li><a href="file/filter_f.html#f/filter_module/ff4b0"><strong>ff4b0 (fortran variable in module filter_module)</strong></a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/filter_f.html#f/filter_module/ff4b1"><strong>ff4b1 (fortran variable in module filter_module)</strong></a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/filter_f.html#f/filter_module/ff4b2"><strong>ff4b2 (fortran variable in module filter_module)</strong></a>
 </li>
       <li><a href="file/filter_f.html#f/filter_module/ff4b3"><strong>ff4b3 (fortran variable in module filter_module)</strong></a>
@@ -2233,6 +2235,8 @@
       <li><a href="file/meth_params_f.html#f/meth_params_module/first_order_hydro"><strong>first_order_hydro (fortran variable in module meth_params_module)</strong></a>
 </li>
       <li><a href="file/fluxlimiter_f.html#f/fluxlimiter_module/fiveninths"><strong>fiveninths (fortran variable in module fluxlimiter_module)</strong></a>
+</li>
+      <li><a href="file/Rad_nd_f.html#f/rad_nd_module/fkpn"><strong>fkpn() (fortran subroutine in module rad_nd_module)</strong></a>
 </li>
       <li><a href="file/flatten_nd_f.html#f/flatten_module"><strong>flatten_module (module)</strong></a>
 </li>
@@ -2968,6 +2972,8 @@
 </li>
       <li><a href="file/sdc_util_f.html#f/sdc_util/newton_success"><strong>newton_success (fortran variable in module sdc_util)</strong></a>
 </li>
+      <li><a href="file/Rad_nd_f.html#f/rad_nd_module/nfloor"><strong>nfloor() (fortran subroutine in module rad_nd_module)</strong></a>
+</li>
       <li><a href="file/rad_params_f.html#f/rad_params_module/ng0"><strong>ng0 (fortran variable in module rad_params_module)</strong></a>
 </li>
       <li><a href="file/rad_params_f.html#f/rad_params_module/ng1"><strong>ng1 (fortran variable in module rad_params_module)</strong></a>
@@ -3456,13 +3462,11 @@
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation7get_c_vERN5amrex9FArrayBoxERN5amrex9FArrayBoxERN5amrex9FArrayBoxERKN5amrex3BoxE">Radiation::get_c_v (C++ function)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation7get_c_vERN5amrex9FArrayBoxERN5amrex9FArrayBoxERN5amrex9FArrayBoxERKN5amrex3BoxE">[1]</a>
 </li>
-      <li><a href="class/classRadiation.html#_CPPv4N9Radiation9get_frhoeERN5amrex8MultiFabERN5amrex8MultiFabE">Radiation::get_frhoe (C++ function)</a>, <a href="class/classRadiation.html#_CPPv4N9Radiation9get_frhoeERN5amrex9FArrayBoxERN5amrex9FArrayBoxERKN5amrex3BoxE">[1]</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation9get_frhoeERN5amrex8MultiFabERN5amrex8MultiFabE">[2]</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation9get_frhoeERN5amrex9FArrayBoxERN5amrex9FArrayBoxERKN5amrex3BoxE">[3]</a>
+      <li><a href="class/classRadiation.html#_CPPv4N9Radiation9get_frhoeERN5amrex8MultiFabERN5amrex8MultiFabE">Radiation::get_frhoe (C++ function)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation9get_frhoeERN5amrex8MultiFabERN5amrex8MultiFabE">[1]</a>
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation10get_groupsEi">Radiation::get_groups (C++ function)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation10get_groupsEi">[1]</a>
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation19get_planck_and_tempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEiN5amrex4RealE">Radiation::get_planck_and_temp (C++ function)</a>, <a href="class/classRadiation.html#_CPPv4N9Radiation19get_planck_and_tempERN5amrex9FArrayBoxERN5amrex9FArrayBoxERN5amrex9FArrayBoxERKN5amrex3BoxEiN5amrex4RealE">[1]</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation19get_planck_and_tempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEiN5amrex4RealE">[2]</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation19get_planck_and_tempERN5amrex9FArrayBoxERN5amrex9FArrayBoxERN5amrex9FArrayBoxERKN5amrex3BoxEiN5amrex4RealE">[3]</a>
-</li>
-      <li><a href="class/classRadiation.html#_CPPv4N9Radiation20get_planck_from_tempERN5amrex9FArrayBoxERN5amrex9FArrayBoxERN5amrex9FArrayBoxERKN5amrex3BoxEi">Radiation::get_planck_from_temp (C++ function)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation20get_planck_from_tempERN5amrex9FArrayBoxERN5amrex9FArrayBoxERN5amrex9FArrayBoxERKN5amrex3BoxEi">[1]</a>
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation13get_rosselandERN5amrex8MultiFabEPN5amrex8AmrLevelEi">Radiation::get_rosseland (C++ function)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation13get_rosselandERN5amrex8MultiFabEPN5amrex8AmrLevelEi">[1]</a>
 </li>
@@ -3566,10 +3570,10 @@
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation29nonconservative_energy_updateERN5amrex4RealERN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">Radiation::nonconservative_energy_update (C++ function)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation29nonconservative_energy_updateERN5amrex4RealERN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">[1]</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation8nplotvarE">Radiation::nplotvar (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation8nplotvarE">[1]</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation7nugroupE">Radiation::nugroup (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation7nugroupE">[1]</a>
 </li>
       <li><a href="class/classRadiation.html#_CPPv4N9Radiation9NUM_STATEE">Radiation::NUM_STATE (C++ member)</a>, <a href="file/Radiation_8H.html#_CPPv4N9Radiation9NUM_STATEE">[1]</a>

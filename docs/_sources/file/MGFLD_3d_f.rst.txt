@@ -81,16 +81,6 @@ ca\_opacs subroutine
 
 .. f:autosubroutine:: ca_opacs
 
-ca\_compute\_rosseland subroutine
----------------------------------
-
-.. f:autosubroutine:: ca_compute_rosseland
-
-ca\_compute\_planck subroutine
-------------------------------
-
-.. f:autosubroutine:: ca_compute_planck
-
 ca\_accel\_ccoe subroutine
 --------------------------
 
