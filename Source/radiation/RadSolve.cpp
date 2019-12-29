@@ -518,36 +518,34 @@ void RadSolve::levelFlux(int level,
 
   const Real* dx = parent->Geom(level).CellSize();
 
+  for (int n = 0; n < BL_SPACEDIM; n++) {
+
+      const MultiFab *bp;
+
+      if (hd) {
+          bp = &hd->bCoefficients(n);
+      }
+      else if (hm) {
+          bp = &hm->bCoefficients(level, n);
+      }
+
+      MultiFab &bcoef = *(MultiFab*)bp;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (int n = 0; n < BL_SPACEDIM; n++) {
-    const MultiFab *bp; //, *cp;
-    if (hd) {
-      bp = &hd->bCoefficients(n);
-    }
-    else if (hm) {
-      bp = &hm->bCoefficients(level, n);
-    }
-    // w.z. I commented this out because we may not always have ccoef 
-    //      when use_hypre_nonsymmetric_terms == 1.
-    //      And ccoef is not being used anyway.
-    // if (use_hypre_nonsymmetric_terms == 1) {
-    //   HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
-    //   cp = &hem->cCoefficients(level, n);
-    // }
-    MultiFab &bcoef = *(MultiFab*)bp;
-    //    MultiFab &ccoef = *(MultiFab*)cp;
+      for (MFIter mfi(Flux[n], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+          const Box& bx = mfi.tilebox();
 
-    for (MFIter fi(Flux[n],true); fi.isValid(); ++fi) {
-	const Box& reg = fi.tilebox();
-	set_abec_flux(ARLIM(reg.loVect()), ARLIM(reg.hiVect()), &n,
-		      BL_TO_FORTRAN(Erborder[fi]), 
-		      BL_TO_FORTRAN(bcoef[fi]), 
-		      &beta,
-		      dx,
-		      BL_TO_FORTRAN(Flux[n][fi]));
-    }
+#pragma gpu box(bx)
+          set_abec_flux(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                        n,
+                        BL_TO_FORTRAN_ANYD(Erborder[mfi]), 
+                        BL_TO_FORTRAN_ANYD(bcoef[mfi]), 
+                        beta, AMREX_REAL_ANYD(dx),
+                        BL_TO_FORTRAN_ANYD(Flux[n][mfi]));
+      }
+
   }
 
   // Correct fluxes at physical and coarse-fine boundaries.
@@ -564,10 +562,6 @@ void RadSolve::levelFlux(int level,
   }
   else if (hm) {
     hm->boundaryFlux(level, &Flux[0], Er, igroup, Inhomogeneous_BC);
-  }
-  if (use_hypre_nonsymmetric_terms == 1) {
-    //HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
-    //hem->boundaryFlux(level, &Flux[0], Er);
   }
 }
 

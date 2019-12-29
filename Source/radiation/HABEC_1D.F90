@@ -1030,40 +1030,4 @@ subroutine hmmat3(mat, &
   endif
 end subroutine hmmat3
 
-subroutine set_abec_flux( &
-                       DIMS(reg), dir, &
-                       density, DIMS(density), &
-                       dcoef, DIMS(dcoef), &
-                       beta, &
-                       dx, &
-                       flux, DIMS(flux)) bind(C, name="set_abec_flux")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(density)
-  integer :: DIMDEC(dcoef)
-  integer :: DIMDEC(flux)
-
-  real(rt)         :: density(DIMV(density))
-  real(rt)         :: dcoef(DIMV(dcoef))
-  real(rt)         :: flux(DIMV(flux))
-
-  integer :: dir,i
-  real(rt)         :: beta, dx(BL_SPACEDIM), fac
-
-  if( dir == 0 ) then
-
-     !...     x-direction
-
-     fac = - beta / dx(1)
-
-     do i = reg_l1,reg_h1
-        flux(i) = dcoef(i) * (density(i) - density(i-1)) * fac
-     end do
-
-  endif
-
-  return
-end subroutine set_abec_flux
-
 end module habec_module

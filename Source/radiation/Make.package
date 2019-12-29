@@ -37,6 +37,7 @@ endif
 
 ca_F90EXE_sources += RAD_$(DIM)D.F90 
 ca_F90EXE_sources += HABEC_$(DIM)D.F90
+ca_F90EXE_sources += HABEC_nd.F90
 
 ca_F90EXE_sources += trace_ppm_rad_nd.F90
 ca_f90EXE_sources += MGFLD_$(DIM)d.f90

@@ -148,13 +148,13 @@ extern "C" {
 		      const amrex::Real* dx,
 		      amrex::Real* Flux, ARLIM_P(flo), ARLIM_P(fhi));
 
-  void set_abec_flux(ARLIM_P(reglo), ARLIM_P(reghi), 
-		     int*,
-		     BL_FORT_FAB_ARG(c), 
-		     BL_FORT_FAB_ARG(d), 
-		     const amrex::Real*,
-		     const amrex::Real*,
-		     BL_FORT_FAB_ARG(flux));
+  void set_abec_flux(const int* lo, const int* hi,
+		     int n,
+		     BL_FORT_FAB_ARG_3D(c), 
+		     BL_FORT_FAB_ARG_3D(d), 
+		     amrex::Real beta,
+		     const amrex::Real* dx,
+		     BL_FORT_FAB_ARG_3D(flux));
 
 #ifdef __cplusplus
 };
