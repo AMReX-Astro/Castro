@@ -139,6 +139,7 @@
 <li class="toctree-l3"><a class="reference internal" href="CastroRad_2d_f.html">CastroRad_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="CastroRad_3d_f.html">CastroRad_3d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="DumpModel1d_8H.html">File DumpModel1d.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HABEC_nd_f.html">HABEC_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="MGFLD_1d_f.html">MGFLD_1d.f90</a></li>
@@ -277,7 +278,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#f/rad_nd_module/bigkr" title="f/rad_nd_module/bigkr"><code class="xref f f-var docutils literal notranslate"><span class="pre">bigkr</span></code></a></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/rad_nd_module/ca_compute_c_v" title="f/rad_nd_module/ca_compute_c_v"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_c_v()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_planck" title="f/rad_nd_module/ca_compute_planck"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_planck()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_reye_given_ty" title="f/rad_nd_module/ca_compute_reye_given_ty"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_reye_given_ty()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_rosseland" title="f/rad_nd_module/ca_compute_rosseland"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_rosseland()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_temp_given_cv" title="f/rad_nd_module/ca_compute_temp_given_cv"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_temp_given_cv()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_temp_given_reye" title="f/rad_nd_module/ca_compute_temp_given_reye"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_temp_given_reye()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_temp_given_rhoe" title="f/rad_nd_module/ca_compute_temp_given_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_temp_given_rhoe()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_get_rhoe" title="f/rad_nd_module/ca_get_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_get_rhoe()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/cell_center_metric" title="f/rad_nd_module/cell_center_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">cell_center_metric()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ceta2" title="f/rad_nd_module/ceta2"><code class="xref f f-func docutils literal notranslate"><span class="pre">ceta2()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/cfrhoe" title="f/rad_nd_module/cfrhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">cfrhoe()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/fkpn" title="f/rad_nd_module/fkpn"><code class="xref f f-func docutils literal notranslate"><span class="pre">fkpn()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/flxlim" title="f/rad_nd_module/flxlim"><code class="xref f f-func docutils literal notranslate"><span class="pre">flxlim()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/gcv" title="f/rad_nd_module/gcv"><code class="xref f f-func docutils literal notranslate"><span class="pre">gcv()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/gtemp" title="f/rad_nd_module/gtemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">gtemp()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/lacoef" title="f/rad_nd_module/lacoef"><code class="xref f f-func docutils literal notranslate"><span class="pre">lacoef()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/nfloor" title="f/rad_nd_module/nfloor"><code class="xref f f-func docutils literal notranslate"><span class="pre">nfloor()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/rosse1" title="f/rad_nd_module/rosse1"><code class="xref f f-func docutils literal notranslate"><span class="pre">rosse1()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/rosse1s" title="f/rad_nd_module/rosse1s"><code class="xref f f-func docutils literal notranslate"><span class="pre">rosse1s()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/scgrd" title="f/rad_nd_module/scgrd"><code class="xref f f-func docutils literal notranslate"><span class="pre">scgrd()</span></code></a></td>
+<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/rad_nd_module/bclim" title="f/rad_nd_module/bclim"><code class="xref f f-func docutils literal notranslate"><span class="pre">bclim()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_c_v" title="f/rad_nd_module/ca_compute_c_v"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_c_v()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_planck" title="f/rad_nd_module/ca_compute_planck"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_planck()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_reye_given_ty" title="f/rad_nd_module/ca_compute_reye_given_ty"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_reye_given_ty()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_rosseland" title="f/rad_nd_module/ca_compute_rosseland"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_rosseland()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_temp_given_cv" title="f/rad_nd_module/ca_compute_temp_given_cv"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_temp_given_cv()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_temp_given_reye" title="f/rad_nd_module/ca_compute_temp_given_reye"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_temp_given_reye()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_compute_temp_given_rhoe" title="f/rad_nd_module/ca_compute_temp_given_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_temp_given_rhoe()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ca_get_rhoe" title="f/rad_nd_module/ca_get_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_get_rhoe()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ceta2" title="f/rad_nd_module/ceta2"><code class="xref f f-func docutils literal notranslate"><span class="pre">ceta2()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/ceup" title="f/rad_nd_module/ceup"><code class="xref f f-func docutils literal notranslate"><span class="pre">ceup()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/cfrhoe" title="f/rad_nd_module/cfrhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">cfrhoe()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/fkpn" title="f/rad_nd_module/fkpn"><code class="xref f f-func docutils literal notranslate"><span class="pre">fkpn()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/flxlim" title="f/rad_nd_module/flxlim"><code class="xref f f-func docutils literal notranslate"><span class="pre">flxlim()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/gcv" title="f/rad_nd_module/gcv"><code class="xref f f-func docutils literal notranslate"><span class="pre">gcv()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/gtemp" title="f/rad_nd_module/gtemp"><code class="xref f f-func docutils literal notranslate"><span class="pre">gtemp()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/lacoef" title="f/rad_nd_module/lacoef"><code class="xref f f-func docutils literal notranslate"><span class="pre">lacoef()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/lrhs" title="f/rad_nd_module/lrhs"><code class="xref f f-func docutils literal notranslate"><span class="pre">lrhs()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/nfloor" title="f/rad_nd_module/nfloor"><code class="xref f f-func docutils literal notranslate"><span class="pre">nfloor()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/rosse1" title="f/rad_nd_module/rosse1"><code class="xref f f-func docutils literal notranslate"><span class="pre">rosse1()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/rosse1s" title="f/rad_nd_module/rosse1s"><code class="xref f f-func docutils literal notranslate"><span class="pre">rosse1s()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/scgrd" title="f/rad_nd_module/scgrd"><code class="xref f f-func docutils literal notranslate"><span class="pre">scgrd()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -392,29 +393,57 @@
 </dd></dl>
 
 <dl class="subroutine">
-<dt id="f/rad_nd_module/cell_center_metric">
-<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">cell_center_metric</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>dx</em>, <em>r</em>, <em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/cell_center_metric" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_nd_module/lrhs">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">lrhs</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>rhs</em>, <em>r_lo</em>, <em>r_hi</em>, <em>temp</em>, <em>t_lo</em>, <em>t_hi</em>, <em>fkp</em>, <em>fk_lo</em>, <em>fk_hi</em>, <em>eta</em>, <em>et_lo</em>, <em>et_hi</em>, <em>etainv</em>, <em>ei_lo</em>, <em>ei_hi</em>, <em>frhoem</em>, <em>fm_lo</em>, <em>fm_hi</em>, <em>frhoes</em>, <em>fs_lo</em>, <em>fs_hi</em>, <em>dfo</em>, <em>d_lo</em>, <em>d_hi</em>, <em>ero</em>, <em>er_lo</em>, <em>er_hi</em>, <em>edot</em>, <em>ed_lo</em>, <em>ed_hi</em>, <em>dt</em>, <em>dx</em>, <em>sigma</em>, <em>c</em>, <em>theta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/lrhs" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhs</strong> (r_hi(1)-(r_lo(1))+1,r_hi(2)-(r_lo(2))+1,r_hi(3)-(r_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>r_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>temp</strong> (t_hi(1)-(t_lo(1))+1,t_hi(2)-(t_lo(2))+1,t_hi(3)-(t_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>t_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>t_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fkp</strong> (fk_hi(1)-(fk_lo(1))+1,fk_hi(2)-(fk_lo(2))+1,fk_hi(3)-(fk_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fk_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fk_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>eta</strong> (et_hi(1)-(et_lo(1))+1,et_hi(2)-(et_lo(2))+1,et_hi(3)-(et_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>et_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>et_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>etainv</strong> (ei_hi(1)-(ei_lo(1))+1,ei_hi(2)-(ei_lo(2))+1,ei_hi(3)-(ei_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ei_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ei_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>frhoem</strong> (fm_hi(1)-(fm_lo(1))+1,fm_hi(2)-(fm_lo(2))+1,fm_hi(3)-(fm_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>frhoes</strong> (fs_hi(1)-(fs_lo(1))+1,fs_hi(2)-(fs_lo(2))+1,fs_hi(3)-(fs_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fs_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fs_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dfo</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ero</strong> (er_hi(1)-(er_lo(1))+1,er_hi(2)-(er_lo(2))+1,er_hi(3)-(er_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>edot</strong> (ed_hi(1)-(ed_lo(1))+1,ed_hi(2)-(ed_lo(2))+1,ed_hi(3)-(ed_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ed_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ed_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
 <li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>r</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>s</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>sigma</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>c</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>theta</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <a class="reference internal" href="Castro_util_f.html#f/castro_util_module" title="f/castro_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_util_module</span></code></a> (<a class="reference internal" href="Castro_util_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>)</p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>), <a class="reference internal" href="HABEC_nd_f.html#f/habec_nd_module" title="f/habec_nd_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">habec_nd_module</span></code></a> (<a class="reference internal" href="HABEC_nd_f.html#f/habec_nd_module/cell_center_metric" title="f/habec_nd_module/cell_center_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">cell_center_metric()</span></code></a>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/rad_nd_module/lacoef" title="f/rad_nd_module/lacoef"><code class="xref f f-func docutils literal notranslate"><span class="pre">lacoef()</span></code></a></p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_util_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="HABEC_nd_f.html#f/habec_nd_module/cell_center_metric" title="f/habec_nd_module/cell_center_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">cell_center_metric()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -450,10 +479,93 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>)</p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>), <a class="reference internal" href="HABEC_nd_f.html#f/habec_nd_module" title="f/habec_nd_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">habec_nd_module</span></code></a> (<a class="reference internal" href="HABEC_nd_f.html#f/habec_nd_module/cell_center_metric" title="f/habec_nd_module/cell_center_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">cell_center_metric()</span></code></a>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/rad_nd_module/cell_center_metric" title="f/rad_nd_module/cell_center_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">cell_center_metric()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="HABEC_nd_f.html#f/habec_nd_module/cell_center_metric" title="f/habec_nd_module/cell_center_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">cell_center_metric()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/rad_nd_module/bclim">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">bclim</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>b</em>, <em>b_lo</em>, <em>b_hi</em>, <em>lambda</em>, <em>l_lo</em>, <em>l_hi</em>, <em>n</em>, <em>kappar</em>, <em>k_lo</em>, <em>k_hi</em>, <em>c</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/bclim" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>b</strong> (b_hi(1)-(b_lo(1))+1,b_hi(2)-(b_lo(2))+1,b_hi(3)-(b_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>b_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>b_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lambda</strong> (l_hi(1)-(l_lo(1))+1,l_hi(2)-(l_lo(2))+1,l_hi(3)-(l_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>l_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>l_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>kappar</strong> (k_hi(1)-(k_lo(1))+1,k_hi(2)-(k_lo(2))+1,k_hi(3)-(k_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>), <a class="reference internal" href="HABEC_nd_f.html#f/habec_nd_module" title="f/habec_nd_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">habec_nd_module</span></code></a> (<a class="reference internal" href="HABEC_nd_f.html#f/habec_nd_module/edge_center_metric" title="f/habec_nd_module/edge_center_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">edge_center_metric()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="HABEC_nd_f.html#f/habec_nd_module/edge_center_metric" title="f/habec_nd_module/edge_center_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">edge_center_metric()</span></code></a>, <a class="reference internal" href="#f/rad_nd_module/kavg" title="f/rad_nd_module/kavg"><code class="xref f f-func docutils literal notranslate"><span class="pre">kavg()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/rad_nd_module/ceup">
+<em class="property">subroutine  </em><code class="descclassname">rad_nd_module/</code><code class="descname">ceup</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>relres</em>, <em>absres</em>, <em>frhoes</em>, <em>fs_lo</em>, <em>fs_hi</em>, <em>frhoem</em>, <em>fm_lo</em>, <em>fm_hi</em>, <em>eta</em>, <em>et_lo</em>, <em>et_hi</em>, <em>etainv</em>, <em>ei_lo</em>, <em>ei_hi</em>, <em>dfo</em>, <em>do_lo</em>, <em>do_hi</em>, <em>dfn</em>, <em>dn_lo</em>, <em>dn_hi</em>, <em>exch</em>, <em>ex_lo</em>, <em>ex_hi</em>, <em>dt</em>, <em>theta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_nd_module/ceup" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>relres</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>absres</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>frhoes</strong> (fs_hi(1)-(fs_lo(1))+1,fs_hi(2)-(fs_lo(2))+1,fs_hi(3)-(fs_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>fs_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fs_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>frhoem</strong> (fm_hi(1)-(fm_lo(1))+1,fm_hi(2)-(fm_lo(2))+1,fm_hi(3)-(fm_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>eta</strong> (et_hi(1)-(et_lo(1))+1,et_hi(2)-(et_lo(2))+1,et_hi(3)-(et_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>et_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>et_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>etainv</strong> (ei_hi(1)-(ei_lo(1))+1,ei_hi(2)-(ei_lo(2))+1,ei_hi(3)-(ei_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ei_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ei_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dfo</strong> (do_hi(1)-(do_lo(1))+1,do_hi(2)-(do_lo(2))+1,do_hi(3)-(do_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>do_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>do_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dfn</strong> (dn_hi(1)-(dn_lo(1))+1,dn_hi(2)-(dn_lo(2))+1,dn_hi(3)-(dn_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dn_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dn_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>exch</strong> (ex_hi(1)-(ex_lo(1))+1,ex_hi(2)-(ex_lo(2))+1,ex_hi(3)-(ex_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ex_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ex_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>theta</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="reduction_f.html#f/reduction_module" title="f/reduction_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">reduction_module</span></code></a> (<a class="reference internal" href="reduction_f.html#f/reduction_module/reduce_max" title="f/reduction_module/reduce_max"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_max()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="reduction_f.html#f/reduction_module/reduce_max" title="f/reduction_module/reduce_max"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_max()</span></code></a></p>
 </td>
 </tr>
 </tbody>

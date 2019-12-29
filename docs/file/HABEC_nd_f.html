@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>rad_util.F90 &mdash; Castro 19.12
+  <title>HABEC_nd.F90 &mdash; Castro 19.12
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="trace_ppm_rad_nd.F90" href="trace_ppm_rad_nd_f.html" />
-    <link rel="prev" title="rad_params.F90" href="rad_params_f.html" /> 
+    <link rel="next" title="File HypreABec.H" href="HypreABec_8H.html" />
+    <link rel="prev" title="File DumpModel1d.H" href="DumpModel1d_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -139,7 +139,10 @@
 <li class="toctree-l3"><a class="reference internal" href="CastroRad_2d_f.html">CastroRad_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="CastroRad_3d_f.html">CastroRad_3d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="DumpModel1d_8H.html">File DumpModel1d.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="HABEC_nd_f.html">HABEC_nd.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">HABEC_nd.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/habec_nd_module">habec_nd_module</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="MGFLD_1d_f.html">MGFLD_1d.f90</a></li>
@@ -171,10 +174,7 @@
 <li class="toctree-l3"><a class="reference internal" href="filter_f.html">filter.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fluxlimiter_f.html">fluxlimiter.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rad_params_f.html">rad_params.F90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">rad_util.F90</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#f/rad_util_module">rad_util_module</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="rad_util_f.html">rad_util.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="trace_ppm_rad_nd_f.html">trace_ppm_rad_nd.F90</a></li>
 </ul>
 </li>
@@ -239,13 +239,13 @@
         
           <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
         
-      <li>rad_util.F90</li>
+      <li>HABEC_nd.F90</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/rad_util_f.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/HABEC_nd_f.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -258,80 +258,141 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="rad-util-f90">
-<h1>rad_util.F90<a class="headerlink" href="#rad-util-f90" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="f/rad_util_module">
-<span id="rad-util-module"></span><h2>rad_util_module<a class="headerlink" href="#f/rad_util_module" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="habec-nd-f90">
+<h1>HABEC_nd.F90<a class="headerlink" href="#habec-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/habec_nd_module">
+<span id="habec-nd-module"></span><h2>habec_nd_module<a class="headerlink" href="#f/habec_nd_module" title="Permalink to this headline">¶</a></h2>
 <p class="rubric">Quick access</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/rad_util_module/compute_ptot_ctot" title="f/rad_util_module/compute_ptot_ctot"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_ptot_ctot()</span></code></a>, <a class="reference internal" href="#f/rad_util_module/fldlambda" title="f/rad_util_module/fldlambda"><code class="xref f f-func docutils literal notranslate"><span class="pre">fldlambda()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/habec_nd_module/cell_center_metric" title="f/habec_nd_module/cell_center_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">cell_center_metric()</span></code></a>, <a class="reference internal" href="#f/habec_nd_module/edge_center_metric" title="f/habec_nd_module/edge_center_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">edge_center_metric()</span></code></a>, <a class="reference internal" href="#f/habec_nd_module/face_metric" title="f/habec_nd_module/face_metric"><code class="xref f f-func docutils literal notranslate"><span class="pre">face_metric()</span></code></a>, <a class="reference internal" href="#f/habec_nd_module/set_abec_flux" title="f/habec_nd_module/set_abec_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">set_abec_flux()</span></code></a></td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Needed modules</p>
 <ul class="simple">
-<li><a class="reference internal" href="Castro_error_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a></li>
-<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></li>
 <li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
-<li><a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>)</li>
 </ul>
 <p class="rubric">Subroutines and functions</p>
 <dl class="subroutine">
-<dt id="f/rad_util_module/compute_ptot_ctot">
-<em class="property">subroutine  </em><code class="descclassname">rad_util_module/</code><code class="descname">compute_ptot_ctot</code><span class="sig-paren">(</span><em>lam</em>, <em>q</em>, <em>cg</em>, <em>ptot</em>, <em>ctot</em>, <em>gamc_tot</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_util_module/compute_ptot_ctot" title="Permalink to this definition">¶</a></dt>
+<dt id="f/habec_nd_module/set_abec_flux">
+<em class="property">subroutine  </em><code class="descclassname">habec_nd_module/</code><code class="descname">set_abec_flux</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dir</em>, <em>density</em>, <em>d_lo</em>, <em>d_hi</em>, <em>dcoef</em>, <em>c_lo</em>, <em>c_hi</em>, <em>beta</em>, <em>dx</em>, <em>flux</em>, <em>f_lo</em>, <em>f_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/habec_nd_module/set_abec_flux" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lam</strong> (ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q</strong> (nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>cg</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ptot</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>ctot</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>gamc_tot</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>density</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dcoef</strong> (c_hi(1)-(c_lo(1))+1,c_hi(2)-(c_lo(2))+1,c_hi(3)-(c_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>beta</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux</strong> (f_hi(1)-(f_lo(1))+1,f_hi(2)-(f_lo(2))+1,f_hi(3)-(f_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>f_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<a class="reference internal" href="meth_params_f.html#f/meth_params_module/qpres" title="f/meth_params_module/qpres"><code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qrho" title="f/meth_params_module/qrho"><code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/comoving" title="f/meth_params_module/comoving"><code class="xref f f-func docutils literal notranslate"><span class="pre">comoving()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qrad" title="f/meth_params_module/qrad"><code class="xref f f-func docutils literal notranslate"><span class="pre">qrad()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/qptot" title="f/meth_params_module/qptot"><code class="xref f f-func docutils literal notranslate"><span class="pre">qptot()</span></code></a>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>), <a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module" title="f/fluxlimiter_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fluxlimiter_module</span></code></a> (<a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/ca_ctoprim" title="f/advection_util_module/ca_ctoprim"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_ctoprim()</span></code></a></p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="f/rad_util_module/fldlambda">
-<em class="property">function  </em><code class="descclassname">rad_util_module/</code><code class="descname">fldlambda</code><span class="sig-paren">(</span><em>r</em>, <em>limiter</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_util_module/fldlambda" title="Permalink to this definition">¶</a></dt>
+<dl class="subroutine">
+<dt id="f/habec_nd_module/face_metric">
+<em class="property">subroutine  </em><code class="descclassname">habec_nd_module/</code><code class="descname">face_metric</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>lo</em>, <em>hi</em>, <em>dx</em>, <em>ori_dir</em>, <em>ori_lo</em>, <em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#f/habec_nd_module/face_metric" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>r</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>limiter</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lo</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ori_dir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ori_lo</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>lambda</strong><em> [</em><em>real</em><em>]</em></p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <a class="reference internal" href="Castro_util_f.html#f/castro_util_module" title="f/castro_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_util_module</span></code></a> (<a class="reference internal" href="Castro_util_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_util_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a></p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="CastroRad_3d_f.html#f/_/ca_compute_lamborder" title="f/_/ca_compute_lamborder"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_lamborder()</span></code></a>, <a class="reference internal" href="CastroRad_3d_f.html#f/_/ca_est_gpr2" title="f/_/ca_est_gpr2"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_est_gpr2()</span></code></a>, <a class="reference internal" href="Rad_nd_f.html#f/rad_nd_module/flxlim" title="f/rad_nd_module/flxlim"><code class="xref f f-func docutils literal notranslate"><span class="pre">flxlim()</span></code></a></p>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/habec_nd_module/cell_center_metric">
+<em class="property">subroutine  </em><code class="descclassname">habec_nd_module/</code><code class="descname">cell_center_metric</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>dx</em>, <em>r</em>, <em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#f/habec_nd_module/cell_center_metric" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>s</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+</ul>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <a class="reference internal" href="Castro_util_f.html#f/castro_util_module" title="f/castro_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_util_module</span></code></a> (<a class="reference internal" href="Castro_util_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="Rad_nd_f.html#f/rad_nd_module/lrhs" title="f/rad_nd_module/lrhs"><code class="xref f f-func docutils literal notranslate"><span class="pre">lrhs()</span></code></a>, <a class="reference internal" href="Rad_nd_f.html#f/rad_nd_module/lacoef" title="f/rad_nd_module/lacoef"><code class="xref f f-func docutils literal notranslate"><span class="pre">lacoef()</span></code></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_util_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/habec_nd_module/edge_center_metric">
+<em class="property">subroutine  </em><code class="descclassname">habec_nd_module/</code><code class="descname">edge_center_metric</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>idir</em>, <em>dx</em>, <em>r</em>, <em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#f/habec_nd_module/edge_center_metric" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>s</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <a class="reference internal" href="Castro_util_f.html#f/castro_util_module" title="f/castro_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_util_module</span></code></a> (<a class="reference internal" href="Castro_util_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="Rad_nd_f.html#f/rad_nd_module/bclim" title="f/rad_nd_module/bclim"><code class="xref f f-func docutils literal notranslate"><span class="pre">bclim()</span></code></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_util_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -349,10 +410,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="trace_ppm_rad_nd_f.html" class="btn btn-neutral float-right" title="trace_ppm_rad_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="HypreABec_8H.html" class="btn btn-neutral float-right" title="File HypreABec.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="rad_params_f.html" class="btn btn-neutral float-left" title="rad_params.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="DumpModel1d_8H.html" class="btn btn-neutral float-left" title="File DumpModel1d.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

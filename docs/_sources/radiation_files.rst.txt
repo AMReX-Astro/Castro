@@ -8,6 +8,7 @@ Radiation
    file/CastroRad_2d_f
    file/CastroRad_3d_f
    file/DumpModel1d_8H
+   file/HABEC_nd_f
    file/HypreABec_8H
    file/HypreExtMultiABec_8H
    file/HypreMultiABec_8H
