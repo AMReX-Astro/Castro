@@ -1,5 +1,11 @@
 # 20.01
 
+   * The AMR parameter amr.compute_new_dt_on_regrid is now on by
+     default. This avoids crashes that result from the CFL number
+     being too large after regridding, because we update the
+     timestep after seeing that larger velocity. You can still opt
+     to set this off if you want to in your inputs file. (#720)
+
    * We have added calls into Hypre that only exist as of version
      2.15.0, so that is the new minimum requirement for Castro
      radiation. Note that Hypre is now hosted on GitHub at
