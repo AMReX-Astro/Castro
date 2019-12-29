@@ -417,6 +417,82 @@ contains
 
 
 
+  subroutine lrhs(lo, hi, &
+                  rhs, r_lo, r_hi, &
+                  temp, t_lo, t_hi, &
+                  fkp, fk_lo, fk_hi, &
+                  eta, et_lo, et_hi, &
+                  etainv, ei_lo, ei_hi, &
+                  frhoem, fm_lo, fm_hi, &
+                  frhoes, fs_lo, fs_hi, &
+                  dfo, d_lo, d_hi, &
+                  ero, er_lo, er_hi, &
+                  edot, ed_lo, ed_hi, &
+                  dt, dx, sigma, c, theta) &
+                  bind(C, name="lrhs")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: t_lo(3), t_hi(3)
+    integer,  intent(in   ) :: fk_lo(3), fk_hi(3)
+    integer,  intent(in   ) :: et_lo(3), et_hi(3)
+    integer,  intent(in   ) :: ei_lo(3), ei_hi(3)
+    integer,  intent(in   ) :: fm_lo(3), fm_hi(3)
+    integer,  intent(in   ) :: fs_lo(3), fs_hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    integer,  intent(in   ) :: er_lo(3), er_hi(3)
+    integer,  intent(in   ) :: ed_lo(3), ed_hi(3)
+    real(rt), intent(inout) :: rhs(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
+    real(rt), intent(in   ) :: fkp(fk_lo(1):fk_hi(1),fk_lo(2):fk_hi(2),fk_lo(3):fk_hi(3))
+    real(rt), intent(in   ) :: eta(et_lo(1):et_hi(1),et_lo(2):et_hi(2),et_lo(3):et_hi(3))
+    real(rt), intent(in   ) :: etainv(ei_lo(1):ei_hi(1),ei_lo(2):ei_hi(2),ei_lo(3):ei_hi(3))
+    real(rt), intent(in   ) :: frhoem(fm_lo(1):fm_hi(1),fm_lo(2):fm_hi(2),fm_lo(3):fm_hi(3))
+    real(rt), intent(in   ) :: frhoes(fs_lo(1):fs_hi(1),fs_lo(2):fs_hi(2),fs_lo(3):fs_hi(3))
+    real(rt), intent(in   ) :: dfo(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
+    real(rt), intent(in   ) :: ero(er_lo(1):er_hi(1),er_lo(2):er_hi(2),er_lo(3):er_hi(3))
+    real(rt), intent(in   ) :: edot(ed_lo(1):ed_hi(1),ed_lo(2):ed_hi(2),ed_lo(3):ed_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: dt, sigma, c, theta
+
+    integer  :: i, j, k
+    real(rt) :: dtm, ek, bs, es, ekt, r, s
+
+    !$gpu
+
+    dtm = 1.e0_rt / dt
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ek = fkp(i,j,k) * eta(i,j,k)
+             bs = etainv(i,j,k) * 4.e0_rt * sigma * fkp(i,j,k) * temp(i,j,k)**4
+             es = eta(i,j,k) * (frhoem(i,j,k) - frhoes(i,j,k))
+             ekt = (1.e0_rt - theta) * eta(i,j,k)
+
+             call cell_center_metric(i, j, k, dx, r, s)
+
+             if (dim == 1) then
+                s = 1.e0_rt
+             end if
+
+             rhs(i,j,k) = (rhs(i,j,k) + r * s * &
+                           (bs + dtm * (ero(i,j,k) + es) + &
+                            ek * c * edot(i,j,k) - &
+                            ekt * dfo(i,j,k))) / (1.e0_rt - ekt)
+
+          end do
+       end do
+    end do
+
+  end subroutine lrhs
+
+
+
   subroutine lacoef(lo, hi, &
                     a, a_lo, a_hi, &
                     fkp, f_lo, f_hi, &

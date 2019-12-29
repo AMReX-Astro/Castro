@@ -854,15 +854,19 @@ extern "C" {
              BL_FORT_FAB_ARG_3D(Er),
              int include_cross_terms);
 
-  void lrhs(BL_FORT_FAB_ARG(rhs), 
-	    ARLIM_P(reglo), ARLIM_P(reghi),
-	    amrex::Real* temp, amrex::Real* fkp, amrex::Real* eta, amrex::Real* etainv,
-	    amrex::Real* rhoem, amrex::Real* rhoes,
-	    amrex::Real* dflux_old, 
-	    BL_FORT_FAB_ARG(Er_old), 
-	    amrex::Real* Edot,
-	    amrex::Real* r, amrex::Real* s, const amrex::Real& delta_t, const amrex::Real& sigma,
-	    const amrex::Real& c, const amrex::Real& theta);
+  void lrhs(const int* lo, const int* hi,
+            BL_FORT_FAB_ARG_3D(rhs),
+            BL_FORT_FAB_ARG_3D(temp),
+            BL_FORT_FAB_ARG_3D(fkp),
+            BL_FORT_FAB_ARG_3D(eta),
+            BL_FORT_FAB_ARG_3D(etainv),
+            BL_FORT_FAB_ARG_3D(rhoem),
+            BL_FORT_FAB_ARG_3D(rhoes),
+            BL_FORT_FAB_ARG_3D(dflux_old),
+	    BL_FORT_FAB_ARG_3D(Er_old),
+            BL_FORT_FAB_ARG_3D(Edot), 
+	    amrex::Real delta_t, const amrex::Real* dx,
+            amrex::Real sigma, amrex::Real c, amrex::Real theta);
 
   void anatw2(amrex::Real* test, ARLIM_P(reglo), ARLIM_P(reghi),
 	      amrex::Real* temp,

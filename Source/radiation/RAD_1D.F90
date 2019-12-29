@@ -108,47 +108,6 @@ subroutine eddfac(efact, &
   enddo
 end subroutine eddfac
 
-subroutine lrhs(rhs, &
-                DIMS(rbox), &
-                DIMS(reg), &
-                temp, fkp, eta, etainv, frhoem, frhoes, dfo, &
-                ero, DIMS(ebox), edot, &
-                r, s, dt, sigma, c, theta) bind(C, name="lrhs")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(rbox)
-  integer :: DIMDEC(ebox)
-  integer :: DIMDEC(reg)
-  real(rt)         :: rhs(DIMV(rbox))
-  real(rt)         :: temp(DIMV(rbox))
-  real(rt)         :: fkp(DIMV(rbox))
-  real(rt)         :: eta(DIMV(rbox))
-  real(rt)         :: etainv(DIMV(rbox))
-  real(rt)         :: frhoem(DIMV(rbox))
-  real(rt)         :: frhoes(DIMV(rbox))
-  real(rt)         :: dfo(DIMV(rbox))
-  real(rt)         :: ero(DIMV(ebox))
-  real(rt)         :: edot(DIMV(rbox))
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(1)
-  real(rt)         :: dt, sigma, c, theta
-  integer :: i
-  real(rt)         :: dtm, ek, bs, es, ekt
-  dtm = 1.e0_rt / dt
-  do i = reg_l1, reg_h1
-     ek = fkp(i) * eta(i)
-     bs = etainv(i) * &
-          &         4.e0_rt * sigma * fkp(i) * temp(i)**4
-     es = eta(i) * (frhoem(i) - frhoes(i))
-     ekt = (1.e0_rt - theta) * eta(i)
-     rhs(i) = (rhs(i) + r(i) * &
-          (bs + dtm * (ero(i) + es) + &
-          ek * c * edot(i) - &
-          ekt * dfo(i))) / &
-          (1.e0_rt - ekt)
-  enddo
-end subroutine lrhs
-
 subroutine anatw2(test, &
                   DIMS(reg), &
                   temp, p, xf, Tc, dx, xlo, lo) bind(C, name="anatw2")

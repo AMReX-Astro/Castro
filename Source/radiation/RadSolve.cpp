@@ -380,6 +380,9 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
   BL_PROFILE("RadSolve::levelRhs");
   BL_ASSERT(rhs.nGrow() == 0);
 
+  const Geometry& geom = parent->Geom(level);
+  const Real* dx       = geom.CellSize();
+
   rhs.setVal(0.0);
   if (fine_corr) {
     // This works trivially for a multilevel solve since the finer level is
@@ -399,24 +402,22 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
-      
-      for (MFIter ri(rhs,true); ri.isValid(); ++ri) {
-	  const Box &reg  = ri.tilebox();
-	  
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-	  
-	  lrhs(BL_TO_FORTRAN(rhs[ri]), 
-	       ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	       temp[ri].dataPtr(),
-	       fkp[ri].dataPtr(), eta[ri].dataPtr(), etainv[ri].dataPtr(),
-	       rhoem[ri].dataPtr(), rhoes[ri].dataPtr(),
-	       dflux_old[ri].dataPtr(),
-	       BL_TO_FORTRAN_N(Er_old[ri], 0), 
-	       Edot[ri].dataPtr(),
-	       r.dataPtr(), s.dataPtr(), delta_t, sigma, c, theta);
-      }
+  for (MFIter mfi(rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
+
+#pragma gpu box(bx)
+      lrhs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           BL_TO_FORTRAN_ANYD(rhs[mfi]), 
+           BL_TO_FORTRAN_ANYD(temp[mfi]),
+           BL_TO_FORTRAN_ANYD(fkp[mfi]),
+           BL_TO_FORTRAN_ANYD(eta[mfi]),
+           BL_TO_FORTRAN_ANYD(etainv[mfi]),
+           BL_TO_FORTRAN_ANYD(rhoem[mfi]),
+           BL_TO_FORTRAN_ANYD(rhoes[mfi]),
+           BL_TO_FORTRAN_ANYD(dflux_old[mfi]),
+           BL_TO_FORTRAN_N_ANYD(Er_old[mfi], 0), 
+           BL_TO_FORTRAN_ANYD(Edot[mfi]),
+           delta_t, AMREX_REAL_ANYD(dx), sigma, c, theta);
   }
 }
 
