@@ -1280,30 +1280,26 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
 
   relative = 0.0;
   absolute = 0.0;
+  Real theta = 1.0;
 
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(max:relative, absolute)
 #endif
-  {
-      Real relative_priv = 0.0;
-      Real absolute_priv = 0.0;
-      Real theta = 1.0;
+  for (MFIter mfi(eta, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
 
-      for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
-	  const Box &reg = mfi.tilebox();
-	  ceup( ARLIM(reg.loVect()), ARLIM(reg.hiVect()), relative_priv, absolute_priv,
-		BL_TO_FORTRAN(frhoes[mfi]),
-		frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-		dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
-		exch[mfi].dataPtr(), delta_t, theta);
-      }
-#ifdef _OPENMP
-#pragma omp critical (rad_ceup)
-#endif
-      {
-	  relative = std::max(relative, relative_priv);
-	  absolute = std::max(absolute, absolute_priv);
-      }
+#pragma gpu box(bx)
+      ceup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           AMREX_MFITER_REDUCE_MAX(&relative),
+           AMREX_MFITER_REDUCE_MAX(&absolute),
+           BL_TO_FORTRAN_ANYD(frhoes[mfi]),
+           BL_TO_FORTRAN_ANYD(frhoem[mfi]),
+           BL_TO_FORTRAN_ANYD(eta[mfi]),
+           BL_TO_FORTRAN_ANYD(etainv[mfi]),
+           BL_TO_FORTRAN_ANYD(dflux_old[mfi]),
+           BL_TO_FORTRAN_ANYD(dflux_new[mfi]),
+           BL_TO_FORTRAN_ANYD(exch[mfi]),
+           delta_t, theta);
   }
 
   ParallelDescriptor::ReduceRealMax(relative);

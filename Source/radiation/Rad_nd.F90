@@ -545,6 +545,74 @@ contains
 
 
 
+  subroutine ceup(lo, hi, &
+                  relres, absres, &
+                  frhoes, fs_lo, fs_hi, &
+                  frhoem, fm_lo, fm_hi, &
+                  eta, et_lo, et_hi, &
+                  etainv, ei_lo, ei_hi, &
+                  dfo, do_lo, do_hi, &
+                  dfn, dn_lo, dn_hi, &
+                  exch, ex_lo, ex_hi, &
+                  dt, theta) &
+                  bind(C, name="ceup")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_max
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: fs_lo(3), fs_hi(3)
+    integer,  intent(in   ) :: fm_lo(3), fm_hi(3)
+    integer,  intent(in   ) :: et_lo(3), et_hi(3)
+    integer,  intent(in   ) :: ei_lo(3), ei_hi(3)
+    integer,  intent(in   ) :: do_lo(3), do_hi(3)
+    integer,  intent(in   ) :: dn_lo(3), dn_hi(3)
+    integer,  intent(in   ) :: ex_lo(3), ex_hi(3)
+    real(rt), intent(inout) :: frhoes(fs_lo(1):fs_hi(1),fs_lo(2):fs_hi(2),fs_lo(3):fs_hi(3))
+    real(rt), intent(in   ) :: frhoem(fm_lo(1):fm_hi(1),fm_lo(2):fm_hi(2),fm_lo(3):fm_hi(3))
+    real(rt), intent(in   ) :: eta(et_lo(1):et_hi(1),et_lo(2):et_hi(2),et_lo(3):et_hi(3))
+    real(rt), intent(in   ) :: etainv(ei_lo(1):ei_hi(1),ei_lo(2):ei_hi(2),ei_lo(3):ei_hi(3))
+    real(rt), intent(in   ) :: dfo(do_lo(1):do_hi(1),do_lo(2):do_hi(2),do_lo(3):do_hi(3))
+    real(rt), intent(in   ) :: dfn(dn_lo(1):dn_hi(1),dn_lo(2):dn_hi(2),dn_lo(3):dn_hi(3))
+    real(rt), intent(in   ) :: exch(ex_lo(1):ex_hi(1),ex_lo(2):ex_hi(2),ex_lo(3):ex_hi(3))
+    real(rt), intent(inout) :: relres, absres
+    real(rt), intent(in   ), value :: dt, theta
+
+    integer  :: i, j, k
+    real(rt) :: tmp, chg, tot
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             chg = 0.e0_rt
+             tot = 0.e0_rt
+
+             tmp = eta(i,j,k) * frhoes(i,j,k) + &
+                   etainv(i,j,k) * &
+                   (frhoem(i,j,k) - &
+                    dt * ((1.e0_rt - theta) * &
+                    (dfo(i,j,k) - dfn(i,j,k)) + &
+                    exch(i,j,k)))
+
+             chg = abs(tmp - frhoes(i,j,k))
+             tot = abs(frhoes(i,j,k))
+
+             frhoes(i,j,k) = tmp
+
+             call reduce_max(absres, chg)
+             call reduce_max(relres, chg / (tot + tiny))
+
+          end do
+       end do
+    end do
+
+  end subroutine ceup
+
+
+
   subroutine ca_compute_rosseland(lo, hi, &
                                   kpr, k_lo, k_hi, &
                                   state, s_lo, s_hi) &

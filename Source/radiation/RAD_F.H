@@ -907,12 +907,16 @@ extern "C" {
 	     amrex::Real dT, amrex::Real delta_t, amrex::Real sigma,
 	     amrex::Real c, amrex::Real underr, int lagpla);
 
-  void ceup(ARLIM_P(reglo), ARLIM_P(reghi), amrex::Real& relres, amrex::Real& absres,
-	    BL_FORT_FAB_ARG(frhoes), 
-	    amrex::Real* frhoem, amrex::Real* eta, amrex::Real* etainv,
-	    amrex::Real* dflux_old, amrex::Real* dflux_new,
-	    amrex::Real* exch,
-	    const amrex::Real& delta_t, const amrex::Real& theta);
+  void ceup(const int* lo, const int* hi,
+            amrex::Real* relres, amrex::Real* absres,
+	    BL_FORT_FAB_ARG_3D(frhoes), 
+	    const BL_FORT_FAB_ARG_3D(frhoem),
+            const BL_FORT_FAB_ARG_3D(eta),
+            const BL_FORT_FAB_ARG_3D(etainv),
+	    const BL_FORT_FAB_ARG_3D(dflux_old),
+            const BL_FORT_FAB_ARG_3D(dflux_new),
+	    const BL_FORT_FAB_ARG_3D(exch),
+	    amrex::Real delta_t, amrex::Real theta);
 
   void ceupdterm(ARLIM_P(reglo), ARLIM_P(reghi), 
 		 amrex::Real& relres, amrex::Real& absres,

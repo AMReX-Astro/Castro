@@ -226,45 +226,6 @@ subroutine cexch(DIMS(reg), &
   enddo
 end subroutine cexch
 
-subroutine ceup(DIMS(reg), relres, absres, &
-                frhoes, DIMS(grd), &
-                frhoem, eta, etainv, dfo, dfn, exch, &
-                dt, theta) bind(C, name="ceup")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(grd)
-  real(rt)         :: frhoes(DIMV(grd))
-  real(rt)         :: frhoem(DIMV(grd))
-  real(rt)         :: eta(DIMV(grd))
-  real(rt)         :: etainv(DIMV(grd))
-  real(rt)         :: dfo(DIMV(grd))
-  real(rt)         :: dfn(DIMV(grd))
-  real(rt)         :: exch(DIMV(grd))
-  real(rt)         :: dt, theta, relres, absres
-  real(rt)         :: tmp, chg, tot
-  integer :: i, j, k
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           chg = 0.e0_rt
-           tot = 0.e0_rt
-           tmp = eta(i,j,k) * frhoes(i,j,k) + &
-                etainv(i,j,k) * &
-                (frhoem(i,j,k) - &
-                dt * ((1.e0_rt - theta) * &
-                (dfo(i,j,k) - dfn(i,j,k)) + &
-                exch(i,j,k)))
-           chg = abs(tmp - frhoes(i,j,k))
-           tot = abs(frhoes(i,j,k))
-           frhoes(i,j,k) = tmp
-           absres = max(absres, chg)
-           relres = max(relres, chg / (tot + tiny))
-        enddo
-     enddo
-  enddo
-end subroutine ceup
-
 subroutine ceupdterm(DIMS(reg), relres, absres, &
                      frhoes, DIMS(grd), &
                      frhoem, eta, etainv, dfo, dfn, exch, dterm, &
