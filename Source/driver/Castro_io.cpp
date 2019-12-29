@@ -487,6 +487,8 @@ Castro::restart (Amr&     papa,
       }
       radiation->regrid(level, grids, dmap);
       radiation->restart(level, grids, dmap, parent->theRestartFile(), is);
+
+      rad_solver.reset(new RadSolve(parent, level, grids, dmap));
     }
 #endif
 
