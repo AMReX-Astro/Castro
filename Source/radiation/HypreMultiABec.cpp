@@ -1761,6 +1761,8 @@ void HypreMultiABec::loadLevelVectors(int level,
       f->copy(dest[mfi], icomp, 0, 1);
       fcomp = 0;
     }
+    Elixir f_elix = fnew.elixir();
+
     vec = f->dataPtr(fcomp); // sharing space, dest will be overwritten below
 
     vectorSetBoxValues(x, part, reg, subgrids[level][i], vec);
@@ -1844,6 +1846,8 @@ void HypreMultiABec::loadLevelVectorX(int level,
       f->copy(dest[mfi], icomp, 0, 1);
       fcomp = 0;
     }
+    Elixir f_elix = fnew.elixir();
+
     Real* vec = f->dataPtr(fcomp);
 
     vectorSetBoxValues(x, part, reg, subgrids[level][i], vec);
@@ -1872,6 +1876,8 @@ void HypreMultiABec::loadLevelVectorB(int level,
       f->resize(reg);
       f->copy(rhs[mfi]);
     }
+    Elixir f_elix = fnew.elixir();
+
     Real* vec = f->dataPtr();
 
     // add b.c.'s to rhs
@@ -2997,6 +3003,7 @@ void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
 
       fcomp = 0;
     }
+    Elixir f_elix = fnew.elixir();
 
     vectorGetBoxValues(x, part, reg, subgrids[level][i], *f, fcomp);
 

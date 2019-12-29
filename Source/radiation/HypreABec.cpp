@@ -688,6 +688,8 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       f->copy(dest[di], icomp, 0, 1);
       fcomp = 0;
     }
+    Elixir f_elix = fnew.elixir();
+
     vec = f->dataPtr(fcomp); // sharing space, dest will be overwritten below
 
     HYPRE_StructVectorSetBoxValues(x, loV(reg), hiV(reg), vec);
@@ -814,6 +816,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       f->resize(reg);
       fcomp = 0;
     }
+    Elixir f_elix = fnew.elixir();
 
     vec = f->dataPtr(fcomp);
     HYPRE_StructVectorGetBoxValues(x, loV(reg), hiV(reg),
