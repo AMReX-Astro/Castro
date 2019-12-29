@@ -14,66 +14,6 @@ module habec_module
 
 contains
 
-subroutine hacoef(mat, a, &
-                  DIMS(abox), &
-                  DIMS(reg), &
-                  alpha) bind(C, name="hacoef")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(abox)
-  integer :: DIMDEC(reg)
-  real(rt)         :: a(DIMV(abox))
-  real(rt)         :: mat(0:2, DIMV(reg))
-  real(rt)         :: alpha
-  integer :: i, j
-  if (alpha == 0.e0_rt) then
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           mat(2,i,j) = 0.e0_rt
-        enddo
-     enddo
-  else
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           mat(2,i,j) = alpha * a(i,j)
-        enddo
-     enddo
-  endif
-end subroutine hacoef
-
-subroutine hbcoef(mat, b, &
-                  DIMS(bbox), &
-                  DIMS(reg), &
-                  beta, dx, n) bind(C, name="hbcoef")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(bbox)
-  integer :: DIMDEC(reg)
-  integer :: n
-  real(rt)         :: b(DIMV(bbox))
-  real(rt)         :: mat(0:2, DIMV(reg))
-  real(rt)         :: beta, dx(2)
-  real(rt)         :: fac
-  integer :: i, j
-  if (n == 0) then
-     fac = beta / (dx(1)**2)
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           mat(0,i,j) = - fac * b(i,j)
-           mat(2,i,j) = mat(2,i,j) + fac * (b(i,j) + b(i+1,j))
-        enddo
-     enddo
-  else
-     fac = beta / (dx(2)**2)
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           mat(1,i,j) = - fac * b(i,j)
-           mat(2,i,j) = mat(2,i,j) + fac * (b(i,j) + b(i,j+1))
-        enddo
-     enddo
-  endif
-end subroutine hbcoef
-
 subroutine hbmat(mat, &
                  DIMS(reg), &
                  cdir, bct, bcl, &

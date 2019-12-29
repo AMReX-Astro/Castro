@@ -399,18 +399,25 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     const Box &reg = grids[i];
 
     matfab.resize(reg,size);
+    Elixir matfab_elix = matfab.elixir();
     Real* mat = matfab.dataPtr();
 
     // build matrix interior
 
-    hacoef(mat, 
-	   BL_TO_FORTRAN((*acoefs)[ai]),
-	   ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha);
+    // Note that we are using AoS indexing of matfab inside these functions.
 
-    for (idim = 0; idim < BL_SPACEDIM; idim++) {
-      hbcoef(mat,
-	     BL_TO_FORTRAN((*bcoefs[idim])[ai]),
-	     ARLIM(reg.loVect()), ARLIM(reg.hiVect()), beta, dx, idim);
+#pragma gpu box(reg) sync
+    hacoef(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+           BL_TO_FORTRAN_ANYD(matfab), 
+           BL_TO_FORTRAN_ANYD((*acoefs)[ai]),
+           alpha);
+
+    for (idim = 0; idim < BL_SPACEDIM; ++idim) {
+#pragma gpu box(reg) sync
+        hbcoef(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+               BL_TO_FORTRAN_ANYD(matfab),
+               BL_TO_FORTRAN_ANYD((*bcoefs[idim])[ai]),
+               beta, AMREX_REAL_ANYD(dx), idim);
     }
 
     // add b.c.'s to matrix diagonal, and

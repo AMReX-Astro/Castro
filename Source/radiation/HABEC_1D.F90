@@ -13,50 +13,6 @@ module habec_module
 
 contains
 
-subroutine hacoef(mat, a, &
-                  DIMS(abox), &
-                  DIMS(reg), &
-                  alpha) bind(C, name="hacoef")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(abox)
-  integer :: DIMDEC(reg)
-  real(rt)         :: a(DIMV(abox))
-  real(rt)         :: mat(0:1, DIMV(reg))
-  real(rt)         :: alpha
-  integer :: i
-  if (alpha == 0.e0_rt) then
-     do i = reg_l1, reg_h1
-        mat(1,i) = 0.e0_rt
-     enddo
-  else
-     do i = reg_l1, reg_h1
-        mat(1,i) = alpha * a(i)
-     enddo
-  endif
-end subroutine hacoef
-
-subroutine hbcoef(mat, b, &
-                  DIMS(bbox), &
-                  DIMS(reg), &
-                  beta, dx, n) bind(C, name="hbcoef")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(bbox)
-  integer :: DIMDEC(reg)
-  integer :: n
-  real(rt)         :: b(DIMV(bbox))
-  real(rt)         :: mat(0:1, DIMV(reg))
-  real(rt)         :: beta, dx(1)
-  real(rt)         :: fac
-  integer :: i
-  fac = beta / (dx(1)**2)
-  do i = reg_l1, reg_h1
-     mat(0,i) = - fac * b(i)
-     mat(1,i) = mat(1,i) + fac * (b(i) + b(i+1))
-  enddo
-end subroutine hbcoef
-
 subroutine hbmat(mat, &
                  DIMS(reg), &
                  cdir, bct, bcl, &

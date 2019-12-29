@@ -10,15 +10,15 @@ extern "C" {
 #define RadBoundCond int
 #endif
 
-  void hacoef(amrex::Real* mat, 
-	      BL_FORT_FAB_ARG(acoefs),
-	      ARLIM_P(reglo), ARLIM_P(reghi),
-	      const amrex::Real& alpha);
+  void hacoef(const int* lo, const int* hi,
+              BL_FORT_FAB_ARG_3D(mat),
+	      const BL_FORT_FAB_ARG_3D(acoefs),
+	      amrex::Real alpha);
 
-  void hbcoef(amrex::Real* mat, 
-	      BL_FORT_FAB_ARG(bcoefs),
-	      ARLIM_P(reglo), ARLIM_P(reghi),
-	      const amrex::Real& beta, const amrex::Real* dx, const int& n);
+  void hbcoef(const int* lo, const int* hi,
+              BL_FORT_FAB_ARG_3D(mat),
+              const BL_FORT_FAB_ARG_3D(bcoefs),
+              amrex::Real beta, const amrex::Real* dx, int idir);
 
   void hbmat(amrex::Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	     const int& cdir, const RadBoundCond& bct, const amrex::Real& bcl,
@@ -102,27 +102,27 @@ extern "C" {
   void hmbc(amrex::Real* mat,
 	    BL_FORT_FAB_ARG(bcoefs),
 	    ARLIM_P(reglo), ARLIM_P(reghi),
-	    const amrex::Real& beta, const amrex::Real* dx, const int& n);
+	    const amrex::Real& beta, const amrex::Real* dx, const int& idir);
 
   void hma2c(amrex::Real* mat, 
 	     BL_FORT_FAB_ARG(a2coefs), 
 	     ARLIM_P(reglo), ARLIM_P(reghi), 
-	     const amrex::Real& alpha2, const int& n);
+	     const amrex::Real& alpha2, const int& idir);
 
   void hmcc(amrex::Real* mat, 
 	    BL_FORT_FAB_ARG(ccoefs),
 	    ARLIM_P(reglo), ARLIM_P(reghi),
-	    const amrex::Real& gamma, const amrex::Real* dx, const int& n);
+	    const amrex::Real& gamma, const amrex::Real* dx, const int& idir);
 
   void hmd1c(amrex::Real* mat,
 	     BL_FORT_FAB_ARG(d1coefs),
 	     ARLIM_P(reglo), ARLIM_P(reghi),
-	     const amrex::Real& delta1, const amrex::Real* dx, const int& n);
+	     const amrex::Real& delta1, const amrex::Real* dx, const int& idir);
 
   void hmd2c(amrex::Real* mat,
 	     BL_FORT_FAB_ARG(d2coefs),
 	     ARLIM_P(reglo), ARLIM_P(reghi),
-	     const amrex::Real& delta2, const amrex::Real* dx, const int& n);
+	     const amrex::Real& delta2, const amrex::Real* dx, const int& idir);
 
   void hmmat(amrex::Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
 	     const int& cdir, const RadBoundCond& bct,
@@ -141,7 +141,7 @@ extern "C" {
 	      amrex::Real* spa, ARLIM_P(splo), ARLIM_P(sphi));
 
   // not used?
-  void add_ccoef_flux(const int& n,
+  void add_ccoef_flux(const int& idir,
 		      amrex::Real* Erborder, ARLIM_P(erlo), ARLIM_P(erhi),
 		      amrex::Real* ccoef, ARLIM_P(cclo), ARLIM_P(cchi),
 		      const amrex::Real& gamma,
@@ -149,7 +149,7 @@ extern "C" {
 		      amrex::Real* Flux, ARLIM_P(flo), ARLIM_P(fhi));
 
   void set_abec_flux(const int* lo, const int* hi,
-		     int n,
+		     int idir,
 		     BL_FORT_FAB_ARG_3D(c), 
 		     BL_FORT_FAB_ARG_3D(d), 
 		     amrex::Real beta,
