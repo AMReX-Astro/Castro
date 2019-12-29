@@ -16,6 +16,10 @@
 #include "AMReX_AmrParticles.H"
 #endif
 
+#ifdef RADIATION
+#include "RadSolve.H"
+#endif
+
 #include <memory>
 #include <iostream>
 
@@ -1736,6 +1740,8 @@ protected:
 #ifdef RADIATION
     amrex::MultiFab Erborder;
     amrex::MultiFab lamborder;
+
+    std::unique_ptr<RadSolve> rad_solver;
 #endif
 
 

@@ -22,10 +22,29 @@ using namespace amrex;
 
 #include <radsolve_defaults.H>
 
-RadSolve::RadSolve(Amr* Parent) : parent(Parent),
-  hd(NULL), hm(NULL)
+RadSolve::RadSolve (Amr* Parent, int level, const BoxArray& grids, const DistributionMapping& dmap)
+    : parent(Parent)
 {
     read_params();
+
+    if (level_solver_flag < 100) {
+        hd.reset(new HypreABec(grids, dmap, parent->Geom(level), level_solver_flag));
+    }
+    else {
+        if (use_hypre_nonsymmetric_terms == 0) {
+            hm.reset(new HypreMultiABec(level, level, level_solver_flag));
+        }
+        else {
+            hm.reset(new HypreExtMultiABec(level, level, level_solver_flag));
+            HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
+            cMulti  = hem->cMultiplier();
+            d1Multi = hem->d1Multiplier();
+            d2Multi = hem->d2Multiplier();
+        }
+        hm->addLevel(level, parent->Geom(level), grids, dmap,
+                     IntVect::TheUnitVector());
+        hm->buildMatrixStructure();
+    }
 }
 
 void
@@ -96,28 +115,6 @@ RadSolve::read_params ()
 void RadSolve::levelInit(int level)
 {
   BL_PROFILE("RadSolve::levelInit");
-  const BoxArray& grids = parent->boxArray(level);
-  const DistributionMapping& dmap = parent->DistributionMap(level);
-//  const Real *dx = parent->Geom(level).CellSize();
-
-  if (level_solver_flag < 100) {
-      hd = new HypreABec(grids, dmap, parent->Geom(level), level_solver_flag);
-  }
-  else {
-      if (use_hypre_nonsymmetric_terms == 0) {
-	  hm = new HypreMultiABec(level, level, level_solver_flag);
-      }
-      else {
-	  hm = new HypreExtMultiABec(level, level, level_solver_flag);
-	  HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
-	  cMulti  = hem->cMultiplier();
-	  d1Multi = hem->d1Multiplier();
-	  d2Multi = hem->d2Multiplier();
-      }
-      hm->addLevel(level, parent->Geom(level), grids, dmap,
-                   IntVect::TheUnitVector());
-      hm->buildMatrixStructure();
-  }
 }
 
 void RadSolve::levelBndry(RadBndry& bd)
@@ -142,18 +139,6 @@ void RadSolve::levelBndry(MGRadBndry& mgbd, const int comp)
   }
   else if (hm) {
     hm->setBndry(hm->crseLevel(), mgbd, comp);
-  }
-}
-
-void RadSolve::levelClear()
-{
-  if (hd) {
-    delete hd;
-    hd = NULL;
-  }
-  else if (hm) {
-    delete hm;
-    hm = NULL;
   }
 }
 
@@ -204,7 +189,7 @@ void RadSolve::setLevelBCoeffs(int level, const MultiFab& bcoefs, int dir)
 void RadSolve::setLevelCCoeffs(int level, const MultiFab& ccoefs, int dir)
 {
   if (hm) {
-    HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm);
+    HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm.get());
     if (hem) {
       hem->cCoefficients(level, ccoefs, dir);
     }
@@ -377,7 +362,7 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
 	    }
 	}
 
-	HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
+	HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
 	hem->d2Coefficients(level, dcoefs, idim);
 	hem->d2Multiplier() = 1.0;
     }
@@ -547,7 +532,7 @@ void RadSolve::levelFlux(int level,
     //      when use_hypre_nonsymmetric_terms == 1.
     //      And ccoef is not being used anyway.
     // if (use_hypre_nonsymmetric_terms == 1) {
-    //   HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
+    //   HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
     //   cp = &hem->cCoefficients(level, n);
     // }
     MultiFab &bcoef = *(MultiFab*)bp;
@@ -580,7 +565,7 @@ void RadSolve::levelFlux(int level,
     hm->boundaryFlux(level, &Flux[0], Er, igroup, Inhomogeneous_BC);
   }
   if (use_hypre_nonsymmetric_terms == 1) {
-    //HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
+    //HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
     //hem->boundaryFlux(level, &Flux[0], Er);
   }
 }
@@ -635,7 +620,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 
   Erborder.FillBoundary(parent->Geom(level).periodicity()); // zeroes left in off-level boundaries
 
-  HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
+  HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -880,7 +865,7 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 
 void RadSolve::setHypreMulti(Real cMul, Real d1Mul, Real d2Mul)
 {
-  HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm);
+  HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm.get());
   if (hem) {
     hem-> cMultiplier() =  cMul;
     hem->d1Multiplier() = d1Mul;
@@ -890,7 +875,7 @@ void RadSolve::setHypreMulti(Real cMul, Real d1Mul, Real d2Mul)
 
 void RadSolve::restoreHypreMulti()
 {
-  HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm);
+  HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm.get());
   if (hem) {
     hem-> cMultiplier() =  cMulti;
     hem->d1Multiplier() = d1Multi;

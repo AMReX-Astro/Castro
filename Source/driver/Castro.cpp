@@ -660,6 +660,8 @@ Castro::Castro (Amr&            papa,
 	radiation = new Radiation(parent, this);
       }
       radiation->regrid(level, grids, dmap);
+
+      rad_solver.reset(new RadSolve(parent, level, grids, dmap));
     }
 #endif
 

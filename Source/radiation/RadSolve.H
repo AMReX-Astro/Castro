@@ -24,8 +24,10 @@ class RadSolve {
 ///
 /// @param Parent
 ///
-  RadSolve(amrex::Amr* Parent);
-  virtual ~RadSolve() { }
+  RadSolve (amrex::Amr* Parent, int level,
+            const amrex::BoxArray& grids,
+            const amrex::DistributionMapping& dmap);
+  ~RadSolve () {}
 
 ///
 /// query runtime parameters
@@ -303,8 +305,8 @@ protected:
 
     amrex::Amr* parent;
 
-    HypreABec      *hd;
-    HypreMultiABec *hm;
+    std::unique_ptr<HypreABec> hd;
+    std::unique_ptr<HypreMultiABec> hm;
 
 #include <radsolve_params.H>
 
