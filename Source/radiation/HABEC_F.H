@@ -20,21 +20,6 @@ extern "C" {
               const BL_FORT_FAB_ARG_3D(bcoefs),
               amrex::Real beta, const amrex::Real* dx, int idir);
 
-  void hbmat(amrex::Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
-	     const int& cdir, const RadBoundCond& bct, const amrex::Real& bcl,
-	     const BL_FORT_IFAB_ARG(mask),
-	     BL_FORT_FAB_ARG(bcoefs),
-	     const amrex::Real& beta, const amrex::Real* dx);
-
-  void hbmat3(amrex::Real* mat, ARLIM_P(reglo), ARLIM_P(reghi),
-	      const int& cdir, const int& bctype,
-	      const int* tf, const amrex::Real& bcl, ARLIM_P(flo), ARLIM_P(fhi),
-	      const BL_FORT_IFAB_ARG(mask),
-	      BL_FORT_FAB_ARG(bcoefs),
-	      const amrex::Real& beta, const amrex::Real* dx,
-	      const amrex::Real& flux_factor, const amrex::Real* r,
-	      const amrex::Real* spa, ARLIM_P(slo), ARLIM_P(shi));
-
   void hbvec(amrex::Real* vec, ARLIM_P(reglo), ARLIM_P(reghi),
 	     const int& cdir, const RadBoundCond& bct, const int& bho,
 	     const amrex::Real& bcl,
@@ -50,6 +35,26 @@ extern "C" {
 	      const BL_FORT_IFAB_ARG(mask),
 	      BL_FORT_FAB_ARG(bcoefs),
 	      const amrex::Real& beta, const amrex::Real* dx, const amrex::Real* r);
+  void hbmat(const int* lo, const int* hi,
+             BL_FORT_FAB_ARG_3D(mat),
+	     int cdir, int bct, amrex::Real bcl,
+             const int* mask, const int* m_lo, const int* m_hi,
+	     BL_FORT_FAB_ARG_3D(bcoefs),
+	     amrex::Real beta, const amrex::Real* dx);
+
+  void hbmat3(const int* lo, const int* hi,
+              int lo_x, int hi_x,
+              int ori_lo, int idir,
+              BL_FORT_FAB_ARG_3D(mat),
+	      int cdir, int bctype,
+	      const int* tf, const int* tf_lo, const int* tf_hi,
+              amrex::Real bcl,
+	      const int* mask, const int* m_lo, const int* m_hi,
+	      BL_FORT_FAB_ARG_3D(bcoefs),
+	      amrex::Real beta, const amrex::Real* dx,
+	      amrex::Real flux_factor,
+	      const amrex::Real* spa, const int* s_lo, const int* s_hi);
+
 
   void hbflx(BL_FORT_FAB_ARG(flux),
 	     BL_FORT_FAB_ARG(soln),

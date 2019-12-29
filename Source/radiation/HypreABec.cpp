@@ -390,7 +390,6 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     stencil_indices[i] = i;
   }
 
-  Vector<Real> r;
   Real foo=1.e200;
 
   FArrayBox matfab;
@@ -452,21 +451,28 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 	  pSPa = &foo;
 	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 	}
-        getFaceMetric(r, reg, oitr(), geom);
-	hbmat3(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	       cdir, bctype, tfp, bcl,
-	       ARLIM(fsb.loVect()), ARLIM(fsb.hiVect()),
-	       BL_TO_FORTRAN(msk), 
-	       BL_TO_FORTRAN((*bcoefs[idim])[ai]),
-	       beta, dx, flux_factor, r.dataPtr(),
-	       pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
+
+#pragma gpu box(reg) sync
+        hbmat3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+               reg.loVect()[0], reg.hiVect()[0],
+               oitr().isLow(), idim+1,
+               BL_TO_FORTRAN_ANYD(matfab),
+               cdir, bctype,
+               tfp, AMREX_INT_ANYD(fsb.loVect()), AMREX_INT_ANYD(fsb.hiVect()),
+               bcl,
+               msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+               BL_TO_FORTRAN_ANYD((*bcoefs[idim])[ai]),
+               beta, AMREX_REAL_ANYD(dx), flux_factor,
+               pSPa, AMREX_INT_ANYD(SPabox.loVect()), AMREX_INT_ANYD(SPabox.hiVect()));
       }
       else {
-	hbmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      cdir, bct, bcl,
-	      BL_TO_FORTRAN(msk),
-	      BL_TO_FORTRAN((*bcoefs[idim])[ai]),
-	      beta, dx);
+#pragma gpu box(reg) sync
+        hbmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+              BL_TO_FORTRAN_ANYD(matfab),
+              cdir, bct, bcl,
+              msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+              BL_TO_FORTRAN_ANYD((*bcoefs[idim])[ai]),
+              beta, AMREX_REAL_ANYD(dx));
       }
     }
 
