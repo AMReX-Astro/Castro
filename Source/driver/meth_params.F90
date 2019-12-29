@@ -501,20 +501,6 @@ contains
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
-    allocate(character(len=1)::gravity_type)
-    gravity_type = "fillme";
-    allocate(const_grav)
-    const_grav = 0.0_rt;
-    allocate(get_g_from_phi)
-    get_g_from_phi = 0;
-
-    call amrex_parmparse_build(pp, "gravity")
-    call pp%query("gravity_type", gravity_type)
-    call pp%query("const_grav", const_grav)
-    call pp%query("get_g_from_phi", get_g_from_phi)
-    call amrex_parmparse_destroy(pp)
-
-
 #ifdef ROTATION
     allocate(rot_period)
     rot_period = -1.e200_rt;
@@ -534,16 +520,6 @@ contains
     implicit_rotation_update = 1;
     allocate(rot_axis)
     rot_axis = 3;
-#endif
-#ifdef DIFFUSION
-    allocate(diffuse_temp)
-    diffuse_temp = 0;
-    allocate(diffuse_cutoff_density)
-    diffuse_cutoff_density = -1.e200_rt;
-    allocate(diffuse_cutoff_density_hi)
-    diffuse_cutoff_density_hi = -1.e200_rt;
-    allocate(diffuse_cond_scale_fac)
-    diffuse_cond_scale_fac = 1.0_rt;
 #endif
 #ifdef GRAVITY
     allocate(use_point_mass)
@@ -703,6 +679,16 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
+#ifdef DIFFUSION
+    allocate(diffuse_temp)
+    diffuse_temp = 0;
+    allocate(diffuse_cutoff_density)
+    diffuse_cutoff_density = -1.e200_rt;
+    allocate(diffuse_cutoff_density_hi)
+    diffuse_cutoff_density_hi = -1.e200_rt;
+    allocate(diffuse_cond_scale_fac)
+    diffuse_cond_scale_fac = 1.0_rt;
+#endif
 
     call amrex_parmparse_build(pp, "castro")
 #ifdef ROTATION
@@ -715,12 +701,6 @@ contains
     call pp%query("rot_source_type", rot_source_type)
     call pp%query("implicit_rotation_update", implicit_rotation_update)
     call pp%query("rot_axis", rot_axis)
-#endif
-#ifdef DIFFUSION
-    call pp%query("diffuse_temp", diffuse_temp)
-    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
-    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
-    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
 #endif
 #ifdef GRAVITY
     call pp%query("use_point_mass", use_point_mass)
@@ -802,6 +782,26 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+#ifdef DIFFUSION
+    call pp%query("diffuse_temp", diffuse_temp)
+    call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
+    call pp%query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi)
+    call pp%query("diffuse_cond_scale_fac", diffuse_cond_scale_fac)
+#endif
+    call amrex_parmparse_destroy(pp)
+
+
+    allocate(character(len=1)::gravity_type)
+    gravity_type = "fillme";
+    allocate(const_grav)
+    const_grav = 0.0_rt;
+    allocate(get_g_from_phi)
+    get_g_from_phi = 0;
+
+    call amrex_parmparse_build(pp, "gravity")
+    call pp%query("gravity_type", gravity_type)
+    call pp%query("const_grav", const_grav)
+    call pp%query("get_g_from_phi", get_g_from_phi)
     call amrex_parmparse_destroy(pp)
 
 

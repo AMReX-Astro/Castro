@@ -20,96 +20,77 @@
 
 using namespace amrex;
 
-Vector<Real> RadSolve::absres(0);
+#include <radsolve_defaults.H>
 
 RadSolve::RadSolve(Amr* Parent) : parent(Parent),
   hd(NULL), hm(NULL)
 {
-  ParmParse pp("radsolve");
+    read_params();
+}
 
-  if (BL_SPACEDIM == 1) {
-    // pfmg will not work in 1D
-    level_solver_flag            = 0;
-  }
-  else {
-    level_solver_flag            = 1;
-  }
-  pp.query("level_solver_flag",            level_solver_flag);
+void
+RadSolve::read_params ()
+{
+    ParmParse pp("radsolve");
 
-  use_hypre_nonsymmetric_terms = 0;
-  pp.query("use_hypre_nonsymmetric_terms", use_hypre_nonsymmetric_terms);
+    // Override some defaults manually.
 
-  if (Radiation::SolverType == Radiation::SGFLDSolver 
-      && Radiation::Er_Lorentz_term) { 
-
-    use_hypre_nonsymmetric_terms = 1;
-
-    if (level_solver_flag < 100) {
-      amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
+    if (BL_SPACEDIM == 1) {
+        // pfmg will not work in 1D
+        level_solver_flag = 0;
     }
-  }
 
-  if (Radiation::SolverType == Radiation::MGFLDSolver && 
-      Radiation::accelerate == 2 && Radiation::nGroups > 1) {
-    use_hypre_nonsymmetric_terms = 1;
+    if (Radiation::SolverType == Radiation::SGFLDSolver
+        && Radiation::Er_Lorentz_term) { 
 
-    if (level_solver_flag < 100) {
-      amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
+        use_hypre_nonsymmetric_terms = 1;
+
+        if (level_solver_flag < 100) {
+            amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
+        }
     }
-  }
 
-  ParmParse ppr("radiation");
+    if (Radiation::SolverType == Radiation::MGFLDSolver && 
+        Radiation::accelerate == 2 && Radiation::nGroups > 1) {
 
-  reltol     = 1.0e-10;   pp.query("reltol",  reltol);
-  if (Radiation::SolverType == Radiation::SGFLDSolver ||
-      Radiation::SolverType == Radiation::MGFLDSolver) {
-    abstol = 0.0;
-  }
-  else {
-    abstol     = 1.0e-10;   
-  }
-  pp.query("abstol",  abstol);
-  maxiter    = 40;        pp.query("maxiter", maxiter);
+        use_hypre_nonsymmetric_terms = 1;
 
-  // For the radiation problem these are always +1:
-  alpha = 1.0; pp.query("alpha",alpha);
-  beta  = 1.0; pp.query("beta",beta);
+        if (level_solver_flag < 100) {
+            amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
+        }
+    }
 
-  verbose = 0; pp.query("v", verbose); pp.query("verbose", verbose);
+    if (Radiation::SolverType == Radiation::SGFLDSolver ||
+        Radiation::SolverType == Radiation::MGFLDSolver) {
+        abstol = 0.0;
+    }
 
-  {
-    // Putting this here is a kludge, but I make the factors static and
-    // enter them here for both kinds of solvers so that any solver
-    // objects created by, for example, the CompSolver, will get the
-    // right values.  They are set each time this constructor is called
-    // to allow for the fact that we might conceivably have two different
-    // radiation-like sets of equations being solved with different
-    // conventions about flux_factor (photons and neutrinos, for example).
-    // The assumption then is that the RadSolve object will only persist
-    // for the duration of one type of physics update.
-    ParmParse pp1("radiation");
-    Real c = Radiation::clight;
-    pp1.query("c", c);
-    HypreABec::fluxFactor() = c;
-    HypreMultiABec::fluxFactor() = c;
-  }
+#include "radsolve_queries.H"
 
-  static int first = 1;
-  if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
-    first = 0;
-    std::cout << "radsolve.level_solver_flag      = " << level_solver_flag << std::endl;
-    std::cout << "radsolve.maxiter                = " << maxiter << std::endl;
-    std::cout << "radsolve.reltol                 = " << reltol << std::endl;
-    std::cout << "radsolve.abstol                 = " << abstol << std::endl;
-    std::cout << "radsolve.use_hypre_nonsymmetric_terms = "
-         << use_hypre_nonsymmetric_terms << std::endl;
-    std::cout << "radsolve.verbose                = " << verbose << std::endl;
-  }
+    // Check for unsupported options.
 
-  // Static initialization:
-  if (absres.size() == 0) {
-    absres.resize(parent->maxLevel() + 1, 0.0);
-  }
+    if (BL_SPACEDIM == 1) {
+        if (level_solver_flag == 1) {
+            amrex::Error("radsolve.level_solver_flag = 1 is not supported in 1D");
+        }
+    }
+
+    if (Radiation::SolverType == Radiation::SGFLDSolver
+        && Radiation::Er_Lorentz_term) { 
+
+        if (level_solver_flag < 100) {
+            amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
+        }
+    }
+
+    if (Radiation::SolverType == Radiation::MGFLDSolver && 
+        Radiation::accelerate == 2 && Radiation::nGroups > 1) {
+
+        if (level_solver_flag < 100) {
+            amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
+        }
+    }
+
 }
 
 void RadSolve::levelInit(int level)
@@ -479,7 +460,6 @@ void RadSolve::levelSolve(int level,
       std::cout.precision(oldprec);
     }
     res *= sync_absres_factor;
-    absres[level] = (absres[level] > res) ? absres[level] : res;
     hd->clearSolver();
   }
   else if (hm) {
@@ -497,7 +477,6 @@ void RadSolve::levelSolve(int level,
       std::cout.precision(oldprec);
     }
     res *= sync_absres_factor;
-    absres[level] = (absres[level] > res) ? absres[level] : res;
     hm->clearSolver();
   }
 }

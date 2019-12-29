@@ -481,6 +481,14 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 	pp.query("c", c);
 	pp.query("sigma", sigma);
     }
+
+    // Set Hypre flux factors here. Since this only occurs once,
+    // every instance of Hypre must use the same factor (or
+    // be responsible for changing it internally).
+
+    HypreABec::fluxFactor() = c;
+    HypreMultiABec::fluxFactor() = c;
+
   }
 
   radtoE = 1.0;
