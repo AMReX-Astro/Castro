@@ -61,7 +61,7 @@ Castro::fill_thermo_source (Real time, Real dt,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(thermo_src, true); mfi.isValid(); ++mfi)
+  for (MFIter mfi(thermo_src, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
       const Box& bx = mfi.tilebox();

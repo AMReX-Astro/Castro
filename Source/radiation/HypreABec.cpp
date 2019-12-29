@@ -209,6 +209,8 @@ HypreABec::HypreABec(const BoxArray& grids,
   HYPRE_StructVectorInitialize(b);
   HYPRE_StructVectorInitialize(x);
 
+  Gpu::synchronize();
+
   int ncomp=1;
   int ngrow=0;
   acoefs.reset(new MultiFab(grids, dmap, ncomp, ngrow));
@@ -308,6 +310,7 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 
     HYPRE_StructVectorSetBoxValues(x, loV(reg), hiV(reg),
 				   f->dataPtr(fcomp));
+    Gpu::synchronize();
 
     // initialize product (to temporarily hold the boundary contribution):
 
@@ -400,11 +403,13 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 
     HYPRE_StructVectorSetBoxValues(b, loV(reg), hiV(reg),
 				   vec);
+    Gpu::synchronize();
 
     // initialize matrix
 
     HYPRE_StructMatrixSetBoxValues(A0, loV(reg), hiV(reg),
 				   size, stencil_indices, mat);
+    Gpu::synchronize();
   }
 
   HYPRE_StructMatrixAssemble(A0);
@@ -421,6 +426,8 @@ void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
 		     (hypre_StructVector *) x,
 		     -1.0,
 		     (hypre_StructVector *) b);
+
+  Gpu::synchronize();
 
   for (MFIter vi(vector); vi.isValid(); ++vi) {
     i = vi.index();
@@ -634,6 +641,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
     HYPRE_StructMatrixSetBoxValues(A, loV(reg), hiV(reg),
 				   size, stencil_indices, mat);
+    Gpu::synchronize();
   }
 
   HYPRE_StructMatrixAssemble(A);
@@ -793,6 +801,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     std::cout << "HypreABec: no such solver" << std::endl;
     exit(1);
   }
+  Gpu::synchronize();
 }
 
 void HypreABec::clearSolver()
@@ -865,6 +874,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     vec = f->dataPtr(fcomp); // sharing space, dest will be overwritten below
 
     HYPRE_StructVectorSetBoxValues(x, loV(reg), hiV(reg), vec);
+    Gpu::synchronize();
 
     f->copy(rhs[di], 0, fcomp, 1);
 
@@ -912,10 +922,12 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     // initialize rhs
 
     HYPRE_StructVectorSetBoxValues(b, loV(reg), hiV(reg), vec);
+    Gpu::synchronize();
   }
 
   HYPRE_StructVectorAssemble(b); // currently a no-op
   HYPRE_StructVectorAssemble(x); // currently a no-op
+  Gpu::synchronize();
 
   if (abstol > 0.0) {
     Real bnorm;
@@ -968,6 +980,8 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     HYPRE_StructHybridSolve(solver, A, b, x);
   }
 
+  Gpu::synchronize();
+
   for (MFIter di(dest); di.isValid(); ++di) {
     i = di.index();
     const Box &reg = grids[i];
@@ -987,6 +1001,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     vec = f->dataPtr(fcomp);
     HYPRE_StructVectorGetBoxValues(x, loV(reg), hiV(reg),
 				   vec);
+    Gpu::synchronize();
 
     if (dest.nGrow() != 0) {
       dest[di].copy(*f, 0, icomp, 1);
@@ -1024,6 +1039,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       std::cout.precision(oldprec);
     }
   }
+  Gpu::synchronize();
 }
 
 Real HypreABec::getAbsoluteResidual()
@@ -1051,6 +1067,8 @@ Real HypreABec::getAbsoluteResidual()
   else if(solver_flag == 5 || solver_flag == 6) {
     HYPRE_StructHybridGetFinalRelativeResidualNorm(solver, &res);
   }
+
+  Gpu::synchronize();
 
   const BoxArray& grids = acoefs->boxArray();
   Real volume = 0.0;

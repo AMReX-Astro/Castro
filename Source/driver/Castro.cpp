@@ -173,21 +173,21 @@ std::string  Castro::probin_file = "probin";
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024);
 #else
-IntVect      Castro::hydro_tile_size(1024);
+IntVect      Castro::hydro_tile_size(1048576);
 #endif
 IntVect      Castro::no_tile_size(1024);
 #elif BL_SPACEDIM == 2
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16);
 #else
-IntVect      Castro::hydro_tile_size(1024,1024);
+IntVect      Castro::hydro_tile_size(1048576,1048576);
 #endif
 IntVect      Castro::no_tile_size(1024,1024);
 #else
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16,16);
 #else
-IntVect      Castro::hydro_tile_size(1024,64,64);
+IntVect      Castro::hydro_tile_size(1048576,1048576,1048576);
 #endif
 IntVect      Castro::no_tile_size(1024,1024,1024);
 #endif
@@ -1376,7 +1376,7 @@ Castro::estTimeStep (Real dt_old)
                 const MultiFab& radMF = get_new_data(Rad_Type);
                 FArrayBox gPr;
 
-                for (MFIter mfi(stateMF, true); mfi.isValid(); ++mfi)
+                for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
                 {
                     const Box& tbox = mfi.tilebox();
                     const Box& vbox = mfi.validbox();
@@ -1403,7 +1403,7 @@ Castro::estTimeStep (Real dt_old)
             {
                 Real dt = max_dt / cfl;
 
-                for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+                for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
                 {
                     const Box& box = mfi.tilebox();
 
@@ -1450,7 +1450,7 @@ Castro::estTimeStep (Real dt_old)
         {
             Real dt = max_dt / cfl;
 
-            for (MFIter mfi(stateMF,true); mfi.isValid(); ++mfi)
+            for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
                 const Box& box = mfi.tilebox();
 
@@ -2457,7 +2457,7 @@ Castro::advance_aux(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_old,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_old, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& box = mfi.tilebox();
         FArrayBox& old_fab = S_old[mfi];
@@ -2885,7 +2885,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.growntilebox(ng);
 
@@ -2904,7 +2904,7 @@ Castro::enforce_consistent_e (MultiFab& S)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& box     = mfi.tilebox();
         const int* lo      = box.loVect();
@@ -2942,7 +2942,7 @@ Castro::enforce_min_density (MultiFab& state, int ng)
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dens_change)
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
 	const Box& bx = mfi.growntilebox(ng);
 
@@ -3082,7 +3082,7 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
             const int8_t clearval = (int8_t) TagBox::CLEAR;
 
 #ifdef GPU_COMPATIBLE_PROBLEM
-#pragma gpu
+#pragma gpu box(bx)
 	    set_problem_tags(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                              (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
 			     BL_TO_FORTRAN_ANYD(S_new[mfi]),
@@ -3137,7 +3137,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
             const int8_t clearval = (int8_t) TagBox::CLEAR;
 
             if (err_list_names[j] == "density") {
-#pragma gpu
+#pragma gpu box(bx)
                 ca_denerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
                             BL_TO_FORTRAN_ANYD(datfab), ncomp,
@@ -3145,7 +3145,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                             tagval, clearval, time, level);
             }
             else if (err_list_names[j] == "Temp") {
-#pragma gpu
+#pragma gpu box(bx)
                 ca_temperror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                              (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
                              BL_TO_FORTRAN_ANYD(datfab), ncomp,
@@ -3153,7 +3153,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                              tagval, clearval, time, level);
             }
             else if (err_list_names[j] == "pressure") {
-#pragma gpu
+#pragma gpu box(bx)
                 ca_presserror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                               (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
                               BL_TO_FORTRAN_ANYD(datfab), ncomp,
@@ -3161,7 +3161,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                               tagval, clearval, time, level);
             }
             else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
-#pragma gpu
+#pragma gpu box(bx)
                 ca_velerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
                             BL_TO_FORTRAN_ANYD(datfab), ncomp,
@@ -3170,7 +3170,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
             }
 #ifdef REACTIONS
             else if (err_list_names[j] == "t_sound_t_enuc") {
-#pragma gpu
+#pragma gpu box(bx)
                 ca_nucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
                             BL_TO_FORTRAN_ANYD(datfab), ncomp,
@@ -3178,7 +3178,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                             tagval, clearval, time, level);
             }
             else if (err_list_names[j] == "enuc") {
-#pragma gpu
+#pragma gpu box(bx)
                 ca_enucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                              (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
                              BL_TO_FORTRAN_ANYD(datfab), ncomp,
@@ -3188,7 +3188,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 #endif
 #ifdef RADIATION
             else if (err_list_names[j] == "rad") {
-#pragma gpu
+#pragma gpu box(bx)
                 ca_raderror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
                             BL_TO_FORTRAN_ANYD(datfab), ncomp,
@@ -3331,7 +3331,7 @@ Castro::reset_internal_energy(MultiFab& S_new, int ng)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
 
@@ -3456,7 +3456,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(State,true); mfi.isValid(); ++mfi)
+  for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
       int num_ghost = ng;
@@ -3474,11 +3474,12 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 	temp.resize(bx);
 	temp.copy(State[mfi],bx,Eint,bx,0,1);
 
+#pragma gpu box(bx) sync
 	ca_compute_temp_given_cv
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(temp),
-	   BL_TO_FORTRAN(State[mfi]),
-	   &Radiation::const_c_v, &Radiation::c_v_exp_m, &Radiation::c_v_exp_n);
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(temp),
+             BL_TO_FORTRAN_ANYD(State[mfi]),
+             Radiation::const_c_v, Radiation::c_v_exp_m, Radiation::c_v_exp_n);
 
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {

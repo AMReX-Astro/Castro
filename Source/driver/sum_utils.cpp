@@ -30,7 +30,7 @@ Castro::sumDerive (const std::string& name,
 #pragma omp parallel reduction(+:sum)
 #endif
     {
-	for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+	for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
 	{
 	    sum += (*mf)[mfi].sum(mfi.tilebox(),0);
 	}
@@ -65,7 +65,7 @@ Castro::volWgtSum (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
 
@@ -115,7 +115,7 @@ Castro::volWgtSquaredSum (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
     
@@ -162,7 +162,7 @@ Castro::locWgtSum (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const FArrayBox& fab = (*mf)[mfi];
     
@@ -211,7 +211,7 @@ Castro::locWgtSum2D (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const FArrayBox& fab = (*mf)[mfi];
     
@@ -246,7 +246,7 @@ Castro::volWgtSumMF (const MultiFab& mf, int comp, bool local)
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const FArrayBox& fab = mf[mfi];
 
@@ -301,7 +301,7 @@ Castro::volWgtSumOneSide (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
     
@@ -397,7 +397,7 @@ Castro::locWgtSumOneSide (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif        
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         FArrayBox& fab = (*mf)[mfi];
 
@@ -486,7 +486,7 @@ Castro::volProductSum (const std::string& name1,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf1,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf1, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const FArrayBox& fab1 = (*mf1)[mfi];
         const FArrayBox& fab2 = (*mf2)[mfi];
@@ -530,7 +530,7 @@ Castro::locSquaredSum (const std::string& name,
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:sum)
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const FArrayBox& fab = (*mf)[mfi];
     

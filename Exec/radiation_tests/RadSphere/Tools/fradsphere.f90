@@ -21,9 +21,9 @@ program fradsphere
   integer :: ung
   integer :: cnt, max_points, nvs
 
-  real(dp_t)        :: dx(MAX_SPACEDIM)
-  real(dp_t)       , pointer :: p(:,:,:,:)
-  real(dp_t)       , allocatable :: sv(:,:)
+  real(rt)          :: dx(MAX_SPACEDIM)
+  real(rt)         , pointer :: p(:,:,:,:)
+  real(rt)         , allocatable :: sv(:,:)
   integer, allocatable :: isv(:)
   logical, allocatable :: imask(:)
   integer :: nspec, lo(MAX_SPACEDIM), hi(MAX_SPACEDIM)
@@ -39,11 +39,11 @@ program fradsphere
 
   character(len=1) :: dirstr
 
-  real(dp_t)        :: rmin, rmax
-  real(dp_t)        :: radius
+  real(rt)          :: rmin, rmax
+  real(rt)          :: radius
 
   integer :: ngroups
-  real(dp_t)       , allocatable :: nu_groups(:), dnu_groups(:)
+  real(rt)         , allocatable :: nu_groups(:), dnu_groups(:)
 
   integer :: irad_begin
   integer :: idx_obs
@@ -55,7 +55,7 @@ program fradsphere
   ung =  unit_new()
 
   groupfile = "group_structure.dat"
-  radius = 0.06e0_dp_t
+  radius = 0.06e0_rt
 
   narg = command_argument_count()
 

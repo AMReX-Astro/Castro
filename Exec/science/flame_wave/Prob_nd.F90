@@ -200,16 +200,15 @@ subroutine ca_initdata(lo, hi, &
            x = problo(1) + (dble(i) + HALF) * dx(1)
 
            ! lateral distance
-           if (AMREX_SPACEDIM == 2) then
+           if (AMREX_SPACEDIM == 1) then
+              r = 1.0_rt
+              height = x
+           else if (AMREX_SPACEDIM == 2) then
               r = x
               height = y
            else if (AMREX_SPACEDIM == 3) then
               r = sqrt(x**2 + y**2)
               height = z
-#ifndef AMREX_USE_CUDA
-           else
-              call castro_error("ERROR: problem not setup for 1D")
-#endif
            end if
 
            if (r < x_half_max) then

@@ -138,18 +138,18 @@ contains
 
     integer :: i
 
-    real (rt) :: pres_base, entropy_base
+    real(rt)  :: pres_base, entropy_base
 
-    real (rt) :: A, B
+    real(rt)  :: A, B
 
-    real (rt) :: dCoord
+    real(rt)  :: dCoord
 
-    real (rt) :: dens_zone, temp_zone, pres_zone, entropy
-    real (rt) :: dpd, dpt, dsd, dst
+    real(rt)  :: dens_zone, temp_zone, pres_zone, entropy
+    real(rt)  :: dpd, dpt, dsd, dst
 
-    real (rt) :: p_want, drho, dtemp, delx
+    real(rt)  :: p_want, drho, dtemp, delx
 
-    real (rt), parameter :: TOL = 1.e-10
+    real(rt) , parameter :: TOL = 1.e-10
 
     integer, parameter :: MAX_ITER = 250
 
@@ -157,7 +157,7 @@ contains
 
     logical :: converged_hse, fluff
 
-    real (rt), dimension(nspec) :: xn
+    real(rt) , dimension(nspec) :: xn
 
     integer :: index_base
 
