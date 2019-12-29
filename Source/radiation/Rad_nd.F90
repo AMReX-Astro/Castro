@@ -359,146 +359,6 @@ contains
 
 
 
-  subroutine cell_center_metric(i, j, k, dx, r, s)
-
-    use amrex_constants_module, only: ONE
-    use prob_params_module, only: dim, coord_type
-    use castro_util_module, only: position ! function
-
-    implicit none
-
-    integer,  intent(in   ) :: i, j, k
-    real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(inout) :: r, s
-
-    real(rt) :: loc(3)
-    real(rt) :: h1, h2, d1, d2
-    integer  :: d
-
-    !$gpu
-
-    if (dim >= 2) then
-       d = 2
-    else
-       d = 1
-    end if
-
-    if (coord_type == 0) then
-
-       r = ONE
-       s = ONE
-
-    else if (coord_type == 1) then
-
-       loc = position(i, j, k)
-
-       r = loc(1)
-       s = ONE
-
-    else if (coord_type == 2) then
-
-       loc = position(i, j, k)
-
-       h1 = 0.5e0_rt * dx(1)
-       d1 = 1.e0_rt / (3.e0_rt * dx(1))
-
-       r = loc(1)
-       r = d1 * ((r + h1)**3 - (r - h1)**3)
-
-       h2 = 0.5e0_rt * dx(2)
-       d2 = 1.e0_rt / dx(2)
-
-       s = loc(d)
-       s = d2 * (cos(s - h2) - cos(s + h2))
-
-    end if
-
-  end subroutine cell_center_metric
-
-
-
-  subroutine edge_center_metric(i, j, k, idir, dx, r, s)
-
-    use amrex_constants_module, only: ONE
-    use prob_params_module, only: dim, coord_type
-    use castro_util_module, only: position ! function
-
-    implicit none
-
-    integer,  intent(in   ) :: i, j, k, idir
-    real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(inout) :: r, s
-
-    real(rt) :: loc(3)
-    real(rt) :: h1, h2, d1, d2
-    integer  :: d
-
-    !$gpu
-
-    if (dim >= 2) then
-       d = 2
-    else
-       d = 1
-    end if
-
-    if (coord_type == 0) then
-
-       r = ONE
-       s = ONE
-
-    else if (coord_type == 1) then
-
-       if (idir == 1) then
-          loc = position(i, j, k, ccx = .false.)
-       else
-          loc = position(i, j, k)
-       end if
-
-       r = loc(1)
-       s = ONE
-
-    else if (coord_type == 2) then
-
-       if (idir == 1) then
-
-          loc = position(i, j, k, ccx = .false.)
-          r = loc(1)
-
-          loc = position(i, j, k)
-          s = loc(d)
-
-          h2 = 0.5e0_rt * dx(2)
-          d2 = 1.e0_rt / dx(2)
-
-          r = r**2
-          s = d2 * (cos(s - h2) - cos(s + h2))
-
-       else
-
-          loc = position(i, j, k)
-          r = loc(1)
-
-          if (d == 2) then
-             loc = position(i, j, k, ccy = .false.)
-          else
-             loc = position(i, j, k, ccx = .false.)
-          end if
-          s = loc(d)
-
-          h1 = 0.5e0_rt * dx(1)
-          d1 = 1.e0_rt / (3.e0_rt * dx(1))
-
-          r = d1 * ((r + h1)**3 - (r - h1)**3)
-          s = sin(s)
-
-       end if
-
-    end if
-
-  end subroutine edge_center_metric
-
-
-
   subroutine lrhs(lo, hi, &
                   rhs, r_lo, r_hi, &
                   temp, t_lo, t_hi, &
@@ -515,6 +375,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use prob_params_module, only: dim
+    use habec_nd_module, only: cell_center_metric
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: r_lo(3), r_hi(3)
@@ -585,6 +446,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use prob_params_module, only: dim
+    use habec_nd_module, only: cell_center_metric
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: a_lo(3), a_hi(3)
@@ -636,6 +498,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use prob_params_module, only: dim
+    use habec_nd_module, only: edge_center_metric
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: b_lo(3), b_hi(3)
