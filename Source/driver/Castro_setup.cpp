@@ -469,11 +469,11 @@ Castro::variableSetUp ()
     Vector<int> int_spec_names(len);
     // This call return the actual length of each string in "len"
     ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
-    char char_spec_names[len+1];
+    Vector<char> char_spec_names(len+1);
     for (int j = 0; j < len; j++)
       char_spec_names[j] = int_spec_names[j];
     char_spec_names[len] = '\0';
-    spec_names.push_back(std::string(char_spec_names));
+    spec_names.push_back(std::string(char_spec_names.data()));
   }
 
   if ( ParallelDescriptor::IOProcessor())

@@ -888,12 +888,12 @@ Castro::setGridInfo ()
       const int max_level = parent->maxLevel();
       const int nlevs = max_level + 1;
 
-      Real dx_level[3*nlevs];
-      int domlo_level[3*nlevs];
-      int domhi_level[3*nlevs];
-      int ref_ratio_to_f[3*nlevs];
-      int n_error_buf_to_f[nlevs];
-      int blocking_factor_to_f[nlevs];
+      Vector<Real> dx_level(3*nlevs);
+      Vector<int> domlo_level(3*nlevs);
+      Vector<int> domhi_level(3*nlevs);
+      Vector<int> ref_ratio_to_f(3*nlevs);
+      Vector<int> n_error_buf_to_f(nlevs);
+      Vector<int> blocking_factor_to_f(nlevs);
 
       const Real* dx_coarse = geom.CellSize();
 
@@ -901,10 +901,17 @@ Castro::setGridInfo ()
       const int* domhi_coarse = geom.Domain().hiVect();
 
       for (int dir = 0; dir < 3; dir++) {
-	dx_level[dir] = (ZFILL(dx_coarse))[dir];
+          if (dir < BL_SPACEDIM) {
+              dx_level[dir] = dx_coarse[dir];
 
-	domlo_level[dir] = (ARLIM_3D(domlo_coarse))[dir];
-	domhi_level[dir] = (ARLIM_3D(domhi_coarse))[dir];
+              domlo_level[dir] = domlo_coarse[dir];
+              domhi_level[dir] = domhi_coarse[dir];
+          } else {
+              dx_level[dir] = 0.0;
+
+              domlo_level[dir] = 0;
+              domhi_level[dir] = 0;
+          }
 
 	// Refinement ratio and error buffer on finest level are meaningless,
 	// and we want them to be zero on the finest level because some
@@ -942,8 +949,8 @@ Castro::setGridInfo ()
 	n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
       }
 
-      ca_set_grid_info(max_level, dx_level, domlo_level, domhi_level,
-		       ref_ratio_to_f, n_error_buf_to_f, blocking_factor_to_f);
+      ca_set_grid_info(max_level, dx_level.data(), domlo_level.data(), domhi_level.data(),
+		       ref_ratio_to_f.data(), n_error_buf_to_f.data(), blocking_factor_to_f.data());
 
     }
 
