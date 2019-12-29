@@ -200,6 +200,10 @@ int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
 
+namespace amrex {
+    extern int compute_new_dt_on_regrid;
+}
+
 // Castro::variableSetUp is in Castro_setup.cpp
 // variableCleanUp is called once at the end of a simulation
 void
@@ -504,6 +508,12 @@ Castro::read_params ()
     {
 	for (int i=0; i<BL_SPACEDIM; i++) hydro_tile_size[i] = tilesize[i];
     }
+
+    // Override Amr defaults. Note: this function is called after Amr::Initialize()
+    // in Amr::InitAmr(), right before the ParmParse checks, so if the user opts to
+    // override our overriding, they can do so.
+
+    compute_new_dt_on_regrid = 1;
 
 }
 
