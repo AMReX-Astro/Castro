@@ -833,12 +833,12 @@ extern "C" {
 
   amrex::Real FORT_KAVG(const amrex::Real& a, const amrex::Real& b, const amrex::Real& d, const int& iopt);
 
-  void bclim(amrex::Real* bcoefs, 
-	     BL_FORT_FAB_ARG(lambda), 
-	     ARLIM_P(reglo), ARLIM_P(reghi), const int& idim,
-	     BL_FORT_FAB_ARG(kappa_r), 
-	     amrex::Real* r, amrex::Real* s,
-	     const amrex::Real& c, const amrex::Real* dx);
+  void bclim(const int* lo, const int* hi,
+             BL_FORT_FAB_ARG_3D(bcoefs), 
+	     BL_FORT_FAB_ARG_3D(lambda), 
+	     int idim,
+	     BL_FORT_FAB_ARG_3D(kappa_r), 
+	     amrex::Real c, const amrex::Real* dx);
 
   void flxlim(const int* lo, const int* hi,
               BL_FORT_FAB_ARG_3D(lambda), 

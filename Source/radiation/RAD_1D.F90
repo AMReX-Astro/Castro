@@ -64,32 +64,6 @@ subroutine sphe(r, s, n, &
   enddo
 end subroutine sphe
 
-subroutine bclim(b, &
-                 lambda, DIMS(bbox), &
-                 DIMS(reg), &
-                 n, kappar, DIMS(kbox), &
-                 r, s, c, dx) bind(C, name="bclim")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(bbox)
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(kbox)
-  integer :: n
-  real(rt)         :: b(DIMV(bbox))
-  real(rt)         :: lambda(DIMV(bbox))
-  real(rt)         :: kappar(DIMV(kbox))
-  real(rt)         :: r(reg_l1:reg_h1+1)
-  real(rt)         :: s(1)
-  real(rt)         :: c, dx(1)
-  real(rt)         :: kavg
-  integer :: i
-  real(rt)         :: kap
-  do i = reg_l1, reg_h1 + 1
-     kap = kavg(kappar(i-1), kappar(i), dx(1),-1)
-     b(i) = r(i) * c * lambda(i) / kap
-  enddo
-end subroutine bclim
-
 subroutine eddfac(efact, &
                   DIMS(rbox), &
                   DIMS(reg), limiter, n)

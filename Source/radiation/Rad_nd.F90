@@ -417,6 +417,88 @@ contains
 
 
 
+  subroutine edge_center_metric(i, j, k, idir, dx, r, s)
+
+    use amrex_constants_module, only: ONE
+    use prob_params_module, only: dim, coord_type
+    use castro_util_module, only: position ! function
+
+    implicit none
+
+    integer,  intent(in   ) :: i, j, k, idir
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(inout) :: r, s
+
+    real(rt) :: loc(3)
+    real(rt) :: h1, h2, d1, d2
+    integer  :: d
+
+    !$gpu
+
+    if (dim >= 2) then
+       d = 2
+    else
+       d = 1
+    end if
+
+    if (coord_type == 0) then
+
+       r = ONE
+       s = ONE
+
+    else if (coord_type == 1) then
+
+       if (idir == 1) then
+          loc = position(i, j, k, ccx = .false.)
+       else
+          loc = position(i, j, k)
+       end if
+
+       r = loc(1)
+       s = ONE
+
+    else if (coord_type == 2) then
+
+       if (idir == 1) then
+
+          loc = position(i, j, k, ccx = .false.)
+          r = loc(1)
+
+          loc = position(i, j, k)
+          s = loc(d)
+
+          h2 = 0.5e0_rt * dx(2)
+          d2 = 1.e0_rt / dx(2)
+
+          r = r**2
+          s = d2 * (cos(s - h2) - cos(s + h2))
+
+       else
+
+          loc = position(i, j, k)
+          r = loc(1)
+
+          if (d == 2) then
+             loc = position(i, j, k, ccy = .false.)
+          else
+             loc = position(i, j, k, ccx = .false.)
+          end if
+          s = loc(d)
+
+          h1 = 0.5e0_rt * dx(1)
+          d1 = 1.e0_rt / (3.e0_rt * dx(1))
+
+          r = d1 * ((r + h1)**3 - (r - h1)**3)
+          s = sin(s)
+
+       end if
+
+    end if
+
+  end subroutine edge_center_metric
+
+
+
   subroutine lrhs(lo, hi, &
                   rhs, r_lo, r_hi, &
                   temp, t_lo, t_hi, &
@@ -542,6 +624,95 @@ contains
     end do
 
   end subroutine lacoef
+
+
+
+  subroutine bclim(lo, hi, &
+                   b, b_lo, b_hi, &
+                   lambda, l_lo, l_hi, &
+                   n, &
+                   kappar, k_lo, k_hi, &
+                   c, dx) bind(C, name="bclim")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: b_lo(3), b_hi(3)
+    integer,  intent(in   ) :: l_lo(3), l_hi(3)
+    integer,  intent(in   ) :: k_lo(3), k_hi(3)
+    real(rt), intent(inout) :: b(b_lo(1):b_hi(1),b_lo(2):b_hi(2),b_lo(3):b_hi(3))
+    real(rt), intent(in   ) :: lambda(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3))
+    real(rt), intent(in   ) :: kappar(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: n
+    real(rt), intent(in   ), value :: c
+
+    integer  :: i, j, k
+    real(rt) :: kap, r, s
+
+    !$gpu
+
+    if (n == 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, n+1, dx, r, s)
+
+                if (dim == 1) then
+                   s = 1.e0_rt
+                end if
+
+                kap = kavg(kappar(i-1,j,k), kappar(i,j,k), dx(1), -1)
+                b(i,j,k) = r * s * c * lambda(i,j,k) / kap
+
+             end do
+          end do
+       end do
+
+    else if (n == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, n+1, dx, r, s)
+
+                if (dim == 1) then
+                   s = 1.e0_rt
+                end if
+
+                kap = kavg(kappar(i,j-1,k), kappar(i,j,k), dx(2), -1)
+                b(i,j,k) = r * s * c * lambda(i,j,k) / kap
+
+             end do
+          end do
+       end do
+
+    else
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, n+1, dx, r, s)
+
+                if (dim == 1) then
+                   s = 1.e0_rt
+                end if
+                
+                kap = kavg(kappar(i,j,k-1), kappar(i,j,k), dx(3), -1)
+                b(i,j,k) = r * s * c * lambda(i,j,k) / kap
+
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine bclim
 
 
 

@@ -93,57 +93,6 @@ subroutine sphe(r, s, n, &
   endif
 end subroutine sphe
 
-
-subroutine bclim(b, &
-                 lambda, DIMS(bbox), &
-                 DIMS(reg), &
-                 n, kappar, DIMS(kbox), &
-                 r, s, c, dx) bind(C, name="bclim")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(bbox)
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(kbox)
-  integer :: n
-  real(rt)         :: b(DIMV(bbox))
-  real(rt)         :: lambda(DIMV(bbox))
-  real(rt)         :: kappar(DIMV(kbox))
-  real(rt)         :: r(reg_l1:reg_h1+1)
-  real(rt)         :: s(reg_l2:reg_h2+1)
-  real(rt)         :: c, dx(3)
-  real(rt)         :: kavg
-  integer :: i, j, k
-  real(rt)         :: kap
-  if (n == 0) then
-     do k = reg_l3, reg_h3
-        do j = reg_l2, reg_h2
-           do i = reg_l1, reg_h1 + 1
-              kap = kavg(kappar(i-1,j,k), kappar(i,j,k), dx(1), -1)
-              b(i,j,k) = r(i) * s(j) * c * lambda(i,j,k) / kap
-           enddo
-        enddo
-     enddo
-  else if (n == 1) then
-     do k = reg_l3, reg_h3
-        do j = reg_l2, reg_h2 + 1
-           do i = reg_l1, reg_h1
-              kap = kavg(kappar(i,j-1,k), kappar(i,j,k), dx(2), -1)
-              b(i,j,k) = r(i) * s(j) * c * lambda(i,j,k) / kap
-           enddo
-        enddo
-     enddo
-  else
-     do k = reg_l3, reg_h3 + 1
-        do j = reg_l2, reg_h2
-           do i = reg_l1, reg_h1
-              kap = kavg(kappar(i,j,k-1), kappar(i,j,k), dx(3), -1)
-              b(i,j,k) = r(i) * s(j) * c * lambda(i,j,k) / kap
-           enddo
-        enddo
-     enddo
-  endif
-end subroutine bclim
-
 subroutine eddfac(efact, &
                   DIMS(rbox), &
                   DIMS(reg), limiter, n) bind(C, name="eddfac")

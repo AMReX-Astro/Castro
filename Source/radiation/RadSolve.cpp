@@ -300,35 +300,30 @@ void RadSolve::levelBCoeffs(int level,
   const Geometry& geom = parent->Geom(level);
   const Real* dx       = geom.CellSize();
 
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
 
     MultiFab bcoefs(lambda[idim].boxArray(), lambda[idim].DistributionMap(), 1, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    {
-	Vector<Real> r, s;
+    for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
 
-	for (MFIter mfi(lambda[idim],true); mfi.isValid(); ++mfi) {
-	    const Box &ndbox  = mfi.tilebox();
-	    getEdgeMetric(idim, geom, ndbox, r, s);
-
-	    const Box& reg = amrex::enclosedCells(ndbox);
-	    bclim(bcoefs[mfi].dataPtr(), 
-		  BL_TO_FORTRAN_N(lambda[idim][mfi], lamcomp),
-		  ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		  idim, 
-		  BL_TO_FORTRAN_N(kappa_r[mfi], kcomp), 
-		  r.dataPtr(), s.dataPtr(), c, dx);
-	}
+#pragma gpu box(bx)
+        bclim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+              BL_TO_FORTRAN_ANYD(bcoefs[mfi]), 
+              BL_TO_FORTRAN_N_ANYD(lambda[idim][mfi], lamcomp),
+              idim, 
+              BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp), 
+              c, AMREX_REAL_ANYD(dx));
     }
 
     if (hd) {
-	hd->bCoefficients(bcoefs, idim);
+        hd->bCoefficients(bcoefs, idim);
     }
     else if (hm) {
-	hm->bCoefficients(level, bcoefs, idim);
+      hm->bCoefficients(level, bcoefs, idim);
     }
   } // -->> over dimension
 }
@@ -712,24 +707,16 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
+  for (MFIter mfi(lambda, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
 
-      for (MFIter mfi(lambda,true); mfi.isValid(); ++mfi) {
-	  const Box &kbox = kappa_r[mfi].box();
-
-	  const Box &ndbx  = mfi.tilebox();
-	  const Box &reg   = amrex::enclosedCells(ndbx);
-
-	  getEdgeMetric(idim, geom, ndbx, r, s);
-    
-	  bclim(bcoefs[mfi].dataPtr(), 
-		BL_TO_FORTRAN_N(lambda[mfi], lamcomp),
-		ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		idim, 
-		BL_TO_FORTRAN_N(kappa_r[mfi], kcomp), 
-		r.dataPtr(), s.dataPtr(), c, dx);
-      }
+#pragma gpu box(bx)
+      bclim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+            BL_TO_FORTRAN_ANYD(bcoefs[mfi]),
+            BL_TO_FORTRAN_N_ANYD(lambda[mfi], lamcomp),
+            idim, 
+            BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp), 
+            c, AMREX_REAL_ANYD(dx));
   }
 }
 
