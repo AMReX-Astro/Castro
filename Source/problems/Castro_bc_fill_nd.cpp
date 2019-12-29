@@ -123,7 +123,10 @@ extern "C"
     const int* bc_f = bc;
 #endif
 
-    Box bx(IntVect(D_DECL(lo[0], lo[1], lo[2])), IntVect(D_DECL(hi[0], hi[1], hi[2])));
+    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+    Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
     phigravfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -156,7 +159,10 @@ extern "C"
     const int* bc_f = bc;
 #endif
 
-    Box bx(IntVect(D_DECL(lo[0], lo[1], lo[2])), IntVect(D_DECL(hi[0], hi[1], hi[2])));
+    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+    Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
     gravxfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -195,7 +201,10 @@ extern "C"
     const int* bc_f = bc;
 #endif
 
-    Box bx(IntVect(D_DECL(lo[0], lo[1], lo[2])), IntVect(D_DECL(hi[0], hi[1], hi[2])));
+    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+    Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
     gravyfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -234,7 +243,10 @@ extern "C"
     const int* bc_f = bc;
 #endif
 
-    Box bx(IntVect(D_DECL(lo[0], lo[1], lo[2])), IntVect(D_DECL(hi[0], hi[1], hi[2])));
+    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+    Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
     gravzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -275,7 +287,10 @@ extern "C"
     const int* bc_f = bc;
 #endif
 
-    Box bx(IntVect(D_DECL(lo[0], lo[1], lo[2])), IntVect(D_DECL(hi[0], hi[1], hi[2])));
+    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+    Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
     phirotfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -308,7 +323,10 @@ extern "C"
     const int* bc_f = bc;
 #endif
 
-    Box bx(IntVect(D_DECL(lo[0], lo[1], lo[2])), IntVect(D_DECL(hi[0], hi[1], hi[2])));
+    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+    Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
     rotxfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -341,7 +359,10 @@ extern "C"
     const int* bc_f = bc;
 #endif
 
-    Box bx(IntVect(D_DECL(lo[0], lo[1], lo[2])), IntVect(D_DECL(hi[0], hi[1], hi[2])));
+    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+    Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
     rotyfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -374,7 +395,10 @@ extern "C"
     const int* bc_f = bc;
 #endif
 
-    Box bx(IntVect(D_DECL(lo[0], lo[1], lo[2])), IntVect(D_DECL(hi[0], hi[1], hi[2])));
+    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+    Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
     rotzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -409,7 +433,10 @@ extern "C"
     const int* bc_f = bc;
 #endif
 
-    Box bx(IntVect(D_DECL(lo[0], lo[1], lo[2])), IntVect(D_DECL(hi[0], hi[1], hi[2])));
+    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+    Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
     reactfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
@@ -444,7 +471,10 @@ extern "C"
     const int* bc_f = bc;
 #endif
 
-    Box bx(IntVect(D_DECL(lo[0], lo[1], lo[2])), IntVect(D_DECL(hi[0], hi[1], hi[2])));
+    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
+    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+
+    Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
     radfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
