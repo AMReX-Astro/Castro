@@ -6,7 +6,7 @@
 #include "Radiation.H"
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #include "Gravity.H"
 #endif
 
@@ -91,7 +91,7 @@ Castro::do_advance_sdc (Real time,
       // using the current stage's starting point.
 
       // TODO: this is not using the density at the current stage
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
       construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 

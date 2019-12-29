@@ -336,7 +336,7 @@ Castro::variableSetUp ()
 			 StateDescriptor::Point,ngrow_state,NUM_STATE,
 			 interp,state_data_extrap,store_in_checkpoint);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point, 1, 1,
@@ -532,7 +532,7 @@ Castro::variableSetUp ()
 			bcs,
 			BndryFunc(ca_denfill,ca_hypfill));
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   set_scalar_bc(bc,phys_bc);
   desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,BndryFunc(ca_phigravfill));
   set_x_vel_bc(bc,phys_bc);
@@ -743,7 +743,7 @@ Castro::variableSetUp ()
   //
   // Gravitational forcing
   //
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   //    derive_lst.add("rhog",IndexType::TheCellType(),1,
   //                   BL_FORT_PROC_CALL(CA_RHOG,ca_rhog),the_same_box);
   //    derive_lst.addComponent("rhog",desc_lst,State_Type,Density,1);
@@ -888,7 +888,7 @@ Castro::variableSetUp ()
   derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Density,1);
   derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Xmom,3);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   derive_lst.add("maggrav",IndexType::TheCellType(),1,ca_dermaggrav,the_same_box);
   derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,3);
 #endif

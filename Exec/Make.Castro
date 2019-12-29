@@ -131,14 +131,6 @@ ifeq ($(USE_GRAV), TRUE)
   Bdirs += Source/gravity
   DEFINES += -DGRAVITY
   USE_MLMG = TRUE
-
-  ifndef USE_SELF_GRAV
-    USE_SELF_GRAV = TRUE
-  endif
-
-  ifeq ($(USE_SELF_GRAV), TRUE)
-    DEFINES += -DSELF_GRAVITY
-  endif
 endif
 
 ifeq ($(USE_GR), TRUE)
