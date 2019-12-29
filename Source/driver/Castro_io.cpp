@@ -18,7 +18,7 @@
 #include "Radiation.H"
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #include "Gravity.H"
 #endif
 
@@ -137,7 +137,7 @@ Castro::restart (Amr&     papa,
     AmrLevel::restart(papa,is,bReadSpecial);
 
     if (input_version == 0) { // old checkpoint without PhiGrav_Type
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
       state[PhiGrav_Type].restart(desc_lst[PhiGrav_Type], state[Gravity_Type]);
 #endif
     }
@@ -453,7 +453,7 @@ Castro::restart (Amr&     papa,
     if (grown_factor > 1 && level == 1)
         getLevel(0).avgDown();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        MultiFab& S_new = get_new_data(State_Type);
@@ -530,7 +530,7 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
     state_in_checkpoint[i] = 1;
 
   for (int i=0; i<num_state_type; ++i) {
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (input_version == 0 && i == PhiGrav_Type) {
       // We are reading an old checkpoint with no PhiGrav_Type
       state_in_checkpoint[i] = 0;

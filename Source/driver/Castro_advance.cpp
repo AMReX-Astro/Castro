@@ -6,7 +6,7 @@
 #include "Radiation.H"
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #include "Gravity.H"
 #endif
 
@@ -159,7 +159,7 @@ Castro::advance (Real time,
     advance_aux(time, dt);
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
     // We do this again here because the solution will have changed
     if ( (level == 0) && (spherical_star == 1) ) {
@@ -222,7 +222,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       for (int i = 0; i < n_lost; i++)
 	material_lost_through_boundary_temp[i] = 0.0;
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (moving_center == 1)
         define_new_center(get_old_data(State_Type), time);
 
@@ -378,7 +378,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     lamborder.define(grids, dmap, Radiation::nGroups, NUM_GROW);
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     // If we're on level 0, update the maximum density used in the gravity solver
     // for setting the tolerances. This will be used in all level solves to follow.
     // This must be done before the swap because it relies on the new data.
@@ -432,7 +432,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     swap_state_time_levels(dt);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav)
 	gravity->swapTimeLevels(level);
 #endif

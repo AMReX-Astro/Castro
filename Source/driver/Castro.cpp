@@ -31,7 +31,7 @@
 #include <AMReX_Particles.H>
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #include "Gravity.H"
 #endif
 
@@ -147,7 +147,7 @@ int          Castro::numBCThreadsMin[3] = {1, 1, 1};
 
 #include <castro_defaults.H>
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 // the gravity object
 Gravity*     Castro::gravity  = 0;
 #endif
@@ -205,7 +205,7 @@ int          Castro::num_state_type = 0;
 void
 Castro::variableCleanUp ()
 {
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   if (gravity != 0) {
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting gravity in variableCleanUp..." << '\n';
@@ -555,7 +555,7 @@ Castro::Castro (Amr&            papa,
     }
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 
    // Initialize to zero here in case we run with do_grav = false.
    MultiFab& new_grav_mf = get_new_data(Gravity_Type);
@@ -586,7 +586,7 @@ Castro::Castro (Amr&            papa,
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor())
          std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
       if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
       {
 	  std::cerr << "Error: not meaningful to have gravity.no_sync == 0 without having gravity.no_composite == 0.";
@@ -816,7 +816,7 @@ Castro::initMFs()
 	}
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
 	    phi_reg.define(grids, dmap, crse_ratio, level, 1);
 	    phi_reg.setVal(0.0);
@@ -1219,7 +1219,7 @@ Castro::initData ()
 #endif // MAESTRO_INIT
 
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        const int nc = S_new.nComp();
@@ -1898,7 +1898,7 @@ Castro::post_timestep (int iteration)
         if (sum_int_test || sum_per_test)
 	  sum_integrated_quantities();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
         if (moving_center) write_center();
 #endif
     }
@@ -1948,7 +1948,7 @@ Castro::post_restart ()
    ParticlePostRestart(parent->theRestartFile());
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav)
     {
         if (level == 0)
@@ -2038,7 +2038,7 @@ Castro::postCoarseTimeStep (Real cumtime)
     // postCoarseTimeStep() is only called by level 0.
     BL_ASSERT(level == 0);
     AmrLevel::postCoarseTimeStep(cumtime);
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav)
         gravity->set_mass_offset(cumtime, 0);
 #endif
@@ -2139,7 +2139,7 @@ Castro::post_regrid (int lbase,
     }
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav)
     {
 
@@ -2222,7 +2222,7 @@ Castro::post_init (Real stop_time)
     for (int k = finest_level-1; k>= 0; k--)
         getLevel(k).avgDown();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 
     if (do_grav) {
 
@@ -2337,7 +2337,7 @@ Castro::post_init (Real stop_time)
         if (sum_int_test || sum_per_test)
 	  sum_integrated_quantities();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (level == 0 && moving_center == 1)
        write_center();
 #endif
@@ -2352,7 +2352,7 @@ Castro::post_grown_restart ()
     if (level > 0)
         return;
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav) {
 	int finest_level = parent->finestLevel();
 	Real cur_time = state[State_Type].curTime();
@@ -2527,7 +2527,7 @@ Castro::reflux(int crse_level, int fine_level)
 
     const Real strt = ParallelDescriptor::second();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     int nlevs = fine_level - crse_level + 1;
 
     Vector<std::unique_ptr<MultiFab> > drho(nlevs);
@@ -2574,7 +2574,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	// Store the density change, for the gravity sync.
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 	int ilev = lev - crse_level - 1;
 
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
@@ -2689,7 +2689,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
 	    reg = &getLevel(lev).phi_reg;
@@ -2718,7 +2718,7 @@ Castro::reflux(int crse_level, int fine_level)
 
     // Do the sync solve across all levels.
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
 	gravity->gravity_sync(crse_level, fine_level, amrex::GetVecOfPtrs(drho), amrex::GetVecOfPtrs(dphi));
 #endif
@@ -2845,7 +2845,7 @@ Castro::avgDown ()
 
   avgDown(State_Type);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   avgDown(Gravity_Type);
   avgDown(PhiGrav_Type);
 #endif
@@ -3638,7 +3638,7 @@ Castro::swap_state_time_levels(const Real dt)
 
 
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 int
 Castro::get_numpts ()
 {
