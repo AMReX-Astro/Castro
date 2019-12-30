@@ -251,7 +251,9 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1)) then
+             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1) .and. &
+                 j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                 k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (xlo .and. mask(i-1,j,k) > 0) then
 
@@ -260,7 +262,9 @@ contains
 
                 end if
 
-             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1)) then
+             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (xhi .and. mask(i+1,j,k) > 0) then
 
@@ -268,7 +272,9 @@ contains
 
                 end if
 
-             else if (j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (ylo .and. mask(i,j-1,k) > 0) then
 
@@ -277,7 +283,9 @@ contains
 
                 end if
 
-             else if (j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (yhi .and. mask(i,j+1,k) > 0) then
 
@@ -285,7 +293,9 @@ contains
 
                 end if
 
-             else if (k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
 
                 if (zlo .and. mask(i,j,k-1) > 0) then
 
@@ -294,7 +304,9 @@ contains
 
                 end if
 
-             else if (k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
 
                 if (zhi .and. mask(i,j,k+1) > 0) then
 
@@ -437,7 +449,9 @@ contains
 
              call face_metric(i, j, k, lo_x, hi_x, dx(1), idir, ori_lo, r)
 
-             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1)) then
+             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1) .and. &
+                 j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                 k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (xlo .and. mask(i-1,j,k) > 0) then
 
@@ -469,7 +483,9 @@ contains
 
                 end if
 
-             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1)) then
+             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (xhi .and. mask(i+1,j,k) > 0) then
 
@@ -500,7 +516,9 @@ contains
 
                 end if
 
-             else if (j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (ylo .and. mask(i,j-1,k) > 0) then
 
@@ -532,7 +550,9 @@ contains
 
                 end if
 
-             else if (j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (yhi .and. mask(i,j+1,k) > 0) then
 
@@ -563,7 +583,9 @@ contains
 
                 end if
 
-             else if (k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
 
                 if (zlo .and. mask(i,j,k-1) > 0) then
 
@@ -595,7 +617,9 @@ contains
 
                 end if
 
-             else if (k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
 
                 if (zhi .and. mask(i,j,k+1) > 0) then
 
@@ -763,7 +787,9 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1)) then
+             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1) .and. &
+                 j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                 k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (xlo .and. mask(i-1,j,k) > 0) then
 
@@ -771,7 +797,10 @@ contains
 
                 end if
 
-             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1)) then
+             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
+
 
                 if (xhi .and. mask(i+1,j,k) > 0) then
 
@@ -779,7 +808,9 @@ contains
 
                 end if
 
-             else if (j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (ylo .and. mask(i,j-1,k) > 0) then
 
@@ -787,7 +818,9 @@ contains
 
                 end if
 
-             else if (j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (yhi .and. mask(i,j+1,k) > 0) then
 
@@ -795,7 +828,9 @@ contains
 
                 end if
 
-             else if (k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
 
                 if (zlo .and. mask(i,j,k-1) > 0) then
 
@@ -803,7 +838,9 @@ contains
 
                 end if
 
-             else if (k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
 
                 if (zhi .and. mask(i,j,k+1) > 0) then
 
@@ -943,7 +980,9 @@ contains
 
              call face_metric(i, j, k, lo_x, hi_x, dx(1), idir, ori_lo, r)
 
-             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1)) then
+             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1) .and. &
+                 j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                 k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (xlo .and. mask(i-1,j,k) > 0) then
 
@@ -976,7 +1015,9 @@ contains
 
                 end if
 
-             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1)) then
+             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (xhi .and. mask(i+1,j,k) > 0) then
 
@@ -1009,7 +1050,9 @@ contains
 
                 end if
 
-             else if (j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (ylo .and. mask(i,j-1,k) > 0) then
 
@@ -1042,7 +1085,9 @@ contains
 
                 end if
 
-             else if (j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
 
                 if (yhi .and. mask(i,j+1,k) > 0) then
 
@@ -1075,7 +1120,9 @@ contains
 
                 end if
 
-             else if (k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
 
                 if (zlo .and. mask(i,j,k-1) > 0) then
 
@@ -1108,7 +1155,9 @@ contains
 
                 end if
 
-             else if (k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
 
                 if (zhi .and. mask(i,j,k+1) > 0) then
 
