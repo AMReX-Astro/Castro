@@ -47,8 +47,8 @@ subroutine ca_ext_src(lo, hi, &
   integer  :: i, j, k
   real(rt) :: ang_vel, y, beta, p_orb_vel, p_radius,reset_center
 
-  p_orb_vel = 1.d-3
-  p_radius = 1.d10
+  p_orb_vel = 1.e-3_rt
+  p_radius = 1.e10_rt
   ang_vel = ZERO
   beta = p_orb_vel * TWO / p_radius
   reset_center = (problo(2) + probhi(2)) * HALF

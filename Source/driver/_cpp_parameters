@@ -676,3 +676,22 @@ mlmg_nsolve                  int           0                  n
 
 # Use MLMG as the operator
 mlmg_maxorder                int           4                  n
+
+@namespace: radsolve RadSolve static
+
+# the linear solver option to use
+level_solver_flag            int           1                  n
+
+use_hypre_nonsymmetric_terms int           0                  n
+
+reltol                       Real          1.e-10             n
+
+abstol                       Real          1.e-10             n
+
+maxiter                      int           40                 n
+
+alpha                        Real          1.0                n
+
+beta                         Real          1.0                n
+
+(v, verbose)                 int           0                  n

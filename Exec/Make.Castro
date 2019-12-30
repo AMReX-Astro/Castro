@@ -3,7 +3,6 @@ CASTRO_HOME ?= /path/to/Castro
 
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
-HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
 
 # system blas
 BLAS_LIBRARY ?= -lopenblas
@@ -132,14 +131,6 @@ ifeq ($(USE_GRAV), TRUE)
   Bdirs += Source/gravity
   DEFINES += -DGRAVITY
   USE_MLMG = TRUE
-
-  ifndef USE_SELF_GRAV
-    USE_SELF_GRAV = TRUE
-  endif
-
-  ifeq ($(USE_SELF_GRAV), TRUE)
-    DEFINES += -DSELF_GRAVITY
-  endif
 endif
 
 ifeq ($(USE_GR), TRUE)
@@ -207,6 +198,7 @@ ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRADIATION
   DEFINES += -DRAD_INTERP
   USE_HYPRE := TRUE
+  DEFINES += -DHYPRE
 
   DEFINES += -DNGROUPS=$(NGROUPS)
 
@@ -379,13 +371,9 @@ endif
 #------------------------------------------------------------------------------
 
 ifeq ($(USE_HYPRE), TRUE)
-  ifeq ($(USE_OMP), TRUE)
-    INCLUDE_LOCATIONS += $(HYPRE_OMP_DIR)/include
-    LIBRARY_LOCATIONS += $(HYPRE_OMP_DIR)/lib
-  else
-    INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
-    LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
-  endif
+  INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
+  LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
+
   LIBRARIES += -lHYPRE
 endif
 

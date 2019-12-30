@@ -118,7 +118,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
 
   real(rt), parameter :: pi_over_3 = M_pi / THREE
-  real(rt), parameter :: ff = 0.25d0
+  real(rt), parameter :: ff = 0.25e0_rt
 
   real(rt) :: x,y,xcen,ycen,shockfront
   integer  :: i, j, k, ii,jj
@@ -130,10 +130,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         do i = lo(1), hi(1)
            xcen = problo(1) + delta(1) * (dble(i) + HALF)
 
-           state(i,j,k,URHO   ) = 0.d0
-           state(i,j,k,UMX:UMZ) = 0.d0
-           state(i,j,k,UEDEN  ) = 0.d0
-           state(i,j,k,UEINT  ) = 0.d0
+           state(i,j,k,URHO   ) = 0.e0_rt
+           state(i,j,k,UMX:UMZ) = 0.e0_rt
+           state(i,j,k,UEDEN  ) = 0.e0_rt
+           state(i,j,k,UEINT  ) = 0.e0_rt
 
            do jj = -1, 1
               if (jj == 0) cycle

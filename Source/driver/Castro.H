@@ -16,6 +16,10 @@
 #include "AMReX_AmrParticles.H"
 #endif
 
+#ifdef RADIATION
+#include "RadSolve.H"
+#endif
+
 #include <memory>
 #include <iostream>
 
@@ -27,7 +31,7 @@ enum StateType { State_Type = 0,
 #ifdef RADIATION
                  Rad_Type,
 #endif
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
                  PhiGrav_Type,
                  Gravity_Type,
 #endif
@@ -769,8 +773,6 @@ public:
                             amrex::MultiFab& ext_src);
 
 #ifdef GRAVITY
-#ifdef SELF_GRAVITY
-
 ///
 /// Construct gravitational field at old timestep
 ///
@@ -791,7 +793,6 @@ public:
 ///
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
 			       amrex::Real time);
-#endif
 
 ///
 /// Construct gravitational source terms at old timestep
@@ -1573,7 +1574,7 @@ public:
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 
 ///
 /// Calculate state in radial direction by averaging
@@ -1716,7 +1717,7 @@ protected:
 ///
     amrex::iMultiFab& build_interior_boundary_mask (int ng);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     int get_numpts();
 
 
@@ -1736,6 +1737,8 @@ protected:
 #ifdef RADIATION
     amrex::MultiFab Erborder;
     amrex::MultiFab lamborder;
+
+    std::unique_ptr<RadSolve> rad_solver;
 #endif
 
 
@@ -2004,7 +2007,7 @@ protected:
 
     void write_info ();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 
 ///
 /// Find the position of the "center" by interpolating from data at cell centers
@@ -2014,9 +2017,7 @@ protected:
 ///
     void define_new_center (amrex::MultiFab& S, amrex::Real time);
     void write_center ();
-#endif
 
-#ifdef GRAVITY
 ///
 /// @param time     current time
 /// @param dt       timestep
