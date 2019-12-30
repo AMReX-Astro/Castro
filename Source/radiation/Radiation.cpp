@@ -1856,16 +1856,19 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
   for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-      state[mfi].copy(temp[mfi], bx, 0, bx, Temp, 1);
+      int comp = Temp;
+      Array4<Real> const state_arr = state.array(mfi);
+      Array4<Real> const temp_arr = temp.array(mfi);
+      AMREX_PARALLEL_FOR_3D(bx, i, j, k, { state_arr(i,j,k,comp) = temp_arr(i,j,k); });
 
       if (use_opacity_table_module) {
-#pragma gpu box(bx) sync
+#pragma gpu box(bx)
           ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
                                BL_TO_FORTRAN_ANYD(state[mfi]));
   }
       else if (const_scattering > 0.0) {
-#pragma gpu box(bx) sync
+#pragma gpu box(bx)
           rosse1s(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                   const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
                   kappa_r_exp_p, const_scattering,
@@ -1876,7 +1879,7 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
                   BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
       }
       else {
-#pragma gpu box(bx) sync
+#pragma gpu box(bx)
           rosse1(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                  const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
                  kappa_r_exp_p, nugroup[igroup],
