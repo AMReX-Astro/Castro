@@ -1739,8 +1739,6 @@ void HypreMultiABec::loadLevelVectors(int level,
 {
   int part = level - crse_level;
 
-  Vector<Real> r;
-
   Real *vec;
   FArrayBox fnew;
   for (MFIter mfi(dest); mfi.isValid(); ++mfi) {
@@ -1795,21 +1793,28 @@ void HypreMultiABec::loadLevelVectors(int level,
               tfp = tf.dataPtr();
               bctype = -1;
             }
-            getFaceMetric(r, reg, oitr(), geom[level]);
-            hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		   cdir, bctype, tfp, bho, bcl,
-		   BL_TO_FORTRAN_N(fs, bdcomp),
-		   BL_TO_FORTRAN(msk),
-		   BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		   beta, geom[level].CellSize(), r.dataPtr());
+#pragma gpu box(reg) sync
+            hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                   reg.loVect()[0], reg.hiVect()[0],
+                   oitr().isLow(), idim+1,
+                   vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		   cdir, bctype,
+                   tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
+                   bho, bcl,
+		   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+		   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+		   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+		   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
           else {
-            hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		  cdir, bct, bho, bcl,
-		  BL_TO_FORTRAN_N(fs, bdcomp),
-		  BL_TO_FORTRAN(msk),
-		  BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		  beta, geom[level].CellSize());
+#pragma gpu box(reg) sync
+              hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                    vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                    cdir, bct, bho, bcl,
+                    BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+                    msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+                    BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+                    beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
         }
         // There is no else here, since we would then be at an
@@ -1860,8 +1865,6 @@ void HypreMultiABec::loadLevelVectorB(int level,
 {
   int part = level - crse_level;
 
-  Vector<Real> r;
-
   FArrayBox fnew;
   for (MFIter mfi(rhs); mfi.isValid(); ++mfi) {
     int i = mfi.index();
@@ -1906,21 +1909,28 @@ void HypreMultiABec::loadLevelVectorB(int level,
               tfp = tf.dataPtr();
               bctype = -1;
             }
-            getFaceMetric(r, reg, oitr(), geom[level]);
-            hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		   cdir, bctype, tfp, bho, bcl,
-		   BL_TO_FORTRAN_N(fs, bdcomp),
-		   BL_TO_FORTRAN(msk),
-		   BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		   beta, geom[level].CellSize(), r.dataPtr());
+#pragma gpu box(reg) sync
+            hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                   reg.loVect()[0], reg.hiVect()[0],
+                   oitr().isLow(), idim+1,
+                   vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		   cdir, bctype,
+                   tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
+                   bho, bcl,
+		   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+		   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+		   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+		   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
           else {
-            hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		  cdir, bct, bho, bcl,
-		  BL_TO_FORTRAN_N(fs, bdcomp),
-		  BL_TO_FORTRAN(msk),
-		  BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		  beta, geom[level].CellSize());
+#pragma gpu box(reg) sync
+              hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                    vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                    cdir, bct, bho, bcl,
+                    BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+                    msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+                    BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+                    beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
         }
         // There is no else here, since we would then be at an

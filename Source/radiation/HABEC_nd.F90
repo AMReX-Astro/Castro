@@ -636,6 +636,521 @@ contains
 
 
 
+  subroutine hbvec(lo, hi, &
+                   vec, v_lo, v_hi, &
+                   cdir, bct, bho, bcl, &
+                   bcval, c_lo, c_hi, &
+                   mask, m_lo, m_hi, &
+                   b, b_lo, b_hi, &
+                   beta, dx) &
+                   bind(C, name="hbvec")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ) :: c_lo(3), c_hi(3)
+    integer,  intent(in   ) :: m_lo(3), m_hi(3)
+    integer,  intent(in   ) :: b_lo(3), b_hi(3)
+    real(rt), intent(inout) :: vec(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(in   ) :: bcval(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
+    integer,  intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt), intent(in   ) :: b(b_lo(1):b_hi(1),b_lo(2):b_hi(2),b_lo(3):b_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: cdir, bct, bho
+    real(rt), intent(in   ), value :: bcl, beta
+
+    integer  :: i, j, k
+    real(rt) :: h, bfv
+    real(rt) :: h2, th2
+    logical  :: xlo, xhi, ylo, yhi, zlo, zhi
+
+    !$gpu
+
+    xlo = .false.
+    ylo = .false.
+    zlo = .false.
+
+    xhi = .false.
+    yhi = .false.
+    zhi = .false.
+
+    if (dim == 1) then
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          xhi = .true.
+          h = dx(1)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    else if (dim == 2) then
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 2) then
+          xhi = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          ylo = .true.
+          h = dx(2)
+       else if (cdir == 3) then
+          yhi = .true.
+          h = dx(2)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    else
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 3) then
+          xhi = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          ylo = .true.
+          h = dx(2)
+       else if (cdir == 4) then
+          yhi = .true.
+          h = dx(2)
+       else if (cdir == 2) then
+          zlo = .true.
+          h = dx(3)
+       else if (cdir == 5) then
+          zhi = .true.
+          h = dx(3)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    end if
+
+    if (bct == LO_DIRICHLET) then
+       if (bho >= 1) then
+          h2 = 0.5e0_rt * h
+          th2 = 3.e0_rt * h2
+          bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
+       else
+          bfv = (beta / h) / (0.5e0_rt * h + bcl)
+       end if
+    else if (bct == LO_NEUMANN) then
+       bfv = beta / h
+#ifndef AMREX_USE_GPU
+    else
+       call castro_error("hbvec: unsupported boundary type")
+#endif
+    end if
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1)) then
+
+                if (xlo .and. mask(i-1,j,k) > 0) then
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * b(i,j,k) * bcval(i-1,j,k)
+
+                end if
+
+             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1)) then
+
+                if (xhi .and. mask(i+1,j,k) > 0) then
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * b(i+1,j,k) * bcval(i+1,j,k)
+
+                end if
+
+             else if (j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2)) then
+
+                if (ylo .and. mask(i,j-1,k) > 0) then
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * b(i,j,k) * bcval(i,j-1,k)
+
+                end if
+
+             else if (j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2)) then
+
+                if (yhi .and. mask(i,j+1,k) > 0) then
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * b(i,j+1,k) * bcval(i,j+1,k)
+
+                end if
+
+             else if (k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
+
+                if (zlo .and. mask(i,j,k-1) > 0) then
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * b(i,j,k) * bcval(i,j,k-1)
+
+                end if
+
+             else if (k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
+
+                if (zhi .and. mask(i,j,k+1) > 0) then
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * b(i,j,k+1) * bcval(i,j,k+1)
+
+                end if
+
+             end if
+
+          end do
+       end do
+    end do
+
+  end subroutine hbvec
+
+
+
+  subroutine hbvec3(lo, hi, &
+                    lo_x, hi_x, &
+                    ori_lo, idir, &
+                    vec, v_lo, v_hi, &
+                    cdir, bctype, &
+                    tf, t_lo, t_hi, &
+                    bho, bcl, &
+                    bcval, c_lo, c_hi, &
+                    mask, m_lo, m_hi, &
+                    b, b_lo, b_hi, &
+                    beta, dx) &
+                    bind(C, name="hbvec3")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: ONE
+    use prob_params_module, only: dim
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ) :: c_lo(3), c_hi(3)
+    integer,  intent(in   ) :: m_lo(3), m_hi(3)
+    integer,  intent(in   ) :: b_lo(3), b_hi(3)
+    integer,  intent(in   ) :: t_lo(3), t_hi(3)
+    real(rt), intent(inout) :: vec(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(in   ) :: bcval(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
+    real(rt), intent(in   ) :: b(b_lo(1):b_hi(1),b_lo(2):b_hi(2),b_lo(3):b_hi(3))
+    integer,  intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    integer,  intent(in   ) :: tf(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: bcl, beta
+    integer,  intent(in   ), value :: cdir, bctype, bho, lo_x, hi_x, ori_lo, idir
+
+    integer  :: i, j, k
+    integer  :: bct
+    real(rt) :: h, bfv
+    real(rt) :: h2, th2
+    real(rt) :: r
+    logical  :: xlo, xhi, ylo, yhi, zlo, zhi
+
+    !$gpu
+
+    xlo = .false.
+    ylo = .false.
+    zlo = .false.
+
+    xhi = .false.
+    yhi = .false.
+    zhi = .false.
+
+    if (dim == 1) then
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          xhi = .true.
+          h = dx(1)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    else if (dim == 2) then
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 2) then
+          xhi = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          ylo = .true.
+          h = dx(2)
+       else if (cdir == 3) then
+          yhi = .true.
+          h = dx(2)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    else
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 3) then
+          xhi = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          ylo = .true.
+          h = dx(2)
+       else if (cdir == 4) then
+          yhi = .true.
+          h = dx(2)
+       else if (cdir == 2) then
+          zlo = .true.
+          h = dx(3)
+       else if (cdir == 5) then
+          zhi = .true.
+          h = dx(3)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    end if
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             call face_metric(i, j, k, lo_x, hi_x, dx(1), idir, ori_lo, r)
+
+             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1)) then
+
+                if (xlo .and. mask(i-1,j,k) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i-1,j,k)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                      end if
+                      bfv = bfv * b(i,j,k)
+                   else if (bct == LO_NEUMANN) then
+                      bfv = beta * r / h
+                   else if (bct == LO_MARSHAK .OR. bct == LO_SANCHEZ_POMRANING) then
+                      bfv = 2.e0_rt * beta * r / h
+#ifndef AMREX_USE_GPU
+                   else
+                      call castro_error("hbvec3: unsupported boundary type")
+#endif
+                   end if
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * bcval(i-1,j,k)
+
+                end if
+
+             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1)) then
+
+                if (xhi .and. mask(i+1,j,k) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i+1,j,k)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                      end if
+                      bfv = bfv * b(i+1,j,k)
+                   else if (bct == LO_NEUMANN) then
+                      bfv = beta * r / h
+                   else if (bct == LO_MARSHAK .OR. bct == LO_SANCHEZ_POMRANING) then
+                      bfv = 2.e0_rt * beta * r / h
+#ifndef AMREX_USE_GPU
+                   else
+                      call castro_error("hbvec3: unsupported boundary type")
+#endif
+                   end if
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * bcval(i+1,j,k)
+
+                end if
+
+             else if (j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2)) then
+
+                if (ylo .and. mask(i,j-1,k) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i,j-1,k)
+                   else
+                      bct = bctype
+                   endif
+
+                   if (bct == LO_DIRICHLET) then
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                      endif
+                      bfv = bfv * b(i,j,k)
+                   else if (bct == LO_NEUMANN) then
+                      bfv = beta * r / h
+                   else if (bct == LO_MARSHAK .OR. bct == LO_SANCHEZ_POMRANING) then
+                      bfv = 2.e0_rt * beta * r / h
+#ifndef AMREX_USE_GPU
+                   else
+                      call castro_error("hbvec3: unsupported boundary type")
+#endif
+                   end if
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * bcval(i,j-1,k)
+
+                end if
+
+             else if (j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2)) then
+
+                if (yhi .and. mask(i,j+1,k) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i,j+1,k)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                      end if
+                      bfv = bfv * b(i,j+1,k)
+                   else if (bct == LO_NEUMANN) then
+                      bfv = beta * r / h
+                   else if (bct == LO_MARSHAK .OR. bct == LO_SANCHEZ_POMRANING) then
+                      bfv = 2.e0_rt * beta * r / h
+#ifndef AMREX_USE_GPU
+                   else
+                      call castro_error("hbvec3: unsupported boundary type")
+#endif
+                   end if
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * bcval(i,j+1,k)
+
+                end if
+
+             else if (k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
+
+                if (zlo .and. mask(i,j,k-1) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i,j,k-1)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                      end if
+                      bfv = bfv * b(i,j,k)
+                   else if (bct == LO_NEUMANN) then
+                      bfv = beta * r / h
+                   else if (bct == LO_MARSHAK .OR. bct == LO_SANCHEZ_POMRANING) then
+                      bfv = 2.e0_rt * beta * r / h
+#ifndef AMREX_USE_GPU
+                   else
+                      call castro_error("hbvec3: unsupported boundary type")
+#endif
+                   end if
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * bcval(i,j,k-1)
+
+                end if
+
+             else if (k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
+
+                if (zhi .and. mask(i,j,k+1) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i,j,k+1)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfv = 2.e0_rt * beta / ((bcl + h2) * (bcl + th2))
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                      end if
+                      bfv = bfv * b(i,j,k+1)
+                   else if (bct == LO_NEUMANN) then
+                      bfv = beta * r / h
+                   else if (bct == LO_MARSHAK .OR. bct == LO_SANCHEZ_POMRANING) then
+                      bfv = 2.e0_rt * beta * r / h
+#ifndef AMREX_USE_GPU
+                   else
+                      call castro_error("hbvec3: unsupported boundary type")
+#endif
+                   end if
+
+                   vec(i,j,k) = vec(i,j,k) + bfv * bcval(i,j,k+1)
+
+                end if
+
+             end if
+
+          end do
+       end do
+    end do
+
+  end subroutine hbvec3
+
+
+
   subroutine set_abec_flux(lo, hi, &
                            dir, &
                            density, d_lo, d_hi, &

@@ -664,10 +664,6 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 
   int i, idim;
 
-  //dest.setVal(0.0);
-
-  Vector<Real> r;
-
   Real *vec;
   FArrayBox fnew;
   for (MFIter di(dest); di.isValid(); ++di) {
@@ -719,21 +715,28 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
             tfp = tf.dataPtr();
             bctype = -1;
           }
-          getFaceMetric(r, reg, oitr(), geom);
-	  hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 cdir, bctype, tfp, bho, bcl,
-		 BL_TO_FORTRAN_N(fs, bdcomp),
-		 BL_TO_FORTRAN(msk),
-		 BL_TO_FORTRAN((*bcoefs[idim])[di]),
-		 beta, dx, r.dataPtr());
+#pragma gpu box(reg) sync
+	  hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                 reg.loVect()[0], reg.hiVect()[0],
+                 oitr().isLow(), idim + 1,
+                 vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		 cdir, bctype,
+                 tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
+                 bho, bcl,
+		 BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+		 msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+		 BL_TO_FORTRAN_ANYD((*bcoefs[idim])[di]),
+		 beta, AMREX_REAL_ANYD(dx));
 	}
 	else {
-	  hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		cdir, bct, bho, bcl,
-		BL_TO_FORTRAN_N(fs, bdcomp),
-		BL_TO_FORTRAN(msk),
-		BL_TO_FORTRAN((*bcoefs[idim])[di]),
-		beta, dx);
+#pragma gpu box(reg) sync
+            hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                  vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                  cdir, bct, bho, bcl,
+                  BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+                  msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+                  BL_TO_FORTRAN_ANYD((*bcoefs[idim])[di]),
+                  beta, AMREX_REAL_ANYD(dx));
 	}
       }
     }

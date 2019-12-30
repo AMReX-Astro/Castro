@@ -20,21 +20,6 @@ extern "C" {
               const BL_FORT_FAB_ARG_3D(bcoefs),
               amrex::Real beta, const amrex::Real* dx, int idir);
 
-  void hbvec(amrex::Real* vec, ARLIM_P(reglo), ARLIM_P(reghi),
-	     const int& cdir, const RadBoundCond& bct, const int& bho,
-	     const amrex::Real& bcl,
-	     const BL_FORT_FAB_ARG(bcval),
-	     const BL_FORT_IFAB_ARG(mask),
-	     BL_FORT_FAB_ARG(bcoefs),
-	     const amrex::Real& beta, const amrex::Real* dx);
-
-  void hbvec3(amrex::Real* vec, ARLIM_P(reglo), ARLIM_P(reghi),
-	      const int& cdir, const int& bctype, const int* tf,
-	      const int& bho, const amrex::Real& bcl,
-	      const BL_FORT_FAB_ARG(bcval),
-	      const BL_FORT_IFAB_ARG(mask),
-	      BL_FORT_FAB_ARG(bcoefs),
-	      const amrex::Real& beta, const amrex::Real* dx, const amrex::Real* r);
   void hbmat(const int* lo, const int* hi,
              BL_FORT_FAB_ARG_3D(mat),
 	     int cdir, int bct, amrex::Real bcl,
@@ -55,6 +40,26 @@ extern "C" {
 	      amrex::Real flux_factor,
 	      const amrex::Real* spa, const int* s_lo, const int* s_hi);
 
+  void hbvec(const int* lo, const int* hi,
+             BL_FORT_FAB_ARG_3D(vec),
+	     int cdir, int bct, int bho,
+	     amrex::Real bcl,
+	     const BL_FORT_FAB_ARG_3D(bcval),
+	     const int* mask, const int* m_lo, const int* m_hi,
+	     BL_FORT_FAB_ARG_3D(bcoefs),
+	     amrex::Real beta, const amrex::Real* dx);
+
+  void hbvec3(const int* lo, const int* hi,
+              int lo_x, int hi_x,
+              int ori_lo, int idir,
+              BL_FORT_FAB_ARG_3D(vec),
+              int cdir, int bctype,
+              const int* tf, const int* t_lo, const int* t_hi,
+              const int bho, amrex::Real bcl,
+              const BL_FORT_FAB_ARG_3D(bcval),
+              const int* mask, const int* m_lo, const int* m_hi,
+              BL_FORT_FAB_ARG_3D(bcoefs),
+              amrex::Real beta, const amrex::Real* dx);
 
   void hbflx(BL_FORT_FAB_ARG(flux),
 	     BL_FORT_FAB_ARG(soln),
