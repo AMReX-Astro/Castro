@@ -1,5 +1,13 @@
 # 20.01
 
+   * A new option castro.limit_fluxes_on_large_vel has been added. It
+     is similar to the existing option limit_fluxes_on_small_dens --
+     fluxes are limited to prevent the velocity in any zone from
+     getting too high. The largest legal speed is set by
+     castro.speed_limit. (#712) This is more general than the previous
+     solution proposed by castro.riemann_speed_limit, so that
+     parameter has been removed. (#714)
+
    * The AMR parameter amr.compute_new_dt_on_regrid is now on by
      default. This avoids crashes that result from the CFL number
      being too large after regridding, because we update the

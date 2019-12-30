@@ -983,7 +983,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
-    use meth_params_module, only: NVAR, NQ, URHO, UMX, UTEMP, USHK, cfl, riemann_speed_limit
+    use meth_params_module, only: NVAR, NQ, URHO, UMX, UTEMP, USHK, cfl, speed_limit
     use prob_params_module, only: dim
 
     implicit none
@@ -1082,7 +1082,7 @@ contains
                 drhoR = flux_coefR * flux(i,j,k,URHO)
                 rhoR = uR(uRHO) + drhoR
 
-                if (abs(rhouL) > rhoL * riemann_speed_limit) then
+                if (abs(rhouL) > rhoL * speed_limit) then
 
                    ! Obtain the final density corresponding to the LF flux.
 
@@ -1097,7 +1097,7 @@ contains
 
                    theta = min(ONE, max(theta, ZERO))
 
-                else if (abs(rhouR) > rhoR * riemann_speed_limit) then
+                else if (abs(rhouR) > rhoR * speed_limit) then
 
                    drhouLF = flux_coefR * fluxLF(UMOM)
                    rhouLF = abs(uR(UMOM) + drhouLF)
@@ -1133,9 +1133,9 @@ contains
                 drhoR = flux_coefR * flux(i,j,k,URHO)
                 drhoL = flux_coefL * flux(i,j,k,URHO)
 
-                if (abs(uR(UMOM) + drhouR) > (uR(URHO) + drhoR) * riemann_speed_limit) then
+                if (abs(uR(UMOM) + drhouR) > (uR(URHO) + drhoR) * speed_limit) then
                    flux(i,j,k,:) = flux(i,j,k,:) * abs((momentum_ceiling - abs(uR(UMOM))) / drhouR)
-                else if (abs(uL(UMOM) - drhouL) > (uL(URHO) - drhoL) * riemann_speed_limit) then
+                else if (abs(uL(UMOM) - drhouL) > (uL(URHO) - drhoL) * speed_limit) then
                    flux(i,j,k,:) = flux(i,j,k,:) * abs((momentum_ceiling - abs(uL(UMOM))) / drhouL)
                 endif
 
