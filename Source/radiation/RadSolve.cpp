@@ -61,22 +61,12 @@ RadSolve::read_params ()
 
     if (Radiation::SolverType == Radiation::SGFLDSolver
         && Radiation::Er_Lorentz_term) { 
-
         use_hypre_nonsymmetric_terms = 1;
-
-        if (level_solver_flag < 100) {
-            amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
-        }
     }
 
     if (Radiation::SolverType == Radiation::MGFLDSolver && 
         Radiation::accelerate == 2 && Radiation::nGroups > 1) {
-
         use_hypre_nonsymmetric_terms = 1;
-
-        if (level_solver_flag < 100) {
-            amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
-        }
     }
 
     if (Radiation::SolverType == Radiation::SGFLDSolver ||
