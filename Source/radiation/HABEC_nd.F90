@@ -532,7 +532,7 @@ contains
 
                 end if
 
-             else if (j+1 .ge. m_lo(1) .and. j+1 .le. m_hi(1)) then
+             else if (j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2)) then
 
                 if (yhi .and. mask(i,j+1,k) > 0) then
 
