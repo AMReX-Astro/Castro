@@ -554,42 +554,6 @@ public:
   void get_c_v(amrex::FArrayBox& c_v, amrex::FArrayBox& temp,
                amrex::FArrayBox& state, const amrex::Box& reg);
 
-///
-/// temp contains frhoe on input
-///
-/// @param fkp
-/// @param temp
-/// @param state
-/// @param reg
-/// @param igroup
-/// @param delta_t
-///
-  void get_planck_and_temp(amrex::FArrayBox& fkp, amrex::FArrayBox& temp,
-			   amrex::FArrayBox& state, const amrex::Box& reg,
-			   int igroup = 0, amrex::Real delta_t = 0.0);
-
-
-///
-/// @param kappa_r
-/// @param temp
-/// @param state
-/// @param reg
-/// @param igroup
-///
-  void get_rosseland_and_temp(amrex::FArrayBox& kappa_r, amrex::FArrayBox& temp,
-			      amrex::FArrayBox& state, const amrex::Box& reg,
-			      int igroup = 0);
-
-///
-/// @param kappa_r
-/// @param temp
-/// @param state
-/// @param reg
-/// @param igroup
-///
-  void get_rosseland_from_temp(amrex::FArrayBox& kappa_r, amrex::FArrayBox& temp,
-			       amrex::FArrayBox& state, const amrex::Box& reg,
-			       int igroup = 0);
 
 ///
 /// MultiFab versions of conversion functions call Fab versions for eos data

@@ -1666,44 +1666,6 @@ void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
     }
 }
 
-void Radiation::get_rosseland_from_temp(FArrayBox& kappa_r,
-                                        FArrayBox& temp,
-                                        FArrayBox& state,
-                                        const Box& reg,
-					int igroup)
-{
-  BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
-
-  state.copy(temp,reg,0,reg,Temp,1);
-
-  if (use_opacity_table_module) {
-#pragma gpu box(reg) sync
-      ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                           BL_TO_FORTRAN_ANYD(kappa_r),
-                           BL_TO_FORTRAN_ANYD(state));
-  }
-  else if (const_scattering > 0.0) {
-#pragma gpu box(reg) sync
-      rosse1s(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
-	      const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
-	      kappa_r_exp_p, const_scattering,
-              scattering_exp_m, scattering_exp_n,
-	      scattering_exp_p, nugroup[igroup],
-	      prop_temp_floor, kappa_r_floor,
-	      BL_TO_FORTRAN_ANYD(state),
-              BL_TO_FORTRAN_N_ANYD(kappa_r, igroup));
-  }
-  else {
-#pragma gpu box(reg) sync
-    rosse1(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
-	   const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
-	   kappa_r_exp_p, nugroup[igroup],
-	   prop_temp_floor, kappa_r_floor,
-	   BL_TO_FORTRAN_ANYD(state),
-           BL_TO_FORTRAN_N_ANYD(kappa_r, igroup));
-  }
-}
-
 void Radiation::get_frhoe(MultiFab& frhoe,
                           MultiFab& state)
 {
@@ -1882,15 +1844,47 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
                                            const Geometry& geom,
 					   int igroup)
 {
+  BL_PROFILE("update_rosseland_from_temp");
 
   BL_ASSERT(kappa_r.nGrow() == 1);
   BL_ASSERT(temp.nGrow()    == 0);
+  BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter si(state); si.isValid(); ++si) {
-      get_rosseland_from_temp(kappa_r[si], temp[si], state[si], si.tilebox(), igroup);
+  for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
+
+      state[mfi].copy(temp[mfi], bx, 0, bx, Temp, 1);
+
+      if (use_opacity_table_module) {
+#pragma gpu box(bx) sync
+          ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                               BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                               BL_TO_FORTRAN_ANYD(state[mfi]));
+  }
+      else if (const_scattering > 0.0) {
+#pragma gpu box(bx) sync
+          rosse1s(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                  const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+                  kappa_r_exp_p, const_scattering,
+                  scattering_exp_m, scattering_exp_n,
+                  scattering_exp_p, nugroup[igroup],
+                  prop_temp_floor, kappa_r_floor,
+                  BL_TO_FORTRAN_ANYD(state[mfi]),
+                  BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
+      }
+      else {
+#pragma gpu box(bx) sync
+          rosse1(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                 const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+                 kappa_r_exp_p, nugroup[igroup],
+                 prop_temp_floor, kappa_r_floor,
+                 BL_TO_FORTRAN_ANYD(state[mfi]),
+                 BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
+      }
+
   }
 
   kappa_r.FillBoundary(geom.periodicity());
