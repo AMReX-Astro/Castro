@@ -275,42 +275,6 @@
 </dd></dl>
 
 <dl class="subroutine">
-<dt id="f/gravity_1d_module/ca_compute_radial_mass">
-<em class="property">subroutine  </em><code class="descclassname">gravity_1d_module/</code><code class="descname">ca_compute_radial_mass</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dx</em>, <em>dr</em>, <em>state</em>, <em>r_l1</em>, <em>r_h1</em>, <em>radial_mass</em>, <em>radial_vol</em>, <em>problo</em>, <em>n1d</em>, <em>drdxfac</em>, <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_1d_module/ca_compute_radial_mass" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (1)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (1)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dx</strong> (1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dr</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>state</strong> (r_h1-r_l1+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>r_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>r_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>radial_mass</strong> (n1d)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>radial_vol</strong> (n1d)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>problo</strong> (1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>drdxfac</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(radial_mass)</em><em>]</em></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">four3rd()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">m_pi()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/symmetry" title="f/prob_params_module/symmetry"><code class="xref f f-func docutils literal notranslate"><span class="pre">symmetry()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_lo" title="f/prob_params_module/physbc_lo"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_lo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
 <dt id="f/gravity_1d_module/ca_put_radial_grav">
 <em class="property">subroutine  </em><code class="descclassname">gravity_1d_module/</code><code class="descname">ca_put_radial_grav</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dx</em>, <em>dr</em>, <em>grav</em>, <em>g_l1</em>, <em>g_h1</em>, <em>radial_grav</em>, <em>problo</em>, <em>n1d</em>, <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_1d_module/ca_put_radial_grav" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
@@ -332,42 +296,6 @@
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(radial_grav)</em><em>]</em></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/gravity_1d_module/ca_put_radial_phi">
-<em class="property">subroutine  </em><code class="descclassname">gravity_1d_module/</code><code class="descname">ca_put_radial_phi</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em>, <em>dr</em>, <em>phi</em>, <em>p_l1</em>, <em>p_h1</em>, <em>radial_phi</em>, <em>problo</em>, <em>numpts_1d</em>, <em>fill_interior</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_1d_module/ca_put_radial_phi" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (1)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (1)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domlo</strong> (1)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domhi</strong> (1)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dx</strong> (1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dr</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>phi</strong> (p_h1-p_l1+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>p_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>p_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>radial_phi</strong> (<a class="reference internal" href="meth_params_f.html#f/meth_params_module/numpts_1d" title="f/meth_params_module/numpts_1d">numpts_1d</a>)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>problo</strong> (1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fill_interior</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>numpts_1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(radial_phi)</em><em>]</em></p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
