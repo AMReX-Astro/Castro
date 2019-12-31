@@ -173,10 +173,12 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     MultiFab& S_old = get_old_data(State_Type);
 
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      // for the CTU unsplit method, we always start with the old state
+      // for the CTU unsplit method, we always start with the old
+      // state note: a clean_state has already been done on the old
+      // state in initialize_advance so we don't need to do another
+      // one here
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
       const Real prev_time = state[State_Type].prevTime();
-      clean_state(S_old, prev_time, 0);
       expand_state(Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == SpectralDeferredCorrections) {
