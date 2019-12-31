@@ -3497,7 +3497,8 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
             (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(temp),
              BL_TO_FORTRAN_ANYD(State[mfi]),
-             Radiation::const_c_v, Radiation::c_v_exp_m, Radiation::c_v_exp_n);
+             Radiation::const_c_v, Radiation::c_v_exp_m, Radiation::c_v_exp_n,
+             0);
 
 	State[mfi].copy(temp,bx,0,bx,Temp,1);
       } else {

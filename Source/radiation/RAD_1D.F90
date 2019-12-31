@@ -222,27 +222,6 @@ subroutine nceup(DIMS(reg), relres, absres, &
   enddo
 end subroutine nceup
 
-subroutine cetot(DIMS(reg), &
-                 state, DIMS(sb), &
-                 frhoe, DIMS(fb)) bind(C, name="cetot")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(sb)
-  integer :: DIMDEC(fb)
-  real(rt)         :: state(DIMV(sb), NVAR)
-  real(rt)         :: frhoe(DIMV(fb))
-  real(rt)         :: kin
-  integer :: i
-  do i = reg_l1, reg_h1
-     !         kin = 0.5e0_rt * (state(i,XMOM) ** 2) /
-     !     @                 state(i,DEN)
-     kin = state(i, UEDEN) - state(i, UEINT)
-     state(i, UEINT) = frhoe(i)
-     state(i, UEDEN) = frhoe(i) + kin
-  enddo
-end subroutine cetot
-
 ! *********************************
 ! ** BEGIN MGFLD routines        **
 ! *********************************

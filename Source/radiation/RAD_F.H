@@ -767,7 +767,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      const amrex::Real const_c_v,
      const amrex::Real c_v_exp_m,
-     const amrex::Real c_v_exp_n);
+     const amrex::Real c_v_exp_n,
+     int update_state);
 
 #ifdef NEUTRINO
   ca_compute_temp_given_reye
@@ -937,9 +938,9 @@ extern "C" {
 	     const amrex::Real& sigma, const amrex::Real& c,
 	     const amrex::Real& delta_t, const amrex::Real& theta);
 
-  void cetot(ARLIM_P(reglo), ARLIM_P(reghi), 
-	     BL_FORT_FAB_ARG(state), 
-	     BL_FORT_FAB_ARG(rhoe));
+  void cetot(const int* lo, const int* hi,
+	     BL_FORT_FAB_ARG_3D(state), 
+	     BL_FORT_FAB_ARG_3D(rhoe));
 
   void fkpn(const int* lo, const int* hi,
 	    BL_FORT_FAB_ARG_3D(fkp),	   

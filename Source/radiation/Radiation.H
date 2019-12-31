@@ -467,9 +467,8 @@ public:
 ///
 /// @param state
 /// @param frhoes
-/// @param temp
 ///
-  void state_update(amrex::MultiFab& state,  amrex::MultiFab& frhoes, amrex::MultiFab& temp);
+  void state_update(amrex::MultiFab& state,  amrex::MultiFab& frhoes);
 
 
 ///

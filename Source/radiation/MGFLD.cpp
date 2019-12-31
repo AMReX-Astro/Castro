@@ -866,7 +866,8 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                       (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                        BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
                        BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                       const_c_v, c_v_exp_m, c_v_exp_n);
+                       const_c_v, c_v_exp_m, c_v_exp_n,
+                       0);
 		}
 		else {
 		    amrex::Error("ERROR Radiation::do_real_eos < 0");
@@ -931,7 +932,8 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                   (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                    BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
                    BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                   const_c_v, c_v_exp_m, c_v_exp_n);
+                   const_c_v, c_v_exp_m, c_v_exp_n,
+                   0);
 	    }
 	    else {
 		amrex::Error("ERROR Radiation::do_real_eos < 0");

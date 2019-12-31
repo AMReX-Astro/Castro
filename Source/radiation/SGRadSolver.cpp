@@ -353,7 +353,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   // update fluid energy based on frhoes:
-  state_update(S_new, frhoes, temp);
+  state_update(S_new, frhoes);
 
   if (verbose > 2) {
      for (MFIter fi(frhoes); fi.isValid(); ++fi) {

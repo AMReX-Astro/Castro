@@ -1408,33 +1408,28 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
   ParallelDescriptor::ReduceRealMax(absolute);
 }
 
-void Radiation::state_update(MultiFab& state,
-                             MultiFab& frhoes,
-			     MultiFab& temp)
+void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
 {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter si(state,true); si.isValid(); ++si) {
-	const Box& fbox = frhoes[si].box();
-	const Box& reg = si.tilebox();
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.tilebox();
 
-	cetot(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN(state[si]),
-	      BL_TO_FORTRAN(frhoes[si]));
+#pragma gpu box(bx)
+	cetot(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+	      BL_TO_FORTRAN_ANYD(state[mfi]),
+	      BL_TO_FORTRAN_ANYD(frhoes[mfi]));
 
 	if (do_real_eos == 0) {
-
-	    temp[si].copy(frhoes[si],reg);
-
-#pragma gpu box(reg) sync
+            // frhoes will be overwritten with temperature here
+#pragma gpu box(bx)
 	    ca_compute_temp_given_cv
-		(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-		 BL_TO_FORTRAN_ANYD(temp[si]),
-		 BL_TO_FORTRAN_ANYD(state[si]),
-		 const_c_v, c_v_exp_m, c_v_exp_n);
-
-	    state[si].copy(temp[si],reg,0,reg,Temp,1);
+		(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		 BL_TO_FORTRAN_ANYD(frhoes[mfi]),
+		 BL_TO_FORTRAN_ANYD(state[mfi]),
+		 const_c_v, c_v_exp_m, c_v_exp_n,
+                 1);
 	}
     }
 }

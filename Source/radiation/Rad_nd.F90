@@ -647,6 +647,40 @@ contains
 
 
 
+ 
+  subroutine cetot(lo, hi, &
+                   state, s_lo, s_hi, &
+                   frhoe, f_lo, f_hi) &
+                   bind(C, name="cetot")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: NVAR, UEINT, UEDEN
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ) :: frhoe(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+
+    integer  :: i, j, k
+    real(rt) :: kin
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             kin = state(i,j,k,UEDEN) - state(i,j,k,UEINT)
+             state(i,j,k,UEINT) = frhoe(i,j,k)
+             state(i,j,k,UEDEN) = frhoe(i,j,k) + kin
+          end do
+       end do
+    end do
+
+  end subroutine cetot
+
+
+
   subroutine ca_compute_rosseland(lo, hi, &
                                   kpr, k_lo, k_hi, &
                                   state, s_lo, s_hi) &
@@ -1199,10 +1233,11 @@ contains
   subroutine ca_compute_temp_given_cv(lo, hi, &
                                       temp, t_lo, t_hi, &
                                       state, s_lo, s_hi, &
-                                      const_c_v, c_v_exp_m, c_v_exp_n) &
+                                      const_c_v, c_v_exp_m, c_v_exp_n, &
+                                      update_state) &
                                       bind(C, name="ca_compute_temp_given_cv")
 
-    use meth_params_module, only: NVAR, URHO
+    use meth_params_module, only: NVAR, URHO, UTEMP
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -1210,9 +1245,10 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: t_lo(3), t_hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(inout) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains rhoe as input
     real(rt), intent(in   ), value :: const_c_v, c_v_exp_m, c_v_exp_n
+    integer,  intent(in   ), value :: update_state
 
     integer  :: i, j, k
     real(rt) :: ex, alpha, rhoal, teff
@@ -1238,7 +1274,10 @@ contains
              else
                 teff = max(temp(i,j,k), 1.e-50_rt)
                 temp(i,j,k) = ((1.e0_rt - c_v_exp_n) * teff / rhoal)**ex
+             end if
 
+             if (update_state == 1) then
+                state(i,j,k,UTEMP) = temp(i,j,k)
              end if
 
           end do
