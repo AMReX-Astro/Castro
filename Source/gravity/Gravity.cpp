@@ -1399,8 +1399,11 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 	for (MFIter mfi(Rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
-	    ca_compute_radial_mass(bx.loVect(), bx.hiVect(),dx,&dr,
-				   BL_TO_FORTRAN(Rhs[mfi]),
+
+#pragma gpu box(bx)
+	    ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                   AMREX_REAL_ANYD(dx), dr,
+				   BL_TO_FORTRAN_ANYD(Rhs[mfi]),
 #ifdef _OPENMP
 				   priv_radial_mass[tid].dataPtr(),
 				   priv_radial_vol[tid].dataPtr(),
@@ -1408,7 +1411,8 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 				   radial_mass.dataPtr(),
 				   radial_vol.dataPtr(),
 #endif
-				   geom.ProbLo(),&n1d,&drdxfac,&level);
+				   AMREX_REAL_ANYD(geom.ProbLo()),
+                                   n1d, drdxfac, level);
 	}
 
 #ifdef _OPENMP
@@ -2392,8 +2396,10 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 	        const Box& bx = mfi.tilebox();
 		FArrayBox& fab = S[mfi];
 
-		ca_compute_radial_mass(bx.loVect(), bx.hiVect(), dx, &dr,
-				       BL_TO_FORTRAN(fab),
+#pragma gpu box(bx)
+		ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                       AMREX_REAL_ANYD(dx), dr,
+				       BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
 				       priv_radial_mass[tid].dataPtr(),
 				       priv_radial_vol[tid].dataPtr(),
@@ -2401,7 +2407,8 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 				       radial_mass[lev].dataPtr(),
 				       radial_vol[lev].dataPtr(),
 #endif
-				       geom.ProbLo(),&n1d,&drdxfac,&lev);
+				       AMREX_REAL_ANYD(geom.ProbLo()),
+                                       n1d, drdxfac, lev);
 
 #ifdef GR_GRAV
 		ca_compute_avgpres(bx.loVect(), bx.hiVect(), dx, &dr,
