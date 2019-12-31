@@ -71,13 +71,13 @@ extern "C"
      const int* n1d, const int* level); 
 
   void ca_put_radial_phi
-    (const int lo[], const int hi[], 
-     const int domlo[], const int domhi[], 
-     const amrex::Real* dx, const amrex::Real* dr,
-     BL_FORT_FAB_ARG(phi),
+    (const int* lo, const int* hi, 
+     const int* domlo, const int* domhi, 
+     const amrex::Real* dx, amrex::Real dr,
+     BL_FORT_FAB_ARG_3D(phi),
      const amrex::Real* radial_phi,
      const amrex::Real* problo, 
-     const int* numpts_1d, const int* fill_interior);
+     int numpts_1d, int fill_interior);
 
   void init_multipole_gravity
     (const int* lnum, const int* lo_bc, const int* hi_bc);

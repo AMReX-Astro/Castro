@@ -438,6 +438,128 @@ contains
 
 
 
+  subroutine ca_put_radial_phi(lo, hi, &
+                               domlo, domhi, &
+                               dx, dr, &
+                               phi, p_lo, p_hi, &
+                               radial_phi, problo, &
+                               numpts_1d, fill_interior) &
+                               bind(C, name="ca_put_radial_phi")
+
+    use amrex_constants_module, only: HALF, TWO
+    use prob_params_module, only: center
+    use amrex_fort_module, only: rt => amrex_real
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
+
+    implicit none
+
+    integer , intent(in   ) :: lo(3), hi(3)
+    integer , intent(in   ) :: domlo(3), domhi(3)
+    integer,  intent(in   ) :: p_lo(3), p_hi(3)
+    real(rt), intent(in   ) :: radial_phi(0:numpts_1d-1)
+    real(rt), intent(in   ) :: dx(3), problo(3)
+    real(rt), intent(inout) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(in   ), value :: dr
+    integer , intent(in   ), value :: numpts_1d, fill_interior
+
+    integer  :: i, j, k, index
+    real(rt) :: x, y, z, r
+    real(rt) :: cen, xi, slope, phi_lo, phi_md, phi_hi, minvar, maxvar
+
+    !$gpu
+
+    ! Note that when we interpolate into the ghost cells we use the
+    ! location of the edge, not the cell center
+
+    do k = lo(3), hi(3)
+       if (k .gt. domhi(3)) then
+          z = problo(3) + (dble(k  )       ) * dx(3) - center(3)
+       else if (k .lt. domlo(3)) then
+          z = problo(3) + (dble(k+1)       ) * dx(3) - center(3)
+       else
+          z = problo(3) + (dble(k  ) + HALF) * dx(3) - center(3)
+       end if
+
+       do j = lo(2), hi(2)
+          if (j .gt. domhi(2)) then
+             y = problo(2) + (dble(j  )       ) * dx(2) - center(2)
+          else if (j .lt. domlo(2)) then
+             y = problo(2) + (dble(j+1)       ) * dx(2) - center(2)
+          else
+             y = problo(2) + (dble(j  ) + HALF) * dx(2) - center(2)
+          end if
+
+          do i = lo(1), hi(1)
+             if (i .gt. domhi(1)) then
+                x = problo(1) + (dble(i  )       ) * dx(1) - center(1)
+             else if (i .lt. domlo(1)) then
+                x = problo(1) + (dble(i+1)       ) * dx(1) - center(1)
+             else
+                x = problo(1) + (dble(i  ) + HALF) * dx(1) - center(1)
+             end if
+
+             r     = sqrt(x**2 + y**2 + z**2)
+             index = int(r / dr)
+
+#ifndef AMREX_USE_GPU
+             if (index .gt. numpts_1d - 1) then
+                print *, 'PUT_RADIAL_PHI: INDEX TOO BIG ', index, ' > ', numpts_1d - 1
+                print *, 'AT (i,j) ', i, j, k
+                print *, 'R, DR IS ', r, dr
+                call castro_error("Error:: Gravity_nd.F90 :: ca_put_radial_phi")
+             end if
+#endif
+
+             if ((fill_interior .eq. 1) .or. &
+                 (i .lt. domlo(1) .or. i .gt. domhi(1) .or. &
+                  j .lt. domlo(2) .or. j .gt. domhi(2) .or. &
+                  k .lt. domlo(3) .or. k .gt. domhi(3))) then
+
+                cen = (dble(index) + HALF) * dr
+                xi  = r - cen
+
+                if (index == 0) then
+                   !
+                   ! Linear interpolation or extrapolation
+                   !
+                   slope      = ( radial_phi(index+1) - radial_phi(index) ) / dr
+                   phi(i,j,k) = radial_phi(index) + slope * xi
+                else if (index == numpts_1d-1) then
+                   !
+                   ! Linear interpolation or extrapolation
+                   !
+                   slope      = ( radial_phi(index) - radial_phi(index-1) ) / dr
+                   phi(i,j,k) = radial_phi(index) + slope * xi
+                else
+                   !
+                   ! Quadratic interpolation
+                   !
+                   phi_hi = radial_phi(index+1)
+                   phi_md = radial_phi(index  )
+                   phi_lo = radial_phi(index-1)
+                   phi(i,j,k) = &
+                        ( phi_hi -      TWO * phi_md + phi_lo) * xi**2 / (TWO * dr**2) + &
+                        ( phi_hi                     - phi_lo) * xi    / (TWO * dr   ) + &
+                        (-phi_hi + 26.e0_rt * phi_md - phi_lo) / 24.e0_rt
+                   minvar     = min(phi_md, min(phi_lo, phi_hi))
+                   maxvar     = max(phi_md, max(phi_lo, phi_hi))
+                   phi(i,j,k) = max(phi(i,j,k), minvar)
+                   phi(i,j,k) = min(phi(i,j,k), maxvar)
+
+                end if
+
+             end if
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_put_radial_phi
+
+
+
   subroutine ca_compute_direct_sum_bc(lo, hi, dx, &
                                       symmetry_type, physbc_lo, physbc_hi, &
                                       rho, r_lo, r_hi, &

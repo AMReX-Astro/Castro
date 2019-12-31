@@ -1452,11 +1452,15 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
     for (MFIter mfi(phi, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox();
-        ca_put_radial_phi(bx.loVect(), bx.hiVect(),
-			  domain.loVect(), domain.hiVect(),
-			  dx,&dr, BL_TO_FORTRAN(phi[mfi]),
-			  radial_phi.dataPtr(),geom.ProbLo(),
-			  &n1d,&fill_interior);
+
+#pragma gpu box(bx)
+        ca_put_radial_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+			  AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
+			  AMREX_REAL_ANYD(dx), dr,
+                          BL_TO_FORTRAN_ANYD(phi[mfi]),
+			  radial_phi.dataPtr(),
+                          AMREX_REAL_ANYD(geom.ProbLo()),
+			  n1d, fill_interior);
     }
 
     if (verbose)
