@@ -894,11 +894,11 @@ extern "C" {
            amrex::Real tf,
 	   const BL_FORT_FAB_ARG_3D(state));
 
-  void cexch(ARLIM_P(reglo), ARLIM_P(reghi),
-	     BL_FORT_FAB_ARG(exch), 
-	     BL_FORT_FAB_ARG(Er), 
-	     BL_FORT_FAB_ARG(fkp), 
-	     const amrex::Real& sigma, const amrex::Real& c);
+  void cexch(const int* lo, const int* hi,
+	     BL_FORT_FAB_ARG_3D(exch), 
+	     BL_FORT_FAB_ARG_3D(Er), 
+	     BL_FORT_FAB_ARG_3D(fkp), 
+	     amrex::Real sigma, amrex::Real c);
 
   void ceta2(const int* lo, const int* hi,
 	     BL_FORT_FAB_ARG_3D(eta),

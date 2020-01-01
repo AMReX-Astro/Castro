@@ -1181,16 +1181,19 @@ void Radiation::compute_exchange(MultiFab& exch,
                                  MultiFab& Er,
                                  MultiFab& fkp, int igroup)
 {
+    BL_PROFILE("Radiation::compute_exchange");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter exi(exch,true); exi.isValid(); ++exi) {
-	const Box& reg = exi.tilebox();
+    for (MFIter mfi(exch, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.tilebox();
 
-	cexch(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN(exch[exi]),
-	      BL_TO_FORTRAN(Er[exi]),
-	      BL_TO_FORTRAN(fkp[exi]),
+#pragma gpu box(bx)
+	cexch(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+	      BL_TO_FORTRAN_ANYD(exch[mfi]),
+	      BL_TO_FORTRAN_ANYD(Er[mfi]),
+	      BL_TO_FORTRAN_ANYD(fkp[mfi]),
 	      sigma, c);
     }
 }

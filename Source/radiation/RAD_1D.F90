@@ -102,31 +102,6 @@ subroutine anatw2(test, &
   enddo
 end subroutine anatw2
 
-! exch contains temp on input:
-
-subroutine cexch(DIMS(reg), &
-                 exch, DIMS(xbox), &
-                 er  , DIMS(ebox), &
-                 fkp , DIMS(kbox), &
-                 sigma, c) bind(C, name="cexch")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(xbox)
-  integer :: DIMDEC(ebox)
-  integer :: DIMDEC(kbox)
-  real(rt)         :: exch(DIMV(xbox))
-  real(rt)         :: er  (DIMV(ebox))
-  real(rt)         :: fkp (DIMV(kbox))
-  real(rt)         :: sigma, c
-  integer :: i
-  do i = reg_l1, reg_h1
-     exch(i) = fkp(i) * &
-          (4.e0_rt * sigma * exch(i)**4 &
-          - c * er(i))
-  enddo
-end subroutine cexch
-
 subroutine ceupdterm(DIMS(reg), relres, absres, &
                      frhoes, DIMS(grd), &
                      frhoem, eta, etainv, dfo, dfn, exch, dterm, &

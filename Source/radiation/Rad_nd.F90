@@ -748,6 +748,42 @@ contains
 
 
 
+  ! exch contains temp on input:
+  
+  subroutine cexch(lo, hi, &
+                   exch, x_lo, x_hi, &
+                   er, e_lo, e_hi, &
+                   fkp, f_lo, f_hi, &
+                   sigma, c) &
+                   bind(C, name="cexch")
+
+    use amrex_fort_module, only: rt => amrex_real
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: x_lo(3), x_hi(3)
+    integer,  intent(in   ) :: e_lo(3), e_hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(inout) :: exch(x_lo(1):x_hi(1),x_lo(2):x_hi(2),x_lo(3):x_hi(3))
+    real(rt), intent(in   ) :: er(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3))
+    real(rt), intent(in   ) :: fkp(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    real(rt), intent(in   ), value :: sigma, c
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             exch(i,j,k) = fkp(i,j,k) * (4.e0_rt * sigma * exch(i,j,k)**4 - c * er(i,j,k))
+          end do
+       end do
+    end do
+
+  end subroutine cexch
+
+
+
   subroutine ca_compute_rosseland(lo, hi, &
                                   kpr, k_lo, k_hi, &
                                   state, s_lo, s_hi) &
