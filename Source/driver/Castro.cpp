@@ -3497,7 +3497,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
         AMREX_PARALLEL_FOR_3D(bx, i, j, k, { temp_arr(i,j,k) = state_arr(i,j,k,ecomp); });
 
 #pragma gpu box(bx) sync
-	ca_compute_temp_given_cv
+	ca_compute_temp_given_rhoe
             (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(temp),
              BL_TO_FORTRAN_ANYD(State[mfi]),

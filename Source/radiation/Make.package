@@ -10,7 +10,6 @@ CEXE_sources += RadBndry.cpp
 CEXE_sources += RadMultiGroup.cpp
 CEXE_sources += MGRadBndry.cpp
 CEXE_sources += SGRadSolver.cpp
-CEXE_sources += SGFLD.cpp
 CEXE_sources += RadPlotvar.cpp
 CEXE_sources += MGFLD.cpp
 CEXE_sources += MGFLDRadSolver.cpp
