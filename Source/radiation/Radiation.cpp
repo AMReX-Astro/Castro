@@ -1725,6 +1725,7 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
                  BL_TO_FORTRAN_ANYD(frhoe),
                  BL_TO_FORTRAN_ANYD(state[mfi]));
 
+#pragma gpu box(bx)
           ca_compute_temp_given_rhoe
               (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                BL_TO_FORTRAN_ANYD(frhoe),
