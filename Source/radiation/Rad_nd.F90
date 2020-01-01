@@ -10,6 +10,73 @@ module rad_nd_module
 
 contains
 
+  subroutine ca_update_matter(lo, hi,  &
+                              re_n, re_n_lo, re_n_hi, &
+                              Er_n, Er_n_lo, Er_n_hi, &
+                              Er_l, Er_l_lo, Er_l_hi, &
+                              re_s, re_s_lo, re_s_hi, &
+                              re_2, re_2_lo, re_2_hi, &
+                              eta1, eta1_lo, eta1_hi, &
+                              cpt, cpt_lo, cpt_hi, &
+                              kpp, kpp_lo, kpp_hi, &
+                              dt, tau) &
+                              bind(C, name='ca_update_matter')
+
+    use amrex_fort_module, only: rt => amrex_real
+    use rad_params_module, only: ngroups, clight
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: re_n_lo(3), re_n_hi(3)
+    integer,  intent(in   ) :: Er_n_lo(3), Er_n_hi(3)
+    integer,  intent(in   ) :: Er_l_lo(3), Er_l_hi(3)
+    integer,  intent(in   ) :: re_s_lo(3), re_s_hi(3)
+    integer,  intent(in   ) :: re_2_lo(3), re_2_hi(3)
+    integer,  intent(in   ) :: eta1_lo(3), eta1_hi(3)
+    integer,  intent(in   ) :: cpt_lo(3), cpt_hi(3)
+    integer,  intent(in   ) :: kpp_lo(3), kpp_hi(3)
+    real(rt), intent(inout) :: re_n(re_n_lo(1):re_n_hi(1),re_n_lo(2):re_n_hi(2),re_n_lo(3):re_n_hi(3))
+    real(rt), intent(in   ) :: Er_n(Er_n_lo(1):Er_n_hi(1),Er_n_lo(2):Er_n_hi(2),Er_n_lo(3):Er_n_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: Er_l(Er_l_lo(1):Er_l_hi(1),Er_l_lo(2):Er_l_hi(2),Er_l_lo(3):Er_l_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: re_s(re_s_lo(1):re_s_hi(1),re_s_lo(2):re_s_hi(2),re_s_lo(3):re_s_hi(3))
+    real(rt), intent(in   ) :: re_2(re_2_lo(1):re_2_hi(1),re_2_lo(2):re_2_hi(2),re_2_lo(3):re_2_hi(3))
+    real(rt), intent(in   ) :: eta1(eta1_lo(1):eta1_hi(1),eta1_lo(2):eta1_hi(2),eta1_lo(3):eta1_hi(3))
+    real(rt), intent(in   ) :: cpt(cpt_lo(1):cpt_hi(1),cpt_lo(2):cpt_hi(2),cpt_lo(3):cpt_hi(3))
+    real(rt), intent(in   ) :: kpp(kpp_lo(1):kpp_hi(1),kpp_lo(2):kpp_hi(2),kpp_lo(3):kpp_hi(3),0:ngroups-1)
+    real(rt), intent(in   ), value :: dt, tau
+
+    integer  :: i, j, k
+    real(rt) :: cdt, H1, dkEE, chg
+
+    !$gpu
+
+    cdt = clight * dt
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             H1 = eta1(i,j,k)
+
+             dkEE = sum(kpp(i,j,k,:) * (Er_n(i,j,k,:) - Er_l(i,j,k,:)))
+
+             chg = cdt * dkEE + H1 * ((re_2(i,j,k) - re_s(i,j,k)) + cdt * cpt(i,j,k))
+
+             re_n(i,j,k) = re_s(i,j,k) + chg
+
+             re_n(i,j,k) = (re_n(i,j,k) + tau*re_s(i,j,k)) / (1.e0_rt + tau)
+
+             ! temperature will be updated after exiting this subroutine
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_update_matter
+
+
+
   subroutine flxlim(lo, hi, &
                     lambda, l_lo, l_hi, &
                     limiter) &
@@ -647,6 +714,76 @@ contains
 
 
 
+ 
+  subroutine cetot(lo, hi, &
+                   state, s_lo, s_hi, &
+                   frhoe, f_lo, f_hi) &
+                   bind(C, name="cetot")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: NVAR, UEINT, UEDEN
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ) :: frhoe(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+
+    integer  :: i, j, k
+    real(rt) :: kin
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             kin = state(i,j,k,UEDEN) - state(i,j,k,UEINT)
+             state(i,j,k,UEINT) = frhoe(i,j,k)
+             state(i,j,k,UEDEN) = frhoe(i,j,k) + kin
+          end do
+       end do
+    end do
+
+  end subroutine cetot
+
+
+
+  ! exch contains temp on input:
+  
+  subroutine cexch(lo, hi, &
+                   exch, x_lo, x_hi, &
+                   er, e_lo, e_hi, &
+                   fkp, f_lo, f_hi, &
+                   sigma, c) &
+                   bind(C, name="cexch")
+
+    use amrex_fort_module, only: rt => amrex_real
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: x_lo(3), x_hi(3)
+    integer,  intent(in   ) :: e_lo(3), e_hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(inout) :: exch(x_lo(1):x_hi(1),x_lo(2):x_hi(2),x_lo(3):x_hi(3))
+    real(rt), intent(in   ) :: er(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3))
+    real(rt), intent(in   ) :: fkp(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    real(rt), intent(in   ), value :: sigma, c
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             exch(i,j,k) = fkp(i,j,k) * (4.e0_rt * sigma * exch(i,j,k)**4 - c * er(i,j,k))
+          end do
+       end do
+    end do
+
+  end subroutine cexch
+
+
+
   subroutine ca_compute_rosseland(lo, hi, &
                                   kpr, k_lo, k_hi, &
                                   state, s_lo, s_hi) &
@@ -920,57 +1057,6 @@ contains
 
 
 
-  subroutine gcv(lo, hi, &
-                 cv, c_lo, c_hi, &
-                 temp, t_lo, t_hi, &
-                 const, em, en, tf, &
-                 state, s_lo, s_hi) bind(C, name="gcv")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: c_lo(3), c_hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: cv(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
-    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains temp on input
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: const, em, en, tf
-
-    real(rt) :: alpha, teff, frhoal
-    integer  :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (em == 0.e0_rt) then
-                alpha = const
-             else
-                alpha = const * state(i,j,k,URHO)**em
-             end if
-
-             frhoal = state(i,j,k,URHO) * alpha + tiny
-
-             if (en == 0.e0_rt) then
-                cv(i,j,k) = alpha
-             else
-                teff = max(temp(i,j,k), tiny)
-                teff = teff + tf * exp(-teff / (tf + tiny))
-                cv(i,j,k) = alpha * teff**(-en)
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine gcv
-
-
-
   subroutine ca_compute_c_v(lo, hi, &
                             cv, c_lo, c_hi, &
                             temp, t_lo, t_hi, &
@@ -980,7 +1066,9 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UFS, UFX
+    use meth_params_module, only: NVAR, URHO, UFS, UFX, &
+                                  do_real_eos, const_c_v, c_v_exp_n, c_v_exp_m, &
+                                  prop_temp_floor
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -996,6 +1084,7 @@ contains
     integer     :: i, j, k
     real(rt)    :: rhoInv
     type(eos_t) :: eos_state
+    real(rt)    :: alpha, teff
 
     !$gpu
 
@@ -1003,15 +1092,35 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             rhoInv = 1.e0_rt / state(i,j,k,URHO)
-             eos_state % rho = state(i,j,k,URHO)
-             eos_state % T   = temp(i,j,k)
-             eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-             eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
+             if (do_real_eos == 1) then
 
-             call eos(eos_input_rt, eos_state)
+                rhoInv = 1.e0_rt / state(i,j,k,URHO)
+                eos_state % rho = state(i,j,k,URHO)
+                eos_state % T   = temp(i,j,k)
+                eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
 
-             cv(i,j,k) = eos_state % cv
+                call eos(eos_input_rt, eos_state)
+
+                cv(i,j,k) = eos_state % cv
+
+             else
+
+                if (c_v_exp_m == 0.e0_rt) then
+                   alpha = const_c_v
+                else
+                   alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
+                end if
+
+                if (c_v_exp_n == 0.e0_rt) then
+                   cv(i,j,k) = alpha
+                else
+                   teff = max(temp(i,j,k), tiny)
+                   teff = teff + prop_temp_floor * exp(-teff / (prop_temp_floor + tiny))
+                   cv(i,j,k) = alpha * teff**(-c_v_exp_n)
+                end if
+
+             end if
 
           end do
        end do
@@ -1071,69 +1180,6 @@ contains
 
 
 
-  subroutine gtemp(lo, hi, &
-                   temp, t_lo, t_hi, &
-                   const, em, en, &
-                   state, s_lo, s_hi, &
-                   update_state) bind(C, name="gtemp")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO, UTEMP
-#ifndef AMREX_USE_GPU
-    use castro_error_module, only: castro_error
-#endif
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))  ! temp contains frhoe on input
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: const, em, en
-    integer,  intent(in   ), value :: update_state
-
-    real(rt) :: alpha, teff, ex, frhoal
-    integer  :: i, j, k
-
-    !$gpu
-
-#ifndef AMREX_USE_GPU
-    if (en >= 1.e0_rt) then
-       call castro_error("Bad exponent for cv calculation")
-    end if
-#endif
-
-    ex = 1.e0_rt / (1.e0_rt - en)
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (em == 0.e0_rt) then
-                alpha = const
-             else
-                alpha = const * state(i,j,k,URHO)**em
-             end if
-
-             frhoal = state(i,j,k,URHO) * alpha + tiny
-
-             if (en == 0.e0_rt) then
-                temp(i,j,k) = temp(i,j,k) / frhoal
-             else
-                teff = max(temp(i,j,k), tiny)
-                temp(i,j,k) = ((1.e0_rt - en) * teff / frhoal)**ex
-             end if
-
-             if (update_state == 1) then
-                state(i,j,k,UTEMP) = temp(i,j,k)
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine gtemp
-
-
-
   subroutine ca_compute_temp_given_rhoe(lo, hi, &
                                         temp, t_lo, t_hi, &
                                         state, s_lo, s_hi, &
@@ -1143,7 +1189,8 @@ contains
     use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX, small_temp
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX, small_temp, &
+                                  do_real_eos, const_c_v, c_v_exp_m, c_v_exp_n
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -1158,6 +1205,7 @@ contains
     integer      :: i, j, k
     real(rt)     :: rhoInv
     type (eos_t) :: eos_state
+    real(rt)     :: ex, alpha, rhoal, teff
 
     !$gpu
 
@@ -1165,22 +1213,37 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (temp(i,j,k) .le. 0.e0_rt) then
+             if (do_real_eos == 1) then
 
-                temp(i,j,k) = small_temp
+                if (temp(i,j,k) .le. 0.e0_rt) then
+
+                   temp(i,j,k) = small_temp
+
+                else
+
+                   rhoInv = 1.e0_rt / state(i,j,k,URHO)
+                   eos_state % rho = state(i,j,k,URHO)
+                   eos_state % T   = state(i,j,k,UTEMP)
+                   eos_state % e   =  temp(i,j,k)*rhoInv 
+                   eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                   eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
+
+                   call eos(eos_input_re, eos_state)
+
+                   temp(i,j,k) = eos_state % T
+
+                end if
 
              else
 
-                rhoInv = 1.e0_rt / state(i,j,k,URHO)
-                eos_state % rho = state(i,j,k,URHO)
-                eos_state % T   = state(i,j,k,UTEMP)
-                eos_state % e   =  temp(i,j,k)*rhoInv 
-                eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
+                alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
 
-                call eos(eos_input_re, eos_state)
+                rhoal = state(i,j,k,URHO) * alpha + 1.e-50_rt
 
-                temp(i,j,k) = eos_state % T
+                teff = max(temp(i,j,k), 1.e-50_rt)
+
+                ex = 1.e0_rt / (1.e0_rt - c_v_exp_n)
+                temp(i,j,k) = ((1.e0_rt - c_v_exp_n) * teff / rhoal)**ex
 
              end if
 
@@ -1193,59 +1256,6 @@ contains
     end do
 
   end subroutine ca_compute_temp_given_rhoe
-
-
-
-  subroutine ca_compute_temp_given_cv(lo, hi, &
-                                      temp, t_lo, t_hi, &
-                                      state, s_lo, s_hi, &
-                                      const_c_v, c_v_exp_m, c_v_exp_n) &
-                                      bind(C, name="ca_compute_temp_given_cv")
-
-    use meth_params_module, only: NVAR, URHO
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(inout) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains rhoe as input
-    real(rt), intent(in   ), value :: const_c_v, c_v_exp_m, c_v_exp_n
-
-    integer  :: i, j, k
-    real(rt) :: ex, alpha, rhoal, teff
-
-    !$gpu
-
-    ex = 1.e0_rt / (1.e0_rt - c_v_exp_n)
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (c_v_exp_m .eq. 0.e0_rt) then
-                alpha = const_c_v
-             else
-                alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
-             endif
-
-             rhoal = state(i,j,k,URHO) * alpha + 1.e-50_rt
-
-             if (c_v_exp_n .eq. 0.e0_rt) then
-                temp(i,j,k) = temp(i,j,k) / rhoal
-             else
-                teff = max(temp(i,j,k), 1.e-50_rt)
-                temp(i,j,k) = ((1.e0_rt - c_v_exp_n) * teff / rhoal)**ex
-
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_temp_given_cv
 
 
 
@@ -1550,6 +1560,17 @@ subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_
   a = a_fcm
   m = 1.e6_rt * ev2erg_fcm
 
+  allocate(pi)
+  allocate(clight)
+  allocate(hplanck)
+  allocate(kboltz)
+  allocate(stefbol)
+  allocate(arad)
+  allocate(avogadro)
+  allocate(Hz2MeV)
+  allocate(mev2erg)
+  allocate(tiny)
+
   pi       = p
   clight   = c
   hplanck  = h
@@ -1560,6 +1581,9 @@ subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_
   mev2erg  = m
   Hz2MeV   = h / m
   tiny     = 1.e-50_rt
+
+  allocate(radtoE)
+  allocate(etafactor)
 
   if (J_is_used > 0) then
      radtoE = 4.e0_rt*pi/clight

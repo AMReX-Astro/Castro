@@ -3,6 +3,12 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
+#ifdef DIFFUSION
+static int diffuse_temp;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
+static amrex::Real diffuse_cond_scale_fac;
+#endif
 #ifdef AMREX_PARTICLES
 static int do_tracer_particles;
 #endif
@@ -139,12 +145,6 @@ static int state_in_rotating_frame;
 static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
-#endif
-#ifdef DIFFUSION
-static int diffuse_temp;
-static amrex::Real diffuse_cutoff_density;
-static amrex::Real diffuse_cutoff_density_hi;
-static amrex::Real diffuse_cond_scale_fac;
 #endif
 #ifdef GRAVITY
 static int use_point_mass;

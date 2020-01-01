@@ -336,29 +336,12 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       else {
 	  dedY[mfi].setVal(0.0,box,0);
 #endif
-	  if (do_real_eos == 1) {
 #pragma gpu box(box) sync
-	    ca_compute_c_v
-                (AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                 BL_TO_FORTRAN_ANYD(dedT[mfi]),
-                 BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]));
-	  }
-	  else if (c_v_exp_m == 0.0 && c_v_exp_n == 0.0) {
-	      dedT[mfi].setVal(const_c_v,box,0);
-	  }
-	  else if (const_c_v > 0.0) {
-#pragma gpu box(box) sync
-	      gcv(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-		  BL_TO_FORTRAN_ANYD(dedT[mfi]), 
-		  BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-		  const_c_v, c_v_exp_m, c_v_exp_n,
-		  prop_temp_floor,
-		  BL_TO_FORTRAN_ANYD(S_new[mfi]));
-	  }
-	  else {
-	      amrex::Error("ERROR Radiation::eos_opacity_emissivity");
-	  }
+          ca_compute_c_v
+              (AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
+               BL_TO_FORTRAN_ANYD(dedT[mfi]),
+               BL_TO_FORTRAN_ANYD(temp_new[mfi]),
+               BL_TO_FORTRAN_ANYD(S_new[mfi]));
 #ifdef NEUTRINO
       }
 #endif
@@ -851,26 +834,13 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 	    }
 	    else {
 		temp_new[mfi].copy(rhoe_new[mfi],bx);
-		
-		if (do_real_eos > 0) {
+
 #pragma gpu box(bx) sync
-		  ca_compute_temp_given_rhoe
-                      (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
-                       BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-                       BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                       0);
-		}
-		else if (do_real_eos == 0) {
-#pragma gpu box(bx) sync
-		  ca_compute_temp_given_cv
-                      (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-                       BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                       const_c_v, c_v_exp_m, c_v_exp_n);
-		}
-		else {
-		    amrex::Error("ERROR Radiation::do_real_eos < 0");
-		}
+                ca_compute_temp_given_rhoe
+                    (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
+                     BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
+                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                     0);
 	    }
 	}
 	else {
@@ -901,41 +871,27 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 	}
 #else
 	if (conservative_update) {
-	    BL_FORT_PROC_CALL(CA_UPDATE_MATTER, ca_update_matter)
-		(bx.loVect(), bx.hiVect(),
-		 BL_TO_FORTRAN(rhoe_new[mfi]),
-		 BL_TO_FORTRAN(Er_new[mfi]),
-		 BL_TO_FORTRAN(Er_pi[mfi]),
-		 BL_TO_FORTRAN(rhoe_star[mfi]),
-		 BL_TO_FORTRAN(rhoe_step[mfi]),
-		 BL_TO_FORTRAN(eta1[mfi]),
-		 BL_TO_FORTRAN(coupT[mfi]),
-		 BL_TO_FORTRAN(kappa_p[mfi]),
-		 BL_TO_FORTRAN(mugT[mfi]),
-		 BL_TO_FORTRAN(S_new[mfi]),
-		 &delta_t, &ptc_tau);
-	    
+#pragma gpu box(bx) sync
+	    ca_update_matter
+		(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		 BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
+		 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
+		 BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
+		 BL_TO_FORTRAN_ANYD(rhoe_star[mfi]),
+		 BL_TO_FORTRAN_ANYD(rhoe_step[mfi]),
+		 BL_TO_FORTRAN_ANYD(eta1[mfi]),
+		 BL_TO_FORTRAN_ANYD(coupT[mfi]),
+		 BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
+		 delta_t, ptc_tau);
+
 	    temp_new[mfi].copy(rhoe_new[mfi],bx);
 
-	    if (do_real_eos > 0) {
 #pragma gpu box(bx) sync
-	      ca_compute_temp_given_rhoe
-                  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
-                   BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-                   BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                   0);
-	    }
-	    else if (do_real_eos == 0) {
-#pragma gpu box(bx) sync
-	      ca_compute_temp_given_cv
-                  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-                   BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                   const_c_v, c_v_exp_m, c_v_exp_n);
-	    }
-	    else {
-		amrex::Error("ERROR Radiation::do_real_eos < 0");
-	    }
+            ca_compute_temp_given_rhoe
+                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
+                 BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
+                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                 0);
 	}
 	else {
 	    BL_FORT_PROC_CALL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)

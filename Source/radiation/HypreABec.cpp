@@ -674,6 +674,10 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 
     FArrayBox *f;
     int fcomp;
+
+    Array4<Real> const d_arr = dest.array(di);
+    Array4<Real> const r_arr = rhs.array(di);
+
     if (dest.nGrow() == 0) { // need a temporary if dest is the wrong size
       f = &dest[di];
       fcomp = icomp;
@@ -681,17 +685,24 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     else {
       f = &fnew;
       f->resize(reg);
-      f->copy(dest[di], icomp, 0, 1);
+
+      Array4<Real> const f_arr = f->array();
+
       fcomp = 0;
+
+      AMREX_PARALLEL_FOR_3D(reg, i, j, k, { f_arr(i,j,k,fcomp) = d_arr(i,j,k,icomp); });
     }
     Elixir f_elix = fnew.elixir();
 
     vec = f->dataPtr(fcomp); // sharing space, dest will be overwritten below
 
     HYPRE_StructVectorSetBoxValues(x, loV(reg), hiV(reg), vec);
-    Gpu::synchronize();
 
-    f->copy(rhs[di], 0, fcomp, 1);
+    Gpu::streamSynchronize();
+
+    Array4<Real> const f_arr = f->array();
+
+    AMREX_PARALLEL_FOR_3D(reg, i, j, k, { f_arr(i,j,k,fcomp) = r_arr(i,j,k,0); });
 
     // add b.c.'s to rhs
 
@@ -715,7 +726,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
             tfp = tf.dataPtr();
             bctype = -1;
           }
-#pragma gpu box(reg) sync
+#pragma gpu box(reg)
 	  hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
                  reg.loVect()[0], reg.hiVect()[0],
                  oitr().isLow(), idim + 1,
@@ -729,7 +740,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 		 beta, AMREX_REAL_ANYD(dx));
 	}
 	else {
-#pragma gpu box(reg) sync
+#pragma gpu box(reg)
             hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
                   vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
                   cdir, bct, bho, bcl,
@@ -741,10 +752,11 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       }
     }
 
+    Gpu::streamSynchronize();
+
     // initialize rhs
 
     HYPRE_StructVectorSetBoxValues(b, loV(reg), hiV(reg), vec);
-    Gpu::synchronize();
   }
 
   HYPRE_StructVectorAssemble(b); // currently a no-op
@@ -827,7 +839,9 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     Gpu::synchronize();
 
     if (dest.nGrow() != 0) {
-      dest[di].copy(*f, 0, icomp, 1);
+        Array4<Real> const f_arr = f->array();
+        Array4<Real> const d_arr = dest.array(di);
+        AMREX_PARALLEL_FOR_3D(reg, i, j, k, { d_arr(i,j,k,icomp) = f_arr(i,j,k); });
     }
   }
 

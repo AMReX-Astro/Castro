@@ -1,3 +1,7 @@
+# 20.02
+
+   * Support for neutrino radiation diffusion has been removed.
+
 # 20.01
 
    * A new option castro.limit_fluxes_on_large_vel has been added. It

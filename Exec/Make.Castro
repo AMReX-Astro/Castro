@@ -24,13 +24,6 @@ NUMADV ?= 0
 # number of radiation groups
 NGROUPS ?= 1
 
-# neutrino radiation info -- for each species (up to 3) we specify the
-# number of groups
-N_NEUTRINO_SPECIES ?= 3
-N_NEUTRINO_GROUPS_1 ?= 1
-N_NEUTRINO_GROUPS_2 ?= 1
-N_NEUTRINO_GROUPS_3 ?= 1
-
 # this can be turned off for unit tests, etc., and not
 # the entire Castro build
 USE_ALL_CASTRO ?= TRUE
@@ -63,12 +56,6 @@ endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
   USERSuffix = .TRUESDC
-endif
-
-ifeq ($(USE_RAD), TRUE)
-  ifeq ($(USE_NEUTRINO), TRUE)
-    USERSuffix = .Neutrino
-  endif
 endif
 
 ifeq ($(USE_SYSTEM_BLAS), TRUE)
@@ -203,18 +190,6 @@ ifeq ($(USE_RAD), TRUE)
   DEFINES += -DNGROUPS=$(NGROUPS)
 
   EXTERN_CORE += $(TOP)/Util/LAPACK
-
-  ifeq ($(USE_NEUTRINO), TRUE)
-    DEFINES += -DNEUTRINO
-    DEFINES += -DN_NEUTRINO_SPECIES=$(N_NEUTRINO_SPECIES)
-    DEFINES += -DN_NEUTRINO_GROUPS_1=$(N_NEUTRINO_GROUPS_1)
-    DEFINES += -DN_NEUTRINO_GROUPS_2=$(N_NEUTRINO_GROUPS_2)
-    DEFINES += -DN_NEUTRINO_GROUPS_3=$(N_NEUTRINO_GROUPS_3)
-
-    ifeq ($(USE_DUMPMODEL), TRUE)
-      DEFINES += -DHAS_DUMPMODEL
-    endif
-  endif
 endif
 
 ifeq ($(USE_MAESTRO_INIT), TRUE)
@@ -463,8 +438,6 @@ set_indices.F90:
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
            --ngroups $(NGROUPS) \
-           --n_neutrino_species $(N_NEUTRINO_SPECIES) \
-           --n_neutrino_groups "$(N_NEUTRINO_GROUPS_1) $(N_NEUTRINO_GROUPS_2) $(N_NEUTRINO_GROUPS_3)" \
            $(CASTRO_HOME)/Source/driver/_variables
 
 #------------------------------------------------------------------------------

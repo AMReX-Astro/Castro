@@ -534,19 +534,22 @@ BL_FORT_PROC_DECL(CA_STATE_UPDATE, ca_state_update)
     const BL_FORT_FAB_ARG(temp),
     const BL_FORT_FAB_ARG(msk),
     amrex::Real* derat, amrex::Real* dTrat);
-BL_FORT_PROC_DECL(CA_UPDATE_MATTER, ca_update_matter)
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(rhoe_new),
-    const BL_FORT_FAB_ARG(Er_new),
-    const BL_FORT_FAB_ARG(Er_pi),
-    const BL_FORT_FAB_ARG(rhoe_star),
-    const BL_FORT_FAB_ARG(rhoe_step),
-    const BL_FORT_FAB_ARG(eta1),
-    const BL_FORT_FAB_ARG(coupT),
-    const BL_FORT_FAB_ARG(kappa_p),
-    const BL_FORT_FAB_ARG(mugT),
-    const BL_FORT_FAB_ARG(Snew),
-    const amrex::Real* dt, const amrex::Real* ptc_tau);
+
+extern "C"
+{
+  void ca_update_matter
+   (const int* lo, const int* hi,
+    BL_FORT_FAB_ARG_3D(rhoe_new),
+    const BL_FORT_FAB_ARG_3D(Er_new),
+    const BL_FORT_FAB_ARG_3D(Er_pi),
+    const BL_FORT_FAB_ARG_3D(rhoe_star),
+    const BL_FORT_FAB_ARG_3D(rhoe_step),
+    const BL_FORT_FAB_ARG_3D(eta1),
+    const BL_FORT_FAB_ARG_3D(coupT),
+    const BL_FORT_FAB_ARG_3D(kappa_p),
+    amrex::Real dt, amrex::Real ptc_tau);
+}
+
 BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(temp_new),
@@ -761,14 +764,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      int update_state);
 
-  void ca_compute_temp_given_cv
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(temp), 
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real const_c_v,
-     const amrex::Real c_v_exp_m,
-     const amrex::Real c_v_exp_n);
-
 #ifdef NEUTRINO
   ca_compute_temp_given_reye
     (const int* lo, const int* hi,
@@ -877,24 +872,11 @@ extern "C" {
 	      BL_FORT_FAB_ARG_3D(frhoe), 
 	      BL_FORT_FAB_ARG_3D(state));
 
-  void gtemp(const int* lo, const int* hi,
-	     BL_FORT_FAB_ARG_3D(temp), 
-	     amrex::Real con, amrex::Real em, amrex::Real en,
-	     BL_FORT_FAB_ARG_3D(state),
-             int update_state);
-
-  void gcv(const int* lo, const int* hi,
-	   BL_FORT_FAB_ARG_3D(c_v), 
-	   const BL_FORT_FAB_ARG_3D(temp), 
-	   amrex::Real con, amrex::Real em, amrex::Real en,
-           amrex::Real tf,
-	   const BL_FORT_FAB_ARG_3D(state));
-
-  void cexch(ARLIM_P(reglo), ARLIM_P(reghi),
-	     BL_FORT_FAB_ARG(exch), 
-	     BL_FORT_FAB_ARG(Er), 
-	     BL_FORT_FAB_ARG(fkp), 
-	     const amrex::Real& sigma, const amrex::Real& c);
+  void cexch(const int* lo, const int* hi,
+	     BL_FORT_FAB_ARG_3D(exch), 
+	     BL_FORT_FAB_ARG_3D(Er), 
+	     BL_FORT_FAB_ARG_3D(fkp), 
+	     amrex::Real sigma, amrex::Real c);
 
   void ceta2(const int* lo, const int* hi,
 	     BL_FORT_FAB_ARG_3D(eta),
@@ -937,9 +919,9 @@ extern "C" {
 	     const amrex::Real& sigma, const amrex::Real& c,
 	     const amrex::Real& delta_t, const amrex::Real& theta);
 
-  void cetot(ARLIM_P(reglo), ARLIM_P(reghi), 
-	     BL_FORT_FAB_ARG(state), 
-	     BL_FORT_FAB_ARG(rhoe));
+  void cetot(const int* lo, const int* hi,
+	     BL_FORT_FAB_ARG_3D(state), 
+	     BL_FORT_FAB_ARG_3D(rhoe));
 
   void fkpn(const int* lo, const int* hi,
 	    BL_FORT_FAB_ARG_3D(fkp),	   

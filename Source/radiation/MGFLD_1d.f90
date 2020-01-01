@@ -743,68 +743,6 @@ subroutine ca_state_update( lo, hi, &
 end subroutine ca_state_update
 
 
-subroutine ca_update_matter( lo, hi,  &
-     re_n, re_n_l1, re_n_h1,  &
-     Er_n, Er_n_l1, Er_n_h1,  &
-     Er_l, Er_l_l1, Er_l_h1,  &
-     re_s, re_s_l1, re_s_h1,  &
-     re_2, re_2_l1, re_2_h1,  &
-     eta1, eta1_l1, eta1_h1,  &
-      cpt,  cpt_l1,  cpt_h1,  &
-      kpp,  kpp_l1,  kpp_h1,  &
-     mugT, mugT_l1, mugT_h1,  &
-     Snew, Snew_l1, Snew_h1,  &
-     dt, tau)
-
-  use rad_params_module, only : ngroups, clight
-  use meth_params_module, only : NVAR
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer,intent(in)::lo(1),hi(1)
-  integer,intent(in)::re_n_l1, re_n_h1
-  integer,intent(in)::Er_n_l1, Er_n_h1
-  integer,intent(in)::Er_l_l1, Er_l_h1
-  integer,intent(in)::re_s_l1, re_s_h1
-  integer,intent(in)::re_2_l1, re_2_h1
-  integer,intent(in)::eta1_l1, eta1_h1
-  integer,intent(in):: cpt_l1,  cpt_h1
-  integer,intent(in):: kpp_l1,  kpp_h1
-  integer,intent(in)::mugT_l1, mugT_h1
-  integer,intent(in)::Snew_l1, Snew_h1
-  real(rt)                    ::re_n(re_n_l1:re_n_h1)
-  real(rt)        ,intent(in )::Er_n(Er_n_l1:Er_n_h1,0:ngroups-1)
-  real(rt)        ,intent(in )::Er_l(Er_l_l1:Er_l_h1,0:ngroups-1)
-  real(rt)        ,intent(in )::re_s(re_s_l1:re_s_h1)
-  real(rt)        ,intent(in )::re_2(re_2_l1:re_2_h1)
-  real(rt)        ,intent(in )::eta1(eta1_l1:eta1_h1)
-  real(rt)        ,intent(in ):: cpt( cpt_l1: cpt_h1)
-  real(rt)        ,intent(in ):: kpp( kpp_l1: kpp_h1,0:ngroups-1)
-  real(rt)        ,intent(in )::mugT(mugT_l1:mugT_h1,0:ngroups-1)
-  real(rt)        ,intent(in )::Snew(Snew_l1:Snew_h1,NVAR)
-  real(rt)        ,intent(in) :: dt, tau
-
-  integer :: i
-  real(rt)         :: cdt, H1, dkEE, chg
-
-  cdt = clight * dt
-  do i = lo(1), hi(1)
-     H1 = eta1(i)
-
-     dkEE = sum(kpp(i,:)*(Er_n(i,:)-Er_l(i,:)))
-
-     chg = cdt*dkEE + H1*((re_2(i)-re_s(i)) + cdt*cpt(i))
-
-     re_n(i) = re_s(i) + chg
-
-     re_n(i) = (re_n(i) + tau*re_s(i)) / (1.e0_rt+tau)
-
-     ! temperature will be updated after exiting this subroutine
-  end do
-
-end subroutine ca_update_matter
-
 
 subroutine ca_ncupdate_matter( lo, hi,  &
      Tp_n, Tp_n_l1, Tp_n_h1,  &

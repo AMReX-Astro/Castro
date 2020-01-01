@@ -695,3 +695,15 @@ alpha                        Real          1.0                n
 beta                         Real          1.0                n
 
 (v, verbose)                 int           0                  n
+
+@namespace: radiation Radiation static
+
+do_real_eos                  int           1                  y
+
+const_c_v                    Real         -1.0                y
+
+c_v_exp_m                    Real          0.0                y
+
+c_v_exp_n                    Real          0.0                y
+
+prop_temp_floor              Real          0.0                y

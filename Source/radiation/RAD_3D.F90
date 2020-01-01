@@ -146,35 +146,6 @@ subroutine anatw2(test, &
   enddo
 end subroutine anatw2
 
-! exch contains temp on input:
-
-subroutine cexch(DIMS(reg), &
-                 exch, DIMS(xbox), &
-                 er  , DIMS(ebox), &
-                 fkp , DIMS(kbox), &
-                 sigma, c) bind(C, name="cexch")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(xbox)
-  integer :: DIMDEC(ebox)
-  integer :: DIMDEC(kbox)
-  real(rt)         :: exch(DIMV(xbox))
-  real(rt)         :: er  (DIMV(ebox))
-  real(rt)         :: fkp (DIMV(kbox))
-  real(rt)         :: sigma, c
-  integer :: i, j, k
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           exch(i,j,k) = fkp(i,j,k) * &
-                (4.e0_rt * sigma * exch(i,j,k)**4 &
-                - c * er(i,j,k))
-        enddo
-     enddo
-  enddo
-end subroutine cexch
-
 subroutine ceupdterm(DIMS(reg), relres, absres, &
                      frhoes, DIMS(grd), &
                      frhoem, eta, etainv, dfo, dfn, exch, dterm, &
@@ -277,33 +248,6 @@ subroutine nceup(DIMS(reg), relres, absres, &
      enddo
   enddo
 end subroutine nceup
-
-subroutine cetot(DIMS(reg), &
-                 state, DIMS(sb), &
-                 frhoe, DIMS(fb)) bind(C, name="cetot")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(sb)
-  integer :: DIMDEC(fb)
-  real(rt)         :: state(DIMV(sb), NVAR)
-  real(rt)         :: frhoe(DIMV(fb))
-  real(rt)         :: kin
-  integer :: i, j, k
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           !               kin = 0.5e0_rt * (state(i,j,k,XMOM)   ** 2 +
-           !     @                        state(i,j,k,XMOM+1) ** 2 +
-           !     @                        state(i,j,k,XMOM+2) ** 2) /
-           !     @                       state(i,j,k,DEN)
-           kin = state(i,j,k, UEDEN) - state(i,j,k, UEINT)
-           state(i,j,k, UEINT) = frhoe(i,j,k)
-           state(i,j,k, UEDEN) = frhoe(i,j,k) + kin
-        enddo
-     enddo
-  enddo
-end subroutine cetot
 
 ! *********************************
 ! ** BEGIN MGFLD routines        **
