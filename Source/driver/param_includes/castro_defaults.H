@@ -9,6 +9,9 @@ amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 amrex::Real Castro::diffuse_cutoff_density_hi = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
 #endif
+#ifdef AMREX_PARTICLES
+int         Castro::do_tracer_particles = 0;
+#endif
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
 int         Castro::state_nghost = 0;
@@ -150,9 +153,6 @@ int         Castro::state_in_rotating_frame = 1;
 int         Castro::rot_source_type = 4;
 int         Castro::implicit_rotation_update = 1;
 int         Castro::rot_axis = 3;
-#endif
-#ifdef AMREX_PARTICLES
-int         Castro::do_tracer_particles = 0;
 #endif
 #ifdef GRAVITY
 int         Castro::use_point_mass = 0;

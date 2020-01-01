@@ -1057,57 +1057,6 @@ contains
 
 
 
-  subroutine gcv(lo, hi, &
-                 cv, c_lo, c_hi, &
-                 temp, t_lo, t_hi, &
-                 tf, &
-                 state, s_lo, s_hi) bind(C, name="gcv")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO, const_c_v, c_v_exp_m, c_v_exp_n
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: c_lo(3), c_hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: cv(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
-    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains temp on input
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: tf
-
-    real(rt) :: alpha, teff, frhoal
-    integer  :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (c_v_exp_m == 0.e0_rt) then
-                alpha = const_c_v
-             else
-                alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
-             end if
-
-             frhoal = state(i,j,k,URHO) * alpha + tiny
-
-             if (c_v_exp_n == 0.e0_rt) then
-                cv(i,j,k) = alpha
-             else
-                teff = max(temp(i,j,k), tiny)
-                teff = teff + tf * exp(-teff / (tf + tiny))
-                cv(i,j,k) = alpha * teff**(-c_v_exp_n)
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine gcv
-
-
-
   subroutine ca_compute_c_v(lo, hi, &
                             cv, c_lo, c_hi, &
                             temp, t_lo, t_hi, &
@@ -1117,7 +1066,9 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UFS, UFX
+    use meth_params_module, only: NVAR, URHO, UFS, UFX, &
+                                  do_real_eos, const_c_v, c_v_exp_n, c_v_exp_m, &
+                                  prop_temp_floor
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -1133,6 +1084,7 @@ contains
     integer     :: i, j, k
     real(rt)    :: rhoInv
     type(eos_t) :: eos_state
+    real(rt)    :: alpha, teff
 
     !$gpu
 
@@ -1140,15 +1092,35 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             rhoInv = 1.e0_rt / state(i,j,k,URHO)
-             eos_state % rho = state(i,j,k,URHO)
-             eos_state % T   = temp(i,j,k)
-             eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-             eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
+             if (do_real_eos == 1) then
 
-             call eos(eos_input_rt, eos_state)
+                rhoInv = 1.e0_rt / state(i,j,k,URHO)
+                eos_state % rho = state(i,j,k,URHO)
+                eos_state % T   = temp(i,j,k)
+                eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
 
-             cv(i,j,k) = eos_state % cv
+                call eos(eos_input_rt, eos_state)
+
+                cv(i,j,k) = eos_state % cv
+
+             else
+
+                if (c_v_exp_m == 0.e0_rt) then
+                   alpha = const_c_v
+                else
+                   alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
+                end if
+
+                if (c_v_exp_n == 0.e0_rt) then
+                   cv(i,j,k) = alpha
+                else
+                   teff = max(temp(i,j,k), tiny)
+                   teff = teff + prop_temp_floor * exp(-teff / (prop_temp_floor + tiny))
+                   cv(i,j,k) = alpha * teff**(-c_v_exp_n)
+                end if
+
+             end if
 
           end do
        end do
@@ -1217,7 +1189,8 @@ contains
     use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX, small_temp
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX, small_temp, &
+                                  do_real_eos, const_c_v, c_v_exp_m, c_v_exp_n
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -1232,6 +1205,7 @@ contains
     integer      :: i, j, k
     real(rt)     :: rhoInv
     type (eos_t) :: eos_state
+    real(rt)     :: ex, alpha, rhoal, teff
 
     !$gpu
 
@@ -1239,22 +1213,44 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (temp(i,j,k) .le. 0.e0_rt) then
+             if (do_real_eos == 1) then
 
-                temp(i,j,k) = small_temp
+                if (temp(i,j,k) .le. 0.e0_rt) then
+
+                   temp(i,j,k) = small_temp
+
+                else
+
+                   rhoInv = 1.e0_rt / state(i,j,k,URHO)
+                   eos_state % rho = state(i,j,k,URHO)
+                   eos_state % T   = state(i,j,k,UTEMP)
+                   eos_state % e   =  temp(i,j,k)*rhoInv 
+                   eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                   eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
+
+                   call eos(eos_input_re, eos_state)
+
+                   temp(i,j,k) = eos_state % T
+
+                end if
 
              else
 
-                rhoInv = 1.e0_rt / state(i,j,k,URHO)
-                eos_state % rho = state(i,j,k,URHO)
-                eos_state % T   = state(i,j,k,UTEMP)
-                eos_state % e   =  temp(i,j,k)*rhoInv 
-                eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
+                if (c_v_exp_m .eq. 0.e0_rt) then
+                   alpha = const_c_v
+                else
+                   alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
+                endif
 
-                call eos(eos_input_re, eos_state)
+                rhoal = state(i,j,k,URHO) * alpha + 1.e-50_rt
 
-                temp(i,j,k) = eos_state % T
+                if (c_v_exp_n .eq. 0.e0_rt) then
+                   temp(i,j,k) = temp(i,j,k) / rhoal
+                else
+                   teff = max(temp(i,j,k), 1.e-50_rt)
+                   ex = 1.e0_rt / (1.e0_rt - c_v_exp_n)
+                   temp(i,j,k) = ((1.e0_rt - c_v_exp_n) * teff / rhoal)**ex
+                end if
 
              end if
 
@@ -1293,26 +1289,9 @@ contains
 
     !$gpu
 
-    ex = 1.e0_rt / (1.e0_rt - c_v_exp_n)
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-
-             if (c_v_exp_m .eq. 0.e0_rt) then
-                alpha = const_c_v
-             else
-                alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
-             endif
-
-             rhoal = state(i,j,k,URHO) * alpha + 1.e-50_rt
-
-             if (c_v_exp_n .eq. 0.e0_rt) then
-                temp(i,j,k) = temp(i,j,k) / rhoal
-             else
-                teff = max(temp(i,j,k), 1.e-50_rt)
-                temp(i,j,k) = ((1.e0_rt - c_v_exp_n) * teff / rhoal)**ex
-             end if
 
              if (update_state == 1) then
                 state(i,j,k,UTEMP) = temp(i,j,k)

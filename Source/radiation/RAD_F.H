@@ -878,12 +878,6 @@ extern "C" {
 	      BL_FORT_FAB_ARG_3D(frhoe), 
 	      BL_FORT_FAB_ARG_3D(state));
 
-  void gcv(const int* lo, const int* hi,
-	   BL_FORT_FAB_ARG_3D(c_v), 
-	   const BL_FORT_FAB_ARG_3D(temp), 
-           amrex::Real tf,
-	   const BL_FORT_FAB_ARG_3D(state));
-
   void cexch(const int* lo, const int* hi,
 	     BL_FORT_FAB_ARG_3D(exch), 
 	     BL_FORT_FAB_ARG_3D(Er), 

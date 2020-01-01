@@ -213,9 +213,11 @@ module meth_params_module
   character (len=:), allocatable, save :: gravity_type
   real(rt), allocatable, save :: const_grav
   integer,  allocatable, save :: get_g_from_phi
+  integer,  allocatable, save :: do_real_eos
   real(rt), allocatable, save :: const_c_v
   real(rt), allocatable, save :: c_v_exp_m
   real(rt), allocatable, save :: c_v_exp_n
+  real(rt), allocatable, save :: prop_temp_floor
 
 #ifdef AMREX_USE_CUDA
 attributes(managed) :: difmag
@@ -344,9 +346,11 @@ attributes(managed) :: track_grid_losses
 
 attributes(managed) :: const_grav
 attributes(managed) :: get_g_from_phi
+attributes(managed) :: do_real_eos
 attributes(managed) :: const_c_v
 attributes(managed) :: c_v_exp_m
 attributes(managed) :: c_v_exp_n
+attributes(managed) :: prop_temp_floor
 #endif
 
   !$acc declare &
@@ -469,9 +473,11 @@ attributes(managed) :: c_v_exp_n
   !$acc create(track_grid_losses) &
   !$acc create(const_grav) &
   !$acc create(get_g_from_phi) &
+  !$acc create(do_real_eos) &
   !$acc create(const_c_v) &
   !$acc create(c_v_exp_m) &
-  !$acc create(c_v_exp_n)
+  !$acc create(c_v_exp_n) &
+  !$acc create(prop_temp_floor)
 
   ! End the declarations of the ParmParse parameters
 
@@ -509,20 +515,6 @@ contains
     flatten_pp_threshold = -1.e0_rt
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
-
-    allocate(const_c_v)
-    const_c_v = -1.0_rt;
-    allocate(c_v_exp_m)
-    c_v_exp_m = 0.0_rt;
-    allocate(c_v_exp_n)
-    c_v_exp_n = 0.0_rt;
-
-    call amrex_parmparse_build(pp, "radiation")
-    call pp%query("const_c_v", const_c_v)
-    call pp%query("c_v_exp_m", c_v_exp_m)
-    call pp%query("c_v_exp_n", c_v_exp_n)
-    call amrex_parmparse_destroy(pp)
-
 
     allocate(character(len=1)::gravity_type)
     gravity_type = "fillme";
@@ -828,6 +820,26 @@ contains
     call amrex_parmparse_destroy(pp)
 
 
+    allocate(do_real_eos)
+    do_real_eos = 1;
+    allocate(const_c_v)
+    const_c_v = -1.0_rt;
+    allocate(c_v_exp_m)
+    c_v_exp_m = 0.0_rt;
+    allocate(c_v_exp_n)
+    c_v_exp_n = 0.0_rt;
+    allocate(prop_temp_floor)
+    prop_temp_floor = 0.0_rt;
+
+    call amrex_parmparse_build(pp, "radiation")
+    call pp%query("do_real_eos", do_real_eos)
+    call pp%query("const_c_v", const_c_v)
+    call pp%query("c_v_exp_m", c_v_exp_m)
+    call pp%query("c_v_exp_n", c_v_exp_n)
+    call pp%query("prop_temp_floor", prop_temp_floor)
+    call amrex_parmparse_destroy(pp)
+
+
 
     !$acc update &
     !$acc device(difmag, small_dens, small_temp) &
@@ -859,8 +871,8 @@ contains
     !$acc device(rot_axis, use_point_mass, point_mass) &
     !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
     !$acc device(track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi, const_c_v, c_v_exp_m) &
-    !$acc device(c_v_exp_n)
+    !$acc device(get_g_from_phi, do_real_eos, const_c_v) &
+    !$acc device(c_v_exp_m, c_v_exp_n, prop_temp_floor)
 
 
 #ifdef GRAVITY
@@ -1247,6 +1259,9 @@ contains
     if (allocated(get_g_from_phi)) then
         deallocate(get_g_from_phi)
     end if
+    if (allocated(do_real_eos)) then
+        deallocate(do_real_eos)
+    end if
     if (allocated(const_c_v)) then
         deallocate(const_c_v)
     end if
@@ -1255,6 +1270,9 @@ contains
     end if
     if (allocated(c_v_exp_n)) then
         deallocate(c_v_exp_n)
+    end if
+    if (allocated(prop_temp_floor)) then
+        deallocate(prop_temp_floor)
     end if
 
 

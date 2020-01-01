@@ -3,6 +3,8 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
+int         Radiation::do_real_eos = 1;
 amrex::Real Radiation::const_c_v = -1.0;
 amrex::Real Radiation::c_v_exp_m = 0.0;
 amrex::Real Radiation::c_v_exp_n = 0.0;
+amrex::Real Radiation::prop_temp_floor = 0.0;
