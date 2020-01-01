@@ -66,11 +66,6 @@ ca\_state\_update subroutine
 
 .. f:autosubroutine:: ca_state_update
 
-ca\_update\_matter subroutine
------------------------------
-
-.. f:autosubroutine:: ca_update_matter
-
 ca\_ncupdate\_matter subroutine
 -------------------------------
 
