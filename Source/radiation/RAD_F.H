@@ -881,12 +881,6 @@ extern "C" {
 	      BL_FORT_FAB_ARG_3D(frhoe), 
 	      BL_FORT_FAB_ARG_3D(state));
 
-  void gtemp(const int* lo, const int* hi,
-	     BL_FORT_FAB_ARG_3D(temp), 
-	     amrex::Real con, amrex::Real em, amrex::Real en,
-	     BL_FORT_FAB_ARG_3D(state),
-             int update_state);
-
   void gcv(const int* lo, const int* hi,
 	   BL_FORT_FAB_ARG_3D(c_v), 
 	   const BL_FORT_FAB_ARG_3D(temp), 

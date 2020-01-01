@@ -1706,11 +1706,12 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
         }
         else if (do_real_eos == 0) {
 #pragma gpu box(bx)
-            gtemp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                  BL_TO_FORTRAN_ANYD(temp[mfi]),
-                  const_c_v, c_v_exp_m, c_v_exp_n,
-                  BL_TO_FORTRAN_ANYD(state[mfi]),
-                  0);
+	    ca_compute_temp_given_cv
+		(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		 BL_TO_FORTRAN_ANYD(temp[mfi]),
+		 BL_TO_FORTRAN_ANYD(state[mfi]),
+		 const_c_v, c_v_exp_m, c_v_exp_n,
+                 0);
         }
         else {
             amrex::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
@@ -1792,11 +1793,12 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
           }
           else if (do_real_eos == 0) {
 #pragma gpu box(bx)
-              gtemp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                    BL_TO_FORTRAN_ANYD(frhoe),
-                    const_c_v, c_v_exp_m, c_v_exp_n,
-                    BL_TO_FORTRAN_ANYD(state[mfi]),
-                    1);
+              ca_compute_temp_given_cv
+                  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                   BL_TO_FORTRAN_ANYD(frhoe),
+                   BL_TO_FORTRAN_ANYD(state[mfi]),
+                   const_c_v, c_v_exp_m, c_v_exp_n,
+                   1);
           }
           else {
               amrex::Abort("ERROR Radiation::get_rosseland do_real_eos < 0");
@@ -2396,11 +2398,12 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	    }
 	    else if (do_real_eos == 0) {
 #pragma gpu box(reg) sync
-		gtemp(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-		      BL_TO_FORTRAN_ANYD(temp),
-		      const_c_v, c_v_exp_m, c_v_exp_n,
-		      BL_TO_FORTRAN_ANYD(S[mfi]),
-                      0);
+	    ca_compute_temp_given_cv
+		(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		 BL_TO_FORTRAN_ANYD(temp),
+		 BL_TO_FORTRAN_ANYD(S[mfi]),
+		 const_c_v, c_v_exp_m, c_v_exp_n,
+                 0);
 	    }
 
 	    c_v.resize(reg);
