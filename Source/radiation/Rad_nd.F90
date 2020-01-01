@@ -1236,21 +1236,14 @@ contains
 
              else
 
-                if (c_v_exp_m .eq. 0.e0_rt) then
-                   alpha = const_c_v
-                else
-                   alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
-                endif
+                alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
 
                 rhoal = state(i,j,k,URHO) * alpha + 1.e-50_rt
 
-                if (c_v_exp_n .eq. 0.e0_rt) then
-                   temp(i,j,k) = temp(i,j,k) / rhoal
-                else
-                   teff = max(temp(i,j,k), 1.e-50_rt)
-                   ex = 1.e0_rt / (1.e0_rt - c_v_exp_n)
-                   temp(i,j,k) = ((1.e0_rt - c_v_exp_n) * teff / rhoal)**ex
-                end if
+                teff = max(temp(i,j,k), 1.e-50_rt)
+
+                ex = 1.e0_rt / (1.e0_rt - c_v_exp_n)
+                temp(i,j,k) = ((1.e0_rt - c_v_exp_n) * teff / rhoal)**ex
 
              end if
 
@@ -1263,45 +1256,6 @@ contains
     end do
 
   end subroutine ca_compute_temp_given_rhoe
-
-
-
-  subroutine ca_compute_temp_given_cv(lo, hi, &
-                                      temp, t_lo, t_hi, &
-                                      state, s_lo, s_hi, &
-                                      update_state) &
-                                      bind(C, name="ca_compute_temp_given_cv")
-
-    use meth_params_module, only: NVAR, URHO, UTEMP, const_c_v, c_v_exp_m, c_v_exp_n
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(inout) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains rhoe as input
-    integer,  intent(in   ), value :: update_state
-
-    integer  :: i, j, k
-    real(rt) :: ex, alpha, rhoal, teff
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (update_state == 1) then
-                state(i,j,k,UTEMP) = temp(i,j,k)
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_temp_given_cv
 
 
 

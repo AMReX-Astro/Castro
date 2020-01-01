@@ -764,12 +764,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      int update_state);
 
-  void ca_compute_temp_given_cv
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(temp), 
-     const BL_FORT_FAB_ARG_3D(state),
-     int update_state);
-
 #ifdef NEUTRINO
   ca_compute_temp_given_reye
     (const int* lo, const int* hi,
