@@ -352,7 +352,6 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 	      gcv(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
 		  BL_TO_FORTRAN_ANYD(dedT[mfi]), 
 		  BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-		  const_c_v, c_v_exp_m, c_v_exp_n,
 		  prop_temp_floor,
 		  BL_TO_FORTRAN_ANYD(S_new[mfi]));
 	  }
@@ -866,7 +865,6 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                       (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                        BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
                        BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                       const_c_v, c_v_exp_m, c_v_exp_n,
                        0);
 		}
 		else {
@@ -931,7 +929,6 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                   (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                    BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
                    BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                   const_c_v, c_v_exp_m, c_v_exp_n,
                    0);
 	    }
 	    else {

@@ -768,9 +768,6 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(temp), 
      const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real const_c_v,
-     const amrex::Real c_v_exp_m,
-     const amrex::Real c_v_exp_n,
      int update_state);
 
 #ifdef NEUTRINO
@@ -884,7 +881,6 @@ extern "C" {
   void gcv(const int* lo, const int* hi,
 	   BL_FORT_FAB_ARG_3D(c_v), 
 	   const BL_FORT_FAB_ARG_3D(temp), 
-	   amrex::Real con, amrex::Real em, amrex::Real en,
            amrex::Real tf,
 	   const BL_FORT_FAB_ARG_3D(state));
 

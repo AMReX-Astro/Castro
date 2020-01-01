@@ -1060,11 +1060,11 @@ contains
   subroutine gcv(lo, hi, &
                  cv, c_lo, c_hi, &
                  temp, t_lo, t_hi, &
-                 const, em, en, tf, &
+                 tf, &
                  state, s_lo, s_hi) bind(C, name="gcv")
 
     use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO
+    use meth_params_module, only: NVAR, URHO, const_c_v, c_v_exp_m, c_v_exp_n
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: c_lo(3), c_hi(3)
@@ -1073,7 +1073,7 @@ contains
     real(rt), intent(inout) :: cv(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
     real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains temp on input
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: const, em, en, tf
+    real(rt), intent(in   ), value :: tf
 
     real(rt) :: alpha, teff, frhoal
     integer  :: i, j, k
@@ -1084,20 +1084,20 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (em == 0.e0_rt) then
-                alpha = const
+             if (c_v_exp_m == 0.e0_rt) then
+                alpha = const_c_v
              else
-                alpha = const * state(i,j,k,URHO)**em
+                alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
              end if
 
              frhoal = state(i,j,k,URHO) * alpha + tiny
 
-             if (en == 0.e0_rt) then
+             if (c_v_exp_n == 0.e0_rt) then
                 cv(i,j,k) = alpha
              else
                 teff = max(temp(i,j,k), tiny)
                 teff = teff + tf * exp(-teff / (tf + tiny))
-                cv(i,j,k) = alpha * teff**(-en)
+                cv(i,j,k) = alpha * teff**(-c_v_exp_n)
              end if
 
           end do
@@ -1273,11 +1273,10 @@ contains
   subroutine ca_compute_temp_given_cv(lo, hi, &
                                       temp, t_lo, t_hi, &
                                       state, s_lo, s_hi, &
-                                      const_c_v, c_v_exp_m, c_v_exp_n, &
                                       update_state) &
                                       bind(C, name="ca_compute_temp_given_cv")
 
-    use meth_params_module, only: NVAR, URHO, UTEMP
+    use meth_params_module, only: NVAR, URHO, UTEMP, const_c_v, c_v_exp_m, c_v_exp_n
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -1287,7 +1286,6 @@ contains
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(inout) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains rhoe as input
-    real(rt), intent(in   ), value :: const_c_v, c_v_exp_m, c_v_exp_n
     integer,  intent(in   ), value :: update_state
 
     integer  :: i, j, k

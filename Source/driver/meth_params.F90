@@ -213,6 +213,9 @@ module meth_params_module
   character (len=:), allocatable, save :: gravity_type
   real(rt), allocatable, save :: const_grav
   integer,  allocatable, save :: get_g_from_phi
+  real(rt), allocatable, save :: const_c_v
+  real(rt), allocatable, save :: c_v_exp_m
+  real(rt), allocatable, save :: c_v_exp_n
 
 #ifdef AMREX_USE_CUDA
 attributes(managed) :: difmag
@@ -341,6 +344,9 @@ attributes(managed) :: track_grid_losses
 
 attributes(managed) :: const_grav
 attributes(managed) :: get_g_from_phi
+attributes(managed) :: const_c_v
+attributes(managed) :: c_v_exp_m
+attributes(managed) :: c_v_exp_n
 #endif
 
   !$acc declare &
@@ -462,7 +468,10 @@ attributes(managed) :: get_g_from_phi
   !$acc create(grown_factor) &
   !$acc create(track_grid_losses) &
   !$acc create(const_grav) &
-  !$acc create(get_g_from_phi)
+  !$acc create(get_g_from_phi) &
+  !$acc create(const_c_v) &
+  !$acc create(c_v_exp_m) &
+  !$acc create(c_v_exp_n)
 
   ! End the declarations of the ParmParse parameters
 
@@ -501,6 +510,20 @@ contains
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
+    allocate(const_c_v)
+    const_c_v = -1.0_rt;
+    allocate(c_v_exp_m)
+    c_v_exp_m = 0.0_rt;
+    allocate(c_v_exp_n)
+    c_v_exp_n = 0.0_rt;
+
+    call amrex_parmparse_build(pp, "radiation")
+    call pp%query("const_c_v", const_c_v)
+    call pp%query("c_v_exp_m", c_v_exp_m)
+    call pp%query("c_v_exp_n", c_v_exp_n)
+    call amrex_parmparse_destroy(pp)
+
+
     allocate(character(len=1)::gravity_type)
     gravity_type = "fillme";
     allocate(const_grav)
@@ -515,14 +538,6 @@ contains
     call amrex_parmparse_destroy(pp)
 
 
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0_rt;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
-#endif
 #ifdef DIFFUSION
     allocate(diffuse_temp)
     diffuse_temp = 0;
@@ -703,13 +718,16 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0_rt;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
+#endif
 
     call amrex_parmparse_build(pp, "castro")
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
-#endif
 #ifdef DIFFUSION
     call pp%query("diffuse_temp", diffuse_temp)
     call pp%query("diffuse_cutoff_density", diffuse_cutoff_density)
@@ -802,6 +820,11 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#endif
     call amrex_parmparse_destroy(pp)
 
 
@@ -836,7 +859,8 @@ contains
     !$acc device(rot_axis, use_point_mass, point_mass) &
     !$acc device(point_mass_fix_solution, do_acc, grown_factor) &
     !$acc device(track_grid_losses, const_grav) &
-    !$acc device(get_g_from_phi)
+    !$acc device(get_g_from_phi, const_c_v, c_v_exp_m) &
+    !$acc device(c_v_exp_n)
 
 
 #ifdef GRAVITY
@@ -1222,6 +1246,15 @@ contains
     end if
     if (allocated(get_g_from_phi)) then
         deallocate(get_g_from_phi)
+    end if
+    if (allocated(const_c_v)) then
+        deallocate(const_c_v)
+    end if
+    if (allocated(c_v_exp_m)) then
+        deallocate(c_v_exp_m)
+    end if
+    if (allocated(c_v_exp_n)) then
+        deallocate(c_v_exp_n)
     end if
 
 

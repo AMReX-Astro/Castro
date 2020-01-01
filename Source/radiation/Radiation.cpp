@@ -93,13 +93,9 @@ Real Radiation:: flatten_pp_threshold = -1.0;
 int Radiation::pure_hydro = 0;
 int Radiation ::do_real_eos = 1;
 
-Real Radiation::const_c_v = -1.0;
 Real Radiation::const_kappa_p = -1.0;
 Real Radiation::const_kappa_r = -1.0;
 Real Radiation::const_scattering = 0.0;
-
-Real Radiation::c_v_exp_m = 0.0;
-Real Radiation::c_v_exp_n = 0.0;
 
 Real Radiation::kappa_p_exp_m = 0.0;
 Real Radiation::kappa_p_exp_n = 0.0;
@@ -115,12 +111,15 @@ Real Radiation::scattering_exp_p = 0.0;
 
 Real Radiation::prop_temp_floor = 0.0;
 
+#include <radiation_defaults.H>
 
 // static initialization, must be called before Castro::variableSetUp
 
 void Radiation::read_static_params()
 {
   ParmParse pp("radiation");
+
+#include <radiation_queries.H>
 
   pp.query("do_thermal_wave_cgs",  RadTests::do_thermal_wave_cgs);
   pp.query("do_rad_sphere",    RadTests::do_rad_sphere);
@@ -598,12 +597,9 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   do_kappa_stm_emission = 0;
   pp.query("do_kappa_stm_emission", do_kappa_stm_emission);
 
-  pp.query("const_c_v",       const_c_v);
   pp.query("const_kappa_p",   const_kappa_p);
   pp.query("const_kappa_r",   const_kappa_r);
   pp.query("const_scattering", const_scattering);
-  pp.query("c_v_exp_m",       c_v_exp_m);
-  pp.query("c_v_exp_n",       c_v_exp_n);
   pp.query("kappa_p_exp_m",   kappa_p_exp_m);
   pp.query("kappa_p_exp_n",   kappa_p_exp_n);
   pp.query("kappa_r_exp_m",   kappa_r_exp_m);
@@ -639,12 +635,9 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   temp_floor    = 1.e-10;  pp.query("temp_floor", temp_floor);
 
   if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
-    std::cout << "const_c_v     = " << const_c_v << std::endl;
     std::cout << "const_kappa_p = " << const_kappa_p << std::endl;
     std::cout << "const_kappa_r = " << const_kappa_r << std::endl;
     std::cout << "const_scattering = " << const_scattering << std::endl;
-    std::cout << "c_v_exp_m     = " << c_v_exp_m << std::endl;
-    std::cout << "c_v_exp_n     = " << c_v_exp_n << std::endl;
     std::cout << "kappa_p_exp_m = " << kappa_p_exp_m << std::endl;
     std::cout << "kappa_p_exp_n = " << kappa_p_exp_n << std::endl;
     std::cout << "kappa_p_exp_p = " << kappa_p_exp_p << std::endl;
@@ -1431,7 +1424,6 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
 		(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		 BL_TO_FORTRAN_ANYD(frhoes[mfi]),
 		 BL_TO_FORTRAN_ANYD(state[mfi]),
-		 const_c_v, c_v_exp_m, c_v_exp_n,
                  1);
 	}
     }
@@ -1653,7 +1645,6 @@ void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
 	    gcv(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
 		BL_TO_FORTRAN_ANYD(c_v),
 		BL_TO_FORTRAN_ANYD(temp),
-		const_c_v, c_v_exp_m, c_v_exp_n,
                 prop_temp_floor,
 		BL_TO_FORTRAN_ANYD(state));
 
@@ -1710,7 +1701,6 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
 		(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		 BL_TO_FORTRAN_ANYD(temp[mfi]),
 		 BL_TO_FORTRAN_ANYD(state[mfi]),
-		 const_c_v, c_v_exp_m, c_v_exp_n,
                  0);
         }
         else {
@@ -1797,7 +1787,6 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
                   (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                    BL_TO_FORTRAN_ANYD(frhoe),
                    BL_TO_FORTRAN_ANYD(state[mfi]),
-                   const_c_v, c_v_exp_m, c_v_exp_n,
                    1);
           }
           else {
@@ -2402,7 +2391,6 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 		(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
 		 BL_TO_FORTRAN_ANYD(temp),
 		 BL_TO_FORTRAN_ANYD(S[mfi]),
-		 const_c_v, c_v_exp_m, c_v_exp_n,
                  0);
 	    }
 

@@ -129,13 +129,14 @@ public:
   static int do_real_eos;  ///< if 0,  \f$c_v = const_{c_v} \rho^m T^{-n}\f$
 
 
-  static amrex::Real const_c_v, const_kappa_p, const_kappa_r, const_scattering;
-  static amrex::Real c_v_exp_m, c_v_exp_n;
+  static amrex::Real const_kappa_p, const_kappa_r, const_scattering;
   static amrex::Real kappa_p_exp_m, kappa_p_exp_n;
   static amrex::Real kappa_r_exp_m, kappa_r_exp_n;
   static amrex::Real scattering_exp_m, scattering_exp_n;
   static amrex::Real kappa_p_exp_p, kappa_r_exp_p, scattering_exp_p;
   static amrex::Real prop_temp_floor;
+
+#include <radiation_params.H>
 
   amrex::Vector<std::unique_ptr<amrex::MultiFab> > plotvar;
 
