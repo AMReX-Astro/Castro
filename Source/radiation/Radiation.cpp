@@ -1417,8 +1417,16 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
 	      BL_TO_FORTRAN_ANYD(state[mfi]),
 	      BL_TO_FORTRAN_ANYD(frhoes[mfi]));
 
-	if (do_real_eos == 0) {
-            // frhoes will be overwritten with temperature here
+        // frhoes will be overwritten with temperature here
+
+        if (do_real_eos > 0) {
+#pragma gpu box(bx)
+            ca_compute_temp_given_rhoe
+                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                 BL_TO_FORTRAN_ANYD(frhoes[mfi]),
+                 BL_TO_FORTRAN_ANYD(state[mfi]),
+                 1);
+        } else {
 #pragma gpu box(bx)
 	    ca_compute_temp_given_cv
 		(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
