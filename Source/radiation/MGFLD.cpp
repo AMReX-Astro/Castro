@@ -902,20 +902,19 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 	}
 #else
 	if (conservative_update) {
-	    BL_FORT_PROC_CALL(CA_UPDATE_MATTER, ca_update_matter)
-		(bx.loVect(), bx.hiVect(),
-		 BL_TO_FORTRAN(rhoe_new[mfi]),
-		 BL_TO_FORTRAN(Er_new[mfi]),
-		 BL_TO_FORTRAN(Er_pi[mfi]),
-		 BL_TO_FORTRAN(rhoe_star[mfi]),
-		 BL_TO_FORTRAN(rhoe_step[mfi]),
-		 BL_TO_FORTRAN(eta1[mfi]),
-		 BL_TO_FORTRAN(coupT[mfi]),
-		 BL_TO_FORTRAN(kappa_p[mfi]),
-		 BL_TO_FORTRAN(mugT[mfi]),
-		 BL_TO_FORTRAN(S_new[mfi]),
-		 &delta_t, &ptc_tau);
-	    
+#pragma gpu box(bx) sync
+	    ca_update_matter
+		(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		 BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
+		 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
+		 BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
+		 BL_TO_FORTRAN_ANYD(rhoe_star[mfi]),
+		 BL_TO_FORTRAN_ANYD(rhoe_step[mfi]),
+		 BL_TO_FORTRAN_ANYD(eta1[mfi]),
+		 BL_TO_FORTRAN_ANYD(coupT[mfi]),
+		 BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
+		 delta_t, ptc_tau);
+
 	    temp_new[mfi].copy(rhoe_new[mfi],bx);
 
 	    if (do_real_eos > 0) {

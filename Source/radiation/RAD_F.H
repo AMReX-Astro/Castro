@@ -534,19 +534,22 @@ BL_FORT_PROC_DECL(CA_STATE_UPDATE, ca_state_update)
     const BL_FORT_FAB_ARG(temp),
     const BL_FORT_FAB_ARG(msk),
     amrex::Real* derat, amrex::Real* dTrat);
-BL_FORT_PROC_DECL(CA_UPDATE_MATTER, ca_update_matter)
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(rhoe_new),
-    const BL_FORT_FAB_ARG(Er_new),
-    const BL_FORT_FAB_ARG(Er_pi),
-    const BL_FORT_FAB_ARG(rhoe_star),
-    const BL_FORT_FAB_ARG(rhoe_step),
-    const BL_FORT_FAB_ARG(eta1),
-    const BL_FORT_FAB_ARG(coupT),
-    const BL_FORT_FAB_ARG(kappa_p),
-    const BL_FORT_FAB_ARG(mugT),
-    const BL_FORT_FAB_ARG(Snew),
-    const amrex::Real* dt, const amrex::Real* ptc_tau);
+
+extern "C"
+{
+  void ca_update_matter
+   (const int* lo, const int* hi,
+    BL_FORT_FAB_ARG_3D(rhoe_new),
+    const BL_FORT_FAB_ARG_3D(Er_new),
+    const BL_FORT_FAB_ARG_3D(Er_pi),
+    const BL_FORT_FAB_ARG_3D(rhoe_star),
+    const BL_FORT_FAB_ARG_3D(rhoe_step),
+    const BL_FORT_FAB_ARG_3D(eta1),
+    const BL_FORT_FAB_ARG_3D(coupT),
+    const BL_FORT_FAB_ARG_3D(kappa_p),
+    amrex::Real dt, amrex::Real ptc_tau);
+}
+
 BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(temp_new),
