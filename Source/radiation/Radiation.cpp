@@ -647,16 +647,16 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "temp_floor    = " << temp_floor << std::endl;
   }
 
-  if (SolverType == MGFLDSolver ) {
-    do_real_eos = 1;
+  if (SolverType == MGFLDSolver) {
+      if (do_real_eos != 1) {
+          amrex::Abort("MGFLD solver only supports do_real_eos == 1");
+      }
   }
-  else {
-    do_real_eos = (const_c_v < 0.) ? 1 : 0;
-  }
-  pp.query("do_real_eos", do_real_eos);
 
-  if (! do_real_eos) {
-    BL_ASSERT(const_c_v > 0.);
+  if (do_real_eos == 0) {
+      if (const_c_v <= 0.0) {
+          amrex::Abort("do_real_eos == 0 requires const_c_v > 0");
+      }
   }
 
   if (verbose > 2) {
