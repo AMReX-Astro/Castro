@@ -3402,10 +3402,6 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
   BL_PROFILE("Castro::computeTemp()");
 
-#ifdef RADIATION
-  FArrayBox temp;
-#endif
-
   MultiFab Stemp;
 
   // for 4th order, the only variables that may change here are Temp
@@ -3470,6 +3466,9 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
   }
 #endif
 
+#ifdef RADIATION
+  FArrayBox temp;
+#endif
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -3490,7 +3489,12 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 #ifdef RADIATION
       if (Radiation::do_real_eos == 0) {
 	temp.resize(bx);
-	temp.copy(State[mfi],bx,Eint,bx,0,1);
+
+        Array4<Real> state_arr = State.array(mfi);
+        Array4<Real> temp_arr = temp.array();
+        int ecomp = Eint;
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k, { temp_arr(i,j,k) = state_arr(i,j,k,ecomp); });
 
 #pragma gpu box(bx) sync
 	ca_compute_temp_given_cv
@@ -3500,7 +3504,8 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
              Radiation::const_c_v, Radiation::c_v_exp_m, Radiation::c_v_exp_n,
              0);
 
-	State[mfi].copy(temp,bx,0,bx,Temp,1);
+        int tcomp = Temp;
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k, { state_arr(i,j,k,tcomp) = temp_arr(i,j,k); });
       } else {
 #endif
 
@@ -3523,8 +3528,9 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
 #ifdef RADIATION
       }
+      Elixir temp_elix = temp.elixir();
 #endif
-    }
+  }
 
 #ifdef TRUE_SDC
   if (sdc_order == 4) {
