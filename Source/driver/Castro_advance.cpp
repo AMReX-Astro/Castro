@@ -63,82 +63,6 @@ Castro::advance (Real time,
 	dt_new = do_advance_sdc(time, dt, amr_iteration, amr_ncycle);
       }
 
-#ifdef REACTIONS
-      // store the reaction information as well.  Note: this will be
-      // the instantaneous reactive source from the last burn.  In the
-      // future, we might want to do a quadrature over R_old[]
-
-      // At this point, Sburn contains the cell-center reaction source
-      // on one ghost-cell.  So we can use this to derive what we need.
-
-      // this is done only for the plotfile
-      MultiFab& R_new = get_new_data(Reactions_Type);
-      MultiFab& S_new = get_new_data(State_Type);
-
-      if (sdc_order == 4) {
-        // fill ghost cells on S_new -- we'll need these to convert to
-        // centers
-        Real cur_time = state[State_Type].curTime();
-        // we'll use Sborder to expand the state, but we already cleared
-        // it at the end of the andance
-        Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
-
-        expand_state(Sborder, cur_time, 2);
-      }
-
-      FArrayBox U_center;
-      FArrayBox R_center;
-
-      // this cannot be tiled
-      for (MFIter mfi(R_new); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.tilebox();
-        const Box& obx = mfi.growntilebox(1);
-
-        if (sdc_order == 4) {
-
-          const int* domain_lo = geom.Domain().loVect();
-          const int* domain_hi = geom.Domain().hiVect();
-
-          // convert S_new to cell-centers
-          U_center.resize(obx, NUM_STATE);
-          ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
-                              BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                              BL_TO_FORTRAN_FAB(U_center),
-                              AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
-
-          // pass in the reaction source and state at centers, including one ghost cell
-          // and derive everything that is needed including 1 ghost cell
-          R_center.resize(obx, R_new.nComp());
-          ca_store_reaction_state(BL_TO_FORTRAN_BOX(obx),
-                                  BL_TO_FORTRAN_3D(Sburn[mfi]),
-                                  BL_TO_FORTRAN_3D(U_center),
-                                  BL_TO_FORTRAN_3D(R_center));
-
-          // convert R_new from centers to averages in place
-          ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                                  BL_TO_FORTRAN_FAB(R_center),
-                                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
-
-
-          // store
-          R_new[mfi].copy(R_center, bx, 0, bx, 0, R_new.nComp());
-
-        } else {
-
-          // we don't worry about the difference between centers and averages
-          ca_store_reaction_state(BL_TO_FORTRAN_BOX(bx),
-                                  BL_TO_FORTRAN_3D((*R_old[SDC_NODES-1])[mfi]),
-                                  BL_TO_FORTRAN_3D(S_new[mfi]),
-                                  BL_TO_FORTRAN_3D(R_new[mfi]));
-        }
-
-      }
-
-      if (sdc_order == 4) {
-        Sborder.clear();
-      }
-
-#endif // REACTIONS
 #endif // TRUE_SDC
 #endif // AMREX_USE_CUDA
     }
@@ -249,10 +173,12 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     MultiFab& S_old = get_old_data(State_Type);
 
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      // for the CTU unsplit method, we always start with the old state
+      // for the CTU unsplit method, we always start with the old
+      // state note: a clean_state has already been done on the old
+      // state in initialize_advance so we don't need to do another
+      // one here
       Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
       const Real prev_time = state[State_Type].prevTime();
-      clean_state(S_old, prev_time, 0);
       expand_state(Sborder, prev_time, NUM_GROW);
 
     } else if (time_integration_method == SpectralDeferredCorrections) {

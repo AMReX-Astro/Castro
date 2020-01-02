@@ -129,7 +129,6 @@ Castro::do_advance_ctu(Real time,
 
       construct_ctu_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
-      clean_state(S_new, cur_time, 0);
     }
 
 

@@ -5,6 +5,8 @@
      rad_power_law. This new EOS is only compatible with the pure
      radiation-diffusion tests, not with castro.do_hydro = 1. (#722)
 
+   * Some unnecessary clean_state calls were removed (#721)
+
    * Support for neutrino radiation diffusion has been removed.
 
 # 20.01
