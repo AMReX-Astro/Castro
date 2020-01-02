@@ -1,5 +1,7 @@
 # 20.02
 
+   * Some unnecessary clean_state calls were removed (#721)
+
    * Support for neutrino radiation diffusion has been removed.
 
 # 20.01
