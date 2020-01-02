@@ -550,9 +550,6 @@ sum_per                      Real          -1.0e0
 # display center of mass diagnostics
 show_center_of_mass          int           0
 
-# abort if we exceed CFL = 1 over the cource of a timestep
-hard_cfl_limit               int           1
-
 # a string describing the simulation that will be copied into the
 # plotfile's ``job_info`` file
 job_name                     string        ""
