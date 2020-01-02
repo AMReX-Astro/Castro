@@ -1091,21 +1091,16 @@ integral sums (for runtime diagnostics)</td>
 <td>display center of mass diagnostics</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hard_cfl_limit</span></code></td>
-<td>abort if we exceed CFL = 1 over the cource of a
-timestep</td>
-<td>1</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">job_name</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">job_name</span></code></td>
 <td>a string describing the simulation that will be copied
 into the plotfile’s <code class="docutils literal notranslate"><span class="pre">job_info</span></code> file</td>
 <td>“”</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></td>
 <td>write a final plotfile and checkpoint upon completion</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></td>
 <td>Do we want to reset the time in the checkpoint? This
 ONLY takes effect if amr.regrid_on_restart = 1 and
 amr.checkpoint_on_restart = 1, (which require that
@@ -1114,7 +1109,7 @@ checkpoint) and you set it to value greater than this
 default value.</td>
 <td>-1.e200</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></td>
 <td>Do we want to reset the number of steps in the
 checkpoint? This ONLY takes effect if
 amr.regrid_on_restart = 1 and amr.checkpoint_on_restart
