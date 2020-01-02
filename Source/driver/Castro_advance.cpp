@@ -69,8 +69,8 @@ Castro::advance (Real time,
 
     // Optionally kill the job at this point, if we've detected a violation.
 
-    if (cfl_violation && hard_cfl_limit && !use_retry)
-        amrex::Abort("CFL is too high at this level -- go back to a checkpoint and restart with lower cfl number");
+    if (cfl_violation && !use_retry)
+        amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number, or set castro.use_retry = 1");
 
     // If we didn't kill the job, reset the violation counter.
 
