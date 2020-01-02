@@ -12,7 +12,7 @@
 
 &extern
 
-  eos_const_c_v = 3.0262923999999999e-14d0
+  eos_const_c_v = 3.0262923999999999d-14
   eos_c_v_exp_m = 0.0d0
   eos_c_v_exp_n = -3.0d0
 
