@@ -12,6 +12,8 @@
 
 &extern
 
-  eos_gamma = 1.6666666667
+  eos_const_c_v = 3.0262923999999999e-14d0
+  eos_c_v_exp_m = 0.0d0
+  eos_c_v_exp_n = -3.0d0
 
 /

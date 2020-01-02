@@ -1067,7 +1067,6 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, UFS, UFX, &
-                                  do_real_eos, const_c_v, c_v_exp_n, c_v_exp_m, &
                                   prop_temp_floor
     use amrex_fort_module, only: rt => amrex_real
 
@@ -1092,35 +1091,15 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (do_real_eos == 1) then
+             rhoInv = 1.e0_rt / state(i,j,k,URHO)
+             eos_state % rho = state(i,j,k,URHO)
+             eos_state % T   = temp(i,j,k)
+             eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+             eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
 
-                rhoInv = 1.e0_rt / state(i,j,k,URHO)
-                eos_state % rho = state(i,j,k,URHO)
-                eos_state % T   = temp(i,j,k)
-                eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
+             call eos(eos_input_rt, eos_state)
 
-                call eos(eos_input_rt, eos_state)
-
-                cv(i,j,k) = eos_state % cv
-
-             else
-
-                if (c_v_exp_m == 0.e0_rt) then
-                   alpha = const_c_v
-                else
-                   alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
-                end if
-
-                if (c_v_exp_n == 0.e0_rt) then
-                   cv(i,j,k) = alpha
-                else
-                   teff = max(temp(i,j,k), tiny)
-                   teff = teff + prop_temp_floor * exp(-teff / (prop_temp_floor + tiny))
-                   cv(i,j,k) = alpha * teff**(-c_v_exp_n)
-                end if
-
-             end if
+             cv(i,j,k) = eos_state % cv
 
           end do
        end do
@@ -1189,8 +1168,7 @@ contains
     use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX, small_temp, &
-                                  do_real_eos, const_c_v, c_v_exp_m, c_v_exp_n
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX, small_temp
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -1213,37 +1191,22 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (do_real_eos == 1) then
+             if (temp(i,j,k) .le. 0.e0_rt) then
 
-                if (temp(i,j,k) .le. 0.e0_rt) then
-
-                   temp(i,j,k) = small_temp
-
-                else
-
-                   rhoInv = 1.e0_rt / state(i,j,k,URHO)
-                   eos_state % rho = state(i,j,k,URHO)
-                   eos_state % T   = state(i,j,k,UTEMP)
-                   eos_state % e   =  temp(i,j,k)*rhoInv 
-                   eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                   eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
-
-                   call eos(eos_input_re, eos_state)
-
-                   temp(i,j,k) = eos_state % T
-
-                end if
+                temp(i,j,k) = small_temp
 
              else
 
-                alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
+                rhoInv = 1.e0_rt / state(i,j,k,URHO)
+                eos_state % rho = state(i,j,k,URHO)
+                eos_state % T   = state(i,j,k,UTEMP)
+                eos_state % e   =  temp(i,j,k)*rhoInv 
+                eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
+                eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
 
-                rhoal = state(i,j,k,URHO) * alpha + 1.e-50_rt
+                call eos(eos_input_re, eos_state)
 
-                teff = max(temp(i,j,k), 1.e-50_rt)
-
-                ex = 1.e0_rt / (1.e0_rt - c_v_exp_n)
-                temp(i,j,k) = ((1.e0_rt - c_v_exp_n) * teff / rhoal)**ex
+                temp(i,j,k) = eos_state % T
 
              end if
 

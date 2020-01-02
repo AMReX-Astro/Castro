@@ -11,7 +11,7 @@ USE_RAD = TRUE
 
 CASTRO_HOME = ../../..
 
-EOS_DIR     := gamma_law
+EOS_DIR     := rad_power_law
 
 NETWORK_DIR := general_null
 NETWORK_INPUTS := gammalaw.net

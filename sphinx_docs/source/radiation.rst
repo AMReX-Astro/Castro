@@ -92,16 +92,14 @@ this will interpret the RADIATION preprocessor variable and
 disable the radiation portion of the EOS [1]_ If you have your own EOS, you
 can put it in Microphysics.
 
-EOS Parameters
-~~~~~~~~~~~~~~
+There is also an artificial EOS that is used for several test cases called
 
-The following parameters affect how the radiation solver used the EOS:
+::
 
--  radiation.do_real_eos = 1
+   EOS_DIR := rad_power_law
 
-   Usually you do not want to change this from the default. Setting
-   this to 0 is only for contrived tests that assume the
-   specific heat is in the form of a power-law,
+This EOS should only be used for pure radiation-diffusion tests (i.e.
+``castro.do_hydro = 0``). It defines the specific heat as a power law,
 
    .. math:: c_v = \mathrm{const}\ \rho^m T^{-n}
 
