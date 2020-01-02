@@ -76,5 +76,4 @@ castro.small_temp   = 1.e6
 
 castro.time_integration_method = 3
 castro.use_retry = 1
-castro.hard_cfl_limit = 0
 castro.max_subcycles = 16

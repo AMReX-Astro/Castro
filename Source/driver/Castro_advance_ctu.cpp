@@ -124,7 +124,7 @@ Castro::do_advance_ctu(Real time,
       check_for_cfl_violation(dt);
 
       // If we detect one, return immediately.
-      if (cfl_violation && hard_cfl_limit)
+      if (cfl_violation)
           return false;
 
       construct_ctu_hydro_source(time, dt);
@@ -568,8 +568,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         // If we have hit a CFL violation during this subcycle, we must abort.
 
-        if (cfl_violation && hard_cfl_limit && !use_retry)
-            amrex::Abort("CFL is too high at this level, and we are already inside a retry -- go back to a checkpoint and restart with lower cfl number");
+        if (cfl_violation && !use_retry)
+            amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number, or set castro.use_retry = 1");
 
         // If we're allowing for retries, check for that here.
 
