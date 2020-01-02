@@ -1,5 +1,7 @@
 # 20.02
 
+   * The parameter castro.hard_cfl_limit has been removed. (#723)
+
    * Some unnecessary clean_state calls were removed (#721)
 
    * Support for neutrino radiation diffusion has been removed.
