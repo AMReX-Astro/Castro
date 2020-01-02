@@ -18,6 +18,8 @@ NETWORK_INPUTS := gammalaw.net
 
 Opacity_dir := null
 
+NGROUPS := 2
+
 Bpack   := ./Make.package
 Blocs   := .
 
