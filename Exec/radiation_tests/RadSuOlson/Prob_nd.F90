@@ -35,7 +35,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        state, state_lo, state_hi, &
                        delta, xlo, xhi)
 
-  use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only : nspec
 
@@ -82,8 +81,6 @@ end subroutine ca_initdata
 subroutine ca_initrad(level, time, lo, hi, nrad, &
                       rad_state, rad_state_lo, rad_state_hi, &
                       delta, xlo, xhi)
-
-  use probdata_module
 
   use amrex_fort_module, only : rt => amrex_real
 
