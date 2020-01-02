@@ -1,5 +1,10 @@
 # 20.02
 
+   * The parameter radiation.do_real_eos = 0 has been removed, and its
+     functionality is now enabled with a new equation of state called
+     rad_power_law. This new EOS is only compatible with the pure
+     radiation-diffusion tests, not with castro.do_hydro = 1. (#722)
+
    * Support for neutrino radiation diffusion has been removed.
 
 # 20.01
