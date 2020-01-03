@@ -168,7 +168,7 @@ module meth_params_module
   integer,  allocatable, save :: hse_reflect_vels
   integer,  allocatable, save :: fill_ambient_bc
   integer,  allocatable, save :: clamp_ambient_temp
-  real(rt), allocatable, save :: clamp_ambient_temp_factor
+  real(rt), allocatable, save :: ambient_safety_factor
   integer,  allocatable, save :: sdc_order
   integer,  allocatable, save :: sdc_quadrature
   integer,  allocatable, save :: sdc_extra
@@ -272,7 +272,7 @@ attributes(managed) :: hse_interp_temp
 attributes(managed) :: hse_reflect_vels
 attributes(managed) :: fill_ambient_bc
 attributes(managed) :: clamp_ambient_temp
-attributes(managed) :: clamp_ambient_temp_factor
+attributes(managed) :: ambient_safety_factor
 attributes(managed) :: sdc_order
 attributes(managed) :: sdc_quadrature
 attributes(managed) :: sdc_extra
@@ -403,7 +403,7 @@ attributes(managed) :: prop_temp_floor
   !$acc create(hse_reflect_vels) &
   !$acc create(fill_ambient_bc) &
   !$acc create(clamp_ambient_temp) &
-  !$acc create(clamp_ambient_temp_factor) &
+  !$acc create(ambient_safety_factor) &
   !$acc create(sdc_order) &
   !$acc create(sdc_quadrature) &
   !$acc create(sdc_extra) &
@@ -539,13 +539,45 @@ contains
     call amrex_parmparse_destroy(pp)
 
 
-#ifdef GRAVITY
-    allocate(use_point_mass)
-    use_point_mass = 0;
-    allocate(point_mass)
-    point_mass = 0.0_rt;
-    allocate(point_mass_fix_solution)
-    point_mass_fix_solution = 0;
+    allocate(do_real_eos)
+    do_real_eos = 1;
+    allocate(const_c_v)
+    const_c_v = -1.0_rt;
+    allocate(c_v_exp_m)
+    c_v_exp_m = 0.0_rt;
+    allocate(c_v_exp_n)
+    c_v_exp_n = 0.0_rt;
+    allocate(prop_temp_floor)
+    prop_temp_floor = 0.0_rt;
+
+    call amrex_parmparse_build(pp, "radiation")
+    call pp%query("do_real_eos", do_real_eos)
+    call pp%query("const_c_v", const_c_v)
+    call pp%query("c_v_exp_m", c_v_exp_m)
+    call pp%query("c_v_exp_n", c_v_exp_n)
+    call pp%query("prop_temp_floor", prop_temp_floor)
+    call amrex_parmparse_destroy(pp)
+
+
+#ifdef ROTATION
+    allocate(rot_period)
+    rot_period = -1.e200_rt;
+    allocate(rot_period_dot)
+    rot_period_dot = 0.0_rt;
+    allocate(rotation_include_centrifugal)
+    rotation_include_centrifugal = 1;
+    allocate(rotation_include_coriolis)
+    rotation_include_coriolis = 1;
+    allocate(rotation_include_domegadt)
+    rotation_include_domegadt = 1;
+    allocate(state_in_rotating_frame)
+    state_in_rotating_frame = 1;
+    allocate(rot_source_type)
+    rot_source_type = 4;
+    allocate(implicit_rotation_update)
+    implicit_rotation_update = 1;
+    allocate(rot_axis)
+    rot_axis = 3;
 #endif
 #ifdef DIFFUSION
     allocate(diffuse_temp)
@@ -655,8 +687,8 @@ contains
     fill_ambient_bc = 0;
     allocate(clamp_ambient_temp)
     clamp_ambient_temp = 0;
-    allocate(clamp_ambient_temp_factor)
-    clamp_ambient_temp_factor = 1.1e0_rt;
+    allocate(ambient_safety_factor)
+    ambient_safety_factor = 1.1e0_rt;
     allocate(sdc_order)
     sdc_order = 2;
     allocate(sdc_quadrature)
@@ -713,32 +745,26 @@ contains
     grown_factor = 1;
     allocate(track_grid_losses)
     track_grid_losses = 0;
-#ifdef ROTATION
-    allocate(rot_period)
-    rot_period = -1.e200_rt;
-    allocate(rot_period_dot)
-    rot_period_dot = 0.0_rt;
-    allocate(rotation_include_centrifugal)
-    rotation_include_centrifugal = 1;
-    allocate(rotation_include_coriolis)
-    rotation_include_coriolis = 1;
-    allocate(rotation_include_domegadt)
-    rotation_include_domegadt = 1;
-    allocate(state_in_rotating_frame)
-    state_in_rotating_frame = 1;
-    allocate(rot_source_type)
-    rot_source_type = 4;
-    allocate(implicit_rotation_update)
-    implicit_rotation_update = 1;
-    allocate(rot_axis)
-    rot_axis = 3;
+#ifdef GRAVITY
+    allocate(use_point_mass)
+    use_point_mass = 0;
+    allocate(point_mass)
+    point_mass = 0.0_rt;
+    allocate(point_mass_fix_solution)
+    point_mass_fix_solution = 0;
 #endif
 
     call amrex_parmparse_build(pp, "castro")
-#ifdef GRAVITY
-    call pp%query("use_point_mass", use_point_mass)
-    call pp%query("point_mass", point_mass)
-    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
+#ifdef ROTATION
+    call pp%query("rotational_period", rot_period)
+    call pp%query("rotational_dPdt", rot_period_dot)
+    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
+    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
+    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
+    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
+    call pp%query("rot_source_type", rot_source_type)
+    call pp%query("implicit_rotation_update", implicit_rotation_update)
+    call pp%query("rot_axis", rot_axis)
 #endif
 #ifdef DIFFUSION
     call pp%query("diffuse_temp", diffuse_temp)
@@ -795,7 +821,7 @@ contains
     call pp%query("hse_reflect_vels", hse_reflect_vels)
     call pp%query("fill_ambient_bc", fill_ambient_bc)
     call pp%query("clamp_ambient_temp", clamp_ambient_temp)
-    call pp%query("clamp_ambient_temp_factor", clamp_ambient_temp_factor)
+    call pp%query("ambient_safety_factor", ambient_safety_factor)
     call pp%query("sdc_order", sdc_order)
     call pp%query("sdc_quadrature", sdc_quadrature)
     call pp%query("sdc_extra", sdc_extra)
@@ -824,37 +850,11 @@ contains
     call pp%query("do_acc", do_acc)
     call pp%query("grown_factor", grown_factor)
     call pp%query("track_grid_losses", track_grid_losses)
-#ifdef ROTATION
-    call pp%query("rotational_period", rot_period)
-    call pp%query("rotational_dPdt", rot_period_dot)
-    call pp%query("rotation_include_centrifugal", rotation_include_centrifugal)
-    call pp%query("rotation_include_coriolis", rotation_include_coriolis)
-    call pp%query("rotation_include_domegadt", rotation_include_domegadt)
-    call pp%query("state_in_rotating_frame", state_in_rotating_frame)
-    call pp%query("rot_source_type", rot_source_type)
-    call pp%query("implicit_rotation_update", implicit_rotation_update)
-    call pp%query("rot_axis", rot_axis)
+#ifdef GRAVITY
+    call pp%query("use_point_mass", use_point_mass)
+    call pp%query("point_mass", point_mass)
+    call pp%query("point_mass_fix_solution", point_mass_fix_solution)
 #endif
-    call amrex_parmparse_destroy(pp)
-
-
-    allocate(do_real_eos)
-    do_real_eos = 1;
-    allocate(const_c_v)
-    const_c_v = -1.0_rt;
-    allocate(c_v_exp_m)
-    c_v_exp_m = 0.0_rt;
-    allocate(c_v_exp_n)
-    c_v_exp_n = 0.0_rt;
-    allocate(prop_temp_floor)
-    prop_temp_floor = 0.0_rt;
-
-    call amrex_parmparse_build(pp, "radiation")
-    call pp%query("do_real_eos", do_real_eos)
-    call pp%query("const_c_v", const_c_v)
-    call pp%query("c_v_exp_m", c_v_exp_m)
-    call pp%query("c_v_exp_n", c_v_exp_n)
-    call pp%query("prop_temp_floor", prop_temp_floor)
     call amrex_parmparse_destroy(pp)
 
 
@@ -874,7 +874,7 @@ contains
     !$acc device(allow_small_energy, do_sponge, sponge_implicit) &
     !$acc device(ext_src_implicit, first_order_hydro, hse_zero_vels) &
     !$acc device(hse_interp_temp, hse_reflect_vels, fill_ambient_bc) &
-    !$acc device(clamp_ambient_temp, clamp_ambient_temp_factor, sdc_order) &
+    !$acc device(clamp_ambient_temp, ambient_safety_factor, sdc_order) &
     !$acc device(sdc_quadrature, sdc_extra, sdc_solver) &
     !$acc device(sdc_solver_tol_dens, sdc_solver_tol_spec, sdc_solver_tol_ener) &
     !$acc device(sdc_solver_atol, sdc_solver_relax_factor, sdc_solve_for_rhoe) &
@@ -1143,8 +1143,8 @@ contains
     if (allocated(clamp_ambient_temp)) then
         deallocate(clamp_ambient_temp)
     end if
-    if (allocated(clamp_ambient_temp_factor)) then
-        deallocate(clamp_ambient_temp_factor)
+    if (allocated(ambient_safety_factor)) then
+        deallocate(ambient_safety_factor)
     end if
     if (allocated(sdc_order)) then
         deallocate(sdc_order)

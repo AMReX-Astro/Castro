@@ -3,12 +3,6 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef DIFFUSION
-static int diffuse_temp;
-static amrex::Real diffuse_cutoff_density;
-static amrex::Real diffuse_cutoff_density_hi;
-static amrex::Real diffuse_cond_scale_fac;
-#endif
 #ifdef ROTATION
 static amrex::Real rotational_period;
 static amrex::Real rotational_dPdt;
@@ -20,10 +14,8 @@ static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
 #endif
-#ifdef GRAVITY
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
@@ -84,7 +76,7 @@ static int hse_interp_temp;
 static int hse_reflect_vels;
 static int fill_ambient_bc;
 static int clamp_ambient_temp;
-static amrex::Real clamp_ambient_temp_factor;
+static amrex::Real ambient_safety_factor;
 static int sdc_order;
 static int sdc_quadrature;
 static int sdc_extra;
@@ -150,6 +142,14 @@ static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
+#ifdef DIFFUSION
+static int diffuse_temp;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
+static amrex::Real diffuse_cond_scale_fac;
+#endif
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
 #endif

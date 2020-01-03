@@ -540,7 +540,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             if (state(i,j,k,URHO) <= clamp_ambient_temp_factor * ambient_state(URHO)) then
+             if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
                 state(i,j,k,UTEMP) = ambient_state(UTEMP)
                 rhoInv = ONE / ambient_state(URHO)
                 state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
