@@ -208,7 +208,8 @@ It is enabled by setting:</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The Castro retry mechanism is enabled by default.</p>
+<p class="last">The Castro retry mechanism is enabled by default for CTU + Strang
+and Simplified SDC integration.</p>
 </div>
 <p>The number of subcycles to try in the level is controlled via the
 <code class="docutils literal notranslate"><span class="pre">castro.max_subcycles</span></code> parameter.  It is not really suggested to go
@@ -231,8 +232,13 @@ namelist:</p>
 abort when the integration fails, but instead to tell the calling
 Castro routine that the integration failed so Castro can handle
 the retry itself.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
 <p>The combination of <code class="docutils literal notranslate"><span class="pre">use_retry</span> <span class="pre">=</span> <span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">abort_on_failure</span> <span class="pre">=</span> <span class="pre">F</span></code>
 is unsafe and not supported.</p>
+<p class="last">For true SDC, we disable retry and reset <code class="docutils literal notranslate"><span class="pre">abort_on_failure</span></code> to
+always be true, since retry is not supported for that integration.</p>
+</div>
 </li>
 </ul>
 </div></blockquote>
