@@ -6,8 +6,11 @@ time step on a level and restart with a smaller timestep, subcycling
 within the level to make up the full time step needed for that level.
 It is enabled by setting::
 
-   castro.use_retry      = 1
-   castro.hard_cfl_limit = 0
+   castro.use_retry = 1
+
+.. note::
+
+   The Castro retry mechanism is enabled by default.
 
 The number of subcycles to try in the level is controlled via the
 ``castro.max_subcycles`` parameter.  It is not really suggested to go
@@ -27,7 +30,13 @@ A retry can be triggered by a number of conditions:
       retry_burn = F
       abort_on_failure = F
 
-  
+    This instructs the integration routine in Microphysics to not
+    abort when the integration fails, but instead to tell the calling
+    Castro routine that the integration failed so Castro can handle
+    the retry itself.
+
+    The combination of ``use_retry = 0`` and ``abort_on_failure = F``
+    is unsafe and not supported.
 
 
 

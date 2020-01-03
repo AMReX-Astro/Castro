@@ -287,6 +287,26 @@ subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
 
 end subroutine ca_get_ngdnv
 
+
+#ifdef REACTIONS
+subroutine ca_get_abort_on_failure(abort_on_failure_in) bind(C, name="ca_get_abort_on_failure")
+
+  use extern_probin_module, only : abort_on_failure
+
+  implicit none
+
+  integer, intent(inout) :: abort_on_failure_in
+
+  if (abort_on_failure) then
+     abort_on_failure_in = 1
+  else
+     abort_on_failure_in = 0
+  endif
+
+end subroutine ca_get_abort_on_failure
+#endif
+
+
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::

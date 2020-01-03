@@ -1,4 +1,6 @@
 # cutoff for species mass fractions
 small_x                              real               1.d-30
 
-
+# override the Microphysics default -- this enabled use_retry to take
+# action for burn failures
+abort_on_failure                     logical            .false.             100

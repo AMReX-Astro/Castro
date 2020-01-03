@@ -1,5 +1,13 @@
 # 20.02
 
+   * We now default to use_retry = 1, instructing Castro to retry a
+     step with a smaller dt if there is a CFL violation, burning
+     failure, or negative timestep.  For the burning failure, we have
+     Castro set the Microphysics parameter abort_on_failure to .false.
+     at a high priority (so it overrides the Microphysics default).
+     We also check to make sure the combination of parameters makes
+     sense at runtime.
+
    * The parameter castro.hard_cfl_limit has been removed. (#723)
 
    * Some unnecessary clean_state calls were removed (#721)
