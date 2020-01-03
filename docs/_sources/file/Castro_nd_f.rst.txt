@@ -76,6 +76,11 @@ ca\_get\_ngdnv subroutine
 
 .. f:autosubroutine:: ca_get_ngdnv
 
+ca\_get\_abort\_on\_failure subroutine
+--------------------------------------
+
+.. f:autosubroutine:: ca_get_abort_on_failure
+
 ca\_amrinfo\_init subroutine
 ----------------------------
 

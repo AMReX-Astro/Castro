@@ -675,11 +675,12 @@ exactly</td>
 </tr>
 <tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_retry</span></code></td>
 <td>Retry a timestep if it violated the timestep-limiting
-criteria over the course of an advance. The criteria
+criteria or other checks (negative density, burn
+failure) over the course of an advance. The criteria
 will suggest a new timestep that satisfies the
 criteria, and we will do subcycled timesteps on the
 same level until we reach the original target time.</td>
-<td>0</td>
+<td>1</td>
 </tr>
 <tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">retry_tolerance</span></code></td>
 <td>Tolerance to use when evaluating whether to do a retry.
