@@ -6,7 +6,7 @@
      Castro set the Microphysics parameter abort_on_failure to .false.
      at a high priority (so it overrides the Microphysics default).
      We also check to make sure the combination of parameters makes
-     sense at runtime.
+     sense at runtime. (#724)
 
    * The parameter castro.hard_cfl_limit has been removed. (#723)
 

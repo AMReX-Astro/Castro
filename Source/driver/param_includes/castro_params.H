@@ -14,11 +14,6 @@ static int rot_source_type;
 static int implicit_rotation_update;
 static int rot_axis;
 #endif
-#ifdef GRAVITY
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
-#endif
 #ifdef AMREX_PARTICLES
 static int do_tracer_particles;
 #endif
@@ -27,6 +22,11 @@ static int diffuse_temp;
 static amrex::Real diffuse_cutoff_density;
 static amrex::Real diffuse_cutoff_density_hi;
 static amrex::Real diffuse_cond_scale_fac;
+#endif
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;

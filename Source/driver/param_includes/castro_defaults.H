@@ -14,11 +14,6 @@ int         Castro::rot_source_type = 4;
 int         Castro::implicit_rotation_update = 1;
 int         Castro::rot_axis = 3;
 #endif
-#ifdef GRAVITY
-int         Castro::use_point_mass = 0;
-amrex::Real Castro::point_mass = 0.0;
-int         Castro::point_mass_fix_solution = 0;
-#endif
 #ifdef AMREX_PARTICLES
 int         Castro::do_tracer_particles = 0;
 #endif
@@ -27,6 +22,11 @@ int         Castro::diffuse_temp = 0;
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 amrex::Real Castro::diffuse_cutoff_density_hi = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
+#endif
+#ifdef GRAVITY
+int         Castro::use_point_mass = 0;
+amrex::Real Castro::point_mass = 0.0;
+int         Castro::point_mass_fix_solution = 0;
 #endif
 int         Castro::state_interp_order = 1;
 int         Castro::lin_limit_state_interp = 0;
@@ -105,7 +105,7 @@ amrex::Real Castro::init_shrink = 1.0;
 amrex::Real Castro::change_max = 1.1;
 int         Castro::plot_per_is_exact = 0;
 int         Castro::small_plot_per_is_exact = 0;
-int         Castro::use_retry = 0;
+int         Castro::use_retry = 1;
 amrex::Real Castro::retry_tolerance = 0.02;
 amrex::Real Castro::retry_neg_dens_factor = 1.e-1;
 amrex::Real Castro::retry_subcycle_factor = 0.5;
