@@ -9,11 +9,6 @@ jobInfoFile << (Castro::rot_source_type == 4 ? "    " : "[*] ") << "castro.rot_s
 jobInfoFile << (Castro::implicit_rotation_update == 1 ? "    " : "[*] ") << "castro.implicit_rotation_update = " << Castro::implicit_rotation_update << std::endl;
 jobInfoFile << (Castro::rot_axis == 3 ? "    " : "[*] ") << "castro.rot_axis = " << Castro::rot_axis << std::endl;
 #endif
-#ifdef GRAVITY
-jobInfoFile << (Castro::use_point_mass == 0 ? "    " : "[*] ") << "castro.use_point_mass = " << Castro::use_point_mass << std::endl;
-jobInfoFile << (Castro::point_mass == 0.0 ? "    " : "[*] ") << "castro.point_mass = " << Castro::point_mass << std::endl;
-jobInfoFile << (Castro::point_mass_fix_solution == 0 ? "    " : "[*] ") << "castro.point_mass_fix_solution = " << Castro::point_mass_fix_solution << std::endl;
-#endif
 #ifdef AMREX_PARTICLES
 jobInfoFile << (Castro::do_tracer_particles == 0 ? "    " : "[*] ") << "castro.do_tracer_particles = " << Castro::do_tracer_particles << std::endl;
 #endif
@@ -22,6 +17,11 @@ jobInfoFile << (Castro::diffuse_temp == 0 ? "    " : "[*] ") << "castro.diffuse_
 jobInfoFile << (Castro::diffuse_cutoff_density == -1.e200 ? "    " : "[*] ") << "castro.diffuse_cutoff_density = " << Castro::diffuse_cutoff_density << std::endl;
 jobInfoFile << (Castro::diffuse_cutoff_density_hi == -1.e200 ? "    " : "[*] ") << "castro.diffuse_cutoff_density_hi = " << Castro::diffuse_cutoff_density_hi << std::endl;
 jobInfoFile << (Castro::diffuse_cond_scale_fac == 1.0 ? "    " : "[*] ") << "castro.diffuse_cond_scale_fac = " << Castro::diffuse_cond_scale_fac << std::endl;
+#endif
+#ifdef GRAVITY
+jobInfoFile << (Castro::use_point_mass == 0 ? "    " : "[*] ") << "castro.use_point_mass = " << Castro::use_point_mass << std::endl;
+jobInfoFile << (Castro::point_mass == 0.0 ? "    " : "[*] ") << "castro.point_mass = " << Castro::point_mass << std::endl;
+jobInfoFile << (Castro::point_mass_fix_solution == 0 ? "    " : "[*] ") << "castro.point_mass_fix_solution = " << Castro::point_mass_fix_solution << std::endl;
 #endif
 jobInfoFile << (Castro::state_interp_order == 1 ? "    " : "[*] ") << "castro.state_interp_order = " << Castro::state_interp_order << std::endl;
 jobInfoFile << (Castro::lin_limit_state_interp == 0 ? "    " : "[*] ") << "castro.lin_limit_state_interp = " << Castro::lin_limit_state_interp << std::endl;
@@ -100,7 +100,7 @@ jobInfoFile << (Castro::init_shrink == 1.0 ? "    " : "[*] ") << "castro.init_sh
 jobInfoFile << (Castro::change_max == 1.1 ? "    " : "[*] ") << "castro.change_max = " << Castro::change_max << std::endl;
 jobInfoFile << (Castro::plot_per_is_exact == 0 ? "    " : "[*] ") << "castro.plot_per_is_exact = " << Castro::plot_per_is_exact << std::endl;
 jobInfoFile << (Castro::small_plot_per_is_exact == 0 ? "    " : "[*] ") << "castro.small_plot_per_is_exact = " << Castro::small_plot_per_is_exact << std::endl;
-jobInfoFile << (Castro::use_retry == 0 ? "    " : "[*] ") << "castro.use_retry = " << Castro::use_retry << std::endl;
+jobInfoFile << (Castro::use_retry == 1 ? "    " : "[*] ") << "castro.use_retry = " << Castro::use_retry << std::endl;
 jobInfoFile << (Castro::retry_tolerance == 0.02 ? "    " : "[*] ") << "castro.retry_tolerance = " << Castro::retry_tolerance << std::endl;
 jobInfoFile << (Castro::retry_neg_dens_factor == 1.e-1 ? "    " : "[*] ") << "castro.retry_neg_dens_factor = " << Castro::retry_neg_dens_factor << std::endl;
 jobInfoFile << (Castro::retry_subcycle_factor == 0.5 ? "    " : "[*] ") << "castro.retry_subcycle_factor = " << Castro::retry_subcycle_factor << std::endl;
