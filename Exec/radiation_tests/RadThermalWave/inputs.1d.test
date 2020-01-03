@@ -60,12 +60,6 @@ castro.small_temp = 0.0
 
 # ------------------  INPUTS TO RADIATION CLASS  -------------------
 
-# The following are specific for this thermal wave problem only.
-# Note that the built-in analytic solution is for castro.do_hydro=0.
-radiation.do_thermal_wave_cgs = 1   
-radiation.thermal_wave_rhocv = 0.05
-radiation.thermal_wave_Eexp = 3.e7
-
 ##### SolverType #####
 # 0: single group diffusion w/o coupling to hydro
 # 5: SGFLD       6: MGFLD
