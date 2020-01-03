@@ -3985,11 +3985,11 @@ Castro::clamp_to_ambient_temp(MultiFab& state, int ng) {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu
+#pragma gpu box(bx)
         ca_clamp_ambient_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                               BL_TO_FORTRAN_ANYD(state[mfi]));
 
