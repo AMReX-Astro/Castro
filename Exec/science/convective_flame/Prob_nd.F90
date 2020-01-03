@@ -54,14 +54,14 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   refine_cutoff_height = HALF*(problo(2)+probhi(2))
 
-  dens_base = 2.d6
+  dens_base = 2.e6_rt
 
-  T_star = 1.d8
-  T_hi   = 5.d8
+  T_star = 1.e8_rt
+  T_hi   = 5.e8_rt
   T_lo   = 5.e7
 
-  H_star = 500.d0
-  atm_delta  = 25.d0
+  H_star = 500.e0_rt
+  atm_delta  = 25.e0_rt
 
   fuel1_name = "fuel"
   fuel2_name = ""
@@ -81,9 +81,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   index_base_from_temp = .false.
 
-  low_density_cutoff = 1.d-4
+  low_density_cutoff = 1.e-4_rt
 
-  smallx = 1.d-10
+  smallx = 1.e-10_rt
 
   ! Read namelists
   open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')

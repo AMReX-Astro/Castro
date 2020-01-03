@@ -1739,8 +1739,6 @@ void HypreMultiABec::loadLevelVectors(int level,
 {
   int part = level - crse_level;
 
-  Vector<Real> r;
-
   Real *vec;
   FArrayBox fnew;
   for (MFIter mfi(dest); mfi.isValid(); ++mfi) {
@@ -1761,6 +1759,8 @@ void HypreMultiABec::loadLevelVectors(int level,
       f->copy(dest[mfi], icomp, 0, 1);
       fcomp = 0;
     }
+    Elixir f_elix = fnew.elixir();
+
     vec = f->dataPtr(fcomp); // sharing space, dest will be overwritten below
 
     vectorSetBoxValues(x, part, reg, subgrids[level][i], vec);
@@ -1793,21 +1793,28 @@ void HypreMultiABec::loadLevelVectors(int level,
               tfp = tf.dataPtr();
               bctype = -1;
             }
-            getFaceMetric(r, reg, oitr(), geom[level]);
-            hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		   cdir, bctype, tfp, bho, bcl,
-		   BL_TO_FORTRAN_N(fs, bdcomp),
-		   BL_TO_FORTRAN(msk),
-		   BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		   beta, geom[level].CellSize(), r.dataPtr());
+#pragma gpu box(reg) sync
+            hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                   reg.loVect()[0], reg.hiVect()[0],
+                   oitr().isLow(), idim+1,
+                   vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		   cdir, bctype,
+                   tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
+                   bho, bcl,
+		   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+		   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+		   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+		   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
           else {
-            hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		  cdir, bct, bho, bcl,
-		  BL_TO_FORTRAN_N(fs, bdcomp),
-		  BL_TO_FORTRAN(msk),
-		  BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		  beta, geom[level].CellSize());
+#pragma gpu box(reg) sync
+              hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                    vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                    cdir, bct, bho, bcl,
+                    BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+                    msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+                    BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+                    beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
         }
         // There is no else here, since we would then be at an
@@ -1844,6 +1851,8 @@ void HypreMultiABec::loadLevelVectorX(int level,
       f->copy(dest[mfi], icomp, 0, 1);
       fcomp = 0;
     }
+    Elixir f_elix = fnew.elixir();
+
     Real* vec = f->dataPtr(fcomp);
 
     vectorSetBoxValues(x, part, reg, subgrids[level][i], vec);
@@ -1855,8 +1864,6 @@ void HypreMultiABec::loadLevelVectorB(int level,
                                       BC_Mode inhom)
 {
   int part = level - crse_level;
-
-  Vector<Real> r;
 
   FArrayBox fnew;
   for (MFIter mfi(rhs); mfi.isValid(); ++mfi) {
@@ -1872,6 +1879,8 @@ void HypreMultiABec::loadLevelVectorB(int level,
       f->resize(reg);
       f->copy(rhs[mfi]);
     }
+    Elixir f_elix = fnew.elixir();
+
     Real* vec = f->dataPtr();
 
     // add b.c.'s to rhs
@@ -1900,21 +1909,28 @@ void HypreMultiABec::loadLevelVectorB(int level,
               tfp = tf.dataPtr();
               bctype = -1;
             }
-            getFaceMetric(r, reg, oitr(), geom[level]);
-            hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		   cdir, bctype, tfp, bho, bcl,
-		   BL_TO_FORTRAN_N(fs, bdcomp),
-		   BL_TO_FORTRAN(msk),
-		   BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		   beta, geom[level].CellSize(), r.dataPtr());
+#pragma gpu box(reg) sync
+            hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                   reg.loVect()[0], reg.hiVect()[0],
+                   oitr().isLow(), idim+1,
+                   vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		   cdir, bctype,
+                   tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
+                   bho, bcl,
+		   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+		   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+		   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+		   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
           else {
-            hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		  cdir, bct, bho, bcl,
-		  BL_TO_FORTRAN_N(fs, bdcomp),
-		  BL_TO_FORTRAN(msk),
-		  BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		  beta, geom[level].CellSize());
+#pragma gpu box(reg) sync
+              hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                    vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                    cdir, bct, bho, bcl,
+                    BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+                    msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+                    BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+                    beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
         }
         // There is no else here, since we would then be at an
@@ -2997,6 +3013,7 @@ void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
 
       fcomp = 0;
     }
+    Elixir f_elix = fnew.elixir();
 
     vectorGetBoxValues(x, part, reg, subgrids[level][i], *f, fcomp);
 
@@ -3152,191 +3169,6 @@ void HypreMultiABec::boundaryFlux(int level,
 	    }
 	}
     }
-}
-
-void HypreMultiABec::initializeApplyLevel(int level,
-					  MultiFab& product,
-					  MultiFab& vector,
-                                          int icomp,
-					  BC_Mode inhom)
-{
-  BL_ASSERT(product.nGrow() == 0); // need a temporary if this is false
-
-  int part = level - crse_level;
-
-  const int size = 2 * BL_SPACEDIM + 1;
-  int i, idim;
-
-  int stencil_indices[size];
-
-  for (i = 0; i < size; i++) {
-    stencil_indices[i] = i;
-  }
-
-  Vector<Real> r;
-  Real foo = 1.e200;
-
-  Real *mat, *vec;
-  FArrayBox fnew;
-  FArrayBox matfab;
-  FArrayBox smatfab;
-  for (MFIter mfi(vector); mfi.isValid(); ++mfi) {
-    i = mfi.index();
-    const Box &reg = grids[level][i];
-
-    // initialize x with the vector that A will be applied to:
-
-    FArrayBox *f;
-    int fcomp;
-    if (vector.nGrow() == 0) {
-      f = &vector[mfi];
-      fcomp = icomp;
-    }
-    else {
-      f = &fnew;
-      f->resize(reg);
-      f->copy(vector[mfi], icomp, 0, 1);
-      fcomp = 0;
-    }
-
-    vectorSetBoxValues(x, part, reg, subgrids[level][i], f->dataPtr(fcomp));
-
-    // initialize product (to temporarily hold the boundary contribution):
-
-    product[mfi].setVal(0.0);
-    vec = product[mfi].dataPtr();
-
-    matfab.resize(reg,size);
-    Real* mat = matfab.dataPtr();
-
-    // build matrix interior
-
-    hmac(mat, 
-	 BL_TO_FORTRAN((*acoefs[level])[mfi]),
-	 ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha);
-
-    for (idim = 0; idim < BL_SPACEDIM; idim++) {
-      hmbc(mat, 
-	   BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-	   ARLIM(reg.loVect()), ARLIM(reg.hiVect()), beta,
-	   geom[level].CellSize(), idim);
-    }
-
-    // add b.c.'s to matrix diagonal and product (otherwise zero), and
-    // zero out offdiag values at domain boundaries
-
-    const Box& domain = bd[level]->getDomain();
-    for (OrientationIter oitr; oitr; oitr++) {
-      int cdir(oitr());
-      idim = oitr().coordDir();
-      const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
-      const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
-      const Mask      &msk = bd[level]->bndryMasks(oitr(),i);
-      const Box &bbox = (*bcoefs[level])[idim][mfi].box();
-      const Box &msb  = msk.box();
-      if (reg[oitr()] == domain[oitr()]) {
-        const int *tfp = NULL;
-        int bctype = bct;
-        if (bd[level]->mixedBndry(oitr())) {
-	    const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
-	    tfp = tf.dataPtr();
-	    bctype = -1;
-        }
-	const FArrayBox &fs  = bd[level]->bndryValues(oitr())[mfi];
-
-	Real* pSPa;
-	Box SPabox;
-	if (SPa[level]) {
-	    pSPa = (*SPa[level])[mfi].dataPtr();
-	    SPabox = (*SPa[level])[mfi].box();
-	}
-	else {
-	  pSPa = &foo;
-	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-	}
-        getFaceMetric(r, reg, oitr(), geom[level]);
-        hmmat3(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	       cdir, bctype, tfp, bho, bcl,
-	       ARLIM(fs.loVect()), ARLIM(fs.hiVect()),
-	       BL_TO_FORTRAN(msk),
-	       BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-	       beta, geom[level].CellSize(),
-	       flux_factor, r.dataPtr(),
-	       pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
-	if (inhom) {
-	  hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 cdir, bctype, tfp, bho, bcl,
-		 BL_TO_FORTRAN_N(fs, bdcomp),
-		 BL_TO_FORTRAN(msk),
-		 BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		 beta, geom[level].CellSize(), r.dataPtr());
-	}
-      }
-      else {
-	hmmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      cdir, bct, bho, bcl,
-	      BL_TO_FORTRAN(msk),
-              BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-	      beta, geom[level].CellSize());
-	if (inhom) {
-	  const FArrayBox &fs  = bd[level]->bndryValues(oitr())[mfi];
-	  hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		cdir, bct, bho, bcl,
-		BL_TO_FORTRAN_N(fs, bdcomp),
-		BL_TO_FORTRAN(msk),
-		BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		beta, geom[level].CellSize());
-	}
-      }
-    }
-
-    // initialize product
-
-    vectorSetBoxValues(b, part, reg, subgrids[level][i], vec);
-
-    // initialize matrix
-
-    if (subgrids[level][i].size() > 0) {
-      for (int j = 0; j < subgrids[level][i].size(); j++) {
-        const Box& sreg = subgrids[level][i][j];
-	smatfab.resize(sreg,size);
-	Real* smat = smatfab.dataPtr();
-        for (IntVect v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
-          int is = sreg.index(v);
-          int ir =  reg.index(v);
-          for (int s = 0; s < size; s++) {
-            smat[is * size + s] = mat[ir * size + s];
-          }
-        }
-        HYPRE_SStructMatrixSetBoxValues(A0, part, loV(sreg), hiV(sreg), 0,
-                                        size, stencil_indices, smat);
-      }
-    }
-    else {
-      HYPRE_SStructMatrixSetBoxValues(A0, part, loV(reg), hiV(reg), 0,
-                                      size, stencil_indices, mat);
-    }
-  }
-}
-
-void HypreMultiABec::apply()
-{
-  HYPRE_SStructMatrixAssemble(A0);
-
-  HYPRE_SStructVectorAssemble(b);
-  HYPRE_SStructVectorAssemble(x);
-
-  // Matvec call here
-  // Arguments are alpha, A, x, beta, b --- sets b := alpha A x + beta b
-  // By using beta = -1, we subtract off the boundary contribution
-
-  hypre_SStructMatvec(1.0,
-		      (hypre_SStructMatrix *) A0,
-		      (hypre_SStructVector *) x,
-		      -1.0,
-		      (hypre_SStructVector *) b);
-
-  HYPRE_SStructVectorGather(b);
 }
 
 void HypreMultiABec::getProduct(int level, MultiFab& product)

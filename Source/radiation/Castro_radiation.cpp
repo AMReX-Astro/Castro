@@ -55,12 +55,6 @@ Castro::final_radiation_call (MultiFab& S_new, int iteration, int ncycle)
 	    radiation->single_group_update(level, iteration, ncycle);
 	}
 	
-	// Recompute temperatures after radiation update
-	if (Radiation::SolverType != Radiation::MGFLDSolver) {
-	    if (radiation->do_real_eos > 0) {
-	      Castro::computeTemp(S_new, state[State_Type].curTime(), S_new.nGrow());
-	    }
-	}
     }
 }
 #endif

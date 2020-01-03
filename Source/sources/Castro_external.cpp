@@ -10,7 +10,7 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, R
 
     if (!add_ext_src) return;
 
-    MultiFab ext_src(grids, dmap, NUM_STATE, 0);
+    MultiFab ext_src(grids, dmap, source.nComp(), 0);
 
     ext_src.setVal(0.0);
 
@@ -18,7 +18,7 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, R
 
     Real mult_factor = 1.0;
 
-    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, NUM_STATE, 0);
+    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);
 
     if (verbose > 1)
     {
@@ -47,28 +47,48 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
     if (!add_ext_src) return;
 
-    MultiFab ext_src(grids, dmap, NUM_STATE, 0);
+    // In this routine, we have two options: we can either do an
+    // explicit predictor-corrector solve, or an implicit solve.
+    // If we are doing predictor-corrector, the goal is to have
+    // 0.5 * source_old + 0.5 * source_new. If we are doing an
+    // implicit solve, the goal is just to have 1.0 * source_new.
+    // This choice informs how we select mult_factor below.
+    // It is up to the implementer of the external source term
+    // to get it right if they choose to do an implicit solve.
+
+    Real mult_factor;
+
+    MultiFab ext_src(grids, dmap, source.nComp(), 0);
 
     ext_src.setVal(0.0);
 
     // Subtract off the old-time value first.
 
     Real old_time = time - dt;
-    Real mult_factor = -0.5;
+
+    if (ext_src_implicit) {
+        mult_factor = -1.0;
+    } else {
+        mult_factor = -0.5;
+    }
 
     fill_ext_source(old_time, dt, state_old, state_old, ext_src);
 
-    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, NUM_STATE, 0);
+    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);
 
     // Time center with the new data.
 
     ext_src.setVal(0.0);
 
-    mult_factor = 0.5;
+    if (ext_src_implicit) {
+        mult_factor = 1.0;
+    } else {
+        mult_factor = 0.5;
+    }
 
     fill_ext_source(time, dt, state_old, state_new, ext_src);
 
-    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, NUM_STATE, 0);
+    MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);
 
     if (verbose > 1)
     {
@@ -99,7 +119,7 @@ Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& stat
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(ext_src,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(ext_src, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
         const Box& bx = mfi.tilebox();

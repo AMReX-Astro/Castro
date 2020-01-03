@@ -1,1 +1,1 @@
-f90EXE_sources += opacity_table_module.f90
+F90EXE_sources += opacity_table_module.F90

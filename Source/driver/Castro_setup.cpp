@@ -236,14 +236,14 @@ Castro::variableSetUp ()
                        GDRHO, GDU, GDV, GDW,
                        GDPRES, GDGAME);
 
-  // Get the number of primitive variables from Fortran.
-  ca_get_nqsrc(&NQSRC);
-
   // and the auxiliary variables
   ca_get_nqaux(&NQAUX);
 
   // and the number of primitive variable source terms
   ca_get_nqsrc(&NQSRC);
+
+  // and the number of conserved variable source terms
+  ca_get_nsrc(&NSRC);
 
   // initialize the Godunov state array used in hydro
   ca_get_ngdnv(&NGDNV);
@@ -340,7 +340,7 @@ Castro::variableSetUp ()
 			 StateDescriptor::Point,ngrow_state,NUM_STATE,
 			 interp,state_data_extrap,store_in_checkpoint);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point, 1, 1,
@@ -371,7 +371,7 @@ Castro::variableSetUp ()
       amrex::Error("Unknown time_integration_method");
   }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, source_ng, NUM_STATE,
+			 StateDescriptor::Point, source_ng, NSRC,
 			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
@@ -473,11 +473,11 @@ Castro::variableSetUp ()
     Vector<int> int_spec_names(len);
     // This call return the actual length of each string in "len"
     ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
-    char char_spec_names[len+1];
+    Vector<char> char_spec_names(len+1);
     for (int j = 0; j < len; j++)
       char_spec_names[j] = int_spec_names[j];
     char_spec_names[len] = '\0';
-    spec_names.push_back(std::string(char_spec_names));
+    spec_names.push_back(std::string(char_spec_names.data()));
   }
 
   if ( ParallelDescriptor::IOProcessor())
@@ -536,7 +536,7 @@ Castro::variableSetUp ()
 			bcs,
 			BndryFunc(ca_denfill,ca_hypfill));
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   set_scalar_bc(bc,phys_bc);
   desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,BndryFunc(ca_phigravfill));
   set_x_vel_bc(bc,phys_bc);
@@ -558,18 +558,18 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,BndryFunc(ca_rotzfill));
 #endif
 
-  // Source term array will use standard hyperbolic fill.
+  // Source term array will use source fill
 
-  Vector<BCRec> source_bcs(NUM_STATE);
-  Vector<std::string> state_type_source_names(NUM_STATE);
+  Vector<BCRec> source_bcs(NSRC);
+  Vector<std::string> state_type_source_names(NSRC);
 
-  for (int i = 0; i < NUM_STATE; ++i) {
+  for (int i = 0; i < NSRC; ++i) {
     state_type_source_names[i] = name[i] + "_source";
     source_bcs[i] = bcs[i];
 
   }
 
-  desc_lst.setComponent(Source_Type,Density,state_type_source_names,source_bcs,
+  desc_lst.setComponent(Source_Type, Density, state_type_source_names, source_bcs,
                         BndryFunc(ca_source_single_fill,ca_source_multi_fill));
 
 #ifdef REACTIONS
@@ -680,8 +680,17 @@ Castro::variableSetUp ()
                            StateDescriptor::Point, 2, NUM_STATE,
                            interp, state_data_extrap, store_in_checkpoint);
 
-    // this is the same thing we do for the sources
-    desc_lst.setComponent(SDC_Source_Type, Density, state_type_source_names, source_bcs,
+    // this is the same thing we do for the sources, but now we use the generic fill
+    Vector<BCRec> sdc_source_bcs(NUM_STATE);
+    Vector<std::string> sdc_source_names(NUM_STATE);
+
+    for (int i = 0; i < NUM_STATE; ++i) {
+      sdc_source_names[i] = name[i] + "_sdc_source";
+      sdc_source_bcs[i] = bcs[i];
+
+    }
+
+    desc_lst.setComponent(SDC_Source_Type, Density, sdc_source_names, sdc_source_bcs,
                           BndryFunc(ca_generic_single_fill, ca_generic_multi_fill));
   }
 #endif
@@ -738,7 +747,7 @@ Castro::variableSetUp ()
   //
   // Gravitational forcing
   //
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   //    derive_lst.add("rhog",IndexType::TheCellType(),1,
   //                   BL_FORT_PROC_CALL(CA_RHOG,ca_rhog),the_same_box);
   //    derive_lst.addComponent("rhog",desc_lst,State_Type,Density,1);
@@ -883,7 +892,7 @@ Castro::variableSetUp ()
   derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Density,1);
   derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Xmom,3);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   derive_lst.add("maggrav",IndexType::TheCellType(),1,ca_dermaggrav,the_same_box);
   derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,3);
 #endif
@@ -1094,7 +1103,7 @@ Castro::variableSetUp ()
 #endif
 
 
-
+#ifdef TRUE_SDC
   if (sdc_quadrature == 0) {
     // Gauss-Lobatto
 
@@ -1153,4 +1162,6 @@ Castro::variableSetUp ()
   } else {
     amrex::Error("invalid value of sdc_quadrature");
   }
+#endif
+
 }

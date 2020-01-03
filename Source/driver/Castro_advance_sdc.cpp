@@ -6,7 +6,7 @@
 #include "Radiation.H"
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #include "Gravity.H"
 #endif
 
@@ -54,6 +54,8 @@ Castro::do_advance_sdc (Real time,
   MultiFab& old_source = get_old_data(Source_Type);
   MultiFab& new_source = get_new_data(Source_Type);
 
+  bool apply_sources_to_state = false;
+
   // we loop over all nodes, even the last, since we need to compute
   // the advective update source at each node
 
@@ -89,7 +91,7 @@ Castro::do_advance_sdc (Real time,
       // using the current stage's starting point.
 
       // TODO: this is not using the density at the current stage
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
       construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
 
@@ -97,19 +99,19 @@ Castro::do_advance_sdc (Real time,
 #ifndef AMREX_USE_CUDA
         if (sdc_order == 4) {
           // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
-          // we'll reuse sources_for_hydro for this memory buffer at the moment
+          // we'll use Sburn for this memory buffer at the moment
 
           for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
             const Box& gbx = mfi.growntilebox(1);
             ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
                                 BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                BL_TO_FORTRAN_FAB(sources_for_hydro[mfi]),
+                                BL_TO_FORTRAN_FAB(Sburn[mfi]),
                                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
           }
 
           // we pass in the stage time here
-          do_old_sources(old_source, sources_for_hydro, node_time, dt, amr_iteration, amr_ncycle);
+          do_old_sources(old_source, Sburn, Sburn, node_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
           // fill the ghost cells for the sources -- note since we have
           // not defined the new_source yet, we either need to copy this
@@ -117,7 +119,7 @@ Castro::do_advance_sdc (Real time,
           // fill to make sense, or so long as we are not multilevel,
           // just use the old time (prev_time) in the fill instead of
           // the node time (time)
-          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
+          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
 
           // Now convert to cell averages.  This loop cannot be tiled.
           for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
@@ -130,7 +132,7 @@ Castro::do_advance_sdc (Real time,
         } else {
           // there is a ghost cell fill hidden in diffusion, so we need
           // to pass in the time associate with Sborder
-          do_old_sources(old_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
+          do_old_sources(old_source, Sborder, Sborder, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
         }
 
         // note: we don't need a FillPatch on the sources, since they
@@ -141,7 +143,7 @@ Castro::do_advance_sdc (Real time,
 
         // store the result in sources_for_hydro -- this is what will
         // be used in the final conservative update
-        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NUM_STATE, 0);
+        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NSRC, 0);
 
       } else {
         sources_for_hydro.setVal(0.0, 0);
@@ -264,17 +266,94 @@ Castro::do_advance_sdc (Real time,
     // TODO: we also need to make these 4th order!
     clean_state(S_old, prev_time, 0);
     expand_state(Sborder, prev_time, Sborder.nGrow());
-    do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
-    AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NUM_STATE);
+    do_old_sources(old_source, Sborder, Sborder, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+    AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
 
     clean_state(S_new, cur_time, 0);
     expand_state(Sborder, cur_time, Sborder.nGrow());
-    do_old_sources(new_source, Sborder, cur_time, dt, amr_iteration, amr_ncycle);
-    AmrLevel::FillPatch(*this, new_source, new_source.nGrow(), cur_time, Source_Type, 0, NUM_STATE);
+    do_old_sources(new_source, Sborder, Sborder, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+    AmrLevel::FillPatch(*this, new_source, new_source.nGrow(), cur_time, Source_Type, 0, NSRC);
   }
 
   finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
+#ifdef REACTIONS
+  // store the reaction information as well.  Note: this will be
+  // the instantaneous reactive source from the last burn.  In the
+  // future, we might want to do a quadrature over R_old[]
+
+  // At this point, Sburn contains the cell-center reaction source
+  // on one ghost-cell.  So we can use this to derive what we need.
+
+  // this is done only for the plotfile
+  MultiFab& R_new = get_new_data(Reactions_Type);
+
+  if (sdc_order == 4) {
+    // fill ghost cells on S_new -- we'll need these to convert to
+    // centers
+    Real cur_time = state[State_Type].curTime();
+    // we'll use Sborder to expand the state, but we already cleared
+    // it at the end of the andance
+    Sborder.define(grids, dmap, NUM_STATE, NUM_GROW, MFInfo().SetTag("Sborder"));
+
+    expand_state(Sborder, cur_time, 2);
+  }
+
+  FArrayBox U_center;
+  FArrayBox R_center;
+
+  // this cannot be tiled
+  for (MFIter mfi(R_new); mfi.isValid(); ++mfi) {
+    const Box& bx = mfi.tilebox();
+    const Box& obx = mfi.growntilebox(1);
+
+    if (sdc_order == 4) {
+
+      const int* domain_lo = geom.Domain().loVect();
+      const int* domain_hi = geom.Domain().hiVect();
+
+      // convert S_new to cell-centers
+      U_center.resize(obx, NUM_STATE);
+      ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
+                          BL_TO_FORTRAN_FAB(Sborder[mfi]),
+                          BL_TO_FORTRAN_FAB(U_center),
+                          AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+      // pass in the reaction source and state at centers, including one ghost cell
+      // and derive everything that is needed including 1 ghost cell
+      R_center.resize(obx, R_new.nComp());
+      ca_store_reaction_state(BL_TO_FORTRAN_BOX(obx),
+                              BL_TO_FORTRAN_3D(Sburn[mfi]),
+                              BL_TO_FORTRAN_3D(U_center),
+                              BL_TO_FORTRAN_3D(R_center));
+
+      // convert R_new from centers to averages in place
+      ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
+                              BL_TO_FORTRAN_FAB(R_center),
+                              AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+
+      // store
+      R_new[mfi].copy(R_center, bx, 0, bx, 0, R_new.nComp());
+
+    } else {
+
+      // we don't worry about the difference between centers and averages
+      ca_store_reaction_state(BL_TO_FORTRAN_BOX(bx),
+                              BL_TO_FORTRAN_3D((*R_old[SDC_NODES-1])[mfi]),
+                              BL_TO_FORTRAN_3D(S_new[mfi]),
+                              BL_TO_FORTRAN_3D(R_new[mfi]));
+    }
+
+  }
+
+  if (sdc_order == 4) {
+    Sborder.clear();
+  }
+
+#endif // REACTIONS
+
   return dt;
 }
+
 #endif

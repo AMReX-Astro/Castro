@@ -5,9 +5,8 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   use amrex_constants_module
   use castro_error_module
   use fundamental_constants_module
-  use eos_module
-
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   integer, intent(in) :: init, namlen

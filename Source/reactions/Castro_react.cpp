@@ -7,7 +7,7 @@
 using std::string;
 using namespace amrex;
 
-void
+bool
 Castro::strang_react_first_half(Real time, Real dt)
 {
     BL_PROFILE("Castro::strang_react_first_half()");
@@ -18,6 +18,8 @@ Castro::strang_react_first_half(Real time, Real dt)
         amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
     }
 
+    bool burn_success = true;
+
     // Get the reactions MultiFab to fill in.
 
     MultiFab& reactions = get_old_data(Reactions_Type);
@@ -26,7 +28,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     reactions.setVal(0.0);
 
-    if (do_react != 1) return;
+    if (do_react != 1) return burn_success;
 
     // Get the current state data.
 
@@ -34,7 +36,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     // Check if we have any zones to burn.
 
-    if (!valid_zones_to_burn(state)) return;
+    if (!valid_zones_to_burn(state)) return burn_success;
 
     const int ng = state.nGrow();
 
@@ -122,7 +124,7 @@ Castro::strang_react_first_half(Real time, Real dt)
     if (verbose)
         amrex::Print() << "... Entering burner and doing half-timestep of burning." << std::endl << std::endl;
 
-    react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, 1, ng);
+    burn_success = react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, 1, ng);
 
     if (verbose)
         amrex::Print() << "... Leaving burner after completing half-timestep of burning." << std::endl << std::endl;
@@ -148,11 +150,16 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     clean_state(state, time, state.nGrow());
 
+    if (burn_success)
+        return true;
+    else
+        return false;
+
 }
 
 
 
-void
+bool
 Castro::strang_react_second_half(Real time, Real dt)
 {
     BL_PROFILE("Castro::strang_react_second_half()");
@@ -163,6 +170,8 @@ Castro::strang_react_second_half(Real time, Real dt)
         amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
     }
 
+    bool burn_success = true;
+
     MultiFab& reactions = get_new_data(Reactions_Type);
 
     // Ensure we always have valid data, even if we don't do the burn.
@@ -172,13 +181,13 @@ Castro::strang_react_second_half(Real time, Real dt)
     if (Knapsack_Weight_Type > 0)
         get_new_data(Knapsack_Weight_Type).setVal(1.0);
 
-    if (do_react != 1) return;
+    if (do_react != 1) return burn_success;
 
     MultiFab& state = get_new_data(State_Type);
 
     // Check if we have any zones to burn.
 
-    if (!valid_zones_to_burn(state)) return;
+    if (!valid_zones_to_burn(state)) return burn_success;
 
     // To be consistent with other source term types,
     // we are only applying this on the interior zones.
@@ -240,7 +249,7 @@ Castro::strang_react_second_half(Real time, Real dt)
     if (verbose)
         amrex::Print() << "... Entering burner and doing half-timestep of burning." << std::endl << std::endl;
 
-    react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, 2, ng);
+    burn_success = react_state(*state_temp, *reactions_temp, *mask_temp, *weights_temp, time, dt, 2, ng);
 
     if (verbose)
         amrex::Print() << "... Leaving burner after completing half-timestep of burning." << std::endl << std::endl;
@@ -257,11 +266,13 @@ Castro::strang_react_second_half(Real time, Real dt)
 
     clean_state(state, time + 0.5 * dt, state.nGrow());
 
+    return burn_success;
+
 }
 
 
 
-void
+bool
 Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w, Real time, Real dt_react, int strang_half, int ngrow)
 {
 
@@ -281,11 +292,11 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 
     // Start off assuming a successful burn.
 
-    burn_success = 1;
+    int burn_success = 1;
     Real burn_failed = 0.0;
 
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(+:burn_failed)
 #endif
     for (MFIter mfi(s, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -333,11 +344,16 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& mask, MultiFab& w
 #endif
     }
 
+    if (burn_success)
+        return true;
+    else
+        return false;
+
 }
 
 // Simplified SDC version
 
-void
+bool
 Castro::react_state(Real time, Real dt)
 {
     BL_PROFILE("Castro::react_state()");
@@ -370,10 +386,15 @@ Castro::react_state(Real time, Real dt)
 
     reactions.setVal(0.0);
 
+    // Start off assuming a successful burn.
+
+    int burn_success = 1;
+    Real burn_failed = 0.0;
+
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(+:burn_failed)
 #endif
-    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
 	const Box& bx = mfi.growntilebox(ng);
@@ -384,15 +405,21 @@ Castro::react_state(Real time, Real dt)
 	FArrayBox& r       = reactions[mfi];
 	const IArrayBox& m = interior_mask[mfi];
 
-	ca_react_state_simplified_sdc(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-                                      uold.dataPtr(), ARLIM_3D(uold.loVect()), ARLIM_3D(uold.hiVect()),
-                                      unew.dataPtr(), ARLIM_3D(unew.loVect()), ARLIM_3D(unew.hiVect()),
-                                      a.dataPtr(), ARLIM_3D(a.loVect()), ARLIM_3D(a.hiVect()),
-                                      r.dataPtr(), ARLIM_3D(r.loVect()), ARLIM_3D(r.hiVect()),
-                                      m.dataPtr(), ARLIM_3D(m.loVect()), ARLIM_3D(m.hiVect()),
-                                      time, dt, sdc_iteration);
+#pragma gpu box(bx)
+	ca_react_state_simplified_sdc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                      BL_TO_FORTRAN_ANYD(uold),
+                                      BL_TO_FORTRAN_ANYD(unew),
+                                      BL_TO_FORTRAN_ANYD(a),
+                                      BL_TO_FORTRAN_ANYD(r),
+                                      BL_TO_FORTRAN_ANYD(m),
+                                      time, dt, sdc_iteration,
+                                      AMREX_MFITER_REDUCE_SUM(&burn_failed));
 
     }
+
+    if (burn_failed != 0.0) burn_success = 0;
+
+    ParallelDescriptor::ReduceIntMin(burn_success);
 
     if (ng > 0)
         S_new.FillBoundary(geom.periodicity());
@@ -424,6 +451,11 @@ Castro::react_state(Real time, Real dt)
 #endif
 
     }
+
+    if (burn_success)
+        return true;
+    else
+        return false;
 
 }
 

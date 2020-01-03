@@ -18,7 +18,7 @@
 #include "Radiation.H"
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #include "Gravity.H"
 #endif
 
@@ -137,7 +137,7 @@ Castro::restart (Amr&     papa,
     AmrLevel::restart(papa,is,bReadSpecial);
 
     if (input_version == 0) { // old checkpoint without PhiGrav_Type
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
       state[PhiGrav_Type].restart(desc_lst[PhiGrav_Type], state[Gravity_Type]);
 #endif
     }
@@ -453,7 +453,7 @@ Castro::restart (Amr&     papa,
     if (grown_factor > 1 && level == 1)
         getLevel(0).avgDown();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        MultiFab& S_new = get_new_data(State_Type);
@@ -487,6 +487,8 @@ Castro::restart (Amr&     papa,
       }
       radiation->regrid(level, grids, dmap);
       radiation->restart(level, grids, dmap, parent->theRestartFile(), is);
+
+      rad_solver.reset(new RadSolve(parent, level, grids, dmap));
     }
 #endif
 
@@ -530,7 +532,7 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
     state_in_checkpoint[i] = 1;
 
   for (int i=0; i<num_state_type; ++i) {
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (input_version == 0 && i == PhiGrav_Type) {
       // We are reading an old checkpoint with no PhiGrav_Type
       state_in_checkpoint[i] = 0;
@@ -969,30 +971,30 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.is_periodic: ";
-  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
-    jobInfoFile << geom.isPeriodic(dir) << " ";
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+    jobInfoFile << geom.isPeriodic(idir) << " ";
   }
   jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.coord_sys:   " << geom.Coord() << "\n";
 
   jobInfoFile << "     geometry.prob_lo:     ";
-  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
-    jobInfoFile << geom.ProbLo(dir) << " ";
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+    jobInfoFile << geom.ProbLo(idir) << " ";
   }
   jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.prob_hi:     ";
-  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
-    jobInfoFile << geom.ProbHi(dir) << " ";
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+    jobInfoFile << geom.ProbHi(idir) << " ";
   }
   jobInfoFile << "\n";
 
   jobInfoFile << "     amr.n_cell:           ";
   const int*  domain_lo = geom.Domain().loVect();
   const int*  domain_hi = geom.Domain().hiVect();
-  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
-    jobInfoFile << domain_hi[dir] - domain_lo[dir] + 1 << " ";
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+    jobInfoFile << domain_hi[idir] - domain_lo[idir] + 1 << " ";
   }
   jobInfoFile << "\n";
 

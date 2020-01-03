@@ -336,25 +336,12 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       else {
 	  dedY[mfi].setVal(0.0,box,0);
 #endif
-	  if (do_real_eos == 1) {
-	    ca_compute_c_v
-	      (box.loVect(), box.hiVect(),
-	       BL_TO_FORTRAN(dedT[mfi]), BL_TO_FORTRAN(temp_new[mfi]), BL_TO_FORTRAN(S_new[mfi]));
-	  }
-	  else if (c_v_exp_m == 0.0 && c_v_exp_n == 0.0) {
-	      dedT[mfi].setVal(const_c_v,box,0);
-	  }
-	  else if (const_c_v > 0.0) {
-	      gcv(ARLIM(box.loVect()), ARLIM(box.hiVect()),
-		  BL_TO_FORTRAN(dedT[mfi]), 
-		  BL_TO_FORTRAN(temp_new[mfi]), 
-		  &const_c_v, &c_v_exp_m, &c_v_exp_n,
-		  &prop_temp_floor,
-		  BL_TO_FORTRAN(S_new[mfi]));
-	  }
-	  else {
-	      amrex::Error("ERROR Radiation::eos_opacity_emissivity");
-	  }
+#pragma gpu box(box) sync
+          ca_compute_c_v
+              (AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
+               BL_TO_FORTRAN_ANYD(dedT[mfi]),
+               BL_TO_FORTRAN_ANYD(temp_new[mfi]),
+               BL_TO_FORTRAN_ANYD(S_new[mfi]));
 #ifdef NEUTRINO
       }
 #endif
@@ -836,33 +823,24 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 		 BL_TO_FORTRAN(S_new[mfi]),
 		 &delta_t, &ptc_tau);
 
-	    if (radiation_type == Neutrino) { 
-		BL_FORT_PROC_CALL(CA_COMPUTE_TEMP_GIVEN_REYE,ca_compute_temp_given_reye)
-		    (bx.loVect(), bx.hiVect(),
-		     BL_TO_FORTRAN(temp_new[mfi]), 
-		     BL_TO_FORTRAN(rhoe_new[mfi]),
-		     BL_TO_FORTRAN(Ye_new[mfi]),
-		     BL_TO_FORTRAN(S_new[mfi]));
+	    if (radiation_type == Neutrino) {
+#pragma gpu box(bx) sync
+		ca_compute_temp_given_reye
+		    (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		     BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
+		     BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
+		     BL_TO_FORTRAN_ANYD(Ye_new[mfi]),
+		     BL_TO_FORTRAN_ANYD(S_new[mfi]));
 	    }
 	    else {
 		temp_new[mfi].copy(rhoe_new[mfi],bx);
-		
-		if (do_real_eos > 0) {
-		  ca_compute_temp_given_rhoe
-		    (bx.loVect(), bx.hiVect(), 
-		     BL_TO_FORTRAN(temp_new[mfi]), 
-		     BL_TO_FORTRAN(S_new[mfi]));
-		}
-		else if (do_real_eos == 0) {
-		  ca_compute_temp_given_cv
-		    (bx.loVect(), bx.hiVect(), 
-		     BL_TO_FORTRAN(temp_new[mfi]), 
-		     BL_TO_FORTRAN(S_new[mfi]),
-		     &const_c_v, &c_v_exp_m, &c_v_exp_n);
-		}
-		else {
-		    amrex::Error("ERROR Radiation::do_real_eos < 0");
-		}
+
+#pragma gpu box(bx) sync
+                ca_compute_temp_given_rhoe
+                    (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
+                     BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
+                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                     0);
 	    }
 	}
 	else {
@@ -893,38 +871,27 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 	}
 #else
 	if (conservative_update) {
-	    BL_FORT_PROC_CALL(CA_UPDATE_MATTER, ca_update_matter)
-		(bx.loVect(), bx.hiVect(),
-		 BL_TO_FORTRAN(rhoe_new[mfi]),
-		 BL_TO_FORTRAN(Er_new[mfi]),
-		 BL_TO_FORTRAN(Er_pi[mfi]),
-		 BL_TO_FORTRAN(rhoe_star[mfi]),
-		 BL_TO_FORTRAN(rhoe_step[mfi]),
-		 BL_TO_FORTRAN(eta1[mfi]),
-		 BL_TO_FORTRAN(coupT[mfi]),
-		 BL_TO_FORTRAN(kappa_p[mfi]),
-		 BL_TO_FORTRAN(mugT[mfi]),
-		 BL_TO_FORTRAN(S_new[mfi]),
-		 &delta_t, &ptc_tau);
-	    
+#pragma gpu box(bx) sync
+	    ca_update_matter
+		(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+		 BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
+		 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
+		 BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
+		 BL_TO_FORTRAN_ANYD(rhoe_star[mfi]),
+		 BL_TO_FORTRAN_ANYD(rhoe_step[mfi]),
+		 BL_TO_FORTRAN_ANYD(eta1[mfi]),
+		 BL_TO_FORTRAN_ANYD(coupT[mfi]),
+		 BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
+		 delta_t, ptc_tau);
+
 	    temp_new[mfi].copy(rhoe_new[mfi],bx);
 
-	    if (do_real_eos > 0) {
-	      ca_compute_temp_given_rhoe
-		(bx.loVect(), bx.hiVect(), 
-		 BL_TO_FORTRAN(temp_new[mfi]), 
-		 BL_TO_FORTRAN(S_new[mfi]));
-	    }
-	    else if (do_real_eos == 0) {
-	      ca_compute_temp_given_cv
-		(bx.loVect(), bx.hiVect(), 
-		 BL_TO_FORTRAN(temp_new[mfi]), 
-		 BL_TO_FORTRAN(S_new[mfi]),
-		 &const_c_v, &c_v_exp_m, &c_v_exp_n);
-	    }
-	    else {
-		amrex::Error("ERROR Radiation::do_real_eos < 0");
-	    }
+#pragma gpu box(bx) sync
+            ca_compute_temp_given_rhoe
+                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
+                 BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
+                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                 0);
 	}
 	else {
 	    BL_FORT_PROC_CALL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
@@ -937,12 +904,13 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 		 BL_TO_FORTRAN(kappa_p[mfi]),
 		 BL_TO_FORTRAN(jg[mfi]),
 		 &delta_t);
-	    
+
+#pragma gpu box(bx) sync
 	    ca_get_rhoe
-	      (bx.loVect(), bx.hiVect(),
-	       BL_TO_FORTRAN(rhoe_new[mfi]),
-	       BL_TO_FORTRAN(temp_new[mfi]), 
-	       BL_TO_FORTRAN(S_new[mfi]));
+                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                 BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
+                 BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
+                 BL_TO_FORTRAN_ANYD(S_new[mfi]));
 	}
 #endif
     }  
@@ -1050,8 +1018,10 @@ void Radiation::MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
 #endif
     
     if (use_opacity_table_module) {
-      ca_compute_rosseland(kbox.loVect(), kbox.hiVect(),
-			   BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
+#pragma gpu box(kbox) sync
+        ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
+                             BL_TO_FORTRAN_ANYD(kappa_r),
+                             BL_TO_FORTRAN_ANYD(state));
     }
     else if (const_kappa_r < 0.0) {
       ca_compute_powerlaw_kappa_s(kbox.loVect(), kbox.hiVect(),
@@ -1090,8 +1060,10 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
 	else {
 #endif
 	    if (use_opacity_table_module) {
-	      ca_compute_rosseland(bx.loVect(), bx.hiVect(),
-				   BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]));
+#pragma gpu box(bx) sync
+                ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                     BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                                     BL_TO_FORTRAN_ANYD(state[mfi]));
 	    }
 	    else if (const_kappa_r < 0.0) {
 	      ca_compute_powerlaw_kappa_s(bx.loVect(), bx.hiVect(),
@@ -1165,21 +1137,23 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
   for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#ifdef NEUTRINO    
-      BL_FORT_PROC_CALL(CA_COMPUTE_REYE_GIVEN_TY,ca_compute_reye_given_ty)
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(rhoe_new[mfi]),
-	   BL_TO_FORTRAN(rhoYe_new[mfi]),
-	   BL_TO_FORTRAN(temp_new[mfi]), 
-	   BL_TO_FORTRAN(Ye_new[mfi]),
-	   BL_TO_FORTRAN(S_new[mfi]));
+#ifdef NEUTRINO
+#pragma gpu box(bx) sync
+      ca_compute_reye_given_ty
+	  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+	   BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
+	   BL_TO_FORTRAN_ANYD(rhoYe_new[mfi]),
+	   BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
+	   BL_TO_FORTRAN_ANYD(Ye_new[mfi]),
+	   BL_TO_FORTRAN_ANYD(S_new[mfi]));
 #else
       if (do_real_eos > 0) {
+#pragma gpu box(bx) sync
 	ca_get_rhoe
-	  (bx.loVect(), bx.hiVect(),
-	   BL_TO_FORTRAN(rhoe_new[mfi]),
-	   BL_TO_FORTRAN(temp_new[mfi]), 
-	   BL_TO_FORTRAN(S_new[mfi]));
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
+             BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
+             BL_TO_FORTRAN_ANYD(S_new[mfi]));
       }
       else {
 	  amrex::Abort("do_real_eos == 0 not supported in bisect_matter");

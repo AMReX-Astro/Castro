@@ -91,15 +91,10 @@ std::string Radiation::current_group_name = "Radiation";
 
 Real Radiation:: flatten_pp_threshold = -1.0;
 int Radiation::pure_hydro = 0;
-int Radiation ::do_real_eos = 1;
 
-Real Radiation::const_c_v = -1.0;
 Real Radiation::const_kappa_p = -1.0;
 Real Radiation::const_kappa_r = -1.0;
 Real Radiation::const_scattering = 0.0;
-
-Real Radiation::c_v_exp_m = 0.0;
-Real Radiation::c_v_exp_n = 0.0;
 
 Real Radiation::kappa_p_exp_m = 0.0;
 Real Radiation::kappa_p_exp_n = 0.0;
@@ -113,14 +108,15 @@ Real Radiation::scattering_exp_m = 0.0;
 Real Radiation::scattering_exp_n = 0.0;
 Real Radiation::scattering_exp_p = 0.0;
 
-Real Radiation::prop_temp_floor = 0.0;
-
+#include <radiation_defaults.H>
 
 // static initialization, must be called before Castro::variableSetUp
 
 void Radiation::read_static_params()
 {
   ParmParse pp("radiation");
+
+#include <radiation_queries.H>
 
   pp.query("do_thermal_wave_cgs",  RadTests::do_thermal_wave_cgs);
   pp.query("do_rad_sphere",    RadTests::do_rad_sphere);
@@ -481,6 +477,14 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 	pp.query("c", c);
 	pp.query("sigma", sigma);
     }
+
+    // Set Hypre flux factors here. Since this only occurs once,
+    // every instance of Hypre must use the same factor (or
+    // be responsible for changing it internally).
+
+    HypreABec::fluxFactor() = c;
+    HypreMultiABec::fluxFactor() = c;
+
   }
 
   radtoE = 1.0;
@@ -501,11 +505,11 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   convergence_check_type = 0;
   pp.query("convergence_check_type", convergence_check_type);
   limiter  = 2;              pp.query("limiter", limiter);
-  if (SolverType == SGFLDSolver && limiter%10 == 1) {
-    amrex::Abort("SGFLDSolver does not supports limiter = 1");
+  if (SolverType == SGFLDSolver && limiter == 1) {
+    amrex::Abort("SGFLDSolver does not support limiter = 1");
   }
-  if (SolverType == MGFLDSolver && limiter%10 == 1) {
-    amrex::Abort("MGFLDSolver does not supports limiter = 1");
+  if (SolverType == MGFLDSolver && limiter == 1) {
+    amrex::Abort("MGFLDSolver does not support limiter = 1");
   }
 
   closure = 3;
@@ -590,19 +594,15 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   do_kappa_stm_emission = 0;
   pp.query("do_kappa_stm_emission", do_kappa_stm_emission);
 
-  pp.query("const_c_v",       const_c_v);
   pp.query("const_kappa_p",   const_kappa_p);
   pp.query("const_kappa_r",   const_kappa_r);
   pp.query("const_scattering", const_scattering);
-  pp.query("c_v_exp_m",       c_v_exp_m);
-  pp.query("c_v_exp_n",       c_v_exp_n);
   pp.query("kappa_p_exp_m",   kappa_p_exp_m);
   pp.query("kappa_p_exp_n",   kappa_p_exp_n);
   pp.query("kappa_r_exp_m",   kappa_r_exp_m);
   pp.query("kappa_r_exp_n",   kappa_r_exp_n);
   pp.query("scattering_exp_m", scattering_exp_m);
   pp.query("scattering_exp_n", scattering_exp_n);
-  pp.query("prop_temp_floor", prop_temp_floor);
   if (nGroups > 1) {
     pp.query("kappa_p_exp_p",   kappa_p_exp_p);
     pp.query("kappa_r_exp_p",   kappa_r_exp_p);
@@ -631,12 +631,9 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   temp_floor    = 1.e-10;  pp.query("temp_floor", temp_floor);
 
   if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
-    std::cout << "const_c_v     = " << const_c_v << std::endl;
     std::cout << "const_kappa_p = " << const_kappa_p << std::endl;
     std::cout << "const_kappa_r = " << const_kappa_r << std::endl;
     std::cout << "const_scattering = " << const_scattering << std::endl;
-    std::cout << "c_v_exp_m     = " << c_v_exp_m << std::endl;
-    std::cout << "c_v_exp_n     = " << c_v_exp_n << std::endl;
     std::cout << "kappa_p_exp_m = " << kappa_p_exp_m << std::endl;
     std::cout << "kappa_p_exp_n = " << kappa_p_exp_n << std::endl;
     std::cout << "kappa_p_exp_p = " << kappa_p_exp_p << std::endl;
@@ -646,21 +643,14 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "scattering_exp_m =" << scattering_exp_m << std::endl;
     std::cout << "scattering_exp_n =" << scattering_exp_n << std::endl;
     std::cout << "scattering_exp_p =" << scattering_exp_p << std::endl;
-    std::cout << "prop_temp_floor =" << prop_temp_floor << std::endl;
     std::cout << "kappa_r_floor = " << kappa_r_floor << std::endl;
     std::cout << "temp_floor    = " << temp_floor << std::endl;
   }
 
-  if (SolverType == MGFLDSolver ) {
-    do_real_eos = 1;
-  }
-  else {
-    do_real_eos = (const_c_v < 0.) ? 1 : 0;
-  }
-  pp.query("do_real_eos", do_real_eos);
-
-  if (! do_real_eos) {
-    BL_ASSERT(const_c_v > 0.);
+  if (do_real_eos == 0) {
+      if (const_c_v <= 0.0) {
+          amrex::Abort("do_real_eos == 0 requires const_c_v > 0");
+      }
   }
 
   if (verbose > 2) {
@@ -704,7 +694,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "delta_temp = " << dT << std::endl;
     std::cout << "surface_average = " << surface_average << std::endl;
     std::cout << "underfac = " << underfac << std::endl;
-    std::cout << "do_real_eos = " << do_real_eos << std::endl;
     std::cout << "do_multigroup = " << do_multigroup << std::endl;
     std::cout << "accelerate = " << accelerate << std::endl;
     std::cout << "verbose  = " << verbose << std::endl;
@@ -1173,16 +1162,19 @@ void Radiation::compute_exchange(MultiFab& exch,
                                  MultiFab& Er,
                                  MultiFab& fkp, int igroup)
 {
+    BL_PROFILE("Radiation::compute_exchange");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter exi(exch,true); exi.isValid(); ++exi) {
-	const Box& reg = exi.tilebox();
+    for (MFIter mfi(exch, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.tilebox();
 
-	cexch(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN(exch[exi]),
-	      BL_TO_FORTRAN(Er[exi]),
-	      BL_TO_FORTRAN(fkp[exi]),
+#pragma gpu box(bx)
+	cexch(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+	      BL_TO_FORTRAN_ANYD(exch[mfi]),
+	      BL_TO_FORTRAN_ANYD(Er[mfi]),
+	      BL_TO_FORTRAN_ANYD(fkp[mfi]),
 	      sigma, c);
     }
 }
@@ -1193,38 +1185,67 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
                             Real delta_t, Real c,
                             Real underrel, int lag_planck, int igroup)
 {
+    BL_PROFILE("Radiation::compute_eta");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     {
 	FArrayBox c_v;
-	for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
+
+	for (MFIter mfi(eta, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+
 	    const Box& bx = mfi.tilebox();
 
 	    if (lag_planck) {
-		eta[mfi].copy(fkp[mfi],bx);
+
+                Array4<Real> const eta_arr = eta.array(mfi);
+                Array4<Real> const fkp_arr = fkp.array(mfi);
+                AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+                                      { eta_arr(i,j,k) = fkp_arr(i,j,k); });
+
 	    }
 	    else {
-		// This is the only case where we need a direct call for
+
+                // This is the only case where we need a direct call for
 		// Planck mean as a function of temperature.
-		temp[mfi].plus(dT, bx, 0, 1);
-		get_planck_from_temp(eta[mfi], temp[mfi], state[mfi], bx, igroup);
-		temp[mfi].plus(-dT, bx, 0, 1);
+
+                if (use_opacity_table_module) {
+#pragma gpu box(bx) sync
+                    ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                      BL_TO_FORTRAN_ANYD(eta[mfi]),
+                                      BL_TO_FORTRAN_ANYD(state[mfi]),
+                                      dT);
+                }
+                else {
+#pragma gpu box(bx) sync
+                    fkpn(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                         BL_TO_FORTRAN_ANYD(eta[mfi]),
+                         const_kappa_p, kappa_p_exp_m, kappa_p_exp_n,
+                         kappa_p_exp_p, nugroup[igroup], prop_temp_floor,
+                         BL_TO_FORTRAN_ANYD(temp[mfi]),
+                         BL_TO_FORTRAN_ANYD(state[mfi]),
+                         dT);
+                }
+
 	    }
 
 	    c_v.resize(bx);
+            Elixir c_v_elix = c_v.elixir();
+
 	    get_c_v(c_v, temp[mfi], state[mfi], bx);
 
-	    ceta2( ARLIM(bx.loVect()), ARLIM(bx.hiVect()),
-		   eta[mfi].dataPtr(),
-		   etainv[mfi].dataPtr(), ARLIM(eta[mfi].loVect()), ARLIM(eta[mfi].hiVect()),
-		   BL_TO_FORTRAN_N(state[mfi], Density),
-		   BL_TO_FORTRAN(temp[mfi]),
-		   BL_TO_FORTRAN(c_v),
-		   BL_TO_FORTRAN(fkp[mfi]),
-		   BL_TO_FORTRAN_N(Er[mfi], igroup),
-		   dT, delta_t, sigma, c,
-		   underrel, lag_planck);
+#pragma gpu box(bx) sync
+	    ceta2(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                  BL_TO_FORTRAN_ANYD(eta[mfi]),
+		  BL_TO_FORTRAN_ANYD(etainv[mfi]),
+                  BL_TO_FORTRAN_N_ANYD(state[mfi], Density),
+                  BL_TO_FORTRAN_ANYD(temp[mfi]),
+                  BL_TO_FORTRAN_ANYD(c_v),
+                  BL_TO_FORTRAN_ANYD(fkp[mfi]),
+                  BL_TO_FORTRAN_N_ANYD(Er[mfi], igroup),
+                  dT, delta_t, sigma, c,
+                  underrel, lag_planck);
 	}
     }
 }
@@ -1243,30 +1264,26 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
 
   relative = 0.0;
   absolute = 0.0;
+  Real theta = 1.0;
 
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(max:relative, absolute)
 #endif
-  {
-      Real relative_priv = 0.0;
-      Real absolute_priv = 0.0;
-      Real theta = 1.0;
+  for (MFIter mfi(eta, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
 
-      for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
-	  const Box &reg = mfi.tilebox();
-	  ceup( ARLIM(reg.loVect()), ARLIM(reg.hiVect()), relative_priv, absolute_priv,
-		BL_TO_FORTRAN(frhoes[mfi]),
-		frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-		dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
-		exch[mfi].dataPtr(), delta_t, theta);
-      }
-#ifdef _OPENMP
-#pragma omp critical (rad_ceup)
-#endif
-      {
-	  relative = std::max(relative, relative_priv);
-	  absolute = std::max(absolute, absolute_priv);
-      }
+#pragma gpu box(bx)
+      ceup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           AMREX_MFITER_REDUCE_MAX(&relative),
+           AMREX_MFITER_REDUCE_MAX(&absolute),
+           BL_TO_FORTRAN_ANYD(frhoes[mfi]),
+           BL_TO_FORTRAN_ANYD(frhoem[mfi]),
+           BL_TO_FORTRAN_ANYD(eta[mfi]),
+           BL_TO_FORTRAN_ANYD(etainv[mfi]),
+           BL_TO_FORTRAN_ANYD(dflux_old[mfi]),
+           BL_TO_FORTRAN_ANYD(dflux_new[mfi]),
+           BL_TO_FORTRAN_ANYD(exch[mfi]),
+           delta_t, theta);
   }
 
   ParallelDescriptor::ReduceRealMax(relative);
@@ -1375,33 +1392,27 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
   ParallelDescriptor::ReduceRealMax(absolute);
 }
 
-void Radiation::state_update(MultiFab& state,
-                             MultiFab& frhoes,
-			     MultiFab& temp)
+void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
 {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter si(state,true); si.isValid(); ++si) {
-	const Box& fbox = frhoes[si].box();
-	const Box& reg = si.tilebox();
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.tilebox();
 
-	cetot(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN(state[si]),
-	      BL_TO_FORTRAN(frhoes[si]));
+#pragma gpu box(bx)
+	cetot(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+	      BL_TO_FORTRAN_ANYD(state[mfi]),
+	      BL_TO_FORTRAN_ANYD(frhoes[mfi]));
 
-	if (do_real_eos == 0) {
+        // frhoes will be overwritten with temperature here
 
-	    temp[si].copy(frhoes[si],reg);
-
-	    ca_compute_temp_given_cv
-		(reg.loVect(), reg.hiVect(),
-		 BL_TO_FORTRAN(temp[si]),
-		 BL_TO_FORTRAN(state[si]),
-		 &const_c_v, &c_v_exp_m, &c_v_exp_n);
-
-	    state[si].copy(temp[si],reg,0,reg,Temp,1);
-	}
+#pragma gpu box(bx)
+        ca_compute_temp_given_rhoe
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(frhoes[mfi]),
+             BL_TO_FORTRAN_ANYD(state[mfi]),
+             1);
     }
 }
 
@@ -1590,192 +1601,17 @@ void Radiation::filBndry(BndryRegister& bdry, int level, Real time)
   }
 }
 
-void Radiation::get_frhoe(FArrayBox& frhoe,
-                          FArrayBox& state,
-                          const Box& reg)
-{
-    cfrhoe(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   BL_TO_FORTRAN(frhoe),
-	   BL_TO_FORTRAN(state));
-}
-
 void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
                         const Box& reg)
 {
-    if (do_real_eos == 1) {
-      ca_compute_c_v
-	(reg.loVect(), reg.hiVect(),
-	 BL_TO_FORTRAN(c_v), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
-    }
-    else if (do_real_eos == 0) {
-	if (c_v_exp_m == 0.0 && c_v_exp_n == 0.0) {
-	    c_v.setVal(const_c_v,reg,0,1);
-	}
-	else {
-	    gcv(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		BL_TO_FORTRAN(c_v),
-		BL_TO_FORTRAN(temp),
-		&const_c_v, &c_v_exp_m, &c_v_exp_n, &prop_temp_floor,
-		BL_TO_FORTRAN(state));
-	}
-    }
-    else {
-	amrex::Error("ERROR Radiation::get_c_v  do_real_eos < 0");
-    }
-}
+    BL_PROFILE("Radiation::get_c_v");
 
-// temp contains frhoe on input:
-void Radiation::get_planck_and_temp(FArrayBox& fkp, FArrayBox& temp,
-                                    FArrayBox& state, const Box& reg,
-				    int igroup, Real delta_t)
-{
-    if (do_real_eos > 0) {
-      ca_compute_temp_given_rhoe
-	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
-    }
-    else if (do_real_eos == 0) {
-	gtemp(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN(temp),
-	      &const_c_v, &c_v_exp_m, &c_v_exp_n,
-	      BL_TO_FORTRAN(state));
-    }
-    else {
-	amrex::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
-    }
-
-    if (use_opacity_table_module) {
-      ca_compute_planck(reg.loVect(), reg.hiVect(),
-			BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
-    }
-    else {
-	fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	     BL_TO_FORTRAN(fkp),
-	     &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-	     &kappa_p_exp_p, nugroup[igroup], &prop_temp_floor,
-	     BL_TO_FORTRAN(temp),
-	     BL_TO_FORTRAN(state));
-    }
-
-    int numfloor = 0;
-    nfloor(BL_TO_FORTRAN(temp),
-	   ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   numfloor, temp_floor, temp.nComp());
-
-    if (verbose > 2 && numfloor > 0) {
-	std::cout << numfloor << " temperatures raised to floor" << std::endl;
-    }
-}
-
-void Radiation::get_rosseland_and_temp(FArrayBox& kappa_r,
-                                       FArrayBox& temp,
-                                       FArrayBox& state,
-                                       const Box& reg,
-				       int igroup)
-{
-  BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
-
-  const Box& sbox = state.box();
-  const Box& tbox = temp.box();
-
-  if (do_real_eos > 0) {
-    ca_compute_temp_given_rhoe
-      (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
-  }
-  else if (do_real_eos == 0) {
-      gtemp(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	    BL_TO_FORTRAN(temp),
-	    &const_c_v, &c_v_exp_m, &c_v_exp_n,
-	    BL_TO_FORTRAN(state));
-  }
-  else {
-    amrex::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
-  }
-
-  state.copy(temp,reg,0,reg,Temp,1);
-
-  if (use_opacity_table_module) {
-    ca_compute_rosseland(reg.loVect(), reg.hiVect(),
-			 BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
-  }
-  else if (const_scattering > 0.0) {
-    rosse1s(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	    BL_TO_FORTRAN_N(kappa_r, igroup),
-	    &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	    &kappa_r_exp_p,
-	    &const_scattering, &scattering_exp_m, &scattering_exp_n,
-	    &scattering_exp_p,
-	    nugroup[igroup],
-	    &prop_temp_floor, kappa_r_floor,
-	    BL_TO_FORTRAN(temp),
-	    BL_TO_FORTRAN(state));
-  }
-  else {
-      rosse1(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	     BL_TO_FORTRAN_N(kappa_r, igroup),
-	     &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	     &kappa_r_exp_p, nugroup[igroup],
-	     &prop_temp_floor, kappa_r_floor,
-	     BL_TO_FORTRAN(temp),
-	     BL_TO_FORTRAN(state));
-  }
-}
-
-// temp contains temp on input:
-
-void Radiation::get_planck_from_temp(FArrayBox& fkp, FArrayBox& temp,
-                                     FArrayBox& state, const Box& reg,
-				     int igroup)
-{
-  if (use_opacity_table_module) {
-      ca_compute_planck(reg.loVect(), reg.hiVect(),
-			BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
-  }
-  else {
-      fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   BL_TO_FORTRAN(fkp),
-	   &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-	   &kappa_p_exp_p, nugroup[igroup],
-	   &prop_temp_floor,
-	   BL_TO_FORTRAN(temp),
-	   BL_TO_FORTRAN(state));
-  }
-}
-
-void Radiation::get_rosseland_from_temp(FArrayBox& kappa_r,
-                                        FArrayBox& temp,
-                                        FArrayBox& state,
-                                        const Box& reg,
-					int igroup)
-{
-  BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
-
-  state.copy(temp,reg,0,reg,Temp,1);
-
-  if (use_opacity_table_module) {
-    ca_compute_rosseland(reg.loVect(), reg.hiVect(),
-			 BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
-  }
-  else if (const_scattering > 0.0) {
-      rosse1s(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN_N(kappa_r, igroup),
-	      &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	      &kappa_r_exp_p,
-	      &const_scattering, &scattering_exp_m, &scattering_exp_n,
-	      &scattering_exp_p,
-	      nugroup[igroup],
-	      &prop_temp_floor, kappa_r_floor,
-	      BL_TO_FORTRAN(temp),
-	      BL_TO_FORTRAN(state));
-  }
-  else {
-    rosse1(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   BL_TO_FORTRAN_N(kappa_r, igroup),
-	   &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	   &kappa_r_exp_p, nugroup[igroup],
-	   &prop_temp_floor, kappa_r_floor,
-	   BL_TO_FORTRAN(temp),
-	   BL_TO_FORTRAN(state));
-  }
+#pragma gpu box(reg) sync
+    ca_compute_c_v
+        (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+         BL_TO_FORTRAN_ANYD(c_v),
+         BL_TO_FORTRAN_ANYD(temp),
+         BL_TO_FORTRAN_ANYD(state));
 }
 
 void Radiation::get_frhoe(MultiFab& frhoe,
@@ -1784,12 +1620,13 @@ void Radiation::get_frhoe(MultiFab& frhoe,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter si(state,true); si.isValid(); ++si) {
+    for (MFIter si(state,TilingIfNotGPU()); si.isValid(); ++si) {
 	const Box& reg = si.tilebox();
 
-	cfrhoe(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	       BL_TO_FORTRAN(frhoe[si]),
-	       BL_TO_FORTRAN(state[si]));
+#pragma gpu box(reg)
+	cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+	       BL_TO_FORTRAN_ANYD(frhoe[si]),
+	       BL_TO_FORTRAN_ANYD(state[si]));
     }
 }
 
@@ -1801,12 +1638,44 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
 				    int igroup, Real delta_t)
 {
     BL_PROFILE("Radiation::get_planck_and_temp");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter si(state,true); si.isValid(); ++si) {
-	get_planck_and_temp(fkp[si], temp[si], state[si], si.tilebox(),
-			    igroup, delta_t);
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+
+        const Box& bx = mfi.tilebox();
+
+#pragma gpu box(bx)
+        ca_compute_temp_given_rhoe
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(temp[mfi]),
+             BL_TO_FORTRAN_ANYD(state[mfi]),
+             0);
+
+        if (use_opacity_table_module) {
+#pragma gpu box(bx)
+            ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(fkp[mfi]),
+                              BL_TO_FORTRAN_ANYD(state[mfi]),
+                              0.0);
+        }
+        else {
+#pragma gpu box(bx) sync
+            fkpn(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                 BL_TO_FORTRAN_ANYD(fkp[mfi]),
+                 const_kappa_p, kappa_p_exp_m, kappa_p_exp_n,
+                 kappa_p_exp_p, nugroup[igroup], prop_temp_floor,
+                 BL_TO_FORTRAN_ANYD(temp[mfi]),
+                 BL_TO_FORTRAN_ANYD(state[mfi]),
+                 0.0);
+        }
+
+#pragma gpu box(bx) sync
+        nfloor(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+               BL_TO_FORTRAN_ANYD(temp[mfi]),
+               temp_floor, temp[mfi].nComp());
+
     }
 }
 
@@ -1838,13 +1707,52 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
 #pragma omp parallel
 #endif
   {
-      FArrayBox temp;
-      for(MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi)
+      FArrayBox frhoe;
+      for(MFIter mfi(kappa_r, TilingIfNotGPU()); mfi.isValid(); ++mfi)
       {
-	  const Box& reg = mfi.growntilebox();
-	  temp.resize(reg);
-	  get_frhoe(temp, state[mfi], reg);
-	  get_rosseland_and_temp(kappa_r[mfi], temp, state[mfi], reg, igroup);
+	  const Box& bx = mfi.growntilebox();
+	  frhoe.resize(bx, 1);
+          Elixir frhoe_elix = frhoe.elixir();
+
+#pragma gpu box(bx)
+          cfrhoe(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                 BL_TO_FORTRAN_ANYD(frhoe),
+                 BL_TO_FORTRAN_ANYD(state[mfi]));
+
+#pragma gpu box(bx)
+          ca_compute_temp_given_rhoe
+              (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+               BL_TO_FORTRAN_ANYD(frhoe),
+               BL_TO_FORTRAN_ANYD(state[mfi]),
+               1);
+
+          if (use_opacity_table_module) {
+#pragma gpu box(bx)
+              ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                   BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                                   BL_TO_FORTRAN_ANYD(state[mfi]));
+          }
+          else if (const_scattering > 0.0) {
+#pragma gpu box(bx)
+              rosse1s(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                      const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+                      const_scattering, kappa_r_exp_p,
+                      scattering_exp_m, scattering_exp_n,
+                      scattering_exp_p, nugroup[igroup],
+                      prop_temp_floor, kappa_r_floor,
+                      BL_TO_FORTRAN_ANYD(state[mfi]),
+                      BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
+          }
+          else {
+#pragma gpu box(bx)
+              rosse1(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                     const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+                     kappa_r_exp_p, nugroup[igroup],
+                     prop_temp_floor, kappa_r_floor,
+                     BL_TO_FORTRAN_ANYD(state[mfi]),
+                     BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
+          }
+
       }
   }
 }
@@ -1858,18 +1766,129 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
                                            const Geometry& geom,
 					   int igroup)
 {
+  BL_PROFILE("update_rosseland_from_temp");
 
   BL_ASSERT(kappa_r.nGrow() == 1);
   BL_ASSERT(temp.nGrow()    == 0);
+  BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter si(state); si.isValid(); ++si) {
-      get_rosseland_from_temp(kappa_r[si], temp[si], state[si], si.tilebox(), igroup);
+  for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
+
+      int comp = Temp;
+      Array4<Real> const state_arr = state.array(mfi);
+      Array4<Real> const temp_arr = temp.array(mfi);
+      AMREX_PARALLEL_FOR_3D(bx, i, j, k, { state_arr(i,j,k,comp) = temp_arr(i,j,k); });
+
+      if (use_opacity_table_module) {
+#pragma gpu box(bx)
+          ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                               BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                               BL_TO_FORTRAN_ANYD(state[mfi]));
+  }
+      else if (const_scattering > 0.0) {
+#pragma gpu box(bx)
+          rosse1s(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                  const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+                  kappa_r_exp_p, const_scattering,
+                  scattering_exp_m, scattering_exp_n,
+                  scattering_exp_p, nugroup[igroup],
+                  prop_temp_floor, kappa_r_floor,
+                  BL_TO_FORTRAN_ANYD(state[mfi]),
+                  BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
+      }
+      else {
+#pragma gpu box(bx)
+          rosse1(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                 const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+                 kappa_r_exp_p, nugroup[igroup],
+                 prop_temp_floor, kappa_r_floor,
+                 BL_TO_FORTRAN_ANYD(state[mfi]),
+                 BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
+      }
+
   }
 
   kappa_r.FillBoundary(geom.periodicity());
+}
+
+void Radiation::SGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state)
+{
+  BL_PROFILE("Radiation::SGFLD_compute_rosseland (MultiFab)");
+
+  if (use_opacity_table_module) {
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(kappa_r, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+	  const Box& kbox = mfi.growntilebox();
+#pragma gpu box(kbox)
+	  ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
+			       BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                               BL_TO_FORTRAN_ANYD(state[mfi]));
+      }
+  }
+  else if (const_scattering > 0.0) {
+      Real k_exp_p = 0.0;
+      Real s_exp_p = 0.0;
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(kappa_r, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+	  const Box& bx = mfi.growntilebox();
+	  ca_compute_powerlaw_kappa_s(bx.loVect(), bx.hiVect(), 
+				      BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
+				      &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &k_exp_p,
+				      &const_scattering, &scattering_exp_m, &scattering_exp_n, &s_exp_p,
+				      &prop_temp_floor, &kappa_r_floor);	 
+      }
+  }
+  else {
+      Real k_exp_p = 0.0;
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+      for (MFIter mfi(kappa_r, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+	  const Box& bx = mfi.growntilebox();
+	  ca_compute_powerlaw_kappa(bx.loVect(), bx.hiVect(), 
+				    BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
+				    &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &k_exp_p,
+				    &prop_temp_floor, &kappa_r_floor);	 
+      }
+  }
+}
+
+void Radiation::SGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& state)
+{
+  BL_PROFILE("Radiation::SGFLD_compute_rosseland (FArrayBox)");
+
+  const Box& kbox = kappa_r.box();
+
+  if (use_opacity_table_module) {
+#pragma gpu box(kbox) sync
+      ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
+                           BL_TO_FORTRAN_ANYD(kappa_r),
+                           BL_TO_FORTRAN_ANYD(state));
+  }
+  else if (const_scattering > 0.0) {
+    Real k_exp_p = 0.0;
+    Real s_exp_p = 0.0;
+    ca_compute_powerlaw_kappa_s(kbox.loVect(), kbox.hiVect(), 
+				BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state),
+				&const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &k_exp_p,
+				&const_scattering, &scattering_exp_m, &scattering_exp_n, &s_exp_p, 
+				&prop_temp_floor, &kappa_r_floor);	 
+  }
+  else {
+    Real k_exp_p = 0.0;
+    ca_compute_powerlaw_kappa(kbox.loVect(), kbox.hiVect(), 
+			      BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state),
+			      &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &k_exp_p,
+			      &prop_temp_floor, &kappa_r_floor);
+  }
 }
 
 void Radiation::deferred_sync_setup(int crse_level)
@@ -2269,63 +2288,45 @@ void Radiation::scaledGradient(int level,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      FArrayBox dtmp;
-      for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
 
-	  for (MFIter mfi(R[idim],true); mfi.isValid(); ++mfi) {
-	      const Box &nbox  = mfi.tilebox();  // note that R is edge based
-	      const Box& reg = amrex::enclosedCells(nbox);
+      for (MFIter mfi(R[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-	      if (limiter == 0) {
-		  R[idim][mfi].setVal(0.0, nbox, Rcomp, 1);
-	      }
-	      else if (limiter%10 == 1) {
-		  scgrd1(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp),
-			 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			 idim,
-			 BL_TO_FORTRAN_N(kappa_r[mfi], kcomp),
-			 Erborder[mfi].dataPtr(Ercomp), dx);
-	      }
-	      else if (limiter%10 == 2) {
-#if (BL_SPACEDIM >= 2)
-		  const Box& dbox = amrex::grow(reg,1);
-		  dtmp.resize(dbox, BL_SPACEDIM - 1);
-#endif
-		  scgrd2(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp),
-			 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			 idim,
-			 BL_TO_FORTRAN_N(kappa_r[mfi], kcomp),
-			 Erborder[mfi].dataPtr(Ercomp),
-#if (BL_SPACEDIM >= 2)
-			 ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dtmp.dataPtr(0),
-#endif
-#if (BL_SPACEDIM == 3)
-			 dtmp.dataPtr(1),
-#endif
-			 dx);
-	      }
-	      else {
-#if (BL_SPACEDIM >= 2)
-		  const Box& dbox = amrex::grow(reg,1);
-		  dtmp.resize(dbox, BL_SPACEDIM - 1);
-#endif
-		  scgrd3(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp),
-			 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			 idim,
-			 BL_TO_FORTRAN_N(kappa_r[mfi], kcomp),
-			 Erborder[mfi].dataPtr(Ercomp),
-#if (BL_SPACEDIM >= 2)
-			 ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dtmp.dataPtr(0),
-#endif
-#if (BL_SPACEDIM == 3)
-			 dtmp.dataPtr(1),
-#endif
-			 dx);
-	      }
-	  }
+          const Box& nbx = mfi.tilebox();  // note that R is edge based
+          const Box& bx = amrex::enclosedCells(nbx);
+
+          Array4<Real> const R_arr = R[idim].array(mfi);
+
+          if (limiter == 0) {
+
+              int comp = Rcomp;
+              AMREX_PARALLEL_FOR_3D(nbx, i, j, k, { R_arr(i,j,k,comp) = 0.0; });
+
+          }
+          else {
+
+              int include_cross_terms = 0;
+
+              if (limiter == 1) {
+                  include_cross_terms = 0;
+              } else if (limiter == 2) {
+                  include_cross_terms = 1;
+              } else {
+                  amrex::Abort("Unknown limiter");
+              }
+
+#pragma gpu box(bx)
+              scgrd(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                    BL_TO_FORTRAN_N_ANYD(R[idim][mfi], Rcomp),
+                    idim, AMREX_REAL_ANYD(dx),
+                    BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp),
+                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                    include_cross_terms);
+
+          }
       }
   }
+
 }
 
 // On input, lambda should contain scaled gradient.
@@ -2335,18 +2336,21 @@ void Radiation::fluxLimiter(int level,
                             Array<MultiFab, BL_SPACEDIM>& lambda,
                             int limiter, int lamcomp)
 {
-  BL_PROFILE("Radiation::fluxLimiter");
+    BL_PROFILE("Radiation:fluxLimiter");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-      for (MFIter mfi(lambda[idim],true); mfi.isValid(); ++mfi) {
-	  const Box &reg  = mfi.tilebox();
+    for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
+        for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
 
-	  flxlim(BL_TO_FORTRAN_N(lambda[idim][mfi], lamcomp),
-		 ARLIM(reg.loVect()), ARLIM(reg.hiVect()), limiter);
-      }
-  }
+#pragma gpu box(bx)
+            flxlim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                   BL_TO_FORTRAN_N_ANYD(lambda[idim][mfi], lamcomp),
+                   limiter);
+        }
+    }
 }
 
 void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dcf,
@@ -2376,18 +2380,18 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	    const Box& reg = mfi.growntilebox();
 
 	    temp.resize(reg);
-	    get_frhoe(temp, S[mfi], reg);
 
-	    if (do_real_eos > 0) {
-	      ca_compute_temp_given_rhoe
-		(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(S[mfi]));
-	    }
-	    else if (do_real_eos == 0) {
-		gtemp(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		      BL_TO_FORTRAN(temp),
-		      &const_c_v, &c_v_exp_m, &c_v_exp_n,
-		      BL_TO_FORTRAN(S[mfi]));
-	    }
+#pragma gpu box(reg) sync
+            cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                   BL_TO_FORTRAN_ANYD(temp),
+                   BL_TO_FORTRAN_ANYD(S[mfi]));
+
+#pragma gpu box(reg) sync
+            ca_compute_temp_given_rhoe
+                (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                 BL_TO_FORTRAN_ANYD(temp),
+                 BL_TO_FORTRAN_ANYD(S[mfi]),
+                 0);
 
 	    c_v.resize(reg);
 	    get_c_v(c_v, temp, S[mfi], reg);
@@ -2396,29 +2400,30 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 
 	    // compute rosseland
 	    if (use_opacity_table_module) {
-	      ca_compute_rosseland(reg.loVect(), reg.hiVect(),
-				   BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+                ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                                     BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                                     BL_TO_FORTRAN_ANYD(S[mfi]));
 	    }
 	    else if (const_scattering > 0.0) {
-	      rosse1s(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		      BL_TO_FORTRAN_N(kappa_r[mfi], igroup),
-		      &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-		      &kappa_r_exp_p,
-		      &const_scattering, &scattering_exp_m, &scattering_exp_n,
-		      &scattering_exp_p,
-		      nugroup[igroup],
-		      &prop_temp_floor, kappa_r_floor,
-		      BL_TO_FORTRAN(temp),
-		      BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+	      rosse1s(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+		      const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+		      kappa_r_exp_p, const_scattering,
+                      scattering_exp_m, scattering_exp_n,
+		      scattering_exp_p, nugroup[igroup],
+		      prop_temp_floor, kappa_r_floor,
+		      BL_TO_FORTRAN_ANYD(S[mfi]),
+                      BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
 	    }
 	    else {
-	      rosse1(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		     BL_TO_FORTRAN_N(kappa_r[mfi], igroup),
-		     &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-		     &kappa_r_exp_p, nugroup[igroup],
-		     &prop_temp_floor, kappa_r_floor,
-		     BL_TO_FORTRAN(temp),
-		     BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+	      rosse1(AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+		     const_kappa_r, kappa_r_exp_m, kappa_r_exp_n,
+		     kappa_r_exp_p, nugroup[igroup],
+		     prop_temp_floor, kappa_r_floor,
+		     BL_TO_FORTRAN_ANYD(S[mfi]),
+                     BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup));
 	    }
 
 	    if (use_opacity_table_module) {
@@ -2430,24 +2435,26 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 
 
 	    kp.resize(reg);
-	    fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 BL_TO_FORTRAN(kp),
-		 &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-		 &kappa_p_exp_p, nugroup[igroup],
-		 &prop_temp_floor,
-		 BL_TO_FORTRAN(temp),
-		 BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+	    fkpn(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		 BL_TO_FORTRAN_ANYD(kp),
+		 const_kappa_p, kappa_p_exp_m, kappa_p_exp_n,
+		 kappa_p_exp_p, nugroup[igroup], prop_temp_floor,
+		 BL_TO_FORTRAN_ANYD(temp),
+		 BL_TO_FORTRAN_ANYD(S[mfi]),
+                 0.0);
 
 	    kp2.resize(reg);
 	    temp.plus(dT, 0, 1);
 
-	    fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 BL_TO_FORTRAN(kp2),
-		 &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-		 &kappa_p_exp_p, nugroup[igroup],
-		 &prop_temp_floor,
-		 BL_TO_FORTRAN(temp),
-		 BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+	    fkpn(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+		 BL_TO_FORTRAN_ANYD(kp2),
+		 const_kappa_p, kappa_p_exp_m, kappa_p_exp_n,
+		 kappa_p_exp_p, nugroup[igroup], prop_temp_floor,
+		 BL_TO_FORTRAN_ANYD(temp),
+		 BL_TO_FORTRAN_ANYD(S[mfi]),
+                 0.0);
 
 	    temp.plus(-dT, 0, 1);
 

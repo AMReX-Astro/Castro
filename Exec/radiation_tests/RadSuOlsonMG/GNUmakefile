@@ -8,7 +8,6 @@ DEBUG      = FALSE
 PROFILE    = FALSE
 
 USE_RAD = TRUE
-USE_NEUTRINO = FALSE
 
 CASTRO_HOME = ../../..
 
@@ -18,6 +17,8 @@ NETWORK_DIR := general_null
 NETWORK_INPUTS := gammalaw.net
 
 Opacity_dir := null
+
+NGROUPS := 2
 
 Bpack   := ./Make.package
 Blocs   := .

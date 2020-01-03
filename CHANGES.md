@@ -1,6 +1,86 @@
-# changes since the last release
+# 20.02
+
+   * The parameter castro.hard_cfl_limit has been removed. (#723)
+
+   * Some unnecessary clean_state calls were removed (#721)
+
+   * Support for neutrino radiation diffusion has been removed.
+
+# 20.01
+
+   * A new option castro.limit_fluxes_on_large_vel has been added. It
+     is similar to the existing option limit_fluxes_on_small_dens --
+     fluxes are limited to prevent the velocity in any zone from
+     getting too high. The largest legal speed is set by
+     castro.speed_limit. (#712) This is more general than the previous
+     solution proposed by castro.riemann_speed_limit, so that
+     parameter has been removed. (#714)
+
+   * The AMR parameter amr.compute_new_dt_on_regrid is now on by
+     default. This avoids crashes that result from the CFL number
+     being too large after regridding, because we update the
+     timestep after seeing that larger velocity. You can still opt
+     to set this off if you want to in your inputs file. (#720)
+
+   * We have added calls into Hypre that only exist as of version
+     2.15.0, so that is the new minimum requirement for Castro
+     radiation. Note that Hypre is now hosted on GitHub at
+     https://github.com/hypre-space/hypre.
+
+   * A new option castro.limit_fluxes_on_large_vel has been added. It
+     is similar to the existing option limit_fluxes_on_small_dens --
+     fluxes are limited to prevent the velocity in any zone from
+     getting too high. The largest legal speed is set by
+     castro.riemann_speed_limit. (#712)
+
+   * A new option castro.apply_sources_consecutively has been
+     added. By default we add all source terms together at once. This
+     option, if enabled, adds the sources one at a time, so that each
+     source sees the effect of the previously added sources. This can
+     matter, as an example, for the sponge source term, which may be
+     more effective if it is added after source terms such as gravity
+     that update the velocity. (#710)
+
+   * A new option castro.ext_src_implicit has been added. The external
+     source terms were previously only implemented as an explicit
+     predictor-corrector scheme. The new option, if turned on, changes
+     the handling of the external source terms to allow an implicit
+     solve. This is done by subtracting the full old-time source and
+     adding the full new-time source in the corrector, rather than
+     -0.5 and +0.5 of each, respectively. It is still up to the
+     individual problem to make sure it is consistent with this scheme
+     if the option is turned on. (#709)
+
+   * Add option for using monopole BCs in 3D.  By setting
+     gravity.max_multipole_order to a negative number, you can use
+     monopole gravity to fill the boundary conditions, rather than the
+     multiple BCs. This is useful for debugging purposes.  To make the
+     behavior consistent, we now use multipole BCs by default in 2D as
+     well. (#716)
+
+
+# 19.12
+
+   * The use_retry mechanism has been enabled for the simplified
+     SDC time integration method. (#695)
+
+   * A case where use_retry could result in a very small last
+     subcycle has been avoided. (#701)
+
+   * We no longer allocate memory for sources for the species
+     in the conserved state unless PRIM_SPECIES_HAVE_SOURCES is set
+     (#699)
+
+   * A subroutine eos_on_host has been added to the EOS module.
+     This is a wrapper for the EOS that must be used for CUDA
+     builds if the EOS is being called in probinit or other
+     places that don't run on the GPU. (#693)
 
    * We now use VODE90 instead of VODE by default. (#677)
+
+   * A new unit test was added, model_burner, which reads in a 1-d
+     initial model and calls the reaction network on it.  This can
+     be used to test tolerances, etc.
 
 # 19.11
 

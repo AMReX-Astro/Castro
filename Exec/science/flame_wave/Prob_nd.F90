@@ -5,15 +5,15 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   use castro_error_module, only: castro_error
   use model_parser_module, only: model_parser_init
   use initial_model_module, only: model_t, init_model_data, gen_model_r, gen_model_state, init_1d_tanh
-  use probdata_module, only: dx_model, dtemp, x_half_max, x_half_width, &
-                             X_min, cutoff_density, dens_base, T_star, &
+  use probdata_module, only: dx_model, dtemp, &
+                             dens_base, T_star, &
                              T_hi, T_lo, H_star, atm_delta, &
                              fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
                              ash1_name, ash2_name, ash3_name, &
                              fuel1_frac, fuel2_frac, fuel3_frac, fuel4_frac, &
                              ash1_frac, ash2_frac, ash3_frac, &
-                             low_density_cutoff, smallx, &
-                             max_hse_tagging_level, max_base_tagging_level, x_refine_distance
+                             low_density_cutoff, smallx
+
   use network, only: nspec, network_species_index
   use prob_params_module, only : center
   use meth_params_module, only : small_dens
@@ -200,16 +200,15 @@ subroutine ca_initdata(lo, hi, &
            x = problo(1) + (dble(i) + HALF) * dx(1)
 
            ! lateral distance
-           if (AMREX_SPACEDIM == 2) then
+           if (AMREX_SPACEDIM == 1) then
+              r = 1.0_rt
+              height = x
+           else if (AMREX_SPACEDIM == 2) then
               r = x
               height = y
            else if (AMREX_SPACEDIM == 3) then
               r = sqrt(x**2 + y**2)
               height = z
-#ifndef AMREX_USE_CUDA
-           else
-              call castro_error("ERROR: problem not setup for 1D")
-#endif
            end if
 
            if (r < x_half_max) then

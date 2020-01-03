@@ -3,14 +3,34 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef AMREX_PARTICLES
-static int do_tracer_particles;
+#ifdef DIFFUSION
+static int diffuse_temp;
+static amrex::Real diffuse_cutoff_density;
+static amrex::Real diffuse_cutoff_density_hi;
+static amrex::Real diffuse_cond_scale_fac;
+#endif
+#ifdef ROTATION
+static amrex::Real rotational_period;
+static amrex::Real rotational_dPdt;
+static int rotation_include_centrifugal;
+static int rotation_include_coriolis;
+static int rotation_include_domegadt;
+static int state_in_rotating_frame;
+static int rot_source_type;
+static int implicit_rotation_update;
+static int rot_axis;
+#endif
+#ifdef GRAVITY
+static int use_point_mass;
+static amrex::Real point_mass;
+static int point_mass_fix_solution;
 #endif
 static int state_interp_order;
 static int lin_limit_state_interp;
 static int state_nghost;
 static int do_reflux;
 static int update_sources_after_reflux;
+static int apply_sources_consecutively;
 static int use_custom_knapsack_weights;
 static amrex::Real difmag;
 static amrex::Real small_dens;
@@ -36,7 +56,6 @@ static int cg_maxiter;
 static amrex::Real cg_tol;
 static int cg_blend;
 static int use_eos_in_riemann;
-static amrex::Real riemann_speed_limit;
 static int use_flattening;
 static int transverse_use_eos;
 static int transverse_reset_density;
@@ -45,10 +64,13 @@ static amrex::Real dual_energy_eta1;
 static amrex::Real dual_energy_eta2;
 static int use_pslope;
 static int limit_fluxes_on_small_dens;
+static int limit_fluxes_on_large_vel;
+static amrex::Real speed_limit;
 static int density_reset_method;
 static int allow_small_energy;
 static int do_sponge;
 static int sponge_implicit;
+static int ext_src_implicit;
 static int source_term_predictor;
 static int first_order_hydro;
 static std::string xl_ext_bc_type;
@@ -124,30 +146,10 @@ static int track_grid_losses;
 static int sum_interval;
 static amrex::Real sum_per;
 static int show_center_of_mass;
-static int hard_cfl_limit;
 static std::string job_name;
 static int output_at_completion;
 static amrex::Real reset_checkpoint_time;
 static int reset_checkpoint_step;
-#ifdef GRAVITY
-static int use_point_mass;
-static amrex::Real point_mass;
-static int point_mass_fix_solution;
-#endif
-#ifdef DIFFUSION
-static int diffuse_temp;
-static amrex::Real diffuse_cutoff_density;
-static amrex::Real diffuse_cutoff_density_hi;
-static amrex::Real diffuse_cond_scale_fac;
-#endif
-#ifdef ROTATION
-static amrex::Real rotational_period;
-static amrex::Real rotational_dPdt;
-static int rotation_include_centrifugal;
-static int rotation_include_coriolis;
-static int rotation_include_domegadt;
-static int state_in_rotating_frame;
-static int rot_source_type;
-static int implicit_rotation_update;
-static int rot_axis;
+#ifdef AMREX_PARTICLES
+static int do_tracer_particles;
 #endif

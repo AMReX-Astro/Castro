@@ -30,7 +30,6 @@ contains
                                    npassive, qpass_map, small_dens, small_pres, &
                                    ppm_type
     use amrex_constants_module
-    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none

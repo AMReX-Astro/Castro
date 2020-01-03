@@ -29,7 +29,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   end do
 
   ! Set namelist defaults
-  vel_amp = 1.0d0
+  vel_amp = 1.0e0_rt
 
   ! set center, domain extrema
   if (coord_type == 0) then

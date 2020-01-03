@@ -10,7 +10,7 @@ implemented in Castro. As best as possible, they share the same
 driver routines and use preprocessor or runtime variables to separate
 the different code paths.  These fall into two categories:
 
-.. index:: castro.time_integration_method, USE_SIMPLIFIED_SDC
+.. index:: castro.time_integration_method, USE_SIMPLIFIED_SDC, USE_TRUE_SDC
 
 -  Strang-splitting: the Strang evolution does the burning on the
    state for :math:`\Delta t/2`, then updates the hydrodynamics using the
@@ -52,13 +52,16 @@ The time-integration method used is controlled by
   * ``time_integration_method = 2``: this is a full implementation of
     the spectral deferred corrections formalism, with both 2nd and 4th
     order integration implemented.  At the moment, this does not support
-    multilevel domains.
+    multilevel domains.  Note: because of differences in the interfaces with the 
+    default Strang method, you must compile with ``USE_TRUE_SDC = TRUE`` for this
+    method to work (in particular, this defines ``EXTRA_THERMO`` which enables some
+    additional EOS derivatives).
 
   * ``time_integration_method = 3``: this is the simplifed SDC method
     described above.that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
-    method to work.
+    method to work (in particular, this defines ``PRIM_SPECIES_HAVE_SOURCES``).
 
 Several helper functions are used throughout:
 
@@ -521,6 +524,11 @@ together directly.
 
    At the moment, the SDC solvers do not support multilevel or AMR
    simulation.
+
+.. note::
+
+   The code must be compiled with ``USE_TRUE_SDC = TRUE`` to use this
+   evolution type.
 
 The SDC solver follows the algorithm detailed in :cite:`castro_sdc`.
 We write our evolution equation as:

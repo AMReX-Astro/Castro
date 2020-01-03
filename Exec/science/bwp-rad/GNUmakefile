@@ -13,7 +13,6 @@ PROFILE          = FALSE
 
 
 USE_RAD = TRUE
-USE_NEUTRINO = FALSE
 
 USE_GRAV         = TRUE
 USE_REACT        = FALSE

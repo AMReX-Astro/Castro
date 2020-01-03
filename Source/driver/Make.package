@@ -2,7 +2,6 @@
 
 ca_F90EXE_sources += amrinfo.F90
 ca_F90EXE_sources += Castro_error.F90
-ca_F90EXE_sources += filcc_nd.F90
 
 CEXE_sources += Castro.cpp
 CEXE_sources += Castro_advance.cpp
@@ -48,6 +47,7 @@ ca_F90EXE_sources += Derive_nd.F90
 ca_F90EXE_sources += interpolate.F90
 ca_f90EXE_sources += io.f90
 ca_F90EXE_sources += math.F90
+ca_F90EXE_sources += reduction.F90
 ca_F90EXE_sources += meth_params.F90
 ca_F90EXE_sources += set_indices.F90
 ca_f90EXE_sources += state_sizes.f90

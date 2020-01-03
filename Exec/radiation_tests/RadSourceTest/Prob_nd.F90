@@ -2,7 +2,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   use probdata_module
   use network, only : network_init
-  use eos_module, only: eos
+  use eos_module, only: eos_on_host
   use eos_type_module, only: eos_t, eos_input_re
   use network, only : nspec
   use amrex_fort_module, only : rt => amrex_real
@@ -49,19 +49,19 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   ! get T_0 corresponding to rhoe_0 and rho_0 through the EOS
   e_0 = rhoe_0/rho_0
   X_in(:) = 0.0
-  X_in(1) = 1.d0
+  X_in(1) = 1.e0_rt
 
   eos_state % rho = rho_0
   eos_state % e = e_0
   eos_state % xn = X_in
 
-  call eos(eos_input_re, eos_state)
+  call eos_on_host(eos_input_re, eos_state)
 
   T_0 = eos_state % T
 
   ! the 'center' variables are the location of the middle of the
   ! domain -- this is where we put the interface
-  center(1) = 0.5d0*(problo(1)+probhi(1))
+  center(1) = 0.5e0_rt*(problo(1)+probhi(1))
 
   ! domain extrema
   xmin = problo(1)
@@ -116,15 +116,15 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-           xcen = problo(1) + delta(1)*(dble(i) + 0.5d0)
+           xcen = problo(1) + delta(1)*(dble(i) + 0.5e0_rt)
 
            state(i,j,k,URHO) = rho_0
-           state(i,j,k,UMX:UMZ) = 0.d0
+           state(i,j,k,UMX:UMZ) = 0.e0_rt
            state(i,j,k,UEDEN) = rhoe_0
            state(i,j,k,UEINT) = rhoe_0
 
            ! set the composition to be all in the first species
-           state(i,j,k,UFS:UFS-1+nspec) = 0.d0
+           state(i,j,k,UFS:UFS-1+nspec) = 0.e0_rt
            state(i,j,k,UFS) = state(i,j,k,URHO)
 
            state(i,j,k,UTEMP) = T_0
@@ -174,13 +174,13 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
 
   else
 
-     trad = (E_rad * clight * 0.25d0 / stefbol) ** (0.25d0)
+     trad = (E_rad * clight * 0.25e0_rt / stefbol) ** (0.25e0_rt)
 
-     mgfac = 8.d0 * pi * hplanck / clight**3
+     mgfac = 8.e0_rt * pi * hplanck / clight**3
 
      do n = 0, nrad-1
         nu     = nugroup(n)
-        radtmp = exp(hplanck * nu / (kboltz * trad)) - 1.d0
+        radtmp = exp(hplanck * nu / (kboltz * trad)) - 1.e0_rt
         radtmp = (mgfac * nu**3 / radtmp) * dnugroup(n)
 
         do k = lo(3), hi(3)

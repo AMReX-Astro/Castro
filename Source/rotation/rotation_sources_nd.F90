@@ -13,7 +13,7 @@ contains
                      source,src_lo,src_hi,vol,vol_lo,vol_hi, &
                      dx,dt,time) bind(C, name="ca_rsrc")
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type, NSRC
     use prob_params_module, only: center
     use amrex_constants_module
     use castro_util_module, only: position ! function
@@ -36,7 +36,7 @@ contains
     real(rt)        , intent(in   ) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
     real(rt)        , intent(in   ) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
     real(rt)        , intent(in   ) :: uold(uold_lo(1):uold_hi(1),uold_lo(2):uold_hi(2),uold_lo(3):uold_hi(3),NVAR)
-    real(rt)        , intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NVAR)
+    real(rt)        , intent(inout) :: source(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NSRC)
     real(rt)        , intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt)        , intent(in   ) :: dx(3)
     real(rt), value , intent(in   ) :: dt, time
@@ -48,7 +48,7 @@ contains
     real(rt)         :: old_ke, new_ke
     real(rt)         :: loc(3)
 
-    real(rt)         :: src(NVAR)
+    real(rt)         :: src(NSRC)
 
     ! Temporary array for seeing what the new state would be if the update were applied here.
 
@@ -156,7 +156,7 @@ contains
     ! be called directly from C++.
 
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type, &
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, rot_source_type, NSRC, &
                                   implicit_rotation_update, rotation_include_coriolis, state_in_rotating_frame
     use prob_params_module, only: center, dg
     use amrex_constants_module
@@ -205,7 +205,7 @@ contains
 
     ! The source term to send back
 
-    real(rt)         :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NVAR)
+    real(rt)         :: source(sr_lo(1):sr_hi(1),sr_lo(2):sr_hi(2),sr_lo(3):sr_hi(3),NSRC)
 
     ! Hydrodynamical mass fluxes
 
@@ -227,7 +227,7 @@ contains
     real(rt)         :: old_ke, new_ke
     real(rt)         :: dt_omega_matrix(3,3), dt_omega(3), new_mom(3)
 
-    real(rt)         :: src(NVAR)
+    real(rt)         :: src(NSRC)
 
     real(rt)         :: phi, phixl, phixr, phiyl, phiyr, phizl, phizr
 

@@ -3,7 +3,6 @@ CASTRO_HOME ?= /path/to/Castro
 
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
-HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
 
 # system blas
 BLAS_LIBRARY ?= -lopenblas
@@ -24,13 +23,6 @@ NUMADV ?= 0
 
 # number of radiation groups
 NGROUPS ?= 1
-
-# neutrino radiation info -- for each species (up to 3) we specify the
-# number of groups
-N_NEUTRINO_SPECIES ?= 3
-N_NEUTRINO_GROUPS_1 ?= 1
-N_NEUTRINO_GROUPS_2 ?= 1
-N_NEUTRINO_GROUPS_3 ?= 1
 
 # this can be turned off for unit tests, etc., and not
 # the entire Castro build
@@ -64,12 +56,6 @@ endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
   USERSuffix = .TRUESDC
-endif
-
-ifeq ($(USE_RAD), TRUE)
-  ifeq ($(USE_NEUTRINO), TRUE)
-    USERSuffix = .Neutrino
-  endif
 endif
 
 ifeq ($(USE_SYSTEM_BLAS), TRUE)
@@ -132,14 +118,6 @@ ifeq ($(USE_GRAV), TRUE)
   Bdirs += Source/gravity
   DEFINES += -DGRAVITY
   USE_MLMG = TRUE
-
-  ifndef USE_SELF_GRAV
-    USE_SELF_GRAV = TRUE
-  endif
-
-  ifeq ($(USE_SELF_GRAV), TRUE)
-    DEFINES += -DSELF_GRAVITY
-  endif
 endif
 
 ifeq ($(USE_GR), TRUE)
@@ -168,7 +146,7 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
 endif
 
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  DEFINES += -DSIMPLIFIED_SDC -DPRIM_SPECIES_HAVE_SOURCES
+  DEFINES += -DSIMPLIFIED_SDC -DPRIM_SPECIES_HAVE_SOURCES -DSDC_EVOLVE_ENERGY
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
@@ -207,22 +185,11 @@ ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRADIATION
   DEFINES += -DRAD_INTERP
   USE_HYPRE := TRUE
+  DEFINES += -DHYPRE
 
   DEFINES += -DNGROUPS=$(NGROUPS)
 
   EXTERN_CORE += $(TOP)/Util/LAPACK
-
-  ifeq ($(USE_NEUTRINO), TRUE)
-    DEFINES += -DNEUTRINO
-    DEFINES += -DN_NEUTRINO_SPECIES=$(N_NEUTRINO_SPECIES)
-    DEFINES += -DN_NEUTRINO_GROUPS_1=$(N_NEUTRINO_GROUPS_1)
-    DEFINES += -DN_NEUTRINO_GROUPS_2=$(N_NEUTRINO_GROUPS_2)
-    DEFINES += -DN_NEUTRINO_GROUPS_3=$(N_NEUTRINO_GROUPS_3)
-
-    ifeq ($(USE_DUMPMODEL), TRUE)
-      DEFINES += -DHAS_DUMPMODEL
-    endif
-  endif
 endif
 
 ifeq ($(USE_MAESTRO_INIT), TRUE)
@@ -379,13 +346,9 @@ endif
 #------------------------------------------------------------------------------
 
 ifeq ($(USE_HYPRE), TRUE)
-  ifeq ($(USE_OMP), TRUE)
-    INCLUDE_LOCATIONS += $(HYPRE_OMP_DIR)/include
-    LIBRARY_LOCATIONS += $(HYPRE_OMP_DIR)/lib
-  else
-    INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
-    LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
-  endif
+  INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
+  LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
+
   LIBRARIES += -lHYPRE
 endif
 
@@ -475,8 +438,6 @@ set_indices.F90:
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
            --ngroups $(NGROUPS) \
-           --n_neutrino_species $(N_NEUTRINO_SPECIES) \
-           --n_neutrino_groups "$(N_NEUTRINO_GROUPS_1) $(N_NEUTRINO_GROUPS_2) $(N_NEUTRINO_GROUPS_3)" \
            $(CASTRO_HOME)/Source/driver/_variables
 
 #------------------------------------------------------------------------------
