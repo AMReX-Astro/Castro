@@ -136,9 +136,6 @@ radiation.hi_bcval = 0.0   2.99      0.0
 #
 # Since the formula is both nonphysical and singular, prop_temp_floor
 # provides a floor for the temperature used in the power-law computation.
-# (Specific heat c_v follows the same convention.)
-
-#radiation.do_real_eos = 0
 
 # Planck mean opacity 
 radiation.const_kappa_p =  1.0e-15
