@@ -32,7 +32,7 @@ contains
     eos_state%rho = ambient_state(URHO)
     eos_state%T   = ambient_state(UTEMP)
     eos_state%e   = ambient_state(UEINT)
-    eos_state%xn  = ambient_state(UFS:UFS+nspec-1)
+    eos_state%xn  = ambient_state(UFS:UFS+nspec-1) / ambient_state(URHO)
 
   end subroutine get_ambient_eos
 
