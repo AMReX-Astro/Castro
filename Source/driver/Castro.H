@@ -1960,15 +1960,6 @@ protected:
     amrex::Real enforce_min_density (amrex::MultiFab& state, int ng);
 
 ///
-/// Fix the temperature to a predefined ambient temperature for all material with
-/// with a density low enough to be considered ambient.
-///
-/// @param state        state
-/// @param ng           number of ghost cells
-///
-    void clamp_to_ambient_temp (amrex::MultiFab& state, int ng);
-
-///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
 /// sure the data is sensible. The return value is the same as the return
 /// value of ::enforce_min_density.

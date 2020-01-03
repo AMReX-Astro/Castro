@@ -3979,8 +3979,6 @@ Castro::check_for_nan(MultiFab& state, int check_ghost)
     }
 }
 
-
-
 // Given State_Type state data, perform a number of cleaning steps to make
 // sure the data is sensible. The return value is the same as the return
 // value of enforce_min_density.
