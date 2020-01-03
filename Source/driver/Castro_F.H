@@ -40,6 +40,8 @@ extern "C"
 
   void ca_get_ngdnv(int* ngdnv);
 
+  void ca_get_abort_on_failure(int * abort_on_failure);
+
   void ca_amrinfo_init();
   void ca_amrinfo_finalize();
 

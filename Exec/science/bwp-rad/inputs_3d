@@ -112,8 +112,6 @@ radiation.hi_bcflag = 0 0 0
 radiation.lo_bcval = 0.0 0.0 0.0
 radiation.hi_bcval = 5.3e9 0.0  0.0
 
-radiation.do_real_eos = 1
-
 # Power-law opacities are represented as:
 #
 #   const_kappa * (rho**m) * (temp**(-n)) * (nu**(p))

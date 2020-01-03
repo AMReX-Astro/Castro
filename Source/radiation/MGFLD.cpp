@@ -1081,17 +1081,13 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 	   BL_TO_FORTRAN_ANYD(Ye_new[mfi]),
 	   BL_TO_FORTRAN_ANYD(S_new[mfi]));
 #else
-      if (do_real_eos > 0) {
+
 #pragma gpu box(bx) sync
 	ca_get_rhoe
             (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
              BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
              BL_TO_FORTRAN_ANYD(S_new[mfi]));
-      }
-      else {
-	  amrex::Abort("do_real_eos == 0 not supported in bisect_matter");
-      }
 #endif
   }
 }
@@ -1146,8 +1142,6 @@ void Radiation::inelastic_scattering(int level)
 	    }
 	}
 
-	if (do_real_eos > 0) {
-	  castro->computeTemp(S_new, castro->state[State_Type].curTime(), S_new.nGrow());
-	}
+        castro->computeTemp(S_new, castro->state[State_Type].curTime(), S_new.nGrow());
     }
 }

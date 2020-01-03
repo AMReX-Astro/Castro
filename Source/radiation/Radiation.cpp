@@ -570,12 +570,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   use_dkdT = 0;
   pp.query("use_dkdT", use_dkdT);
 
-  if (do_real_eos == 0) {
-      if (const_c_v <= 0.0) {
-          amrex::Abort("do_real_eos == 0 requires const_c_v > 0");
-      }
-  }
-
   if (verbose > 2) {
     Vector<int> temp;
     if (pp.queryarr("spot",temp,0,BL_SPACEDIM)) {

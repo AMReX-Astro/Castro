@@ -1,5 +1,18 @@
 # 20.02
 
+   * The parameter radiation.do_real_eos = 0 has been removed, and its
+     functionality is now enabled with a new equation of state called
+     rad_power_law. This new EOS is only compatible with the pure
+     radiation-diffusion tests, not with castro.do_hydro = 1. (#722)
+
+   * We now default to use_retry = 1, instructing Castro to retry a
+     step with a smaller dt if there is a CFL violation, burning
+     failure, or negative timestep.  For the burning failure, we have
+     Castro set the Microphysics parameter abort_on_failure to .false.
+     at a high priority (so it overrides the Microphysics default).
+     We also check to make sure the combination of parameters makes
+     sense at runtime. (#724)
+
    * The parameter castro.hard_cfl_limit has been removed. (#723)
 
    * Some unnecessary clean_state calls were removed (#721)

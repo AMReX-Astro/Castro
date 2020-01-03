@@ -1,8 +1,6 @@
 subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(C, name="amrex_probinit")
 
   use probdata_module
-  use eos_module
-  use eos_type_module, only : eos_t, eos_input_rt
   use network, only : nspec
   use castro_error_module
 
@@ -12,8 +10,6 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(C, name="amrex_pr
   integer, intent(in) :: init, namlen
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
-
-  type(eos_t) :: eos_state
 
   integer :: untin, i
 
@@ -35,20 +31,12 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(C, name="amrex_pr
 
   rho_0 = 1.0             ! not used -- no hydro
   T_0 = 5.797e5           ! 50 eV
+  rhoe_0 = rho_0 * 7.236399881810565625d13
 
   !     Read namelists
   open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
   read(untin,fortin)
   close(unit=untin)
-
-  eos_state % rho = rho_0
-  eos_state % T   = T_0
-  eos_state % xn  = 0.e0_rt
-  eos_state % xn(1) = 1.e0_rt
-
-  call eos_on_host(eos_input_rt, eos_state)
-
-  rhoe_0 = rho_0 * eos_state % e
 
   !     domain extrema
   xmin = problo(1)

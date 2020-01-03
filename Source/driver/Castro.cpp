@@ -3458,10 +3458,6 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
   }
 #endif
 
-#ifdef RADIATION
-  FArrayBox temp;
-#endif
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -3478,49 +3474,23 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
       const Box& bx = mfi.growntilebox(num_ghost);
 
-#ifdef RADIATION
-      if (Radiation::do_real_eos == 0) {
-	temp.resize(bx);
-
-        Array4<Real> state_arr = State.array(mfi);
-        Array4<Real> temp_arr = temp.array();
-        int ecomp = Eint;
-
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k, { temp_arr(i,j,k) = state_arr(i,j,k,ecomp); });
-
-#pragma gpu box(bx) sync
-	ca_compute_temp_given_rhoe
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(temp),
-             BL_TO_FORTRAN_ANYD(State[mfi]),
-             0);
-
-        int tcomp = Temp;
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k, { state_arr(i,j,k,tcomp) = temp_arr(i,j,k); });
-      } else {
-#endif
-
-        // general EOS version
+      // general EOS version
 
 #ifdef TRUE_SDC
-        if (sdc_order == 4) {
+      if (sdc_order == 4) {
           // note, this is working on a growntilebox, but we will not have
           // valid cell-centers in the very last ghost cell
           ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(Stemp[mfi]));
-        } else {
+      } else {
 #endif
 #pragma gpu box(bx)
           ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(State[mfi]));
 #ifdef TRUE_SDC
-        }
+      }
 #endif
 
-#ifdef RADIATION
-      }
-      Elixir temp_elix = temp.elixir();
-#endif
   }
 
 #ifdef TRUE_SDC
