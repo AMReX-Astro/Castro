@@ -422,7 +422,8 @@ contains
 
   subroutine set_small
 
-    use meth_params_module, only: small_temp, small_pres, small_dens, small_ener, UFS
+    use meth_params_module, only: small_temp, small_pres, small_dens, small_ener, &
+                                  UFS, URHO
     use ambient_module, only: ambient_state
     use network, only: nspec
     use eos_type_module, only: eos_t, eos_input_rt

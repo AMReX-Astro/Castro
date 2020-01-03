@@ -521,7 +521,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ONE
-    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, clamp_ambient_temp_factor
+    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, ambient_safety_factor
     use ambient_module, only: ambient_state
 
     implicit none

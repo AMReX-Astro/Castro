@@ -1239,8 +1239,10 @@ subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_para
   use ambient_module, only: ambient_state
   use amrex_error_module, only: amrex_error
   use amrex_fort_module, only: rt => amrex_real
-  use meth_params_module, only: NVAR, URHO, UTEMP, small_dens, small_temp
+  use meth_params_module, only: NVAR, URHO, UMX, UMZ, UTEMP, UEINT, UEDEN, UFS, &
+                                small_dens, small_temp, small_ener
   use amrex_constants_module, only: ZERO
+  use actual_network, only: nspec
 
   implicit none
 
@@ -1252,14 +1254,15 @@ subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_para
   integer, parameter :: maxlen = 256
   character (len=maxlen) :: probin
 
-  real(rt) :: ambient_density, ambient_temp
+  real(rt) :: ambient_density, ambient_temp, ambient_energy
 
-  namelist /ambient/ ambient_density, ambient_temp
+  namelist /ambient/ ambient_density, ambient_temp, ambient_energy
 
   ! Set namelist defaults
 
   ambient_density = small_dens
-  ambient_temp = small_temp
+  ambient_temp    = small_temp
+  ambient_energy  = small_ener
 
   ! create the filename
   if (namlen > maxlen) then
@@ -1288,9 +1291,17 @@ subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_para
 
   allocate(ambient_state(NVAR))
 
+  ! Set some initial data in the state for safety, though the
+  ! intent is that any problems using this may override these.
+
   ambient_state(:) = ZERO
-  ambient_state(URHO)  = ambient_density
-  ambient_state(UTEMP) = ambient_temp
+
+  ambient_state(URHO)    = ambient_density
+  ambient_state(UMX:UMZ) = ZERO
+  ambient_state(UTEMP)   = ambient_temp
+  ambient_state(UEINT)   = ambient_density * ambient_energy
+  ambient_state(UEDEN)   = ambient_density * ambient_energy
+  ambient_state(UFS:UFS+nspec-1) = ambient_density * (1.0e0_rt / nspec)
 
 end subroutine ca_get_ambient_params
 
