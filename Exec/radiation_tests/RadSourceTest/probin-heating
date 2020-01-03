@@ -9,4 +9,19 @@
 
   eos_gamma = 1.6666666667
 
+  eos_const_c_v = 2.065d8
+
+  const_kappa_p = 4.0d-8
+  kappa_p_exp_m = 0.0d0
+  kappa_p_exp_n = 0.0d0
+  kappa_p_exp_p = 0.0d0
+
+  const_kappa_r = 1000.0d0  ! set to a high value for solver stability
+  kappa_r_exp_m = 0.0d0
+  kappa_r_exp_n = 0.0d0
+  kappa_r_exp_p = 0.0d0
+
+  rad_temp_floor = 0.0d0
+  kappa_floor = 1.0d-5
+
 /

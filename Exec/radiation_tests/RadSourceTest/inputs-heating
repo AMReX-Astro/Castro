@@ -142,51 +142,6 @@ radiation.hi_bcflag = 0 0 0
 radiation.lo_bcval = 0.0 0.0 0.0
 radiation.hi_bcval = 0.0 0.0 0.0
 
-
-# Power-law opacities are represented as:
-#
-#    const_kappa * (rho**m) * (temp**(-n)) * (nu**(p))
-#
-# Since the formula is both nonphysical and singular, prop_temp_floor
-# provides a floor for the temperature used in the power-law computation.
-# (Specific heat c_v follows the same convention.)
-
-radiation.const_c_v     =  2.065e8   # c_v = k_B/(A m_p)  1/(gamma - 1)
-
-# Planck mean opacity (appears in the source term -- see Howell and
-# Greenough, Eq. 1)
-radiation.const_kappa_p =  4.e-8
-radiation.kappa_p_exp_m =  0.0
-radiation.kappa_p_exp_n =  0.0
-radiation.kappa_p_exp_p =  0.0
-
-# Rosseland mean opacity (appears in the diffusion term -- see Howell and
-# Greenough, Eq. 1)
-radiation.const_kappa_r =  1000.0  ! set to a high value for solver stability
-radiation.kappa_r_exp_m =  0.0
-radiation.kappa_r_exp_n =  0.0
-radiation.kappa_r_exp_p =  0.0
-
-
-radiation.prop_temp_floor = 0.0 0.0
-
-# In case the advection scheme leaves a cell with a negative internal
-# energy, and thus temperature, this floor value will be used for
-# computing emission and properties.  It can be overridden by
-# prop_temp_floor if a higher temperature is required for properties
-# to be meaningful.  It does not affect conservation.
-
-radiation.temp_floor    = -1.e-20
-
-# As kappa_r becomes low the Marshak boundary condition becomes
-# ill-conditioned.  The following floor is enforced regardless of the
-# mechanism used to set kappa_r.  (In an ideal code this floor would
-# be nondimensionalized using a characteristic length (domain size?).
-# In the present implementation the Marshak b.c. includes a factor of
-# delta x which can cause ill-conditioning if delta x is not O(1).)
-
-radiation.kappa_r_floor = 1.e-5
-
 # ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
 
 # radsolve sets parameters for the single-level and multilevel linear
