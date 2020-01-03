@@ -65,9 +65,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            ! Set temperature and energy to arbitrary, positive values
            ! so that the Castro state checkers are OK.
-           state(i,j,k,UTEMP) = 1.0_rt
-           state(i,j,k,UEINT) = 1.0_rt
-           state(i,j,k,UEDEN) = 1.0_rt
+           state(i,j,k,UTEMP) = 1.0e-50_rt
+           state(i,j,k,UEINT) = 1.0e-50_rt
+           state(i,j,k,UEDEN) = 1.0e-50_rt
 
         end do
      end do
