@@ -436,7 +436,7 @@ contains
 
     eos_state % rho = small_dens
     eos_state % T   = small_temp
-    eos_state % xn  = ambient_state(UFS:UFS+nspec-1)
+    eos_state % xn  = ambient_state(UFS:UFS+nspec-1) / ambient_state(URHO)
 
     call eos_on_host(eos_input_rt, eos_state)
 
@@ -797,11 +797,11 @@ contains
 
        endif
 
-       ambient_state(UFS:UFS+nspec-1) = (model_P % envelope_comp + model_S % envelope_comp) / 2
+       ambient_state(UFS:UFS+nspec-1) = ambient_state(URHO) * (model_P % envelope_comp + model_S % envelope_comp) / 2
 
     else
 
-       ambient_state(UFS:UFS+nspec-1) = model_P % envelope_comp
+       ambient_state(UFS:UFS+nspec-1) = ambient_state(URHO) * model_P % envelope_comp
 
     endif
 
