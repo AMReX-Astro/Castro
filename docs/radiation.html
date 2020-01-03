@@ -122,10 +122,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#microphysics-eos-network-and-opacity">Microphysics: EOS, Network, and Opacity</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#eos">EOS</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#eos-parameters">EOS Parameters</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#eos">EOS</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#network">Network</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#opacity">Opacity</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#opacity-parameters">Opacity Parameters</a></li>
@@ -314,19 +311,16 @@ version in Microphysics, as with the pure hydrodynamics code, but
 this will interpret the RADIATION preprocessor variable and
 disable the radiation portion of the EOS <a class="footnote-reference" href="#id2" id="id1">[1]</a> If you have your own EOS, you
 can put it in Microphysics.</p>
-<div class="section" id="eos-parameters">
-<h4>EOS Parameters<a class="headerlink" href="#eos-parameters" title="Permalink to this headline">¶</a></h4>
-<p>The following parameters affect how the radiation solver used the EOS:</p>
-<ul>
-<li><p class="first">radiation.do_real_eos = 1</p>
-<p>Usually you do not want to change this from the default. Setting
-this to 0 is only for contrived tests that assume the
-specific heat is in the form of a power-law,</p>
-<div class="math notranslate nohighlight">
-\[c_v = \mathrm{const}\ \rho^m T^{-n}\]</div>
-</li>
-</ul>
+<p>There is also an artificial EOS that is used for several test cases called</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">EOS_DIR</span> <span class="p">:</span><span class="o">=</span> <span class="n">rad_power_law</span>
+</pre></div>
 </div>
+<p>This EOS should only be used for pure radiation-diffusion tests (i.e.
+<code class="docutils literal notranslate"><span class="pre">castro.do_hydro</span> <span class="pre">=</span> <span class="pre">0</span></code>). It defines the specific heat as a power law,</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[c_v = \mathrm{const}\ \rho^m T^{-n}\]</div>
+</div></blockquote>
 </div>
 <div class="section" id="network">
 <h3>Network<a class="headerlink" href="#network" title="Permalink to this headline">¶</a></h3>
