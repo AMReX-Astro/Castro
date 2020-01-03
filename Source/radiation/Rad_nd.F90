@@ -996,6 +996,8 @@ contains
     logical  :: comp_kp, comp_kr
     real(rt), parameter :: fac = 0.5e0_rt, minfrac = 1.e-8_rt
 
+    !$gpu
+
     if (lag_opac .eq. 1) then
        dkdT(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.e0_rt
        return
