@@ -357,8 +357,9 @@ contains
     use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
-    use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, &
-         UFS, UFX
+    use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
+                                  clamp_ambient_temp, ambient_safety_factor
+    use ambient_module, only: ambient_state
     use amrex_constants_module, only: ZERO, ONE
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
@@ -421,6 +422,13 @@ contains
              call eos(eos_input_re, eos_state)
 
              state(i,j,k,UTEMP) = eos_state % T
+
+             if (clamp_ambient_temp == 1) then
+                if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
+                   state(i,j,k,UTEMP) = ambient_state(UTEMP)
+                   state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
+                end if
+             end if
 
           enddo
        enddo
@@ -511,46 +519,6 @@ contains
     enddo
 
   end subroutine ca_normalize_species
-
-
-
-  subroutine ca_clamp_ambient_temp(lo, hi, &
-                                   state, s_lo, s_hi) &
-                                   bind(c,name='ca_clamp_ambient_temp')
-    ! Clamp the temperature so the ambient material doesn't heat up
-
-    use amrex_fort_module, only: rt => amrex_real
-    use amrex_constants_module, only: ONE
-    use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, ambient_safety_factor
-    use ambient_module, only: ambient_state
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-
-    integer :: i, j, k
-
-    real(rt) :: rhoInv
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
-                state(i,j,k,UTEMP) = ambient_state(UTEMP)
-                rhoInv = ONE / ambient_state(URHO)
-                state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
-             end if
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_clamp_ambient_temp
 
 
 

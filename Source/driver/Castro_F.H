@@ -196,10 +196,6 @@ extern "C"
   void ca_normalize_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
 
-  void ca_clamp_ambient_temp
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state));
-
   void ca_get_center(amrex::Real* center);
   void ca_set_center(const amrex::Real* center);
   void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
