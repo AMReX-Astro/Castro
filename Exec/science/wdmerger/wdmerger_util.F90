@@ -671,8 +671,8 @@ contains
 
   subroutine binary_setup
 
-    use meth_params_module, only: rot_period, point_mass, URHO, UEINT, UEDEN, UFS
-    use network, only: nspec
+    use meth_params_module, only: rot_period, point_mass, URHO, UTEMP, UEINT, UEDEN, UFS, UFX
+    use network, only: nspec, naux
     use initial_model_module, only: initialize_model, establish_hse
     use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
     use rotation_frequency_module, only: get_omega
@@ -680,9 +680,9 @@ contains
     use binary_module, only: get_roche_radii
     use problem_io_module, only: ioproc
     use castro_error_module, only: castro_error
-    use ambient_module, only: ambient_state, get_ambient_eos
+    use ambient_module, only: ambient_state
     use eos_type_module, only: eos_input_rt, eos_t
-    use eos_module, only: eos
+    use eos_module, only: eos_on_host
     use fundamental_constants_module, only: Gconst, c_light, AU, M_solar
     use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
 
@@ -695,7 +695,7 @@ contains
 
     real(rt) :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
 
-    type(eos_t) :: ambient_eos_state
+    type(eos_t) :: eos_state
 
     omega = get_omega(ZERO)
 
@@ -808,11 +808,14 @@ contains
 
     ! We have completed (rho, T, xn) for the ambient state, so we can call the EOS.
 
-    call get_ambient_eos(ambient_eos_state)
+    eos_state % rho = ambient_state(URHO)
+    eos_state % T   = ambient_state(UTEMP)
+    eos_state % xn  = ambient_state(UFS:UFS+nspec-1) / ambient_state(URHO)
+    eos_state % aux = ambient_state(UFX:UFX+naux-1) / ambient_state(URHO)
 
-    call eos(eos_input_rt, ambient_eos_state)
+    call eos_on_host(eos_input_rt, eos_state)
 
-    ambient_state(UEINT) = ambient_state(URHO) * ambient_eos_state%e
+    ambient_state(UEINT) = ambient_state(URHO) * eos_state % e
     ambient_state(UEDEN) = ambient_state(UEINT)
 
 
