@@ -1064,7 +1064,6 @@ contains
                     bind(C, name="nfloor")
 
     use amrex_fort_module, only: rt => amrex_real
-    use extern_probin_module, only: rad_temp_floor
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: d_lo(3), d_hi(3)
@@ -1073,14 +1072,16 @@ contains
 
     integer :: i, j, k, n
 
+    real(rt), parameter :: temp_floor = 1.e-10_rt
+
     !$gpu
 
     do n = 0, nvar-1
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if (dest(i,j,k,n) < rad_temp_floor) then
-                   dest(i,j,k,n) = rad_temp_floor
+                if (dest(i,j,k,n) < temp_floor) then
+                   dest(i,j,k,n) = temp_floor
                 end if
              end do
           end do
