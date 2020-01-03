@@ -1,5 +1,5 @@
 # Opacity constant (Planck mean)
-const_kappa_p                real           -1.0d0
+const_kappa_p                real            0.0d0
 
 # Density exponent (Planck mean)
 kappa_p_exp_m                real            0.0d0
@@ -11,7 +11,7 @@ kappa_p_exp_n                real            0.0d0
 kappa_p_exp_p                real            0.0d0
 
 # Opacity constant (Rosseland mean)
-const_kappa_r                real           -1.0d0
+const_kappa_r                real            0.0d0
 
 # Density exponent (Rosseland mean)
 kappa_r_exp_m                real            0.0d0
