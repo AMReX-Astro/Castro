@@ -569,30 +569,19 @@ extern "C" {
   void ca_compute_rosseland
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(kpr),
-     const BL_FORT_FAB_ARG_3D(state));
-#ifdef __cplusplus
-}
-#endif
+     const BL_FORT_FAB_ARG_3D(state),
+     int starting_group, int ngroups);
 
-BL_FORT_PROC_DECL(CA_COMPUTE_SCATTERING, ca_compute_scattering)
+  void ca_compute_scattering
    (const int * lo, const int* hi,
     BL_FORT_FAB_ARG_3D(kps),
     const BL_FORT_FAB_ARG_3D(state));
-BL_FORT_PROC_DECL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)
-   (const int * lo, const int* hi,
-    BL_FORT_FAB_ARG_3D(kps),
-    const BL_FORT_FAB_ARG_3D(state),
-    const amrex::Real* k0_p, const amrex::Real* m_p, const amrex::Real* n_p,
-    const amrex::Real* k0_r, const amrex::Real* m_r, const amrex::Real* n_r,
-    const amrex::Real* Tfloor, const amrex::Real* kfloor);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
   void ca_compute_planck
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(kpp),
      const BL_FORT_FAB_ARG_3D(state),
+     int starting_group, int ngroups,
      amrex::Real temp_offset);
 
   void ca_filt_prim
@@ -619,36 +608,20 @@ BL_FORT_PROC_DECL(CA_COMPUTE_EMISSIVITY, ca_compute_emissivity)
     const amrex::Real* PFcoef, 
     const int& use_WiensLaw, const int& integrate_Planck,
     const amrex::Real& Tf);
-BL_FORT_PROC_DECL(CA_OPACS, ca_opacs)
-   (const int lo[], const int hi[],
-    const BL_FORT_FAB_ARG(Snew),
-    const BL_FORT_FAB_ARG(T),
-    const BL_FORT_FAB_ARG(Ts),
-    BL_FORT_FAB_ARG(kpp),
-    BL_FORT_FAB_ARG(kpr),
-    BL_FORT_FAB_ARG(dkdT),
-    const int* use_dkdT, const int* validStar, const int* lag_opac); 
-BL_FORT_PROC_DECL(CA_COMPUTE_KAPPAS, ca_compute_kappas)
-   (const int lo[], const int hi[],
-    const BL_FORT_FAB_ARG(state),
-    const BL_FORT_FAB_ARG(temp),
-    BL_FORT_FAB_ARG(kappa_p),
-    BL_FORT_FAB_ARG(kappa_r),
-    BL_FORT_FAB_ARG(dkdT),
-    const int* do_kappa_stm_emission, const int* use_dkdT, 
-    const amrex::Real* const_kappa_p,
-    const amrex::Real* kappa_p_exp_m,
-    const amrex::Real* kappa_p_exp_n,
-    const amrex::Real* kappa_p_exp_p,
-    const amrex::Real* const_kappa_r,
-    const amrex::Real* kappa_r_exp_m,
-    const amrex::Real* kappa_r_exp_n,
-    const amrex::Real* kappa_r_exp_p,
-    const amrex::Real* const_scattering,
-    const amrex::Real* scattering_exp_m,
-    const amrex::Real* scattering_exp_n,
-    const amrex::Real* scattering_exp_p,
-    const amrex::Real* prop_temp_floor);
+
+extern "C"
+{
+  void ca_opacs
+   (const int* lo, const int* hi,
+    const BL_FORT_FAB_ARG_3D(Snew),
+    const BL_FORT_FAB_ARG_3D(T),
+    const BL_FORT_FAB_ARG_3D(Ts),
+    BL_FORT_FAB_ARG_3D(kpp),
+    BL_FORT_FAB_ARG_3D(kpr),
+    BL_FORT_FAB_ARG_3D(dkdT),
+    int use_dkdT, int validStar, int lag_opac);
+}
+
 #ifdef MG_SU_OLSON
 #ifdef __cplusplus
 extern "C" {
@@ -863,11 +836,6 @@ extern "C" {
 	    amrex::Real delta_t, const amrex::Real* dx,
             amrex::Real sigma, amrex::Real c, amrex::Real theta);
 
-  void anatw2(amrex::Real* test, ARLIM_P(reglo), ARLIM_P(reghi),
-	      amrex::Real* temp,
-	      const amrex::Real& p, const amrex::Real& xf, const amrex::Real& Tc,
-	      const amrex::Real* dx, const amrex::Real* xlo, const int* lo);
-
   void cfrhoe(const int* lo, const int* hi, 
 	      BL_FORT_FAB_ARG_3D(frhoe), 
 	      BL_FORT_FAB_ARG_3D(state));
@@ -949,7 +917,7 @@ extern "C" {
   
   void nfloor(const int* lo, const int* hi,
               BL_FORT_FAB_ARG_3D(dest), 
-	      amrex::Real flr, int nvar);
+	      int nvar);
 
   void lacoefmgfld(BL_FORT_FAB_ARG(a), 
 		   ARLIM_P(reglo), ARLIM_P(reghi),

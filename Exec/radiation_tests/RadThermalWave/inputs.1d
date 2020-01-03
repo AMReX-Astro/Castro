@@ -64,7 +64,6 @@ castro.small_temp = 0.0
 # The following are specific for this thermal wave problem only.
 # Note that the built-in analytic solution is for castro.do_hydro=0.
 radiation.do_thermal_wave_cgs = 1   
-radiation.use_analytic_solution = 2 # compare with analytic solution?
 radiation.thermal_wave_rhocv = 0.05
 radiation.thermal_wave_Eexp = 3.e7
 

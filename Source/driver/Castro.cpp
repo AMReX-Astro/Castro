@@ -1923,14 +1923,6 @@ Castro::post_timestep (int iteration)
     }
 
 #ifdef RADIATION
-    if (level == 0) {
-      if (do_radiation) {
-	for (int lev = finest_level; lev >= 0; lev--) {
-	  radiation->analytic_solution(lev);
-	}
-      }
-    }
-
     // diagnostic stuff
 
     if (level == 0)

@@ -786,10 +786,11 @@ contains
 
   subroutine ca_compute_rosseland(lo, hi, &
                                   kpr, k_lo, k_hi, &
-                                  state, s_lo, s_hi) &
+                                  state, s_lo, s_hi, &
+                                  starting_group, ngroups) &
                                   bind(C, name="ca_compute_rosseland")
 
-    use rad_params_module, only: ngroups, nugroup
+    use rad_params_module, only: nugroup
     use opacity_table_module, only: get_opacities
     use network, only: naux
     use meth_params_module, only: NVAR, URHO, UTEMP, UFX
@@ -802,6 +803,7 @@ contains
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: kpr(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),0:ngroups-1)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    integer,  intent(in   ), value :: starting_group, ngroups
 
     integer  :: i, j, k, g
     real(rt) :: kp, kr, nu, rho, temp, Ye
@@ -810,7 +812,7 @@ contains
 
     !$gpu
 
-    do g = 0, ngroups-1
+    do g = starting_group, starting_group + ngroups - 1
 
        nu = nugroup(g)
 
@@ -842,10 +844,11 @@ contains
   subroutine ca_compute_planck(lo, hi, &
                                kpp, k_lo, k_hi, &
                                state, s_lo, s_hi, &
+                               starting_group, ngroups, &
                                temp_offset) &
                                bind(C, name="ca_compute_planck")
 
-    use rad_params_module, only: ngroups, nugroup
+    use rad_params_module, only: nugroup
     use opacity_table_module, only: get_opacities
     use network, only: naux
     use meth_params_module, only: NVAR, URHO, UTEMP, UFX
@@ -858,6 +861,7 @@ contains
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: kpp(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),0:ngroups-1)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    integer,  intent(in   ), value :: starting_group, ngroups
     real(rt), intent(in   ), value :: temp_offset
 
     integer  :: i, j, k, g
@@ -867,7 +871,7 @@ contains
 
     !$gpu
 
-    do g = 0, ngroups-1
+    do g = starting_group, starting_group + ngroups - 1
 
        nu = nugroup(g)
 
@@ -890,70 +894,180 @@ contains
              end do
           end do
        end do
+
     end do
 
   end subroutine ca_compute_planck
 
 
 
-  subroutine fkpn(lo, hi, &
-                  fkp, f_lo, f_hi, &
-                  const, em, en, &
-                  ep, nu, tf, &
-                  temp, t_lo, t_hi, &
-                  state, s_lo, s_hi, &
-                  temp_offset) &
-                  bind(C, name="fkpn")
+  subroutine ca_compute_scattering(lo, hi, &
+                                   kps, kps_lo, kps_hi, &
+                                   sta, sta_lo, sta_hi) &
+                                   bind(C, name='ca_compute_scattering')
 
+    use rad_params_module, only: ngroups, nugroup
+    use opacity_table_module, only: get_opacities
+    use network, only: naux
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFX
     use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO
+
+    implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: f_lo(3), f_hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: fkp(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: const, em, en, tf, ep, nu, temp_offset
+    integer,  intent(in   ) :: kps_lo(3), kps_hi(3)
+    integer,  intent(in   ) :: sta_lo(3), sta_hi(3)
+    real(rt), intent(inout) :: kps(kps_lo(1):kps_hi(1),kps_lo(2):kps_hi(2),kps_lo(3):kps_hi(3))
+    real(rt), intent(in   ) :: sta(sta_lo(1):sta_hi(2),sta_lo(2):sta_hi(2),sta_lo(3):sta_hi(3),NVAR)
 
-    real(rt) :: teff
     integer  :: i, j, k
+    real(rt) :: kp, kr, nu, rho, temp, Ye
+    logical, parameter :: comp_kp = .true.
+    logical, parameter :: comp_kr = .true.
 
     !$gpu
+
+    ! scattering is assumed to be independent of nu.
+
+    nu = nugroup(0)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             teff = max(temp(i,j,k) + temp_offset, tiny)
-             teff = teff + tf * exp(-teff / (tf + tiny))
+             rho = sta(i,j,k,URHO)
+             temp = sta(i,j,k,UTEMP)
+             if (naux > 0) then
+                Ye = sta(i,j,k,UFX)
+             else
+                Ye = 0.e0_rt
+             end if
 
-             fkp(i,j,k) = const * &
-                          (state(i,j,k,URHO)**em) * &
-                          (teff**(-en)) * &
-                          (nu**(ep))
+             call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
+
+             kps(i,j,k) = max(kr - kp, 0.e0_rt)
 
           end do
        end do
     end do
 
-  end subroutine fkpn
+  end subroutine ca_compute_scattering
+
+
+
+  subroutine ca_opacs(lo, hi, &
+                      Snew, s_lo, s_hi, &
+                      T,    t_lo, t_hi, &
+                      Ts,   ts_lo, ts_hi, &
+                      kpp,  kpp_lo, kpp_hi, &
+                      kpr,  kpr_lo, kpr_hi, &
+                      dkdT, dkdT_lo, dkdT_hi, &
+                      use_dkdT, validStar, lag_opac) &
+                      bind(C, name='ca_opacs')
+
+    use rad_params_module, only: ngroups, nugroup
+    use opacity_table_module, only: get_opacities
+    use network, only: naux
+    use meth_params_module, only: NVAR, URHO, UFX
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: t_lo(3), t_hi(3)
+    integer,  intent(in   ) :: ts_lo(3), ts_hi(3)
+    integer,  intent(in   ) :: kpp_lo(3),  kpp_hi(3)
+    integer,  intent(in   ) :: kpr_lo(3),  kpr_hi(3)
+    integer,  intent(in   ) :: dkdT_lo(3), dkdT_hi(3)
+    real(rt), intent(in   ) :: Snew(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ) :: T(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
+    real(rt), intent(in   ) :: Ts(ts_lo(1):ts_hi(1),ts_lo(2):ts_hi(2),ts_lo(3):ts_hi(3))
+    real(rt), intent(inout) :: kpp ( kpp_lo(1): kpp_hi(1), kpp_lo(2): kpp_hi(2), kpp_lo(3): kpp_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: kpr ( kpr_lo(1): kpr_hi(1), kpr_lo(2): kpr_hi(2), kpr_lo(3): kpr_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: dkdT(dkdT_lo(1):dkdT_hi(1),dkdT_lo(2):dkdT_hi(2),dkdT_lo(3):dkdT_hi(3),0:ngroups-1)
+    integer,  intent(in   ), value :: use_dkdT, validStar, lag_opac
+
+    integer  :: i, j, k, g
+    real(rt) :: kp, kr, nu, rho, temp, Ye
+    real(rt) :: kp1, kr1
+    real(rt) :: kp2, kr2
+    real(rt) :: dT
+    logical  :: comp_kp, comp_kr
+    real(rt), parameter :: fac = 0.5e0_rt, minfrac = 1.e-8_rt
+
+    if (lag_opac .eq. 1) then
+       dkdT(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.e0_rt
+       return
+    end if
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             rho = Snew(i,j,k,URHO)
+             temp = T(i,j,k)
+             if (naux > 0) then
+                Ye = Snew(i,j,k,UFX)
+             else
+                Ye = 0.e0_rt
+             end if
+
+             if (validStar > 0) then
+                dT = fac * abs(Ts(i,j,k) - T(i,j,k))
+                dT = max(dT, minfrac * T(i,j,k))
+             else
+                dT = T(i,j,k) * 1.e-3_rt + 1.e-50_rt
+             end if
+
+             do g = 0, ngroups - 1
+
+                nu = nugroup(g)
+
+                comp_kp = .true.
+                comp_kr = .true.
+
+                call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
+                kpp(i,j,k,g) = kp
+                kpr(i,j,k,g) = kr 
+
+                if (use_dkdT .eq. 0) then        
+
+                   dkdT(i,j,k,g) = 0.e0_rt
+
+                else
+
+                   comp_kp = .true.
+                   comp_kr = .false.
+
+                   call get_opacities(kp1, kr1, rho, temp-dT, Ye, nu, comp_kp, comp_kr)
+                   call get_opacities(kp2, kr2, rho, temp+dT, Ye, nu, comp_kp, comp_kr)
+
+                   dkdT(i,j,k,g) = (kp2 - kp1) / (2.e0_rt * dT)
+
+                end if
+
+             end do
+          end do
+       end do
+    end do
+
+  end subroutine ca_opacs
 
 
 
   subroutine nfloor(lo, hi, &
                     dest, d_lo, d_hi, &
-                    flr, nvar) &
+                    nvar) &
                     bind(C, name="nfloor")
 
     use amrex_fort_module, only: rt => amrex_real
+    use extern_probin_module, only: rad_temp_floor
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: d_lo(3), d_hi(3)
     real(rt), intent(inout) :: dest(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nvar-1)
     integer,  intent(in   ), value :: nvar
-    real(rt), intent(in   ), value :: flr
 
     integer :: i, j, k, n
 
@@ -963,8 +1077,8 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if (dest(i,j,k,n) < flr) then
-                   dest(i,j,k,n) = flr
+                if (dest(i,j,k,n) < rad_temp_floor) then
+                   dest(i,j,k,n) = rad_temp_floor
                 end if
              end do
           end do
@@ -1293,101 +1407,6 @@ contains
     end do
 
   end subroutine cfrhoe
-
-
-
-  subroutine rosse1(lo, hi, &
-                    const, em, en, &
-                    ep, nu, &
-                    tf, kfloor, &
-                    state, s_lo, s_hi, &
-                    kappar, k_lo, k_hi) bind(C, name="rosse1")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO, UTEMP
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: k_lo(3), k_hi(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(inout) :: kappar(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
-    real(rt), intent(in   ), value :: const, em, en, ep, nu, tf, kfloor
-
-    real(rt) :: kf, teff
-    integer  :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             teff = max(state(i,j,k,UTEMP), tiny)
-             teff = teff + tf * exp(-teff / (tf + tiny))
-
-             kf = const * &
-                  (state(i,j,k,URHO) ** em) * &
-                  (teff ** (-en)) * &
-                  (nu ** (ep))
-
-             kappar(i,j,k) = max(kf, kfloor)
-
-          end do
-       end do
-    end do
-
-  end subroutine rosse1
-
-
-
-  subroutine rosse1s(lo, hi, &
-                     const, em, en, &
-                     ep, sconst, &
-                     sem, sen, &
-                     sep, nu, &
-                     tf, kfloor, &
-                     state, s_lo, s_hi, &
-                     kappar, k_lo, k_hi) bind(C, name="rosse1s")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO, UTEMP
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: k_lo(3), k_hi(3)
-    real(rt), intent(inout) :: kappar(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: const, em, en, ep, sconst, sem, sen, sep, nu, tf, kfloor
-
-    real(rt) :: kf, teff, sct
-    integer  :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             teff = max(state(i,j,k,UTEMP), tiny)
-             teff = teff + tf * exp(-teff / (tf + tiny))
-
-             kf = const * &
-                  (state(i,j,k,URHO) ** em) * &
-                  (teff ** (-en)) * &
-                  (nu ** (ep))
-
-             sct = sconst * &
-                  (state(i,j,k,URHO) ** sem) * &
-                  (teff ** (-sen)) * &
-                  (nu ** (sep))
-
-             kappar(i,j,k) = max(kf + sct, kfloor)
-
-          end do
-       end do
-    end do
-
-  end subroutine rosse1s
 
 
 
@@ -1816,106 +1835,3 @@ subroutine ca_inelastic_sct(lo, hi, &
   end do
 
 end subroutine ca_inelastic_sct
-
-!! -----------------------------------------------------------
-
-subroutine ca_compute_scattering(lo, hi, &
-                                 kps,kps_lo,kps_hi, &
-                                 sta,sta_lo,sta_hi)
-
-  use rad_params_module, only : ngroups, nugroup
-  use opacity_table_module, only : get_opacities
-  use network, only : naux
-  use meth_params_module, only : NVAR, URHO, UTEMP, UFX
-  use amrex_fort_module, only : rt => amrex_real
-
-  implicit none
-
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: kps_lo(3),kps_hi(3)
-  integer, intent(in) :: sta_lo(3),sta_hi(3)
-  real(rt), intent(inout) :: kps(kps_lo(1):kps_hi(1),kps_lo(2):kps_hi(2),kps_lo(3):kps_hi(3))
-  real(rt), intent(in   ) :: sta(sta_lo(1):sta_hi(2),sta_lo(2):sta_hi(2),sta_lo(3):sta_hi(3),NVAR)
-
-  integer :: i, j, k
-  real(rt) :: kp, kr, nu, rho, temp, Ye
-  logical, parameter :: comp_kp = .true.
-  logical, parameter :: comp_kr = .true.
-
-  ! scattering is assumed to be independent of nu.
-
-  nu = nugroup(0)
-
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-
-           rho = sta(i,j,k,URHO)
-           temp = sta(i,j,k,UTEMP)
-           if (naux > 0) then
-              Ye = sta(i,j,k,UFX)
-           else
-              Ye = 0.e0_rt
-           end if
-
-           call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
-
-           kps(i,j,k) = max(kr - kp, 0.e0_rt)
-        end do
-     end do
-  end do
-
-end subroutine ca_compute_scattering
-
-subroutine ca_compute_scattering_2(lo, hi, &
-                                   kps,kps_lo,kps_hi, &
-                                   sta,sta_lo,sta_hi, &
-                                   k0_p, m_p, n_p, &
-                                   k0_r, m_r, n_r, &
-                                   Tfloor, kfloor)
-
-  use rad_params_module, only: ngroups, nugroup
-  use meth_params_module, only: NVAR, URHO, UTEMP
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: kps_lo(3),kps_hi(3)
-  integer, intent(in) :: sta_lo(3),sta_hi(3)
-  real(rt), intent(inout) :: kps(kps_lo(1):kps_hi(1),kps_lo(2):kps_hi(2),kps_lo(3):kps_hi(3))
-  real(rt), intent(in   ) :: sta(sta_lo(1):sta_hi(2),sta_lo(2):sta_hi(2),sta_lo(3):sta_hi(3),NVAR)
-  real(rt), intent(in) :: k0_p, m_p, n_p
-  real(rt), intent(in) :: k0_r, m_r, n_r
-  real(rt), intent(in) :: Tfloor, kfloor
-
-  integer :: i, j, k
-  real(rt), parameter :: tiny = 1.0e-50_rt
-  real(rt) :: Teff, k_p, k_r
-
-  ! scattering is assumed to be independent of nu.
-
-  if ( m_p.eq.0.e0_rt .and. n_p.eq.0.e0_rt .and. &
-       m_r.eq.0.e0_rt .and. n_r.eq.0.e0_rt ) then
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-              kps(i,j,k) = k0_r - k0_p
-           end do
-        end do
-     end do
-  else
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-              Teff = max(sta(i,j,k,UTEMP), tiny)
-              Teff = Teff + Tfloor * exp(-Teff / (Tfloor + tiny))
-              k_p = k0_p * (sta(i,j,k,URHO) ** m_p) * (Teff ** (-n_p))
-              k_r = k0_r * (sta(i,j,k,URHO) ** m_r) * (Teff ** (-n_r))
-              kps(i,j,k) = max(k_r-k_p, kfloor)
-           end do
-        end do
-     end do
-  end if
-
-end subroutine ca_compute_scattering_2

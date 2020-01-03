@@ -48,8 +48,6 @@ public:
   static int fspace_advection_type;
   static int do_inelastic_scattering;    ///< Compton scattering for photon only
 
-  static int use_analytic_solution; ///< compare against an analytic solution
-
   static int plot_lambda, plot_kappa_p, plot_kappa_r;
   static int plot_lab_Er, plot_lab_flux, plot_com_flux;
   static int icomp_lambda, icomp_kp, icomp_kr;
@@ -100,8 +98,6 @@ public:
   int surface_average;   ///< 0 = arithmetic, 1 = harmonic, 2 = surface formula
   amrex::Real underfac;         ///< factor controlling progressive underrelaxation
   int do_sync;               ///< perform sync (if false zero out sync source)
-  amrex::Real kappa_r_floor, temp_floor;
-  int use_opacity_table_module;  ///< Use opacity_table_module?
   int do_kappa_stm_emission;
 
   static void read_static_params();
@@ -125,12 +121,6 @@ public:
 
   static amrex::Real flatten_pp_threshold;
   static int pure_hydro;
-
-  static amrex::Real const_kappa_p, const_kappa_r, const_scattering;
-  static amrex::Real kappa_p_exp_m, kappa_p_exp_n;
-  static amrex::Real kappa_r_exp_m, kappa_r_exp_n;
-  static amrex::Real scattering_exp_m, scattering_exp_n;
-  static amrex::Real kappa_p_exp_p, kappa_r_exp_p, scattering_exp_p;
 
 #include <radiation_params.H>
 
@@ -254,11 +244,6 @@ public:
       return flux_cons_old[level].get();
   }
 
-
-///
-/// @param level
-///
-  void analytic_solution(int level);
 
 
 ///

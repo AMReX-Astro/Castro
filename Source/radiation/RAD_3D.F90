@@ -120,32 +120,6 @@ subroutine eddfac(efact, &
   enddo
 end subroutine eddfac
 
-subroutine anatw2(test, &
-                  DIMS(reg), &
-                  temp, p, xf, Tc, dx, xlo, lo) bind(C, name="anatw2")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  real(rt)         :: test(DIMV(reg), 0:1)
-  real(rt)         :: temp(DIMV(reg))
-  real(rt)         :: p, xf, Tc, dx(3), xlo(3)
-  integer :: lo(3)
-  integer :: i, j, k
-  real(rt)         :: x, y, z, r2
-  do k = reg_l3, reg_h3
-     z = xlo(3) + dx(3) * ((k-lo(3)) + 0.5e0_rt)
-     do j = reg_l2, reg_h2
-        y = xlo(2) + dx(2) * ((j-lo(2)) + 0.5e0_rt)
-        do i = reg_l1, reg_h1
-           x  = xlo(1) + dx(1) * ((i-lo(1)) + 0.5e0_rt)
-           r2 = x*x + y*y + z*z
-           test(i,j,k,0) = Tc * max((1.e0_rt-r2/xf**2), 0.e0_rt)**(1.e0_rt/p)
-           test(i,j,k,1) = temp(i,j,k) - test(i,j,k,0)
-        enddo
-     enddo
-  enddo
-end subroutine anatw2
-
 subroutine ceupdterm(DIMS(reg), relres, absres, &
                      frhoes, DIMS(grd), &
                      frhoem, eta, etainv, dfo, dfn, exch, dterm, &

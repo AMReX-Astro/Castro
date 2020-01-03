@@ -384,38 +384,16 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 	  dkdY[mfi].setVal(0.0,bx,0,nGroups);
 #endif
 
-	  if (use_opacity_table_module) {
-
-	      BL_FORT_PROC_CALL(CA_OPACS, ca_opacs)
-		  (bx.loVect(), bx.hiVect(),
-		   BL_TO_FORTRAN(S_new[mfi]),
-		   BL_TO_FORTRAN(temp_new[mfi]),
-		   BL_TO_FORTRAN(temp_star[mfi]),
-		   BL_TO_FORTRAN(kappa_p[mfi]),
-		   BL_TO_FORTRAN(kappa_r[mfi]),
-		   BL_TO_FORTRAN(dkdT[mfi]),
-		   &use_dkdT, &star_is_valid, &lag_opac);
-
-	  }
-	  else {  // use power-law 
-	      
-	      BL_FORT_PROC_CALL(CA_COMPUTE_KAPPAS, ca_compute_kappas)
-		  (bx.loVect(), bx.hiVect(),
-		   BL_TO_FORTRAN(S_new[mfi]),
-		   BL_TO_FORTRAN(temp_new[mfi]),
-		   BL_TO_FORTRAN(kappa_p[mfi]),
-		   BL_TO_FORTRAN(kappa_r[mfi]),
-		   BL_TO_FORTRAN(dkdT[mfi]), 
-		   &do_kappa_stm_emission, &use_dkdT,
-		   &const_kappa_p, &kappa_p_exp_m, 
-		   &kappa_p_exp_n, &kappa_p_exp_p,
-		   &const_kappa_r, &kappa_r_exp_m, 
-		   &kappa_r_exp_n, &kappa_r_exp_p,
-		   &const_scattering, &scattering_exp_m, 
-		   &scattering_exp_n, &scattering_exp_p,
-		   &prop_temp_floor);
-	      
-	  }
+#pragma gpu box(bx) sync
+          ca_opacs
+              (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+               BL_TO_FORTRAN_ANYD(S_new[mfi]),
+               BL_TO_FORTRAN_ANYD(temp_new[mfi]),
+               BL_TO_FORTRAN_ANYD(temp_star[mfi]),
+               BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
+               BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+               BL_TO_FORTRAN_ANYD(dkdT[mfi]),
+               use_dkdT, star_is_valid, lag_opac);
 
 	  const Box& reg = mfi.tilebox();
       
@@ -1017,25 +995,12 @@ void Radiation::MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
   else {
 #endif
     
-    if (use_opacity_table_module) {
 #pragma gpu box(kbox) sync
-        ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
-                             BL_TO_FORTRAN_ANYD(kappa_r),
-                             BL_TO_FORTRAN_ANYD(state));
-    }
-    else if (const_kappa_r < 0.0) {
-      ca_compute_powerlaw_kappa_s(kbox.loVect(), kbox.hiVect(),
-				  BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state),
-				  &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, &kappa_p_exp_p, 
-				  &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
-				  &prop_temp_floor, &kappa_r_floor);	 
-    }
-    else {
-      ca_compute_powerlaw_kappa(kbox.loVect(), kbox.hiVect(),
-				BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state),
-				&const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &kappa_r_exp_p, 
-				&prop_temp_floor, &kappa_r_floor);
-    }
+      ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
+                           BL_TO_FORTRAN_ANYD(kappa_r),
+                           BL_TO_FORTRAN_ANYD(state),
+                           0, nGroups);
+
 #ifdef NEUTRINO
   }
 #endif
@@ -1059,25 +1024,11 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
 	}
 	else {
 #endif
-	    if (use_opacity_table_module) {
 #pragma gpu box(bx) sync
-                ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                     BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
-                                     BL_TO_FORTRAN_ANYD(state[mfi]));
-	    }
-	    else if (const_kappa_r < 0.0) {
-	      ca_compute_powerlaw_kappa_s(bx.loVect(), bx.hiVect(),
-					  BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-					  &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, &kappa_p_exp_p, 
-					  &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
-					  &prop_temp_floor, &kappa_r_floor);	 
-	    }
-	    else {
-	      ca_compute_powerlaw_kappa(bx.loVect(), bx.hiVect(),
-					BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(state[mfi]),
-					&const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n, &kappa_r_exp_p, 
-					&prop_temp_floor, &kappa_r_floor);	 
-	    }
+            ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                 BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                                 BL_TO_FORTRAN_ANYD(state[mfi]),
+                                 0, nGroups);
 #ifdef NEUTRINO
 	}
 #endif
@@ -1093,28 +1044,11 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
 #ifdef NEUTRINO
     amrex::Abort("MGFLD_compute_scattering: not supposted to be here");
 #else
-    if (use_opacity_table_module) {
-	BL_FORT_PROC_CALL(CA_COMPUTE_SCATTERING, ca_compute_scattering)
-		(ARLIM_3D(kbox.loVect()), ARLIM_3D(kbox.hiVect()),
-		 BL_TO_FORTRAN_ANYD(kappa_s), 
-		 BL_TO_FORTRAN_ANYD(state));
-    } else {
-	BL_ASSERT(kappa_r_exp_p == 0.0 && kappa_p_exp_p == 0.0 && scattering_exp_p == 0.0);
-	if (const_kappa_r < 0.0) {
-	  ca_compute_powerlaw_kappa(kbox.loVect(), kbox.hiVect(),
-				    BL_TO_FORTRAN(kappa_s), BL_TO_FORTRAN(state),
-				    &const_scattering, &scattering_exp_m, &scattering_exp_n, &scattering_exp_p, 
-				    &prop_temp_floor, &kappa_r_floor);	 
-	    
-	} else {
-	    BL_FORT_PROC_CALL(CA_COMPUTE_SCATTERING_2, ca_compute_scattering_2)
-		(ARLIM_3D(kbox.loVect()), ARLIM_3D(kbox.hiVect()),
-		 BL_TO_FORTRAN_ANYD(kappa_s), BL_TO_FORTRAN_ANYD(state),
-		 &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n, 
-		 &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-		 &prop_temp_floor, &kappa_r_floor);	 
-	}
-    }
+#pragma gpu box(kbox) sync
+    ca_compute_scattering
+        (AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
+         BL_TO_FORTRAN_ANYD(kappa_s), 
+         BL_TO_FORTRAN_ANYD(state));
 #endif
 }
 
