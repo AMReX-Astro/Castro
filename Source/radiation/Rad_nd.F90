@@ -1041,7 +1041,7 @@ contains
 
                 call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
                 kpp(i,j,k,g) = kp
-                kpr(i,j,k,g) = kr 
+                kpr(i,j,k,g) = kr
 
                 if (use_dkdT .eq. 0) then        
 
