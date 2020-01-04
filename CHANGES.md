@@ -5,20 +5,25 @@
      controlled the behavior of the power law opacity have been moved
      to the extern probin module. We now always expect you to pick a
      specific opacity implementation, so the parameter
-     radiation.use_opacity_table_module has been removed. Additionally,
-     the code for the multigroup solver was effectively previously setting
-     the Rosseland opacity, kappa_r, equal to the Planck opacity, kappa_p,
-     if the latter was set but the former was not. There was similar
-     unintuitive behavior for the behavior of the scattering parameter.
-     Now you will get exactly what you ask for in the probin file, given
-     the defaults in the _parameters file for the rad_power_law opacity.
-     By default the constant coefficients for both are negative, which is
-     invalid, so both must be set to a non-negative value for the code
-     to work. Problems that were previously setting const_kappa_p but
-     not const_kappa_r should set the latter equal to the former to
-     maintain the same code behavior. The analogous thing should be
-     done for the exponents (kappa_p_exp_m, kappa_p_exp_n, and
-     kappa_p_exp_p). (#725)
+     radiation.use_opacity_table_module has been removed. The "null"
+     opacity implementation has been previously moved, and the code
+     will fail to compile if you attempt to use it; you will need to
+     update to rad_power_law. (See the documentation for information
+     about how to use this new implementation.)
+
+     Additionally, the code for the multigroup solver was effectively
+     previously setting the Rosseland opacity, kappa_r, equal to the
+     Planck opacity, kappa_p, if the latter was set but the former was
+     not. There was similar unintuitive behavior for the behavior of
+     the scattering parameter. Now you will get exactly what you ask
+     for in the probin file, given the defaults in the _parameters file
+     for the rad_power_law opacity. By default the constant coefficients
+     for both are negative, which is invalid, so both must be set to a
+     non-negative value for the code to work. Problems that were previously
+     setting const_kappa_p but not const_kappa_r should set the latter
+     equal to the former to maintain the same code behavior. The analogous
+     thing should be done for the exponents (kappa_p_exp_m, kappa_p_exp_n,
+     and kappa_p_exp_p). (#725)
 
    * The parameter radiation.do_real_eos = 0 has been removed, and its
      functionality is now enabled with a new equation of state called

@@ -321,6 +321,9 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif
 
 ifeq ($(USE_RAD), TRUE)
+   ifeq ($(Opacity_dir), null)
+     $(error The null opacity directory has been removed, please update to rad_power_law)
+   endif
    OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
    EXTERN_CORE += $(OPAC_PATH)
 endif
