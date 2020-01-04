@@ -10,7 +10,8 @@ It is enabled by setting::
 
 .. note::
 
-   The Castro retry mechanism is enabled by default.
+   The Castro retry mechanism is enabled by default for CTU + Strang
+   and Simplified SDC integration.
 
 The number of subcycles to try in the level is controlled via the
 ``castro.max_subcycles`` parameter.  It is not really suggested to go
@@ -35,8 +36,12 @@ A retry can be triggered by a number of conditions:
     Castro routine that the integration failed so Castro can handle
     the retry itself.
 
-    The combination of ``use_retry = 0`` and ``abort_on_failure = F``
-    is unsafe and not supported.
+    .. note::
 
+       The combination of ``use_retry = 0`` and ``abort_on_failure = F``
+       is unsafe and not supported.
+
+       For true SDC, we disable retry and reset ``abort_on_failure`` to
+       always be true, since retry is not supported for that integration.
 
 

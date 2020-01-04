@@ -40,7 +40,11 @@ extern "C"
 
   void ca_get_ngdnv(int* ngdnv);
 
+#ifdef REACTIONS
   void ca_get_abort_on_failure(int * abort_on_failure);
+
+  void ca_set_abort_on_failure(int * abort_on_failure);
+#endif
 
   void ca_amrinfo_init();
   void ca_amrinfo_finalize();

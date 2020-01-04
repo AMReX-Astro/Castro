@@ -171,9 +171,22 @@ Castro::variableSetUp ()
   int abort_on_failure;
   ca_get_abort_on_failure(&abort_on_failure);
 
+#ifdef TRUE_SDC
+  // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
+  if (use_retry) {
+    amrex::Warning("use_retry = 1 is not supported with true SDC.  Disabling");
+    use_retry = 0;
+  }
+  if (!abort_on_failure) {
+    amrex::Warning("abort_on_failure = F not supported with true SDC.  Resetting");
+   abort_on_failure = 1;
+   ca_set_abort_on_failure(&abort_on_failure);
+  }
+#else
   if (!use_retry && !abort_on_failure) {
     amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
   }
+#endif
 #endif
 
 #ifdef REACTIONS

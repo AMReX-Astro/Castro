@@ -385,11 +385,6 @@ Castro::read_params ()
     if (cfl <= 0.0 || cfl > 1.0)
       amrex::Error("Invalid CFL factor; must be between zero and one.");
 
-    // The timestep retry mechanism is currently incompatible with SDC.
-
-    if (use_retry && !(time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections))
-        amrex::Error("The timestep retry mechanism is currently only compatible with CTU and simplified SDC.");
-
     // SDC does not support CUDA yet
 #ifdef AMREX_USE_CUDA
     if (time_integration_method == SpectralDeferredCorrections) {
