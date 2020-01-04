@@ -15,7 +15,10 @@
      By default the constant coefficients for both are negative, which is
      invalid, so both must be set to a non-negative value for the code
      to work. Problems that were previously setting const_kappa_p but
-     not const_kappa_r should set the latter equal to the former. (#725)
+     not const_kappa_r should set the latter equal to the former to
+     maintain the same code behavior. The analogous thing should be
+     done for the exponents (kappa_p_exp_m, kappa_p_exp_n, and
+     kappa_p_exp_p). (#725)
 
    * The parameter radiation.do_real_eos = 0 has been removed, and its
      functionality is now enabled with a new equation of state called
