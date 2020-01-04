@@ -131,26 +131,6 @@ radiation.hi_bcflag = 0 0 0
 radiation.lo_bcval = 0.0 0.0 0.0
 radiation.hi_bcval = 5.3e9 0.0  0.0
 
-# Power-law opacities are represented as:
-#
-#   const_kappa * (rho**m) * (temp**(-n)) * (nu**(p))
-#
-# Since the formula is both nonphysical and singular, prop_temp_floor
-# provides a floor for the temperature used in the power-law computation.
-#
-# Planck mean opacity
-
-# this is Free-free Kramers opacity from K&W (Eq. 17.5)
-radiation.const_kappa_p =  3.8e22  #3.8e22
-radiation.kappa_p_exp_m =  2.0
-radiation.kappa_p_exp_n = 3.5
-
-# Rosseland mean
-radiation.const_kappa_r =  3.8e22  #3.8e22
-radiation.kappa_r_exp_m =  2.0
-radiation.kappa_r_exp_n = 3.5
-
-
 # radiation plotting
 radiation.plot_lambda = 1
 radiation.plot_kappa_p = 1
