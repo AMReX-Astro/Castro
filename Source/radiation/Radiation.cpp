@@ -2138,7 +2138,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                               igroup, igroup, 1, 0.0);
 
 	    kp2.resize(reg);
-	    temp.plus(dT, 0, 1);
+	    S[mfi].plus(dT, Temp, 1);
 
 #pragma gpu box(reg) sync
             ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
@@ -2146,7 +2146,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                               BL_TO_FORTRAN_ANYD(S[mfi]),
                               igroup, igroup, 1, 0.0);
 
-	    temp.plus(-dT, 0, 1);
+	    S[mfi].plus(-dT, Temp, 1);
 
 	    ca_get_v_dcf(reg.loVect(), reg.hiVect(),
 			 BL_TO_FORTRAN(Er[mfi]),
