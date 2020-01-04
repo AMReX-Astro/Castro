@@ -1,5 +1,22 @@
 # 20.02
 
+   * Most of the radiation test problems have been moved over to a new
+     opacity directory, rad_power_law, and all of the parameters that
+     controlled the behavior of the power law opacity have been moved
+     to the extern probin module. We now always expect you to pick a
+     specific opacity implementation, so the parameter
+     radiation.use_opacity_table_module has been removed. Additionally,
+     the code for the multigroup solver was effectively previously setting
+     the Rosseland opacity, kappa_r, equal to the Planck opacity, kappa_p,
+     if the latter was set but the former was not. There was similar
+     unintuitive behavior for the behavior of the scattering parameter.
+     Now you will get exactly what you ask for in the probin file, given
+     the defaults in the _parameters file for the rad_power_law opacity.
+     By default the constant coefficients for both are negative, which is
+     invalid, so both must be set to a non-negative value for the code
+     to work. Problems that were previously setting const_kappa_p but
+     not const_kappa_r should set the latter equal to the former. (#725)
+
    * The parameter radiation.do_real_eos = 0 has been removed, and its
      functionality is now enabled with a new equation of state called
      rad_power_law. This new EOS is only compatible with the pure
