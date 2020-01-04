@@ -20,8 +20,14 @@
   kappa_r_exp_m = 0.0d0
   kappa_r_exp_n = 0.0d0
   kappa_r_exp_p = 0.0d0
+  
+  ! As kappa_r becomes low the Marshak boundary condition becomes
+  ! ill-conditioned.  The following floor is enforced regardless of the
+  ! mechanism used to set kappa_r.  (In an ideal code this floor would
+  ! be nondimensionalized using a characteristic length (domain size?).
+  ! In the present implementation the Marshak b.c. includes a factor of
+  ! delta x which can cause ill-conditioning if delta x is not O(1).)
 
-  rad_temp_floor = 0.0d0
   kappa_floor = 1.0d-5
 
 /
