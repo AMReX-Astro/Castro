@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>amrvis &mdash; Castro 20.01
+  <title>Running Options: CPUs and GPUs &mdash; Castro 20.01
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Retry Mechanism" href="retry.html" />
-    <link rel="prev" title="Plotfiles and Visualization" href="visualization.html" /> 
+    <link rel="next" title="Flowchart" href="FlowChart.html" />
+    <link rel="prev" title="namespace: castro" href="runtime_parameters.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -96,23 +96,16 @@
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Running Options: CPUs and GPUs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#running-on-cpus">Running on CPUs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-on-gpus">Running on GPUs</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">Parallel I/O</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="visualization.html">Plotfiles and Visualization</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="visualization.html#plotfile-outputting">Plotfile Outputting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visualization.html#controlling-whats-in-the-plotfile">Controlling What’s in the PlotFile</a></li>
-<li class="toctree-l2"><a class="reference internal" href="visualization.html#plotfile-variables">Plotfile Variables</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="visualization.html#visualization-tools">Visualization Tools</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">amrvis</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#visit">VisIt</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#yt">yt</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
 </ul>
@@ -190,15 +183,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-          <li><a href="visualization.html">Plotfiles and Visualization</a> &raquo;</li>
-        
-      <li>amrvis</li>
+      <li>Running Options: CPUs and GPUs</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/vis_tools.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/mpi_plus_x.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -211,43 +202,55 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="amrvis">
-<h1>amrvis<a class="headerlink" href="#amrvis" title="Permalink to this headline">¶</a></h1>
-<p>Our favorite visualization tool is amrvis. We heartily encourage you
-to build the amrvis2d and amrvis3d executables, and to try using them
-to visualize your data. A very useful feature is View/Dataset, which
-allows you to actually view the numbers – this can be handy for
-debugging. You can modify how many levels of data you want to see,
-whether you want to see the grid boxes or not, what palette you use,
-etc.</p>
-<p>If you like to have amrvis display a certain variable, at a certain
-scale, when you first bring up each plotfile (you can always change it
-once the amrvis window is open), you can modify the amrvis.defaults
-file in your directory to have amrvis default to these settings every
-time you run it. The directories CoreCollapse, HSE_test, Sod and
-Sedov have amrvis.defaults files in them. If you are working in a new
-run directory, simply copy one of these and modify it.</p>
+  <div class="section" id="running-options-cpus-and-gpus">
+<h1>Running Options: CPUs and GPUs<a class="headerlink" href="#running-options-cpus-and-gpus" title="Permalink to this headline">¶</a></h1>
+<p>Castro uses MPI for coarse parallelization, distributing boxs across
+compute nodes.  For fine-grained parallelism, OpenMP is used for
+CPU-based computing and CUDA is used for GPUs.</p>
+<div class="section" id="running-on-cpus">
+<h2>Running on CPUs<a class="headerlink" href="#running-on-cpus" title="Permalink to this headline">¶</a></h2>
+<p>The preferred was of running on CPUs is to use MPI+OpenMP, compiling as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_MPI</span><span class="o">=</span><span class="n">TRUE</span>
+<span class="n">USE_OMP</span><span class="o">=</span><span class="n">TRUE</span>
+</pre></div>
 </div>
-<div class="section" id="visit">
-<h1>VisIt<a class="headerlink" href="#visit" title="Permalink to this headline">¶</a></h1>
-<p>VisIt is also a great visualization tool, and it directly handles our
-plotfile format (which it calls Boxlib). For more information check
-out visit.llnl.gov.</p>
-<p>[Useful tip:] To use the Boxlib3D plugin, select it from File
-<span class="math notranslate nohighlight">\(\rightarrow\)</span> Open file <span class="math notranslate nohighlight">\(\rightarrow\)</span> Open file as type Boxlib, and
-then the key is to read the Header file, plt00000/Header, for example,
-rather than telling to to read plt00000.</p>
+<p>Castro uses tiling to divide boxes into smaller tiles and distributes
+these tiles to the OpenMP threads.  This is all managed at the MFIter
+level – no OpenMP directives need to be present in the compute
+kernels themselves.  See <a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/Basics.html#sec-basics-mfiter-tiling">MFIter with Tiling</a>
+for more information.</p>
+<p>The optimal number of OpenMP threads depends on the computer
+architecture, and some experimentation is needed.  Tiling works best
+with larger boxes, so increasing <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> can benefit
+performance.</p>
 </div>
-<div class="section" id="yt">
-<h1>yt<a class="headerlink" href="#yt" title="Permalink to this headline">¶</a></h1>
-<p>yt is a free and open-source software that provides data analysis and
-publication-level visualization tools for astrophysical simulation
-results such as those Castro produces. As yt is script-based, it’s not
-as easy to use as VisIt, and certainly not as easy as amrvis, but the
-images can be worth it! Here we do not flesh out yt, but give an
-overview intended to get a person started. Full documentation and
-explanations from which this section was adapted can be found at
-<a class="reference external" href="http://yt-project.org/doc/index.html">http://yt-project.org/doc/index.html</a>.</p>
+<div class="section" id="running-on-gpus">
+<h2>Running on GPUs<a class="headerlink" href="#running-on-gpus" title="Permalink to this headline">¶</a></h2>
+<p>Castro’s compute kernels can run on GPUs and this is the preferred way
+to run on supercomputers with GPUs.  At the moment, offloading is
+handled using CUDA and managed memory.  The exact same compute kernels
+are used on GPUs as on CPUs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Almost all of Castro runs on GPUs, with the main exception being
+the true SDC solver (<code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>).</p>
+</div>
+<p>To enable GPU computing, compile with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_MPI</span> <span class="o">=</span> <span class="n">TRUE</span>
+<span class="n">USE_OMP</span> <span class="o">=</span> <span class="n">FALSE</span>
+<span class="n">USE_CUDA</span> <span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>Currently, we support the PGI compilers.</p>
+<p>When using GPUs, almost all of the computing is done on the GPUs.  In
+the MFIter loops over boxes, the loops put a single zone on each GPU
+thread, to take advantage of the massive parallelism.  The Microphysics
+in StarKiller also takes advantage of GPUs, so entire simulations can
+be run on the GPU.</p>
+<p>Best performance is obtained with bigger boxes, so setting
+<code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span> <span class="pre">=</span> <span class="pre">128</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span> <span class="pre">=</span> <span class="pre">32</span></code> can give
+good performance.</p>
+</div>
 </div>
 
 
@@ -258,10 +261,10 @@ explanations from which this section was adapted can be found at
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="retry.html" class="btn btn-neutral float-right" title="Retry Mechanism" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="FlowChart.html" class="btn btn-neutral float-right" title="Flowchart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="visualization.html" class="btn btn-neutral float-left" title="Plotfiles and Visualization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="runtime_parameters.html" class="btn btn-neutral float-left" title="namespace: castro" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
