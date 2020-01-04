@@ -1053,7 +1053,7 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
                 ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                   BL_TO_FORTRAN_ANYD(eta[mfi]),
                                   BL_TO_FORTRAN_ANYD(state[mfi]),
-                                  0, 0, 1, dT);
+                                  igroup, igroup, 1, dT);
 
 	    }
 
