@@ -570,7 +570,7 @@ extern "C" {
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(kpr),
      const BL_FORT_FAB_ARG_3D(state),
-     int starting_group, int ngroups);
+     int first_group, int last_group, int num_groups);
 
   void ca_compute_scattering
    (const int * lo, const int* hi,
@@ -581,7 +581,7 @@ extern "C" {
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(kpp),
      const BL_FORT_FAB_ARG_3D(state),
-     int starting_group, int ngroups,
+     int first_group, int last_group, int num_groups,
      amrex::Real temp_offset);
 
   void ca_filt_prim

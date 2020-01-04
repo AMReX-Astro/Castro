@@ -1053,7 +1053,7 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
                 ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                   BL_TO_FORTRAN_ANYD(eta[mfi]),
                                   BL_TO_FORTRAN_ANYD(state[mfi]),
-                                  0, 1, dT);
+                                  0, 0, 1, dT);
 
 	    }
 
@@ -1482,9 +1482,9 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
 
 #pragma gpu box(bx)
         ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(fkp[mfi]),
+                          BL_TO_FORTRAN_N_ANYD(fkp[mfi], igroup),
                           BL_TO_FORTRAN_ANYD(state[mfi]),
-                          igroup, 1, 0.0);
+                          igroup, igroup, 1, 0.0);
 
 #pragma gpu box(bx) sync
         nfloor(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -1543,9 +1543,9 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
 
 #pragma gpu box(bx)
           ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                               BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                               BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup),
                                BL_TO_FORTRAN_ANYD(state[mfi]),
-                               igroup, 1);
+                               igroup, igroup, 1);
       }
   }
 }
@@ -1578,9 +1578,9 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
 
 #pragma gpu box(bx)
       ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                           BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                           BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup),
                            BL_TO_FORTRAN_ANYD(state[mfi]),
-                           igroup, 1);
+                           igroup, igroup, 1);
   }
 
   kappa_r.FillBoundary(geom.periodicity());
@@ -1600,7 +1600,7 @@ void Radiation::SGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
       ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
                            BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
                            BL_TO_FORTRAN_ANYD(state[mfi]),
-                           0, 1);
+                           0, 0, 1);
   }
 }
 
@@ -1614,7 +1614,7 @@ void Radiation::SGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
   ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
                        BL_TO_FORTRAN_ANYD(kappa_r),
                        BL_TO_FORTRAN_ANYD(state),
-                       0, 1);
+                       0, 0, 1);
 }
 
 void Radiation::deferred_sync_setup(int crse_level)
@@ -2126,16 +2126,16 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 
 #pragma gpu box(reg) sync
             ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                                 BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup),
                                  BL_TO_FORTRAN_ANYD(S[mfi]),
-                                 0, nGroups);
+                                 igroup, igroup, 1);
 
 	    kp.resize(reg);
 #pragma gpu box(reg) sync
             ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
                               BL_TO_FORTRAN_ANYD(kp),
                               BL_TO_FORTRAN_ANYD(S[mfi]),
-                              igroup, 1, 0.0);
+                              igroup, igroup, 1, 0.0);
 
 	    kp2.resize(reg);
 	    temp.plus(dT, 0, 1);
@@ -2144,7 +2144,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
                               BL_TO_FORTRAN_ANYD(kp2),
                               BL_TO_FORTRAN_ANYD(S[mfi]),
-                              igroup, 1, 0.0);
+                              igroup, igroup, 1, 0.0);
 
 	    temp.plus(-dT, 0, 1);
 

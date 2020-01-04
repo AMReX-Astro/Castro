@@ -999,7 +999,7 @@ void Radiation::MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
       ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
                            BL_TO_FORTRAN_ANYD(kappa_r),
                            BL_TO_FORTRAN_ANYD(state),
-                           0, nGroups);
+                           0, nGroups-1, nGroups);
 
 #ifdef NEUTRINO
   }
@@ -1014,7 +1014,7 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(kappa_r, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 	const Box& bx = mfi.growntilebox();
 #ifdef NEUTRINO
 	if (radiation_type == Neutrino) {
@@ -1028,7 +1028,7 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
             ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                  BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
                                  BL_TO_FORTRAN_ANYD(state[mfi]),
-                                 0, nGroups);
+                                 0, nGroups-1, nGroups);
 #ifdef NEUTRINO
 	}
 #endif
