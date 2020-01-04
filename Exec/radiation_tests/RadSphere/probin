@@ -10,6 +10,11 @@
   eos_c_v_exp_m =  0.0d0
   eos_c_v_exp_n =  0.0d0
 
+  const_kappa_r =  0.0d0
+  kappa_r_exp_m =  0.0d0
+  kappa_r_exp_n =  0.0d0
+  kappa_r_exp_p =  0.0d0
+
   const_kappa_p =  0.0d0
   kappa_p_exp_m =  0.0d0
   kappa_p_exp_n =  0.0d0

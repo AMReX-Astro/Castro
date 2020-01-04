@@ -1,25 +1,25 @@
-# Opacity constant (Planck mean)
+# Opacity constant (Planck)
 const_kappa_p                real           -1.0d0
 
-# Density exponent (Planck mean)
+# Density exponent (Planck)
 kappa_p_exp_m                real            0.0d0
 
-# Temperature exponent (Planck mean)
+# Temperature exponent (Planck)
 kappa_p_exp_n                real            0.0d0
 
-# Frequency exponent (Planck mean)
+# Frequency exponent (Planck)
 kappa_p_exp_p                real            0.0d0
 
-# Opacity constant (Rosseland mean)
+# Opacity constant (Rosseland)
 const_kappa_r                real           -1.0d0
 
-# Density exponent (Rosseland mean)
+# Density exponent (Rosseland)
 kappa_r_exp_m                real            0.0d0
 
-# Temperature exponent (Rosseland mean)
+# Temperature exponent (Rosseland)
 kappa_r_exp_n                real            0.0d0
 
-# Frequency exponent (Rosseland mean)
+# Frequency exponent (Rosseland)
 kappa_r_exp_p                real            0.0d0
 
 # Opacity constant (scattering)

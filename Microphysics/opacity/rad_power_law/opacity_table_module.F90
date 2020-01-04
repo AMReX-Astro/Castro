@@ -28,6 +28,10 @@ contains
 
   subroutine get_opacities(kp, kr, rho, temp, rhoYe, nu, get_Planck_mean, get_Rosseland_mean)
 
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
+
     implicit none
 
     logical,  intent(in   ) :: get_Planck_mean, get_Rosseland_mean
@@ -47,12 +51,22 @@ contains
 
     ks = const_scatter * (rho**scatter_exp_m) * (teff**(-scatter_exp_n)) * nup_kps
 
-    if (get_planck_mean) then
+    if (get_Planck_mean) then
+#ifndef AMREX_USE_GPU
+       if (const_kappa_p < 0.0_rt) then
+          call castro_error("Must set Planck opacity constant")
+       end if
+#endif
        kp = const_kappa_p * (rho**kappa_p_exp_m) * (teff**(-kappa_p_exp_n)) * nup_kpp
        kp = max(kp, kappa_floor)
     end if
 
     if (get_Rosseland_mean) then
+#ifndef AMREX_USE_GPU
+       if (const_kappa_r < 0.0_rt) then
+          call castro_error("Must set Rosseland opacity constant")
+       end if
+#endif
        kr = const_kappa_r * (rho**kappa_r_exp_m) * (teff**(-kappa_r_exp_n)) * nup_kpr
        kr = max(kr + ks, kappa_floor)
     end if
