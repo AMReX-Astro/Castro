@@ -1,7 +1,7 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use amrex_constants_module
-  use probdata_module, only: T_min, T_max, rho_ambient, width, xn, fortin, cfrac, ofrac
+  use probdata_module, only: T_min, T_max, rho_ambient, width, xn, cfrac, ofrac
   use network, only: network_species_index, nspec
   use castro_error_module, only: castro_error
   use amrex_fort_module, only: rt => amrex_real
@@ -24,28 +24,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   real(rt) :: smallx
 
-  if (namlen .gt. maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! Set namelist defaults
-
-  T_min = 6.e9_rt
-  T_max = 8.e9_rt
-  rho_ambient = 1.e7_rt
-  width = 5.e4_rt
-
-  smallx = 1.e-12_rt
-
-  cfrac = 0.5e0_rt
-  ofrac = 0.0e0_rt
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! get the species indices
   ihe4 = network_species_index("helium-4")
