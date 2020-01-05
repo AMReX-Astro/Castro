@@ -6,8 +6,23 @@
 
 &extern
 
-  eos_const_c_v = 1.0d8
-  eos_c_v_exp_m = 0.0d0
-  eos_c_v_exp_n = 0.0d0
+  eos_const_c_v =  1.0d8
+  eos_c_v_exp_m =  0.0d0
+  eos_c_v_exp_n =  0.0d0
+
+  const_kappa_r =  0.0d0
+  kappa_r_exp_m =  0.0d0
+  kappa_r_exp_n =  0.0d0
+  kappa_r_exp_p =  0.0d0
+
+  const_kappa_p =  0.0d0
+  kappa_p_exp_m =  0.0d0
+  kappa_p_exp_n =  0.0d0
+  kappa_p_exp_p =  0.0d0
+
+  const_scatter =  4.6656d56
+  scatter_exp_m =  0.0d0
+  scatter_exp_n =  0.0d0
+  scatter_exp_p = -3.0d0
 
 /

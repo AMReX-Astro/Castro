@@ -22,4 +22,16 @@
   eos_c_v_exp_m = 0.0d0
   eos_c_v_exp_n = -3.0d0
 
+  const_kappa_p = 1.0d0
+  kappa_p_exp_m = 0.0d0
+  kappa_p_exp_n = 0.0d0
+  kappa_p_exp_p = 0.0d0
+
+  const_kappa_r = 1.0d0
+  kappa_r_exp_m = 0.0d0
+  kappa_r_exp_n = 0.0d0
+  kappa_r_exp_p = 0.0d0
+
+  kappa_floor = 1.e-15
+
 /

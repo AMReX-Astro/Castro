@@ -1,24 +1,24 @@
 &fortin
-
+  rho_0  = 1.0e-5
+  T_0 = 3.0e2
 /
+
 
 
 &extern
 
-  eos_const_c_v = 1.0d-13
-  eos_c_v_exp_m = 0.0d0
-  eos_c_v_exp_n = 0.0d0
+  eos_gamma = 1.6666666667
 
-  const_kappa_p = 0.0d0
+  const_kappa_p = 1.0d-15
   kappa_p_exp_m = 0.0d0
   kappa_p_exp_n = 0.0d0
   kappa_p_exp_p = 0.0d0
 
-  const_kappa_r = 1.9986163866666668d10
+  const_kappa_r = 1.0d-15
   kappa_r_exp_m = 0.0d0
   kappa_r_exp_n = 0.0d0
   kappa_r_exp_p = 0.0d0
 
-  kappa_floor = 1.0d-15
+  kappa_floor = 1.0d-16
 
 /
