@@ -751,34 +751,6 @@ contains
 
     fac = beta / (h**2)
 
-    if (bctype == LO_DIRICHLET) then
-
-       if (bho >= 1) then
-
-          h2 = 0.5e0_rt * h
-          th2 = 3.e0_rt * h2
-          bfm = fac * (th2 - bcl) / (bcl + h2) - fac
-          bfm2 = fac * (bcl - h2) / (bcl + th2)
-
-       else
-
-          bfv = (beta / h) / (0.5e0_rt * h + bcl)
-          bfm = bfv - fac
-
-       end if
-
-    else if (bctype == LO_NEUMANN) then
-
-       bfm = -fac
-       bfm2 = 0.e0_rt
-
-#ifndef AMREX_USE_GPU
-    else
-
-       call castro_error("hmmat3: unsupported boundary type")
-#endif
-    end if
-
     ! The -fac * b(i,j,k) term applied to the matrix diagonal is the contribution
     ! from the interior stencil which must be removed at the boundary.
 
