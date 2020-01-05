@@ -1381,7 +1381,6 @@ void HypreMultiABec::loadMatrix()
     stencil_indices[i] = i;
   }
 
-  Vector<Real> r;
   Real foo = 1.e200;
 
   FArrayBox matfab;
@@ -1395,18 +1394,22 @@ void HypreMultiABec::loadMatrix()
 
       matfab.resize(reg,size);
       Real* mat = matfab.dataPtr();
+      Elixir mat_elix = matfab.elixir();
 
       // build matrix interior
 
-      hmac(mat,
-	   BL_TO_FORTRAN((*acoefs[level])[mfi]),
-	   ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha);
+#pragma gpu box(reg) sync
+      hmac(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+           BL_TO_FORTRAN_ANYD(matfab),
+	   BL_TO_FORTRAN_ANYD((*acoefs[level])[mfi]),
+	   alpha);
 
       for (idim = 0; idim < BL_SPACEDIM; idim++) {
-	hmbc(mat, 
-	     BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-	     ARLIM(reg.loVect()), ARLIM(reg.hiVect()), beta,
-	     geom[level].CellSize(), idim);
+#pragma gpu box(reg) sync
+	hmbc(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+             BL_TO_FORTRAN_ANYD(matfab), 
+	     BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+	     beta, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
       }
 
       // add b.c.'s to matrix diagonal, and
@@ -1445,22 +1448,28 @@ void HypreMultiABec::loadMatrix()
 	      pSPa = &foo;
 	      SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
 	    }
-            getFaceMetric(r, reg, oitr(), geom[level]);
-            hmmat3(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		   cdir, bctype, tfp, bho, bcl,
-		   ARLIM(fs.loVect()), ARLIM(fs.hiVect()),
-		   BL_TO_FORTRAN(msk),
-		   BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		   beta, geom[level].CellSize(),
-		   flux_factor, r.dataPtr(),
-		   pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
+#pragma gpu box(reg) sync
+            hmmat3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                   reg.loVect()[0], reg.hiVect()[0],
+                   oitr().isLow(), idim+1,
+                   BL_TO_FORTRAN_ANYD(matfab),
+		   cdir, bctype,
+                   tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
+                   bho, bcl,
+		   BL_TO_FORTRAN_ANYD(msk),
+		   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+		   beta, AMREX_REAL_ANYD(geom[level].CellSize()),
+		   flux_factor,
+		   pSPa, AMREX_INT_ANYD(SPabox.loVect()), AMREX_INT_ANYD(SPabox.hiVect()));
           }
           else {
-            hmmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		  cdir, bct, bho, bcl,
-		  BL_TO_FORTRAN(msk),
-		  BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		  beta, geom[level].CellSize());
+#pragma gpu box(reg) sync
+          hmmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                BL_TO_FORTRAN_ANYD(matfab),
+                cdir, bct, bho, bcl,
+                BL_TO_FORTRAN_ANYD(msk),
+                BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+                beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
         }
         else {
@@ -1470,11 +1479,13 @@ void HypreMultiABec::loadMatrix()
           // stencil using Neumann BC:
 
           const RadBoundCond bct_coarse = LO_NEUMANN;
-	  hmmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+#pragma gpu box(reg) sync
+	  hmmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                BL_TO_FORTRAN_ANYD(matfab),
 		cdir, bct_coarse, bho, bcl,
-		BL_TO_FORTRAN(msk),
-		BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-		beta, geom[level].CellSize());
+		BL_TO_FORTRAN_ANYD(msk),
+		BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+		beta, AMREX_REAL_ANYD(geom[level].CellSize()));
         }
       }
 

@@ -13,6 +13,1189 @@ module habec_nd_module
 
 contains
 
+  subroutine hmac(lo, hi, &
+                  mat, m_lo, m_hi, &
+                  a, a_lo, a_hi, &
+                  alpha) &
+                  bind(C, name="hmac")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: m_lo(3), m_hi(3)
+    integer,  intent(in   ) :: a_lo(3), a_hi(3)
+    real(rt), intent(inout) :: mat(0:2*dim,m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt), intent(in   ) :: a(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
+    real(rt), intent(in   ), value :: alpha
+
+    integer :: i, j, k
+
+    !$gpu
+
+    if (alpha == 0.e0_rt) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = 0.e0_rt
+             end do
+          end do
+       end do
+
+    else
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = alpha * a(i,j,k)
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine hmac
+
+
+
+  subroutine hmbc(lo, hi, &
+                  mat, m_lo, m_hi, &
+                  b, b_lo, b_hi, &
+                  beta, dx, n) &
+                  bind(C, name="hmbc")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: m_lo(3), m_hi(3)
+    integer,  intent(in   ) :: b_lo(3), b_hi(3)
+    real(rt), intent(inout) :: mat(0:2*dim,m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt), intent(inout) :: b(b_lo(1):b_hi(1),b_lo(2):b_hi(2),b_lo(3):b_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: n
+    real(rt), intent(in   ), value :: beta
+
+    integer  :: i, j, k
+    real(rt) :: fac
+
+    !$gpu
+
+    if (n == 0) then
+
+       fac = beta / (dx(1)**2)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) + fac * (b(i,j,k) + b(i+1,j,k))
+                mat(1,i,j,k) = - fac * b(i,j,k)
+                mat(2,i,j,k) = - fac * b(i+1,j,k)
+             end do
+          end do
+       end do
+
+    elseif (n == 1) then
+
+       fac = beta / (dx(2)**2)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) + fac * (b(i,j,k) + b(i,j+1,k))
+                mat(3,i,j,k) = - fac * b(i,j,k)
+                mat(4,i,j,k) = - fac * b(i,j+1,k)
+             end do
+          end do
+       end do
+
+    else
+
+       fac = beta / (dx(3)**2)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) + fac * (b(i,j,k) + b(i,j,k+1))
+                mat(5,i,j,k) = - fac * b(i,j,k)
+                mat(6,i,j,k) = - fac * b(i,j,k+1)
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine hmbc
+
+
+
+  subroutine hma2c(lo, hi, &
+                   mat, m_lo, m_hi, &
+                   a2, a_lo, a_hi, &
+                   alpha2, n) &
+                   bind(C, name="hma2c")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: m_lo(3), m_hi(3)
+    integer,  intent(in   ) :: a_lo(3), a_hi(3)
+    real(rt), intent(inout) :: mat(0:2*dim,m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt), intent(inout) :: a2(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
+    integer,  intent(in   ), value :: n
+    real(rt), intent(in   ), value :: alpha2
+
+    integer  :: i, j, k
+    real(rt) :: fac
+
+    !$gpu
+
+    fac = 0.25e0_rt * alpha2
+
+    if (n == 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) + fac * (a2(i,j,k) + a2(i+1,j,k))
+                mat(1,i,j,k) = mat(1,i,j,k) + fac * a2(i,j,k)
+                mat(2,i,j,k) = mat(2,i,j,k) + fac * a2(i+1,j,k)
+             end do
+          end do
+       end do
+
+    else if (n == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) + fac * (a2(i,j,k) + a2(i,j+1,k))
+                mat(3,i,j,k) = mat(3,i,j,k) + fac * a2(i,j,k)
+                mat(4,i,j,k) = mat(4,i,j,k) + fac * a2(i,j+1,k)
+             end do
+          end do
+       end do
+
+    else
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) + fac * (a2(i,j,k) + a2(i,j,k+1))
+                mat(5,i,j,k) = mat(5,i,j,k) + fac * a2(i,j,k)
+                mat(6,i,j,k) = mat(6,i,j,k) + fac * a2(i,j,k+1)
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine hma2c
+
+
+
+  subroutine hmcc(lo, hi, &
+                  mat, m_lo, m_hi, &
+                  c, c_lo, c_hi, &
+                  gamma, dx, n) &
+                  bind(C, name="hmcc")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: m_lo(3), m_hi(3)
+    integer,  intent(in   ) :: c_lo(3), c_hi(3)
+    real(rt), intent(inout) :: mat(0:2*dim,m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt), intent(in   ) :: c(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: gamma
+    integer,  intent(in   ), value :: n
+
+    integer  :: i, j, k
+    real(rt) :: fac
+
+    !$gpu
+
+    if (n == 0) then
+
+       fac = 0.5e0_rt * gamma / dx(1)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) - fac * (c(i,j,k) - c(i+1,j,k))
+                mat(1,i,j,k) = mat(1,i,j,k) - fac * c(i,j,k)
+                mat(2,i,j,k) = mat(2,i,j,k) + fac * c(i+1,j,k)
+             end do
+          end do
+       end do
+
+    else if (n == 1) then
+
+       fac = 0.5e0_rt * gamma / dx(2)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) - fac * (c(i,j,k) - c(i,j+1,k))
+                mat(3,i,j,k) = mat(3,i,j,k) - fac * c(i,j,k)
+                mat(4,i,j,k) = mat(4,i,j,k) + fac * c(i,j+1,k)
+             end do
+          end do
+       end do
+
+    else
+
+       fac = 0.5e0_rt * gamma / dx(3)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) - fac * (c(i,j,k) - c(i,j,k+1))
+                mat(5,i,j,k) = mat(5,i,j,k) - fac * c(i,j,k)
+                mat(6,i,j,k) = mat(6,i,j,k) + fac * c(i,j,k+1)
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine hmcc
+
+
+
+  subroutine hmd1c(lo, hi, &
+                   mat, m_lo, m_hi, &
+                   d1, d_lo, d_hi, &
+                   delta1, dx, n) &
+                   bind(C, name="hmd1c")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: m_lo(3), m_hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    real(rt), intent(inout) :: mat(0:2*dim,m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt), intent(in   ) :: d1(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: delta1
+    integer,  intent(in   ), value :: n
+
+    integer  :: i, j, k
+    real(rt) :: fac
+
+    !$gpu
+
+    if (n == 0) then
+
+       fac = 0.5e0_rt * delta1 / dx(1)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(1,i,j,k) = mat(1,i,j,k) - fac * d1(i,j,k)
+                mat(2,i,j,k) = mat(2,i,j,k) + fac * d1(i,j,k)
+             end do
+          end do
+       end do
+
+    else if (n == 1) then
+
+       fac = 0.5e0_rt * delta1 / dx(2)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(3,i,j,k) = mat(3,i,j,k) - fac * d1(i,j,k)
+                mat(4,i,j,k) = mat(4,i,j,k) + fac * d1(i,j,k)
+             end do
+          end do
+       end do
+
+    else
+
+       fac = 0.5e0_rt * delta1 / dx(3)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(5,i,j,k) = mat(5,i,j,k) - fac * d1(i,j,k)
+                mat(6,i,j,k) = mat(6,i,j,k) + fac * d1(i,j,k)
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine hmd1c
+
+
+
+  subroutine hmd2c(lo, hi, &
+                   mat, m_lo, m_hi, &
+                   d2, d_lo, d_hi, &
+                   delta2, dx, n) &
+                   bind(C, name="hmd2c")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: m_lo(3), m_hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    real(rt), intent(inout) :: mat(0:2*dim,m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt), intent(in   ) :: d2(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: delta2
+    integer,  intent(in   ), value :: n
+
+    integer  :: i, j, k
+    real(rt) :: fac
+
+    !$gpu
+
+    if (n == 0) then
+
+       fac = 0.5e0_rt * delta2 / dx(1)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) + fac * (d2(i,j,k) - d2(i+1,j,k))
+                mat(1,i,j,k) = mat(1,i,j,k) - fac * d2(i,j,k)
+                mat(2,i,j,k) = mat(2,i,j,k) + fac * d2(i+1,j,k)
+             end do
+          end do
+       end do
+
+    else if (n == 1) then
+
+       fac = 0.5e0_rt * delta2 / dx(2)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) + fac * (d2(i,j,k) - d2(i,j+1,k))
+                mat(3,i,j,k) = mat(3,i,j,k) - fac * d2(i,j,k)
+                mat(4,i,j,k) = mat(4,i,j,k) + fac * d2(i,j+1,k)
+             end do
+          end do
+       end do
+
+    else
+
+       fac = 0.5e0_rt * delta2 / dx(3)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                mat(0,i,j,k) = mat(0,i,j,k) + fac * (d2(i,j,k) - d2(i,j,k+1))
+                mat(5,i,j,k) = mat(5,i,j,k) - fac * d2(i,j,k)
+                mat(6,i,j,k) = mat(6,i,j,k) + fac * d2(i,j,k+1)
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine hmd2c
+
+
+
+  subroutine hmmat(lo, hi, &
+                   mat, mat_lo, mat_hi, &
+                   cdir, bct, bho, bcl, &
+                   mask, m_lo, m_hi, &
+                   b, b_lo, b_hi, &
+                   beta, dx) &
+                   bind(C, name="hmmat")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: mat_lo(3), mat_hi(3)
+    integer,  intent(in   ) :: m_lo(3), m_hi(3)
+    integer,  intent(in   ) :: b_lo(3), b_hi(3)
+    real(rt), intent(inout) :: mat(0:2*dim,mat_lo(1):mat_hi(1),mat_lo(2):mat_hi(2),mat_lo(3):mat_hi(3))
+    integer,  intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt), intent(in   ) :: b(b_lo(1):b_hi(1),b_lo(2):b_hi(2),b_lo(3):b_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: cdir, bct, bho
+    real(rt), intent(in   ), value :: bcl, beta
+
+    integer  :: i, j, k
+    real(rt) :: h, fac, bfm, bfv
+    real(rt) :: bfm2, h2, th2
+    logical  :: xlo, xhi, ylo, yhi, zlo, zhi
+
+    !$gpu
+
+    xlo = .false.
+    ylo = .false.
+    zlo = .false.
+
+    xhi = .false.
+    yhi = .false.
+    zhi = .false.
+
+    if (dim == 1) then
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          xhi = .true.
+          h = dx(1)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    else if (dim == 2) then
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 2) then
+          xhi = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          ylo = .true.
+          h = dx(2)
+       else if (cdir == 3) then
+          yhi = .true.
+          h = dx(2)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    else
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 3) then
+          xhi = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          ylo = .true.
+          h = dx(2)
+       else if (cdir == 4) then
+          yhi = .true.
+          h = dx(2)
+       else if (cdir == 2) then
+          zlo = .true.
+          h = dx(3)
+       else if (cdir == 5) then
+          zhi = .true.
+          h = dx(3)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    end if
+
+    fac = beta / (h**2)
+
+    if (bct == LO_DIRICHLET) then
+
+       if (bho >= 1) then
+
+          h2 = 0.5e0_rt * h
+          th2 = 3.e0_rt * h2
+          bfm = fac * (th2 - bcl) / (bcl + h2) - fac
+          bfm2 = fac * (bcl - h2) / (bcl + th2)
+
+       else
+
+          bfv = (beta / h) / (0.5e0_rt * h + bcl)
+          bfm = bfv - fac
+
+       end if
+
+    else if (bct == LO_NEUMANN) then
+
+       bfm = -fac
+       bfm2 = 0.e0_rt
+
+#ifndef AMREX_USE_GPU
+    else
+
+       call castro_error("hmmat: unsupported boundary type")
+#endif
+
+    end if
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1) .and. &
+                 j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                 k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
+
+                if (xlo .and. mask(i-1,j,k) > 0) then
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i,j,k)
+                   mat(1,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(2,i,j,k) = mat(2,i,j,k) + bfm2 * b(i,j,k)
+                   end if
+
+                end if
+
+             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
+
+                if (xhi .and. mask(i+1,j,k) > 0) then
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i+1,j,k)
+                   mat(2,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(1,i,j,k) = mat(1,i,j,k) + bfm2 * b(i+1,j,k)
+                   end if
+
+                end if
+
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
+
+                if (ylo .and. mask(i,j-1,k) > 0) then
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i,j,k)
+                   mat(3,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(4,i,j,k) = mat(4,i,j,k) + bfm2 * b(i,j,k)
+                   end if
+
+                end if
+
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
+
+                if (yhi .and. mask(i,j+1,k) > 0) then
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i,j+1,k)
+                   mat(4,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(3,i,j,k) = mat(3,i,j,k) + bfm2 * b(i,j+1,k)
+                   end if
+
+                end if
+
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
+
+                if (zlo .and. mask(i,j,k-1) > 0) then
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i,j,k)
+                   mat(5,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(6,i,j,k) = mat(6,i,j,k) + bfm2 * b(i,j,k)
+                   end if
+
+                end if
+
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
+
+                if (zhi .and. mask(i,j,k+1) > 0) then
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm * b(i,j,k+1)
+                   mat(6,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(5,i,j,k) = mat(5,i,j,k) + bfm2 * b(i,j,k+1)
+                   end if
+
+                end if
+
+             end if
+
+          end do
+       end do
+    end do
+
+  end subroutine hmmat
+
+
+
+  subroutine hmmat3(lo, hi, &
+                    lo_x, hi_x, &
+                    ori_lo, idir, &
+                    mat, mat_lo, mat_hi, &
+                    cdir, bctype, &
+                    tf, tf_lo, tf_hi, &
+                    bho, bcl, &
+                    mask, m_lo, m_hi, &
+                    b, b_lo, b_hi, &
+                    beta, dx, c, &
+                    spa, spa_lo, spa_hi) &
+                    bind(C, name="hmmat3")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: mat_lo(3), mat_hi(3)
+    integer,  intent(in   ) :: tf_lo(3), tf_hi(3)
+    integer,  intent(in   ) :: m_lo(3), m_hi(3)
+    integer,  intent(in   ) :: b_lo(3), b_hi(3)
+    integer,  intent(in   ) :: spa_lo(3), spa_hi(3)
+    real(rt), intent(inout) :: mat(0:2*dim,mat_lo(1):mat_hi(1),mat_lo(2):mat_hi(2),mat_lo(3):mat_hi(3))
+    integer,  intent(in   ) :: tf(tf_lo(1):tf_hi(1),tf_lo(2):tf_hi(2),tf_lo(3):tf_hi(3))
+    integer,  intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
+    real(rt), intent(in   ) :: b(b_lo(1):b_hi(1),b_lo(2):b_hi(2),b_lo(3):b_hi(3))
+    real(rt), intent(in   ) :: spa(spa_lo(1):spa_hi(1),spa_lo(2):spa_hi(2),spa_lo(3):spa_hi(3))
+    integer,  intent(in   ), value :: cdir, bctype, bho, lo_x, hi_x, ori_lo, idir
+    real(rt), intent(in   ), value :: bcl, beta, c
+    real(rt), intent(in   ) :: dx(3)
+
+    integer  :: i, j, k, bct
+    real(rt) :: h, fac, bfm, bfv
+    real(rt) :: bfm2, h2, th2
+    real(rt) :: r
+    logical  :: xlo, xhi, ylo, yhi, zlo, zhi
+
+    !$gpu
+
+    xlo = .false.
+    ylo = .false.
+    zlo = .false.
+
+    xhi = .false.
+    yhi = .false.
+    zhi = .false.
+
+    if (dim == 1) then
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          xhi = .true.
+          h = dx(1)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    else if (dim == 2) then
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 2) then
+          xhi = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          ylo = .true.
+          h = dx(2)
+       else if (cdir == 3) then
+          yhi = .true.
+          h = dx(2)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    else
+
+       if (cdir == 0) then
+          xlo = .true.
+          h = dx(1)
+       else if (cdir == 3) then
+          xhi = .true.
+          h = dx(1)
+       else if (cdir == 1) then
+          ylo = .true.
+          h = dx(2)
+       else if (cdir == 4) then
+          yhi = .true.
+          h = dx(2)
+       else if (cdir == 2) then
+          zlo = .true.
+          h = dx(3)
+       else if (cdir == 5) then
+          zhi = .true.
+          h = dx(3)
+#ifndef AMREX_USE_GPU
+       else
+          call castro_error("Unknown cdir")
+#endif
+       end if
+
+    end if
+
+    fac = beta / (h**2)
+
+    if (bctype == LO_DIRICHLET) then
+
+       if (bho >= 1) then
+
+          h2 = 0.5e0_rt * h
+          th2 = 3.e0_rt * h2
+          bfm = fac * (th2 - bcl) / (bcl + h2) - fac
+          bfm2 = fac * (bcl - h2) / (bcl + th2)
+
+       else
+
+          bfv = (beta / h) / (0.5e0_rt * h + bcl)
+          bfm = bfv - fac
+
+       end if
+
+    else if (bctype == LO_NEUMANN) then
+
+       bfm = -fac
+       bfm2 = 0.e0_rt
+
+#ifndef AMREX_USE_GPU
+    else
+
+       call castro_error("hmmat3: unsupported boundary type")
+#endif
+    end if
+
+    ! The -fac * b(i,j,k) term applied to the matrix diagonal is the contribution
+    ! from the interior stencil which must be removed at the boundary.
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             call face_metric(i, j, k, lo_x, hi_x, dx(1), idir, ori_lo, r)
+
+             if (i-1 .ge. m_lo(1) .and. i-1 .le. m_hi(1) .and. &
+                 j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                 k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
+
+                if (xlo .and. mask(i-1,j,k) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i-1,j,k)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfm = fac * (th2 - bcl) / (bcl + h2)  * b(i,j,k)
+                         bfm2 = fac * (bcl - h2) / (bcl + th2) * b(i,j,k)
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                         bfm = bfv * b(i,j,k)
+                      end if
+
+                   else if (bct == LO_NEUMANN) then
+
+                      bfm  = 0.e0_rt
+                      bfm2 = 0.e0_rt
+
+                   else if (bct == LO_MARSHAK) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  0.375e0_rt * bfv
+                         bfm2 = -0.125e0_rt * bfv
+                      else
+                         bfm = 0.25e0_rt * bfv
+                      end if
+
+                   else if (bct == LO_SANCHEZ_POMRANING) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  1.5e0_rt * spa(i,j,k) * bfv
+                         bfm2 = -0.5e0_rt * spa(i,j,k) * bfv
+                      else
+                         bfm = spa(i,j,k) * bfv
+                      end if
+
+#ifndef AMREX_USE_GPU
+                   else
+
+                      call castro_error("hmmat3: unsupported boundary type")
+#endif
+                   end if
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm - fac * b(i,j,k)
+                   mat(1,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(2,i,j,k) = mat(2,i,j,k) + bfm2
+                   end if
+
+                end if
+
+             else if (i+1 .ge. m_lo(1) .and. i+1 .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
+
+                if (xhi .and. mask(i+1,j,k) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i+1,j,k)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfm = fac * (th2 - bcl) / (bcl + h2)  * b(i+1,j,k)
+                         bfm2 = fac * (bcl - h2) / (bcl + th2) * b(i+1,j,k)
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                         bfm = bfv * b(i+1,j,k)
+                      end if
+
+                   else if (bct == LO_NEUMANN) then
+
+                      bfm  = 0.e0_rt
+                      bfm2 = 0.e0_rt
+
+                   else if (bct == LO_MARSHAK) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  0.375e0_rt * bfv
+                         bfm2 = -0.125e0_rt * bfv
+                      else
+                         bfm = 0.25e0_rt * bfv
+                      end if
+
+                   else if (bct == LO_SANCHEZ_POMRANING) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  1.5e0_rt * spa(i,j,k) * bfv
+                         bfm2 = -0.5e0_rt * spa(i,j,k) * bfv
+                      else
+                         bfm = spa(i,j,k) * bfv
+                      end if
+
+#ifndef AMREX_USE_GPU
+                   else
+
+                      call castro_error("hmmat3: unsupported boundary type")
+#endif
+                   end if
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm - fac * b(i+1,j,k)
+                   mat(2,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(1,i,j,k) = mat(1,i,j,k) + bfm2
+                   end if
+
+                end if
+
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j-1 .ge. m_lo(2) .and. j-1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
+
+                if (ylo .and. mask(i,j-1,k) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i,j-1,k)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfm = fac * (th2 - bcl) / (bcl + h2)  * b(i,j,k)
+                         bfm2 = fac * (bcl - h2) / (bcl + th2) * b(i,j,k)
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                         bfm = bfv * b(i,j,k)
+                      end if
+
+                   else if (bct == LO_NEUMANN) then
+
+                      bfm  = 0.e0_rt
+                      bfm2 = 0.e0_rt
+
+                   else if (bct == LO_MARSHAK) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  0.375e0_rt * bfv
+                         bfm2 = -0.125e0_rt * bfv
+                      else
+                         bfm = 0.25e0_rt * bfv
+                      end if
+
+                   else if (bct == LO_SANCHEZ_POMRANING) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  1.5e0_rt * spa(i,j,k) * bfv
+                         bfm2 = -0.5e0_rt * spa(i,j,k) * bfv
+                      else
+                         bfm = spa(i,j,k) * bfv
+                      end if
+
+#ifndef AMREX_USE_GPU
+                   else
+
+                      call castro_error("hmmat3: unsupported boundary type")
+
+#endif
+                   end if
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm - fac * b(i,j,k)
+                   mat(3,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(4,i,j,k) = mat(4,i,j,k) + bfm2
+                   end if
+
+                end if
+
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j+1 .ge. m_lo(2) .and. j+1 .le. m_hi(2) .and. &
+                      k   .ge. m_lo(3) .and. k   .le. m_hi(3)) then
+
+                if (yhi .and. mask(i,j+1,k) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i,j+1,k)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfm = fac * (th2 - bcl) / (bcl + h2)  * b(i,j+1,k)
+                         bfm2 = fac * (bcl - h2) / (bcl + th2) * b(i,j+1,k)
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                         bfm = bfv * b(i,j+1,k)
+                      end if
+
+                   else if (bct == LO_NEUMANN) then
+
+                      bfm  = 0.e0_rt
+                      bfm2 = 0.e0_rt
+
+                   else if (bct == LO_MARSHAK) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  0.375e0_rt * bfv
+                         bfm2 = -0.125e0_rt * bfv
+                      else
+                         bfm = 0.25e0_rt * bfv
+                      end if
+
+                   else if (bct == LO_SANCHEZ_POMRANING) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  1.5e0_rt * spa(i,j,k) * bfv
+                         bfm2 = -0.5e0_rt * spa(i,j,k) * bfv
+                      else
+                         bfm = spa(i,j,k) * bfv
+                      end if
+
+#ifndef AMREX_USE_GPU
+                   else
+
+                      call castro_error("hmmat3: unsupported boundary type")
+#endif
+                   end if
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm - fac * b(i,j+1,k)
+                   mat(4,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(3,i,j,k) = mat(3,i,j,k) + bfm2
+                   end if
+
+                end if
+
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k-1 .ge. m_lo(3) .and. k-1 .le. m_hi(3)) then
+
+                if (zlo .and. mask(i,j,k-1) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i,j,k-1)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfm = fac * (th2 - bcl) / (bcl + h2)  * b(i,j,k)
+                         bfm2 = fac * (bcl - h2) / (bcl + th2) * b(i,j,k)
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                         bfm = bfv * b(i,j,k)
+                      end if
+
+                   else if (bct == LO_NEUMANN) then
+
+                      bfm  = 0.e0_rt
+                      bfm2 = 0.e0_rt
+
+                   else if (bct == LO_MARSHAK) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  0.375e0_rt * bfv
+                         bfm2 = -0.125e0_rt * bfv
+                      else
+                         bfm = 0.25e0_rt * bfv
+                      end if
+
+                   else if (bct == LO_SANCHEZ_POMRANING) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  1.5e0_rt * spa(i,j,k) * bfv
+                         bfm2 = -0.5e0_rt * spa(i,j,k) * bfv
+                      else
+                         bfm = spa(i,j,k) * bfv
+                      end if
+
+#ifndef AMREX_USE_GPU
+                   else
+
+                      call castro_error("hmmat3: unsupported boundary type")
+#endif
+                   end if
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm - fac * b(i,j,k)
+                   mat(5,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(6,i,j,k) = mat(6,i,j,k) + bfm2
+                   end if
+
+                end if
+
+             else if (i   .ge. m_lo(1) .and. i   .le. m_hi(1) .and. &
+                      j   .ge. m_lo(2) .and. j   .le. m_hi(2) .and. &
+                      k+1 .ge. m_lo(3) .and. k+1 .le. m_hi(3)) then
+
+                if (zhi .and. mask(i,j,k+1) > 0) then
+
+                   if (bctype == -1) then
+                      bct = tf(i,j,k+1)
+                   else
+                      bct = bctype
+                   end if
+
+                   if (bct == LO_DIRICHLET) then
+
+                      if (bho >= 1) then
+                         h2 = 0.5e0_rt * h
+                         th2 = 3.e0_rt * h2
+                         bfm = fac * (th2 - bcl) / (bcl + h2)  * b(i,j,k+1)
+                         bfm2 = fac * (bcl - h2) / (bcl + th2) * b(i,j,k+1)
+                      else
+                         bfv = (beta / h) / (0.5e0_rt * h + bcl)
+                         bfm = bfv * b(i,j,k+1)
+                      end if
+
+                   else if (bct == LO_NEUMANN) then
+
+                      bfm  = 0.e0_rt
+                      bfm2 = 0.e0_rt
+
+                   else if (bct == LO_MARSHAK) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  0.375e0_rt * bfv
+                         bfm2 = -0.125e0_rt * bfv
+                      else
+                         bfm = 0.25e0_rt * bfv
+                      end if
+
+                   else if (bct == LO_SANCHEZ_POMRANING) then
+
+                      bfv = 2.e0_rt * c * beta * r / h
+
+                      if (bho >= 1) then
+                         bfm  =  1.5e0_rt * spa(i,j,k) * bfv
+                         bfm2 = -0.5e0_rt * spa(i,j,k) * bfv
+                      else
+                         bfm = spa(i,j,k) * bfv
+                      end if
+
+#ifndef AMREX_USE_GPU
+                   else
+
+                      call castro_error("hmmat3: unsupported boundary type")
+#endif
+                   end if
+
+                   mat(0,i,j,k) = mat(0,i,j,k) + bfm - fac * b(i,j,k+1)
+                   mat(6,i,j,k) = 0.e0_rt
+                   if (bho >= 1) then
+                      mat(5,i,j,k) = mat(5,i,j,k) + bfm2
+                   end if
+
+                end if
+
+             end if
+
+          end do
+       end do
+    end do
+
+  end subroutine hmmat3
+
+
+
+
   subroutine hacoef(lo, hi, &
                     mat, m_lo, m_hi, &
                     a, a_lo, a_hi, &
@@ -158,7 +1341,6 @@ contains
 
     integer  :: i, j, k
     real(rt) :: h, fac, bfm, bfv
-    real(rt) :: r
     logical  :: xlo, xhi, ylo, yhi, zlo, zhi
 
     !$gpu
