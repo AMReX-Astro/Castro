@@ -51,7 +51,7 @@ subroutine dertexact(p, p_lo, p_hi, ncomp_p, &
                  )**(1.0_rt / (3.0_rt * pe + 2.0_rt)) * &
                  pfac**(pe / (3.0_rt * pe + 2.0_rt))
 
-           xf = xi0 * (a * Q**pe * time)**(1.0_rt / (3.0_rt * pe + 2.0_rt))
+           xf = xi0 * (a * Q**pe * max(time, 1.d-50))**(1.0_rt / (3.0_rt * pe + 2.0_rt))
 
            Tbar = Q / xf**3
 
@@ -121,7 +121,7 @@ subroutine derterror(p, p_lo, p_hi, ncomp_p, &
                  )**(1.0_rt / (3.0_rt * pe + 2.0_rt)) * &
                  pfac**(pe / (3.0_rt * pe + 2.0_rt))
 
-           xf = xi0 * (a * Q**pe * time)**(1.0_rt / (3.0_rt * pe + 2.0_rt))
+           xf = xi0 * (a * Q**pe * max(time, 1.d-50))**(1.0_rt / (3.0_rt * pe + 2.0_rt))
 
            Tbar = Q / xf**3
 
