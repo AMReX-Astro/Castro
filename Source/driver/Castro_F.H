@@ -145,6 +145,10 @@ extern "C"
   void ca_initdata(const int* lo, const int* hi,
                    BL_FORT_FAB_ARG_3D(state),
                    const amrex::Real* dx, const amrex::Real* problo);
+
+  void ca_initrad(const int* lo, const int* hi,
+                  BL_FORT_FAB_ARG_3D(rad_state),
+                  const amrex::Real* dx, const amrex::Real* problo);
 #endif
 
   void ca_apply_metric
@@ -553,12 +557,14 @@ BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
 #endif
 
 #ifdef RADIATION
+#ifndef GPU_COMPATIBLE_PROBLEM
 BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
   (const int& level, const amrex::Real& time,
    const int* lo, const int* hi,
    const int& num_state,
    BL_FORT_FAB_ARG_3D(state),
    const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
+#endif
 #endif
 
 

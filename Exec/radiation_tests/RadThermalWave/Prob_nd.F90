@@ -223,27 +223,35 @@ contains
 
   end subroutine ca_initdata
 
+
+
+  subroutine ca_initrad(lo, hi, &
+                        rad_state, r_lo, r_hi, &
+                        dx, problo) &
+                        bind(C, name='ca_initrad')
+
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: ZERO
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    real(rt), intent(in   ) :: dx(3), problo(3)
+    real(rt), intent(inout) :: rad_state(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),0:NGROUPS-1)
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             rad_state(i,j,k,:) = ZERO
+          end do
+       end do
+    end do
+
+  end subroutine ca_initrad
+
 end module initdata_module
-
-
-subroutine ca_initrad(level, time, lo, hi, nrad, &
-                      rad_state, rad_state_lo, rad_state_hi, &
-                      delta, xlo, xhi)
-
-  use probdata_module
-  use amrex_constants_module
-  use amrex_fort_module, only : rt => amrex_real
-
-  implicit none
-
-  integer, intent(in) :: level, nrad
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: rad_state_lo(3), rad_state_hi(3)
-  real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
-  real(rt), intent(inout) :: rad_state(rad_state_lo(1):rad_state_hi(1), &
-                                       rad_state_lo(2):rad_state_hi(2), &
-                                       rad_state_lo(3):rad_state_hi(3), 0:nrad-1)
-
-  rad_state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = ZERO
-
-end subroutine ca_initrad

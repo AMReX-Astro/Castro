@@ -973,6 +973,7 @@ Castro::initData ()
     //
     int ns          = NUM_STATE;
     const Real* dx  = geom.CellSize();
+    const Real* prob_lo = geom.ProbLo();
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
 
@@ -1048,7 +1049,6 @@ Castro::initData ()
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 	  RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-          const Real* prob_lo = geom.ProbLo();
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
@@ -1208,24 +1208,23 @@ Castro::initData ()
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
 
-	  Rad_new[mfi].setVal(0.0);
+#ifdef GPU_COMPATIBLE_PROBLEM
+
+#pragma gpu box(box)
+	  ca_initrad
+	      (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+	       BL_TO_FORTRAN_ANYD(Rad_new[mfi]),
+               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+
+#else
 
 	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
 	      (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
 	       BL_TO_FORTRAN_ANYD(Rad_new[mfi]), ZFILL(dx),
 	       ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 
-	  if (Radiation::nNeutrinoSpecies > 0 && Radiation::nNeutrinoGroups[0] == 0) {
-	      // Hack: running photon radiation through neutrino solver
-            Rad_new[mfi].mult(Radiation::Etorad,
-                            0, Radiation::nGroups);
-	  }
+#endif
 
-          if (Rad_new.nComp() > Radiation::nGroups) {
-            // Initialize flux components to 0
-            Rad_new[mfi].setVal(0.0, box, Radiation::nGroups,
-                              Rad_new.nComp() - Radiation::nGroups);
-          }
       }
     }
 #endif // RADIATION
