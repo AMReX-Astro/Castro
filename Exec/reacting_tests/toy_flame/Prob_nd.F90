@@ -11,42 +11,16 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   implicit none
 
-  integer :: init, namlen
-  integer :: name(namlen)
-  real(rt) :: problo(3), probhi(3)
-  real(rt) :: xn(nspec)
-
-  integer :: untin, i
+  integer, intent(in) :: init, namlen
+  integer, intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(3), probhi(3)
+  real(rt), intent(in) :: xn(nspec)
 
   type (eos_t) :: eos_state
 
-  real(rt) ::lambda_f, v_f
+  real(rt) :: lambda_f, v_f
 
-  namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel
-
-  ! Build "probin" filename -- the name of file containing
-  ! fortin namelist.
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-  pert_frac = 0.2e0_rt
-  pert_delta = 0.02e0_rt
-  rho_fuel = ONE
-  T_fuel = ONE
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(untin)
+  call probdata_init(name, namlen)
 
   ! output flame speed and width estimates
   eos_state%rho = rho_burn_ref

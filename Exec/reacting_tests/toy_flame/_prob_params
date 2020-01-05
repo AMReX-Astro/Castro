@@ -1,0 +1,8 @@
+
+pert_frac      real     0.2_rt      y
+
+pert_delta     real     0.02_rt     y
+
+rho_fuel       real     1.0_rt      y
+
+T_fuel         real     1.0_rt      y
