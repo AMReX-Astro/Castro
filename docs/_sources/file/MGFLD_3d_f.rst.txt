@@ -71,11 +71,6 @@ ca\_ncupdate\_matter subroutine
 
 .. f:autosubroutine:: ca_ncupdate_matter
 
-ca\_opacs subroutine
---------------------
-
-.. f:autosubroutine:: ca_opacs
-
 ca\_accel\_ccoe subroutine
 --------------------------
 

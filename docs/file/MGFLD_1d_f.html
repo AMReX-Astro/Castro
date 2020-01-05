@@ -158,7 +158,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#ca-local-accel-subroutine">ca_local_accel subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-state-update-subroutine">ca_state_update subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-ncupdate-matter-subroutine">ca_ncupdate_matter subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-opacs-subroutine">ca_opacs subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-accel-ccoe-subroutine">ca_accel_ccoe subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-flux-face2center-subroutine">ca_flux_face2center subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-rhstoer-subroutine">ca_rhstoer subroutine</a></li>
@@ -1223,74 +1222,6 @@
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/clight" title="f/rad_params_module/clight"><code class="xref f f-func docutils literal notranslate"><span class="pre">clight()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-opacs-subroutine">
-<h2>ca_opacs subroutine<a class="headerlink" href="#ca-opacs-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_opacs">
-<em class="property">subroutine  </em><code class="descname">ca_opacs</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>snew</em>, <em>snew_l1</em>, <em>snew_l2</em>, <em>snew_l3</em>, <em>snew_h1</em>, <em>snew_h2</em>, <em>snew_h3</em>, <em>t</em>, <em>t_l1</em>, <em>t_l2</em>, <em>t_l3</em>, <em>t_h1</em>, <em>t_h2</em>, <em>t_h3</em>, <em>ts</em>, <em>ts_l1</em>, <em>ts_l2</em>, <em>ts_l3</em>, <em>ts_h1</em>, <em>ts_h2</em>, <em>ts_h3</em>, <em>kpp</em>, <em>kpp_l1</em>, <em>kpp_l2</em>, <em>kpp_l3</em>, <em>kpp_h1</em>, <em>kpp_h2</em>, <em>kpp_h3</em>, <em>kpr</em>, <em>kpr_l1</em>, <em>kpr_l2</em>, <em>kpr_l3</em>, <em>kpr_h1</em>, <em>kpr_h2</em>, <em>kpr_h3</em>, <em>dkdt</em>, <em>dkdt_l1</em>, <em>dkdt_l2</em>, <em>dkdt_l3</em>, <em>dkdt_h1</em>, <em>dkdt_h2</em>, <em>dkdt_h3</em>, <em>use_dkdt</em>, <em>validstar</em>, <em>lag_opac</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_opacs" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>snew</strong> (snew_h1-snew_l1+1,snew_h2-snew_l2+1,snew_h3-snew_l3+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>snew_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>snew_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>snew_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>snew_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>snew_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>snew_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t</strong> (t_h1-t_l1+1,t_h2-t_l2+1,t_h3-t_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ts</strong> (ts_h1-ts_l1+1,ts_h2-ts_l2+1,ts_h3-ts_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ts_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ts_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ts_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ts_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ts_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ts_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpp</strong> (kpp_h1-kpp_l1+1,kpp_h2-kpp_l2+1,kpp_h3-kpp_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>kpp_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpp_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpp_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpp_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpp_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpp_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpr</strong> (kpr_h1-kpr_l1+1,kpr_h2-kpr_l2+1,kpr_h3-kpr_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>kpr_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpr_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpr_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpr_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpr_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kpr_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt</strong> (dkdt_h1-dkdt_l1+1,dkdt_h2-dkdt_l2+1,dkdt_h3-dkdt_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>dkdt_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>use_dkdt</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>validstar</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lag_opac</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/nugroup" title="f/rad_params_module/nugroup"><code class="xref f f-func docutils literal notranslate"><span class="pre">nugroup()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">opacity_table_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">get_opacities()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <a class="reference internal" href="meth_params_f.html#f/meth_params_module" title="f/meth_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/urho" title="f/meth_params_module/urho"><code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code></a>, <a class="reference internal" href="meth_params_f.html#f/meth_params_module/ufx" title="f/meth_params_module/ufx"><code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
 </tr>
 </tbody>

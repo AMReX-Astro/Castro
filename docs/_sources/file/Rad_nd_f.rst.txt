@@ -41,13 +41,3 @@ ca\_inelastic\_sct subroutine
 
 .. f:autosubroutine:: ca_inelastic_sct
 
-ca\_compute\_scattering subroutine
-----------------------------------
-
-.. f:autosubroutine:: ca_compute_scattering
-
-ca\_compute\_scattering\_2 subroutine
--------------------------------------
-
-.. f:autosubroutine:: ca_compute_scattering_2
-
