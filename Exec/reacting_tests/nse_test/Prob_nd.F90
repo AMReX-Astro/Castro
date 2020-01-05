@@ -13,14 +13,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin,i
-
   integer, save :: ihe4, ic12, io16
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen = 256
-  character :: probin*(maxlen)
 
   real(rt) :: smallx
 
