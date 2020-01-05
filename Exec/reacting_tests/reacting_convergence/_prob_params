@@ -1,0 +1,14 @@
+
+rho0         real          1.4_rt          y
+
+T0           real          1.0_rt          y
+
+dp_fact      real          1.5_rt          y
+
+L_pert       real          0.5_rt          y
+
+s0           real          0.0_rt          n
+
+p0           real          1.0_rt          n
+
+xn_zone      real          0.0_rt          n         (nspec, network)
