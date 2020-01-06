@@ -550,6 +550,8 @@ void HypreMultiABec::vectorSetBoxValues(HYPRE_SStructVector x,
                                         const BoxArray& sgr,
                                         Real *vec)
 {
+  BL_PROFILE("HypreMultiABec::vectorSetBoxValues");
+
   if (sgr.size() > 0) {
     FArrayBox svecfab;
     for (int j = 0; j < sgr.size(); j++) {
@@ -575,6 +577,8 @@ void HypreMultiABec::vectorGetBoxValues(HYPRE_SStructVector x,
                                         const BoxArray& sgr,
                                         FArrayBox& f, int fcomp)
 {
+  BL_PROFILE("HypreMultiABec::vectorGetBoxValues");
+
   BL_ASSERT(f.box() == reg);
   Real* vec = f.dataPtr(fcomp);
   if (sgr.size() > 0) {
@@ -1320,6 +1324,8 @@ void HypreMultiABec::setScalars(Real Alpha, Real Beta)
 
 void HypreMultiABec::aCoefficients(int level, const MultiFab &a)
 {
+  BL_PROFILE("HypreMultiABec::aCoefficients");
+
   BL_ASSERT( a.ok() );
   BL_ASSERT( a.boxArray() == acoefs[level]->boxArray() );
   MultiFab::Copy(*acoefs[level], a, 0, 0, 1, 0);
@@ -1327,6 +1333,8 @@ void HypreMultiABec::aCoefficients(int level, const MultiFab &a)
 
 void HypreMultiABec::bCoefficients(int level, const MultiFab &b, int dir)
 {
+  BL_PROFILE("HypreMultiABec::bCoefficients");
+
   BL_ASSERT( b.ok() );
   BL_ASSERT( b.boxArray() == (*bcoefs[level])[dir].boxArray() );
   MultiFab::Copy((*bcoefs[level])[dir], b, 0, 0, 1, 0);
@@ -1345,6 +1353,8 @@ void HypreMultiABec::SPalpha(int level, const MultiFab& a)
 
 void HypreMultiABec::loadMatrix()
 {
+  BL_PROFILE("HypreMultiABec::loadMatrix");
+
 #if (BL_SPACEDIM == 1)
   // if we were really 1D:
 /*
@@ -1726,20 +1736,9 @@ void HypreMultiABec::loadMatrix()
 
 void HypreMultiABec::finalizeMatrix()
 {
-  HYPRE_SStructMatrixAssemble(A);
-// dump the matrix
-#if 0
-  HYPRE_SStructMatrixPrint("mat", A, 0);
-  std::cout << "printing done" << std::endl;
-  //cin.get();
-#endif
-#if 0
-  HYPRE_ParCSRMatrix par_A;
-  HYPRE_SStructMatrixGetObject(A, (void**) &par_A);
+  BL_PROFILE("HypreMultiABec::finalizeMatrix");
 
-  HYPRE_ParCSRMatrixPrint(par_A, "mat");
-  std::cin.get();
-#endif
+  HYPRE_SStructMatrixAssemble(A);
 }
 
 void HypreMultiABec::loadLevelVectors(int level,
@@ -1748,6 +1747,8 @@ void HypreMultiABec::loadLevelVectors(int level,
                                       MultiFab& rhs,
                                       BC_Mode inhom)
 {
+  BL_PROFILE("HypreMultiABec::loadLevelVectors");
+
   int part = level - crse_level;
 
   Real *vec;
@@ -1978,12 +1979,7 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     HYPRE_SStructMatrixGetObject(A, (void**) &par_A);
     HYPRE_SStructVectorGetObject(b, (void**) &par_b);
     HYPRE_SStructVectorGetObject(x, (void**) &par_x);
-#if 0
-    HYPRE_SStructMatrixPrint("A", A, 0);
-    HYPRE_SStructVectorPrint("B", b, 0);
-    cin.get();
-    std::cout << "HypreMultiABec: creating solver" << std::endl;
-#endif
+
     HYPRE_BoomerAMGCreate(&solver);
     HYPRE_BoomerAMGSetMinIter(solver, 1);
     HYPRE_BoomerAMGSetMaxIter(solver, maxiter);
@@ -2599,6 +2595,8 @@ void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
 void HypreMultiABec::clearSolver()
 {
+  BL_PROFILE("HypreMultiABec::clearSolver");
+
   if (solver_flag == 100) {
     HYPRE_BoomerAMGDestroy(solver);
   }
@@ -2679,6 +2677,8 @@ void HypreMultiABec::clearSolver()
 
 void HypreMultiABec::solve()
 {
+  BL_PROFILE("HypreMultiABec::solve");
+
   if (abstol > 0.0) {
     Real bnorm;
     hypre_SStructInnerProd((hypre_SStructVector *) b,
@@ -3001,12 +3001,6 @@ void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
 {
   int part = level - crse_level;
 
-#if 0
-  HYPRE_SStructVectorPrint("vec", x, 0);
-  std::cout << "printing done" << std::endl;
-  cin.get();
-#endif
-
   FArrayBox fnew;
   for (MFIter mfi(dest); mfi.isValid(); ++mfi) {
     int i = mfi.index();
@@ -3110,6 +3104,8 @@ void HypreMultiABec::boundaryFlux(int level,
                                   int icomp,
 				  BC_Mode inhom)
 {
+    BL_PROFILE("HypreMultiABec::boundaryFlux");
+
     const Box& domain = bd[level]->getDomain();
 
 #ifdef _OPENMP
