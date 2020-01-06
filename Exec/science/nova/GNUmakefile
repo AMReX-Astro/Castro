@@ -13,6 +13,8 @@ USE_OMP          = FALSE
 USE_GRAV         = TRUE
 USE_REACT        = TRUE
 
+USE_PROB_PARAMS  = TRUE
+
 ifdef MICROPHYSICS_HOME
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
