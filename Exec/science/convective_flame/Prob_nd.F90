@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use amrex_constants_module
   use castro_error_module
@@ -14,22 +14,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
-  namelist /fortin/ nx_model, &
-                    dtemp, x_half_max, x_half_width, &
-                    X_min, cutoff_density, refine_cutoff_height, &
-                    dens_base, T_star, T_hi, T_lo, H_star, atm_delta, &
-                    fuel1_name, fuel2_name, fuel3_name, &
-                    ash1_name, ash2_name, ash3_name, &
-                    fuel1_frac, fuel2_frac, fuel3_frac, &
-                    ash1_frac, ash2_frac, ash3_frac, &
-                    low_density_cutoff, index_base_from_temp, smallx
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character (len=maxlen) :: probin
-
   type(model_t) :: model_params
 
   integer :: iash1, iash2, iash3, ifuel1, ifuel2, ifuel3
@@ -38,57 +22,9 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt) :: dx_model
   integer :: ng
 
-  if (namlen > maxlen) call castro_error("probin file name too long")
+  call probdata_init(name, namlen)
 
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults here
-  X_min = 1.e-4_rt
-  cutoff_density = 1.e-8_rt
-
-  dtemp = 2.0_rt
-  x_half_max = 10.0_rt
-  x_half_width = 1.0_rt
-
-  refine_cutoff_height = HALF*(problo(2)+probhi(2))
-
-  dens_base = 2.d6
-
-  T_star = 1.d8
-  T_hi   = 5.d8
-  T_lo   = 5.e7
-
-  H_star = 500.d0
-  atm_delta  = 25.d0
-
-  fuel1_name = "fuel"
-  fuel2_name = ""
-  fuel3_name = ""
-
-  ash1_name  = "inert"
-  ash2_name  = ""
-  ash3_name  = ""
-
-  fuel1_frac = ONE
-  fuel2_frac = ZERO
-  fuel3_frac = ZERO
-
-  ash1_frac = ONE
-  ash2_frac = ZERO
-  ash3_frac = ZERO
-
-  index_base_from_temp = .false.
-
-  low_density_cutoff = 1.d-4
-
-  smallx = 1.d-10
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  refine_cutoff_height = problo(2) + refine_cutoff_frac * (probhi(2) - problo(2))
 
   ! get the species indices
   species_defined = .true.

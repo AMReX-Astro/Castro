@@ -72,129 +72,119 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 end subroutine amrex_probinit
 
 
-! ::: -----------------------------------------------------------
-! ::: This routine is called at problem setup time and is used
-! ::: to initialize data on each grid.
-! :::
-! ::: NOTE:  all arrays have one cell of ghost zones surrounding
-! :::        the grid interior.  Values in these cells need not
-! :::        be set here.
-! :::
-! ::: INPUTS/OUTPUTS:
-! :::
-! ::: level     => amr level of grid
-! ::: time      => time at which to init data
-! ::: lo,hi     => index limits of grid interior (cell centered)
-! ::: nstate    => number of state components.  You should know
-! :::		   this already!
-! ::: state     <=  Scalar array
-! ::: delta     => cell size
-! ::: xlo,xhi   => physical locations of lower left and upper
-! :::              right hand corner of grid.  (does not include
-! :::		   ghost region).
-! ::: -----------------------------------------------------------
-subroutine ca_initdata(level, time, lo, hi, nscal, &
-                       state, state_lo, state_hi, &
-                       delta, xlo, xhi)
 
-  use amrex_constants_module, only: ZERO, HALF, ONE
-  use probdata_module, only: rho_0, X_0, p_0, rho_ambient, r_0, smooth_delta, r_offset, offset_smooth_delta, nsub
-  use eos_type_module, only : eos_t, eos_input_rp
-  use eos_module, only: eos
-  use network, only: nspec
-  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
-  use prob_params_module, only: problo, center, dg
-  use amrex_fort_module, only : rt => amrex_real
+module initdata_module
 
   implicit none
 
-  integer,  intent(in   ) :: level, nscal
-  integer,  intent(in   ) :: lo(3), hi(3)
-  integer,  intent(in   ) :: state_lo(3), state_hi(3)
-  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-  real(rt), intent(in   ) :: time, delta(3)
-  real(rt), intent(in   ) :: xlo(3), xhi(3)
+contains
 
-  real(rt) :: xl, yl, zl, xx, yy, zz
-  real(rt) :: dist
-  real(rt) :: pres, eint, temp, avg_rho, rho_n
-  real(rt) :: volinv
-  real(rt) :: dx_sub, dy_sub, dz_sub
-  integer  :: i, j, k, ii, jj, kk, n
+  subroutine ca_initdata(lo, hi, &
+                         state, state_lo, state_hi, &
+                         dx, problo) bind(C, name='ca_initdata')
 
-  type (eos_t) :: eos_state
+    use amrex_constants_module, only: ZERO, HALF, ONE
+    use probdata_module, only: rho_0, X_0, p_0, rho_ambient, r_0, smooth_delta, r_offset, offset_smooth_delta, nsub
+    use eos_type_module, only: eos_t, eos_input_rp
+    use eos_module, only: eos
+    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, small_temp
+    use prob_params_module, only: center, dg
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: state_lo(3), state_hi(3)
+    real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+    real(rt), intent(in   ) :: dx(3), problo(3)
+
+    real(rt) :: xl, yl, zl, xx, yy, zz
+    real(rt) :: dist
+    real(rt) :: pres, eint, temp, avg_rho, rho_n
+    real(rt) :: volinv
+    real(rt) :: dx_sub, dy_sub, dz_sub
+    integer  :: i, j, k, ii, jj, kk, n
+
+    type (eos_t) :: eos_state
+
+    !$gpu
 
 #if AMREX_SPACEDIM == 1
-  volinv = ONE/dble(nsub)
+    volinv = ONE / dble(nsub)
 #elif AMREX_SPACEDIM == 2
-  volinv = ONE/dble(nsub*nsub)
+    volinv = ONE / dble(nsub*nsub)
 #else
-  volinv = ONE/dble(nsub*nsub*nsub)
+    volinv = ONE / dble(nsub*nsub*nsub)
 #endif
 
-  dx_sub = delta(1)/dble(nsub)
-  dy_sub = delta(2)/dble(nsub)
-  dz_sub = delta(3)/dble(nsub)
+    dx_sub = dx(1) / dble(nsub)
+    dy_sub = dx(2) / dble(nsub)
+    dz_sub = dx(3) / dble(nsub)
 
-  do k = lo(3), hi(3)
-     zl = problo(1) + dble(k) * delta(3)
+    do k = lo(3), hi(3)
+       zl = problo(1) + dble(k) * dx(3)
 
-     do j = lo(2), hi(2)
-        yl = problo(2) + dble(j) * delta(2)
+       do j = lo(2), hi(2)
+          yl = problo(2) + dble(j) * dx(2)
 
-        do i = lo(1), hi(1)
-           xl = problo(3) + dble(i) * delta(1)
+          do i = lo(1), hi(1)
+             xl = problo(3) + dble(i) * dx(1)
 
-           avg_rho = ZERO
+             avg_rho = ZERO
 
-           do kk = 0, dg(3)*(nsub-1)
-              zz = zl + (dble(kk) + HALF) * dz_sub
+             do kk = 0, dg(3) * (nsub-1)
+                zz = zl + (dble(kk) + HALF) * dz_sub
 
-              do jj = 0, dg(2)*(nsub-1)
-                 yy = yl + (dble(jj) + HALF) * dy_sub
+                do jj = 0, dg(2) * (nsub-1)
+                   yy = yl + (dble(jj) + HALF) * dy_sub
 
-                 do ii = 0, nsub-1
-                    xx = xl + (dble(ii) + HALF) * dx_sub
+                   do ii = 0, nsub-1
+                      xx = xl + (dble(ii) + HALF) * dx_sub
 
-                    dist = sqrt((xx-center(1))**2 + (yy-center(2))**2 + (zz-center(3))**2)
+                      dist = sqrt((xx-center(1))**2 + (yy-center(2))**2 + (zz-center(3))**2)
 
-                    ! use a tanh profile to smooth the transition between rho_0
-                    ! and rho_ambient
-                    rho_n = rho_0 - HALF * (rho_0 - rho_ambient) * (ONE + tanh((dist - r_0)/smooth_delta))
+                      ! use a tanh profile to smooth the transition between rho_0
+                      ! and rho_ambient
+                      rho_n = rho_0 - HALF * (rho_0 - rho_ambient) * (ONE + tanh((dist - r_0) / smooth_delta))
 
-                    ! allow for the center to be empty
-                    if (r_offset > ZERO) then
-                       rho_n = rho_n - HALF * (rho_n - rho_ambient) * (ONE + tanh((r_offset - dist) / offset_smooth_delta))
-                    end if
+                      ! allow for the center to be empty
+                      if (r_offset > ZERO) then
+                         rho_n = rho_n - HALF * (rho_n - rho_ambient) * (ONE + tanh((r_offset - dist) / offset_smooth_delta))
+                      end if
 
-                    avg_rho = avg_rho + rho_n
+                      avg_rho = avg_rho + rho_n
 
-                 enddo
-              enddo
-           enddo
+                   end do
+                end do
+             end do
 
-           state(i,j,k,URHO) = avg_rho * volinv
+             state(i,j,k,URHO) = avg_rho * volinv
 
-           eos_state % rho = state(i,j,k,URHO)
-           eos_state % p   = p_0
-           eos_state % T   = small_temp ! Initial guess for the EOS
-           eos_state % xn  = X_0
+             eos_state % rho = state(i,j,k,URHO)
+             eos_state % p   = p_0
+             eos_state % T   = small_temp ! Initial guess for the EOS
+             eos_state % xn  = X_0
 
-           call eos(eos_input_rp, eos_state)
+             call eos(eos_input_rp, eos_state)
 
-           temp = eos_state % T
-           eint = eos_state % e
+             temp = eos_state % T
+             eint = eos_state % e
 
-           state(i,j,k,UTEMP) = temp
-           state(i,j,k,UMX) = ZERO
-           state(i,j,k,UMY) = ZERO
-           state(i,j,k,UMZ) = ZERO
-           state(i,j,k,UEDEN) = state(i,j,k,URHO) * eint
-           state(i,j,k,UEINT) = state(i,j,k,URHO) * eint
-           state(i,j,k,UFS:UFS+nspec-1) = state(i,j,k,URHO) * X_0(1:nspec)
+             state(i,j,k,UTEMP) = temp
+             state(i,j,k,UMX) = ZERO
+             state(i,j,k,UMY) = ZERO
+             state(i,j,k,UMZ) = ZERO
+             state(i,j,k,UEDEN) = state(i,j,k,URHO) * eint
+             state(i,j,k,UEINT) = state(i,j,k,URHO) * eint
+             do n = 1, nspec
+                state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * X_0(n)
+             end do
 
-        enddo
-     enddo
-  enddo
+          end do
+       end do
+    end do
 
-end subroutine ca_initdata
+  end subroutine ca_initdata
+
+end module initdata_module

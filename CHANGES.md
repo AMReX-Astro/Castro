@@ -1,3 +1,102 @@
+# 20.02
+
+   * Most of the radiation test problems have been moved over to a new
+     opacity directory, rad_power_law, and all of the parameters that
+     controlled the behavior of the power law opacity have been moved
+     to the extern probin module. We now always expect you to pick a
+     specific opacity implementation, so the parameter
+     radiation.use_opacity_table_module has been removed. The "null"
+     opacity implementation has been previously moved, and the code
+     will fail to compile if you attempt to use it; you will need to
+     update to rad_power_law. (See the documentation for information
+     about how to use this new implementation.)
+
+     Additionally, the code for the multigroup solver was effectively
+     previously setting the Rosseland opacity, kappa_r, equal to the
+     Planck opacity, kappa_p, if the latter was set but the former was
+     not. There was similar unintuitive behavior for the behavior of
+     the scattering parameter. Now you will get exactly what you ask
+     for in the probin file, given the defaults in the _parameters file
+     for the rad_power_law opacity. By default the constant coefficients
+     for both are negative, which is invalid, so both must be set to a
+     non-negative value for the code to work. Problems that were previously
+     setting const_kappa_p but not const_kappa_r should set the latter
+     equal to the former to maintain the same code behavior. The analogous
+     thing should be done for the exponents (kappa_p_exp_m, kappa_p_exp_n,
+     and kappa_p_exp_p). (#725)
+
+   * The parameter radiation.do_real_eos = 0 has been removed, and its
+     functionality is now enabled with a new equation of state called
+     rad_power_law. This new EOS is only compatible with the pure
+     radiation-diffusion tests, not with castro.do_hydro = 1. (#722)
+
+   * We now default to use_retry = 1, instructing Castro to retry a
+     step with a smaller dt if there is a CFL violation, burning
+     failure, or negative timestep.  For the burning failure, we have
+     Castro set the Microphysics parameter abort_on_failure to .false.
+     at a high priority (so it overrides the Microphysics default).
+     We also check to make sure the combination of parameters makes
+     sense at runtime. (#724)
+
+   * The parameter castro.hard_cfl_limit has been removed. (#723)
+
+   * Some unnecessary clean_state calls were removed (#721)
+
+   * Support for neutrino radiation diffusion has been removed.
+
+# 20.01
+
+   * A new option castro.limit_fluxes_on_large_vel has been added. It
+     is similar to the existing option limit_fluxes_on_small_dens --
+     fluxes are limited to prevent the velocity in any zone from
+     getting too high. The largest legal speed is set by
+     castro.speed_limit. (#712) This is more general than the previous
+     solution proposed by castro.riemann_speed_limit, so that
+     parameter has been removed. (#714)
+
+   * The AMR parameter amr.compute_new_dt_on_regrid is now on by
+     default. This avoids crashes that result from the CFL number
+     being too large after regridding, because we update the
+     timestep after seeing that larger velocity. You can still opt
+     to set this off if you want to in your inputs file. (#720)
+
+   * We have added calls into Hypre that only exist as of version
+     2.15.0, so that is the new minimum requirement for Castro
+     radiation. Note that Hypre is now hosted on GitHub at
+     https://github.com/hypre-space/hypre.
+
+   * A new option castro.limit_fluxes_on_large_vel has been added. It
+     is similar to the existing option limit_fluxes_on_small_dens --
+     fluxes are limited to prevent the velocity in any zone from
+     getting too high. The largest legal speed is set by
+     castro.riemann_speed_limit. (#712)
+
+   * A new option castro.apply_sources_consecutively has been
+     added. By default we add all source terms together at once. This
+     option, if enabled, adds the sources one at a time, so that each
+     source sees the effect of the previously added sources. This can
+     matter, as an example, for the sponge source term, which may be
+     more effective if it is added after source terms such as gravity
+     that update the velocity. (#710)
+
+   * A new option castro.ext_src_implicit has been added. The external
+     source terms were previously only implemented as an explicit
+     predictor-corrector scheme. The new option, if turned on, changes
+     the handling of the external source terms to allow an implicit
+     solve. This is done by subtracting the full old-time source and
+     adding the full new-time source in the corrector, rather than
+     -0.5 and +0.5 of each, respectively. It is still up to the
+     individual problem to make sure it is consistent with this scheme
+     if the option is turned on. (#709)
+
+   * Add option for using monopole BCs in 3D.  By setting
+     gravity.max_multipole_order to a negative number, you can use
+     monopole gravity to fill the boundary conditions, rather than the
+     multiple BCs. This is useful for debugging purposes.  To make the
+     behavior consistent, we now use multipole BCs by default in 2D as
+     well. (#716)
+
+
 # 19.12
 
    * The use_retry mechanism has been enabled for the simplified

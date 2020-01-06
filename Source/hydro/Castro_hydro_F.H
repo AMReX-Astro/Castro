@@ -155,6 +155,16 @@ extern "C"
      BL_FORT_FAB_ARG_3D(area),
      const amrex::Real dt, const amrex::Real* dx);
 
+  void limit_hydro_fluxes_on_large_vel
+    (const int* lo, const int* hi,
+     const int idir,
+     BL_FORT_FAB_ARG_3D(Sborder),
+     BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(volume),
+     BL_FORT_FAB_ARG_3D(flux),
+     BL_FORT_FAB_ARG_3D(area),
+     const amrex::Real dt, const amrex::Real* dx);
+
   void normalize_species_fluxes
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(flux));

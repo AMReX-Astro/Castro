@@ -1,0 +1,43 @@
+T_l                  real          1.e9_rt        y
+
+T_r                  real          5.e7_rt        y
+
+dens                 real          1.e8_rt        y
+
+cfrac                real          0.5_rt         y
+
+ofrac                real          0.0_rt         y
+
+w_T                  real          5.e-4_rt       y
+
+center_T             real          0.3_rt         y
+
+smallx               real          1.e-12_rt      y
+
+vel                  real          0.0_rt         y
+
+grav_acceleration    real          0.0_rt         y
+
+idir                 integer       1              y
+
+ihe4                 integer       -1
+
+ic12                 integer       -1
+
+io16                 integer       -1
+
+xn                   real          0.0_rt         n     (nspec, network)
+
+fill_ambient_bc      logical      .false.         y
+
+ambient_dens         real         0.0_rt
+
+ambient_temp         real         0.0_rt
+
+ambient_comp         real         0.0_rt          n     (nspec, network)
+
+ambient_e_l          real         0.0_rt
+
+ambient_e_r          real         0.0_rt
+
+

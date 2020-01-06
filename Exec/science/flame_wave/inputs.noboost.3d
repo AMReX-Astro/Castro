@@ -57,7 +57,6 @@ castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.use_retry      = 1
-castro.hard_cfl_limit = 0
 castro.max_subcycles = 16
 
 # DIAGNOSTICS & VERBOSITY
@@ -69,7 +68,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 3       # maximum level number allowed
 amr.ref_ratio       = 4 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 16       # block factor in grid generation
+amr.blocking_factor = 32       # block factor in grid generation
 amr.max_grid_size   = 128
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 

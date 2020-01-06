@@ -31,6 +31,9 @@ do_reflux                    int           1
 # drivers
 update_sources_after_reflux  int           1
 
+# should we apply the sources one by one or all at once?
+apply_sources_consecutively  int           0
+
 # should we have state data for custom load-balancing weighting?
 use_custom_knapsack_weights  int           0
 
@@ -141,10 +144,6 @@ cg_blend                     int           2                  y
 # thermodynamic consistency?
 use_eos_in_riemann           int           0                  y
 
-# Limit the Riemann velocity used for flux construction to
-# this speed limit.
-riemann_speed_limit          Real          2.99792458e10      y
-
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
 use_flattening               int           1                  y
@@ -180,6 +179,12 @@ use_pslope                   int           1                  y
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0                  y
 
+# Should we limit the momentum fluxes so that we do not create large velocities?
+limit_fluxes_on_large_vel    int           0                  y
+
+# If we're limiting the fluxes to avoid large velocities, this is the speed limit.
+speed_limit                  Real          2.99792458e10      y
+
 # Which method to use when resetting a negative/small density
 # 1 = Reset to characteristics of adjacent zone with largest density
 # 2 = Use average of all adjacent zones for all state variables
@@ -194,6 +199,9 @@ do_sponge                    int           0                  y
 
 # if we are using the sponge, whether to use the implicit solve for it
 sponge_implicit              int           1                  y
+
+# if we are using user-defined source terms, are these solved implicitly?
+ext_src_implicit             int           0                  y
 
 # extrapolate the source terms (gravity and rotation) to :math:`n+1/2`
 # timelevel for use in the interface state prediction
@@ -305,11 +313,12 @@ plot_per_is_exact            int           0
 # enforce that the AMR small plot interval must be hit exactly
 small_plot_per_is_exact      int           0
 
-# Retry a timestep if it violated the timestep-limiting criteria over
-# the course of an advance. The criteria will suggest a new timestep
-# that satisfies the criteria, and we will do subcycled timesteps
-# on the same level until we reach the original target time.
-use_retry                    int           0
+# Retry a timestep if it violated the timestep-limiting criteria or
+# other checks (negative density, burn failure) over the course of an
+# advance. The criteria will suggest a new timestep that satisfies the
+# criteria, and we will do subcycled timesteps on the same level until
+# we reach the original target time.
+use_retry                    int           1
 
 # Tolerance to use when evaluating whether to do a retry.
 # The timestep suggested by the retry will be multiplied by
@@ -542,9 +551,6 @@ sum_per                      Real          -1.0e0
 # display center of mass diagnostics
 show_center_of_mass          int           0
 
-# abort if we exceed CFL = 1 over the cource of a timestep
-hard_cfl_limit               int           1
-
 # a string describing the simulation that will be copied into the
 # plotfile's ``job_info`` file
 job_name                     string        ""
@@ -668,3 +674,26 @@ mlmg_nsolve                  int           0                  n
 
 # Use MLMG as the operator
 mlmg_maxorder                int           4                  n
+
+@namespace: radsolve RadSolve static
+
+# the linear solver option to use
+level_solver_flag            int           1                  n
+
+use_hypre_nonsymmetric_terms int           0                  n
+
+reltol                       Real          1.e-10             n
+
+abstol                       Real          1.e-10             n
+
+maxiter                      int           40                 n
+
+alpha                        Real          1.0                n
+
+beta                         Real          1.0                n
+
+(v, verbose)                 int           0                  n
+
+@namespace: radiation Radiation static
+
+prop_temp_floor              Real          0.0                y

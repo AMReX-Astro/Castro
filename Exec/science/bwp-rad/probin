@@ -40,3 +40,18 @@
   sponge_timescale     = 2.0d1
 
 /
+
+&extern
+
+  ! this is Free-free Kramers opacity from K&W (Eq. 17.5)
+  const_kappa_p = 3.8d22
+  kappa_p_exp_m = 2.0d0
+  kappa_p_exp_n = 3.5d0
+  kappa_p_exp_p = 0.0d0
+
+  const_kappa_r = 3.8d22
+  kappa_r_exp_m = 2.0d0
+  kappa_r_exp_n = 3.5d0
+  kappa_r_exp_p = 0.0d0
+
+/

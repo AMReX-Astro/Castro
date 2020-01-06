@@ -16,6 +16,10 @@
 #include "AMReX_AmrParticles.H"
 #endif
 
+#ifdef RADIATION
+#include "RadSolve.H"
+#endif
+
 #include <memory>
 #include <iostream>
 
@@ -27,7 +31,7 @@ enum StateType { State_Type = 0,
 #ifdef RADIATION
                  Rad_Type,
 #endif
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
                  PhiGrav_Type,
                  Gravity_Type,
 #endif
@@ -46,11 +50,7 @@ enum StateType { State_Type = 0,
 
 // Create storage for all source terms.
 
-enum sources { ext_src = 0,
-               thermo_src,
-#ifdef SPONGE
-               sponge_src,
-#endif
+enum sources { thermo_src = 0,
 #ifdef DIFFUSION
                diff_src,
 #endif
@@ -63,6 +63,10 @@ enum sources { ext_src = 0,
 #ifdef ROTATION
                rot_src,
 #endif
+#ifdef SPONGE
+               sponge_src,
+#endif
+               ext_src,
 	       num_src };
 
 
@@ -522,17 +526,21 @@ public:
 /// Construct source terms at old time
 ///
 /// @param source   MultiFab to save sources to
-/// @param state    Current state
+/// @param state_old   Old state
+/// @param state_new   New state
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
+/// @param apply_to_state   whether to apply the source to state_new
 /// @param amr_iteration    where we are in the current AMR subcycle.  Each
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+                        amrex::Real time, amrex::Real dt, bool apply_to_state,
+                        int amr_iteration = -1, int amr_ncycle = -1);
 
 ///
 /// Construct the old-time source
@@ -561,13 +569,16 @@ public:
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
+/// @param apply_to_state   whether to apply the source to state_new
 /// @param amr_iteration    where we are in the current AMR subcycle.  Each
 ///                    level will take a number of steps to reach the
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt, int amr_iteration = -1, int amr_ncycle = -1);
+    void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+                        amrex::Real time, amrex::Real dt, bool apply_to_state,
+                        int amr_iteration = -1, int amr_ncycle = -1);
 
 ///
 /// Construct the new-time sources.
@@ -762,8 +773,6 @@ public:
                             amrex::MultiFab& ext_src);
 
 #ifdef GRAVITY
-#ifdef SELF_GRAVITY
-
 ///
 /// Construct gravitational field at old timestep
 ///
@@ -784,7 +793,6 @@ public:
 ///
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
 			       amrex::Real time);
-#endif
 
 ///
 /// Construct gravitational source terms at old timestep
@@ -1566,7 +1574,7 @@ public:
 ///
     void expand_state(amrex::MultiFab& S, amrex::Real time, int ng);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 
 ///
 /// Calculate state in radial direction by averaging
@@ -1709,7 +1717,7 @@ protected:
 ///
     amrex::iMultiFab& build_interior_boundary_mask (int ng);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     int get_numpts();
 
 
@@ -1729,6 +1737,8 @@ protected:
 #ifdef RADIATION
     amrex::MultiFab Erborder;
     amrex::MultiFab lamborder;
+
+    std::unique_ptr<RadSolve> rad_solver;
 #endif
 
 
@@ -1997,7 +2007,7 @@ protected:
 
     void write_info ();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 
 ///
 /// Find the position of the "center" by interpolating from data at cell centers
@@ -2007,9 +2017,7 @@ protected:
 ///
     void define_new_center (amrex::MultiFab& S, amrex::Real time);
     void write_center ();
-#endif
 
-#ifdef GRAVITY
 ///
 /// @param time     current time
 /// @param dt       timestep

@@ -4,7 +4,7 @@ module binary_module
   ! calculate generic properties of binary orbits.
 
   use amrex_fort_module, only: rt => amrex_real
-  
+
   implicit none
 
 contains
@@ -35,8 +35,8 @@ contains
        scale = ONE
     endif
 
-    c1 = 0.49d0
-    c2 = 0.60d0
+    c1 = 0.49e0_rt
+    c2 = 0.60e0_rt
 
     q = mass_ratio
 
@@ -53,16 +53,15 @@ contains
   ! Calculate Lagrange points. In each case we give the zone index
   ! closest to it (assuming we're on the coarse grid).
 
-  subroutine get_lagrange_points(mass_1, mass_2, com_1, com_2, &
-                                 L1, L2, L3) bind(C, name="get_lagrange_points")
+  subroutine get_lagrange_points(mass_1, mass_2, com_1, com_2) bind(C, name="get_lagrange_points")
 
-    use amrex_constants_module
+    use amrex_constants_module, only: ZERO, HALF
+    use probdata_module, only: L1, L2, L3
 
     implicit none
 
     real(rt), intent(in   ), value :: mass_1, mass_2
     real(rt), intent(in   ) :: com_1(3), com_2(3)
-    real(rt), intent(inout) :: L1(3), L2(3), L3(3)
     
     real(rt) :: r ! Distance from Lagrange point to primary
     real(rt) :: a ! Distance between secondary and primary
@@ -129,7 +128,7 @@ contains
     
     ! Root-find parameters
     
-    real(rt) :: tolerance = 1.0d-8
+    real(rt) :: tolerance = 1.0e-8_rt
     integer  :: max_iters = 200
 
     ! Local variables
@@ -144,16 +143,16 @@ contains
        rp = r_max
     else if (present(r_min) .and. (.not. present(r_max))) then
        rm = r_min
-       rp = abs(r_min) * 1000.0d0
+       rp = abs(r_min) * 1000.0e0_rt
     else if (present(r_max) .and. (.not. present(r_min))) then
-       rm = -abs(r_max) * 1000.0d0
+       rm = -abs(r_max) * 1000.0e0_rt
        rp = r_max
     endif
 
     width = (rp - rm)
     
-    rm = rm + width / 1000.0d0
-    rp = rp - width / 1000.0d0
+    rm = rm + width / 1000.0e0_rt
+    rp = rp - width / 1000.0e0_rt
 
     ! Use a bisection search to find the root of the force-balance equation.
     ! The reason we don't use something faster like Newton-Raphson is that

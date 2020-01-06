@@ -1,0 +1,5 @@
+density       real      5.e6_rt       y
+
+radius        real      1.e9_rt       y
+
+ambient_dens  real      1.e-8_rt      y

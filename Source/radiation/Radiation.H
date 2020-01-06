@@ -48,8 +48,6 @@ public:
   static int fspace_advection_type;
   static int do_inelastic_scattering;    ///< Compton scattering for photon only
 
-  static int use_analytic_solution; ///< compare against an analytic solution
-
   static int plot_lambda, plot_kappa_p, plot_kappa_r;
   static int plot_lab_Er, plot_lab_flux, plot_com_flux;
   static int icomp_lambda, icomp_kp, icomp_kr;
@@ -61,6 +59,46 @@ public:
   static int filter_prim_int, filter_prim_T, filter_prim_S;
 
   static int accelerate;        ///< controls multigroup convergence acceleration
+
+  int Density, Xmom, Eden, Eint, Temp, FirstSpec, FirstAux, NUM_STATE;
+
+  int verbose;
+
+  int maxiter;           ///< iteration limit for implicit update loop
+  int miniter;
+  int convergence_check_type; ///< 0 (default): both 2 and 3,
+                              ///< 1: rhoe,
+                              ///< 2: residue of Eq. rhoe,
+                              ///< 3: T & Ye
+  amrex::Real relInTol, absInTol; ///< tolerance for inner iternation of J equation
+  int maxInIter;           ///< iteration limit for inner iteration of J equation
+  int minInIter;
+  int skipAccelAllowed;   ///< Skip acceleration if it doesn't help
+  int matter_update_type; ///< 0: conservative  1: non-conservative  2: C and NC interwoven
+                          ///< The last outer iteration is always conservative.
+  int n_bisect;  ///< Bisection after n_bisect iterations
+  amrex::Real dedT_fac, dedY_fac; ///< Make dedT and dedY larger for safety in Newton iteration
+  int inner_convergence_check;
+  amrex::Real delta_e_rat_dt_tol; ///< energy change tolerance for adjusting timestep
+  amrex::Real delta_T_rat_dt_tol; ///< T change tolerance for adjusting timestep
+  amrex::Real delta_Ye_dt_tol;    ///< Ye change tolerance for adjusting timestep
+  int limiter;          ///< 0: no limiter, 2: Lev-Pom limiter
+                        ///< 12: Bruenn, 22: square root, 32: Minerbo
+  int closure;      ///< 0: \f$f = \lambda\f$, 1: \f$f = 1/3\f$,
+                    ///< 2: \f$f = 1-2\lambda\f$, 3: \f$f = \lambda+(\lambda R)^2\f$
+                    ///< 4: \f$f = 1/3 + 2/3 (\lambda R)^2\f$
+  int update_planck;     ///< after this number of iterations, lag planck
+  int update_rosseland;  ///< after this number of iterations, lag rosseland
+  int update_opacity;
+  int update_limiter;    ///< after this number of iterations, lag limiter
+  int inner_update_limiter; ///< This is for MGFLD solver.
+                            ///< Stop updating limiter after ? inner iterations
+                            ///< 0 means lagging by one outer iteration
+  amrex::Real dT;               ///< temperature step for derivative estimate
+  int surface_average;   ///< 0 = arithmetic, 1 = harmonic, 2 = surface formula
+  amrex::Real underfac;         ///< factor controlling progressive underrelaxation
+  int do_sync;               ///< perform sync (if false zero out sync source)
+  int do_kappa_stm_emission;
 
   static void read_static_params();
 
@@ -84,16 +122,7 @@ public:
   static amrex::Real flatten_pp_threshold;
   static int pure_hydro;
 
-  static int do_real_eos;  ///< if 0,  \f$c_v = const_{c_v} \rho^m T^{-n}\f$
-
-
-  static amrex::Real const_c_v, const_kappa_p, const_kappa_r, const_scattering;
-  static amrex::Real c_v_exp_m, c_v_exp_n;
-  static amrex::Real kappa_p_exp_m, kappa_p_exp_n;
-  static amrex::Real kappa_r_exp_m, kappa_r_exp_n;
-  static amrex::Real scattering_exp_m, scattering_exp_n;
-  static amrex::Real kappa_p_exp_p, kappa_r_exp_p, scattering_exp_p;
-  static amrex::Real prop_temp_floor;
+#include <radiation_params.H>
 
   amrex::Vector<std::unique_ptr<amrex::MultiFab> > plotvar;
 
@@ -148,6 +177,11 @@ public:
 
 ///
 /// access to group information
+
+///
+/// @param igroup
+///
+  void set_current_group(int igroup);
 
 /// @param i
 ///
@@ -210,11 +244,6 @@ public:
       return flux_cons_old[level].get();
   }
 
-
-///
-/// @param level
-///
-  void analytic_solution(int level);
 
 
 ///
@@ -321,8 +350,6 @@ public:
 ///
   void filter_prim(int level, amrex::MultiFab& State);
 
-protected:
-
   // internal utility functions:
 
 
@@ -422,9 +449,8 @@ protected:
 ///
 /// @param state
 /// @param frhoes
-/// @param temp
 ///
-  void state_update(amrex::MultiFab& state,  amrex::MultiFab& frhoes, amrex::MultiFab& temp);
+  void state_update(amrex::MultiFab& state,  amrex::MultiFab& frhoes);
 
 
 ///
@@ -497,14 +523,8 @@ protected:
                    int limiter, int lamcomp=0);
 
 ///
-/// Fab versions of conversion functions.  All except frhoe use eos data.
+/// Fab versions of conversion functions.
 ///
-/// @param rhoe
-/// @param state
-/// @param reg
-///
-  void get_frhoe(amrex::FArrayBox& rhoe, amrex::FArrayBox& state, const amrex::Box& reg);
-
 
 ///
 /// @param c_v
@@ -515,56 +535,6 @@ protected:
   void get_c_v(amrex::FArrayBox& c_v, amrex::FArrayBox& temp,
                amrex::FArrayBox& state, const amrex::Box& reg);
 
-///
-/// temp contains frhoe on input
-///
-/// @param fkp
-/// @param temp
-/// @param state
-/// @param reg
-/// @param igroup
-/// @param delta_t
-///
-  void get_planck_and_temp(amrex::FArrayBox& fkp, amrex::FArrayBox& temp,
-			   amrex::FArrayBox& state, const amrex::Box& reg,
-			   int igroup = 0, amrex::Real delta_t = 0.0);
-
-
-///
-/// @param kappa_r
-/// @param temp
-/// @param state
-/// @param reg
-/// @param igroup
-///
-  void get_rosseland_and_temp(amrex::FArrayBox& kappa_r, amrex::FArrayBox& temp,
-			      amrex::FArrayBox& state, const amrex::Box& reg,
-			      int igroup = 0);
-
-///
-/// temp contains temp on input
-///
-/// @param fkp
-/// @param temp
-/// @param state
-/// @param reg
-/// @param igroup
-///
-  void get_planck_from_temp(amrex::FArrayBox& fkp, amrex::FArrayBox& temp,
-                            amrex::FArrayBox& state, const amrex::Box& reg,
-			    int igroup = 0);
-
-
-///
-/// @param kappa_r
-/// @param temp
-/// @param state
-/// @param reg
-/// @param igroup
-///
-  void get_rosseland_from_temp(amrex::FArrayBox& kappa_r, amrex::FArrayBox& temp,
-			       amrex::FArrayBox& state, const amrex::Box& reg,
-			       int igroup = 0);
 
 ///
 /// MultiFab versions of conversion functions call Fab versions for eos data
@@ -1040,57 +1010,6 @@ protected:
   amrex::Amr* parent;
   amrex::BCRec rad_bc;          ///< types defined in LO_BCTYPES.H, not BCTYPES.H
   amrex::Real reltol, abstol;   ///< tolerances for implicit update loop
-  int maxiter;           ///< iteration limit for implicit update loop
-  int miniter;
-  int convergence_check_type; ///< 0 (default): both 2 and 3,
-                              ///< 1: rhoe,
-                              ///< 2: residue of Eq. rhoe,
-                              ///< 3: T & Ye
-  amrex::Real relInTol, absInTol; ///< tolerance for inner iternation of J equation
-  int maxInIter;           ///< iteration limit for inner iteration of J equation
-  int minInIter;
-  int skipAccelAllowed;   ///< Skip acceleration if it doesn't help
-
-  int matter_update_type; ///< 0: conservative  1: non-conservative  2: C and NC interwoven
-                          ///< The last outer iteration is always conservative.
-
-  int n_bisect;  ///< Bisection after n_bisect iterations
-  amrex::Real dedT_fac, dedY_fac; ///< Make dedT and dedY larger for safety in Newton iteration
-
-  int inner_convergence_check;
-
-  amrex::Real delta_e_rat_dt_tol; ///< energy change tolerance for adjusting timestep
-  amrex::Real delta_T_rat_dt_tol; ///< T change tolerance for adjusting timestep
-  amrex::Real delta_Ye_dt_tol;    ///< Ye change tolerance for adjusting timestep
-
-  int limiter;          ///< 0: no limiter, 2: Lev-Pom limiter
-                        ///< 12: Bruenn, 22: square root, 32: Minerbo
-
-  int closure;      ///< 0: \f$f = \lambda\f$, 1: \f$f = 1/3\f$,
-                    ///< 2: \f$f = 1-2\lambda\f$, 3: \f$f = \lambda+(\lambda R)^2\f$
-                    ///< 4: \f$f = 1/3 + 2/3 (\lambda R)^2\f$
-
-  int update_planck;     ///< after this number of iterations, lag planck
-  int update_rosseland;  ///< after this number of iterations, lag rosseland
-  int update_opacity;
-  int update_limiter;    ///< after this number of iterations, lag limiter
-  int inner_update_limiter; ///< This is for MGFLD solver.
-                            ///< Stop updating limiter after ? inner iterations
-                            ///< 0 means lagging by one outer iteration
-
-  amrex::Real dT;               ///< temperature step for derivative estimate
-  int surface_average;   ///< 0 = arithmetic, 1 = harmonic, 2 = surface formula
-
-  amrex::Real underfac;         ///< factor controlling progressive underrelaxation
-
-  int do_sync;               ///< perform sync (if false zero out sync source)
-
-  amrex::Real kappa_r_floor, temp_floor;
-
-  int use_opacity_table_module;  ///< Use opacity_table_module?
-
-  int do_kappa_stm_emission;
-
   amrex::Vector<amrex::Real> delta_e_rat_level, delta_T_rat_level, delta_Ye_level;
 
 
@@ -1120,16 +1039,6 @@ protected:
 
   amrex::IntVect spot;
 
-  int Density, Xmom, Eden, Eint, Temp, FirstSpec, FirstAux, NUM_STATE;
-
-
-///
-/// @param igroup
-///
-  void set_current_group(int igroup);
-
-public:
-  int verbose;
 };
 
 #endif

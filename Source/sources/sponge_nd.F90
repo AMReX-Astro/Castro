@@ -227,8 +227,8 @@ contains
     ! For an implicit update (sponge_implicit == 1), we choose the (rho v) to be
     ! the momentum after the update. This then leads to an update of the form
     ! (rho v) --> (rho v) * ONE / (ONE + alpha * sponge_factor). To get an equivalent
-    ! explicit form of this source term, which we need for the hybrid momentum update,
-    ! we can then solve (rho v) + Sr == (rho v) / (ONE + alpha * sponge_factor),
+    ! explicit form of this source term, we can then solve
+    !    (rho v) + Sr == (rho v) / (ONE + alpha * sponge_factor),
     ! which yields Sr = - (rho v) * (ONE - ONE / (ONE + alpha * sponge_factor)).
 
     if (sponge_implicit == 1) then

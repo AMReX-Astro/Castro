@@ -186,19 +186,11 @@ class Counter:
 
 
 def doit(variables_file, odir, defines, nadv,
-         ngroups,
-         n_neutrino_species, neutrino_groups):
+         ngroups):
 
     # are we doing radiation?
     if not "RADIATION" in defines:
         ngroups = None
-
-    # if we are doing neutrino radiation, then the number of groups is
-    # the sum of the number of groups for each neutrino type
-    if "NEUTRINO" in defines:
-        ngroups = 0
-        for n in range(n_neutrino_species):
-            ngroups += neutrino_groups[n]
 
     # read the file and create a list of indices
     indices = []
@@ -417,32 +409,15 @@ def main():
                         help="the number of pure advected quantities")
     parser.add_argument("--ngroups", type=int, default=1,
                         help="the number of radiation groups")
-    parser.add_argument("--n_neutrino_species", type=int, default=1,
-                        help="the number of neutrino species")
-    parser.add_argument("--n_neutrino_groups", type=str, default="1",
-                        help="the number of neutrino groups for each species (space separated)")
     parser.add_argument("variables_file", type=str, nargs=1,
                         help="input variable definition file")
     args = parser.parse_args()
-
-    neutrino_groups = [int(q) for q in args.n_neutrino_groups.split()]
-
-    if len(neutrino_groups) < args.n_neutrino_species:
-        print("ERROR: need to specify the number of neutrino groups for each species")
-        sys.exit()
-
-    # need to zero out any groups for excess species
-    if len(neutrino_groups) > args.n_neutrino_species:
-        for i in range(args.n_neutrino_species, len(neutrino_groups)):
-            neutrino_groups[i] = 0
-
 
     if args.odir != "" and not os.path.isdir(args.odir):
         os.makedirs(args.odir)
 
     doit(args.variables_file[0], args.odir, args.defines, args.nadv,
-         args.ngroups,
-         args.n_neutrino_species, neutrino_groups)
+         args.ngroups)
 
 
 if __name__ == "__main__":

@@ -1,12 +1,11 @@
+#include <AMReX_BLFort.H>
 
-#ifdef __cplusplus
 extern "C"
 {
-#endif
 
-    void problem_checkpoint(int * int_dir_name, int * len);
+    void problem_checkpoint(int* int_dir_name, int* len);
 
-    void problem_restart(int * int_dir_name, int * len);
+    void problem_restart(int* int_dir_name, int* len);
 
     void get_problem_number(int* problem);
 
@@ -14,10 +13,16 @@ extern "C"
 
     void get_density(amrex::Real* density);
 
-    void update_density(const int* lo, const int* hi, const amrex::Real* dx,
-			amrex::Real* state, const int* s_lo, const int* s_hi,
-			const amrex::Real* update_factor);
+    void set_density(amrex::Real density);
 
-#ifdef __cplusplus
+    void update_density(const int* lo, const int* hi,
+                        BL_FORT_FAB_ARG_3D(state),
+                        const amrex::Real* dx, const amrex::Real update_factor);
+
+    void compute_norm(const int* lo, const int* hi,
+                      BL_FORT_FAB_ARG_3D(phi),
+                      BL_FORT_FAB_ARG_3D(vol),
+                      const amrex::Real* dx, const int norm_power,
+                      amrex::Real* norm_diff, amrex::Real* norm_exact);
+
 }
-#endif

@@ -3,17 +3,6 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef ROTATION
-amrex::Real Castro::rotational_period = -1.e200;
-amrex::Real Castro::rotational_dPdt = 0.0;
-int         Castro::rotation_include_centrifugal = 1;
-int         Castro::rotation_include_coriolis = 1;
-int         Castro::rotation_include_domegadt = 1;
-int         Castro::state_in_rotating_frame = 1;
-int         Castro::rot_source_type = 4;
-int         Castro::implicit_rotation_update = 1;
-int         Castro::rot_axis = 3;
-#endif
 #ifdef GRAVITY
 int         Castro::use_point_mass = 0;
 amrex::Real Castro::point_mass = 0.0;
@@ -24,6 +13,7 @@ int         Castro::lin_limit_state_interp = 0;
 int         Castro::state_nghost = 0;
 int         Castro::do_reflux = 1;
 int         Castro::update_sources_after_reflux = 1;
+int         Castro::apply_sources_consecutively = 0;
 int         Castro::use_custom_knapsack_weights = 0;
 amrex::Real Castro::difmag = 0.1;
 amrex::Real Castro::small_dens = -1.e200;
@@ -49,7 +39,6 @@ int         Castro::cg_maxiter = 12;
 amrex::Real Castro::cg_tol = 1.0e-5;
 int         Castro::cg_blend = 2;
 int         Castro::use_eos_in_riemann = 0;
-amrex::Real Castro::riemann_speed_limit = 2.99792458e10;
 int         Castro::use_flattening = 1;
 int         Castro::transverse_use_eos = 0;
 int         Castro::transverse_reset_density = 1;
@@ -58,10 +47,13 @@ amrex::Real Castro::dual_energy_eta1 = 1.0e0;
 amrex::Real Castro::dual_energy_eta2 = 1.0e-4;
 int         Castro::use_pslope = 1;
 int         Castro::limit_fluxes_on_small_dens = 0;
+int         Castro::limit_fluxes_on_large_vel = 0;
+amrex::Real Castro::speed_limit = 2.99792458e10;
 int         Castro::density_reset_method = 1;
 int         Castro::allow_small_energy = 1;
 int         Castro::do_sponge = 0;
 int         Castro::sponge_implicit = 1;
+int         Castro::ext_src_implicit = 0;
 int         Castro::source_term_predictor = 0;
 int         Castro::first_order_hydro = 0;
 std::string Castro::xl_ext_bc_type = "";
@@ -93,7 +85,7 @@ amrex::Real Castro::init_shrink = 1.0;
 amrex::Real Castro::change_max = 1.1;
 int         Castro::plot_per_is_exact = 0;
 int         Castro::small_plot_per_is_exact = 0;
-int         Castro::use_retry = 0;
+int         Castro::use_retry = 1;
 amrex::Real Castro::retry_tolerance = 0.02;
 amrex::Real Castro::retry_neg_dens_factor = 1.e-1;
 amrex::Real Castro::retry_subcycle_factor = 0.5;
@@ -142,7 +134,6 @@ int         Castro::track_grid_losses = 0;
 int         Castro::sum_interval = -1;
 amrex::Real Castro::sum_per = -1.0e0;
 int         Castro::show_center_of_mass = 0;
-int         Castro::hard_cfl_limit = 1;
 std::string Castro::job_name = "";
 int         Castro::output_at_completion = 1;
 amrex::Real Castro::reset_checkpoint_time = -1.e200;
@@ -152,6 +143,17 @@ int         Castro::diffuse_temp = 0;
 amrex::Real Castro::diffuse_cutoff_density = -1.e200;
 amrex::Real Castro::diffuse_cutoff_density_hi = -1.e200;
 amrex::Real Castro::diffuse_cond_scale_fac = 1.0;
+#endif
+#ifdef ROTATION
+amrex::Real Castro::rotational_period = -1.e200;
+amrex::Real Castro::rotational_dPdt = 0.0;
+int         Castro::rotation_include_centrifugal = 1;
+int         Castro::rotation_include_coriolis = 1;
+int         Castro::rotation_include_domegadt = 1;
+int         Castro::state_in_rotating_frame = 1;
+int         Castro::rot_source_type = 4;
+int         Castro::implicit_rotation_update = 1;
+int         Castro::rot_axis = 3;
 #endif
 #ifdef AMREX_PARTICLES
 int         Castro::do_tracer_particles = 0;

@@ -1,4 +1,4 @@
-subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use amrex_constants_module
   use probdata_module
@@ -13,33 +13,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin
-  integer :: i
-
-  namelist /fortin/ density, radius, ambient_dens
-
-  integer, parameter :: maxlen=127
-  character :: probin*(maxlen)
-  character :: model*(maxlen)
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  if (namlen > maxlen) then
-     call castro_error("ERROR: probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  density = 5.0e6_rt
-  radius  = 1.0e9_rt
-  ambient_dens = 1.0e-8_rt
-
-  ! Read namelists -- override the defaults
-
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
 end subroutine amrex_probinit
 

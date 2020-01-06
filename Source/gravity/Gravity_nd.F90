@@ -48,9 +48,167 @@ contains
 
   end subroutine get_grav_const
 
-  ! ::
-  ! :: ----------------------------------------------------------
-  ! ::
+
+
+  subroutine ca_compute_radial_mass(lo, hi, &
+                                    dx, dr, &
+                                    state, s_lo, s_hi, &
+                                    radial_mass, radial_vol, problo, &
+                                    n1d, drdxfac, level) &
+                                    bind(C, name="ca_compute_radial_mass")
+
+    use amrex_constants_module, only: ONE, HALF, FOUR3RD, TWO, M_PI, EIGHT
+    use prob_params_module, only: center, coord_type, dim, dg
+    use meth_params_module, only: NVAR, URHO
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_add
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
+
+    implicit none
+
+    integer , intent(in   ) :: lo(3), hi(3)
+    integer , intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(in   ) :: dx(3), problo(3)
+    real(rt), intent(inout) :: radial_mass(0:n1d-1)
+    real(rt), intent(inout) :: radial_vol (0:n1d-1)
+    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ), value :: dr
+    integer , intent(in   ), value :: n1d, drdxfac, level
+
+    integer  :: i, j, k, index
+    integer  :: ii, jj, kk
+    real(rt) :: xc, yc, zc, r, rlo, rhi, xxsq, yysq, zzsq, octant_factor
+    real(rt) :: fac, xx, yy, zz, dx_frac, dy_frac, dz_frac
+    real(rt) :: vol_frac, drinv
+    real(rt) :: lo_i, lo_j, lo_k
+
+    !$gpu
+
+    octant_factor = ONE
+
+    if (coord_type == 0) then
+
+       if ((abs(center(1) - problo(1)) .lt. 1.e-2_rt * dx(1)) .and. &
+           (abs(center(2) - problo(2)) .lt. 1.e-2_rt * dx(2)) .and. &
+           (abs(center(3) - problo(3)) .lt. 1.e-2_rt * dx(3))) then
+
+          octant_factor = EIGHT
+
+       end if
+
+    else if (coord_type == 1) then
+
+       if (abs(center(2) - problo(2)) .lt. 1.e-2_rt * dx(2)) then
+
+          octant_factor = TWO
+
+       end if
+
+    end if
+
+    drinv = ONE / dr
+
+    fac = dble(drdxfac)
+
+    dx_frac = dx(1) / fac
+
+    if (dim >= 2) then
+       dy_frac = dx(2) / fac
+    else
+       dy_frac = dx(2)
+    end if
+
+    if (dim == 3) then
+       dz_frac = dx(3) / fac
+    else
+       dz_frac = dx(3)
+    end if
+
+    do k = lo(3), hi(3)
+       zc = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+       lo_k = problo(3) + dble(k) * dx(3) - center(3)
+
+       do j = lo(2), hi(2)
+          yc = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+          lo_j = problo(2) + dble(j) * dx(2) - center(2)
+
+          do i = lo(1), hi(1)
+             xc  = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+             lo_i = problo(1) + dble(i) * dx(1) - center(1)
+
+             r = sqrt(xc**2 + yc**2 + zc**2)
+             index = int(r * drinv)
+
+             if (index .gt. n1d - 1) then
+
+#ifndef AMREX_USE_GPU
+                if (level .eq. 0) then
+                   print *, '   '
+                   print *, '>>> Error: Gravity_nd::ca_compute_radial_mass ', i, j, k
+                   print *, '>>> ... index too big: ', index, ' > ', n1d-1
+                   print *, '>>> ... at (i,j,k)   : ', i, j, k
+                   call castro_error("Error:: Gravity_nd.F90 :: ca_compute_radial_mass")
+                end if
+#endif
+
+             else
+
+                do kk = 0, dg(3) * (drdxfac - 1)
+                   zz   = lo_k + (dble(kk) + HALF) * dz_frac
+                   zzsq = zz * zz
+
+                   do jj = 0, dg(2) * (drdxfac - 1)
+                      yy   = lo_j + (dble(jj) + HALF) * dy_frac
+                      yysq = yy * yy
+
+                      do ii = 0, drdxfac - 1
+                         xx    = lo_i + (dble(ii) + HALF) * dx_frac
+                         xxsq  = xx * xx
+
+                         r     = sqrt(xxsq + yysq + zzsq)
+                         index = int(r * drinv)
+
+                         if (coord_type == 0) then
+
+                            vol_frac = octant_factor * dx_frac * dy_frac * dz_frac
+
+                         else if (coord_type == 1) then
+
+                            vol_frac = TWO * M_PI * dx_frac * dy_frac * octant_factor * xx
+
+                         else if (coord_type == 2) then
+
+                            rlo = abs(lo_i + dble(ii  ) * dx_frac)
+                            rhi = abs(lo_i + dble(ii+1) * dx_frac)
+                            vol_frac = FOUR3RD * M_PI * (rhi**3 - rlo**3)
+
+#ifndef AMREX_USE_GPU
+                         else
+                            call castro_error("Unknown coord_type")
+#endif
+
+                         end if
+
+                         if (index .le. n1d - 1) then
+                            call reduce_add(radial_mass(index), vol_frac * state(i,j,k,URHO), .false.)
+                            call reduce_add(radial_vol(index), vol_frac, .false.)
+                         end if
+
+                      end do
+                   end do
+                end do
+
+             end if
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_compute_radial_mass
+
+
 
   subroutine ca_integrate_grav (mass,den,grav,max_radius,dr,numpts_1d) &
        bind(C, name="ca_integrate_grav")
@@ -137,9 +295,8 @@ contains
 
   subroutine ca_integrate_phi (mass,grav,phi,dr,numpts_1d) &
        bind(C, name="ca_integrate_phi")
-    ! Integrates radial mass elements of a spherically symmetric
-    ! mass distribution to calculate both the gravitational acceleration,
-    ! grav, and the gravitational potential, phi. Here the mass variable
+    ! Integrates a radial gravitational acceleration, grav, to get the
+    ! gravitational potential, phi. Here the mass variable
     ! gives the mass contained in each radial shell.
     !
     ! The convention in Castro for Poisson's equation is
@@ -163,33 +320,26 @@ contains
     !     \phi(r < R) = \phi(R) - \int(g \dr)
     ! \f]
 
-    use fundamental_constants_module, only : Gconst
+    use fundamental_constants_module, only: Gconst
 
     implicit none
+
     integer , intent(in   ) :: numpts_1d   ! number of points in radial direction
     real(rt), intent(in   ) :: mass(0:numpts_1d-1)   ! radial mass distribution
     real(rt), intent(inout) :: grav(0:numpts_1d-1)   ! radial gravitational acceleration
     real(rt), intent(inout) :: phi(0:numpts_1d-1)   ! radial gravitational potential
     real(rt), intent(in   ) :: dr   ! radial cell spacing
 
-    real(rt)         :: gravBC, phiBC
-    integer          :: i
-    real(rt)         :: mass_encl,rhi
+    real(rt) :: gravBC, phiBC
+    integer  :: i
+    real(rt) :: mass_encl, rhi
 
-    mass_encl = 0.e0_rt
-    grav(0)   = 0.e0_rt
-    do i = 1,numpts_1d-1
-       rhi = dble(i) * dr
-       mass_encl = mass_encl + mass(i-1)
-       grav(i) = -Gconst * mass_encl / rhi**2
-    enddo
-
-    mass_encl = mass_encl + mass(numpts_1d-1)
-    phiBC = -Gconst * mass_encl / (numpts_1d*dr)
-    gravBC = -Gconst * mass_encl / (numpts_1d*dr)**2
+    mass_encl = sum(mass)
+    phiBC = -Gconst * mass_encl / (numpts_1d * dr)
+    gravBC = -Gconst * mass_encl / (numpts_1d * dr)**2
     phi(numpts_1d-1) = phiBC + gravBC * dr
 
-    do i = numpts_1d-2,0,-1
+    do i = numpts_1d-2, 0, -1
        phi(i) = phi(i+1) + grav(i+1) * dr
     enddo
 
@@ -286,9 +436,658 @@ contains
 
   end subroutine ca_integrate_gr_grav
 
-  ! ::
-  ! :: ----------------------------------------------------------
-  ! ::
+
+
+  subroutine ca_put_radial_phi(lo, hi, &
+                               domlo, domhi, &
+                               dx, dr, &
+                               phi, p_lo, p_hi, &
+                               radial_phi, problo, &
+                               numpts_1d, fill_interior) &
+                               bind(C, name="ca_put_radial_phi")
+
+    use amrex_constants_module, only: HALF, TWO
+    use prob_params_module, only: center
+    use amrex_fort_module, only: rt => amrex_real
+#ifndef AMREX_USE_GPU
+    use castro_error_module, only: castro_error
+#endif
+
+    implicit none
+
+    integer , intent(in   ) :: lo(3), hi(3)
+    integer , intent(in   ) :: domlo(3), domhi(3)
+    integer,  intent(in   ) :: p_lo(3), p_hi(3)
+    real(rt), intent(in   ) :: radial_phi(0:numpts_1d-1)
+    real(rt), intent(in   ) :: dx(3), problo(3)
+    real(rt), intent(inout) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+    real(rt), intent(in   ), value :: dr
+    integer , intent(in   ), value :: numpts_1d, fill_interior
+
+    integer  :: i, j, k, index
+    real(rt) :: x, y, z, r
+    real(rt) :: cen, xi, slope, phi_lo, phi_md, phi_hi, minvar, maxvar
+
+    !$gpu
+
+    ! Note that when we interpolate into the ghost cells we use the
+    ! location of the edge, not the cell center
+
+    do k = lo(3), hi(3)
+       if (k .gt. domhi(3)) then
+          z = problo(3) + (dble(k  )       ) * dx(3) - center(3)
+       else if (k .lt. domlo(3)) then
+          z = problo(3) + (dble(k+1)       ) * dx(3) - center(3)
+       else
+          z = problo(3) + (dble(k  ) + HALF) * dx(3) - center(3)
+       end if
+
+       do j = lo(2), hi(2)
+          if (j .gt. domhi(2)) then
+             y = problo(2) + (dble(j  )       ) * dx(2) - center(2)
+          else if (j .lt. domlo(2)) then
+             y = problo(2) + (dble(j+1)       ) * dx(2) - center(2)
+          else
+             y = problo(2) + (dble(j  ) + HALF) * dx(2) - center(2)
+          end if
+
+          do i = lo(1), hi(1)
+             if (i .gt. domhi(1)) then
+                x = problo(1) + (dble(i  )       ) * dx(1) - center(1)
+             else if (i .lt. domlo(1)) then
+                x = problo(1) + (dble(i+1)       ) * dx(1) - center(1)
+             else
+                x = problo(1) + (dble(i  ) + HALF) * dx(1) - center(1)
+             end if
+
+             r     = sqrt(x**2 + y**2 + z**2)
+             index = int(r / dr)
+
+#ifndef AMREX_USE_GPU
+             if (index .gt. numpts_1d - 1) then
+                print *, 'PUT_RADIAL_PHI: INDEX TOO BIG ', index, ' > ', numpts_1d - 1
+                print *, 'AT (i,j) ', i, j, k
+                print *, 'R, DR IS ', r, dr
+                call castro_error("Error:: Gravity_nd.F90 :: ca_put_radial_phi")
+             end if
+#endif
+
+             if ((fill_interior .eq. 1) .or. &
+                 (i .lt. domlo(1) .or. i .gt. domhi(1) .or. &
+                  j .lt. domlo(2) .or. j .gt. domhi(2) .or. &
+                  k .lt. domlo(3) .or. k .gt. domhi(3))) then
+
+                cen = (dble(index) + HALF) * dr
+                xi  = r - cen
+
+                if (index == 0) then
+                   !
+                   ! Linear interpolation or extrapolation
+                   !
+                   slope      = ( radial_phi(index+1) - radial_phi(index) ) / dr
+                   phi(i,j,k) = radial_phi(index) + slope * xi
+                else if (index == numpts_1d-1) then
+                   !
+                   ! Linear interpolation or extrapolation
+                   !
+                   slope      = ( radial_phi(index) - radial_phi(index-1) ) / dr
+                   phi(i,j,k) = radial_phi(index) + slope * xi
+                else
+                   !
+                   ! Quadratic interpolation
+                   !
+                   phi_hi = radial_phi(index+1)
+                   phi_md = radial_phi(index  )
+                   phi_lo = radial_phi(index-1)
+                   phi(i,j,k) = &
+                        ( phi_hi -      TWO * phi_md + phi_lo) * xi**2 / (TWO * dr**2) + &
+                        ( phi_hi                     - phi_lo) * xi    / (TWO * dr   ) + &
+                        (-phi_hi + 26.e0_rt * phi_md - phi_lo) / 24.e0_rt
+                   minvar     = min(phi_md, min(phi_lo, phi_hi))
+                   maxvar     = max(phi_md, max(phi_lo, phi_hi))
+                   phi(i,j,k) = max(phi(i,j,k), minvar)
+                   phi(i,j,k) = min(phi(i,j,k), maxvar)
+
+                end if
+
+             end if
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_put_radial_phi
+
+
+
+  subroutine ca_compute_direct_sum_bc(lo, hi, dx, &
+                                      symmetry_type, physbc_lo, physbc_hi, &
+                                      rho, r_lo, r_hi, &
+                                      vol, v_lo, v_hi, &
+                                      problo, probhi, &
+                                      bcXYLo, bcXYHi, &
+                                      bcXZLo, bcXZHi, &
+                                      bcYZLo, bcYZHi, &
+                                      bc_lo, bc_hi, bc_dx) bind(C, name="ca_compute_direct_sum_bc")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: HALF
+    use fundamental_constants_module, only: Gconst
+    use reduction_module, only: reduce_add
+
+    implicit none
+
+    integer , intent(in   ) :: lo(3), hi(3)
+    integer , intent(in   ) :: bc_lo(3), bc_hi(3)
+    integer , intent(in   ) :: r_lo(3), r_hi(3)
+    integer , intent(in   ) :: v_lo(3), v_hi(3)
+    real(rt), intent(in   ) :: dx(3), bc_dx(3)
+    real(rt), intent(in   ) :: problo(3), probhi(3)
+
+    integer , intent(in   ), value :: symmetry_type
+    integer , intent(in   ) :: physbc_lo(3), physbc_hi(3)
+
+    real(rt), intent(inout) :: bcXYLo(bc_lo(1):bc_hi(1),bc_lo(2):bc_hi(2))
+    real(rt), intent(inout) :: bcXYHi(bc_lo(1):bc_hi(1),bc_lo(2):bc_hi(2))
+    real(rt), intent(inout) :: bcXZLo(bc_lo(1):bc_hi(1),bc_lo(3):bc_hi(3))
+    real(rt), intent(inout) :: bcXZHi(bc_lo(1):bc_hi(1),bc_lo(3):bc_hi(3))
+    real(rt), intent(inout) :: bcYZLo(bc_lo(2):bc_hi(2),bc_lo(3):bc_hi(3))
+    real(rt), intent(inout) :: bcYZHi(bc_lo(2):bc_hi(2),bc_lo(3):bc_hi(3))
+
+    real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+
+    integer  :: i, j, k, l, m, n, b
+    real(rt) :: r
+    real(rt) :: loc(3), locb(3), dx2, dy2, dz2
+    real(rt) :: dbc
+
+    logical  :: doSymmetricAddLo(3), doSymmetricAddHi(3), doSymmetricAdd
+
+    !$gpu
+
+    ! Determine if we need to add contributions from any symmetric boundaries.
+
+    doSymmetricAddLo(:) = .false.
+    doSymmetricAddHi(:) = .false.
+    doSymmetricAdd      = .false.
+
+    do b = 1, 3
+       if (physbc_lo(b) .eq. symmetry_type) then
+          doSymmetricAddLo(b) = .true.
+          doSymmetricAdd      = .true.
+       end if
+
+       if (physbc_hi(b) .eq. symmetry_type) then
+          doSymmetricAddHi(b) = .true.
+          doSymmetricAdd      = .true.
+       end if
+    end do
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             loc(1) = problo(1) + (dble(i) + HALF) * dx(1)
+             loc(2) = problo(2) + (dble(j) + HALF) * dx(2)
+             loc(3) = problo(3) + (dble(k) + HALF) * dx(3)
+
+             ! Do xy interfaces first. Note that the boundary conditions
+             ! on phi are expected to live directly on the interface.
+             ! We also have to handle the domain corners correctly. We are
+             ! assuming that bc_lo = domlo - 1 and bc_hi = domhi + 1, where
+             ! domlo and domhi are the coarse domain extent.
+
+             do m = bc_lo(2), bc_hi(2)
+                if (m .eq. bc_lo(2)) then
+                   locb(2) = problo(2)
+                else if (m .eq. bc_hi(2)) then
+                   locb(2) = probhi(2)
+                else
+                   locb(2) = problo(2) + (dble(m) + HALF) * bc_dx(2)
+                end if
+                dy2 = (loc(2) - locb(2))**2
+
+                do l = bc_lo(1), bc_hi(1)
+                   if (l .eq. bc_lo(1)) then
+                      locb(1) = problo(1)
+                   else if (l .eq. bc_hi(1)) then
+                      locb(1) = probhi(2)
+                   else
+                      locb(1) = problo(1) + (dble(l) + HALF) * bc_dx(1)
+                   end if
+                   dx2 = (loc(1) - locb(1))**2
+
+                   locb(3) = problo(3)
+                   dz2 = (loc(3) - locb(3))**2
+
+                   r = (dx2 + dy2 + dz2)**HALF
+
+                   dbc = -Gconst * rho(i,j,k) * vol(i,j,k) / r
+
+                   ! Now, add any contributions from mass that is hidden behind
+                   ! a symmetric boundary.
+
+                   if (doSymmetricAdd) then
+
+                      dbc = dbc + direct_sum_symmetric_add(loc, locb, problo, probhi, &
+                                                           rho(i,j,k), vol(i,j,k), &
+                                                           doSymmetricAddLo, doSymmetricAddHi)
+
+                   end if
+
+                   call reduce_add(bcXYLo(l,m), dbc)
+
+                   locb(3) = probhi(3)
+                   dz2 = (loc(3) - locb(3))**2
+
+                   r = (dx2 + dy2 + dz2)**HALF
+
+                   dbc = -Gconst * rho(i,j,k) * vol(i,j,k) / r
+
+                   if (doSymmetricAdd) then
+
+                      dbc = dbc + direct_sum_symmetric_add(loc, locb, problo, probhi, &
+                                                           rho(i,j,k), vol(i,j,k), &
+                                                           doSymmetricAddLo, doSymmetricAddHi)
+
+                   end if
+
+                   call reduce_add(bcXYHi(l,m), dbc)
+
+                end do
+
+             end do
+
+             ! Now do xz interfaces.
+
+             do n = bc_lo(3), bc_hi(3)
+                if (n .eq. bc_lo(3)) then
+                   locb(3) = problo(3)
+                else if (n .eq. bc_hi(3)) then
+                   locb(3) = probhi(3)
+                else
+                   locb(3) = problo(3) + (dble(n) + HALF) * bc_dx(3)
+                end if
+                dz2 = (loc(3) - locb(3))**2
+
+                do l = bc_lo(1), bc_hi(1)
+                   if (l .eq. bc_lo(1)) then
+                      locb(1) = problo(1)
+                   else if (l .eq. bc_hi(1)) then
+                      locb(1) = probhi(1)
+                   else
+                      locb(1) = problo(1) + (dble(l) + HALF) * bc_dx(1)
+                   end if
+                   dx2 = (loc(1) - locb(1))**2
+
+                   locb(2) = problo(2)
+                   dy2 = (loc(2) - locb(2))**2
+
+                   r = (dx2 + dy2 + dz2)**HALF
+
+                   dbc = -Gconst * rho(i,j,k) * vol(i,j,k) / r
+
+                   if (doSymmetricAdd) then
+
+                      dbc = dbc + direct_sum_symmetric_add(loc, locb, problo, probhi, &
+                                                           rho(i,j,k), vol(i,j,k), &
+                                                           doSymmetricAddLo, doSymmetricAddHi)
+
+                   end if
+
+                   call reduce_add(bcXZLo(l,n), dbc)
+
+                   locb(2) = probhi(2)
+                   dy2 = (loc(2) - locb(2))**2
+
+                   r = (dx2 + dy2 + dz2)**HALF
+
+                   dbc = -Gconst * rho(i,j,k) * vol(i,j,k) / r
+
+                   if (doSymmetricAdd) then
+
+                      dbc = dbc + direct_sum_symmetric_add(loc, locb, problo, probhi, &
+                                                           rho(i,j,k), vol(i,j,k), &
+                                                           doSymmetricAddLo, doSymmetricAddHi)
+
+                   end if
+
+                   call reduce_add(bcXZHi(l,n), dbc)
+
+                end do
+
+             end do
+
+             ! Finally, do yz interfaces.
+
+             do n = bc_lo(3), bc_hi(3)
+                if (n .eq. bc_lo(3)) then
+                   locb(3) = problo(3)
+                else if (n .eq. bc_hi(3)) then
+                   locb(3) = probhi(3)
+                else
+                   locb(3) = problo(3) + (dble(n) + HALF) * bc_dx(3)
+                end if
+                dz2 = (loc(3) - locb(3))**2
+
+                do m = bc_lo(2), bc_hi(2)
+                   if (m .eq. bc_lo(2)) then
+                      locb(2) = problo(2)
+                   else if (m .eq. bc_hi(2)) then
+                      locb(2) = probhi(2)
+                   else
+                      locb(2) = problo(2) + (dble(m) + HALF) * bc_dx(2)
+                   end if
+                   dy2 = (loc(2) - locb(2))**2
+
+                   locb(1) = problo(1)
+                   dx2 = (loc(1) - locb(1))**2
+
+                   r = (dx2 + dy2 + dz2)**HALF
+
+                   dbc = -Gconst * rho(i,j,k) * vol(i,j,k) / r
+
+                   if (doSymmetricAdd) then
+
+                      dbc = dbc + direct_sum_symmetric_add(loc, locb, problo, probhi, &
+                                                           rho(i,j,k), vol(i,j,k), &
+                                                           doSymmetricAddLo, doSymmetricAddHi)
+
+                   end if
+
+                   call reduce_add(bcYZLo(m,n), dbc)
+
+                   locb(1) = probhi(1)
+                   dx2 = (loc(1) - locb(1))**2
+
+                   r = (dx2 + dy2 + dz2)**HALF
+
+                   dbc = -Gconst * rho(i,j,k) * vol(i,j,k) / r
+
+                   if (doSymmetricAdd) then
+
+                      dbc = dbc + direct_sum_symmetric_add(loc, locb, problo, probhi, &
+                                                           rho(i,j,k), vol(i,j,k), &
+                                                           doSymmetricAddLo, doSymmetricAddHi)
+
+                   end if
+
+                   call reduce_add(bcYZHi(m,n), dbc)
+
+                end do
+
+             end do
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_compute_direct_sum_bc
+
+
+
+  subroutine ca_put_direct_sum_bc (lo, hi, &
+                                   phi, p_lo, p_hi, &
+                                   bcXYLo, bcXYHi, &
+                                   bcXZLo, bcXZHi, &
+                                   bcYZLo, bcYZHi, &
+                                   bc_lo, bc_hi) bind(C, name="ca_put_direct_sum_bc")
+
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: bc_lo(3), bc_hi(3)
+    integer,  intent(in   ) :: p_lo(3), p_hi(3)
+
+    real(rt), intent(in   ) :: bcXYLo(bc_lo(1):bc_hi(1),bc_lo(2):bc_hi(2))
+    real(rt), intent(in   ) :: bcXYHi(bc_lo(1):bc_hi(1),bc_lo(2):bc_hi(2))
+    real(rt), intent(in   ) :: bcXZLo(bc_lo(1):bc_hi(1),bc_lo(3):bc_hi(3))
+    real(rt), intent(in   ) :: bcXZHi(bc_lo(1):bc_hi(1),bc_lo(3):bc_hi(3))
+    real(rt), intent(in   ) :: bcYZLo(bc_lo(2):bc_hi(2),bc_lo(3):bc_hi(3))
+    real(rt), intent(in   ) :: bcYZHi(bc_lo(2):bc_hi(2),bc_lo(3):bc_hi(3))
+
+    real(rt), intent(inout) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             if (i .eq. bc_lo(3)) then
+                phi(i,j,k) = bcYZLo(j,k)
+             end if
+
+             if (i .eq. bc_hi(3)) then
+                phi(i,j,k) = bcYZHi(j,k)
+             end if
+
+             if (j .eq. bc_lo(2)) then
+                phi(i,j,k) = bcXZLo(i,k)
+             end if
+
+             if (j .eq. bc_hi(2)) then
+                phi(i,j,k) = bcXZHi(i,k)
+             end if
+
+             if (k .eq. bc_lo(3)) then
+                phi(i,j,k) = bcXYLo(i,j)
+             end if
+
+             if (k .eq. bc_hi(3)) then
+                phi(i,j,k) = bcXYHi(i,j)
+             end if
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_put_direct_sum_bc
+
+
+
+  function direct_sum_symmetric_add(loc, locb, problo, probhi, &
+                                    rho, dV, &
+                                    doSymmetricAddLo, doSymmetricAddHi) result(bcTerm)
+
+    use fundamental_constants_module, only: Gconst
+    use amrex_constants_module, only: ZERO, HALF, TWO
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    real(rt), intent(in) :: loc(3), locb(3)
+    real(rt), intent(in) :: problo(3), probhi(3)
+    real(rt), intent(in) :: rho, dV
+    logical,  intent(in) :: doSymmetricAddLo(3), doSymmetricAddHi(3)
+
+    real(rt) :: x, y, z, r
+    real(rt) :: bcTerm
+
+    !$gpu
+
+    ! Add contributions from any symmetric boundaries.
+
+    bcTerm = ZERO
+
+    if (doSymmetricAddLo(1)) then
+
+       x = TWO * problo(1) - loc(1)
+       y = loc(2)
+       z = loc(3)
+
+       r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+       bcTerm = bcTerm - Gconst * rho * dV / r
+
+       if (doSymmetricAddLo(2)) then
+
+          x = TWO * problo(1) - loc(1)
+          y = TWO * problo(2) - loc(2)
+          z = loc(3)
+
+          r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+          bcTerm = bcTerm - Gconst * rho * dV / r
+
+       endif
+
+       if (doSymmetricAddLo(3)) then
+
+          x = TWO * problo(1) - loc(1)
+          y = loc(2)
+          z = TWO * problo(3) - loc(3)
+
+          r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+          bcTerm = bcTerm - Gconst * rho * dV / r
+
+       endif
+
+       if (doSymmetricAddLo(2) .and. doSymmetricAddLo(3)) then
+
+          x = TWO * problo(1) - loc(1)
+          y = TWO * problo(2) - loc(2)
+          z = TWO * problo(3) - loc(3)
+
+          r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+          bcTerm = bcTerm - Gconst * rho * dV / r
+
+       endif
+
+    endif
+
+    if (doSymmetricAddLo(2)) then
+
+       x = loc(1)
+       y = TWO * problo(2) - loc(2)
+       z = loc(3)
+
+       r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+       bcTerm = bcTerm - Gconst * rho * dV / r
+
+       if (doSymmetricAddLo(3)) then
+
+          x = loc(1)
+          y = TWO * problo(2) - loc(2)
+          z = TWO * problo(3) - loc(3)
+
+          r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+          bcTerm = bcTerm - Gconst * rho * dV / r
+
+       endif
+
+    endif
+
+    if (doSymmetricAddLo(3)) then
+
+       x = loc(1)
+       y = loc(2)
+       z = TWO * problo(3) - loc(3)
+
+       r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+       bcTerm = bcTerm - Gconst * rho * dV / r
+
+    endif
+
+
+
+    if (doSymmetricAddHi(1)) then
+
+       x = TWO * probhi(1) - loc(1)
+       y = loc(2)
+       z = loc(3)
+
+       r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+       bcTerm = bcTerm - Gconst * rho * dV / r
+
+       if (doSymmetricAddHi(2)) then
+
+          x = TWO * probhi(1) - loc(1)
+          y = TWO * probhi(2) - loc(2)
+          z = loc(3)
+
+          r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+          bcTerm = bcTerm - Gconst * rho * dV / r
+
+       endif
+
+       if (doSymmetricAddHi(3)) then
+
+          x = TWO * probhi(1) - loc(1)
+          y = loc(2)
+          z = TWO * probhi(3) - loc(3)
+
+          r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+          bcTerm = bcTerm - Gconst * rho * dV / r
+
+       endif
+
+       if (doSymmetricAddHi(2) .and. doSymmetricAddHi(3)) then
+
+          x = TWO * probhi(1) - loc(1)
+          y = TWO * probhi(2) - loc(2)
+          z = TWO * probhi(3) - loc(3)
+
+          r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+          bcTerm = bcTerm - Gconst * rho * dV / r
+
+       endif
+
+    endif
+
+    if (doSymmetricAddHi(2)) then
+
+       x = loc(1)
+       y = TWO * probhi(2) - loc(2)
+       z = loc(3)
+
+       r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+       bcTerm = bcTerm - Gconst * rho * dV / r
+
+       if (doSymmetricAddHi(3)) then
+
+          x = loc(1)
+          y = TWO * probhi(2) - loc(2)
+          z = TWO * probhi(3) - loc(3)
+
+          r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+          bcTerm = bcTerm - Gconst * rho * dV / r
+
+       endif
+
+    endif
+
+    if (doSymmetricAddHi(3)) then
+
+       x = loc(1)
+       y = loc(2)
+       z = TWO * probhi(3) - loc(3)
+
+       r = ((x - locb(1))**2 + (y - locb(2))**2 + (z - locb(3))**2)**HALF
+
+       bcTerm = bcTerm - Gconst * rho * dV / r
+
+    endif
+
+  end function direct_sum_symmetric_add
+
+
 
   subroutine init_multipole_gravity(lnum, lo_bc, hi_bc) bind(C,name="init_multipole_gravity")
     ! If any of the boundaries are symmetric, we need to account for the mass that is assumed
@@ -416,7 +1215,7 @@ contains
     enddo
 
     ! Now let's take care of a safety issue. The multipole calculation involves taking powers of r^l,
-    ! which can overflow the real(rt)         exponent limit if lnum is very large. Therefore,
+    ! which can overflow the floating point exponent limit if lnum is very large. Therefore,
     ! we will normalize all distances to the maximum possible physical distance from the center,
     ! which is the diagonal from the center to the edge of the box. Then r^l will always be
     ! less than or equal to one. For large enough lnum, this may still result in roundoff

@@ -1,2 +1,1 @@
-fEXE_sources += dgtsv.f xerbla.f
-
+F90EXE_sources += lapack.F90
