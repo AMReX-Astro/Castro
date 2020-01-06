@@ -10,6 +10,73 @@ module rad_nd_module
 
 contains
 
+  subroutine ca_update_matter(lo, hi,  &
+                              re_n, re_n_lo, re_n_hi, &
+                              Er_n, Er_n_lo, Er_n_hi, &
+                              Er_l, Er_l_lo, Er_l_hi, &
+                              re_s, re_s_lo, re_s_hi, &
+                              re_2, re_2_lo, re_2_hi, &
+                              eta1, eta1_lo, eta1_hi, &
+                              cpt, cpt_lo, cpt_hi, &
+                              kpp, kpp_lo, kpp_hi, &
+                              dt, tau) &
+                              bind(C, name='ca_update_matter')
+
+    use amrex_fort_module, only: rt => amrex_real
+    use rad_params_module, only: ngroups, clight
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: re_n_lo(3), re_n_hi(3)
+    integer,  intent(in   ) :: Er_n_lo(3), Er_n_hi(3)
+    integer,  intent(in   ) :: Er_l_lo(3), Er_l_hi(3)
+    integer,  intent(in   ) :: re_s_lo(3), re_s_hi(3)
+    integer,  intent(in   ) :: re_2_lo(3), re_2_hi(3)
+    integer,  intent(in   ) :: eta1_lo(3), eta1_hi(3)
+    integer,  intent(in   ) :: cpt_lo(3), cpt_hi(3)
+    integer,  intent(in   ) :: kpp_lo(3), kpp_hi(3)
+    real(rt), intent(inout) :: re_n(re_n_lo(1):re_n_hi(1),re_n_lo(2):re_n_hi(2),re_n_lo(3):re_n_hi(3))
+    real(rt), intent(in   ) :: Er_n(Er_n_lo(1):Er_n_hi(1),Er_n_lo(2):Er_n_hi(2),Er_n_lo(3):Er_n_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: Er_l(Er_l_lo(1):Er_l_hi(1),Er_l_lo(2):Er_l_hi(2),Er_l_lo(3):Er_l_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: re_s(re_s_lo(1):re_s_hi(1),re_s_lo(2):re_s_hi(2),re_s_lo(3):re_s_hi(3))
+    real(rt), intent(in   ) :: re_2(re_2_lo(1):re_2_hi(1),re_2_lo(2):re_2_hi(2),re_2_lo(3):re_2_hi(3))
+    real(rt), intent(in   ) :: eta1(eta1_lo(1):eta1_hi(1),eta1_lo(2):eta1_hi(2),eta1_lo(3):eta1_hi(3))
+    real(rt), intent(in   ) :: cpt(cpt_lo(1):cpt_hi(1),cpt_lo(2):cpt_hi(2),cpt_lo(3):cpt_hi(3))
+    real(rt), intent(in   ) :: kpp(kpp_lo(1):kpp_hi(1),kpp_lo(2):kpp_hi(2),kpp_lo(3):kpp_hi(3),0:ngroups-1)
+    real(rt), intent(in   ), value :: dt, tau
+
+    integer  :: i, j, k
+    real(rt) :: cdt, H1, dkEE, chg
+
+    !$gpu
+
+    cdt = clight * dt
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             H1 = eta1(i,j,k)
+
+             dkEE = sum(kpp(i,j,k,:) * (Er_n(i,j,k,:) - Er_l(i,j,k,:)))
+
+             chg = cdt * dkEE + H1 * ((re_2(i,j,k) - re_s(i,j,k)) + cdt * cpt(i,j,k))
+
+             re_n(i,j,k) = re_s(i,j,k) + chg
+
+             re_n(i,j,k) = (re_n(i,j,k) + tau*re_s(i,j,k)) / (1.e0_rt + tau)
+
+             ! temperature will be updated after exiting this subroutine
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_update_matter
+
+
+
   subroutine flxlim(lo, hi, &
                     lambda, l_lo, l_hi, &
                     limiter) &
@@ -359,61 +426,80 @@ contains
 
 
 
-  subroutine cell_center_metric(i, j, k, dx, r, s)
+  subroutine lrhs(lo, hi, &
+                  rhs, r_lo, r_hi, &
+                  temp, t_lo, t_hi, &
+                  fkp, fk_lo, fk_hi, &
+                  eta, et_lo, et_hi, &
+                  etainv, ei_lo, ei_hi, &
+                  frhoem, fm_lo, fm_hi, &
+                  frhoes, fs_lo, fs_hi, &
+                  dfo, d_lo, d_hi, &
+                  ero, er_lo, er_hi, &
+                  edot, ed_lo, ed_hi, &
+                  dt, dx, sigma, c, theta) &
+                  bind(C, name="lrhs")
 
-    use amrex_constants_module, only: ONE
-    use prob_params_module, only: dim, coord_type
-    use castro_util_module, only: position ! function
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+    use habec_nd_module, only: cell_center_metric
 
-    implicit none
-
-    integer,  intent(in   ) :: i, j, k
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    integer,  intent(in   ) :: t_lo(3), t_hi(3)
+    integer,  intent(in   ) :: fk_lo(3), fk_hi(3)
+    integer,  intent(in   ) :: et_lo(3), et_hi(3)
+    integer,  intent(in   ) :: ei_lo(3), ei_hi(3)
+    integer,  intent(in   ) :: fm_lo(3), fm_hi(3)
+    integer,  intent(in   ) :: fs_lo(3), fs_hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    integer,  intent(in   ) :: er_lo(3), er_hi(3)
+    integer,  intent(in   ) :: ed_lo(3), ed_hi(3)
+    real(rt), intent(inout) :: rhs(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
+    real(rt), intent(in   ) :: fkp(fk_lo(1):fk_hi(1),fk_lo(2):fk_hi(2),fk_lo(3):fk_hi(3))
+    real(rt), intent(in   ) :: eta(et_lo(1):et_hi(1),et_lo(2):et_hi(2),et_lo(3):et_hi(3))
+    real(rt), intent(in   ) :: etainv(ei_lo(1):ei_hi(1),ei_lo(2):ei_hi(2),ei_lo(3):ei_hi(3))
+    real(rt), intent(in   ) :: frhoem(fm_lo(1):fm_hi(1),fm_lo(2):fm_hi(2),fm_lo(3):fm_hi(3))
+    real(rt), intent(in   ) :: frhoes(fs_lo(1):fs_hi(1),fs_lo(2):fs_hi(2),fs_lo(3):fs_hi(3))
+    real(rt), intent(in   ) :: dfo(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
+    real(rt), intent(in   ) :: ero(er_lo(1):er_hi(1),er_lo(2):er_hi(2),er_lo(3):er_hi(3))
+    real(rt), intent(in   ) :: edot(ed_lo(1):ed_hi(1),ed_lo(2):ed_hi(2),ed_lo(3):ed_hi(3))
     real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(inout) :: r, s
+    real(rt), intent(in   ), value :: dt, sigma, c, theta
 
-    real(rt) :: loc(3)
-    real(rt) :: h1, h2, d1, d2
-    integer  :: d
+    integer  :: i, j, k
+    real(rt) :: dtm, ek, bs, es, ekt, r, s
 
     !$gpu
 
-    if (dim >= 2) then
-       d = 2
-    else
-       d = 1
-    end if
+    dtm = 1.e0_rt / dt
 
-    if (coord_type == 0) then
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-       r = ONE
-       s = ONE
+             ek = fkp(i,j,k) * eta(i,j,k)
+             bs = etainv(i,j,k) * 4.e0_rt * sigma * fkp(i,j,k) * temp(i,j,k)**4
+             es = eta(i,j,k) * (frhoem(i,j,k) - frhoes(i,j,k))
+             ekt = (1.e0_rt - theta) * eta(i,j,k)
 
-    else if (coord_type == 1) then
+             call cell_center_metric(i, j, k, dx, r, s)
 
-       loc = position(i, j, k)
+             if (dim == 1) then
+                s = 1.e0_rt
+             end if
 
-       r = loc(1)
-       s = ONE
+             rhs(i,j,k) = (rhs(i,j,k) + r * s * &
+                           (bs + dtm * (ero(i,j,k) + es) + &
+                            ek * c * edot(i,j,k) - &
+                            ekt * dfo(i,j,k))) / (1.e0_rt - ekt)
 
-    else if (coord_type == 2) then
+          end do
+       end do
+    end do
 
-       loc = position(i, j, k)
-
-       h1 = 0.5e0_rt * dx(1)
-       d1 = 1.e0_rt / (3.e0_rt * dx(1))
-
-       r = loc(1)
-       r = d1 * ((r + h1)**3 - (r - h1)**3)
-
-       h2 = 0.5e0_rt * dx(2)
-       d2 = 1.e0_rt / dx(2)
-
-       s = loc(d)
-       s = d2 * (cos(s - h2) - cos(s + h2))
-
-    end if
-
-  end subroutine cell_center_metric
+  end subroutine lrhs
 
 
 
@@ -427,6 +513,7 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use prob_params_module, only: dim
+    use habec_nd_module, only: cell_center_metric
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: a_lo(3), a_hi(3)
@@ -469,12 +556,241 @@ contains
 
 
 
+  subroutine bclim(lo, hi, &
+                   b, b_lo, b_hi, &
+                   lambda, l_lo, l_hi, &
+                   n, &
+                   kappar, k_lo, k_hi, &
+                   c, dx) bind(C, name="bclim")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use prob_params_module, only: dim
+    use habec_nd_module, only: edge_center_metric
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: b_lo(3), b_hi(3)
+    integer,  intent(in   ) :: l_lo(3), l_hi(3)
+    integer,  intent(in   ) :: k_lo(3), k_hi(3)
+    real(rt), intent(inout) :: b(b_lo(1):b_hi(1),b_lo(2):b_hi(2),b_lo(3):b_hi(3))
+    real(rt), intent(in   ) :: lambda(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3))
+    real(rt), intent(in   ) :: kappar(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: n
+    real(rt), intent(in   ), value :: c
+
+    integer  :: i, j, k
+    real(rt) :: kap, r, s
+
+    !$gpu
+
+    if (n == 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, n+1, dx, r, s)
+
+                if (dim == 1) then
+                   s = 1.e0_rt
+                end if
+
+                kap = kavg(kappar(i-1,j,k), kappar(i,j,k), dx(1), -1)
+                b(i,j,k) = r * s * c * lambda(i,j,k) / kap
+
+             end do
+          end do
+       end do
+
+    else if (n == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, n+1, dx, r, s)
+
+                if (dim == 1) then
+                   s = 1.e0_rt
+                end if
+
+                kap = kavg(kappar(i,j-1,k), kappar(i,j,k), dx(2), -1)
+                b(i,j,k) = r * s * c * lambda(i,j,k) / kap
+
+             end do
+          end do
+       end do
+
+    else
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, n+1, dx, r, s)
+
+                if (dim == 1) then
+                   s = 1.e0_rt
+                end if
+                
+                kap = kavg(kappar(i,j,k-1), kappar(i,j,k), dx(3), -1)
+                b(i,j,k) = r * s * c * lambda(i,j,k) / kap
+
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine bclim
+
+
+
+  subroutine ceup(lo, hi, &
+                  relres, absres, &
+                  frhoes, fs_lo, fs_hi, &
+                  frhoem, fm_lo, fm_hi, &
+                  eta, et_lo, et_hi, &
+                  etainv, ei_lo, ei_hi, &
+                  dfo, do_lo, do_hi, &
+                  dfn, dn_lo, dn_hi, &
+                  exch, ex_lo, ex_hi, &
+                  dt, theta) &
+                  bind(C, name="ceup")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use reduction_module, only: reduce_max
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: fs_lo(3), fs_hi(3)
+    integer,  intent(in   ) :: fm_lo(3), fm_hi(3)
+    integer,  intent(in   ) :: et_lo(3), et_hi(3)
+    integer,  intent(in   ) :: ei_lo(3), ei_hi(3)
+    integer,  intent(in   ) :: do_lo(3), do_hi(3)
+    integer,  intent(in   ) :: dn_lo(3), dn_hi(3)
+    integer,  intent(in   ) :: ex_lo(3), ex_hi(3)
+    real(rt), intent(inout) :: frhoes(fs_lo(1):fs_hi(1),fs_lo(2):fs_hi(2),fs_lo(3):fs_hi(3))
+    real(rt), intent(in   ) :: frhoem(fm_lo(1):fm_hi(1),fm_lo(2):fm_hi(2),fm_lo(3):fm_hi(3))
+    real(rt), intent(in   ) :: eta(et_lo(1):et_hi(1),et_lo(2):et_hi(2),et_lo(3):et_hi(3))
+    real(rt), intent(in   ) :: etainv(ei_lo(1):ei_hi(1),ei_lo(2):ei_hi(2),ei_lo(3):ei_hi(3))
+    real(rt), intent(in   ) :: dfo(do_lo(1):do_hi(1),do_lo(2):do_hi(2),do_lo(3):do_hi(3))
+    real(rt), intent(in   ) :: dfn(dn_lo(1):dn_hi(1),dn_lo(2):dn_hi(2),dn_lo(3):dn_hi(3))
+    real(rt), intent(in   ) :: exch(ex_lo(1):ex_hi(1),ex_lo(2):ex_hi(2),ex_lo(3):ex_hi(3))
+    real(rt), intent(inout) :: relres, absres
+    real(rt), intent(in   ), value :: dt, theta
+
+    integer  :: i, j, k
+    real(rt) :: tmp, chg, tot
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             chg = 0.e0_rt
+             tot = 0.e0_rt
+
+             tmp = eta(i,j,k) * frhoes(i,j,k) + &
+                   etainv(i,j,k) * &
+                   (frhoem(i,j,k) - &
+                    dt * ((1.e0_rt - theta) * &
+                    (dfo(i,j,k) - dfn(i,j,k)) + &
+                    exch(i,j,k)))
+
+             chg = abs(tmp - frhoes(i,j,k))
+             tot = abs(frhoes(i,j,k))
+
+             frhoes(i,j,k) = tmp
+
+             call reduce_max(absres, chg)
+             call reduce_max(relres, chg / (tot + tiny))
+
+          end do
+       end do
+    end do
+
+  end subroutine ceup
+
+
+
+ 
+  subroutine cetot(lo, hi, &
+                   state, s_lo, s_hi, &
+                   frhoe, f_lo, f_hi) &
+                   bind(C, name="cetot")
+
+    use amrex_fort_module, only: rt => amrex_real
+    use meth_params_module, only: NVAR, UEINT, UEDEN
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ) :: frhoe(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+
+    integer  :: i, j, k
+    real(rt) :: kin
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             kin = state(i,j,k,UEDEN) - state(i,j,k,UEINT)
+             state(i,j,k,UEINT) = frhoe(i,j,k)
+             state(i,j,k,UEDEN) = frhoe(i,j,k) + kin
+          end do
+       end do
+    end do
+
+  end subroutine cetot
+
+
+
+  ! exch contains temp on input:
+  
+  subroutine cexch(lo, hi, &
+                   exch, x_lo, x_hi, &
+                   er, e_lo, e_hi, &
+                   fkp, f_lo, f_hi, &
+                   sigma, c) &
+                   bind(C, name="cexch")
+
+    use amrex_fort_module, only: rt => amrex_real
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: x_lo(3), x_hi(3)
+    integer,  intent(in   ) :: e_lo(3), e_hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(inout) :: exch(x_lo(1):x_hi(1),x_lo(2):x_hi(2),x_lo(3):x_hi(3))
+    real(rt), intent(in   ) :: er(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3))
+    real(rt), intent(in   ) :: fkp(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    real(rt), intent(in   ), value :: sigma, c
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             exch(i,j,k) = fkp(i,j,k) * (4.e0_rt * sigma * exch(i,j,k)**4 - c * er(i,j,k))
+          end do
+       end do
+    end do
+
+  end subroutine cexch
+
+
+
   subroutine ca_compute_rosseland(lo, hi, &
                                   kpr, k_lo, k_hi, &
-                                  state, s_lo, s_hi) &
+                                  state, s_lo, s_hi, &
+                                  first_group, last_group, num_groups) &
                                   bind(C, name="ca_compute_rosseland")
 
-    use rad_params_module, only: ngroups, nugroup
+    use rad_params_module, only: nugroup
     use opacity_table_module, only: get_opacities
     use network, only: naux
     use meth_params_module, only: NVAR, URHO, UTEMP, UFX
@@ -485,8 +801,9 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: k_lo(3), k_hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: kpr(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: kpr(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),0:num_groups-1)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    integer,  intent(in   ), value :: first_group, last_group, num_groups
 
     integer  :: i, j, k, g
     real(rt) :: kp, kr, nu, rho, temp, Ye
@@ -495,7 +812,12 @@ contains
 
     !$gpu
 
-    do g = 0, ngroups-1
+    ! Note: the group index here will always correspond to the actual frequency
+    ! group (so that the access to nugroup makes sense), while the indexing of
+    ! the opacity array does not correspond to that. It will always be true when
+    ! calling this that num_groups == last_group - first_group + 1.
+
+    do g = first_group, last_group
 
        nu = nugroup(g)
 
@@ -513,7 +835,7 @@ contains
 
                 call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
 
-                kpr(i,j,k,g) = kr
+                kpr(i,j,k,g-first_group) = kr
 
              end do
           end do
@@ -527,10 +849,11 @@ contains
   subroutine ca_compute_planck(lo, hi, &
                                kpp, k_lo, k_hi, &
                                state, s_lo, s_hi, &
+                               first_group, last_group, num_groups, &
                                temp_offset) &
                                bind(C, name="ca_compute_planck")
 
-    use rad_params_module, only: ngroups, nugroup
+    use rad_params_module, only: nugroup
     use opacity_table_module, only: get_opacities
     use network, only: naux
     use meth_params_module, only: NVAR, URHO, UTEMP, UFX
@@ -541,8 +864,9 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: k_lo(3), k_hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: kpp(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: kpp(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),0:num_groups-1)
     real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    integer,  intent(in   ), value :: first_group, last_group, num_groups
     real(rt), intent(in   ), value :: temp_offset
 
     integer  :: i, j, k, g
@@ -552,7 +876,12 @@ contains
 
     !$gpu
 
-    do g = 0, ngroups-1
+    ! Note: the group index here will always correspond to the actual frequency
+    ! group (so that the access to nugroup makes sense), while the indexing of
+    ! the opacity array does not correspond to that. It will always be true when
+    ! calling this that num_groups == last_group - first_group + 1.
+
+    do g = first_group, last_group
 
        nu = nugroup(g)
 
@@ -570,66 +899,178 @@ contains
 
                 call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
 
-                kpp(i,j,k,g) = kp
+                kpp(i,j,k,g-first_group) = kp
 
              end do
           end do
        end do
+
     end do
 
   end subroutine ca_compute_planck
 
 
 
-  subroutine fkpn(lo, hi, &
-                  fkp, f_lo, f_hi, &
-                  const, em, en, &
-                  ep, nu, tf, &
-                  temp, t_lo, t_hi, &
-                  state, s_lo, s_hi, &
-                  temp_offset) &
-                  bind(C, name="fkpn")
+  subroutine ca_compute_scattering(lo, hi, &
+                                   kps, kps_lo, kps_hi, &
+                                   sta, sta_lo, sta_hi) &
+                                   bind(C, name='ca_compute_scattering')
 
+    use rad_params_module, only: nugroup
+    use opacity_table_module, only: get_opacities
+    use network, only: naux
+    use meth_params_module, only: NVAR, URHO, UTEMP, UFX
     use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO
+
+    implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: f_lo(3), f_hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: fkp(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: const, em, en, tf, ep, nu, temp_offset
+    integer,  intent(in   ) :: kps_lo(3), kps_hi(3)
+    integer,  intent(in   ) :: sta_lo(3), sta_hi(3)
+    real(rt), intent(inout) :: kps(kps_lo(1):kps_hi(1),kps_lo(2):kps_hi(2),kps_lo(3):kps_hi(3))
+    real(rt), intent(in   ) :: sta(sta_lo(1):sta_hi(2),sta_lo(2):sta_hi(2),sta_lo(3):sta_hi(3),NVAR)
 
-    real(rt) :: teff
     integer  :: i, j, k
+    real(rt) :: kp, kr, nu, rho, temp, Ye
+    logical, parameter :: comp_kp = .true.
+    logical, parameter :: comp_kr = .true.
 
     !$gpu
+
+    ! scattering is assumed to be independent of nu.
+
+    nu = nugroup(0)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             teff = max(temp(i,j,k) + temp_offset, tiny)
-             teff = teff + tf * exp(-teff / (tf + tiny))
+             rho = sta(i,j,k,URHO)
+             temp = sta(i,j,k,UTEMP)
+             if (naux > 0) then
+                Ye = sta(i,j,k,UFX)
+             else
+                Ye = 0.e0_rt
+             end if
 
-             fkp(i,j,k) = const * &
-                          (state(i,j,k,URHO)**em) * &
-                          (teff**(-en)) * &
-                          (nu**(ep))
+             call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
+
+             kps(i,j,k) = max(kr - kp, 0.e0_rt)
 
           end do
        end do
     end do
 
-  end subroutine fkpn
+  end subroutine ca_compute_scattering
+
+
+
+  subroutine ca_opacs(lo, hi, &
+                      Snew, s_lo, s_hi, &
+                      T,    t_lo, t_hi, &
+                      Ts,   ts_lo, ts_hi, &
+                      kpp,  kpp_lo, kpp_hi, &
+                      kpr,  kpr_lo, kpr_hi, &
+                      dkdT, dkdT_lo, dkdT_hi, &
+                      use_dkdT, validStar, lag_opac) &
+                      bind(C, name='ca_opacs')
+
+    use rad_params_module, only: ngroups, nugroup
+    use opacity_table_module, only: get_opacities
+    use network, only: naux
+    use meth_params_module, only: NVAR, URHO, UFX
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: t_lo(3), t_hi(3)
+    integer,  intent(in   ) :: ts_lo(3), ts_hi(3)
+    integer,  intent(in   ) :: kpp_lo(3),  kpp_hi(3)
+    integer,  intent(in   ) :: kpr_lo(3),  kpr_hi(3)
+    integer,  intent(in   ) :: dkdT_lo(3), dkdT_hi(3)
+    real(rt), intent(in   ) :: Snew(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
+    real(rt), intent(in   ) :: T(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
+    real(rt), intent(in   ) :: Ts(ts_lo(1):ts_hi(1),ts_lo(2):ts_hi(2),ts_lo(3):ts_hi(3))
+    real(rt), intent(inout) :: kpp ( kpp_lo(1): kpp_hi(1), kpp_lo(2): kpp_hi(2), kpp_lo(3): kpp_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: kpr ( kpr_lo(1): kpr_hi(1), kpr_lo(2): kpr_hi(2), kpr_lo(3): kpr_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: dkdT(dkdT_lo(1):dkdT_hi(1),dkdT_lo(2):dkdT_hi(2),dkdT_lo(3):dkdT_hi(3),0:ngroups-1)
+    integer,  intent(in   ), value :: use_dkdT, validStar, lag_opac
+
+    integer  :: i, j, k, g
+    real(rt) :: kp, kr, nu, rho, temp, Ye
+    real(rt) :: kp1, kr1
+    real(rt) :: kp2, kr2
+    real(rt) :: dT
+    logical  :: comp_kp, comp_kr
+    real(rt), parameter :: fac = 0.5e0_rt, minfrac = 1.e-8_rt
+
+    !$gpu
+
+    if (lag_opac .eq. 1) then
+       dkdT(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),:) = 0.e0_rt
+       return
+    end if
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             rho = Snew(i,j,k,URHO)
+             temp = T(i,j,k)
+             if (naux > 0) then
+                Ye = Snew(i,j,k,UFX)
+             else
+                Ye = 0.e0_rt
+             end if
+
+             if (validStar > 0) then
+                dT = fac * abs(Ts(i,j,k) - T(i,j,k))
+                dT = max(dT, minfrac * T(i,j,k))
+             else
+                dT = T(i,j,k) * 1.e-3_rt + 1.e-50_rt
+             end if
+
+             do g = 0, ngroups - 1
+
+                nu = nugroup(g)
+
+                comp_kp = .true.
+                comp_kr = .true.
+
+                call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
+                kpp(i,j,k,g) = kp
+                kpr(i,j,k,g) = kr
+
+                if (use_dkdT .eq. 0) then        
+
+                   dkdT(i,j,k,g) = 0.e0_rt
+
+                else
+
+                   comp_kp = .true.
+                   comp_kr = .false.
+
+                   call get_opacities(kp1, kr1, rho, temp-dT, Ye, nu, comp_kp, comp_kr)
+                   call get_opacities(kp2, kr2, rho, temp+dT, Ye, nu, comp_kp, comp_kr)
+
+                   dkdT(i,j,k,g) = (kp2 - kp1) / (2.e0_rt * dT)
+
+                end if
+
+             end do
+          end do
+       end do
+    end do
+
+  end subroutine ca_opacs
 
 
 
   subroutine nfloor(lo, hi, &
                     dest, d_lo, d_hi, &
-                    flr, nvar) &
+                    nvar) &
                     bind(C, name="nfloor")
 
     use amrex_fort_module, only: rt => amrex_real
@@ -638,9 +1079,10 @@ contains
     integer,  intent(in   ) :: d_lo(3), d_hi(3)
     real(rt), intent(inout) :: dest(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nvar-1)
     integer,  intent(in   ), value :: nvar
-    real(rt), intent(in   ), value :: flr
 
     integer :: i, j, k, n
+
+    real(rt), parameter :: temp_floor = 1.e-10_rt
 
     !$gpu
 
@@ -648,8 +1090,8 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if (dest(i,j,k,n) < flr) then
-                   dest(i,j,k,n) = flr
+                if (dest(i,j,k,n) < temp_floor) then
+                   dest(i,j,k,n) = temp_floor
                 end if
              end do
           end do
@@ -742,57 +1184,6 @@ contains
 
 
 
-  subroutine gcv(lo, hi, &
-                 cv, c_lo, c_hi, &
-                 temp, t_lo, t_hi, &
-                 const, em, en, tf, &
-                 state, s_lo, s_hi) bind(C, name="gcv")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: c_lo(3), c_hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: cv(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
-    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains temp on input
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: const, em, en, tf
-
-    real(rt) :: alpha, teff, frhoal
-    integer  :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (em == 0.e0_rt) then
-                alpha = const
-             else
-                alpha = const * state(i,j,k,URHO)**em
-             end if
-
-             frhoal = state(i,j,k,URHO) * alpha + tiny
-
-             if (en == 0.e0_rt) then
-                cv(i,j,k) = alpha
-             else
-                teff = max(temp(i,j,k), tiny)
-                teff = teff + tf * exp(-teff / (tf + tiny))
-                cv(i,j,k) = alpha * teff**(-en)
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine gcv
-
-
-
   subroutine ca_compute_c_v(lo, hi, &
                             cv, c_lo, c_hi, &
                             temp, t_lo, t_hi, &
@@ -802,7 +1193,8 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UFS, UFX
+    use meth_params_module, only: NVAR, URHO, UFS, UFX, &
+                                  prop_temp_floor
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -818,6 +1210,7 @@ contains
     integer     :: i, j, k
     real(rt)    :: rhoInv
     type(eos_t) :: eos_state
+    real(rt)    :: alpha, teff
 
     !$gpu
 
@@ -893,69 +1286,6 @@ contains
 
 
 
-  subroutine gtemp(lo, hi, &
-                   temp, t_lo, t_hi, &
-                   const, em, en, &
-                   state, s_lo, s_hi, &
-                   update_state) bind(C, name="gtemp")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO, UTEMP
-#ifndef AMREX_USE_GPU
-    use castro_error_module, only: castro_error
-#endif
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))  ! temp contains frhoe on input
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: const, em, en
-    integer,  intent(in   ), value :: update_state
-
-    real(rt) :: alpha, teff, ex, frhoal
-    integer  :: i, j, k
-
-    !$gpu
-
-#ifndef AMREX_USE_GPU
-    if (en >= 1.e0_rt) then
-       call castro_error("Bad exponent for cv calculation")
-    end if
-#endif
-
-    ex = 1.e0_rt / (1.e0_rt - en)
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (em == 0.e0_rt) then
-                alpha = const
-             else
-                alpha = const * state(i,j,k,URHO)**em
-             end if
-
-             frhoal = state(i,j,k,URHO) * alpha + tiny
-
-             if (en == 0.e0_rt) then
-                temp(i,j,k) = temp(i,j,k) / frhoal
-             else
-                teff = max(temp(i,j,k), tiny)
-                temp(i,j,k) = ((1.e0_rt - en) * teff / frhoal)**ex
-             end if
-
-             if (update_state == 1) then
-                state(i,j,k,UTEMP) = temp(i,j,k)
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine gtemp
-
-
-
   subroutine ca_compute_temp_given_rhoe(lo, hi, &
                                         temp, t_lo, t_hi, &
                                         state, s_lo, s_hi, &
@@ -980,6 +1310,7 @@ contains
     integer      :: i, j, k
     real(rt)     :: rhoInv
     type (eos_t) :: eos_state
+    real(rt)     :: ex, alpha, rhoal, teff
 
     !$gpu
 
@@ -1018,59 +1349,6 @@ contains
 
 
 
-  subroutine ca_compute_temp_given_cv(lo, hi, &
-                                      temp, t_lo, t_hi, &
-                                      state, s_lo, s_hi, &
-                                      const_c_v, c_v_exp_m, c_v_exp_n) &
-                                      bind(C, name="ca_compute_temp_given_cv")
-
-    use meth_params_module, only: NVAR, URHO
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(inout) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains rhoe as input
-    real(rt), intent(in   ), value :: const_c_v, c_v_exp_m, c_v_exp_n
-
-    integer  :: i, j, k
-    real(rt) :: ex, alpha, rhoal, teff
-
-    !$gpu
-
-    ex = 1.e0_rt / (1.e0_rt - c_v_exp_n)
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (c_v_exp_m .eq. 0.e0_rt) then
-                alpha = const_c_v
-             else
-                alpha = const_c_v * state(i,j,k,URHO)**c_v_exp_m
-             endif
-
-             rhoal = state(i,j,k,URHO) * alpha + 1.e-50_rt
-
-             if (c_v_exp_n .eq. 0.e0_rt) then
-                temp(i,j,k) = temp(i,j,k) / rhoal
-             else
-                teff = max(temp(i,j,k), 1.e-50_rt)
-                temp(i,j,k) = ((1.e0_rt - c_v_exp_n) * teff / rhoal)**ex
-
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_temp_given_cv
-
-
-
   subroutine cfrhoe(lo, hi, &
                     frhoe, f_lo, f_hi, &
                     state, s_lo, s_hi) &
@@ -1105,101 +1383,6 @@ contains
     end do
 
   end subroutine cfrhoe
-
-
-
-  subroutine rosse1(lo, hi, &
-                    const, em, en, &
-                    ep, nu, &
-                    tf, kfloor, &
-                    state, s_lo, s_hi, &
-                    kappar, k_lo, k_hi) bind(C, name="rosse1")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO, UTEMP
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: k_lo(3), k_hi(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(inout) :: kappar(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
-    real(rt), intent(in   ), value :: const, em, en, ep, nu, tf, kfloor
-
-    real(rt) :: kf, teff
-    integer  :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             teff = max(state(i,j,k,UTEMP), tiny)
-             teff = teff + tf * exp(-teff / (tf + tiny))
-
-             kf = const * &
-                  (state(i,j,k,URHO) ** em) * &
-                  (teff ** (-en)) * &
-                  (nu ** (ep))
-
-             kappar(i,j,k) = max(kf, kfloor)
-
-          end do
-       end do
-    end do
-
-  end subroutine rosse1
-
-
-
-  subroutine rosse1s(lo, hi, &
-                     const, em, en, &
-                     ep, sconst, &
-                     sem, sen, &
-                     sep, nu, &
-                     tf, kfloor, &
-                     state, s_lo, s_hi, &
-                     kappar, k_lo, k_hi) bind(C, name="rosse1s")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, URHO, UTEMP
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: k_lo(3), k_hi(3)
-    real(rt), intent(inout) :: kappar(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: const, em, en, ep, sconst, sem, sen, sep, nu, tf, kfloor
-
-    real(rt) :: kf, teff, sct
-    integer  :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             teff = max(state(i,j,k,UTEMP), tiny)
-             teff = teff + tf * exp(-teff / (tf + tiny))
-
-             kf = const * &
-                  (state(i,j,k,URHO) ** em) * &
-                  (teff ** (-en)) * &
-                  (nu ** (ep))
-
-             sct = sconst * &
-                  (state(i,j,k,URHO) ** sem) * &
-                  (teff ** (-sen)) * &
-                  (nu ** (sep))
-
-             kappar(i,j,k) = max(kf + sct, kfloor)
-
-          end do
-       end do
-    end do
-
-  end subroutine rosse1s
 
 
 
@@ -1372,6 +1555,17 @@ subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_
   a = a_fcm
   m = 1.e6_rt * ev2erg_fcm
 
+  allocate(pi)
+  allocate(clight)
+  allocate(hplanck)
+  allocate(kboltz)
+  allocate(stefbol)
+  allocate(arad)
+  allocate(avogadro)
+  allocate(Hz2MeV)
+  allocate(mev2erg)
+  allocate(tiny)
+
   pi       = p
   clight   = c
   hplanck  = h
@@ -1382,6 +1576,9 @@ subroutine ca_initradconstants(p, c, h, k, s, a, m, J_is_used) bind(C, name="ca_
   mev2erg  = m
   Hz2MeV   = h / m
   tiny     = 1.e-50_rt
+
+  allocate(radtoE)
+  allocate(etafactor)
 
   if (J_is_used > 0) then
      radtoE = 4.e0_rt*pi/clight
@@ -1614,106 +1811,3 @@ subroutine ca_inelastic_sct(lo, hi, &
   end do
 
 end subroutine ca_inelastic_sct
-
-!! -----------------------------------------------------------
-
-subroutine ca_compute_scattering(lo, hi, &
-                                 kps,kps_lo,kps_hi, &
-                                 sta,sta_lo,sta_hi)
-
-  use rad_params_module, only : ngroups, nugroup
-  use opacity_table_module, only : get_opacities
-  use network, only : naux
-  use meth_params_module, only : NVAR, URHO, UTEMP, UFX
-  use amrex_fort_module, only : rt => amrex_real
-
-  implicit none
-
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: kps_lo(3),kps_hi(3)
-  integer, intent(in) :: sta_lo(3),sta_hi(3)
-  real(rt), intent(inout) :: kps(kps_lo(1):kps_hi(1),kps_lo(2):kps_hi(2),kps_lo(3):kps_hi(3))
-  real(rt), intent(in   ) :: sta(sta_lo(1):sta_hi(2),sta_lo(2):sta_hi(2),sta_lo(3):sta_hi(3),NVAR)
-
-  integer :: i, j, k
-  real(rt) :: kp, kr, nu, rho, temp, Ye
-  logical, parameter :: comp_kp = .true.
-  logical, parameter :: comp_kr = .true.
-
-  ! scattering is assumed to be independent of nu.
-
-  nu = nugroup(0)
-
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-
-           rho = sta(i,j,k,URHO)
-           temp = sta(i,j,k,UTEMP)
-           if (naux > 0) then
-              Ye = sta(i,j,k,UFX)
-           else
-              Ye = 0.e0_rt
-           end if
-
-           call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
-
-           kps(i,j,k) = max(kr - kp, 0.e0_rt)
-        end do
-     end do
-  end do
-
-end subroutine ca_compute_scattering
-
-subroutine ca_compute_scattering_2(lo, hi, &
-                                   kps,kps_lo,kps_hi, &
-                                   sta,sta_lo,sta_hi, &
-                                   k0_p, m_p, n_p, &
-                                   k0_r, m_r, n_r, &
-                                   Tfloor, kfloor)
-
-  use rad_params_module, only: ngroups, nugroup
-  use meth_params_module, only: NVAR, URHO, UTEMP
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: kps_lo(3),kps_hi(3)
-  integer, intent(in) :: sta_lo(3),sta_hi(3)
-  real(rt), intent(inout) :: kps(kps_lo(1):kps_hi(1),kps_lo(2):kps_hi(2),kps_lo(3):kps_hi(3))
-  real(rt), intent(in   ) :: sta(sta_lo(1):sta_hi(2),sta_lo(2):sta_hi(2),sta_lo(3):sta_hi(3),NVAR)
-  real(rt), intent(in) :: k0_p, m_p, n_p
-  real(rt), intent(in) :: k0_r, m_r, n_r
-  real(rt), intent(in) :: Tfloor, kfloor
-
-  integer :: i, j, k
-  real(rt), parameter :: tiny = 1.0e-50_rt
-  real(rt) :: Teff, k_p, k_r
-
-  ! scattering is assumed to be independent of nu.
-
-  if ( m_p.eq.0.e0_rt .and. n_p.eq.0.e0_rt .and. &
-       m_r.eq.0.e0_rt .and. n_r.eq.0.e0_rt ) then
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-              kps(i,j,k) = k0_r - k0_p
-           end do
-        end do
-     end do
-  else
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-              Teff = max(sta(i,j,k,UTEMP), tiny)
-              Teff = Teff + Tfloor * exp(-Teff / (Tfloor + tiny))
-              k_p = k0_p * (sta(i,j,k,URHO) ** m_p) * (Teff ** (-n_p))
-              k_r = k0_r * (sta(i,j,k,URHO) ** m_r) * (Teff ** (-n_r))
-              kps(i,j,k) = max(k_r-k_p, kfloor)
-           end do
-        end do
-     end do
-  end if
-
-end subroutine ca_compute_scattering_2

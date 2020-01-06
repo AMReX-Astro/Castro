@@ -224,9 +224,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     }
   }
 
-  // initialize solver and boundary conditions
-  RadSolve solver(parent);
-  solver.levelInit(level);
+  RadSolve* const solver = castro->rad_solver.get();
 
   Real relative_in, absolute_in, error_er;
   Real rel_rhoe, abs_rhoe;
@@ -348,35 +346,35 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	// setup and solve linear system
 
 	// set boundary condition
-	solver.levelBndry(mgbd, igroup);
+	solver->levelBndry(mgbd, igroup);
 	
-	solver.levelACoeffs(level, kappa_p, delta_t, c, igroup, ptc_tau);
+	solver->levelACoeffs(level, kappa_p, delta_t, c, igroup, ptc_tau);
 
 	int lamcomp = (limiter==0) ? 0 : igroup;
-	solver.levelBCoeffs(level, lambda, kappa_r, igroup, c, lamcomp);
+	solver->levelBCoeffs(level, lambda, kappa_r, igroup, c, lamcomp);
 
 	if (have_Sanchez_Pomraning) {
-	  solver.levelSPas(level, lambda, igroup, lo_bc, hi_bc);
+	  solver->levelSPas(level, lambda, igroup, lo_bc, hi_bc);
 	}
 
 	{ // src and rhd block
 	  	  
 	  MultiFab rhs(grids,dmap,1,0);
 
-	  solver.levelRhs(level, rhs, jg, mugT, mugY, 
-			  coupT, coupY, etaT, etaY, thetaT, thetaY,
-			  Er_step, rhoe_step, rhoYe_step, Er_star, rhoe_star, rhoYe_star, 
-			  delta_t, igroup, it, ptc_tau);
+	  solver->levelRhs(level, rhs, jg, mugT, mugY, 
+                           coupT, coupY, etaT, etaY, thetaT, thetaY,
+                           Er_step, rhoe_step, rhoYe_step, Er_star, rhoe_star, rhoYe_star, 
+                           delta_t, igroup, it, ptc_tau);
 
 	  // solve Er equation and put solution in Er_new(igroup)
-	  solver.levelSolve(level, Er_new, igroup, rhs, 0.01);
+	  solver->levelSolve(level, Er_new, igroup, rhs, 0.01);
 	} // end src and rhs block
 
-	solver.levelFlux(level, Flux, Er_new, igroup);
-	solver.levelFluxReg(level, flux_in, flux_out, Flux, igroup);
+	solver->levelFlux(level, Flux, Er_new, igroup);
+	solver->levelFluxReg(level, flux_in, flux_out, Flux, igroup);
 	  
 	if (icomp_flux >= 0) 
-	    solver.levelFluxFaceToCenter(level, Flux, *flxcc, icomp_flux+igroup);
+	    solver->levelFluxFaceToCenter(level, Flux, *flxcc, icomp_flux+igroup);
 
       } // end loop over groups
       
@@ -427,7 +425,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	  else if (accelerate == 2) {
 	    gray_accel(Er_new, Er_pi, kappa_p, kappa_r, 
 		       etaT, etaY, eta1, thetaT, thetaY, mugT, mugY, 
-		       lambda, solver, mgbd, grids, level, time, delta_t, ptc_tau);
+		       lambda, *solver, mgbd, grids, level, time, delta_t, ptc_tau);
 	  } 
 	}
       }
@@ -642,8 +640,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     exit(1);
   }
 
-  solver.levelClear();
-
   // update flux registers
 
   flux_in = (level < fine_level) ? flux_trial[level+1].get() : nullptr;
@@ -713,7 +709,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
 
   // if (plot_com_flux) {
-  //     already done when calling solver.levelFluxFaceToCenter()
+  //     already done when calling solver->levelFluxFaceToCenter()
   // }
 
   if (plot_lab_flux) {

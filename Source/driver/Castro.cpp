@@ -31,7 +31,7 @@
 #include <AMReX_Particles.H>
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #include "Gravity.H"
 #endif
 
@@ -148,7 +148,7 @@ int          Castro::numBCThreadsMin[3] = {1, 1, 1};
 
 #include <castro_defaults.H>
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 // the gravity object
 Gravity*     Castro::gravity  = 0;
 #endif
@@ -201,12 +201,16 @@ int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
 
+namespace amrex {
+    extern int compute_new_dt_on_regrid;
+}
+
 // Castro::variableSetUp is in Castro_setup.cpp
 // variableCleanUp is called once at the end of a simulation
 void
 Castro::variableCleanUp ()
 {
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   if (gravity != 0) {
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting gravity in variableCleanUp..." << '\n';
@@ -382,11 +386,6 @@ Castro::read_params ()
     if (cfl <= 0.0 || cfl > 1.0)
       amrex::Error("Invalid CFL factor; must be between zero and one.");
 
-    // The timestep retry mechanism is currently incompatible with SDC.
-
-    if (use_retry && !(time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections))
-        amrex::Error("The timestep retry mechanism is currently only compatible with CTU and simplified SDC.");
-
     // SDC does not support CUDA yet
 #ifdef AMREX_USE_CUDA
     if (time_integration_method == SpectralDeferredCorrections) {
@@ -506,6 +505,12 @@ Castro::read_params ()
 	for (int i=0; i<BL_SPACEDIM; i++) hydro_tile_size[i] = tilesize[i];
     }
 
+    // Override Amr defaults. Note: this function is called after Amr::Initialize()
+    // in Amr::InitAmr(), right before the ParmParse checks, so if the user opts to
+    // override our overriding, they can do so.
+
+    compute_new_dt_on_regrid = 1;
+
 }
 
 Castro::Castro ()
@@ -556,7 +561,7 @@ Castro::Castro (Amr&            papa,
     }
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 
    // Initialize to zero here in case we run with do_grav = false.
    MultiFab& new_grav_mf = get_new_data(Gravity_Type);
@@ -587,7 +592,7 @@ Castro::Castro (Amr&            papa,
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor())
          std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
       if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
       {
 	  std::cerr << "Error: not meaningful to have gravity.no_sync == 0 without having gravity.no_composite == 0.";
@@ -661,6 +666,8 @@ Castro::Castro (Amr&            papa,
 	radiation = new Radiation(parent, this);
       }
       radiation->regrid(level, grids, dmap);
+
+      rad_solver.reset(new RadSolve(parent, level, grids, dmap));
     }
 #endif
 
@@ -817,7 +824,7 @@ Castro::initMFs()
 	}
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
 	    phi_reg.define(grids, dmap, crse_ratio, level, 1);
 	    phi_reg.setVal(0.0);
@@ -889,12 +896,12 @@ Castro::setGridInfo ()
       const int max_level = parent->maxLevel();
       const int nlevs = max_level + 1;
 
-      Real dx_level[3*nlevs];
-      int domlo_level[3*nlevs];
-      int domhi_level[3*nlevs];
-      int ref_ratio_to_f[3*nlevs];
-      int n_error_buf_to_f[nlevs];
-      int blocking_factor_to_f[nlevs];
+      Vector<Real> dx_level(3*nlevs);
+      Vector<int> domlo_level(3*nlevs);
+      Vector<int> domhi_level(3*nlevs);
+      Vector<int> ref_ratio_to_f(3*nlevs);
+      Vector<int> n_error_buf_to_f(nlevs);
+      Vector<int> blocking_factor_to_f(nlevs);
 
       const Real* dx_coarse = geom.CellSize();
 
@@ -902,10 +909,17 @@ Castro::setGridInfo ()
       const int* domhi_coarse = geom.Domain().hiVect();
 
       for (int dir = 0; dir < 3; dir++) {
-	dx_level[dir] = (ZFILL(dx_coarse))[dir];
+          if (dir < BL_SPACEDIM) {
+              dx_level[dir] = dx_coarse[dir];
 
-	domlo_level[dir] = (ARLIM_3D(domlo_coarse))[dir];
-	domhi_level[dir] = (ARLIM_3D(domhi_coarse))[dir];
+              domlo_level[dir] = domlo_coarse[dir];
+              domhi_level[dir] = domhi_coarse[dir];
+          } else {
+              dx_level[dir] = 0.0;
+
+              domlo_level[dir] = 0;
+              domhi_level[dir] = 0;
+          }
 
 	// Refinement ratio and error buffer on finest level are meaningless,
 	// and we want them to be zero on the finest level because some
@@ -943,8 +957,8 @@ Castro::setGridInfo ()
 	n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
       }
 
-      ca_set_grid_info(max_level, dx_level, domlo_level, domhi_level,
-		       ref_ratio_to_f, n_error_buf_to_f, blocking_factor_to_f);
+      ca_set_grid_info(max_level, dx_level.data(), domlo_level.data(), domhi_level.data(),
+		       ref_ratio_to_f.data(), n_error_buf_to_f.data(), blocking_factor_to_f.data());
 
     }
 
@@ -960,6 +974,7 @@ Castro::initData ()
     //
     int ns          = NUM_STATE;
     const Real* dx  = geom.CellSize();
+    const Real* prob_lo = geom.ProbLo();
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
 
@@ -1035,7 +1050,6 @@ Castro::initData ()
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 	  RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-          const Real* prob_lo = geom.ProbLo();
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
@@ -1195,24 +1209,23 @@ Castro::initData ()
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
 
-	  Rad_new[mfi].setVal(0.0);
+#ifdef GPU_COMPATIBLE_PROBLEM
+
+#pragma gpu box(box)
+	  ca_initrad
+	      (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+	       BL_TO_FORTRAN_ANYD(Rad_new[mfi]),
+               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+
+#else
 
 	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
 	      (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
 	       BL_TO_FORTRAN_ANYD(Rad_new[mfi]), ZFILL(dx),
 	       ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 
-	  if (Radiation::nNeutrinoSpecies > 0 && Radiation::nNeutrinoGroups[0] == 0) {
-	      // Hack: running photon radiation through neutrino solver
-            Rad_new[mfi].mult(Radiation::Etorad,
-                            0, Radiation::nGroups);
-	  }
+#endif
 
-          if (Rad_new.nComp() > Radiation::nGroups) {
-            // Initialize flux components to 0
-            Rad_new[mfi].setVal(0.0, box, Radiation::nGroups,
-                              Rad_new.nComp() - Radiation::nGroups);
-          }
       }
     }
 #endif // RADIATION
@@ -1220,7 +1233,7 @@ Castro::initData ()
 #endif // MAESTRO_INIT
 
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        const int nc = S_new.nComp();
@@ -1899,20 +1912,12 @@ Castro::post_timestep (int iteration)
         if (sum_int_test || sum_per_test)
 	  sum_integrated_quantities();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
         if (moving_center) write_center();
 #endif
     }
 
 #ifdef RADIATION
-    if (level == 0) {
-      if (do_radiation) {
-	for (int lev = finest_level; lev >= 0; lev--) {
-	  radiation->analytic_solution(lev);
-	}
-      }
-    }
-
     // diagnostic stuff
 
     if (level == 0)
@@ -1949,7 +1954,7 @@ Castro::post_restart ()
    ParticlePostRestart(parent->theRestartFile());
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav)
     {
         if (level == 0)
@@ -2039,7 +2044,7 @@ Castro::postCoarseTimeStep (Real cumtime)
     // postCoarseTimeStep() is only called by level 0.
     BL_ASSERT(level == 0);
     AmrLevel::postCoarseTimeStep(cumtime);
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav)
         gravity->set_mass_offset(cumtime, 0);
 #endif
@@ -2140,7 +2145,7 @@ Castro::post_regrid (int lbase,
     }
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav)
     {
 
@@ -2223,7 +2228,7 @@ Castro::post_init (Real stop_time)
     for (int k = finest_level-1; k>= 0; k--)
         getLevel(k).avgDown();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 
     if (do_grav) {
 
@@ -2338,7 +2343,7 @@ Castro::post_init (Real stop_time)
         if (sum_int_test || sum_per_test)
 	  sum_integrated_quantities();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (level == 0 && moving_center == 1)
        write_center();
 #endif
@@ -2353,7 +2358,7 @@ Castro::post_grown_restart ()
     if (level > 0)
         return;
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav) {
 	int finest_level = parent->finestLevel();
 	Real cur_time = state[State_Type].curTime();
@@ -2528,7 +2533,7 @@ Castro::reflux(int crse_level, int fine_level)
 
     const Real strt = ParallelDescriptor::second();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     int nlevs = fine_level - crse_level + 1;
 
     Vector<std::unique_ptr<MultiFab> > drho(nlevs);
@@ -2575,7 +2580,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	// Store the density change, for the gravity sync.
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 	int ilev = lev - crse_level - 1;
 
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
@@ -2690,7 +2695,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
 	    reg = &getLevel(lev).phi_reg;
@@ -2719,7 +2724,7 @@ Castro::reflux(int crse_level, int fine_level)
 
     // Do the sync solve across all levels.
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
 	gravity->gravity_sync(crse_level, fine_level, amrex::GetVecOfPtrs(drho), amrex::GetVecOfPtrs(dphi));
 #endif
@@ -2846,7 +2851,7 @@ Castro::avgDown ()
 
   avgDown(State_Type);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   avgDown(Gravity_Type);
   avgDown(PhiGrav_Type);
 #endif
@@ -3384,10 +3389,6 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
   BL_PROFILE("Castro::computeTemp()");
 
-#ifdef RADIATION
-  FArrayBox temp;
-#endif
-
   MultiFab Stemp;
 
   // for 4th order, the only variables that may change here are Temp
@@ -3452,7 +3453,6 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
   }
 #endif
 
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -3469,43 +3469,24 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
       const Box& bx = mfi.growntilebox(num_ghost);
 
-#ifdef RADIATION
-      if (Radiation::do_real_eos == 0) {
-	temp.resize(bx);
-	temp.copy(State[mfi],bx,Eint,bx,0,1);
-
-#pragma gpu box(bx) sync
-	ca_compute_temp_given_cv
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(temp),
-             BL_TO_FORTRAN_ANYD(State[mfi]),
-             Radiation::const_c_v, Radiation::c_v_exp_m, Radiation::c_v_exp_n);
-
-	State[mfi].copy(temp,bx,0,bx,Temp,1);
-      } else {
-#endif
-
-        // general EOS version
+      // general EOS version
 
 #ifdef TRUE_SDC
-        if (sdc_order == 4) {
+      if (sdc_order == 4) {
           // note, this is working on a growntilebox, but we will not have
           // valid cell-centers in the very last ghost cell
           ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(Stemp[mfi]));
-        } else {
+      } else {
 #endif
 #pragma gpu box(bx)
           ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(State[mfi]));
 #ifdef TRUE_SDC
-        }
-#endif
-
-#ifdef RADIATION
       }
 #endif
-    }
+
+  }
 
 #ifdef TRUE_SDC
   if (sdc_order == 4) {
@@ -3639,7 +3620,7 @@ Castro::swap_state_time_levels(const Real dt)
 
 
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 int
 Castro::get_numpts ()
 {

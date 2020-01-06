@@ -1,0 +1,64 @@
+interp_model        integer          0            y
+
+model_file          character        ""           y
+
+pert_frac           real             0.2_rt       y
+
+pert_delta          real             0.02_rt      y
+
+rho_fuel            real             1.0_rt       y
+
+T_fuel              real             1.0_rt       y
+
+e_fuel              real             0.0_rt
+
+p_fuel              real             0.0_rt
+
+xn_fuel             real             0.0_rt       n       (nspec, network)
+
+rho_ash             real             -1.0_rt
+
+T_ash               real             1.0_rt       y
+
+e_ash               real             0.0_rt
+
+xn_ash              real             0.0_rt       n       (nspec, network)
+
+fuel1_name          character        "helium-4"   y
+
+fuel2_name          character        ""           y
+
+fuel3_name          character        ""           y
+
+fuel4_name          character        ""           y
+
+X_fuel1             real             1.0_rt       y
+
+X_fuel2             real             0.0_rt       y
+
+X_fuel3             real             0.0_rt       y
+
+X_fuel4             real             0.0_rt       y
+
+ash1_name           character        "oxygen-16"  y
+
+ash2_name           character        ""           y
+
+ash3_name           character        ""           y
+
+ash4_name           character        ""           y
+
+X_ash1              real             1.0_rt       y
+
+X_ash2              real             0.0_rt       y
+
+X_ash3              real             0.0_rt       y
+
+X_ash4              real             0.0_rt       y
+
+v_inflow            real             0.0_rt       y
+
+mass_flux           real             0.0_rt
+
+smallx_init         real             0.0_rt       y
+ 

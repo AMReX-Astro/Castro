@@ -128,14 +128,6 @@ class HypreABec {
 
 
 ///
-/// @param product
-/// @param vector
-/// @param icomp
-/// @param inhom
-///
-  void apply(amrex::MultiFab& product, amrex::MultiFab& vector, int icomp, BC_Mode inhom);
-
-///
 /// Three steps separated so that multiple calls to solve can be made
 ///
 /// @param _reltol

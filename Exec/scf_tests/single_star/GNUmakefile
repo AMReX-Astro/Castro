@@ -26,6 +26,8 @@ USE_ROTATION := TRUE
 EOS_DIR     ?= helmholtz
 NETWORK_DIR ?= aprox13
 
+USE_PROB_PARAMS = TRUE
+
 Bpack   += $(TEST_DIR)/Make.package
 Blocs   += $(TEST_DIR)
 

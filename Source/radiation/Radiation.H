@@ -48,8 +48,6 @@ public:
   static int fspace_advection_type;
   static int do_inelastic_scattering;    ///< Compton scattering for photon only
 
-  static int use_analytic_solution; ///< compare against an analytic solution
-
   static int plot_lambda, plot_kappa_p, plot_kappa_r;
   static int plot_lab_Er, plot_lab_flux, plot_com_flux;
   static int icomp_lambda, icomp_kp, icomp_kr;
@@ -100,8 +98,6 @@ public:
   int surface_average;   ///< 0 = arithmetic, 1 = harmonic, 2 = surface formula
   amrex::Real underfac;         ///< factor controlling progressive underrelaxation
   int do_sync;               ///< perform sync (if false zero out sync source)
-  amrex::Real kappa_r_floor, temp_floor;
-  int use_opacity_table_module;  ///< Use opacity_table_module?
   int do_kappa_stm_emission;
 
   static void read_static_params();
@@ -126,16 +122,7 @@ public:
   static amrex::Real flatten_pp_threshold;
   static int pure_hydro;
 
-  static int do_real_eos;  ///< if 0,  \f$c_v = const_{c_v} \rho^m T^{-n}\f$
-
-
-  static amrex::Real const_c_v, const_kappa_p, const_kappa_r, const_scattering;
-  static amrex::Real c_v_exp_m, c_v_exp_n;
-  static amrex::Real kappa_p_exp_m, kappa_p_exp_n;
-  static amrex::Real kappa_r_exp_m, kappa_r_exp_n;
-  static amrex::Real scattering_exp_m, scattering_exp_n;
-  static amrex::Real kappa_p_exp_p, kappa_r_exp_p, scattering_exp_p;
-  static amrex::Real prop_temp_floor;
+#include <radiation_params.H>
 
   amrex::Vector<std::unique_ptr<amrex::MultiFab> > plotvar;
 
@@ -257,11 +244,6 @@ public:
       return flux_cons_old[level].get();
   }
 
-
-///
-/// @param level
-///
-  void analytic_solution(int level);
 
 
 ///
@@ -467,9 +449,8 @@ public:
 ///
 /// @param state
 /// @param frhoes
-/// @param temp
 ///
-  void state_update(amrex::MultiFab& state,  amrex::MultiFab& frhoes, amrex::MultiFab& temp);
+  void state_update(amrex::MultiFab& state,  amrex::MultiFab& frhoes);
 
 
 ///
@@ -554,42 +535,6 @@ public:
   void get_c_v(amrex::FArrayBox& c_v, amrex::FArrayBox& temp,
                amrex::FArrayBox& state, const amrex::Box& reg);
 
-///
-/// temp contains frhoe on input
-///
-/// @param fkp
-/// @param temp
-/// @param state
-/// @param reg
-/// @param igroup
-/// @param delta_t
-///
-  void get_planck_and_temp(amrex::FArrayBox& fkp, amrex::FArrayBox& temp,
-			   amrex::FArrayBox& state, const amrex::Box& reg,
-			   int igroup = 0, amrex::Real delta_t = 0.0);
-
-
-///
-/// @param kappa_r
-/// @param temp
-/// @param state
-/// @param reg
-/// @param igroup
-///
-  void get_rosseland_and_temp(amrex::FArrayBox& kappa_r, amrex::FArrayBox& temp,
-			      amrex::FArrayBox& state, const amrex::Box& reg,
-			      int igroup = 0);
-
-///
-/// @param kappa_r
-/// @param temp
-/// @param state
-/// @param reg
-/// @param igroup
-///
-  void get_rosseland_from_temp(amrex::FArrayBox& kappa_r, amrex::FArrayBox& temp,
-			       amrex::FArrayBox& state, const amrex::Box& reg,
-			       int igroup = 0);
 
 ///
 /// MultiFab versions of conversion functions call Fab versions for eos data

@@ -10,7 +10,6 @@ CEXE_sources += RadBndry.cpp
 CEXE_sources += RadMultiGroup.cpp
 CEXE_sources += MGRadBndry.cpp
 CEXE_sources += SGRadSolver.cpp
-CEXE_sources += SGFLD.cpp
 CEXE_sources += RadPlotvar.cpp
 CEXE_sources += MGFLD.cpp
 CEXE_sources += MGFLDRadSolver.cpp
@@ -37,6 +36,7 @@ endif
 
 ca_F90EXE_sources += RAD_$(DIM)D.F90 
 ca_F90EXE_sources += HABEC_$(DIM)D.F90
+ca_F90EXE_sources += HABEC_nd.F90
 
 ca_F90EXE_sources += trace_ppm_rad_nd.F90
 ca_f90EXE_sources += MGFLD_$(DIM)d.f90

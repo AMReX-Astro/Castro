@@ -24,9 +24,15 @@ class RadSolve {
 ///
 /// @param Parent
 ///
-  RadSolve(amrex::Amr* Parent);
-  virtual ~RadSolve() { }
+  RadSolve (amrex::Amr* Parent, int level,
+            const amrex::BoxArray& grids,
+            const amrex::DistributionMapping& dmap);
+  ~RadSolve () {}
 
+///
+/// query runtime parameters
+///
+  static void read_params ();
 
 ///
 /// @param level
@@ -297,25 +303,13 @@ class RadSolve {
 
 protected:
 
-  int use_hypre_nonsymmetric_terms;
-  int level_solver_flag;
+    amrex::Amr* parent;
 
-  amrex::Real reltol, abstol;
-  int maxiter;
+    std::unique_ptr<HypreABec> hd;
+    std::unique_ptr<HypreMultiABec> hm;
 
-  amrex::Real alpha, beta;
-  amrex::Amr* parent;
+#include <radsolve_params.H>
 
-  int verbose;
-
-  HypreABec      *hd;
-  HypreMultiABec *hm;
-
-
-///
-/// static storage for sync tolerance information
-///
-  static amrex::Vector<amrex::Real> absres;
 };
 
 #endif

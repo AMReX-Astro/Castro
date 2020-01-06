@@ -19,13 +19,13 @@ module rad_params_module
                                  erg2rhoYe(:), lognugroup(:)
 
   ! physical constants used for radiation
-  real(rt), save :: pi, clight, hplanck, kboltz, stefbol, arad, avogadro
-  real(rt), save :: Hz2MeV, mev2erg, tiny
+  real(rt), allocatable :: pi, clight, hplanck, kboltz, stefbol, arad, avogadro
+  real(rt), allocatable :: Hz2MeV, mev2erg, tiny
 
   ! In our current solvers, E is stored in rad.  (In the past, J was stored.)
   ! So we use the following conversion factors to make sure the right variables are used
-  real(rt), save :: radtoE  !, radtoJ, Etorad, radfluxtoF
-  real(rt), save :: etafactor
+  real(rt), allocatable :: radtoE  !, radtoJ, Etorad, radfluxtoF
+  real(rt), allocatable :: etafactor
 
   ! (yes, I know pi isn't a physical constant)
   ! (stefbol is derived from the other constants)
@@ -34,6 +34,10 @@ module rad_params_module
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: current_group, ng0, ng1, nnuspec
   attributes(managed) :: nugroup, dnugroup, xnu, dlognu, erg2rhoYe, lognugroup
+  attributes(managed) :: pi, clight, hplanck, kboltz, stefbol, arad, avogadro
+  attributes(managed) :: Hz2MeV, mev2erg, tiny
+  attributes(managed) :: radtoE
+  attributes(managed) :: etafactor
 #endif
 
 contains

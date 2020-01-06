@@ -42,6 +42,12 @@ extern "C"
 
   void ca_get_ngdnv(int* ngdnv);
 
+#ifdef REACTIONS
+  void ca_get_abort_on_failure(int * abort_on_failure);
+
+  void ca_set_abort_on_failure(int * abort_on_failure);
+#endif
+
   void ca_amrinfo_init();
   void ca_amrinfo_finalize();
 
@@ -55,7 +61,7 @@ extern "C"
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
   void get_numpts_1d(int* numpts_1d);
   void set_numpts_1d(int* numpts_1d);
@@ -126,7 +132,7 @@ extern "C"
   void ca_deallocate_sponge_params();
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
   void ca_compute_avgstate
     (const int* lo, const int* hi,
@@ -141,6 +147,10 @@ extern "C"
   void ca_initdata(const int* lo, const int* hi,
                    BL_FORT_FAB_ARG_3D(state),
                    const amrex::Real* dx, const amrex::Real* problo);
+
+  void ca_initrad(const int* lo, const int* hi,
+                  BL_FORT_FAB_ARG_3D(rad_state),
+                  const amrex::Real* dx, const amrex::Real* problo);
 #endif
 
   void ca_apply_metric
@@ -343,10 +353,8 @@ extern "C"
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(s_old),
-#ifdef SELF_GRAVITY
      const BL_FORT_FAB_ARG_3D(phi),
      const BL_FORT_FAB_ARG_3D(grav),
-#endif
      BL_FORT_FAB_ARG_3D(source),
      const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
 
@@ -355,12 +363,10 @@ extern "C"
      const int* domlo, const int* domhi,
      const BL_FORT_FAB_ARG_3D(S_old),
      const BL_FORT_FAB_ARG_3D(S_new),
-#ifdef SELF_GRAVITY
      const BL_FORT_FAB_ARG_3D(phi_old),
      const BL_FORT_FAB_ARG_3D(phi_new),
      const BL_FORT_FAB_ARG_3D(grav_old),
      const BL_FORT_FAB_ARG_3D(grav_new),
-#endif
      const BL_FORT_FAB_ARG_3D(volume),
      const BL_FORT_FAB_ARG_3D(xflux),
      const BL_FORT_FAB_ARG_3D(yflux),
@@ -553,12 +559,14 @@ BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
 #endif
 
 #ifdef RADIATION
+#ifndef GPU_COMPATIBLE_PROBLEM
 BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
   (const int& level, const amrex::Real& time,
    const int* lo, const int* hi,
    const int& num_state,
    BL_FORT_FAB_ARG_3D(state),
    const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
+#endif
 #endif
 
 

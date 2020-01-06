@@ -64,32 +64,6 @@ subroutine sphe(r, s, n, &
   enddo
 end subroutine sphe
 
-subroutine bclim(b, &
-                 lambda, DIMS(bbox), &
-                 DIMS(reg), &
-                 n, kappar, DIMS(kbox), &
-                 r, s, c, dx) bind(C, name="bclim")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(bbox)
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(kbox)
-  integer :: n
-  real(rt)         :: b(DIMV(bbox))
-  real(rt)         :: lambda(DIMV(bbox))
-  real(rt)         :: kappar(DIMV(kbox))
-  real(rt)         :: r(reg_l1:reg_h1+1)
-  real(rt)         :: s(1)
-  real(rt)         :: c, dx(1)
-  real(rt)         :: kavg
-  integer :: i
-  real(rt)         :: kap
-  do i = reg_l1, reg_h1 + 1
-     kap = kavg(kappar(i-1), kappar(i), dx(1),-1)
-     b(i) = r(i) * c * lambda(i) / kap
-  enddo
-end subroutine bclim
-
 subroutine eddfac(efact, &
                   DIMS(rbox), &
                   DIMS(reg), limiter, n)
@@ -107,127 +81,6 @@ subroutine eddfac(efact, &
      efact(i) = lambda + (lambda * r)**2
   enddo
 end subroutine eddfac
-
-subroutine lrhs(rhs, &
-                DIMS(rbox), &
-                DIMS(reg), &
-                temp, fkp, eta, etainv, frhoem, frhoes, dfo, &
-                ero, DIMS(ebox), edot, &
-                r, s, dt, sigma, c, theta) bind(C, name="lrhs")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(rbox)
-  integer :: DIMDEC(ebox)
-  integer :: DIMDEC(reg)
-  real(rt)         :: rhs(DIMV(rbox))
-  real(rt)         :: temp(DIMV(rbox))
-  real(rt)         :: fkp(DIMV(rbox))
-  real(rt)         :: eta(DIMV(rbox))
-  real(rt)         :: etainv(DIMV(rbox))
-  real(rt)         :: frhoem(DIMV(rbox))
-  real(rt)         :: frhoes(DIMV(rbox))
-  real(rt)         :: dfo(DIMV(rbox))
-  real(rt)         :: ero(DIMV(ebox))
-  real(rt)         :: edot(DIMV(rbox))
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(1)
-  real(rt)         :: dt, sigma, c, theta
-  integer :: i
-  real(rt)         :: dtm, ek, bs, es, ekt
-  dtm = 1.e0_rt / dt
-  do i = reg_l1, reg_h1
-     ek = fkp(i) * eta(i)
-     bs = etainv(i) * &
-          &         4.e0_rt * sigma * fkp(i) * temp(i)**4
-     es = eta(i) * (frhoem(i) - frhoes(i))
-     ekt = (1.e0_rt - theta) * eta(i)
-     rhs(i) = (rhs(i) + r(i) * &
-          (bs + dtm * (ero(i) + es) + &
-          ek * c * edot(i) - &
-          ekt * dfo(i))) / &
-          (1.e0_rt - ekt)
-  enddo
-end subroutine lrhs
-
-subroutine anatw2(test, &
-                  DIMS(reg), &
-                  temp, p, xf, Tc, dx, xlo, lo) bind(C, name="anatw2")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(reg)
-  real(rt)         :: test(DIMV(reg), 0:1)
-  real(rt)         :: temp(DIMV(reg))
-  real(rt)         :: p, xf, Tc, dx(1), xlo(1)
-  integer :: lo(1)
-  integer :: i
-  real(rt)         :: x, r2
-  do i = reg_l1, reg_h1
-     x  = xlo(1) + dx(1) * ((i-lo(1)) + 0.5e0_rt)
-     r2 = x*x
-     test(i,0) = Tc * max((1.e0_rt-r2/xf**2), 0.e0_rt)**(1.e0_rt/p)
-     test(i,1) = temp(i) - test(i,0)
-  enddo
-end subroutine anatw2
-
-! exch contains temp on input:
-
-subroutine cexch(DIMS(reg), &
-                 exch, DIMS(xbox), &
-                 er  , DIMS(ebox), &
-                 fkp , DIMS(kbox), &
-                 sigma, c) bind(C, name="cexch")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(xbox)
-  integer :: DIMDEC(ebox)
-  integer :: DIMDEC(kbox)
-  real(rt)         :: exch(DIMV(xbox))
-  real(rt)         :: er  (DIMV(ebox))
-  real(rt)         :: fkp (DIMV(kbox))
-  real(rt)         :: sigma, c
-  integer :: i
-  do i = reg_l1, reg_h1
-     exch(i) = fkp(i) * &
-          (4.e0_rt * sigma * exch(i)**4 &
-          - c * er(i))
-  enddo
-end subroutine cexch
-
-subroutine ceup(DIMS(reg), relres, absres, &
-                frhoes, DIMS(grd), &
-                frhoem, eta, etainv, dfo, dfn, exch, &
-                dt, theta) bind(C, name="ceup")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(grd)
-  real(rt)         :: frhoes(DIMV(grd))
-  real(rt)         :: frhoem(DIMV(grd))
-  real(rt)         :: eta(DIMV(grd))
-  real(rt)         :: etainv(DIMV(grd))
-  real(rt)         :: dfo(DIMV(grd))
-  real(rt)         :: dfn(DIMV(grd))
-  real(rt)         :: exch(DIMV(grd))
-  real(rt)         :: dt, theta, relres, absres
-  real(rt)         :: tmp, chg, tot
-  integer :: i
-  do i = reg_l1, reg_h1
-     chg = 0.e0_rt
-     tot = 0.e0_rt
-     tmp = eta(i) * frhoes(i) + &
-          etainv(i) * &
-          (frhoem(i) - &
-          dt * ((1.e0_rt - theta) * &
-          (dfo(i) - dfn(i)) + &
-          exch(i)))
-     chg = abs(tmp - frhoes(i))
-     tot = abs(frhoes(i))
-     frhoes(i) = tmp
-     absres = max(absres, chg)
-     relres = max(relres, chg / (tot + tiny))
-  enddo
-end subroutine ceup
 
 subroutine ceupdterm(DIMS(reg), relres, absres, &
                      frhoes, DIMS(grd), &
@@ -323,27 +176,6 @@ subroutine nceup(DIMS(reg), relres, absres, &
      relres = max(relres, chg / (tot + tiny))
   enddo
 end subroutine nceup
-
-subroutine cetot(DIMS(reg), &
-                 state, DIMS(sb), &
-                 frhoe, DIMS(fb)) bind(C, name="cetot")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(sb)
-  integer :: DIMDEC(fb)
-  real(rt)         :: state(DIMV(sb), NVAR)
-  real(rt)         :: frhoe(DIMV(fb))
-  real(rt)         :: kin
-  integer :: i
-  do i = reg_l1, reg_h1
-     !         kin = 0.5e0_rt * (state(i,XMOM) ** 2) /
-     !     @                 state(i,DEN)
-     kin = state(i, UEDEN) - state(i, UEINT)
-     state(i, UEINT) = frhoe(i)
-     state(i, UEDEN) = frhoe(i) + kin
-  enddo
-end subroutine cetot
 
 ! *********************************
 ! ** BEGIN MGFLD routines        **
