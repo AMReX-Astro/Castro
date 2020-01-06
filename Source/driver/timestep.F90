@@ -93,7 +93,11 @@ contains
                 dt3 = dt1
              endif
 
-             if (time_integration_method == 0) then
+             ! The CTU method has a less restrictive timestep than
+             ! MOL-based schemes (including the true SDC).  Since the
+             ! simplified SDC solver is based on CTU, we can use its
+             ! timestep.
+             if (time_integration_method == 0 .or. time_integration_method == 3) then
                 call reduce_min(dt, min(dt1,dt2,dt3))
              else
                 ! method of lines-style constraint is tougher
