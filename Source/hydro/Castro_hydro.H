@@ -50,3 +50,7 @@
 /// @param A_update   divergence of the fluxes
 ///
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
+
+    void src_to_prim(const amrex::Box& bx,
+                     amrex::Array4<amrex::Real> const q, amrex::Array4<amrex::Real> const qaux,
+                     amrex::Array4<amrex::Real> const src, amrex::Array4<amrex::Real> const srcQ);
