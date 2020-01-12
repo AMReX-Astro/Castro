@@ -111,6 +111,16 @@ int          Castro::GDLAMS = -1;
 int          Castro::GDERADS = -1;
 #endif
 
+int          Castro::QGAMC = -1;
+int          Castro::QC = -1;
+int          Castro::QDPDR = -1;
+int          Castro::QDPDE = -1;
+#ifdef RADIATION
+int          Castro::QGAMCG = -1;
+int          Castro::QCG = -1;
+int          Castro::QLAMS = -1;
+#endif
+
 int          Castro::NumSpec       = 0;
 int          Castro::FirstSpec     = -1;
 

@@ -228,6 +228,8 @@ Castro::variableSetUp ()
 
 #include "set_godunov.H"
 
+#include "set_auxillary.H"
+
   // Define NUM_GROW from the f90 module.
   ca_get_method_params(&NUM_GROW);
 
@@ -260,7 +262,11 @@ Castro::variableSetUp ()
                        GDLAMS, GDERADS,
 #endif
                        GDRHO, GDU, GDV, GDW,
-                       GDPRES, GDGAME);
+                       GDPRES, GDGAME,
+#ifdef RADIATION
+                       QGAMCG, QCG, QLAMS,
+#endif
+                       QGAMC, QC, QDPDR, QDPDE);
 
   // and the auxiliary variables
   ca_get_nqaux(&NQAUX);

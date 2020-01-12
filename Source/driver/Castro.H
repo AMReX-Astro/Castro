@@ -1662,6 +1662,12 @@ public:
     static int GDLAMS, GDERADS;
 #endif
 
+    // Auxillary state index keys
+    static int QGAMC, QC, QDPDR, QDPDE;
+#ifdef RADIATION
+    static int QGAMCG, QCG, QLAMS;
+#endif
+
 ///
 /// variable counts
 ///
