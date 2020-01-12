@@ -1680,6 +1680,9 @@ public:
 
     static amrex::Vector<std::string> source_names;
 
+    static amrex::Vector<int> upass_map;
+    static amrex::Vector<int> qpass_map;
+    static int  npassive;
 
 ///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level

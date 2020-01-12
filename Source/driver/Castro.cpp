@@ -145,6 +145,10 @@ Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
 
+Vector<int> Castro::upass_map;
+Vector<int> Castro::qpass_map;
+int  Castro::npassive = -1;
+
 #ifdef TRUE_SDC
 int          Castro::SDC_NODES;
 Vector<Real> Castro::dt_sdc;

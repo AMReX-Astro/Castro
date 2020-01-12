@@ -286,6 +286,32 @@ Castro::variableSetUp ()
   ca_get_nq(&NQ);
 
 
+  // setup the passive maps -- this follows the same logic as the
+  // Fortran versions in ca_set_method_params
+  npassive = NumAdv + NumSpec + NumAux;
+  int ipassive = 0;
+  
+  upass_map.resize(npassive);
+  qpass_map.resize(npassive);
+
+  for (int iadv = 0; iadv < NumAdv; ++iadv) {
+    upass_map[ipassive] = FirstAdv + iadv;
+    qpass_map[ipassive] = QFA + iadv;
+    ++ipassive;
+  }
+
+  for (int ispec = 0; ispec < NumSpec; ++ispec) {
+    upass_map[ipassive] = FirstSpec + ispec;
+    qpass_map[ipassive] = QFS + ispec;
+    ++ipassive;
+  }
+
+  for (int iaux = 0; iaux < NumAux; ++iaux) {
+    upass_map[ipassive] = FirstAux + iaux;
+    qpass_map[ipassive] = QFS + iaux;
+    ++ipassive;
+  }
+
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
   ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
