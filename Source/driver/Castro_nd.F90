@@ -702,8 +702,6 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   allocate(qpass_map(nadv + nspec + naux))
   allocate(upass_map(nadv + nspec + naux))
 
-  ! Transverse velocities
-
   npassive = 0
 
   do iadv = 1, nadv
