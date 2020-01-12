@@ -127,7 +127,7 @@ class Index:
             counter = "qcnt"
         elif self.iset == "godunov":
             counter = "gcnt"
-        elif self.iset == "auxillary":
+        elif self.iset == "auxiliary":
             counter = "acnt"
         else:
             counter = "cnt"
@@ -345,7 +345,7 @@ def doit(variables_file, odir, defines, nadv,
                 # auxillary, or godunov, sets, it may be the case that
                 # the variable that defines the count is 0 (e.g. for
                 # nadv).  We need to initialize it specially then.
-                if s in ["conserved", "primitive", "godunov", "auxillary"]:
+                if s in ["conserved", "primitive", "godunov", "auxiliary"]:
                     sub += i.get_set_string(val, set_default=0)
                 else:
                     sub += i.get_set_string(val)
@@ -395,9 +395,9 @@ def doit(variables_file, odir, defines, nadv,
         for g in godunov_indices:
             f.write(g.get_cxx_set_string())
 
-    aux_indices = [q for q in indices if q.iset == "auxillary" and q.cxx_var is not None]
+    aux_indices = [q for q in indices if q.iset == "auxiliary" and q.cxx_var is not None]
 
-    with open(os.path.join(odir, "set_auxillary.H"), "w") as f:
+    with open(os.path.join(odir, "set_auxiliary.H"), "w") as f:
         f.write("  int acnt = 0;\n")
         for a in aux_indices:
             f.write(a.get_cxx_set_string())

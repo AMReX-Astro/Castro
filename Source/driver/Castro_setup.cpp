@@ -228,7 +228,7 @@ Castro::variableSetUp ()
 
 #include "set_godunov.H"
 
-#include "set_auxillary.H"
+#include "set_auxiliary.H"
 
   // Define NUM_GROW from the f90 module.
   ca_get_method_params(&NUM_GROW);
