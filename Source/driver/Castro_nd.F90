@@ -594,7 +594,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
                                 GDLAMS_in, GDERADS_in, &
 #endif
                                 GDRHO_in, GDU_in, GDV_in, GDW_in, &
-                                GDPRES_in, GDGAME_in &
+                                GDPRES_in, GDGAME_in, &
 #ifdef RADIATION
                                 QGAMCG_in, QCG_in, QLAMS_in, &
 #endif
