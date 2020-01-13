@@ -719,59 +719,6 @@ contains
 
     endif
 
-    ! For hydro, we will create an update source term that is
-    ! essentially the flux divergence.  This can be added with dt to
-    ! get the update
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-#if AMREX_SPACEDIM == 1
-                update(i,j,k,n) = update(i,j,k,n) + &
-                     (flx(i,j,k,n) * area1(i,j,k) - flx(i+1,j,k,n) * area1(i+1,j,k) ) / vol(i,j,k)
-
-#elif AMREX_SPACEDIM == 2
-                update(i,j,k,n) = update(i,j,k,n) + &
-                     (flx(i,j,k,n) * area1(i,j,k) - flx(i+1,j,k,n) * area1(i+1,j,k) + &
-                      fly(i,j,k,n) * area2(i,j,k) - fly(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k)
-
-#else
-                update(i,j,k,n) = update(i,j,k,n) + &
-                     (flx(i,j,k,n) * area1(i,j,k) - flx(i+1,j,k,n) * area1(i+1,j,k) + &
-                      fly(i,j,k,n) * area2(i,j,k) - fly(i,j+1,k,n) * area2(i,j+1,k) + &
-                      flz(i,j,k,n) * area3(i,j,k) - flz(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k)
-#endif
-
-#if AMREX_SPACEDIM == 1
-                if (do_hydro == 1) then
-                   if (n == UMX) then
-                      update(i,j,k,UMX) = update(i,j,k,UMX) - &
-                           ( qx_avg(i+1,j,k,QPRES) - qx_avg(i,j,k,QPRES) ) / dx(1)
-                   end if
-                endif
-#endif
-
-#if AMREX_SPACEDIM == 2
-                if (do_hydro == 1) then
-                   if (n == UMX) then
-                      ! add the pressure source term for axisymmetry
-                      if (coord_type > 0) then
-                         update(i,j,k,n) = update(i,j,k,n) - (qx_avg(i+1,j,k,QPRES) - qx_avg(i,j,k,QPRES))/ dx(1)
-                      end if
-                   end if
-                endif
-#endif
-
-                if (n <= NSRC) then
-                   update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
-                end if
-
-             end do
-          end do
-       end do
-    end do
-
 #if AMREX_SPACEDIM == 3
 #ifdef HYBRID_MOMENTUM
     call bl_allocate(qgdnvx, q_lo, q_hi, NGDNV)
@@ -790,11 +737,6 @@ contains
                                 qz_avg, q_lo, q_hi, &
                                 qgdnvz, q_lo, q_hi)
 
-    call add_hybrid_advection_source(lo, hi, dt, &
-                                     update, uout_lo, uout_hi, &
-                                     qgdnvx, flx_lo, flx_hi, &
-                                     qgdnvy, fly_lo, fly_hi, &
-                                     qgdnvz, flz_lo, flz_hi)
     call bl_deallocate(qgdnvx)
     call bl_deallocate(qgdnvy)
     call bl_deallocate(qgdnvz)

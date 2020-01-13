@@ -406,41 +406,41 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           }
 #endif
 
-          // do the conservative update -- and store the shock variable
-#pragma gpu box(bx)
-          ca_mol_consup
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(statein),
-             BL_TO_FORTRAN_ANYD(stateout),
-             BL_TO_FORTRAN_ANYD(source_in),
-             BL_TO_FORTRAN_ANYD(source_out),
-             AMREX_REAL_ANYD(dx), dt,
-             BL_TO_FORTRAN_ANYD(flux[0]),
-#if AMREX_SPACEDIM >= 2
-             BL_TO_FORTRAN_ANYD(flux[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-             BL_TO_FORTRAN_ANYD(flux[2]),
-#endif
-             BL_TO_FORTRAN_ANYD(area[0][mfi]),
-#if AMREX_SPACEDIM >= 2
-             BL_TO_FORTRAN_ANYD(area[1][mfi]),
-#endif
-#if AMREX_SPACEDIM == 3
-             BL_TO_FORTRAN_ANYD(area[2][mfi]),
-#endif
-             BL_TO_FORTRAN_ANYD(qe[0]),
-#if AMREX_SPACEDIM >= 2
-             BL_TO_FORTRAN_ANYD(qe[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-             BL_TO_FORTRAN_ANYD(qe[2]),
-#endif
-             BL_TO_FORTRAN_ANYD(volume[mfi]));
-
 #ifndef AMREX_USE_CUDA
         } // end of 4th vs 2nd order MOL update
 #endif
+
+        // do the conservative update -- and store the shock variable
+#pragma gpu box(bx)
+        ca_mol_consup
+          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           BL_TO_FORTRAN_ANYD(statein),
+           BL_TO_FORTRAN_ANYD(stateout),
+           BL_TO_FORTRAN_ANYD(source_in),
+           BL_TO_FORTRAN_ANYD(source_out),
+           AMREX_REAL_ANYD(dx), dt,
+           BL_TO_FORTRAN_ANYD(flux[0]),
+#if AMREX_SPACEDIM >= 2
+           BL_TO_FORTRAN_ANYD(flux[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+           BL_TO_FORTRAN_ANYD(flux[2]),
+#endif
+           BL_TO_FORTRAN_ANYD(area[0][mfi]),
+#if AMREX_SPACEDIM >= 2
+           BL_TO_FORTRAN_ANYD(area[1][mfi]),
+#endif
+#if AMREX_SPACEDIM == 3
+           BL_TO_FORTRAN_ANYD(area[2][mfi]),
+#endif
+           BL_TO_FORTRAN_ANYD(qe[0]),
+#if AMREX_SPACEDIM >= 2
+           BL_TO_FORTRAN_ANYD(qe[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+           BL_TO_FORTRAN_ANYD(qe[2]),
+#endif
+           BL_TO_FORTRAN_ANYD(volume[mfi]));
 
 
         // scale the fluxes
