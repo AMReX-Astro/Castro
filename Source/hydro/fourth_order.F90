@@ -272,10 +272,8 @@ contains
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do j = lo(2)-dg(2), hi(2)+dg(2)
                 do i = lo(1)-1, hi(1)+1
-
                    al(i+1,j,k,ncomp) = a_int(i+1,j,k)
                    ar(i,j,k,ncomp) = a_int(i,j,k)
-
                 end do
              end do
           end do
@@ -289,6 +287,9 @@ contains
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do j = lo(2)-dg(2), hi(2)+dg(2)
                 do i = lo(1)-1, hi(1)+1
+
+                   al(i+1,j,k,ncomp) = a_int(i+1,j,k)
+                   ar(i,j,k,ncomp) = a_int(i,j,k)
 
                    ! these live on cell-centers
                    dafm = a(i,j,k,ncomp) - a_int(i,j,k)
@@ -438,10 +439,8 @@ contains
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do j = lo(2)-1, hi(2)+1
                 do i = lo(1)-1, hi(1)+1
-
                    al(i,j+1,k,ncomp) = a_int(i,j+1,k)
                    ar(i,j,k,ncomp) = a_int(i,j,k)
-
                 end do
              end do
           end do
@@ -455,6 +454,9 @@ contains
           do k = lo(3)-dg(3), hi(3)+dg(3)
              do j = lo(2)-1, hi(2)+1
                 do i = lo(1)-1, hi(1)+1
+
+                   al(i,j+1,k,ncomp) = a_int(i,j+1,k)
+                   ar(i,j,k,ncomp) = a_int(i,j,k)
 
                    ! these live on cell-centers
                    dafm = a(i,j,k,ncomp) - a_int(i,j,k)
@@ -600,10 +602,8 @@ contains
           do k = lo(3)-1, hi(3)+1
              do j = lo(2)-1, hi(2)+1
                 do i = lo(1)-1, hi(1)+1
-
                    al(i,j,k+1,ncomp) = a_int(i,j,k+1)
                    ar(i,j,k,ncomp) = a_int(i,j,k)
-
                 end do
              end do
           end do
@@ -615,6 +615,9 @@ contains
           do k = lo(3)-1, hi(3)+1
              do j = lo(2)-1, hi(2)+1
                 do i = lo(1)-1, hi(1)+1
+
+                   al(i,j,k+1,ncomp) = a_int(i,j,k+1)
+                   ar(i,j,k,ncomp) = a_int(i,j,k)
 
                    ! these live on cell-centers
                    dafm = a(i,j,k,ncomp) - a_int(i,j,k)
