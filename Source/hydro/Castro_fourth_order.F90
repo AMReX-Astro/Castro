@@ -802,58 +802,6 @@ contains
 #endif
 
 
-
-    ! Scale the fluxes for the form we expect later in refluxing.
-
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1) + 1
-                flx(i,j,k,n) = dt * flx(i,j,k,n) * area1(i,j,k)
-
-#if AMREX_SPACEDIM == 1
-                if (coord_type .eq. 0 .and. n == UMX) then
-                   flx(i,j,k,n) = flx(i,j,k,n) + &
-                        dt * area1(i,j,k) * qx_avg(i,j,k,QPRES)
-                endif
-#endif
-
-             end do
-          end do
-       end do
-    end do
-
-#if AMREX_SPACEDIM >= 2
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2) + 1
-             do i = lo(1), hi(1)
-                fly(i,j,k,n) = dt * fly(i,j,k,n) * area2(i,j,k)
-             end do
-          end do
-       end do
-    end do
-#endif
-
-#if AMREX_SPACEDIM == 3
-    do n = 1, NVAR
-       do k = lo(3), hi(3) + 1
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                flz(i,j,k,n) = dt * flz(i,j,k,n) * area3(i,j,k)
-             end do
-          end do
-       end do
-    end do
-#endif
-
-#if AMREX_SPACEDIM < 3
-    if (coord_type > 0) then
-       pradial(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3)) = &
-            qx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),QPRES) * dt
-    end if
-#endif
-
     call bl_deallocate(avisx)
 #if BL_SPACEDIM >= 2
     call bl_deallocate(avisy)

@@ -438,55 +438,53 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
              BL_TO_FORTRAN_ANYD(volume[mfi]));
 
-
-          // scale the fluxes -- note the fourth_order routine does this
-          // internally
-#if AMREX_SPACEDIM <= 2
-          Array4<Real> pradial_fab = pradial.array();
-#endif
-
-          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
-
-            const Box& nbx = amrex::surroundingNodes(bx, idir);
-
-#pragma gpu box(nbx)
-            scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-#if AMREX_SPACEDIM == 1
-                       BL_TO_FORTRAN_ANYD(qe[idir]),
-#endif
-                       BL_TO_FORTRAN_ANYD(flux[idir]),
-                       BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
-
-
-            if (idir == 0) {
-              // get the scaled radial pressure -- we need to treat this specially
-              Array4<Real> const qex_fab = qe[idir].array();
-              const int prescomp = GDPRES;
-
-#if AMREX_SPACEDIM == 1
-              if (!Geom().IsCartesian()) {
-                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-                                      {
-                                        pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-                                      });
-              }
-#endif
-
-#if AMREX_SPACEDIM == 2
-              if (!mom_flux_has_p[0][0]) {
-                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-                                      {
-                                        pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-                                      });
-              }
-#endif
-            }
-          }
-
-
 #ifndef AMREX_USE_CUDA
         } // end of 4th vs 2nd order MOL update
 #endif
+
+
+        // scale the fluxes
+#if AMREX_SPACEDIM <= 2
+        Array4<Real> pradial_fab = pradial.array();
+#endif
+
+        for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+          const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+#pragma gpu box(nbx)
+          scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+#if AMREX_SPACEDIM == 1
+                     BL_TO_FORTRAN_ANYD(qe[idir]),
+#endif
+                     BL_TO_FORTRAN_ANYD(flux[idir]),
+                     BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
+
+
+          if (idir == 0) {
+            // get the scaled radial pressure -- we need to treat this specially
+            Array4<Real> const qex_fab = qe[idir].array();
+            const int prescomp = GDPRES;
+
+#if AMREX_SPACEDIM == 1
+            if (!Geom().IsCartesian()) {
+              AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                                    {
+                                      pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                                    });
+            }
+#endif
+
+#if AMREX_SPACEDIM == 2
+            if (!mom_flux_has_p[0][0]) {
+              AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                                    {
+                                      pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                                    });
+            }
+#endif
+          }
+        }
 
 
 	// Store the fluxes from this advance -- we weight them by the
