@@ -81,19 +81,26 @@ if AMREX_SPACEDIM >= 2
        ) * volinv;
 
    // Add the p div(u) source term to (rho e).
-   if (n .eq. UEINT) {
-     update(i,j,k,n) = update(i,j,k,n) - pdivu(i, j, k, &
-                                                             qx, qx_lo, qx_hi, &
-                                                             area1, area1_lo, area1_hi, &
+   if (n == UEINT) {
+
+     Real pdu = (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) *
+                (q1(i+1,j,k,GDU) * area1(i+1,j,k) - q1(i,j,k,GDU) * area1(i,j,k));
+
 #if AMREX_SPACEDIM >= 2
-                                                             qy, qy_lo, qy_hi, &
-                                                             area2, area2_lo, area2_hi, &
+    pdu = pdu + &
+            (q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) *
+            (q2(i,j+1,k,GDV) * area2(i,j+1,k) - q2(i,j,k,GDV) * area2(i,j,k));
 #endif
+
 #if AMREX_SPACEDIM == 3
-                                                             qz, qz_lo, qz_hi, &
-                                                             area3, area3_lo, area3_hi, &
+    pdu = pdu + &
+            (q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) *
+            (q3(i,j,k+1,GDW) * area3(i,j,k+1) - q3(i,j,k,GDW) * area3(i,j,k));
 #endif
-                                                             vol, vol_lo, vol_hi);
+
+    pdu = HALF * pdu * volinv;
+
+    update(i,j,k,n) = update(i,j,k,n) - pdu;
    }
 
   });
