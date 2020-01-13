@@ -144,7 +144,7 @@ contains
                                                     13.0_rt*a(i,j-3,k,ncomp) - 3.0_rt*a(i,j-4,k,ncomp))
 
                 else if (j == domlo(2)-1 .and. physbc_lo(2) == Outflow) then
-                   ! extrapolate to the domlo(1)-1 cell using a
+                   ! extrapolate to the domlo(2)-1 cell using a
                    ! conservative cubic polynomial averaged over
                    ! the cell
                    ac = 4.0_rt*a(i,domlo(2),k,ncomp) - 6.0_rt*a(i,domlo(2)+1,k,ncomp) + 4.0_rt*a(i,domlo(2)+2,k,ncomp) - a(i,domlo(2)+3,k,ncomp)
@@ -155,7 +155,7 @@ contains
                                                     13.0_rt*a(i,j+2,k,ncomp) - 3.0_rt*a(i,j+3,k,ncomp))
 
                 else if (j == domhi(2)+2 .and. physbc_hi(2) == Outflow) then
-                   ! extrapolate to the domhi(1)+1 cell using a
+                   ! extrapolate to the domhi(2)+1 cell using a
                    ! conservative cubic polynomial averaged over
                    ! the cell
                    ac = 4.0_rt*a(i,domhi(2),k,ncomp) - 6.0_rt*a(i,domhi(2)-1,k,ncomp) + 4.0_rt*a(i,domhi(2)-2,k,ncomp) - a(i,domhi(2)-3,k,ncomp)
@@ -205,6 +205,28 @@ contains
                    ! use a stencil for when the interface is on the
                    ! right physical boundary MC Eq. 21
                    a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k-1,ncomp) - 23.0_rt*a(i,j,k-2,ncomp) + &
+                                                    13.0_rt*a(i,j,k-3,ncomp) - 3.0_rt*a(i,j,k-4,ncomp))
+
+                else if (k == domlo(3)-1 .and. physbc_lo(3) == Outflow) then
+                   ! extrapolate to the domlo(3)-1 cell using a
+                   ! conservative cubic polynomial averaged over
+                   ! the cell
+                   ac = 4.0_rt*a(i,j,domlo(3),ncomp) - 6.0_rt*a(i,j,domlo(3)+1,ncomp) + 4.0_rt*a(i,j,domlo(3)+2,ncomp) - a(i,j,domlo(3)+3,ncomp)
+
+                   ! now use the 1-sided stencil from above with
+                   ! this extrapolated value
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j,k+1,ncomp) + &
+                                                    13.0_rt*a(i,j,k+2,ncomp) - 3.0_rt*a(i,j,k+3,ncomp))
+
+                else if (k == domhi(3)+2 .and. physbc_hi(3) == Outflow) then
+                   ! extrapolate to the domhi(3)+1 cell using a
+                   ! conservative cubic polynomial averaged over
+                   ! the cell
+                   ac = 4.0_rt*a(i,j,domhi(3),ncomp) - 6.0_rt*a(i,j,domhi(3)-1,ncomp) + 4.0_rt*a(i,j,domhi(3)-2,ncomp) - a(i,j,domhi(3)-3,ncomp)
+
+                   ! now use the 1-sided stencil from above with
+                   ! this extrapolated value
+                   a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j,k-2,ncomp) + &
                                                     13.0_rt*a(i,j,k-3,ncomp) - 3.0_rt*a(i,j,k-4,ncomp))
 
                 else
