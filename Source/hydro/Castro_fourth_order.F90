@@ -13,6 +13,8 @@ contains
                                     q_bar, q_bar_lo, q_bar_hi, &
                                     qaux, qa_lo, qa_hi, &
                                     qaux_bar, qa_bar_lo, qa_bar_hi, &
+                                    shk, shk_lo, shk_hi, &
+                                    flatn, f_lo, f_hi, &
 #ifdef DIFFUSION
                                     T_cc, Tcc_lo, Tcc_hi, &
 #endif
@@ -80,6 +82,8 @@ contains
     integer, intent(in) :: q_bar_lo(3), q_bar_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: qa_bar_lo(3), qa_bar_hi(3)
+    integer, intent(in) :: shk_lo(3), shk_hi(3)
+    integer, intent(in) :: f_lo(3), f_hi(3)
 #ifdef DIFFUSION
     integer, intent(in) :: Tcc_lo(3), Tcc_hi(3)
 #endif
@@ -107,6 +111,8 @@ contains
     real(rt), intent(inout) :: q_bar(q_bar_lo(1):q_bar_hi(1), q_bar_lo(2):q_bar_hi(2), q_bar_lo(3):q_bar_hi(3), NQ)
     real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
     real(rt), intent(inout) :: qaux_bar(qa_bar_lo(1):qa_bar_hi(1), qa_bar_lo(2):qa_bar_hi(2), qa_bar_lo(3):qa_bar_hi(3), NQAUX)
+    real(rt), intent(in) :: shk(shk_lo(1):shk_hi(1), shk_lo(2):shk_hi(2), shk_lo(3):shk_hi(3))
+    real(rt), intent(in) :: flatn(f_lo(1):f_hi(1), f_lo(2):f_hi(2), f_lo(3):f_hi(3))
 #ifdef DIFFUSION
     real(rt), intent(inout) :: T_cc(Tcc_lo(1):Tcc_hi(1), Tcc_lo(2):Tcc_hi(2), Tcc_lo(3):Tcc_hi(3), 1)
 #endif
@@ -131,7 +137,6 @@ contains
 
 #ifndef RADIATION
     ! Automatic arrays for workspace
-    real(rt), pointer :: flatn(:,:,:)
     real(rt), pointer :: avisx(:,:,:), avisy(:,:,:), avisz(:,:,:)
 
     ! Edge-centered primitive variables (Riemann state)
@@ -154,8 +159,6 @@ contains
     real(rt), pointer :: fly_avg(:,:,:,:)
     real(rt), pointer :: flz_avg(:,:,:,:)
 
-    real(rt), pointer :: shk(:,:,:)
-
     real(rt), pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
     real(rt), pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
 
@@ -163,7 +166,6 @@ contains
 
     integer :: It_lo(3), It_hi(3)
     integer :: st_lo(3), st_hi(3)
-    integer :: shk_lo(3), shk_hi(3)
 
     real(rt) :: lap
     integer :: i, j, k, n, m
@@ -185,9 +187,6 @@ contains
 
     It_lo = lo(:) - dg(:)
     It_hi = hi(:) + dg(:)
-
-    shk_lo(:) = lo(:) - dg(:)
-    shk_hi(:) = hi(:) + dg(:)
 
     call bl_allocate(avisx, lo, hi+dg)
 #if BL_SPACEDIM >= 2
@@ -224,56 +223,20 @@ contains
     call bl_allocate(qzp, q_lo, q_hi, NQ)
 #endif
 
-    call bl_allocate(shk, shk_lo, shk_hi)
-
 #ifdef SHOCK_VAR
-     call ca_shock(lo-dg, hi+dg, &
-                   q_bar, q_bar_lo, q_bar_hi, &
-                   shk, shk_lo, shk_hi, &
-                   dx)
+    ! We'll update the shock data for future use in the burning step.
+    ! For the update, we are starting from USHK == 0 (set at the
+    ! beginning of the timestep) and we need to divide by dt since
+    ! we'll be multiplying that for the update calculation.
 
-     ! We'll update the shock data for future use in the burning step.
-     ! For the update, we are starting from USHK == 0 (set at the
-     ! beginning of the timestep) and we need to divide by dt since
-     ! we'll be multiplying that for the update calculation.
-
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-              update(i,j,k,USHK) = shk(i,j,k) / dt
-           enddo
-        enddo
-     enddo
-
-    ! Discard it locally if we don't need it in the hydro update.
-
-    if (hybrid_riemann /= 1) then
-       shk(:,:,:) = ZERO
-    end if
-#else
-    ! multidimensional shock detection -- this will be used to do the
-    ! hybrid Riemann solver
-    if (hybrid_riemann == 1) then
-       call ca_shock(lo-dg, hi+dg, &
-                     q_bar, q_bar_lo, q_bar_hi, &
-                     shk, shk_lo, shk_hi, &
-                     dx)
-    else
-       shk(:,:,:) = ZERO
-    end if
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             update(i,j,k,USHK) = shk(i,j,k) / dt
+          enddo
+       enddo
+    enddo
 #endif
-
-    ! Compute flattening coefficient for slope calculations -- we do
-    ! this with q_bar, since we need all of the ghost cells
-    call bl_allocate(flatn, q_bar_lo, q_bar_hi)
-
-    if (use_flattening == 1) then
-       call ca_uflatten(lo-dg, hi+dg, &
-                        q_bar, q_bar_lo, q_bar_hi, &
-                        flatn, q_bar_lo, q_bar_hi, QPRES)
-    else
-       flatn = ONE
-    end if
 
     ! do the reconstruction here -- get the interface states
 
@@ -290,7 +253,7 @@ contains
        call states(1, n, &
                    q, q_lo, q_hi, &
                    qint, q_lo, q_hi, &
-                   flatn, q_bar_lo, q_bar_hi, &
+                   flatn, f_lo, f_hi, &
                    qxm, qxp, q_lo, q_hi, &
                    lo, hi, &
                    domlo, domhi)
@@ -306,7 +269,7 @@ contains
        call states(2, n, &
                    q, q_lo, q_hi, &
                    qint, q_lo, q_hi, &
-                   flatn, q_bar_lo, q_bar_hi, &
+                   flatn, f_lo, f_hi, &
                    qym, qyp, q_lo, q_hi, &
                    lo, hi, &
                    domlo, domhi)
@@ -323,7 +286,7 @@ contains
        call states(3, n, &
                    q, q_lo, q_hi, &
                    qint, q_lo, q_hi, &
-                   flatn, q_bar_lo, q_bar_hi, &
+                   flatn, f_lo, f_hi, &
                    qzm, qzp, q_lo, q_hi, &
                    lo, hi, &
                    domlo, domhi)
@@ -438,8 +401,6 @@ contains
 #endif
 
 
-    call bl_deallocate(flatn)
-
     call bl_deallocate(qxm)
     call bl_deallocate(qxp)
 
@@ -452,9 +413,6 @@ contains
     call bl_deallocate(qzm)
     call bl_deallocate(qzp)
 #endif
-
-    call bl_deallocate(shk)
-
 
     ! we now have the face-average interface states and fluxes evaluated with these
 
