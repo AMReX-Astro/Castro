@@ -159,6 +159,8 @@ contains
     real(rt), pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
     real(rt), pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
 
+    real(rt), pointer :: qint(:,:,:)
+
     integer :: It_lo(3), It_hi(3)
     integer :: st_lo(3), st_hi(3)
     integer :: shk_lo(3), shk_hi(3)
@@ -275,33 +277,59 @@ contains
 
     ! do the reconstruction here -- get the interface states
 
-    ! x-interfaces
-    call states(1, &
-                q, q_lo, q_hi, &
-                flatn, q_bar_lo, q_bar_hi, &
-                qxm, qxp, q_lo, q_hi, &
-                lo, hi, &
-                domlo, domhi)
+    call bl_allocate(qint, q_lo, q_hi)
+
+    do n = 1, NQ
+       ! x-interfaces
+       call fourth_interfaces(1, n, &
+                              q, q_lo, q_hi, &
+                              qint, q_lo, q_hi, &
+                              lo, hi, &
+                              domlo, domhi)
+
+       call states(1, n, &
+                   q, q_lo, q_hi, &
+                   qint, q_lo, q_hi, &
+                   flatn, q_bar_lo, q_bar_hi, &
+                   qxm, qxp, q_lo, q_hi, &
+                   lo, hi, &
+                   domlo, domhi)
 
 #if AMREX_SPACEDIM >= 2
-    ! y-interfaces
-    call states(2, &
-                q, q_lo, q_hi, &
-                flatn, q_bar_lo, q_bar_hi, &
-                qym, qyp, q_lo, q_hi, &
-                lo, hi, &
-                domlo, domhi)
+       ! y-interfaces
+       call fourth_interfaces(2, n, &
+                              q, q_lo, q_hi, &
+                              qint, q_lo, q_hi, &
+                              lo, hi, &
+                              domlo, domhi)
+
+       call states(2, n, &
+                   q, q_lo, q_hi, &
+                   qint, q_lo, q_hi, &
+                   flatn, q_bar_lo, q_bar_hi, &
+                   qym, qyp, q_lo, q_hi, &
+                   lo, hi, &
+                   domlo, domhi)
 #endif
 
 #if AMREX_SPACEDIM == 3
-    ! z-interfaces
-    call states(3, &
-                q, q_lo, q_hi, &
-                flatn, q_bar_lo, q_bar_hi, &
-                qzm, qzp, q_lo, q_hi, &
-                lo, hi, &
-                domlo, domhi)
+       ! z-interfaces
+       call fourth_interfaces(3, n, &
+                              q, q_lo, q_hi, &
+                              qint, q_lo, q_hi, &
+                              lo, hi, &
+                              domlo, domhi)
+
+       call states(3, n, &
+                   q, q_lo, q_hi, &
+                   qint, q_lo, q_hi, &
+                   flatn, q_bar_lo, q_bar_hi, &
+                   qzm, qzp, q_lo, q_hi, &
+                   lo, hi, &
+                   domlo, domhi)
 #endif
+
+    end do
 
     ! this is where we would implement ppm_temp_fix
 
