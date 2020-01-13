@@ -132,6 +132,11 @@ ifeq ($(USE_REACT), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
   endif
+
+  ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+    # we need the compositional derivatives for SDC
+    DEFINES += -DEXTRA_THERMO
+  endif
 endif
 
 ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)

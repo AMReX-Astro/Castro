@@ -19,6 +19,8 @@ HypreExtMultiABec::~HypreExtMultiABec()
 
 void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::a2Coefficients");
+
   BL_ASSERT( a2.ok() );
 
   int ncomp=1;
@@ -42,6 +44,8 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
  
 void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::cCoefficients");
+
   BL_ASSERT( c.ok() );
 
   int ncomp=2; // coeffs are 2-sided for upwinding
@@ -65,6 +69,8 @@ void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 
 void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::d1Coefficients");
+
   BL_ASSERT( d1.ok() );
 
   int ncomp=1;
@@ -86,6 +92,8 @@ void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
  
 void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::d2Coefficients");
+
   BL_ASSERT( d2.ok() );
 
   int ncomp=1;
@@ -139,6 +147,8 @@ FaceValue(AuxVarBox& evalue, AuxVarBox& cintrp,
 
 void HypreExtMultiABec::loadMatrix()
 {
+  BL_PROFILE("HypreExtMultiABec::loadMatrix");
+
   HypreMultiABec::loadMatrix();
 
   if (0 && verbose >= 1 && ParallelDescriptor::IOProcessor()) {
@@ -763,6 +773,8 @@ void HypreExtMultiABec::loadLevelVectors(int level,
                                          MultiFab& rhs, // will not be altered
                                          BC_Mode inhom)
 {
+  BL_PROFILE("HypreExtMultiABec::loadLevelVectors");
+
   loadLevelVectorX(level, dest, icomp);
   loadLevelVectorB(level, rhs, inhom);
 }
@@ -941,6 +953,8 @@ void HypreExtMultiABec::boundaryDterm(int level,
 				      MultiFab& Soln,
 				      int icomp)
 {
+  BL_PROFILE("HypreExtMultiABec::boundaryDterm");
+
   const Box& domain = bd[level]->getDomain();
 #ifdef _OPENMP
 #pragma omp parallel
