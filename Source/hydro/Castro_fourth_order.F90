@@ -247,7 +247,7 @@ contains
        call fourth_interfaces(1, n, &
                               q, q_lo, q_hi, &
                               qint, q_lo, q_hi, &
-                              lo, hi, &
+                              lo(:)-dg(:), [hi(1)+2, hi(2)+dg(2), hi(3)+dg(3)], &
                               domlo, domhi)
 
        call states(1, n, &
@@ -255,7 +255,7 @@ contains
                    qint, q_lo, q_hi, &
                    flatn, f_lo, f_hi, &
                    qxm, qxp, q_lo, q_hi, &
-                   lo, hi, &
+                   lo-dg, hi+dg, &
                    domlo, domhi)
 
 #if AMREX_SPACEDIM >= 2
@@ -263,7 +263,7 @@ contains
        call fourth_interfaces(2, n, &
                               q, q_lo, q_hi, &
                               qint, q_lo, q_hi, &
-                              lo, hi, &
+                              lo(:)-dg(:), [hi(1)+1, hi(2)+2, hi(3)+dg(3)], &
                               domlo, domhi)
 
        call states(2, n, &
@@ -271,7 +271,7 @@ contains
                    qint, q_lo, q_hi, &
                    flatn, f_lo, f_hi, &
                    qym, qyp, q_lo, q_hi, &
-                   lo, hi, &
+                   lo-dg, hi+dg, &
                    domlo, domhi)
 #endif
 
@@ -280,7 +280,7 @@ contains
        call fourth_interfaces(3, n, &
                               q, q_lo, q_hi, &
                               qint, q_lo, q_hi, &
-                              lo, hi, &
+                              lo(:)-dg(:), [hi(1)+1, hi(2)+1, hi(3)+2], &
                               domlo, domhi)
 
        call states(3, n, &
@@ -288,7 +288,7 @@ contains
                    qint, q_lo, q_hi, &
                    flatn, f_lo, f_hi, &
                    qzm, qzp, q_lo, q_hi, &
-                   lo, hi, &
+                   lo-dg, hi+dg, &
                    domlo, domhi)
 #endif
 

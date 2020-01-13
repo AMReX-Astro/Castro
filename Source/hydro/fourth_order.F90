@@ -19,6 +19,9 @@ contains
 
     ! this just computes the unlimited single-value interface state
     ! for the 4th order method.
+    !
+    ! Note: this needs to be run on lo-1 to [hi(1)+2, hi(2)+1, hi(3)+1] for x,
+    ! and analogously for y and z
 
     use meth_params_module, only : NQ
     use prob_params_module, only : Interior, Symmetry, Outflow, physbc_lo, physbc_hi
@@ -45,9 +48,9 @@ contains
     if (idir == 1) then
 
        ! this loop is over interfaces
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-dg(2), hi(2)+dg(2)
-             do i = lo(1)-1, hi(1)+2
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! interpolate to the edges -- this is a_{i-1/2}
                 ! note for non-periodic physical boundaries, we use a special stencil
@@ -111,9 +114,9 @@ contains
     else if (idir == 2) then
 
        ! this loop is over interfaces
-       do k = lo(3)-dg(3), hi(3)+dg(3)
-          do j = lo(2)-1, hi(2)+2
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! interpolate to the edges
                 if (j == domlo(2)+1 .and. physbc_lo(2) /= Interior) then
@@ -175,9 +178,9 @@ contains
     else if (idir == 3) then
 
        ! this loop is over interfaces
-       do k = lo(3)-1, hi(3)+2
-          do j = lo(2)-1, hi(2)+1
-             do i = lo(1)-1, hi(1)+1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 ! interpolate to the edges
                 if (k == domlo(3)+1 .and. physbc_lo(3) /= Interior) then
@@ -263,15 +266,17 @@ contains
     ! our convention here is that:
     !     al(i,j,k)   will be al_{i-1/2,j,k),
     !     al(i+1,j,k) will be al_{i+1/2,j,k)
+    !
+    ! Note, this needs to be run on lo-1, hi+1 in all directions
 
     ! we need interface values on all faces of the domain
     if (idir == 1) then
 
        if (limit_fourth_order == 0) then
 
-          do k = lo(3)-dg(3), hi(3)+dg(3)
-             do j = lo(2)-dg(2), hi(2)+dg(2)
-                do i = lo(1)-1, hi(1)+1
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
                    al(i+1,j,k,ncomp) = a_int(i+1,j,k)
                    ar(i,j,k,ncomp) = a_int(i,j,k)
                 end do
@@ -284,9 +289,9 @@ contains
 
           ! this is a loop over cell centers, affecting
           ! i-1/2,R and i+1/2,L
-          do k = lo(3)-dg(3), hi(3)+dg(3)
-             do j = lo(2)-dg(2), hi(2)+dg(2)
-                do i = lo(1)-1, hi(1)+1
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
 
                    al(i+1,j,k,ncomp) = a_int(i+1,j,k)
                    ar(i,j,k,ncomp) = a_int(i,j,k)
@@ -436,9 +441,9 @@ contains
 
        if (limit_fourth_order == 0) then
 
-          do k = lo(3)-dg(3), hi(3)+dg(3)
-             do j = lo(2)-1, hi(2)+1
-                do i = lo(1)-1, hi(1)+1
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
                    al(i,j+1,k,ncomp) = a_int(i,j+1,k)
                    ar(i,j,k,ncomp) = a_int(i,j,k)
                 end do
@@ -451,9 +456,9 @@ contains
 
           ! this is a loop over cell centers, affecting
           ! j-1/2,R and j+1/2,L
-          do k = lo(3)-dg(3), hi(3)+dg(3)
-             do j = lo(2)-1, hi(2)+1
-                do i = lo(1)-1, hi(1)+1
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
 
                    al(i,j+1,k,ncomp) = a_int(i,j+1,k)
                    ar(i,j,k,ncomp) = a_int(i,j,k)
@@ -599,9 +604,9 @@ contains
 
        if (limit_fourth_order == 0) then
 
-          do k = lo(3)-1, hi(3)+1
-             do j = lo(2)-1, hi(2)+1
-                do i = lo(1)-1, hi(1)+1
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
                    al(i,j,k+1,ncomp) = a_int(i,j,k+1)
                    ar(i,j,k,ncomp) = a_int(i,j,k)
                 end do
@@ -612,9 +617,9 @@ contains
 
           ! this is a loop over cell centers, affecting
           ! k-1/2,R and k+1/2,L
-          do k = lo(3)-1, hi(3)+1
-             do j = lo(2)-1, hi(2)+1
-                do i = lo(1)-1, hi(1)+1
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
 
                    al(i,j,k+1,ncomp) = a_int(i,j,k+1)
                    ar(i,j,k,ncomp) = a_int(i,j,k)
