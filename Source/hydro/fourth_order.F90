@@ -611,7 +611,7 @@ contains
        else
 
           ! this is a loop over cell centers, affecting
-          ! j-1/2,R and j+1/2,L
+          ! k-1/2,R and k+1/2,L
           do k = lo(3)-1, hi(3)+1
              do j = lo(2)-1, hi(2)+1
                 do i = lo(1)-1, hi(1)+1
