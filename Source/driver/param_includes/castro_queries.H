@@ -3,10 +3,11 @@
 // or add runtime parameters, please edit _cpp_parameters and then run
 // mk_params.sh
 
-#ifdef GRAVITY
-pp.query("use_point_mass", use_point_mass);
-pp.query("point_mass", point_mass);
-pp.query("point_mass_fix_solution", point_mass_fix_solution);
+#ifdef DIFFUSION
+pp.query("diffuse_temp", diffuse_temp);
+pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
+pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
+pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
 #endif
 pp.query("state_interp_order", state_interp_order);
 pp.query("lin_limit_state_interp", lin_limit_state_interp);
@@ -130,12 +131,6 @@ pp.query("job_name", job_name);
 pp.query("output_at_completion", output_at_completion);
 pp.query("reset_checkpoint_time", reset_checkpoint_time);
 pp.query("reset_checkpoint_step", reset_checkpoint_step);
-#ifdef DIFFUSION
-pp.query("diffuse_temp", diffuse_temp);
-pp.query("diffuse_cutoff_density", diffuse_cutoff_density);
-pp.query("diffuse_cutoff_density_hi", diffuse_cutoff_density_hi);
-pp.query("diffuse_cond_scale_fac", diffuse_cond_scale_fac);
-#endif
 #ifdef ROTATION
 pp.query("rotational_period", rotational_period);
 pp.query("rotational_dPdt", rotational_dPdt);
@@ -146,6 +141,11 @@ pp.query("state_in_rotating_frame", state_in_rotating_frame);
 pp.query("rot_source_type", rot_source_type);
 pp.query("implicit_rotation_update", implicit_rotation_update);
 pp.query("rot_axis", rot_axis);
+#endif
+#ifdef GRAVITY
+pp.query("use_point_mass", use_point_mass);
+pp.query("point_mass", point_mass);
+pp.query("point_mass_fix_solution", point_mass_fix_solution);
 #endif
 #ifdef AMREX_PARTICLES
 pp.query("do_tracer_particles", do_tracer_particles);
