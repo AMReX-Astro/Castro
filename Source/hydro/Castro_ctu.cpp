@@ -139,8 +139,8 @@ if AMREX_SPACEDIM >= 2
     endif
 
 #else
-    ! radiation energy update.  For the moment, we actually update things
-    ! fully here, instead of creating a source term for the update
+    // radiation energy update.  For the moment, we actually update things
+    // fully here, instead of creating a source term for the update
     do g = 0, ngroups-1
        do k = lo(3),hi(3)
           do j = lo(2),hi(2)
