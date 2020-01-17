@@ -839,12 +839,12 @@ contains
     use network, only: nspec
     implicit none
 
-    real(rt), intent(in)	:: Q(NQ)
-    real(rt), intent(out)	:: lam(7) !7 waves
-    integer, intent(in)		:: dir !Choose direction, 1 for x, 2 for y, 3 for z
+    real(rt), intent(in)  :: Q(NQ)
+    real(rt), intent(out) :: lam(7) !7 waves
+    integer, intent(in)   :: dir !Choose direction, 1 for x, 2 for y, 3 for z
 
     !The characteristic speeds of the system
-    real(rt)				:: cfx, cfy, cfz, cax, cay, caz, csx, csy, csz, ca, as
+    real(rt)  :: cfx, cfy, cfz, cax, cay, caz, csx, csy, csz, ca, as
     type(eos_t) :: eos_state
 
     !Speeeeeeeedssssss
@@ -911,12 +911,12 @@ contains
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ax
-    real(rt), intent(in	)	::Q(NQ)
-    real(rt), intent(out)	::leig(7,7)
+    real(rt), intent(in)  ::Q(NQ)
+    real(rt), intent(out) ::leig(7,7)
 
     !The characteristic speeds of the system
-    real(rt)				:: cfx, cax, csx, ca, as, S, N
-    real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
+    real(rt) :: cfx, cax, csx, ca, as, S, N
+    real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
     type (eos_t) :: eos_state
 
     !Speeeeeeeedssssss
@@ -957,13 +957,13 @@ contains
     AAs = sqrt(as)*als*sqrt(Q(QRHO))
 
 
-    leig(1,:) = (/0.d0, -N*Cff	, N*Qs*bety		, N*Qs*betz		, N*alf/Q(QRHO)	, N*AAs*bety/Q(QRHO)			, N*AAs*betz/Q(QRHO)			/) !u - cf
-    leig(2,:) = (/0.d0,  0.d0	, -0.5d0*betz	, 0.5d0*bety	, 0.d0			, -0.5d0*S*betz/(sqrt(Q(QRHO)))	, 0.5d0*bety*S/(sqrt(Q(QRHO)))	/) !u - cAx
-    leig(3,:) = (/0.d0, -N*Css	, -N*Qf*bety	, -N*Qf*betz	, N*als/Q(QRHO)	, -N*AAf*bety/Q(QRHO)			, -N*AAf*betz/Q(QRHO)			/) !u - cs
-    leig(4,:) = (/1.d0,  0.d0	,  0.d0			, 0.d0			, -1.d0/as		, 0.d0							, 0.d0							/) !u
-    leig(5,:) = (/0.d0,  N*Css	, N*Qf*bety		, N*Qf*betz		, N*als/Q(QRHO)	, -N*AAf*bety/Q(QRHO)			, -N*AAf*betz/Q(QRHO)			/) !u + cs
-    leig(6,:) = (/0.d0,  0.d0	, 0.5d0*betz	, -0.5d0*bety	, 0.d0			, -0.5d0*betz*S/(sqrt(Q(QRHO)))	, 0.5d0*bety*S/(sqrt(Q(QRHO)))	/) !u + cAx
-    leig(7,:) = (/0.d0, N*Cff	, -N*Qs*bety	, -N*Qs*betz	, N*alf/Q(QRHO)	, N*AAs*bety/Q(QRHO)			, N*AAs*betz/Q(QRHO)			/) !u + cf
+    leig(1,:) = (/0.d0, -N*Cff, N*Qs*bety, N*Qs*betz, N*alf/Q(QRHO), N*AAs*bety/Q(QRHO), N*AAs*betz/Q(QRHO)/) !u - cf
+    leig(2,:) = (/0.d0,  0.d0, -0.5d0*betz, 0.5d0*bety, 0.d0, -0.5d0*S*betz/(sqrt(Q(QRHO))), 0.5d0*bety*S/(sqrt(Q(QRHO)))/) !u - cAx
+    leig(3,:) = (/0.d0, -N*Css, -N*Qf*bety, -N*Qf*betz, N*als/Q(QRHO), -N*AAf*bety/Q(QRHO), -N*AAf*betz/Q(QRHO)/) !u - cs
+    leig(4,:) = (/1.d0,  0.d0,  0.d0, 0.d0, -1.d0/as, 0.d0, 0.d0/) !u
+    leig(5,:) = (/0.d0,  N*Css, N*Qf*bety, N*Qf*betz, N*als/Q(QRHO), -N*AAf*bety/Q(QRHO), -N*AAf*betz/Q(QRHO)/) !u + cs
+    leig(6,:) = (/0.d0,  0.d0, 0.5d0*betz, -0.5d0*bety, 0.d0, -0.5d0*betz*S/(sqrt(Q(QRHO))), 0.5d0*bety*S/(sqrt(Q(QRHO)))/) !u + cAx
+    leig(7,:) = (/0.d0, N*Cff, -N*Qs*bety, -N*Qs*betz, N*alf/Q(QRHO), N*AAs*bety/Q(QRHO), N*AAs*betz/Q(QRHO)/) !u + cf
 
 
   end subroutine lvecx
@@ -978,12 +978,12 @@ contains
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ay
-    real(rt), intent(in	)	::Q(NQ)
-    real(rt), intent(out)	::leig(7,7)
+    real(rt), intent(in) ::Q(NQ)
+    real(rt), intent(out) ::leig(7,7)
 
     !The characteristic speeds of the system
-    real(rt)				:: cfy, cay, csy, ca, as, S, N
-    real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
+    real(rt) :: cfy, cay, csy, ca, as, S, N
+    real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
 
     type (eos_t) :: eos_state
  
@@ -1025,10 +1025,10 @@ contains
     N = 0.5d0/as
 
     !Need to double check the rows
-    leig(1,:) = (/0.d0, N*Qs*betx , -N*Cff , N*Qs*betz, N*alf/Q(QRHO), N*AAs*betx/Q(QRHO), N*AAs*betz/Q(QRHO)/) ! v - cf
+    leig(1,:) = (/0.d0, N*Qs*betx, -N*Cff , N*Qs*betz, N*alf/Q(QRHO), N*AAs*betx/Q(QRHO), N*AAs*betz/Q(QRHO)/) ! v - cf
     leig(2,:) = (/0.d0, -0.5d0*betz, 0.d0, 0.5d0*betx, 0.d0, -0.5d0*betz*S/(sqrt(Q(QRHO))), 0.5d0*betx*S/(sqrt(Q(QRHO)))/) ! v - cAy
     leig(3,:) = (/0.d0, -N*Qf*betx, -N*Css, -N*Qf*betz, N*als/Q(QRHO), -N*AAf*betx/Q(QRHO), -N*AAf*betz/Q(QRHO)/) ! v - cs
-    leig(4,:) = (/1.d0,  0.d0  ,  0.d0, 0.d0, -1.d0/as, 0.d0, 0.d0/) ! v
+    leig(4,:) = (/1.d0,  0.d0, 0.d0, 0.d0, -1.d0/as, 0.d0, 0.d0/) ! v
     leig(5,:) = (/0.d0, N*Qf*betx, N*Css, N*Qf*betz, N*als/Q(QRHO), -N*AAf*betx/Q(QRHO), -N*AAf*betz/Q(QRHO)/) ! v + cs
     leig(6,:) = (/0.d0, 0.5d0*betz, 0.d0,  -0.5d0*betx, 0.d0, -0.5d0*betz*S/(sqrt(Q(QRHO))), 0.5d0*betx*S/(sqrt(Q(QRHO)))/) ! v + cAy
     leig(7,:) = (/0.d0, -N*Qs*betx, N*Cff, -N*Qs*betz, N*alf/Q(QRHO), N*AAs*betx/Q(QRHO), N*AAs*betz/Q(QRHO)/) ! v + cf
@@ -1046,12 +1046,12 @@ contains
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Az
-    real(rt), intent(in	)	::Q(NQ)
-    real(rt), intent(out)	::leig(7,7)
+    real(rt), intent(in)  ::Q(NQ)
+    real(rt), intent(out) ::leig(7,7)
 
     !The characteristic speeds of the system
-    real(rt)				:: cfz, caz, csz, ca, as, S, N
-    real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
+    real(rt)  :: cfz, caz, csz, ca, as, S, N
+    real(rt)  :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
 
     type (eos_t) :: eos_state
 
@@ -1093,13 +1093,13 @@ contains
     N = 0.5d0/as
 
     !Need to double check the order
-    leig(1,:) = (/0.d0, N*Qs*bety, N*Qs*betx, -N*Cff, N*alf/Q(QRHO) , N*AAs*betx/Q(QRHO)		    , N*AAs*bety/Q(QRHO)			/) !w - cf
-    leig(2,:) = (/0.d0,  0.5d0*betx , -0.5d0*bety , 0.d0, 0.d0			, -0.5d0*S*bety/(sqrt(Q(QRHO))) , 0.5d0*betx*S/(sqrt(Q(QRHO)))	/) !w - cAz
-    leig(3,:) = (/0.d0, -N*Qf*bety, -N*Qf*betx  , -N*Css, N*als/Q(QRHO) , -N*AAf*betx/Q(QRHO)		    , -N*AAf*bety/Q(QRHO)			/) !w - cs
-    leig(4,:) = (/1.d0,  0.d0 ,  0.d0	    , 0.d0			, -1.d0/as		, 0.d0						    , 0.d0							/) !w
-    leig(5,:) = (/0.d0, N*Qf*bety, N*Qf*betx   , N*Css, N*als/Q(QRHO) , -N*AAf*betx/Q(QRHO)		    , -N*AAf*bety/Q(QRHO)			/) !w + cs
-    leig(6,:) = (/0.d0,  -0.5d0*betx , 0.5d0*bety  , 0.0d0, 0.d0 , -0.5d0*bety*S/(sqrt(Q(QRHO))) , 0.5d0*betx*S/(sqrt(Q(QRHO)))  /) !w + cAz
-    leig(7,:) = (/0.d0, -N*Qs*bety, -N*Qs*betx   , N*Cff , N*alf/Q(QRHO) , N*AAs*betx/Q(QRHO) , N*AAs*bety/Q(QRHO) /) !w + cf
+    leig(1,:) = (/0.d0, N*Qs*betx, N*Qs*bety, -N*Cff, N*alf/Q(QRHO) , N*AAs*betx/Q(QRHO), N*AAs*bety/Q(QRHO)/) !w - cf
+    leig(2,:) = (/0.d0, -0.5d0*bety, 0.5d0*betx, 0.d0, 0.d0, -0.5d0*S*bety/(sqrt(Q(QRHO))) , 0.5d0*betx*S/(sqrt(Q(QRHO)))/) !w - cAz
+    leig(3,:) = (/0.d0, -N*Qf*betx, -N*Qf*bety, -N*Css, N*als/Q(QRHO) , -N*AAf*betx/Q(QRHO), -N*AAf*bety/Q(QRHO)/) !w - cs
+    leig(4,:) = (/1.d0,  0.d0 ,  0.d0, 0.d0, -1.d0/as, 0.d0, 0.d0/) !w
+    leig(5,:) = (/0.d0, N*Qf*betx, N*Qf*bety, N*Css, N*als/Q(QRHO) , -N*AAf*betx/Q(QRHO), -N*AAf*bety/Q(QRHO)/) !w + cs
+    leig(6,:) = (/0.d0, 0.5d0*bety , -0.5d0*betx, 0.0d0, 0.d0 , -0.5d0*bety*S/(sqrt(Q(QRHO))) , 0.5d0*betx*S/(sqrt(Q(QRHO)))  /) !w + cAz
+    leig(7,:) = (/0.d0, -N*Qs*betx, -N*Qs*bety, N*Cff , N*alf/Q(QRHO) , N*AAs*betx/Q(QRHO) , N*AAs*bety/Q(QRHO) /) !w + cf
   end subroutine lvecz
 
   !====================================== Right Eigenvectors ===============================================
@@ -1113,12 +1113,12 @@ contains
     implicit none
 
     !returnes reig, where the cols are the right eigenvectors of the characteristic matrix Ax
-    real(rt), intent(in	)	::Q(NQ)
-    real(rt), intent(out)	::reig(7,7)
+    real(rt), intent(in)   ::Q(NQ)
+    real(rt), intent(out)  ::reig(7,7)
 
     !The characteristic speeds of the system
-    real(rt)				:: cfx, cax, csx, ca, as, S
-    real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
+    real(rt)  :: cfx, cax, csx, ca, as, S
+    real(rt)  :: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
 
     type(eos_t) :: eos_state
 
@@ -1158,14 +1158,14 @@ contains
     AAf = sqrt(as)*alf*sqrt(Q(QRHO))
     AAs = sqrt(as)*als*sqrt(Q(QRHO))
 
-    !   u - cf 				u - Cax 				u - cs			u 		u + cs			u + Cax					u + cf
-    reig(1,:) = (/	Q(QRHO)*alf		, 0.d0					, Q(QRHO)*als	, 1.d0	, Q(QRHO)*als	, 0.d0					, Q(QRHO)*alf	/)
-    reig(2,:) = (/	-cff    	    , 0.d0  				, -css			, 0.d0  , css			, 0.d0  				, 	cff			/)
-    reig(3,:) = (/	Qs*bety			, -betz					, -Qf*bety		, 0.d0  , Qf*bety		, betz 					, -Qs*bety		/)
-    reig(4,:) = (/	Qs*betz			, bety 					, -Qf*betz		, 0.d0  , Qf*betz		, -bety 				, -Qs*betz		/)
-    reig(5,:) = (/	Q(QRHO)*as*alf	, 0.d0	 				, Q(QRHO)*as*als, 0.d0  , Q(QRHO)*as*als, 0.d0  				, Q(QRHO)*as*alf/)
-    reig(6,:) = (/	AAs*bety		, -betz*S*sqrt(Q(QRHO))	, -AAf*bety		, 0.d0  , -AAf*bety		, -betz*S*sqrt(Q(QRHO)) , AAs*bety		/)
-    reig(7,:) = (/	AAs*betz		, bety*S*sqrt(Q(QRHO))	, -AAf*betz		, 0.d0	, -AAf*betz		, bety*S*sqrt(Q(QRHO))	, AAs*betz		/)
+    !   u - cf 	     u - Cax 	  u - cs   u 	u + cs	 u + Cax   u + cf
+    reig(1,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
+    reig(2,:) = (/-cff , 0.d0, -css, 0.d0, css, 0.d0, cff/)
+    reig(3,:) = (/Qs*bety, -betz, -Qf*bety, 0.d0, Qf*bety, betz, -Qs*bety/)
+    reig(4,:) = (/Qs*betz, bety, -Qf*betz, 0.d0, Qf*betz, -bety, -Qs*betz/)
+    reig(5,:) = (/Q(QRHO)*as*alf, 0.d0, Q(QRHO)*as*als, 0.d0  , Q(QRHO)*as*als, 0.d0, Q(QRHO)*as*alf/)
+    reig(6,:) = (/AAs*bety, -betz*S*sqrt(Q(QRHO)), -AAf*bety, 0.d0  , -AAf*bety, -betz*S*sqrt(Q(QRHO)), AAs*bety/)
+    reig(7,:) = (/AAs*betz, bety*S*sqrt(Q(QRHO)), -AAf*betz, 0.d0, -AAf*betz, bety*S*sqrt(Q(QRHO)), AAs*betz/)
 
 
   end subroutine rvecx
@@ -1180,12 +1180,12 @@ contains
     implicit none
 
     !returnes reig, where the cols are the right eigenvectors of the characteristic matrix Ay
-    real(rt), intent(in	)	::Q(NQ)
-    real(rt), intent(out)	::reig(7,7)
+    real(rt), intent(in)  ::Q(NQ)
+    real(rt), intent(out) ::reig(7,7)
 
     !The characteristic speeds of the system
-    real(rt)				:: cfy, cay, csy, ca, as, S
-    real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
+    real(rt) :: cfy, cay, csy, ca, as, S
+    real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
 
     type (eos_t) :: eos_state
 
@@ -1225,10 +1225,10 @@ contains
     AAf = sqrt(as)*alf*sqrt(Q(QRHO))
     AAs = sqrt(as)*als*sqrt(Q(QRHO))
 
-    !   v - cf 				v - Cay 				v - cs			v 		v + cs			v + Cay					v + cf
+    !   v - cf 	 v - Cay   v - cs   v   v + cs	 v + Cay   v + cf
     reig(1,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
     reig(3,:) = (/-cff, 0.d0, -css, 0.d0  , css, 0.d0, cff/)
-    reig(2,:) = (/Qs*betx, -betz, -Qf*betx, 0.d0  , Qf*betx, betz, -Qs*betz/)
+    reig(2,:) = (/Qs*betx, -betz, -Qf*betx, 0.d0  , Qf*betx, betz, -Qs*betx/)
     reig(4,:) = (/Qs*betz, betx, -Qf*betz, 0.d0  , Qf*betz, -betx , -Qs*betz/)
     reig(5,:) = (/Q(QRHO)*as*alf, 0.d0, Q(QRHO)*as*als, 0.d0  , Q(QRHO)*as*als, 0.d0, Q(QRHO)*as*alf/)
     reig(6,:) = (/AAs*betx, -betz*S*sqrt(Q(QRHO)), -AAf*betx, 0.d0  , -AAf*betx, -betz*S*sqrt(Q(QRHO)) , AAs*betx/)
@@ -1247,12 +1247,12 @@ contains
     implicit none
 
     !returnes reig, where the cols are the right eigenvectors of the characteristic matrix Az
-    real(rt), intent(in	)	::Q(NQ)
-    real(rt), intent(out)	::reig(7,7)
+    real(rt), intent(in)  ::Q(NQ)
+    real(rt), intent(out) ::reig(7,7)
 
     !The characteristic speeds of the system
-    real(rt)				:: cfz, caz, csz, ca, as, S
-    real(rt)				:: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
+    real(rt) :: cfz, caz, csz, ca, as, S
+    real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
 
     type(eos_t) :: eos_state
 
@@ -1290,14 +1290,15 @@ contains
     Qs = sqrt(csz)*als*S
     AAf = sqrt(as)*alf*sqrt(Q(QRHO))
     AAs = sqrt(as)*als*sqrt(Q(QRHO))
-    !   w - cf 				w - Caz 				w - cs			w 		w + cs			w + Caz					w + cf
-    reig(1,:) = (/	Q(QRHO)*alf		, 0.d0					, Q(QRHO)*als	, 1.d0	, Q(QRHO)*als	, 0.d0					, Q(QRHO)*alf	/)
-    reig(4,:) = (/	-cff    	    , 0.d0  				, -css			, 0.d0  , css			, 0.d0  				, 	cff			/)
-    reig(3,:) = (/	Qs*betx			, -bety					, -Qf*betx		, 0.d0  , Qf*betx		, bety 					, -Qs*betx		/)
-    reig(2,:) = (/	Qs*bety			, betx 					, -Qf*bety		, 0.d0  , Qf*bety		, -betx 				, -Qs*bety		/)
-    reig(5,:) = (/	Q(QRHO)*as*alf	, 0.d0	 				, Q(QRHO)*as*als, 0.d0  , Q(QRHO)*as*als, 0.d0  				, Q(QRHO)*as*alf/)
-    reig(6,:) = (/	AAs*betx		, -bety*S*sqrt(Q(QRHO))	, -AAf*betx		, 0.d0  , -AAf*betx		, -bety*S*sqrt(Q(QRHO)) , AAs*betx		/)
-    reig(7,:) = (/	AAs*bety		, betx*S*sqrt(Q(QRHO))	, -AAf*bety		, 0.d0	, -AAf*bety		, betx*S*sqrt(Q(QRHO))	, AAs*bety		/)
+
+    !   w - cf 	  w - Caz     w - cs	 w    w + cs    w + Caz     w + cf
+    reig(1,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
+    reig(4,:) = (/-cff , 0.d0, -css, 0.d0, css, 0.d0 , cff/)
+    reig(2,:) = (/Qs*betx, -bety, -Qf*betx, 0.d0, Qf*betx, bety, -Qs*betx/)
+    reig(3,:) = (/Qs*bety, betx, -Qf*bety, 0.d0, Qf*bety, -betx , -Qs*bety/)
+    reig(5,:) = (/Q(QRHO)*as*alf, 0.d0, Q(QRHO)*as*als, 0.d0, Q(QRHO)*as*als, 0.d0, Q(QRHO)*as*alf/)
+    reig(6,:) = (/AAs*betx, -bety*S*sqrt(Q(QRHO)), -AAf*betx, 0.d0, -AAf*betx, -bety*S*sqrt(Q(QRHO)), AAs*betx/)
+    reig(7,:) = (/AAs*bety, betx*S*sqrt(Q(QRHO)), -AAf*bety, 0.d0, -AAf*bety, betx*S*sqrt(Q(QRHO)), AAs*bety/)
 
 
   end subroutine rvecz
