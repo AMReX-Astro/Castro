@@ -120,9 +120,8 @@ contains
 
 #ifdef REACTIONS
 
-  subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
+  subroutine ca_estdt_burning(lo, hi, &
                               snew, sn_lo, sn_hi, &
-                              rold, ro_lo, ro_hi, &
                               rnew, rn_lo, rn_hi, &
                               dx, dt) &
                               bind(C, name="ca_estdt_burning")
@@ -149,14 +148,10 @@ contains
 
     implicit none
 
-    integer,  intent(in) :: so_lo(3), so_hi(3)
     integer,  intent(in) :: sn_lo(3), sn_hi(3)
-    integer,  intent(in) :: ro_lo(3), ro_hi(3)
     integer,  intent(in) :: rn_lo(3), rn_hi(3)
     integer,  intent(in) :: lo(3), hi(3)
-    real(rt), intent(in) :: sold(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
     real(rt), intent(in) :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
-    real(rt), intent(in) :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
     real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
     real(rt), intent(in) :: dx(3)
     real(rt), intent(inout) :: dt
@@ -165,10 +160,10 @@ contains
     integer       :: i, j, k
     integer       :: n
 
-    type (burn_t) :: state_old, state_new
+    type (burn_t) :: state_new
     real(rt) :: ydot(neqs)
     type (eos_t)  :: eos_state
-    real(rt)      :: rhooinv, rhoninv
+    real(rt)      :: rhoninv
 
     ! Set a floor on the minimum size of a derivative. This floor
     ! is small enough such that it will result in no timestep limiting.
@@ -206,16 +201,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             rhooinv = ONE / sold(i,j,k,URHO)
              rhoninv = ONE / snew(i,j,k,URHO)
-
-             state_old % rho = sold(i,j,k,URHO)
-             state_old % T   = sold(i,j,k,UTEMP)
-             state_old % e   = sold(i,j,k,UEINT) * rhooinv
-             state_old % xn  = sold(i,j,k,UFS:UFS+nspec-1) * rhooinv
-#if naux > 0
-             state_old % aux = sold(i,j,k,UFX:UFX+naux-1) * rhooinv
-#endif
 
              state_new % rho = snew(i,j,k,URHO)
              state_new % T   = snew(i,j,k,UTEMP)
