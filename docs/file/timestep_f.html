@@ -291,7 +291,7 @@
 
 <dl class="subroutine">
 <dt id="f/timestep_module/ca_estdt_burning">
-<em class="property">subroutine  </em><code class="descclassname">timestep_module/</code><code class="descname">ca_estdt_burning</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>sold</em>, <em>so_lo</em>, <em>so_hi</em>, <em>snew</em>, <em>sn_lo</em>, <em>sn_hi</em>, <em>rold</em>, <em>ro_lo</em>, <em>ro_hi</em>, <em>rnew</em>, <em>rn_lo</em>, <em>rn_hi</em>, <em>dx</em>, <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/timestep_module/ca_estdt_burning" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">timestep_module/</code><code class="descname">ca_estdt_burning</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>snew</em>, <em>sn_lo</em>, <em>sn_hi</em>, <em>rnew</em>, <em>rn_lo</em>, <em>rn_hi</em>, <em>dx</em>, <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/timestep_module/ca_estdt_burning" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reactions-limited timestep</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -304,15 +304,9 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>sold</strong> (so_hi(1)-(so_lo(1))+1,so_hi(2)-(so_lo(2))+1,so_hi(3)-(so_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>so_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>so_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>snew</strong> (sn_hi(1)-(sn_lo(1))+1,sn_hi(2)-(sn_lo(2))+1,sn_hi(3)-(sn_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>sn_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>sn_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rold</strong> (ro_hi(1)-(ro_lo(1))+1,ro_hi(2)-(ro_lo(2))+1,ro_hi(3)-(ro_lo(3))+1,nspec+2)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ro_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ro_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>rnew</strong> (rn_hi(1)-(rn_lo(1))+1,rn_hi(2)-(rn_lo(2))+1,rn_hi(3)-(rn_lo(3))+1,nspec+2)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>rn_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>rn_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
