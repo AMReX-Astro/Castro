@@ -44,6 +44,13 @@
 
    * Support for neutrino radiation diffusion has been removed.
 
+   * A bug was fixed in the hydro CFL timestep estimator for
+     simplified-SDC.  The timestep was more restrictive than it needed
+     to be. (#727)
+
+   * A bug was fixed in the simplified-SDC nuclear burning timestep
+     estimator (#733)
+
 # 20.01
 
    * A new option castro.limit_fluxes_on_large_vel has been added. It
