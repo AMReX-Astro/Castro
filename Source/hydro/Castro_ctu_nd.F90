@@ -573,12 +573,12 @@ contains
           do j = lo(2),hi(2)
              do i = lo(1),hi(1)
                 Erout(i,j,k,g) = Erin(i,j,k,g) + dt * &
-                     ( radflux1(i,j,k,g) * area1(i,j,k) - radflux1(i+1,j,k,g) * area1(i+1,j,k) &
+                     ( radflux1(i,j,k,g) * area(i,j,k,1) - radflux1(i+1,j,k,g) * area(i+1,j,k,1) &
 #if AMREX_SPACEDIM >= 2
-                     + radflux2(i,j,k,g) * area2(i,j,k) - radflux2(i,j+1,k,g) * area2(i,j+1,k) &
+                     + radflux2(i,j,k,g) * area(i,j,k,2) - radflux2(i,j+1,k,g) * area(i,j+1,k,2) &
 #endif
 #if AMREX_SPACEDIM == 3
-                     + radflux3(i,j,k,g) * area3(i,j,k) - radflux3(i,j,k+1,g) * area3(i,j,k+1) &
+                     + radflux3(i,j,k,g) * area(i,j,k,3) - radflux3(i,j,k+1,g) * area(i,j,k+1,3) &
 #endif
                      ) / volume(i,j,k)
              enddo
