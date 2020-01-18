@@ -1,5 +1,8 @@
 # 20.02
 
+   * Radiation plotfile variables plot_lambda, plot_kappa_p, plot_kappa_r,
+     plot_lab_Er, plot_lab_flux, and plot_com_flux have been removed. (#735)
+
    * Most of the radiation test problems have been moved over to a new
      opacity directory, rad_power_law, and all of the parameters that
      controlled the behavior of the power law opacity have been moved
