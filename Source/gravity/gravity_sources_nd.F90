@@ -169,7 +169,7 @@ contains
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
 #endif
-    use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+    use amrex_constants_module, only: ZERO, FOURTH, HALF, ONE, TWO
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, NSRC, &
                                  grav_source_type, gravity_type_int, PoissonGrav, &
@@ -392,13 +392,15 @@ contains
                 dSrE_non_cons = HALF * (SrE_new - SrE_old)
 
                 ! Smooth between the two schemes, using ambient_safety_factor as the cutoff point
-                ! between the normal material and the ambient material.
+                ! between the normal material and the ambient material. In order to ensure that
+                ! the conservative scheme is effectively gone by the time we're down to ambient
+                ! density, we use a transition region equal to 1/8 of the safety factor.
 
                 rho_c = (ONE + HALF * (ambient_safety_factor - ONE)) * ambient_state(URHO)
-                delta_rho = (HALF * (ambient_safety_factor - ONE)) * ambient_state(URHO)
+                delta_rho = (FOURTH * HALF * (ambient_safety_factor - ONE)) * ambient_state(URHO)
 
-                dSrE_non_cons = dSrE_non_cons * HALF * (ONE + tanh((rhon - rho_c) / delta_rho))
-                dSrE_cons = dSrE_cons * HALF * (ONE - tanh((rhon - rho_c) / delta_rho))
+                dSrE_non_cons = dSrE_non_cons * HALF * (ONE - tanh((rhon - rho_c) / delta_rho))
+                dSrE_cons = dSrE_cons * HALF * (ONE + tanh((rhon - rho_c) / delta_rho))
 
                 SrEcorr = SrEcorr + dSrE_non_cons + dSrE_cons
 
