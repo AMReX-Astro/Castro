@@ -21,8 +21,8 @@ using namespace amrex;
 void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 { 
   BL_PROFILE("Radiation::MGFLD_implicit_update");
-  if (verbose && ParallelDescriptor::IOProcessor()) {
-    std::cout << "Radiation MGFLD implicit update, level " << level << "..." << std::endl;
+  if (verbose) {
+      amrex::Print() << "Radiation MGFLD implicit update, level " << level << "..." << std::endl;
   }
 
   BL_ASSERT(Radiation::nGroups > 0);
@@ -328,12 +328,11 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       			   kappa_p, etaTz, etaYz, thetaTz, thetaYz,
 			   temp_new, Ye_new, grids, delta_t);
 
-      if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
+      if (verbose >= 2) {
 	int oldprec = std::cout.precision(3);
-        std::cout << "Outer = " << it << ", Inner = " << innerIteration
-             << ", inner err =  " << std::setw(8) << relative_in << " (rel),  " 
-	     << std::setw(8) << absolute_in << " (abs)" << std::endl;
-	//	     << std::setw(8) << error_er << " (impact)"<< std::endl;
+        amrex::Print() << "Outer = " << it << ", Inner = " << innerIteration
+                       << ", inner err =  " << std::setw(8) << relative_in << " (rel),  " 
+                       << std::setw(8) << absolute_in << " (abs)" << std::endl;
 	std::cout.precision(oldprec);
       }
 
@@ -377,18 +376,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
     } while(!inner_converged && innerIteration < maxInIter); 
 
-    if (verbose == 1 && ParallelDescriptor::IOProcessor()) {
+    if (verbose == 1) {
       int oldprec = std::cout.precision(3);
-      std::cout << "Outer = " << it << ", Inner = " << innerIteration
-	   << ", inner tol =  " << std::setw(8) << relative_in << "  " 
-	   << std::setw(8) << absolute_in << std::endl;
+      amrex::Print() << "Outer = " << it << ", Inner = " << innerIteration
+                     << ", inner tol =  " << std::setw(8) << relative_in << "  " 
+                     << std::setw(8) << absolute_in << std::endl;
       std::cout.precision(oldprec);
-    }
-    
-    if (innerIteration >= maxInIter &&
-	(relative_in > reltol_in && absolute_in > absInTol)) {
-      //      amrex::Warning("Er Equation Update Failed to Converge");
-      //      amrex::Abort("Er Equation Update Failed to Converge");
     }
 
     // update rhoe, rhoYe and T
@@ -437,23 +430,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 		  kappa_p, jg, mugT, mugY,
 		  S_new, level, delta_t, ptc_tau, it, conservative_update);
 
-    if (verbose >= 2 && radiation_type == Neutrino) {
-      Real yemin = Ye_new.min(0);
-      Real yemax = Ye_new.max(0);
-      if (ParallelDescriptor::IOProcessor()) {
-        int oldprec = std::cout.precision(5);
-        std::cout << "Update   Ye min, max are " << yemin << ", " << yemax;
-        if (yemin < 0.05 || yemax > 0.513) {
-          std::cout << ":  out of range for EOS and opacities";
-        }
-        else if (yemax > 0.5) {
-          std::cout << ":  out of range for opacities";
-        }
-        std::cout << std::endl;
-        std::cout.precision(oldprec);
-      }
-    }
-
     eos_opacity_emissivity(S_new, temp_new, Ye_new, 
 			   temp_star, Ye_star, // input
 			   kappa_p, kappa_r, jg, 
@@ -493,16 +469,16 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       absolute_out = (abs_T > abs_Ye) ? abs_T : abs_Ye;      
     }
 
-    if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
+    if (verbose >= 2) {
       int oldprec = std::cout.precision(4);
-      std::cout << "Update Errors for      rhoe,        FT,         T" 
-                << std::endl;
-      std::cout << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
-                << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
-                << std::endl;
-      std::cout << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
-                << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
-                << std::endl;
+      amrex::Print() << "Update Errors for      rhoe,        FT,         T" 
+                     << std::endl;
+      amrex::Print() << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
+                     << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
+                     << std::endl;
+      amrex::Print() << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
+                     << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
+                     << std::endl;
       std::cout.precision(oldprec);
     }
 
@@ -539,24 +515,21 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   } while ( ((!converged || !inner_converged) && it<maxiter)
    	    || !conservative_update);
 
-  if (verbose == 1 && ParallelDescriptor::IOProcessor()) {
+  if (verbose == 1) {
     int oldprec = std::cout.precision(4);
-    std::cout << "Update Errors for      rhoe,        FT,         T" 
-              << std::endl;
-    std::cout << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
-              << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
-              << std::endl;
-    std::cout << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
-              << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
-              << std::endl;
+    amrex::Print() << "Update Errors for      rhoe,        FT,         T" 
+                   << std::endl;
+    amrex::Print() << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
+                   << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
+                   << std::endl;
+    amrex::Print() << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
+                   << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
+                   << std::endl;
     std::cout.precision(oldprec);
   }
 
-  if (! converged) {
-    if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-      std::cout << "Implicit Update Failed to Converge" << std::endl;
-    }
-    exit(1);
+  if (!converged) {
+      amrex::Abort("Implicit Update Failed to Converge");
   }
 
   // update flux registers
@@ -601,8 +574,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   delta_T_rat_level[level] = dTrat;
   delta_Ye_level[level]    = dye;
 
-  if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
-    std::cout << "Delta T      Ratio = " << dTrat << std::endl;
+  if (verbose >= 2) {
+      amrex::Print() << "Delta T      Ratio = " << dTrat << std::endl;
   }
 
   if (plot_lambda) {
@@ -629,7 +602,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, *flxcc, icomp_flux);
   }
 
-  if (verbose && ParallelDescriptor::IOProcessor()) {
-    std::cout << "                                     done" << std::endl;
+  if (verbose) {
+      amrex::Print() << "                                     done" << std::endl;
   }
 }
