@@ -15,9 +15,6 @@ Radiation
    file/MGFLD_1d_f
    file/MGFLD_2d_f
    file/MGFLD_3d_f
-   file/MGFLDneut_1d_f
-   file/MGFLDneut_2d_f
-   file/MGFLDneut_3d_f
    file/MGRadBndry_8H
    file/NGBndry_8H
    file/RadBndry_8H
