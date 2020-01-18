@@ -785,8 +785,8 @@ contains
 
        ! Get inner and outer radii
 
-       loc_l = position(i  ,j,k,ccx=.true.)
-       loc_r = position(i+1,j,k,ccx=.true.)
+       loc_l = position(i  ,j,k,ccx=.false.)
+       loc_r = position(i+1,j,k,ccx=.false.)
 
        if (dim .eq. 2) then
 
@@ -806,8 +806,8 @@ contains
 
        ! Get inner and outer radii
 
-       loc_l = position(i  ,j,k,ccx=.true.)
-       loc_r = position(i+1,j,k,ccx=.true.)
+       loc_l = position(i  ,j,k,ccx=.false.)
+       loc_r = position(i+1,j,k,ccx=.false.)
 
        if (dim .eq. 1) then
 

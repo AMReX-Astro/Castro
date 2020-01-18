@@ -246,9 +246,7 @@ extern "C"
 #ifdef REACTIONS
     void ca_estdt_burning
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state_old),
      const BL_FORT_FAB_ARG_3D(state_new),
-     const BL_FORT_FAB_ARG_3D(reactions_old),
      const BL_FORT_FAB_ARG_3D(reactions_new),
      const amrex::Real* dx, amrex::Real* dt);
 #endif

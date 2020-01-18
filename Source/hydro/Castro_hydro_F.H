@@ -439,6 +439,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(q_bar),
      BL_FORT_FAB_ARG_3D(qaux),
      BL_FORT_FAB_ARG_3D(qaux_bar),
+     BL_FORT_FAB_ARG_3D(shk),
+     BL_FORT_FAB_ARG_3D(flatn),
 #ifdef DIFFUSION
      BL_FORT_FAB_ARG_3D(T_Cc),
 #endif
