@@ -172,9 +172,11 @@ contains
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, NSRC, &
-                                  grav_source_type, gravity_type_int, PoissonGrav, MonopoleGrav, get_g_from_phi
+                                 grav_source_type, gravity_type_int, PoissonGrav, &
+                                 MonopoleGrav, get_g_from_phi, ambient_safety_factor
     use prob_params_module, only: dg, center, physbc_lo, physbc_hi, Symmetry
     use castro_util_module, only: position ! function
+    use ambient_module, only: ambient_state
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only: UMR, UMP
     use hybrid_advection_module, only: set_hybrid_momentum_source
@@ -233,7 +235,7 @@ contains
 
     real(rt) :: Sr_old(3), Sr_new(3), Srcorr(3)
     real(rt) :: vold(3), vnew(3)
-    real(rt) :: SrE_old, SrE_new, SrEcorr
+    real(rt) :: SrE_old, SrE_new, SrEcorr, dSrE_cons, dSrE_non_cons, rho_c, delta_rho
     real(rt) :: rhoo, rhooinv, rhon, rhoninv
 
     real(rt) :: old_ke, new_ke
@@ -367,12 +369,38 @@ contains
                 gzl = HALF * (g(3) + HALF * (gnew(i,j,k-1*dg(3),3) + gold(i,j,k-1*dg(3),3)))
                 gzr = HALF * (g(3) + HALF * (gnew(i,j,k+1*dg(3),3) + gold(i,j,k+1*dg(3),3)))
 
-                SrEcorr = SrEcorr + hdtInv * ( flux1(i        ,j,k) * gxl * dx(1) + &
-                                               flux1(i+1*dg(1),j,k) * gxr * dx(1) + &
-                                               flux2(i,j        ,k) * gyl * dx(2) + &
-                                               flux2(i,j+1*dg(2),k) * gyr * dx(2) + &
-                                               flux3(i,j,k        ) * gzl * dx(3) + &
-                                               flux3(i,j,k+1*dg(3)) * gzr * dx(3) ) / vol(i,j,k)
+                dSrE_cons = hdtInv * (flux1(i        ,j,k) * gxl * dx(1) + &
+                                      flux1(i+1*dg(1),j,k) * gxr * dx(1) + &
+                                      flux2(i,j        ,k) * gyl * dx(2) + &
+                                      flux2(i,j+1*dg(2),k) * gyr * dx(2) + &
+                                      flux3(i,j,k        ) * gzl * dx(3) + &
+                                      flux3(i,j,k+1*dg(3)) * gzr * dx(3)) / vol(i,j,k)
+
+                ! The conservative scheme above is suboptimal for low-density, ambient material.
+                ! Because it ties energy updates to mass flow into/out of the zone at the edges,
+                ! it has the possibility of generating an energy update that is quite inconsistent
+                ! with the zone's current mass and energy. This is most likely to occur at the
+                ! interface between high and low density material, such as the edge of a star. So
+                ! we also construct here the standard non-conservative update and apply it for
+                ! the low density material. This sacrifices a small amount of energy conservation
+                ! in return for avoiding significant changes in the internal energy of the
+                ! ambient material, which could result in, for example, very high sound speeds.
+
+                vnew = snew(UMX:UMZ) * rhoninv
+                SrE_new = dot_product(vnew, Sr_new)
+
+                dSrE_non_cons = HALF * (SrE_new - SrE_old)
+
+                ! Smooth between the two schemes, using ambient_safety_factor as the cutoff point
+                ! between the normal material and the ambient material.
+
+                rho_c = (ONE + HALF * (ambient_safety_factor - ONE)) * ambient_state(URHO)
+                delta_rho = (HALF * (ambient_safety_factor - ONE)) * ambient_state(URHO)
+
+                dSrE_non_cons = dSrE_non_cons * HALF * (ONE + tanh((rhon - rho_c) / delta_rho))
+                dSrE_cons = dSrE_cons * HALF * (ONE - tanh((rhon - rho_c) / delta_rho))
+
+                SrEcorr = SrEcorr + dSrE_non_cons + dSrE_cons
 
 #ifndef AMREX_USE_CUDA
              else
