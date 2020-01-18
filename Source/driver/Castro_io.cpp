@@ -720,19 +720,6 @@ Castro::setPlotVariables ()
 {
   AmrLevel::setPlotVariables();
 
-#ifdef RADIATION
-  if (Radiation::nNeutrinoSpecies > 0 &&
-      Radiation::plot_neutrino_group_energies_total == 0) {
-    char rad_name[10];
-    for (int j = 0; j < Radiation::nNeutrinoSpecies; j++) {
-      for (int i = 0; i < Radiation::nNeutrinoGroups[j]; i++) {
-        sprintf(rad_name, "rads%dg%d", j, i);
-        parent->deleteStatePlotVar(rad_name);
-      }
-    }
-  }
-#endif
-
   // Don't add the Source_Type data to the plotfile, we only
   // want to store it in the checkpoints.
 
@@ -1230,10 +1217,6 @@ Castro::plotFileOutput(const std::string& dir,
 
     int n_data_items = plot_var_map.size() + num_derive;
 
-#ifdef RADIATION
-    if (Radiation::nplotvar > 0) n_data_items += Radiation::nplotvar;
-#endif
-
     Real cur_time = state[State_Type].curTime();
 
     if (level == 0 && ParallelDescriptor::IOProcessor())
@@ -1264,11 +1247,6 @@ Castro::plotFileOutput(const std::string& dir,
 	    const DeriveRec* rec = derive_lst.get(*it);
             os << rec->variableName(0) << '\n';
         }
-
-#ifdef RADIATION
-	for (i=0; i<Radiation::nplotvar; ++i)
-	    os << Radiation::plotvar_names[i] << '\n';
-#endif
 
         os << BL_SPACEDIM << '\n';
         os << parent->cumTime() << '\n';
@@ -1392,13 +1370,6 @@ Castro::plotFileOutput(const std::string& dir,
 	    cnt++;
 	}
     }
-
-#ifdef RADIATION
-    if (Radiation::nplotvar > 0) {
-	MultiFab::Copy(plotMF,*(radiation->plotvar[level]),0,cnt,Radiation::nplotvar,0);
-	cnt += Radiation::nplotvar;
-    }
-#endif
 
     amrex::prefetchToHost(plotMF);
 

@@ -42,28 +42,12 @@ int Radiation::do_multigroup = 0;
 int Radiation::nGroups = NGROUPS;
 int Radiation::nNeutrinoSpecies = 0;
 Vector<int> Radiation::nNeutrinoGroups(0);
-int Radiation::plot_neutrino_group_energies_per_MeV = 1;
-int Radiation::plot_neutrino_group_energies_total   = 0;
 int Radiation::accelerate = 1;
 int Radiation::rad_hydro_combined = 0;
 int Radiation::comoving = 1;
 int Radiation::Er_Lorentz_term = 1;
 int Radiation::fspace_advection_type = 2;
 int Radiation::do_inelastic_scattering = 0;
-int Radiation::plot_lambda   = 0;
-int Radiation::plot_kappa_p  = 0;
-int Radiation::plot_kappa_r  = 0;
-int Radiation::plot_lab_Er   = 0;
-int Radiation::plot_lab_flux = 0;
-int Radiation::plot_com_flux = 0;
-int Radiation::icomp_lambda  = -1;
-int Radiation::icomp_kp      = -1;
-int Radiation::icomp_kr      = -1;
-int Radiation::icomp_lab_Er  = -1;
-int Radiation::icomp_lab_Fr  = -1;
-int Radiation::icomp_com_Fr  = -1;
-int Radiation::nplotvar      = 0;
-Vector<std::string>  Radiation::plotvar_names;
 int Radiation::filter_lambda_T = 0;
 int Radiation::filter_lambda_S = 0;
 int Radiation::filter_prim_int = 0;
@@ -203,169 +187,6 @@ void Radiation::read_static_params()
   else if (Radiation::SolverType != Radiation::SingleGroupSolver &&
 	   Radiation::SolverType != Radiation::SGFLDSolver) {
       amrex::Error("Unknown Radiation::SolverType");
-  }
-
-
-  pp.query("plot_lambda", plot_lambda);
-  pp.query("plot_kappa_p", plot_kappa_p);
-  pp.query("plot_kappa_r", plot_kappa_r);
-  if (comoving) pp.query("plot_lab_Er", plot_lab_Er);
-  pp.query("plot_lab_flux", plot_lab_flux);
-  pp.query("plot_com_flux", plot_com_flux);
-
-  // set up the extra plot variables
-  {
-      if (plot_lambda) {
-	  icomp_lambda = plotvar_names.size();
-
-	  int limiter = 2;
-	  pp.query("limiter", limiter);
-
-	  if (!do_multigroup || limiter == 0) {
-	      plotvar_names.push_back("lambda");
-	  } else if (nNeutrinoSpecies == 0) {
-	      for (int g=0; g<nGroups; ++g) {
-		  std::ostringstream ss;
-		  ss << "lambda" << g;
-		  plotvar_names.push_back(ss.str());
-	      }
-	  } else {
-	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		  for (int g=0; g<Radiation::nNeutrinoGroups[s]; ++g) {
-		      std::ostringstream ss;
-		      ss << "lambdas" << s << "g" << g;
-		      plotvar_names.push_back(ss.str());
-		  }
-	      }
-	  }
-      }
-      if (plot_kappa_p) {
-	  icomp_kp = plotvar_names.size();
-	  if (!do_multigroup) {
-	      plotvar_names.push_back("kappa_P");
-	  } else if (nNeutrinoSpecies == 0) {
-	      for (int g=0; g<nGroups; ++g) {
-		  std::ostringstream ss;
-		  ss << "kappa_P" << g;
-		  plotvar_names.push_back(ss.str());
-	      }
-	  } else {
-	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		  for (int g=0; g<Radiation::nNeutrinoGroups[s]; ++g) {
-		      std::ostringstream ss;
-		      ss << "kappa_Ps" << s << "g" << g;
-		      plotvar_names.push_back(ss.str());
-		  }
-	      }
-	  }
-      }
-      if (plot_kappa_r) {
-	  icomp_kr = plotvar_names.size();
-	  if (!do_multigroup) {
-	      plotvar_names.push_back("kappa_R");
-	  } else if (nNeutrinoSpecies == 0) {
-	      for (int g=0; g<nGroups; ++g) {
-		  std::ostringstream ss;
-		  ss << "kappa_R" << g;
-		  plotvar_names.push_back(ss.str());
-	      }
-	  } else {
-	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		  for (int g=0; g<Radiation::nNeutrinoGroups[s]; ++g) {
-		      std::ostringstream ss;
-		      ss << "kappa_Rs" << s << "g" << g;
-		      plotvar_names.push_back(ss.str());
-		  }
-	      }
-	  }
-      }
-      if (plot_lab_Er) {
-	  icomp_lab_Er = plotvar_names.size();
-	  if (!do_multigroup) {
-	      plotvar_names.push_back("Erlab");
-	  } else if (nNeutrinoSpecies == 0) {
-	      for (int g=0; g<nGroups; ++g) {
-		  std::ostringstream ss;
-		  ss << "Erlab" << g;
-		  plotvar_names.push_back(ss.str());
-	      }
-	  } else {
-	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		  for (int g=0; g<nNeutrinoGroups[s]; ++g) {
-		      std::ostringstream ss;
-		      ss << "Erlab" << "s" << s << "g" << g;
-		      plotvar_names.push_back(ss.str());
-		  }
-	      }
-	  }
-      }
-      if (plot_lab_flux) {
-	  icomp_lab_Fr = plotvar_names.size();
-	  std::string frame = "lab";
-	  Vector<std::string> dimname;
-	  dimname.push_back("x");
-	  dimname.push_back("y");
-	  dimname.push_back("z");
-	  if (!do_multigroup) {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  std::ostringstream ss;
-		  ss << "Fr" << frame << dimname[idim];
-		  plotvar_names.push_back(ss.str());
-	      }
-	  } else if (nNeutrinoSpecies == 0) {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  for (int g=0; g<nGroups; ++g) {
-		      std::ostringstream ss;
-		      ss << "Fr" << frame << g << dimname[idim];
-		      plotvar_names.push_back(ss.str());
-		  }
-	      }
-	  } else {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		      for (int g=0; g<nNeutrinoGroups[s]; ++g) {
-			  std::ostringstream ss;
-			  ss << "Fr" << frame << "s" << s << "g" << g << dimname[idim];
-			  plotvar_names.push_back(ss.str());
-		      }
-		  }
-	      }
-	  }
-      }
-      if (plot_com_flux) {
-	  icomp_com_Fr = plotvar_names.size();
-	  std::string frame = "com";
-	  Vector<std::string> dimname;
-	  dimname.push_back("x");
-	  dimname.push_back("y");
-	  dimname.push_back("z");
-	  if (!do_multigroup) {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  std::ostringstream ss;
-		  ss << "Fr" << frame << dimname[idim];
-		  plotvar_names.push_back(ss.str());
-	      }
-	  } else if (nNeutrinoSpecies == 0) {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  for (int g=0; g<nGroups; ++g) {
-		      std::ostringstream ss;
-		      ss << "Fr" << frame << g << dimname[idim];
-		      plotvar_names.push_back(ss.str());
-		  }
-	      }
-	  } else {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		      for (int g=0; g<nNeutrinoGroups[s]; ++g) {
-			  std::ostringstream ss;
-			  ss << "Fr" << frame << "s" << s << "g" << g << dimname[idim];
-			  plotvar_names.push_back(ss.str());
-		      }
-		  }
-	      }
-	  }
-      }
-      nplotvar = plotvar_names.size();
   }
 
   std::cout << "radiation initialized, nGroups = " << Radiation::nGroups << std::endl;
@@ -681,11 +502,6 @@ void Radiation::regrid(int level, const BoxArray& grids, const DistributionMappi
   }
 
   dflux[level].reset(new MultiFab(grids, dmap, 1, 0));
-
-  if (nplotvar > 0) {
-      plotvar[level].reset(new MultiFab(grids, dmap, nplotvar, 0));
-      plotvar[level]->setVal(0.0);
-  }
 
   // This array will not be used on the finest level.  I create it here,
   // though, in case a finer level is created before this level is next

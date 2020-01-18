@@ -48,13 +48,6 @@ public:
   static int fspace_advection_type;
   static int do_inelastic_scattering;    ///< Compton scattering for photon only
 
-  static int plot_lambda, plot_kappa_p, plot_kappa_r;
-  static int plot_lab_Er, plot_lab_flux, plot_com_flux;
-  static int icomp_lambda, icomp_kp, icomp_kr;
-  static int icomp_lab_Er, icomp_lab_Fr, icomp_com_Fr;
-  static int nplotvar;   // extra plot variables
-  static amrex::Vector<std::string> plotvar_names;
-
   static int filter_lambda_T, filter_lambda_S;
   static int filter_prim_int, filter_prim_T, filter_prim_S;
 

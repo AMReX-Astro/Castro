@@ -38,11 +38,6 @@ amr.derive_plot_vars = ALL
 # PROBIN FILENAME
 amr.probin_file     = probin.1d.87a.23
 
-radiation.plot_com_flux = 1   # comoving frame flux
-radiation.plot_lab_flux = 1   # lab frame flux
-radiation.plot_lambda = 1  
-
-
 # VERBOSITY
 amr.v = 1
 amr.grid_log        = grdlog  # name of grid logging file

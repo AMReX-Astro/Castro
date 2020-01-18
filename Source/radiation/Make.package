@@ -10,7 +10,6 @@ CEXE_sources += RadBndry.cpp
 CEXE_sources += RadMultiGroup.cpp
 CEXE_sources += MGRadBndry.cpp
 CEXE_sources += SGRadSolver.cpp
-CEXE_sources += RadPlotvar.cpp
 CEXE_sources += MGFLD.cpp
 CEXE_sources += MGFLDRadSolver.cpp
 CEXE_sources += Castro_radiation.cpp
@@ -43,7 +42,6 @@ ca_f90EXE_sources += MGFLD_$(DIM)d.f90
 ca_f90EXE_sources += filt_prim_$(DIM)d.f90
 ca_f90EXE_sources += CastroRad_$(DIM)d.f90
 ca_f90EXE_sources += RadBndry_$(DIM)d.f90
-ca_f90EXE_sources += RadPlotvar_$(DIM)d.f90
 
 ca_F90EXE_sources += rad_params.F90
 ca_F90EXE_sources += blackbody.F90

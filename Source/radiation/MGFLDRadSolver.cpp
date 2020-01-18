@@ -194,16 +194,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   }
 
   std::unique_ptr<MultiFab> flxsave;
-  MultiFab* flxcc;
-  int icomp_flux = -1;
-  if (plot_com_flux) {
-      flxcc = plotvar[level].get();
-      icomp_flux = icomp_com_Fr;
-  } else if (plot_lab_Er || plot_lab_flux) {
-      flxsave.reset(new MultiFab(grids, dmap, nGroups*BL_SPACEDIM, 0));
-      flxcc = flxsave.get();
-      icomp_flux = 0;
-  } 
 
   // Er_step: starting state of the inner iteration (e.g., ^(2))
   // There used to be an extra velocity term update
@@ -318,9 +308,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	solver->levelFlux(level, Flux, Er_new, igroup);
 	solver->levelFluxReg(level, flux_in, flux_out, Flux, igroup);
 	  
-	if (icomp_flux >= 0) 
-	    solver->levelFluxFaceToCenter(level, Flux, *flxcc, icomp_flux+igroup);
-
       } // end loop over groups
       
       // Check for convergence *before* acceleration step:
@@ -576,30 +563,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   if (verbose >= 2) {
       amrex::Print() << "Delta T      Ratio = " << dTrat << std::endl;
-  }
-
-  if (plot_lambda) {
-      save_lambda_in_plotvar(level, lambda);
-  }
-
-  if (plot_kappa_p) {
-      MultiFab::Copy(*plotvar[level], kappa_p, 0, icomp_kp, nGroups, 0);
-  }
-
-  if (plot_kappa_r) {
-      MultiFab::Copy(*plotvar[level], kappa_r, 0, icomp_kr, nGroups, 0);
-  }
-
-  if (plot_lab_Er) {
-      save_lab_Er_in_plotvar(level, S_new, Er_new, *flxcc, icomp_flux);
-  }
-
-  // if (plot_com_flux) {
-  //     already done when calling solver->levelFluxFaceToCenter()
-  // }
-
-  if (plot_lab_flux) {
-      save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, *flxcc, icomp_flux);
   }
 
   if (verbose) {
