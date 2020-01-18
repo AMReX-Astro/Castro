@@ -159,15 +159,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           q[mfi].prefetchToDevice();
           qaux[mfi].prefetchToDevice();
           src_q[mfi].prefetchToDevice();
-          volume[mfi].prefetchToDevice();
           Sborder[mfi].prefetchToDevice();
           hydro_source[mfi].prefetchToDevice();
           for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-              area[i][mfi].prefetchToDevice();
               (*fluxes[i])[mfi].prefetchToDevice();
           }
 #if AMREX_SPACEDIM < 3
-          dLogArea[0][mfi].prefetchToDevice();
           P_radial[mfi].prefetchToDevice();
 #endif
 #ifdef RADIATION
@@ -288,9 +285,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(qzp),
 #endif
                        AMREX_REAL_ANYD(dx), dt,
-#if (AMREX_SPACEDIM < 3)
-                       BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
-#endif
                        AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
 
       } else {
@@ -313,9 +307,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                        BL_TO_FORTRAN_ANYD(qzp),
 #endif
                        AMREX_REAL_ANYD(dx), dt,
-#if (AMREX_SPACEDIM < 3)
-                       BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
-#endif
                        AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
       }
 
@@ -556,8 +547,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(rftmp1),
 #endif
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                        BL_TO_FORTRAN_ANYD(area[0][mfi]),
-                        BL_TO_FORTRAN_ANYD(volume[mfi]),
                         hdt, hdtdx);
 
       // solve the final Riemann problem axross the y-interfaces
@@ -1135,9 +1124,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    idir_f,
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                    BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(volume[mfi]),
                    BL_TO_FORTRAN_ANYD(flux[idir]),
-                   BL_TO_FORTRAN_ANYD(area[idir][mfi]),
                    dt, AMREX_REAL_ANYD(dx));
           }
 
@@ -1148,9 +1135,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    idir_f,
                    BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                    BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(volume[mfi]),
                    BL_TO_FORTRAN_ANYD(flux[idir]),
-                   BL_TO_FORTRAN_ANYD(area[idir][mfi]),
                    dt, AMREX_REAL_ANYD(dx));
           }
 
@@ -1195,14 +1180,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM == 3
                  BL_TO_FORTRAN_ANYD(qe[2]),
 #endif
-                 BL_TO_FORTRAN_ANYD(area[0][mfi]),
-#if AMREX_SPACEDIM >= 2
-                 BL_TO_FORTRAN_ANYD(area[1][mfi]),
-#endif
-#if AMREX_SPACEDIM == 3
-                 BL_TO_FORTRAN_ANYD(area[2][mfi]),
-#endif
-                 BL_TO_FORTRAN_ANYD(volume[mfi]),
                  AMREX_REAL_ANYD(dx), dt);
 
 #ifdef RADIATION
@@ -1223,13 +1200,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    BL_TO_FORTRAN_ANYD(qe[idir]),
 #endif
                    BL_TO_FORTRAN_ANYD(flux[idir]),
-                   BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
+                   idir + 1, dt);
 
 #ifdef RADIATION
 #pragma gpu box(nbx)
         scale_rad_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                        BL_TO_FORTRAN_ANYD(rad_flux[idir]),
-                       BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
+                       idir + 1, dt);
 #endif
 
         if (idir == 0) {
@@ -1388,15 +1365,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           q[mfi].prefetchToHost();
           qaux[mfi].prefetchToHost();
           src_q[mfi].prefetchToHost();
-          volume[mfi].prefetchToHost();
           Sborder[mfi].prefetchToHost();
           hydro_source[mfi].prefetchToHost();
           for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-              area[i][mfi].prefetchToHost();
               (*fluxes[i])[mfi].prefetchToHost();
           }
 #if AMREX_SPACEDIM < 3
-          dLogArea[0][mfi].prefetchToHost();
           P_radial[mfi].prefetchToHost();
 #endif
 #ifdef RADIATION

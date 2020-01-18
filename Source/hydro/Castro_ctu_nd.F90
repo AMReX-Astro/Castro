@@ -27,9 +27,6 @@ contains
                             qzp, qzp_lo, qzp_hi, &
 #endif
                             dx, dt, &
-#if AMREX_SPACEDIM < 3
-                            dloga, dloga_lo, dloga_hi, &
-#endif
                             domlo, domhi) bind(C, name="ctu_ppm_states")
     ! Compute the normal interface states by reconstructing
     ! the primitive variables using the piecewise parabolic method
@@ -64,9 +61,6 @@ contains
     integer, intent(in) :: qzm_lo(3), qzm_hi(3)
     integer, intent(in) :: qzp_lo(3), qzp_hi(3)
 #endif
-#if AMREX_SPACEDIM < 3
-    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-#endif
     real(rt), intent(in) :: dx(3)   ! grid spacing in X, Y, Z direction
     real(rt), intent(in), value :: dt    ! time stepsize
     integer, intent(in) :: domlo(3), domhi(3)
@@ -85,9 +79,6 @@ contains
 #if AMREX_SPACEDIM == 3
     real(rt), intent(inout) :: qzm(qzm_lo(1):qzm_hi(1), qzm_lo(2):qzm_hi(2), qzm_lo(3):qzm_hi(3), NQ)
     real(rt), intent(inout) :: qzp(qzp_lo(1):qzp_hi(1), qzp_lo(2):qzp_hi(2), qzp_lo(3):qzp_hi(3), NQ)
-#endif
-#if AMREX_SPACEDIM < 3
-    real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
     real(rt) :: hdt
     integer :: i, j, k, n, idir
@@ -111,9 +102,6 @@ contains
                              flatn, f_lo, f_hi, &
                              qxm, qxm_lo, qxm_hi, &
                              qxp, qxp_lo, qxp_hi, &
-#if AMREX_SPACEDIM <= 2
-                             dloga, dloga_lo, dloga_hi, &
-#endif
                              vlo, vhi, domlo, domhi, &
                              dx, dt)
 
@@ -127,9 +115,6 @@ contains
                              flatn, f_lo, f_hi, &
                              qym, qym_lo, qym_hi, &
                              qyp, qyp_lo, qyp_hi, &
-#if AMREX_SPACEDIM == 2
-                             dloga, dloga_lo, dloga_hi, &
-#endif
                              vlo, vhi, domlo, domhi, &
                              dx, dt)
 #endif
@@ -159,9 +144,6 @@ contains
                          flatn, f_lo, f_hi, &
                          qxm, qxm_lo, qxm_hi, &
                          qxp, qxp_lo, qxp_hi, &
-#if AMREX_SPACEDIM <= 2
-                         dloga, dloga_lo, dloga_hi, &
-#endif
                          vlo, vhi, domlo, domhi, &
                          dx, dt)
 
@@ -175,9 +157,6 @@ contains
                          flatn, f_lo, f_hi, &
                          qym, qym_lo, qym_hi, &
                          qyp, qyp_lo, qyp_hi, &
-#if AMREX_SPACEDIM == 2
-                         dloga, dloga_lo, dloga_hi, &
-#endif
                          vlo, vhi, domlo, domhi, &
                          dx, dt)
 #endif
@@ -221,9 +200,6 @@ contains
                             qzp, qzp_lo, qzp_hi, &
 #endif
                             dx, dt, &
-#if AMREX_SPACEDIM < 3
-                            dloga, dloga_lo, dloga_hi, &
-#endif
                             domlo, domhi) bind(C, name="ctu_plm_states")
     ! Compute the normal interface states by reconstructing
     ! the primitive variables using piecewise linear slopes and doing
@@ -260,9 +236,6 @@ contains
     integer, intent(in) :: qzm_lo(3), qzm_hi(3)
     integer, intent(in) :: qzp_lo(3), qzp_hi(3)
 #endif
-#if AMREX_SPACEDIM < 3
-    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-#endif
     real(rt), intent(in) :: dx(3)   ! grid spacing in X, Y, Z direction
     real(rt), intent(in), value :: dt   ! time stepsize
     integer, intent(in) :: domlo(3), domhi(3)
@@ -283,9 +256,6 @@ contains
 #if AMREX_SPACEDIM == 3
     real(rt), intent(inout) :: qzm(qzm_lo(1):qzm_hi(1), qzm_lo(2):qzm_hi(2), qzm_lo(3):qzm_hi(3), NQ)
     real(rt), intent(inout) :: qzp(qzp_lo(1):qzp_hi(1), qzp_lo(2):qzp_hi(2), qzp_lo(3):qzp_hi(3), NQ)
-#endif
-#if AMREX_SPACEDIM < 3
-    real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
 #endif
     real(rt) :: hdt
     integer :: i, j, k, n, idir
@@ -340,9 +310,6 @@ contains
                          dq, dq_lo, dq_hi, &
                          qxm, qxm_lo, qxm_hi, &
                          qxp, qxp_lo, qxp_hi, &
-#if AMREX_SPACEDIM < 3
-                         dloga, dloga_lo, dloga_hi, &
-#endif
                          SrcQ, src_lo, src_hi, &
                          vlo, vhi, domlo, domhi, &
                          dx, dt)
@@ -355,9 +322,6 @@ contains
                          dq, dq_lo, dq_hi, &
                          qym, qym_lo, qym_hi, &
                          qyp, qyp_lo, qyp_hi, &
-#if AMREX_SPACEDIM < 3
-                         dloga, dloga_lo, dloga_hi, &
-#endif
                          SrcQ, src_lo, src_hi, &
                          vlo, vhi, domlo, domhi, &
                          dx, dt)
@@ -412,14 +376,6 @@ contains
 #if AMREX_SPACEDIM == 3
                         qz, qz_lo, qz_hi, &
 #endif
-                        area1, area1_lo, area1_hi, &
-#if AMREX_SPACEDIM >= 2
-                        area2, area2_lo, area2_hi, &
-#endif
-#if AMREX_SPACEDIM == 3
-                        area3, area3_lo, area3_hi, &
-#endif
-                        vol, vol_lo, vol_hi, &
                         dx, dt) bind(C, name="ctu_consup")
 
     use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
@@ -443,24 +399,22 @@ contains
     use meth_params_module, only : USHK
 #endif
     use amrex_constants_module, only : ZERO, ONE, TWO, FOURTH, HALF
+    use castro_util_module, only: area ! function
+    use castro_util_module, only: volume ! function
 
     integer, intent(in) ::       lo(3),       hi(3)
     integer, intent(in) :: sk_lo(3), sk_hi(3)
     integer, intent(in) ::  updt_lo(3),  updt_hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
-    integer, intent(in) :: area1_lo(3), area1_hi(3)
 #if AMREX_SPACEDIM >= 2
     integer, intent(in) :: flux2_lo(3), flux2_hi(3)
-    integer, intent(in) :: area2_lo(3), area2_hi(3)
     integer, intent(in) ::    qy_lo(3),    qy_hi(3)
 #endif
 #if AMREX_SPACEDIM == 3
     integer, intent(in) :: flux3_lo(3), flux3_hi(3)
-    integer, intent(in) :: area3_lo(3), area3_hi(3)
     integer, intent(in) ::    qz_lo(3),    qz_hi(3)
 #endif
     integer, intent(in) ::    qx_lo(3),    qx_hi(3)
-    integer, intent(in) ::   vol_lo(3),   vol_hi(3)
 #ifdef RADIATION
     integer, intent(in) ::  uout_lo(3),  uout_hi(3)
     integer, intent(in) :: Erout_lo(3), Erout_hi(3)
@@ -479,22 +433,18 @@ contains
     real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)
 
     real(rt), intent(in) :: flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR)
-    real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
     real(rt), intent(in) ::    qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
 
 #if AMREX_SPACEDIM >= 2
     real(rt), intent(in) :: flux2(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR)
-    real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1),area2_lo(2):area2_hi(2),area2_lo(3):area2_hi(3))
     real(rt), intent(in) ::    qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
 #endif
 
 #if AMREX_SPACEDIM == 3
     real(rt), intent(in) :: flux3(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR)
-    real(rt), intent(in) :: area3(area3_lo(1):area3_hi(1),area3_lo(2):area3_hi(2),area3_lo(3):area3_hi(3))
     real(rt), intent(in) ::    qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
 #endif
 
-    real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt), intent(in) :: dx(3)
     real(rt), intent(in), value :: dt
 
@@ -551,32 +501,29 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
-                volinv = ONE / vol(i,j,k)
+                volinv = ONE / volume(i,j,k)
 
                 update(i,j,k,n) = update(i,j,k,n) + &
-                     ( flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) &
+                     ( flux1(i,j,k,n) * area(i,j,k,1) - flux1(i+1,j,k,n) * area(i+1,j,k,1) &
 #if AMREX_SPACEDIM >= 2
-                     + flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) &
+                     + flux2(i,j,k,n) * area(i,j,k,2) - flux2(i,j+1,k,n) * area(i,j+1,k,2) &
 #endif
 #if AMREX_SPACEDIM == 3
-                     + flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) &
+                     + flux3(i,j,k,n) * area(i,j,k,3) - flux3(i,j,k+1,n) * area(i,j,k+1,3) &
 #endif
                      ) * volinv
 
                 ! Add the p div(u) source term to (rho e).
                 if (n .eq. UEINT) then
                    update(i,j,k,n) = update(i,j,k,n) - pdivu(i, j, k, &
-                                                             qx, qx_lo, qx_hi, &
-                                                             area1, area1_lo, area1_hi, &
+                                                             qx, qx_lo, qx_hi &
 #if AMREX_SPACEDIM >= 2
-                                                             qy, qy_lo, qy_hi, &
-                                                             area2, area2_lo, area2_hi, &
+                                                             , qy, qy_lo, qy_hi &
 #endif
 #if AMREX_SPACEDIM == 3
-                                                             qz, qz_lo, qz_hi, &
-                                                             area3, area3_lo, area3_hi, &
+                                                             , qz, qz_lo, qz_hi &
 #endif
-                                                             vol, vol_lo, vol_hi)
+                                                             )
                 endif
 
              enddo
@@ -633,7 +580,7 @@ contains
 #if AMREX_SPACEDIM == 3
                      + radflux3(i,j,k,g) * area3(i,j,k) - radflux3(i,j,k+1,g) * area3(i,j,k+1) &
 #endif
-                     ) / vol(i,j,k)
+                     ) / volume(i,j,k)
              enddo
           enddo
        enddo

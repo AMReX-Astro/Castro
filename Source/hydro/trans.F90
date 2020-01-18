@@ -22,10 +22,6 @@ contains
                                rfx, rfx_lo, rfx_hi, &
 #endif
                                qx, qx_lo, qx_hi, &
-#if AMREX_SPACEDIM == 2
-                               area1, area1_lo, area1_hi, &
-                               vol, vol_lo, vol_hi, &
-#endif
                                hdt, cdtdx) bind(C, name="transx_on_ystates")
 
     ! here, lo and hi are the bounds of the interfaces we are looping over
@@ -55,6 +51,8 @@ contains
 #endif
     use eos_module, only: eos
     use eos_type_module, only: eos_input_rt, eos_t
+    use castro_util_module, only: area ! function
+    use castro_util_module, only: volume ! function
 #if AMREX_SPACEDIM == 2
     use prob_params_module, only : mom_flux_has_p
 #endif
@@ -70,10 +68,6 @@ contains
 #endif
     integer, intent(in) :: qx_lo(3), qx_hi(3)
     integer, intent(in) :: lo(3), hi(3)
-#if AMREX_SPACEDIM == 2
-    integer, intent(in) :: area1_lo(3), area1_hi(3)
-    integer, intent(in) :: vol_lo(3), vol_hi(3)
-#endif
 
 #ifdef RADIATION
     real(rt) :: rfx(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),rfx_lo(3):rfx_hi(3),0:ngroups-1)
@@ -89,10 +83,6 @@ contains
 
     real(rt), intent(out) :: qymo(qymo_lo(1):qymo_hi(1),qymo_lo(2):qymo_hi(2),qymo_lo(3):qymo_hi(3),NQ)
     real(rt), intent(out) :: qypo(qypo_lo(1):qypo_hi(1),qypo_lo(2):qypo_hi(2),qypo_lo(3):qypo_hi(3),NQ)
-#if AMREX_SPACEDIM == 2
-    real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
-    real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
-#endif
 
     integer i, j, k, n, nqp, ipassive
 
@@ -151,13 +141,13 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 #if AMREX_SPACEDIM == 2
-                volinv = ONE/vol(i,j,k)
+                volinv = ONE / volume(i,j,k)
 
-                rrnew = qyp(i,j,k,QRHO) - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) - &
-                                               area1(i,j,k)*fx(i,j,k,URHO)) * volinv
+                rrnew = qyp(i,j,k,QRHO) - hdt*(area(i+1,j,k,1)*fx(i+1,j,k,URHO) - &
+                                               area(i  ,j,k,1)*fx(i  ,j,k,URHO)) * volinv
                 compu = qyp(i,j,k,QRHO)*qyp(i,j,k,nqp) - &
-                     hdt*(area1(i+1,j,k)*fx(i+1,j,k,n) - &
-                             area1(i,j,k)*fx(i,j,k,n)) * volinv
+                        hdt*(area(i+1,j,k,1)*fx(i+1,j,k,n) - &
+                             area(i  ,j,k,1)*fx(i  ,j,k,n)) * volinv
                 qypo(i,j,k,nqp) = compu/rrnew
 #else
                 rrnew = qyp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
@@ -166,13 +156,13 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 2
-                volinv = ONE/vol(i,j-1,k)
+                volinv = ONE / volume(i,j-1,k)
 
-                rrnew = qym(i,j,k,QRHO) - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,URHO) - &
-                                               area1(i,j-1,k)*fx(i,j-1,k,URHO)) * volinv
+                rrnew = qym(i,j,k,QRHO) - hdt*(area(i+1,j-1,k,1)*fx(i+1,j-1,k,URHO) - &
+                                               area(i  ,j-1,k,1)*fx(i  ,j-1,k,URHO)) * volinv
                 compu = qym(i,j,k,QRHO)*qym(i,j,k,nqp) - &
-                     hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,n) - &
-                          area1(i,j-1,k)*fx(i,j-1,k,n)) * volinv
+                        hdt*(area(i+1,j-1,k,1)*fx(i+1,j-1,k,n) - &
+                             area(i  ,j-1,k,1)*fx(i  ,j-1,k,n)) * volinv
                 qymo(i,j,k,nqp) = compu/rrnew
 #else
                 rrnew = qym(i,j,k,QRHO) - cdtdx*(fx(i+1,j-1,k,URHO) - fx(i,j-1,k,URHO))
@@ -198,7 +188,7 @@ contains
              !----------------------------------------------------------------
 
 #if AMREX_SPACEDIM == 2
-             volinv = ONE/vol(i,j,k)
+             volinv = ONE / volume(i,j,k)
 #endif
 
              pgp  = qx(i+1,j,k,GDPRES)
@@ -220,8 +210,8 @@ contains
              ! be able to deal with the general EOS
 
 #if AMREX_SPACEDIM == 2
-             dup = area1(i+1,j,k)*pgp*ugp - area1(i,j,k)*pgm*ugm
-             du = area1(i+1,j,k)*ugp-area1(i,j,k)*ugm
+             dup = area(i+1,j,k,1)*pgp*ugp - area(i,j,k,1)*pgm*ugm
+             du = area(i+1,j,k,1)*ugp-area(i,j,k,1)*ugm
 #else
              dup = pgp*ugp - pgm*ugm
              du = ugp-ugm
@@ -252,7 +242,7 @@ contains
                 end do
              else if (fspace_type .eq. 2) then
 #if AMREX_SPACEDIM == 2
-                divu = (area1(i+1,j,k)*ugp-area1(i,j,k)*ugm) * volinv
+                divu = (area(i+1,j,k,1)*ugp-area(i,j,k,1)*ugm) * volinv
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = 0.5e0_rt*(1.e0_rt-eddf)
@@ -283,8 +273,8 @@ contains
 
 #if AMREX_SPACEDIM == 2
              ! Add transverse predictor
-             rrnewry = rrry - hdt*(area1(i+1,j,k)*fx(i+1,j,k,URHO) -  &
-                                   area1(i,j,k)*fx(i,j,k,URHO)) * volinv
+             rrnewry = rrry - hdt*(area(i+1,j,k,1)*fx(i+1,j,k,URHO) -  &
+                                   area(i,j,k,1)*fx(i,j,k,URHO)) * volinv
 
              ! Note that pressure may be treated specially here, depending on
              ! the geometry.  Our y-interface equation for (rho u) is:
@@ -295,23 +285,23 @@ contains
              ! a divergence, so there are no area factors.  For this
              ! geometry, we do not include p in our definition of the
              ! flux in the x-direction, for we need to fix this now.
-             runewry = rury - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMX)  -  &
-                                   area1(i,j,k)*fx(i,j,k,UMX)) * volinv
+             runewry = rury - hdt*(area(i+1,j,k,1)*fx(i+1,j,k,UMX)  -  &
+                                   area(i,j,k,1)*fx(i,j,k,UMX)) * volinv
              if (.not. mom_flux_has_p(1)%comp(UMX)) then
                 runewry = runewry - cdtdx *(pgp-pgm)
              endif
-             rvnewry = rvry - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMY)  -  &
-                                   area1(i,j,k)*fx(i,j,k,UMY)) * volinv
-             rwnewry = rwry - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UMZ)  -  &
-                                   area1(i,j,k)*fx(i,j,k,UMZ)) * volinv
-             renewry = rery - hdt*(area1(i+1,j,k)*fx(i+1,j,k,UEDEN)-  &
-                                  area1(i,j,k)*fx(i,j,k,UEDEN)) * volinv
+             rvnewry = rvry - hdt*(area(i+1,j,k,1)*fx(i+1,j,k,UMY)  -  &
+                                   area(i,j,k,1)*fx(i,j,k,UMY)) * volinv
+             rwnewry = rwry - hdt*(area(i+1,j,k,1)*fx(i+1,j,k,UMZ)  -  &
+                                   area(i,j,k,1)*fx(i,j,k,UMZ)) * volinv
+             renewry = rery - hdt*(area(i+1,j,k,1)*fx(i+1,j,k,UEDEN)-  &
+                                  area(i,j,k,1)*fx(i,j,k,UEDEN)) * volinv
 
 #ifdef RADIATION
-             runewry = runewry - HALF*hdt*(area1(i+1,j,k)+area1(i,j,k))*sum(lamge) * volinv
+             runewry = runewry - HALF*hdt*(area(i+1,j,k,1)+area(i,j,k,1))*sum(lamge) * volinv
              renewry = renewry + dre
-             ernewr(:) = err(:) - hdt*(area1(i+1,j,k)*rfx(i+1,j,k,:)-  &
-                                       area1(i,j,k)*rfx(i,j,k,:)) * volinv + der(:)
+             ernewr(:) = err(:) - hdt*(area(i+1,j,k,1)*rfx(i+1,j,k,:)-  &
+                                       area(i,j,k,1)*rfx(i,j,k,:)) * volinv + der(:)
 #endif
 
 #else
@@ -361,8 +351,8 @@ contains
                    ! using the discretized expression for updating (rho e).
 #if AMREX_SPACEDIM == 2
                    qypo(i,j,k,QREINT) = qyp(i,j,k,QREINT) - &
-                        hdt*(area1(i+1,j,k)*fx(i+1,j,k,UEINT)-  &
-                             area1(i,j,k)*fx(i,j,k,UEINT) + pav*du) * volinv
+                        hdt*(area(i+1,j,k,1)*fx(i+1,j,k,UEINT)-  &
+                             area(i,j,k,1)*fx(i,j,k,UEINT) + pav*du) * volinv
 #else
                    qypo(i,j,k,QREINT) = qyp(i,j,k,QREINT) - &
                         cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
@@ -413,7 +403,7 @@ contains
              !-------------------------------------------------------------------
 
 #if AMREX_SPACEDIM == 2
-             volinv = ONE/vol(i,j-1,k)
+             volinv = ONE / volume(i,j-1,k)
 #endif
 
              pgp  = qx(i+1,j-1,k,GDPRES)
@@ -435,8 +425,8 @@ contains
              ! be able to deal with the general EOS
 
 #if AMREX_SPACEDIM == 2
-             dup = area1(i+1,j-1,k)*pgp*ugp - area1(i,j-1,k)*pgm*ugm
-             du = area1(i+1,j-1,k)*ugp-area1(i,j-1,k)*ugm
+             dup = area(i+1,j-1,k,1)*pgp*ugp - area(i,j-1,k,1)*pgm*ugm
+             du = area(i+1,j-1,k,1)*ugp-area(i,j-1,k,1)*ugm
 #else
              dup = pgp*ugp - pgm*ugm
              du = ugp-ugm
@@ -467,7 +457,7 @@ contains
                 end do
              else if (fspace_type .eq. 2) then
 #if AMREX_SPACEDIM == 2
-                divu = (area1(i+1,j-1,k)*ugp-area1(i,j-1,k)*ugm) * volinv
+                divu = (area(i+1,j-1,k,1)*ugp-area(i,j-1,k,1)*ugm) * volinv
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = 0.5e0_rt*(1.e0_rt-eddf)
@@ -497,25 +487,25 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 2
-             rrnewly = rrly - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,URHO) -  &
-                                   area1(i,j-1,k)*fx(i,j-1,k,URHO)) * volinv
-             runewly = ruly - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,UMX)  -  &
-                                   area1(i,j-1,k)*fx(i,j-1,k,UMX)) * volinv
+             rrnewly = rrly - hdt*(area(i+1,j-1,k,1)*fx(i+1,j-1,k,URHO) -  &
+                                   area(i,j-1,k,1)*fx(i,j-1,k,URHO)) * volinv
+             runewly = ruly - hdt*(area(i+1,j-1,k,1)*fx(i+1,j-1,k,UMX)  -  &
+                                   area(i,j-1,k,1)*fx(i,j-1,k,UMX)) * volinv
              if (.not. mom_flux_has_p(1)%comp(UMX)) then
                 runewly = runewly - cdtdx *(pgp-pgm)
              endif
-             rvnewly = rvly - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,UMY)  -  &
-                                   area1(i,j-1,k)*fx(i,j-1,k,UMY)) * volinv
-             rwnewly = rwly - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,UMZ)  -  &
-                                   area1(i,j-1,k)*fx(i,j-1,k,UMZ)) * volinv
-             renewly = rely - hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,UEDEN)-  &
-                                   area1(i,j-1,k)*fx(i,j-1,k,UEDEN)) * volinv
+             rvnewly = rvly - hdt*(area(i+1,j-1,k,1)*fx(i+1,j-1,k,UMY)  -  &
+                                   area(i,j-1,k,1)*fx(i,j-1,k,UMY)) * volinv
+             rwnewly = rwly - hdt*(area(i+1,j-1,k,1)*fx(i+1,j-1,k,UMZ)  -  &
+                                   area(i,j-1,k,1)*fx(i,j-1,k,UMZ)) * volinv
+             renewly = rely - hdt*(area(i+1,j-1,k,1)*fx(i+1,j-1,k,UEDEN)-  &
+                                   area(i,j-1,k,1)*fx(i,j-1,k,UEDEN)) * volinv
 
 #ifdef RADIATION
-             runewly = runewly - HALF*hdt*(area1(i+1,j-1,k)+area1(i,j-1,k))*sum(lamge) * volinv
+             runewly = runewly - HALF*hdt*(area(i+1,j-1,k,1)+area(i,j-1,k,1))*sum(lamge) * volinv
              renewly = renewly + dre
-             ernewl(:) = erl(:) - hdt*(area1(i+1,j-1,k)*rfx(i+1,j-1,k,:)-  &
-                                       area1(i,j-1,k)*rfx(i,j-1,k,:)) * volinv + der(:)
+             ernewl(:) = erl(:) - hdt*(area(i+1,j-1,k,1)*rfx(i+1,j-1,k,:)-  &
+                                       area(i,j-1,k,1)*rfx(i,j-1,k,:)) * volinv + der(:)
 #endif
 
 #else
@@ -564,8 +554,8 @@ contains
                    ! expression for updating (rho e).
 #if AMREX_SPACEDIM == 2
                    qymo(i,j,k,QREINT) = qym(i,j,k,QREINT) - &
-                        hdt*(area1(i+1,j-1,k)*fx(i+1,j-1,k,UEINT)-  &
-                             area1(i,j-1,k)*fx(i,j-1,k,UEINT) + pav*du) * volinv
+                        hdt*(area(i+1,j-1,k,1)*fx(i+1,j-1,k,UEINT)-  &
+                             area(i,j-1,k,1)*fx(i,j-1,k,UEINT) + pav*du) * volinv
 #else
                    qymo(i,j,k,QREINT) = qym(i,j,k,QREINT) - &
                         cdtdx*(fx(i+1,j-1,k,UEINT) - fx(i,j-1,k,UEINT) + pav*du)

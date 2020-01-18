@@ -780,9 +780,7 @@ contains
                                               idir, &
                                               u, u_lo, u_hi, &
                                               q, q_lo, q_hi, &
-                                              vol, vol_lo, vol_hi, &
                                               flux, flux_lo, flux_hi, &
-                                              area, area_lo, area_hi, &
                                               dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
     ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
     ! "Positivity-preserving method for high-order conservative schemes solving
@@ -798,25 +796,22 @@ contains
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, NQ, URHO, UTEMP, USHK, small_dens, cfl
     use prob_params_module, only: dim
-    use amrex_mempool_module, only: bl_allocate, bl_deallocate
+    use castro_util_module, only: area ! function
+    use castro_util_module, only: volume ! function
 
     implicit none
 
     integer, intent(in) :: u_lo(3), u_hi(3)
     integer, intent(in), value :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: vol_lo(3), vol_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux_lo(3), flux_hi(3)
-    integer, intent(in) :: area_lo(3), area_hi(3)
     real(rt), intent(in) :: dx(3)
     real(rt), intent(in), value :: dt
 
     real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
     real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
-    real(rt), intent(in   ) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
 
     integer  :: i, j, k
 
@@ -849,23 +844,23 @@ contains
 
              uR = u(i,j,k,:)
              qR = q(i,j,k,:)
-             volR = vol(i,j,k)
+             volR = volume(i,j,k)
              idxR = [i,j,k]
 
              if (idir == 1) then
                 uL = u(i-1,j,k,:)
                 qL = q(i-1,j,k,:)
-                volL = vol(i-1,j,k)
+                volL = volume(i-1,j,k)
                 idxL = [i-1,j,k]
              else if (idir == 2) then
                 uL = u(i,j-1,k,:)
                 qL = q(i,j-1,k,:)
-                volL = vol(i,j-1,k)
+                volL = volume(i,j-1,k)
                 idxL = [i,j-1,k]
              else
                 uL = u(i,j,k-1,:)
                 qL = q(i,j,k-1,:)
-                volL = vol(i,j,k-1)
+                volL = volume(i,j,k-1)
                 idxL = [i,j,k-1]
              end if
 
@@ -894,8 +889,8 @@ contains
 
              ! Coefficients of fluxes on either side of the interface.
 
-             flux_coefR = TWO * (dt / alpha) * area(i,j,k) / volR
-             flux_coefL = TWO * (dt / alpha) * area(i,j,k) / volL
+             flux_coefR = TWO * (dt / alpha) * area(i,j,k,idir) / volR
+             flux_coefL = TWO * (dt / alpha) * area(i,j,k,idir) / volL
 
              ! Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
              ! If we would violate the floor, then we need to limit the flux. Since the
@@ -973,9 +968,7 @@ contains
                                              idir, &
                                              u, u_lo, u_hi, &
                                              q, q_lo, q_hi, &
-                                             vol, vol_lo, vol_hi, &
                                              flux, flux_lo, flux_hi, &
-                                             area, area_lo, area_hi, &
                                              dt, dx) bind(c, name="limit_hydro_fluxes_on_large_vel")
     ! This limiter is similar to the density-based limiter above, but limits
     ! on velocities that are too large instead. The comments are minimal since
@@ -985,24 +978,22 @@ contains
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use meth_params_module, only: NVAR, NQ, URHO, UMX, UTEMP, USHK, cfl, speed_limit
     use prob_params_module, only: dim
+    use castro_util_module, only: area ! function
+    use castro_util_module, only: volume ! function
 
     implicit none
 
     integer, intent(in) :: u_lo(3), u_hi(3)
     integer, intent(in), value :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: vol_lo(3), vol_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: flux_lo(3), flux_hi(3)
-    integer, intent(in) :: area_lo(3), area_hi(3)
     real(rt), intent(in) :: dx(3)
     real(rt), intent(in), value :: dt
 
     real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
     real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
     real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
-    real(rt), intent(in   ) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
 
     integer  :: i, j, k, n
 
@@ -1025,23 +1016,23 @@ contains
 
              uR = u(i,j,k,:)
              qR = q(i,j,k,:)
-             volR = vol(i,j,k)
+             volR = volume(i,j,k)
              idxR = [i,j,k]
 
              if (idir == 1) then
                 uL = u(i-1,j,k,:)
                 qL = q(i-1,j,k,:)
-                volL = vol(i-1,j,k)
+                volL = volume(i-1,j,k)
                 idxL = [i-1,j,k]
              else if (idir == 2) then
                 uL = u(i,j-1,k,:)
                 qL = q(i,j-1,k,:)
-                volL = vol(i,j-1,k)
+                volL = volume(i,j-1,k)
                 idxL = [i,j-1,k]
              else
                 uL = u(i,j,k-1,:)
                 qL = q(i,j,k-1,:)
-                volL = vol(i,j,k-1)
+                volL = volume(i,j,k-1)
                 idxL = [i,j,k-1]
              end if
 
@@ -1056,8 +1047,8 @@ contains
 
              ! Coefficients of fluxes on either side of the interface.
 
-             flux_coefR = TWO * (dt / alpha) * area(i,j,k) / volR
-             flux_coefL = TWO * (dt / alpha) * area(i,j,k) / volL
+             flux_coefR = TWO * (dt / alpha) * area(i,j,k,idir) / volR
+             flux_coefL = TWO * (dt / alpha) * area(i,j,k,idir) / volL
 
              theta = ONE
 
@@ -1575,17 +1566,14 @@ contains
   ! :::
 
   function pdivu(i, j, k, &
-                 q1, q1_lo, q1_hi, &
-                 area1, a1_lo, a1_hi, &
+                 q1, q1_lo, q1_hi &
 #if AMREX_SPACEDIM >= 2
-                 q2, q2_lo, q2_hi, &
-                 area2, a2_lo, a2_hi, &
+                 , q2, q2_lo, q2_hi &
 #endif
 #if AMREX_SPACEDIM == 3
-                 q3, q3_lo, q3_hi, &
-                 area3, a3_lo, a3_hi, &
+                 , q3, q3_lo, q3_hi &
 #endif
-                 vol, v_lo, v_hi) result(pdu)
+                 ) result(pdu)
     ! this computes the cell-centered p div(U) term from the
     ! edge-centered Godunov state.  This is used in the internal energy
     ! update
@@ -1593,29 +1581,23 @@ contains
     use meth_params_module, only: NGDNV, GDPRES, GDU, GDV, GDW
     use amrex_constants_module, only: HALF, ONE
     use amrex_fort_module, only: rt => amrex_real
+    use castro_util_module, only: area ! function
+    use castro_util_module, only: volume ! function
 
     implicit none
 
     integer, intent(in) :: i, j, k
 
     integer, intent(in) :: q1_lo(3), q1_hi(3)
-    integer, intent(in) :: a1_lo(3), a1_hi(3)
     real(rt), intent(in) :: q1(q1_lo(1):q1_hi(1),q1_lo(2):q1_hi(2),q1_lo(3):q1_hi(3),NGDNV)
-    real(rt), intent(in) :: area1(a1_lo(1):a1_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #if AMREX_SPACEDIM >= 2
     integer, intent(in) :: q2_lo(3), q2_hi(3)
-    integer, intent(in) :: a2_lo(3), a2_hi(3)
     real(rt), intent(in) :: q2(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NGDNV)
-    real(rt), intent(in) :: area2(a2_lo(1):a2_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #endif
 #if AMREX_SPACEDIM == 3
     integer, intent(in) :: q3_lo(3), q3_hi(3)
-    integer, intent(in) :: a3_lo(3), a3_hi(3)
     real(rt), intent(in) :: q3(q3_lo(1):q3_hi(1),q3_lo(2):q3_hi(2),q3_lo(3):q3_hi(3),NGDNV)
-    real(rt), intent(in) :: area3(a3_lo(1):a3_hi(1),a1_lo(2):a1_hi(2),a1_lo(3):a1_hi(3))
 #endif
-    integer, intent(in) :: v_lo(3), v_hi(3)
-    real(rt), intent(in) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
 
     real(rt) :: volinv
     real(rt) :: pdu
@@ -1623,21 +1605,21 @@ contains
     !$gpu
 
     pdu = (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) * &
-            (q1(i+1,j,k,GDU) * area1(i+1,j,k) - q1(i,j,k,GDU) * area1(i,j,k))
+            (q1(i+1,j,k,GDU) * area(i+1,j,k,1) - q1(i,j,k,GDU) * area(i,j,k,1))
 
 #if AMREX_SPACEDIM >= 2
     pdu = pdu + &
             (q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) * &
-            (q2(i,j+1,k,GDV) * area2(i,j+1,k) - q2(i,j,k,GDV) * area2(i,j,k))
+            (q2(i,j+1,k,GDV) * area(i,j+1,k,2) - q2(i,j,k,GDV) * area(i,j,k,2))
 #endif
 
 #if AMREX_SPACEDIM == 3
     pdu = pdu + &
             (q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) * &
-            (q3(i,j,k+1,GDW) * area3(i,j,k+1) - q3(i,j,k,GDW) * area3(i,j,k))
+            (q3(i,j,k+1,GDW) * area(i,j,k+1,3) - q3(i,j,k,GDW) * area(i,j,k,3))
 #endif
 
-    volinv = ONE / vol(i,j,k)
+    volinv = ONE / volume(i,j,k)
     pdu = HALF * pdu * volinv
 
   end function pdivu
@@ -1842,12 +1824,13 @@ contains
                         qint, qi_lo, qi_hi, &
 #endif
                         flux, f_lo, f_hi, &
-                        area, a_lo, a_hi, dt) bind(c, name="scale_flux")
+                        idir, dt) bind(c, name="scale_flux")
 
     use meth_params_module, only: NVAR, GDPRES, UMX, NGDNV
 #if AMREX_SPACEDIM == 1
     use prob_params_module, only: coord_type
 #endif
+    use castro_util_module, only: area ! function
 
     implicit none
 
@@ -1856,11 +1839,10 @@ contains
     integer,  intent(in   ) :: qi_lo(3), qi_hi(3)
 #endif
     integer,  intent(in   ) :: f_lo(3), f_hi(3)
-    integer,  intent(in   ) :: a_lo(3), a_hi(3)
+    integer,  intent(in   ), value :: idir
     real(rt), intent(in   ), value :: dt
 
     real(rt), intent(inout) :: flux(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3),NVAR)
-    real(rt), intent(in   ) :: area(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
 #if AMREX_SPACEDIM == 1
     real(rt), intent(in   ) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NGDNV)
 #endif
@@ -1872,11 +1854,11 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                flux(i,j,k,n) = dt * flux(i,j,k,n) * area(i,j,k)
+                flux(i,j,k,n) = dt * flux(i,j,k,n) * area(i,j,k,idir)
 #if AMREX_SPACEDIM == 1
                 ! Correct the momentum flux with the grad p part.
                 if (coord_type == 0 .and. n == UMX) then
-                   flux(i,j,k,n) = flux(i,j,k,n) + dt * area(i,j,k) * qint(i,j,k,GDPRES)
+                   flux(i,j,k,n) = flux(i,j,k,n) + dt * area(i,j,k,idir) * qint(i,j,k,GDPRES)
                 endif
 #endif
              enddo
@@ -1889,19 +1871,19 @@ contains
 #ifdef RADIATION
   subroutine scale_rad_flux(lo, hi, &
                             rflux, rf_lo, rf_hi, &
-                            area, a_lo, a_hi, dt) bind(c, name="scale_rad_flux")
+                            idir, dt) bind(c, name="scale_rad_flux")
 
     use rad_params_module, only: ngroups
+    use castro_util_module, only: area ! function
 
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: rf_lo(3), rf_hi(3)
-    integer,  intent(in   ) :: a_lo(3), a_hi(3)
+    integer,  intent(in   ), value :: idir
     real(rt), intent(in   ), value :: dt
 
     real(rt), intent(inout) :: rflux(rf_lo(1):rf_hi(1),rf_lo(2):rf_hi(2),rf_lo(3):rf_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: area(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
 
     integer :: i, j, k, g
 
@@ -1911,7 +1893,7 @@ contains
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area(i,j,k)
+                rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area(i,j,k,idir)
              enddo
           enddo
        enddo

@@ -20,9 +20,6 @@ contains
                        flatn, f_lo, f_hi, &
                        qm, qm_lo, qm_hi, &
                        qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
-                       dloga, dloga_lo, dloga_hi, &
-#endif
                        vlo, vhi, domlo, domhi, &
                        dx, dt)
     ! here, lo and hi are the range we loop over -- this can include ghost cells
@@ -42,9 +39,6 @@ contains
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
 
-#if (AMREX_SPACEDIM < 3)
-    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-#endif
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
@@ -56,9 +50,6 @@ contains
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
-#if (AMREX_SPACEDIM < 3)
-    real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
-#endif
     real(rt), intent(in) :: dt, dx(3)
 
     integer :: n
@@ -104,9 +95,6 @@ contains
                               flatn, f_lo, f_hi, &
                               qm, qm_lo, qm_hi, &
                               qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
-                              dloga, dloga_lo, dloga_hi, &
-#endif
                               vlo, vhi, domlo, domhi, &
                               reconstruct_state, source_nonzero, &
                               dx, dt)
@@ -119,9 +107,6 @@ contains
                                 flatn, f_lo, f_hi, &
                                 qm, qm_lo, qm_hi, &
                                 qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
-                                dloga, dloga_lo, dloga_hi, &
-#endif
                                 vlo, vhi, domlo, domhi, &
                                 reconstruct_state, source_nonzero, &
                                 dx, dt)
@@ -135,9 +120,6 @@ contains
                            flatn, f_lo, f_hi, &
                            qm, qm_lo, qm_hi, &
                            qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
-                           dloga, dloga_lo, dloga_hi, &
-#endif
                            vlo, vhi, domlo, domhi, &
                            reconstruct_state, source_nonzero, &
                            dx, dt)
@@ -238,9 +220,6 @@ contains
                             flatn, f_lo, f_hi, &
                             qm, qm_lo, qm_hi, &
                             qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
-                            dloga, dloga_lo, dloga_hi, &
-#endif
                             vlo, vhi, domlo, domhi, &
                             reconstruct_state, source_nonzero, &
                             dx, dt)
@@ -252,6 +231,7 @@ contains
                                    small_dens, small_pres, &
                                    ppm_type, ppm_temp_fix
     use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use castro_util_module, only: dLogArea ! function
 
     implicit none
 
@@ -264,9 +244,6 @@ contains
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
 
-#if (AMREX_SPACEDIM < 3)
-    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-#endif
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
@@ -278,9 +255,6 @@ contains
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
-#if (AMREX_SPACEDIM < 3)
-    real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
-#endif
     real(rt), intent(in) :: dt, dx(3)
 
     logical, intent(in) :: source_nonzero(NQSRC)
@@ -329,7 +303,7 @@ contains
     real(rt) :: cc_ref, cc_ref_inv, csq_ref, gam_g_ref
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
-    real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
+    real(rt) :: sourcr, sourcp, source, courn, eta, dloga, dlogatmp
 
 #ifndef AMREX_USE_CUDA
     if (ppm_type == 0) then
@@ -684,10 +658,11 @@ contains
 
 #if (AMREX_SPACEDIM < 3)
              ! these only apply for x states (idir = 1)
-             if (idir == 1 .and. dloga(i,j,k) /= 0) then
+             dloga = dLogArea(i,j,k,1)
+             if (idir == 1 .and. dloga /= 0) then
                 courn = dt/dx(1)*(cc+abs(un))
-                eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
-                dlogatmp = min(eta, ONE)*dloga(i,j,k)
+                eta = (ONE-courn)/(cc*dt*abs(dloga))
+                dlogatmp = min(eta, ONE)*dloga
                 sourcr = -HALF*dt*rho*dlogatmp*un
                 sourcp = sourcr*csq
                 source = sourcp*( (q(i,j,k,QPRES) + q(i,j,k,QREINT))/rho)/csq
@@ -726,9 +701,6 @@ contains
                               flatn, f_lo, f_hi, &
                               qm, qm_lo, qm_hi, &
                               qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
-                              dloga, dloga_lo, dloga_hi, &
-#endif
                               vlo, vhi, domlo, domhi, &
                               reconstruct_state, source_nonzero, &
                               dx, dt)
@@ -739,6 +711,7 @@ contains
                                    small_dens, small_pres, &
                                    ppm_type, ppm_temp_fix
     use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use castro_util_module, only: dLogArea ! function
 
     implicit none
 
@@ -749,9 +722,6 @@ contains
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
-#if (AMREX_SPACEDIM < 3)
-    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-#endif
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
@@ -763,9 +733,6 @@ contains
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
-#if (AMREX_SPACEDIM < 3)
-    real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
-#endif
     real(rt), intent(in) :: dt, dx(3)
 
     logical, intent(in) :: source_nonzero(NQSRC)
@@ -818,7 +785,7 @@ contains
     real(rt) :: Clag_ref, gam_g_ref, game_ref, gfactor
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
-    real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
+    real(rt) :: sourcr, sourcp, source, courn, eta, dloga, dlogatmp
     real(rt) :: tau_s
 
 #ifndef AMREX_USE_CUDA
@@ -1220,11 +1187,12 @@ contains
 
 #if (AMREX_SPACEDIM < 3)
              ! these only apply for x states (dim = 1)
-             if (idir == 1 .and. dloga(i,j,k) /= 0) then
+             dloga = dLogArea(i,j,k,1)
+             if (idir == 1 .and. dloga /= 0) then
                 h_g = ( (p + rhoe_g)/rho)/csq
                 courn = dt/dx(1)*(cc+abs(un))
-                eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
-                dlogatmp = min(eta, ONE)*dloga(i,j,k)
+                eta = (ONE-courn)/(cc*dt*abs(dloga))
+                dlogatmp = min(eta, ONE)*dloga
                 sourcr = -HALF*dt*rho*dlogatmp*un
                 sourcp = sourcr*csq
                 source = sourcp*h_g
@@ -1261,9 +1229,6 @@ contains
                             flatn, f_lo, f_hi, &
                             qm, qm_lo, qm_hi, &
                             qp, qp_lo, qp_hi, &
-#if (AMREX_SPACEDIM < 3)
-                            dloga, dloga_lo, dloga_hi, &
-#endif
                             vlo, vhi, domlo, domhi, &
                             reconstruct_state, source_nonzero, &
                             dx, dt)
@@ -1276,6 +1241,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_rt
     use eos_module, only : eos
     use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use castro_util_module, only: dLogArea ! function
 
     implicit none
 
@@ -1287,9 +1253,6 @@ contains
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
 
-#if (AMREX_SPACEDIM < 3)
-    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-#endif
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
     integer, intent(in) :: domlo(3), domhi(3)
@@ -1301,9 +1264,6 @@ contains
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
-#if (AMREX_SPACEDIM < 3)
-    real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
-#endif
     real(rt), intent(in) :: dt, dx(3)
 
     logical, intent(in) :: source_nonzero(NQSRC)
@@ -1360,7 +1320,7 @@ contains
     real(rt) :: cc_ref, csq_ref, Clag_ref, gam_g_ref, game_ref, gfactor
 
     real(rt) :: alpham, alphap, alpha0r, alpha0e_g
-    real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
+    real(rt) :: sourcr, sourcp, source, courn, eta, dloga, dlogatmp
     real(rt) :: tau_s
 
 #ifndef AMREX_USE_CUDA
@@ -1787,11 +1747,12 @@ contains
 
 #if (AMREX_SPACEDIM < 3)
              ! these only apply for x states (idir = 1)
-             if (idir == 1 .and. dloga(i,j,k) /= 0) then
+             dloga = dLogArea(i,j,k,1)
+             if (idir == 1 .and. dloga /= 0) then
                 h_g = ( (p + rhoe_g)/rho)/csq
                 courn = dt/dx(1)*(cc+abs(un))
-                eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
-                dlogatmp = min(eta, ONE)*dloga(i,j,k)
+                eta = (ONE-courn)/(cc*dt*abs(dloga))
+                dlogatmp = min(eta, ONE)*dloga
                 sourcr = -HALF*dt*rho*dlogatmp*un
                 sourcp = sourcr*csq
                 source = sourcp*h_g

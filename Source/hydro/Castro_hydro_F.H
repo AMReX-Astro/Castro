@@ -77,14 +77,6 @@ extern "C"
 #if AMREX_SPACEDIM == 3
      const BL_FORT_FAB_ARG_3D(qe2),
 #endif
-     const BL_FORT_FAB_ARG_3D(area0),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(area1),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(area2),
-#endif
-     const BL_FORT_FAB_ARG_3D(volume),
      const amrex::Real* dx, const amrex::Real dt);
 
   void scale_flux
@@ -93,14 +85,12 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(qe0),
 #endif
      BL_FORT_FAB_ARG_3D(flux),
-     BL_FORT_FAB_ARG_3D(area),
-     const amrex::Real dt);
+     int idir, const amrex::Real dt);
 
   void scale_rad_flux
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(rad_flux),
-     BL_FORT_FAB_ARG_3D(area),
-     const amrex::Real dt);
+     int idir, const amrex::Real dt);
 
   void ca_track_grid_losses
     (const int* lo, const int* hi,
@@ -150,9 +140,7 @@ extern "C"
      const int idir,
      BL_FORT_FAB_ARG_3D(Sborder),
      BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(volume),
      BL_FORT_FAB_ARG_3D(flux),
-     BL_FORT_FAB_ARG_3D(area),
      const amrex::Real dt, const amrex::Real* dx);
 
   void limit_hydro_fluxes_on_large_vel
@@ -160,9 +148,7 @@ extern "C"
      const int idir,
      BL_FORT_FAB_ARG_3D(Sborder),
      BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(volume),
      BL_FORT_FAB_ARG_3D(flux),
-     BL_FORT_FAB_ARG_3D(area),
      const amrex::Real dt, const amrex::Real* dx);
 
   void normalize_species_fluxes
@@ -207,18 +193,9 @@ extern "C"
      BL_FORT_FAB_ARG_3D(rzflux),
 #endif
 #endif
-     const BL_FORT_FAB_ARG_3D(xarea),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(yarea),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(zarea),
-#endif
 #if (BL_SPACEDIM < 3)
      BL_FORT_FAB_ARG_3D(pradial),
-     const BL_FORT_FAB_ARG_3D(dloga),
 #endif
-     const BL_FORT_FAB_ARG_3D(volume),
 #ifdef RADIATION
      const int* priv_nstep_fsp,
 #endif
@@ -249,9 +226,6 @@ extern "C"
       BL_FORT_FAB_ARG_3D(qzp),
 #endif
       const amrex::Real* dx, const amrex::Real dt,
-#if AMREX_SPACEDIM < 3
-      const BL_FORT_FAB_ARG_3D(dloga),
-#endif
       const int* domlo, const int* domhi);
 
   void ctu_plm_states
@@ -273,9 +247,6 @@ extern "C"
       BL_FORT_FAB_ARG_3D(qzp),
 #endif
       const amrex::Real* dx, const amrex::Real dt,
-#if AMREX_SPACEDIM < 3
-      const BL_FORT_FAB_ARG_3D(dloga),
-#endif
       const int* domlo, const int* domhi);
 
   void transx_on_ystates(const int* lo, const int* hi,
@@ -289,10 +260,6 @@ extern "C"
                          const BL_FORT_FAB_ARG_3D(rfx),
 #endif
                          const BL_FORT_FAB_ARG_3D(qx),
-#if AMREX_SPACEDIM == 2
-                         const BL_FORT_FAB_ARG_3D(area1),
-                         const BL_FORT_FAB_ARG_3D(vol),
-#endif
                          const amrex::Real hdt, const amrex::Real cdtdx);
 
   void transx_on_zstates(const int* lo, const int* hi,
@@ -488,17 +455,9 @@ extern "C"
 #if (BL_SPACEDIM < 3)
      BL_FORT_FAB_ARG_3D(pradial),
 #endif
-     const BL_FORT_FAB_ARG_3D(area1),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(area2),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(area3),
-#endif
 #if (BL_SPACEDIM < 3)
      BL_FORT_FAB_ARG_3D(dloga),
 #endif
-     const BL_FORT_FAB_ARG_3D(volume),
      const int&  verbose);
 
   void ca_mol_diffusive_flux

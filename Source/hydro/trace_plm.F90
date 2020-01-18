@@ -14,9 +14,6 @@ contains
                        dq, dq_lo, dq_hi, &
                        qm, qm_lo, qm_hi, &
                        qp, qp_lo, qp_hi, &
-#if AMREX_SPACEDIM < 3
-                       dloga, dloga_lo, dloga_hi, &
-#endif
                        SrcQ, src_lo, src_hi, &
                        vlo, vhi, domlo, domhi, &
                        dx, dt)
@@ -31,6 +28,7 @@ contains
                                    ppm_type
     use amrex_constants_module
     use amrex_fort_module, only : rt => amrex_real
+    use castro_util_module, only: dLogArea ! function
 
     implicit none
 
@@ -40,9 +38,6 @@ contains
     integer, intent(in) :: dq_lo(3), dq_hi(3)
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
-#if (AMREX_SPACEDIM < 3)
-    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-#endif
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
@@ -56,9 +51,6 @@ contains
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
 
-#if (AMREX_SPACEDIM < 3)
-    real(rt), intent(in) ::  dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
-#endif
     real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
     real(rt), intent(in) :: dx(3), dt
 
@@ -79,7 +71,7 @@ contains
     real(rt) :: spzero
     real(rt) :: rho_ref, un_ref, ut_ref, utt_ref, p_ref, rhoe_ref
     real(rt) :: e(3)
-    real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp
+    real(rt) :: sourcr, sourcp, source, courn, eta, dloga, dlogatmp
 
     integer :: QUN, QUT, QUTT
     real(rt) :: ref_fac, trace_fac1, trace_fac2, trace_fac3
@@ -262,10 +254,11 @@ contains
 
 #if (AMREX_SPACEDIM < 3)
              ! geometry source terms -- these only apply to the x-states
-             if (idir == 1 .and. dloga(i,j,k) /= ZERO) then
+             dloga = dLogArea(i,j,k,1)
+             if (idir == 1 .and. dloga /= ZERO) then
                 courn = dtdx*(cc + abs(un))
-                eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
-                dlogatmp = min(eta, ONE)*dloga(i,j,k)
+                eta = (ONE-courn)/(cc*dt*abs(dloga))
+                dlogatmp = min(eta, ONE)*dloga
                 sourcr = -HALF*dt*rho*dlogatmp*un
                 sourcp = sourcr*csq
                 source = sourcp*enth
