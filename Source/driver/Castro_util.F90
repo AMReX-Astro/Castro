@@ -699,12 +699,9 @@ contains
 
     real(rt) :: dlogarear
 
-    logical :: cc(3)
     real(rt) :: dx(3), loc(3)
 
     !$gpu
-
-    cc(:) = .true.
 
     dx = dx_level(:,amr_level)
 
@@ -714,9 +711,9 @@ contains
 
        ! Cylindrical (2D only)
 
-       ! Get edge-centered position
+       ! Get cell-centered position
 
-       loc = position(i,j,k,cc(1),cc(2),cc(3))
+       loc = position(i,j,k)
 
        dlogarear = ONE / loc(1)
 
@@ -724,9 +721,9 @@ contains
 
        ! Spherical (1D only)
 
-       ! Get edge-centered position
+       ! Get cell-centered position
 
-       loc = position(i,j,k,cc(1),cc(2),cc(3))
+       loc = position(i,j,k)
 
        dlogarear = TWO / loc(1)
 
