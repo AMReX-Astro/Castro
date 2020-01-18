@@ -137,6 +137,45 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       fab_size += flatg.nBytes();
 #endif
 
+      // If we are oversubscribing the GPU, performance of the hydro will be constrained
+      // due to its heavy memory requirements. We can help the situation by prefetching in
+      // all the data we will need, and then prefetching it out at the end. This at least
+      // improves performance by mitigating the number of unified memory page faults.
+
+      // Unfortunately in CUDA there is no easy way to see actual current memory usage when
+      // using unified memory; querying CUDA for free memory usage will only tell us whether
+      // we've oversubscribed at any point, not whether we're currently oversubscribing, but
+      // this is still a good heuristic in most cases.
+
+      bool oversubscribed = false;
+
+#ifdef AMREX_USE_CUDA
+      if (Gpu::Device::freeMemAvailable() < 0.05 * Gpu::Device::totalGlobalMem()) {
+          oversubscribed = true;
+      }
+#endif
+
+      if (oversubscribed) {
+          q[mfi].prefetchToDevice();
+          qaux[mfi].prefetchToDevice();
+          src_q[mfi].prefetchToDevice();
+          volume[mfi].prefetchToDevice();
+          Sborder[mfi].prefetchToDevice();
+          hydro_source[mfi].prefetchToDevice();
+          for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+              area[i][mfi].prefetchToDevice();
+              (*fluxes[i])[mfi].prefetchToDevice();
+          }
+#if AMREX_SPACEDIM < 3
+          dLogArea[0][mfi].prefetchToDevice();
+          P_radial[mfi].prefetchToDevice();
+#endif
+#ifdef RADIATION
+          Erborder[mfi].prefetchToDevice();
+          Er_new[mfi].prefetchToDevice();
+#endif
+      }
+
       // compute the flattening coefficient
 
       Array4<Real> const flatn_arr = flatn.array();
@@ -1344,6 +1383,28 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           current_size = starting_size;
       }
 #endif
+
+      if (oversubscribed) {
+          q[mfi].prefetchToHost();
+          qaux[mfi].prefetchToHost();
+          src_q[mfi].prefetchToHost();
+          volume[mfi].prefetchToHost();
+          Sborder[mfi].prefetchToHost();
+          hydro_source[mfi].prefetchToHost();
+          for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+              area[i][mfi].prefetchToHost();
+              (*fluxes[i])[mfi].prefetchToHost();
+          }
+#if AMREX_SPACEDIM < 3
+          dLogArea[0][mfi].prefetchToHost();
+          P_radial[mfi].prefetchToHost();
+#endif
+#ifdef RADIATION
+          Erborder[mfi].prefetchToHost();
+          Er_new[mfi].prefetchToHost();
+#endif
+      }
+
 
     } // MFIter loop
 

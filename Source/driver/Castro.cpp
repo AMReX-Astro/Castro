@@ -1524,32 +1524,14 @@ Castro::estTimeStep (Real dt_old)
             {
                 const Box& box = mfi.validbox();
 
-                if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
-
-                    MultiFab& S_old = get_old_data(State_Type);
-                    MultiFab& R_old = get_old_data(Reactions_Type);
-
 #pragma gpu box(box)
-                    ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                     BL_TO_FORTRAN_ANYD(S_old[mfi]),
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_old[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
-
-                } else {
-
-#pragma gpu box(box)
-                    ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
-
-                }
+                ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
+                                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                                 BL_TO_FORTRAN_ANYD(R_new[mfi]),
+                                 AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
 
             }
+
             estdt_burn = std::min(estdt_burn,dt);
         }
 
