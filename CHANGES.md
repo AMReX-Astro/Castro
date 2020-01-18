@@ -1,10 +1,55 @@
 # 20.02
 
+   * Most of the radiation test problems have been moved over to a new
+     opacity directory, rad_power_law, and all of the parameters that
+     controlled the behavior of the power law opacity have been moved
+     to the extern probin module. We now always expect you to pick a
+     specific opacity implementation, so the parameter
+     radiation.use_opacity_table_module has been removed. The "null"
+     opacity implementation has been previously moved, and the code
+     will fail to compile if you attempt to use it; you will need to
+     update to rad_power_law. (See the documentation for information
+     about how to use this new implementation.)
+
+     Additionally, the code for the multigroup solver was effectively
+     previously setting the Rosseland opacity, kappa_r, equal to the
+     Planck opacity, kappa_p, if the latter was set but the former was
+     not. There was similar unintuitive behavior for the behavior of
+     the scattering parameter. Now you will get exactly what you ask
+     for in the probin file, given the defaults in the _parameters file
+     for the rad_power_law opacity. By default the constant coefficients
+     for both are negative, which is invalid, so both must be set to a
+     non-negative value for the code to work. Problems that were previously
+     setting const_kappa_p but not const_kappa_r should set the latter
+     equal to the former to maintain the same code behavior. The analogous
+     thing should be done for the exponents (kappa_p_exp_m, kappa_p_exp_n,
+     and kappa_p_exp_p). (#725)
+
+   * The parameter radiation.do_real_eos = 0 has been removed, and its
+     functionality is now enabled with a new equation of state called
+     rad_power_law. This new EOS is only compatible with the pure
+     radiation-diffusion tests, not with castro.do_hydro = 1. (#722)
+
+   * We now default to use_retry = 1, instructing Castro to retry a
+     step with a smaller dt if there is a CFL violation, burning
+     failure, or negative timestep.  For the burning failure, we have
+     Castro set the Microphysics parameter abort_on_failure to .false.
+     at a high priority (so it overrides the Microphysics default).
+     We also check to make sure the combination of parameters makes
+     sense at runtime. (#724)
+
    * The parameter castro.hard_cfl_limit has been removed. (#723)
 
    * Some unnecessary clean_state calls were removed (#721)
 
    * Support for neutrino radiation diffusion has been removed.
+
+   * A bug was fixed in the hydro CFL timestep estimator for
+     simplified-SDC.  The timestep was more restrictive than it needed
+     to be. (#727)
+
+   * A bug was fixed in the simplified-SDC nuclear burning timestep
+     estimator (#733)
 
 # 20.01
 

@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module, only: T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, &
                              xn, ihe4, ic12, io16, smallx, vel, grav_acceleration, fill_ambient_bc, &
@@ -17,50 +17,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   type(eos_t) :: eos_state
 
-  integer :: untin,i
-
-  namelist /fortin/ T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, smallx, vel, grav_acceleration, fill_ambient_bc
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen = 256
-  character :: probin*(maxlen)
-
-  if (namlen .gt. maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  allocate(T_l, T_r, dens, cfrac, ofrac, idir)
-  allocate(w_T, center_T, xn(nspec), ihe4, ic12, io16)
-  allocate(smallx, vel, grav_acceleration, fill_ambient_bc)
-  allocate(ambient_dens, ambient_temp, ambient_comp(nspec))
-  allocate(ambient_e_l, ambient_e_r)
-
-  ! Set namelist defaults
-
-  T_l = 1.e9_rt
-  T_r = 5.e7_rt
-  dens = 1.e8_rt
-  smallx = 1.e-12_rt
-
-  idir = 1                ! direction across which to jump
-  cfrac = 0.5e0_rt
-  ofrac = 0.0e0_rt
-
-  w_T = 5.e-4_rt           ! ratio of the width of temperature transition zone to the full domain
-  center_T = 3.e-1_rt      ! central position parameter of teperature profile transition zone
-
-  vel = 0.e0_rt           ! infall velocity towards the transition point
-  grav_acceleration = 0.e0_rt ! gravitational acceleration towards the transition point
-
-  fill_ambient_bc = .false.
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! get the species indices
   ihe4 = network_species_index("helium-4")

@@ -794,27 +794,6 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 #else
 	  getCellCenterMetric(parent->Geom(level), reg, r, s);
 
-#ifdef NEUTRINO
-	  ca_compute_rhs_neut(reg.loVect(), reg.hiVect(),
-			      BL_TO_FORTRAN(rhs[ri]),
-			      BL_TO_FORTRAN(jg[ri]),
-			      BL_TO_FORTRAN(mugT[ri]),
-			      BL_TO_FORTRAN(mugY[ri]),
-			      BL_TO_FORTRAN(coupT[ri]),
-			      BL_TO_FORTRAN(coupY[ri]),
-			      BL_TO_FORTRAN(etaT[ri]),
-			      BL_TO_FORTRAN(etaY[ri]),
-			      BL_TO_FORTRAN(thetaT[ri]),
-			      BL_TO_FORTRAN(thetaY[ri]),
-			      BL_TO_FORTRAN(Er_step[ri]),
-			      BL_TO_FORTRAN(rhoe_step[ri]),
-			      BL_TO_FORTRAN(rhoYe_step[ri]),
-			      BL_TO_FORTRAN(Er_star[ri]),
-			      BL_TO_FORTRAN(rhoe_star[ri]),
-			      BL_TO_FORTRAN(rhoYe_star[ri]),
-			      r.dataPtr(), 
-			      &delta_t, &igroup, &ptc_tau);
-#else
 	  ca_compute_rhs(reg.loVect(), reg.hiVect(),
 			 BL_TO_FORTRAN(rhs[ri]),
 			 BL_TO_FORTRAN(jg[ri]),
@@ -827,7 +806,6 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 			 BL_TO_FORTRAN(rhoe_star[ri]),
 			 r.dataPtr(), 
 			 &delta_t, &igroup, &ptc_tau);
-#endif
 #endif
       }
   }

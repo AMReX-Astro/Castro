@@ -21,6 +21,8 @@ USE_PARTICLE     = FALSE
 USE_SHOCK_VAR    = TRUE
 USE_ROTATION = FALSE
 
+USE_PROB_PARAMS = TRUE
+
 CASTRO_HOME = ../../..
 
 ifdef MICROPHYSICS_HOME
@@ -40,7 +42,7 @@ endif
 
 
 # power-law opacity
-Opacity_dir := null
+Opacity_dir := rad_power_law
 
 Bpack   := ./Make.package
 Blocs   := .

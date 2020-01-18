@@ -323,11 +323,12 @@ plot_per_is_exact            int           0
 # enforce that the AMR small plot interval must be hit exactly
 small_plot_per_is_exact      int           0
 
-# Retry a timestep if it violated the timestep-limiting criteria over
-# the course of an advance. The criteria will suggest a new timestep
-# that satisfies the criteria, and we will do subcycled timesteps
-# on the same level until we reach the original target time.
-use_retry                    int           0
+# Retry a timestep if it violated the timestep-limiting criteria or
+# other checks (negative density, burn failure) over the course of an
+# advance. The criteria will suggest a new timestep that satisfies the
+# criteria, and we will do subcycled timesteps on the same level until
+# we reach the original target time.
+use_retry                    int           1
 
 # Tolerance to use when evaluating whether to do a retry.
 # The timestep suggested by the retry will be multiplied by
@@ -704,13 +705,5 @@ beta                         Real          1.0                n
 (v, verbose)                 int           0                  n
 
 @namespace: radiation Radiation static
-
-do_real_eos                  int           1                  y
-
-const_c_v                    Real         -1.0                y
-
-c_v_exp_m                    Real          0.0                y
-
-c_v_exp_n                    Real          0.0                y
 
 prop_temp_floor              Real          0.0                y

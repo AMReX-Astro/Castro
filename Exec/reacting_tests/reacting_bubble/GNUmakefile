@@ -9,6 +9,8 @@ USE_MPI          = TRUE
 USE_GRAV         = TRUE
 USE_REACT        = TRUE
 
+USE_PROB_PARAMS  = TRUE
+
 USE_MAESTRO_INIT = FALSE
 
 CASTRO_HOME = ../../..

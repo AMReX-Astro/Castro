@@ -36,7 +36,7 @@ endif
 
 
 # power-law opacity
-Opacity_dir := null
+Opacity_dir := rad_power_law
 
 Bpack   := ./Make.package
 Blocs   := .

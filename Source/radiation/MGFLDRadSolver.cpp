@@ -21,14 +21,11 @@ using namespace amrex;
 void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 { 
   BL_PROFILE("Radiation::MGFLD_implicit_update");
-  if (verbose && ParallelDescriptor::IOProcessor()) {
-    std::cout << "Radiation MGFLD implicit update, level " << level << "..." << std::endl;
+  if (verbose) {
+      amrex::Print() << "Radiation MGFLD implicit update, level " << level << "..." << std::endl;
   }
 
   BL_ASSERT(Radiation::nGroups > 0);
-#ifdef NEUTRINO
-  BL_ASSERT(Radiation::radiation_type==Radiation::Photon || Radiation::nNeutrinoSpecies > 0);
-#endif
 
   int fine_level =  parent->finestLevel();
 
@@ -107,26 +104,15 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   MultiFab rhoe_old(grids,dmap,1,0);
   MultiFab rhoe_star(grids,dmap,1,0);
 
-#ifdef NEUTRINO
-  MultiFab rhoYe_new(grids,dmap, 1, 0);
-  MultiFab rhoYe_old(grids,dmap, 1, 0);
-  MultiFab rhoYe_star(grids,dmap, 1, 0);
-#else
   MultiFab rhoYe_new, rhoYe_old, rhoYe_star;
-#endif
 
   MultiFab rho(grids,dmap,1,1);
   MultiFab temp_new(grids,dmap,1,1); // ghost cell for kappa_r
   MultiFab temp_star(grids,dmap,1,0);
-#ifdef NEUTRINO
-  MultiFab Ye_new(grids,dmap, 1, 1);
-  MultiFab Ye_star(grids,dmap, 1, 0);
-#else
   MultiFab Ye_new, Ye_star;
   if (castro->NumAux > 0) {
       Ye_new.define(grids, dmap, 1, 1);
   }
-#endif
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -143,22 +129,9 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
       temp_new[mfi].copy(S_new[mfi],gbx,Temp,gbx,0,1);
     
-#ifdef NEUTRINO
-      if (castro->NumAux > 0) {
-	  rhoYe_new[mfi].copy(S_new[mfi], bx,FirstAux, bx,0,1);
-	  Ye_new   [mfi].copy(S_new[mfi],gbx,FirstAux,gbx,0,1); // not Ye yet
-      }
-      else {
-	  rhoYe_new[mfi].copy(S_new[mfi], bx,Density, bx,0,1);
-	  Ye_new   [mfi].copy(S_new[mfi],gbx,Density,gbx,0,1); 
-      }
-      rhoYe_old[mfi].copy(rhoYe_new[mfi], bx);
-
-#else
       if (castro->NumAux > 0) {
 	  Ye_new[mfi].copy(S_new[mfi],gbx,FirstAux,gbx,0,1); // not Ye yet
       }
-#endif
   }
 
   if (castro->NumAux > 0) {
@@ -178,36 +151,16 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   MultiFab etaT(grids,dmap,1,0);
   MultiFab etaTz(grids,dmap,1,0);
   MultiFab eta1(grids,dmap,1,0); // eta1 = 1 - etaT + etaY
-#ifdef NEUTRINO
-  MultiFab djdY  (grids,dmap, nGroups, 1); 
-  MultiFab dkdY  (grids,dmap, nGroups, 1); 
-  MultiFab etaY  (grids,dmap, 1      , 0);
-  MultiFab etaYz (grids,dmap, 1      , 0);
-  MultiFab thetaT(grids,dmap, 1      , 0);
-  MultiFab thetaY(grids,dmap, 1      , 0);  
-  MultiFab thetaTz(grids,dmap, 1      , 0);
-  MultiFab thetaYz(grids,dmap, 1      , 0);  
-  MultiFab theta1(grids,dmap, 1      , 0);  
-#else
   MultiFab djdY, dkdY, etaY, etaYz, thetaT, thetaY, thetaTz, thetaYz, theta1;
-#endif
 
   MultiFab& mugT = djdT;
   MultiFab& mugY = djdY;
 
   MultiFab dedT(grids,dmap,1,0);
-#ifdef NEUTRINO
-  MultiFab dedY(grids,dmap,1,0);
-#else
   MultiFab dedY;
-#endif
 
   MultiFab coupT(grids,dmap,1,0); // \sum{\kappa E - j}
-#ifdef NEUTRINO
-  MultiFab coupY(grids,dmap,1,0); // \sum{(\kappa E - j)*erg2rhoYe}
-#else 
   MultiFab coupY;
-#endif
 
   // multigroup boundary object
   MGRadBndry mgbd(grids,dmap, nGroups, castro->Geom());
@@ -256,11 +209,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   // There used to be an extra velocity term update
   MultiFab& Er_step = Er_old;
   MultiFab& rhoe_step = rhoe_old;
-#ifdef NEUTRINO
-  MultiFab& rhoYe_step = rhoYe_old;
-#else
   MultiFab rhoYe_step;
-#endif
 
   Real reltol_in = relInTol;
   Real ptc_tau = 0.0;  // not being used 
@@ -287,10 +236,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
     MultiFab::Copy(rhoe_star, rhoe_new, 0, 0, 1, 0);
     MultiFab::Copy(temp_star, temp_new, 0, 0, 1, 0);
-#ifdef NEUTRINO
-    MultiFab::Copy(rhoYe_star, rhoYe_new, 0, 0, 1, 0);
-    MultiFab::Copy(Ye_star, Ye_new, 0, 0, 1, 0);
-#endif
     MultiFab::Copy(Er_star, Er_new, 0, 0, nGroups, 0);
 
     if (limiter>0 && inner_update_limiter==0) {
@@ -383,12 +328,11 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       			   kappa_p, etaTz, etaYz, thetaTz, thetaYz,
 			   temp_new, Ye_new, grids, delta_t);
 
-      if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
+      if (verbose >= 2) {
 	int oldprec = std::cout.precision(3);
-        std::cout << "Outer = " << it << ", Inner = " << innerIteration
-             << ", inner err =  " << std::setw(8) << relative_in << " (rel),  " 
-	     << std::setw(8) << absolute_in << " (abs)" << std::endl;
-	//	     << std::setw(8) << error_er << " (impact)"<< std::endl;
+        amrex::Print() << "Outer = " << it << ", Inner = " << innerIteration
+                       << ", inner err =  " << std::setw(8) << relative_in << " (rel),  " 
+                       << std::setw(8) << absolute_in << " (abs)" << std::endl;
 	std::cout.precision(oldprec);
       }
 
@@ -432,18 +376,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
     } while(!inner_converged && innerIteration < maxInIter); 
 
-    if (verbose == 1 && ParallelDescriptor::IOProcessor()) {
+    if (verbose == 1) {
       int oldprec = std::cout.precision(3);
-      std::cout << "Outer = " << it << ", Inner = " << innerIteration
-	   << ", inner tol =  " << std::setw(8) << relative_in << "  " 
-	   << std::setw(8) << absolute_in << std::endl;
+      amrex::Print() << "Outer = " << it << ", Inner = " << innerIteration
+                     << ", inner tol =  " << std::setw(8) << relative_in << "  " 
+                     << std::setw(8) << absolute_in << std::endl;
       std::cout.precision(oldprec);
-    }
-    
-    if (innerIteration >= maxInIter &&
-	(relative_in > reltol_in && absolute_in > absInTol)) {
-      //      amrex::Warning("Er Equation Update Failed to Converge");
-      //      amrex::Abort("Er Equation Update Failed to Converge");
     }
 
     // update rhoe, rhoYe and T
@@ -492,23 +430,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 		  kappa_p, jg, mugT, mugY,
 		  S_new, level, delta_t, ptc_tau, it, conservative_update);
 
-    if (verbose >= 2 && radiation_type == Neutrino) {
-      Real yemin = Ye_new.min(0);
-      Real yemax = Ye_new.max(0);
-      if (ParallelDescriptor::IOProcessor()) {
-        int oldprec = std::cout.precision(5);
-        std::cout << "Update   Ye min, max are " << yemin << ", " << yemax;
-        if (yemin < 0.05 || yemax > 0.513) {
-          std::cout << ":  out of range for EOS and opacities";
-        }
-        else if (yemax > 0.5) {
-          std::cout << ":  out of range for opacities";
-        }
-        std::cout << std::endl;
-        std::cout.precision(oldprec);
-      }
-    }
-
     eos_opacity_emissivity(S_new, temp_new, Ye_new, 
 			   temp_star, Ye_star, // input
 			   kappa_p, kappa_r, jg, 
@@ -536,45 +457,28 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       absolute_out = abs_FT;
       break;
     case 3:
-#ifdef NEUTRINO
-      relative_out = (rel_T > rel_Ye) ? rel_T : rel_Ye;
-      absolute_out = (abs_T > abs_Ye) ? abs_T : abs_Ye;
-#else
       relative_out = rel_T;
       absolute_out = abs_T;
-#endif
       break;
     default:
       relative_out = (rel_T > rel_Ye) ? rel_T : rel_Ye;
       if (conservative_update) {
 	//	relative_out = (relative_out > rel_rhoe) ? relative_out : rel_rhoe;
 	relative_out = (relative_out > rel_FT  ) ? relative_out : rel_FT;
-#ifdef NEUTRINO
-	relative_out = (relative_out > rel_FY  ) ? relative_out : rel_FY;
-#endif
       }
       absolute_out = (abs_T > abs_Ye) ? abs_T : abs_Ye;      
     }
 
-    if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
+    if (verbose >= 2) {
       int oldprec = std::cout.precision(4);
-      std::cout << "Update Errors for      rhoe,        FT,         T" 
-#ifdef NEUTRINO
-	   << ",        FY,        Ye"
-#endif
-	   <<std::endl;
-      std::cout << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
-	   << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
-#ifdef NEUTRINO
-	   << ", " << std::setw(9) << rel_FY << ", " << std::setw(9) << rel_Ye 
-#endif
-	   << std::endl;
-      std::cout << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
-	   << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
-#ifdef NEUTRINO
-	   << ", " << std::setw(9) << abs_FY << ", " << std::setw(9) << abs_Ye 
-#endif
-	   << std::endl;
+      amrex::Print() << "Update Errors for      rhoe,        FT,         T" 
+                     << std::endl;
+      amrex::Print() << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
+                     << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
+                     << std::endl;
+      amrex::Print() << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
+                     << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
+                     << std::endl;
       std::cout.precision(oldprec);
     }
 
@@ -611,33 +515,21 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   } while ( ((!converged || !inner_converged) && it<maxiter)
    	    || !conservative_update);
 
-  if (verbose == 1 && ParallelDescriptor::IOProcessor()) {
+  if (verbose == 1) {
     int oldprec = std::cout.precision(4);
-    std::cout << "Update Errors for      rhoe,        FT,         T" 
-#ifdef NEUTRINO
-	 << ",        FY,        Ye"
-#endif
-	 <<std::endl;
-    std::cout << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
-	 << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
-#ifdef NEUTRINO
-	 << ", " << std::setw(9) << rel_FY << ", " << std::setw(9) << rel_Ye 
-#endif
-	 << std::endl;
-    std::cout << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
-	 << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
-#ifdef NEUTRINO
-	 << ", " << std::setw(9) << abs_FY << ", " << std::setw(9) << abs_Ye 
-#endif
-	 << std::endl;
+    amrex::Print() << "Update Errors for      rhoe,        FT,         T" 
+                   << std::endl;
+    amrex::Print() << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
+                   << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
+                   << std::endl;
+    amrex::Print() << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
+                   << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
+                   << std::endl;
     std::cout.precision(oldprec);
   }
 
-  if (! converged) {
-    if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-      std::cout << "Implicit Update Failed to Converge" << std::endl;
-    }
-    exit(1);
+  if (!converged) {
+      amrex::Abort("Implicit Update Failed to Converge");
   }
 
   // update flux registers
@@ -682,14 +574,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   delta_T_rat_level[level] = dTrat;
   delta_Ye_level[level]    = dye;
 
-  if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
-#ifndef NEUTRINO
-    std::cout << "Delta Energy Ratio = " << derat << std::endl;
-#endif
-    std::cout << "Delta T      Ratio = " << dTrat << std::endl;
-#ifdef NEUTRINO
-    std::cout << "Delta Ye           = " << dye   << std::endl;
-#endif
+  if (verbose >= 2) {
+      amrex::Print() << "Delta T      Ratio = " << dTrat << std::endl;
   }
 
   if (plot_lambda) {
@@ -716,7 +602,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, *flxcc, icomp_flux);
   }
 
-  if (verbose && ParallelDescriptor::IOProcessor()) {
-    std::cout << "                                     done" << std::endl;
+  if (verbose) {
+      amrex::Print() << "                                     done" << std::endl;
   }
 }

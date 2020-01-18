@@ -9,7 +9,7 @@ BLAS_LIBRARY ?= -lopenblas
 
 TOP := $(CASTRO_HOME)
 
-# default microphysics locations
+# the Castro microphysics locations
 EOS_HOME ?= $(TOP)/Microphysics/EOS
 NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
@@ -129,6 +129,11 @@ ifeq ($(USE_REACT), TRUE)
   DEFINES += -DREACTIONS
 
   ifeq ($(USE_TRUE_SDC), TRUE)
+    # we need the compositional derivatives for SDC
+    DEFINES += -DEXTRA_THERMO
+  endif
+
+  ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
   endif
@@ -321,6 +326,9 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif
 
 ifeq ($(USE_RAD), TRUE)
+   ifeq ($(Opacity_dir), null)
+     $(error The null opacity directory has been removed, please update to rad_power_law)
+   endif
    OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
    EXTERN_CORE += $(OPAC_PATH)
 endif
@@ -381,7 +389,13 @@ INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
 
-#include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
+#------------------------------------------------------------------------------
+# make generated source files location
+#------------------------------------------------------------------------------
+CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
+VPATH_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
+INCLUDE_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
+
 
 #------------------------------------------------------------------------------
 # runtime parameters
@@ -400,10 +414,10 @@ endif
 
 EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
 
-
-extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
+$(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
-           -t $(EXTERN_TEMPLATE) -o extern.F90 -n extern \
+           -t $(EXTERN_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/extern.F90 -n extern \
            --pa "$(EXTERN_PARAMETERS)" --managed
 
 
@@ -420,24 +434,26 @@ endif
 PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
 PROB_PARAMETERS := ./_prob_params
 
-prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
+$(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(TOP)/Util/scripts/write_probdata.py \
-           -t $(PROB_PARAMS_TEMPLATE) -o prob_params_auto.F90 -p $(PROB_PARAMETERS)
+           -t $(PROB_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90 -p $(PROB_PARAMETERS)
 
 #------------------------------------------------------------------------------
 # state variable info
 #-------------------------------------------------------------------------------
-set_conserved.H: set_indices.F90
+$(CASTRO_AUTO_SOURCE_DIR)/set_conserved.H: $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90
 	echo "set_conserved.H will be generated at the same time as set_indices.F90"
 
-state_sizes.f90: set_indices.F90
+$(CASTRO_AUTO_SOURCE_DIR)/state_sizes.f90: $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90
 	echo "state_sizes.f90 will be generated at the same time as set_indices.F90"
 
-set_indices.F90:
+$(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90:
 	$(CASTRO_HOME)/Source/driver/set_variables.py \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
            --ngroups $(NGROUPS) \
+           --odir $(CASTRO_AUTO_SOURCE_DIR) \
            $(CASTRO_HOME)/Source/driver/_variables
 
 #------------------------------------------------------------------------------
@@ -506,18 +522,13 @@ endif
 clean::
 	$(SILENT) $(RM) extern.F90 prob_params_auto.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
-
-# Older versions of CASTRO generated a "network.f90" file when using
-# the general_null network, which conflicts with our generalized
-# network.f90 file.  So we should delete the local copy if we are
-# trying to rebuild from an old directory.
-# The same is true for "extern.f90".
-
-clean::
-	$(RM) network.f90
-	$(RM) extern.f90
+	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
 	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
+
+# these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we 
+# can get rid of explicitly removing them (this is for backwards compatability)
+clean::
+	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 
 
 # for debugging.  To see the value of a Makefile variable,

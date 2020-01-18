@@ -385,11 +385,6 @@ Castro::read_params ()
     if (cfl <= 0.0 || cfl > 1.0)
       amrex::Error("Invalid CFL factor; must be between zero and one.");
 
-    // The timestep retry mechanism is currently incompatible with SDC.
-
-    if (use_retry && !(time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections))
-        amrex::Error("The timestep retry mechanism is currently only compatible with CTU and simplified SDC.");
-
     // SDC does not support CUDA yet
 #ifdef AMREX_USE_CUDA
     if (time_integration_method == SpectralDeferredCorrections) {
@@ -978,6 +973,7 @@ Castro::initData ()
     //
     int ns          = NUM_STATE;
     const Real* dx  = geom.CellSize();
+    const Real* prob_lo = geom.ProbLo();
     MultiFab& S_new = get_new_data(State_Type);
     Real cur_time   = state[State_Type].curTime();
 
@@ -1053,7 +1049,6 @@ Castro::initData ()
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 	  RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-          const Real* prob_lo = geom.ProbLo();
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
@@ -1213,24 +1208,23 @@ Castro::initData ()
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
 
-	  Rad_new[mfi].setVal(0.0);
+#ifdef GPU_COMPATIBLE_PROBLEM
+
+#pragma gpu box(box)
+	  ca_initrad
+	      (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+	       BL_TO_FORTRAN_ANYD(Rad_new[mfi]),
+               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+
+#else
 
 	  BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
 	      (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
 	       BL_TO_FORTRAN_ANYD(Rad_new[mfi]), ZFILL(dx),
 	       ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 
-	  if (Radiation::nNeutrinoSpecies > 0 && Radiation::nNeutrinoGroups[0] == 0) {
-	      // Hack: running photon radiation through neutrino solver
-            Rad_new[mfi].mult(Radiation::Etorad,
-                            0, Radiation::nGroups);
-	  }
+#endif
 
-          if (Rad_new.nComp() > Radiation::nGroups) {
-            // Initialize flux components to 0
-            Rad_new[mfi].setVal(0.0, box, Radiation::nGroups,
-                              Rad_new.nComp() - Radiation::nGroups);
-          }
       }
     }
 #endif // RADIATION
@@ -1516,32 +1510,14 @@ Castro::estTimeStep (Real dt_old)
             {
                 const Box& box = mfi.validbox();
 
-                if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
-
-                    MultiFab& S_old = get_old_data(State_Type);
-                    MultiFab& R_old = get_old_data(Reactions_Type);
-
 #pragma gpu box(box)
-                    ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                     BL_TO_FORTRAN_ANYD(S_old[mfi]),
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_old[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
-
-                } else {
-
-#pragma gpu box(box)
-                    ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
-
-                }
+                ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
+                                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                                 BL_TO_FORTRAN_ANYD(R_new[mfi]),
+                                 AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
 
             }
+
             estdt_burn = std::min(estdt_burn,dt);
         }
 
@@ -1923,14 +1899,6 @@ Castro::post_timestep (int iteration)
     }
 
 #ifdef RADIATION
-    if (level == 0) {
-      if (do_radiation) {
-	for (int lev = finest_level; lev >= 0; lev--) {
-	  radiation->analytic_solution(lev);
-	}
-      }
-    }
-
     // diagnostic stuff
 
     if (level == 0)
@@ -3466,10 +3434,6 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
   }
 #endif
 
-#ifdef RADIATION
-  FArrayBox temp;
-#endif
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -3486,49 +3450,23 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
       const Box& bx = mfi.growntilebox(num_ghost);
 
-#ifdef RADIATION
-      if (Radiation::do_real_eos == 0) {
-	temp.resize(bx);
-
-        Array4<Real> state_arr = State.array(mfi);
-        Array4<Real> temp_arr = temp.array();
-        int ecomp = Eint;
-
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k, { temp_arr(i,j,k) = state_arr(i,j,k,ecomp); });
-
-#pragma gpu box(bx) sync
-	ca_compute_temp_given_rhoe
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(temp),
-             BL_TO_FORTRAN_ANYD(State[mfi]),
-             0);
-
-        int tcomp = Temp;
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k, { state_arr(i,j,k,tcomp) = temp_arr(i,j,k); });
-      } else {
-#endif
-
-        // general EOS version
+      // general EOS version
 
 #ifdef TRUE_SDC
-        if (sdc_order == 4) {
+      if (sdc_order == 4) {
           // note, this is working on a growntilebox, but we will not have
           // valid cell-centers in the very last ghost cell
           ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(Stemp[mfi]));
-        } else {
+      } else {
 #endif
 #pragma gpu box(bx)
           ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                           BL_TO_FORTRAN_ANYD(State[mfi]));
 #ifdef TRUE_SDC
-        }
+      }
 #endif
 
-#ifdef RADIATION
-      }
-      Elixir temp_elix = temp.elixir();
-#endif
   }
 
 #ifdef TRUE_SDC

@@ -153,15 +153,41 @@ Castro::variableSetUp ()
 
   BL_ASSERT(desc_lst.size() == 0);
 
-  // Get options, set phys_bc
+  // read the C++ parameters that are set in inputs and do other
+  // initializations (e.g., set phys_bc)
   read_params();
 
   // Initialize the runtime parameters for any of the external
-  // microphysics
+  // microphysics (these are the parameters that are in the &extern
+  // block of the probin file)
   extern_init();
 
   // Initialize the network
   network_init();
+
+
+  // some consistency checks on the parameters
+#ifdef REACTIONS
+  int abort_on_failure;
+  ca_get_abort_on_failure(&abort_on_failure);
+
+#ifdef TRUE_SDC
+  // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
+  if (use_retry) {
+    amrex::Warning("use_retry = 1 is not supported with true SDC.  Disabling");
+    use_retry = 0;
+  }
+  if (!abort_on_failure) {
+    amrex::Warning("abort_on_failure = F not supported with true SDC.  Resetting");
+   abort_on_failure = 1;
+   ca_set_abort_on_failure(&abort_on_failure);
+  }
+#else
+  if (!use_retry && !abort_on_failure) {
+    amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
+  }
+#endif
+#endif
 
 #ifdef REACTIONS
   // Initialize the burner

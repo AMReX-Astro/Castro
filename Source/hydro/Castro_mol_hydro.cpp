@@ -66,8 +66,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
       {
 	const Box& bx  = mfi.tilebox();
 
-	const int* lo = bx.loVect();
-	const int* hi = bx.hiVect();
+        const Box& obx = amrex::grow(bx, 1);
+        const Box& tbx = amrex::grow(bx, 2);
 
 	FArrayBox &statein  = Sborder[mfi];
 	FArrayBox &stateout = S_new[mfi];
@@ -85,6 +85,51 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           stage_weight = node_weights[current_sdc_node];
         }
 
+
+        // get the flattening coefficient
+        flatn.resize(obx, 1);
+        Elixir elix_flatn = flatn.elixir();
+
+        Array4<Real> const flatn_arr = flatn.array();
+
+        if (first_order_hydro == 1) {
+          AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
+        } else if (use_flattening == 1) {
+#pragma gpu box(obx)
+          ca_uflatten
+            (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+             BL_TO_FORTRAN_ANYD(q[mfi]),
+             BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
+        } else {
+          AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
+        }
+
+        // get the interface states and shock variable
+
+        shk.resize(obx, 1);
+        Elixir elix_shk = shk.elixir();
+
+        // Multidimensional shock detection
+        // Used for the hybrid Riemann solver
+
+#ifdef SHOCK_VAR
+        bool compute_shock = true;
+#else
+        bool compute_shock = false;
+#endif
+
+        if (hybrid_riemann == 1 || compute_shock) {
+#pragma gpu box(obx)
+          ca_shock(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(shk),
+                   AMREX_REAL_ANYD(dx));
+        }
+        else {
+          shk.setVal(0.0);
+        }
+
+
 #ifndef AMREX_USE_CUDA
         if (sdc_order == 4) {
 
@@ -98,6 +143,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           pradial.resize(amrex::surroundingNodes(bx,0),1);
 #endif
 
+          const int* lo = bx.loVect();
+          const int* hi = bx.hiVect();
+
           ca_fourth_single_stage
             (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), &time,
              ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
@@ -107,6 +155,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
              BL_TO_FORTRAN_ANYD(q_bar[mfi]),
              BL_TO_FORTRAN_ANYD(qaux[mfi]),
              BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
+             BL_TO_FORTRAN_ANYD(shk),
+             BL_TO_FORTRAN_ANYD(flatn),
 #ifdef DIFFUSION
              BL_TO_FORTRAN_ANYD(T_cc[mfi]),
 #endif
@@ -139,8 +189,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           // second order method
 
-          const Box& obx = amrex::grow(bx, 1);
-          const Box& tbx = amrex::grow(bx, 2);
 
           // get div{U} -- we'll use this for artificial viscosity
           div.resize(obx, 1);
@@ -154,48 +202,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  AMREX_REAL_ANYD(dx),
                  BL_TO_FORTRAN_ANYD(div));
 
-            // get the flattening coefficient
-            flatn.resize(obx, 1);
-            Elixir elix_flatn = flatn.elixir();
-
-            Array4<Real> const flatn_arr = flatn.array();
-
-            if (first_order_hydro == 1) {
-              AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
-            } else if (use_flattening == 1) {
-#pragma gpu box(obx)
-              ca_uflatten
-                (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
-            } else {
-              AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
-            }
-          }
-
-          // get the interface states and shock variable
-
-          shk.resize(obx, 1);
-          Elixir elix_shk = shk.elixir();
-                  
-          // Multidimensional shock detection
-          // Used for the hybrid Riemann solver
-
-#ifdef SHOCK_VAR
-          bool compute_shock = true;
-#else
-          bool compute_shock = false;
-#endif
-
-          if (hybrid_riemann == 1 || compute_shock) {
-#pragma gpu box(obx)
-              ca_shock(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
-                       BL_TO_FORTRAN_ANYD(shk),
-                       AMREX_REAL_ANYD(dx));
-          }
-          else {
-              shk.setVal(0.0);
           }
 
           qm.resize(tbx, NQ*AMREX_SPACEDIM);
@@ -400,87 +406,85 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           }
 #endif
 
-          // do the conservative update -- and store the shock variable
-#pragma gpu box(bx)
-          ca_mol_consup
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(statein),
-             BL_TO_FORTRAN_ANYD(stateout),
-             BL_TO_FORTRAN_ANYD(source_in),
-             BL_TO_FORTRAN_ANYD(source_out),
-             AMREX_REAL_ANYD(dx), dt,
-             BL_TO_FORTRAN_ANYD(flux[0]),
-#if AMREX_SPACEDIM >= 2
-             BL_TO_FORTRAN_ANYD(flux[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-             BL_TO_FORTRAN_ANYD(flux[2]),
-#endif
-             BL_TO_FORTRAN_ANYD(area[0][mfi]),
-#if AMREX_SPACEDIM >= 2
-             BL_TO_FORTRAN_ANYD(area[1][mfi]),
-#endif
-#if AMREX_SPACEDIM == 3
-             BL_TO_FORTRAN_ANYD(area[2][mfi]),
-#endif
-             BL_TO_FORTRAN_ANYD(qe[0]),
-#if AMREX_SPACEDIM >= 2
-             BL_TO_FORTRAN_ANYD(qe[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-             BL_TO_FORTRAN_ANYD(qe[2]),
-#endif
-             BL_TO_FORTRAN_ANYD(volume[mfi]));
-
-
-          // scale the fluxes -- note the fourth_order routine does this
-          // internally
-#if AMREX_SPACEDIM <= 2
-          Array4<Real> pradial_fab = pradial.array();
-#endif
-
-          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
-
-            const Box& nbx = amrex::surroundingNodes(bx, idir);
-
-#pragma gpu box(nbx)
-            scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-#if AMREX_SPACEDIM == 1
-                       BL_TO_FORTRAN_ANYD(qe[idir]),
-#endif
-                       BL_TO_FORTRAN_ANYD(flux[idir]),
-                       BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
-
-
-            if (idir == 0) {
-              // get the scaled radial pressure -- we need to treat this specially
-              Array4<Real> const qex_fab = qe[idir].array();
-              const int prescomp = GDPRES;
-
-#if AMREX_SPACEDIM == 1
-              if (!Geom().IsCartesian()) {
-                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-                                      {
-                                        pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-                                      });
-              }
-#endif
-
-#if AMREX_SPACEDIM == 2
-              if (!mom_flux_has_p[0][0]) {
-                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-                                      {
-                                        pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-                                      });
-              }
-#endif
-            }
-          }
-
-
 #ifndef AMREX_USE_CUDA
         } // end of 4th vs 2nd order MOL update
 #endif
+
+        // do the conservative update -- and store the shock variable
+#pragma gpu box(bx)
+        ca_mol_consup
+          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           BL_TO_FORTRAN_ANYD(statein),
+           BL_TO_FORTRAN_ANYD(stateout),
+           BL_TO_FORTRAN_ANYD(source_in),
+           BL_TO_FORTRAN_ANYD(source_out),
+           AMREX_REAL_ANYD(dx), dt,
+           BL_TO_FORTRAN_ANYD(flux[0]),
+#if AMREX_SPACEDIM >= 2
+           BL_TO_FORTRAN_ANYD(flux[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+           BL_TO_FORTRAN_ANYD(flux[2]),
+#endif
+           BL_TO_FORTRAN_ANYD(area[0][mfi]),
+#if AMREX_SPACEDIM >= 2
+           BL_TO_FORTRAN_ANYD(area[1][mfi]),
+#endif
+#if AMREX_SPACEDIM == 3
+           BL_TO_FORTRAN_ANYD(area[2][mfi]),
+#endif
+           BL_TO_FORTRAN_ANYD(qe[0]),
+#if AMREX_SPACEDIM >= 2
+           BL_TO_FORTRAN_ANYD(qe[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+           BL_TO_FORTRAN_ANYD(qe[2]),
+#endif
+           BL_TO_FORTRAN_ANYD(volume[mfi]));
+
+
+        // scale the fluxes
+#if AMREX_SPACEDIM <= 2
+        Array4<Real> pradial_fab = pradial.array();
+#endif
+
+        for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+          const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+#pragma gpu box(nbx)
+          scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+#if AMREX_SPACEDIM == 1
+                     BL_TO_FORTRAN_ANYD(qe[idir]),
+#endif
+                     BL_TO_FORTRAN_ANYD(flux[idir]),
+                     BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
+
+
+          if (idir == 0) {
+            // get the scaled radial pressure -- we need to treat this specially
+            Array4<Real> const qex_fab = qe[idir].array();
+            const int prescomp = GDPRES;
+
+#if AMREX_SPACEDIM == 1
+            if (!Geom().IsCartesian()) {
+              AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                                    {
+                                      pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                                    });
+            }
+#endif
+
+#if AMREX_SPACEDIM == 2
+            if (!mom_flux_has_p[0][0]) {
+              AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                                    {
+                                      pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                                    });
+            }
+#endif
+          }
+        }
 
 
 	// Store the fluxes from this advance -- we weight them by the
