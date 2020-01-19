@@ -59,7 +59,7 @@ contains
                                    diffuse_temp, &
 #endif
                                    do_hydro
-    use advection_util_module, only : normalize_species_fluxes, avisc
+    use advection_util_module, only : avisc
 
     use castro_error_module
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
@@ -713,14 +713,6 @@ contains
           end if
 
        end do
-
-       call normalize_species_fluxes(flx_lo, flx_hi, flx, flx_lo, flx_hi)
-#if AMREX_SPACEDIM >= 2
-       call normalize_species_fluxes(fly_lo, fly_hi, fly, fly_lo, fly_hi)
-#endif
-#if AMREX_SPACEDIM == 3
-       call normalize_species_fluxes(flz_lo, flz_hi, flz, flz_lo, flz_hi)
-#endif
 
     endif
 

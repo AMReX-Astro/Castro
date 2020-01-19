@@ -321,26 +321,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                  BL_TO_FORTRAN_ANYD(flux[idir]));
 
-              // apply the density flux limiter
-              if (limit_fluxes_on_small_dens == 1) {
-#pragma gpu box(nbx)
-                limit_hydro_fluxes_on_small_dens
-                  (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                   idir_f,
-                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(volume[mfi]),
-                   BL_TO_FORTRAN_ANYD(flux[idir]),
-                   BL_TO_FORTRAN_ANYD(area[idir][mfi]),
-                   dt, AMREX_REAL_ANYD(dx));
-              }
-
-              // ensure that the species fluxes are normalized
-#pragma gpu box(nbx)
-              normalize_species_fluxes
-                (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(flux[idir]));
-
             }
 
           } else {
@@ -396,6 +376,39 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #ifndef AMREX_USE_CUDA
         } // end of 4th vs 2nd order MOL update
 #endif
+
+        if (do_hydro) {
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+            int idir_f = idir + 1;
+
+
+            // apply the density flux limiter
+            if (limit_fluxes_on_small_dens == 1) {
+#pragma gpu box(nbx)
+              limit_hydro_fluxes_on_small_dens
+                (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                 idir_f,
+                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+                 BL_TO_FORTRAN_ANYD(q[mfi]),
+                 BL_TO_FORTRAN_ANYD(volume[mfi]),
+                 BL_TO_FORTRAN_ANYD(flux[idir]),
+                 BL_TO_FORTRAN_ANYD(area[idir][mfi]),
+                 dt, AMREX_REAL_ANYD(dx));
+            }
+
+            // ensure that the species fluxes are normalized
+#pragma gpu box(nbx)
+            normalize_species_fluxes
+              (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+               BL_TO_FORTRAN_ANYD(flux[idir]));
+
+          }
+
+        }
 
         // do the conservative update -- and store the shock variable
 #pragma gpu box(bx)
