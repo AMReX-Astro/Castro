@@ -41,11 +41,6 @@ ca\_compute\_emissivity subroutine
 
 .. f:autosubroutine:: ca_compute_emissivity
 
-ca\_compute\_kappas subroutine
-------------------------------
-
-.. f:autosubroutine:: ca_compute_kappas
-
 ca\_compute\_rhs subroutine
 ---------------------------
 
@@ -85,16 +80,6 @@ ca\_rhstoer subroutine
 ----------------------
 
 .. f:autosubroutine:: ca_rhstoer
-
-ca\_compute\_powerlaw\_kappa\_s subroutine
-------------------------------------------
-
-.. f:autosubroutine:: ca_compute_powerlaw_kappa_s
-
-ca\_compute\_powerlaw\_kappa subroutine
----------------------------------------
-
-.. f:autosubroutine:: ca_compute_powerlaw_kappa
 
 ca\_spalpha subroutine
 ----------------------
