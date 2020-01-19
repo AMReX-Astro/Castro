@@ -505,7 +505,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM <= 2
           if (!Geom().IsCartesian()) {
 
-            Array4<Real> pradial_fab = pradial.array();
             Array4<Real> P_radial_fab = P_radial.array(mfi);
             const Real scale = stage_weight;
 

@@ -725,16 +725,16 @@ contains
 
     call ca_store_godunov_state(lo, hi+dg, &
                                 qx_avg, q_lo, q_hi, &
-                                qgdnvx, q_lo, q_hi)
+                                qgdnvx, qgdx_lo, qgdx_hi)
 #if AMREX_SPACEDIM >= 2
     call ca_store_godunov_state(lo, hi+dg, &
                                 qy_avg, q_lo, q_hi, &
-                                qgdnvy, q_lo, q_hi)
+                                qgdnvy, qgdy_lo, qgdy_hi)
 #endif
 #if AMREX_SPACEDIM == 3
     call ca_store_godunov_state(lo, hi+dg, &
                                 qz_avg, q_lo, q_hi, &
-                                qgdnvz, q_lo, q_hi)
+                                qgdnvz, qgdz_lo, qgdz_hi)
 #endif
 
 
