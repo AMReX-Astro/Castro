@@ -411,7 +411,7 @@ on the configuration of the problem.  Most of these files are output into
 dimensionality, <code class="docutils literal notranslate"><span class="pre">COMP</span></code> is the compiler name, and <code class="docutils literal notranslate"><span class="pre">OPTIONS</span></code> can be any
 number of options (<code class="docutils literal notranslate"><span class="pre">MPI</span></code>, <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code>, …).</p>
 </div>
-<p>This is the current build system process, for a CUDA build.</p>
+<p>This is the current build system process.</p>
 <ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">set_variables.py</span></code> is called</p>
 <ul id="index-19">
@@ -420,8 +420,6 @@ number of options (<code class="docutils literal notranslate"><span class="pre">
 <code class="docutils literal notranslate"><span class="pre">set_primitive.H</span></code>, and <code class="docutils literal notranslate"><span class="pre">state_sizes.f90</span></code> into the
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code> directory.</p>
 <p>These are used to define the size of the various state arrays.</p>
-</li>
-<li><p class="first">This is not GPU specific.</p>
 </li>
 <li><p class="first">The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the build rule for <code class="docutils literal notranslate"><span class="pre">set_indices.F90</span></code></p>
 </li>
@@ -439,6 +437,19 @@ number of options (<code class="docutils literal notranslate"><span class="pre">
 parameters, <code class="docutils literal notranslate"><span class="pre">extern.F90</span></code>.  This is output in
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</li>
 <li>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the rule for <code class="docutils literal notranslate"><span class="pre">extern.F90</span></code></li>
+</ul>
+</li>
+<li><p class="first">Castro’s runtime parameters are parsed by <code class="docutils literal notranslate"><span class="pre">parse_castro_params.py</span></code></p>
+<ul class="simple" id="index-22">
+<li>This writes the Fortran module <code class="docutils literal notranslate"><span class="pre">meth_params.F90</span></code>, which defines all
+of the runtime parameters available to Fortran, from the template
+<code class="docutils literal notranslate"><span class="pre">meth_params.template</span></code> in <code class="docutils literal notranslate"><span class="pre">Source/driver</span></code>. The file is output in
+<code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>. It also generates several C++
+headers and snippets of .cpp files that define the variables, and
+read them from the inputs file/command line, respectively, as well
+as the code needed to set the Fortran data correctly once the inputs
+have been read.</li>
+<li>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the rule for <code class="docutils literal notranslate"><span class="pre">meth_params.F90</span></code></li>
 </ul>
 </li>
 <li><p class="first">Problem-specific runtime parameters are parsed by <code class="docutils literal notranslate"><span class="pre">write_probdata.py</span></code></p>
@@ -468,7 +479,7 @@ description of what each line does in the comments of the make
 file</li>
 </ul>
 </li>
-<li><p class="first">Interpret the <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">gpu</span></code></p>
+<li><p class="first">(when <code class="docutils literal notranslate"><span class="pre">USE_CUDA=TRUE</span></code>) Interpret the <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">gpu</span></code></p>
 <ul class="simple">
 <li>The script <code class="docutils literal notranslate"><span class="pre">write_cuda_headers.py</span></code> (in <code class="docutils literal notranslate"><span class="pre">amrex/Tools/F_scripts/</span></code>) is tasked with
 understanding our custom pragma.  Its flow is:<ul>
@@ -494,7 +505,7 @@ needed launch macro.  These new <code class="docutils literal notranslate"><span
 <li><p class="first">Output to stdout the git version of the sources, via
 <code class="docutils literal notranslate"><span class="pre">describe_sources.py</span></code>.  This doesn’t affect the build process</p>
 </li>
-<li><p class="first">Create device and host versions of each needed Fortran file. This
+<li><p class="first">(when <code class="docutils literal notranslate"><span class="pre">USE+CUDA=TRUE</span></code>) Create device and host versions of each needed Fortran file. This
 is done as each <code class="docutils literal notranslate"><span class="pre">.F90</span></code> file is compiled with a rule in <code class="docutils literal notranslate"><span class="pre">Make.rules</span></code> that
 invokes <code class="docutils literal notranslate"><span class="pre">gpu_fortran.py</span></code> and then directs the compilation to build
 that version.</p>

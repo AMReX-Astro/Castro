@@ -218,9 +218,7 @@ C++ and those controlled by Fortran. The C++ parameters are set
 in the inputs file and managed by the AMReX <code class="docutils literal notranslate"><span class="pre">ParmParse</span></code>
 class. For Castro-specific parameters, we list the runtime
 parameters in a file <code class="docutils literal notranslate"><span class="pre">_cpp_parameters</span></code> and generate the
-C++ code and headers using the <code class="docutils literal notranslate"><span class="pre">mk_params.sh</span></code> script—note
-this script needs to be run every time the <code class="docutils literal notranslate"><span class="pre">_cpp_parameters</span></code>
-file is updated.</p>
+C++ code and headers at compile time.</p>
 <p>The behavior of the network, EOS, and other microphysics routines are
 controlled by a different set of runtime parameters. These parameters are defined
 in plain-text files <code class="docutils literal notranslate"><span class="pre">_parameters</span></code> located in the different

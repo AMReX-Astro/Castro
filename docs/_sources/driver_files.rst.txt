@@ -21,7 +21,6 @@ Driver
    file/interpolate_f
    file/io_f
    file/math_f
-   file/meth_params_f
    file/prob_params_f
    file/reduction_f
    file/source_fill_f
