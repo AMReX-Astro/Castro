@@ -574,16 +574,18 @@ Castro::Castro (Amr&            papa,
     }
 #endif
 
+    // initialize all the new time level data to zero
+    for (int k = 0; k < num_state_type; k++) {
+      MultiFab& data = get_new_data(k);
+      data.setVal(0.0, data.nGrow());
+    }
+
 #ifdef GRAVITY
 
-   // Initialize to zero here in case we run with do_grav = false.
-   MultiFab& new_grav_mf = get_new_data(Gravity_Type);
-   new_grav_mf.setVal(0.0);
-
-   if (do_grav) {
+    if (do_grav) {
       // gravity is a static object, only alloc if not already there
       if (gravity == 0)
-	gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
+        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
 
       // Passing numpts_1d at level 0
       if (!level_geom.isAllPeriodic() && gravity != 0)
@@ -612,53 +614,10 @@ Castro::Castro (Amr&            papa,
 	  amrex::Error();
       }
 #endif
-
-       // We need to initialize this to zero since certain bc types don't overwrite the potential NaNs
-       // ghost cells because they are only multiplying them by a zero coefficient.
-       MultiFab& phi_new = get_new_data(PhiGrav_Type);
-       phi_new.setVal(0.0,phi_new.nGrow());
-
-   } else {
-       MultiFab& phi_new = get_new_data(PhiGrav_Type);
-       phi_new.setVal(0.0);
    }
 
 #endif
 
-#ifdef ROTATION
-
-   // Initialize rotation data to zero.
-
-   MultiFab& phirot_new = get_new_data(PhiRot_Type);
-   phirot_new.setVal(0.0);
-
-   MultiFab& rot_new = get_new_data(Rotation_Type);
-   rot_new.setVal(0.0);
-
-#endif
-
-   // Initialize source term data to zero.
-
-   MultiFab& sources_new = get_new_data(Source_Type);
-   sources_new.setVal(0.0, sources_new.nGrow());
-
-#ifdef REACTIONS
-
-   // Initialize reaction data to zero.
-
-   MultiFab& reactions_new = get_new_data(Reactions_Type);
-   reactions_new.setVal(0.0);
-
-#endif
-
-#ifdef REACTIONS
-   // Initialize reactions source term to zero.
-
-   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-       MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
-       react_src_new.setVal(0.0, NUM_GROW);
-   }
-#endif
 
    if (Knapsack_Weight_Type > 0) {
     get_new_data(Knapsack_Weight_Type).setVal(1.0);

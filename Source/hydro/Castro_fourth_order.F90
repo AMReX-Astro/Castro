@@ -35,8 +35,14 @@ contains
 #if AMREX_SPACEDIM == 3
                                     area3, area3_lo, area3_hi, &
 #endif
+                                    qgdnvx, qgdx_lo, qgdx_hi, &
+#if AMREX_SPACEDIM >= 2
+                                    qgdnvy, qgdy_lo, qgdy_hi, &
+#endif
+#if AMREX_SPACEDIM == 3
+                                    qgdnvz, qgdz_lo, qgdz_hi, &
+#endif
 #if AMREX_SPACEDIM < 3
-                                    pradial, p_lo, p_hi, &
                                     dloga, dloga_lo, dloga_hi, &
 #endif
                                     vol, vol_lo, vol_hi, &
@@ -59,7 +65,7 @@ contains
     use castro_error_module
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
     use flatten_module, only: ca_uflatten
-    use riemann_module, only: riemann_state
+    use riemann_module, only: riemann_state, ca_store_godunov_state
     use riemann_util_module, only: compute_flux_q
     use fourth_order
     use amrex_fort_module, only : rt => amrex_real
@@ -91,16 +97,18 @@ contains
     integer, intent(in) :: updt_lo(3), updt_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
     integer, intent(in) :: area1_lo(3), area1_hi(3)
+    integer, intent(in) :: qgdx_lo(3), qgdx_hi(3)
 #if AMREX_SPACEDIM >= 2
     integer, intent(in) :: fly_lo(3), fly_hi(3)
     integer, intent(in) :: area2_lo(3), area2_hi(3)
+    integer, intent(in) :: qgdy_lo(3), qgdy_hi(3)
 #endif
 #if AMREX_SPACEDIM == 3
     integer, intent(in) :: flz_lo(3), flz_hi(3)
     integer, intent(in) :: area3_lo(3), area3_hi(3)
+    integer, intent(in) :: qgdz_lo(3), qgdz_hi(3)
 #endif
 #if AMREX_SPACEDIM <= 2
-    integer, intent(in) :: p_lo(3), p_hi(3)
     integer, intent(in) :: dloga_lo(3), dloga_hi(3)
 #endif
     integer, intent(in) :: vol_lo(3), vol_hi(3)
@@ -120,16 +128,18 @@ contains
     real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
     real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1), flx_lo(2):flx_hi(2), flx_lo(3):flx_hi(3), NVAR)
     real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1), area1_lo(2):area1_hi(2), area1_lo(3):area1_hi(3))
+    real(rt), intent(inout) :: qgdnvx(qgdx_lo(1):qgdx_hi(1), qgdx_lo(2):qgdx_hi(2), qgdx_lo(3):qgdx_hi(3),NGDNV)
 #if AMREX_SPACEDIM >= 2
     real(rt), intent(inout) :: fly(fly_lo(1):fly_hi(1), fly_lo(2):fly_hi(2), fly_lo(3):fly_hi(3), NVAR)
     real(rt), intent(in) :: area2(area2_lo(1):area2_hi(1), area2_lo(2):area2_hi(2), area2_lo(3):area2_hi(3))
+    real(rt), intent(inout) :: qgdnvy(qgdy_lo(1):qgdy_hi(1), qgdy_lo(2):qgdy_hi(2), qgdy_lo(3):qgdy_hi(3),NGDNV)
 #endif
 #if AMREX_SPACEDIM == 3
     real(rt), intent(inout) :: flz(flz_lo(1):flz_hi(1), flz_lo(2):flz_hi(2), flz_lo(3):flz_hi(3), NVAR)
     real(rt), intent(in) :: area3(area3_lo(1):area3_hi(1), area3_lo(2):area3_hi(2), area3_lo(3):area3_hi(3))
+    real(rt), intent(inout) :: qgdnvz(qgdz_lo(1):qgdz_hi(1), qgdz_lo(2):qgdz_hi(2), qgdz_lo(3):qgdz_hi(3),NGDNV)
 #endif
 #if AMREX_SPACEDIM <= 2
-    real(rt), intent(inout) :: pradial(p_lo(1):p_hi(1), p_lo(2):p_hi(2), p_lo(3):p_hi(3))
     real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1), dloga_lo(2):dloga_hi(2), dloga_lo(3):dloga_hi(3))
 #endif
     real(rt), intent(in) :: vol(vol_lo(1):vol_hi(1), vol_lo(2):vol_hi(2), vol_lo(3):vol_hi(3))
@@ -147,12 +157,6 @@ contains
     real(rt), pointer :: qx(:,:,:,:)
     real(rt), pointer :: qy(:,:,:,:)
     real(rt), pointer :: qz(:,:,:,:)
-
-#ifdef HYBRID_MOMENTUM
-    real(rt), pointer :: qgdnvx(:,:,:,:)
-    real(rt), pointer :: qgdnvy(:,:,:,:)
-    real(rt), pointer :: qgdnvz(:,:,:,:)
-#endif
 
     ! Temporaries (for now)
     real(rt), pointer :: flx_avg(:,:,:,:)
@@ -719,28 +723,18 @@ contains
 
     endif
 
-#if AMREX_SPACEDIM == 3
-#ifdef HYBRID_MOMENTUM
-    call bl_allocate(qgdnvx, q_lo, q_hi, NGDNV)
-    call bl_allocate(qgdnvy, q_lo, q_hi, NGDNV)
-    call bl_allocate(qgdnvz, q_lo, q_hi, NGDNV)
-
     call ca_store_godunov_state(lo, hi+dg, &
                                 qx_avg, q_lo, q_hi, &
-                                qgdnvx, q_lo, q_hi)
-
+                                qgdnvx, qgdx_lo, qgdx_hi)
+#if AMREX_SPACEDIM >= 2
     call ca_store_godunov_state(lo, hi+dg, &
                                 qy_avg, q_lo, q_hi, &
-                                qgdnvy, q_lo, q_hi)
-
+                                qgdnvy, qgdy_lo, qgdy_hi)
+#endif
+#if AMREX_SPACEDIM == 3
     call ca_store_godunov_state(lo, hi+dg, &
                                 qz_avg, q_lo, q_hi, &
-                                qgdnvz, q_lo, q_hi)
-
-    call bl_deallocate(qgdnvx)
-    call bl_deallocate(qgdnvy)
-    call bl_deallocate(qgdnvz)
-#endif
+                                qgdnvz, qgdz_lo, qgdz_hi)
 #endif
 
 

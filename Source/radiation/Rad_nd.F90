@@ -1068,6 +1068,183 @@ contains
 
 
 
+  subroutine ca_compute_emissivity(lo, hi, &
+                                   jg, jg_lo, jg_hi, &
+                                   djdT, djdT_lo, djdT_hi, &
+                                   T, T_lo, T_hi, &
+                                   kap, kap_lo, kap_hi, &
+                                   dkdT, dkdT_lo, dkdT_hi, &
+                                   pfc, use_WiensLaw, integrate_Planck, Tf) &
+                                   bind(C, name='ca_compute_emissivity')
+
+    use amrex_fort_module, only: rt => amrex_real
+    use rad_params_module, only: ngroups, nugroup, dnugroup, xnu,  &
+                                 pi, clight, hplanck, kboltz, arad
+    use blackbody_module, only: BdBdTIndefInteg
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3) 
+    integer,  intent(in   ) :: jg_lo(3), jg_hi(3)
+    integer,  intent(in   ) :: djdT_lo(3), djdT_hi(3)
+    integer,  intent(in   ) :: T_lo(3), T_hi(3)
+    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
+    integer,  intent(in   ) :: dkdT_lo(3), dkdT_hi(3)
+    real(rt), intent(inout) :: jg(jg_lo(1):jg_hi(1),jg_lo(2):jg_hi(2),jg_lo(3):jg_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: djdT(djdT_lo(1):djdT_hi(1),djdT_lo(2):djdT_hi(2),djdT_lo(3):djdT_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: T(T_lo(1):T_hi(1),T_lo(2):T_hi(2),T_lo(3):T_hi(3))
+    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: dkdT(dkdT_lo(1):dkdT_hi(1),dkdT_lo(2):dkdT_hi(2),dkdT_lo(3):dkdT_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: pfc(0:ngroups-1)
+    integer,  intent(in   ), value :: use_WiensLaw, integrate_Planck
+    real(rt), intent(in   ), value :: Tf
+
+    integer  :: i, j, k, g
+    real(rt) :: dBdT, Bg
+    real(rt) :: Teff, nu, num, nup, hoverk
+    real(rt) :: cB, Tfix
+    real(rt) :: B0, B1, dBdT0, dBdT1
+    real(rt) :: dnu, nubar, expnubar, cdBdT
+    real(rt) :: xnu_full(0:ngroups)
+
+    if (ngroups .eq. 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                Bg = arad * T(i,j,k)**4
+                dBdT = 4.e0_rt * arad * T(i,j,k)**3
+
+                g = 0
+                jg(i,j,k,g) = Bg * kap(i,j,k,g)
+                djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
+
+             end do
+          end do
+       end do
+
+    else if (pfc(0) > 0.e0_rt) then  ! a special case for picket-fence model in Su-Olson test
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                Bg = arad * T(i,j,k)**4
+                dBdT = 4.e0_rt * arad * T(i,j,k)**3
+
+                do g = 0, ngroups-1
+                   jg(i,j,k,g) = pfc(g) * Bg * kap(i,j,k,g)
+                   djdT(i,j,k,g) = pfc(g) * (dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g))
+                end do
+
+             end do
+          end do
+       end do
+
+    else if (use_WiensLaw > 0) then
+
+       hoverk = hplanck/kboltz
+       cB = 8.*pi*kboltz/clight**3
+
+       do g = 0, ngroups-1
+          nu = nugroup(g)
+          num = xnu(g)
+          nup = xnu(g+1)
+
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
+
+                   if (Tf < 0.e0_rt) then
+                      Tfix = T(i,j,k)
+                   else
+                      Tfix = Tf
+                   end if
+
+                   dBdT = cB * nu**3 * (exp(-hoverk * num / Tfix) - exp(-hoverk * nup / Tfix))
+                   Bg = dBdT * T(i,j,k)
+
+                   jg(i,j,k,g) = Bg * kap(i,j,k,g)
+                   djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
+
+                end do
+             end do
+          end do
+       end do
+
+    else if (integrate_Planck > 0) then
+
+       xnu_full = xnu(0:ngroups)
+       xnu_full(0) = 0.e0_rt
+       xnu_full(ngroups) = max(xnu(ngroups), 1.e25_rt)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                Teff = max(T(i,j,k), 1.e-50_rt)
+                call BdBdTIndefInteg(Teff, xnu_full(0), B1, dBdT1)
+
+                do g = 0, ngroups-1
+
+                   B0 = B1
+                   dBdT0 = dBdT1
+                   call BdBdTIndefInteg(Teff, xnu_full(g+1), B1, dBdT1)
+                   Bg = B1 - B0
+                   dBdT = dBdT1 - dBdT0
+
+                   jg(i,j,k,g) = Bg * kap(i,j,k,g)
+                   djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
+
+                end do
+
+             end do
+          end do
+       end do
+
+    else
+
+       cB = 8.e0_rt*pi*hplanck / clight**3
+       cdBdT = 8.e0_rt*pi*hplanck**2 / (kboltz*clight**3)
+
+       do g = 0, ngroups-1
+          nu = nugroup(g)
+          dnu = dnugroup(g)
+
+          do k = lo(3), hi(3)
+             do j = lo(2), hi(2)
+                do i = lo(1), hi(1)
+
+                   Teff = max(T(i,j,k), 1.e-50_rt)
+                   nubar = hplanck * nu / (kboltz * Teff)
+                   if (nubar > 100.e0_rt) then
+                      Bg = 0.e0_rt
+                      dBdT = 0.e0_rt
+                   else if (nubar < 1.e-15_rt) then
+                      Bg = 0.e0_rt
+                      dBdT = 0.e0_rt           
+                   else
+                      expnubar = exp(nubar)
+                      Bg = cB * nu**3 / (expnubar - 1.e0_rt) * dnu
+                      dBdT = cdBdT * nu**4 / Teff**2 * expnubar / (expnubar - 1.e0_rt)**2 * dnu
+                   end if
+
+                   jg(i,j,k,g) = Bg * kap(i,j,k,g)
+                   djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
+
+                end do
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine ca_compute_emissivity
+
+
+
+
   subroutine nfloor(lo, hi, &
                     dest, d_lo, d_hi, &
                     nvar) &

@@ -61,7 +61,7 @@ we write out a single copy of:
 
   -- meth_params.F90
      does the parmparse query to override the default in Fortran,
-     and sets a number of other parameters specific to the F90 routinse
+     and sets a number of other parameters specific to the F90 routines
 
 """
 
@@ -70,18 +70,14 @@ import re
 import sys
 
 FWARNING = """
-! This file is automatically created by parse_castro_params.py.  To update
-! or add runtime parameters, please edit _cpp_parameters and then run
-! mk_params.sh\n
+! This file is automatically created by parse_castro_params.py at build time.
+! To update or add runtime parameters, please edit _cpp_parameters and rebuild.\n
 """
 
 CWARNING = """
-// This file is automatically created by parse_castro_params.py.  To update
-// or add runtime parameters, please edit _cpp_parameters and then run
-// mk_params.sh\n
+// This file is automatically created by parse_castro_params.py at build time.
+// To update or add runtime parameters, please edit _cpp_parameters and rebuild.\n
 """
-
-param_include_dir = "param_includes/"
 
 
 class Param:
@@ -296,7 +292,7 @@ class Param:
         return tstr
 
 
-def write_meth_module(plist, meth_template):
+def write_meth_module(plist, meth_template, out_directory):
     """this writes the meth_params_module, starting with the meth_template
        and inserting the runtime parameter declaration in the correct
        place
@@ -308,7 +304,7 @@ def write_meth_module(plist, meth_template):
         sys.exit("invalid template file")
 
     try:
-        mo = open("meth_params.F90", "w")
+        mo = open("{}/meth_params.F90".format(out_directory), "w")
     except IOError:
         sys.exit("unable to open meth_params.F90 for writing")
 
@@ -435,7 +431,7 @@ def write_meth_module(plist, meth_template):
     mt.close()
 
 
-def parse_params(infile, meth_template):
+def parse_params(infile, meth_template, out_directory):
 
     params = []
 
@@ -549,7 +545,7 @@ def parse_params(infile, meth_template):
 
         # write name_defaults.H
         try:
-            cd = open("{}/{}_defaults.H".format(param_include_dir, nm), "w")
+            cd = open("{}/{}_defaults.H".format(out_directory, nm), "w")
         except IOError:
             sys.exit("unable to open {}_defaults.H for writing".format(nm))
 
@@ -569,7 +565,7 @@ def parse_params(infile, meth_template):
 
         # write name_params.H
         try:
-            cp = open("{}/{}_params.H".format(param_include_dir, nm), "w")
+            cp = open("{}/{}_params.H".format(out_directory, nm), "w")
         except IOError:
             sys.exit("unable to open {}_params.H for writing".format(nm))
 
@@ -589,7 +585,7 @@ def parse_params(infile, meth_template):
 
         # write castro_queries.H
         try:
-            cq = open("{}/{}_queries.H".format(param_include_dir, nm), "w")
+            cq = open("{}/{}_queries.H".format(out_directory, nm), "w")
         except IOError:
             sys.exit("unable to open {}_queries.H for writing".format(nm))
 
@@ -609,7 +605,7 @@ def parse_params(infile, meth_template):
 
         # write the job info tests
         try:
-            jo = open("{}/{}_job_info_tests.H".format(param_include_dir, nm), "w")
+            jo = open("{}/{}_job_info_tests.H".format(out_directory, nm), "w")
         except IOError:
             sys.exit("unable to open {}_job_info_tests.H".format(nm))
 
@@ -626,7 +622,7 @@ def parse_params(infile, meth_template):
         jo.close()
 
     # write the Fortran module
-    write_meth_module(params, meth_template)
+    write_meth_module(params, meth_template, out_directory)
 
 
 def main():
@@ -634,12 +630,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", type=str, default=None,
                         help="template for the meth_params module")
+    parser.add_argument("-o", type=str, default=None,
+                        help="output directory for the generated files")
     parser.add_argument("input_file", type=str, nargs=1,
                         help="input file containing the list of parameters we will define")
 
     args = parser.parse_args()
 
-    parse_params(args.input_file[0], args.m)
+    parse_params(args.input_file[0], args.m, args.o)
 
 if __name__ == "__main__":
     main()
