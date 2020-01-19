@@ -129,6 +129,38 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           shk.setVal(0.0);
         }
 
+        const Box& xbx = amrex::surroundingNodes(bx, 0);
+        const Box& gxbx = amrex::grow(xbx, 1);
+#if AMREX_SPACEDIM >= 2
+        const Box& ybx = amrex::surroundingNodes(bx, 1);
+        const Box& gybx = amrex::grow(ybx, 1);
+#endif
+#if AMREX_SPACEDIM == 3
+        const Box& zbx = amrex::surroundingNodes(bx, 2);
+        const Box& gzbx = amrex::grow(zbx, 1);
+#endif
+
+        flux[0].resize(gxbx, NUM_STATE);
+        Elixir elix_flux_x = flux[0].elixir();
+
+        qe[0].resize(gxbx, NGDNV);
+        Elixir elix_qe_x = qe[0].elixir();
+
+#if AMREX_SPACEDIM >= 2
+        flux[1].resize(gybx, NUM_STATE);
+        Elixir elix_flux_y = flux[1].elixir();
+
+        qe[1].resize(gybx, NGDNV);
+        Elixir elix_qe_y = qe[1].elixir();
+#endif
+
+#if AMREX_SPACEDIM == 3
+        flux[2].resize(gzbx, NUM_STATE);
+        Elixir elix_flux_z = flux[2].elixir();
+
+        qe[2].resize(gzbx, NGDNV);
+        Elixir elix_qe_z = qe[2].elixir();
+#endif
 
 #ifndef AMREX_USE_CUDA
         if (sdc_order == 4) {
@@ -177,8 +209,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM == 3
              BL_TO_FORTRAN_ANYD(area[2][mfi]),
 #endif
-#if (AMREX_SPACEDIM < 3)
-             BL_TO_FORTRAN_ANYD(pradial),
+             BL_TO_FORTRAN_ANYD(qe[0]),
+#if AMREX_SPACEDIM >= 2
+             BL_TO_FORTRAN_ANYD(qe[1]),
+#endif
+#if AMREX_SPACEDIM == 3
+             BL_TO_FORTRAN_ANYD(qe[2]),
+#endif
+#if AMREX_SPACEDIM < 3
              BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
              BL_TO_FORTRAN_ANYD(volume[mfi]),
@@ -245,49 +283,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           // compute the fluxes, add artificial viscosity, and
           // normalize species
 
-          // do we need these grown?
-          const Box& xbx = amrex::surroundingNodes(bx, 0);
-          const Box& gxbx = amrex::grow(xbx, 1);
-#if AMREX_SPACEDIM >= 2
-          const Box& ybx = amrex::surroundingNodes(bx, 1);
-          const Box& gybx = amrex::grow(ybx, 1);
-#endif
-#if AMREX_SPACEDIM == 3
-          const Box& zbx = amrex::surroundingNodes(bx, 2);
-          const Box& gzbx = amrex::grow(zbx, 1);
-#endif
-
           q_int.resize(obx, NQ);
           Elixir elix_q_int = q_int.elixir();
-
-          flux[0].resize(gxbx, NUM_STATE);
-          Elixir elix_flux_x = flux[0].elixir();
-
-          qe[0].resize(gxbx, NGDNV);
-          Elixir elix_qe_x = qe[0].elixir();
-
-#if AMREX_SPACEDIM >= 2
-          flux[1].resize(gybx, NUM_STATE);
-          Elixir elix_flux_y = flux[1].elixir();
-
-          qe[1].resize(gybx, NGDNV);
-          Elixir elix_qe_y = qe[1].elixir();
-#endif
-
-#if AMREX_SPACEDIM == 3
-          flux[2].resize(gzbx, NUM_STATE);
-          Elixir elix_flux_z = flux[2].elixir();
-
-          qe[2].resize(gzbx, NGDNV);
-          Elixir elix_qe_z = qe[2].elixir();
-#endif
-
-#if AMREX_SPACEDIM <= 2
-          if (!Geom().IsCartesian()) {
-            pradial.resize(xbx, 1);
-          }
-          Elixir elix_pradial = pradial.elixir();
-#endif
 
           if (do_hydro) {
 
@@ -445,6 +442,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         // scale the fluxes
 #if AMREX_SPACEDIM <= 2
+        if (!Geom().IsCartesian()) {
+          pradial.resize(xbx, 1);
+        }
+        Elixir elix_pradial = pradial.elixir();
+
         Array4<Real> pradial_fab = pradial.array();
 #endif
 
