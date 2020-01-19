@@ -59,8 +59,7 @@ contains
                                    diffuse_temp, &
 #endif
                                    do_hydro
-    use advection_util_module, only : limit_hydro_fluxes_on_small_dens, ca_shock, &
-                                      normalize_species_fluxes, avisc
+    use advection_util_module, only : normalize_species_fluxes, avisc
 
     use castro_error_module
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
@@ -203,15 +202,11 @@ contains
     call bl_allocate(qx_avg, q_lo, q_hi, NQ)
     call bl_allocate(flx_avg, q_lo, q_hi, NVAR)
 #if AMREX_SPACEDIM >= 2
-    call bl_allocate(qx, q_lo, q_hi, NQ)
-
     call bl_allocate(qy_avg, q_lo, q_hi, NQ)
-    call bl_allocate(qy, q_lo, q_hi, NQ)
     call bl_allocate(fly_avg, q_lo, q_hi, NVAR)
 #endif
 #if AMREX_SPACEDIM == 3
     call bl_allocate(qz_avg, q_lo, q_hi, NQ)
-    call bl_allocate(qz, q_lo, q_hi, NQ)
     call bl_allocate(flz_avg, q_lo, q_hi, NVAR)
 #endif
 
@@ -426,6 +421,12 @@ contains
     ! construct the face-center interface states
 
 #if AMREX_SPACEDIM >= 2
+    call bl_allocate(qx, q_lo, q_hi, NQ)
+    call bl_allocate(qy, q_lo, q_hi, NQ)
+#if AMREX_SPACEDIM == 3
+    call bl_allocate(qz, q_lo, q_hi, NQ)
+#endif
+
     ! x-interfaces
     do n = 1, NQ
        if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
