@@ -140,14 +140,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         const Box& gzbx = amrex::grow(zbx, 1);
 #endif
 
-        flux[0].resize(gxbx, NUM_STATE);
+        flux[0].resize(xbx, NUM_STATE);
         Elixir elix_flux_x = flux[0].elixir();
 
         qe[0].resize(gxbx, NGDNV);
         Elixir elix_qe_x = qe[0].elixir();
 
 #if AMREX_SPACEDIM >= 2
-        flux[1].resize(gybx, NUM_STATE);
+        flux[1].resize(ybx, NUM_STATE);
         Elixir elix_flux_y = flux[1].elixir();
 
         qe[1].resize(gybx, NGDNV);
@@ -155,7 +155,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
 #if AMREX_SPACEDIM == 3
-        flux[2].resize(gzbx, NUM_STATE);
+        flux[2].resize(zbx, NUM_STATE);
         Elixir elix_flux_z = flux[2].elixir();
 
         qe[2].resize(gzbx, NGDNV);
@@ -164,16 +164,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 #ifndef AMREX_USE_CUDA
         if (sdc_order == 4) {
-
-          // Allocate fabs for fluxes
-          for (int i = 0; i < AMREX_SPACEDIM ; i++)  {
-            const Box& bxtmp = amrex::surroundingNodes(bx,i);
-            flux[i].resize(bxtmp,NUM_STATE);
-          }
-
-#if (AMREX_SPACEDIM <= 2)
-          pradial.resize(amrex::surroundingNodes(bx,0),1);
-#endif
 
           const int* lo = bx.loVect();
           const int* hi = bx.hiVect();
