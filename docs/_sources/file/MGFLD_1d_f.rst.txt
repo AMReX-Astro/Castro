@@ -36,11 +36,6 @@ ca\_compute\_etat subroutine
 
 .. f:autosubroutine:: ca_compute_etat
 
-ca\_compute\_emissivity subroutine
-----------------------------------
-
-.. f:autosubroutine:: ca_compute_emissivity
-
 ca\_compute\_rhs subroutine
 ---------------------------
 

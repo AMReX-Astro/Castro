@@ -146,7 +146,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#ca-check-conv-er-subroutine">ca_check_conv_er subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-compute-coupt-subroutine">ca_compute_coupt subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-compute-etat-subroutine">ca_compute_etat subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-compute-emissivity-subroutine">ca_compute_emissivity subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-compute-rhs-subroutine">ca_compute_rhs subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-compute-rhs-so-subroutine">ca_compute_rhs_so subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-local-accel-subroutine">ca_local_accel subroutine</a></li>
@@ -713,71 +712,6 @@
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/clight" title="f/rad_params_module/clight"><code class="xref f f-func docutils literal notranslate"><span class="pre">clight()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-compute-emissivity-subroutine">
-<h2>ca_compute_emissivity subroutine<a class="headerlink" href="#ca-compute-emissivity-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_compute_emissivity">
-<em class="property">subroutine  </em><code class="descname">ca_compute_emissivity</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>jg</em>, <em>jg_l1</em>, <em>jg_l2</em>, <em>jg_l3</em>, <em>jg_h1</em>, <em>jg_h2</em>, <em>jg_h3</em>, <em>djdt</em>, <em>djdt_l1</em>, <em>djdt_l2</em>, <em>djdt_l3</em>, <em>djdt_h1</em>, <em>djdt_h2</em>, <em>djdt_h3</em>, <em>t</em>, <em>t_l1</em>, <em>t_l2</em>, <em>t_l3</em>, <em>t_h1</em>, <em>t_h2</em>, <em>t_h3</em>, <em>kap</em>, <em>kap_l1</em>, <em>kap_l2</em>, <em>kap_l3</em>, <em>kap_h1</em>, <em>kap_h2</em>, <em>kap_h3</em>, <em>dkdt</em>, <em>dkdt_l1</em>, <em>dkdt_l2</em>, <em>dkdt_l3</em>, <em>dkdt_h1</em>, <em>dkdt_h2</em>, <em>dkdt_h3</em>, <em>pfc</em>, <em>use_wienslaw</em>, <em>integrate_planck</em>, <em>tf</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_compute_emissivity" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>jg</strong> (jg_h1-jg_l1+1,jg_h2-jg_l2+1,jg_h3-jg_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>jg_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>jg_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>jg_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>jg_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>jg_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>jg_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>djdt</strong> (djdt_h1-djdt_l1+1,djdt_h2-djdt_l2+1,djdt_h3-djdt_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>djdt_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>djdt_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>djdt_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>djdt_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>djdt_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>djdt_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t</strong> (t_h1-t_l1+1,t_h2-t_l2+1,t_h3-t_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kap</strong> (kap_h1-kap_l1+1,kap_h2-kap_l2+1,kap_h3-kap_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kap_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kap_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kap_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kap_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kap_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>kap_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt</strong> (dkdt_h1-dkdt_l1+1,dkdt_h2-dkdt_l2+1,dkdt_h3-dkdt_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dkdt_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>pfc</strong> (ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>use_wienslaw</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>integrate_planck</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>tf</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/nugroup" title="f/rad_params_module/nugroup"><code class="xref f f-func docutils literal notranslate"><span class="pre">nugroup()</span></code></a>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/dnugroup" title="f/rad_params_module/dnugroup"><code class="xref f f-func docutils literal notranslate"><span class="pre">dnugroup()</span></code></a>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/xnu" title="f/rad_params_module/xnu"><code class="xref f f-func docutils literal notranslate"><span class="pre">xnu()</span></code></a>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/pi" title="f/rad_params_module/pi"><code class="xref f f-func docutils literal notranslate"><span class="pre">pi()</span></code></a>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/clight" title="f/rad_params_module/clight"><code class="xref f f-func docutils literal notranslate"><span class="pre">clight()</span></code></a>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/hplanck" title="f/rad_params_module/hplanck"><code class="xref f f-func docutils literal notranslate"><span class="pre">hplanck()</span></code></a>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/kboltz" title="f/rad_params_module/kboltz"><code class="xref f f-func docutils literal notranslate"><span class="pre">kboltz()</span></code></a>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/arad" title="f/rad_params_module/arad"><code class="xref f f-func docutils literal notranslate"><span class="pre">arad()</span></code></a>), <a class="reference internal" href="blackbody_f.html#f/blackbody_module" title="f/blackbody_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">blackbody_module</span></code></a> (<a class="reference internal" href="blackbody_f.html#f/blackbody_module/bdbdtindefinteg" title="f/blackbody_module/bdbdtindefinteg"><code class="xref f f-func docutils literal notranslate"><span class="pre">bdbdtindefinteg()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="blackbody_f.html#f/blackbody_module/bdbdtindefinteg" title="f/blackbody_module/bdbdtindefinteg"><code class="xref f f-func docutils literal notranslate"><span class="pre">bdbdtindefinteg()</span></code></a></p>
 </td>
 </tr>
 </tbody>
