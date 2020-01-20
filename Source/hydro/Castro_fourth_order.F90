@@ -153,9 +153,7 @@ contains
     real(rt), pointer :: qy_avg(:,:,:,:)
     real(rt), pointer :: qz_avg(:,:,:,:)
 
-    real(rt), pointer :: qx(:,:,:,:)
-    real(rt), pointer :: qy(:,:,:,:)
-    real(rt), pointer :: qz(:,:,:,:)
+    real(rt), pointer :: q_fc(:,:,:,:)
 
     ! Temporaries (for now)
     real(rt), pointer :: flx_avg(:,:,:,:)
@@ -288,6 +286,85 @@ contains
     end if
 #endif
 
+    ! we now have the face-average interface states and fluxes evaluated with these
+
+    ! Note: for 1-d, we are done
+
+#if AMREX_SPACEDIM == 1
+    ! for 1-d, we just copy flx_avg -> flx, since there is no face averaging
+    flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = flx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:)
+#endif
+
+#if AMREX_SPACEDIM >= 2
+    ! construct the face-center interface states
+
+    call bl_allocate(q_fc, q_lo, q_hi, NQ)
+
+    do n = 1, NQ
+       if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)+1
+
+                lap = transx_laplacian(i, j, k, n, &
+                                       qx_avg, q_lo, q_hi, NQ, &
+                                       domlo, domhi)
+
+                q_fc(i,j,k,n) = qx_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+
+             end do
+          end do
+       end do
+    end do
+
+    ! compute face-centered fluxes
+    ! these will be stored in flx, fly, flz
+    call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+                         q_fc, q_lo, q_hi, &
+                         flx, flx_lo, flx_hi, &
+                         1)
+
+    if (do_hydro == 0) then
+       flx(flx_lo(1):flx_hi(1), flx_lo(2):flx_hi(2), flx_lo(3):flx_hi(3), :) = ZERO
+    end if
+
+#ifdef DIFFUSION
+    if (diffuse_temp == 1) then
+       is_avg = 0
+       call add_diffusive_flux([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
+                                T_cc, Tcc_lo, Tcc_hi, 1, 1, &
+                                q_fc, q_lo, q_hi, &
+                                flx, flx_lo, flx_hi, &
+                                dx, 1, is_avg)
+    end if
+#endif
+
+    call bl_deallocate(q_fc)
+
+    ! compute the final fluxes (as an average over the interface), this
+    ! requires a transverse correction.  Note, we don't need to do anything
+    ! to get the average of the Godunov states over the interface--this is
+    ! essentially what qx_avg already is
+
+    ! x-interfaces
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)+1
+
+                lap = transx_laplacian(i, j, k, n, &
+                                       flx_avg, q_lo, q_hi, NVAR, &
+                                       domlo, domhi)
+
+                flx(i,j,k,n) = flx(i,j,k,n) + 1.0_rt/24.0_rt * lap
+
+             end do
+          end do
+       end do
+    end do
+#endif
+
 
 #if AMREX_SPACEDIM >= 2
     ! y-interfaces
@@ -308,6 +385,11 @@ contains
                    domlo, domhi)
 
     end do
+
+    ! this is where we would implement ppm_temp_fix
+
+    ! solve the Riemann problems to get the face-averaged interface
+    ! state and flux
 
     ! get <q> and F(<q>) on the y interfaces
     call riemann_state(qm, q_lo, q_hi, &
@@ -341,7 +423,66 @@ contains
     end if
 #endif
 
+    call bl_allocate(q_fc, q_lo, q_hi, NQ)
+
+    do n = 1, NQ
+       if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)+1
+             do i = lo(1), hi(1)
+
+                lap = transy_laplacian(i, j, k, n, &
+                                       qy_avg, q_lo, q_hi, NQ, &
+                                       domlo, domhi)
+
+                q_fc(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+
+             end do
+          end do
+       end do
+    end do
+
+    call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
+                        q_fc, q_lo, q_hi, &
+                        fly, fly_lo, fly_hi, &
+                        2)
+
+    if (do_hydro == 0) then
+       fly(fly_lo(1):fly_hi(1), fly_lo(2):fly_hi(2), fly_lo(3):fly_hi(3), :) = ZERO
+    end if
+
+#ifdef DIFFUSION
+    if (diffuse_temp == 1) then
+       is_avg = 0
+       call add_diffusive_flux([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
+                               T_cc, Tcc_lo, Tcc_hi, 1, 1, &
+                               q_fc, q_lo, q_hi, &
+                               fly, fly_lo, fly_hi, &
+                               dx, 2, is_avg)
+    end if
 #endif
+
+    call bl_deallocate(q_fc)
+
+    do n = 1, NVAR
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)+1
+             do i = lo(1), hi(1)
+
+                lap = transy_laplacian(i, j, k, n, &
+                                       fly_avg, q_lo, q_hi, NVAR, &
+                                       domlo, domhi)
+
+                fly(i,j,k,n) = fly(i,j,k,n) + 1.0_rt/24.0_rt * lap
+
+             end do
+          end do
+       end do
+    end do
+
+#endif
+
 
 #if AMREX_SPACEDIM == 3
     ! z-interfaces
@@ -394,65 +535,9 @@ contains
                                dx, 3, is_avg)
     end if
 #endif
-#endif
 
-    call bl_deallocate(qm)
-    call bl_deallocate(qp)
+    call bl_allocate(q_fc, q_lo, q_hi, NQ)
 
-    ! we now have the face-average interface states and fluxes evaluated with these
-
-    ! Note: for 1-d, we are done
-
-
-    ! construct the face-center interface states
-
-#if AMREX_SPACEDIM >= 2
-    call bl_allocate(qx, q_lo, q_hi, NQ)
-    call bl_allocate(qy, q_lo, q_hi, NQ)
-#if AMREX_SPACEDIM == 3
-    call bl_allocate(qz, q_lo, q_hi, NQ)
-#endif
-
-    ! x-interfaces
-    do n = 1, NQ
-       if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)+1
-
-                lap = transx_laplacian(i, j, k, n, &
-                                       qx_avg, q_lo, q_hi, NQ, &
-                                       domlo, domhi)
-
-                qx(i,j,k,n) = qx_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
-
-             end do
-          end do
-       end do
-    end do
-
-    ! y-interfaces
-    do n = 1, NQ
-       if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)+1
-             do i = lo(1), hi(1)
-
-                lap = transy_laplacian(i, j, k, n, &
-                                       qy_avg, q_lo, q_hi, NQ, &
-                                       domlo, domhi)
-
-                qy(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
-
-             end do
-          end do
-       end do
-    end do
-
-#if AMREX_SPACEDIM == 3
-    ! z-interfaces
     do n = 1, NQ
        if (n == QGAME .or. n == QGC .or. n == QTEMP) cycle
 
@@ -464,63 +549,15 @@ contains
                                        qz_avg, q_lo, q_hi, NQ, &
                                        domlo, domhi)
 
-                qz(i,j,k,n) = qz_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+                q_fc(i,j,k,n) = qz_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
 
              end do
           end do
        end do
     end do
 
-#endif
-
-    ! compute face-centered fluxes
-    ! these will be stored in flx, fly, flz
-    call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
-                         qx, q_lo, q_hi, &
-                         flx, flx_lo, flx_hi, &
-                         1)
-
-    if (do_hydro == 0) then
-       flx(flx_lo(1):flx_hi(1), flx_lo(2):flx_hi(2), flx_lo(3):flx_hi(3), :) = ZERO
-    end if
-
-#ifdef DIFFUSION
-    if (diffuse_temp == 1) then
-       is_avg = 0
-       call add_diffusive_flux([lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)], &
-                                T_cc, Tcc_lo, Tcc_hi, 1, 1, &
-                                qx, q_lo, q_hi, &
-                                flx, flx_lo, flx_hi, &
-                                dx, 1, is_avg)
-    end if
-#endif
-
-#if AMREX_SPACEDIM >= 2
-    call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
-                        qy, q_lo, q_hi, &
-                        fly, fly_lo, fly_hi, &
-                        2)
-
-    if (do_hydro == 0) then
-       fly(fly_lo(1):fly_hi(1), fly_lo(2):fly_hi(2), fly_lo(3):fly_hi(3), :) = ZERO
-    end if
-
-#ifdef DIFFUSION
-    if (diffuse_temp == 1) then
-       is_avg = 0
-       call add_diffusive_flux([lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)], &
-                               T_cc, Tcc_lo, Tcc_hi, 1, 1, &
-                               qy, q_lo, q_hi, &
-                               fly, fly_lo, fly_hi, &
-                               dx, 2, is_avg)
-    end if
-#endif
-
-#endif
-
-#if AMREX_SPACEDIM == 3
     call compute_flux_q([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
-                        qz, q_lo, q_hi, &
+                        q_fc, q_lo, q_hi, &
                         flz, flz_lo, flz_hi, &
                         3)
 
@@ -533,64 +570,14 @@ contains
        is_avg = 0
        call add_diffusive_flux([lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1], &
                                T_cc, Tcc_lo, Tcc_hi, 1, 1, &
-                               qz, q_lo, q_hi, &
+                               q_fc, q_lo, q_hi, &
                                flz, flz_lo, flz_hi, &
                                dx, 3, is_avg)
     end if
 #endif
 
-#endif
+    call bl_deallocate(q_fc)
 
-    call bl_deallocate(qx)
-#if AMREX_SPACEDIM >= 2
-    call bl_deallocate(qy)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_deallocate(qz)
-#endif
-
-    ! compute the final fluxes (as an average over the interface), this
-    ! requires a transverse correction.  Note, we don't need to do anything
-    ! to get the average of the Godunov states over the interface--this is
-    ! essentially what qx_avg already is
-
-    ! x-interfaces
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)+1
-
-                lap = transx_laplacian(i, j, k, n, &
-                                       flx_avg, q_lo, q_hi, NVAR, &
-                                       domlo, domhi)
-
-                flx(i,j,k,n) = flx(i,j,k,n) + 1.0_rt/24.0_rt * lap
-
-             end do
-          end do
-       end do
-    end do
-
-    ! y-interfaces
-    do n = 1, NVAR
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)+1
-             do i = lo(1), hi(1)
-
-                lap = transy_laplacian(i, j, k, n, &
-                                       fly_avg, q_lo, q_hi, NVAR, &
-                                       domlo, domhi)
-
-                fly(i,j,k,n) = fly(i,j,k,n) + 1.0_rt/24.0_rt * lap
-
-             end do
-          end do
-       end do
-    end do
-
-
-#if AMREX_SPACEDIM == 3
-    ! z-interfaces
     do n = 1, NVAR
        do k = lo(3), hi(3)+1
           do j = lo(2), hi(2)
@@ -606,12 +593,12 @@ contains
           end do
        end do
     end do
+
 #endif
 
-#else
-    ! for 1-d, we just copy flx_avg -> flx, since there is no face averaging
-    flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = flx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:)
-#endif
+    call bl_deallocate(qm)
+    call bl_deallocate(qp)
+
 
     if (do_hydro == 1) then
 
