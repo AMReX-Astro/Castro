@@ -434,8 +434,8 @@ extern "C"
 
   void ca_mol_consup
     (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(shk),
      const BL_FORT_FAB_ARG_3D(statein),
-     BL_FORT_FAB_ARG_3D(stateout),
      const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update),
      const amrex::Real* dx, const amrex::Real dt,
