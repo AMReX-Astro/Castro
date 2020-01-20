@@ -354,6 +354,7 @@ contains
           end do
        end do
     end do
+#endif
 
     if (do_hydro == 1) then
 
@@ -390,7 +391,6 @@ contains
        end do
 
     end if
-#endif
 
     call ca_store_godunov_state(lo, hi+dg, &
                                 q_avg, q_lo, q_hi, &
