@@ -67,7 +67,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 	const Box& bx  = mfi.tilebox();
 
         const Box& obx = amrex::grow(bx, 1);
-        const Box& tbx = amrex::grow(bx, 2);
 
 	FArrayBox &statein  = Sborder[mfi];
 	FArrayBox &stateout = S_new[mfi];
@@ -172,9 +171,23 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           const int* lo = bx.loVect();
           const int* hi = bx.hiVect();
 
-
+          amrex::Vector<Box, 3> ibx;
+          ibx[0] = amrex::grow(amrex::surroundingNodes(bx, 0), IntVect(0,1,1));
+          ibx[1] = amrex::grow(amrex::surroundingNodes(bx, 1), IntVect(1,0,1));
+          ibx[2] = amrex::grow(amrex::surroundingNodes(bx, 2), IntVect(1,1,0));
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+            const Box& nbx1 = amrex::grow(nbx, 1);
+
+            qm.resize(nbx, NQ);
+            Elixir elix_qm = qm.elixir();
+
+            qp.resize(nbx, NQ);
+            Elixir elix_qp = qp.elixir();
+
+            q_int.resize(nbx1, 1);
+            
             // construct the interface states in the idir direction
 
             // compute the limited interface states
@@ -266,6 +279,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  BL_TO_FORTRAN_ANYD(div));
 
           }
+
+          const Box& tbx = amrex::grow(bx, 2);
 
           qm.resize(tbx, NQ*AMREX_SPACEDIM);
           Elixir elix_qm = qm.elixir();
