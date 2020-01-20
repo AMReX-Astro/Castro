@@ -242,7 +242,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(ngrow);
 
 #pragma gpu box(bx) sync
@@ -263,13 +263,13 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       PFcoef[0] = 0.5;
       PFcoef[1] = 0.5;
 #endif
-      BL_FORT_PROC_CALL(CA_COMPUTE_EMISSIVITY, ca_compute_emissivity)
-          (reg.loVect(), reg.hiVect(),
-           BL_TO_FORTRAN(jg[mfi]),  
-           BL_TO_FORTRAN(djdT[mfi]),  
-           BL_TO_FORTRAN(temp_new[mfi]),
-           BL_TO_FORTRAN(kappa_p[mfi]),
-           BL_TO_FORTRAN(dkdT[mfi]),
+      ca_compute_emissivity
+          (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+           BL_TO_FORTRAN_ANYD(jg[mfi]),  
+           BL_TO_FORTRAN_ANYD(djdT[mfi]),  
+           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
+           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
+           BL_TO_FORTRAN_ANYD(dkdT[mfi]),
            PFcoef.dataPtr(), 
            use_WiensLaw, integrate_Planck, Tf_Wien);
   }    

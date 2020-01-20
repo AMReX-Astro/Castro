@@ -302,18 +302,6 @@ extern "C" {
 }
 #endif
 
-// photon problems solved by the neutrino solver need these
-BL_FORT_PROC_DECL(CA_COMPUTE_EMISSIVITY, ca_compute_emissivity)
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(jg),
-    BL_FORT_FAB_ARG(djdT),
-    const BL_FORT_FAB_ARG(temp),
-    const BL_FORT_FAB_ARG(kappa_p),
-    const BL_FORT_FAB_ARG(dkdT),
-    const amrex::Real* PFcoef, 
-    const int& use_WiensLaw, const int& integrate_Planck,
-    const amrex::Real& Tf);
-
 extern "C"
 {
   void ca_opacs
@@ -325,6 +313,17 @@ extern "C"
     BL_FORT_FAB_ARG_3D(kpr),
     BL_FORT_FAB_ARG_3D(dkdT),
     int use_dkdT, int validStar, int lag_opac);
+
+  void ca_compute_emissivity
+   (const int* lo, const int* hi,
+    BL_FORT_FAB_ARG_3D(jg),
+    BL_FORT_FAB_ARG_3D(djdT),
+    const BL_FORT_FAB_ARG_3D(temp),
+    const BL_FORT_FAB_ARG_3D(kappa_p),
+    const BL_FORT_FAB_ARG_3D(dkdT),
+    const amrex::Real* PFcoef, 
+    int use_WiensLaw, int integrate_Planck,
+    amrex::Real Tf);
 }
 
 #ifdef MG_SU_OLSON
