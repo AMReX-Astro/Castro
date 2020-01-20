@@ -785,13 +785,10 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
                      BL_TO_FORTRAN_ANYD(rhoe_star[ri]),
                      AMREX_REAL_ANYD(dx), delta_t, igroup, ptc_tau);
 
-#ifdef MG_SU_OLSON
 #pragma gpu box(bx)
-      ca_compute_rhs_so(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(rhs[ri]),
-                        AMREX_REAL_ANYD(dx), delta_t, time, igroup);
-
-#endif
+      ca_rad_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                    BL_TO_FORTRAN_ANYD(rhs[ri]),
+                    AMREX_REAL_ANYD(dx), delta_t, time, igroup);
 
   }
 }

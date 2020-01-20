@@ -229,13 +229,11 @@ extern "C"
      const amrex::Real* dx, amrex::Real dt,
      int igroup, amrex::Real ptc_tau);
 
-#ifdef MG_SU_OLSON
-  void ca_compute_rhs_so
+  void ca_rad_source
     (const int* lo, const int* hi, 
      BL_FORT_FAB_ARG_3D(rhs),
      const amrex::Real* dx, amrex::Real dt,
      amrex::Real time, int igroup);
-#endif
 
   void ca_local_accel
    (const int* lo, const int* hi,
