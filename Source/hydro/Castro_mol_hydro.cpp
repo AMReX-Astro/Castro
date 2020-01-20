@@ -60,6 +60,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM <= 2
     FArrayBox pradial;
 #endif
+    FArrayBox avis;
 
     // The fourth order stuff cannot do tiling because of the Laplacian corrections
     for (MFIter mfi(S_new, (sdc_order == 4) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
@@ -83,7 +84,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         if (time_integration_method == SpectralDeferredCorrections) {
           stage_weight = node_weights[current_sdc_node];
         }
-
 
         // get the flattening coefficient
         flatn.resize(obx, 1);
@@ -160,6 +160,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         qe[2].resize(gzbx, NGDNV);
         Elixir elix_qe_z = qe[2].elixir();
 #endif
+
+        avis.resize(bx, 1);
+        Elixir elix_avis = avis.elixir();
 
 #ifndef AMREX_USE_CUDA
         if (sdc_order == 4) {
@@ -291,14 +294,76 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               });
 
             // compute the face-center fluxes F(q_fc)
+            compute_flux_q(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                           BL_TO_FORTRAN_ANYD(q_fc),
+                           BL_TO_FORTRAN_ANYD(flux[idir]),
+                           idir_f);
 
-            // add the diffusive flux to F(q_fc) if needed
+#ifdef DIFFUSION
+            if (diffuse_temp == 1) {
+              // add the diffusive flux to F(q_fc) if needed
+              int is_avg = 0;
+              add_diffusive_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                                 BL_TO_FORTRAN_ANYD(T_cc[mfi]), 1, 1,
+                                 BL_TO_FORTRAN_ANYD(q_fc),
+                                 BL_TO_FORTRAN_ANYD(flux[idir]),
+                                 ZFILL(dx), idir_f, is_avg);
+            }
+#endif
+
 
             // compute the final fluxes
+            Array4<Real> const flux_arr = (flux[idir]).array();
+
+            AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
+
+                Real lap = 0.0;
+                integer ncomp_f = n + 1;
+
+                trans_laplacian(i, j, k, ncomp_f
+                                idir_f,
+                                BL_TO_FORTRAN_ANYD(f_avg), NUM_STATE,
+                                lap,
+                                ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+
+                flux_arr(i,j,k,n) = flux_arr(i,j,k,n) + 1.0/24.0 * lap;
+
+              });
 
 #endif
 
             // add artifical viscosity
+            if (do_hydro == 1) {
+
+              Real avisc_coeff = alpha * (difmag / 0.1);
+
+              avisc(lo, hi,
+                    BL_TO_FORTRAN_ANYD(q_bar[mfi]),
+                    BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
+                    ZFILL(dx),
+                    BL_TO_FORTRAN_ANYD(avis),
+                    idir_f);
+
+
+              Array4<Real const> const uin_arr = statein.array();
+              Array4<Real const> const avis_arr = avis.array();
+
+              AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
+                  if (n == Temp) {
+                    flux_arr(i,j,k,n) = 0.0;
+#ifdef SHOCK_VAR
+                  } else if (n == Shock) {
+                    flux_arr(i,j,k,n) == 0.0;
+#endif
+                  } else {
+
+                    flux_arr(i,j,k,n) = flux_arr(i,j,k,n) +
+                      avisc_coeff * avis_arr(i,j,k,0) * (uin_arr(i,j,k,n) - uin_arr(i-1,j,k,n));
+                  }
+
+                });
+
+            }
 
             // store the Godunov state
 
