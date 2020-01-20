@@ -146,19 +146,15 @@ contains
 
 #ifndef RADIATION
     ! Automatic arrays for workspace
-    real(rt), pointer :: avisx(:,:,:), avisy(:,:,:), avisz(:,:,:)
+    real(rt), pointer :: avis(:,:,:)
 
     ! Edge-centered primitive variables (Riemann state)
-    real(rt), pointer :: qx_avg(:,:,:,:)
-    real(rt), pointer :: qy_avg(:,:,:,:)
-    real(rt), pointer :: qz_avg(:,:,:,:)
+    real(rt), pointer :: q_avg(:,:,:,:)
 
     real(rt), pointer :: q_fc(:,:,:,:)
 
     ! Temporaries (for now)
-    real(rt), pointer :: flx_avg(:,:,:,:)
-    real(rt), pointer :: fly_avg(:,:,:,:)
-    real(rt), pointer :: flz_avg(:,:,:,:)
+    real(rt), pointer :: f_avg(:,:,:,:)
 
     real(rt), pointer :: qm(:,:,:,:)
     real(rt), pointer :: qp(:,:,:,:)
@@ -189,27 +185,20 @@ contains
     It_lo = lo(:) - dg(:)
     It_hi = hi(:) + dg(:)
 
-    call bl_allocate(avisx, lo, hi+dg)
-#if BL_SPACEDIM >= 2
-    call bl_allocate(avisy, lo, hi+dg)
-#endif
-#if BL_SPACEDIM == 3
-    call bl_allocate(avisz, lo, hi+dg)
-#endif
+    call bl_allocate(avis, lo, hi+dg)
 
-    call bl_allocate(qx_avg, q_lo, q_hi, NQ)
-    call bl_allocate(flx_avg, q_lo, q_hi, NVAR)
-#if AMREX_SPACEDIM >= 2
-    call bl_allocate(qy_avg, q_lo, q_hi, NQ)
-    call bl_allocate(fly_avg, q_lo, q_hi, NVAR)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_allocate(qz_avg, q_lo, q_hi, NQ)
-    call bl_allocate(flz_avg, q_lo, q_hi, NVAR)
-#endif
+    call bl_allocate(q_avg, q_lo, q_hi, NQ)
+    call bl_allocate(f_avg, q_lo, q_hi, NVAR)
 
     call bl_allocate(qm, q_lo, q_hi, NQ)
     call bl_allocate(qp, q_lo, q_hi, NQ)
+
+    ! avisc_coefficient is the coefficent we use.  The McCorquodale &
+    ! Colella paper suggest alpha = 0.3, but our other hydro solvers use
+    ! a coefficient on the divergence that defaults to 0.1, so we
+    ! normalize to that value, to allow for adjustments
+    avisc_coeff = alpha * (difmag / 0.1_rt)
+
 
 #ifdef SHOCK_VAR
     ! We'll update the shock data for future use in the burning step.
@@ -230,7 +219,9 @@ contains
 
     call bl_allocate(qint, q_lo, q_hi)
 
+    !-------------------------------------------------------------------------
     ! x-interfaces
+    !-------------------------------------------------------------------------
 
     do n = 1, NQ
        call fourth_interfaces(1, n, &
@@ -257,7 +248,7 @@ contains
     ! get <q> and F(<q>) on the x interfaces
     call riemann_state(qm, q_lo, q_hi, &
                        qp, q_lo, q_hi, 1, 1, &
-                       qx_avg, q_lo, q_hi, &
+                       q_avg, q_lo, q_hi, &
                        qaux, qa_lo, qa_hi, &
                        1, &
                        [lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
@@ -266,12 +257,12 @@ contains
 
     call compute_flux_q([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
                         [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                        qx_avg, q_lo, q_hi, &
-                        flx_avg, q_lo, q_hi, &
+                        q_avg, q_lo, q_hi, &
+                        f_avg, q_lo, q_hi, &
                         1)
 
     if (do_hydro == 0) then
-       flx_avg(:,:,:,:) = ZERO
+       f_avg(:,:,:,:) = ZERO
     end if
 
 #ifdef DIFFUSION
@@ -280,8 +271,8 @@ contains
        call add_diffusive_flux([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
                                [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
                                q, q_lo, q_hi, NQ, QTEMP, &
-                               qx_avg, q_lo, q_hi, &
-                               flx_avg, q_lo, q_hi, &
+                               q_avg, q_lo, q_hi, &
+                               f_avg, q_lo, q_hi, &
                                dx, 1, is_avg)
     end if
 #endif
@@ -291,8 +282,8 @@ contains
     ! Note: for 1-d, we are done
 
 #if AMREX_SPACEDIM == 1
-    ! for 1-d, we just copy flx_avg -> flx, since there is no face averaging
-    flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = flx_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:)
+    ! for 1-d, we just copy f_avg -> flx, since there is no face averaging
+    flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:) = f_avg(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),:)
 #endif
 
 #if AMREX_SPACEDIM >= 2
@@ -308,10 +299,10 @@ contains
              do i = lo(1), hi(1)+1
 
                 lap = transx_laplacian(i, j, k, n, &
-                                       qx_avg, q_lo, q_hi, NQ, &
+                                       q_avg, q_lo, q_hi, NQ, &
                                        domlo, domhi)
 
-                q_fc(i,j,k,n) = qx_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+                q_fc(i,j,k,n) = q_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
 
              end do
           end do
@@ -345,7 +336,7 @@ contains
     ! compute the final fluxes (as an average over the interface), this
     ! requires a transverse correction.  Note, we don't need to do anything
     ! to get the average of the Godunov states over the interface--this is
-    ! essentially what qx_avg already is
+    ! essentially what q_avg already is
 
     ! x-interfaces
     do n = 1, NVAR
@@ -354,7 +345,7 @@ contains
              do i = lo(1), hi(1)+1
 
                 lap = transx_laplacian(i, j, k, n, &
-                                       flx_avg, q_lo, q_hi, NVAR, &
+                                       f_avg, q_lo, q_hi, NVAR, &
                                        domlo, domhi)
 
                 flx(i,j,k,n) = flx(i,j,k,n) + 1.0_rt/24.0_rt * lap
@@ -363,11 +354,53 @@ contains
           end do
        end do
     end do
+
+    if (do_hydro == 1) then
+
+       ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
+       call avisc(lo, hi, &
+                  q_bar, q_bar_lo, q_bar_hi, &
+                  qaux_bar, qa_bar_lo, qa_bar_hi, &
+                  dx, avis, lo, hi+dg, 1)
+
+       do n = 1, NVAR
+
+          if ( n == UTEMP ) then
+             flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
+
+#ifdef SHOCK_VAR
+          else if ( n == USHK ) then
+             flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
 #endif
+
+          else
+
+             do k = lo(3), hi(3)
+                do j = lo(2), hi(2)
+                   do i = lo(1), hi(1)+1
+
+                      flx(i,j,k,n) = flx(i,j,k,n) + &
+                           avisc_coeff * avis(i,j,k) * (uin(i,j,k,n) - uin(i-1,j,k,n))
+                   end do
+                end do
+             end do
+
+          end if
+
+       end do
+
+    end if
+#endif
+
+    call ca_store_godunov_state(lo, hi+dg, &
+                                q_avg, q_lo, q_hi, &
+                                qgdnvx, qgdx_lo, qgdx_hi)
 
 
 #if AMREX_SPACEDIM >= 2
+    !-------------------------------------------------------------------------
     ! y-interfaces
+    !-------------------------------------------------------------------------
 
     do n = 1, NQ
        call fourth_interfaces(2, n, &
@@ -394,7 +427,7 @@ contains
     ! get <q> and F(<q>) on the y interfaces
     call riemann_state(qm, q_lo, q_hi, &
                        qp, q_lo, q_hi, 1, 1, &
-                       qy_avg, q_lo, q_hi, &
+                       q_avg, q_lo, q_hi, &
                        qaux, qa_lo, qa_hi, &
                        2, &
                        [lo(1)-1, lo(2), lo(3)-dg(3)], &
@@ -403,12 +436,12 @@ contains
 
     call compute_flux_q([lo(1)-1, lo(2), lo(3)-dg(3)], &
                         [hi(1)+1, hi(2)+1, hi(3)+dg(3)], &
-                        qy_avg, q_lo, q_hi, &
-                        fly_avg, q_lo, q_hi, &
+                        q_avg, q_lo, q_hi, &
+                        f_avg, q_lo, q_hi, &
                         2)
 
     if (do_hydro == 0) then
-       fly_avg(:,:,:,:) = ZERO
+       f_avg(:,:,:,:) = ZERO
     end if
 
 #ifdef DIFFUSION
@@ -417,8 +450,8 @@ contains
        call add_diffusive_flux([lo(1)-1, lo(2), lo(3)-dg(3)], &
                                [hi(1)+1, hi(2)+1, hi(3)+dg(3)], &
                                q, q_lo, q_hi, NQ, QTEMP, &
-                               qy_avg, q_lo, q_hi, &
-                               fly_avg, q_lo, q_hi, &
+                               q_avg, q_lo, q_hi, &
+                               f_avg, q_lo, q_hi, &
                                dx, 2, is_avg)
     end if
 #endif
@@ -433,10 +466,10 @@ contains
              do i = lo(1), hi(1)
 
                 lap = transy_laplacian(i, j, k, n, &
-                                       qy_avg, q_lo, q_hi, NQ, &
+                                       q_avg, q_lo, q_hi, NQ, &
                                        domlo, domhi)
 
-                q_fc(i,j,k,n) = qy_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+                q_fc(i,j,k,n) = q_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
 
              end do
           end do
@@ -471,7 +504,7 @@ contains
              do i = lo(1), hi(1)
 
                 lap = transy_laplacian(i, j, k, n, &
-                                       fly_avg, q_lo, q_hi, NVAR, &
+                                       f_avg, q_lo, q_hi, NVAR, &
                                        domlo, domhi)
 
                 fly(i,j,k,n) = fly(i,j,k,n) + 1.0_rt/24.0_rt * lap
@@ -481,11 +514,52 @@ contains
        end do
     end do
 
+    if (do_hydro == 1) then
+       call avisc(lo, hi, &
+                  q_bar, q_bar_lo, q_bar_hi, &
+                  qaux_bar, qa_bar_lo, qa_bar_hi, &
+                  dx, avis, lo, hi+dg, 2)
+
+       do n = 1, NVAR
+
+          if ( n == UTEMP ) then
+             fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+
+#ifdef SHOCK_VAR
+          else if ( n == USHK ) then
+             fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
+#endif
+
+          else
+
+             do k = lo(3), hi(3)
+                do j = lo(2), hi(2)+1
+                   do i = lo(1), hi(1)
+
+                      fly(i,j,k,n) = fly(i,j,k,n) + &
+                           avisc_coeff * avis(i,j,k) * (uin(i,j,k,n) - uin(i,j-1,k,n))
+                   end do
+                end do
+             end do
+
+          end if
+
+       end do
+
+    end if
+
+    call ca_store_godunov_state(lo, hi+dg, &
+                                q_avg, q_lo, q_hi, &
+                                qgdnvy, qgdy_lo, qgdy_hi)
+
+
 #endif
 
 
 #if AMREX_SPACEDIM == 3
+    !-------------------------------------------------------------------------
     ! z-interfaces
+    !-------------------------------------------------------------------------
 
     do n = 1, NQ
        call fourth_interfaces(3, n, &
@@ -507,7 +581,7 @@ contains
     ! get <q> and F(<q>) on the z interfaces
     call riemann_state(qm, q_lo, q_hi, &
                        qp, q_lo, q_hi, 1, 1, &
-                       qz_avg, q_lo, q_hi, &
+                       q_avg, q_lo, q_hi, &
                        qaux, qa_lo, qa_hi, &
                        3, &
                        [lo(1)-1, lo(2)-1, lo(3)], &
@@ -516,12 +590,12 @@ contains
 
     call compute_flux_q([lo(1)-1, lo(2)-1, lo(3)], &
                         [hi(1)+1, hi(2)+1, hi(3)+1], &
-                        qz_avg, q_lo, q_hi, &
-                        flz_avg, q_lo, q_hi, &
+                        q_avg, q_lo, q_hi, &
+                        f_avg, q_lo, q_hi, &
                         3)
 
     if (do_hydro == 0) then
-       flz_avg(:,:,:,:) = ZERO
+       f_avg(:,:,:,:) = ZERO
     end if
 
 #ifdef DIFFUSION
@@ -530,8 +604,8 @@ contains
        call add_diffusive_flux([lo(1)-1, lo(2)-1, lo(3)], &
                                [hi(1)+1, hi(2)+1, hi(3)+1], &
                                q, q_lo, q_hi, NQ, QTEMP, &
-                               qz_avg, q_lo, q_hi, &
-                               flz_avg, q_lo, q_hi, &
+                               q_avg, q_lo, q_hi, &
+                               f_avg, q_lo, q_hi, &
                                dx, 3, is_avg)
     end if
 #endif
@@ -546,10 +620,10 @@ contains
              do i = lo(1), hi(1)
 
                 lap = transz_laplacian(i, j, k, n, &
-                                       qz_avg, q_lo, q_hi, NQ, &
+                                       q_avg, q_lo, q_hi, NQ, &
                                        domlo, domhi)
 
-                q_fc(i,j,k,n) = qz_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
+                q_fc(i,j,k,n) = q_avg(i,j,k,n) - 1.0_rt/24.0_rt * lap
 
              end do
           end do
@@ -584,7 +658,7 @@ contains
              do i = lo(1), hi(1)
 
                 lap = transz_laplacian(i, j, k, n, &
-                                       flz_avg, q_lo, q_hi, NVAR, &
+                                       f_avg, q_lo, q_hi, NVAR, &
                                        domlo, domhi)
 
                 flz(i,j,k,n) = flz(i,j,k,n) + 1.0_rt/24.0_rt * lap
@@ -594,141 +668,61 @@ contains
        end do
     end do
 
-#endif
-
-    call bl_deallocate(qm)
-    call bl_deallocate(qp)
-
-
     if (do_hydro == 1) then
-
-       ! Compute divergence of velocity field (on surroundingNodes(lo,hi))
        call avisc(lo, hi, &
                   q_bar, q_bar_lo, q_bar_hi, &
                   qaux_bar, qa_bar_lo, qa_bar_hi, &
-                  dx, avisx, lo, hi+dg, 1)
-
-#if BL_SPACEDIM >= 2
-       call avisc(lo, hi, &
-                  q_bar, q_bar_lo, q_bar_hi, &
-                  qaux_bar, qa_bar_lo, qa_bar_hi, &
-                  dx, avisy, lo, hi+dg, 2)
-#endif
-
-#if BL_SPACEDIM == 3
-       call avisc(lo, hi, &
-                  q_bar, q_bar_lo, q_bar_hi, &
-                  qaux_bar, qa_bar_lo, qa_bar_hi, &
-                  dx, avisz, lo, hi+dg, 3)
-#endif
-
-       ! avisc_coefficient is the coefficent we use.  The McCorquodale &
-       ! Colella paper suggest alpha = 0.3, but our other hydro solvers use
-       ! a coefficient on the divergence that defaults to 0.1, so we
-       ! normalize to that value, to allow for adjustments
-       avisc_coeff = alpha * (difmag / 0.1_rt)
+                  dx, avis, lo, hi+dg, 3)
 
        do n = 1, NVAR
 
           if ( n == UTEMP ) then
-             flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if AMREX_SPACEDIM >= 2
-             fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
-#endif
-#if AMREX_SPACEDIM == 3
              flz(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
-#endif
 
 #ifdef SHOCK_VAR
           else if ( n == USHK ) then
-             flx(lo(1):hi(1)+1,lo(2):hi(2),lo(3):hi(3),n) = ZERO
-#if AMREX_SPACEDIM >= 2
-             fly(lo(1):hi(1),lo(2):hi(2)+1,lo(3):hi(3),n) = ZERO
-#endif
-#if AMREX_SPACEDIM == 3
              flz(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)+1,n) = ZERO
-#endif
 #endif
 
           else
 
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-                   do i = lo(1), hi(1)+1
-
-                      flx(i,j,k,n) = flx(i,j,k,n) + &
-                           avisc_coeff * avisx(i,j,k) * (uin(i,j,k,n) - uin(i-1,j,k,n))
-                   end do
-                end do
-             end do
-#if AMREX_SPACEDIM >= 2
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)+1
-                   do i = lo(1), hi(1)
-
-                      fly(i,j,k,n) = fly(i,j,k,n) + &
-                           avisc_coeff * avisy(i,j,k) * (uin(i,j,k,n) - uin(i,j-1,k,n))
-                   end do
-                end do
-             end do
-#endif
-#if AMREX_SPACEDIM == 3
              do k = lo(3), hi(3)+1
                 do j = lo(2), hi(2)
                    do i = lo(1), hi(1)
 
                       flz(i,j,k,n) = flz(i,j,k,n) + &
-                           avisc_coeff * avisz(i,j,k) * (uin(i,j,k,n) - uin(i,j,k-1,n))
+                           avisc_coeff * avis(i,j,k) * (uin(i,j,k,n) - uin(i,j,k-1,n))
                    end do
                 end do
              end do
-#endif
+
           end if
 
        end do
 
-    endif
+    end if
 
     call ca_store_godunov_state(lo, hi+dg, &
-                                qx_avg, q_lo, q_hi, &
-                                qgdnvx, qgdx_lo, qgdx_hi)
-#if AMREX_SPACEDIM >= 2
-    call ca_store_godunov_state(lo, hi+dg, &
-                                qy_avg, q_lo, q_hi, &
-                                qgdnvy, qgdy_lo, qgdy_hi)
-#endif
-#if AMREX_SPACEDIM == 3
-    call ca_store_godunov_state(lo, hi+dg, &
-                                qz_avg, q_lo, q_hi, &
+                                q_avg, q_lo, q_hi, &
                                 qgdnvz, qgdz_lo, qgdz_hi)
+
 #endif
 
+    call bl_deallocate(qm)
+    call bl_deallocate(qp)
 
-    call bl_deallocate(avisx)
-#if BL_SPACEDIM >= 2
-    call bl_deallocate(avisy)
-#endif
-#if BL_SPACEDIM == 3
-    call bl_deallocate(avisz)
-#endif
+    call bl_deallocate(avis)
 
-    call bl_deallocate(qx_avg)
-    call bl_deallocate(flx_avg)
+    call bl_deallocate(q_avg)
+    call bl_deallocate(f_avg)
 
-#if AMREX_SPACEDIM >= 2
-    call bl_deallocate(qy_avg)
-    call bl_deallocate(fly_avg)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_deallocate(qz_avg)
-    call bl_deallocate(flz_avg)
-#endif
 #else
 #ifndef AMREX_USE_CUDA
    ! RADIATION check
     call castro_error("ERROR: ca_fourth_single_stage does not support radiation")
 #endif
 #endif
+
   end subroutine ca_fourth_single_stage
 
 #ifdef DIFFUSION
