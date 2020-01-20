@@ -165,8 +165,42 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #ifndef AMREX_USE_CUDA
         if (sdc_order == 4) {
 
+          // -----------------------------------------------------------------
+          // fourth order method
+          // -----------------------------------------------------------------
+
           const int* lo = bx.loVect();
           const int* hi = bx.hiVect();
+
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+            // construct the interface states in the idir direction
+
+            // compute the limited interface states
+
+            // get <q> and F(<q>) in the idir direction by solving the Riemann problem
+
+            // add diffusive flux to F(<q>) if needed
+
+            // for 1-d, we are done here
+
+#if AMREX_SPACEDIM >= 2
+            // construct the face-center interface states q_fc
+
+            // compute the face-center fluxes F(q_fc)
+
+            // add the diffusive flux to F(q_fc) if needed
+
+            // compute the final fluxes
+
+#endif
+
+            // add artifical viscosity
+
+            // store the Godunov state
+
+          }
 
           ca_fourth_single_stage
             (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), &time,
@@ -215,8 +249,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         } else {
 #endif   // AMREX_USE_CUDA
 
+          // -----------------------------------------------------------------
           // second order method
-
+          // -----------------------------------------------------------------
 
           // get div{U} -- we'll use this for artificial viscosity
           div.resize(obx, 1);
