@@ -753,12 +753,11 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 
 
 void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg, 
-			const MultiFab& mugT, const MultiFab& mugY, 
-			const MultiFab& coupT, const MultiFab& coupY, 
-			const MultiFab& etaT, const MultiFab& etaY, 
-			const MultiFab& thetaT, const MultiFab& thetaY, 
-			const MultiFab& Er_step, const MultiFab& rhoe_step, const MultiFab& rhoYe_step, 
-			const MultiFab& Er_star, const MultiFab& rhoe_star, const MultiFab& rhoYe_star,
+			const MultiFab& mugT,
+			const MultiFab& coupT,
+			const MultiFab& etaT,
+			const MultiFab& Er_step, const MultiFab& rhoe_step,
+			const MultiFab& Er_star, const MultiFab& rhoe_star,
 			Real delta_t, int igroup, int it, Real ptc_tau)
 {
   BL_PROFILE("RadSolve::levelRhs (MGFLD version)");
