@@ -9,6 +9,358 @@ module rad_nd_module
 
 contains
 
+  subroutine ca_accel_acoe(lo, hi, &
+                           eta1, eta1_lo, eta1_hi, &
+                           spc, spc_lo, spc_hi, &
+                           kap, kap_lo, kap_hi, &
+                           aco, aco_lo, aco_hi, &
+                           dt, tau) &
+                           bind(C, name='ca_accel_acoe')
+
+    use rad_params_module, only: ngroups, clight
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: eta1_lo(3), eta1_hi(3)
+    integer,  intent(in   ) :: spc_lo(3), spc_hi(3)
+    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
+    integer,  intent(in   ) :: aco_lo(3), aco_hi(3)
+    real(rt), intent(in   ) :: eta1(eta1_lo(1):eta1_hi(1),eta1_lo(2):eta1_hi(2),eta1_lo(3):eta1_hi(3))
+    real(rt), intent(in   ) :: spc(spc_lo(1):spc_hi(1),spc_lo(2):spc_hi(2),spc_lo(3):spc_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: aco(aco_lo(1):aco_hi(1),aco_lo(2):aco_hi(2),aco_lo(3):aco_hi(3))
+    real(rt), intent(in   ), value :: dt, tau
+
+    integer  :: i, j, k
+    real(rt) :: kbar, H1, dt1
+
+    !$gpu
+
+    dt1 = (1.e0_rt + tau) / dt
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             kbar = sum(spc(i,j,k,:) * kap(i,j,k,:))
+             H1 = eta1(i,j,k)
+             aco(i,j,k) = H1 * kbar * clight + dt1
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_accel_acoe
+
+
+
+  subroutine ca_accel_rhs(lo, hi, &
+                          Ern, Ern_lo, Ern_hi, &
+                          Erl, Erl_lo, Erl_hi, &
+                          kap, kap_lo, kap_hi, &
+                          etaT, etaT_lo, etaT_hi, &
+                          rhs, rhs_lo, rhs_hi, &
+                          dt) &
+                          bind(C, name='ca_accel_rhs')
+
+    use rad_params_module, only: ngroups, clight
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: Ern_lo(3), Ern_hi(3)
+    integer,  intent(in   ) :: Erl_lo(3), Erl_hi(3)
+    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
+    integer,  intent(in   ) :: etaT_lo(3), etaT_hi(3)
+    integer,  intent(in   ) :: rhs_lo(3), rhs_hi(3)
+    real(rt), intent(in   ) :: Ern(Ern_lo(1):Ern_hi(1),Ern_lo(2):Ern_hi(2),Ern_lo(3):Ern_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: Erl(Erl_lo(1):Erl_hi(1),Erl_lo(2):Erl_hi(2),Erl_lo(3):Erl_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: etaT(etaT_lo(1):etaT_hi(1),etaT_lo(2):etaT_hi(2),etaT_lo(3):etaT_hi(3))
+    real(rt), intent(inout) :: rhs(rhs_lo(1):rhs_hi(1),rhs_lo(2):rhs_hi(2),rhs_lo(3):rhs_hi(3))
+    real(rt), intent(in   ), value :: dt
+
+    integer  :: i, j, k
+    real(rt) :: rt_term, H
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             rt_term = sum(kap(i,j,k,:) * (Ern(i,j,k,:) - Erl(i,j,k,:)))
+             H = etaT(i,j,k)
+             rhs(i,j,k) = clight * H * rt_term
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_accel_rhs
+
+
+
+  subroutine ca_accel_spec(lo, hi, &
+                           kap, kap_lo, kap_hi, &
+                           mugT, mugT_lo, mugT_hi, &
+                           spec, spec_lo, spec_hi, &
+                           dt, tau) &
+                           bind(C, name='ca_accel_spec')
+
+    use rad_params_module, only: ngroups, clight
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
+    integer,  intent(in   ) :: mugT_lo(3), mugT_hi(3)
+    integer,  intent(in   ) :: spec_lo(3), spec_hi(3)
+    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: mugT(mugT_lo(1):mugT_hi(1),mugT_lo(2):mugT_hi(2),mugT_lo(3):mugT_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: spec(spec_lo(1):spec_hi(1),spec_lo(2):spec_hi(2),spec_lo(3):spec_hi(3),0:ngroups-1)
+    real(rt), intent(in   ), value :: dt, tau
+
+    integer  :: i, j, k
+    real(rt) :: cdt1, sumeps
+    real(rt), dimension(0:ngroups-1) :: epsilon, kapt
+
+    !$gpu
+
+    cdt1 = 1.e0_rt / (clight * dt)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             kapt = kap(i,j,k,:) + (1.e0_rt + tau) * cdt1
+             epsilon = mugT(i,j,k,:) / kapt
+             sumeps = sum(epsilon)
+             if (sumeps .eq. 0.e0_rt) then
+                spec(i,j,k,:) = 0.e0_rt
+             else
+                spec(i,j,k,:) = epsilon / sumeps
+             end if
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_accel_spec
+
+
+
+  subroutine ca_accel_ccoe(lo, hi, &
+                           bcgr, b_lo, b_hi, &
+                           spec, s_lo, s_hi, &
+                           ccoe, c_lo, c_hi, &
+                           dx, idim, igroup) &
+                           bind(C, name='ca_accel_ccoe')
+
+    use rad_params_module, only: ngroups
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: b_lo(3), b_hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: c_lo(3), c_hi(3)
+    real(rt), intent(in   ) :: bcgr(b_lo(1):b_hi(1),b_lo(2):b_hi(2),b_lo(3):b_hi(3))
+    real(rt), intent(in   ) :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),0:ngroups-1)
+    real(rt), intent(inout) :: ccoe(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3),0:1)
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: idim, igroup
+
+    integer  :: i, j, k, ioff, joff, koff
+    real(rt) :: grad_spec, foo, h1
+
+    !$gpu
+
+    if (idim .eq. 0) then
+       ioff = 1
+       joff = 0
+       koff = 0
+       h1 = 1.e0_rt / dx(1)
+    else if (idim .eq. 1) then
+       ioff = 0
+       joff = 1
+       koff = 0
+       h1 = 1.e0_rt / dx(2)
+    else
+       ioff = 0
+       joff = 0
+       koff = 1
+       h1 = 1.e0_rt / dx(3)
+    end if
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             grad_spec = (spec(i,j,k,igroup) - spec(i-ioff,j-joff,k-koff,igroup)) * h1
+             foo = - 0.5e0_rt * bcgr(i,j,k) * grad_spec
+             ccoe(i,j,k,0) = ccoe(i,j,k,0) + foo
+             ccoe(i,j,k,1) = ccoe(i,j,k,1) + foo
+          end do
+       end do
+    end do
+
+  end subroutine ca_accel_ccoe
+
+
+
+  subroutine ca_local_accel(lo, hi, &
+                            Ern, Ern_lo, Ern_hi, &
+                            Erl, Erl_lo, Erl_hi, &
+                            kap, kap_lo, kap_hi, &
+                            etaT, etaT_lo, etaT_hi, &
+                            mugT, mugT_lo, mugT_hi, &
+                            dt, tau) &
+                            bind(C, name='ca_local_accel')
+
+    use rad_params_module, only: ngroups, clight
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: Ern_lo(3), Ern_hi(3)
+    integer,  intent(in   ) :: Erl_lo(3), Erl_hi(3)
+    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
+    integer,  intent(in   ) :: etaT_lo(3), etaT_hi(3)
+    integer,  intent(in   ) :: mugT_lo(3), mugT_hi(3)
+    real(rt), intent(inout) :: Ern(Ern_lo(1):Ern_hi(1),Ern_lo(2):Ern_hi(2),Ern_lo(3):Ern_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: Erl(Erl_lo(1):Erl_hi(1),Erl_lo(2):Erl_hi(2),Erl_lo(3):Erl_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: etaT(etaT_lo(1):etaT_hi(1),etaT_lo(2):etaT_hi(2),etaT_lo(3):etaT_hi(3))
+    real(rt), intent(in   ) :: mugT(mugT_lo(1):mugT_hi(1),mugT_lo(2):mugT_hi(2),mugT_lo(3):mugT_hi(3),0:ngroups-1)
+    real(rt), intent(in   ), value :: dt, tau
+
+    integer  :: i, j, k
+    real(rt) :: cdt1, rt_term, p
+    real(rt), dimension(0:ngroups-1) :: Hg, epsilon, kapt, kk
+
+    !$gpu
+
+    cdt1 = 1.e0_rt / (clight * dt)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             rt_term = sum(kap(i,j,k,:) * (Ern(i,j,k,:) - Erl(i,j,k,:)))
+
+             Hg = mugT(i,j,k,:) * etaT(i,j,k)
+
+             kapt = kap(i,j,k,:) + (1.e0_rt + tau) * cdt1
+             kk = kap(i,j,k,:) / kapt
+
+             p = 1.e0_rt - sum(Hg * kk)
+             epsilon = (Hg * rt_term) / (kapt * p + 1.e-50_rt)
+
+             Ern(i,j,k,:) = Ern(i,j,k,:) + epsilon
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_local_accel
+
+
+
+
+  subroutine lbcoefna(lo, hi, &
+                      bcoef, bco_lo, bco_hi, &
+                      bcgrp, bcg_lo, bcg_hi, &
+                      spec, s_lo, s_hi, &
+                      idim) &
+                      bind(C, name="lbcoefna")
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: bco_lo(3), bco_hi(3)
+    integer,  intent(in   ) :: bcg_lo(3), bcg_hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    real(rt), intent(inout) :: bcoef(bco_lo(1):bco_hi(1),bco_lo(2):bco_hi(2),bco_lo(3):bco_hi(3))
+    real(rt), intent(in   ) :: bcgrp(bcg_lo(1):bcg_hi(1),bcg_lo(2):bcg_hi(2),bcg_lo(3):bcg_hi(3))
+    real(rt), intent(in   ) :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
+    integer,  intent(in   ), value :: idim
+
+    integer :: i, j, k
+
+    !$gpu
+
+    if (idim == 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                bcoef(i,j,k) = bcoef(i,j,k) &
+                               + 0.5e0_rt * (spec(i-1,j,k) + spec(i,j,k)) * bcgrp(i,j,k)
+             end do
+          end do
+       end do
+
+    else if (idim == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                bcoef(i,j,k) = bcoef(i,j,k) &
+                               + 0.5e0_rt * (spec(i,j-1,k) + spec(i,j,k)) * bcgrp(i,j,k)
+             end do
+          end do
+       end do
+
+    else
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                bcoef(i,j,k) = bcoef(i,j,k) &
+                               + 0.5e0_rt * (spec(i,j,k-1) + spec(i,j,k)) * bcgrp(i,j,k)
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine lbcoefna
+
+
+
+  subroutine ljupna(lo, hi, &
+                    jnew, j_lo, j_hi, &
+                    spec, s_lo, s_hi, &
+                    accel, a_lo, a_hi, &
+                    nTotal) &
+                    bind(C, name="ljupna")
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: j_lo(3), j_hi(3)
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
+    integer,  intent(in   ) :: a_lo(3), a_hi(3)
+    real(rt), intent(inout) :: jnew(j_lo(1):j_hi(1),j_lo(2):j_hi(2),j_lo(3):j_hi(3),0:nTotal-1)
+    real(rt), intent(in   ) :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),0:nTotal-1)
+    real(rt), intent(in   ) :: accel(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
+    integer,  intent(in   ), value :: nTotal
+
+    integer :: i, j, k, n
+
+    !$gpu
+
+    do n = 0, nTotal - 1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                jnew(i,j,k,n) = jnew(i,j,k,n) + spec(i,j,k,n) * accel(i,j,k)
+             end do
+          end do
+       end do
+    end do
+
+  end subroutine ljupna
+
+
+
   subroutine ca_compute_etat(lo, hi, &
                              etaT, etaT_lo, etaT_hi, &
                              etTz, etTz_lo, etTz_hi, &
