@@ -193,25 +193,26 @@ extern "C"
     const BL_FORT_FAB_ARG_3D(temp),
     amrex::Real* rel, amrex::Real* abs, amrex::Real *errr,
     amrex::Real dt);
-}
 
-BL_FORT_PROC_DECL(CA_COMPUTE_COUPT, ca_compute_coupt)
-    (const int lo[], const int hi[],
-     BL_FORT_FAB_ARG(coupt), 
-     const BL_FORT_FAB_ARG(kpp),
-     const BL_FORT_FAB_ARG(Eg),
-     const BL_FORT_FAB_ARG(jg));
-BL_FORT_PROC_DECL(CA_COMPUTE_ETAT, ca_compute_etat)
+  void ca_compute_coupt
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(coupt), 
+     const BL_FORT_FAB_ARG_3D(kpp),
+     const BL_FORT_FAB_ARG_3D(Eg),
+     const BL_FORT_FAB_ARG_3D(jg));
+
+  void ca_compute_etat
     (const int* lo, const int *hi, 
-     BL_FORT_FAB_ARG(etat), 
-     BL_FORT_FAB_ARG(etaTz), 
-     BL_FORT_FAB_ARG(eta1), 
-     BL_FORT_FAB_ARG(djdT),
-     const BL_FORT_FAB_ARG(dkdT),
-     const BL_FORT_FAB_ARG(dedT),
-     const BL_FORT_FAB_ARG(Er_star),
-     const BL_FORT_FAB_ARG(rho),
-     const amrex::Real* delta_t, const amrex::Real* tau);
+     BL_FORT_FAB_ARG_3D(etat), 
+     BL_FORT_FAB_ARG_3D(etaTz), 
+     BL_FORT_FAB_ARG_3D(eta1), 
+     BL_FORT_FAB_ARG_3D(djdT),
+     const BL_FORT_FAB_ARG_3D(dkdT),
+     const BL_FORT_FAB_ARG_3D(dedT),
+     const BL_FORT_FAB_ARG_3D(Er_star),
+     const BL_FORT_FAB_ARG_3D(rho),
+     amrex::Real delta_t, amrex::Real tau);
+}
 
 #ifdef __cplusplus
 extern "C" {

@@ -13,9 +13,8 @@ using namespace amrex;
 void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_er,
 				     const MultiFab& Er_new, const MultiFab& Er_pi, 
 				     const MultiFab& kappa_p,
-				     const MultiFab& etaTz, const MultiFab& etaYz, 
-				     const MultiFab& theTz, const MultiFab& theYz,
-				     const MultiFab& temp_new, const MultiFab& Ye_new,
+				     const MultiFab& etaTz,
+				     const MultiFab& temp_new,
 				     Real delta_t)
 {
   BL_PROFILE("Radiation::check_convergence_er (MGFLD)");
@@ -57,10 +56,9 @@ void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_e
 void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab& rhoe_star, 
 				       const MultiFab& rhoe_step, const MultiFab& Er_new, 
 				       const MultiFab& temp_new, const MultiFab& temp_star, 
-				       const MultiFab& rhoYe_new, const MultiFab& rhoYe_star, 
-				       const MultiFab& rhoYe_step, const MultiFab& rho,
+				       const MultiFab& rho,
 				       const MultiFab& kappa_p, const MultiFab& jg,
-				       const MultiFab& dedT, const MultiFab& dedY,
+				       const MultiFab& dedT,
 				       Real& rel_rhoe, Real& abs_rhoe, 
 				       Real& rel_FT,   Real& abs_FT, 
 				       Real& rel_T,    Real& abs_T, 
@@ -114,67 +112,61 @@ void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab&
 }
 
 
-void Radiation::compute_coupling(MultiFab& coupT, MultiFab& coupY, 
+void Radiation::compute_coupling(MultiFab& coupT,
 				 const MultiFab& kpp, const MultiFab& Eg,
 				 const MultiFab& jg)
 {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(kpp,true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(kpp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-	BL_FORT_PROC_CALL(CA_COMPUTE_COUPT, ca_compute_coupt)
-	    (bx.loVect(), bx.hiVect(),
-	     BL_TO_FORTRAN(coupT[mfi]),
-	     BL_TO_FORTRAN(kpp[mfi]),
-	     BL_TO_FORTRAN(Eg[mfi]),    
-	     BL_TO_FORTRAN(jg[mfi]));
+#pragma gpu box(bx)
+	ca_compute_coupt
+	    (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+	     BL_TO_FORTRAN_ANYD(coupT[mfi]),
+	     BL_TO_FORTRAN_ANYD(kpp[mfi]),
+	     BL_TO_FORTRAN_ANYD(Eg[mfi]),    
+	     BL_TO_FORTRAN_ANYD(jg[mfi]));
     }
 }
 
 
-void Radiation::compute_eta_theta(MultiFab& etaT, MultiFab& etaTz, 
-				  MultiFab& etaY, MultiFab& etaYz, 
-				  MultiFab& eta1,
-				  MultiFab& thetaT, MultiFab& thetaTz, 
-				  MultiFab& thetaY, MultiFab& thetaYz, 
-				  MultiFab& theta1,
-				  MultiFab& djdT, MultiFab& djdY, 
-				  const MultiFab& dkdT, const MultiFab& dkdY, 
-				  const MultiFab& dedT, const MultiFab& dedY, 
-				  const MultiFab& Er_star, const MultiFab& rho, 
-				  const BoxArray& grids, Real delta_t, Real ptc_tau)
+void Radiation::compute_etat(MultiFab& etaT, MultiFab& etaTz, 
+                             MultiFab& eta1, MultiFab& djdT,
+                             const MultiFab& dkdT, const MultiFab& dedT,
+                             const MultiFab& Er_star, const MultiFab& rho,
+                             Real delta_t, Real ptc_tau)
 {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(rho,true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(rho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-	BL_FORT_PROC_CALL(CA_COMPUTE_ETAT, ca_compute_etat)
-	    (bx.loVect(), bx.hiVect(),
-	      BL_TO_FORTRAN(etaT[mfi]),
-	      BL_TO_FORTRAN(etaTz[mfi]),
-	      BL_TO_FORTRAN(eta1[mfi]),
-	      BL_TO_FORTRAN(djdT[mfi]),
-	      BL_TO_FORTRAN(dkdT[mfi]),
-	      BL_TO_FORTRAN(dedT[mfi]),
-	      BL_TO_FORTRAN(Er_star[mfi]),
-	      BL_TO_FORTRAN(rho[mfi]),
-	      &delta_t, &ptc_tau);
+#pragma gpu box(bx)
+	ca_compute_etat
+	    (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(etaT[mfi]),
+             BL_TO_FORTRAN_ANYD(etaTz[mfi]),
+             BL_TO_FORTRAN_ANYD(eta1[mfi]),
+             BL_TO_FORTRAN_ANYD(djdT[mfi]),
+             BL_TO_FORTRAN_ANYD(dkdT[mfi]),
+             BL_TO_FORTRAN_ANYD(dedT[mfi]),
+             BL_TO_FORTRAN_ANYD(Er_star[mfi]),
+             BL_TO_FORTRAN_ANYD(rho[mfi]),
+             delta_t, ptc_tau);
     }
 }
 
 
 void Radiation::eos_opacity_emissivity(const MultiFab& S_new, 
-				       const MultiFab& temp_new, const MultiFab& Ye_new, 
-				       const MultiFab& temp_star, const MultiFab& Ye_star,
+				       const MultiFab& temp_new,
+				       const MultiFab& temp_star,
 				       MultiFab& kappa_p, MultiFab& kappa_r, MultiFab& jg, 
-				       MultiFab& djdT, MultiFab& djdY, 
-				       MultiFab& dkdT, MultiFab& dkdY, 
-				       MultiFab& dedT, MultiFab& dedY, 
-				       int level, const BoxArray& grids, int it, int ngrow)
+				       MultiFab& djdT, MultiFab& dkdT, MultiFab& dedT,
+				       int level, int it, int ngrow)
 {
   int star_is_valid = 1 - ngrow;
 
@@ -194,10 +186,10 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(S_new,true); mfi.isValid(); ++mfi) {
+  for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& box = mfi.tilebox();
 
-#pragma gpu box(box) sync
+#pragma gpu box(box)
       ca_compute_c_v
           (AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
            BL_TO_FORTRAN_ANYD(dedT[mfi]),
@@ -252,9 +244,8 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 
 void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi, 
 			   MultiFab& kappa_p, MultiFab& kappa_r,
-			   MultiFab& etaT, MultiFab& etaY, MultiFab& eta1,
-			   MultiFab& thetaT, MultiFab& thetaY, 
-			   MultiFab& mugT, MultiFab& mugY, 
+			   MultiFab& etaT, MultiFab& eta1,
+			   MultiFab& mugT,
 			   Array<MultiFab, BL_SPACEDIM>& lambda,
 			   RadSolve& solver, MGRadBndry& mgbd, 
 			   const BoxArray& grids, int level, Real time, 
@@ -430,9 +421,8 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 
 void Radiation::local_accel(MultiFab& Er_new, const MultiFab& Er_pi,
 			    const MultiFab& kappa_p, 
-			    const MultiFab& etaT, const MultiFab& etaY, 
-			    const MultiFab& thetaT, const MultiFab& thetaY, 
-			    const MultiFab& mugT, const MultiFab& mugY, 
+			    const MultiFab& etaT,
+			    const MultiFab& mugT,
 			    Real delta_t, Real ptc_tau)
 {
 #ifdef _OPENMP
@@ -454,9 +444,9 @@ void Radiation::local_accel(MultiFab& Er_new, const MultiFab& Er_pi,
 
 
 void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe, 
-				    const MultiFab& Ye, const MultiFab& temp, 
+				    const MultiFab& temp, 
 				    const BoxArray& grids,
-				    Real& derat, Real& dT, Real& dye, int level)
+				    Real& derat, Real& dT, int level)
 {
   BL_PROFILE("Radiation::state_energy_update (MGFLD)");
 
@@ -511,19 +501,14 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
 
 
 void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
-			      MultiFab& rhoYe_new, MultiFab& Ye_new, 
 			      const MultiFab& Er_new, const MultiFab& Er_pi,
-			      const MultiFab& rhoe_star, const MultiFab& rhoYe_star, 
-			      const MultiFab& rhoe_step, const MultiFab& rhoYe_step,
+			      const MultiFab& rhoe_star,
+			      const MultiFab& rhoe_step,
 			      const MultiFab& etaT, const MultiFab& etaTz,
-			      const MultiFab& etaY, const MultiFab& etaYz,
 			      const MultiFab& eta1,
-			      const MultiFab& thetaT, const MultiFab& thetaTz, 
-			      const MultiFab& thetaY, const MultiFab& thetaYz, 
-			      const MultiFab& theta1,
-			      const MultiFab& coupT, const MultiFab& coupY, 
+			      const MultiFab& coupT,
 			      const MultiFab& kappa_p, const MultiFab& jg, 
-			      const MultiFab& mugT, const MultiFab& mugY, 
+			      const MultiFab& mugT,
 			      const MultiFab& S_new, 
 			      int level, Real delta_t, Real ptc_tau,
 			      int it, bool conservative_update)
@@ -712,9 +697,7 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
 }
 
 void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
-			      MultiFab& rhoYe_new, MultiFab& Ye_new, 
 			      const MultiFab& rhoe_star, const MultiFab& temp_star, 
-			      const MultiFab& rhoYe_star, const MultiFab& Ye_star, 
 			      const MultiFab& S_new, const BoxArray& grids, int level)
 {
   temp_new.plus(temp_star, 0, 1, 0);

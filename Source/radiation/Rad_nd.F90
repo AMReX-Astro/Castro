@@ -9,6 +9,116 @@ module rad_nd_module
 
 contains
 
+  subroutine ca_compute_etat(lo, hi, &
+                             etaT, etaT_lo, etaT_hi, &
+                             etTz, etTz_lo, etTz_hi, &
+                             eta1, eta1_lo, eta1_hi, &
+                             djdT, djdT_lo, djdT_hi, &
+                             dkdT, dkdT_lo, dkdT_hi, &
+                             dedT, dedT_lo, dedT_hi, &
+                             Ers, Ers_lo, Ers_hi, &
+                             rho, rho_lo, rho_hi, &
+                             dt, tau) &
+                             bind(C, name='ca_compute_etat')
+
+    use rad_params_module, only: ngroups, clight
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: etaT_lo(3), etaT_hi(3)
+    integer,  intent(in   ) :: etTz_lo(3), etTz_hi(3)
+    integer,  intent(in   ) :: eta1_lo(3), eta1_hi(3)
+    integer,  intent(in   ) :: djdT_lo(3), djdT_hi(3)
+    integer,  intent(in   ) :: dkdT_lo(3), dkdT_hi(3)
+    integer,  intent(in   ) :: dedT_lo(3), dedT_hi(3)
+    integer,  intent(in   ) :: Ers_lo(3), Ers_hi(3)
+    integer,  intent(in   ) :: rho_lo(3), rho_hi(3)
+    real(rt), intent(inout) :: etaT(etaT_lo(1):etaT_hi(1),etaT_lo(2):etaT_hi(2),etaT_lo(3):etaT_hi(3))
+    real(rt), intent(inout) :: etTz(etTz_lo(1):etTz_hi(1),etTz_lo(2):etTz_hi(2),etTz_lo(3):etTz_hi(3))
+    real(rt), intent(inout) :: eta1(eta1_lo(1):eta1_hi(1),eta1_lo(2):eta1_hi(2),eta1_lo(3):eta1_hi(3))
+    real(rt), intent(inout) :: djdT(djdT_lo(1):djdT_hi(1),djdT_lo(2):djdT_hi(2),djdT_lo(3):djdT_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: dkdT(dkdT_lo(1):dkdT_hi(1),dkdT_lo(2):dkdT_hi(2),dkdT_lo(3):dkdT_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: dedT(dedT_lo(1):dedT_hi(1),dedT_lo(2):dedT_hi(2),dedT_lo(3):dedT_hi(3))
+    real(rt), intent(in   ) :: Ers(Ers_lo(1):Ers_hi(1),Ers_lo(2):Ers_hi(2),Ers_lo(3):Ers_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: rho(rho_lo(1):rho_hi(1),rho_lo(2):rho_hi(2),rho_lo(3):rho_hi(3))
+    real(rt), intent(in   ), value :: dt, tau
+
+    integer  :: i, j, k
+    real(rt) :: cdt, sigma
+    real(rt) :: dZdT(0:ngroups-1), sumdZdT, foo, bar
+
+    !$gpu
+
+    sigma = 1.e0_rt + tau
+    cdt = clight * dt
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             dZdT = djdT(i,j,k,:) - dkdT(i,j,k,:) * Ers(i,j,k,:)
+             sumdZdT = sum(dZdT)
+             if (sumdZdT .eq. 0.e0_rt) then
+                sumdZdT = 1.e-50_rt
+             end if
+
+             foo = cdt * sumdZdT
+             bar = sigma * rho(i,j,k) * dedT(i,j,k)
+             etaT(i,j,k) = foo / (foo + bar)
+             etTz(i,j,k) = etaT(i,j,k) / sumdZdT
+             eta1(i,j,k) = bar / (foo + bar)
+             djdT(i,j,k,:) = dZdT / sumdZdT
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_compute_etat
+
+
+
+  subroutine ca_compute_coupt(lo, hi, &
+                              cpt, cpt_lo, cpt_hi, &
+                              kpp, kpp_lo, kpp_hi, &
+                              eg, eg_lo, eg_hi, &
+                              jg, jg_lo, jg_hi) &
+                              bind(C, name='ca_compute_coupt')
+
+    use rad_params_module, only: ngroups
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: cpt_lo(3), cpt_hi(3) 
+    integer,  intent(in   ) :: kpp_lo(3), kpp_hi(3) 
+    integer,  intent(in   ) :: eg_lo(3), eg_hi(3)
+    integer,  intent(in   ) :: jg_lo(3), jg_hi(3)
+    real(rt), intent(inout) :: cpt(cpt_lo(1):cpt_hi(1),cpt_lo(2):cpt_hi(2),cpt_lo(3):cpt_hi(3))
+    real(rt), intent(in   ) :: kpp(kpp_lo(1):kpp_hi(1),kpp_lo(2):kpp_hi(2),kpp_lo(3):kpp_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: eg( eg_lo(1): eg_hi(1), eg_lo(2): eg_hi(2), eg_lo(3): eg_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: jg( jg_lo(1): jg_hi(1), jg_lo(2): jg_hi(2), jg_lo(3): jg_hi(3),0:ngroups-1)
+
+    integer :: i, j, k, g
+
+    !$gpu
+
+    cpt(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = 0.e0_rt
+
+    do g = 0, ngroups-1
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                cpt(i,j,k) = cpt(i,j,k) + (kpp(i,j,k,g) * eg(i,j,k,g) - jg(i,j,k,g))
+             end do
+          end do
+       end do
+    end do
+
+  end subroutine ca_compute_coupt
+
+
+
   subroutine ca_check_conv(lo, hi, &
                            ren, ren_lo, ren_hi, &
                            res, res_lo, res_hi, &
