@@ -1,5 +1,9 @@
 # 20.02
 
+   * The option radiation.integrate_planck has been removed; it was only
+     used by one test. By default we always do the full integral of the
+     Planck function. (#740)
+
    * Most of the radiation test problems have been moved over to a new
      opacity directory, rad_power_law, and all of the parameters that
      controlled the behavior of the power law opacity have been moved

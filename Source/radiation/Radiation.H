@@ -640,8 +640,6 @@ public:
 ///
 /// </ Shestakov-Bolstad>
 ///
-  int integrate_Planck;
-
 
 ///
 /// @param relative_in
