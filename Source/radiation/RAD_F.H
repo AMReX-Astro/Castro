@@ -164,30 +164,37 @@ BL_FORT_PROC_DECL(CA_ACCEL_SPEC, ca_accel_spec)
     const BL_FORT_FAB_ARG(mugT),
     BL_FORT_FAB_ARG(spec), 
     const amrex::Real* dt, const amrex::Real* ptc_tau);
-BL_FORT_PROC_DECL(CA_CHECK_CONV, ca_check_conv)
-   (const int lo[], const int hi[],
-    const BL_FORT_FAB_ARG(rhoe_new),
-    const BL_FORT_FAB_ARG(rhoe_star),
-    const BL_FORT_FAB_ARG(rhoe_step),
-    const BL_FORT_FAB_ARG(Er_new),
-    const BL_FORT_FAB_ARG(temp_new),
-    const BL_FORT_FAB_ARG(temp_star),
-    const BL_FORT_FAB_ARG(rho),
-    const BL_FORT_FAB_ARG(kappa_p),
-    const BL_FORT_FAB_ARG(jg),
-    const BL_FORT_FAB_ARG(dedT),
-    amrex::Real* rel_rhoe, amrex::Real* abs_rhoe, 
-    amrex::Real* rel_FT  , amrex::Real* abs_FT, 
-    amrex::Real* rel_T   , amrex::Real* abs_T, 
-    const amrex::Real* delta_t);
-BL_FORT_PROC_DECL(CA_CHECK_CONV_ER, ca_check_conv_er)
-   (const int lo[], const int hi[],
-    const BL_FORT_FAB_ARG(Ern),
-    const BL_FORT_FAB_ARG(Erl),
-    const BL_FORT_FAB_ARG(kap),
-    const BL_FORT_FAB_ARG(etTz),
-    const BL_FORT_FAB_ARG(temp),
-    amrex::Real* rel, amrex::Real* abs, amrex::Real *errr, const amrex::Real* dt);
+
+extern "C"
+{
+  void ca_check_conv
+   (const int* lo, const int* hi,
+    const BL_FORT_FAB_ARG_3D(rhoe_new),
+    const BL_FORT_FAB_ARG_3D(rhoe_star),
+    const BL_FORT_FAB_ARG_3D(rhoe_step),
+    const BL_FORT_FAB_ARG_3D(Er_new),
+    const BL_FORT_FAB_ARG_3D(temp_new),
+    const BL_FORT_FAB_ARG_3D(temp_star),
+    const BL_FORT_FAB_ARG_3D(rho),
+    const BL_FORT_FAB_ARG_3D(kappa_p),
+    const BL_FORT_FAB_ARG_3D(jg),
+    const BL_FORT_FAB_ARG_3D(dedT),
+    amrex::Real* rel_rhoe, amrex::Real* abs_rhoe,
+    amrex::Real* rel_FT, amrex::Real* abs_FT,
+    amrex::Real* rel_T, amrex::Real* abs_T,
+    amrex::Real delta_t);
+
+  void ca_check_conv_er
+   (const int* lo, const int* hi,
+    const BL_FORT_FAB_ARG_3D(Ern),
+    const BL_FORT_FAB_ARG_3D(Erl),
+    const BL_FORT_FAB_ARG_3D(kap),
+    const BL_FORT_FAB_ARG_3D(etTz),
+    const BL_FORT_FAB_ARG_3D(temp),
+    amrex::Real* rel, amrex::Real* abs, amrex::Real *errr,
+    amrex::Real dt);
+}
+
 BL_FORT_PROC_DECL(CA_COMPUTE_COUPT, ca_compute_coupt)
     (const int lo[], const int hi[],
      BL_FORT_FAB_ARG(coupt), 

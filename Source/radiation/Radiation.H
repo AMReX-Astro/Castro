@@ -669,7 +669,6 @@ public:
 /// @param theYz
 /// @param temp_new
 /// @param Ye_new
-/// @param grids
 /// @param delta_t
 ///
   void check_convergence_er(amrex::Real& relative_in, amrex::Real& absolute_in, amrex::Real& error_er,
@@ -678,7 +677,7 @@ public:
 			    const amrex::MultiFab& etaTz, const amrex::MultiFab& etaYz,
 			    const amrex::MultiFab& theTz, const amrex::MultiFab& theYz,
 			    const amrex::MultiFab& temp_new, const amrex::MultiFab& Ye_new,
-			    const amrex::BoxArray& grids, amrex::Real delta_t);
+			    amrex::Real delta_t);
 
 ///
 /// @param rhoe_new
@@ -701,11 +700,6 @@ public:
 /// @param abs_FT
 /// @param rel_T
 /// @param abs_T
-/// @param rel_FY
-/// @param abs_FY
-/// @param rel_Ye
-/// @param abs_Ye
-/// @param grids
 /// @param delta_t
 ///
   void check_convergence_matt(const amrex::MultiFab& rhoe_new, const amrex::MultiFab& rhoe_star,
@@ -718,9 +712,7 @@ public:
 			      amrex::Real& rel_rhoe, amrex::Real& abs_rhoe,
 			      amrex::Real& rel_FT,   amrex::Real& abs_FT,
 			      amrex::Real& rel_T,    amrex::Real& abs_T,
-			      amrex::Real& rel_FY,   amrex::Real& abs_FY,
-			      amrex::Real& rel_Ye,   amrex::Real& abs_Ye,
-			      const amrex::BoxArray& grids, amrex::Real delta_t);
+			      amrex::Real delta_t);
 
 ///
 /// @param coupT

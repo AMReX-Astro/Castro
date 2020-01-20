@@ -1,4 +1,3 @@
-
 module rad_nd_module
 
   use amrex_fort_module, only: rt => amrex_real
@@ -9,6 +8,161 @@ module rad_nd_module
   real(rt), parameter, private :: BIGKR = 1.e25_rt
 
 contains
+
+  subroutine ca_check_conv(lo, hi, &
+                           ren, ren_lo, ren_hi, &
+                           res, res_lo, res_hi, &
+                           re2, re2_lo, re2_hi, &
+                           ern, ern_lo, ern_hi, &
+                           Tmn, Tmn_lo, Tmn_hi, &
+                           Tms, Tms_lo, Tms_hi, &
+                           rho, rho_lo, rho_hi, &
+                           kap, kap_lo, kap_hi, &
+                           jg, jg_lo, jg_hi, &
+                           deT, deT_lo, deT_hi, &
+                           rel_re, abs_re, &
+                           rel_FT, abs_FT, &
+                           rel_T, abs_T, &
+                           dt) &
+                           bind(C, name='ca_check_conv')
+
+    use rad_params_module, only: ngroups, clight
+    use reduction_module, only: reduce_max
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: ren_lo(3), ren_hi(3)
+    integer,  intent(in   ) :: res_lo(3), res_hi(3)
+    integer,  intent(in   ) :: re2_lo(3), re2_hi(3)
+    integer,  intent(in   ) :: ern_lo(3), ern_hi(3)
+    integer,  intent(in   ) :: Tmn_lo(3), Tmn_hi(3)
+    integer,  intent(in   ) :: Tms_lo(3), Tms_hi(3)
+    integer,  intent(in   ) :: rho_lo(3), rho_hi(3)
+    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
+    integer,  intent(in   ) :: jg_lo(3), jg_hi(3)
+    integer,  intent(in   ) :: deT_lo(3), deT_hi(3)
+    real(rt), intent(in   ) :: ren(ren_lo(1):ren_hi(1),ren_lo(2):ren_hi(2),ren_lo(3):ren_hi(3))
+    real(rt), intent(in   ) :: res(res_lo(1):res_hi(1),res_lo(2):res_hi(2),res_lo(3):res_hi(3))
+    real(rt), intent(in   ) :: re2(re2_lo(1):re2_hi(1),re2_lo(2):re2_hi(2),re2_lo(3):re2_hi(3))
+    real(rt), intent(in   ) :: ern(ern_lo(1):ern_hi(1),ern_lo(2):ern_hi(2),ern_lo(3):ern_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: Tmn(Tmn_lo(1):Tmn_hi(1),Tmn_lo(2):Tmn_hi(2),Tmn_lo(3):Tmn_hi(3))
+    real(rt), intent(in   ) :: Tms(Tms_lo(1):Tms_hi(1),Tms_lo(2):Tms_hi(2),Tms_lo(3):Tms_hi(3))
+    real(rt), intent(in   ) :: rho(rho_lo(1):rho_hi(1),rho_lo(2):rho_hi(2),rho_lo(3):rho_hi(3))
+    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: jg(jg_lo(1):jg_hi(1),jg_lo(2):jg_hi(2),jg_lo(3):jg_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: deT(deT_lo(1):deT_hi(1),deT_lo(2):deT_hi(2),deT_lo(3):deT_hi(3))
+    real(rt), intent(inout) :: rel_re, abs_re 
+    real(rt), intent(inout) :: rel_FT, abs_FT
+    real(rt), intent(inout) :: rel_T, abs_T
+    real(rt), intent(in   ), value :: dt
+
+    integer  :: i, j, k
+    real(rt) :: chg, relchg, FT, cdt, FTdenom, dTe
+
+    !$gpu
+
+    cdt = clight * dt
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             chg = abs(ren(i,j,k) - res(i,j,k))
+             relchg = abs(chg / (ren(i,j,k) + 1.e-50_rt))
+
+             call reduce_max(rel_re, relchg)
+             call reduce_max(abs_re, chg)
+
+             chg = abs(Tmn(i,j,k) - Tms(i,j,k))
+             relchg = abs(chg / (Tmn(i,j,k) + 1.e-50_rt))
+
+             call reduce_max(rel_T, relchg)
+             call reduce_max(abs_T, chg)
+
+             FT = abs((ren(i,j,k) - re2(i,j,k)) - cdt * sum(kap(i,j,k,:) * Ern(i,j,k,:) - jg(i,j,k,:)))
+
+             dTe = Tmn(i,j,k)
+             FTdenom = rho(i,j,k) * abs(deT(i,j,k) * dTe)
+             ! FTdenom = max(abs(ren(i,j,k) - re2(i,j,k)), abs(ren(i,j,k) * 1.e-15_rt))
+
+             call reduce_max(rel_FT, FT / (FTdenom + 1.e-50_rt))
+             call reduce_max(abs_FT, FT)
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_check_conv
+
+
+
+
+  subroutine ca_check_conv_er(lo, hi, &
+                              Ern, Ern_lo, Ern_hi, &
+                              Erl, Erl_lo, Erl_hi, &
+                              kap, kap_lo, kap_hi, &
+                              etTz, etTz_lo, etTz_hi, &
+                              temp, temp_lo, temp_hi, &
+                              rela, abso, errr, dt) &
+                              bind(C, name='ca_check_conv_er')
+
+    use rad_params_module, only: ngroups, clight
+    use reduction_module, only: reduce_max
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: Ern_lo(3), Ern_hi(3)
+    integer,  intent(in   ) :: Erl_lo(3), Erl_hi(3)
+    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
+    integer,  intent(in   ) :: temp_lo(3), temp_hi(3)
+    integer,  intent(in   ) :: etTz_lo(3), etTz_hi(3)
+    real(rt), intent(in   ) :: Ern(Ern_lo(1):Ern_hi(1),Ern_lo(2):Ern_hi(2),Ern_lo(3):Ern_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: Erl(Erl_lo(1):Erl_hi(1),Erl_lo(2):Erl_hi(2),Erl_lo(3):Erl_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: etTz(etTz_lo(1):etTz_hi(1),etTz_lo(2):etTz_hi(2),etTz_lo(3):etTz_hi(3))
+    real(rt), intent(in   ) :: temp(temp_lo(1):temp_hi(1),temp_lo(2):temp_hi(2),temp_lo(3):temp_hi(3))
+    real(rt), intent(inout) :: rela, abso, errr
+    real(rt), intent(in   ), value :: dt
+
+    integer  :: i, j, k, g
+    real(rt) :: chg, tot, cdt, der, kde, err_T, err
+
+    !$gpu
+
+    cdt = clight * dt
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             chg = 0.e0_rt
+             tot = 0.e0_rt
+             kde = 0.e0_rt
+
+             do g = 0, ngroups-1
+                der = Ern(i,j,k,g) - Erl(i,j,k,g)
+                chg = chg + abs(der)
+                tot = tot + abs(Ern(i,j,k,g))
+                kde = kde + kap(i,j,k,g) * der
+             end do
+
+             call reduce_max(abso, chg)
+             call reduce_max(rela, chg / (tot + 1.e-50_rt))
+
+             err_T =  etTz(i,j,k) * kde
+             err = abs(err_T / (temp(i,j,k) + 1.e-50_rt))
+
+             call reduce_max(errr, err)
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_check_conv_er
+
+
 
   subroutine ca_update_matter(lo, hi,  &
                               re_n, re_n_lo, re_n_hi, &

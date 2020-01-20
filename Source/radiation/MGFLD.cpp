@@ -16,7 +16,7 @@ void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_e
 				     const MultiFab& etaTz, const MultiFab& etaYz, 
 				     const MultiFab& theTz, const MultiFab& theYz,
 				     const MultiFab& temp_new, const MultiFab& Ye_new,
-				     const BoxArray& grids, Real delta_t)
+				     Real delta_t)
 {
   BL_PROFILE("Radiation::check_convergence_er (MGFLD)");
 
@@ -25,34 +25,23 @@ void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_e
   err_er = 0.0;
 
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(max:relative, absolute, err_er)
 #endif
-  {
-      Real priv_relative = 0.0;
-      Real priv_absolute = 0.0;
-      Real priv_err_er   = 0.0;
+  for (MFIter mfi(Er_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
 
-      for (MFIter mfi(Er_new,true); mfi.isValid(); ++mfi) {
-	  const Box& bx = mfi.tilebox();
-
-	  BL_FORT_PROC_CALL(CA_CHECK_CONV_ER, ca_check_conv_er)
-	      (bx.loVect(), bx.hiVect(),
-	       BL_TO_FORTRAN(Er_new[mfi]),
-	       BL_TO_FORTRAN(Er_pi[mfi]),
-	       BL_TO_FORTRAN(kappa_p[mfi]),
-	       BL_TO_FORTRAN(etaTz[mfi]),
-	       BL_TO_FORTRAN(temp_new[mfi]),
-	       &priv_relative, &priv_absolute, &priv_err_er, &delta_t);
-      }
-
-#ifdef _OPENMP
-#pragma omp critical(rad_check_conv_er)
-#endif
-      {
-	  relative = std::max(relative, priv_relative);
-	  absolute = std::max(absolute, priv_absolute);
-	  err_er   = std::max(err_er  , priv_err_er);
-      }
+#pragma gpu box(bx)
+      ca_check_conv_er
+          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           BL_TO_FORTRAN_ANYD(Er_new[mfi]),
+           BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
+           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
+           BL_TO_FORTRAN_ANYD(etaTz[mfi]),
+           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
+           AMREX_MFITER_REDUCE_MAX(&relative),
+           AMREX_MFITER_REDUCE_MAX(&absolute),
+           AMREX_MFITER_REDUCE_MAX(&err_er),
+           delta_t);
   }
 
   Real data[3] = {relative, absolute, err_er};
@@ -75,65 +64,46 @@ void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab&
 				       Real& rel_rhoe, Real& abs_rhoe, 
 				       Real& rel_FT,   Real& abs_FT, 
 				       Real& rel_T,    Real& abs_T, 
-				       Real& rel_FY,   Real& abs_FY, 
-				       Real& rel_Ye,   Real& abs_Ye,
-				       const BoxArray& grids, Real delta_t)
+				       Real delta_t)
 {
-  rel_rhoe = abs_rhoe = 0.0;
-  rel_FT   = abs_FT   = 0.0;
-  rel_T    = abs_T    = 0.0;
-  rel_FY   = abs_FY   = 0.0;
-  rel_Ye   = abs_Ye   = 0.0;
+  rel_rhoe = 0.0;
+  rel_FT   = 0.0;
+  rel_T    = 0.0;
+  abs_rhoe = 0.0;
+  abs_FT   = 0.0;
+  abs_T    = 0.0;
 
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(max:rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T)
 #endif
-  {
-      Real priv_rel_rhoe = 0.0;
-      Real priv_abs_rhoe = 0.0;
-      Real priv_rel_FT   = 0.0;
-      Real priv_abs_FT   = 0.0;
-      Real priv_rel_T    = 0.0;
-      Real priv_abs_T    = 0.0;
+  for (MFIter mfi(rhoe_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
 
-      for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
-	  const Box& bx = mfi.tilebox();
-
-	  BL_FORT_PROC_CALL(CA_CHECK_CONV, ca_check_conv)
-	      (bx.loVect(), bx.hiVect(),
-	       BL_TO_FORTRAN(rhoe_new[mfi]),
-	       BL_TO_FORTRAN(rhoe_star[mfi]),
-	       BL_TO_FORTRAN(rhoe_step[mfi]),
-	       BL_TO_FORTRAN(Er_new[mfi]),
-	       BL_TO_FORTRAN(temp_new[mfi]),
-	       BL_TO_FORTRAN(temp_star[mfi]),
-	       BL_TO_FORTRAN(rho[mfi]),
-	       BL_TO_FORTRAN(kappa_p[mfi]),
-	       BL_TO_FORTRAN(jg[mfi]),
-	       BL_TO_FORTRAN(dedT[mfi]),
-	       &priv_rel_rhoe, &priv_abs_rhoe, 
-	       &priv_rel_FT,   &priv_abs_FT, 
-	       &priv_rel_T,    &priv_abs_T, 
-	       &delta_t);
-      }
-
-#ifdef _OPENMP
-#pragma omp critical(rad_check_conv)
-#endif
-      {
-	  rel_rhoe = std::max(rel_rhoe, priv_rel_rhoe);  
-	  abs_rhoe = std::max(abs_rhoe, priv_abs_rhoe); 
-	  rel_FT   = std::max(rel_FT  , priv_rel_FT  ); 
-	  abs_FT   = std::max(abs_FT  , priv_abs_FT  ); 
-	  rel_T    = std::max(rel_T   , priv_rel_T   ); 
-	  abs_T    = std::max(abs_T   , priv_abs_T   ); 
-      }
+      ca_check_conv
+          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
+           BL_TO_FORTRAN_ANYD(rhoe_star[mfi]),
+           BL_TO_FORTRAN_ANYD(rhoe_step[mfi]),
+           BL_TO_FORTRAN_ANYD(Er_new[mfi]),
+           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
+           BL_TO_FORTRAN_ANYD(temp_star[mfi]),
+           BL_TO_FORTRAN_ANYD(rho[mfi]),
+           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
+           BL_TO_FORTRAN_ANYD(jg[mfi]),
+           BL_TO_FORTRAN_ANYD(dedT[mfi]),
+           AMREX_MFITER_REDUCE_MAX(&rel_rhoe),
+           AMREX_MFITER_REDUCE_MAX(&abs_rhoe),
+           AMREX_MFITER_REDUCE_MAX(&rel_FT),
+           AMREX_MFITER_REDUCE_MAX(&abs_FT),
+           AMREX_MFITER_REDUCE_MAX(&rel_T),
+           AMREX_MFITER_REDUCE_MAX(&abs_T),
+           delta_t);
   }
 
   int ndata = 6;
-  Real data[6 ] = {rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T};
+  Real data[6] = {rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T};
 
-  ParallelDescriptor::ReduceRealMax(data,ndata);
+  ParallelDescriptor::ReduceRealMax(data, ndata);
 
   rel_rhoe = data[0]; 
   abs_rhoe = data[1];

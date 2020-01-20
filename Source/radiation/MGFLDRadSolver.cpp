@@ -181,8 +181,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   Real relative_in, absolute_in, error_er;
   Real rel_rhoe, abs_rhoe;
-  Real rel_T, abs_T, rel_Ye, abs_Ye;
-  Real rel_FT, abs_FT, rel_FY, abs_FY;
+  Real rel_T, abs_T;
+  Real rel_FT, abs_FT;
 
   // point to flux_trial (or NULL) for appropriate levels
   FluxRegister* flux_in = (level < fine_level) ? flux_trial[level+1].get() : nullptr;
@@ -326,7 +326,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       // Check for convergence *before* acceleration step:
       check_convergence_er(relative_in, absolute_in, error_er, Er_new, Er_pi,
       			   kappa_p, etaTz, etaYz, thetaTz, thetaYz,
-			   temp_new, Ye_new, grids, delta_t);
+			   temp_new, Ye_new, delta_t);
 
       if (verbose >= 2) {
 	int oldprec = std::cout.precision(3);
@@ -442,8 +442,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 			   temp_new, temp_star, rhoYe_new, rhoYe_star, rhoYe_step, 
 			   rho, kappa_p, jg, dedT, dedY, 
 			   rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T,
-			   rel_FY, abs_FY, rel_Ye, abs_Ye,
-			   grids, delta_t);
+			   delta_t);
 
     Real relative_out, absolute_out;
 
@@ -461,12 +460,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       absolute_out = abs_T;
       break;
     default:
-      relative_out = (rel_T > rel_Ye) ? rel_T : rel_Ye;
+      relative_out = rel_T;
       if (conservative_update) {
 	//	relative_out = (relative_out > rel_rhoe) ? relative_out : rel_rhoe;
 	relative_out = (relative_out > rel_FT  ) ? relative_out : rel_FT;
       }
-      absolute_out = (abs_T > abs_Ye) ? abs_T : abs_Ye;      
+      absolute_out = abs_T;
     }
 
     if (verbose >= 2) {
