@@ -1,0 +1,8 @@
+rad_source.F90
+==============
+
+rad\_source\_module
+-------------------
+
+.. f:automodule:: rad_source_module
+

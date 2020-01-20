@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>RadBndry_2d.f90 &mdash; Castro  documentation</title>
+  <title>rad_source.F90 &mdash; Castro  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="RadBndry_3d.f90" href="RadBndry_3d_f.html" />
-    <link rel="prev" title="RadBndry_1d.f90" href="RadBndry_1d_f.html" /> 
+    <link rel="next" title="rad_util.F90" href="rad_util_f.html" />
+    <link rel="prev" title="rad_params.F90" href="rad_params_f.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -144,10 +144,7 @@
 <li class="toctree-l3"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_1d_f.html">RadBndry_1d.f90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">RadBndry_2d.f90</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#rbndry-subroutine">rbndry subroutine</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry_2d_f.html">RadBndry_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadBndry_3d_f.html">RadBndry_3d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadDerive_nd_f.html">RadDerive_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadHydro_nd_f.html">RadHydro_nd.F90</a></li>
@@ -166,7 +163,10 @@
 <li class="toctree-l3"><a class="reference internal" href="filter_f.html">filter.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fluxlimiter_f.html">fluxlimiter.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rad_params_f.html">rad_params.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rad_source_f.html">rad_source.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">rad_source.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/rad_source_module">rad_source_module</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="rad_util_f.html">rad_util.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="trace_ppm_rad_nd_f.html">trace_ppm_rad_nd.F90</a></li>
 </ul>
@@ -232,13 +232,13 @@
         
           <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
         
-      <li>RadBndry_2d.f90</li>
+      <li>rad_source.F90</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/RadBndry_2d_f.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/rad_source_f.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -251,40 +251,42 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="radbndry-2d-f90">
-<h1>RadBndry_2d.f90<a class="headerlink" href="#radbndry-2d-f90" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="rbndry-subroutine">
-<h2>rbndry subroutine<a class="headerlink" href="#rbndry-subroutine" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="rad-source-f90">
+<h1>rad_source.F90<a class="headerlink" href="#rad-source-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/rad_source_module">
+<span id="rad-source-module"></span><h2>rad_source_module<a class="headerlink" href="#f/rad_source_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/rad_source_module/ca_rad_source" title="f/rad_source_module/ca_rad_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_rad_source()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Needed modules</p>
+<ul class="simple">
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+</ul>
+<p class="rubric">Subroutines and functions</p>
 <dl class="subroutine">
-<dt id="f/_/rbndry">
-<em class="property">subroutine  </em><code class="descname">rbndry</code><span class="sig-paren">(</span><em>bf</em>, <em>b_l1</em>, <em>b_l2</em>, <em>b_l3</em>, <em>b_h1</em>, <em>b_h2</em>, <em>b_h3</em>, <em>e_____d_l1_e</em>, <em>d_l2</em>, <em>d_l3</em>, <em>d_h1</em>, <em>d_h2</em>, <em>d_h3</em>, <em>dx</em>, <em>xlo</em>, <em>t</em>, <em>dir</em>, <em>face</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/rbndry" title="Permalink to this definition">¶</a></dt>
+<dt id="f/rad_source_module/ca_rad_source">
+<em class="property">subroutine  </em><code class="descclassname">rad_source_module/</code><code class="descname">ca_rad_source</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>rhs</em>, <em>rhs_lo</em>, <em>rhs_hi</em>, <em>dx</em>, <em>dt</em>, <em>time</em>, <em>igroup</em><span class="sig-paren">)</span><a class="headerlink" href="#f/rad_source_module/ca_rad_source" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>bf</strong> (b_h1-b_l1+1,b_h2-b_l2+1,b_h3-b_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>b_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>b_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>b_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>b_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>b_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>b_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>e_____d_l1_e</strong></li>
-<li><strong>d_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>d_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>d_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>d_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>d_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: computational domain index</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhs</strong> (rhs_hi(1)-(rhs_lo(1))+1,rhs_hi(2)-(rhs_lo(2))+1,rhs_hi(3)-(rhs_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>rhs_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhs_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>xlo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>t</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: 0: x    1: y    2: z-direction</li>
-<li><strong>face</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: 0: low  1: high</li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>igroup</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
 </tr>
 </tbody>
@@ -302,10 +304,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="RadBndry_3d_f.html" class="btn btn-neutral float-right" title="RadBndry_3d.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="rad_util_f.html" class="btn btn-neutral float-right" title="rad_util.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="RadBndry_1d_f.html" class="btn btn-neutral float-left" title="RadBndry_1d.f90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="rad_params_f.html" class="btn btn-neutral float-left" title="rad_params.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
