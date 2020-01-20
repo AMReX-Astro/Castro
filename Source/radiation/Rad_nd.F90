@@ -1074,7 +1074,7 @@ contains
                                    T, T_lo, T_hi, &
                                    kap, kap_lo, kap_hi, &
                                    dkdT, dkdT_lo, dkdT_hi, &
-                                   pfc, use_WiensLaw, integrate_Planck, Tf) &
+                                   pfc, use_WiensLaw, Tf) &
                                    bind(C, name='ca_compute_emissivity')
 
     use amrex_fort_module, only: rt => amrex_real
@@ -1096,7 +1096,7 @@ contains
     real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
     real(rt), intent(in   ) :: dkdT(dkdT_lo(1):dkdT_hi(1),dkdT_lo(2):dkdT_hi(2),dkdT_lo(3):dkdT_hi(3),0:ngroups-1)
     real(rt), intent(in   ) :: pfc(0:ngroups-1)
-    integer,  intent(in   ), value :: use_WiensLaw, integrate_Planck
+    integer,  intent(in   ), value :: use_WiensLaw
     real(rt), intent(in   ), value :: Tf
 
     integer  :: i, j, k, g
@@ -1173,7 +1173,7 @@ contains
           end do
        end do
 
-    else if (integrate_Planck > 0) then
+    else
 
        xnu_full = xnu(0:ngroups)
        xnu_full(0) = 0.e0_rt
@@ -1199,41 +1199,6 @@ contains
 
                 end do
 
-             end do
-          end do
-       end do
-
-    else
-
-       cB = 8.e0_rt*pi*hplanck / clight**3
-       cdBdT = 8.e0_rt*pi*hplanck**2 / (kboltz*clight**3)
-
-       do g = 0, ngroups-1
-          nu = nugroup(g)
-          dnu = dnugroup(g)
-
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-                do i = lo(1), hi(1)
-
-                   Teff = max(T(i,j,k), 1.e-50_rt)
-                   nubar = hplanck * nu / (kboltz * Teff)
-                   if (nubar > 100.e0_rt) then
-                      Bg = 0.e0_rt
-                      dBdT = 0.e0_rt
-                   else if (nubar < 1.e-15_rt) then
-                      Bg = 0.e0_rt
-                      dBdT = 0.e0_rt           
-                   else
-                      expnubar = exp(nubar)
-                      Bg = cB * nu**3 / (expnubar - 1.e0_rt) * dnu
-                      dBdT = cdBdT * nu**4 / Teff**2 * expnubar / (expnubar - 1.e0_rt)**2 * dnu
-                   end if
-
-                   jg(i,j,k,g) = Bg * kap(i,j,k,g)
-                   djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
-
-                end do
              end do
           end do
        end do

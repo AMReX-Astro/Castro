@@ -271,7 +271,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
            BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
            BL_TO_FORTRAN_ANYD(dkdT[mfi]),
            PFcoef.dataPtr(), 
-           use_WiensLaw, integrate_Planck, Tf_Wien);
+           use_WiensLaw, Tf_Wien);
   }    
 
   if (ngrow == 0 && !lag_opac) {

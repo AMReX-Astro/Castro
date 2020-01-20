@@ -322,7 +322,7 @@ extern "C"
     const BL_FORT_FAB_ARG_3D(kappa_p),
     const BL_FORT_FAB_ARG_3D(dkdT),
     const amrex::Real* PFcoef, 
-    int use_WiensLaw, int integrate_Planck,
+    int use_WiensLaw,
     amrex::Real Tf);
 }
 

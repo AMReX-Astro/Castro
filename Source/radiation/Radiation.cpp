@@ -503,9 +503,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   underfac = 1.0;    pp.query("underfac", underfac);
 
-  integrate_Planck = 1;
-  pp.query("integrate_Planck", integrate_Planck);
-
   use_WiensLaw = 0;
   pp.query("use_WiensLaw", use_WiensLaw);
   Tf_Wien = -1.0;
