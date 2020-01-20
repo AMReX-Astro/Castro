@@ -248,7 +248,8 @@ contains
                        a, a_lo, a_hi, &
                        a_int, ai_lo, ai_hi, &
                        flatn, f_lo, f_hi, &
-                       al, ar, as_lo, as_hi, &
+                       al, al_lo, al_hi, &
+                       ar, ar_lo, ar_hi, &
                        domlo, domhi)
 
     use meth_params_module, only : NQ, QU, QV, QW, limit_fourth_order
@@ -260,15 +261,16 @@ contains
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: ai_lo(3), ai_hi(3)
-    integer, intent(in) :: as_lo(3), as_hi(3)
+    integer, intent(in) :: al_lo(3), al_hi(3)
+    integer, intent(in) :: ar_lo(3), ar_hi(3)
     integer, intent(in) :: lo(3), hi(3)
 
     real(rt), intent(in) :: a(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3), NQ)
     real(rt), intent(in) :: a_int(ai_lo(1):ai_hi(1), ai_lo(2):ai_hi(2), ai_lo(3):ai_hi(3))
     real(rt), intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
 
-    real(rt), intent(inout) :: al(as_lo(1):as_hi(1), as_lo(2):as_hi(2), as_lo(3):as_hi(3), NQ)
-    real(rt), intent(inout) :: ar(as_lo(1):as_hi(1), as_lo(2):as_hi(2), as_lo(3):as_hi(3), NQ)
+    real(rt), intent(inout) :: al(al_lo(1):al_hi(1), al_lo(2):al_hi(2), al_lo(3):al_hi(3), NQ)
+    real(rt), intent(inout) :: ar(ar_lo(1):ar_hi(1), ar_lo(2):ar_hi(2), ar_lo(3):ar_hi(3), NQ)
     integer, intent(in) :: domlo(3), domhi(3)
 
     ! local variables

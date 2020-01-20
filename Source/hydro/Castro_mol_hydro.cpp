@@ -187,6 +187,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Elixir elix_qp = qp.elixir();
 
             q_int.resize(nbx1, 1);
+            Elixir elix_qint = q_int.elixir();
+
+            q_avg.resize(ibx[idir], NQ);
+            Elixir elix_qavg = q_avg.elixir();
+
+            f_avg.resize(ibx[idir], NUM_STATE);
+            Elixir elix_favg = f_avg.elixir();
 
             int idir_f = idir + 1;
 
@@ -209,18 +216,45 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                         BL_TO_FORTRAN_ANYD(q[mfi]),
                         BL_TO_FORTRAN_ANYD(q_int),
                         BL_TO_FORTRAN_ANYD(flatn),
+                        BL_TO_FORTRAN_ANYD(qm),
+                        BL_TO_FORTRAN_ANYD(qp),
                         ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
             }
 
-            // get <q> and F(<q>) in the idir direction by solving the Riemann problem
+            // get the face-averaged state and flux, <q> and F(<q>),
+            // in the idir direction by solving the Riemann problem
             // operate on ibx[idir]
-            
+            riemann_state(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
+                          BL_TO_FORTRAN_ANYD(qm),
+                          BL_TO_FORTRAN_ANYD(qp), 1, 1,
+                          BL_TO_FORTRAN_ANYD(q_avg),
+                          BL_TO_FORTRAN_ANYD(qaux[mf]),
+                          idir_f, 0,
+                          ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
+            compute_flux_q(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
+                           BL_TO_FORTRAN_ANYD(q_avg),
+                           BL_TO_FORTRAN_ANYD(f_avg),
+                           idir_f);
+
+#ifdef DIFFUSION
             // add diffusive flux to F(<q>) if needed
             // operate on ibx[idir]
+            if (diffuse_temp == 1) {
+              int is_avg = 1;
+              add_diffusive_flux(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
+                                 BL_TO_FORTRAN_ANYD(q[mfi]), NQ, QTEMP+1,
+                                 BL_TO_FORTRAN_ANYD(q_avg),
+                                 BL_TO_FORTRAN_ANYD(f_avg),
+                                 ZFILL(dx), idir_f, is_avg);
+            }
+#endif
 
+#if AMREX_SPACEDIM == 1
+            // for 1-d, we are done here, so just copy f_avg to flux[0],
+            // since there is no face averaging
 
-            // for 1-d, we are done here
+#endif
 
 #if AMREX_SPACEDIM >= 2
             // construct the face-center interface states q_fc

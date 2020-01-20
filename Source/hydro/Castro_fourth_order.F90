@@ -208,60 +208,6 @@ contains
     ! x-interfaces
     !-------------------------------------------------------------------------
 
-    do n = 1, NQ
-       call fourth_interfaces(1, n, &
-                              q, q_lo, q_hi, &
-                              qint, q_lo, q_hi, &
-                              lo(:)-dg(:), [hi(1)+2, hi(2)+dg(2), hi(3)+dg(3)], &
-                              domlo, domhi)
-
-       call states(1, n, &
-                   q, q_lo, q_hi, &
-                   qint, q_lo, q_hi, &
-                   flatn, f_lo, f_hi, &
-                   qm, qp, q_lo, q_hi, &
-                   lo-dg, hi+dg, &
-                   domlo, domhi)
-
-    end do
-
-    ! this is where we would implement ppm_temp_fix
-
-    ! solve the Riemann problems to get the face-averaged interface
-    ! state and flux
-
-    ! get <q> and F(<q>) on the x interfaces
-    call riemann_state(qm, q_lo, q_hi, &
-                       qp, q_lo, q_hi, 1, 1, &
-                       q_avg, q_lo, q_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       1, &
-                       [lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
-                       [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                       domlo, domhi)
-
-    call compute_flux_q([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
-                        [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                        q_avg, q_lo, q_hi, &
-                        f_avg, q_lo, q_hi, &
-                        1)
-
-    if (do_hydro == 0) then
-       f_avg(:,:,:,:) = ZERO
-    end if
-
-#ifdef DIFFUSION
-    if (diffuse_temp == 1) then
-       is_avg = 1
-       call add_diffusive_flux([lo(1), lo(2)-dg(2), lo(3)-dg(3)], &
-                               [hi(1)+1, hi(2)+dg(2), hi(3)+dg(3)], &
-                               q, q_lo, q_hi, NQ, QTEMP, &
-                               q_avg, q_lo, q_hi, &
-                               f_avg, q_lo, q_hi, &
-                               dx, 1, is_avg)
-    end if
-#endif
-
     ! we now have the face-average interface states and fluxes evaluated with these
 
     ! Note: for 1-d, we are done
@@ -715,7 +661,8 @@ contains
                                 q, q_lo, q_hi, ncomp, temp_comp, &
                                 qint, qi_lo, qi_hi, &
                                 F, F_lo, F_hi, &
-                                dx, idir, is_avg)
+                                dx, idir, is_avg) bind(C, name="add_diffusive_flux")
+
     ! add the diffusive flux to the energy fluxes
     !
 
@@ -729,18 +676,18 @@ contains
     use network, only : nspec
     use castro_error_module, only : castro_error
 
-    integer, intent(in) :: idir
+    integer, intent(in), value :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qi_lo(3), qi_hi(3)
     integer, intent(in) :: F_lo(3), F_hi(3)
-    integer, intent(in) :: ncomp, temp_comp
+    integer, intent(in), value :: ncomp, temp_comp
 
     real(rt), intent(in) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), ncomp)
     real(rt), intent(in) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NQ)
     real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
     integer, intent(in) :: lo(3), hi(3)
     real(rt), intent(in) :: dx(3)
-    integer, intent(in) :: is_avg
+    integer, intent(in), value :: is_avg
 
     integer :: i, j, k
 
