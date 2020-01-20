@@ -1,16 +1,6 @@
 MGFLD_3d.f90
 ============
 
-ca\_compute\_rhs subroutine
----------------------------
-
-.. f:autosubroutine:: ca_compute_rhs
-
-ca\_compute\_rhs\_so subroutine
--------------------------------
-
-.. f:autosubroutine:: ca_compute_rhs_so
-
 ca\_state\_update subroutine
 ----------------------------
 
