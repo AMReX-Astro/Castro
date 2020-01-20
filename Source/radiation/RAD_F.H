@@ -204,7 +204,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(jg));
 
   void ca_compute_etat
-    (const int* lo, const int *hi, 
+    (const int* lo, const int* hi, 
      BL_FORT_FAB_ARG_3D(etat), 
      BL_FORT_FAB_ARG_3D(etaTz), 
      BL_FORT_FAB_ARG_3D(eta1), 
@@ -216,18 +216,24 @@ extern "C"
      amrex::Real delta_t, amrex::Real tau);
 
   void ca_compute_rhs
-   (const int* lo, const int *hi, 
-    BL_FORT_FAB_ARG(rhs),
-    const BL_FORT_FAB_ARG(jg),
-    const BL_FORT_FAB_ARG(mugT),
-    const BL_FORT_FAB_ARG(coupT),
-    const BL_FORT_FAB_ARG(etaT),
-    const BL_FORT_FAB_ARG(Er_step),
-    const BL_FORT_FAB_ARG(rhoe_step),
-    const BL_FORT_FAB_ARG(Er_star),
-    const BL_FORT_FAB_ARG(rhoe_star),    
-    const amrex::Real* r,
-    const amrex::Real* dt, const int* igroup, const amrex::Real* ptc_tau);
+    (const int* lo, const int* hi, 
+     BL_FORT_FAB_ARG_3D(rhs),
+     const BL_FORT_FAB_ARG_3D(jg),
+     const BL_FORT_FAB_ARG_3D(mugT),
+     const BL_FORT_FAB_ARG_3D(coupT),
+     const BL_FORT_FAB_ARG_3D(etaT),
+     const BL_FORT_FAB_ARG_3D(Er_step),
+     const BL_FORT_FAB_ARG_3D(rhoe_step),
+     const BL_FORT_FAB_ARG_3D(Er_star),
+     const BL_FORT_FAB_ARG_3D(rhoe_star),    
+     const amrex::Real* dx, amrex::Real dt,
+     int igroup, amrex::Real ptc_tau);
+
+  void ca_rad_source
+    (const int* lo, const int* hi, 
+     BL_FORT_FAB_ARG_3D(rhs),
+     const amrex::Real* dx, amrex::Real dt,
+     amrex::Real time, int igroup);
 
   void ca_local_accel
    (const int* lo, const int* hi,
@@ -332,31 +338,10 @@ extern "C"
     amrex::Real Tf);
 }
 
-#ifdef MG_SU_OLSON
-#ifdef __cplusplus
-extern "C" {
-#endif
-  void ca_compute_rhs_so
-   (const int* lo, const int *hi, 
-    BL_FORT_FAB_ARG(rhs),
-    const BL_FORT_FAB_ARG(jg),
-    const BL_FORT_FAB_ARG(mugT),
-    const BL_FORT_FAB_ARG(coupT),
-    const BL_FORT_FAB_ARG(etaT),
-    const BL_FORT_FAB_ARG(Er_step),
-    const BL_FORT_FAB_ARG(rhoe_step),
-    const BL_FORT_FAB_ARG(rhoe_star),    
-    const amrex::Real* x,
-    const amrex::Real* t, const amrex::Real* dt, const int* igroup);
-#ifdef __cplusplus
-}
-#endif
-#endif
-
 extern "C"
 {
   void ca_accel_ccoe
-   (const int* lo, const int *hi, 
+   (const int* lo, const int* hi, 
     const BL_FORT_FAB_ARG_3D(bcgr),
     const BL_FORT_FAB_ARG_3D(spec),
     BL_FORT_FAB_ARG_3D(ccoe),

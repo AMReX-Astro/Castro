@@ -9,6 +9,76 @@ module rad_nd_module
 
 contains
 
+  subroutine ca_compute_rhs(lo, hi, &
+                            rhs, rhs_lo, rhs_hi, &
+                            jg, jg_lo, jg_hi, &
+                            mugT, mugT_lo, mugT_hi, &
+                            cpT, cpT_lo, cpT_hi, &
+                            etaT, etaT_lo, etaT_hi, &
+                            Er2, Er2_lo, Er2_hi, &
+                            re2, re2_lo, re2_hi, &
+                            Ers, Ers_lo, Ers_hi, &
+                            res, res_lo, res_hi, &
+                            dx, dt, igroup, tau) &
+                            bind(C, name="ca_compute_rhs")
+
+    use rad_params_module, only: ngroups, clight
+    use habec_nd_module, only: cell_center_metric
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3) 
+    integer,  intent(in   ) :: rhs_lo(3), rhs_hi(3)
+    integer,  intent(in   ) :: jg_lo(3), jg_hi(3)
+    integer,  intent(in   ) :: mugT_lo(3), mugT_hi(3)
+    integer,  intent(in   ) :: cpT_lo(3), cpT_hi(3)
+    integer,  intent(in   ) :: etaT_lo(3), etaT_hi(3)
+    integer,  intent(in   ) :: Er2_lo(3), Er2_hi(3)
+    integer,  intent(in   ) :: re2_lo(3), re2_hi(3)
+    integer,  intent(in   ) :: Ers_lo(3), Ers_hi(3)
+    integer,  intent(in   ) :: res_lo(3), res_hi(3)
+    real(rt), intent(inout) :: rhs(rhs_lo(1):rhs_hi(1),rhs_lo(2):rhs_hi(2),rhs_lo(3):rhs_hi(3))
+    real(rt), intent(in   ) :: jg (jg_lo(1):jg_hi(1),jg_lo(2):jg_hi(2),jg_lo(3):jg_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: mugT(mugT_lo(1):mugT_hi(1),mugT_lo(2):mugT_hi(2),mugT_lo(3):mugT_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: cpT(cpT_lo(1):cpT_hi(1),cpT_lo(2):cpT_hi(2),cpT_lo(3):cpT_hi(3))
+    real(rt), intent(in   ) :: etaT(etaT_lo(1):etaT_hi(1),etaT_lo(2):etaT_hi(2),etaT_lo(3):etaT_hi(3))
+    real(rt), intent(in   ) :: Er2(Er2_lo(1):Er2_hi(1),Er2_lo(2):Er2_hi(2),Er2_lo(3):Er2_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: re2(re2_lo(1):re2_hi(1),re2_lo(2):re2_hi(2),re2_lo(3):re2_hi(3))
+    real(rt), intent(in   ) :: Ers(Ers_lo(1):Ers_hi(1),Ers_lo(2):Ers_hi(2),Ers_lo(3):Ers_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: res(res_lo(1):res_hi(1),res_lo(2):res_hi(2),res_lo(3):res_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: dt, tau
+    integer,  intent(in   ), value :: igroup
+
+    integer  :: i, j, k
+    real(rt) :: Hg, dt1, r, s
+
+    !$gpu
+
+    dt1 = 1.e0_rt / dt
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             Hg = mugT(i,j,k,igroup) * etaT(i,j,k)
+
+             rhs(i,j,k) = clight * (jg(i,j,k,igroup) + Hg * cpT(i,j,k))  &
+                          + dt1 * (Er2(i,j,k,igroup) - Hg * (res(i,j,k) - re2(i,j,k)) &
+                          + tau * Ers(i,j,k,igroup))
+
+             call cell_center_metric(i, j, k, dx, r, s)
+
+             rhs(i,j,k) = r * rhs(i,j,k)
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_compute_rhs
+
+
+
   subroutine ca_accel_acoe(lo, hi, &
                            eta1, eta1_lo, eta1_hi, &
                            spc, spc_lo, spc_hi, &
