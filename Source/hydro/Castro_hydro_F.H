@@ -462,51 +462,6 @@ extern "C"
 #endif
      const BL_FORT_FAB_ARG_3D(volume));
 
-  void ca_fourth_single_stage
-    (const int* lo, const int* hi,
-     const amrex::Real* time,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(statein),
-     BL_FORT_FAB_ARG_3D(stateout),
-     BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(q_bar),
-     BL_FORT_FAB_ARG_3D(qaux),
-     BL_FORT_FAB_ARG_3D(qaux_bar),
-     BL_FORT_FAB_ARG_3D(shk),
-     BL_FORT_FAB_ARG_3D(flatn),
-#ifdef DIFFUSION
-     BL_FORT_FAB_ARG_3D(T_Cc),
-#endif
-     const BL_FORT_FAB_ARG_3D(srcU),
-     BL_FORT_FAB_ARG_3D(update),
-     const amrex::Real* dx, const amrex::Real* dt,
-     BL_FORT_FAB_ARG_3D(flux1),
-#if AMREX_SPACEDIM >= 2
-     BL_FORT_FAB_ARG_3D(flux2),
-#endif
-#if AMREX_SPACEDIM >= 3
-     BL_FORT_FAB_ARG_3D(flux3),
-#endif
-     const BL_FORT_FAB_ARG_3D(area1),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(area2),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(area3),
-#endif
-     const BL_FORT_FAB_ARG_3D(qgdnx),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(qgdny),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(qgdnz),
-#endif
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(dloga),
-#endif
-     const BL_FORT_FAB_ARG_3D(volume),
-     const int&  verbose);
-
   void ca_mol_diffusive_flux
     (const int* lo, const int* hi,
      const int idir,

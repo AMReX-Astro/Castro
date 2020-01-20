@@ -337,7 +337,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               Real avisc_coeff = alpha * (difmag / 0.1);
 
-              avisc(lo, hi,
+              avisc(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
                     BL_TO_FORTRAN_ANYD(q_bar[mfi]),
                     BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
                     ZFILL(dx),
@@ -366,52 +366,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             }
 
             // store the Godunov state
+            ca_store_godunov_state(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                                   BL_TO_FORTRAN_ANYD(q_avg),
+                                   BL_TO_FORTRAN_ANYD(qe[idir]));
 
           }
 
-          ca_fourth_single_stage
-            (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), &time,
-             ARLIM_3D(domain_lo), ARLIM_3D(domain_hi),
-             BL_TO_FORTRAN_ANYD(statein),
-             BL_TO_FORTRAN_ANYD(stateout),
-             BL_TO_FORTRAN_ANYD(q[mfi]),
-             BL_TO_FORTRAN_ANYD(q_bar[mfi]),
-             BL_TO_FORTRAN_ANYD(qaux[mfi]),
-             BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
-             BL_TO_FORTRAN_ANYD(shk),
-             BL_TO_FORTRAN_ANYD(flatn),
-#ifdef DIFFUSION
-             BL_TO_FORTRAN_ANYD(T_cc[mfi]),
-#endif
-             BL_TO_FORTRAN_ANYD(source_in),
-             BL_TO_FORTRAN_ANYD(source_out),
-             ZFILL(dx), &dt,
-             BL_TO_FORTRAN_ANYD(flux[0]),
-#if AMREX_SPACEDIM >= 2
-             BL_TO_FORTRAN_ANYD(flux[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-             BL_TO_FORTRAN_ANYD(flux[2]),
-#endif
-             BL_TO_FORTRAN_ANYD(area[0][mfi]),
-#if AMREX_SPACEDIM >= 2
-             BL_TO_FORTRAN_ANYD(area[1][mfi]),
-#endif
-#if AMREX_SPACEDIM == 3
-             BL_TO_FORTRAN_ANYD(area[2][mfi]),
-#endif
-             BL_TO_FORTRAN_ANYD(qe[0]),
-#if AMREX_SPACEDIM >= 2
-             BL_TO_FORTRAN_ANYD(qe[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-             BL_TO_FORTRAN_ANYD(qe[2]),
-#endif
-#if AMREX_SPACEDIM < 3
-             BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
-#endif
-             BL_TO_FORTRAN_ANYD(volume[mfi]),
-             verbose);
 
         } else {
 #endif   // AMREX_USE_CUDA
