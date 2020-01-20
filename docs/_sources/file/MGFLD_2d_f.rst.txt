@@ -1,41 +1,6 @@
 MGFLD_2d.f90
 ============
 
-ca\_accel\_acoe subroutine
---------------------------
-
-.. f:autosubroutine:: ca_accel_acoe
-
-ca\_accel\_rhs subroutine
--------------------------
-
-.. f:autosubroutine:: ca_accel_rhs
-
-ca\_accel\_spec subroutine
---------------------------
-
-.. f:autosubroutine:: ca_accel_spec
-
-ca\_check\_conv subroutine
---------------------------
-
-.. f:autosubroutine:: ca_check_conv
-
-ca\_check\_conv\_er subroutine
-------------------------------
-
-.. f:autosubroutine:: ca_check_conv_er
-
-ca\_compute\_coupt subroutine
------------------------------
-
-.. f:autosubroutine:: ca_compute_coupt
-
-ca\_compute\_etat subroutine
-----------------------------
-
-.. f:autosubroutine:: ca_compute_etat
-
 ca\_compute\_rhs subroutine
 ---------------------------
 
@@ -46,11 +11,6 @@ ca\_compute\_rhs\_so subroutine
 
 .. f:autosubroutine:: ca_compute_rhs_so
 
-ca\_local\_accel subroutine
----------------------------
-
-.. f:autosubroutine:: ca_local_accel
-
 ca\_state\_update subroutine
 ----------------------------
 
@@ -60,11 +20,6 @@ ca\_ncupdate\_matter subroutine
 -------------------------------
 
 .. f:autosubroutine:: ca_ncupdate_matter
-
-ca\_accel\_ccoe subroutine
---------------------------
-
-.. f:autosubroutine:: ca_accel_ccoe
 
 ca\_flux\_face2center subroutine
 --------------------------------
