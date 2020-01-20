@@ -192,6 +192,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             q_avg.resize(ibx[idir], NQ);
             Elixir elix_qavg = q_avg.elixir();
 
+            q_fc.resize(nbx, NQ);
+            Elixir elix_qfc = q_fc.elixir();
+
             f_avg.resize(ibx[idir], NUM_STATE);
             Elixir elix_favg = f_avg.elixir();
 
@@ -250,14 +253,42 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             }
 #endif
 
+            // we now have the face-average interface states and
+            // fluxes evaluated with these
+
 #if AMREX_SPACEDIM == 1
             // for 1-d, we are done here, so just copy f_avg to flux[0],
             // since there is no face averaging
+            Array4<Real> const flux_arr = (flux[0]).array();
+            Array4<const Real> const f_avg_arr = f_avg.array();
+
+            AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
+                flux_arr(i,j,k,n) = f_avg_arr(i,j,k,n);});
 
 #endif
 
 #if AMREX_SPACEDIM >= 2
             // construct the face-center interface states q_fc
+            Array4<Real> const q_fc_arr = q_fc.array();
+            Array4<const Real> const q_avg_arr = q_avg.array();
+
+            AMREX_PARALLEL_FOR_4D(nbx, NQ, i, j, k, n, {
+                bool test = (n == QGAME) || (n == QGC) || (n == QTEMP);
+
+                if (test) continue;
+
+                Real lap = 0.0;
+                integer ncomp_f = n + 1;
+
+                trans_laplacian(i, j, k, ncomp_f
+                                idir_f,
+                                BL_TO_FORTRAN_ANYD(q_avg), NQ,
+                                lap,
+                                ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+
+                q_fc_arr(i,j,k,n) = q_avg_arr(i,j,k,n) - 1.0/24.0 * lap;
+
+              });
 
             // compute the face-center fluxes F(q_fc)
 
