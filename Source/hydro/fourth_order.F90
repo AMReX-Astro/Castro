@@ -11,11 +11,11 @@ module fourth_order
 
 contains
 
-  subroutine fourth_interfaces(idir, ncomp, &
-                               a, a_lo, a_hi, &
-                               a_int,  ai_lo, ai_hi, &
-                               lo, hi, &
-                               domlo, domhi)
+  subroutine ca_fourth_interfaces(lo, hi, &
+                                  idir, ncomp, &
+                                  a, a_lo, a_hi, &
+                                  a_int,  ai_lo, ai_hi, &
+                                  domlo, domhi) bind(C, name="ca_fourth_interfaces")
 
     ! this just computes the unlimited single-value interface state
     ! for the 4th order method.
@@ -28,7 +28,7 @@ contains
 
     implicit none
 
-    integer, intent(in) :: idir, ncomp
+    integer, intent(in), value :: idir, ncomp
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: ai_lo(3), ai_hi(3)
     integer, intent(in) :: lo(3), hi(3)
@@ -241,22 +241,22 @@ contains
 
     end if
 
-  end subroutine fourth_interfaces
+  end subroutine ca_fourth_interfaces
 
-  subroutine states(idir, ncomp, &
-                    a, a_lo, a_hi, &
-                    a_int, ai_lo, ai_hi, &
-                    flatn, f_lo, f_hi, &
-                    al, ar, as_lo, as_hi, &
-                    lo, hi, &
-                    domlo, domhi)
+  subroutine ca_states(lo, hi, &
+                       idir, ncomp, &
+                       a, a_lo, a_hi, &
+                       a_int, ai_lo, ai_hi, &
+                       flatn, f_lo, f_hi, &
+                       al, ar, as_lo, as_hi, &
+                       domlo, domhi)
 
     use meth_params_module, only : NQ, QU, QV, QW, limit_fourth_order
     use prob_params_module, only : Interior, Symmetry, Outflow, physbc_lo, physbc_hi
 
     implicit none
 
-    integer, intent(in) :: idir, ncomp
+    integer, intent(in), value :: idir, ncomp
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: ai_lo(3), ai_hi(3)
@@ -786,7 +786,7 @@ contains
 
     end if
 
-  end subroutine states
+  end subroutine ca_states
 
 
   ! Note: pretty much all of these routines below assume that dx(1) = dx(2) = dx(3)

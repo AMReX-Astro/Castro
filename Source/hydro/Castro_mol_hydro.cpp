@@ -180,21 +180,45 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             const Box& nbx = amrex::surroundingNodes(bx, idir);
             const Box& nbx1 = amrex::grow(nbx, 1);
 
-            qm.resize(nbx, NQ);
+            qm.resize(obx, NQ);
             Elixir elix_qm = qm.elixir();
 
-            qp.resize(nbx, NQ);
+            qp.resize(obx, NQ);
             Elixir elix_qp = qp.elixir();
 
             q_int.resize(nbx1, 1);
-            
-            // construct the interface states in the idir direction
 
-            // compute the limited interface states
+            int idir_f = idir + 1;
+
+            for (int n = 0; n < NQ; n++) {
+
+              int ncomp_f = n + 1;
+
+              // construct the interface states in the idir direction
+              // operate on nbx1
+              ca_fourth_interfaces(AMREX_INT_ANYD(nbx1.loVect()), AMREX_INT_ANYD(nbx1.hiVect()),
+                                   idir_f, ncomp_f,
+                                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                                   BL_TO_FORTRAN_ANYD(q_int),
+                                   ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+
+              // compute the limited interface states
+              // operate on obx -- this loop is over cell-centers
+              ca_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                        idir_f, ncomp_f,
+                        BL_TO_FORTRAN_ANYD(q[mfi]),
+                        BL_TO_FORTRAN_ANYD(q_int),
+                        BL_TO_FORTRAN_ANYD(flatn),
+                        ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+            }
 
             // get <q> and F(<q>) in the idir direction by solving the Riemann problem
+            // operate on ibx[idir]
+            
 
             // add diffusive flux to F(<q>) if needed
+            // operate on ibx[idir]
+
 
             // for 1-d, we are done here
 
