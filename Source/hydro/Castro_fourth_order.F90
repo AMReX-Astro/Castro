@@ -162,8 +162,8 @@ contains
     real(rt), pointer :: fly_avg(:,:,:,:)
     real(rt), pointer :: flz_avg(:,:,:,:)
 
-    real(rt), pointer :: qxm(:,:,:,:), qym(:,:,:,:), qzm(:,:,:,:)
-    real(rt), pointer :: qxp(:,:,:,:), qyp(:,:,:,:), qzp(:,:,:,:)
+    real(rt), pointer :: qm(:,:,:,:)
+    real(rt), pointer :: qp(:,:,:,:)
 
     real(rt), pointer :: qint(:,:,:)
 
@@ -210,17 +210,8 @@ contains
     call bl_allocate(flz_avg, q_lo, q_hi, NVAR)
 #endif
 
-    call bl_allocate(qxm, q_lo, q_hi, NQ)
-    call bl_allocate(qxp, q_lo, q_hi, NQ)
-
-#if AMREX_SPACEDIM >= 2
-    call bl_allocate(qym, q_lo, q_hi, NQ)
-    call bl_allocate(qyp, q_lo, q_hi, NQ)
-#endif
-#if AMREX_SPACEDIM == 3
-    call bl_allocate(qzm, q_lo, q_hi, NQ)
-    call bl_allocate(qzp, q_lo, q_hi, NQ)
-#endif
+    call bl_allocate(qm, q_lo, q_hi, NQ)
+    call bl_allocate(qp, q_lo, q_hi, NQ)
 
 #ifdef SHOCK_VAR
     ! We'll update the shock data for future use in the burning step.
@@ -241,8 +232,9 @@ contains
 
     call bl_allocate(qint, q_lo, q_hi)
 
+    ! x-interfaces
+
     do n = 1, NQ
-       ! x-interfaces
        call fourth_interfaces(1, n, &
                               q, q_lo, q_hi, &
                               qint, q_lo, q_hi, &
@@ -253,55 +245,20 @@ contains
                    q, q_lo, q_hi, &
                    qint, q_lo, q_hi, &
                    flatn, f_lo, f_hi, &
-                   qxm, qxp, q_lo, q_hi, &
+                   qm, qp, q_lo, q_hi, &
                    lo-dg, hi+dg, &
                    domlo, domhi)
-
-#if AMREX_SPACEDIM >= 2
-       ! y-interfaces
-       call fourth_interfaces(2, n, &
-                              q, q_lo, q_hi, &
-                              qint, q_lo, q_hi, &
-                              lo(:)-dg(:), [hi(1)+1, hi(2)+2, hi(3)+dg(3)], &
-                              domlo, domhi)
-
-       call states(2, n, &
-                   q, q_lo, q_hi, &
-                   qint, q_lo, q_hi, &
-                   flatn, f_lo, f_hi, &
-                   qym, qyp, q_lo, q_hi, &
-                   lo-dg, hi+dg, &
-                   domlo, domhi)
-#endif
-
-#if AMREX_SPACEDIM == 3
-       ! z-interfaces
-       call fourth_interfaces(3, n, &
-                              q, q_lo, q_hi, &
-                              qint, q_lo, q_hi, &
-                              lo(:)-dg(:), [hi(1)+1, hi(2)+1, hi(3)+2], &
-                              domlo, domhi)
-
-       call states(3, n, &
-                   q, q_lo, q_hi, &
-                   qint, q_lo, q_hi, &
-                   flatn, f_lo, f_hi, &
-                   qzm, qzp, q_lo, q_hi, &
-                   lo-dg, hi+dg, &
-                   domlo, domhi)
-#endif
 
     end do
 
     ! this is where we would implement ppm_temp_fix
 
-
-    ! solve the Riemann problems -- we just require the interface state
-    ! at this point
+    ! solve the Riemann problems to get the face-averaged interface
+    ! state and flux
 
     ! get <q> and F(<q>) on the x interfaces
-    call riemann_state(qxm, q_lo, q_hi, &
-                       qxp, q_lo, q_hi, 1, 1, &
+    call riemann_state(qm, q_lo, q_hi, &
+                       qp, q_lo, q_hi, 1, 1, &
                        qx_avg, q_lo, q_hi, &
                        qaux, qa_lo, qa_hi, &
                        1, &
@@ -331,10 +288,30 @@ contains
     end if
 #endif
 
+
 #if AMREX_SPACEDIM >= 2
+    ! y-interfaces
+
+    do n = 1, NQ
+       call fourth_interfaces(2, n, &
+                              q, q_lo, q_hi, &
+                              qint, q_lo, q_hi, &
+                              lo(:)-dg(:), [hi(1)+1, hi(2)+2, hi(3)+dg(3)], &
+                              domlo, domhi)
+
+       call states(2, n, &
+                   q, q_lo, q_hi, &
+                   qint, q_lo, q_hi, &
+                   flatn, f_lo, f_hi, &
+                   qm, qp, q_lo, q_hi, &
+                   lo-dg, hi+dg, &
+                   domlo, domhi)
+
+    end do
+
     ! get <q> and F(<q>) on the y interfaces
-    call riemann_state(qym, q_lo, q_hi, &
-                       qyp, q_lo, q_hi, 1, 1, &
+    call riemann_state(qm, q_lo, q_hi, &
+                       qp, q_lo, q_hi, 1, 1, &
                        qy_avg, q_lo, q_hi, &
                        qaux, qa_lo, qa_hi, &
                        2, &
@@ -363,12 +340,32 @@ contains
                                dx, 2, is_avg)
     end if
 #endif
+
 #endif
 
 #if AMREX_SPACEDIM == 3
+    ! z-interfaces
+
+    do n = 1, NQ
+       call fourth_interfaces(3, n, &
+                              q, q_lo, q_hi, &
+                              qint, q_lo, q_hi, &
+                              lo(:)-dg(:), [hi(1)+1, hi(2)+1, hi(3)+2], &
+                              domlo, domhi)
+
+       call states(3, n, &
+                   q, q_lo, q_hi, &
+                   qint, q_lo, q_hi, &
+                   flatn, f_lo, f_hi, &
+                   qm, qp, q_lo, q_hi, &
+                   lo-dg, hi+dg, &
+                   domlo, domhi)
+
+    end do
+
     ! get <q> and F(<q>) on the z interfaces
-    call riemann_state(qzm, q_lo, q_hi, &
-                       qzp, q_lo, q_hi, 1, 1, &
+    call riemann_state(qm, q_lo, q_hi, &
+                       qp, q_lo, q_hi, 1, 1, &
                        qz_avg, q_lo, q_hi, &
                        qaux, qa_lo, qa_hi, &
                        3, &
@@ -399,19 +396,8 @@ contains
 #endif
 #endif
 
-
-    call bl_deallocate(qxm)
-    call bl_deallocate(qxp)
-
-#if AMREX_SPACEDIM >= 2
-    call bl_deallocate(qym)
-    call bl_deallocate(qyp)
-#endif
-
-#if AMREX_SPACEDIM == 3
-    call bl_deallocate(qzm)
-    call bl_deallocate(qzp)
-#endif
+    call bl_deallocate(qm)
+    call bl_deallocate(qp)
 
     ! we now have the face-average interface states and fluxes evaluated with these
 

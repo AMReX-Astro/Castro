@@ -270,8 +270,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           }
 
-          // compute the fluxes, add artificial viscosity, and
-          // normalize species
+          // compute the fluxes and add artificial viscosity
 
           q_int.resize(obx, NQ);
           Elixir elix_q_int = q_int.elixir();
