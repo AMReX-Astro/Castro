@@ -77,6 +77,7 @@ void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab&
   for (MFIter mfi(rhoe_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
+#pragma gpu box(bx)
       ca_check_conv
           (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
            BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
@@ -226,7 +227,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       PFcoef[1] = 0.5;
 #endif
       ca_compute_emissivity
-          (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+          (AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
            BL_TO_FORTRAN_ANYD(jg[mfi]),  
            BL_TO_FORTRAN_ANYD(djdT[mfi]),  
            BL_TO_FORTRAN_ANYD(temp_new[mfi]),
@@ -347,7 +348,6 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 #endif
       for (MFIter mfi(spec, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 	  const Box&  bx  = mfi.nodaltilebox(idim);
-	  const Box& bbox = bcoefs[idim][mfi].box();
 
 #pragma gpu box(bx)
 	  lbcoefna(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -412,7 +412,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   for (MFIter mfi(spec, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& reg  = mfi.tilebox();
 
-#pragma gpu box(bx)
+#pragma gpu box(reg)
       ljupna(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
              BL_TO_FORTRAN_ANYD(Er_new[mfi]), 
 	     BL_TO_FORTRAN_ANYD(spec[mfi]),

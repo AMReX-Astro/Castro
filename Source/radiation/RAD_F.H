@@ -204,7 +204,7 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(jg));
 
   void ca_compute_etat
-    (const int* lo, const int *hi, 
+    (const int* lo, const int* hi, 
      BL_FORT_FAB_ARG_3D(etat), 
      BL_FORT_FAB_ARG_3D(etaTz), 
      BL_FORT_FAB_ARG_3D(eta1), 
@@ -356,7 +356,7 @@ extern "C" {
 extern "C"
 {
   void ca_accel_ccoe
-   (const int* lo, const int *hi, 
+   (const int* lo, const int* hi, 
     const BL_FORT_FAB_ARG_3D(bcgr),
     const BL_FORT_FAB_ARG_3D(spec),
     BL_FORT_FAB_ARG_3D(ccoe),
