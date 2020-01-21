@@ -487,9 +487,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   n_bisect = 1000;
   pp.query("n_bisect", n_bisect);
   dedT_fac = 1.0;
-  dedY_fac = 1.0;
   pp.query("dedT_fac", dedT_fac);
-  pp.query("dedY_fac", dedY_fac);
 
   inner_convergence_check = 2;
   pp.query("inner_convergence_check", inner_convergence_check);
@@ -498,13 +496,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   pp.query("delta_e_rat_dt_tol", delta_e_rat_dt_tol);
   delta_T_rat_dt_tol = 100.0;
   pp.query("delta_T_rat_dt_tol", delta_T_rat_dt_tol);
-  delta_Ye_dt_tol = 100.0;
-  pp.query("delta_Ye_dt_tol", delta_Ye_dt_tol);
 
   underfac = 1.0;    pp.query("underfac", underfac);
-
-  integrate_Planck = 1;
-  pp.query("integrate_Planck", integrate_Planck);
 
   use_WiensLaw = 0;
   pp.query("use_WiensLaw", use_WiensLaw);
@@ -551,7 +544,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "maxInIter = " << maxInIter << std::endl;
     std::cout << "delta_e_rat_dt_tol = " << delta_e_rat_dt_tol << std::endl;
     std::cout << "delta_T_rat_dt_tol = " << delta_T_rat_dt_tol << std::endl;
-    std::cout << "delta_Ye_dt_tol    = " << delta_Ye_dt_tol    << std::endl;
     std::cout << "limiter  = " << limiter << std::endl;
     std::cout << "closure  = " << closure << std::endl;
     std::cout << "update_limiter   = " << update_limiter << std::endl;
@@ -634,7 +626,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   delta_e_rat_level.resize(levels, 0.0);
   delta_T_rat_level.resize(levels, 0.0);
-  delta_Ye_level.resize(   levels, 0.0);
 
   Density   = castro->Density;
   Xmom      = castro->Xmom;
@@ -754,9 +745,6 @@ void Radiation::restart(int level, const BoxArray& grids,
     if (aString.find("delta_e_rat") == 0) {
       is >> delta_e_rat_level[level];
     }
-    else if (aString.find("delta_Ye") == 0) {
-      is >> delta_Ye_level[level];
-    }
     else if (aString.find("delta_T_rat") == 0) {
       is >> delta_T_rat_level[level];
     }
@@ -815,9 +803,6 @@ void Radiation::checkPoint(int level,
     sprintf(buf, "delta_T_rat_level[%d]= ", level);
     DeltaString = buf;
     os << DeltaString << delta_T_rat_level[level] << '\n';
-    sprintf(buf, "delta_Ye_level[%d]= ", level);
-    DeltaString = buf;
-    os << DeltaString << delta_Ye_level[level] << '\n';
     os.precision(oldprec);
   }
 
@@ -2130,13 +2115,10 @@ void Radiation::EstTimeStep(Real & estdt, int level)
       nNeutrinoGroups[0] > 0) {
 //    Real derat = deltaEnergyRatMax(level);
     Real dTrat = deltaTRatMax(level);
-    Real dye   = deltaYeMax(level);
 
     //    Real fac = std::min(deltaEnergyTol() / (derat + 1.e-20),
     //		deltaTTol()      / (dTrat + 1.e-20));
-    //    fac = std::min(fac, deltaYeTol()     / (dye   + 1.e-20));
     Real fac = deltaTTol()  / (dTrat + 1.e-20);
-    fac = std::min(fac, deltaYeTol()     / (dye   + 1.e-20));
 
     Real estdt_rad = parent->dtLevel(level);
     estdt_rad *= fac;
