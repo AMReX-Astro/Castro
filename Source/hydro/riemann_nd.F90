@@ -52,7 +52,6 @@ contains
     use network, only: nspec, naux
     use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
 
     implicit none
 
@@ -136,7 +135,7 @@ contains
     use network, only: nspec, naux
     use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver
+    use meth_params_module, only : hybrid_riemann, riemann_solver
 
     implicit none
 
@@ -183,7 +182,6 @@ contains
 
     integer :: is_shock
     real(rt) :: cl, cr
-    type (eos_t) :: eos_state
 
     !$gpu
 
@@ -325,7 +323,6 @@ contains
 
     integer i, j, k
 
-    real(rt) :: cl, cr
     type (eos_t) :: eos_state
 
     logical :: compute_interface_gamma
@@ -481,7 +478,7 @@ contains
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
-    use meth_params_module, only : cg_maxiter, cg_tol, cg_blend, riemann_speed_limit
+    use meth_params_module, only : cg_maxiter, cg_tol, cg_blend
 #ifndef AMREX_USE_CUDA
     use riemann_util_module, only : pstar_bisection
 #endif
@@ -1036,9 +1033,6 @@ contains
              ! Compute fluxes, order as conserved state (not q)
              qint(i,j,k,iu) = u_adv
 
-             ! Enforce that the velocity should not exceed a given limit.
-             qint(i,j,k,iu) = min(abs(qint(i,j,k,iu)), riemann_speed_limit) * sign(ONE, qint(i,j,k,iu))
-
              ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
              qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(qint(i,j,k,QGAME) - ONE)
 
@@ -1089,7 +1083,7 @@ contains
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec, naux
-    use meth_params_module, only: T_guess, riemann_speed_limit
+    use meth_params_module, only: T_guess
 
     implicit none
 
@@ -1127,7 +1121,7 @@ contains
     real(rt) :: rstar, cstar, estar, pstar, ustar
     real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
     real(rt) :: sgnm, spin, spout, ushock, frac
-    real(rt) :: wsmall, csmall, qavg
+    real(rt) :: wsmall, csmall
     real(rt) :: cavg, gamcl, gamcr
 
 #ifdef RADIATION
@@ -1554,9 +1548,6 @@ contains
              u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
 
              qint(i,j,k,iu) = u_adv
-
-             ! Enforce that the velocity should not exceed a given limit.
-             qint(i,j,k,iu) = min(abs(qint(i,j,k,iu)), riemann_speed_limit) * sign(ONE, qint(i,j,k,iu))
 
              ! passively advected quantities
              do ipassive = 1, npassive

@@ -194,6 +194,10 @@ module probdata_module
 
   real(rt), allocatable :: center_fracx, center_fracy, center_fracz
 
+  ! Lagrange points
+
+  real(rt), allocatable :: L1(:), L2(:), L3(:)
+
   ! Bulk system motion
 
   real(rt), allocatable :: bulk_velx, bulk_vely, bulk_velz
@@ -209,6 +213,7 @@ module probdata_module
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: axis_1, axis_2, axis_3
   attributes(managed) :: center_fracx, center_fracy, center_fracz
+  attributes(managed) :: L1, L2, L3
   attributes(managed) :: bulk_velx, bulk_vely, bulk_velz
   attributes(managed) :: init
   attributes(managed) :: single_star

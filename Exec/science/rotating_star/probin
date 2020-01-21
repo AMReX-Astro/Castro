@@ -40,3 +40,15 @@
   sponge_timescale     = 1.d-3
 
 /
+
+
+&extern 
+
+  rtol_spec = 1.d-8
+  atol_spec = 1.d-8
+
+  retry_burn = F
+  abort_on_failure = F
+
+  jacobian = 2
+/

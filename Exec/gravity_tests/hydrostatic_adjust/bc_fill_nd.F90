@@ -156,6 +156,22 @@ contains
     real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
     real(rt), intent(in   ), value :: time
 
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
     call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine gravxfill
@@ -176,6 +192,22 @@ contains
     real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
     real(rt), intent(in   ), value :: time
 
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
+
     call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine gravyfill
@@ -195,6 +227,22 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
     real(rt), intent(in   ), value :: time
+
+    integer :: d
+    integer :: bc_temp(AMREX_SPACEDIM,2)
+
+    ! handle an external BC via extrapolation here 
+    bc_temp(:,:) = bc(:,:)
+
+    do d = 1, AMREX_SPACEDIM
+       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
+          bc_temp(d,1) = FOEXTRAP
+       end if
+
+       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
+          bc_temp(d,2) = FOEXTRAP
+       end if
+    end do
 
     call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
 

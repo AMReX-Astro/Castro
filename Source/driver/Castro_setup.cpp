@@ -173,15 +173,41 @@ Castro::variableSetUp ()
 
   BL_ASSERT(desc_lst.size() == 0);
 
-  // Get options, set phys_bc
+  // read the C++ parameters that are set in inputs and do other
+  // initializations (e.g., set phys_bc)
   read_params();
 
   // Initialize the runtime parameters for any of the external
-  // microphysics
+  // microphysics (these are the parameters that are in the &extern
+  // block of the probin file)
   extern_init();
 
   // Initialize the network
   network_init();
+
+
+  // some consistency checks on the parameters
+#ifdef REACTIONS
+  int abort_on_failure;
+  ca_get_abort_on_failure(&abort_on_failure);
+
+#ifdef TRUE_SDC
+  // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
+  if (use_retry) {
+    amrex::Warning("use_retry = 1 is not supported with true SDC.  Disabling");
+    use_retry = 0;
+  }
+  if (!abort_on_failure) {
+    amrex::Warning("abort_on_failure = F not supported with true SDC.  Resetting");
+   abort_on_failure = 1;
+   ca_set_abort_on_failure(&abort_on_failure);
+  }
+#else
+  if (!use_retry && !abort_on_failure) {
+    amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
+  }
+#endif
+#endif
 
 #ifdef REACTIONS
   // Initialize the burner
@@ -375,7 +401,7 @@ Castro::variableSetUp ()
 			 store_in_checkpoint);
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
 			 StateDescriptor::Point, 1, 1,
@@ -508,11 +534,11 @@ Castro::variableSetUp ()
     Vector<int> int_spec_names(len);
     // This call return the actual length of each string in "len"
     ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
-    char char_spec_names[len+1];
+    Vector<char> char_spec_names(len+1);
     for (int j = 0; j < len; j++)
       char_spec_names[j] = int_spec_names[j];
     char_spec_names[len] = '\0';
-    spec_names.push_back(std::string(char_spec_names));
+    spec_names.push_back(std::string(char_spec_names.data()));
   }
 
   if ( ParallelDescriptor::IOProcessor())
@@ -580,7 +606,7 @@ Castro::variableSetUp ()
 
 
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   set_scalar_bc(bc,phys_bc);
   desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,BndryFunc(ca_phigravfill));
   set_x_vel_bc(bc,phys_bc);
@@ -791,7 +817,7 @@ Castro::variableSetUp ()
   //
   // Gravitational forcing
   //
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   //    derive_lst.add("rhog",IndexType::TheCellType(),1,
   //                   BL_FORT_PROC_CALL(CA_RHOG,ca_rhog),the_same_box);
   //    derive_lst.addComponent("rhog",desc_lst,State_Type,Density,1);
@@ -936,7 +962,7 @@ Castro::variableSetUp ()
   derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Density,1);
   derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Xmom,3);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
   derive_lst.add("maggrav",IndexType::TheCellType(),1,ca_dermaggrav,the_same_box);
   derive_lst.addComponent("maggrav",desc_lst,Gravity_Type,0,3);
 #endif
@@ -1194,7 +1220,7 @@ Castro::variableSetUp ()
 #endif
 
 
-
+#ifdef TRUE_SDC
   if (sdc_quadrature == 0) {
     // Gauss-Lobatto
 
@@ -1253,4 +1279,6 @@ Castro::variableSetUp ()
   } else {
     amrex::Error("invalid value of sdc_quadrature");
   }
+#endif
+
 }

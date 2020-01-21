@@ -64,9 +64,6 @@ castro.init_shrink = 0.01
 # Factor by which dt is allowed to change each timestep
 castro.change_max = 1.05
 
-# Whether to abort a simulation if the CFL criterion is locally violated
-castro.hard_cfl_limit = 0
-
 # If we regrid on Level 0, compute a new timestep afterward
 amr.compute_new_dt_on_regrid = 1
 
@@ -131,6 +128,7 @@ castro.do_sponge = 1
 
 # Whether or not to apply external source terms
 castro.add_ext_src = 0
+castro.ext_src_implicit = 1
 
 # Whether or not to include the rotation source term
 castro.do_rotation = 0

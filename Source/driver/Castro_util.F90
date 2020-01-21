@@ -369,7 +369,7 @@ contains
 #endif
 
                    ! Reset (e from e) if it's greater than eta * E.
-                   if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta2) then
+                   if (rho_eint .gt. ZERO .and. rho_eint .gt. dual_energy_eta2 * u(i,j,k,UEDEN) ) then
 
                       u(i,j,k,UEINT) = rho_eint
 
@@ -787,8 +787,8 @@ contains
 
        ! Get inner and outer radii
 
-       loc_l = position(i  ,j,k,ccx=.true.)
-       loc_r = position(i+1,j,k,ccx=.true.)
+       loc_l = position(i  ,j,k,ccx=.false.)
+       loc_r = position(i+1,j,k,ccx=.false.)
 
        if (dim .eq. 2) then
 
@@ -808,8 +808,8 @@ contains
 
        ! Get inner and outer radii
 
-       loc_l = position(i  ,j,k,ccx=.true.)
-       loc_r = position(i+1,j,k,ccx=.true.)
+       loc_l = position(i  ,j,k,ccx=.false.)
+       loc_r = position(i+1,j,k,ccx=.false.)
 
        if (dim .eq. 1) then
 

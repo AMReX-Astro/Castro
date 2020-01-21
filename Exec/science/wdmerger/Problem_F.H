@@ -70,12 +70,11 @@ extern "C"
   void get_omega_vec(const amrex::Real* omega, const amrex::Real time);
 
   void get_lagrange_points(const amrex::Real mass_1, const amrex::Real mass_2,
-	                   const amrex::Real* com_1, const amrex::Real* com_2,
-			   amrex::Real* L1, amrex::Real* L2, amrex::Real* L3);
+	                   const amrex::Real* com_1, const amrex::Real* com_2);
 
-  void get_critical_roche_potential(BL_FORT_FAB_ARG_3D(phieff),
-				    const int* lo, const int* hi,
-				    amrex::Real* L1, amrex::Real* potential);
+  void get_critical_roche_potential(const int* lo, const int* hi,
+                                    BL_FORT_FAB_ARG_3D(phieff),
+				    amrex::Real* potential);
 
   void transform_to_inertial_frame(BL_FORT_FAB_ARG_3D(state),
 				   const int* lo, const int* hi,
@@ -83,12 +82,12 @@ extern "C"
 
   void get_relaxation_cutoff_time(amrex::Real* relaxation_cutoff_time);
 
-  void check_relaxation(BL_FORT_FAB_ARG_3D(state),
+  void check_relaxation(const int* lo, const int* hi,
+                        BL_FORT_FAB_ARG_3D(state),
 			BL_FORT_FAB_ARG_3D(phieff),
-			const int* lo, const int* hi,
-			const amrex::Real* potential, int* is_done);
+			const amrex::Real potential, amrex::Real* is_done);
 
-  void turn_off_relaxation(const amrex::Real* time);
+  void set_relaxation_damping_factor(const amrex::Real factor);
 
   void sum_force_on_stars(const int* lo, const int* hi,
                           BL_FORT_FAB_ARG_3D(force),

@@ -3,14 +3,13 @@ CASTRO_HOME ?= /path/to/Castro
 
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
-HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
 
 # system blas
 BLAS_LIBRARY ?= -lopenblas
 
 TOP := $(CASTRO_HOME)
 
-# default microphysics locations
+# the Castro microphysics locations
 EOS_HOME ?= $(TOP)/Microphysics/EOS
 NETWORK_HOME ?= $(TOP)/Microphysics/networks
 COND_HOME ?= $(TOP)/Microphysics/conductivity
@@ -24,13 +23,6 @@ NUMADV ?= 0
 
 # number of radiation groups
 NGROUPS ?= 1
-
-# neutrino radiation info -- for each species (up to 3) we specify the
-# number of groups
-N_NEUTRINO_SPECIES ?= 3
-N_NEUTRINO_GROUPS_1 ?= 1
-N_NEUTRINO_GROUPS_2 ?= 1
-N_NEUTRINO_GROUPS_3 ?= 1
 
 # this can be turned off for unit tests, etc., and not
 # the entire Castro build
@@ -64,12 +56,6 @@ endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
   USERSuffix = .TRUESDC
-endif
-
-ifeq ($(USE_RAD), TRUE)
-  ifeq ($(USE_NEUTRINO), TRUE)
-    USERSuffix = .Neutrino
-  endif
 endif
 
 ifeq ($(USE_SYSTEM_BLAS), TRUE)
@@ -120,8 +106,8 @@ USE_MLMG = FALSE
 #------------------------------------------------------------------------------
 
 ifeq ($(USE_ALL_CASTRO), TRUE)
-  Bdirs := Source/driver Source/driver/param_includes \
-           Source/hydro Source/problems Source/sources \
+  Bdirs := Source/driver Source/hydro \
+           Source/problems Source/sources \
            Source/scf constants Util/model_parser Util/conservative_interpolate
 else
   Bdirs := constants
@@ -141,14 +127,6 @@ ifeq ($(USE_GRAV), TRUE)
   Bdirs += Source/gravity
   DEFINES += -DGRAVITY
   USE_MLMG = TRUE
-
-  ifndef USE_SELF_GRAV
-    USE_SELF_GRAV = TRUE
-  endif
-
-  ifeq ($(USE_SELF_GRAV), TRUE)
-    DEFINES += -DSELF_GRAVITY
-  endif
 endif
 
 ifeq ($(USE_GR), TRUE)
@@ -160,6 +138,11 @@ ifeq ($(USE_REACT), TRUE)
   DEFINES += -DREACTIONS
 
   ifeq ($(USE_TRUE_SDC), TRUE)
+    # we need the compositional derivatives for SDC
+    DEFINES += -DEXTRA_THERMO
+  endif
+
+  ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
   endif
@@ -216,22 +199,11 @@ ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRADIATION
   DEFINES += -DRAD_INTERP
   USE_HYPRE := TRUE
+  DEFINES += -DHYPRE
 
   DEFINES += -DNGROUPS=$(NGROUPS)
 
   EXTERN_CORE += $(TOP)/Util/LAPACK
-
-  ifeq ($(USE_NEUTRINO), TRUE)
-    DEFINES += -DNEUTRINO
-    DEFINES += -DN_NEUTRINO_SPECIES=$(N_NEUTRINO_SPECIES)
-    DEFINES += -DN_NEUTRINO_GROUPS_1=$(N_NEUTRINO_GROUPS_1)
-    DEFINES += -DN_NEUTRINO_GROUPS_2=$(N_NEUTRINO_GROUPS_2)
-    DEFINES += -DN_NEUTRINO_GROUPS_3=$(N_NEUTRINO_GROUPS_3)
-
-    ifeq ($(USE_DUMPMODEL), TRUE)
-      DEFINES += -DHAS_DUMPMODEL
-    endif
-  endif
 endif
 
 ifeq ($(USE_MAESTRO_INIT), TRUE)
@@ -363,6 +335,9 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif
 
 ifeq ($(USE_RAD), TRUE)
+   ifeq ($(Opacity_dir), null)
+     $(error The null opacity directory has been removed, please update to rad_power_law)
+   endif
    OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
    EXTERN_CORE += $(OPAC_PATH)
 endif
@@ -388,13 +363,9 @@ endif
 #------------------------------------------------------------------------------
 
 ifeq ($(USE_HYPRE), TRUE)
-  ifeq ($(USE_OMP), TRUE)
-    INCLUDE_LOCATIONS += $(HYPRE_OMP_DIR)/include
-    LIBRARY_LOCATIONS += $(HYPRE_OMP_DIR)/lib
-  else
-    INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
-    LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
-  endif
+  INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
+  LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
+
   LIBRARIES += -lHYPRE
 endif
 
@@ -427,7 +398,13 @@ INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
 
-#include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
+#------------------------------------------------------------------------------
+# make generated source files location
+#------------------------------------------------------------------------------
+CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
+VPATH_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
+INCLUDE_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
+
 
 #------------------------------------------------------------------------------
 # runtime parameters
@@ -446,10 +423,10 @@ endif
 
 EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
 
-
-extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
+$(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
-           -t $(EXTERN_TEMPLATE) -o extern.F90 -n extern \
+           -t $(EXTERN_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/extern.F90 -n extern \
            --pa "$(EXTERN_PARAMETERS)" --managed
 
 
@@ -466,26 +443,39 @@ endif
 PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
 PROB_PARAMETERS := ./_prob_params
 
-prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
+$(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(TOP)/Util/scripts/write_probdata.py \
-           -t $(PROB_PARAMS_TEMPLATE) -o prob_params_auto.F90 -p $(PROB_PARAMETERS)
+           -t $(PROB_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90 -p $(PROB_PARAMETERS)
+
+#------------------------------------------------------------------------------
+# Castro C++ parameters
+#------------------------------------------------------------------------------
+
+F90EXE_sources += meth_params.F90
+
+CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
+METH_PARAMS_TEMPLATE := $(TOP)/Source/driver/meth_params.template
+
+$(CASTRO_AUTO_SOURCE_DIR)/meth_params.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TEMPLATE)
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
+	$(TOP)/Source/driver/parse_castro_params.py -m $(METH_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
 
 #------------------------------------------------------------------------------
 # state variable info
 #-------------------------------------------------------------------------------
-set_conserved.H: set_indices.F90
+$(CASTRO_AUTO_SOURCE_DIR)/set_conserved.H: $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90
 	echo "set_conserved.H will be generated at the same time as set_indices.F90"
 
-state_sizes.f90: set_indices.F90
+$(CASTRO_AUTO_SOURCE_DIR)/state_sizes.f90: $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90
 	echo "state_sizes.f90 will be generated at the same time as set_indices.F90"
 
-set_indices.F90:
+$(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90:
 	$(CASTRO_HOME)/Source/driver/set_variables.py \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
            --ngroups $(NGROUPS) \
-           --n_neutrino_species $(N_NEUTRINO_SPECIES) \
-           --n_neutrino_groups "$(N_NEUTRINO_GROUPS_1) $(N_NEUTRINO_GROUPS_2) $(N_NEUTRINO_GROUPS_3)" \
+           --odir $(CASTRO_AUTO_SOURCE_DIR) \
            $(CASTRO_HOME)/Source/driver/_variables
 
 #------------------------------------------------------------------------------
@@ -554,18 +544,13 @@ endif
 clean::
 	$(SILENT) $(RM) extern.F90 prob_params_auto.F90
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
-
-# Older versions of CASTRO generated a "network.f90" file when using
-# the general_null network, which conflicts with our generalized
-# network.f90 file.  So we should delete the local copy if we are
-# trying to rebuild from an old directory.
-# The same is true for "extern.f90".
-
-clean::
-	$(RM) network.f90
-	$(RM) extern.f90
+	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
 	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
+
+# these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we 
+# can get rid of explicitly removing them (this is for backwards compatability)
+clean::
+	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 
 
 # for debugging.  To see the value of a Makefile variable,

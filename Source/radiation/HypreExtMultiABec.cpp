@@ -19,6 +19,8 @@ HypreExtMultiABec::~HypreExtMultiABec()
 
 void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::a2Coefficients");
+
   BL_ASSERT( a2.ok() );
 
   int ncomp=1;
@@ -42,6 +44,8 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
  
 void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::cCoefficients");
+
   BL_ASSERT( c.ok() );
 
   int ncomp=2; // coeffs are 2-sided for upwinding
@@ -65,6 +69,8 @@ void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 
 void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::d1Coefficients");
+
   BL_ASSERT( d1.ok() );
 
   int ncomp=1;
@@ -86,6 +92,8 @@ void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
  
 void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::d2Coefficients");
+
   BL_ASSERT( d2.ok() );
 
   int ncomp=1;
@@ -139,6 +147,8 @@ FaceValue(AuxVarBox& evalue, AuxVarBox& cintrp,
 
 void HypreExtMultiABec::loadMatrix()
 {
+  BL_PROFILE("HypreExtMultiABec::loadMatrix");
+
   HypreMultiABec::loadMatrix();
 
   if (0 && verbose >= 1 && ParallelDescriptor::IOProcessor()) {
@@ -198,43 +208,51 @@ void HypreExtMultiABec::loadMatrix()
       matfab.setVal(0.0);
       Real* mat = matfab.dataPtr();
 
+      Elixir mat_elix = matfab.elixir();
+
       // build matrix interior
 
       if (a2coefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          hma2c(mat, 
-		BL_TO_FORTRAN((*a2coefs[level])[idim][mfi]),
-		ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha2,
-		idim);
+#pragma gpu box(reg)
+            hma2c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                  BL_TO_FORTRAN_ANYD(matfab), 
+                  BL_TO_FORTRAN_ANYD((*a2coefs[level])[idim][mfi]),
+                  alpha2, idim);
         }
       }
 
       if (ccoefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          hmcc(mat, 
-	       BL_TO_FORTRAN((*ccoefs[level])[idim][mfi]), 
-	       ARLIM(reg.loVect()), ARLIM(reg.hiVect()), gamma,
-	       geom[level].CellSize(), idim);
+#pragma gpu box(reg)
+          hmcc(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+               BL_TO_FORTRAN_ANYD(matfab), 
+	       BL_TO_FORTRAN_ANYD((*ccoefs[level])[idim][mfi]), 
+	       gamma, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
         }
       }
 
       if (d1coefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          hmd1c(mat, 
-		BL_TO_FORTRAN((*d1coefs[level])[idim][mfi]),
-		ARLIM(reg.loVect()), ARLIM(reg.hiVect()), delta1,
-		geom[level].CellSize(), idim);
+#pragma gpu box(reg)
+          hmd1c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                BL_TO_FORTRAN_ANYD(matfab),
+		BL_TO_FORTRAN_ANYD((*d1coefs[level])[idim][mfi]),
+		delta1, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
         }
       }
 
       if (d2coefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          hmd2c(mat,
-		BL_TO_FORTRAN((*d2coefs[level])[idim][mfi]),
-		ARLIM(reg.loVect()), ARLIM(reg.hiVect()), delta2,
-		geom[level].CellSize(), idim);
+#pragma gpu box(reg)
+          hmd2c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                BL_TO_FORTRAN_ANYD(matfab),
+		BL_TO_FORTRAN_ANYD((*d2coefs[level])[idim][mfi]),
+		delta2, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
         }
       }
+
+      Gpu::streamSynchronize();
 
       // Boundary conditions will be corrected below.
 
@@ -250,6 +268,8 @@ void HypreExtMultiABec::loadMatrix()
                                           1, &stencil_indices[s], mat_tmp);
       }
     }
+
+    Gpu::streamSynchronize();
 
     // At this point we begin adding matrix entries for points around
     // the edges of the current level.  This now includes boundary
@@ -753,6 +773,8 @@ void HypreExtMultiABec::loadLevelVectors(int level,
                                          MultiFab& rhs, // will not be altered
                                          BC_Mode inhom)
 {
+  BL_PROFILE("HypreExtMultiABec::loadLevelVectors");
+
   loadLevelVectorX(level, dest, icomp);
   loadLevelVectorB(level, rhs, inhom);
 }
@@ -931,6 +953,8 @@ void HypreExtMultiABec::boundaryDterm(int level,
 				      MultiFab& Soln,
 				      int icomp)
 {
+  BL_PROFILE("HypreExtMultiABec::boundaryDterm");
+
   const Box& domain = bd[level]->getDomain();
 #ifdef _OPENMP
 #pragma omp parallel

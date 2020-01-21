@@ -14,7 +14,11 @@ outdir = "source/preprocessed_files"
 
 def strip_directives(filename, filepath, outpath):
     """
-    Read in file, remove all preprocessor directives and output
+    Read in file, remove all preprocessor directives and output.
+
+    This is also going to switch square brackets initializing arrays to 
+    parentheses and remove the new-line characters in these so sphinx 
+    fortran is happy.
     """
 
     # r = re.compile(r"(^#.*$\n)")
@@ -23,6 +27,10 @@ def strip_directives(filename, filepath, outpath):
         txt = infile.read()
 
         outtxt = re.sub(r"(^#.*$\n)", '', txt, flags=re.M)
+        # outtxt = re.sub(r"(dimension\s*\(.*\)\s*,)", '', outtxt)
+        outtxt = re.sub(r"(&\n)\s*", '', outtxt)
+        outtxt = re.sub(r"\[", r"(\\", outtxt)
+        outtxt = re.sub(r"\]", r'\\)', outtxt)
 
         with open(os.path.join(outpath, filename), 'w') as outfile:
             outfile.write(outtxt)

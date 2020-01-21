@@ -48,8 +48,6 @@ extern "C"
 
   void ctu_consup
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(Sborder),
-     const BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(shk),
      BL_FORT_FAB_ARG_3D(hydro_source),
      const BL_FORT_FAB_ARG_3D(flux0),
@@ -148,6 +146,16 @@ extern "C"
 #endif
 
   void limit_hydro_fluxes_on_small_dens
+    (const int* lo, const int* hi,
+     const int idir,
+     BL_FORT_FAB_ARG_3D(Sborder),
+     BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(volume),
+     BL_FORT_FAB_ARG_3D(flux),
+     BL_FORT_FAB_ARG_3D(area),
+     const amrex::Real dt, const amrex::Real* dx);
+
+  void limit_hydro_fluxes_on_large_vel
     (const int* lo, const int* hi,
      const int idir,
      BL_FORT_FAB_ARG_3D(Sborder),
@@ -464,6 +472,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(q_bar),
      BL_FORT_FAB_ARG_3D(qaux),
      BL_FORT_FAB_ARG_3D(qaux_bar),
+     BL_FORT_FAB_ARG_3D(shk),
+     BL_FORT_FAB_ARG_3D(flatn),
 #ifdef DIFFUSION
      BL_FORT_FAB_ARG_3D(T_Cc),
 #endif
@@ -477,15 +487,19 @@ extern "C"
 #if AMREX_SPACEDIM >= 3
      BL_FORT_FAB_ARG_3D(flux3),
 #endif
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(pradial),
-#endif
      const BL_FORT_FAB_ARG_3D(area1),
 #if AMREX_SPACEDIM >= 2
      const BL_FORT_FAB_ARG_3D(area2),
 #endif
 #if AMREX_SPACEDIM == 3
      const BL_FORT_FAB_ARG_3D(area3),
+#endif
+     const BL_FORT_FAB_ARG_3D(qgdnx),
+#if AMREX_SPACEDIM >= 2
+     const BL_FORT_FAB_ARG_3D(qgdny),
+#endif
+#if AMREX_SPACEDIM == 3
+     const BL_FORT_FAB_ARG_3D(qgdnz),
 #endif
 #if (BL_SPACEDIM < 3)
      BL_FORT_FAB_ARG_3D(dloga),

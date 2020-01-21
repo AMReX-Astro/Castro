@@ -13,33 +13,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer untin, i
-
-  namelist /fortin/ &
-       model_name, R_pert, pert_temp_factor, pert_rad_factor
-
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !
-  integer, parameter :: maxlen = 127
-  character probin*(maxlen)
-  character model*(maxlen)
-
-  if (namlen > maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-  R_pert = 4.4e8
-  pert_temp_factor = 10.0
-  pert_rad_factor = 2.0
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! read initial model
   call read_model_file(model_name)
@@ -156,54 +130,5 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      end do
   end do
 
-
-  ! add a perturbation
-  do k = lo(3), hi(3)
-     z = problo(3) + delta(3)*(dble(k) + HALF) - center(3)
-
-     do j = lo(2), hi(2)
-        y = problo(2) + delta(2)*(dble(j) + HALF) - center(2)
-
-        do i = lo(1), hi(1)
-           x = problo(1) + delta(1)*(dble(i) + HALF) - center(1)
-
-           t0 = state(i,j,k,UTEMP)
-
-           ! perturbation is on the vertical-axis
-#if AMREX_SPACEDIM == 1
-           r1 = sqrt( (x - R_pert)**2 ) / (2.5e6_rt*pert_rad_factor)
-#elif AMREX_SPACEDIM == 2
-           r1 = sqrt( x**2 + (y - R_pert)**2 ) / (2.5e6_rt*pert_rad_factor)
-#else
-           r1 = sqrt( x**2 + y**2 + (z - R_pert)**2 ) / (2.5e6_rt*pert_rad_factor)
-#endif
-
-           state(i,j,k,UTEMP) = t0 * (ONE + pert_temp_factor * &
-                (0.150e0_rt * (ONE + tanh(TWO - r1))))
-
-           state(i,j,k,UEINT) = state(i,j,k,UEINT) / state(i,j,k,URHO)
-
-           do n = 1,nspec
-              state(i,j,k,UFS+n-1) = state(i,j,k,UFS+n-1) / state(i,j,k,URHO)
-           end do
-
-           eos_state%rho = state(i,j,k,URHO)
-           eos_state%T = state(i,j,k,UTEMP)
-           eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
-
-           call eos(eos_input_rt, eos_state)
-
-           state(i,j,k,URHO) = eos_state%rho
-
-           state(i,j,k,UEINT) = eos_state%e * state(i,j,k,URHO)
-           state(i,j,k,UEDEN) = eos_state%e * state(i,j,k,URHO)
-
-           do n = 1,nspec
-              state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
-           end do
-
-        end do
-     end do
-  end do
 
 end subroutine ca_initdata

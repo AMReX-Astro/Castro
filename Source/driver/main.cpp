@@ -19,6 +19,10 @@
 #include <AMReX_ParallelDescriptor.H>
 #include <AMReX_AmrLevel.H>
 
+#ifdef HYPRE
+#include "_hypre_utilities.h"
+#endif
+
 #include <time.h>
 
 #ifdef HAS_DUMPMODEL
@@ -64,6 +68,11 @@ main (int   argc,
     if (!strchr(argv[1], '=')) {
 	inputs_name = argv[1];
     }
+
+#ifdef HYPRE
+    // Initialize Hypre.
+    HYPRE_Init(argc, argv);
+#endif
 
     BL_PROFILE_VAR("main()", pmain);
 
@@ -205,6 +214,10 @@ main (int   argc,
 		<< std::setw(2) << time_pointer->tm_mon + 1 << "-"
 		<< std::setw(2) << time_pointer->tm_mday << "." << std::endl;
 
+#ifdef HYPRE
+    HYPRE_Finalize();
+#endif
+
     delete amrptr;
     //
     // This MUST follow the above delete as ~Amr() may dump files to disk.
@@ -224,10 +237,6 @@ main (int   argc,
         std::cout << "Run time = " << runtime_total << std::endl;
         std::cout << "Run time without initialization = " << runtime_timestep << std::endl;
 
-	int nProcs = ParallelDescriptor::NProcs();
-#ifdef _OPENMP
-	nProcs *= omp_get_max_threads();
-#endif
 	fom = fom / runtime_timestep / 1.e6;
 
 	std::cout << "\n";

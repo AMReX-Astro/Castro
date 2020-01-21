@@ -6,7 +6,7 @@
 #include "Radiation.H"
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #include "Gravity.H"
 #endif
 
@@ -91,21 +91,17 @@ Castro::do_advance_ctu(Real time,
     // interface state, an explict source will be traced there as
     // needed.
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     construct_old_gravity(amr_iteration, amr_ncycle, prev_time);
 #endif
+
+    bool apply_sources_to_state = true;
 
     MultiFab& old_source = get_old_data(Source_Type);
 
     if (apply_sources()) {
 
-      do_old_sources(old_source, Sborder, prev_time, dt, amr_iteration, amr_ncycle);
-      apply_source_to_state(S_new, old_source, dt, 0);
-      clean_state(
-#ifdef MHD
-		      Bx_new, By_new, Bz_new,
-#endif 		      
-		      S_new, cur_time, 0);
+      do_old_sources(old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -135,12 +131,11 @@ Castro::do_advance_ctu(Real time,
       check_for_cfl_violation(dt);
 
       // If we detect one, return immediately.
-      if (cfl_violation && hard_cfl_limit)
+      if (cfl_violation)
           return false;
 
       construct_ctu_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
-      clean_state(S_new, cur_time, 0);
 #else
       just_the_mhd(time, dt);
 #endif      
@@ -163,14 +158,14 @@ Castro::do_advance_ctu(Real time,
     // if we are done with the update do the source correction and
     // then the second half of the reactions
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     // Must define new value of "center" before we call new gravity
     // solve or external source routine
     if (moving_center == 1)
       define_new_center(S_new, time);
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     // We need to make the new radial data now so that we can use it when we
     // FillPatch in creating the new source.
 
@@ -184,7 +179,7 @@ Castro::do_advance_ctu(Real time,
 
     // Construct and apply new-time source terms.
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     construct_new_gravity(amr_iteration, amr_ncycle, cur_time);
 #endif
 
@@ -192,13 +187,7 @@ Castro::do_advance_ctu(Real time,
 
     if (apply_sources()) {
 
-      do_new_sources(new_source, Sborder, S_new, cur_time, dt, amr_iteration, amr_ncycle);
-      apply_source_to_state(S_new, new_source, dt, 0);
-      clean_state(
-#ifdef MHD
-		  Bx_new, By_new, Bz_new,
-#endif		      
-		  S_new, cur_time, 0);
+      do_new_sources(new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
     } else {
 
@@ -267,7 +256,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dt_sub)
 #endif
-    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
         const Box& bx = mfi.tilebox();
 
@@ -309,9 +298,13 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
     // case, we end up saving a lot of timesteps relative to the potentially very
     // small timestep recommended by the above limiters.
 
-    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle) || !advance_success) {
-
+    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle))
         do_retry = true;
+
+    if (!advance_success)
+        do_retry = true;
+
+    if (do_retry) {
 
         dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
 
@@ -503,7 +496,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             swap_state_time_levels(0.0);
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
             if (do_grav) {
                 gravity->swapTimeLevels(level);
             }
@@ -594,8 +587,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         // If we have hit a CFL violation during this subcycle, we must abort.
 
-        if (cfl_violation && hard_cfl_limit && !use_retry)
-            amrex::Abort("CFL is too high at this level, and we are already inside a retry -- go back to a checkpoint and restart with lower cfl number");
+        if (cfl_violation && !use_retry)
+            amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number, or set castro.use_retry = 1");
 
         // If we're allowing for retries, check for that here.
 

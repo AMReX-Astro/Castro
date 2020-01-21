@@ -491,7 +491,7 @@ contains
                                    QPRES, &
                                    QTEMP, QFS, QFX, QREINT, QRHO, &
                                    first_order_hydro, difmag, hybrid_riemann, &
-                                   limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix
+                                   limit_fluxes_on_small_dens, ppm_type, ppm_temp_fix, do_hydro
     use amrex_constants_module, only : ZERO, HALF, ONE, FOURTH
     use amrex_fort_module, only : rt => amrex_real
 #ifdef HYBRID_MOMENTUM
@@ -578,21 +578,25 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 1
-                if (n == UMX) then
-                   update(i,j,k,UMX) = update(i,j,k,UMX) - ( q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES) ) / dx(1)
-                endif
+                if (do_hydro == 1) then
+                   if (n == UMX) then
+                      update(i,j,k,UMX) = update(i,j,k,UMX) - &
+                           ( q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES) ) / dx(1)
+                   end if
+                end if
 #endif
 
 #if AMREX_SPACEDIM == 2
-                if (n == UMX) then
-                   ! add the pressure source term for axisymmetry
-                   if (coord_type > 0) then
-                      update(i,j,k,n) = update(i,j,k,n) - (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES))/ dx(1)
-                   endif
-                endif
+                if (do_hydro == 1) then
+                   if (n == UMX) then
+                      ! add the pressure source term for axisymmetry
+                      if (coord_type > 0) then
+                         update(i,j,k,n) = update(i,j,k,n) - (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES))/ dx(1)
+                      end if
+                   end if
+                end if
 #endif
 
-                ! for storage
                 if (n <= NSRC) then
                    update(i,j,k,n) = update(i,j,k,n) + srcU(i,j,k,n)
                 end if

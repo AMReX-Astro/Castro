@@ -394,7 +394,7 @@ Castro::react_state(Real time, Real dt)
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:burn_failed)
 #endif
-    for (MFIter mfi(S_new, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
 	const Box& bx = mfi.growntilebox(ng);
@@ -451,6 +451,13 @@ Castro::react_state(Real time, Real dt)
 #endif
 
     }
+
+    // For the ca_check_timestep routine, we need to have both the old
+    // and new burn defined, so we simply do a copy here
+    MultiFab& R_old = get_old_data(Reactions_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
+    MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
+
 
     if (burn_success)
         return true;

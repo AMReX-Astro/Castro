@@ -1,11 +1,13 @@
 module probdata_module
 
-      use amrex_fort_module, only : rt => amrex_real
-      real(rt)         Pi
-      parameter (Pi=3.1415926535897932384e0_rt)
+  use amrex_fort_module, only : rt => amrex_real
 
-      real(rt)        , save :: rhocv, T0, Eexp, rexp
-      
-      real(rt)        , save :: xmin,xmax,ymin,ymax,zmin,zmax
+  real(rt), allocatable, save :: rhocv, T0, Eexp, rexp
+  real(rt), allocatable, save :: xmin, xmax, ymin, ymax, zmin, zmax
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: rhocv, T0, Eexp, rexp
+  attributes(managed) :: xmin, xmax, ymin, ymax, zmin, zmax
+#endif
 
 end module probdata_module

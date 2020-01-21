@@ -149,9 +149,9 @@
                  ! reasonable velocity. We'll arbitrarily apply the cap at some multiple of the larger
                  ! of the two stellar radii.
 
-                 if (state(i,j,k,URHO) < 1.1d0 * ambient_state % rho) then
+                 if (state(i,j,k,URHO) < 1.1e0_rt * ambient_state % rho) then
 
-                    cap_radius = 1.25d0 * max(model_P % radius + abs(center_P_initial(axis_1)), model_S % radius + abs(center_S_initial(axis_1)))
+                    cap_radius = 1.25e0_rt * max(model_P % radius + abs(center_P_initial(axis_1)), model_S % radius + abs(center_S_initial(axis_1)))
                     rot_loc(:) = min(cap_radius, abs(rot_loc(:))) * sign(ONE, rot_loc(:))
 
                  endif
