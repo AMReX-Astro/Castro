@@ -393,9 +393,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  idir_f,
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                  BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(volume[mfi]),
                  BL_TO_FORTRAN_ANYD(flux[idir]),
-                 BL_TO_FORTRAN_ANYD(area[idir][mfi]),
                  dt, AMREX_REAL_ANYD(dx));
             }
 
@@ -461,14 +459,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM == 1
                      BL_TO_FORTRAN_ANYD(qe[idir]),
 #endif
-<<<<<<< HEAD
-                       BL_TO_FORTRAN_ANYD(flux[idir]),
-                       idir + 1, dt);
-=======
                      BL_TO_FORTRAN_ANYD(flux[idir]),
-                     BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
->>>>>>> development
-
+                     idir + 1, dt);
 
           if (idir == 0) {
             // get the scaled radial pressure -- we need to treat this specially
