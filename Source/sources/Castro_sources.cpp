@@ -93,7 +93,11 @@ Castro::source_flag(int src)
 }
 
 void
-Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
+Castro::do_old_sources(
+#ifdef MHD
+		MultiFab& Bx, MultiFab& By, MultiFab& Bz,
+#endif		
+		MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
 {
 
     BL_PROFILE("Castro::do_old_sources()");
@@ -120,7 +124,11 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
         if (apply_sources_consecutively && apply_to_state) {
 
             apply_source_to_state(state_new, source, dt, 0);
-            clean_state(state_new, time + dt, 0);
+            clean_state(
+#ifdef MHD
+			    Bx, By, Bz,
+#endif			    
+			    state_new, time + dt, 0);
 
             // Zero out the source MultiFab for the next source term.
             // Also, log the sum of all source terms since we need
@@ -142,7 +150,11 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
             MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
         } else {
             apply_source_to_state(state_new, source, dt, 0);
-            clean_state(state_new, time, 0);
+            clean_state(
+#ifdef MHD
+			    Bx, By, Bz,
+#endif			    
+			    state_new, time, 0);
         }
 
     }
@@ -175,7 +187,11 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
 }
 
 void
-Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
+Castro::do_new_sources(
+#ifdef MHD
+		MultiFab& Bx, MultiFab& By, MultiFab& Bz,
+#endif		
+		MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
 {
 
     BL_PROFILE("Castro::do_new_sources()");
@@ -207,7 +223,11 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
             AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, source.nComp());
 
             apply_source_to_state(state_new, source, dt, 0);
-            clean_state(state_new, time, 0);
+            clean_state(
+#ifdef MHD
+			    Bx, By, Bz,
+#endif			    
+			    state_new, time, 0);
 
             // Zero out the source MultiFab for the next source term.
             // Also, log the sum of all source terms since we need
@@ -229,7 +249,11 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
             MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
         } else {
             apply_source_to_state(state_new, source, dt, 0);
-            clean_state(state_new, time, 0);
+            clean_state(
+#ifdef MHD
+			    Bx, By, Bz,
+#endif			    
+			    state_new, time, 0);
         }
 
     }

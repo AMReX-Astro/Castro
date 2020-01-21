@@ -548,7 +548,14 @@ public:
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_old_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+    void do_old_sources(
+#ifdef MHD
+                                amrex::MultiFab& Bx,
+                                amrex::MultiFab& By,
+                                amrex::MultiFab& Bz,
+#endif
+		    
+		    amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
                         amrex::Real time, amrex::Real dt, bool apply_to_state,
                         int amr_iteration = -1, int amr_ncycle = -1);
 
@@ -586,7 +593,14 @@ public:
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_new_sources(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
+    void do_new_sources(
+#ifdef MHD
+                                amrex::MultiFab& Bx,
+                                amrex::MultiFab& By,
+                                amrex::MultiFab& Bz,
+#endif
+	    
+		    amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new,
                         amrex::Real time, amrex::Real dt, bool apply_to_state,
                         int amr_iteration = -1, int amr_ncycle = -1);
 
