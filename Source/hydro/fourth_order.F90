@@ -921,7 +921,7 @@ contains
     end if
 #endif
 
-    lap = lapy + lapz
+    lap = lapx + lapy + lapz
 
   end subroutine trans_laplacian
 
