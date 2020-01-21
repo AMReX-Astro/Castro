@@ -462,6 +462,23 @@ extern "C"
 #endif
      const BL_FORT_FAB_ARG_3D(volume));
 
+  void ca_fourth_interfaces
+    (const int* lo, const int* hi,
+     const int idir, const int ncomp,
+     const BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(q_int),
+     const int* domlo, const int* domhi);
+
+  void ca_states
+    (const int* lo, const int* hi,
+     const int idir, const int ncomp,
+     const BL_FORT_FAB_ARG_3D(q),
+     const BL_FORT_FAB_ARG_3D(q_int),
+     const BL_FORT_FAB_ARG_3D(flatn),
+     BL_FORT_FAB_ARG_3D(qm),
+     BL_FORT_FAB_ARG_3D(qp),
+     const int* domlo, const int* domhi);
+
   void ca_mol_diffusive_flux
     (const int* lo, const int* hi,
      const int idir,
@@ -469,6 +486,52 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(cond),
      BL_FORT_FAB_ARG_3D(flux),
      const amrex::Real* dx);
+
+  void trans_laplacian
+    (const int i, const int j, const int k, const int n,
+     const int idir,
+     const BL_FORT_FAB_ARG_3D(q_avg), const int nq,
+     amrex::Real* lap,
+     const int* domlo, const int* domhi);
+
+  void avisc
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(q),
+     const BL_FORT_FAB_ARG_3D(qaux),
+     const amrex::Real* dx,
+     BL_FORT_FAB_ARG_3D(avis),
+     const int idir);
+
+  void riemann_state
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(qm),
+     const BL_FORT_FAB_ARG_3D(qp),
+     const int nc, const int comp,
+     BL_FORT_FAB_ARG_3D(qint),
+#ifdef RADIATION
+     BL_FORT_FAB_ARG_3D(lambda_int),
+#endif
+     const BL_FORT_FAB_ARG_3D(qaux),
+     const int idir, const int compute_gammas,
+     const int* domlo, const int* domhi);
+
+  void compute_flux_q
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(qint),
+     BL_FORT_FAB_ARG_3D(F),
+#ifdef RADIATION
+     const BL_FORT_FAB_ARG_3D(lambda),
+     BL_FORT_FAB_ARG_3D(rF),
+#endif
+     const int idir, const int enforce_eos);
+
+  void ca_store_godunov_state
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(qint),
+#ifdef RADIATION
+     const BL_FORT_FAB_ARG_3D(lambda),
+#endif
+     BL_FORT_FAB_ARG_3D(qgdnv));
 
 #ifndef AMREX_USE_CUDA
   void ca_sdc_update_advection_o2_lobatto

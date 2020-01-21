@@ -250,7 +250,7 @@ contains
                        flatn, f_lo, f_hi, &
                        al, al_lo, al_hi, &
                        ar, ar_lo, ar_hi, &
-                       domlo, domhi)
+                       domlo, domhi) bind(C, name="ca_states")
 
     use meth_params_module, only : NQ, QU, QV, QW, limit_fourth_order
     use prob_params_module, only : Interior, Symmetry, Outflow, physbc_lo, physbc_hi
@@ -859,7 +859,8 @@ contains
   subroutine trans_laplacian(i, j, k, n, &
                              idir, &
                              a, a_lo, a_hi, nc, &
-                             domlo, domhi)
+                             lap, &
+                             domlo, domhi) bind(C, name="trans_laplacian")
 
     use prob_params_module, only : physbc_lo, physbc_hi, Interior
     implicit none
@@ -922,7 +923,7 @@ contains
 
     lap = lapy + lapz
 
-  end function trans_laplacian
+  end subroutine trans_laplacian
 
 
   subroutine ca_make_cell_center(lo, hi, &

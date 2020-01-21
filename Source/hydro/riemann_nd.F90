@@ -207,7 +207,7 @@ contains
                            lambda_int, q_lo, q_hi, &
                            rflx, rflx_lo, rflx_hi, &
 #endif
-                           idir)
+                           idir, 0)
 
     elseif (riemann_solver == 2) then
        ! HLLC

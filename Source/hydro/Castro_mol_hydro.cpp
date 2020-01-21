@@ -55,6 +55,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     FArrayBox qm, qp;
     FArrayBox div;
     FArrayBox q_int;
+    FArrayBox q_avg;
+    FArrayBox q_fc;
+    FArrayBox f_avg;
     FArrayBox flux[AMREX_SPACEDIM];
     FArrayBox qe[AMREX_SPACEDIM];
 #if AMREX_SPACEDIM <= 2
@@ -76,8 +79,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 	// the output of this will be stored in the correct stage MF
 	FArrayBox &source_out = A_update[mfi];
-
-	FArrayBox& vol = volume[mfi];
 
         Real stage_weight = 1.0;
 
@@ -174,10 +175,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           const int* lo = bx.loVect();
           const int* hi = bx.hiVect();
 
-          amrex::Vector<Box, 3> ibx;
-          ibx[0] = amrex::grow(amrex::surroundingNodes(bx, 0), IntVect(0,1,1));
-          ibx[1] = amrex::grow(amrex::surroundingNodes(bx, 1), IntVect(1,0,1));
-          ibx[2] = amrex::grow(amrex::surroundingNodes(bx, 2), IntVect(1,1,0));
+          Box ibx[AMREX_SPACEDIM];
+          ibx[0] = amrex::grow(amrex::surroundingNodes(bx, 0), IntVect(AMREX_D_DECL(0,1,1)));
+#if AMREX_SPACEDIM >= 2
+          ibx[1] = amrex::grow(amrex::surroundingNodes(bx, 1), IntVect(AMREX_D_DECL(1,0,1)));
+#endif
+#if AMREX_SPACEDIM == 3
+          ibx[2] = amrex::grow(amrex::surroundingNodes(bx, 2), IntVect(AMREX_D_DECL(1,1,0)));
+#endif
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
             const Box& nbx = amrex::surroundingNodes(bx, idir);
@@ -234,14 +239,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                           BL_TO_FORTRAN_ANYD(qm),
                           BL_TO_FORTRAN_ANYD(qp), 1, 1,
                           BL_TO_FORTRAN_ANYD(q_avg),
-                          BL_TO_FORTRAN_ANYD(qaux[mf]),
+                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           idir_f, 0,
                           ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
             compute_flux_q(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
                            BL_TO_FORTRAN_ANYD(q_avg),
                            BL_TO_FORTRAN_ANYD(f_avg),
-                           idir_f);
+                           idir_f, 0);
 
 #ifdef DIFFUSION
             // add diffusive flux to F(<q>) if needed
@@ -281,12 +286,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 if (test) continue;
 
                 Real lap = 0.0;
-                integer ncomp_f = n + 1;
+                int ncomp_f = n + 1;
 
-                trans_laplacian(i, j, k, ncomp_f
+                trans_laplacian(i, j, k, ncomp_f,
                                 idir_f,
                                 BL_TO_FORTRAN_ANYD(q_avg), NQ,
-                                lap,
+                                &lap,
                                 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
                 q_fc_arr(i,j,k,n) = q_avg_arr(i,j,k,n) - 1.0/24.0 * lap;
@@ -297,7 +302,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             compute_flux_q(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                            BL_TO_FORTRAN_ANYD(q_fc),
                            BL_TO_FORTRAN_ANYD(flux[idir]),
-                           idir_f);
+                           idir_f, 0);
 
 #ifdef DIFFUSION
             if (diffuse_temp == 1) {
@@ -318,12 +323,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
 
                 Real lap = 0.0;
-                integer ncomp_f = n + 1;
+                int ncomp_f = n + 1;
 
-                trans_laplacian(i, j, k, ncomp_f
+                trans_laplacian(i, j, k, ncomp_f,
                                 idir_f,
                                 BL_TO_FORTRAN_ANYD(f_avg), NUM_STATE,
-                                lap,
+                                &lap,
                                 ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
 
                 flux_arr(i,j,k,n) = flux_arr(i,j,k,n) + 1.0/24.0 * lap;
@@ -334,6 +339,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             // add artifical viscosity
             if (do_hydro == 1) {
+
+              // avisc_coefficient is the coefficent we use.  The
+              // McCorquodale & Colella paper suggest alpha = 0.3, but
+              // our other hydro solvers use a coefficient on the
+              // divergence that defaults to 0.1, so we normalize to
+              // that value, to allow for adjustments
+              const Real alpha = 0.3;
 
               Real avisc_coeff = alpha * (difmag / 0.1);
 
@@ -669,7 +681,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Array4<Real> const flux_fab = (flux[idir]).array();
             Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
             const int numcomp = NUM_STATE;
-            const Real scale = stage_weight;
 
             AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
             {
