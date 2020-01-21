@@ -43,9 +43,9 @@ contains
     dyinv = ONE/dx(2)
     dzinv = ONE/dx(3)
 
-    do k = lo(3), hi(3)+dg(3)
-       do j = lo(2), hi(2)+dg(2)
-          do i = lo(1), hi(1)+1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              if (idir == 1) then
 

@@ -71,6 +71,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 	const Box& bx  = mfi.tilebox();
 
         const Box& obx = amrex::grow(bx, 1);
+        const Box& obx2 = amrex::grow(bx, 2);
 
 	FArrayBox &statein  = Sborder[mfi];
 	FArrayBox &stateout = S_new[mfi];
@@ -162,7 +163,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         Elixir elix_qe_z = qe[2].elixir();
 #endif
 
-        avis.resize(bx, 1);
+        avis.resize(obx, 1);
         Elixir elix_avis = avis.elixir();
 
 #ifndef AMREX_USE_CUDA
@@ -188,10 +189,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             const Box& nbx = amrex::surroundingNodes(bx, idir);
             const Box& nbx1 = amrex::grow(nbx, 1);
 
-            qm.resize(obx, NQ);
+            qm.resize(obx2, NQ);
             Elixir elix_qm = qm.elixir();
 
-            qp.resize(obx, NQ);
+            qp.resize(obx2, NQ);
             Elixir elix_qp = qp.elixir();
 
             q_int.resize(nbx1, 1);
@@ -349,7 +350,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               Real avisc_coeff = alpha * (difmag / 0.1);
 
-              avisc(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+              avisc(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                     BL_TO_FORTRAN_ANYD(q_bar[mfi]),
                     BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
                     ZFILL(dx),
