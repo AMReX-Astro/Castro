@@ -249,8 +249,18 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                            BL_TO_FORTRAN_ANYD(f_avg),
                            idir_f, 0);
 
+
+            if (do_hydro == 0) {
+              Array4<const Real> const f_avg_arr = f_avg.array();
+
+              AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
+                flux_avg_arr(i,j,k,n) = 0.0;});
+
+            }
+
 #ifdef DIFFUSION
             // add diffusive flux to F(<q>) if needed
+            // Note: this can act even if do_hydro = 0
             // operate on ibx[idir]
             if (diffuse_temp == 1) {
               int is_avg = 1;
@@ -304,6 +314,15 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                            BL_TO_FORTRAN_ANYD(q_fc),
                            BL_TO_FORTRAN_ANYD(flux[idir]),
                            idir_f, 0);
+
+            if (do_hydro == 0) {
+              Array4<const Real> const f_arr = (flux[idir]).array();
+
+              AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
+                f_arr(i,j,k,n) = 0.0;});
+
+            }
+
 
 #ifdef DIFFUSION
             if (diffuse_temp == 1) {
@@ -370,8 +389,19 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
                   } else {
 
-                    flux_arr(i,j,k,n) = flux_arr(i,j,k,n) +
-                      avisc_coeff * avis_arr(i,j,k,0) * (uin_arr(i,j,k,n) - uin_arr(i-1,j,k,n));
+                    if (idir == 0) {
+                      flux_arr(i,j,k,n) = flux_arr(i,j,k,n) +
+                        avisc_coeff * avis_arr(i,j,k,0) * (uin_arr(i,j,k,n) - uin_arr(i-1,j,k,n));
+
+                    } else if (idir == 1) {
+                      flux_arr(i,j,k,n) = flux_arr(i,j,k,n) +
+                        avisc_coeff * avis_arr(i,j,k,0) * (uin_arr(i,j,k,n) - uin_arr(i,j-1,k,n));
+
+                    } else {
+                      flux_arr(i,j,k,n) = flux_arr(i,j,k,n) +
+                        avisc_coeff * avis_arr(i,j,k,0) * (uin_arr(i,j,k,n) - uin_arr(i,j,k-1,n));
+
+                    }
                   }
 
                 });
