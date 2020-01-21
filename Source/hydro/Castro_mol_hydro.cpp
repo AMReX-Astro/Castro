@@ -251,10 +251,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
             if (do_hydro == 0) {
-              Array4<const Real> const f_avg_arr = f_avg.array();
+              Array4<Real> const f_avg_arr = f_avg.array();
 
               AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
-                flux_avg_arr(i,j,k,n) = 0.0;});
+                f_avg_arr(i,j,k,n) = 0.0;});
 
             }
 
@@ -316,7 +316,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                            idir_f, 0);
 
             if (do_hydro == 0) {
-              Array4<const Real> const f_arr = (flux[idir]).array();
+              Array4<Real> const f_arr = (flux[idir]).array();
 
               AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
                 f_arr(i,j,k,n) = 0.0;});
