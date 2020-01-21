@@ -80,8 +80,6 @@ radiation.accelerate = 0
 
 radiation.nGroups = 60
 
-radiation.integrate_Planck = 0
-
 radiation.Er_Lorentz_term = 0
 radiation.do_fspace_advection = 0
 

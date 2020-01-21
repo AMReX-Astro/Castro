@@ -21,8 +21,8 @@ using namespace amrex;
 void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 { 
   BL_PROFILE("Radiation::MGFLD_implicit_update");
-  if (verbose && ParallelDescriptor::IOProcessor()) {
-    std::cout << "Radiation MGFLD implicit update, level " << level << "..." << std::endl;
+  if (verbose) {
+      amrex::Print() << "Radiation MGFLD implicit update, level " << level << "..." << std::endl;
   }
 
   BL_ASSERT(Radiation::nGroups > 0);
@@ -104,15 +104,9 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   MultiFab rhoe_old(grids,dmap,1,0);
   MultiFab rhoe_star(grids,dmap,1,0);
 
-  MultiFab rhoYe_new, rhoYe_old, rhoYe_star;
-
   MultiFab rho(grids,dmap,1,1);
   MultiFab temp_new(grids,dmap,1,1); // ghost cell for kappa_r
   MultiFab temp_star(grids,dmap,1,0);
-  MultiFab Ye_new, Ye_star;
-  if (castro->NumAux > 0) {
-      Ye_new.define(grids, dmap, 1, 1);
-  }
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -129,13 +123,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
       temp_new[mfi].copy(S_new[mfi],gbx,Temp,gbx,0,1);
     
-      if (castro->NumAux > 0) {
-	  Ye_new[mfi].copy(S_new[mfi],gbx,FirstAux,gbx,0,1); // not Ye yet
-      }
-  }
-
-  if (castro->NumAux > 0) {
-    MultiFab::Divide(Ye_new, rho, 0, 0, 1, 1);
   }
 
   // Planck mean and Rosseland 
@@ -150,17 +137,13 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   MultiFab dkdT(grids,dmap,nGroups,1);  
   MultiFab etaT(grids,dmap,1,0);
   MultiFab etaTz(grids,dmap,1,0);
-  MultiFab eta1(grids,dmap,1,0); // eta1 = 1 - etaT + etaY
-  MultiFab djdY, dkdY, etaY, etaYz, thetaT, thetaY, thetaTz, thetaYz, theta1;
+  MultiFab eta1(grids,dmap,1,0); // eta1 = 1 - etaT
 
   MultiFab& mugT = djdT;
-  MultiFab& mugY = djdY;
 
   MultiFab dedT(grids,dmap,1,0);
-  MultiFab dedY;
 
   MultiFab coupT(grids,dmap,1,0); // \sum{\kappa E - j}
-  MultiFab coupY;
 
   // multigroup boundary object
   MGRadBndry mgbd(grids,dmap, nGroups, castro->Geom());
@@ -181,8 +164,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
   Real relative_in, absolute_in, error_er;
   Real rel_rhoe, abs_rhoe;
-  Real rel_T, abs_T, rel_Ye, abs_Ye;
-  Real rel_FT, abs_FT, rel_FY, abs_FY;
+  Real rel_T, abs_T;
+  Real rel_FT, abs_FT;
 
   // point to flux_trial (or NULL) for appropriate levels
   FluxRegister* flux_in = (level < fine_level) ? flux_trial[level+1].get() : nullptr;
@@ -209,7 +192,6 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   // There used to be an extra velocity term update
   MultiFab& Er_step = Er_old;
   MultiFab& rhoe_step = rhoe_old;
-  MultiFab rhoYe_step;
 
   Real reltol_in = relInTol;
   Real ptc_tau = 0.0;  // not being used 
@@ -224,14 +206,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     it++;
 
     if (it == 1) {
-      eos_opacity_emissivity(S_new, temp_new, Ye_new, 
-			     temp_star, Ye_star, // input
+      eos_opacity_emissivity(S_new, temp_new,
+			     temp_star, // input
 			     kappa_p, kappa_r, jg, 
-			     djdT, djdY, 
-			     dkdT, dkdY,
-			     dedT, dedY, //output
-			     level, grids, it, 1); 
-      // It's OK that Ye_star and temp_star do not have valid value for it==1
+			     djdT, dkdT, dedT, // output
+			     level, it, 1); 
+      // It's OK that temp_star does not have a valid value for it==1
     }
 
     MultiFab::Copy(rhoe_star, rhoe_new, 0, 0, 1, 0);
@@ -249,15 +229,14 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       }
     }
     
-    // djdT & djdY are both input and output
-    compute_eta_theta(etaT, etaTz, etaY, etaYz, eta1, 
-		      thetaT, thetaTz, thetaY, thetaYz, theta1,
-		      djdT, djdY, 
-		      dkdT, dkdY, 
-		      dedT, dedY, 
-		      Er_star, rho, 
-		      grids, delta_t, ptc_tau);
-    // After this, djdT & djdY contain mugT and mugY.
+    // djdT is both input and output
+    compute_etat(etaT, etaTz,
+                 eta1, djdT, 
+                 dkdT, dedT,
+                 Er_star, rho, 
+                 delta_t, ptc_tau);
+
+    // After this, djdT contains mugT.
 
     // The inner loops does not update rhoe and T
     int innerIteration = 0;
@@ -282,7 +261,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	}
       }
 
-      compute_coupling(coupT, coupY, kappa_p, Er_pi, jg);
+      compute_coupling(coupT, kappa_p, Er_pi, jg);
 
       for (int igroup=0; igroup<nGroups; ++igroup) {
 
@@ -306,9 +285,9 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 	  	  
 	  MultiFab rhs(grids,dmap,1,0);
 
-	  solver->levelRhs(level, rhs, jg, mugT, mugY, 
-                           coupT, coupY, etaT, etaY, thetaT, thetaY,
-                           Er_step, rhoe_step, rhoYe_step, Er_star, rhoe_star, rhoYe_star, 
+	  solver->levelRhs(level, rhs, jg, mugT,
+                           coupT, etaT,
+                           Er_step, rhoe_step, Er_star, rhoe_star,
                            delta_t, igroup, it, ptc_tau);
 
 	  // solve Er equation and put solution in Er_new(igroup)
@@ -325,15 +304,13 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       
       // Check for convergence *before* acceleration step:
       check_convergence_er(relative_in, absolute_in, error_er, Er_new, Er_pi,
-      			   kappa_p, etaTz, etaYz, thetaTz, thetaYz,
-			   temp_new, Ye_new, grids, delta_t);
+      			   kappa_p, etaTz, temp_new, delta_t);
 
-      if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
+      if (verbose >= 2) {
 	int oldprec = std::cout.precision(3);
-        std::cout << "Outer = " << it << ", Inner = " << innerIteration
-             << ", inner err =  " << std::setw(8) << relative_in << " (rel),  " 
-	     << std::setw(8) << absolute_in << " (abs)" << std::endl;
-	//	     << std::setw(8) << error_er << " (impact)"<< std::endl;
+        amrex::Print() << "Outer = " << it << ", Inner = " << innerIteration
+                       << ", inner err =  " << std::setw(8) << relative_in << " (rel),  " 
+                       << std::setw(8) << absolute_in << " (abs)" << std::endl;
 	std::cout.precision(oldprec);
       }
 
@@ -364,12 +341,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
 	if (accel_allowed) {
 	  if (accelerate == 1) {
-	    local_accel(Er_new, Er_pi, kappa_p, etaT, etaY, thetaT, thetaY,
-			mugT, mugY, delta_t, ptc_tau);
+	    local_accel(Er_new, Er_pi, kappa_p, etaT,
+			mugT, delta_t, ptc_tau);
 	  } 
 	  else if (accelerate == 2) {
 	    gray_accel(Er_new, Er_pi, kappa_p, kappa_r, 
-		       etaT, etaY, eta1, thetaT, thetaY, mugT, mugY, 
+		       etaT, eta1, mugT,
 		       lambda, *solver, mgbd, grids, level, time, delta_t, ptc_tau);
 	  } 
 	}
@@ -377,21 +354,15 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
     } while(!inner_converged && innerIteration < maxInIter); 
 
-    if (verbose == 1 && ParallelDescriptor::IOProcessor()) {
+    if (verbose == 1) {
       int oldprec = std::cout.precision(3);
-      std::cout << "Outer = " << it << ", Inner = " << innerIteration
-	   << ", inner tol =  " << std::setw(8) << relative_in << "  " 
-	   << std::setw(8) << absolute_in << std::endl;
+      amrex::Print() << "Outer = " << it << ", Inner = " << innerIteration
+                     << ", inner tol =  " << std::setw(8) << relative_in << "  " 
+                     << std::setw(8) << absolute_in << std::endl;
       std::cout.precision(oldprec);
     }
-    
-    if (innerIteration >= maxInIter &&
-	(relative_in > reltol_in && absolute_in > absInTol)) {
-      //      amrex::Warning("Er Equation Update Failed to Converge");
-      //      amrex::Abort("Er Equation Update Failed to Converge");
-    }
 
-    // update rhoe, rhoYe and T
+    // update rhoe and T
     if (matter_update_type == 0) {
       conservative_update = true;
     }
@@ -428,46 +399,24 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       conservative_update = true;
     }
 
-    update_matter(rhoe_new, temp_new, rhoYe_new, Ye_new, Er_new, Er_pi,
-		  rhoe_star, rhoYe_star,
-		  rhoe_step, rhoYe_step, 
-    		  etaT, etaTz, etaY, etaYz, eta1, 
-		  thetaT, thetaTz, thetaY, thetaYz, theta1,
-		  coupT, coupY,
-		  kappa_p, jg, mugT, mugY,
+    update_matter(rhoe_new, temp_new, Er_new, Er_pi,
+		  rhoe_star, rhoe_step,
+    		  etaT, etaTz, eta1,
+		  coupT,
+		  kappa_p, jg, mugT,
 		  S_new, level, delta_t, ptc_tau, it, conservative_update);
 
-    if (verbose >= 2 && radiation_type == Neutrino) {
-      Real yemin = Ye_new.min(0);
-      Real yemax = Ye_new.max(0);
-      if (ParallelDescriptor::IOProcessor()) {
-        int oldprec = std::cout.precision(5);
-        std::cout << "Update   Ye min, max are " << yemin << ", " << yemax;
-        if (yemin < 0.05 || yemax > 0.513) {
-          std::cout << ":  out of range for EOS and opacities";
-        }
-        else if (yemax > 0.5) {
-          std::cout << ":  out of range for opacities";
-        }
-        std::cout << std::endl;
-        std::cout.precision(oldprec);
-      }
-    }
-
-    eos_opacity_emissivity(S_new, temp_new, Ye_new, 
-			   temp_star, Ye_star, // input
+    eos_opacity_emissivity(S_new, temp_new,
+			   temp_star, // input
 			   kappa_p, kappa_r, jg, 
-			   djdT, djdY, 
-			   dkdT, dkdY,
-			   dedT, dedY, //output
-			   level, grids, it+1, 0);
+			   djdT, dkdT, dedT, // output
+			   level, it+1, 0);
 
     check_convergence_matt(rhoe_new, rhoe_star, rhoe_step, Er_new,
-			   temp_new, temp_star, rhoYe_new, rhoYe_star, rhoYe_step, 
-			   rho, kappa_p, jg, dedT, dedY, 
+			   temp_new, temp_star, 
+			   rho, kappa_p, jg, dedT,
 			   rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T,
-			   rel_FY, abs_FY, rel_Ye, abs_Ye,
-			   grids, delta_t);
+			   delta_t);
 
     Real relative_out, absolute_out;
 
@@ -485,24 +434,24 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       absolute_out = abs_T;
       break;
     default:
-      relative_out = (rel_T > rel_Ye) ? rel_T : rel_Ye;
+      relative_out = rel_T;
       if (conservative_update) {
 	//	relative_out = (relative_out > rel_rhoe) ? relative_out : rel_rhoe;
 	relative_out = (relative_out > rel_FT  ) ? relative_out : rel_FT;
       }
-      absolute_out = (abs_T > abs_Ye) ? abs_T : abs_Ye;      
+      absolute_out = abs_T;
     }
 
-    if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
+    if (verbose >= 2) {
       int oldprec = std::cout.precision(4);
-      std::cout << "Update Errors for      rhoe,        FT,         T" 
-                << std::endl;
-      std::cout << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
-                << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
-                << std::endl;
-      std::cout << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
-                << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
-                << std::endl;
+      amrex::Print() << "Update Errors for      rhoe,        FT,         T" 
+                     << std::endl;
+      amrex::Print() << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
+                     << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
+                     << std::endl;
+      amrex::Print() << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
+                     << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
+                     << std::endl;
       std::cout.precision(oldprec);
     }
 
@@ -523,40 +472,35 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     }
 
     if (!converged && it > n_bisect) {
-      bisect_matter(rhoe_new, temp_new, rhoYe_new, Ye_new, 
-		    rhoe_star, temp_star, rhoYe_star, Ye_star, 
+      bisect_matter(rhoe_new, temp_new,
+		    rhoe_star, temp_star,
 		    S_new, grids, level);
 
-      eos_opacity_emissivity(S_new, temp_new, Ye_new, 
-			     temp_star, Ye_star, // input
+      eos_opacity_emissivity(S_new, temp_new,
+			     temp_star, // input
 			     kappa_p, kappa_r, jg, 
-			     djdT, djdY, 
-			     dkdT, dkdY,
-			     dedT, dedY, //output
-			     level, grids, it+1, 0);
+			     djdT, dkdT, dedT, // output
+			     level, it+1, 0);
     }
    
   } while ( ((!converged || !inner_converged) && it<maxiter)
    	    || !conservative_update);
 
-  if (verbose == 1 && ParallelDescriptor::IOProcessor()) {
+  if (verbose == 1) {
     int oldprec = std::cout.precision(4);
-    std::cout << "Update Errors for      rhoe,        FT,         T" 
-              << std::endl;
-    std::cout << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
-              << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
-              << std::endl;
-    std::cout << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
-              << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
-              << std::endl;
+    amrex::Print() << "Update Errors for      rhoe,        FT,         T" 
+                   << std::endl;
+    amrex::Print() << "       Relative = " << std::setw(9) << rel_rhoe << ", " 
+                   << std::setw(9) << rel_FT << ", " << std::setw(9) << rel_T 
+                   << std::endl;
+    amrex::Print() << "       Absolute = " << std::setw(9) << abs_rhoe << ", " 
+                   << std::setw(9) << abs_FT << ", " << std::setw(9) << abs_T 
+                   << std::endl;
     std::cout.precision(oldprec);
   }
 
-  if (! converged) {
-    if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
-      std::cout << "Implicit Update Failed to Converge" << std::endl;
-    }
-    exit(1);
+  if (!converged) {
+      amrex::Abort("Implicit Update Failed to Converge");
   }
 
   // update flux registers
@@ -592,17 +536,17 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     }
   }
 
-  Real derat = 0.0, dTrat = 0.0, dye = 0.0;
+  Real derat = 0.0;
+  Real dTrat = 0.0;
 
-  // update state with new fluid energy, temperature and Ye
-  state_energy_update(S_new, rhoe_new, Ye_new, temp_new, grids, derat, dTrat, dye, level);
+  // update state with new fluid energy and temperature
+  state_energy_update(S_new, rhoe_new, temp_new, grids, derat, dTrat, level);
 
   delta_e_rat_level[level] = derat;
   delta_T_rat_level[level] = dTrat;
-  delta_Ye_level[level]    = dye;
 
-  if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
-    std::cout << "Delta T      Ratio = " << dTrat << std::endl;
+  if (verbose >= 2) {
+      amrex::Print() << "Delta T      Ratio = " << dTrat << std::endl;
   }
 
   if (plot_lambda) {
@@ -629,7 +573,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, *flxcc, icomp_flux);
   }
 
-  if (verbose && ParallelDescriptor::IOProcessor()) {
-    std::cout << "                                     done" << std::endl;
+  if (verbose) {
+      amrex::Print() << "                                     done" << std::endl;
   }
 }
