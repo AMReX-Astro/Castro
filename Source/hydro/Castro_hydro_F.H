@@ -525,6 +525,13 @@ extern "C"
 #endif
      const int idir, const int enforce_eos);
 
+  void add_diffusive_flux
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(q), const int nq, const int comp,
+     const BL_FORT_FAB_ARG_3D(q_avg),
+     BL_FORT_FAB_ARG_3D(f_avg),
+     const amrex::Real* dx, const int idir, const int is_avg);
+
   void ca_store_godunov_state
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(qint),
