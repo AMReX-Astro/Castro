@@ -414,7 +414,12 @@ def main():
     args = parser.parse_args()
 
     if args.odir != "" and not os.path.isdir(args.odir):
-        os.makedirs(args.odir)
+        try:
+            os.makedirs(args.odir)
+        except FileExistsError:
+            # this exception is needed in case of a race condition
+            # to create the directory by another make target
+            pass
 
     doit(args.variables_file[0], args.odir, args.defines, args.nadv,
          args.ngroups)
