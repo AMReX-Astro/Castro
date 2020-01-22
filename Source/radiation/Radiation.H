@@ -62,7 +62,7 @@ public:
   int convergence_check_type; ///< 0 (default): both 2 and 3,
                               ///< 1: rhoe,
                               ///< 2: residue of Eq. rhoe,
-                              ///< 3: T & Ye
+                              ///< 3: T
   amrex::Real relInTol, absInTol; ///< tolerance for inner iternation of J equation
   int maxInIter;           ///< iteration limit for inner iteration of J equation
   int minInIter;
@@ -70,11 +70,10 @@ public:
   int matter_update_type; ///< 0: conservative  1: non-conservative  2: C and NC interwoven
                           ///< The last outer iteration is always conservative.
   int n_bisect;  ///< Bisection after n_bisect iterations
-  amrex::Real dedT_fac, dedY_fac; ///< Make dedT and dedY larger for safety in Newton iteration
+  amrex::Real dedT_fac; ///< Make dedT larger for safety in Newton iteration
   int inner_convergence_check;
   amrex::Real delta_e_rat_dt_tol; ///< energy change tolerance for adjusting timestep
   amrex::Real delta_T_rat_dt_tol; ///< T change tolerance for adjusting timestep
-  amrex::Real delta_Ye_dt_tol;    ///< Ye change tolerance for adjusting timestep
   int limiter;          ///< 0: no limiter, 2: Lev-Pom limiter
                         ///< 12: Bruenn, 22: square root, 32: Minerbo
   int closure;      ///< 0: \f$f = \lambda\f$, 1: \f$f = 1/3\f$,
@@ -208,24 +207,12 @@ public:
     return delta_T_rat_level[lev];
   }
 
-
-///
-/// @param lev
-///
-  amrex::Real deltaYeMax(int lev) {
-    return delta_Ye_level[lev];
-  }
-
   amrex::Real deltaEnergyTol() {
     return delta_e_rat_dt_tol;
   }
 
   amrex::Real deltaTTol() {
     return delta_T_rat_dt_tol;
-  }
-
-  amrex::Real deltaYeTol() {
-    return delta_Ye_dt_tol;
   }
 
 ///
@@ -646,8 +633,6 @@ public:
 ///
 /// </ Shestakov-Bolstad>
 ///
-  int integrate_Planck;
-
 
 ///
 /// @param relative_in
@@ -657,21 +642,15 @@ public:
 /// @param Er_pi
 /// @param kappa_p
 /// @param etaTz
-/// @param etaYz
-/// @param theTz
-/// @param theYz
 /// @param temp_new
-/// @param Ye_new
-/// @param grids
 /// @param delta_t
 ///
   void check_convergence_er(amrex::Real& relative_in, amrex::Real& absolute_in, amrex::Real& error_er,
   			    const amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi,
 			    const amrex::MultiFab& kappa_p,
-			    const amrex::MultiFab& etaTz, const amrex::MultiFab& etaYz,
-			    const amrex::MultiFab& theTz, const amrex::MultiFab& theYz,
-			    const amrex::MultiFab& temp_new, const amrex::MultiFab& Ye_new,
-			    const amrex::BoxArray& grids, amrex::Real delta_t);
+			    const amrex::MultiFab& etaTz,
+			    const amrex::MultiFab& temp_new,
+			    amrex::Real delta_t);
 
 ///
 /// @param rhoe_new
@@ -680,113 +659,77 @@ public:
 /// @param Er_new
 /// @param temp_new
 /// @param temp_star
-/// @param rhoYe_new
-/// @param rhoYe_star
-/// @param rhoYe_step
 /// @param rho
 /// @param kappa_p
 /// @param jg
 /// @param dedT
-/// @param dedY
 /// @param rel_rhoe
 /// @param abs_rhoe
 /// @param rel_FT
 /// @param abs_FT
 /// @param rel_T
 /// @param abs_T
-/// @param rel_FY
-/// @param abs_FY
-/// @param rel_Ye
-/// @param abs_Ye
-/// @param grids
 /// @param delta_t
 ///
   void check_convergence_matt(const amrex::MultiFab& rhoe_new, const amrex::MultiFab& rhoe_star,
 			      const amrex::MultiFab& rhoe_step, const amrex::MultiFab& Er_new,
 			      const amrex::MultiFab& temp_new, const amrex::MultiFab& temp_star,
-			      const amrex::MultiFab& rhoYe_new, const amrex::MultiFab& rhoYe_star,
-			      const amrex::MultiFab& rhoYe_step, const amrex::MultiFab& rho,
+			      const amrex::MultiFab& rho,
 			      const amrex::MultiFab& kappa_p, const amrex::MultiFab& jg,
-			      const amrex::MultiFab& dedT, const amrex::MultiFab& dedY,
+			      const amrex::MultiFab& dedT,
 			      amrex::Real& rel_rhoe, amrex::Real& abs_rhoe,
 			      amrex::Real& rel_FT,   amrex::Real& abs_FT,
 			      amrex::Real& rel_T,    amrex::Real& abs_T,
-			      amrex::Real& rel_FY,   amrex::Real& abs_FY,
-			      amrex::Real& rel_Ye,   amrex::Real& abs_Ye,
-			      const amrex::BoxArray& grids, amrex::Real delta_t);
+			      amrex::Real delta_t);
 
 ///
 /// @param coupT
-/// @param coupY
 /// @param kappa_p
 /// @param Er_pi
 /// @param jg
 ///
-  void compute_coupling(amrex::MultiFab& coupT, amrex::MultiFab& coupY,
+  void compute_coupling(amrex::MultiFab& coupT,
 			const amrex::MultiFab& kappa_p, const amrex::MultiFab& Er_pi,
 			const amrex::MultiFab& jg);
 
 ///
 /// @param etaT
 /// @param etaTz
-/// @param etaY
-/// @param etaYz
 /// @param eta1
-/// @param thetaT
-/// @param thetaTz
-/// @param thetaY
-/// @param thetaYz
-/// @param theta1
 /// @param djdT
-/// @param djdY
 /// @param dkdT
-/// @param dkdY
 /// @param dedT
-/// @param dedY
 /// @param Er_star
 /// @param rho
-/// @param grids
 /// @param delta_t
 /// @param ptc_tau
 ///
-  void compute_eta_theta(amrex::MultiFab& etaT, amrex::MultiFab& etaTz, amrex::MultiFab& etaY, amrex::MultiFab& etaYz,
-			 amrex::MultiFab& eta1,
-			 amrex::MultiFab& thetaT, amrex::MultiFab& thetaTz, amrex::MultiFab& thetaY, amrex::MultiFab& thetaYz,
-			 amrex::MultiFab& theta1,
-			 amrex::MultiFab& djdT, amrex::MultiFab& djdY,
-			 const amrex::MultiFab& dkdT, const amrex::MultiFab& dkdY,
-			 const amrex::MultiFab& dedT, const amrex::MultiFab& dedY,
-			 const amrex::MultiFab& Er_star, const amrex::MultiFab& rho,
-			 const amrex::BoxArray& grids, amrex::Real delta_t, amrex::Real ptc_tau);
+  void compute_etat(amrex::MultiFab& etaT, amrex::MultiFab& etaTz,
+                    amrex::MultiFab& eta1, amrex::MultiFab& djdT,
+                    const amrex::MultiFab& dkdT, const amrex::MultiFab& dedT,
+                    const amrex::MultiFab& Er_star, const amrex::MultiFab& rho,
+                    amrex::Real delta_t, amrex::Real ptc_tau);
 
 ///
 /// @param S_new
 /// @param temp_new
-/// @param Ye_new
 /// @param temp_star
-/// @param Ye_star
 /// @param kappa_p
 /// @param kappa_r
 /// @param jg
 /// @param djdT
-/// @param djdY
 /// @param dkdT
-/// @param dkdY
 /// @param dedT
-/// @param dedY
 /// @param level
-/// @param grids
 /// @param it
 /// @param ngrow
 ///
   void eos_opacity_emissivity(const amrex::MultiFab& S_new,
-			      const amrex::MultiFab& temp_new, const amrex::MultiFab& Ye_new,
-			      const amrex::MultiFab& temp_star, const amrex::MultiFab& Ye_star,
+			      const amrex::MultiFab& temp_new,
+			      const amrex::MultiFab& temp_star,
 			      amrex::MultiFab& kappa_p, amrex::MultiFab& kappa_r, amrex::MultiFab& jg,
-			      amrex::MultiFab& djdT, amrex::MultiFab& djdY,
-			      amrex::MultiFab& dkdT, amrex::MultiFab& dkdY,
-			      amrex::MultiFab& dedT, amrex::MultiFab& dedY,
-			      int level, const amrex::BoxArray& grids, int it, int ngrow);
+			      amrex::MultiFab& djdT, amrex::MultiFab& dkdT, amrex::MultiFab& dedT,
+			      int level, int it, int ngrow);
 
 ///
 /// @param Er_new
@@ -794,12 +737,8 @@ public:
 /// @param kappa_p
 /// @param kappa_r
 /// @param etaT
-/// @param etaY
 /// @param eta1
-/// @param thetaT
-/// @param thetaY
 /// @param mugT
-/// @param mugY
 /// @param lambda
 /// @param solver
 /// @param mgbd
@@ -811,9 +750,8 @@ public:
 ///
   void gray_accel(amrex::MultiFab& Er_new, amrex::MultiFab& Er_pi,
 		  amrex::MultiFab& kappa_p, amrex::MultiFab& kappa_r,
-		  amrex::MultiFab& etaT, amrex::MultiFab& etaY, amrex::MultiFab& eta1,
-		  amrex::MultiFab& thetaT, amrex::MultiFab& thetaY,
-		  amrex::MultiFab& mugT, amrex::MultiFab& mugY,
+		  amrex::MultiFab& etaT, amrex::MultiFab& eta1,
+		  amrex::MultiFab& mugT,
 		  amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
 		  RadSolve& solver, MGRadBndry& mgbd,
 		  const amrex::BoxArray& grids, int level, amrex::Real time, amrex::Real delta_t, amrex::Real ptc_tau);
@@ -823,63 +761,43 @@ public:
 /// @param Er_pi
 /// @param kappa_p
 /// @param etaT
-/// @param etaY
-/// @param thetaT
-/// @param thetaY
 /// @param mugT
-/// @param mugY
 /// @param delta_t
 /// @param ptc_tau
 ///
   void local_accel(amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi,
 		   const amrex::MultiFab& kappa_p,
-		   const amrex::MultiFab& etaT, const amrex::MultiFab& etaY,
-		   const amrex::MultiFab& thetaT, const amrex::MultiFab& thetaY,
-		   const amrex::MultiFab& mugT, const amrex::MultiFab& mugY,
+		   const amrex::MultiFab& etaT,
+		   const amrex::MultiFab& mugT,
 		   amrex::Real delta_t, amrex::Real ptc_tau);
 
 ///
 /// @param state
 /// @param rhoe
-/// @param Ye
 /// @param temp
 /// @param grids
 /// @param derat
 /// @param dT
-/// @param dye
 /// @param level
 ///
-  void state_energy_update(amrex::MultiFab& state, const amrex::MultiFab& rhoe, const amrex::MultiFab& Ye,
+  void state_energy_update(amrex::MultiFab& state, const amrex::MultiFab& rhoe,
 			   const amrex::MultiFab& temp, const amrex::BoxArray& grids,
-			   amrex::Real& derat, amrex::Real& dT, amrex::Real&dye, int level);
+			   amrex::Real& derat, amrex::Real& dT, int level);
 
 ///
 /// @param rhoe_new
 /// @param temp_new
-/// @param rhoYe_new
-/// @param Ye_new
 /// @param Er_new
 /// @param Er_pi
 /// @param rhoe_star
-/// @param rhoYe_star
 /// @param rhoe_step
-/// @param rhoYe_step
 /// @param etaT
 /// @param etaTz
-/// @param etaY
-/// @param etaYz
 /// @param eta1
-/// @param thetaT
-/// @param thetaTz
-/// @param thetaY
-/// @param thetaYz
-/// @param theta1
 /// @param coupT
-/// @param coupY
 /// @param kappa_p
 /// @param jg
 /// @param mugT
-/// @param mugY
 /// @param S_new
 /// @param level
 /// @param delta_t
@@ -888,19 +806,14 @@ public:
 /// @param conservative_update
 ///
   void update_matter(amrex::MultiFab& rhoe_new, amrex::MultiFab& temp_new,
-		     amrex::MultiFab& rhoYe_new, amrex::MultiFab& Ye_new,
 		     const amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi,
-		     const amrex::MultiFab& rhoe_star,	const amrex::MultiFab& rhoYe_star,
-		     const amrex::MultiFab& rhoe_step, const amrex::MultiFab& rhoYe_step,
+		     const amrex::MultiFab& rhoe_star,
+		     const amrex::MultiFab& rhoe_step,
 		     const amrex::MultiFab& etaT, const amrex::MultiFab& etaTz,
-		     const amrex::MultiFab& etaY, const amrex::MultiFab& etaYz,
 		     const amrex::MultiFab& eta1,
-		     const amrex::MultiFab& thetaT, const amrex::MultiFab& thetaTz,
-		     const amrex::MultiFab& thetaY, const amrex::MultiFab& thetaYz,
-		     const amrex::MultiFab& theta1,
-		     const amrex::MultiFab& coupT, const amrex::MultiFab& coupY,
+		     const amrex::MultiFab& coupT,
 		     const amrex::MultiFab& kappa_p, const amrex::MultiFab& jg,
-		     const amrex::MultiFab& mugT, const amrex::MultiFab& mugY,
+		     const amrex::MultiFab& mugT,
 		     const amrex::MultiFab& S_new,
 		     int level, amrex::Real delta_t,
 		     amrex::Real ptc_tau, int it, bool conservative_update);
@@ -908,20 +821,14 @@ public:
 ///
 /// @param rhoe_new
 /// @param temp_new
-/// @param rhoYe_new
-/// @param Ye_new
 /// @param rhoe_star
 /// @param temp_star
-/// @param rhoYe_star
-/// @param Ye_star
 /// @param S_new
 /// @param grids
 /// @param level
 ///
   void bisect_matter(amrex::MultiFab& rhoe_new, amrex::MultiFab& temp_new,
-		     amrex::MultiFab& rhoYe_new, amrex::MultiFab& Ye_new,
 		     const amrex::MultiFab& rhoe_star, const amrex::MultiFab& temp_star,
-		     const amrex::MultiFab& rhoYe_star, const amrex::MultiFab& Ye_star,
 		     const amrex::MultiFab& S_new, const amrex::BoxArray& grids, int level);
 
 ///
@@ -1003,7 +910,7 @@ protected:
   amrex::Amr* parent;
   amrex::BCRec rad_bc;          ///< types defined in LO_BCTYPES.H, not BCTYPES.H
   amrex::Real reltol, abstol;   ///< tolerances for implicit update loop
-  amrex::Vector<amrex::Real> delta_e_rat_level, delta_T_rat_level, delta_Ye_level;
+  amrex::Vector<amrex::Real> delta_e_rat_level, delta_T_rat_level;
 
 
 ///
