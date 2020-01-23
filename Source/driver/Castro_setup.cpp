@@ -452,6 +452,7 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   // For simplified SDC, we want to store the reactions source.
 
@@ -463,6 +464,7 @@ Castro::variableSetUp ()
                              &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
   }
+#endif
 #endif
 
   Vector<BCRec>       bcs(NUM_STATE);
@@ -638,6 +640,7 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, BndryFunc(ca_reactfill));
 #endif
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
       for (int i = 0; i < NQSRC; ++i) {
@@ -648,6 +651,7 @@ Castro::variableSetUp ()
           desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
       }
   }
+#endif
 #endif
 
 #ifdef RADIATION

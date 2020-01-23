@@ -62,6 +62,7 @@ Castro::cons_to_prim(const Real time)
         }
 
 #ifndef RADIATION
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
         // Add in the reactions source term; only done in simplified SDC.
 
@@ -75,7 +76,7 @@ Castro::cons_to_prim(const Real time)
         }
 #endif
 #endif
-
+#endif
     }
 
 }
