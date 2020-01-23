@@ -975,11 +975,13 @@ Castro::initData ()
     React_new.setVal(0.);
 #endif
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
        MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
        react_src_new.setVal(0.0, NUM_GROW);
    }
+#endif
 #endif
 
    if (Knapsack_Weight_Type > 0) {
@@ -2790,8 +2792,8 @@ Castro::avgDown ()
   if (level == parent->finestLevel()) return;
 
   for (int k = 0; k < num_state_type; k++) {
-    if (k != Kanpsack_Weight_Type) {
-      avgDown(k)
+    if (k != Knapsack_Weight_Type) {
+      avgDown(k);
     }
   }
 
@@ -3513,6 +3515,7 @@ Castro::swap_state_time_levels(const Real dt)
 	// this because we never need the old data, so we
 	// don't want to allocate memory for it.
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             if (k == Simplified_SDC_React_Type) {
@@ -3520,11 +3523,14 @@ Castro::swap_state_time_levels(const Real dt)
             }
         }
 #endif
+#endif
 
+#ifdef TRUE_SDC
 #ifdef REACTIONS
         if (time_integration_method == SpectralDeferredCorrections &&
             sdc_order == 4 && k == SDC_Source_Type)
             state[k].swapTimeLevels(0.0);
+#endif
 #endif
         state[k].allocOldData();
 
