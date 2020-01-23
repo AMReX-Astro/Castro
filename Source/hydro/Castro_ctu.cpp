@@ -68,52 +68,58 @@ if AMREX_SPACEDIM >= 2
   AMREX_PARALLEL_FOR_4D(bx, NVAR, i, j, k, n,
   {
 
-   Real volinv = 1.0 / vol(i,j,k);
+    Real volinv = 1.0 / vol(i,j,k);
 
-   update(i,j,k,n) = update(i,j,k,n) +
-     ( flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) +
+    update(i,j,k,n) = update(i,j,k,n) +
+      ( flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) +
 #if AMREX_SPACEDIM >= 2
-       flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) +
+        flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) +
 #endif
 #if AMREX_SPACEDIM == 3
-       flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1)
+        flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1)
 #endif
-       ) * volinv;
+        ) * volinv;
 
    // Add the p div(u) source term to (rho e).
-   if (n == UEINT) {
+    if (n == UEINT) {
 
-     Real pdu = (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) *
-                (q1(i+1,j,k,GDU) * area1(i+1,j,k) - q1(i,j,k,GDU) * area1(i,j,k));
+      Real pdu = (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) *
+                 (q1(i+1,j,k,GDU) * area1(i+1,j,k) - q1(i,j,k,GDU) * area1(i,j,k));
 
 #if AMREX_SPACEDIM >= 2
-    pdu = pdu + &
-            (q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) *
-            (q2(i,j+1,k,GDV) * area2(i,j+1,k) - q2(i,j,k,GDV) * area2(i,j,k));
+      pdu = pdu + &
+        (q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) *
+        (q2(i,j+1,k,GDV) * area2(i,j+1,k) - q2(i,j,k,GDV) * area2(i,j,k));
 #endif
 
 #if AMREX_SPACEDIM == 3
-    pdu = pdu + &
-            (q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) *
-            (q3(i,j,k+1,GDW) * area3(i,j,k+1) - q3(i,j,k,GDW) * area3(i,j,k));
+      pdu = pdu + &
+        (q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) *
+        (q3(i,j,k+1,GDW) * area3(i,j,k+1) - q3(i,j,k,GDW) * area3(i,j,k));
 #endif
 
-    pdu = HALF * pdu * volinv;
+      pdu = HALF * pdu * volinv;
 
-    update(i,j,k,n) = update(i,j,k,n) - pdu;
-   }
+      update(i,j,k,n) = update(i,j,k,n) - pdu;
+    }
+
+    else if (n == USHK) {
+      update(i,j,k,USHK) = shk(i,j,k,1) / dt;
+
+#ifndef RADIATION
+    } else if (n == UMX) {
+      // Add gradp term to momentum equation -- only for axisymmetric
+      // coords (and only for the radial flux).
+
+      if (! mom_flux_has_p[1][UMX]) {
+        update(i,j,k,UMX) = update(i,j,k,UMX) - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx(1);
+      }
+
+    }
+
 
   });
 
-#ifdef SHOCK_VAR
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             update(i,j,k,USHK) = shk(i,j,k) / dt
-          end do
-       end do
-    end do
-#endif
 
 #ifdef HYBRID_MOMENTUM
     call add_hybrid_advection_source(lo, hi, dt, &
@@ -124,21 +130,9 @@ if AMREX_SPACEDIM >= 2
 #endif
 
 
-#ifndef RADIATION
-    ! Add gradp term to momentum equation -- only for axisymmetric
-    ! coords (and only for the radial flux).
 
-    if (.not. mom_flux_has_p(1)%comp(UMX)) then
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                update(i,j,k,UMX) = update(i,j,k,UMX) - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx(1)
-             enddo
-          enddo
-       enddo
-    endif
 
-#else
+#ifdef RADIATION
     // radiation energy update.  For the moment, we actually update things
     // fully here, instead of creating a source term for the update
     do g = 0, ngroups-1
