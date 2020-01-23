@@ -12,6 +12,7 @@ ifneq ($(USE_CUDA), TRUE)
 endif
 endif
 CEXE_sources += Castro_setup.cpp
+CEXE_sources += Castro_grid_util.cpp
 CEXE_sources += Castro_io.cpp
 CEXE_sources += CastroBld.cpp
 CEXE_sources += main.cpp
