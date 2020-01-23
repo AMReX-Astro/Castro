@@ -1624,6 +1624,11 @@ public:
                                     const bool input_is_average);
 #endif
 
+amrex::Vector<Real>
+Castro::position_c(const int i, const int j, const int k,
+                   const bool ccx, const bool ccy, const bool ccz);
+
+
 // Hydrodynamics
 #include <Castro_hydro.H>
 
