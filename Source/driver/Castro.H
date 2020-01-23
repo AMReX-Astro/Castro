@@ -43,8 +43,10 @@ enum StateType { State_Type = 0,
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
 		 Simplified_SDC_React_Type
+#endif
 #endif
 };
 

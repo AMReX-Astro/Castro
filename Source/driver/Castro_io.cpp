@@ -158,12 +158,14 @@ Castro::restart (Amr&     papa,
         }
     }
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
         if (input_version < 5) { // old checkpoint without Simplified_SDC_React_Type
             state[Simplified_SDC_React_Type].restart(desc_lst[Simplified_SDC_React_Type], state[State_Type]);
         }
     }
+#endif
 #endif
 
     // For versions < 2, we didn't store all three components
@@ -548,6 +550,7 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
       state_in_checkpoint[i] = 0;
     }
 #endif
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
         if (input_version < 5 && i == Simplified_SDC_React_Type) {
@@ -555,6 +558,7 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
             state_in_checkpoint[i] = 0;
         }
     }
+#endif
 #endif
   }
 }
@@ -739,12 +743,14 @@ Castro::setPlotVariables ()
   for (int i = 0; i < desc_lst[Source_Type].nComp(); i++)
       parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
       for (int i = 0; i < desc_lst[Simplified_SDC_React_Type].nComp(); i++) {
           parent->deleteStatePlotVar(desc_lst[Simplified_SDC_React_Type].name(i));
       }
   }
+#endif
 #endif
 
   ParmParse pp("castro");
