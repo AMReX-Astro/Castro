@@ -33,7 +33,7 @@ Castro::ctu_consup(const Box& bx,
                    int nstep_fsp, &
 #endif
                    Array4<Real> const qx,
-if AMREX_SPACEDIM >= 2
+#if AMREX_SPACEDIM >= 2
                    Array4<Real> const qy,
 #endif
 #if AMREX_SPACEDIM == 3
@@ -114,6 +114,16 @@ if AMREX_SPACEDIM >= 2
       if (! mom_flux_has_p[1][UMX]) {
         update(i,j,k,UMX) = update(i,j,k,UMX) - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx(1);
       }
+#endif
+
+#ifdef HYBRID_MOMENTUM
+    } else if (n == URM) {
+      // update the radial momentum with the hybrid advection source
+      add_hybrid_advection_source(i, j, k,
+                                  dt, &dx,
+                                  update,
+                                  qx, qy, qz);
+#endif
 
     }
 
@@ -121,50 +131,34 @@ if AMREX_SPACEDIM >= 2
   });
 
 
-#ifdef HYBRID_MOMENTUM
-    call add_hybrid_advection_source(lo, hi, dt, &
-         update, updt_lo, updt_hi, &
-         qx, qx_lo, qx_hi, &
-         qy, qy_lo, qy_hi, &
-         qz, qz_lo, qz_hi)
-#endif
-
-
-
 
 #ifdef RADIATION
-    // radiation energy update.  For the moment, we actually update things
-    // fully here, instead of creating a source term for the update
-    do g = 0, ngroups-1
-       do k = lo(3),hi(3)
-          do j = lo(2),hi(2)
-             do i = lo(1),hi(1)
-                Erout(i,j,k,g) = Erin(i,j,k,g) + dt * &
-                     ( radflux1(i,j,k,g) * area1(i,j,k) - radflux1(i+1,j,k,g) * area1(i+1,j,k) &
+  // radiation energy update.  For the moment, we actually update things
+  // fully here, instead of creating a source term for the update
+  AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
+  {
+   Erout(i,j,k,g) = Erin(i,j,k,g) + dt *
+       ( radflux1(i,j,k,g) * area1(i,j,k) - radflux1(i+1,j,k,g) * area1(i+1,j,k)
 #if AMREX_SPACEDIM >= 2
-                     + radflux2(i,j,k,g) * area2(i,j,k) - radflux2(i,j+1,k,g) * area2(i,j+1,k) &
+       + radflux2(i,j,k,g) * area2(i,j,k) - radflux2(i,j+1,k,g) * area2(i,j+1,k)
 #endif
 #if AMREX_SPACEDIM == 3
-                     + radflux3(i,j,k,g) * area3(i,j,k) - radflux3(i,j,k+1,g) * area3(i,j,k+1) &
+       + radflux3(i,j,k,g) * area3(i,j,k) - radflux3(i,j,k+1,g) * area3(i,j,k+1)
 #endif
-                     ) / vol(i,j,k)
-             enddo
-          enddo
-       enddo
-    enddo
+       ) / vol(i,j,k); });
 
-    // Add gradp term to momentum equation -- only for axisymmetry coords
-    // (and only for the radial flux);  also add the radiation pressure gradient
-    // to the momentum for all directions
+  // Add gradp term to momentum equation -- only for axisymmetry coords
+  // (and only for the radial flux);  also add the radiation pressure gradient
+  // to the momentum for all directions
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             ! pgdnv from the Riemann solver is only the gas contribution,
-             ! not the radiation contribution.  Note that we've already included
-             ! the gas pressure in the momentum flux for all Cartesian coordinate
-             ! directions
+              // ! pgdnv from the Riemann solver is only the gas contribution,
+             // not the radiation contribution.  Note that we've already included
+             // the gas pressure in the momentum flux for all Cartesian coordinate
+             // directions
              if (.not. mom_flux_has_p(1)%comp(UMX)) then
                 dpdx = ( qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES))/ dx(1)
                 update(i,j,k,UMX) = update(i,j,k,UMX) - dpdx
@@ -377,4 +371,29 @@ if AMREX_SPACEDIM >= 2
        enddo
     endif
 #endif
+
+void
+Castro::add_hybrid_advection_source(const int i, const int j, const int k,
+                                    const Real dt, const Real* dx,
+                                    Array4<Real> const update,
+                                    Array4<Real> const qx,
+                                    Array4<Real> const qy,
+                                    Array4<Real> const qz)
+  {
+
+   Real center[3];
+   ca_get_center(center);
+
+   auto loc = position(i,j,k);
+
+   for (int idir = 0; idir < 3; idir++) {
+     loc[idir] -= center[idir];
+   }
+
+   Real R = std::sqrt( loc[1]*loc[1] + loc[2]*loc[2] );
+
+   update(i,j,k,UMR) += - ( (loc[1] / R) * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[1] +
+                            (loc[2] / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx[2] );
+
+  }
 
