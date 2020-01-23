@@ -1269,43 +1269,6 @@ public:
 ///
     void getSpecDiffusionTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& DiffTerm);
 #endif
-#if (BL_SPACEDIM == 1)
-
-///
-/// Get viscous term at given time
-///
-/// @param time                     current time
-/// @param state                    Current state
-/// @param ViscousTermforMomentum   Viscous term for momentum equation
-/// @param ViscousTermforEnergy     Viscous term for energy equation
-///
-    void getViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum, amrex::MultiFab& ViscousTermforEnergy);
-
-///
-///
-///
-/// @param time         current time
-/// @param state        Current state
-/// @param ViscousTerm  MultiFab to save term to
-///
-    void getFirstViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTerm);
-
-///
-///
-///
-/// @param time         current time
-/// @param state        Current state
-/// @param ViscousTerm  MultiFab to save term to
-///
-    void getSecndViscousTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTerm);
-
-///
-/// @param time                     current time
-/// @param state                    Current state
-/// @param ViscousTermforEnergy     MultiFab to save term to
-///
-    void getViscousTermForEnergy (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforEnergy);
-#endif
 
 ///
 /// Calculate temperature or enthalpty diffusion terms and add to ``ext_src`` (multiplied by ``mult_factor``).
@@ -1331,23 +1294,6 @@ public:
 ///                     by before addding to other sources
 ///
     void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& DiffTerm, amrex::Real t, amrex::Real mult_factor = 1.0);
-#endif
-#if (BL_SPACEDIM == 1)
-
-///
-/// Calculate viscous source terms and add to ``ext_src``
-///
-/// @param ext_src                  MultiFab to add viscous sources to
-/// @param state                    Current state
-/// @param ViscousTermforMomentum   MultiFab to save viscous term in momentum equation to
-/// @param ViscousTermforEnergy     MultiFab to save viscous term in energy equation to
-/// @param t                        Current time
-/// @param mult_factor              Real factor to multiply
-///                                 diffusion terms by before
-///                                 adding to other sources.
-///
-    void add_viscous_term_to_source   (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& ViscousTermforMomentum,
-                                       amrex::MultiFab& ViscousTermforEnergy, amrex::Real t, amrex::Real mult_factor = 1.0);
 #endif
 #endif
 
