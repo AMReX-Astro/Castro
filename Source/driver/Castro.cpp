@@ -2785,39 +2785,15 @@ Castro::reflux(int crse_level, int fine_level)
 void
 Castro::avgDown ()
 {
-    BL_PROFILE("Castro::avgDown()");
+  BL_PROFILE("Castro::avgDown()");
 
   if (level == parent->finestLevel()) return;
 
-  avgDown(State_Type);
-
-#ifdef GRAVITY
-  avgDown(Gravity_Type);
-  avgDown(PhiGrav_Type);
-#endif
-
-#ifdef ROTATION
-  avgDown(Rotation_Type);
-  avgDown(PhiRot_Type);
-#endif
-
-  avgDown(Source_Type);
-
-#ifdef REACTIONS
-  avgDown(Reactions_Type);
-#endif
-
-#ifdef REACTIONS
-  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      avgDown(Simplified_SDC_React_Type);
+  for (int k = 0; k < num_state_type; k++) {
+    if (k != Kanpsack_Weight_Type) {
+      avgDown(k)
+    }
   }
-#endif
-
-#ifdef RADIATION
-  if (do_radiation) {
-    avgDown(Rad_Type);
-  }
-#endif
 
 }
 
