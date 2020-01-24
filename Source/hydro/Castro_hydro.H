@@ -62,3 +62,31 @@
                                        amrex::Array4<amrex::Real> const qx,
                                        amrex::Array4<amrex::Real> const qy,
                                        amrex::Array4<amrex::Real> const qz);
+
+    void consup_hydro(const amrex::Box& bx,
+                      amrex::Array4<amrex::Real const> const shk,
+                      amrex::Array4<amrex::Real> const update,
+                      amrex::Array4<amrex::Real> const flux0,
+                      amrex::Array4<amrex::Real const> const qx,
+                      amrex::Array4<amrex::Real const> const area0,
+#if AMREX_SPACEDIM >= 2
+                      amrex::Array4<amrex::Real> const flux1,
+                      amrex::Array4<amrex::Real const> const qy,
+                      amrex::Array4<amrex::Real const> const area1,
+#endif
+#if AMREX_SPACEDIM == 3
+                      amrex::Array4<amrex::Real> const flux2,
+                      amrex::Array4<amrex::Real const> const qz,
+                      amrex::Array4<amrex::Real const> const area2,
+#endif
+                      amrex::Array4<amrex::Real const> const vol,
+                      const amrex::Real* dx, const amrex::Real dt);
+
+#ifdef HYBRID_MOMENTUM
+    void add_hybrid_advection_source(const int i, const int j, const int k,
+                                     const amrex::Real dt, const amrex::Real* dx,
+                                     amrex::Array4<amrex::Real> const update,
+                                     amrex::Array4<amrex::Real const> const qx,
+                                     amrex::Array4<amrex::Real const> const qy,
+                                     amrex::Array4<amrex::Real const> const qz);
+#endif

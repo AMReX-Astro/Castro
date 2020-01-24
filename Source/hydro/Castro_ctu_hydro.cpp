@@ -1163,9 +1163,44 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
       // conservative update
+      Array4<Real> const update_arr = hydro_source[mfi].array();
+
+      Array4<Real> const flx_arr = (flux[0]).array();
+      Array4<Real> const qx_arr = (qe[0]).array();
+      Array4<Real> const areax_arr = (area[0][mfi]).array();
+
+#if AMREX_SPACEDIM >= 2
+      Array4<Real> const fly_arr = (flux[1]).array();
+      Array4<Real> const qy_arr = (qe[1]).array();
+      Array4<Real> const areay_arr = (area[1][mfi]).array();
+#endif
+
+#if AMREX_SPACEDIM == 3
+      Array4<Real> const flz_arr = (flux[2]).array();
+      Array4<Real> const qz_arr = (qe[2]).array();
+      Array4<Real> const areaz_arr = (area[2][mfi]).array();
+#endif
+
+      Array4<Real> const vol_arr = volume[mfi].array();
 
 #pragma gpu box(bx)
-      ctu_consup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+      consup_hydro(bx,
+                   shk_arr,
+                   update_arr,
+                   flx_arr, qx_arr, areax_arr,
+#if AMREX_SPACEDIM >= 2
+                   fly_arr, qy_arr, areay_arr,
+#endif
+#if AMREX_SPACEDIM == 3
+                   flz_arr, qz_arr, areaz_arr,
+#endif
+                   vol_arr,
+                   dx, dt);
+
+
+#ifdef RADIATION
+#pragma gpu box(bx)
+      consup_rad(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                  BL_TO_FORTRAN_ANYD(shk),
                  BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
                  BL_TO_FORTRAN_ANYD(flux[0]),
@@ -1175,7 +1210,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM == 3
                  BL_TO_FORTRAN_ANYD(flux[2]),
 #endif
-#ifdef RADIATION
                  BL_TO_FORTRAN_ANYD(Erborder[mfi]),
                  BL_TO_FORTRAN_ANYD(S_new[mfi]),
                  BL_TO_FORTRAN_ANYD(Er_new[mfi]),
@@ -1187,7 +1221,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                  BL_TO_FORTRAN_ANYD(rad_flux[2]),
 #endif
                  &priv_nstep_fsp,
-#endif
                  BL_TO_FORTRAN_ANYD(qe[0]),
 #if AMREX_SPACEDIM >= 2
                  BL_TO_FORTRAN_ANYD(qe[1]),
@@ -1205,7 +1238,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                  BL_TO_FORTRAN_ANYD(volume[mfi]),
                  AMREX_REAL_ANYD(dx), dt);
 
-#ifdef RADIATION
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
 
