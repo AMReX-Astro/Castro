@@ -492,6 +492,9 @@ extern "C"
 /* hydrodynamics */
 #include <Castro_hydro_F.H>
 
+/* SDC */
+#include <Castro_sdc_F.H>
+
 /* SCF */
 #include <scf_relax_F.H>
 
