@@ -137,3 +137,4 @@
                                     BL_FORT_FAB_ARG_3D(U_guess),
                                     const amrex::Real* dt_m, const int* sdc_iteration);
 #endif
+#endif // CUDA

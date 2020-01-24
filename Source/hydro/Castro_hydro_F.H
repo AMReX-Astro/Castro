@@ -515,7 +515,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(flux),
      const amrex::Real* dx);
 
-#endif
 
 #ifdef __cplusplus
 }
