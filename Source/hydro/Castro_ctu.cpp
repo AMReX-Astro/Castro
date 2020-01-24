@@ -41,12 +41,12 @@ Castro::consup_hydro(const Box& bx,
     Real volinv = 1.0 / vol(i,j,k);
 
     update(i,j,k,n) = update(i,j,k,n) +
-      ( flux0(i,j,k,n) * area0(i,j,k) - flux0(i+1,j,k,n) * area0(i+1,j,k) +
+      ( flux0(i,j,k,n) * area0(i,j,k) - flux0(i+1,j,k,n) * area0(i+1,j,k)
 #if AMREX_SPACEDIM >= 2
-        flux1(i,j,k,n) * area1(i,j,k) - flux1(i,j+1,k,n) * area1(i,j+1,k) +
+      + flux1(i,j,k,n) * area1(i,j,k) - flux1(i,j+1,k,n) * area1(i,j+1,k)
 #endif
 #if AMREX_SPACEDIM == 3
-        flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j,k+1,n) * area2(i,j,k+1)
+      + flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j,k+1,n) * area2(i,j,k+1)
 #endif
         ) * volinv;
 
