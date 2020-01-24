@@ -286,19 +286,6 @@ extern "C"
                                     BL_FORT_FAB_ARG_3D(q), const int* nc,
                                     const int* domlo, const int* domhi);
 
-#ifdef REACTIONS
-  void ca_instantaneous_react
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(R));
-
-  void ca_store_reaction_state
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG_3D(R_old),
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(R_new));
-#endif
-
 #ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,
@@ -308,19 +295,10 @@ extern "C"
      const amrex::Real& dt);
 #endif
 
-#include <Castro_sources_F.H>
-
-#ifdef GRAVITY
-#include <Castro_gravity_F.H>
-#endif
 
 
   void flush_output();
 
-
-#ifdef ROTATION
-#include <Castro_rotation_F.H>
-#endif
 
   void ca_summass
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
@@ -346,47 +324,6 @@ extern "C"
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(f1), const BL_FORT_FAB_ARG_3D(f2),
      const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* s);
 
-#ifdef REACTIONS
-  void ca_react_state_simplified_sdc
-    (const int* lo, const int* hi,
-     const amrex::Real* uold, const int* uo_lo, const int* uo_hi,
-     amrex::Real* unew, const int* un_lo, const int* un_hi,
-     const amrex::Real* asrc, const int* as_lo, const int* as_hi,
-     amrex::Real* reactions, const int* r_lo, const int* r_hi,
-     const int* mask, const int* m_lo, const int* m_hi,
-     const amrex::Real time, const amrex::Real dt_react, const int sdc_iter,
-     amrex::Real* burn_failure);
-
-  void ca_react_state
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(reactions),
-     BL_FORT_FAB_ARG_3D(weights),
-     const BL_FORT_IFAB_ARG_3D(mask),
-     const amrex::Real time, const amrex::Real dt_react, const int strang_half,
-     amrex::Real* burn_failure);
-#endif
-
-  void ca_tempdiffextrap
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(TempDiffTerm));
-
-  void make_enthalpy
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-           BL_FORT_FAB_ARG_3D(enth));
-
-  void ca_fill_temp_cond
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(coeff_cc));
-
-  void ca_average_coef_cc_to_ec
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(coef_c),
-     BL_FORT_FAB_ARG_3D(coef_e),
-     const int idir);
-
 
 #ifdef AUX_UPDATE
   void ca_auxupdate
@@ -404,10 +341,39 @@ extern "C"
 /* hydrodynamics */
 #include <Castro_hydro_F.H>
 
+
+/* reactions */
+#ifdef REACTIONS
+#include <Castro_react_F.H>
+#endif
+
+
+/* sources */
+#include <Castro_sources_F.H>
+
+
+/* gravity */
+#ifdef GRAVITY
+#include <Castro_gravity_F.H>
+#endif
+
+/* rotation */
+#ifdef ROTATION
+#include <Castro_rotation_F.H>
+#endif
+
+
 /* SDC */
 #ifdef TRUE_SDC
 #include <Castro_sdc_F.H>
 #endif
+
+
+/* diffusion */
+#ifdef DIFFUSION
+#include <Castro_diffusion_F.H>
+#endif
+
 
 /* SCF */
 #include <scf_relax_F.H>

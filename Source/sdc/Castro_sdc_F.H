@@ -136,5 +136,17 @@
                                     const BL_FORT_FAB_ARG_3D(R_old),
                                     BL_FORT_FAB_ARG_3D(U_guess),
                                     const amrex::Real* dt_m, const int* sdc_iteration);
+
+  void ca_instantaneous_react
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(R));
+
+  void ca_store_reaction_state
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG_3D(R_old),
+     const BL_FORT_FAB_ARG_3D(state),
+     BL_FORT_FAB_ARG_3D(R_new));
+
 #endif
 #endif // CUDA
