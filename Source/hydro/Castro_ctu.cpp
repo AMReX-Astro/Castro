@@ -82,7 +82,7 @@ Castro::consup_hydro(const Box& bx,
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
 
-      if (! mom_flux_has_p[1][Xmom]) {
+      if (! mom_flux_has_p[0][Xmom]) {
         update(i,j,k,Xmom) = update(i,j,k,Xmom) - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[1];
       }
 #endif
