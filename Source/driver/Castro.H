@@ -807,39 +807,7 @@ public:
 #endif
 
 #ifdef ROTATION
-
-///
-/// Construct rotation source terms at old time
-///
-/// @param source   MultiFab to save source terms to
-/// @param state    Old state
-/// @param time     current time
-/// @param dt       timestep
-///
-    void construct_old_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
-
-
-///
-/// Construct rotation source terms at new time.
-///
-/// @param source       MultiFab to save source terms to
-/// @param state_old    Old State
-/// @param state_new    New State
-/// @param time         current time
-/// @param dt           timestep
-///
-    void construct_new_rotation_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
-
-
-///
-/// Fill rotational potential and acceleration
-///
-/// @param phi      Rotational potential
-/// @param rot      Rotational acceleration
-/// @param state    Current state
-/// @param time     current time
-///
-    void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& rot, amrex::MultiFab& state, amrex::Real time);
+#include <Castro_rotation.H>
 #endif
 
 #ifdef RADIATION
@@ -992,28 +960,6 @@ public:
 ///
     void add_spec_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& state, amrex::MultiFab& DiffTerm, amrex::Real t, amrex::Real mult_factor = 1.0);
 #endif
-#endif
-
-#ifdef ROTATION
-
-///
-/// Calculate rotation source term and add to ``ext_src``
-///
-/// @param ext_src          MultiFab to add rotation term to
-/// @param RotationTerm     MultiFab to save rotation term to
-/// @param old_time         Old time
-///
-  void add_rotation_to_source(amrex::MultiFab& ext_src, amrex::MultiFab& RotationTerm, amrex::Real old_time);
-
-///
-/// Center rotation source term in time
-///
-/// @param S_new
-/// @param OldRotationTerm
-/// @param cur_time         Current time
-/// @param dt               timestep
-///
-  void time_center_rotation(amrex::MultiFab& S_new, amrex::MultiFab& OldRotationTerm, amrex::Real cur_time, amrex::Real dt);
 #endif
 
 
