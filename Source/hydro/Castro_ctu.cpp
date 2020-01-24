@@ -9,115 +9,86 @@
 using namespace amrex;
 
 void
-Castro::ctu_consup(const Box& bx,
-                   Array4<Real> const shk,
-                   Array4<Real> const update,
-                   Array4<Real> const flux1,
+Castro::consup_hydro(const Box& bx,
+                     Array4<Real const> const shk,
+                     Array4<Real> const update,
+                     Array4<Real> const flux0,
+                     Array4<Real const> const qx,
+                     Array4<Real const> const area0,
 #if AMREX_SPACEDIM >= 2
-                   Array4<Real> const flux2,
+                     Array4<Real> const flux1,
+                     Array4<Real const> const qy,
+                     Array4<Real const> const area1,
 #endif
 #if AMREX_SPACEDIM == 3
-                   Array4<Real> const flux3,
+                     Array4<Real> const flux2,
+                     Array4<Real const> const qz,
+                     Array4<Real const> const area2,
 #endif
-#ifdef RADIATION
-                   Array4<Real> const Erin,
-                   Array4<Real> const uout,
-                   Array4<Real> const Erout,
-                   Array4<Real> const radflux1,
-#if AMREX_SPACEDIM >= 2
-                   Array4<Real> const radflux2,
-#endif
-#if AMREX_SPACEDIM == 3
-                   Array4<Real> const radflux3,
-#endif
-                   int nstep_fsp, &
-#endif
-                   Array4<Real> const qx,
-#if AMREX_SPACEDIM >= 2
-                   Array4<Real> const qy,
-#endif
-#if AMREX_SPACEDIM == 3
-                   Array4<Real> const qz,
-#endif
-                   Array4<Real> const area1,
-#if AMREX_SPACEDIM >= 2
-                   Array4<Real> const area2,
-#endif
-#if AMREX_SPACEDIM == 3
-                   Array4<Real> const area3,
-#endif
-                   Array4<Real> const vol,
-                   Real dx, Real dt)
+                     Array4<Real const> const vol,
+                     const Real* dx, const Real dt)
 {
 
 
-#ifdef RADIATION
-  if (Radiation::nGroups > 1) {
-    if (fspace_type == 1) {
-      Erscale = dlognu;
-    } else {
-      Erscale = nugroup*dlognu;
-    }
-  }
-#endif
 
   // For hydro, we will create an update source term that is
   // essentially the flux divergence.  This can be added with dt to
   // get the update
 
-  AMREX_PARALLEL_FOR_4D(bx, NVAR, i, j, k, n,
+  AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
   {
 
     Real volinv = 1.0 / vol(i,j,k);
 
     update(i,j,k,n) = update(i,j,k,n) +
-      ( flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) +
+      ( flux0(i,j,k,n) * area0(i,j,k) - flux0(i+1,j,k,n) * area0(i+1,j,k) +
 #if AMREX_SPACEDIM >= 2
-        flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) +
+        flux1(i,j,k,n) * area1(i,j,k) - flux1(i,j+1,k,n) * area1(i,j+1,k) +
 #endif
 #if AMREX_SPACEDIM == 3
-        flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1)
+        flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j,k+1,n) * area2(i,j,k+1)
 #endif
         ) * volinv;
 
    // Add the p div(u) source term to (rho e).
-    if (n == UEINT) {
+    if (n == Eint) {
 
-      Real pdu = (q1(i+1,j,k,GDPRES) + q1(i,j,k,GDPRES)) *
-                 (q1(i+1,j,k,GDU) * area1(i+1,j,k) - q1(i,j,k,GDU) * area1(i,j,k));
+      Real pdu = (qx(i+1,j,k,GDPRES) + qx(i,j,k,GDPRES)) *
+                 (qx(i+1,j,k,GDU) * area0(i+1,j,k) - qx(i,j,k,GDU) * area0(i,j,k));
 
 #if AMREX_SPACEDIM >= 2
-      pdu = pdu + &
-        (q2(i,j+1,k,GDPRES) + q2(i,j,k,GDPRES)) *
-        (q2(i,j+1,k,GDV) * area2(i,j+1,k) - q2(i,j,k,GDV) * area2(i,j,k));
+      pdu = pdu +
+        (qy(i,j+1,k,GDPRES) + qy(i,j,k,GDPRES)) *
+        (qy(i,j+1,k,GDV) * area1(i,j+1,k) - qy(i,j,k,GDV) * area1(i,j,k));
 #endif
 
 #if AMREX_SPACEDIM == 3
-      pdu = pdu + &
-        (q3(i,j,k+1,GDPRES) + q3(i,j,k,GDPRES)) *
-        (q3(i,j,k+1,GDW) * area3(i,j,k+1) - q3(i,j,k,GDW) * area3(i,j,k));
+      pdu = pdu +
+        (qz(i,j,k+1,GDPRES) + qz(i,j,k,GDPRES)) *
+        (qz(i,j,k+1,GDW) * area2(i,j,k+1) - qz(i,j,k,GDW) * area2(i,j,k));
 #endif
 
-      pdu = HALF * pdu * volinv;
+      pdu = 0.5 * pdu * volinv;
 
       update(i,j,k,n) = update(i,j,k,n) - pdu;
-    }
 
-    else if (n == USHK) {
+#ifdef SHOCK_VAR
+    } else if (n == Shock) {
       update(i,j,k,USHK) = shk(i,j,k,1) / dt;
+#endif
 
 #ifndef RADIATION
-    } else if (n == UMX) {
+    } else if (n == Xmom) {
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
 
-      if (! mom_flux_has_p[1][UMX]) {
-        update(i,j,k,UMX) = update(i,j,k,UMX) - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx(1);
+      if (! mom_flux_has_p[1][Xmom]) {
+        update(i,j,k,Xmom) = update(i,j,k,Xmom) - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[1];
       }
 #endif
 
 #ifdef HYBRID_MOMENTUM
-    } else if (n == URM) {
+    } else if (n == Rmom) {
       // update the radial momentum with the hybrid advection source
       add_hybrid_advection_source(i, j, k,
                                   dt, &dx,
@@ -130,20 +101,73 @@ Castro::ctu_consup(const Box& bx,
 
   });
 
+}
+
 
 
 #ifdef RADIATION
+void
+Castro::consup_rad(const Box& bx,
+                   Array4<Real> const shk,
+                   Array4<Real> const update,
+                   Array4<Real> const flux0,
+#if AMREX_SPACEDIM >= 2
+                   Array4<Real> const flux1,
+#endif
+#if AMREX_SPACEDIM == 3
+                   Array4<Real> const flux2,
+#endif
+#ifdef RADIATION
+                   Array4<Real> const Erin,
+                   Array4<Real> const uout,
+                   Array4<Real> const Erout,
+                   Array4<Real> const radflux0,
+#if AMREX_SPACEDIM >= 2
+                   Array4<Real> const radflux1,
+#endif
+#if AMREX_SPACEDIM == 3
+                   Array4<Real> const radflux2,
+#endif
+                   int nstep_fsp, &
+#endif
+                   Array4<Real> const qx,
+#if AMREX_SPACEDIM >= 2
+                   Array4<Real> const qy,
+#endif
+#if AMREX_SPACEDIM == 3
+                   Array4<Real> const qz,
+#endif
+                   Array4<Real> const area0,
+#if AMREX_SPACEDIM >= 2
+                   Array4<Real> const area1,
+#endif
+#if AMREX_SPACEDIM == 3
+                   Array4<Real> const area2,
+#endif
+                   Array4<Real> const vol,
+                   Real dx, Real dt)
+{
+
+
+  if (Radiation::nGroups > 1) {
+    if (fspace_type == 1) {
+      Erscale = dlognu;
+    } else {
+      Erscale = nugroup*dlognu;
+    }
+  }
+
   // radiation energy update.  For the moment, we actually update things
   // fully here, instead of creating a source term for the update
   AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
   {
    Erout(i,j,k,g) = Erin(i,j,k,g) + dt *
-       ( radflux1(i,j,k,g) * area1(i,j,k) - radflux1(i+1,j,k,g) * area1(i+1,j,k)
+       ( radflux0(i,j,k,g) * area0(i,j,k) - radflux0(i+1,j,k,g) * area0(i+1,j,k)
 #if AMREX_SPACEDIM >= 2
-       + radflux2(i,j,k,g) * area2(i,j,k) - radflux2(i,j+1,k,g) * area2(i,j+1,k)
+       + radflux1(i,j,k,g) * area1(i,j,k) - radflux1(i,j+1,k,g) * area1(i,j+1,k)
 #endif
 #if AMREX_SPACEDIM == 3
-       + radflux3(i,j,k,g) * area3(i,j,k) - radflux3(i,j,k+1,g) * area3(i,j,k+1)
+       + radflux2(i,j,k,g) * area2(i,j,k) - radflux2(i,j,k+1,g) * area2(i,j,k+1)
 #endif
        ) / vol(i,j,k); });
 
@@ -174,12 +198,12 @@ Castro::ctu_consup(const Box& bx,
                 lamc = HALF*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g))
 #endif
 #if AMREX_SPACEDIM == 2
-                lamc = FOURTH*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
+                lamc = FOURTH*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) +
                      qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g))
 #endif
 #if AMREX_SPACEDIM == 3
-                lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
-                     qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g) + &
+                lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + 
+                     qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g) + 
                      qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g) ) / 6.e0_rt
 #endif
 
@@ -292,12 +316,12 @@ Castro::ctu_consup(const Box& bx,
                    lamc = HALF*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g))
 #endif
 #if AMREX_SPACEDIM == 2
-                   lamc = 0.25e0_rt*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
+                   lamc = 0.25e0_rt*(qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) +
                         qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g))
 #endif
 #if AMREX_SPACEDIM == 3
-                   lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) + &
-                        qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g) + &
+                   lamc = (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g) +
+                        qy(i,j,k,GDLAMS+g) + qy(i,j+1,k,GDLAMS+g) +
                         qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g) ) / 6.e0_rt
 #endif
 
@@ -340,20 +364,20 @@ Castro::ctu_consup(const Box& bx,
 
 #if AMREX_SPACEDIM == 1
                       Egdc = HALF*(qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g))
-                      Erout(i,j,k,g) = Erout(i,j,k,g) + dt*ux*Gf1E(1) &
+                      Erout(i,j,k,g) = Erout(i,j,k,g) + dt*ux*Gf1E(1)
                            - dt*f2*Egdc*nnColonDotGu
 #endif
 #if AMREX_SPACEDIM == 2
-                      Egdc = 0.25e0_rt*(qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) + &
+                      Egdc = 0.25e0_rt*(qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) +
                            qy(i,j,k,GDERADS+g) + qy(i,j+1,k,GDERADS+g))
-                      Erout(i,j,k,g) = Erout(i,j,k,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)) &
+                      Erout(i,j,k,g) = Erout(i,j,k,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2))
                            - dt*f2*Egdc*nnColonDotGu
 #endif
 #if AMREX_SPACEDIM == 3
-                      Egdc = (qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) &
-                           +  qy(i,j,k,GDERADS+g) + qy(i,j+1,k,GDERADS+g) &
+                      Egdc = (qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g)
+                           +  qy(i,j,k,GDERADS+g) + qy(i,j+1,k,GDERADS+g)
                            +  qz(i,j,k,GDERADS+g) + qz(i,j,k+1,GDERADS+g) ) / 6.e0_rt
-                      Erout(i,j,k,g) = Erout(i,j,k,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)+uz*Gf1E(3)) &
+                      Erout(i,j,k,g) = Erout(i,j,k,g) + dt*(ux*Gf1E(1)+uy*Gf1E(2)+uz*Gf1E(3))
                            - dt*f2*Egdc*nnColonDotGu
 #endif
 
@@ -372,19 +396,20 @@ Castro::ctu_consup(const Box& bx,
     endif
 #endif
 
+#ifdef HYBRID_MOMENTUM
 void
 Castro::add_hybrid_advection_source(const int i, const int j, const int k,
                                     const Real dt, const Real* dx,
                                     Array4<Real> const update,
-                                    Array4<Real> const qx,
-                                    Array4<Real> const qy,
-                                    Array4<Real> const qz)
+                                    Array4<Real const> const qx,
+                                    Array4<Real const> const qy,
+                                    Array4<Real const> const qz)
   {
 
    Real center[3];
    ca_get_center(center);
 
-   auto loc = position(i,j,k);
+   auto loc = position_c(i,j,k, false, false, false);
 
    for (int idir = 0; idir < 3; idir++) {
      loc[idir] -= center[idir];
@@ -392,8 +417,8 @@ Castro::add_hybrid_advection_source(const int i, const int j, const int k,
 
    Real R = std::sqrt( loc[1]*loc[1] + loc[2]*loc[2] );
 
-   update(i,j,k,UMR) += - ( (loc[1] / R) * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[1] +
-                            (loc[2] / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx[2] );
+   update(i,j,k,Rmom) += - ( (loc[1] / R) * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[1] +
+                             (loc[2] / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx[2] );
 
   }
-
+#endif
