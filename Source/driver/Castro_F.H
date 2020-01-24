@@ -61,8 +61,6 @@ extern "C"
 
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
-  void get_numpts_1d(int* numpts_1d);
-  void set_numpts_1d(int* numpts_1d);
   void allocate_outflow_data(const int* n1d, const int* nc);
   void set_old_outflow_data(const amrex::Real* radial, const amrex::Real* time,
 			    const int* numpts, const int* nc);
@@ -312,55 +310,13 @@ extern "C"
 
 #include <Castro_sources_F.H>
 
+#ifdef GRAVITY
+#include <Castro_gravity_F.H>
+#endif
 
 
   void flush_output();
 
-#ifdef GRAVITY
-  void pm_compute_delta_mass
-    (const int* lo, const int* hi, amrex::Real* pm_delta_mass,
-     const BL_FORT_FAB_ARG_3D(state),
-     const BL_FORT_FAB_ARG_3D(stateout),
-     const BL_FORT_FAB_ARG_3D(volume),
-     const amrex::Real* problo, const amrex::Real* dx,
-     const amrex::Real time, const amrex::Real dt);
-
-  void pm_fix_solution
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(stateold),
-     BL_FORT_FAB_ARG_3D(statenew),
-     const amrex::Real* problo, const amrex::Real* dx,
-     const amrex::Real time, const amrex::Real dt);
-
-  void set_pointmass(const amrex::Real* pointmass);
-#endif
-
-#ifdef GRAVITY
-  void ca_gsrc
-    (const int* lo, const int* hi,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(s_old),
-     const BL_FORT_FAB_ARG_3D(phi),
-     const BL_FORT_FAB_ARG_3D(grav),
-     BL_FORT_FAB_ARG_3D(source),
-     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
-
-  void ca_corrgsrc
-    (const int* lo, const int* hi,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(S_old),
-     const BL_FORT_FAB_ARG_3D(S_new),
-     const BL_FORT_FAB_ARG_3D(phi_old),
-     const BL_FORT_FAB_ARG_3D(phi_new),
-     const BL_FORT_FAB_ARG_3D(grav_old),
-     const BL_FORT_FAB_ARG_3D(grav_new),
-     const BL_FORT_FAB_ARG_3D(volume),
-     const BL_FORT_FAB_ARG_3D(xflux),
-     const BL_FORT_FAB_ARG_3D(yflux),
-     const BL_FORT_FAB_ARG_3D(zflux),
-     const BL_FORT_FAB_ARG_3D(source),
-     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
-#endif
 
 #ifdef ROTATION
 
@@ -493,7 +449,9 @@ extern "C"
 #include <Castro_hydro_F.H>
 
 /* SDC */
+#ifdef TRUE_SDC
 #include <Castro_sdc_F.H>
+#endif
 
 /* SCF */
 #include <scf_relax_F.H>

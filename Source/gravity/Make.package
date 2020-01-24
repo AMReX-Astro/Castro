@@ -4,6 +4,8 @@
 CEXE_sources += Gravity.cpp
 CEXE_headers += Gravity.H
 FEXE_headers += Gravity_F.H
+CEXE_headers += Castro_gravity.H
+FEXE_headers += Castro_gravity_F.H
 
 CEXE_sources += Castro_gravity.cpp
 
