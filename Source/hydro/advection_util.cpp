@@ -38,8 +38,8 @@ Castro::src_to_prim(const Box& bx,
 
 #ifdef PRIM_SPECIES_HAVE_SOURCES
       for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-        int n = upass_map(ipassive);
-        int iq = qpass_map(ipassive);
+        int n = upass_map[ipassive];
+        int iq = qpass_map[ipassive];
 
        // we may not be including the ability to have species sources,
        //  so check to make sure that we are < NQSRC

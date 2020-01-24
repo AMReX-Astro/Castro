@@ -83,7 +83,7 @@ Castro::consup_hydro(const Box& bx,
       // coords (and only for the radial flux).
 
       if (! mom_flux_has_p[0][Xmom]) {
-        update(i,j,k,Xmom) = update(i,j,k,Xmom) - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[1];
+        update(i,j,k,Xmom) = update(i,j,k,Xmom) - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
 #endif
 
