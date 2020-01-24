@@ -310,17 +310,8 @@ extern "C"
      const amrex::Real& dt);
 #endif
 
-#ifdef SPONGE
-  void ca_sponge
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(source),
-     BL_FORT_FAB_ARG_3D(vol),
-     const amrex::Real* dx, const amrex::Real dt,
-     const amrex::Real time, const amrex::Real mult_factor);
+#include <Castro_sources_F.H>
 
-  void update_sponge_params(const amrex::Real* time);
-#endif
 
 
   void flush_output();
@@ -484,13 +475,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(coef_e),
      const int idir);
 
-  void ca_thermo_src
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state_old),
-     const BL_FORT_FAB_ARG_3D(state_new),
-     BL_FORT_FAB_ARG_3D(thermo_src),
-     const amrex::Real* prob_lo, const amrex::Real* dx,
-     const amrex::Real time, const amrex::Real dt);
 
 #ifdef AUX_UPDATE
   void ca_auxupdate
@@ -504,13 +488,6 @@ extern "C"
   void ca_setgroup(const int& igroup);
 #endif
 
-  void ca_ext_src
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(old_state),
-     const BL_FORT_FAB_ARG_3D(new_state),
-     BL_FORT_FAB_ARG_3D(ext_src),
-     const amrex::Real* prob_lo, const amrex::Real* dx,
-     const amrex::Real time, const amrex::Real dt);
 
 /* hydrodynamics */
 #include <Castro_hydro_F.H>
