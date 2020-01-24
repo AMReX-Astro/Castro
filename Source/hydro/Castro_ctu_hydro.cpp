@@ -1163,25 +1163,25 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
       // conservative update
-      Array4<Real> const update_arr = hydro_source[mfi].array();
+      Array4<Real> const update_arr = hydro_source.array(mfi);
 
       Array4<Real> const flx_arr = (flux[0]).array();
       Array4<Real> const qx_arr = (qe[0]).array();
-      Array4<Real> const areax_arr = (area[0][mfi]).array();
+      Array4<Real> const areax_arr = (area[0]).array(mfi);
 
 #if AMREX_SPACEDIM >= 2
       Array4<Real> const fly_arr = (flux[1]).array();
       Array4<Real> const qy_arr = (qe[1]).array();
-      Array4<Real> const areay_arr = (area[1][mfi]).array();
+      Array4<Real> const areay_arr = (area[1]).array(mfi);
 #endif
 
 #if AMREX_SPACEDIM == 3
       Array4<Real> const flz_arr = (flux[2]).array();
       Array4<Real> const qz_arr = (qe[2]).array();
-      Array4<Real> const areaz_arr = (area[2][mfi]).array();
+      Array4<Real> const areaz_arr = (area[2]).array(mfi);
 #endif
 
-      Array4<Real> const vol_arr = volume[mfi].array();
+      Array4<Real> const vol_arr = volume.array(mfi);
 
 #pragma gpu box(bx)
       consup_hydro(bx,

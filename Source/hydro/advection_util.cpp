@@ -37,7 +37,7 @@ Castro::src_to_prim(const Box& bx,
         rhoinv + qaux(i,j,k,QDPDR)*srcQ(i,j,k,QRHO);
 
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-      for (int ipassive = 1; ipassive < npassive; ++ipassive) {
+      for (int ipassive = 0; ipassive < npassive; ++ipassive) {
         int n = upass_map(ipassive);
         int iq = qpass_map(ipassive);
 
