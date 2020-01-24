@@ -308,7 +308,7 @@ Castro::variableSetUp ()
 
   for (int iaux = 0; iaux < NumAux; ++iaux) {
     upass_map[ipassive] = FirstAux + iaux;
-    qpass_map[ipassive] = QFS + iaux;
+    qpass_map[ipassive] = QFX + iaux;
     ++ipassive;
   }
 
