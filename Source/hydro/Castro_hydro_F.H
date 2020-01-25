@@ -49,8 +49,7 @@ extern "C"
 #ifdef RADIATION
   void ctu_rad_consup
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(q),
-     const BL_FORT_FAB_ARG_3D(hydro_source),
+     BL_FORT_FAB_ARG_3D(hydro_source),
      const BL_FORT_FAB_ARG_3D(Erborder),
      BL_FORT_FAB_ARG_3D(S_new),
      BL_FORT_FAB_ARG_3D(Er_out),

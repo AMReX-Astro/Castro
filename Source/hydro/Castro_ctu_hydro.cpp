@@ -1200,43 +1200,27 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #ifdef RADIATION
 #pragma gpu box(bx)
-      consup_rad(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(shk),
-                 BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
-                 BL_TO_FORTRAN_ANYD(flux[0]),
+      ctu_rad_consup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                     BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
+                     BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                     BL_TO_FORTRAN_ANYD(Er_new[mfi]),
+                     BL_TO_FORTRAN_ANYD(rad_flux[0]),
+                     BL_TO_FORTRAN_ANYD(qe[0]),
+                     BL_TO_FORTRAN_ANYD(area[0][mfi]),
 #if AMREX_SPACEDIM >= 2
-                 BL_TO_FORTRAN_ANYD(flux[1]),
+                     BL_TO_FORTRAN_ANYD(rad_flux[1]),
+                     BL_TO_FORTRAN_ANYD(qe[1]),
+                     BL_TO_FORTRAN_ANYD(area[1][mfi]),
 #endif
 #if AMREX_SPACEDIM == 3
-                 BL_TO_FORTRAN_ANYD(flux[2]),
+                     BL_TO_FORTRAN_ANYD(rad_flux[2]),
+                     BL_TO_FORTRAN_ANYD(qe[2]),
+                     BL_TO_FORTRAN_ANYD(area[2][mfi]),
 #endif
-                 BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(rad_flux[0]),
-#if AMREX_SPACEDIM >= 2
-                 BL_TO_FORTRAN_ANYD(rad_flux[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-                 BL_TO_FORTRAN_ANYD(rad_flux[2]),
-#endif
-                 &priv_nstep_fsp,
-                 BL_TO_FORTRAN_ANYD(qe[0]),
-#if AMREX_SPACEDIM >= 2
-                 BL_TO_FORTRAN_ANYD(qe[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-                 BL_TO_FORTRAN_ANYD(qe[2]),
-#endif
-                 BL_TO_FORTRAN_ANYD(area[0][mfi]),
-#if AMREX_SPACEDIM >= 2
-                 BL_TO_FORTRAN_ANYD(area[1][mfi]),
-#endif
-#if AMREX_SPACEDIM == 3
-                 BL_TO_FORTRAN_ANYD(area[2][mfi]),
-#endif
-                 BL_TO_FORTRAN_ANYD(volume[mfi]),
-                 AMREX_REAL_ANYD(dx), dt);
+                     &priv_nstep_fsp,
+                     BL_TO_FORTRAN_ANYD(volume[mfi]),
+                     AMREX_REAL_ANYD(dx), dt);
 
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif

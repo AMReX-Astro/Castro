@@ -384,7 +384,6 @@ contains
 
 #ifdef RADIATION
   subroutine ctu_rad_consup(lo, hi, &
-                            q, q_lo, q_hi, &
                             update, updt_lo, updt_hi, &
                             Erin, Erin_lo, Erin_hi, &
                             uout, uout_lo, uout_hi, &
@@ -411,7 +410,6 @@ contains
                                    fspace_type, comoving, &
                                    GDU, GDV, GDW, GDLAMS, GDERADS, &
                                    GDPRES
-    use advection_util_module, only: pdivu ! function
     use prob_params_module, only : mom_flux_has_p, center, dg
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
@@ -419,7 +417,6 @@ contains
     use amrex_constants_module, only : ZERO, ONE, TWO, FOURTH, HALF
 
     integer, intent(in) ::       lo(3),       hi(3)
-    integer, intent(in) ::     q_lo(3),     q_hi(3)
     integer, intent(in) ::  updt_lo(3),  updt_hi(3)
     integer, intent(in) :: radflux1_lo(3), radflux1_hi(3)
     integer, intent(in) ::    qx_lo(3),    qx_hi(3)
@@ -441,8 +438,7 @@ contains
     integer, intent(inout) :: nstep_fsp
 
 
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)
+    real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1),updt_lo(2):updt_hi(2),updt_lo(3):updt_hi(3),NVAR)
 
     real(rt), intent(in) :: radflux1(radflux1_lo(1):radflux1_hi(1),radflux1_lo(2):radflux1_hi(2),radflux1_lo(3):radflux1_hi(3),0:ngroups-1)
     real(rt), intent(in) :: area1(area1_lo(1):area1_hi(1),area1_lo(2):area1_hi(2),area1_lo(3):area1_hi(3))
