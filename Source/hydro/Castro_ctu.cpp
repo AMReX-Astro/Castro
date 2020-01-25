@@ -57,15 +57,13 @@ Castro::consup_hydro(const Box& bx,
                  (qx(i+1,j,k,GDU) * area0(i+1,j,k) - qx(i,j,k,GDU) * area0(i,j,k));
 
 #if AMREX_SPACEDIM >= 2
-      pdu = pdu +
-        (qy(i,j+1,k,GDPRES) + qy(i,j,k,GDPRES)) *
-        (qy(i,j+1,k,GDV) * area1(i,j+1,k) - qy(i,j,k,GDV) * area1(i,j,k));
+      pdu += (qy(i,j+1,k,GDPRES) + qy(i,j,k,GDPRES)) *
+             (qy(i,j+1,k,GDV) * area1(i,j+1,k) - qy(i,j,k,GDV) * area1(i,j,k));
 #endif
 
 #if AMREX_SPACEDIM == 3
-      pdu = pdu +
-        (qz(i,j,k+1,GDPRES) + qz(i,j,k,GDPRES)) *
-        (qz(i,j,k+1,GDW) * area2(i,j,k+1) - qz(i,j,k,GDW) * area2(i,j,k));
+      pdu += (qz(i,j,k+1,GDPRES) + qz(i,j,k,GDPRES)) *
+             (qz(i,j,k+1,GDW) * area2(i,j,k+1) - qz(i,j,k,GDW) * area2(i,j,k));
 #endif
 
       pdu = 0.5 * pdu * volinv;
@@ -82,8 +80,8 @@ Castro::consup_hydro(const Box& bx,
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
 
-      if (! mom_flux_has_p[0][Xmom]) {
-        update(i,j,k,Xmom) = update(i,j,k,Xmom) - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
+      if (! mom_flux_has_p[0][0]) {
+        update(i,j,k,Xmom) += - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
 #endif
 
