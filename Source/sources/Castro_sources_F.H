@@ -1,3 +1,14 @@
+#ifndef _Castro_sources_F_H_
+#define _Castro_sources_F_H_
+#include <AMReX_BLFort.H>
+
+#ifdef __cplusplus
+#include <AMReX.H>
+extern "C"
+{
+#endif
+
+
 #ifdef SPONGE
   void ca_sponge
     (const int* lo, const int* hi,
@@ -25,3 +36,9 @@
      BL_FORT_FAB_ARG_3D(ext_src),
      const amrex::Real* prob_lo, const amrex::Real* dx,
      const amrex::Real time, const amrex::Real dt);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -1,3 +1,14 @@
+#ifndef _Castro_sdc_F_H_
+#define _Castro_sdc_F_H_
+#include <AMReX_BLFort.H>
+
+#ifdef __cplusplus
+#include <AMReX.H>
+extern "C"
+{
+#endif
+
+
 #ifndef AMREX_USE_CUDA
   void ca_sdc_update_advection_o2_lobatto
     (const int* lo, const int* hi,
@@ -150,3 +161,9 @@
 
 #endif
 #endif // CUDA
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

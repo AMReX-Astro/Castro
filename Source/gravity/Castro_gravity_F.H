@@ -1,3 +1,12 @@
+#ifndef _Castro_gravity_F_H_
+#define _Castro_gravity_F_H_
+#include <AMReX_BLFort.H>
+
+#ifdef __cplusplus
+#include <AMReX.H>
+extern "C"
+{
+#endif
 
   void pm_compute_delta_mass
     (const int* lo, const int* hi, amrex::Real* pm_delta_mass,
@@ -43,3 +52,9 @@
      const BL_FORT_FAB_ARG_3D(zflux),
      const BL_FORT_FAB_ARG_3D(source),
      const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
