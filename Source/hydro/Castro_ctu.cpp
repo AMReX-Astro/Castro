@@ -89,7 +89,7 @@ Castro::consup_hydro(const Box& bx,
     } else if (n == Rmom) {
       // update the radial momentum with the hybrid advection source
       add_hybrid_advection_source(i, j, k,
-                                  dt, &dx,
+                                  dt, dx,
                                   update,
                                   qx, qy, qz);
 #endif
@@ -407,16 +407,16 @@ Castro::add_hybrid_advection_source(const int i, const int j, const int k,
    Real center[3];
    ca_get_center(center);
 
-   auto loc = position_c(i,j,k, false, false, false);
+   auto loc = position_c(i,j,k, true, true, true);
 
    for (int idir = 0; idir < 3; idir++) {
      loc[idir] -= center[idir];
    }
 
-   Real R = std::sqrt( loc[1]*loc[1] + loc[2]*loc[2] );
+   std::cout << "R = " << R << std::endl;
 
-   update(i,j,k,Rmom) += - ( (loc[1] / R) * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[1] +
-                             (loc[2] / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx[2] );
+   update(i,j,k,Rmom) += - ( (loc[0] / R) * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0] +
+                             (loc[1] / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx[1] );
 
   }
 #endif
