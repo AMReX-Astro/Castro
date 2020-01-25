@@ -59,4 +59,14 @@ module prob_params_module
   attributes(managed) :: mom_flux_has_p
 #endif
 
+  !$acc declare create(physbc_lo, physbc_hi)
+  !$acc declare create(Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall)
+  !$acc declare create(dim)
+  !$acc declare create(dg)
+  !$acc declare create(coord_type)
+  !$acc declare create(center, problo, probhi)
+  !$acc declare create(domlo_level, domhi_level, dx_level)
+  !$acc declare create(ref_ratio, n_error_buf, blocking_factor)
+  !$acc declare create(mom_flux_has_p)
+
 end module prob_params_module
