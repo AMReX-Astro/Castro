@@ -228,6 +228,8 @@ Castro::variableSetUp ()
 
 #include "set_godunov.H"
 
+#include "set_auxiliary.H"
+
   // Define NUM_GROW from the f90 module.
   ca_get_method_params(&NUM_GROW);
 
@@ -260,7 +262,11 @@ Castro::variableSetUp ()
                        GDLAMS, GDERADS,
 #endif
                        GDRHO, GDU, GDV, GDW,
-                       GDPRES, GDGAME);
+                       GDPRES, GDGAME,
+#ifdef RADIATION
+                       QGAMCG, QCG, QLAMS,
+#endif
+                       QGAMC, QC, QDPDR, QDPDE);
 
   // and the auxiliary variables
   ca_get_nqaux(&NQAUX);
@@ -279,6 +285,32 @@ Castro::variableSetUp ()
   // any radiation variables
   ca_get_nq(&NQ);
 
+
+  // setup the passive maps -- this follows the same logic as the
+  // Fortran versions in ca_set_method_params
+  npassive = NumAdv + NumSpec + NumAux;
+  int ipassive = 0;
+  
+  upass_map.resize(npassive);
+  qpass_map.resize(npassive);
+
+  for (int iadv = 0; iadv < NumAdv; ++iadv) {
+    upass_map[ipassive] = FirstAdv + iadv;
+    qpass_map[ipassive] = QFA + iadv;
+    ++ipassive;
+  }
+
+  for (int ispec = 0; ispec < NumSpec; ++ispec) {
+    upass_map[ipassive] = FirstSpec + ispec;
+    qpass_map[ipassive] = QFS + ispec;
+    ++ipassive;
+  }
+
+  for (int iaux = 0; iaux < NumAux; ++iaux) {
+    upass_map[ipassive] = FirstAux + iaux;
+    qpass_map[ipassive] = QFX + iaux;
+    ++ipassive;
+  }
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
