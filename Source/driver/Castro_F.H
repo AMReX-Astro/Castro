@@ -347,14 +347,6 @@ extern "C"
      const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* s);
 
 
-  void ca_thermo_src
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state_old),
-     const BL_FORT_FAB_ARG_3D(state_new),
-     BL_FORT_FAB_ARG_3D(thermo_src),
-     const amrex::Real* prob_lo, const amrex::Real* dx,
-     const amrex::Real time, const amrex::Real dt);
-
 #ifdef AUX_UPDATE
   void ca_auxupdate
     (BL_FORT_FAB_ARG(state_old),
