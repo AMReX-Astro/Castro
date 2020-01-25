@@ -620,8 +620,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #pragma gpu box(bx)
         ca_mol_consup
           (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           BL_TO_FORTRAN_ANYD(shk),
            BL_TO_FORTRAN_ANYD(statein),
-           BL_TO_FORTRAN_ANYD(stateout),
            BL_TO_FORTRAN_ANYD(source_in),
            BL_TO_FORTRAN_ANYD(source_out),
            AMREX_REAL_ANYD(dx), dt,
