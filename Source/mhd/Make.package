@@ -1,6 +1,7 @@
 # sources used with mhd
 
 CEXE_sources += Castro_mhd.cpp
+FEXE_headers += Castro_mhd_F.H
 
 ca_F90EXE_sources += mhd_util.F90
 ca_F90EXE_sources += Castro_advection_mhd_3d.F90

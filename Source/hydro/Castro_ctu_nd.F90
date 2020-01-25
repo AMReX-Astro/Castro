@@ -904,8 +904,19 @@ contains
     real(rt) :: loc(3), ang_mom(3), flux(3)
     integer :: domlo(3), domhi(3)
     integer :: i, j, k
+    real(rt) :: mass_lost_tmp, xmom_lost_tmp, ymom_lost_tmp, zmom_lost_tmp
+    real(rt) :: eden_lost_tmp, xang_lost_tmp, yang_lost_tmp, zang_lost_tmp
 
     !$gpu
+
+    mass_lost_tmp = 0.0_rt
+    xmom_lost_tmp = 0.0_rt
+    ymom_lost_tmp = 0.0_rt
+    zmom_lost_tmp = 0.0_rt
+    eden_lost_tmp = 0.0_rt
+    xang_lost_tmp = 0.0_rt
+    yang_lost_tmp = 0.0_rt
+    zang_lost_tmp = 0.0_rt
 
     domlo = domlo_level(:,amr_level)
     domhi = domhi_level(:,amr_level)
@@ -919,17 +930,17 @@ contains
 
              loc = position(i,j,k,ccz=.false.) - center
 
-             call reduce_add(mass_lost, -flux3(i,j,k,URHO))
-             call reduce_add(xmom_lost, -flux3(i,j,k,UMX))
-             call reduce_add(ymom_lost, -flux3(i,j,k,UMY))
-             call reduce_add(zmom_lost, -flux3(i,j,k,UMZ))
-             call reduce_add(eden_lost, -flux3(i,j,k,UEDEN))
+             mass_lost_tmp = mass_lost_tmp - flux3(i,j,k,URHO)
+             xmom_lost_tmp = xmom_lost_tmp - flux3(i,j,k,UMX)
+             ymom_lost_tmp = ymom_lost_tmp - flux3(i,j,k,UMY)
+             zmom_lost_tmp = zmom_lost_tmp - flux3(i,j,k,UMZ)
+             eden_lost_tmp = eden_lost_tmp - flux3(i,j,k,UEDEN)
 
              flux(:) = flux3(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call reduce_add(xang_lost, -ang_mom(1))
-             call reduce_add(yang_lost, -ang_mom(2))
-             call reduce_add(zang_lost, -ang_mom(3))
+             xang_lost_tmp = xang_lost_tmp - ang_mom(1)
+             yang_lost_tmp = yang_lost_tmp - ang_mom(2)
+             zang_lost_tmp = zang_lost_tmp - ang_mom(3)
 
           enddo
        enddo
@@ -944,17 +955,17 @@ contains
 
              loc = position(i,j,k,ccz=.false.) - center
 
-             call reduce_add(mass_lost, flux3(i,j,k,URHO))
-             call reduce_add(xmom_lost, flux3(i,j,k,UMX))
-             call reduce_add(ymom_lost, flux3(i,j,k,UMY))
-             call reduce_add(zmom_lost, flux3(i,j,k,UMZ))
-             call reduce_add(eden_lost, flux3(i,j,k,UEDEN))
+             mass_lost_tmp = mass_lost_tmp + flux3(i,j,k,URHO)
+             xmom_lost_tmp = xmom_lost_tmp + flux3(i,j,k,UMX)
+             ymom_lost_tmp = ymom_lost_tmp + flux3(i,j,k,UMY)
+             zmom_lost_tmp = zmom_lost_tmp + flux3(i,j,k,UMZ)
+             eden_lost_tmp = eden_lost_tmp + flux3(i,j,k,UEDEN)
 
              flux(:) = flux3(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call reduce_add(xang_lost, ang_mom(1))
-             call reduce_add(yang_lost, ang_mom(2))
-             call reduce_add(zang_lost, ang_mom(3))
+             xang_lost_tmp = xang_lost_tmp + ang_mom(1)
+             yang_lost_tmp = yang_lost_tmp + ang_mom(2)
+             zang_lost_tmp = zang_lost_tmp + ang_mom(3)
 
           enddo
        enddo
@@ -971,17 +982,17 @@ contains
 
              loc = position(i,j,k,ccy=.false.) - center
 
-             call reduce_add(mass_lost, -flux2(i,j,k,URHO))
-             call reduce_add(xmom_lost, -flux2(i,j,k,UMX))
-             call reduce_add(ymom_lost, -flux2(i,j,k,UMY))
-             call reduce_add(zmom_lost, -flux2(i,j,k,UMZ))
-             call reduce_add(eden_lost, -flux2(i,j,k,UEDEN))
+             mass_lost_tmp = mass_lost_tmp - flux2(i,j,k,URHO)
+             xmom_lost_tmp = xmom_lost_tmp - flux2(i,j,k,UMX)
+             ymom_lost_tmp = ymom_lost_tmp - flux2(i,j,k,UMY)
+             zmom_lost_tmp = zmom_lost_tmp - flux2(i,j,k,UMZ)
+             eden_lost_tmp = eden_lost_tmp - flux2(i,j,k,UEDEN)
 
              flux(:) = flux2(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call reduce_add(xang_lost, -ang_mom(1))
-             call reduce_add(yang_lost, -ang_mom(2))
-             call reduce_add(zang_lost, -ang_mom(3))
+             xang_lost_tmp = xang_lost_tmp - ang_mom(1)
+             yang_lost_tmp = yang_lost_tmp - ang_mom(2)
+             zang_lost_tmp = zang_lost_tmp - ang_mom(3)
 
           enddo
        enddo
@@ -996,17 +1007,17 @@ contains
 
              loc = position(i,j,k,ccy=.false.) - center
 
-             call reduce_add(mass_lost, flux2(i,j,k,URHO))
-             call reduce_add(xmom_lost, flux2(i,j,k,UMX))
-             call reduce_add(ymom_lost, flux2(i,j,k,UMY))
-             call reduce_add(zmom_lost, flux2(i,j,k,UMZ))
-             call reduce_add(eden_lost, flux2(i,j,k,UEDEN))
+             mass_lost_tmp = mass_lost_tmp + flux2(i,j,k,URHO)
+             xmom_lost_tmp = xmom_lost_tmp + flux2(i,j,k,UMX)
+             ymom_lost_tmp = ymom_lost_tmp + flux2(i,j,k,UMY)
+             zmom_lost_tmp = zmom_lost_tmp + flux2(i,j,k,UMZ)
+             eden_lost_tmp = eden_lost_tmp + flux2(i,j,k,UEDEN)
 
              flux(:) = flux2(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call reduce_add(xang_lost, ang_mom(1))
-             call reduce_add(yang_lost, ang_mom(2))
-             call reduce_add(zang_lost, ang_mom(3))
+             xang_lost_tmp = xang_lost_tmp + ang_mom(1)
+             yang_lost_tmp = yang_lost_tmp + ang_mom(2)
+             zang_lost_tmp = zang_lost_tmp + ang_mom(3)
 
           enddo
        enddo
@@ -1022,17 +1033,17 @@ contains
 
              loc = position(i,j,k,ccx=.false.) - center
 
-             call reduce_add(mass_lost, -flux1(i,j,k,URHO))
-             call reduce_add(xmom_lost, -flux1(i,j,k,UMX))
-             call reduce_add(ymom_lost, -flux1(i,j,k,UMY))
-             call reduce_add(zmom_lost, -flux1(i,j,k,UMZ))
-             call reduce_add(eden_lost, -flux1(i,j,k,UEDEN))
+             mass_lost_tmp = mass_lost_tmp - flux1(i,j,k,URHO)
+             xmom_lost_tmp = xmom_lost_tmp - flux1(i,j,k,UMX)
+             ymom_lost_tmp = ymom_lost_tmp - flux1(i,j,k,UMY)
+             zmom_lost_tmp = zmom_lost_tmp - flux1(i,j,k,UMZ)
+             eden_lost_tmp = eden_lost_tmp - flux1(i,j,k,UEDEN)
 
              flux(:) = flux1(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call reduce_add(xang_lost, -ang_mom(1))
-             call reduce_add(yang_lost, -ang_mom(2))
-             call reduce_add(zang_lost, -ang_mom(3))
+             xang_lost_tmp = xang_lost_tmp - ang_mom(1)
+             yang_lost_tmp = yang_lost_tmp - ang_mom(2)
+             zang_lost_tmp = zang_lost_tmp - ang_mom(3)
 
           enddo
        enddo
@@ -1047,22 +1058,31 @@ contains
 
              loc = position(i,j,k,ccx=.false.) - center
 
-             call reduce_add(mass_lost, flux1(i,j,k,URHO))
-             call reduce_add(xmom_lost, flux1(i,j,k,UMX))
-             call reduce_add(ymom_lost, flux1(i,j,k,UMY))
-             call reduce_add(zmom_lost, flux1(i,j,k,UMZ))
-             call reduce_add(eden_lost, flux1(i,j,k,UEDEN))
+             mass_lost_tmp = mass_lost_tmp + flux1(i,j,k,URHO)
+             xmom_lost_tmp = xmom_lost_tmp + flux1(i,j,k,UMX)
+             ymom_lost_tmp = ymom_lost_tmp + flux1(i,j,k,UMY)
+             zmom_lost_tmp = zmom_lost_tmp + flux1(i,j,k,UMZ)
+             eden_lost_tmp = eden_lost_tmp + flux1(i,j,k,UEDEN)
 
              flux(:) = flux1(i,j,k,UMX:UMZ)
              ang_mom = linear_to_angular_momentum(loc, flux)
-             call reduce_add(xang_lost, ang_mom(1))
-             call reduce_add(yang_lost, ang_mom(2))
-             call reduce_add(zang_lost, ang_mom(3))
+             xang_lost_tmp = xang_lost_tmp + ang_mom(1)
+             yang_lost_tmp = yang_lost_tmp + ang_mom(2)
+             zang_lost_tmp = zang_lost_tmp + ang_mom(3)
 
           enddo
        enddo
 
     endif
+
+    call reduce_add(mass_lost, mass_lost_tmp)
+    call reduce_add(xmom_lost, xmom_lost_tmp)
+    call reduce_add(ymom_lost, ymom_lost_tmp)
+    call reduce_add(zmom_lost, zmom_lost_tmp)
+    call reduce_add(eden_lost, eden_lost_tmp)
+    call reduce_add(xang_lost, xang_lost_tmp)
+    call reduce_add(yang_lost, yang_lost_tmp)
+    call reduce_add(zang_lost, zang_lost_tmp)
 
   end subroutine ca_track_grid_losses
 
