@@ -537,6 +537,7 @@ Castro::sum_of_sources(MultiFab& source)
 // Obtain the effective source term due to reactions on the primitive variables.
 // This is done with simplified_SDC
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
 void
 Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
@@ -614,4 +615,5 @@ Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
     AmrLevel::FillPatch(*this, react_src, react_src.nGrow(), cur_time, Simplified_SDC_React_Type, 0, react_src.nComp());
 
 }
+#endif
 #endif

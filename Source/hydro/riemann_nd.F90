@@ -189,15 +189,16 @@ contains
     if (riemann_solver == 0 .or. riemann_solver == 1) then
        ! Colella, Glaz, & Ferguson solver
 
-       call riemann_state(qm, qm_lo, qm_hi, &
+       call riemann_state(lo, hi, &
+                          qm, qm_lo, qm_hi, &
                           qp, qp_lo, qp_hi, nc, comp, &
                           qint, q_lo, q_hi, &
 #ifdef RADIATION
                           lambda_int, q_lo, q_hi, &
 #endif
                           qaux, qa_lo, qa_hi, &
-                          idir, lo, hi, &
-                          domlo, domhi, .false.)
+                          idir, 0, &
+                          domlo, domhi)
 
        call compute_flux_q(lo, hi, &
                            qint, q_lo, q_hi, &
@@ -206,7 +207,7 @@ contains
                            lambda_int, q_lo, q_hi, &
                            rflx, rflx_lo, rflx_hi, &
 #endif
-                           idir)
+                           idir, 0)
 
     elseif (riemann_solver == 2) then
        ! HLLC
@@ -271,14 +272,17 @@ contains
 
 
 
-  subroutine riemann_state(qm, qm_lo, qm_hi, &
+  subroutine riemann_state(lo, hi, &
+                           qm, qm_lo, qm_hi, &
                            qp, qp_lo, qp_hi, nc, comp, &
                            qint, q_lo, q_hi, &
 #ifdef RADIATION
                            lambda_int, l_lo, l_hi, &
 #endif
                            qaux, qa_lo, qa_hi, &
-                           idir, lo, hi, domlo, domhi, compute_gammas)
+                           idir, compute_gammas, &
+                           domlo, domhi) bind(C, name="riemann_state")
+
     ! just compute the hydrodynamic state on the interfaces
     ! don't compute the fluxes
 
@@ -297,16 +301,14 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
-    integer, intent(in) :: idir
+    integer, intent(in), value :: idir, compute_gammas
     ! note: lo, hi are not necessarily the limits of the valid (no
     ! ghost cells) domain, but could be hi+1 in some dimensions.  We
     ! rely on the caller to specific the interfaces over which to
     ! solve the Riemann problems
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: domlo(3), domhi(3)
-    integer, intent(in) :: nc, comp
-
-    logical, intent(in), optional :: compute_gammas
+    integer, intent(in), value :: nc, comp
 
     real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,nc)
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,nc)
@@ -324,14 +326,6 @@ contains
     integer i, j, k
 
     type (eos_t) :: eos_state
-
-    logical :: compute_interface_gamma
-
-    if (present(compute_gammas)) then
-       compute_interface_gamma = compute_gammas
-    else
-       compute_interface_gamma = .false.
-    endif
 
     !$gpu
 
@@ -426,8 +420,8 @@ contains
 #ifdef RADIATION
                       lambda_int, q_lo, q_hi, &
 #endif
-                      idir, lo, hi, &
-                      domlo, domhi, compute_interface_gamma)
+                      idir, compute_gammas, lo, hi, &
+                      domlo, domhi)
 
     elseif (riemann_solver == 1) then
        ! Colella & Glaz solver
@@ -1070,8 +1064,8 @@ contains
 #ifdef RADIATION
                        lambda_int, l_lo, l_hi, &
 #endif
-                       idir, lo, hi, &
-                       domlo, domhi, compute_interface_gamma)
+                       idir, compute_gammas, lo, hi, &
+                       domlo, domhi)
     ! Colella, Glaz, and Ferguson solver
     !
     ! this is a 2-shock solver that uses a very simple approximation for the
@@ -1099,7 +1093,7 @@ contains
     integer, intent(in) :: l_lo(3), l_hi(3)
 #endif
 
-    logical, intent(in) :: compute_interface_gamma
+    integer, intent(in) :: compute_gammas
     real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,nc)
     real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,nc)
 
@@ -1301,7 +1295,7 @@ contains
              if (use_reconstructed_gamma1 == 1) then
                 gamcl = ql(i,j,k,QGC,comp)
                 gamcr = qr(i,j,k,QGC,comp)
-             else if (compute_interface_gamma) then
+             else if (compute_gammas == 1) then
 
                 ! we come in with a good p, rho, and X on the interfaces
                 ! -- use this to find the gamma used in the sound speed

@@ -987,11 +987,13 @@ Castro::initData ()
     React_new.setVal(0.);
 #endif
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
        MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
        react_src_new.setVal(0.0, NUM_GROW);
    }
+#endif
 #endif
 
    if (Knapsack_Weight_Type > 0) {
@@ -2879,39 +2881,15 @@ Castro::reflux(int crse_level, int fine_level)
 void
 Castro::avgDown ()
 {
-    BL_PROFILE("Castro::avgDown()");
+  BL_PROFILE("Castro::avgDown()");
 
   if (level == parent->finestLevel()) return;
 
-  avgDown(State_Type);
-
-#ifdef GRAVITY
-  avgDown(Gravity_Type);
-  avgDown(PhiGrav_Type);
-#endif
-
-#ifdef ROTATION
-  avgDown(Rotation_Type);
-  avgDown(PhiRot_Type);
-#endif
-
-  avgDown(Source_Type);
-
-#ifdef REACTIONS
-  avgDown(Reactions_Type);
-#endif
-
-#ifdef REACTIONS
-  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      avgDown(Simplified_SDC_React_Type);
+  for (int k = 0; k < num_state_type; k++) {
+    if (k != Knapsack_Weight_Type) {
+      avgDown(k);
+    }
   }
-#endif
-
-#ifdef RADIATION
-  if (do_radiation) {
-    avgDown(Rad_Type);
-  }
-#endif
 
 }
 
@@ -3667,6 +3645,7 @@ Castro::swap_state_time_levels(const Real dt)
 	// this because we never need the old data, so we
 	// don't want to allocate memory for it.
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             if (k == Simplified_SDC_React_Type) {
@@ -3674,11 +3653,14 @@ Castro::swap_state_time_levels(const Real dt)
             }
         }
 #endif
+#endif
 
+#ifdef TRUE_SDC
 #ifdef REACTIONS
         if (time_integration_method == SpectralDeferredCorrections &&
             sdc_order == 4 && k == SDC_Source_Type)
             state[k].swapTimeLevels(0.0);
+#endif
 #endif
         state[k].allocOldData();
 

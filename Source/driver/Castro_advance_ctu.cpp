@@ -547,6 +547,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             advance_success = do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
 
+#ifdef SIMPLIFIED_SDC
             if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 #ifdef REACTIONS
                 if (do_react && advance_success) {
@@ -584,7 +585,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
                 amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
             }
-
+#endif
         }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {

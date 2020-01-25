@@ -457,8 +457,8 @@ contains
   end subroutine ca_mol_ppm_reconstruct
 
   subroutine ca_mol_consup(lo, hi, &
+                           shk, shk_lo, shk_hi, &
                            uin, uin_lo, uin_hi, &
-                           uout, uout_lo, uout_hi, &
                            srcU, srU_lo, srU_hi, &
                            update, updt_lo, updt_hi, &
                            dx, dt, &
@@ -504,8 +504,8 @@ contains
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: shk_lo(3), shk_hi(3)
     integer, intent(in) :: uin_lo(3), uin_hi(3)
-    integer, intent(in) :: uout_lo(3), uout_hi(3)
     integer, intent(in) :: srU_lo(3), srU_hi(3)
     integer, intent(in) :: updt_lo(3), updt_hi(3)
     integer, intent(in) :: flux1_lo(3), flux1_hi(3)
@@ -524,8 +524,8 @@ contains
 
     integer, intent(in) :: vol_lo(3), vol_hi(3)
 
+    real(rt), intent(in) :: shk(shk_lo(1):shk_hi(1), shk_lo(2):shk_hi(2), shk_lo(3):shk_hi(3))
     real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
-    real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR)
     real(rt), intent(in) :: srcU(srU_lo(1):srU_hi(1), srU_lo(2):srU_hi(2), srU_lo(3):srU_hi(3), NSRC)
     real(rt), intent(inout) :: update(updt_lo(1):updt_hi(1), updt_lo(2):updt_hi(2), updt_lo(3):updt_hi(3), NVAR)
 
@@ -605,10 +605,25 @@ contains
        enddo
     enddo
 
+#ifdef SHOCK_VAR
+    ! We'll update the shock data for future use in the burning step.
+    ! For the update, we are starting from USHK == 0 (set at the
+    ! beginning of the timestep) and we need to divide by dt since
+    ! we'll be multiplying that for the update calculation.
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+             update(i,j,k,USHK) = shk(i,j,k) / dt
+          enddo
+       enddo
+    enddo
+#endif
+
 #if AMREX_SPACEDIM == 3
 #ifdef HYBRID_MOMENTUM
     call add_hybrid_advection_source(lo, hi, dt, &
-                                     update, uout_lo, uout_hi, &
+                                     update, updt_lo, updt_hi, &
                                      q1, q1_lo, q1_hi, &
                                      q2, q2_lo, q2_hi, &
                                      q3, q3_lo, q3_hi)
