@@ -4,6 +4,7 @@ Sources
 .. toctree::
    :maxdepth: 2
 
+   file/Castro__sources_8H
    file/ext_src_nd_f
    file/sponge_nd_f
    file/thermo_nd_f

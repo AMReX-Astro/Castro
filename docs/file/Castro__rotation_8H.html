@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>prescribe_grav_nd.F90 &mdash; Castro  documentation</title>
+  <title>File Castro_rotation.H &mdash; Castro  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="prescribe_phi_nd.F90" href="prescribe_phi_nd_f.html" />
-    <link rel="prev" title="pointmass_nd.F90" href="pointmass_nd_f.html" /> 
+    <link rel="next" title="Rotation_frequency.F90" href="Rotation_frequency_f.html" />
+    <link rel="prev" title="Rotation" href="../rotation_files.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -125,31 +125,19 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../gravity_files.html">Gravity</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_1d_f.html">GR_Gravity_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_2d_f.html">GR_Gravity_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_3d_f.html">GR_Gravity_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Gravity_1d_f.html">Gravity_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Gravity_2d_f.html">Gravity_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Gravity_3d_f.html">Gravity_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Gravity_nd_f.html">Gravity_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="gravity_sources_nd_f.html">gravity_sources_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pointmass_nd_f.html">pointmass_nd.F90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">prescribe_grav_nd.F90</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#f/prescribe_grav_module">prescribe_grav_module</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="prescribe_phi_nd_f.html">prescribe_phi_nd.F90</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../rotation_files.html">Rotation</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_rotation.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Rotation_frequency_f.html">Rotation_frequency.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Rotation_nd_f.html">Rotation_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation_sources_nd_f.html">rotation_sources_nd.F90</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
@@ -207,15 +195,15 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-          <li><a href="../gravity_files.html">Gravity</a> &raquo;</li>
+          <li><a href="../rotation_files.html">Rotation</a> &raquo;</li>
         
-      <li>prescribe_grav_nd.F90</li>
+      <li>File Castro_rotation.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/prescribe_grav_nd_f.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/Castro__rotation_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -228,46 +216,60 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="prescribe-grav-nd-f90">
-<h1>prescribe_grav_nd.F90<a class="headerlink" href="#prescribe-grav-nd-f90" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="f/prescribe_grav_module">
-<span id="prescribe-grav-module"></span><h2>prescribe_grav_module<a class="headerlink" href="#f/prescribe_grav_module" title="Permalink to this headline">¶</a></h2>
-<p class="rubric">Quick access</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/prescribe_grav_module/ca_prescribe_grav" title="f/prescribe_grav_module/ca_prescribe_grav"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_prescribe_grav()</span></code></a></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Needed modules</p>
-<ul class="simple">
-<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+  <div class="section" id="file-castro-rotation-h">
+<h1>File Castro_rotation.H<a class="headerlink" href="#file-castro-rotation-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv429construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv329construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv229construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_rotation_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a47cc1e70495745d2a5a3ed83590477bb"></span>void <code class="descname">construct_old_rotation_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv429construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct rotation source terms at old time</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: Old state </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
+<li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
 </ul>
-<p class="rubric">Subroutines and functions</p>
-<dl class="subroutine">
-<dt id="f/prescribe_grav_module/ca_prescribe_grav">
-<em class="property">subroutine  </em><code class="descclassname">prescribe_grav_module/</code><code class="descname">ca_prescribe_grav</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>grav</em>, <em>g_lo</em>, <em>g_hi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/prescribe_grav_module/ca_prescribe_grav" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>grav</strong> (g_hi(1)-(g_lo(1))+1,g_hi(2)-(g_lo(2))+1,g_hi(3)-(g_lo(3))+1,<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim">dim</a>)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>g_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>g_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv429construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv329construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv229construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_new_rotation_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a35ddccae23393f527f14f985ffaee436"></span>void <code class="descname">construct_new_rotation_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv429construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct rotation source terms at new time.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old State </li>
+<li><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New State </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
+<li><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">
+<span id="_CPPv319fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="_CPPv219fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="fill_rotation_field__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a7d593ea25c5aeab9468015712fb7ec3a"></span>void <code class="descname">fill_rotation_field</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>phi</em>, amrex::MultiFab &amp;<em>rot</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Fill rotational potential and acceleration</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Rotational potential </li>
+<li><code class="docutils literal notranslate"><span class="pre">rot</span></code>: Rotational acceleration </li>
+<li><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </li>
+<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
+</ul>
+</dd>
+</dl>
+</p>
 </dd></dl>
 
 </div>
@@ -281,10 +283,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="prescribe_phi_nd_f.html" class="btn btn-neutral float-right" title="prescribe_phi_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Rotation_frequency_f.html" class="btn btn-neutral float-right" title="Rotation_frequency.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="pointmass_nd_f.html" class="btn btn-neutral float-left" title="pointmass_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../rotation_files.html" class="btn btn-neutral float-left" title="Rotation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

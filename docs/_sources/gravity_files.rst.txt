@@ -4,6 +4,7 @@ Gravity
 .. toctree::
    :maxdepth: 2
 
+   file/Castro__gravity_8H
    file/GR_Gravity_1d_f
    file/GR_Gravity_2d_f
    file/GR_Gravity_3d_f
