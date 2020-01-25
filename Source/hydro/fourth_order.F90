@@ -11,11 +11,11 @@ module fourth_order
 
 contains
 
-  subroutine fourth_interfaces(idir, ncomp, &
-                               a, a_lo, a_hi, &
-                               a_int,  ai_lo, ai_hi, &
-                               lo, hi, &
-                               domlo, domhi)
+  subroutine ca_fourth_interfaces(lo, hi, &
+                                  idir, ncomp, &
+                                  a, a_lo, a_hi, &
+                                  a_int,  ai_lo, ai_hi, &
+                                  domlo, domhi) bind(C, name="ca_fourth_interfaces")
 
     ! this just computes the unlimited single-value interface state
     ! for the 4th order method.
@@ -28,7 +28,7 @@ contains
 
     implicit none
 
-    integer, intent(in) :: idir, ncomp
+    integer, intent(in), value :: idir, ncomp
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: ai_lo(3), ai_hi(3)
     integer, intent(in) :: lo(3), hi(3)
@@ -241,34 +241,36 @@ contains
 
     end if
 
-  end subroutine fourth_interfaces
+  end subroutine ca_fourth_interfaces
 
-  subroutine states(idir, ncomp, &
-                    a, a_lo, a_hi, &
-                    a_int, ai_lo, ai_hi, &
-                    flatn, f_lo, f_hi, &
-                    al, ar, as_lo, as_hi, &
-                    lo, hi, &
-                    domlo, domhi)
+  subroutine ca_states(lo, hi, &
+                       idir, ncomp, &
+                       a, a_lo, a_hi, &
+                       a_int, ai_lo, ai_hi, &
+                       flatn, f_lo, f_hi, &
+                       al, al_lo, al_hi, &
+                       ar, ar_lo, ar_hi, &
+                       domlo, domhi) bind(C, name="ca_states")
 
     use meth_params_module, only : NQ, QU, QV, QW, limit_fourth_order
     use prob_params_module, only : Interior, Symmetry, Outflow, physbc_lo, physbc_hi
 
     implicit none
 
-    integer, intent(in) :: idir, ncomp
+    integer, intent(in), value :: idir, ncomp
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: ai_lo(3), ai_hi(3)
-    integer, intent(in) :: as_lo(3), as_hi(3)
+    integer, intent(in) :: al_lo(3), al_hi(3)
+    integer, intent(in) :: ar_lo(3), ar_hi(3)
     integer, intent(in) :: lo(3), hi(3)
 
     real(rt), intent(in) :: a(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3), NQ)
     real(rt), intent(in) :: a_int(ai_lo(1):ai_hi(1), ai_lo(2):ai_hi(2), ai_lo(3):ai_hi(3))
     real(rt), intent(in) :: flatn( f_lo(1): f_hi(1), f_lo(2): f_hi(2), f_lo(3): f_hi(3))
 
-    real(rt), intent(inout) :: al(as_lo(1):as_hi(1), as_lo(2):as_hi(2), as_lo(3):as_hi(3), NQ)
-    real(rt), intent(inout) :: ar(as_lo(1):as_hi(1), as_lo(2):as_hi(2), as_lo(3):as_hi(3), NQ)
+    real(rt), intent(inout) :: al(al_lo(1):al_hi(1), al_lo(2):al_hi(2), al_lo(3):al_hi(3), NQ)
+    real(rt), intent(inout) :: ar(ar_lo(1):ar_hi(1), ar_lo(2):ar_hi(2), ar_lo(3):ar_hi(3), NQ)
     integer, intent(in) :: domlo(3), domhi(3)
 
     ! local variables
@@ -786,7 +788,7 @@ contains
 
     end if
 
-  end subroutine states
+  end subroutine ca_states
 
 
   ! Note: pretty much all of these routines below assume that dx(1) = dx(2) = dx(3)
@@ -854,146 +856,74 @@ contains
 
   end function compute_laplacian
 
-  pure function transx_laplacian(i, j, k, n, &
-                                 a, a_lo, a_hi, nc, &
-                                 domlo, domhi) result (lap)
+  subroutine trans_laplacian(i, j, k, n, &
+                             idir, &
+                             a, a_lo, a_hi, nc, &
+                             lap, &
+                             domlo, domhi) bind(C, name="trans_laplacian")
 
     use prob_params_module, only : physbc_lo, physbc_hi, Interior
     implicit none
 
-    integer, intent(in) :: i, j, k, n
+    integer, intent(in), value :: i, j, k, n
+    integer, intent(in), value :: idir
     integer, intent(in) :: a_lo(3), a_hi(3)
-    integer, intent(in) :: nc
+    integer, intent(in), value :: nc
     real(rt), intent(in) :: a(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3), nc)
     integer, intent(in) :: domlo(3), domhi(3)
+    real(rt), intent(out) :: lap
 
     real(rt) :: lapx, lapy, lapz
-    real(rt) :: lap
 
+    lapx = ZERO
     lapy = ZERO
     lapz = ZERO
 
     ! we use 2nd-order accurate one-sided stencils at the physical boundaries
+    if (idir /= 1) then
 
-    if (j == domlo(2) .and. physbc_lo(2) /= Interior) then
-       lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j+1,k,n) + 4.0_rt*a(i,j+2,k,n) - a(i,j+3,k,n)
+       if (i == domlo(1) .and. physbc_lo(1) /= Interior) then
+          lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i+1,j,k,n) + 4.0_rt*a(i+2,j,k,n) - a(i+3,j,k,n)
 
-    else if (j == domhi(2) .and. physbc_hi(2) /= Interior) then
-       lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j-1,k,n) + 4.0_rt*a(i,j-2,k,n) - a(i,j-3,k,n)
+       else if (i == domhi(1) .and. physbc_hi(1) /= Interior) then
+          lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i-1,j,k,n) + 4.0_rt*a(i-2,j,k,n) - a(i-3,j,k,n)
 
-    else
-       lapy = a(i,j+1,k,n) - TWO*a(i,j,k,n) + a(i,j-1,k,n)
+       else
+          lapx = a(i+1,j,k,n) - TWO*a(i,j,k,n) + a(i-1,j,k,n)
+       end if
+    end if
+
+    if (idir /= 2) then
+
+       if (j == domlo(2) .and. physbc_lo(2) /= Interior) then
+          lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j+1,k,n) + 4.0_rt*a(i,j+2,k,n) - a(i,j+3,k,n)
+
+       else if (j == domhi(2) .and. physbc_hi(2) /= Interior) then
+          lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j-1,k,n) + 4.0_rt*a(i,j-2,k,n) - a(i,j-3,k,n)
+
+       else
+          lapy = a(i,j+1,k,n) - TWO*a(i,j,k,n) + a(i,j-1,k,n)
+       end if
     end if
 
 #if AMREX_SPACEDIM == 3
-    if (k == domlo(3) .and. physbc_lo(3) /= Interior) then
-       lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k+1,n) + 4.0_rt*a(i,j,k+2,n) - a(i,j,k+3,n)
+    if (idir /= 3) then
 
-    else if (k == domhi(3) .and. physbc_hi(3) /= Interior) then
-       lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k-1,n) + 4.0_rt*a(i,j,k-2,n) - a(i,j,k-3,n)
+       if (k == domlo(3) .and. physbc_lo(3) /= Interior) then
+          lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k+1,n) + 4.0_rt*a(i,j,k+2,n) - a(i,j,k+3,n)
 
-    else
-       lapz = a(i,j,k+1,n) - TWO*a(i,j,k,n) + a(i,j,k-1,n)
+       else if (k == domhi(3) .and. physbc_hi(3) /= Interior) then
+          lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k-1,n) + 4.0_rt*a(i,j,k-2,n) - a(i,j,k-3,n)
+
+       else
+          lapz = a(i,j,k+1,n) - TWO*a(i,j,k,n) + a(i,j,k-1,n)
+       end if
     end if
 #endif
 
-    lap = lapy + lapz
+    lap = lapx + lapy + lapz
 
-  end function transx_laplacian
-
-
-  pure function transy_laplacian(i, j, k, n, &
-                                 a, a_lo, a_hi, nc, &
-                                 domlo, domhi) result (lap)
-
-    use prob_params_module, only : physbc_lo, physbc_hi, Interior
-    implicit none
-
-    integer, intent(in) :: i, j, k, n
-    integer, intent(in) :: a_lo(3), a_hi(3)
-    integer, intent(in) :: nc
-    real(rt), intent(in) :: a(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3), nc)
-    integer, intent(in) :: domlo(3), domhi(3)
-
-    real(rt) :: lapx, lapy, lapz
-    real(rt) :: lap
-
-    lapx = ZERO
-    lapz = ZERO
-
-    ! we use 2nd-order accurate one-sided stencils at the physical boundaries
-
-    if (i == domlo(1) .and. physbc_lo(1) /= Interior) then
-       lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i+1,j,k,n) + 4.0_rt*a(i+2,j,k,n) - a(i+3,j,k,n)
-
-    else if (i == domhi(1) .and. physbc_hi(1) /= Interior) then
-       lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i-1,j,k,n) + 4.0_rt*a(i-2,j,k,n) - a(i-3,j,k,n)
-
-    else
-       lapx = a(i+1,j,k,n) - TWO*a(i,j,k,n) + a(i-1,j,k,n)
-    end if
-
-#if AMREX_SPACEDIM == 3
-    if (k == domlo(3) .and. physbc_lo(3) /= Interior) then
-       lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k+1,n) + 4.0_rt*a(i,j,k+2,n) - a(i,j,k+3,n)
-
-    else if (k == domhi(3) .and. physbc_hi(3) /= Interior) then
-       lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k-1,n) + 4.0_rt*a(i,j,k-2,n) - a(i,j,k-3,n)
-
-    else
-       lapz = a(i,j,k+1,n) - TWO*a(i,j,k,n) + a(i,j,k-1,n)
-    end if
-#endif
-
-    lap = lapx + lapz
-
-  end function transy_laplacian
-
-
-  pure function transz_laplacian(i, j, k, n, &
-                                 a, a_lo, a_hi, nc, &
-                                 domlo, domhi) result (lap)
-
-    use prob_params_module, only : physbc_lo, physbc_hi, Interior
-    implicit none
-
-    integer, intent(in) :: i, j, k, n
-    integer, intent(in) :: a_lo(3), a_hi(3)
-    integer, intent(in) :: nc
-    real(rt), intent(in) :: a(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3), nc)
-    integer, intent(in) :: domlo(3), domhi(3)
-
-    real(rt) :: lapx, lapy
-    real(rt) :: lap
-
-    lapx = ZERO
-    lapy = ZERO
-
-    ! we use 2nd-order accurate one-sided stencils at the physical boundaries
-
-    if (i == domlo(1) .and. physbc_lo(1) /= Interior) then
-       lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i+1,j,k,n) + 4.0_rt*a(i+2,j,k,n) - a(i+3,j,k,n)
-
-    else if (i == domhi(1) .and. physbc_hi(1) /= Interior) then
-       lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i-1,j,k,n) + 4.0_rt*a(i-2,j,k,n) - a(i-3,j,k,n)
-
-    else
-       lapx = a(i+1,j,k,n) - TWO*a(i,j,k,n) + a(i-1,j,k,n)
-    end if
-
-    if (j == domlo(2) .and. physbc_lo(2) /= Interior) then
-       lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j+1,k,n) + 4.0_rt*a(i,j+2,k,n) - a(i,j+3,k,n)
-
-    else if (j == domhi(2) .and. physbc_hi(2) /= Interior) then
-       lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j-1,k,n) + 4.0_rt*a(i,j-2,k,n) - a(i,j-3,k,n)
-
-    else
-       lapy = a(i,j+1,k,n) - TWO*a(i,j,k,n) + a(i,j-1,k,n)
-    end if
-
-    lap = lapx + lapy
-
-  end function transz_laplacian
+  end subroutine trans_laplacian
 
 
   subroutine ca_make_cell_center(lo, hi, &
