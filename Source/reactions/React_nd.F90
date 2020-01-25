@@ -35,6 +35,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
     use amrex_fort_module, only : rt => amrex_real
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -56,14 +57,16 @@ contains
 
     type (burn_t) :: burn_state_in, burn_state_out
 
+    real(rt) :: failed_tmp
+
+    !$gpu
+
     ! This interface is currently unsupported with simplified SDC.
 #ifndef SIMPLIFIED_SDC
 
     ! Minimum zone width
 
     dx_min = minval(dx_level(1:dim, amr_level))
-
-    !$gpu
 
     !$acc data &
     !$acc copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, m_lo, m_hi, dt_react, time) &
@@ -138,14 +141,17 @@ contains
 
              call burner(burn_state_in, burn_state_out, dt_react, time)
 
-             ! If we were unsuccessful, update the success flag and exit.
+             ! If we were unsuccessful, update the failure flag.
+
+             failed_tmp = 0.0_rt
 
              if (.not. burn_state_out % success) then
 
-                failed = 1.0_rt
-                return
+                failed_tmp = 1.0_rt
 
              end if
+
+             call reduce_add(failed, failed_tmp)
 
              ! Note that we want to update the total energy by taking
              ! the difference of the old rho*e and the new rho*e. If
@@ -232,6 +238,7 @@ contains
 #endif
     use amrex_fort_module, only : rt => amrex_real
     use react_util_module, only: okay_to_burn ! function
+    use reduction_module, only: reduce_add
 
     implicit none
 
@@ -253,6 +260,7 @@ contains
     integer  :: i, j, k, n
     real(rt) :: rhooInv, rhonInv
     real(rt) :: sold(NVAR)
+    real(rt) :: failed_tmp
 
     ! This interface is currently only supported for simplified SDC.
 
@@ -326,14 +334,17 @@ contains
 
              call integrator(burn_state_in, burn_state_out, dt_react, time)
 
-             ! If we were unsuccessful, update the success flag and exit.
+             ! If we were unsuccessful, update the failure flag.
+
+             failed_tmp = 0.0_rt
 
              if (.not. burn_state_out % success) then
 
-                failed = 1.0_rt
-                return
+                failed_tmp = 1.0_rt
 
              end if
+
+             call reduce_add(failed, failed_tmp)
 
              ! Update the state data.
 

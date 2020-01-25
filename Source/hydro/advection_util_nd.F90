@@ -34,6 +34,7 @@ contains
     real(rt) :: max_dens, old_rho
     real(rt) :: uold(NVAR), unew(NVAR)
     integer  :: num_positive_zones
+    real(rt) :: frac_change_tmp
 
     !$gpu
 
@@ -42,6 +43,8 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
+             frac_change_tmp = 1.0_rt
 
              if (state(i,j,k,URHO) .eq. ZERO) then
 
@@ -160,10 +163,14 @@ contains
                 ! Store the maximum (negative) fractional change in the density from this reset.
 
                 if (old_rho < ZERO) then
-                   call reduce_min(frac_change, (state(i,j,k,URHO) - old_rho) / old_rho)
+                   frac_change_tmp = 1.0_rt
+                else
+                   frac_change_tmp = (state(i,j,k,URHO) - old_rho) / old_rho
                 end if
 
              end if
+
+             call reduce_min(frac_change, frac_change_tmp)
 
           end do
        end do
