@@ -1,3 +1,13 @@
+#ifndef _Castro_mhd_F_H_
+#define _Castro_mhd_F_H_
+#include <AMReX_BLFort.H>
+
+#ifdef __cplusplus
+#include <AMReX.H>
+extern "C"
+{
+#endif
+
   void ca_advance_mhd
     (const amrex::Real* time,
      const int lo[], const int hi[],
@@ -22,4 +32,10 @@
      const amrex::Real* cflLoc,
      const amrex::Real* e_added, const amrex::Real* ke_added,
      const int* print_fortran_warnings);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
 
