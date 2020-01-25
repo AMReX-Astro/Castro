@@ -1,3 +1,12 @@
+#ifndef _Castro_rotation_F_H_
+#define _Castro_rotation_F_H_
+#include <AMReX_BLFort.H>
+
+#ifdef __cplusplus
+#include <AMReX.H>
+extern "C"
+{
+#endif
 
   void set_rot_period(const amrex::Real* period);
     
@@ -43,3 +52,8 @@
      const amrex::Real* dx, const amrex::Real dt, const amrex::Real time,
      const BL_FORT_FAB_ARG_3D(volume));
 
+#ifdef __cplusplus
+}
+#endif
+
+#endif
