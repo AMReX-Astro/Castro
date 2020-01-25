@@ -323,7 +323,7 @@
 
 <dl class="subroutine">
 <dt id="f/castro_mol_module/ca_mol_consup">
-<em class="property">subroutine  </em><code class="descclassname">castro_mol_module/</code><code class="descname">ca_mol_consup</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>uin</em>, <em>uin_lo</em>, <em>uin_hi</em>, <em>uout</em>, <em>uout_lo</em>, <em>uout_hi</em>, <em>srcu</em>, <em>sru_lo</em>, <em>sru_hi</em>, <em>update</em>, <em>updt_lo</em>, <em>updt_hi</em>, <em>dx</em>, <em>dt</em>, <em>flux1</em>, <em>flux1_lo</em>, <em>flux1_hi</em>, <em>flux2</em>, <em>flux2_lo</em>, <em>flux2_hi</em>, <em>flux3</em>, <em>flux3_lo</em>, <em>flux3_hi</em>, <em>area1</em>, <em>area1_lo</em>, <em>area1_hi</em>, <em>area2</em>, <em>area2_lo</em>, <em>area2_hi</em>, <em>area3</em>, <em>area3_lo</em>, <em>area3_hi</em>, <em>q1</em>, <em>q1_lo</em>, <em>q1_hi</em>, <em>q2</em>, <em>q2_lo</em>, <em>q2_hi</em>, <em>q3</em>, <em>q3_lo</em>, <em>q3_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/castro_mol_module/ca_mol_consup" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">castro_mol_module/</code><code class="descname">ca_mol_consup</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>shk</em>, <em>shk_lo</em>, <em>shk_hi</em>, <em>uin</em>, <em>uin_lo</em>, <em>uin_hi</em>, <em>srcu</em>, <em>sru_lo</em>, <em>sru_hi</em>, <em>update</em>, <em>updt_lo</em>, <em>updt_hi</em>, <em>dx</em>, <em>dt</em>, <em>flux1</em>, <em>flux1_lo</em>, <em>flux1_hi</em>, <em>flux2</em>, <em>flux2_lo</em>, <em>flux2_hi</em>, <em>flux3</em>, <em>flux3_lo</em>, <em>flux3_hi</em>, <em>area1</em>, <em>area1_lo</em>, <em>area1_hi</em>, <em>area2</em>, <em>area2_lo</em>, <em>area2_hi</em>, <em>area3</em>, <em>area3_lo</em>, <em>area3_hi</em>, <em>q1</em>, <em>q1_lo</em>, <em>q1_hi</em>, <em>q2</em>, <em>q2_lo</em>, <em>q2_hi</em>, <em>q3</em>, <em>q3_lo</em>, <em>q3_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/castro_mol_module/ca_mol_consup" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -331,12 +331,12 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>shk</strong> (shk_hi(1)-(shk_lo(1))+1,shk_hi(2)-(shk_lo(2))+1,shk_hi(3)-(shk_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>shk_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>shk_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>uin</strong> (uin_hi(1)-(uin_lo(1))+1,uin_hi(2)-(uin_lo(2))+1,uin_hi(3)-(uin_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>uin_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>uin_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>uout</strong> (uout_hi(1)-(uout_lo(1))+1,uout_hi(2)-(uout_lo(2))+1,uout_hi(3)-(uout_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>uout_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>uout_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>srcu</strong> (sru_hi(1)-(sru_lo(1))+1,sru_hi(2)-(sru_lo(2))+1,sru_hi(3)-(sru_lo(3))+1,nsrc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>sru_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>sru_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>

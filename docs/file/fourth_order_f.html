@@ -241,7 +241,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#f/fourth_order/twentyfourth" title="f/fourth_order/twentyfourth"><code class="xref f f-var docutils literal notranslate"><span class="pre">twentyfourth</span></code></a></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/fourth_order/ca_compute_lap_term" title="f/fourth_order/ca_compute_lap_term"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_lap_term()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_cell_center" title="f/fourth_order/ca_make_cell_center"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_cell_center()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_cell_center_in_place" title="f/fourth_order/ca_make_cell_center_in_place"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_cell_center_in_place()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_average" title="f/fourth_order/ca_make_fourth_average"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_average()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_in_place" title="f/fourth_order/ca_make_fourth_in_place"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_in_place()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_in_place_n" title="f/fourth_order/ca_make_fourth_in_place_n"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_in_place_n()</span></code></a>, <a class="reference internal" href="#f/fourth_order/compute_laplacian" title="f/fourth_order/compute_laplacian"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_laplacian()</span></code></a>, <a class="reference internal" href="#f/fourth_order/fourth_interfaces" title="f/fourth_order/fourth_interfaces"><code class="xref f f-func docutils literal notranslate"><span class="pre">fourth_interfaces()</span></code></a>, <a class="reference internal" href="#f/fourth_order/states" title="f/fourth_order/states"><code class="xref f f-func docutils literal notranslate"><span class="pre">states()</span></code></a>, <a class="reference internal" href="#f/fourth_order/transx_laplacian" title="f/fourth_order/transx_laplacian"><code class="xref f f-func docutils literal notranslate"><span class="pre">transx_laplacian()</span></code></a>, <a class="reference internal" href="#f/fourth_order/transy_laplacian" title="f/fourth_order/transy_laplacian"><code class="xref f f-func docutils literal notranslate"><span class="pre">transy_laplacian()</span></code></a>, <a class="reference internal" href="#f/fourth_order/transz_laplacian" title="f/fourth_order/transz_laplacian"><code class="xref f f-func docutils literal notranslate"><span class="pre">transz_laplacian()</span></code></a></td>
+<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/fourth_order/ca_compute_lap_term" title="f/fourth_order/ca_compute_lap_term"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_lap_term()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_fourth_interfaces" title="f/fourth_order/ca_fourth_interfaces"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_fourth_interfaces()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_cell_center" title="f/fourth_order/ca_make_cell_center"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_cell_center()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_cell_center_in_place" title="f/fourth_order/ca_make_cell_center_in_place"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_cell_center_in_place()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_average" title="f/fourth_order/ca_make_fourth_average"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_average()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_in_place" title="f/fourth_order/ca_make_fourth_in_place"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_in_place()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_make_fourth_in_place_n" title="f/fourth_order/ca_make_fourth_in_place_n"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_make_fourth_in_place_n()</span></code></a>, <a class="reference internal" href="#f/fourth_order/ca_states" title="f/fourth_order/ca_states"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_states()</span></code></a>, <a class="reference internal" href="#f/fourth_order/compute_laplacian" title="f/fourth_order/compute_laplacian"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_laplacian()</span></code></a>, <a class="reference internal" href="#f/fourth_order/trans_laplacian" title="f/fourth_order/trans_laplacian"><code class="xref f f-func docutils literal notranslate"><span class="pre">trans_laplacian()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -263,32 +263,29 @@
 </ul>
 <p class="rubric">Subroutines and functions</p>
 <dl class="subroutine">
-<dt id="f/fourth_order/fourth_interfaces">
-<em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">fourth_interfaces</code><span class="sig-paren">(</span><em>idir</em>, <em>ncomp</em>, <em>a</em>, <em>a_lo</em>, <em>a_hi</em>, <em>a_int</em>, <em>ai_lo</em>, <em>ai_hi</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/fourth_interfaces" title="Permalink to this definition">¶</a></dt>
+<dt id="f/fourth_order/ca_fourth_interfaces">
+<em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">ca_fourth_interfaces</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>idir</em>, <em>ncomp</em>, <em>a</em>, <em>a_lo</em>, <em>a_hi</em>, <em>a_int</em>, <em>ai_lo</em>, <em>ai_hi</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/ca_fourth_interfaces" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 <li><strong>a</strong> (a_hi(1)-(a_lo(1))+1,a_hi(2)-(a_lo(2))+1,a_hi(3)-(a_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>a_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>a_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>a_int</strong> (ai_hi(1)-(ai_lo(1))+1,ai_hi(2)-(ai_lo(2))+1,ai_hi(3)-(ai_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>ai_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>ai_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/interior" title="f/prob_params_module/interior"><code class="xref f f-func docutils literal notranslate"><span class="pre">interior()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/symmetry" title="f/prob_params_module/symmetry"><code class="xref f f-func docutils literal notranslate"><span class="pre">symmetry()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/outflow" title="f/prob_params_module/outflow"><code class="xref f f-func docutils literal notranslate"><span class="pre">outflow()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_lo" title="f/prob_params_module/physbc_lo"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_lo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_hi" title="f/prob_params_module/physbc_hi"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_hi()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_fourth_order_f.html#f/fourth_order_hydro/ca_fourth_single_stage" title="f/fourth_order_hydro/ca_fourth_single_stage"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_fourth_single_stage()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/interior" title="f/prob_params_module/interior"><code class="xref f f-func docutils literal notranslate"><span class="pre">interior()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/symmetry" title="f/prob_params_module/symmetry"><code class="xref f f-func docutils literal notranslate"><span class="pre">symmetry()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/outflow" title="f/prob_params_module/outflow"><code class="xref f f-func docutils literal notranslate"><span class="pre">outflow()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_lo" title="f/prob_params_module/physbc_lo"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_lo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_hi" title="f/prob_params_module/physbc_hi"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_hi()</span></code></a>)</p>
 </td>
 </tr>
 </tbody>
@@ -296,15 +293,17 @@
 </dd></dl>
 
 <dl class="subroutine">
-<dt id="f/fourth_order/states">
-<em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">states</code><span class="sig-paren">(</span><em>idir</em>, <em>ncomp</em>, <em>a</em>, <em>a_lo</em>, <em>a_hi</em>, <em>a_int</em>, <em>ai_lo</em>, <em>ai_hi</em>, <em>flatn</em>, <em>f_lo</em>, <em>f_hi</em>, <em>al</em>, <em>ar</em>, <em>as_lo</em>, <em>as_hi</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/states" title="Permalink to this definition">¶</a></dt>
+<dt id="f/fourth_order/ca_states">
+<em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">ca_states</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>idir</em>, <em>ncomp</em>, <em>a</em>, <em>a_lo</em>, <em>a_hi</em>, <em>a_int</em>, <em>ai_lo</em>, <em>ai_hi</em>, <em>flatn</em>, <em>f_lo</em>, <em>f_hi</em>, <em>al</em>, <em>al_lo</em>, <em>al_hi</em>, <em>ar</em>, <em>ar_lo</em>, <em>ar_hi</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/ca_states" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>ncomp</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 <li><strong>a</strong> (a_hi(1)-(a_lo(1))+1,a_hi(2)-(a_lo(2))+1,a_hi(3)-(a_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em> :: note: typo in Eq 29</li>
 <li><strong>a_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>a_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
@@ -314,12 +313,12 @@
 <li><strong>flatn</strong> (f_hi(1)-(f_lo(1))+1, f_hi(2)-(f_lo(2))+1, f_hi(3)-(f_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>f_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>f_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>al</strong> (as_hi(1)-(as_lo(1))+1,as_hi(2)-(as_lo(2))+1,as_hi(3)-(as_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>ar</strong> (as_hi(1)-(as_lo(1))+1,as_hi(2)-(as_lo(2))+1,as_hi(3)-(as_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>as_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>as_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>al</strong> (al_hi(1)-(al_lo(1))+1,al_hi(2)-(al_lo(2))+1,al_hi(3)-(al_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>al_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>al_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ar</strong> (ar_hi(1)-(ar_lo(1))+1,ar_hi(2)-(ar_lo(2))+1,ar_hi(3)-(ar_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>ar_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ar_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
@@ -328,10 +327,7 @@
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">limit_fourth_order()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/interior" title="f/prob_params_module/interior"><code class="xref f f-func docutils literal notranslate"><span class="pre">interior()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/symmetry" title="f/prob_params_module/symmetry"><code class="xref f f-func docutils literal notranslate"><span class="pre">symmetry()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/outflow" title="f/prob_params_module/outflow"><code class="xref f f-func docutils literal notranslate"><span class="pre">outflow()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_lo" title="f/prob_params_module/physbc_lo"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_lo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_hi" title="f/prob_params_module/physbc_hi"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_hi()</span></code></a>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="Castro_fourth_order_f.html#f/fourth_order_hydro/ca_fourth_single_stage" title="f/fourth_order_hydro/ca_fourth_single_stage"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_fourth_single_stage()</span></code></a></p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -372,102 +368,30 @@
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="f/fourth_order/transx_laplacian">
-<em class="property">function  </em><code class="descclassname">fourth_order/</code><code class="descname">transx_laplacian</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>n</em>, <em>a</em>, <em>a_lo</em>, <em>a_hi</em>, <em>nc</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/transx_laplacian" title="Permalink to this definition">¶</a></dt>
+<dl class="subroutine">
+<dt id="f/fourth_order/trans_laplacian">
+<em class="property">subroutine  </em><code class="descclassname">fourth_order/</code><code class="descname">trans_laplacian</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>n</em>, <em>idir</em>, <em>a</em>, <em>a_lo</em>, <em>a_hi</em>, <em>nc</em>, <em>lap</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/trans_laplacian" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 <li><strong>a</strong> (a_hi(1)-(a_lo(1))+1,a_hi(2)-(a_lo(2))+1,a_hi(3)-(a_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>a_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>a_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lap</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
 <li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>lap</strong><em> [</em><em>real</em><em>]</em></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_lo" title="f/prob_params_module/physbc_lo"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_lo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_hi" title="f/prob_params_module/physbc_hi"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_hi()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/interior" title="f/prob_params_module/interior"><code class="xref f f-func docutils literal notranslate"><span class="pre">interior()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_fourth_order_f.html#f/fourth_order_hydro/ca_fourth_single_stage" title="f/fourth_order_hydro/ca_fourth_single_stage"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_fourth_single_stage()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="f/fourth_order/transy_laplacian">
-<em class="property">function  </em><code class="descclassname">fourth_order/</code><code class="descname">transy_laplacian</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>n</em>, <em>a</em>, <em>a_lo</em>, <em>a_hi</em>, <em>nc</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/transy_laplacian" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a</strong> (a_hi(1)-(a_lo(1))+1,a_hi(2)-(a_lo(2))+1,a_hi(3)-(a_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>lap</strong><em> [</em><em>real</em><em>]</em></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_lo" title="f/prob_params_module/physbc_lo"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_lo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_hi" title="f/prob_params_module/physbc_hi"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_hi()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/interior" title="f/prob_params_module/interior"><code class="xref f f-func docutils literal notranslate"><span class="pre">interior()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_fourth_order_f.html#f/fourth_order_hydro/ca_fourth_single_stage" title="f/fourth_order_hydro/ca_fourth_single_stage"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_fourth_single_stage()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="f/fourth_order/transz_laplacian">
-<em class="property">function  </em><code class="descclassname">fourth_order/</code><code class="descname">transz_laplacian</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>n</em>, <em>a</em>, <em>a_lo</em>, <em>a_hi</em>, <em>nc</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/fourth_order/transz_laplacian" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a</strong> (a_hi(1)-(a_lo(1))+1,a_hi(2)-(a_lo(2))+1,a_hi(3)-(a_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>lap</strong><em> [</em><em>real</em><em>]</em></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_lo" title="f/prob_params_module/physbc_lo"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_lo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_hi" title="f/prob_params_module/physbc_hi"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_hi()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/interior" title="f/prob_params_module/interior"><code class="xref f f-func docutils literal notranslate"><span class="pre">interior()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_fourth_order_f.html#f/fourth_order_hydro/ca_fourth_single_stage" title="f/fourth_order_hydro/ca_fourth_single_stage"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_fourth_single_stage()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_lo" title="f/prob_params_module/physbc_lo"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_lo()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/physbc_hi" title="f/prob_params_module/physbc_hi"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_hi()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/interior" title="f/prob_params_module/interior"><code class="xref f f-func docutils literal notranslate"><span class="pre">interior()</span></code></a>)</p>
 </td>
 </tr>
 </tbody>

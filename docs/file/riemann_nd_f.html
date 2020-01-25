@@ -381,22 +381,22 @@
 
 <dl class="subroutine">
 <dt id="f/riemann_module/riemann_state">
-<em class="property">subroutine  </em><code class="descclassname">riemann_module/</code><code class="descname">riemann_state</code><span class="sig-paren">(</span><em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>nc</em>, <em>comp</em>, <em>qint</em>, <em>q_lo</em>, <em>q_hi</em>, <em>lambda_int</em>, <em>l_lo</em>, <em>l_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>idir</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em><span class="optional">[</span>, <em>compute_gammas</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_module/riemann_state" title="Permalink to this definition">¶</a></dt>
-<dd><p>just compute the hydrodynamic state on the interfaces
-don’t compute the fluxes</p>
-<table class="docutils field-list" frame="void" rules="none">
+<em class="property">subroutine  </em><code class="descclassname">riemann_module/</code><code class="descname">riemann_state</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>nc</em>, <em>comp</em>, <em>qint</em>, <em>q_lo</em>, <em>q_hi</em>, <em>lambda_int</em>, <em>l_lo</em>, <em>l_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>idir</em>, <em>compute_gammas</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_module/riemann_state" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qm</strong> (qm_hi(1)-(qm_lo(1))+1,qm_hi(2)-(qm_lo(2))+1,qm_hi(3)-(qm_lo(3))+1,nq,nc)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>qm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qp</strong> (qp_hi(1)-(qp_lo(1))+1,qp_hi(2)-(qp_lo(2))+1,qp_hi(3)-(qp_lo(3))+1,nq,nc)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>qp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
-<li><strong>comp</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>comp</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 <li><strong>qint</strong> (q_hi(1)-(q_lo(1))+1,q_hi(2)-(q_lo(2))+1,q_hi(3)-(q_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>q_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>q_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
@@ -406,19 +406,17 @@ don’t compute the fluxes</p>
 <li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>compute_gammas</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 <li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>compute_gammas</strong><em> [</em><em>logical</em><em>,</em><em>in,</em><em>]</em></li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <a class="reference internal" href="Castro_error_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">hybrid_riemann()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_temp_fix()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">riemann_solver()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">t_guess()</span></code>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="Castro_fourth_order_f.html#f/fourth_order_hydro/ca_fourth_single_stage" title="f/fourth_order_hydro/ca_fourth_single_stage"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_fourth_single_stage()</span></code></a>, <a class="reference internal" href="#f/riemann_module/cmpflx" title="f/riemann_module/cmpflx"><code class="xref f f-func docutils literal notranslate"><span class="pre">cmpflx()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/riemann_module/cmpflx" title="f/riemann_module/cmpflx"><code class="xref f f-func docutils literal notranslate"><span class="pre">cmpflx()</span></code></a></p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>, <a class="reference internal" href="#f/riemann_module/riemannus" title="f/riemann_module/riemannus"><code class="xref f f-func docutils literal notranslate"><span class="pre">riemannus()</span></code></a>, <a class="reference internal" href="#f/riemann_module/riemanncg" title="f/riemann_module/riemanncg"><code class="xref f f-func docutils literal notranslate"><span class="pre">riemanncg()</span></code></a></p>
@@ -477,7 +475,7 @@ kflux, and k3d to 0</p>
 
 <dl class="subroutine">
 <dt id="f/riemann_module/riemannus">
-<em class="property">subroutine  </em><code class="descclassname">riemann_module/</code><code class="descname">riemannus</code><span class="sig-paren">(</span><em>ql</em>, <em>ql_lo</em>, <em>ql_hi</em>, <em>qr</em>, <em>qr_lo</em>, <em>qr_hi</em>, <em>nc</em>, <em>comp</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>qint</em>, <em>q_lo</em>, <em>q_hi</em>, <em>lambda_int</em>, <em>l_lo</em>, <em>l_hi</em>, <em>idir</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>compute_interface_gamma</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_module/riemannus" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">riemann_module/</code><code class="descname">riemannus</code><span class="sig-paren">(</span><em>ql</em>, <em>ql_lo</em>, <em>ql_hi</em>, <em>qr</em>, <em>qr_lo</em>, <em>qr_hi</em>, <em>nc</em>, <em>comp</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>qint</em>, <em>q_lo</em>, <em>q_hi</em>, <em>lambda_int</em>, <em>l_lo</em>, <em>l_hi</em>, <em>idir</em>, <em>compute_gammas</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_module/riemannus" title="Permalink to this definition">¶</a></dt>
 <dd><p>Colella, Glaz, and Ferguson solver</p>
 <p>this is a 2-shock solver that uses a very simple approximation for the
 star state, and carries an auxiliary jump condition for (rho e) to
@@ -505,11 +503,11 @@ deal with a real gas</p>
 <li><strong>l_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>l_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>compute_gammas</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>compute_interface_gamma</strong><em> [</em><em>logical</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
