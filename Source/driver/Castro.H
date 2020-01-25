@@ -506,11 +506,6 @@ public:
 ///
     void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
 
-#ifdef MHD
-    void just_the_mhd(amrex::Real time, amrex::Real dt);
-#endif
-
-
 ///
 /// Check for NaNs in the given MultiFab
 ///
@@ -518,11 +513,18 @@ public:
 /// @param check_ghost  do we check the ghost cells?
 ///
     void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
+
+
 #include <Castro_sources.H>
 
 
 #ifdef GRAVITY
 #include <Castro_gravity.H>
+#endif
+
+
+#ifdef MHD
+#include <Castro_mhd.H>
 #endif
 
 
