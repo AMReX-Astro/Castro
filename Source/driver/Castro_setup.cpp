@@ -239,58 +239,12 @@ Castro::variableSetUp ()
   ca_set_castro_method_params();
 
   // set the conserved, primitive, aux, and godunov indices in Fortran
-  ca_set_method_params(dm, Density, Xmom,
-#ifdef HYBRID_MOMENTUM
-                       Rmom,
-#endif
-                       Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
-#ifdef SHOCK_VAR
-		       Shock,
-#endif
-#ifdef MHD
-                       QMAGX, QMAGY, QMAGZ,
-#endif
-#ifdef RADIATION
-                       QPTOT, QREITOT, QRAD,
-#endif
-                       QRHO,
-                       QU, QV, QW,
-                       QGAME, QGC, QPRES, QREINT,
-                       QTEMP,
-                       QFA, QFS, QFX,
-#ifdef RADIATION
-                       GDLAMS, GDERADS,
-#endif
-                       GDRHO, GDU, GDV, GDW,
-                       GDPRES, GDGAME,
-#ifdef RADIATION
-                       QGAMCG, QCG, QLAMS,
-#endif
-                       QGAMC, QC, QDPDR, QDPDE);
-
-  // and the auxiliary variables
-  ca_get_nqaux(&NQAUX);
-
-  // and the number of primitive variable source terms
-  ca_get_nqsrc(&NQSRC);
-
-  // and the number of conserved variable source terms
-  ca_get_nsrc(&NSRC);
-
-  // initialize the Godunov state array used in hydro
-  ca_get_ngdnv(&NGDNV);
-
-  // NQ will be used to dimension the primitive variable state
-  // vector it will include the "pure" hydrodynamical variables +
-  // any radiation variables
-  ca_get_nq(&NQ);
-
+  ca_set_method_params(dm);
 
   // setup the passive maps -- this follows the same logic as the
   // Fortran versions in ca_set_method_params
-  npassive = NumAdv + NumSpec + NumAux;
   int ipassive = 0;
-  
+
   upass_map.resize(npassive);
   qpass_map.resize(npassive);
 

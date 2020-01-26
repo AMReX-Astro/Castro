@@ -71,43 +71,11 @@ extern "C"
 #endif
 
   void ca_set_method_params
-    (const int& dm,
-     const int& Density, const int& Xmom,
-#ifdef HYBRID_MOMENTUM
-     const int& Rmom,
-#endif
-     const int& Eden,    const int& Eint,
-     const int& Temp     , const int& FirstAdv,
-     const int& FirstSpec, const int& FirstAux,
-#ifdef SHOCK_VAR
-     const int& Shock,
-#endif
-#ifdef MHD
-     const int& QMAGX_in, const int& QMAGY_in, const int& QMAGZ_in,
-#endif
-#ifdef RADIATION
-     const int& QPTOT_in, const int& QREITOT_in, const int& QRAD_in,
-#endif
-     const int& QRHO_in,
-     const int& QU_in, const int& QV_in, const int& QW_in,
-     const int& QGAME_in, const int& QGC_in, const int& QPRES_in, const int& QREINT_in,
-     const int& QTEMP_in,
-     const int& QFA_in, const int& QFS_in, const int& QFX_in,
-#ifdef RADIATION
-     const int& GDLAMS_in, const int& GDERADS_in,
-#endif
-     const int& GDRHO_in, const int& GDU_in, const int& GDV_in, const int& GDW_in,
-     const int& GDPRES_in, const int& GDGAME_in,
-#ifdef RADIATION
-     const int& QGAMCG_in, const int& QCG_in, const int& QLAMS_in,
-#endif
-     const int& QGAMC_in, const int& QC_in, const int& QDPDR_in, const int& QDPDE_in);
+    (const int& dm);
 
   void ca_finalize_meth_params();
 
   void ca_set_castro_method_params();
-
-  void ca_init_godunov_indices();
 
   void ca_set_problem_params
     (const int& dm,
