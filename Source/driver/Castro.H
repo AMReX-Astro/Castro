@@ -2,6 +2,8 @@
 #ifndef _Castro_H_
 #define _Castro_H_
 
+#include <state_indices.H>
+
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
 #include <AMReX_iMultiFab.H>

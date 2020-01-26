@@ -50,7 +50,11 @@ class Index:
         self.iset = iset
         self.default_group = default_group
         self.adds_to = also_adds_to
+
+        # this will be the integer value of the index -- this can only be
+        # set once we add the index to the counter
         self.value = None
+        self.cxx_value = None
 
         # count may have different names in Fortran and C++
         if count.startswith("("):
@@ -62,8 +66,9 @@ class Index:
     def __str__(self):
         return self.f90_var
 
-    def set_value(self, val):
+    def set_value(self, val, cxx_val):
         self.value = val
+        self.cxx_value = cxx_val
 
     def get_f90_set_string(self, set_default=None):
         """return the Fortran code that sets this variable index.
@@ -80,7 +85,7 @@ class Index:
         value
 
         """
-        sstr = "  const int {} = {}-1;\n".format(self.cxx_var, self.value)
+        sstr = "  const int {} = {};\n".format(self.cxx_var, self.cxx_value)
         return sstr
 
 
@@ -93,37 +98,50 @@ class Counter:
 
         self.name = name
         self.numeric = starting_val
+
         self.strings = []
+        self.cxx_strings = []
 
         self.starting_val = starting_val
 
     def add_index(self, index):
-        # increment the counter
+        """increment the counter"""
+
         try:
             i = int(index.count)
         except ValueError:
             self.strings.append(index.count.strip())
+            self.cxx_strings.append(index.count_cxx.strip())
         else:
             self.numeric += i
 
-    def get_value(self, offset=0):
+    def get_value(self):
         """return the current value of the counter"""
         if self.strings:
-            val = "{} + {}".format(self.numeric-offset, " + ".join(self.strings))
+            val = "{} + {}".format(self.numeric - self.starting_val, " + ".join(self.strings))
         else:
-            val = "{}".format(self.numeric-offset)
+            val = "{}".format(self.numeric - self.starting_val)
+
+        return val
+
+    def get_cxx_value(self):
+        """return the current value of the counter for C++ (0-based)"""
+        if self.strings:
+            val = "{} + {}".format(self.numeric - self.starting_val - 1, " + ".join(self.cxx_strings))
+        else:
+            val = "{}".format(self.numeric - self.starting_val - 1)
 
         return val
 
     def get_f90_set_string(self):
         """return the Fortran needed to set this as a parameter"""
         return "integer, parameter :: {} = {}".format(
-            self.name, self.get_value(offset=self.starting_val))
+            self.name, self.get_value())
 
     def get_cxx_set_string(self):
         """return the C++ needed to set this as a parameter"""
         return "const int {} = {};".format(
-            self.name, self.get_value(offset=self.starting_val))
+            self.name, self.get_cxx_value())
 
 
 def doit(variables_file, odir, defines, nadv,
@@ -213,7 +231,7 @@ def doit(variables_file, odir, defines, nadv,
 
             # set the integer value for this index to the current
             # counter value
-            i.set_value(counter_main.get_value())
+            i.set_value(counter_main.get_value(), counter_main.get_cxx_value())
 
             # increment the counters
             counter_main.add_index(i)
