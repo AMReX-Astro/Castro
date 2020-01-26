@@ -803,7 +803,10 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
-    use meth_params_module, only: NVAR, NQ, URHO, UTEMP, USHK, small_dens, cfl
+    use meth_params_module, only: NVAR, NQ, URHO, UTEMP, small_dens, cfl
+#ifdef SHOCK_VAR
+    use meth_params_module, only: USHK
+#endif
     use prob_params_module, only: dim
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
 
@@ -990,7 +993,10 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
-    use meth_params_module, only: NVAR, NQ, URHO, UMX, UTEMP, USHK, cfl, speed_limit
+    use meth_params_module, only: NVAR, NQ, URHO, UMX, UTEMP, cfl, speed_limit
+#ifdef SHOCK_VAR
+    use meth_params_module, only: USHK
+#endif
     use prob_params_module, only: dim
 
     implicit none
@@ -1603,7 +1609,10 @@ contains
                       flux, f_lo, f_hi) bind(c, name="apply_av")
 
     use amrex_constants_module, only: ZERO, FOURTH
-    use meth_params_module, only: NVAR, UTEMP, USHK, difmag
+    use meth_params_module, only: NVAR, UTEMP, difmag
+#ifdef SHOCK_VAR
+    use meth_params_module, only: USHK
+#endif
     use prob_params_module, only: dg
 
     implicit none
@@ -1676,7 +1685,10 @@ contains
                           radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
 
     use amrex_constants_module, only: ZERO, FOURTH
-    use meth_params_module, only: NVAR, UTEMP, USHK, difmag
+    use meth_params_module, only: NVAR, UTEMP, difmag
+#ifdef SHOCK_VAR
+    use meth_params_module, only: USHK
+#endif
     use prob_params_module, only: dg
     use rad_params_module, only: ngroups
     implicit none

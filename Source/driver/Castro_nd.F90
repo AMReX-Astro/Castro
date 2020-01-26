@@ -453,7 +453,7 @@ subroutine ca_set_method_params(dm) &
 
   integer, intent(in) :: dm
 
-  integer :: iadv, ispec
+  integer :: iadv, ispec, ipassive
 
   integer :: ioproc
 
@@ -464,15 +464,18 @@ subroutine ca_set_method_params(dm) &
   allocate(qpass_map(npassive))
   allocate(upass_map(npassive))
 
+  ipassive = 0
   do iadv = 1, nadv
-     upass_map(npassive + iadv) = UFA + iadv - 1
-     qpass_map(npassive + iadv) = QFA + iadv - 1
+     upass_map(ipassive + iadv) = UFA + iadv - 1
+     qpass_map(ipassive + iadv) = QFA + iadv - 1
+     ipassive = ipassive + 1
   enddo
 
   if (QFS > -1) then
      do ispec = 1, nspec+naux
-        upass_map(npassive + ispec) = UFS + ispec - 1
-        qpass_map(npassive + ispec) = QFS + ispec - 1
+        upass_map(ipassive + ispec) = UFS + ispec - 1
+        qpass_map(ipassive + ispec) = QFS + ispec - 1
+        ipassive = ipassive + 1
      enddo
   endif
 

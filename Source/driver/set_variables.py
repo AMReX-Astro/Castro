@@ -267,7 +267,7 @@ def doit(variables_file, odir, defines, nadv,
             f.write("   integer, parameter :: ngroups = {}\n".format(ngroups))
         for ac in all_counters:
             f.write("   {}\n".format(ac.get_f90_set_string()))
-        f.write("   integer, pameter :: npassive = nspec + naux + nadv\n")
+        f.write("   integer, parameter :: npassive = nspec + naux + nadv\n")
 
         # we only loop over the default sets for setting indices, not the
         # "adds to", so we don't set the same index twice
