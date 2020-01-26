@@ -107,6 +107,7 @@ class Counter:
         self.cxx_strings = []
 
         self.starting_val = starting_val
+        self.cxx_starting_val = starting_val-1
 
     def add_index(self, index):
         """increment the counter"""
@@ -119,33 +120,33 @@ class Counter:
         else:
             self.numeric += i
 
-    def get_value(self):
+    def get_value(self, offset=0):
         """return the current value of the counter"""
         if self.strings:
-            val = "{} + {}".format(self.numeric - self.starting_val, " + ".join(self.strings))
+            val = "{} + {}".format(self.numeric - offset, " + ".join(self.strings))
         else:
-            val = "{}".format(self.numeric - self.starting_val)
+            val = "{}".format(self.numeric - offset)
 
         return val
 
-    def get_cxx_value(self):
+    def get_cxx_value(self, offset=0):
         """return the current value of the counter for C++ (0-based)"""
         if self.strings:
-            val = "{} + {}".format(self.numeric - self.starting_val - 1, " + ".join(self.cxx_strings))
+            val = "{} + {}".format(self.numeric - offset - 1, " + ".join(self.cxx_strings))
         else:
-            val = "{}".format(self.numeric - self.starting_val - 1)
+            val = "{}".format(self.numeric - offset - 1)
 
         return val
 
     def get_f90_set_string(self):
         """return the Fortran needed to set this as a parameter"""
         return "integer, parameter :: {} = {}".format(
-            self.name, self.get_value())
+            self.name, self.get_value(offset=self.starting_val))
 
     def get_cxx_set_string(self):
         """return the C++ needed to set this as a parameter"""
         return "const int {} = {};".format(
-            self.cxx_name, self.get_cxx_value())
+            self.cxx_name, self.get_cxx_value(offset=self.cxx_starting_val))
 
 
 def doit(variables_file, odir, defines, nadv,
@@ -277,7 +278,7 @@ def doit(variables_file, odir, defines, nadv,
             for i in set_indices:
                 f.write(i.get_f90_set_string(set_default=0))
 
-        f.write("end module state_indices_module\n")
+        f.write("\nend module state_indices_module\n")
 
 
     # now the C++
@@ -302,7 +303,7 @@ def doit(variables_file, odir, defines, nadv,
             for i in set_indices:
                 f.write(i.get_cxx_set_string(set_default=0))
 
-        f.write("#endif\n")
+        f.write("\n#endif\n")
 
 
 def main():
