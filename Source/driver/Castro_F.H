@@ -18,12 +18,6 @@ extern "C"
 
   void ca_extern_init(const int* name, const int* namlen);
 
-  void ca_get_num_spec(int* nspec);
-
-  void ca_get_num_aux(int* naux);
-
-  void ca_get_num_adv(int* nadv);
-
   void ca_get_spec_names(int* spec_names, const int* ispec, int* len);
 
   void ca_get_spec_az(const int* ispec, amrex::Real* A, amrex::Real* Z);

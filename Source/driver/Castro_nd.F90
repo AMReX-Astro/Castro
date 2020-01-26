@@ -67,59 +67,6 @@ subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
 
 end subroutine ca_extern_init
 
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
-    !
-    ! Binds to C function `ca_get_num_spec`
-
-  use network, only: nspec
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: nspec_out
-
-  nspec_out = nspec
-
-end subroutine ca_get_num_spec
-
-
-
-subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
-    !
-    ! Binds to C function `ca_get_num_aux`
-
-  use network, only: naux
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: naux_out
-
-  naux_out = naux
-
-end subroutine ca_get_num_aux
-
-
-
-subroutine ca_get_num_adv(nadv_out) bind(C, name="ca_get_num_adv")
-    !
-    ! Binds to C function `ca_get_num_adv`
-
-  use meth_params_module, only: nadv
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: nadv_out
-
-  nadv_out = nadv
-
-end subroutine ca_get_num_adv
 
 ! :::
 ! ::: ----------------------------------------------------------------

@@ -1572,13 +1572,6 @@ Castro::numGrow()
 }
 
 inline
-int
-Castro::numState()
-{
-    return NUM_STATE;
-}
-
-inline
 amrex::MultiFab*
 Castro::Area ()
 {

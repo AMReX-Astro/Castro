@@ -205,31 +205,6 @@ Castro::variableSetUp ()
 
   const int dm = BL_SPACEDIM;
 
-
-  //
-  // Set number of state variables and pointers to components
-  //
-
-  // Get the number of species from the network model.
-  ca_get_num_spec(&NumSpec);
-
-  // Get the number of auxiliary quantities from the network model.
-  ca_get_num_aux(&NumAux);
-
-  // Get the number of advected quantities -- set at compile time
-  ca_get_num_adv(&NumAdv);
-
-
-#include "set_conserved.H"
-
-  NUM_STATE = cnt;
-
-#include "set_primitive.H"
-
-#include "set_godunov.H"
-
-#include "set_auxiliary.H"
-
   // Define NUM_GROW from the f90 module.
   ca_get_method_params(&NUM_GROW);
 

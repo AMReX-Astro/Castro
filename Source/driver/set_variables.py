@@ -93,10 +93,14 @@ class Counter:
     """a simple object to keep track of how many variables there are in a
     set"""
 
-    def __init__(self, name, starting_val=1):
+    def __init__(self, name, cxx_name=None, starting_val=1):
         """name: the name of that counter (this will be used in Fortran)"""
 
         self.name = name
+        if cxx_name == None:
+            self.cxx_name = name
+        else:
+            self.cxx_name = cxx_name
         self.numeric = starting_val
 
         self.strings = []
@@ -141,7 +145,7 @@ class Counter:
     def get_cxx_set_string(self):
         """return the C++ needed to set this as a parameter"""
         return "const int {} = {};".format(
-            self.name, self.get_cxx_value())
+            self.cxx_name, self.get_cxx_value())
 
 
 def doit(variables_file, odir, defines, nadv,
@@ -165,8 +169,11 @@ def doit(variables_file, odir, defines, nadv,
             if line.startswith("#") or line.strip() == "":
                 continue
             elif line.startswith("@"):
-                _, current_set, default_group = line.split()
-                default_set[current_set] = default_group
+                # this stores the total number of state variables in each default set,
+                # as a tuple, with the Fortran variable and C++ variable,
+                # e.g. default_set[conserved] = (NVAR, NUM_STATE)
+                _, current_set, default_group, cxx_group = line.split()
+                default_set[current_set] = (default_group, cxx_group)
             else:
 
                 # this splits the line into separate fields.  A field is a
@@ -221,7 +228,7 @@ def doit(variables_file, odir, defines, nadv,
         adds_to = set([q.adds_to for q in set_indices if q.adds_to is not None])
 
         # initialize the counters
-        counter_main = Counter(default_set[s])
+        counter_main = Counter(default_set[s][0], cxx_name=default_set[s][1])
         counter_adds = []
         for a in adds_to:
             counter_adds.append(Counter(a))
@@ -269,7 +276,7 @@ def doit(variables_file, odir, defines, nadv,
             for i in set_indices:
                 f.write(i.get_f90_set_string(set_default=0))
 
-        f.write("end module state_sizes_module\n")
+        f.write("end module state_indices_module\n")
 
 
     # now the C++
@@ -281,9 +288,10 @@ def doit(variables_file, odir, defines, nadv,
 
         f.write("#include <actual_network.H>\n\n")
 
-        f.write("  const int nadv = {};\n".format(nadv))
+        f.write("  const int NumAdv = {};\n".format(nadv))
         for ac in all_counters:
             f.write("  {}\n".format(ac.get_cxx_set_string()))
+        f.write("  const int npassive = NumSpec + NumAux + NumAdv;\n")
 
         # we only loop over the default sets for setting indices, not the
         # "adds to", so we don't set the same index twice
