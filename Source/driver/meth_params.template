@@ -9,7 +9,7 @@ module meth_params_module
 
   use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
-  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC, NSRC
+  use state_indices_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC, NSRC
 
   implicit none
 
@@ -58,7 +58,6 @@ module meth_params_module
   attributes(managed) :: do_inelastic_scattering
   attributes(managed) :: comoving
   attributes(managed) :: flatten_pp_threshold
-  attributes(managed) :: GDLAMS, GDERADS
 #endif
   attributes(managed) :: qpass_map, upass_map
 #ifdef GRAVITY

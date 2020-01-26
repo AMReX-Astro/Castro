@@ -231,7 +231,7 @@ def doit(variables_file, odir, defines, nadv,
     # all these routines will live in a single file
 
     # first the Fortran
-    with open(os.path.join(odir, "state_indices.f90"), "w") as f:
+    with open(os.path.join(odir, "state_indices.F90"), "w") as f:
 
         # first write out the counter sizes
         f.write("module state_indices_module\n")
