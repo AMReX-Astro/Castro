@@ -24,16 +24,6 @@ extern "C"
 
   void ca_get_aux_names(int* aux_names,  const int* iaux, int* len);
 
-  void ca_get_nq(int* nq);
-
-  void ca_get_nqaux(int* nqaux);
-
-  void ca_get_nqsrc(int* nqsrc);
-
-  void ca_get_nsrc(int* nsrc);
-
-  void ca_get_ngdnv(int* ngdnv);
-
 #ifdef REACTIONS
   void ca_get_abort_on_failure(int * abort_on_failure);
 
