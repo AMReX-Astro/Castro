@@ -1,27 +1,20 @@
 #!/usr/bin/env python3
 
-# parse the _variables file and write the set of functions that will
-# define the indices.  We write two files with the following functions:
-#
-# 1. set_indices.F90:
-#
-#    * ca_set_auxiliary_indices: the auxiliary state information
-#
-#    * ca_set_conserved_indices: the conserved state
-#
-#    * ca_set_godunov_indices: the interface state
-#
-#    * ca_set_primitive_indices: the primitive variable state
-#
-# 2. set_conserved.H, set_primitive.H, set_godunov.H
-#
-#    This simply sets the C++ indices
-#
+"""parse the _variables file and write a Fortran module and C++ header
+that defines the indices and size of state arrays.  We write:
+
+  * state_indices.F90
+
+  * state_indices.H
+
+They both have the same information.  For the C++ header, the indices
+are all 0-based, so they will be one less than the Fortran indices.
+
+"""
 
 import argparse
 import os
 import re
-import sys
 
 
 def split_pair(pair_string):
@@ -97,7 +90,7 @@ class Counter:
         """name: the name of that counter (this will be used in Fortran)"""
 
         self.name = name
-        if cxx_name == None:
+        if cxx_name is None:
             self.cxx_name = name
         else:
             self.cxx_name = cxx_name
@@ -226,7 +219,7 @@ def doit(variables_file, odir, defines, nadv,
         set_indices = [q for q in indices if q.iset == s]
 
         # these indices may also add to other counters
-        adds_to = set([q.adds_to for q in set_indices if q.adds_to is not None])
+        adds_to = {q.adds_to for q in set_indices if q.adds_to is not None}
 
         # initialize the counters
         counter_main = Counter(default_set[s][0], cxx_name=default_set[s][1])
@@ -307,6 +300,7 @@ def doit(variables_file, odir, defines, nadv,
 
 
 def main():
+    """the main driver"""
 
     # note: you need to put a space at the start of the string
     # that gives defines so that the '-' is not interpreted as
