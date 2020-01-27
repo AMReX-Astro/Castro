@@ -224,19 +224,19 @@ Castro::variableSetUp ()
   qpass_map.resize(npassive);
 
   for (int iadv = 0; iadv < NumAdv; ++iadv) {
-    upass_map[ipassive] = FirstAdv + iadv;
+    upass_map[ipassive] = UFA + iadv;
     qpass_map[ipassive] = QFA + iadv;
     ++ipassive;
   }
 
   for (int ispec = 0; ispec < NumSpec; ++ispec) {
-    upass_map[ipassive] = FirstSpec + ispec;
+    upass_map[ipassive] = UFS + ispec;
     qpass_map[ipassive] = QFS + ispec;
     ++ipassive;
   }
 
   for (int iaux = 0; iaux < NumAux; ++iaux) {
-    upass_map[ipassive] = FirstAux + iaux;
+    upass_map[ipassive] = UFX + iaux;
     qpass_map[ipassive] = QFX + iaux;
     ++ipassive;
   }
@@ -401,54 +401,54 @@ Castro::variableSetUp ()
 
   BCRec bc;
   set_scalar_bc(bc, phys_bc);
-  bcs[Density] = bc;
-  name[Density] = "density";
+  bcs[URHO] = bc;
+  name[URHO] = "density";
 
   set_x_vel_bc(bc, phys_bc);
-  bcs[Xmom] = bc;
-  name[Xmom] = "xmom";
+  bcs[UMX] = bc;
+  name[UMX] = "xmom";
 
   set_y_vel_bc(bc, phys_bc);
-  bcs[Ymom] = bc;
-  name[Ymom] = "ymom";
+  bcs[UMY] = bc;
+  name[UMY] = "ymom";
 
   set_z_vel_bc(bc, phys_bc);
-  bcs[Zmom] = bc;
-  name[Zmom] = "zmom";
+  bcs[UMZ] = bc;
+  name[UMZ] = "zmom";
 
 #ifdef HYBRID_MOMENTUM
   set_scalar_bc(bc, phys_bc);
-  bcs[Rmom] = bc;
-  name[Rmom] = "rmom";
+  bcs[UMR] = bc;
+  name[UMR] = "rmom";
 
   set_scalar_bc(bc, phys_bc);
-  bcs[Lmom] = bc;
-  name[Lmom] = "lmom";
+  bcs[UML] = bc;
+  name[UML] = "lmom";
 
   set_scalar_bc(bc, phys_bc);
-  bcs[Pmom] = bc;
-  name[Pmom] = "pmom";
+  bcs[UMP] = bc;
+  name[UMP] = "pmom";
 
 #endif
   set_scalar_bc(bc, phys_bc);
-  bcs[Eden] = bc;
-  name[Eden] = "rho_E";
+  bcs[UEDEN] = bc;
+  name[UEDEN] = "rho_E";
 
   set_scalar_bc(bc, phys_bc);
-  bcs[Eint] = bc;
-  name[Eint] = "rho_e";
+  bcs[UEINT] = bc;
+  name[UEINT] = "rho_e";
 
   set_scalar_bc(bc, phys_bc);
-  bcs[Temp] = bc;
-  name[Temp] = "Temp";
+  bcs[UTEMP] = bc;
+  name[UTEMP] = "Temp";
 
   for (int i=0; i<NumAdv; ++i)
     {
       char buf[64];
       sprintf(buf, "adv_%d", i);
       set_scalar_bc(bc, phys_bc);
-      bcs[FirstAdv+i] = bc;
-      name[FirstAdv+i] = string(buf);
+      bcs[UFA+i] = bc;
+      name[UFA+i] = string(buf);
     }
 
   // Get the species names from the network model.
@@ -476,8 +476,8 @@ Castro::variableSetUp ()
   for (int i=0; i<NumSpec; ++i)
     {
       set_scalar_bc(bc, phys_bc);
-      bcs[FirstSpec+i] = bc;
-      name[FirstSpec+i] = "rho_" + spec_names[i];
+      bcs[UFS+i] = bc;
+      name[UFS+i] = "rho_" + spec_names[i];
     }
 
   // Get the auxiliary names from the network model.
@@ -505,18 +505,18 @@ Castro::variableSetUp ()
   for (int i=0; i<NumAux; ++i)
     {
       set_scalar_bc(bc, phys_bc);
-      bcs[FirstAux+i] = bc;
-      name[FirstAux+i] = "rho_" + aux_names[i];
+      bcs[UFX+i] = bc;
+      name[UFX+i] = "rho_" + aux_names[i];
     }
 
 #ifdef SHOCK_VAR
   set_scalar_bc(bc, phys_bc);
-  bcs[Shock] = bc;
-  name[Shock] = "Shock";
+  bcs[USHK] = bc;
+  name[USHK] = "Shock";
 #endif
 
   desc_lst.setComponent(State_Type,
-			Density,
+			URHO,
 			name,
 			bcs,
 			BndryFunc(ca_denfill,ca_hypfill));
@@ -554,7 +554,7 @@ Castro::variableSetUp ()
 
   }
 
-  desc_lst.setComponent(Source_Type, Density, state_type_source_names, source_bcs,
+  desc_lst.setComponent(Source_Type, URHO, state_type_source_names, source_bcs,
                         BndryFunc(ca_source_single_fill,ca_source_multi_fill));
 
 #ifdef REACTIONS
@@ -677,7 +677,7 @@ Castro::variableSetUp ()
 
     }
 
-    desc_lst.setComponent(SDC_Source_Type, Density, sdc_source_names, sdc_source_bcs,
+    desc_lst.setComponent(SDC_Source_Type, URHO, sdc_source_names, sdc_source_bcs,
                           BndryFunc(ca_generic_single_fill, ca_generic_multi_fill));
   }
 #endif
@@ -690,45 +690,45 @@ Castro::variableSetUp ()
   // Pressure
   //
   derive_lst.add("pressure",IndexType::TheCellType(),1,ca_derpres,the_same_box);
-  derive_lst.addComponent("pressure",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("pressure",desc_lst,State_Type, URHO, NUM_STATE);
 
   //
   // Kinetic energy
   //
   derive_lst.add("kineng",IndexType::TheCellType(),1,ca_derkineng,the_same_box);
-  derive_lst.addComponent("kineng",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("kineng",desc_lst,State_Type,Xmom,3);
+  derive_lst.addComponent("kineng",desc_lst,State_Type, URHO, 1);
+  derive_lst.addComponent("kineng",desc_lst,State_Type, UMX, 3);
 
   //
   // Sound speed (c)
   //
   derive_lst.add("soundspeed",IndexType::TheCellType(),1,ca_dersoundspeed,the_same_box);
-  derive_lst.addComponent("soundspeed",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("soundspeed",desc_lst,State_Type, URHO, NUM_STATE);
 
   //
   // Gamma_1
   //
   derive_lst.add("Gamma_1",IndexType::TheCellType(),1,ca_dergamma1,the_same_box);
-  derive_lst.addComponent("Gamma_1",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("Gamma_1",desc_lst,State_Type, URHO, NUM_STATE);
 
   //
   // Mach number(M)
   //
   derive_lst.add("MachNumber",IndexType::TheCellType(),1,ca_dermachnumber,the_same_box);
-  derive_lst.addComponent("MachNumber",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("MachNumber",desc_lst,State_Type, URHO, NUM_STATE);
 
 #if (BL_SPACEDIM == 1)
   //
   // Wave speed u+c
   //
   derive_lst.add("uplusc",IndexType::TheCellType(),1,ca_deruplusc,the_same_box);
-  derive_lst.addComponent("uplusc",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("uplusc",desc_lst,State_Type, URHO, NUM_STATE);
 
   //
   // Wave speed u-c
   //
   derive_lst.add("uminusc",IndexType::TheCellType(),1,ca_deruminusc,the_same_box);
-  derive_lst.addComponent("uminusc",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("uminusc",desc_lst,State_Type, URHO, NUM_STATE);
 #endif
 
   //
@@ -737,7 +737,7 @@ Castro::variableSetUp ()
 #ifdef GRAVITY
   //    derive_lst.add("rhog",IndexType::TheCellType(),1,
   //                   BL_FORT_PROC_CALL(CA_RHOG,ca_rhog),the_same_box);
-  //    derive_lst.addComponent("rhog",desc_lst,State_Type,Density,1);
+  //    derive_lst.addComponent("rhog",desc_lst,State_Type, URHO, 1);
   //    derive_lst.addComponent("rhog",desc_lst,Gravity_Type,0,BL_SPACEDIM);
 #endif
 
@@ -745,7 +745,7 @@ Castro::variableSetUp ()
   // Entropy (S)
   //
   derive_lst.add("entropy",IndexType::TheCellType(),1,ca_derentropy,the_same_box);
-  derive_lst.addComponent("entropy",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("entropy",desc_lst,State_Type,URHO,NUM_STATE);
 
 #ifdef DIFFUSION
   if (diffuse_temp) {
@@ -753,21 +753,21 @@ Castro::variableSetUp ()
     // thermal conductivity (k_th)
     //
     derive_lst.add("thermal_cond",IndexType::TheCellType(),1,ca_dercond,the_same_box);
-    derive_lst.addComponent("thermal_cond",desc_lst,State_Type,Density,NUM_STATE);
+    derive_lst.addComponent("thermal_cond",desc_lst,State_Type,URHO,NUM_STATE);
 
 
     //
     // thermal diffusivity (k_th/(rho c_v))
     //
     derive_lst.add("diff_coeff",IndexType::TheCellType(),1,ca_derdiffcoeff,the_same_box);
-    derive_lst.addComponent("diff_coeff",desc_lst,State_Type,Density,NUM_STATE);
+    derive_lst.addComponent("diff_coeff",desc_lst,State_Type,URHO,NUM_STATE);
 
 
     //
     // diffusion term (the divergence of thermal flux)
     //
     derive_lst.add("diff_term",IndexType::TheCellType(),1,ca_derdiffterm,grow_box_by_one);
-    derive_lst.addComponent("diff_term",desc_lst,State_Type,Density,NUM_STATE);
+    derive_lst.addComponent("diff_term",desc_lst,State_Type,URHO,NUM_STATE);
 
 
   }
@@ -777,41 +777,41 @@ Castro::variableSetUp ()
   // Vorticity
   //
   derive_lst.add("magvort",IndexType::TheCellType(),1,ca_dermagvort,grow_box_by_one);
-  // Here we exploit the fact that Xmom = Density + 1
+  // Here we exploit the fact that UMX = URHO + 1
   //   in order to use the correct interpolation.
-  if (Xmom != Density+1)
-    amrex::Error("We are assuming Xmom = Density + 1 in Castro_setup.cpp");
-  derive_lst.addComponent("magvort",desc_lst,State_Type,Density,4);
+  if (UMX != URHO+1)
+    amrex::Error("We are assuming UMX = URHO + 1 in Castro_setup.cpp");
+  derive_lst.addComponent("magvort",desc_lst,State_Type,URHO,4);
 
   //
   // Div(u)
   //
   derive_lst.add("divu",IndexType::TheCellType(),1,ca_derdivu,grow_box_by_one);
-  derive_lst.addComponent("divu",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("divu",desc_lst,State_Type,Xmom,3);
+  derive_lst.addComponent("divu",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("divu",desc_lst,State_Type,UMX,3);
 
   //
   // Internal energy as derived from rho*E, part of the state
   //
   derive_lst.add("eint_E",IndexType::TheCellType(),1,ca_dereint1,the_same_box);
-  derive_lst.addComponent("eint_E",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("eint_E",desc_lst,State_Type,URHO,NUM_STATE);
 
   //
   // Internal energy as derived from rho*e, part of the state
   //
   derive_lst.add("eint_e",IndexType::TheCellType(),1,ca_dereint2,the_same_box);
-  derive_lst.addComponent("eint_e",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("eint_e",desc_lst,State_Type,URHO,NUM_STATE);
 
   //
   // Log(density)
   //
   derive_lst.add("logden",IndexType::TheCellType(),1,ca_derlogden,the_same_box);
-  derive_lst.addComponent("logden",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("logden",desc_lst,State_Type,URHO,NUM_STATE);
 
   derive_lst.add("StateErr",IndexType::TheCellType(),3,ca_derstate,grow_box_by_one);
-  derive_lst.addComponent("StateErr",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("StateErr",desc_lst,State_Type,Temp,1);
-  derive_lst.addComponent("StateErr",desc_lst,State_Type,FirstSpec,1);
+  derive_lst.addComponent("StateErr",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("StateErr",desc_lst,State_Type,UTEMP,1);
+  derive_lst.addComponent("StateErr",desc_lst,State_Type,UFS,1);
 
   //
   // X from rhoX
@@ -819,31 +819,31 @@ Castro::variableSetUp ()
   for (int i = 0; i < NumSpec; i++){
     std::string spec_string = "X("+spec_names[i]+")";
     derive_lst.add(spec_string,IndexType::TheCellType(),1,ca_derspec,the_same_box);
-    derive_lst.addComponent(spec_string,desc_lst,State_Type,Density,1);
-    derive_lst.addComponent(spec_string,desc_lst,State_Type,FirstSpec+i,1);
+    derive_lst.addComponent(spec_string,desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);
   }
 
   //
   // Abar
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
-  derive_lst.addComponent("abar",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("abar",desc_lst,State_Type,FirstSpec,NumSpec);
+  derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
 
   //
   // Velocities
   //
   derive_lst.add("x_velocity",IndexType::TheCellType(),1,ca_dervel,the_same_box);
-  derive_lst.addComponent("x_velocity",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("x_velocity",desc_lst,State_Type,Xmom,1);
+  derive_lst.addComponent("x_velocity",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("x_velocity",desc_lst,State_Type,UMX,1);
 
   derive_lst.add("y_velocity",IndexType::TheCellType(),1,ca_dervel,the_same_box);
-  derive_lst.addComponent("y_velocity",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("y_velocity",desc_lst,State_Type,Ymom,1);
+  derive_lst.addComponent("y_velocity",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("y_velocity",desc_lst,State_Type,UMY,1);
 
   derive_lst.add("z_velocity",IndexType::TheCellType(),1,ca_dervel,the_same_box);
-  derive_lst.addComponent("z_velocity",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("z_velocity",desc_lst,State_Type,Zmom,1);
+  derive_lst.addComponent("z_velocity",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("z_velocity",desc_lst,State_Type,UMZ,1);
 
 #ifdef REACTIONS
   //
@@ -852,32 +852,32 @@ Castro::variableSetUp ()
   // Ratio of these is t_s_t_e == t_s / t_e
   //
   derive_lst.add("t_sound_t_enuc",IndexType::TheCellType(),1,ca_derenuctimescale,the_same_box);
-  derive_lst.addComponent("t_sound_t_enuc",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("t_sound_t_enuc",desc_lst,State_Type,URHO,NUM_STATE);
   derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec,1);
 #endif
 
   derive_lst.add("magvel",IndexType::TheCellType(),1,ca_dermagvel,the_same_box);
-  derive_lst.addComponent("magvel",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("magvel",desc_lst,State_Type,Xmom,3);
+  derive_lst.addComponent("magvel",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("magvel",desc_lst,State_Type,UMX,3);
 
   derive_lst.add("radvel",IndexType::TheCellType(),1,ca_derradialvel,the_same_box);
-  derive_lst.addComponent("radvel",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("radvel",desc_lst,State_Type,Xmom,3);
+  derive_lst.addComponent("radvel",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("radvel",desc_lst,State_Type,UMX,3);
 
   derive_lst.add("magmom",IndexType::TheCellType(),1,ca_dermagmom,the_same_box);
-  derive_lst.addComponent("magmom",desc_lst,State_Type,Xmom,3);
+  derive_lst.addComponent("magmom",desc_lst,State_Type,UMX,3);
 
   derive_lst.add("angular_momentum_x",IndexType::TheCellType(),1,ca_derangmomx,the_same_box);
-  derive_lst.addComponent("angular_momentum_x",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("angular_momentum_x",desc_lst,State_Type,Xmom,3);
+  derive_lst.addComponent("angular_momentum_x",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("angular_momentum_x",desc_lst,State_Type,UMX,3);
 
   derive_lst.add("angular_momentum_y",IndexType::TheCellType(),1,ca_derangmomy,the_same_box);
-  derive_lst.addComponent("angular_momentum_y",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("angular_momentum_y",desc_lst,State_Type,Xmom,3);
+  derive_lst.addComponent("angular_momentum_y",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("angular_momentum_y",desc_lst,State_Type,UMX,3);
 
   derive_lst.add("angular_momentum_z",IndexType::TheCellType(),1,ca_derangmomz,the_same_box);
-  derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Density,1);
-  derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,Xmom,3);
+  derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("angular_momentum_z",desc_lst,State_Type,UMX,3);
 
 #ifdef GRAVITY
   derive_lst.add("maggrav",IndexType::TheCellType(),1,ca_dermaggrav,the_same_box);
@@ -892,10 +892,10 @@ Castro::variableSetUp ()
   // fortran for now.  We'll actually set the values in writePlotFile().
   //
   derive_lst.add("particle_count",IndexType::TheCellType(),1,ca_dernull,the_same_box);
-  derive_lst.addComponent("particle_count",desc_lst,State_Type,Density,1);
+  derive_lst.addComponent("particle_count",desc_lst,State_Type,URHO,1);
 
   derive_lst.add("total_particle_count",IndexType::TheCellType(),1,ca_dernull,the_same_box);
-  derive_lst.addComponent("total_particle_count",desc_lst,State_Type,Density,1);
+  derive_lst.addComponent("total_particle_count",desc_lst,State_Type,URHO,1);
 #endif
 
 #ifdef RADIATION
@@ -931,33 +931,33 @@ Castro::variableSetUp ()
     //
     derive_lst.add("rho_Yl",IndexType::TheCellType(),1,ca_derrhoyl,the_same_box);
     // Don't actually need density for rho * Yl
-    derive_lst.addComponent("rho_Yl",desc_lst,State_Type,Density,1);
-    // FirstAux is (rho * Ye)
-    derive_lst.addComponent("rho_Yl",desc_lst,State_Type,FirstAux,1);
+    derive_lst.addComponent("rho_Yl",desc_lst,State_Type,URHO,1);
+    // UFX is (rho * Ye)
+    derive_lst.addComponent("rho_Yl",desc_lst,State_Type, UFX,1);
     derive_lst.addComponent("rho_Yl",desc_lst,Rad_Type,0,Radiation::nGroups);
     //
     // Yl = (Ye + Ynue - Ynuebar)
     //
     derive_lst.add("Yl",IndexType::TheCellType(),1,ca_deryl,the_same_box);
-    derive_lst.addComponent("Yl",desc_lst,State_Type,Density,1);
-    // FirstAux is (rho * Ye)
-    derive_lst.addComponent("Yl",desc_lst,State_Type,FirstAux,1);
+    derive_lst.addComponent("Yl",desc_lst,State_Type,URHO,1);
+    // UFX is (rho * Ye)
+    derive_lst.addComponent("Yl",desc_lst,State_Type,UFX,1);
     derive_lst.addComponent("Yl",desc_lst,Rad_Type,0,Radiation::nGroups);
     //
     // Ynue
     //
     derive_lst.add("Ynue",IndexType::TheCellType(),1,ca_derynue,the_same_box);
-    derive_lst.addComponent("Ynue",desc_lst,State_Type,Density,1);
-    // FirstAux is (rho * Ye)
-    derive_lst.addComponent("Ynue",desc_lst,State_Type,FirstAux,1);
+    derive_lst.addComponent("Ynue",desc_lst,State_Type,URHO,1);
+    // UFX is (rho * Ye)
+    derive_lst.addComponent("Ynue",desc_lst,State_Type,UFX,1);
     derive_lst.addComponent("Ynue",desc_lst,Rad_Type,0,Radiation::nGroups);
     //
     // Ynuebar
     //
     derive_lst.add("Ynuae",IndexType::TheCellType(),1,ca_derynuae,the_same_box);
-    derive_lst.addComponent("Ynuae",desc_lst,State_Type,Density,1);
-    // FirstAux is (rho * Ye)
-    derive_lst.addComponent("Ynuae",desc_lst,State_Type,FirstAux,1);
+    derive_lst.addComponent("Ynuae",desc_lst,State_Type,URHO,1);
+    // UFX is (rho * Ye)
+    derive_lst.addComponent("Ynuae",desc_lst,State_Type,UFX,1);
     derive_lst.addComponent("Ynuae",desc_lst,Rad_Type,0,Radiation::nGroups);
   }
 #endif
@@ -965,8 +965,8 @@ Castro::variableSetUp ()
 
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
-    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,Density,1);
-    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,FirstAux+i,1);
+    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
 
 #if 0
@@ -974,7 +974,7 @@ Castro::variableSetUp ()
   // A derived quantity equal to all the state variables.
   //
   derive_lst.add("FULLSTATE",IndexType::TheCellType(),NUM_STATE,FORT_DERCOPY,the_same_box);
-  derive_lst.addComponent("FULLSTATE",desc_lst,State_Type,Density,NUM_STATE);
+  derive_lst.addComponent("FULLSTATE",desc_lst,State_Type,URHO,NUM_STATE);
 
 #endif
 

@@ -206,14 +206,14 @@ void DumpModel::dump(Amr* parent, int force_dump)
         sprintf(buf,
                 "%16.8E%16.8E%16.8E%16.8E%16.8E%16.8E%16.8E%16.8E%16.8E %d\n",
                 parent->Geom(ln).CellCenter(i, 0), // radius
-                stmp(p, Density),                      // density
-                stmp(p, Xmom) / stmp(p, Density),      // velocity
+                stmp(p, URHO),                      // density
+                stmp(p, UMX) / stmp(p, URHO),      // velocity
                 0.0,                               // pressure
-                stmp(p, Temp),                    // temperature (MeV ?)
-                stmp(p, Eint) / stmp(p, Density),      // internal energy e
+                stmp(p, UTEMP),                    // temperature (MeV ?)
+                stmp(p, UEINT) / stmp(p, URHO),      // internal energy e
                 0.0,                               // entropy
                 0.0,                               // cumulative mass
-                stmp(p, FirstAux / stmp(p, Density),       // Ye
+                stmp(p, UFX / stmp(p, URHO),       // Ye
                 k++);
         std::string Buf = buf;
         dumpfile << Buf;

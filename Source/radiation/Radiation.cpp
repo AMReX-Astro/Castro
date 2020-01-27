@@ -627,15 +627,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   delta_e_rat_level.resize(levels, 0.0);
   delta_T_rat_level.resize(levels, 0.0);
 
-  Density   = castro->Density;
-  Xmom      = castro->Xmom;
-  Eden      = castro->Eden;
-  Eint      = castro->Eint;
-  Temp      = castro->Temp;
-  FirstSpec = castro->FirstSpec;
-  FirstAux  = castro->FirstAux;
-  NUM_STATE = castro->NUM_STATE;
-
   pp.query("flatten_pp_threshold", flatten_pp_threshold);
   pp.query("pure_hydro", pure_hydro);
 
@@ -990,7 +981,7 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
 	    ceta2(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                   BL_TO_FORTRAN_ANYD(eta[mfi]),
 		  BL_TO_FORTRAN_ANYD(etainv[mfi]),
-                  BL_TO_FORTRAN_N_ANYD(state[mfi], Density),
+                  BL_TO_FORTRAN_N_ANYD(state[mfi], URHO),
                   BL_TO_FORTRAN_ANYD(temp[mfi]),
                   BL_TO_FORTRAN_ANYD(c_v),
                   BL_TO_FORTRAN_ANYD(fkp[mfi]),

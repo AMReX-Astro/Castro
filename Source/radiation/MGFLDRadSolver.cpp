@@ -116,12 +116,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       const Box &gbx = mfi.growntilebox(1);
       const Box &bx  = mfi.tilebox();
 
-      rho[mfi].copy(S_new[mfi],gbx,Density,gbx,0,1);
+      rho[mfi].copy(S_new[mfi],gbx, URHO, gbx,0,1);
 
-      rhoe_new[mfi].copy(S_new[mfi], bx,Eint, bx,0,1);
+      rhoe_new[mfi].copy(S_new[mfi], bx, UEINT, bx,0,1);
       rhoe_old[mfi].copy(rhoe_new[mfi], bx);
 
-      temp_new[mfi].copy(S_new[mfi],gbx,Temp,gbx,0,1);
+      temp_new[mfi].copy(S_new[mfi],gbx, UTEMP, gbx,0,1);
     
   }
 
