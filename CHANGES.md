@@ -1,5 +1,11 @@
 # 20.02
 
+   * Fixed a bug in the nuclear burning timestep estimator when on GPUs
+     (#745)
+
+   * rewrote the 4th order SDC hydro driver in C++ to allow code reuse
+     with other solvers (#742)
+
    * The option radiation.integrate_planck has been removed; it was only
      used by one test. By default we always do the full integral of the
      Planck function. (#740)
