@@ -567,8 +567,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                BL_TO_FORTRAN_ANYD(flux[idir]),
                AMREX_ZFILL(dx));
 
-          } // end idir loop
 #endif
+          } // end idir loop
 
 #ifndef AMREX_USE_CUDA
         } // end of 4th vs 2nd order MOL update

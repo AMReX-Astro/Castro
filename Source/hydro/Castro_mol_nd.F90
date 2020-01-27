@@ -347,8 +347,8 @@ contains
 
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
     real(rt), intent(in) :: flatn(fl_lo(1):fl_hi(1), fl_lo(2):fl_hi(2), fl_lo(3):fl_hi(3))
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ, AMREX_SPACEDIM)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ, AMREX_SPACEDIM)
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ)
     real(rt), intent(in) :: dx(3)
 
     integer :: i, j, k, n
@@ -377,24 +377,24 @@ contains
 
                 if (idir == 1) then
                    ! right state at i-1/2
-                   qp(i,j,k,n,1) = sm
+                   qp(i,j,k,n) = sm
 
                    ! left state at i+1/2
-                   qm(i+1,j,k,n,1) = sp
+                   qm(i+1,j,k,n) = sp
 
                 else if (idir == 2) then
                    ! right state at j-1/2
-                   qp(i,j,k,n,2) = sm
+                   qp(i,j,k,n) = sm
 
                    ! left state at j+1/2
-                   qm(i,j+1,k,n,2) = sp
+                   qm(i,j+1,k,n) = sp
 
                 else
                    ! right state at k-1/2
-                   qp(i,j,k,n,3) = sm
+                   qp(i,j,k,n) = sm
 
                    ! left state at k+1/2
-                   qm(i,j,k+1,n,3) = sp
+                   qm(i,j,k+1,n) = sp
 
                 end if
 
@@ -421,8 +421,8 @@ contains
 
                 call eos(eos_input_rt, eos_state)
 
-                qp(i,j,k,QPRES,idir) = eos_state%p
-                qp(i,j,k,QREINT,idir) = qp(i,j,k,QRHO,idir)*eos_state%e
+                qp(i,j,k,QPRES) = eos_state%p
+                qp(i,j,k,QREINT) = qp(i,j,k,QRHO)*eos_state%e
                 ! should we try to do something about Gamma_! on interface?
 
                 eos_state%rho    = qm(i,j,k,QRHO)
