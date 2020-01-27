@@ -107,9 +107,16 @@ module meth_params_module
 #ifdef RADIATION
   !$acc create(QGAMCG, QCG, QLAMS) &
   !$acc create(QRAD, QRADHI, QPTOT, QREITOT) &
-  !$acc create(fspace_type, do_inelastic_scattering, comoving) &
+  !$acc create(fspace_type, do_inelastic_scattering, comoving, flatten_pp_threshold) &
+  !$acc create(GDLAMS, GDERADS) &
 #endif
   !$acc create(QFA, QFS, QFX) &
+  !$acc create(npassive) &
+  !$acc create(qpass_map, upass_map) &
+  !$acc create(GDRHO, GDU, GDV, GDW,  GDPRES, GDGAME) &
+#ifdef GRAVITY
+  !$acc create(gravity_type_int) &
+#endif
   !$acc create(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
   ! Begin the declarations of the ParmParse parameters
@@ -229,8 +236,23 @@ contains
        zr_ext = EXT_UNDEFINED
     end select
 
-    !$acc update device(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
-
+    !$acc update device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
+    !$acc update device(USHK)
+    !$acc update device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC)
+    !$acc update device(QGAMC, QC, QDPDR, QDPDE)
+#ifdef RADIATION
+    !$acc update device(QGAMCG, QCG, QLAMS)
+#endif
+    !$acc update device(QFA, QFS, QFX)
+    !$acc update device(npassive)
+    !$acc update device(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
+#ifdef RADIATION
+    !$acc update device(GDLAMS, GDERADS)
+    !$acc update device(QRAD, QRADHI, QPTOT, QREITOT)
+#endif
+#ifdef GRAVITY
+    !$acc update device(gravity_type_int)
+#endif
 
   end subroutine ca_set_castro_method_params
 

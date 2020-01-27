@@ -561,16 +561,18 @@ Castro::Castro (Amr&            papa,
     }
 #endif
 
+    // initialize all the new time level data to zero
+    for (int k = 0; k < num_state_type; k++) {
+      MultiFab& data = get_new_data(k);
+      data.setVal(0.0, data.nGrow());
+    }
+
 #ifdef GRAVITY
 
-   // Initialize to zero here in case we run with do_grav = false.
-   MultiFab& new_grav_mf = get_new_data(Gravity_Type);
-   new_grav_mf.setVal(0.0);
-
-   if (do_grav) {
+    if (do_grav) {
       // gravity is a static object, only alloc if not already there
       if (gravity == 0)
-	gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
+        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
 
       // Passing numpts_1d at level 0
       if (!level_geom.isAllPeriodic() && gravity != 0)
@@ -599,53 +601,10 @@ Castro::Castro (Amr&            papa,
 	  amrex::Error();
       }
 #endif
-
-       // We need to initialize this to zero since certain bc types don't overwrite the potential NaNs
-       // ghost cells because they are only multiplying them by a zero coefficient.
-       MultiFab& phi_new = get_new_data(PhiGrav_Type);
-       phi_new.setVal(0.0,phi_new.nGrow());
-
-   } else {
-       MultiFab& phi_new = get_new_data(PhiGrav_Type);
-       phi_new.setVal(0.0);
    }
 
 #endif
 
-#ifdef ROTATION
-
-   // Initialize rotation data to zero.
-
-   MultiFab& phirot_new = get_new_data(PhiRot_Type);
-   phirot_new.setVal(0.0);
-
-   MultiFab& rot_new = get_new_data(Rotation_Type);
-   rot_new.setVal(0.0);
-
-#endif
-
-   // Initialize source term data to zero.
-
-   MultiFab& sources_new = get_new_data(Source_Type);
-   sources_new.setVal(0.0, sources_new.nGrow());
-
-#ifdef REACTIONS
-
-   // Initialize reaction data to zero.
-
-   MultiFab& reactions_new = get_new_data(Reactions_Type);
-   reactions_new.setVal(0.0);
-
-#endif
-
-#ifdef REACTIONS
-   // Initialize reactions source term to zero.
-
-   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-       MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
-       react_src_new.setVal(0.0, NUM_GROW);
-   }
-#endif
 
    if (Knapsack_Weight_Type > 0) {
     get_new_data(Knapsack_Weight_Type).setVal(1.0);
@@ -1017,11 +976,13 @@ Castro::initData ()
     React_new.setVal(0.);
 #endif
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
        MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
        react_src_new.setVal(0.0, NUM_GROW);
    }
+#endif
 #endif
 
    if (Knapsack_Weight_Type > 0) {
@@ -1511,32 +1472,14 @@ Castro::estTimeStep (Real dt_old)
             {
                 const Box& box = mfi.validbox();
 
-                if (state[State_Type].hasOldData() && state[Reactions_Type].hasOldData()) {
-
-                    MultiFab& S_old = get_old_data(State_Type);
-                    MultiFab& R_old = get_old_data(Reactions_Type);
-
 #pragma gpu box(box)
-                    ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                     BL_TO_FORTRAN_ANYD(S_old[mfi]),
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_old[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
-
-                } else {
-
-#pragma gpu box(box)
-                    ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                     AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
-
-                }
+                ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
+                                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                                 BL_TO_FORTRAN_ANYD(R_new[mfi]),
+                                 AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
 
             }
+
             estdt_burn = std::min(estdt_burn,dt);
         }
 
@@ -2845,39 +2788,15 @@ Castro::reflux(int crse_level, int fine_level)
 void
 Castro::avgDown ()
 {
-    BL_PROFILE("Castro::avgDown()");
+  BL_PROFILE("Castro::avgDown()");
 
   if (level == parent->finestLevel()) return;
 
-  avgDown(State_Type);
-
-#ifdef GRAVITY
-  avgDown(Gravity_Type);
-  avgDown(PhiGrav_Type);
-#endif
-
-#ifdef ROTATION
-  avgDown(Rotation_Type);
-  avgDown(PhiRot_Type);
-#endif
-
-  avgDown(Source_Type);
-
-#ifdef REACTIONS
-  avgDown(Reactions_Type);
-#endif
-
-#ifdef REACTIONS
-  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      avgDown(Simplified_SDC_React_Type);
+  for (int k = 0; k < num_state_type; k++) {
+    if (k != Knapsack_Weight_Type) {
+      avgDown(k);
+    }
   }
-#endif
-
-#ifdef RADIATION
-  if (do_radiation) {
-    avgDown(Rad_Type);
-  }
-#endif
 
 }
 
@@ -3597,6 +3516,7 @@ Castro::swap_state_time_levels(const Real dt)
 	// this because we never need the old data, so we
 	// don't want to allocate memory for it.
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             if (k == Simplified_SDC_React_Type) {
@@ -3604,11 +3524,14 @@ Castro::swap_state_time_levels(const Real dt)
             }
         }
 #endif
+#endif
 
+#ifdef TRUE_SDC
 #ifdef REACTIONS
         if (time_integration_method == SpectralDeferredCorrections &&
             sdc_order == 4 && k == SDC_Source_Type)
             state[k].swapTimeLevels(0.0);
+#endif
 #endif
         state[k].allocOldData();
 

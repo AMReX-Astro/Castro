@@ -40,11 +40,7 @@ Real Radiation::radfluxtoF = 0.;
 
 int Radiation::do_multigroup = 0;
 int Radiation::nGroups = NGROUPS;
-#ifdef NEUTRINO
-int Radiation::nNeutrinoSpecies = N_NEUTRINO_SPECIES;
-#else
 int Radiation::nNeutrinoSpecies = 0;
-#endif
 Vector<int> Radiation::nNeutrinoGroups(0);
 int Radiation::plot_neutrino_group_energies_per_MeV = 1;
 int Radiation::plot_neutrino_group_energies_total   = 0;
@@ -190,47 +186,6 @@ void Radiation::read_static_params()
 
   if (Radiation::SolverType == Radiation::MGFLDSolver) {
 
-#ifdef NEUTRINO
-    radiation_type = Neutrino;
-    std::string rad_type_s("Unknown");
-    pp.query("radiation_type", rad_type_s);
-    if (rad_type_s.compare("PHOTON") == 0 ||
-	rad_type_s.compare("Photon") == 0 ||
-	rad_type_s.compare("photon") == 0 ) {
-      radiation_type = Photon;
-    }
-
-    if (radiation_type == Neutrino) {
-
-      Radiation::nNeutrinoGroups.resize(Radiation::nNeutrinoSpecies);
-
-      Radiation::nGroups = 0;
-#if (N_NEUTRINO_SPECIES >= 1)
-      Radiation::nGroups += N_NEUTRINO_GROUPS_1;
-      Radiation::nNeutrinoGroups[0] = N_NEUTRINO_GROUPS_1;
-#endif
-#if (N_NEUTRINO_SPECIES >= 2)
-      Radiation::nGroups += N_NEUTRINO_GROUPS_2;
-      Radiation::nNeutrinoGroups[1] = N_NEUTRINO_GROUPS_2;
-#endif
-#if (N_NEUTRINO_SPECIES == 3)
-      Radiation::nGroups += N_NEUTRINO_GROUPS_3;
-      Radiation::nNeutrinoGroups[2] = N_NEUTRINO_GROUPS_3;
-#endif
-
-      pp.query("plot_neutrino_group_energies_per_MeV",
-	       Radiation::plot_neutrino_group_energies_per_MeV);
-      pp.query("plot_neutrino_group_energies_total",
-	       Radiation::plot_neutrino_group_energies_total);
-    }
-    else {
-
-      // if we are here, we are wanting to do photon radiation with
-      // Neutrino compiled -- we no longer support this
-      amrex::Error("We do not support photon radiation when compiled for neutrinos");
-    }
-#else
-    // photon radiation
     radiation_type = Photon;
     Radiation::nGroups = NGROUPS;
 
@@ -243,18 +198,13 @@ void Radiation::read_static_params()
     if (test_groups > 0 && test_groups != Radiation::nGroups) {
       amrex::Error("you set the number of groups at runtime, but this does not match the compiled value");
     }
-#endif
+
   }
   else if (Radiation::SolverType != Radiation::SingleGroupSolver &&
 	   Radiation::SolverType != Radiation::SGFLDSolver) {
       amrex::Error("Unknown Radiation::SolverType");
   }
 
-
-#ifndef NEUTRINO
-  if (Radiation::nGroups > 1)
-      pp.query("do_inelastic_scattering", do_inelastic_scattering);
-#endif
 
   pp.query("plot_lambda", plot_lambda);
   pp.query("plot_kappa_p", plot_kappa_p);
@@ -537,9 +487,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   n_bisect = 1000;
   pp.query("n_bisect", n_bisect);
   dedT_fac = 1.0;
-  dedY_fac = 1.0;
   pp.query("dedT_fac", dedT_fac);
-  pp.query("dedY_fac", dedY_fac);
 
   inner_convergence_check = 2;
   pp.query("inner_convergence_check", inner_convergence_check);
@@ -548,13 +496,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   pp.query("delta_e_rat_dt_tol", delta_e_rat_dt_tol);
   delta_T_rat_dt_tol = 100.0;
   pp.query("delta_T_rat_dt_tol", delta_T_rat_dt_tol);
-  delta_Ye_dt_tol = 100.0;
-  pp.query("delta_Ye_dt_tol", delta_Ye_dt_tol);
 
   underfac = 1.0;    pp.query("underfac", underfac);
-
-  integrate_Planck = 1;
-  pp.query("integrate_Planck", integrate_Planck);
 
   use_WiensLaw = 0;
   pp.query("use_WiensLaw", use_WiensLaw);
@@ -601,7 +544,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "maxInIter = " << maxInIter << std::endl;
     std::cout << "delta_e_rat_dt_tol = " << delta_e_rat_dt_tol << std::endl;
     std::cout << "delta_T_rat_dt_tol = " << delta_T_rat_dt_tol << std::endl;
-    std::cout << "delta_Ye_dt_tol    = " << delta_Ye_dt_tol    << std::endl;
     std::cout << "limiter  = " << limiter << std::endl;
     std::cout << "closure  = " << closure << std::endl;
     std::cout << "update_limiter   = " << update_limiter << std::endl;
@@ -643,17 +585,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
     get_groups(verbose);
 
-#ifdef NEUTRINO
-    if (SolverType == MGFLDSolver && radiation_type == Neutrino) {
-      // load opacities from (Burrows) table
-      int iverb = (verbose >= 1 && ParallelDescriptor::IOProcessor());
-      //      int iverb = 0;
-      if (iverb) {
-        std::cout << "reading opacity tables..." << std::endl;
-      }
-      FORT_INIT_OPACITY_TABLE(iverb);
-    }
-#endif
   }
   else {
     ca_initsinglegroup(nGroups);
@@ -695,7 +626,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   delta_e_rat_level.resize(levels, 0.0);
   delta_T_rat_level.resize(levels, 0.0);
-  delta_Ye_level.resize(   levels, 0.0);
 
   Density   = castro->Density;
   Xmom      = castro->Xmom;
@@ -815,9 +745,6 @@ void Radiation::restart(int level, const BoxArray& grids,
     if (aString.find("delta_e_rat") == 0) {
       is >> delta_e_rat_level[level];
     }
-    else if (aString.find("delta_Ye") == 0) {
-      is >> delta_Ye_level[level];
-    }
     else if (aString.find("delta_T_rat") == 0) {
       is >> delta_T_rat_level[level];
     }
@@ -876,9 +803,6 @@ void Radiation::checkPoint(int level,
     sprintf(buf, "delta_T_rat_level[%d]= ", level);
     DeltaString = buf;
     os << DeltaString << delta_T_rat_level[level] << '\n';
-    sprintf(buf, "delta_Ye_level[%d]= ", level);
-    DeltaString = buf;
-    os << DeltaString << delta_Ye_level[level] << '\n';
     os.precision(oldprec);
   }
 
@@ -2191,13 +2115,10 @@ void Radiation::EstTimeStep(Real & estdt, int level)
       nNeutrinoGroups[0] > 0) {
 //    Real derat = deltaEnergyRatMax(level);
     Real dTrat = deltaTRatMax(level);
-    Real dye   = deltaYeMax(level);
 
     //    Real fac = std::min(deltaEnergyTol() / (derat + 1.e-20),
     //		deltaTTol()      / (dTrat + 1.e-20));
-    //    fac = std::min(fac, deltaYeTol()     / (dye   + 1.e-20));
     Real fac = deltaTTol()  / (dTrat + 1.e-20);
-    fac = std::min(fac, deltaYeTol()     / (dye   + 1.e-20));
 
     Real estdt_rad = parent->dtLevel(level);
     estdt_rad *= fac;
@@ -2212,29 +2133,7 @@ void Radiation::EstTimeStep(Real & estdt, int level)
 
 void Radiation::set_current_group(int igroup)
 {
-#ifdef NEUTRINO
-  if (radiation_type == Photon) {
-    current_group_number = igroup;
-    current_group_name = "Photon";
-  }
-  else if (igroup < nNeutrinoGroups[0]) {
-    current_group_number = igroup;
-    current_group_name = "Electron";
-  }
-  else if (nNeutrinoSpecies >= 2 && igroup < nNeutrinoGroups[0]+nNeutrinoGroups[1]) {
-    current_group_number = igroup - nNeutrinoGroups[0];
-    current_group_name = "Anti Electron";
-  }
-  else if (nNeutrinoSpecies == 3 && igroup >= nNeutrinoGroups[0]+nNeutrinoGroups[1]) {
-    current_group_number = igroup - (nNeutrinoGroups[0]+nNeutrinoGroups[1]);
-    current_group_name = "Muon";
-  }
-  else {
-    amrex::Abort("Something is wrong!  Maybe there are more than three neutrino flavors.");
-  }
-#else
   current_group_number = igroup;
-#endif
 }
 
 

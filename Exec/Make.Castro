@@ -106,8 +106,8 @@ USE_MLMG = FALSE
 #------------------------------------------------------------------------------
 
 ifeq ($(USE_ALL_CASTRO), TRUE)
-  Bdirs := Source/driver Source/driver/param_includes \
-           Source/hydro Source/problems Source/sources \
+  Bdirs := Source/driver Source/hydro \
+           Source/problems Source/sources \
            Source/scf constants Util/model_parser Util/conservative_interpolate
 else
   Bdirs := constants
@@ -129,6 +129,11 @@ ifeq ($(USE_REACT), TRUE)
   DEFINES += -DREACTIONS
 
   ifeq ($(USE_TRUE_SDC), TRUE)
+    # we need the compositional derivatives for SDC
+    DEFINES += -DEXTRA_THERMO
+  endif
+
+  ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
   endif
@@ -433,6 +438,19 @@ $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(TOP)/Util/scripts/write_probdata.py \
            -t $(PROB_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90 -p $(PROB_PARAMETERS)
+
+#------------------------------------------------------------------------------
+# Castro C++ parameters
+#------------------------------------------------------------------------------
+
+F90EXE_sources += meth_params.F90
+
+CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
+METH_PARAMS_TEMPLATE := $(TOP)/Source/driver/meth_params.template
+
+$(CASTRO_AUTO_SOURCE_DIR)/meth_params.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TEMPLATE)
+	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
+	$(TOP)/Source/driver/parse_castro_params.py -m $(METH_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
 
 #------------------------------------------------------------------------------
 # state variable info

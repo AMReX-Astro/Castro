@@ -753,83 +753,43 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 
 
 void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg, 
-			const MultiFab& mugT, const MultiFab& mugY, 
-			const MultiFab& coupT, const MultiFab& coupY, 
-			const MultiFab& etaT, const MultiFab& etaY, 
-			const MultiFab& thetaT, const MultiFab& thetaY, 
-			const MultiFab& Er_step, const MultiFab& rhoe_step, const MultiFab& rhoYe_step, 
-			const MultiFab& Er_star, const MultiFab& rhoe_star, const MultiFab& rhoYe_star,
+			const MultiFab& mugT,
+			const MultiFab& coupT,
+			const MultiFab& etaT,
+			const MultiFab& Er_step, const MultiFab& rhoe_step,
+			const MultiFab& Er_star, const MultiFab& rhoe_star,
 			Real delta_t, int igroup, int it, Real ptc_tau)
 {
   BL_PROFILE("RadSolve::levelRhs (MGFLD version)");
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   Real time = castro->get_state_data(Rad_Type).curTime();
+  const Real* dx = parent->Geom(level).CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {  
-      Vector<Real> r, s;
+  for (MFIter ri(rhs, TilingIfNotGPU()); ri.isValid(); ++ri) {
 
-      for (MFIter ri(rhs,true); ri.isValid(); ++ri) {
+      const Box& bx = ri.tilebox();
 
-	  const Box &reg = ri.tilebox();
+#pragma gpu box(bx)
+      ca_compute_rhs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                     BL_TO_FORTRAN_ANYD(rhs[ri]),
+                     BL_TO_FORTRAN_ANYD(jg[ri]),
+                     BL_TO_FORTRAN_ANYD(mugT[ri]),
+                     BL_TO_FORTRAN_ANYD(coupT[ri]),
+                     BL_TO_FORTRAN_ANYD(etaT[ri]),
+                     BL_TO_FORTRAN_ANYD(Er_step[ri]),
+                     BL_TO_FORTRAN_ANYD(rhoe_step[ri]),
+                     BL_TO_FORTRAN_ANYD(Er_star[ri]),
+                     BL_TO_FORTRAN_ANYD(rhoe_star[ri]),
+                     AMREX_REAL_ANYD(dx), delta_t, igroup, ptc_tau);
 
-#ifdef MG_SU_OLSON
+#pragma gpu box(bx)
+      ca_rad_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                    BL_TO_FORTRAN_ANYD(rhs[ri]),
+                    AMREX_REAL_ANYD(dx), delta_t, time, igroup);
 
-	  parent->Geom(level).GetCellLoc(r, reg, 0);
-
-	  ca_compute_rhs_so(reg.loVect(), reg.hiVect(),
-			    BL_TO_FORTRAN(rhs[ri]),
-			    BL_TO_FORTRAN(jg[ri]),
-			    BL_TO_FORTRAN(mugT[ri]),
-			    BL_TO_FORTRAN(coupT[ri]),
-			    BL_TO_FORTRAN(etaT[ri]),
-			    BL_TO_FORTRAN(Er_step[ri]),
-			    BL_TO_FORTRAN(rhoe_step[ri]),
-			    BL_TO_FORTRAN(rhoe_star[ri]),
-			    r.dataPtr(), 
-			    &time, &delta_t, &igroup);
-
-#else
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-
-#ifdef NEUTRINO
-	  ca_compute_rhs_neut(reg.loVect(), reg.hiVect(),
-			      BL_TO_FORTRAN(rhs[ri]),
-			      BL_TO_FORTRAN(jg[ri]),
-			      BL_TO_FORTRAN(mugT[ri]),
-			      BL_TO_FORTRAN(mugY[ri]),
-			      BL_TO_FORTRAN(coupT[ri]),
-			      BL_TO_FORTRAN(coupY[ri]),
-			      BL_TO_FORTRAN(etaT[ri]),
-			      BL_TO_FORTRAN(etaY[ri]),
-			      BL_TO_FORTRAN(thetaT[ri]),
-			      BL_TO_FORTRAN(thetaY[ri]),
-			      BL_TO_FORTRAN(Er_step[ri]),
-			      BL_TO_FORTRAN(rhoe_step[ri]),
-			      BL_TO_FORTRAN(rhoYe_step[ri]),
-			      BL_TO_FORTRAN(Er_star[ri]),
-			      BL_TO_FORTRAN(rhoe_star[ri]),
-			      BL_TO_FORTRAN(rhoYe_star[ri]),
-			      r.dataPtr(), 
-			      &delta_t, &igroup, &ptc_tau);
-#else
-	  ca_compute_rhs(reg.loVect(), reg.hiVect(),
-			 BL_TO_FORTRAN(rhs[ri]),
-			 BL_TO_FORTRAN(jg[ri]),
-			 BL_TO_FORTRAN(mugT[ri]),
-			 BL_TO_FORTRAN(coupT[ri]),
-			 BL_TO_FORTRAN(etaT[ri]),
-			 BL_TO_FORTRAN(Er_step[ri]),
-			 BL_TO_FORTRAN(rhoe_step[ri]),
-			 BL_TO_FORTRAN(Er_star[ri]),
-			 BL_TO_FORTRAN(rhoe_star[ri]),
-			 r.dataPtr(), 
-			 &delta_t, &igroup, &ptc_tau);
-#endif
-#endif
-      }
   }
 }
 

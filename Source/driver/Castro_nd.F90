@@ -908,6 +908,15 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   mom_flux_has_p(3)%comp(UMY) = .false.
   mom_flux_has_p(3)%comp(UMZ) = .true.
 
+  !$acc update device(physbc_lo, physbc_hi)
+  !$acc update device(Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall)
+  !$acc update device(dim)
+  !$acc update device(dg)
+  !$acc update device(coord_type)
+  !$acc update device(center, problo, probhi)
+  !$acc update device(domlo_level, domhi_level, dx_level)
+  !$acc update device(ref_ratio, n_error_buf, blocking_factor)
+  !$acc update device(mom_flux_has_p)
 
 end subroutine ca_set_problem_params
 

@@ -1,5 +1,15 @@
 # 20.02
 
+   * Fixed a bug in the nuclear burning timestep estimator when on GPUs
+     (#745)
+
+   * rewrote the 4th order SDC hydro driver in C++ to allow code reuse
+     with other solvers (#742)
+
+   * The option radiation.integrate_planck has been removed; it was only
+     used by one test. By default we always do the full integral of the
+     Planck function. (#740)
+
    * Most of the radiation test problems have been moved over to a new
      opacity directory, rad_power_law, and all of the parameters that
      controlled the behavior of the power law opacity have been moved
@@ -43,6 +53,13 @@
    * Some unnecessary clean_state calls were removed (#721)
 
    * Support for neutrino radiation diffusion has been removed.
+
+   * A bug was fixed in the hydro CFL timestep estimator for
+     simplified-SDC.  The timestep was more restrictive than it needed
+     to be. (#727)
+
+   * A bug was fixed in the simplified-SDC nuclear burning timestep
+     estimator (#733)
 
 # 20.01
 

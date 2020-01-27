@@ -45,10 +45,6 @@ ca_f90EXE_sources += CastroRad_$(DIM)d.f90
 ca_f90EXE_sources += RadBndry_$(DIM)d.f90
 ca_f90EXE_sources += RadPlotvar_$(DIM)d.f90
 
-ifeq ($(USE_NEUTRINO), TRUE)
-  ca_f90EXE_sources += MGFLDneut_$(DIM)d.f90
-endif
-
 ca_F90EXE_sources += rad_params.F90
 ca_F90EXE_sources += blackbody.F90
 ca_F90EXE_sources += Rad_nd.F90
@@ -57,5 +53,7 @@ ca_F90EXE_sources += RadHydro_nd.F90
 ca_F90EXE_sources += filter.F90
 ca_F90EXE_sources += RadDerive_nd.F90
 ca_F90EXE_sources += rad_util.F90
+
+ca_F90EXE_sources += rad_source.F90
 
 ca_F90EXE_sources += kavg.F90

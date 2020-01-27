@@ -103,7 +103,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         do i = lo(1), hi(1)
 
            state(i,j,k,URHO) = 1.0_rt
-           state(i,j,k,UTEMP) = 0.0_rt
            state(i,j,k,UMX:UMZ) = 0.0_rt
 
            ! set the composition to be all in the first species
@@ -113,8 +112,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               state(i,j,k,UFX) = state(i,j,k,URHO)
            end if
 
-           state(i,j,k,UEINT) = 0.0_rt
-           state(i,j,k,UEDEN) = 0.0_rt
+           ! Set temperature and energy to arbitrary, positive values
+           ! so that the Castro state checkers are OK.
+           state(i,j,k,UTEMP) = 1.0e-50_rt
+           state(i,j,k,UEINT) = 1.0e-50_rt
+           state(i,j,k,UEDEN) = 1.0e-50_rt
 
         end do
      end do
