@@ -452,9 +452,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-            if (do_hydro) {
+            const int idir_f = idir + 1;
 
-              const int idir_f = idir + 1;
+            if (do_hydro) {
 
               if (ppm_type == 0) {
 
