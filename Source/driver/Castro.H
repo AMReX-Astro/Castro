@@ -733,7 +733,6 @@ public:
 
     static int numGrow();
 
-    static int numState();
 
 #ifdef REACTIONS
 #include <Castro_react.H>
