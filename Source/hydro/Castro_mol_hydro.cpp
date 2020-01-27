@@ -492,7 +492,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               cmpflx_plus_godunov
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  BL_TO_FORTRAN_ANYD(qm),
-                 BL_TO_FORTRAN_ANYD(qp), AMREX_SPACEDIM, idir_f,
+                 BL_TO_FORTRAN_ANYD(qp), 1, 1,
                  BL_TO_FORTRAN_ANYD(flux[idir]),
                  BL_TO_FORTRAN_ANYD(q_int),
                  BL_TO_FORTRAN_ANYD(qe[idir]),
