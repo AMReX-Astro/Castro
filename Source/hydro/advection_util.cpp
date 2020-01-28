@@ -27,11 +27,11 @@ Castro::src_to_prim(const Box& bx,
 
       Real rhoinv = 1.0 / q(i,j,k,QRHO);
 
-      srcQ(i,j,k,QRHO) = src(i,j,k,Density);
-      srcQ(i,j,k,QU) = (src(i,j,k,Xmom) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QV) = (src(i,j,k,Ymom) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QW) = (src(i,j,k,Zmom) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QREINT) = src(i,j,k,Eint);
+      srcQ(i,j,k,QRHO) = src(i,j,k,URHO);
+      srcQ(i,j,k,QU) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv;
+      srcQ(i,j,k,QV) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv;
+      srcQ(i,j,k,QW) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv;
+      srcQ(i,j,k,QREINT) = src(i,j,k,UEINT);
       srcQ(i,j,k,QPRES ) = qaux(i,j,k,QDPDE) *
         (srcQ(i,j,k,QREINT) - q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) *
         rhoinv + qaux(i,j,k,QDPDR)*srcQ(i,j,k,QRHO);

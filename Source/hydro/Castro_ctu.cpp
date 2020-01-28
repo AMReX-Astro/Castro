@@ -51,7 +51,7 @@ Castro::consup_hydro(const Box& bx,
         ) * volinv;
 
    // Add the p div(u) source term to (rho e).
-    if (n == Eint) {
+    if (n == UEINT) {
 
       Real pdu = (qx(i+1,j,k,GDPRES) + qx(i,j,k,GDPRES)) *
                  (qx(i+1,j,k,GDU) * area0(i+1,j,k) - qx(i,j,k,GDU) * area0(i,j,k));
@@ -71,22 +71,22 @@ Castro::consup_hydro(const Box& bx,
       update(i,j,k,n) = update(i,j,k,n) - pdu;
 
 #ifdef SHOCK_VAR
-    } else if (n == Shock) {
+    } else if (n == USHK) {
       update(i,j,k,USHK) = shk(i,j,k,1) / dt;
 #endif
 
 #ifndef RADIATION
-    } else if (n == Xmom) {
+    } else if (n == UMX) {
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
 
       if (! mom_flux_has_p[0][0]) {
-        update(i,j,k,Xmom) += - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
+        update(i,j,k,UMX) += - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
 #endif
 
 #ifdef HYBRID_MOMENTUM
-    } else if (n == Rmom) {
+    } else if (n == UMR) {
       // update the radial momentum with the hybrid advection source
       add_hybrid_advection_source(i, j, k,
                                   dt, dx,
