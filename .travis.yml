@@ -38,19 +38,19 @@ matrix:
       #     branch: master
 
     - name: "clang static analysis"
-      if: type = pull_request
+      if: type = pull_request OR type = api
       language: cpp
       compiler: 
         - clang
       before_install:
         - cd ~/; git clone https://github.com/amrex-codes/amrex
         - cd ~/amrex; git checkout development
-        - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'echo "#endif" >> "{}"' \;
-        - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'sed -i "1s/^/#ifndef __clang_analyzer__\n/" {}' \;
+        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'echo "#endif" >> "{}"' \;
+        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'sed -i "1s/^/#ifndef __clang_analyzer__\n/" {}' \;
         - cd ~/; git clone https://github.com/starkiller-astro/Microphysics.git
         - cd ~/Microphysics; git checkout development
-        - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'echo "#endif" >> "{}"' \;
-        - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'sed -i "1s/^/#ifndef __clang_analyzer__\n/" {}' \;
+        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'echo "#endif" >> "{}"' \;
+        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'sed -i "1s/^/#ifndef __clang_analyzer__\n/" {}' \;
         - cd $TRAVIS_BUILD_DIR
       addons:
         apt:
@@ -64,4 +64,4 @@ matrix:
         - export MICROPHYSICS_HOME=~/Microphysics
         - export CASTRO_HOME=$TRAVIS_BUILD_DIR
       script:
-        - cd $TRAVIS_BUILD_DIR/Exec/science/flame_wave; scan-build -enable-checker security.FloatLoopCounter -enable-checker security.insecureAPI.UncheckedReturn --status-bugs make -j 2 USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE
+        - cd $TRAVIS_BUILD_DIR/Exec/science/flame_wave; scan-build -enable-checker security.FloatLoopCounter -enable-checker security.insecureAPI.UncheckedReturn make -j 2 USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE 2>&1 | tee clang_analysis.txt
