@@ -39,7 +39,7 @@ matrix:
     - language: cpp
       compiler: 
         - clang
-      before install:
+      before_install:
         - cd ~/; git clone https://github.com/amrex-codes/amrex
         - cd ~/amrex; git checkout development
         - cd ~/; git clone https://github.com/starkiller-astro/Microphysics.git
