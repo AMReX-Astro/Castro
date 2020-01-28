@@ -60,8 +60,6 @@ public:
 
   static int accelerate;        ///< controls multigroup convergence acceleration
 
-  int Density, Xmom, Eden, Eint, Temp, FirstSpec, FirstAux, NUM_STATE;
-
   int verbose;
 
   int maxiter;           ///< iteration limit for implicit update loop
