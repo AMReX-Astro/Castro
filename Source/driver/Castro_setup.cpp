@@ -241,6 +241,7 @@ Castro::variableSetUp ()
     ++ipassive;
   }
 
+
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
   ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
