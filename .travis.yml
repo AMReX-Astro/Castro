@@ -57,4 +57,4 @@ matrix:
         - export MICROPHYSICS_HOME=~/Microphysics
         - export CASTRO_HOME=$TRAVIS_BUILD_DIR
       script:
-        - cd $TRAVIS_BUILD_DIR/Exec/science/flame_wave; scan-build -enable-checker security.FloatLoopCounter -enable-checker security.insecureAPI.UncheckedReturn make -j 2 
+        - cd $TRAVIS_BUILD_DIR/Exec/science/flame_wave; scan-build -enable-checker security.FloatLoopCounter -enable-checker security.insecureAPI.UncheckedReturn make -j 2 USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE
