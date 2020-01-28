@@ -160,18 +160,18 @@ contains
              do j = jmin, jmax
                 ycen = problo(2) + delta(2) * (dble(j) + HALF)
 
-                adv(i,j,k,URHO ) = 0.d0
-                adv(i,j,k,UMX  ) = 0.d0
-                adv(i,j,k,UMY  ) = 0.d0
-                adv(i,j,k,UEDEN) = 0.d0
-                adv(i,j,k,UEINT) = 0.d0
-                adv(i,j,k,UTEMP) = 0.d0
+                adv(i,j,k,URHO ) = 0.e0_rt
+                adv(i,j,k,UMX  ) = 0.e0_rt
+                adv(i,j,k,UMY  ) = 0.e0_rt
+                adv(i,j,k,UEDEN) = 0.e0_rt
+                adv(i,j,k,UEINT) = 0.e0_rt
+                adv(i,j,k,UTEMP) = 0.e0_rt
 
                 do jj = -1, 1
                    if (jj == 0) cycle
                    y = ycen + HALF * delta(2) * (jj / sqrt(THREE))
 
-                   shockfront = sixth + y/tan(pi_over_3) + (10.d0/sin(pi_over_3))*time
+                   shockfront = sixth + y/tan(pi_over_3) + (10.e0_rt/sin(pi_over_3))*time
 
                    do ii = -1, 1
                       if (ii == 0) cycle
@@ -353,13 +353,13 @@ contains
              do j = jmin, jmax
                 ycen = problo(2) + delta(2) * (dble(j) + HALF)
 
-                adv(i,j,k) = 0.d0
+                adv(i,j,k) = 0.e0_rt
 
                 do jj = -1, 1
                    if (jj == 0) cycle
                    y = ycen + HALF * delta(2) * (jj / sqrt(THREE))
 
-                   shockfront = sixth + y/tan(pi_over_3) + (10.d0/sin(pi_over_3))*time
+                   shockfront = sixth + y/tan(pi_over_3) + (10.e0_rt/sin(pi_over_3))*time
 
                    do ii = -1, 1
                       if (ii == 0) cycle

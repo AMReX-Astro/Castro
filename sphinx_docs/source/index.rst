@@ -18,6 +18,7 @@ https://github.com/amrex-astro/Castro
    getting_started
    inputs
    rp_intro
+   mpi_plus_x
    FlowChart
    software
    creating_a_problem

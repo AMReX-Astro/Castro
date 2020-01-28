@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module
   use castro_error_module
@@ -15,13 +15,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
-  namelist /fortin/ nx_model, dens_base, temp_base, pert_width, do_pert
-
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
   type(model_t) :: model_params
 
   integer :: ihe4
@@ -32,26 +25,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      call castro_error("Error: helium-4 not present")
   end if
 
-  ! Build "probin" filename from C++ land --
-  ! the name of file containing fortin namelist.
-
-  if (namlen .gt. maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! Namelist defaults
-  nx_model = 128
-  dens_base = ONE
-  temp_base = ONE
-  pert_width = ONE
-  do_pert = .true.
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   model_params % T_base = temp_base
   model_params % dens_base = dens_base

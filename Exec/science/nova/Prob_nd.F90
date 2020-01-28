@@ -1,4 +1,4 @@
-subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module
   use model_parser_module
@@ -13,36 +13,9 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   real(rt), intent(in) :: problo(3), probhi(3)
 
   real(rt) :: offset
-  integer :: untin, i
+  integer :: i
 
-  namelist /fortin/ model_name, apply_vel_field, &
-       velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices
-
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
-  ! Build "probin" filename from C++ land --
-  ! the name of file containing fortin namelist.
-
-
-  if (namlen > maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-
-  ! Namelist defaults
-  apply_vel_field = .false.
-  velpert_scale = 1.0e2_rt
-  velpert_amplitude = 1.0e2_rt
-  velpert_height_loc = 6.5e3_rt
-  num_vortices = 1
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! Read initial model
   call read_model_file(model_name)

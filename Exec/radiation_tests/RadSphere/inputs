@@ -80,8 +80,6 @@ radiation.accelerate = 0
 
 radiation.nGroups = 60
 
-radiation.integrate_Planck = 0
-
 radiation.Er_Lorentz_term = 0
 radiation.do_fspace_advection = 0
 
@@ -132,46 +130,6 @@ radiation.hi_bcflag = 0 0 0
  radiation.lo_bcval0 =    1229.7920699188730        2394.1378085239035        4660.8121586175539        9073.3530253051922        17663.071121597459        34383.880347801118        66931.628686937547        130284.48798354190        253591.71466848280        493575.64514212421        960600.48164435267        1869368.5377237240        3637482.4609596287        7077000.7379815960        13766564.076364869        26773916.777775597        52057803.021086685        101185728.60289431        196597080.01828519        381781839.38089013        740932768.79017234        1436807710.0934017        2783480720.0502820        5385657789.6787176        10404314801.359169        20060423066.505714        38583445974.361343        73981118358.934113        141302581937.49353        268561066224.45572        507258549305.53406        950550304763.71362        1763315785677.0852        3228910148901.3872        5814691173728.9229        10246855229117.590        17554140942062.809        28976502959765.316        45541650171040.758        67064826058473.914        90569480856699.828        109040672846372.67        112848465225671.81        95911829681719.516        63305768996952.477        30327155892356.008        9712741432246.3477        1879661997365.9702        193883805102.42950        9115002318.1273613        160645317.16147238        831607.29729984095        932.40069480088846       0.15478062134095186       2.36578556169309900E-006  1.83991712514194352E-012  3.47178882201544081E-020  6.30420096650704973E-030  3.47177559093053048E-042  1.37132892946464525E-057
 
 radiation.hi_bcval0 = 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 
-
-
-# Power-law opacities are represented as const_kappa * (rho**m) * (temp**(-n)).
-# Since the formula is both nonphysical and singular, prop_temp_floor
-# provides a floor for the temperature used in the power-law computation.
-# (Specific heat c_v follows the same convention.)
-
-radiation.do_real_eos = 0
-
-radiation.const_c_v     =  1.e+8
-
-radiation.const_kappa_p =  0.0
-radiation.kappa_p_exp_m =  0.0
-radiation.kappa_p_exp_n =  0.0
-radiation.kappa_p_exp_p =  0.0
-
-radiation.const_scattering =  4.6656e56
-radiation.scattering_exp_m =  0.0
-radiation.scattering_exp_n =  0.0
-radiation.scattering_exp_p =  -3.0
-
-
-radiation.prop_temp_floor = 0.0 0.0
-
-# In case the advection scheme leaves a cell with a negative internal
-# energy, and thus temperature, this floor value will be used for
-# computing emission and properties.  It can be overridden by
-# prop_temp_floor if a higher temperature is required for properties
-# to be meaningful.  It does not affect conservation.
-
-radiation.temp_floor    = -1.e-20
-
-# As kappa_r becomes low the Marshak boundary condition becomes
-# ill-conditioned.  The following floor is enforced regardless of the
-# mechanism used to set kappa_r.  (In an ideal code this floor would
-# be nondimensionalized using a characteristic length (domain size?).
-# In the present implementation the Marshak b.c. includes a factor of
-# delta x which can cause ill-conditioning if delta x is not O(1).)
-
-radiation.kappa_r_floor = -1.e-50
 
 # ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
 

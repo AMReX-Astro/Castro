@@ -18,7 +18,7 @@
 #include "Radiation.H"
 #endif
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #include "Gravity.H"
 #endif
 
@@ -137,7 +137,7 @@ Castro::restart (Amr&     papa,
     AmrLevel::restart(papa,is,bReadSpecial);
 
     if (input_version == 0) { // old checkpoint without PhiGrav_Type
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
       state[PhiGrav_Type].restart(desc_lst[PhiGrav_Type], state[Gravity_Type]);
 #endif
     }
@@ -158,12 +158,14 @@ Castro::restart (Amr&     papa,
         }
     }
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
         if (input_version < 5) { // old checkpoint without Simplified_SDC_React_Type
             state[Simplified_SDC_React_Type].restart(desc_lst[Simplified_SDC_React_Type], state[State_Type]);
         }
     }
+#endif
 #endif
 
     // For versions < 2, we didn't store all three components
@@ -367,7 +369,6 @@ Castro::restart (Amr&     papa,
           std::cout << "Doing special restart with grown_factor " << grown_factor << std::endl;
 
        MultiFab& S_new = get_new_data(State_Type);
-       Real cur_time   = state[State_Type].curTime();
 
        Box orig_domain;
        if (star_at_center == 0) {
@@ -417,8 +418,6 @@ Castro::restart (Amr&     papa,
           amrex::Abort();
        }
 
-       int ns = NUM_STATE;
-
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
            RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
@@ -438,8 +437,10 @@ Castro::restart (Amr&     papa,
 
 #else
 
+              Real cur_time = state[State_Type].curTime();
+
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-                (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
+                (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
 		 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
 		 ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 
@@ -453,7 +454,7 @@ Castro::restart (Amr&     papa,
     if (grown_factor > 1 && level == 1)
         getLevel(0).avgDown();
 
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        MultiFab& S_new = get_new_data(State_Type);
@@ -487,6 +488,8 @@ Castro::restart (Amr&     papa,
       }
       radiation->regrid(level, grids, dmap);
       radiation->restart(level, grids, dmap, parent->theRestartFile(), is);
+
+      rad_solver.reset(new RadSolve(parent, level, grids, dmap));
     }
 #endif
 
@@ -530,7 +533,7 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
     state_in_checkpoint[i] = 1;
 
   for (int i=0; i<num_state_type; ++i) {
-#ifdef SELF_GRAVITY
+#ifdef GRAVITY
     if (input_version == 0 && i == PhiGrav_Type) {
       // We are reading an old checkpoint with no PhiGrav_Type
       state_in_checkpoint[i] = 0;
@@ -546,6 +549,7 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
       state_in_checkpoint[i] = 0;
     }
 #endif
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
         if (input_version < 5 && i == Simplified_SDC_React_Type) {
@@ -553,6 +557,7 @@ Castro::set_state_in_checkpoint (Vector<int>& state_in_checkpoint)
             state_in_checkpoint[i] = 0;
         }
     }
+#endif
 #endif
   }
 }
@@ -737,12 +742,14 @@ Castro::setPlotVariables ()
   for (int i = 0; i < desc_lst[Source_Type].nComp(); i++)
       parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
       for (int i = 0; i < desc_lst[Simplified_SDC_React_Type].nComp(); i++) {
           parent->deleteStatePlotVar(desc_lst[Simplified_SDC_React_Type].name(i));
       }
   }
+#endif
 #endif
 
   ParmParse pp("castro");
@@ -1183,7 +1190,6 @@ Castro::plotFileOutput(const std::string& dir,
   ParticlePlotFile(dir);
 #endif
 
-    int i, n;
     //
     // The list of indices of State to write to plotfile.
     // first component of pair is state_type,
@@ -1249,7 +1255,7 @@ Castro::plotFileOutput(const std::string& dir,
 	//
 	// Names of variables -- first state, then derived
 	//
-	for (i =0; i < plot_var_map.size(); i++)
+	for (int i =0; i < plot_var_map.size(); i++)
         {
 	    int typ = plot_var_map[i].first;
 	    int comp = plot_var_map[i].second;
@@ -1264,7 +1270,7 @@ Castro::plotFileOutput(const std::string& dir,
         }
 
 #ifdef RADIATION
-	for (i=0; i<Radiation::nplotvar; ++i)
+	for (int i=0; i<Radiation::nplotvar; ++i)
 	    os << Radiation::plotvar_names[i] << '\n';
 #endif
 
@@ -1272,22 +1278,22 @@ Castro::plotFileOutput(const std::string& dir,
         os << parent->cumTime() << '\n';
         int f_lev = parent->finestLevel();
         os << f_lev << '\n';
-        for (i = 0; i < BL_SPACEDIM; i++)
+        for (int i = 0; i < BL_SPACEDIM; i++)
             os << geom.ProbLo(i) << ' ';
         os << '\n';
-        for (i = 0; i < BL_SPACEDIM; i++)
+        for (int i = 0; i < BL_SPACEDIM; i++)
             os << geom.ProbHi(i) << ' ';
         os << '\n';
-        for (i = 0; i < f_lev; i++)
+        for (int i = 0; i < f_lev; i++)
             os << parent->refRatio(i)[0] << ' ';
         os << '\n';
-        for (i = 0; i <= f_lev; i++)
+        for (int i = 0; i <= f_lev; i++)
             os << parent->Geom(i).Domain() << ' ';
         os << '\n';
-        for (i = 0; i <= f_lev; i++)
+        for (int i = 0; i <= f_lev; i++)
             os << parent->levelSteps(i) << ' ';
         os << '\n';
-        for (i = 0; i <= f_lev; i++)
+        for (int i = 0; i <= f_lev; i++)
         {
             for (int k = 0; k < BL_SPACEDIM; k++)
                 os << parent->Geom(i).CellSize()[k] << ' ';
@@ -1339,10 +1345,10 @@ Castro::plotFileOutput(const std::string& dir,
         os << level << ' ' << grids.size() << ' ' << cur_time << '\n';
         os << parent->levelSteps(level) << '\n';
 
-        for (i = 0; i < grids.size(); ++i)
+        for (int i = 0; i < grids.size(); ++i)
         {
             RealBox gridloc = RealBox(grids[i],geom.CellSize(),geom.ProbLo());
-            for (n = 0; n < BL_SPACEDIM; n++)
+            for (int n = 0; n < BL_SPACEDIM; n++)
                 os << gridloc.lo(n) << ' ' << gridloc.hi(n) << '\n';
         }
         //
@@ -1369,7 +1375,7 @@ Castro::plotFileOutput(const std::string& dir,
     //
     // Cull data from state variables -- use no ghost cells.
     //
-    for (i = 0; i < plot_var_map.size(); i++)
+    for (int i = 0; i < plot_var_map.size(); i++)
     {
 	int typ  = plot_var_map[i].first;
 	int comp = plot_var_map[i].second;

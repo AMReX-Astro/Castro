@@ -1,10 +1,9 @@
 &fortin
-  const_c_v = 3.02584e-13
-  c_v_exp_n = -3.0
+
 /
 
-
 &tagging
+
   denerr = 3
   dengrad = 0.01
   max_denerr_lev = 3
@@ -14,10 +13,25 @@
   pressgrad = 0.01
   max_presserr_lev = 3
   max_pressgrad_lev = 3
+
 /
 
 &extern
 
-  eos_gamma = 1.6666666667
+  eos_const_c_v = 3.02584d-13
+  eos_c_v_exp_m = 0.0d0
+  eos_c_v_exp_n = -3.0d0
+
+  const_kappa_p = 1.0d0
+  kappa_p_exp_m = 0.0d0
+  kappa_p_exp_n = 0.0d0
+  kappa_p_exp_p = 0.0d0
+
+  const_kappa_r = 1.0d0
+  kappa_r_exp_m = 0.0d0
+  kappa_r_exp_n = 0.0d0
+  kappa_r_exp_p = 0.0d0
+
+  kappa_floor = 1.e-15
 
 /

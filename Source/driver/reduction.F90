@@ -99,12 +99,13 @@ contains
 
 #if !(defined(AMREX_USE_CUDA) && defined(AMREX_GPU_PRAGMA_NO_HOST))
 
-  subroutine reduce_add(x, y)
+  subroutine reduce_add(x, y, blockReduce)
 
     implicit none
 
     real(rt), intent(in   ) :: y
     real(rt), intent(inout) :: x
+    logical,  intent(in   ), optional :: blockReduce ! Only used in the CUDA version
 
     x = x + y
 
@@ -173,7 +174,7 @@ contains
 
     call syncthreads()
 
-    if ((threadIdx%x-1) < blockDim%x / warpsize) then
+    if ((threadIdx%x-1) < max(blockDim%x, warpsize) / warpsize) then
        y = s(lane)
     else
        y = 0
@@ -188,7 +189,7 @@ contains
 #ifdef AMREX_GPU_PRAGMA_NO_HOST
   attributes(device) subroutine reduce_add(x, y)
 #else
-  attributes(device) subroutine reduce_add_device(x, y)
+  attributes(device) subroutine reduce_add_device(x, y, blockReduce)
 #endif
     ! Do a shared memory reduction within a threadblock,
     ! then do an atomic add with a single thread in the block.
@@ -197,14 +198,31 @@ contains
 
     real(rt), intent(in   ) :: y
     real(rt), intent(inout) :: x
+    logical,  intent(in   ), optional :: blockReduce
 
     real(rt) :: t
+    logical :: doBlockReduce
+
+    ! By default we coordinate the thread block to do a within-block
+    ! reduction first, and then a single atomic for the block afterward.
+    ! This reduces atomic pressure. However, it is not appropriate for
+    ! every circumstance; an example where it is unwanted is when threads
+    ! are not all adding to the same data.
+
+    doBlockReduce = .true.
+    if (present(blockReduce)) then
+       if (.not. blockReduce) then
+          doBlockReduce = .false.
+       end if
+    end if
 
     t = y
 
-    t = blockReduceSum(t)
+    if (doBlockReduce) then
+       t = blockReduceSum(t)
+    end if
 
-    if (threadIdx%x == 1) then
+    if (threadIdx%x == 1 .or. .not. doBlockReduce) then
 
        t = atomicAdd(x, t)
 

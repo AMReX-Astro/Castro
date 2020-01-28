@@ -38,38 +38,35 @@ so you already have all the Castro code and problem setups
 to exercise radiation. The only other requirement is a copy
 of the Hypre library. Hypre provides the algebraic multigrid
 solvers used by the implicit radiation update. You can get
-a copy at https://computation.llnl.gov/casc/linear_solvers/sls_hypre.html. You will need to follow their installation instructions.
+a copy at https://github.com/hypre-space/hypre (the minimum
+supported release version is 2.15.0). Their install
+instructions describe what to do; we recommend using the autotools
+and GNU Make build. On HPC clusters, you typically want to build
+with the same compiler you're using to build Castro, and you also
+want to make sure that the options you're using for Castro are
+compatible with the Hypre options, in particular when it comes to
+``USE_MPI``, ``USE_OMP``, and ``USE_CUDA``.
 
-In addition to the environment variables you set for the main
-Castro hydrodynamics problems, you also need to tell the code
-where to find Hypre. This is done via one of two variables:
+As an example, to build Hypre on Summit with MPI and CUDA, you
+should load the ``gcc/4.8.5`` and ``spectrum-mpi`` modules and
+then do the following from the Hypre ``src/`` directory,
+replacing ``/path/to/Hypre/install`` with the target location
+where you want the Hypre files to be installed.
+::
 
--  the environment variable HYPRE_DIR should
-   point to the location of your Hypre installation
-   (e.g., ) or
-   can be set directly in
-   .
-   This applies is you build with USE_OMP=FALSE
+   HYPRE_CUDA_SM=70 CXX=mpicxx CC=mpicc FC=mpifort ./configure --prefix=/path/to/Hypre/install --with-MPI --with-cuda --enable-unified-memory
+   make install
 
--  the variable HYPRE_OMP_DIR should be set (either as an
-   environment variable or in
-   ) to the directory
-   for openmp enabled Hypre (e.g.,
-   ) if you build with
-   USE_OMP=TRUE
+Then, when you are building Castro, you would build with
+``USE_MPI=TRUE`` and ``USE_CUDA=TRUE`` (note that the CUDA build
+of Castro requires the ``pgi`` module to be loaded; you only
+need to use gcc for the Hypre build, which only has to be done
+once).
 
-Now go to a “run” directory, say
-,
-edit the file GNUmakefile, and set
-
--  COMP = your favorite compiler suite (e.g., gnu, pgi, intel)
-
--  DIM = 1 or 2 or 3
-
--  USE_RAD = TRUE—this is important. This tells the build system to
-   compile in, and link the the radiation code.
-
-Then type make to generate an executable file.
+Castro looks for Hypre in the environment variable ``HYPRE_DIR``,
+which you should point to the install directory you chose above.
+Other than that, the only difference for builds with radiation
+is that you must set ``USE_RAD=TRUE``.
 
 Microphysics: EOS, Network, and Opacity
 =======================================
@@ -95,16 +92,14 @@ this will interpret the RADIATION preprocessor variable and
 disable the radiation portion of the EOS [1]_ If you have your own EOS, you
 can put it in Microphysics.
 
-EOS Parameters
-~~~~~~~~~~~~~~
+There is also an artificial EOS that is used for several test cases called
 
-The following parameters affect how the radiation solver used the EOS:
+::
 
--  radiation.do_real_eos = 1
+   EOS_DIR := rad_power_law
 
-   Usually you do not want to change this from the default. Setting
-   this to 0 is only for contrived tests that assume the
-   specific heat is in the form of a power-law,
+This EOS should only be used for pure radiation-diffusion tests (i.e.
+``castro.do_hydro = 0``). It defines the specific heat as a power law,
 
    .. math:: c_v = \mathrm{const}\ \rho^m T^{-n}
 
@@ -119,25 +114,26 @@ the appropriate composition for your problem.
 Opacity
 -------
 
-By default, we assume that
+The most commonly used opacity setup is
 
 .. math::
-   \kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p} ,
+   \kappa_\nu = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p} ,
    :label: eq:kappa
 
-where :math:`\kappa` is either Planck or Rosseland mean absorption
+where :math:`\kappa` is either the Planck or Rosseland absorption
 coefficients, :math:`\rho` is density, :math:`T` is temperature, :math:`\nu` is
 frequency, and :math:`m`, :math:`n` and :math:`p` are constants. For the gray solver,
 :math:`p = 0`. If :eq:`eq:kappa` is sufficient, set
 
 ::
 
-    Opacity_dir := null
+    Opacity_dir := rad_power_law
 
-in GNUmakefile. Otherwise, put your own opacity in
-and set
-the input parameter, radiation.use_opacity_table_module = 1 (see
-§ \ `3.3.1 <#sec:opacpars>`__).
+in your GNUmakefile. See § \ `3.3.1 <#sec:opacpars>`__ for instructions on how
+to configure the parameters used for this opacity setup. If you would prefer a different
+opacity mechanism, you will need to create your own opacity module by creating a new
+directory in the Microphysics/opacity directory, creating the same set of subroutines
+that the others have.
 
 Some notes:
 
@@ -155,7 +151,7 @@ Some notes:
    then the two temperatures become the same.
 
    If we set :math:`\kappa_P = \kappa_R`, then we can see how different the
-   two temperature are.
+   two temperatures are.
 
    In an optically thick medium, we would not expect the two temperatures
    to be very different.
@@ -167,50 +163,54 @@ Opacity Parameters
 
 The parameters describing the opacity include:
 
--  radiation.use_opacity_table_module = 0
+-  For the Planck opacity of the form in :eq:`eq:kappa`,
+   the following parameters set the coefficient and exponents.
+   These are set in the ``extern`` namelist in your probin file.
+   ``const_kappa_p`` must be set positive to be used.
 
-   For neutrino problems, this parameter is not ignored. For photon
-   problems, this determines whether the opacity module at
-   Opacity_dir (which is set in GNUmakefile) will be used to
-   compute opacities. If this is set to 1, the following parameters
-   for opacities will be ignored.
+   -  const_kappa_p = -1.0
 
--  For the Planck mean opacity of the form in :eq:`eq:kappa`,
-   the following parameters set the coefficient and exponents:
+   -  kappa_p_exp_m = 0.0
 
-   -  radiation.const_kappa_p = -1.0
+   -  kappa_p_exp_n = 0.0
 
-   -  radiation.kappa_p_exp_m = 0.0
+   -  kappa_p_exp_p = 0.0
 
-   -  radiation.kappa_p_exp_n = 0.0
+-  For the Rosseland opacity of the form in :eq:`eq:kappa`,
+   the following parameters set the coefficient and exponents.
+   These are set in the ``extern`` namelist in your probin file.
+   ``const_kappa_r`` must be set positive to be used.
 
-   -  radiation.kappa_p_exp_p = 0.0
+   -  const_kappa_r = -1.0
 
--  For the Rosseland mean opacity of the form in :eq:`eq:kappa`,
-   the following parameters set the coefficient and exponents:
+   -  kappa_r_exp_m = 0.0
 
-   -  radiation.const_kappa_r = -1.0
+   -  kappa_r_exp_n = 0.0
 
-   -  radiation.kappa_r_exp_m = 0.0
-
-   -  radiation.kappa_r_exp_n = 0.0
-
-   -  radiation.kappa_r_exp_p = 0.0
+   -  kappa_r_exp_p = 0.0
 
 -  For the scattering coefficient of the form in :eq:`eq:kappa`,
-   the following parameters set the coefficient and exponents:
+   the following parameters set the coefficient and exponents.
+   These are set in the ``extern`` namelist in your probin file.
 
-   -  radiation.const_scattering = 0.0
+   -  const_scatter = 0.0
 
-   -  radiation.scattering_exp_m = 0.0
+   -  scatter_exp_m = 0.0
 
-   -  radiation.scattering_exp_n = 0.0
+   -  scatter_exp_n = 0.0
 
-   -  radiation.scattering_exp_p = 0.0
+   -  scatter_exp_p = 0.0
 
--  radiation.kappa_r_floor = 0.0
+-  Since the formula above, :eq:`eq:kappa`, is non-physical and
+   singular, we must set some floors in practice to prevent
+   numerical issues. We have one floor for the opacity, which is
+   applied to both the Planck and Rosseland opacities, and we
+   also have a temperature floor. These are also set in the
+   ``extern`` namelist in your probin file.
 
-   Floor for Rosseland mean.
+   -  kappa_floor = 1.d-50
+
+   -  rad_temp_floor = 0.0
 
 -  radiation.do_kappa_stm_emission = 0
 
