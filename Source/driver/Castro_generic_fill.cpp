@@ -66,7 +66,7 @@ extern "C"
         }
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, Castro::numState());
+        int* bc_f = prepare_bc(bc, NUM_STATE);
         set_bc_launch_config();
 #else
         const int* bc_f = bc;

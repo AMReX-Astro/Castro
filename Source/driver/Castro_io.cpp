@@ -761,11 +761,6 @@ Castro::setPlotVariables ()
   {
       if (plot_X)
       {
-          //
-	  // Get the number of species from the network model.
-          //
-	  ca_get_num_spec(&NumSpec);
-          //
 	  // Get the species names from the network model.
           //
 	  for (int i = 0; i < NumSpec; i++)
