@@ -145,22 +145,6 @@ radiation.hi_bcval0 = 6.81835171549573965E-014 5.89264374490598366E-013
 1.37837403056099864E-008 1.20077008435698872E-013 0.0000000000000000
 0.0000000000000000
 
-radiation.do_real_eos = 1
-
-# Power-law opacities are represented as:
-#
-#    const_kappa * (rho**m) * (temp**(-n)) * (nu**(p))
-#
-# Since the formula is both nonphysical and singular, prop_temp_floor
-# provides a floor for the temperature used in the power-law computation.
-
-# Planck mean opacity 
-radiation.const_kappa_p =  3.92663697758e-05 
-
-# Rosseland mean opacity = 0.848902853095
-# for MGFLD, kappa_r = kappa_p + scattering
-radiation.const_scattering =  0.84886358672522422
-
 # ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
 
 # solver flag values <  100 use HypreABec, support symmetric matrices only

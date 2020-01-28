@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH -A ast106
+#SBATCH -t 02:00:00
+#SBATCH --cluster dtn
+#SBATCH -N 1
+
+# do our archiving
+pidfile=process.pid
+
+cd $SLURM_SUBMIT_DIR
+
+./process.xrb
+
+PID=$!
+trap 'kill -s TERM $PID' EXIT TERM HUP XCPU KILL
+
+rm -f process.pid

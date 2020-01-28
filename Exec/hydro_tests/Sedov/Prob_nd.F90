@@ -50,7 +50,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   eos_state % rho = dens_ambient
   eos_state % p   = p_ambient
-  eos_state % T   = 1.d9 ! Initial guess for iterations
+  eos_state % T   = 1.e9_rt ! Initial guess for iterations
   eos_state % xn  = xn_zone
 
   call eos_on_host(eos_input_rp, eos_state)

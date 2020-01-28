@@ -77,6 +77,7 @@ contains
 
     use meth_params_module, only: NVAR, URHO
     use prob_params_module, only: center
+    use reduction_module, only: reduce_min
 
     implicit none
 
@@ -97,6 +98,7 @@ contains
     integer            :: kcen, kstart, kend
     integer            :: i, j, k
     integer, parameter :: box_size = 2
+    real(rt)           :: delta_mass_tmp
 
     !$gpu
 
@@ -130,13 +132,17 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             delta_mass_tmp = 0.0_rt
+
              if (i >= istart .and. i <= iend .and. &
                  j >= jstart .and. j <= jend .and. &
                  k >= kstart .and. k <= kend) then
 
-                delta_mass = delta_mass + vol(i,j,k) * (uout(i,j,k,URHO)-uin(i,j,k,URHO))
+                delta_mass_tmp = vol(i,j,k) * (uout(i,j,k,URHO)-uin(i,j,k,URHO))
 
              end if
+
+             call reduce_min(delta_mass, delta_mass_tmp)
 
           end do
        end do

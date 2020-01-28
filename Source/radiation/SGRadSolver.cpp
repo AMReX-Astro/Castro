@@ -71,9 +71,14 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 #endif
   for (MFIter mfi(frhoem,true); mfi.isValid(); ++mfi) {
       const Box& reg = mfi.tilebox();
-      get_frhoe(frhoem[mfi], S_new[mfi], reg);
-      frhoes[mfi].copy(frhoem[mfi],reg);
+
+#pragma gpu box(reg)
+      cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+             BL_TO_FORTRAN_ANYD(frhoem[mfi]),
+             BL_TO_FORTRAN_ANYD(S_new[mfi]));
   }
+
+  MultiFab::Copy(frhoes, frhoem, 0, 0, 1, 0);
 
   // Rosseland mean in grid interiors can be updated within the loop,
   // but ghost cell values are set once and never updated.
@@ -135,9 +140,9 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   FluxRegister* flux_out =
       (level > 0) ? flux_trial[level].get() : nullptr;
 
-  RadSolve solver(parent);
-  solver.levelInit(level);
-  solver.levelBndry(bd);
+  RadSolve* const solver = castro->rad_solver.get();
+
+  solver->levelBndry(bd);
 
   Real relative, absolute;
   int it = 0;
@@ -175,7 +180,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
     // solve linear system:
 
-    solver.levelACoeffs(level, fkp, eta, etainv, c, delta_t, 1.0);
+    solver->levelACoeffs(level, fkp, eta, etainv, c, delta_t, 1.0);
 
     if (update_limiter > 0 && it <= update_limiter + 1) {
       scaledGradient(level, lambda, kappa_r, 0, Er_new, 0, limiter);
@@ -184,46 +189,46 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       // lambda now contains flux limiter
     }
 
-    solver.levelBCoeffs(level, lambda, kappa_r, 0, c);
+    solver->levelBCoeffs(level, lambda, kappa_r, 0, c);
 
     if (have_Sanchez_Pomraning) {
-      solver.levelSPas(level, lambda, 0, lo_bc, hi_bc);
+      solver->levelSPas(level, lambda, 0, lo_bc, hi_bc);
     }
 
     if (has_dcoefs) {
       if (it>1) {
 	update_dcf(dcfactor, etainv, fkp, kappa_r, castro->Geom());
       }
-      solver.levelDCoeffs(level, lambda, velo, dcfactor);
+      solver->levelDCoeffs(level, lambda, velo, dcfactor);
     }
 
     {
       MultiFab rhs(grids,dmap,1,0);
 
       dflux_new.setVal(0.0); // used as work space in place of edot
-      solver.levelRhs(level, rhs, temp,
-		      fkp, eta, etainv, frhoem, frhoes,
-		      dflux_old, Er_old, dflux_new,
-		      delta_t, sigma, 0.0, 1.0,
-		      NULL);
+      solver->levelRhs(level, rhs, temp,
+                       fkp, eta, etainv, frhoem, frhoes,
+                       dflux_old, Er_old, dflux_new,
+                       delta_t, sigma, 0.0, 1.0,
+                       NULL);
 
       // If there is a sync source from the next finer level,
       // reflux it in:
       deferred_sync(level, rhs, 0);
 
-      solver.levelSolve(level, Er_new, 0, rhs, 0.01);
+      solver->levelSolve(level, Er_new, 0, rhs, 0.01);
 
       dflux_new.setVal(0.0);
 
-      solver.levelFlux(level, Ff_new, Er_new, 0);
+      solver->levelFlux(level, Ff_new, Er_new, 0);
 
       if (has_dcoefs) {
-	solver.levelDterm(level, Dterm, Er_new, 0);
+	solver->levelDterm(level, Dterm, Er_new, 0);
       }
 
       // Ff_new is now the complete new-time flux
 
-      solver.levelFluxReg(level, flux_in, flux_out, Ff_new, 0);
+      solver->levelFluxReg(level, flux_in, flux_out, Ff_new, 0);
     }
 
     // do energy update:
@@ -310,8 +315,6 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     }
   }
 
-  solver.levelClear();
-
   // update flux registers:
   if (flux_in) {
     for (OrientationIter face; face; ++face) {
@@ -350,7 +353,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   // update fluid energy based on frhoes:
-  state_update(S_new, frhoes, temp);
+  state_update(S_new, frhoes);
 
   if (verbose > 2) {
      for (MFIter fi(frhoes); fi.isValid(); ++fi) {
@@ -380,7 +383,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
   if (plot_lab_Er || plot_lab_flux || plot_com_flux) {
       MultiFab flx(grids, dmap, BL_SPACEDIM, 0);
-      solver.levelFluxFaceToCenter(level, Ff_new, flx, 0);
+      solver->levelFluxFaceToCenter(level, Ff_new, flx, 0);
 
       if (plot_lab_Er) {
 	  save_lab_Er_in_plotvar(level, S_new, Er_new, flx, 0);

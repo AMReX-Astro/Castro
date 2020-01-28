@@ -93,7 +93,11 @@ contains
                 dt3 = dt1
              endif
 
-             if (time_integration_method == 0) then
+             ! The CTU method has a less restrictive timestep than
+             ! MOL-based schemes (including the true SDC).  Since the
+             ! simplified SDC solver is based on CTU, we can use its
+             ! timestep.
+             if (time_integration_method == 0 .or. time_integration_method == 3) then
                 call reduce_min(dt, min(dt1,dt2,dt3))
              else
                 ! method of lines-style constraint is tougher
@@ -116,9 +120,8 @@ contains
 
 #ifdef REACTIONS
 
-  subroutine ca_estdt_burning(lo, hi, sold, so_lo, so_hi, &
+  subroutine ca_estdt_burning(lo, hi, &
                               snew, sn_lo, sn_hi, &
-                              rold, ro_lo, ro_hi, &
                               rnew, rn_lo, rn_hi, &
                               dx, dt) &
                               bind(C, name="ca_estdt_burning")
@@ -138,21 +141,18 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use burner_module, only: ok_to_burn ! function
-    use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn
+    use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn, neqs
     use temperature_integration_module, only: self_heat
     use amrex_fort_module, only : rt => amrex_real
     use extern_probin_module, only: small_x
+    use reduction_module, only: reduce_min
 
     implicit none
 
-    integer,  intent(in) :: so_lo(3), so_hi(3)
     integer,  intent(in) :: sn_lo(3), sn_hi(3)
-    integer,  intent(in) :: ro_lo(3), ro_hi(3)
     integer,  intent(in) :: rn_lo(3), rn_hi(3)
     integer,  intent(in) :: lo(3), hi(3)
-    real(rt), intent(in) :: sold(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
     real(rt), intent(in) :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
-    real(rt), intent(in) :: rold(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
     real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
     real(rt), intent(in) :: dx(3)
     real(rt), intent(inout) :: dt
@@ -161,9 +161,11 @@ contains
     integer       :: i, j, k
     integer       :: n
 
-    type (burn_t) :: state_old, state_new
+    type (burn_t) :: state_new
+    real(rt) :: ydot(neqs)
     type (eos_t)  :: eos_state
-    real(rt)      :: rhooinv, rhoninv
+    real(rt)      :: rhoninv
+    real(rt) :: dt_tmp
 
     ! Set a floor on the minimum size of a derivative. This floor
     ! is small enough such that it will result in no timestep limiting.
@@ -201,16 +203,7 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             rhooinv = ONE / sold(i,j,k,URHO)
              rhoninv = ONE / snew(i,j,k,URHO)
-
-             state_old % rho = sold(i,j,k,URHO)
-             state_old % T   = sold(i,j,k,UTEMP)
-             state_old % e   = sold(i,j,k,UEINT) * rhooinv
-             state_old % xn  = sold(i,j,k,UFS:UFS+nspec-1) * rhooinv
-#if naux > 0
-             state_old % aux = sold(i,j,k,UFX:UFX+naux-1) * rhooinv
-#endif
 
              state_new % rho = snew(i,j,k,URHO)
              state_new % T   = snew(i,j,k,UTEMP)
@@ -236,10 +229,10 @@ contains
 #else
              state_new % self_heat = .true.
 #endif
-             call actual_rhs(state_new)
+             call actual_rhs(state_new, ydot)
 
-             dedt = state_new % ydot(net_ienuc)
-             dXdt = state_new % ydot(1:nspec) * aion
+             dedt = ydot(net_ienuc)
+             dXdt = ydot(1:nspec) * aion
 
              ! Apply a floor to the derivatives. This ensures that we don't
              ! divide by zero; it also gives us a quick method to disable
@@ -257,8 +250,9 @@ contains
                 end if
              end do
 
-             dt = min(dt, dtnuc_e * e / dedt)
-             dt = min(dt, dtnuc_X * minval(X / dXdt))
+             dt_tmp = min(dtnuc_e * e / dedt, dtnuc_X * minval(X / dXdt))
+
+             call reduce_min(dt, dt_tmp)
 
           enddo
        enddo
@@ -381,6 +375,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use amrex_fort_module, only : rt => amrex_real
+    use reduction_module, only: reduce_min
 
     implicit none
 
@@ -410,6 +405,7 @@ contains
     real(rt)         :: tau_X, tau_e
 #endif
     real(rt)         :: tau_CFL
+    real(rt)         :: dt_tmp
 
     real(rt)         :: v(3), c
     type (eos_t)     :: eos_state
@@ -456,7 +452,9 @@ contains
 
                 tau_CFL = minval(dx(1:dim) / (c + v(1:dim)))
 
-                dt_new = min(dt_new, cfl * tau_CFL)
+                dt_tmp = cfl * tau_CFL
+
+                call reduce_min(dt_new, dt_tmp)
 
              endif
 
@@ -489,17 +487,21 @@ contains
                 e_dot = max(abs(e_dot), derivative_floor)
                 tau_e = e_avg / e_dot
 
+                dt_tmp = dt_old
+
                 if (dt_old > dtnuc_e * tau_e) then
 
-                   dt_new = min(dt_new, dtnuc_e * tau_e)
+                   dt_tmp = min(dt_tmp, dtnuc_e * tau_e)
 
                 endif
 
                 if (dt_old > dtnuc_X * tau_X) then
 
-                   dt_new = min(dt_new, dtnuc_X * tau_X)
+                   dt_tmp = min(dt_tmp, dtnuc_X * tau_X)
 
                 endif
+
+                call reduce_min(dt_new, dt_tmp)
 
              endif
 #endif

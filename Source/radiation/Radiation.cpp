@@ -40,11 +40,7 @@ Real Radiation::radfluxtoF = 0.;
 
 int Radiation::do_multigroup = 0;
 int Radiation::nGroups = NGROUPS;
-#ifdef NEUTRINO
-int Radiation::nNeutrinoSpecies = N_NEUTRINO_SPECIES;
-#else
 int Radiation::nNeutrinoSpecies = 0;
-#endif
 Vector<int> Radiation::nNeutrinoGroups(0);
 int Radiation::plot_neutrino_group_energies_per_MeV = 1;
 int Radiation::plot_neutrino_group_energies_total   = 0;
@@ -54,7 +50,6 @@ int Radiation::comoving = 1;
 int Radiation::Er_Lorentz_term = 1;
 int Radiation::fspace_advection_type = 2;
 int Radiation::do_inelastic_scattering = 0;
-int Radiation::use_analytic_solution = 0;
 int Radiation::plot_lambda   = 0;
 int Radiation::plot_kappa_p  = 0;
 int Radiation::plot_kappa_r  = 0;
@@ -91,36 +86,16 @@ std::string Radiation::current_group_name = "Radiation";
 
 Real Radiation:: flatten_pp_threshold = -1.0;
 int Radiation::pure_hydro = 0;
-int Radiation ::do_real_eos = 1;
 
-Real Radiation::const_c_v = -1.0;
-Real Radiation::const_kappa_p = -1.0;
-Real Radiation::const_kappa_r = -1.0;
-Real Radiation::const_scattering = 0.0;
-
-Real Radiation::c_v_exp_m = 0.0;
-Real Radiation::c_v_exp_n = 0.0;
-
-Real Radiation::kappa_p_exp_m = 0.0;
-Real Radiation::kappa_p_exp_n = 0.0;
-Real Radiation::kappa_p_exp_p = 0.0;
-
-Real Radiation::kappa_r_exp_m = 0.0;
-Real Radiation::kappa_r_exp_n = 0.0;
-Real Radiation::kappa_r_exp_p = 0.0;
-
-Real Radiation::scattering_exp_m = 0.0;
-Real Radiation::scattering_exp_n = 0.0;
-Real Radiation::scattering_exp_p = 0.0;
-
-Real Radiation::prop_temp_floor = 0.0;
-
+#include <radiation_defaults.H>
 
 // static initialization, must be called before Castro::variableSetUp
 
 void Radiation::read_static_params()
 {
   ParmParse pp("radiation");
+
+#include <radiation_queries.H>
 
   pp.query("do_thermal_wave_cgs",  RadTests::do_thermal_wave_cgs);
   pp.query("do_rad_sphere",    RadTests::do_rad_sphere);
@@ -211,47 +186,6 @@ void Radiation::read_static_params()
 
   if (Radiation::SolverType == Radiation::MGFLDSolver) {
 
-#ifdef NEUTRINO
-    radiation_type = Neutrino;
-    std::string rad_type_s("Unknown");
-    pp.query("radiation_type", rad_type_s);
-    if (rad_type_s.compare("PHOTON") == 0 ||
-	rad_type_s.compare("Photon") == 0 ||
-	rad_type_s.compare("photon") == 0 ) {
-      radiation_type = Photon;
-    }
-
-    if (radiation_type == Neutrino) {
-
-      Radiation::nNeutrinoGroups.resize(Radiation::nNeutrinoSpecies);
-
-      Radiation::nGroups = 0;
-#if (N_NEUTRINO_SPECIES >= 1)
-      Radiation::nGroups += N_NEUTRINO_GROUPS_1;
-      Radiation::nNeutrinoGroups[0] = N_NEUTRINO_GROUPS_1;
-#endif
-#if (N_NEUTRINO_SPECIES >= 2)
-      Radiation::nGroups += N_NEUTRINO_GROUPS_2;
-      Radiation::nNeutrinoGroups[1] = N_NEUTRINO_GROUPS_2;
-#endif
-#if (N_NEUTRINO_SPECIES == 3)
-      Radiation::nGroups += N_NEUTRINO_GROUPS_3;
-      Radiation::nNeutrinoGroups[2] = N_NEUTRINO_GROUPS_3;
-#endif
-
-      pp.query("plot_neutrino_group_energies_per_MeV",
-	       Radiation::plot_neutrino_group_energies_per_MeV);
-      pp.query("plot_neutrino_group_energies_total",
-	       Radiation::plot_neutrino_group_energies_total);
-    }
-    else {
-
-      // if we are here, we are wanting to do photon radiation with
-      // Neutrino compiled -- we no longer support this
-      amrex::Error("We do not support photon radiation when compiled for neutrinos");
-    }
-#else
-    // photon radiation
     radiation_type = Photon;
     Radiation::nGroups = NGROUPS;
 
@@ -264,20 +198,13 @@ void Radiation::read_static_params()
     if (test_groups > 0 && test_groups != Radiation::nGroups) {
       amrex::Error("you set the number of groups at runtime, but this does not match the compiled value");
     }
-#endif
+
   }
   else if (Radiation::SolverType != Radiation::SingleGroupSolver &&
 	   Radiation::SolverType != Radiation::SGFLDSolver) {
       amrex::Error("Unknown Radiation::SolverType");
   }
 
-
-#ifndef NEUTRINO
-  if (Radiation::nGroups > 1)
-      pp.query("do_inelastic_scattering", do_inelastic_scattering);
-#endif
-
-  pp.query("use_analytic_solution", use_analytic_solution);
 
   pp.query("plot_lambda", plot_lambda);
   pp.query("plot_kappa_p", plot_kappa_p);
@@ -288,11 +215,6 @@ void Radiation::read_static_params()
 
   // set up the extra plot variables
   {
-      if (use_analytic_solution) {
-	  // This is for the special Thermal Wave test
-	  plotvar_names.push_back("Texact");
-	  plotvar_names.push_back("Terror");
-      }
       if (plot_lambda) {
 	  icomp_lambda = plotvar_names.size();
 
@@ -481,6 +403,14 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 	pp.query("c", c);
 	pp.query("sigma", sigma);
     }
+
+    // Set Hypre flux factors here. Since this only occurs once,
+    // every instance of Hypre must use the same factor (or
+    // be responsible for changing it internally).
+
+    HypreABec::fluxFactor() = c;
+    HypreMultiABec::fluxFactor() = c;
+
   }
 
   radtoE = 1.0;
@@ -501,11 +431,11 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   convergence_check_type = 0;
   pp.query("convergence_check_type", convergence_check_type);
   limiter  = 2;              pp.query("limiter", limiter);
-  if (SolverType == SGFLDSolver && limiter%10 == 1) {
-    amrex::Abort("SGFLDSolver does not supports limiter = 1");
+  if (SolverType == SGFLDSolver && limiter == 1) {
+    amrex::Abort("SGFLDSolver does not support limiter = 1");
   }
-  if (SolverType == MGFLDSolver && limiter%10 == 1) {
-    amrex::Abort("MGFLDSolver does not supports limiter = 1");
+  if (SolverType == MGFLDSolver && limiter == 1) {
+    amrex::Abort("MGFLDSolver does not support limiter = 1");
   }
 
   closure = 3;
@@ -557,9 +487,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   n_bisect = 1000;
   pp.query("n_bisect", n_bisect);
   dedT_fac = 1.0;
-  dedY_fac = 1.0;
   pp.query("dedT_fac", dedT_fac);
-  pp.query("dedY_fac", dedY_fac);
 
   inner_convergence_check = 2;
   pp.query("inner_convergence_check", inner_convergence_check);
@@ -568,13 +496,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   pp.query("delta_e_rat_dt_tol", delta_e_rat_dt_tol);
   delta_T_rat_dt_tol = 100.0;
   pp.query("delta_T_rat_dt_tol", delta_T_rat_dt_tol);
-  delta_Ye_dt_tol = 100.0;
-  pp.query("delta_Ye_dt_tol", delta_Ye_dt_tol);
 
   underfac = 1.0;    pp.query("underfac", underfac);
-
-  integrate_Planck = 1;
-  pp.query("integrate_Planck", integrate_Planck);
 
   use_WiensLaw = 0;
   pp.query("use_WiensLaw", use_WiensLaw);
@@ -584,84 +507,11 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   verbose  = 0;      pp.query("v", verbose);  pp.query("verbose", verbose);
 
 
-  use_opacity_table_module = 0;
-  pp.query("use_opacity_table_module", use_opacity_table_module);
-
   do_kappa_stm_emission = 0;
   pp.query("do_kappa_stm_emission", do_kappa_stm_emission);
 
-  pp.query("const_c_v",       const_c_v);
-  pp.query("const_kappa_p",   const_kappa_p);
-  pp.query("const_kappa_r",   const_kappa_r);
-  pp.query("const_scattering", const_scattering);
-  pp.query("c_v_exp_m",       c_v_exp_m);
-  pp.query("c_v_exp_n",       c_v_exp_n);
-  pp.query("kappa_p_exp_m",   kappa_p_exp_m);
-  pp.query("kappa_p_exp_n",   kappa_p_exp_n);
-  pp.query("kappa_r_exp_m",   kappa_r_exp_m);
-  pp.query("kappa_r_exp_n",   kappa_r_exp_n);
-  pp.query("scattering_exp_m", scattering_exp_m);
-  pp.query("scattering_exp_n", scattering_exp_n);
-  pp.query("prop_temp_floor", prop_temp_floor);
-  if (nGroups > 1) {
-    pp.query("kappa_p_exp_p",   kappa_p_exp_p);
-    pp.query("kappa_r_exp_p",   kappa_r_exp_p);
-    pp.query("scattering_exp_p", scattering_exp_p);
-  }
-
-  use_dkdT = (kappa_p_exp_n == 0.0) ? 0 : 1;
+  use_dkdT = 0;
   pp.query("use_dkdT", use_dkdT);
-
-  if (Radiation::nNeutrinoSpecies == 0 ||
-      Radiation::nNeutrinoGroups[0] == 0) {
-    // photon problem
-    if (SolverType == SGFLDSolver || SolverType == MGFLDSolver) {
-      kappa_r_floor = 0.0;
-    }
-    else {
-      kappa_r_floor = 1.e-4;
-    }
-  }
-  else {
-    // neutrino problem
-    kappa_r_floor = 0.0;
-  }
-  pp.query("kappa_r_floor", kappa_r_floor);
-
-  temp_floor    = 1.e-10;  pp.query("temp_floor", temp_floor);
-
-  if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
-    std::cout << "const_c_v     = " << const_c_v << std::endl;
-    std::cout << "const_kappa_p = " << const_kappa_p << std::endl;
-    std::cout << "const_kappa_r = " << const_kappa_r << std::endl;
-    std::cout << "const_scattering = " << const_scattering << std::endl;
-    std::cout << "c_v_exp_m     = " << c_v_exp_m << std::endl;
-    std::cout << "c_v_exp_n     = " << c_v_exp_n << std::endl;
-    std::cout << "kappa_p_exp_m = " << kappa_p_exp_m << std::endl;
-    std::cout << "kappa_p_exp_n = " << kappa_p_exp_n << std::endl;
-    std::cout << "kappa_p_exp_p = " << kappa_p_exp_p << std::endl;
-    std::cout << "kappa_r_exp_m = " << kappa_r_exp_m << std::endl;
-    std::cout << "kappa_r_exp_n = " << kappa_r_exp_n << std::endl;
-    std::cout << "kappa_r_exp_p = " << kappa_r_exp_p << std::endl;
-    std::cout << "scattering_exp_m =" << scattering_exp_m << std::endl;
-    std::cout << "scattering_exp_n =" << scattering_exp_n << std::endl;
-    std::cout << "scattering_exp_p =" << scattering_exp_p << std::endl;
-    std::cout << "prop_temp_floor =" << prop_temp_floor << std::endl;
-    std::cout << "kappa_r_floor = " << kappa_r_floor << std::endl;
-    std::cout << "temp_floor    = " << temp_floor << std::endl;
-  }
-
-  if (SolverType == MGFLDSolver ) {
-    do_real_eos = 1;
-  }
-  else {
-    do_real_eos = (const_c_v < 0.) ? 1 : 0;
-  }
-  pp.query("do_real_eos", do_real_eos);
-
-  if (! do_real_eos) {
-    BL_ASSERT(const_c_v > 0.);
-  }
 
   if (verbose > 2) {
     Vector<int> temp;
@@ -683,7 +533,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
     std::cout << "processors = " << ParallelDescriptor::NProcs() << std::endl;
     std::cout << "do_sync            = " << do_sync << std::endl;
-    std::cout << "use_analytic_solution = " << use_analytic_solution << std::endl;
 
     std::cout << "c        = " << c << std::endl;
     std::cout << "sigma    = " << sigma << std::endl;
@@ -695,7 +544,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "maxInIter = " << maxInIter << std::endl;
     std::cout << "delta_e_rat_dt_tol = " << delta_e_rat_dt_tol << std::endl;
     std::cout << "delta_T_rat_dt_tol = " << delta_T_rat_dt_tol << std::endl;
-    std::cout << "delta_Ye_dt_tol    = " << delta_Ye_dt_tol    << std::endl;
     std::cout << "limiter  = " << limiter << std::endl;
     std::cout << "closure  = " << closure << std::endl;
     std::cout << "update_limiter   = " << update_limiter << std::endl;
@@ -704,7 +552,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "delta_temp = " << dT << std::endl;
     std::cout << "surface_average = " << surface_average << std::endl;
     std::cout << "underfac = " << underfac << std::endl;
-    std::cout << "do_real_eos = " << do_real_eos << std::endl;
     std::cout << "do_multigroup = " << do_multigroup << std::endl;
     std::cout << "accelerate = " << accelerate << std::endl;
     std::cout << "verbose  = " << verbose << std::endl;
@@ -738,17 +585,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
     get_groups(verbose);
 
-#ifdef NEUTRINO
-    if (SolverType == MGFLDSolver && radiation_type == Neutrino) {
-      // load opacities from (Burrows) table
-      int iverb = (verbose >= 1 && ParallelDescriptor::IOProcessor());
-      //      int iverb = 0;
-      if (iverb) {
-        std::cout << "reading opacity tables..." << std::endl;
-      }
-      FORT_INIT_OPACITY_TABLE(iverb);
-    }
-#endif
   }
   else {
     ca_initsinglegroup(nGroups);
@@ -790,7 +626,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
 
   delta_e_rat_level.resize(levels, 0.0);
   delta_T_rat_level.resize(levels, 0.0);
-  delta_Ye_level.resize(   levels, 0.0);
 
   Density   = castro->Density;
   Xmom      = castro->Xmom;
@@ -910,9 +745,6 @@ void Radiation::restart(int level, const BoxArray& grids,
     if (aString.find("delta_e_rat") == 0) {
       is >> delta_e_rat_level[level];
     }
-    else if (aString.find("delta_Ye") == 0) {
-      is >> delta_Ye_level[level];
-    }
     else if (aString.find("delta_T_rat") == 0) {
       is >> delta_T_rat_level[level];
     }
@@ -971,9 +803,6 @@ void Radiation::checkPoint(int level,
     sprintf(buf, "delta_T_rat_level[%d]= ", level);
     DeltaString = buf;
     os << DeltaString << delta_T_rat_level[level] << '\n';
-    sprintf(buf, "delta_Ye_level[%d]= ", level);
-    DeltaString = buf;
-    os << DeltaString << delta_Ye_level[level] << '\n';
     os.precision(oldprec);
   }
 
@@ -1025,83 +854,6 @@ void Radiation::checkPoint(int level,
     if (ParallelDescriptor::IOProcessor()) {
       os << " Absent\n";
     }
-  }
-}
-
-
-void Radiation::analytic_solution(int level)
-{
-  if (!use_analytic_solution)
-    return;
-
-  Castro *castro        = dynamic_cast<Castro*>(&parent->getLevel(level));
-  const BoxArray& grids = castro->boxArray();
-  const DistributionMapping& dmap = castro->DistributionMap();
-
-  Real time = castro->get_state_data(Rad_Type).curTime();
-
-  if (RadTests::do_thermal_wave_cgs) {
-
-    ParmParse pp("radiation");
-
-    Real rhocv, Q;
-    pp.get("thermal_wave_rhocv", rhocv);
-    pp.get("thermal_wave_Eexp", Q);
-    Q /= rhocv;
-
-    Real a = (16.0 * sigma) / (3.0 * const_kappa_r) / rhocv;
-    Real p = kappa_r_exp_n + 3.0;
-
-    Real pfac = exp(lgamma(2.5 + 1.0 / p) - lgamma(1.0 + 1.0 / p) - lgamma(1.5));
-
-    Real xi0  = pow((3.0 * p + 2.0) / (pow(2.0, p - 1.0) * p *
-                                      pow(M_PI, p)),
-                   1.0 / (3.0 * p + 2.0)) *
-           pow(pfac, p / (3.0 * p + 2.0));
-    Real xf = xi0 * pow(a * pow(Q,p) * time, 1.0 / (3.0 * p + 2.0));
-
-    Real Tbar = Q / pow(xf,3);
-    // Factor of (4 pi / 3) ignored in Tbar because it is cancelled in the following
-    // In ZelDovich & Raizer, the \sqrt in the equation following 10.44 should
-    //    /.
-    Real Tc = pow(xi0,3)*pow((p*xi0*xi0/(6.*p+4.)),1./p)*Tbar;
-
-    //std::cout << xi0 << " " << pfac << std::endl;
-    if (verbose > 1 && level == 0 && ParallelDescriptor::IOProcessor()) {
-      std::cout << "Front velocity = " << xf / (time * (3.0 * p + 2.0))
-	   << "   Front position = " << xf << std::endl;
-    }
-
-    MultiFab& S_new = castro->get_new_data(State_Type);
-    MultiFab& T_new = *plotvar[level];
-
-    MultiFab temp(grids,dmap,1,0);
-
-    {
-      MultiFab fkp(grids,dmap,1,0);
-
-      get_frhoe(temp, S_new);
-      get_planck_and_temp(fkp, temp, S_new);
-    }
-
-    const Geometry& geom = parent->Geom(level);
-    const Real *dx = geom.CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter ti(T_new); ti.isValid(); ++ti) {
-      int i = ti.index();
-      const Box &reg = grids[i];
-
-      RealBox gridloc = RealBox(grids[i], geom.CellSize(), geom.ProbLo());
-
-      anatw2(T_new[ti].dataPtr(), ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	     temp[ti].dataPtr(),
-	     p, xf, Tc, dx, gridloc.lo(), reg.loVect());
-    }
-
-    return;
   }
 }
 
@@ -1173,16 +925,19 @@ void Radiation::compute_exchange(MultiFab& exch,
                                  MultiFab& Er,
                                  MultiFab& fkp, int igroup)
 {
+    BL_PROFILE("Radiation::compute_exchange");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter exi(exch,true); exi.isValid(); ++exi) {
-	const Box& reg = exi.tilebox();
+    for (MFIter mfi(exch, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.tilebox();
 
-	cexch(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN(exch[exi]),
-	      BL_TO_FORTRAN(Er[exi]),
-	      BL_TO_FORTRAN(fkp[exi]),
+#pragma gpu box(bx)
+	cexch(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+	      BL_TO_FORTRAN_ANYD(exch[mfi]),
+	      BL_TO_FORTRAN_ANYD(Er[mfi]),
+	      BL_TO_FORTRAN_ANYD(fkp[mfi]),
 	      sigma, c);
     }
 }
@@ -1193,38 +948,55 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
                             Real delta_t, Real c,
                             Real underrel, int lag_planck, int igroup)
 {
+    BL_PROFILE("Radiation::compute_eta");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     {
 	FArrayBox c_v;
-	for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
+
+	for (MFIter mfi(eta, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+
 	    const Box& bx = mfi.tilebox();
 
 	    if (lag_planck) {
-		eta[mfi].copy(fkp[mfi],bx);
+
+                Array4<Real> const eta_arr = eta.array(mfi);
+                Array4<Real> const fkp_arr = fkp.array(mfi);
+                AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+                                      { eta_arr(i,j,k) = fkp_arr(i,j,k); });
+
 	    }
 	    else {
-		// This is the only case where we need a direct call for
+
+                // This is the only case where we need a direct call for
 		// Planck mean as a function of temperature.
-		temp[mfi].plus(dT, bx, 0, 1);
-		get_planck_from_temp(eta[mfi], temp[mfi], state[mfi], bx, igroup);
-		temp[mfi].plus(-dT, bx, 0, 1);
+
+#pragma gpu box(bx) sync
+                ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                  BL_TO_FORTRAN_ANYD(eta[mfi]),
+                                  BL_TO_FORTRAN_ANYD(state[mfi]),
+                                  igroup, igroup, 1, dT);
+
 	    }
 
 	    c_v.resize(bx);
+            Elixir c_v_elix = c_v.elixir();
+
 	    get_c_v(c_v, temp[mfi], state[mfi], bx);
 
-	    ceta2( ARLIM(bx.loVect()), ARLIM(bx.hiVect()),
-		   eta[mfi].dataPtr(),
-		   etainv[mfi].dataPtr(), ARLIM(eta[mfi].loVect()), ARLIM(eta[mfi].hiVect()),
-		   BL_TO_FORTRAN_N(state[mfi], Density),
-		   BL_TO_FORTRAN(temp[mfi]),
-		   BL_TO_FORTRAN(c_v),
-		   BL_TO_FORTRAN(fkp[mfi]),
-		   BL_TO_FORTRAN_N(Er[mfi], igroup),
-		   dT, delta_t, sigma, c,
-		   underrel, lag_planck);
+#pragma gpu box(bx) sync
+	    ceta2(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                  BL_TO_FORTRAN_ANYD(eta[mfi]),
+		  BL_TO_FORTRAN_ANYD(etainv[mfi]),
+                  BL_TO_FORTRAN_N_ANYD(state[mfi], Density),
+                  BL_TO_FORTRAN_ANYD(temp[mfi]),
+                  BL_TO_FORTRAN_ANYD(c_v),
+                  BL_TO_FORTRAN_ANYD(fkp[mfi]),
+                  BL_TO_FORTRAN_N_ANYD(Er[mfi], igroup),
+                  dT, delta_t, sigma, c,
+                  underrel, lag_planck);
 	}
     }
 }
@@ -1243,30 +1015,26 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
 
   relative = 0.0;
   absolute = 0.0;
+  Real theta = 1.0;
 
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(max:relative, absolute)
 #endif
-  {
-      Real relative_priv = 0.0;
-      Real absolute_priv = 0.0;
-      Real theta = 1.0;
+  for (MFIter mfi(eta, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
 
-      for (MFIter mfi(eta,true); mfi.isValid(); ++mfi) {
-	  const Box &reg = mfi.tilebox();
-	  ceup( ARLIM(reg.loVect()), ARLIM(reg.hiVect()), relative_priv, absolute_priv,
-		BL_TO_FORTRAN(frhoes[mfi]),
-		frhoem[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-		dflux_old[mfi].dataPtr(), dflux_new[mfi].dataPtr(),
-		exch[mfi].dataPtr(), delta_t, theta);
-      }
-#ifdef _OPENMP
-#pragma omp critical (rad_ceup)
-#endif
-      {
-	  relative = std::max(relative, relative_priv);
-	  absolute = std::max(absolute, absolute_priv);
-      }
+#pragma gpu box(bx)
+      ceup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           AMREX_MFITER_REDUCE_MAX(&relative),
+           AMREX_MFITER_REDUCE_MAX(&absolute),
+           BL_TO_FORTRAN_ANYD(frhoes[mfi]),
+           BL_TO_FORTRAN_ANYD(frhoem[mfi]),
+           BL_TO_FORTRAN_ANYD(eta[mfi]),
+           BL_TO_FORTRAN_ANYD(etainv[mfi]),
+           BL_TO_FORTRAN_ANYD(dflux_old[mfi]),
+           BL_TO_FORTRAN_ANYD(dflux_new[mfi]),
+           BL_TO_FORTRAN_ANYD(exch[mfi]),
+           delta_t, theta);
   }
 
   ParallelDescriptor::ReduceRealMax(relative);
@@ -1375,33 +1143,27 @@ void Radiation::nonconservative_energy_update(Real& relative, Real& absolute,
   ParallelDescriptor::ReduceRealMax(absolute);
 }
 
-void Radiation::state_update(MultiFab& state,
-                             MultiFab& frhoes,
-			     MultiFab& temp)
+void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
 {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter si(state,true); si.isValid(); ++si) {
-	const Box& fbox = frhoes[si].box();
-	const Box& reg = si.tilebox();
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+	const Box& bx = mfi.tilebox();
 
-	cetot(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN(state[si]),
-	      BL_TO_FORTRAN(frhoes[si]));
+#pragma gpu box(bx)
+	cetot(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+	      BL_TO_FORTRAN_ANYD(state[mfi]),
+	      BL_TO_FORTRAN_ANYD(frhoes[mfi]));
 
-	if (do_real_eos == 0) {
+        // frhoes will be overwritten with temperature here
 
-	    temp[si].copy(frhoes[si],reg);
-
-	    ca_compute_temp_given_cv
-		(reg.loVect(), reg.hiVect(),
-		 BL_TO_FORTRAN(temp[si]),
-		 BL_TO_FORTRAN(state[si]),
-		 &const_c_v, &c_v_exp_m, &c_v_exp_n);
-
-	    state[si].copy(temp[si],reg,0,reg,Temp,1);
-	}
+#pragma gpu box(bx)
+        ca_compute_temp_given_rhoe
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(frhoes[mfi]),
+             BL_TO_FORTRAN_ANYD(state[mfi]),
+             1);
     }
 }
 
@@ -1590,192 +1352,17 @@ void Radiation::filBndry(BndryRegister& bdry, int level, Real time)
   }
 }
 
-void Radiation::get_frhoe(FArrayBox& frhoe,
-                          FArrayBox& state,
-                          const Box& reg)
-{
-    cfrhoe(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   BL_TO_FORTRAN(frhoe),
-	   BL_TO_FORTRAN(state));
-}
-
 void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
                         const Box& reg)
 {
-    if (do_real_eos == 1) {
-      ca_compute_c_v
-	(reg.loVect(), reg.hiVect(),
-	 BL_TO_FORTRAN(c_v), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
-    }
-    else if (do_real_eos == 0) {
-	if (c_v_exp_m == 0.0 && c_v_exp_n == 0.0) {
-	    c_v.setVal(const_c_v,reg,0,1);
-	}
-	else {
-	    gcv(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		BL_TO_FORTRAN(c_v),
-		BL_TO_FORTRAN(temp),
-		&const_c_v, &c_v_exp_m, &c_v_exp_n, &prop_temp_floor,
-		BL_TO_FORTRAN(state));
-	}
-    }
-    else {
-	amrex::Error("ERROR Radiation::get_c_v  do_real_eos < 0");
-    }
-}
+    BL_PROFILE("Radiation::get_c_v");
 
-// temp contains frhoe on input:
-void Radiation::get_planck_and_temp(FArrayBox& fkp, FArrayBox& temp,
-                                    FArrayBox& state, const Box& reg,
-				    int igroup, Real delta_t)
-{
-    if (do_real_eos > 0) {
-      ca_compute_temp_given_rhoe
-	(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
-    }
-    else if (do_real_eos == 0) {
-	gtemp(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN(temp),
-	      &const_c_v, &c_v_exp_m, &c_v_exp_n,
-	      BL_TO_FORTRAN(state));
-    }
-    else {
-	amrex::Error("ERROR Radiation::get_planck_and_temp  do_real_eos < 0");
-    }
-
-    if (use_opacity_table_module) {
-      ca_compute_planck(reg.loVect(), reg.hiVect(),
-			BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
-    }
-    else {
-	fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	     BL_TO_FORTRAN(fkp),
-	     &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-	     &kappa_p_exp_p, nugroup[igroup], &prop_temp_floor,
-	     BL_TO_FORTRAN(temp),
-	     BL_TO_FORTRAN(state));
-    }
-
-    int numfloor = 0;
-    nfloor(BL_TO_FORTRAN(temp),
-	   ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   numfloor, temp_floor, temp.nComp());
-
-    if (verbose > 2 && numfloor > 0) {
-	std::cout << numfloor << " temperatures raised to floor" << std::endl;
-    }
-}
-
-void Radiation::get_rosseland_and_temp(FArrayBox& kappa_r,
-                                       FArrayBox& temp,
-                                       FArrayBox& state,
-                                       const Box& reg,
-				       int igroup)
-{
-  BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
-
-  const Box& sbox = state.box();
-  const Box& tbox = temp.box();
-
-  if (do_real_eos > 0) {
-    ca_compute_temp_given_rhoe
-      (reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(state));
-  }
-  else if (do_real_eos == 0) {
-      gtemp(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	    BL_TO_FORTRAN(temp),
-	    &const_c_v, &c_v_exp_m, &c_v_exp_n,
-	    BL_TO_FORTRAN(state));
-  }
-  else {
-    amrex::Error("ERROR Radiation::get_rosseland_and_temp  do_real_eos < 0");
-  }
-
-  state.copy(temp,reg,0,reg,Temp,1);
-
-  if (use_opacity_table_module) {
-    ca_compute_rosseland(reg.loVect(), reg.hiVect(),
-			 BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
-  }
-  else if (const_scattering > 0.0) {
-    rosse1s(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	    BL_TO_FORTRAN_N(kappa_r, igroup),
-	    &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	    &kappa_r_exp_p,
-	    &const_scattering, &scattering_exp_m, &scattering_exp_n,
-	    &scattering_exp_p,
-	    nugroup[igroup],
-	    &prop_temp_floor, kappa_r_floor,
-	    BL_TO_FORTRAN(temp),
-	    BL_TO_FORTRAN(state));
-  }
-  else {
-      rosse1(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	     BL_TO_FORTRAN_N(kappa_r, igroup),
-	     &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	     &kappa_r_exp_p, nugroup[igroup],
-	     &prop_temp_floor, kappa_r_floor,
-	     BL_TO_FORTRAN(temp),
-	     BL_TO_FORTRAN(state));
-  }
-}
-
-// temp contains temp on input:
-
-void Radiation::get_planck_from_temp(FArrayBox& fkp, FArrayBox& temp,
-                                     FArrayBox& state, const Box& reg,
-				     int igroup)
-{
-  if (use_opacity_table_module) {
-      ca_compute_planck(reg.loVect(), reg.hiVect(),
-			BL_TO_FORTRAN(fkp), BL_TO_FORTRAN(state));
-  }
-  else {
-      fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   BL_TO_FORTRAN(fkp),
-	   &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-	   &kappa_p_exp_p, nugroup[igroup],
-	   &prop_temp_floor,
-	   BL_TO_FORTRAN(temp),
-	   BL_TO_FORTRAN(state));
-  }
-}
-
-void Radiation::get_rosseland_from_temp(FArrayBox& kappa_r,
-                                        FArrayBox& temp,
-                                        FArrayBox& state,
-                                        const Box& reg,
-					int igroup)
-{
-  BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
-
-  state.copy(temp,reg,0,reg,Temp,1);
-
-  if (use_opacity_table_module) {
-    ca_compute_rosseland(reg.loVect(), reg.hiVect(),
-			 BL_TO_FORTRAN(kappa_r), BL_TO_FORTRAN(state));
-  }
-  else if (const_scattering > 0.0) {
-      rosse1s(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      BL_TO_FORTRAN_N(kappa_r, igroup),
-	      &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	      &kappa_r_exp_p,
-	      &const_scattering, &scattering_exp_m, &scattering_exp_n,
-	      &scattering_exp_p,
-	      nugroup[igroup],
-	      &prop_temp_floor, kappa_r_floor,
-	      BL_TO_FORTRAN(temp),
-	      BL_TO_FORTRAN(state));
-  }
-  else {
-    rosse1(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	   BL_TO_FORTRAN_N(kappa_r, igroup),
-	   &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-	   &kappa_r_exp_p, nugroup[igroup],
-	   &prop_temp_floor, kappa_r_floor,
-	   BL_TO_FORTRAN(temp),
-	   BL_TO_FORTRAN(state));
-  }
+#pragma gpu box(reg) sync
+    ca_compute_c_v
+        (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+         BL_TO_FORTRAN_ANYD(c_v),
+         BL_TO_FORTRAN_ANYD(temp),
+         BL_TO_FORTRAN_ANYD(state));
 }
 
 void Radiation::get_frhoe(MultiFab& frhoe,
@@ -1784,12 +1371,13 @@ void Radiation::get_frhoe(MultiFab& frhoe,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter si(state,true); si.isValid(); ++si) {
+    for (MFIter si(state,TilingIfNotGPU()); si.isValid(); ++si) {
 	const Box& reg = si.tilebox();
 
-	cfrhoe(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	       BL_TO_FORTRAN(frhoe[si]),
-	       BL_TO_FORTRAN(state[si]));
+#pragma gpu box(reg)
+	cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+	       BL_TO_FORTRAN_ANYD(frhoe[si]),
+	       BL_TO_FORTRAN_ANYD(state[si]));
     }
 }
 
@@ -1801,12 +1389,32 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
 				    int igroup, Real delta_t)
 {
     BL_PROFILE("Radiation::get_planck_and_temp");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter si(state,true); si.isValid(); ++si) {
-	get_planck_and_temp(fkp[si], temp[si], state[si], si.tilebox(),
-			    igroup, delta_t);
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+
+        const Box& bx = mfi.tilebox();
+
+#pragma gpu box(bx)
+        ca_compute_temp_given_rhoe
+            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(temp[mfi]),
+             BL_TO_FORTRAN_ANYD(state[mfi]),
+             0);
+
+#pragma gpu box(bx)
+        ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                          BL_TO_FORTRAN_N_ANYD(fkp[mfi], igroup),
+                          BL_TO_FORTRAN_ANYD(state[mfi]),
+                          igroup, igroup, 1, 0.0);
+
+#pragma gpu box(bx) sync
+        nfloor(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+               BL_TO_FORTRAN_ANYD(temp[mfi]),
+               temp[mfi].nComp());
+
     }
 }
 
@@ -1838,13 +1446,30 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
 #pragma omp parallel
 #endif
   {
-      FArrayBox temp;
-      for(MFIter mfi(kappa_r,true); mfi.isValid(); ++mfi)
+      FArrayBox frhoe;
+      for(MFIter mfi(kappa_r, TilingIfNotGPU()); mfi.isValid(); ++mfi)
       {
-	  const Box& reg = mfi.growntilebox();
-	  temp.resize(reg);
-	  get_frhoe(temp, state[mfi], reg);
-	  get_rosseland_and_temp(kappa_r[mfi], temp, state[mfi], reg, igroup);
+	  const Box& bx = mfi.growntilebox();
+	  frhoe.resize(bx, 1);
+          Elixir frhoe_elix = frhoe.elixir();
+
+#pragma gpu box(bx)
+          cfrhoe(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                 BL_TO_FORTRAN_ANYD(frhoe),
+                 BL_TO_FORTRAN_ANYD(state[mfi]));
+
+#pragma gpu box(bx)
+          ca_compute_temp_given_rhoe
+              (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+               BL_TO_FORTRAN_ANYD(frhoe),
+               BL_TO_FORTRAN_ANYD(state[mfi]),
+               1);
+
+#pragma gpu box(bx)
+          ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                               BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup),
+                               BL_TO_FORTRAN_ANYD(state[mfi]),
+                               igroup, igroup, 1);
       }
   }
 }
@@ -1858,18 +1483,62 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
                                            const Geometry& geom,
 					   int igroup)
 {
+  BL_PROFILE("update_rosseland_from_temp");
 
   BL_ASSERT(kappa_r.nGrow() == 1);
   BL_ASSERT(temp.nGrow()    == 0);
+  BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter si(state); si.isValid(); ++si) {
-      get_rosseland_from_temp(kappa_r[si], temp[si], state[si], si.tilebox(), igroup);
+  for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
+
+      int comp = Temp;
+      Array4<Real> const state_arr = state.array(mfi);
+      Array4<Real> const temp_arr = temp.array(mfi);
+      AMREX_PARALLEL_FOR_3D(bx, i, j, k, { state_arr(i,j,k,comp) = temp_arr(i,j,k); });
+
+#pragma gpu box(bx)
+      ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                           BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup),
+                           BL_TO_FORTRAN_ANYD(state[mfi]),
+                           igroup, igroup, 1);
   }
 
   kappa_r.FillBoundary(geom.periodicity());
+}
+
+void Radiation::SGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state)
+{
+  BL_PROFILE("Radiation::SGFLD_compute_rosseland (MultiFab)");
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(kappa_r, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& kbox = mfi.growntilebox();
+
+#pragma gpu box(kbox)
+      ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
+                           BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
+                           BL_TO_FORTRAN_ANYD(state[mfi]),
+                           0, 0, 1);
+  }
+}
+
+void Radiation::SGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& state)
+{
+  BL_PROFILE("Radiation::SGFLD_compute_rosseland (FArrayBox)");
+
+  const Box& kbox = kappa_r.box();
+
+#pragma gpu box(kbox) sync
+  ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
+                       BL_TO_FORTRAN_ANYD(kappa_r),
+                       BL_TO_FORTRAN_ANYD(state),
+                       0, 0, 1);
 }
 
 void Radiation::deferred_sync_setup(int crse_level)
@@ -2269,63 +1938,45 @@ void Radiation::scaledGradient(int level,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      FArrayBox dtmp;
-      for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
 
-	  for (MFIter mfi(R[idim],true); mfi.isValid(); ++mfi) {
-	      const Box &nbox  = mfi.tilebox();  // note that R is edge based
-	      const Box& reg = amrex::enclosedCells(nbox);
+      for (MFIter mfi(R[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-	      if (limiter == 0) {
-		  R[idim][mfi].setVal(0.0, nbox, Rcomp, 1);
-	      }
-	      else if (limiter%10 == 1) {
-		  scgrd1(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp),
-			 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			 idim,
-			 BL_TO_FORTRAN_N(kappa_r[mfi], kcomp),
-			 Erborder[mfi].dataPtr(Ercomp), dx);
-	      }
-	      else if (limiter%10 == 2) {
-#if (BL_SPACEDIM >= 2)
-		  const Box& dbox = amrex::grow(reg,1);
-		  dtmp.resize(dbox, BL_SPACEDIM - 1);
-#endif
-		  scgrd2(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp),
-			 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			 idim,
-			 BL_TO_FORTRAN_N(kappa_r[mfi], kcomp),
-			 Erborder[mfi].dataPtr(Ercomp),
-#if (BL_SPACEDIM >= 2)
-			 ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dtmp.dataPtr(0),
-#endif
-#if (BL_SPACEDIM == 3)
-			 dtmp.dataPtr(1),
-#endif
-			 dx);
-	      }
-	      else {
-#if (BL_SPACEDIM >= 2)
-		  const Box& dbox = amrex::grow(reg,1);
-		  dtmp.resize(dbox, BL_SPACEDIM - 1);
-#endif
-		  scgrd3(BL_TO_FORTRAN_N(R[idim][mfi], Rcomp),
-			 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			 idim,
-			 BL_TO_FORTRAN_N(kappa_r[mfi], kcomp),
-			 Erborder[mfi].dataPtr(Ercomp),
-#if (BL_SPACEDIM >= 2)
-			 ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dtmp.dataPtr(0),
-#endif
-#if (BL_SPACEDIM == 3)
-			 dtmp.dataPtr(1),
-#endif
-			 dx);
-	      }
-	  }
+          const Box& nbx = mfi.tilebox();  // note that R is edge based
+          const Box& bx = amrex::enclosedCells(nbx);
+
+          Array4<Real> const R_arr = R[idim].array(mfi);
+
+          if (limiter == 0) {
+
+              int comp = Rcomp;
+              AMREX_PARALLEL_FOR_3D(nbx, i, j, k, { R_arr(i,j,k,comp) = 0.0; });
+
+          }
+          else {
+
+              int include_cross_terms = 0;
+
+              if (limiter == 1) {
+                  include_cross_terms = 0;
+              } else if (limiter == 2) {
+                  include_cross_terms = 1;
+              } else {
+                  amrex::Abort("Unknown limiter");
+              }
+
+#pragma gpu box(bx)
+              scgrd(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+                    BL_TO_FORTRAN_N_ANYD(R[idim][mfi], Rcomp),
+                    idim, AMREX_REAL_ANYD(dx),
+                    BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp),
+                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                    include_cross_terms);
+
+          }
       }
   }
+
 }
 
 // On input, lambda should contain scaled gradient.
@@ -2335,18 +1986,21 @@ void Radiation::fluxLimiter(int level,
                             Array<MultiFab, BL_SPACEDIM>& lambda,
                             int limiter, int lamcomp)
 {
-  BL_PROFILE("Radiation::fluxLimiter");
+    BL_PROFILE("Radiation:fluxLimiter");
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-      for (MFIter mfi(lambda[idim],true); mfi.isValid(); ++mfi) {
-	  const Box &reg  = mfi.tilebox();
+    for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
+        for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
 
-	  flxlim(BL_TO_FORTRAN_N(lambda[idim][mfi], lamcomp),
-		 ARLIM(reg.loVect()), ARLIM(reg.hiVect()), limiter);
-      }
-  }
+#pragma gpu box(bx)
+            flxlim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                   BL_TO_FORTRAN_N_ANYD(lambda[idim][mfi], lamcomp),
+                   limiter);
+        }
+    }
 }
 
 void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dcf,
@@ -2376,80 +2030,47 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	    const Box& reg = mfi.growntilebox();
 
 	    temp.resize(reg);
-	    get_frhoe(temp, S[mfi], reg);
 
-	    if (do_real_eos > 0) {
-	      ca_compute_temp_given_rhoe
-		(reg.loVect(), reg.hiVect(), BL_TO_FORTRAN(temp), BL_TO_FORTRAN(S[mfi]));
-	    }
-	    else if (do_real_eos == 0) {
-		gtemp(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		      BL_TO_FORTRAN(temp),
-		      &const_c_v, &c_v_exp_m, &c_v_exp_n,
-		      BL_TO_FORTRAN(S[mfi]));
-	    }
+#pragma gpu box(reg) sync
+            cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                   BL_TO_FORTRAN_ANYD(temp),
+                   BL_TO_FORTRAN_ANYD(S[mfi]));
+
+#pragma gpu box(reg) sync
+            ca_compute_temp_given_rhoe
+                (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                 BL_TO_FORTRAN_ANYD(temp),
+                 BL_TO_FORTRAN_ANYD(S[mfi]),
+                 0);
 
 	    c_v.resize(reg);
 	    get_c_v(c_v, temp, S[mfi], reg);
 
 	    S[mfi].copy(temp,reg,0,reg,Temp,1);
 
-	    // compute rosseland
-	    if (use_opacity_table_module) {
-	      ca_compute_rosseland(reg.loVect(), reg.hiVect(),
-				   BL_TO_FORTRAN(kappa_r[mfi]), BL_TO_FORTRAN(S[mfi]));
-	    }
-	    else if (const_scattering > 0.0) {
-	      rosse1s(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		      BL_TO_FORTRAN_N(kappa_r[mfi], igroup),
-		      &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-		      &kappa_r_exp_p,
-		      &const_scattering, &scattering_exp_m, &scattering_exp_n,
-		      &scattering_exp_p,
-		      nugroup[igroup],
-		      &prop_temp_floor, kappa_r_floor,
-		      BL_TO_FORTRAN(temp),
-		      BL_TO_FORTRAN(S[mfi]));
-	    }
-	    else {
-	      rosse1(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		     BL_TO_FORTRAN_N(kappa_r[mfi], igroup),
-		     &const_kappa_r, &kappa_r_exp_m, &kappa_r_exp_n,
-		     &kappa_r_exp_p, nugroup[igroup],
-		     &prop_temp_floor, kappa_r_floor,
-		     BL_TO_FORTRAN(temp),
-		     BL_TO_FORTRAN(S[mfi]));
-	    }
-
-	    if (use_opacity_table_module) {
-		std::cout << "SGFLDSolver Solver does not support both use_opacity_table_module=1 "
-		     << "and Er_Lorentz_term=1; try comoving=1 or Er_Lorentz_term=0 "
-		     << "when use_opacity_table_module=1"<<std::endl;
-		amrex::Abort("SGFLDSolver: try comoving=1 or Er_Lorentz_term=0");
-	    }
-
+#pragma gpu box(reg) sync
+            ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                                 BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup),
+                                 BL_TO_FORTRAN_ANYD(S[mfi]),
+                                 igroup, igroup, 1);
 
 	    kp.resize(reg);
-	    fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 BL_TO_FORTRAN(kp),
-		 &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-		 &kappa_p_exp_p, nugroup[igroup],
-		 &prop_temp_floor,
-		 BL_TO_FORTRAN(temp),
-		 BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+            ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                              BL_TO_FORTRAN_ANYD(kp),
+                              BL_TO_FORTRAN_ANYD(S[mfi]),
+                              igroup, igroup, 1, 0.0);
 
 	    kp2.resize(reg);
-	    temp.plus(dT, 0, 1);
+	    S[mfi].plus(dT, Temp, 1);
 
-	    fkpn(ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 BL_TO_FORTRAN(kp2),
-		 &const_kappa_p, &kappa_p_exp_m, &kappa_p_exp_n,
-		 &kappa_p_exp_p, nugroup[igroup],
-		 &prop_temp_floor,
-		 BL_TO_FORTRAN(temp),
-		 BL_TO_FORTRAN(S[mfi]));
+#pragma gpu box(reg) sync
+            ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                              BL_TO_FORTRAN_ANYD(kp2),
+                              BL_TO_FORTRAN_ANYD(S[mfi]),
+                              igroup, igroup, 1, 0.0);
 
-	    temp.plus(-dT, 0, 1);
+	    S[mfi].plus(-dT, Temp, 1);
 
 	    ca_get_v_dcf(reg.loVect(), reg.hiVect(),
 			 BL_TO_FORTRAN(Er[mfi]),
@@ -2494,13 +2115,10 @@ void Radiation::EstTimeStep(Real & estdt, int level)
       nNeutrinoGroups[0] > 0) {
 //    Real derat = deltaEnergyRatMax(level);
     Real dTrat = deltaTRatMax(level);
-    Real dye   = deltaYeMax(level);
 
     //    Real fac = std::min(deltaEnergyTol() / (derat + 1.e-20),
     //		deltaTTol()      / (dTrat + 1.e-20));
-    //    fac = std::min(fac, deltaYeTol()     / (dye   + 1.e-20));
     Real fac = deltaTTol()  / (dTrat + 1.e-20);
-    fac = std::min(fac, deltaYeTol()     / (dye   + 1.e-20));
 
     Real estdt_rad = parent->dtLevel(level);
     estdt_rad *= fac;
@@ -2511,66 +2129,11 @@ void Radiation::EstTimeStep(Real & estdt, int level)
 
     estdt = std::min(estdt, estdt_rad);
   }
-
-  if (RadTests::do_thermal_wave_cgs) {
-    ParmParse pp("radiation");
-    Real cfl = -1.0;
-    pp.query("thermal_wave_cfl", cfl);
-    if (cfl > 0.0) {
-      Real rhocv, Q;
-      pp.get("thermal_wave_rhocv", rhocv);
-      pp.get("thermal_wave_Eexp", Q);
-      Q /= rhocv;
-
-      Real a = (16.0 * sigma) / (3.0 * const_kappa_r) / rhocv;
-      Real p = kappa_r_exp_n + 3.0;
-
-      Real pfac = exp(lgamma(2.5 + 1.0 / p) - lgamma(1.0 + 1.0 / p) - lgamma(1.5));
-
-      Real xi0  = pow((3.0 * p + 2.0) / (pow(2.0, p - 1.0) * p *
-					 pow(M_PI, p)),
-		      1.0 / (3.0 * p + 2.0)) *
-	pow(pfac, p / (3.0 * p + 2.0));
-      Real xf = xi0 * pow(a * pow(Q,p) * time, 1.0 / (3.0 * p + 2.0));
-      Real vf = xf / (time * (3.0 * p + 2.0));
-
-      const Real *dx = geom.CellSize();
-      Real estdt_rad = cfl * dx[0] / vf;
-
-      if (verbose && ParallelDescriptor::IOProcessor())
-	std::cout << "radiation timestep at level " << level
-		  << ":  estdt_rad = " << estdt_rad << std::endl;
-
-      estdt = std::min(estdt, estdt_rad);
-    }
-  }
 }
 
 void Radiation::set_current_group(int igroup)
 {
-#ifdef NEUTRINO
-  if (radiation_type == Photon) {
-    current_group_number = igroup;
-    current_group_name = "Photon";
-  }
-  else if (igroup < nNeutrinoGroups[0]) {
-    current_group_number = igroup;
-    current_group_name = "Electron";
-  }
-  else if (nNeutrinoSpecies >= 2 && igroup < nNeutrinoGroups[0]+nNeutrinoGroups[1]) {
-    current_group_number = igroup - nNeutrinoGroups[0];
-    current_group_name = "Anti Electron";
-  }
-  else if (nNeutrinoSpecies == 3 && igroup >= nNeutrinoGroups[0]+nNeutrinoGroups[1]) {
-    current_group_number = igroup - (nNeutrinoGroups[0]+nNeutrinoGroups[1]);
-    current_group_name = "Muon";
-  }
-  else {
-    amrex::Abort("Something is wrong!  Maybe there are more than three neutrino flavors.");
-  }
-#else
   current_group_number = igroup;
-#endif
 }
 
 

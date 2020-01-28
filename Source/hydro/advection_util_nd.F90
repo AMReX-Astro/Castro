@@ -1,6 +1,6 @@
 module advection_util_module
 
-  use amrex_fort_module, only : rt => amrex_real
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
@@ -10,9 +10,9 @@ contains
                                         state, s_lo, s_hi, &
                                         frac_change, verbose) bind(c,name='ca_enforce_minimum_density')
 
-    use network, only : nspec, naux
-    use meth_params_module, only : NVAR, URHO, small_dens, density_reset_method
-    use amrex_constants_module, only : ZERO
+    use network, only: nspec, naux
+    use meth_params_module, only: NVAR, URHO, small_dens, density_reset_method
+    use amrex_constants_module, only: ZERO
 #ifndef AMREX_USE_GPU
     use castro_error_module, only: castro_error
 #endif
@@ -34,6 +34,7 @@ contains
     real(rt) :: max_dens, old_rho
     real(rt) :: uold(NVAR), unew(NVAR)
     integer  :: num_positive_zones
+    real(rt) :: frac_change_tmp
 
     !$gpu
 
@@ -42,6 +43,8 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
+
+             frac_change_tmp = 1.0_rt
 
              if (state(i,j,k,URHO) .eq. ZERO) then
 
@@ -160,10 +163,14 @@ contains
                 ! Store the maximum (negative) fractional change in the density from this reset.
 
                 if (old_rho < ZERO) then
-                   call reduce_min(frac_change, (state(i,j,k,URHO) - old_rho) / old_rho)
+                   frac_change_tmp = 1.0_rt
+                else
+                   frac_change_tmp = (state(i,j,k,URHO) - old_rho) / old_rho
                 end if
 
              end if
+
+             call reduce_min(frac_change, frac_change_tmp)
 
           end do
        end do
@@ -190,7 +197,7 @@ contains
     use meth_params_module, only: UMR, UMP
 #endif
 
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
     implicit none
 
     real(rt)         :: state(NVAR)
@@ -254,7 +261,7 @@ contains
 
     use amrex_constants_module, only: ZERO
     use meth_params_module, only: NVAR, URHO
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -287,17 +294,17 @@ contains
 
 
   subroutine ca_compute_cfl(lo, hi, &
-       q, q_lo, q_hi, &
-       qaux, qa_lo, qa_hi, &
-       dt, dx, courno, verbose) &
-       bind(C, name = "ca_compute_cfl")
+                            q, q_lo, q_hi, &
+                            qaux, qa_lo, qa_hi, &
+                            dt, dx, courno, verbose) &
+                            bind(C, name = "ca_compute_cfl")
     ! Compute running max of Courant number over grids
     !
 
     use amrex_constants_module, only: ZERO, ONE
     use meth_params_module, only: NQ, QRHO, QU, QV, QW, QC, NQAUX, time_integration_method
     use prob_params_module, only: dim
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
     use reduction_module, only: reduce_max
 
     implicit none
@@ -427,18 +434,18 @@ contains
 
 
   subroutine ca_ctoprim(lo, hi, &
-       uin, uin_lo, uin_hi, &
+                        uin, uin_lo, uin_hi, &
 #ifdef RADIATION
-       Erin, Erin_lo, Erin_hi, &
-       lam, lam_lo, lam_hi, &
+                        Erin, Erin_lo, Erin_hi, &
+                        lam, lam_lo, lam_hi, &
 #endif
-       q,     q_lo,   q_hi, &
-       qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
+                        q,     q_lo,   q_hi, &
+                        qaux, qa_lo,  qa_hi) bind(c,name='ca_ctoprim')
 
-    use actual_network, only : nspec, naux
-    use eos_module, only : eos
-    use eos_type_module, only : eos_t, eos_input_re
-    use meth_params_module, only : NVAR, URHO, UMX, UMZ, &
+    use actual_network, only: nspec, naux
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, &
          UEDEN, UEINT, UTEMP, &
          QRHO, QU, QV, QW, &
          QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
@@ -458,11 +465,11 @@ contains
     use amrinfo_module, only: amr_time
 #endif
 #ifdef RADIATION
-    use rad_params_module, only : ngroups
-    use rad_util_module, only : compute_ptot_ctot
+    use rad_params_module, only: ngroups
+    use rad_util_module, only: compute_ptot_ctot
 #endif
 
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
@@ -474,26 +481,27 @@ contains
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
 
-    real(rt)        , intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+    real(rt), intent(in   ) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
 #ifdef RADIATION
-    real(rt)        , intent(in   ) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
-    real(rt)        , intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: Erin(Erin_lo(1):Erin_hi(1),Erin_lo(2):Erin_hi(2),Erin_lo(3):Erin_hi(3),0:ngroups-1)
+    real(rt), intent(in   ) :: lam(lam_lo(1):lam_hi(1),lam_lo(2):lam_hi(2),lam_lo(3):lam_hi(3),0:ngroups-1)
 #endif
 
-    real(rt)        , intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt)        , intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+    real(rt), intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
-    real(rt)        , parameter :: small = 1.e-8_rt
+    real(rt), parameter :: small = 1.e-8_rt
 
-    integer          :: i, j, k, g
-    integer          :: n, iq, ipassive
-    real(rt)         :: kineng, rhoinv
-    real(rt)         :: vel(3)
+    integer  :: i, j, k, g
+    integer  :: n, iq, ipassive
+    real(rt) :: kineng, rhoinv
+    real(rt) :: vel(3)
 
     type (eos_t) :: eos_state
 
 #ifdef RADIATION
-    real(rt)         :: ptot, ctot, gamc_tot
+    real(rt) :: ptot, ctot, gamc_tot
+    real(rt) :: lams(0:ngroups-1), qs(NQ)
 #endif
 
     !$gpu
@@ -586,8 +594,10 @@ contains
              qaux(i,j,k,QGAMCG)   = eos_state % gam1
              qaux(i,j,k,QCG)      = eos_state % cs
 
-             call compute_ptot_ctot(lam(i,j,k,:), q(i,j,k,:), qaux(i,j,k,QCG), &
-                  ptot, ctot, gamc_tot)
+             lams(:) = lam(i,j,k,:)
+             qs(:) = q(i,j,k,:)
+             call compute_ptot_ctot(lams, qs, qaux(i,j,k,QCG), &
+                                    ptot, ctot, gamc_tot)
 
              q(i,j,k,QPTOT) = ptot
 
@@ -618,13 +628,13 @@ contains
                           src, src_lo, src_hi, &
                           srcQ,srQ_lo, srQ_hi) bind(c,name='ca_srctoprim')
 
-    use actual_network, only : nspec, naux
-    use meth_params_module, only : NVAR, NSRC, URHO, UMX, UMY, UMZ, UEINT, &
-         NQSRC, QRHO, QU, QV, QW, NQ, &
-         QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
-         npassive, upass_map, qpass_map
+    use actual_network, only: nspec, naux
+    use meth_params_module, only: NVAR, NSRC, URHO, UMX, UMY, UMZ, UEINT, &
+                                   NQSRC, QRHO, QU, QV, QW, NQ, &
+                                   QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
+                                   npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -640,7 +650,10 @@ contains
     real(rt)        , intent(inout) :: srcQ(srQ_lo(1):srQ_hi(1),srQ_lo(2):srQ_hi(2),srQ_lo(3):srQ_hi(3),NQSRC)
 
     integer          :: i, j, k
+#ifdef PRIM_SPECIES_HAVE_SOURCES
     integer          :: n, iq, ipassive
+#endif
+
     real(rt)         :: rhoinv
 
     !$gpu
@@ -707,7 +720,7 @@ contains
     use meth_params_module, only: NGDNV, GDRHO, GDU, GDW, GDPRES, QRHO, QW
 #endif
     use prob_params_module, only: mom_flux_has_p
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
     implicit none
 
     integer :: dir, idx(3)
@@ -771,13 +784,13 @@ contains
 
 
   subroutine limit_hydro_fluxes_on_small_dens(lo, hi, &
-       idir, &
-       u, u_lo, u_hi, &
-       q, q_lo, q_hi, &
-       vol, vol_lo, vol_hi, &
-       flux, flux_lo, flux_hi, &
-       area, area_lo, area_hi, &
-       dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
+                                              idir, &
+                                              u, u_lo, u_hi, &
+                                              q, q_lo, q_hi, &
+                                              vol, vol_lo, vol_hi, &
+                                              flux, flux_lo, flux_hi, &
+                                              area, area_lo, area_hi, &
+                                              dt, dx) bind(c, name="limit_hydro_fluxes_on_small_dens")
     ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
     ! "Positivity-preserving method for high-order conservative schemes solving
     ! compressible Euler equations." It has been modified to enforce not only positivity
@@ -963,10 +976,190 @@ contains
 
 
 
+  subroutine limit_hydro_fluxes_on_large_vel(lo, hi, &
+                                             idir, &
+                                             u, u_lo, u_hi, &
+                                             q, q_lo, q_hi, &
+                                             vol, vol_lo, vol_hi, &
+                                             flux, flux_lo, flux_hi, &
+                                             area, area_lo, area_hi, &
+                                             dt, dx) bind(c, name="limit_hydro_fluxes_on_large_vel")
+    ! This limiter is similar to the density-based limiter above, but limits
+    ! on velocities that are too large instead. The comments are minimal since
+    ! the algorithm is effectively the same.
+
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+    use meth_params_module, only: NVAR, NQ, URHO, UMX, UTEMP, USHK, cfl, speed_limit
+    use prob_params_module, only: dim
+
+    implicit none
+
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    integer, intent(in), value :: idir
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: vol_lo(3), vol_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: flux_lo(3), flux_hi(3)
+    integer, intent(in) :: area_lo(3), area_hi(3)
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
+
+    real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
+    real(rt), intent(in   ) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
+
+    integer  :: i, j, k, n
+
+    real(rt) :: fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), dtdx, theta, alpha
+    real(rt) :: rhouL, rhouR, drhouL, drhouR, rhouLF, drhouLF
+    real(rt) :: rhoL, rhoR, drhoL, drhoR
+    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ), volL, volR, flux_coefL, flux_coefR
+    integer  :: idxL(3), idxR(3), UMOM
+
+    real(rt) :: momentum_ceiling
+
+    !$gpu
+
+    dtdx = dt / dx(idir)
+    alpha = ONE / DIM
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             uR = u(i,j,k,:)
+             qR = q(i,j,k,:)
+             volR = vol(i,j,k)
+             idxR = [i,j,k]
+
+             if (idir == 1) then
+                uL = u(i-1,j,k,:)
+                qL = q(i-1,j,k,:)
+                volL = vol(i-1,j,k)
+                idxL = [i-1,j,k]
+             else if (idir == 2) then
+                uL = u(i,j-1,k,:)
+                qL = q(i,j-1,k,:)
+                volL = vol(i,j-1,k)
+                idxL = [i,j-1,k]
+             else
+                uL = u(i,j,k-1,:)
+                qL = q(i,j,k-1,:)
+                volL = vol(i,j,k-1)
+                idxL = [i,j,k-1]
+             end if
+
+             ! Construct cell-centered fluxes.
+
+             fluxL = dflux(uL, qL, idir, idxL)
+             fluxR = dflux(uR, qR, idir, idxR)
+
+             ! Construct the Lax-Friedrichs flux on the interface.
+
+             fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (uL(:) - uR(:)))
+
+             ! Coefficients of fluxes on either side of the interface.
+
+             flux_coefR = TWO * (dt / alpha) * area(i,j,k) / volR
+             flux_coefL = TWO * (dt / alpha) * area(i,j,k) / volL
+
+             theta = ONE
+
+             ! Loop over all three momenta, and choose the strictest
+             ! limiter among them.
+
+             do n = 1, 3
+
+                UMOM = UMX + n - 1
+
+                ! Obtain the one-sided update to the momentum.
+
+                drhouL = flux_coefL * flux(i,j,k,UMOM)
+                rhouL = abs(uL(UMOM) - drhouL)
+
+                drhoL = flux_coefL * flux(i,j,k,URHO)
+                rhoL = uL(URHO) - drhoL
+
+                drhouR = flux_coefR * flux(i,j,k,UMOM)
+                rhouR = abs(uR(UMOM) + drhouR)
+
+                drhoR = flux_coefR * flux(i,j,k,URHO)
+                rhoR = uR(uRHO) + drhoR
+
+                if (abs(rhouL) > rhoL * speed_limit) then
+
+                   ! Obtain the final density corresponding to the LF flux.
+
+                   drhouLF = flux_coefL * fluxLF(UMOM)
+                   rhouLF = abs(uL(UMOM) - drhouLF)
+
+                   ! Solve for theta from (1 - theta) * rhouLF + theta * rhou = momentum_ceiling.
+
+                   theta = (momentum_ceiling - rhouLF) / (rhouL - rhouLF)
+
+                   ! Limit theta to the valid range (this will deal with roundoff issues).
+
+                   theta = min(ONE, max(theta, ZERO))
+
+                else if (abs(rhouR) > rhoR * speed_limit) then
+
+                   drhouLF = flux_coefR * fluxLF(UMOM)
+                   rhouLF = abs(uR(UMOM) + drhouLF)
+
+                   theta = (momentum_ceiling - abs(rhouLF)) / (abs(rhouR - rhouLF))
+
+                   theta = min(ONE, max(theta, ZERO))
+
+                endif
+
+             end do
+
+             ! Assemble the limited flux (Equation 16).
+
+             flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
+
+             ! Zero out fluxes for quantities that don't advect.
+
+             flux(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
+             flux(i,j,k,USHK) = ZERO
+#endif
+
+             ! Now, apply our requirement that the final flux cannot violate the momentum ceiling.
+
+             do n = 1, 3
+
+                UMOM = UMX + n - 1
+
+                drhouR = flux_coefR * flux(i,j,k,UMOM)
+                drhouL = flux_coefL * flux(i,j,k,UMOM)
+
+                drhoR = flux_coefR * flux(i,j,k,URHO)
+                drhoL = flux_coefL * flux(i,j,k,URHO)
+
+                if (abs(uR(UMOM) + drhouR) > (uR(URHO) + drhoR) * speed_limit) then
+                   flux(i,j,k,:) = flux(i,j,k,:) * abs((momentum_ceiling - abs(uR(UMOM))) / drhouR)
+                else if (abs(uL(UMOM) - drhouL) > (uL(URHO) - drhoL) * speed_limit) then
+                   flux(i,j,k,:) = flux(i,j,k,:) * abs((momentum_ceiling - abs(uL(UMOM))) / drhouL)
+                endif
+
+             end do
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine limit_hydro_fluxes_on_large_vel
+
+
+
   subroutine ca_shock(lo, hi, &
-       q, qd_lo, qd_hi, &
-       shk, s_lo, s_hi, &
-       dx) bind(C, name="ca_shock")
+                      q, qd_lo, qd_hi, &
+                      shk, s_lo, s_hi, &
+                      dx) bind(C, name="ca_shock")
     ! This is a basic multi-dimensional shock detection algorithm.
     ! This implementation follows Flash, which in turn follows
     ! AMRA and a Woodward (1995) (supposedly -- couldn't locate that).
@@ -975,11 +1168,11 @@ contains
     ! Woodward (1984)
     !
 
-    use meth_params_module, only : QPRES, QU, QV, QW, NQ
-    use prob_params_module, only : coord_type
+    use meth_params_module, only: QPRES, QU, QV, QW, NQ
+    use prob_params_module, only: coord_type
     use amrex_constants_module, only: ZERO, HALF, ONE
     use castro_error_module
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -1141,15 +1334,15 @@ contains
 
 
   subroutine divu(lo, hi, &
-       q, q_lo, q_hi, &
-       dx, div, div_lo, div_hi) bind(C, name='divu')
+                  q, q_lo, q_hi, &
+                  dx, div, div_lo, div_hi) bind(C, name='divu')
     ! this computes the *node-centered* divergence
     !
 
-    use meth_params_module, only : QU, QV, QW, NQ
-    use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
-    use prob_params_module, only : dg, coord_type, problo
-    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module, only: QU, QV, QW, NQ
+    use amrex_constants_module, only: HALF, FOURTH, ONE, ZERO
+    use prob_params_module, only: dg, coord_type, problo
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -1278,111 +1471,6 @@ contains
   end subroutine divu
 
 
-  subroutine avisc(lo, hi, &
-       q, q_lo, q_hi, &
-       qaux, qa_lo, qa_hi, &
-       dx, avis, a_lo, a_hi, idir)
-    ! this computes the *face-centered* artifical viscosity using the
-    ! 4th order expression from McCorquodale & Colella (Eq. 35)
-
-    use meth_params_module, only : QU, QV, QW, QC, NQ, NQAUX
-    use amrex_constants_module, only : HALF, FOURTH, ONE, ZERO
-    use prob_params_module, only : dg, coord_type, problo
-    use amrex_fort_module, only : rt => amrex_real
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: a_lo(3), a_hi(3)
-    integer, intent(in) :: idir
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(inout) :: avis(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
-
-    real(rt) :: coeff, cmin
-
-    real(rt), parameter :: beta = 0.3_rt
-
-    integer :: i, j, k
-
-    real(rt) :: dxinv, dyinv, dzinv
-
-    dxinv = ONE/dx(1)
-    dyinv = ONE/dx(2)
-    dzinv = ONE/dx(3)
-
-    do k = lo(3), hi(3)+dg(3)
-       do j = lo(2), hi(2)+dg(2)
-          do i = lo(1), hi(1)+1
-
-             if (idir == 1) then
-
-                ! normal direction
-                avis(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) * dxinv
-#if BL_SPACEDIM >= 2
-                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j+1,k,QV) - q(i,j-1,k,QV) + &
-                     q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV)) * dyinv
-#endif
-#if BL_SPACEDIM >= 3
-                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
-                     q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW)) * dzinv
-#endif
-
-                cmin = min(qaux(i,j,k,QC), qaux(i-1,j,k,QC))
-
-             else if (idir == 2) then
-
-                ! normal direction
-                avis(i,j,k) = (q(i,j,k,QV) - q(i,j-1,k,QV)) * dyinv
-
-                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i+1,j,k,QU) - q(i-1,j,k,QU) + &
-                     q(i+1,j-1,k,QU) - q(i-1,j-1,k,QU)) * dxinv
-
-#if BL_SPACEDIM >= 3
-                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j,k+1,QW) - q(i,j,k-1,QW) + &
-                     q(i,j-1,k+1,QW) - q(i,j-1,k-1,QW)) * dzinv
-#endif
-
-                cmin = min(qaux(i,j,k,QC), qaux(i,j-1,k,QC))
-
-             else
-
-                ! normal direction
-                avis(i,j,k) = (q(i,j,k,QW) - q(i,j,k-1,QW)) * dzinv
-
-                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i,j+1,k,QV) - q(i,j-1,k,QV) + &
-                     q(i,j+1,k-1,QV) - q(i,j-1,k-1,QV)) * dyinv
-
-                avis(i,j,k) = avis(i,j,k) + 0.25_rt*( &
-                     q(i+1,j,k,QU) - q(i-1,j,k,QU) + &
-                     q(i+1,j,k-1,QU) - q(i-1,j,k-1,QU)) * dxinv
-
-                cmin = min(qaux(i,j,k,QC), qaux(i,j,k-1,QC))
-
-             endif
-
-             ! MC Eq. 36
-             coeff = min(ONE, (dx(idir)*avis(i,j,k))**2/(beta * cmin**2))
-
-             if (avis(i,j,k) < ZERO) then
-                avis(i,j,k) = dx(idir)*avis(i,j,k)*coeff
-             else
-                avis(i,j,k) = ZERO
-             endif
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine avisc
 
   ! :::
   ! ::: ------------------------------------------------------------------
@@ -1406,7 +1494,7 @@ contains
 
     use meth_params_module, only: NGDNV, GDPRES, GDU, GDV, GDW
     use amrex_constants_module, only: HALF, ONE
-    use amrex_fort_module, only : rt => amrex_real
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
@@ -1433,8 +1521,6 @@ contains
 
     real(rt) :: volinv
     real(rt) :: pdu
-
-    real(rt) :: dxinv, dyinv, dzinv
 
     !$gpu
 
@@ -1512,9 +1598,9 @@ contains
 
 
   subroutine apply_av(lo, hi, idir, dx, &
-       div, div_lo, div_hi, &
-       uin, uin_lo, uin_hi, &
-       flux, f_lo, f_hi) bind(c, name="apply_av")
+                      div, div_lo, div_hi, &
+                      uin, uin_lo, uin_hi, &
+                      flux, f_lo, f_hi) bind(c, name="apply_av")
 
     use amrex_constants_module, only: ZERO, FOURTH
     use meth_params_module, only: NVAR, UTEMP, USHK, difmag
@@ -1585,14 +1671,14 @@ contains
 
 #ifdef RADIATION
   subroutine apply_av_rad(lo, hi, idir, dx, &
-       div, div_lo, div_hi, &
-       Erin, Ein_lo, Ein_hi, &
-       radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
+                          div, div_lo, div_hi, &
+                          Erin, Ein_lo, Ein_hi, &
+                          radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
 
     use amrex_constants_module, only: ZERO, FOURTH
     use meth_params_module, only: NVAR, UTEMP, USHK, difmag
     use prob_params_module, only: dg
-    use rad_params_module, only : ngroups
+    use rad_params_module, only: ngroups
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -1655,13 +1741,15 @@ contains
 
   subroutine scale_flux(lo, hi, &
 #if AMREX_SPACEDIM == 1
-       qint, qi_lo, qi_hi, &
+                        qint, qi_lo, qi_hi, &
 #endif
-       flux, f_lo, f_hi, &
-       area, a_lo, a_hi, dt) bind(c, name="scale_flux")
+                        flux, f_lo, f_hi, &
+                        area, a_lo, a_hi, dt) bind(c, name="scale_flux")
 
     use meth_params_module, only: NVAR, GDPRES, UMX, NGDNV
-    use prob_params_module, only : coord_type
+#if AMREX_SPACEDIM == 1
+    use prob_params_module, only: coord_type
+#endif
 
     implicit none
 
@@ -1702,10 +1790,10 @@ contains
 
 #ifdef RADIATION
   subroutine scale_rad_flux(lo, hi, &
-       rflux, rf_lo, rf_hi, &
-       area, a_lo, a_hi, dt) bind(c, name="scale_rad_flux")
+                            rflux, rf_lo, rf_hi, &
+                            area, a_lo, a_hi, dt) bind(c, name="scale_rad_flux")
 
-    use rad_params_module, only : ngroups
+    use rad_params_module, only: ngroups
 
     implicit none
 

@@ -111,12 +111,13 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
   ! called by ALL processors during restart 
 
+  use amrex_fort_module, only: rt => amrex_real
   use amrex_IO_module
   use probdata_module, only: com_P, com_S, vel_P, vel_S, mass_P, mass_S, t_ff_P, t_ff_S, problem, &
                              T_global_max, rho_global_max, ts_te_global_max, &
                              jobIsDone, num_previous_ener_timesteps, total_ener_array, &
                              problem, relaxation_is_done
-  use wdmerger_util_module, only: turn_off_relaxation
+  use wdmerger_util_module, only: set_relaxation_damping_factor
   use problem_io_module, only: ioproc
   use prob_params_module, only: center
   use meth_params_module, only: rot_period
@@ -243,7 +244,7 @@ subroutine problem_restart(int_dir_name, len) bind(C, name="problem_restart")
 
   if (relaxation_is_done == 1) then
 
-     call turn_off_relaxation(-1.0d0)
+     call set_relaxation_damping_factor(-1.0_rt)
 
   endif
 

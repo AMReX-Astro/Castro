@@ -19,12 +19,12 @@ extern "C"
             const int* coord_type);
 
   void ca_compute_radial_mass
-    (const int lo[], const int hi[], 
-     const amrex::Real* dx, const amrex::Real* dr,
-     const BL_FORT_FAB_ARG(S), 
+    (const int* lo, const int* hi, 
+     const amrex::Real* dx, amrex::Real dr,
+     const BL_FORT_FAB_ARG_3D(S), 
      amrex::Real* avgmass, amrex::Real* avgvol, 
-     const amrex::Real* problo, const int* numpts_1d, 
-     const int* drdxfac, const int* level); 
+     const amrex::Real* problo, int numpts_1d, 
+     int drdxfac, int level); 
 
   void ca_compute_avgpres
     (const int lo[], const int hi[], 
@@ -71,13 +71,13 @@ extern "C"
      const int* n1d, const int* level); 
 
   void ca_put_radial_phi
-    (const int lo[], const int hi[], 
-     const int domlo[], const int domhi[], 
-     const amrex::Real* dx, const amrex::Real* dr,
-     BL_FORT_FAB_ARG(phi),
+    (const int* lo, const int* hi, 
+     const int* domlo, const int* domhi, 
+     const amrex::Real* dx, amrex::Real dr,
+     BL_FORT_FAB_ARG_3D(phi),
      const amrex::Real* radial_phi,
      const amrex::Real* problo, 
-     const int* numpts_1d, const int* fill_interior);
+     int numpts_1d, int fill_interior);
 
   void init_multipole_gravity
     (const int* lnum, const int* lo_bc, const int* hi_bc);
@@ -105,14 +105,14 @@ extern "C"
 
   void ca_compute_direct_sum_bc
     (const int* lo, const int* hi, const amrex::Real* dx,
-     const int* symmetry_type, const int* lo_bc, const int* hi_bc,
-     const amrex::Real* rho, const int* r_lo, const int* r_hi,
-     const amrex::Real* vol, const int* v_lo, const int* v_hi,
+     const int symmetry_type, const int* physbc_lo, const int* physbc_hi,
+     const BL_FORT_FAB_ARG_3D(rho),
+     const BL_FORT_FAB_ARG_3D(vol),
      const amrex::Real* problo, const amrex::Real* probhi,
      amrex::Real* bcXYLo, amrex::Real* bcXYHi,
      amrex::Real* bcXZLo, amrex::Real* bcXZHi,
      amrex::Real* bcYZLo, amrex::Real* bcYZHi,
-     const int* bclo, const int* bchi, const amrex::Real* bcdx);
+     const int* bc_lo, const int* bc_hi, const amrex::Real* bc_dx);
 
   void ca_put_direct_sum_bc
     (const int* lo, const int* hi, 
@@ -120,7 +120,7 @@ extern "C"
      const amrex::Real* bcXYLo, const amrex::Real* bcXYHi,
      const amrex::Real* bcXZLo, const amrex::Real* bcXZHi,
      const amrex::Real* bcYZLo, const amrex::Real* bcYZHi,
-     const int* bclo, const int* bchi);
+     const int* bc_lo, const int* bc_hi);
 
   void pm_add_to_grav
     (const int* lo, const int* hi,

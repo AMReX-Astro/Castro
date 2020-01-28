@@ -272,8 +272,9 @@ contains
     integer,  intent(in   ) :: react_lo(3), react_hi(3)
     integer,  intent(in   ) :: domlo(3), domhi(3)
     integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
+    real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: react(react_lo(1):react_hi(1),react_lo(2):react_hi(2),react_lo(3):react_hi(3))
+    real(rt), intent(in   ), value :: time
 
     !$gpu
 

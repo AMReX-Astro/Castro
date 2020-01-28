@@ -287,6 +287,43 @@ subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
 
 end subroutine ca_get_ngdnv
 
+
+#ifdef REACTIONS
+subroutine ca_get_abort_on_failure(abort_on_failure_in) bind(C, name="ca_get_abort_on_failure")
+
+  use extern_probin_module, only : abort_on_failure
+
+  implicit none
+
+  integer, intent(inout) :: abort_on_failure_in
+
+  if (abort_on_failure) then
+     abort_on_failure_in = 1
+  else
+     abort_on_failure_in = 0
+  endif
+
+end subroutine ca_get_abort_on_failure
+
+
+subroutine ca_set_abort_on_failure(abort_on_failure_in) bind(C, name="ca_set_abort_on_failure")
+
+  use extern_probin_module, only : abort_on_failure
+
+  implicit none
+
+  integer, intent(inout) :: abort_on_failure_in
+
+  if (abort_on_failure_in >= 1) then
+     abort_on_failure = .true.
+  else
+     abort_on_failure_in = .false.
+  endif
+
+end subroutine ca_set_abort_on_failure
+#endif
+
+
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
@@ -728,7 +765,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !$acc device(USHK) &
   !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC) &
   !$acc device(QFA, QFS, QFX) &
-  !$acc device(NQAUX, NQSRC, QGAMC, QC, QDPDR, QDPDE) &
+  !$acc device(QGAMC, QC, QDPDR, QDPDE) &
 #ifdef RADIATION
   !$acc device(QGAMCG, QCG, QLAMS) &
 #endif
@@ -856,6 +893,15 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   mom_flux_has_p(3)%comp(UMY) = .false.
   mom_flux_has_p(3)%comp(UMZ) = .true.
 
+  !$acc update device(physbc_lo, physbc_hi)
+  !$acc update device(Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall)
+  !$acc update device(dim)
+  !$acc update device(dg)
+  !$acc update device(coord_type)
+  !$acc update device(center, problo, probhi)
+  !$acc update device(domlo_level, domhi_level, dx_level)
+  !$acc update device(ref_ratio, n_error_buf, blocking_factor)
+  !$acc update device(mom_flux_has_p)
 
 end subroutine ca_set_problem_params
 

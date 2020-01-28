@@ -24,9 +24,15 @@ class RadSolve {
 ///
 /// @param Parent
 ///
-  RadSolve(amrex::Amr* Parent);
-  virtual ~RadSolve() { }
+  RadSolve (amrex::Amr* Parent, int level,
+            const amrex::BoxArray& grids,
+            const amrex::DistributionMapping& dmap);
+  ~RadSolve () {}
 
+///
+/// query runtime parameters
+///
+  static void read_params ();
 
 ///
 /// @param level
@@ -243,30 +249,24 @@ class RadSolve {
 /// @param muTg
 /// @param muYg
 /// @param coupT
-/// @param coupY
 /// @param etaT
-/// @param etaY
-/// @param thetaT
-/// @param thetaY
 /// @param Er_step
 /// @param rhoe_step
-/// @param rhoYe_step
 /// @param Er_star
 /// @param rhoe_star
-/// @param rhoYe_star
 /// @param delta_t
 /// @param igroup
 /// @param it
 /// @param ptc_tau
 ///
   void levelRhs(int level, amrex::MultiFab& rhs, const amrex::MultiFab& jg,
-		const amrex::MultiFab& muTg, const amrex::MultiFab& muYg,
-		const amrex::MultiFab& coupT, const amrex::MultiFab& coupY,
-		const amrex::MultiFab& etaT, const amrex::MultiFab& etaY,
-		const amrex::MultiFab& thetaT, const amrex::MultiFab& thetaY,
-		const amrex::MultiFab& Er_step, const amrex::MultiFab& rhoe_step, const amrex::MultiFab& rhoYe_step,
-		const amrex::MultiFab& Er_star, const amrex::MultiFab& rhoe_star, const amrex::MultiFab& rhoYe_star,
+		const amrex::MultiFab& muTg,
+		const amrex::MultiFab& coupT,
+		const amrex::MultiFab& etaT,
+		const amrex::MultiFab& Er_step, const amrex::MultiFab& rhoe_step,
+		const amrex::MultiFab& Er_star, const amrex::MultiFab& rhoe_star,
 		amrex::Real delta_t, int igroup, int it, amrex::Real ptc_tau);
+
   void levelSPas(int level, amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda, int igroup,
 		 int lo_bc[], int hi_bc[]);
 
@@ -297,25 +297,13 @@ class RadSolve {
 
 protected:
 
-  int use_hypre_nonsymmetric_terms;
-  int level_solver_flag;
+    amrex::Amr* parent;
 
-  amrex::Real reltol, abstol;
-  int maxiter;
+    std::unique_ptr<HypreABec> hd;
+    std::unique_ptr<HypreMultiABec> hm;
 
-  amrex::Real alpha, beta;
-  amrex::Amr* parent;
+#include <radsolve_params.H>
 
-  int verbose;
-
-  HypreABec      *hd;
-  HypreMultiABec *hm;
-
-
-///
-/// static storage for sync tolerance information
-///
-  static amrex::Vector<amrex::Real> absres;
 };
 
 #endif

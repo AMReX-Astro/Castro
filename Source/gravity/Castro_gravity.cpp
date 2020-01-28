@@ -1,7 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
-#ifdef SELF_GRAVITY
 #include "Gravity.H"
 
 using namespace amrex;
@@ -225,18 +224,15 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
     }
 
 }
-#endif
 
-void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Real time, Real dt)
+void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
     BL_PROFILE("Castro::construct_old_gravity_source()");
 
     const Real strt_time = ParallelDescriptor::second();
 
-#ifdef SELF_GRAVITY
     const MultiFab& phi_old = get_old_data(PhiGrav_Type);
     const MultiFab& grav_old = get_old_data(Gravity_Type);
-#endif
 
     if (!do_grav) return;
 
@@ -249,18 +245,16 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
 
 #pragma gpu box(bx)
 	ca_gsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-		BL_TO_FORTRAN_ANYD(state[mfi]),
-#ifdef SELF_GRAVITY
+		BL_TO_FORTRAN_ANYD(state_in[mfi]),
 		BL_TO_FORTRAN_ANYD(phi_old[mfi]),
 		BL_TO_FORTRAN_ANYD(grav_old[mfi]),
-#endif
 		BL_TO_FORTRAN_ANYD(source[mfi]),
 		AMREX_REAL_ANYD(dx), dt, time);
 
@@ -291,13 +285,11 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
     const Real strt_time = ParallelDescriptor::second();
 
-#ifdef SELF_GRAVITY
     MultiFab& phi_old = get_old_data(PhiGrav_Type);
     MultiFab& phi_new = get_new_data(PhiGrav_Type);
 
     MultiFab& grav_old = get_old_data(Gravity_Type);
     MultiFab& grav_new = get_new_data(Gravity_Type);
-#endif
 
     if (!do_grav) return;
 
@@ -309,7 +301,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 #pragma omp parallel
 #endif
     {
-	for (MFIter mfi(state_new, true); mfi.isValid(); ++mfi)
+	for (MFIter mfi(state_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
 	{
 	    const Box& bx = mfi.tilebox();
 
@@ -318,12 +310,10 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 			AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
 			BL_TO_FORTRAN_ANYD(state_old[mfi]),
 			BL_TO_FORTRAN_ANYD(state_new[mfi]),
-#ifdef SELF_GRAVITY
 			BL_TO_FORTRAN_ANYD(phi_old[mfi]),
 			BL_TO_FORTRAN_ANYD(phi_new[mfi]),
 			BL_TO_FORTRAN_ANYD(grav_old[mfi]),
 			BL_TO_FORTRAN_ANYD(grav_new[mfi]),
-#endif
 			BL_TO_FORTRAN_ANYD(volume[mfi]),
 			BL_TO_FORTRAN_ANYD((*mass_fluxes[0])[mfi]),
 			BL_TO_FORTRAN_ANYD((*mass_fluxes[1])[mfi]),

@@ -1,23 +1,21 @@
 # sources used with gravity
 # this is included if USE_GRAV = TRUE
 
-ifeq ($(USE_SELF_GRAV), TRUE)
-  CEXE_sources += Gravity.cpp
-  CEXE_headers += Gravity.H
-  FEXE_headers += Gravity_F.H
-endif
+CEXE_sources += Gravity.cpp
+CEXE_headers += Gravity.H
+FEXE_headers += Gravity_F.H
+CEXE_headers += Castro_gravity.H
+FEXE_headers += Castro_gravity_F.H
 
 CEXE_sources += Castro_gravity.cpp
 
 CEXE_sources += Castro_pointmass.cpp
 ca_F90EXE_sources += pointmass_nd.F90
 
-ifeq ($(USE_GRAV), TRUE)
-  ca_F90EXE_sources += prescribe_phi_nd.F90
-  ca_F90EXE_sources += prescribe_grav_nd.F90
-  ca_F90EXE_sources += Gravity_nd.F90
-  ca_F90EXE_sources += gravity_sources_nd.F90
-endif
+ca_F90EXE_sources += prescribe_phi_nd.F90
+ca_F90EXE_sources += prescribe_grav_nd.F90
+ca_F90EXE_sources += Gravity_nd.F90
+ca_F90EXE_sources += gravity_sources_nd.F90
 
 ca_f90EXE_sources += Gravity_$(DIM)d.f90
 

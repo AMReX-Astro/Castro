@@ -4,7 +4,7 @@
 using namespace amrex;
 
 void
-Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time, Real dt)
+Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
   if (!(time_integration_method == SpectralDeferredCorrections)) return;
 
@@ -14,7 +14,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state, Real time
 
   thermo_src.setVal(0.0);
 
-  fill_thermo_source(time, dt, state, state, thermo_src);
+  fill_thermo_source(time, dt, state_in, state_in, thermo_src);
 
   Real mult_factor = 1.0;
 
@@ -61,7 +61,7 @@ Castro::fill_thermo_source (Real time, Real dt,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(thermo_src, true); mfi.isValid(); ++mfi)
+  for (MFIter mfi(thermo_src, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
       const Box& bx = mfi.tilebox();

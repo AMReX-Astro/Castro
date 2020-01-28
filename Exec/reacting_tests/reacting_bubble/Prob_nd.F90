@@ -1,4 +1,4 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module
   use model_parser_module
@@ -11,29 +11,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin, i
-
-  namelist /fortin/ model_name, pert_temp_factor, pert_rad_factor
-
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
-  ! Build "probin" filename from C++ land --
-  ! the name of file containing fortin namelist.
-
-  if (namlen .gt. maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-
-  ! Namelist defaults
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  call probdata_init(name, namlen)
 
   ! Read initial model
   call read_model_file(model_name)

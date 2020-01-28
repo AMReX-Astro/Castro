@@ -630,21 +630,6 @@ class HypreMultiABec {
                     int icomp,
 		    BC_Mode inhom);
 
-///
-/// Matrix apply (matrix-vector multiply) only implemented for single level
-///
-/// @param level
-/// @param product
-/// @param vector
-/// @param icomp
-/// @param inhom
-///
-  void initializeApplyLevel(int level,
-			    amrex::MultiFab& product,
-			    amrex::MultiFab& vector,
-                            int icomp,
-			    BC_Mode inhom);
-  void apply();
 
 ///
 /// @param level
