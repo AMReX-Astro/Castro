@@ -26,10 +26,11 @@ Castro::consup_hydro(const Box& bx,
                      Array4<Real const> const area2,
 #endif
                      Array4<Real const> const vol,
-                     const Real* dx, const Real dt)
+                     const Real dt)
 {
 
 
+  const auto dx = geom.CellSizeArray();
 
   // For hydro, we will create an update source term that is
   // essentially the flux divergence.  This can be added with dt to
@@ -80,7 +81,7 @@ Castro::consup_hydro(const Box& bx,
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
 
-      if (! mom_flux_has_p[0][0]) {
+      if (! momx_flux_has_p(0)) {
         update(i,j,k,UMX) += - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
 #endif
@@ -95,6 +96,7 @@ Castro::consup_hydro(const Box& bx,
 #endif
 
     }
+
 
 
   });

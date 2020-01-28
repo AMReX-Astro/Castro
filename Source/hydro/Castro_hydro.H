@@ -80,7 +80,7 @@
                       amrex::Array4<amrex::Real const> const area2,
 #endif
                       amrex::Array4<amrex::Real const> const vol,
-                      const amrex::Real* dx, const amrex::Real dt);
+                      const amrex::Real dt);
 
 #ifdef HYBRID_MOMENTUM
     void add_hybrid_advection_source(const int i, const int j, const int k,

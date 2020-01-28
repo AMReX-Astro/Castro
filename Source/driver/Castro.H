@@ -1210,7 +1210,9 @@ protected:
     // Does the momentum flux include the pressure term?
     // First index is the coordinate direction, second
     // index is the momentum direction.
-    amrex::Array<amrex::Array<bool, 3>, 3> mom_flux_has_p;
+    amrex::Array1D<int, 0, 2> momx_flux_has_p;
+    amrex::Array1D<int, 0, 2> momy_flux_has_p;
+    amrex::Array1D<int, 0, 2> momz_flux_has_p;
 
 ///
 /// Scalings for the flux registers.

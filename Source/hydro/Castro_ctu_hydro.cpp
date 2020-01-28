@@ -1179,7 +1179,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       Array4<Real> const vol_arr = volume.array(mfi);
 
-#pragma gpu box(bx)
       consup_hydro(bx,
                    shk_arr,
                    update_arr,
@@ -1191,7 +1190,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    flz_arr, qz_arr, areaz_arr,
 #endif
                    vol_arr,
-                   dx, dt);
+                   dt);
 
 
 #ifdef RADIATION
