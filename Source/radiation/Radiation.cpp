@@ -627,15 +627,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   delta_e_rat_level.resize(levels, 0.0);
   delta_T_rat_level.resize(levels, 0.0);
 
-  Density   = castro->Density;
-  Xmom      = castro->Xmom;
-  Eden      = castro->Eden;
-  Eint      = castro->Eint;
-  Temp      = castro->Temp;
-  FirstSpec = castro->FirstSpec;
-  FirstAux  = castro->FirstAux;
-  NUM_STATE = castro->NUM_STATE;
-
   pp.query("flatten_pp_threshold", flatten_pp_threshold);
   pp.query("pure_hydro", pure_hydro);
 

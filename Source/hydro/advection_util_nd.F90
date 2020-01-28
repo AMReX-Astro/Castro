@@ -452,7 +452,7 @@ contains
          NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
          QCG, QGAMCG, QLAMS, &
-         QPTOT, QRAD, QRADHI, QREITOT, &
+         QPTOT, QRAD, QREITOT, &
 #endif
          npassive, upass_map, qpass_map, dual_energy_eta1, &
          small_dens
@@ -562,7 +562,7 @@ contains
 
              q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
 #ifdef RADIATION
-             q(i,j,k,qrad:qradhi) = Erin(i,j,k,:)
+             q(i,j,k,qrad:qrad-1+ngroups) = Erin(i,j,k,:)
 #endif
 
              ! Load passively advected quatities into q
@@ -608,7 +608,7 @@ contains
                 qaux(i,j,k,QLAMS+g) = lam(i,j,k,g)
              enddo
 
-             q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qradhi))
+             q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qrad-1+ngroups))
 #else
              qaux(i,j,k,QGAMC)  = eos_state % gam1
              qaux(i,j,k,QC   )  = eos_state % cs

@@ -37,7 +37,7 @@ contains
                                    QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   qrad, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -278,7 +278,7 @@ contains
              ekenry = HALF*rrry*sum(qyp(i,j,k,QU:QW)**2)
              rery = qyp(i,j,k,QREINT) + ekenry
 #ifdef RADIATION
-             err  = qyp(i,j,k,qrad:qradhi)
+             err  = qyp(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
 #if AMREX_SPACEDIM == 2
@@ -402,9 +402,9 @@ contains
              call reset_edge_state_thermo(qypo, qypo_lo, qypo_hi, i, j, k)
 
 #ifdef RADIATION
-             qypo(i,j,k,qrad:qradhi) = ernewr(:)
+             qypo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
              qypo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qypo(i,j,k,QPRES)
-             qypo(i,j,k,qreitot) = sum(qypo(i,j,k,qrad:qradhi)) + qypo(i,j,k,QREINT)
+             qypo(i,j,k,qreitot) = sum(qypo(i,j,k,qrad:qrad-1+ngroups)) + qypo(i,j,k,QREINT)
 #endif
 
 
@@ -493,7 +493,7 @@ contains
              ekenly = HALF*rrly*sum(qym(i,j,k,QU:QW)**2)
              rely = qym(i,j,k,QREINT) + ekenly
 #ifdef RADIATION
-             erl  = qym(i,j,k,qrad:qradhi)
+             erl  = qym(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
 #if AMREX_SPACEDIM == 2
@@ -605,9 +605,9 @@ contains
              call reset_edge_state_thermo(qymo, qymo_lo, qymo_hi, i, j, k)
 
 #ifdef RADIATION
-             qymo(i,j,k,qrad:qradhi) = ernewl(:)
+             qymo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
              qymo(i,j,k,qptot  ) = sum(lambda(:)*ernewl(:)) + qymo(i,j,k,QPRES)
-             qymo(i,j,k,qreitot) = sum(qymo(i,j,k,qrad:qradhi)) + qymo(i,j,k,QREINT)
+             qymo(i,j,k,qreitot) = sum(qymo(i,j,k,qrad:qrad-1+ngroups)) + qymo(i,j,k,QREINT)
 #endif
 
           end do
@@ -639,7 +639,7 @@ contains
                                  QPRES, QREINT, QGAME, &
                                  QC, QGAMC, &
 #ifdef RADIATION
-                                 qrad, qradhi, qptot, qreitot, &
+                                 qrad, qptot, qreitot, &
                                  fspace_type, comoving, &
                                  GDERADS, GDLAMS, &
                                  QCG, QGAMCG, QLAMS, &
@@ -824,7 +824,7 @@ contains
              ekenrz = HALF*rrrz*sum(qzp(i,j,k,QU:QW)**2)
              rerz = qzp(i,j,k,QREINT) + ekenrz
 #ifdef RADIATION
-             err  = qzp(i,j,k,qrad:qradhi)
+             err  = qzp(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -899,9 +899,9 @@ contains
              call reset_edge_state_thermo(qzpo, qzpo_lo, qzpo_hi, i, j, k)
 
 #ifdef RADIATION
-             qzpo(i,j,k,qrad:qradhi) = ernewr(:)
+             qzpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
              qzpo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qzpo(i,j,k,QPRES)
-             qzpo(i,j,k,qreitot) = sum(qzpo(i,j,k,qrad:qradhi)) + qzpo(i,j,k,QREINT)
+             qzpo(i,j,k,qreitot) = sum(qzpo(i,j,k,qrad:qrad-1+ngroups)) + qzpo(i,j,k,QREINT)
 #endif
 
              !-------------------------------------------------------------------
@@ -970,7 +970,7 @@ contains
              ekenlz = HALF*rrlz*sum(qzm(i,j,k,QU:QW)**2)
              relz = qzm(i,j,k,QREINT) + ekenlz
 #ifdef RADIATION
-             erl  = qzm(i,j,k,qrad:qradhi)
+             erl  = qzm(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -1044,9 +1044,9 @@ contains
              call reset_edge_state_thermo(qzmo, qzmo_lo, qzmo_hi, i, j, k)
 
 #ifdef RADIATION
-             qzmo(i,j,k,qrad:qradhi) = ernewl(:)
+             qzmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
              qzmo(i,j,k,qptot  ) = sum(lambda(:)*ernewl(:)) + qzmo(i,j,k,QPRES)
-             qzmo(i,j,k,qreitot) = sum(qzmo(i,j,k,qrad:qradhi)) + qzmo(i,j,k,QREINT)
+             qzmo(i,j,k,qreitot) = sum(qzmo(i,j,k,qrad:qrad-1+ngroups)) + qzmo(i,j,k,QREINT)
 #endif
 
           end do
@@ -1081,7 +1081,7 @@ contains
                                    QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   qrad, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -1262,7 +1262,7 @@ contains
              ekenrx = HALF*rrrx*sum(qxp(i,j,k,QU:QW)**2)
              rerx = qxp(i,j,k,QREINT) + ekenrx
 #ifdef RADIATION
-             err  = qxp(i,j,k,qrad:qradhi)
+             err  = qxp(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -1336,9 +1336,9 @@ contains
              call reset_edge_state_thermo(qxpo, qxpo_lo, qxpo_hi, i, j, k)
 
 #ifdef RADIATION
-             qxpo(i,j,k,qrad:qradhi) = ernewr(:)
+             qxpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
              qxpo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qxpo(i,j,k,QPRES)
-             qxpo(i,j,k,qreitot) = sum(qxpo(i,j,k,qrad:qradhi)) + qxpo(i,j,k,QREINT)
+             qxpo(i,j,k,qreitot) = sum(qxpo(i,j,k,qrad:qrad-1+ngroups)) + qxpo(i,j,k,QREINT)
 #endif
 
 
@@ -1408,7 +1408,7 @@ contains
              ekenlx = HALF*rrlx*sum(qxm(i,j,k,QU:QW)**2)
              relx = qxm(i,j,k,QREINT) + ekenlx
 #ifdef RADIATION
-             erl  = qxm(i,j,k,qrad:qradhi)
+             erl  = qxm(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -1481,9 +1481,9 @@ contains
              call reset_edge_state_thermo(qxmo, qxmo_lo, qxmo_hi, i, j, k)
 
 #ifdef RADIATION
-             qxmo(i,j,k,qrad:qradhi) = ernewl(:)
+             qxmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
              qxmo(i,j,k,qptot  ) = sum(lambda(:)*ernewl(:)) + qxmo(i,j,k,QPRES)
-             qxmo(i,j,k,qreitot) = sum(qxmo(i,j,k,qrad:qradhi)) + qxmo(i,j,k,QREINT)
+             qxmo(i,j,k,qreitot) = sum(qxmo(i,j,k,qrad:qrad-1+ngroups)) + qxmo(i,j,k,QREINT)
 #endif
 
           end do
@@ -1516,7 +1516,7 @@ contains
                                    QC, QGAMC, &
                                    GDU, GDV, GDW, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   qrad, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -1697,7 +1697,7 @@ contains
              ekenrz = HALF*rrrz*sum(qzp(i,j,k,QU:QW)**2)
              rerz = qzp(i,j,k,QREINT) + ekenrz
 #ifdef RADIATION
-             err  = qzp(i,j,k,qrad:qradhi)
+             err  = qzp(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -1771,9 +1771,9 @@ contains
              call reset_edge_state_thermo(qzpo, qzpo_lo, qzpo_hi, i, j, k)
 
 #ifdef RADIATION
-             qzpo(i,j,k,qrad:qradhi) = ernewr(:)
+             qzpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
              qzpo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qzpo(i,j,k,QPRES)
-             qzpo(i,j,k,qreitot) = sum(qzpo(i,j,k,qrad:qradhi)) + qzpo(i,j,k,QREINT)
+             qzpo(i,j,k,qreitot) = sum(qzpo(i,j,k,qrad:qrad-1+ngroups)) + qzpo(i,j,k,QREINT)
 #endif
 
              !-------------------------------------------------------------------
@@ -1843,7 +1843,7 @@ contains
              ekenlz = HALF*rrlz*sum(qzm(i,j,k,QU:QW)**2)
              relz = qzm(i,j,k,QREINT) + ekenlz
 #ifdef RADIATION
-             erl  = qzm(i,j,k,qrad:qradhi)
+             erl  = qzm(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -1917,9 +1917,9 @@ contains
              call reset_edge_state_thermo(qzmo, qzmo_lo, qzmo_hi, i, j, k)
 
 #ifdef RADIATION
-             qzmo(i,j,k,qrad:qradhi) = ernewl(:)
+             qzmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
              qzmo(i,j,k,qptot  ) = sum(lambda(:)*ernewl(:)) + qzmo(i,j,k,QPRES)
-             qzmo(i,j,k,qreitot) = sum(qzmo(i,j,k,qrad:qradhi)) + qzmo(i,j,k,QREINT)
+             qzmo(i,j,k,qreitot) = sum(qzmo(i,j,k,qrad:qrad-1+ngroups)) + qzmo(i,j,k,QREINT)
 #endif
 
           end do
@@ -1956,7 +1956,7 @@ contains
                                    QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   qrad, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -2136,7 +2136,7 @@ contains
              ekenrx = HALF*rrrx*sum(qxp(i,j,k,QU:QW)**2)
              rerx = qxp(i,j,k,QREINT) + ekenrx
 #ifdef RADIATION
-             errx = qxp(i,j,k,qrad:qradhi)
+             errx = qxp(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -2210,9 +2210,9 @@ contains
              call reset_edge_state_thermo(qxpo, qxpo_lo, qxpo_hi, i, j, k)
 
 #ifdef RADIATION
-             qxpo(i,j,k,qrad:qradhi) = ernewrx(:)
+             qxpo(i,j,k,qrad:qrad-1+ngroups) = ernewrx(:)
              qxpo(i,j,k,qptot  ) = sum(lambda(:)*ernewrx(:)) + qxpo(i,j,k,QPRES)
-             qxpo(i,j,k,qreitot) = sum(qxpo(i,j,k,qrad:qradhi)) + qxpo(i,j,k,QREINT)
+             qxpo(i,j,k,qreitot) = sum(qxpo(i,j,k,qrad:qrad-1+ngroups)) + qxpo(i,j,k,QREINT)
 #endif
 
              !-------------------------------------------------------------------
@@ -2281,7 +2281,7 @@ contains
              ekenlx = HALF*rrlx*sum(qxm(i,j,k,QU:QW)**2)
              relx = qxm(i,j,k,QREINT) + ekenlx
 #ifdef RADIATION
-             erlx = qxm(i,j,k,qrad:qradhi)
+             erlx = qxm(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -2353,9 +2353,9 @@ contains
              call reset_edge_state_thermo(qxmo, qxmo_lo, qxmo_hi, i, j, k)
 
 #ifdef RADIATION
-             qxmo(i,j,k,qrad:qradhi) = ernewlx(:)
+             qxmo(i,j,k,qrad:qrad-1+ngroups) = ernewlx(:)
              qxmo(i,j,k,qptot  ) = sum(lambda(:)*ernewlx(:)) + qxmo(i,j,k,QPRES)
-             qxmo(i,j,k,qreitot) = sum(qxmo(i,j,k,qrad:qradhi)) + qxmo(i,j,k,QREINT)
+             qxmo(i,j,k,qreitot) = sum(qxmo(i,j,k,qrad:qrad-1+ngroups)) + qxmo(i,j,k,QREINT)
 #endif
 
           end do
@@ -2387,7 +2387,7 @@ contains
                                    QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   qrad, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -2567,7 +2567,7 @@ contains
              ekenry = HALF*rrry*sum(qyp(i,j,k,QU:QW)**2)
              rery = qyp(i,j,k,QREINT) + ekenry
 #ifdef RADIATION
-             erry = qyp(i,j,k,qrad:qradhi)
+             erry = qyp(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -2641,9 +2641,9 @@ contains
              call reset_edge_state_thermo(qypo, qypo_lo, qypo_hi, i, j, k)
 
 #ifdef RADIATION
-             qypo(i,j,k,qrad:qradhi) = ernewry(:)
+             qypo(i,j,k,qrad:qrad-1+ngroups) = ernewry(:)
              qypo(i,j,k,qptot  ) = sum(lambda(:)*ernewry(:)) + qypo(i,j,k,QPRES)
-             qypo(i,j,k,qreitot) = sum(qypo(i,j,k,qrad:qradhi)) + qypo(i,j,k,QREINT)
+             qypo(i,j,k,qreitot) = sum(qypo(i,j,k,qrad:qrad-1+ngroups)) + qypo(i,j,k,QREINT)
 #endif
 
              !-------------------------------------------------------------------
@@ -2711,7 +2711,7 @@ contains
              ekenly = HALF*rrly*sum(qym(i,j,k,QU:QW)**2)
              rely = qym(i,j,k,QREINT) + ekenly
 #ifdef RADIATION
-             erly = qym(i,j,k,qrad:qradhi)
+             erly = qym(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -2785,9 +2785,9 @@ contains
              call reset_edge_state_thermo(qymo, qymo_lo, qymo_hi, i, j, k)
 
 #ifdef RADIATION
-             qymo(i,j,k,qrad:qradhi) = ernewly(:)
+             qymo(i,j,k,qrad:qrad-1+ngroups) = ernewly(:)
              qymo(i,j,k,qptot  ) = sum(lambda(:)*ernewly(:)) + qymo(i,j,k,QPRES)
-             qymo(i,j,k,qreitot) = sum(qymo(i,j,k,qrad:qradhi)) + qymo(i,j,k,QREINT)
+             qymo(i,j,k,qreitot) = sum(qymo(i,j,k,qrad:qrad-1+ngroups)) + qymo(i,j,k,QREINT)
 #endif
 
           end do
@@ -2826,7 +2826,7 @@ contains
                                    QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   qrad, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -3039,7 +3039,7 @@ contains
              ekenr = HALF*rrr*sum(qp(i,j,k,QU:QW)**2)
              rer = qp(i,j,k,QREINT) + ekenr
 #ifdef RADIATION
-             err = qp(i,j,k,qrad:qradhi)
+             err = qp(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -3120,9 +3120,9 @@ contains
              call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
-             qpo(i,j,k,qrad:qradhi) = ernewr(:)
+             qpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
              qpo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qpo(i,j,k,QPRES)
-             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qradhi)) + qpo(i,j,k,QREINT)
+             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qrad-1+ngroups)) + qpo(i,j,k,QREINT)
 #endif
 
              !-------------------------------------------------------------------
@@ -3217,7 +3217,7 @@ contains
              ekenl = HALF*rrl*sum(qm(i,j,k,QU:QW)**2)
              rel = qm(i,j,k,QREINT) + ekenl
 #ifdef RADIATION
-             erl = qm(i,j,k,qrad:qradhi)
+             erl = qm(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -3296,9 +3296,9 @@ contains
              call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i, j, k)
 
 #ifdef RADIATION
-             qmo(i,j,k,qrad:qradhi) = ernewl(:)
+             qmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
              qmo(i,j,k,qptot) = sum(lambda(:)*ernewl(:)) + qmo(i,j,k,QPRES)
-             qmo(i,j,k,qreitot) = sum(qmo(i,j,k,qrad:qradhi)) + qmo(i,j,k,QREINT)
+             qmo(i,j,k,qreitot) = sum(qmo(i,j,k,qrad:qrad-1+ngroups)) + qmo(i,j,k,QREINT)
 #endif
 
           end do
@@ -3337,7 +3337,7 @@ contains
                                    QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   qrad, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -3548,7 +3548,7 @@ contains
              ekenr = HALF*rrr*sum(qp(i,j,k,QU:QW)**2)
              rer = qp(i,j,k,QREINT) + ekenr
 #ifdef RADIATION
-             err = qp(i,j,k,qrad:qradhi)
+             err = qp(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -3629,9 +3629,9 @@ contains
              call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
-             qpo(i,j,k,qrad:qradhi) = ernewr(:)
+             qpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
              qpo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qpo(i,j,k,QPRES)
-             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qradhi)) + qpo(i,j,k,QREINT)
+             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qrad-1+ngroups)) + qpo(i,j,k,QREINT)
 #endif
 
              !-------------------------------------------------------------------
@@ -3726,7 +3726,7 @@ contains
              ekenl = HALF*rrl*sum(qm(i,j,k,QU:QW)**2)
              rel = qm(i,j,k,QREINT) + ekenl
 #ifdef RADIATION
-             erl = qm(i,j,k,qrad:qradhi)
+             erl = qm(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -3806,9 +3806,9 @@ contains
              call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i, j, k)
 
 #ifdef RADIATION
-             qmo(i,j,k,qrad:qradhi) = ernewl(:)
+             qmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
              qmo(i,j,k,qptot  ) = sum(lambda(:)*ernewl(:)) + qmo(i,j,k,QPRES)
-             qmo(i,j,k,qreitot) = sum(qmo(i,j,k,qrad:qradhi)) + qmo(i,j,k,QREINT)
+             qmo(i,j,k,qreitot) = sum(qmo(i,j,k,qrad:qrad-1+ngroups)) + qmo(i,j,k,QREINT)
 #endif
 
           end do
@@ -3848,7 +3848,7 @@ contains
                                    QPRES, QREINT, QGAME, &
                                    QC, QGAMC, &
 #ifdef RADIATION
-                                   qrad, qradhi, qptot, qreitot, &
+                                   qrad, qptot, qreitot, &
                                    fspace_type, comoving, &
                                    GDERADS, GDLAMS, &
                                    QCG, QGAMCG, QLAMS, &
@@ -4060,7 +4060,7 @@ contains
              ekenr = HALF*rrr*sum(qp(i,j,k,QU:QW)**2)
              rer = qp(i,j,k,QREINT) + ekenr
 #ifdef RADIATION
-             err = qp(i,j,k,qrad:qradhi)
+             err = qp(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -4142,9 +4142,9 @@ contains
              call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
-             qpo(i,j,k,qrad:qradhi) = ernewr(:)
+             qpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
              qpo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qpo(i,j,k,QPRES)
-             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qradhi)) + qpo(i,j,k,QREINT)
+             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qrad-1+ngroups)) + qpo(i,j,k,QREINT)
 #endif
 
 
@@ -4240,7 +4240,7 @@ contains
              ekenl = HALF*rrl*sum(qm(i,j,k,QU:QW)**2)
              rel = qm(i,j,k,QREINT) + ekenl
 #ifdef RADIATION
-             erl = qm(i,j,k,qrad:qradhi)
+             erl = qm(i,j,k,qrad:qrad-1+ngroups)
 #endif
 
              ! Add transverse predictor
@@ -4320,9 +4320,9 @@ contains
              call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i, j, k)
 
 #ifdef RADIATION
-             qmo(i,j,k,qrad:qradhi) = ernewl(:)
+             qmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
              qmo(i,j,k,qptot  ) = sum(lambda(:)*ernewl(:)) + qmo(i,j,k,QPRES)
-             qmo(i,j,k,qreitot) = sum(qmo(i,j,k,qrad:qradhi)) + qmo(i,j,k,QREINT)
+             qmo(i,j,k,qreitot) = sum(qmo(i,j,k,qrad:qrad-1+ngroups)) + qmo(i,j,k,QREINT)
 #endif
 
           end do

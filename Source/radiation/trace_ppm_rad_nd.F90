@@ -29,7 +29,7 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
                                    QREINT, QPRES, QGAME, QC, QCG, QGAMC, QGAMCG, QLAMS, QTEMP, &
-                                   qrad, qradhi, qptot, qreitot, &
+                                   qrad, qptot, qreitot, &
                                    small_dens, small_pres, &
                                    ppm_type, ppm_temp_fix, &
                                    ppm_predict_gammae
@@ -250,7 +250,7 @@ contains
 
              ptot = q(i,j,k,qptot)
 
-             er(:) = q(i,j,k,qrad:qradhi)
+             er(:) = q(i,j,k,qrad:qrad-1+ngroups)
              hr(:) = (lam0+ONE)*er/rho
 
 
@@ -332,7 +332,7 @@ contains
 
                 ptot_ref = Im(1,QPTOT)
 
-                er_ref(:) = Im(1,QRAD:QRADHI)
+                er_ref(:) = Im(1,QRAD:QRAD-1+ngroups)
 
 
                 rho_ref = max(rho_ref,small_dens)
@@ -354,7 +354,7 @@ contains
 
                 ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
                 dtau  = tau_ref  - ONE/Im(2,QRHO) + hdt*Im_src(2,QRHO)/Im(2,QRHO)**2
-                der(:)  = er_ref(:)  - Im(2,qrad:qradhi)
+                der(:)  = er_ref(:)  - Im(2,qrad:qrad-1+ngroups)
 
                 dup    = un_ref    - Im(3,QUN) - hdt*Im_src(3,QUN)
                 dptotp = ptot_ref - Im(3,qptot) - hdt*Im_src(3,QPRES)
@@ -436,7 +436,7 @@ contains
                    qp(i,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
 
                    qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qp(i,j,k,qrad:qradhi) = qrtmp
+                   qp(i,j,k,qrad:qrad-1+ngroups) = qrtmp
 
                    qp(i,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
                    qp(i,j,k,qreitot) = qp(i,j,k,QREINT) + sum(qrtmp)
@@ -452,7 +452,7 @@ contains
                    qp(i,j,k,QREINT) = qp(i,j,k,QPRES )/(qp(i,j,k,QGAME) - ONE)
 
                    qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                   qp(i,j,k,qrad:qradhi) = qrtmp
+                   qp(i,j,k,qrad:qrad-1+ngroups) = qrtmp
 
                    qp(i,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
                    qp(i,j,k,qreitot) = qp(i,j,k,QREINT) + sum(qrtmp)
@@ -509,7 +509,7 @@ contains
 
                 ptot_ref = Ip(3,QPTOT)
 
-                er_ref(:) = Ip(3,QRAD:QRADHI)
+                er_ref(:) = Ip(3,QRAD:QRAD-1+ngroups)
 
                 rho_ref = max(rho_ref,small_dens)
                 p_ref = max(p_ref,small_pres)
@@ -524,7 +524,7 @@ contains
                 dptot   = ptot_ref   - Ip(2,qptot) - hdt*Ip_src(2,QPRES)
                 drhoe_g = rhoe_g_ref - Ip(2,QREINT) - hdt*Ip_src(2,QREINT)
                 dtau  = tau_ref  - ONE/Ip(2,QRHO) + hdt*Ip_src(2,QRHO)/Ip(2,QRHO)**2
-                der(:)  = er_ref(:)  - Ip(2,qrad:qradhi)
+                der(:)  = er_ref(:)  - Ip(2,qrad:qrad-1+ngroups)
 
                 dup    = un_ref    - Ip(3,QUN) - hdt*Ip_src(3,QUN)
                 dptotp = ptot_ref - Ip(3,qptot) - hdt*Ip_src(3,QPRES)
@@ -607,7 +607,7 @@ contains
                       qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
 
                       qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                      qm(i+1,j,k,qrad:qradhi) = qrtmp
+                      qm(i+1,j,k,qrad:qrad-1+ngroups) = qrtmp
 
                       qm(i+1,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
                       qm(i+1,j,k,qreitot) = qm(i+1,j,k,QREINT) + sum(qrtmp)
@@ -619,7 +619,7 @@ contains
                       qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
 
                       qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                      qm(i,j+1,k,qrad:qradhi) = qrtmp
+                      qm(i,j+1,k,qrad:qrad-1+ngroups) = qrtmp
 
                       qm(i,j+1,k,qptot) = ptot_ref + (alphap + alpham)*csq
                       qm(i,j+1,k,qreitot) = qm(i,j+1,k,QREINT) + sum(qrtmp)
@@ -631,7 +631,7 @@ contains
                       qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
 
                       qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                      qm(i,j,k+1,qrad:qradhi) = qrtmp
+                      qm(i,j,k+1,qrad:qrad-1+ngroups) = qrtmp
 
                       qm(i,j,k+1,qptot) = ptot_ref + (alphap + alpham)*csq
                       qm(i,j,k+1,qreitot) = qm(i,j,k+1,QREINT) + sum(qrtmp)
@@ -651,7 +651,7 @@ contains
                       qm(i+1,j,k,QREINT) = qm(i+1,j,k,QPRES )/(qm(i+1,j,k,QGAME) - ONE)
 
                       qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                      qm(i+1,j,k,qrad:qradhi) = qrtmp
+                      qm(i+1,j,k,qrad:qrad-1+ngroups) = qrtmp
 
                       qm(i+1,j,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
                       qm(i+1,j,k,qreitot) = qm(i+1,j,k,QREINT) + sum(qrtmp)
@@ -667,7 +667,7 @@ contains
                       qm(i,j+1,k,QREINT) = qm(i,j+1,k,QPRES )/(qm(i,j+1,k,QGAME) - ONE)
 
                       qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                      qm(i,j+1,k,qrad:qradhi) = qrtmp
+                      qm(i,j+1,k,qrad:qrad-1+ngroups) = qrtmp
 
                       qm(i,j+1,k,qptot) = ptot_ref - (alphap + alpham)*Clag**2
                       qm(i,j+1,k,qreitot) = qm(i,j+1,k,QREINT) + sum(qrtmp)
@@ -683,7 +683,7 @@ contains
                       qm(i,j,k+1,QREINT) = qm(i,j,k+1,QPRES )/(qm(i,j,k+1,QGAME) - ONE)
 
                       qrtmp = er_ref(:) - (alphap + alpham)*hr/tau**2 + alphar(:)
-                      qm(i,j,k+1,qrad:qradhi) = qrtmp
+                      qm(i,j,k+1,qrad:qrad-1+ngroups) = qrtmp
 
                       qm(i,j,k+1,qptot) = ptot_ref - (alphap + alpham)*Clag**2
                       qm(i,j,k+1,qreitot) = qm(i,j,k+1,QREINT) + sum(qrtmp)
@@ -758,10 +758,10 @@ contains
                    qm(i+1,j,k,QRHO  ) = max(qm(i+1,j,k,QRHO), small_dens)
                    qm(i+1,j,k,QPRES ) = qm(i+1,j,k,QPRES ) + sourcp
                    qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
-                   qm(i+1,j,k,qrad:qradhi) = qm(i+1,j,k,qrad:qradhi) + sourcer(:)
+                   qm(i+1,j,k,qrad:qrad-1+ngroups) = qm(i+1,j,k,qrad:qrad-1+ngroups) + sourcer(:)
                    ! qm(i+1,j,k,qptot ) = sum(lamm(:)*qm(i+1,j,k,qrad:qradhi)) + qm(i+1,j,k,QPRES)
                    qm(i+1,j,k,qptot) = qm(i+1,j,k,qptot) + sum(lamm(:)*sourcer(:)) + sourcp
-                   qm(i+1,j,k,qreitot) = sum(qm(i+1,j,k,qrad:qradhi))  + qm(i+1,j,k,QREINT)
+                   qm(i+1,j,k,qreitot) = sum(qm(i+1,j,k,qrad:qrad-1+ngroups))  + qm(i+1,j,k,QREINT)
                 end if
 
                 if (i >= vlo(1)) then
@@ -769,10 +769,10 @@ contains
                    qp(i,j,k,QRHO  ) = max(qp(i,j,k,QRHO), small_dens)
                    qp(i,j,k,QPRES ) = qp(i,j,k,QPRES ) + sourcp
                    qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source
-                   qp(i,j,k,qrad:qradhi) = qp(i,j,k,qrad:qradhi) + sourcer(:)
+                   qp(i,j,k,qrad:qrad-1+ngroups) = qp(i,j,k,qrad:qrad-1+ngroups) + sourcer(:)
                    ! qp(i  ,qptot ) = sum(lamp(:)*qp(i,qrad:qradhi)) + qp(i,QPRES)
                    qp(i,j,k,qptot) = qp(i,j,k,qptot) + sum(lamp(:)*sourcer(:)) + sourcp
-                   qp(i,j,k,qreitot) = sum(qp(i,j,k,qrad:qradhi))  + qp(i,j,k,QREINT)
+                   qp(i,j,k,qreitot) = sum(qp(i,j,k,qrad:qrad-1+ngroups))  + qp(i,j,k,QREINT)
                 end if
              endif
 #endif
