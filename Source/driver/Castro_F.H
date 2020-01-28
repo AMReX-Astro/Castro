@@ -97,7 +97,11 @@ extern "C"
      const int& GDLAMS_in, const int& GDERADS_in,
 #endif
      const int& GDRHO_in, const int& GDU_in, const int& GDV_in, const int& GDW_in,
-     const int& GDPRES_in, const int& GDGAME_in);
+     const int& GDPRES_in, const int& GDGAME_in,
+#ifdef RADIATION
+     const int& QGAMCG_in, const int& QCG_in, const int& QLAMS_in,
+#endif
+     const int& QGAMC_in, const int& QC_in, const int& QDPDR_in, const int& QDPDE_in);
 
   void ca_finalize_meth_params();
 

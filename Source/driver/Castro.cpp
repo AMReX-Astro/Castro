@@ -111,6 +111,16 @@ int          Castro::GDLAMS = -1;
 int          Castro::GDERADS = -1;
 #endif
 
+int          Castro::QGAMC = -1;
+int          Castro::QC = -1;
+int          Castro::QDPDR = -1;
+int          Castro::QDPDE = -1;
+#ifdef RADIATION
+int          Castro::QGAMCG = -1;
+int          Castro::QCG = -1;
+int          Castro::QLAMS = -1;
+#endif
+
 int          Castro::NumSpec       = 0;
 int          Castro::FirstSpec     = -1;
 
@@ -134,6 +144,10 @@ int          Castro::NGDNV         = -1;
 Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
+
+Vector<int> Castro::upass_map;
+Vector<int> Castro::qpass_map;
+int  Castro::npassive = -1;
 
 #ifdef TRUE_SDC
 int          Castro::SDC_NODES;
