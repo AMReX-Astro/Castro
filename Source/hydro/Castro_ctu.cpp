@@ -36,6 +36,8 @@ Castro::consup_hydro(const Box& bx,
   // essentially the flux divergence.  This can be added with dt to
   // get the update
 
+  const int flux_has_p = momx_flux_has_p[0];
+
   AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
   {
 
@@ -81,7 +83,7 @@ Castro::consup_hydro(const Box& bx,
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
 
-      if (! momx_flux_has_p(0)) {
+      if (! flux_has_p) {
         update(i,j,k,UMX) += - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
 #endif
