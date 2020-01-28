@@ -59,6 +59,7 @@ matrix:
           - gfortran
           - libgmp-dev
           - libmpfr-dev
+          - python3
       before_script:
         - export AMREX_HOME=~/amrex
         - export MICROPHYSICS_HOME=~/Microphysics
