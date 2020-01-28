@@ -400,6 +400,7 @@ extern "C"
 
   void ca_mol_plm_reconstruct
     (const int* lo, const int* hi,
+     const int idir,
      BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(dq),
@@ -410,6 +411,7 @@ extern "C"
 
   void ca_mol_ppm_reconstruct
     (const int* lo, const int* hi,
+     const int idir,
      BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(qm),
