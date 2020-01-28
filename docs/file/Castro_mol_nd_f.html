@@ -246,7 +246,7 @@
 <p class="rubric">Subroutines and functions</p>
 <dl class="subroutine">
 <dt id="f/castro_mol_module/ca_mol_plm_reconstruct">
-<em class="property">subroutine  </em><code class="descclassname">castro_mol_module/</code><code class="descname">ca_mol_plm_reconstruct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>flatn</em>, <em>fl_lo</em>, <em>fl_hi</em>, <em>dq</em>, <em>dq_lo</em>, <em>dq_hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>dx</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/castro_mol_module/ca_mol_plm_reconstruct" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">castro_mol_module/</code><code class="descname">ca_mol_plm_reconstruct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>idir</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>flatn</em>, <em>fl_lo</em>, <em>fl_hi</em>, <em>dq</em>, <em>dq_lo</em>, <em>dq_hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>dx</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/castro_mol_module/ca_mol_plm_reconstruct" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -254,6 +254,7 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 <li><strong>q</strong> (q_hi(1)-(q_lo(1))+1,q_hi(2)-(q_lo(2))+1,q_hi(3)-(q_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>q_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>q_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
@@ -263,10 +264,10 @@
 <li><strong>dq</strong> (dq_hi(1)-(dq_lo(1))+1,dq_hi(2)-(dq_lo(2))+1,dq_hi(3)-(dq_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>dq_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>dq_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qm</strong> (qm_hi(1)-(qm_lo(1))+1,qm_hi(2)-(qm_lo(2))+1,qm_hi(3)-(qm_lo(3))+1,nq,amrex_spacedim)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qm</strong> (qm_hi(1)-(qm_lo(1))+1,qm_hi(2)-(qm_lo(2))+1,qm_hi(3)-(qm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>qm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qp</strong> (qp_hi(1)-(qp_lo(1))+1,qp_hi(2)-(qp_lo(2))+1,qp_hi(3)-(qp_lo(3))+1,nq,amrex_spacedim)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qp</strong> (qp_hi(1)-(qp_lo(1))+1,qp_hi(2)-(qp_lo(2))+1,qp_hi(3)-(qp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>qp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
@@ -287,7 +288,7 @@
 
 <dl class="subroutine">
 <dt id="f/castro_mol_module/ca_mol_ppm_reconstruct">
-<em class="property">subroutine  </em><code class="descclassname">castro_mol_module/</code><code class="descname">ca_mol_ppm_reconstruct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>flatn</em>, <em>fl_lo</em>, <em>fl_hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/castro_mol_module/ca_mol_ppm_reconstruct" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">castro_mol_module/</code><code class="descname">ca_mol_ppm_reconstruct</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>idir</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>flatn</em>, <em>fl_lo</em>, <em>fl_hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/castro_mol_module/ca_mol_ppm_reconstruct" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -295,16 +296,17 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 <li><strong>q</strong> (q_hi(1)-(q_lo(1))+1,q_hi(2)-(q_lo(2))+1,q_hi(3)-(q_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>q_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>q_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>flatn</strong> (fl_hi(1)-(fl_lo(1))+1,fl_hi(2)-(fl_lo(2))+1,fl_hi(3)-(fl_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>fl_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>fl_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qm</strong> (qm_hi(1)-(qm_lo(1))+1,qm_hi(2)-(qm_lo(2))+1,qm_hi(3)-(qm_lo(3))+1,nq,amrex_spacedim)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qm</strong> (qm_hi(1)-(qm_lo(1))+1,qm_hi(2)-(qm_lo(2))+1,qm_hi(3)-(qm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>qm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qp</strong> (qp_hi(1)-(qp_lo(1))+1,qp_hi(2)-(qp_lo(2))+1,qp_hi(3)-(qp_lo(3))+1,nq,amrex_spacedim)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qp</strong> (qp_hi(1)-(qp_lo(1))+1,qp_hi(2)-(qp_lo(2))+1,qp_hi(3)-(qp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>qp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
