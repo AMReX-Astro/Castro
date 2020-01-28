@@ -194,9 +194,9 @@ Castro::restart (Amr&     papa,
       // two components. The y- and z-momentum are zeroed out.
 
       for (int n = 0; n < ns; n++) {
-	if (n < Ymom)
+	if (n < UMY)
 	  MultiFab::Copy(new_data, chk_data, n,   n, 1, ng);
-	else if (n == Ymom || n == Zmom)
+	else if (n == UMY || n == UMZ)
 	  new_data.setVal(0.0, n, 1, ng);
 	else
 	  MultiFab::Copy(new_data, chk_data, n-2, n, 1, ng);
@@ -208,9 +208,9 @@ Castro::restart (Amr&     papa,
       // shifting by one component.
 
       for (int n = 0; n < ns; n++) {
-	if (n < Zmom)
+	if (n < UMZ)
 	  MultiFab::Copy(new_data, chk_data, n,   n, 1, ng);
-	else if (n == Zmom)
+	else if (n == UMZ)
 	  new_data.setVal(0.0, n, 1, ng);
 	else
 	  MultiFab::Copy(new_data, chk_data, n-1, n, 1, ng);
@@ -469,7 +469,7 @@ Castro::restart (Amr&     papa,
 
     if (do_grav && level == 0) {
        BL_ASSERT(gravity == 0);
-       gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
+       gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
     }
 #endif
 

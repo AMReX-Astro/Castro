@@ -338,7 +338,7 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
 
             actual_h_max = std::max(actual_h_max, enthalpy[lev]->max(0));
-            actual_rho_max = std::max(actual_rho_max, state[lev]->max(Density));
+            actual_rho_max = std::max(actual_rho_max, state[lev]->max(URHO));
 
         }
 
