@@ -1,44 +1,69 @@
 dist: bionic
 
-language: python
+matrix:
+  include:
+    - name: "deploy docs"
+      language: python
+      python:
+        - "3.7-dev"
+      before_install:
+        - export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g")
+      #  - pwd
+      #  - cd ~/; git clone https://github.com/amrex-codes/amrex
+      #  - cd ~/; git clone https://github.com/amrex-codes/regression_testing
+      addons:
+        apt:
+            packages:
+            - g++
+            - gfortran
+            - libgmp-dev
+            - libmpfr-dev
+            - pandoc
+            - doxygen
+      install:
+        - pip install -r requirements.txt
+      before_script:
+        - export AMREX_HOME=~/amrex
+      script:
+        - ls -l
+        - pwd
+      # after_success:
+        - ./deploy_docs.sh
+      # deploy:
+      #   provider: pages
+      #   skip-cleanup: true
+      #   github-token: $GITHUB_TOKEN
+      #   keep-history: true
+      #   on:
+      #     branch: master
 
-python:
-  - "3.7-dev"
-
-before_install:
-  - export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g")
-#  - pwd
-#  - cd ~/; git clone https://github.com/amrex-codes/amrex
-#  - cd ~/; git clone https://github.com/amrex-codes/regression_testing
-
-
-addons:
-   apt:
-      packages:
-      - g++
-      - gfortran
-      - libgmp-dev
-      - libmpfr-dev
-      - pandoc
-      - doxygen
-
-install:
-  - pip install -r requirements.txt
-
-before_script:
-  - export AMREX_HOME=~/amrex
-
-script:
-  - ls -l
-  - pwd
-
-# after_success:
-  - ./deploy_docs.sh
-
-# deploy:
-#   provider: pages
-#   skip-cleanup: true
-#   github-token: $GITHUB_TOKEN
-#   keep-history: true
-#   on:
-#     branch: master
+    - name: "clang static analysis"
+      if: type = pull_request OR type = api
+      language: cpp
+      compiler: 
+        - clang
+      before_install:
+        - cd ~/; git clone https://github.com/amrex-codes/amrex
+        - cd ~/amrex; git checkout development
+        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'echo "#endif" >> "{}"' \;
+        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'sed -i "1s/^/#ifndef __clang_analyzer__\n/" {}' \;
+        - cd ~/; git clone https://github.com/starkiller-astro/Microphysics.git
+        - cd ~/Microphysics; git checkout development
+        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'echo "#endif" >> "{}"' \;
+        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'sed -i "1s/^/#ifndef __clang_analyzer__\n/" {}' \;
+        - cd $TRAVIS_BUILD_DIR
+      addons:
+        apt:
+          packages:
+          - g++
+          - gfortran
+          - libgmp-dev
+          - libmpfr-dev
+          - python3
+      before_script:
+        - export AMREX_HOME=~/amrex
+        - export MICROPHYSICS_HOME=~/Microphysics
+        - export CASTRO_HOME=$TRAVIS_BUILD_DIR
+      script:
+        - cd $TRAVIS_BUILD_DIR/Exec/science/flame_wave; scan-build -enable-checker security.FloatLoopCounter -enable-checker security.insecureAPI.UncheckedReturn make -j 2 USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE 2>&1 | tee clang_analysis.txt
+        - python3 $TRAVIS_BUILD_DIR/Util/code_checker/clang_static_analysis.py clang_analysis.txt
