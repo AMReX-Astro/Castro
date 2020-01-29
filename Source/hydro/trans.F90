@@ -53,8 +53,6 @@ contains
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor ! function
 #endif
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_t
 #if AMREX_SPACEDIM == 2
     use prob_params_module, only : mom_flux_has_p
 #endif
@@ -655,8 +653,6 @@ contains
   use rad_params_module, only : ngroups
   use fluxlimiter_module, only : Edd_factor ! function
 #endif
-  use eos_module, only: eos
-  use eos_type_module, only: eos_input_rt, eos_t
 #if AMREX_SPACEDIM == 2
   use prob_params_module, only : mom_flux_has_p
 #endif
@@ -1097,9 +1093,6 @@ contains
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor ! function
 #endif
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_t
-
 
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
     integer, intent(in) :: qxp_lo(3), qxp_hi(3)
@@ -1532,8 +1525,6 @@ contains
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor ! function
 #endif
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_t
 
     integer, intent(in) :: qzm_lo(3), qzm_hi(3)
     integer, intent(in) :: qzp_lo(3), qzp_hi(3)
@@ -1972,9 +1963,6 @@ contains
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor ! function
 #endif
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_t
-
 
     integer, intent(in) :: qxm_lo(3), qxm_hi(3)
     integer, intent(in) :: qxmo_lo(3), qxmo_hi(3)
@@ -2403,9 +2391,6 @@ contains
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor ! function
 #endif
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_t
-
 
     integer, intent(in) :: qym_lo(3), qym_hi(3)
     integer, intent(in) :: qymo_lo(3), qymo_hi(3)
@@ -2842,9 +2827,6 @@ contains
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor ! function
 #endif
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_t
-
 
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qmo_lo(3), qmo_hi(3)
@@ -3353,9 +3335,6 @@ contains
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor ! function
 #endif
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_t
-
 
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qmo_lo(3), qmo_hi(3)
@@ -3864,9 +3843,6 @@ contains
     use rad_params_module, only : ngroups
     use fluxlimiter_module, only : Edd_factor ! function
 #endif
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_rt, eos_t
-
 
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qmo_lo(3), qmo_hi(3)
