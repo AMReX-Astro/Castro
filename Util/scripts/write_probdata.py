@@ -101,7 +101,7 @@ def parse_param_file(param_file):
         fields = re.findall(r'[\w\"\+\./\-]+|\([\w+\./\-]+\s*,\s*[\w\+\.\-]+\)', line)
 
         if len(fields) < 3:
-            print("write_probin.py: ERROR: missing one or more fields in parameter definition.")
+            print("write_probdata.py: ERROR: missing one or more fields in parameter definition.")
             err = 1
             continue
 
@@ -173,7 +173,7 @@ def write_probin(probin_template, param_file, out_file):
     try:
         ftemplate = open(probin_template, "r")
     except IOError:
-        sys.exit("write_probin.py: ERROR: file {} does not exist".format(probin_template))
+        sys.exit("write_probdata.py: ERROR: file {} does not exist".format(probin_template))
 
     template_lines = [line for line in ftemplate]
 
@@ -237,7 +237,7 @@ def write_probin(probin_template, param_file, out_file):
                             decl_string = "{}logical, allocatable, public :: {}\n"
 
                     else:
-                        print("write_probin.py: invalid datatype for variable {}".format(p.var))
+                        print("write_probdata.py: invalid datatype for variable {}".format(p.var))
 
                     fout.write(decl_string.format(indent, p.var))
 
@@ -314,7 +314,7 @@ def write_probin(probin_template, param_file, out_file):
                             indent, cmd, p.var, p.var))
 
                     else:
-                        print("write_probin.py: invalid datatype for variable {}".format(p.var))
+                        print("write_probdata.py: invalid datatype for variable {}".format(p.var))
 
         else:
             fout.write(line)
@@ -337,6 +337,6 @@ if __name__ == "__main__":
     params = args.p
 
     if probin_template == "" or out_file == "":
-        sys.exit("write_probin.py: ERROR: invalid calling sequence")
+        sys.exit("write_probdata.py: ERROR: invalid calling sequence")
 
     write_probin(probin_template, params, out_file)
