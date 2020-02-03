@@ -238,7 +238,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // operate on ibx[idir]
             riemann_state(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
                           BL_TO_FORTRAN_ANYD(qm),
-                          BL_TO_FORTRAN_ANYD(qp), 1, 1,
+                          BL_TO_FORTRAN_ANYD(qp),
                           BL_TO_FORTRAN_ANYD(q_avg),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           idir_f, 0,
@@ -439,62 +439,60 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           const Box& tbx = amrex::grow(bx, 2);
 
-          qm.resize(tbx, NQ*AMREX_SPACEDIM);
+          qm.resize(tbx, NQ);
           Elixir elix_qm = qm.elixir();
 
-          qp.resize(tbx, NQ*AMREX_SPACEDIM);
+          qp.resize(tbx, NQ);
           Elixir elix_qp = qp.elixir();
-
-          if (do_hydro) {
-
-            if (ppm_type == 0) {
-
-              dq.resize(obx, NQ);
-              Elixir elix_dq = dq.elixir();
-
-#pragma gpu box(obx)
-              ca_mol_plm_reconstruct
-                (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(flatn),
-                 BL_TO_FORTRAN_ANYD(dq),
-                 BL_TO_FORTRAN_ANYD(qm),
-                 BL_TO_FORTRAN_ANYD(qp),
-                 AMREX_REAL_ANYD(dx),
-                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
-
-            } else {
-
-#pragma gpu box(obx)
-              ca_mol_ppm_reconstruct
-                (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(flatn),
-                 BL_TO_FORTRAN_ANYD(qm),
-                 BL_TO_FORTRAN_ANYD(qp),
-                 AMREX_REAL_ANYD(dx));
-            }
-
-          }
 
           // compute the fluxes and add artificial viscosity
 
           q_int.resize(obx, NQ);
           Elixir elix_q_int = q_int.elixir();
 
-          if (do_hydro) {
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-            for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+            const int idir_f = idir + 1;
+
+            if (do_hydro) {
+
+              if (ppm_type == 0) {
+
+                dq.resize(obx, NQ);
+                Elixir elix_dq = dq.elixir();
+
+#pragma gpu box(obx)
+                ca_mol_plm_reconstruct
+                  (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                   idir_f,
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(flatn),
+                   BL_TO_FORTRAN_ANYD(dq),
+                   BL_TO_FORTRAN_ANYD(qm),
+                   BL_TO_FORTRAN_ANYD(qp),
+                   AMREX_REAL_ANYD(dx),
+                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+              } else {
+
+#pragma gpu box(obx)
+                ca_mol_ppm_reconstruct
+                  (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                   idir_f,
+                   BL_TO_FORTRAN_ANYD(q[mfi]),
+                   BL_TO_FORTRAN_ANYD(flatn),
+                   BL_TO_FORTRAN_ANYD(qm),
+                   BL_TO_FORTRAN_ANYD(qp),
+                   AMREX_REAL_ANYD(dx));
+              }
 
               const Box& nbx = amrex::surroundingNodes(bx, idir);
-
-              int idir_f = idir + 1;
 
 #pragma gpu box(nbx)
               cmpflx_plus_godunov
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  BL_TO_FORTRAN_ANYD(qm),
-                 BL_TO_FORTRAN_ANYD(qp), AMREX_SPACEDIM, idir_f,
+                 BL_TO_FORTRAN_ANYD(qp),
                  BL_TO_FORTRAN_ANYD(flux[idir]),
                  BL_TO_FORTRAN_ANYD(q_int),
                  BL_TO_FORTRAN_ANYD(qe[idir]),
@@ -527,11 +525,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  BL_TO_FORTRAN_ANYD(Sborder[mfi]),
                  BL_TO_FORTRAN_ANYD(flux[idir]));
 
-            }
-
-          } else {
-            // we are not doing hydro, so simply zero out the fluxes
-            for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+            } else {
+              // we are not doing hydro, so simply zero out the fluxes
               const Box& nbx = amrex::surroundingNodes(bx, idir);
               const Box& gbx = amrex::grow(nbx, 1);
 
@@ -550,23 +545,19 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                                        {
                                          qe_arr(i,j,k,n) = 0.e0;
                                        });
-            }
-          } // end do_hydro
+            } // end do_hydro
 
-          // add a diffusive flux
-          cond.resize(obx, 1);
-          Elixir elix_cond = cond.elixir();
+            // add a diffusive flux
+            cond.resize(obx, 1);
+            Elixir elix_cond = cond.elixir();
 
 #ifdef DIFFUSION
-          ca_fill_temp_cond
-            (AMREX_ARLIM_ANYD(obx.loVect()), AMREX_ARLIM_ANYD(obx.hiVect()),
-             BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-             BL_TO_FORTRAN_ANYD(cond));
+            ca_fill_temp_cond
+              (AMREX_ARLIM_ANYD(obx.loVect()), AMREX_ARLIM_ANYD(obx.hiVect()),
+               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+               BL_TO_FORTRAN_ANYD(cond));
 
-          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
             const Box& nbx = amrex::surroundingNodes(bx, idir);
-
-            int idir_f = idir + 1;
 
             ca_mol_diffusive_flux
               (AMREX_ARLIM_ANYD(nbx.loVect()), AMREX_ARLIM_ANYD(nbx.hiVect()),
@@ -576,8 +567,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                BL_TO_FORTRAN_ANYD(flux[idir]),
                AMREX_ZFILL(dx));
 
-          }
 #endif
+          } // end idir loop
 
 #ifndef AMREX_USE_CUDA
         } // end of 4th vs 2nd order MOL update

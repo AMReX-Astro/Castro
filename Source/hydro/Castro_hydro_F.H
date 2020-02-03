@@ -117,7 +117,7 @@ extern "C"
   void cmpflx_plus_godunov
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(ql),
-     const BL_FORT_FAB_ARG_3D(qr), const int nc, const int comp,
+     const BL_FORT_FAB_ARG_3D(qr),
      BL_FORT_FAB_ARG_3D(flux),
      BL_FORT_FAB_ARG_3D(q_int),
 #ifdef RADIATION
@@ -416,6 +416,7 @@ extern "C"
 
   void ca_mol_plm_reconstruct
     (const int* lo, const int* hi,
+     const int idir,
      BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(dq),
@@ -426,6 +427,7 @@ extern "C"
 
   void ca_mol_ppm_reconstruct
     (const int* lo, const int* hi,
+     const int idir,
      BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(qm),
@@ -506,7 +508,6 @@ extern "C"
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(qm),
      const BL_FORT_FAB_ARG_3D(qp),
-     const int nc, const int comp,
      BL_FORT_FAB_ARG_3D(qint),
 #ifdef RADIATION
      BL_FORT_FAB_ARG_3D(lambda_int),
@@ -680,6 +681,7 @@ extern "C"
                                     const amrex::Real* dt_m, const int* sdc_iteration);
 #endif
 #endif
+
 
 #ifdef __cplusplus
 }
