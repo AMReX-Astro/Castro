@@ -4,7 +4,7 @@ import sys
 def process_analysis(filename):
     
     with open(filename, 'r') as f:
-        r = re.compile(r'^(.\.\/\.\.\/\.\.\/Source\/.*?(?:warning|note).*?)(?=\n\S)', flags=re.M|re.S)
+        r = re.compile(r'^(.\.\/\.\.\/\.\.\/Source\/[\w/]+\.cpp.*?(?:warning|note).*?)(?=\n\S)', flags=re.M|re.S)
 
         bugs = set()
 

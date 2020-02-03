@@ -259,7 +259,7 @@ def main():
     args = parser.parse_args()
 
     if args.t == "" or args.o == "":
-        sys.exit("write_probin.py: ERROR: invalid calling sequence")
+        sys.exit("write_network.py: ERROR: invalid calling sequence")
 
     write_network(args.t, args.s, args.o)
 
