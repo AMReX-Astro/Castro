@@ -117,7 +117,7 @@ extern "C"
   void cmpflx_plus_godunov
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(ql),
-     const BL_FORT_FAB_ARG_3D(qr), const int nc, const int comp,
+     const BL_FORT_FAB_ARG_3D(qr),
      BL_FORT_FAB_ARG_3D(flux),
      BL_FORT_FAB_ARG_3D(q_int),
 #ifdef RADIATION
@@ -416,6 +416,7 @@ extern "C"
 
   void ca_mol_plm_reconstruct
     (const int* lo, const int* hi,
+     const int idir,
      BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(dq),
@@ -426,6 +427,7 @@ extern "C"
 
   void ca_mol_ppm_reconstruct
     (const int* lo, const int* hi,
+     const int idir,
      BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(qm),
@@ -434,8 +436,8 @@ extern "C"
 
   void ca_mol_consup
     (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(shk),
      const BL_FORT_FAB_ARG_3D(statein),
-     BL_FORT_FAB_ARG_3D(stateout),
      const BL_FORT_FAB_ARG_3D(srcU),
      BL_FORT_FAB_ARG_3D(update),
      const amrex::Real* dx, const amrex::Real dt,
@@ -462,46 +464,22 @@ extern "C"
 #endif
      const BL_FORT_FAB_ARG_3D(volume));
 
-  void ca_fourth_single_stage
+  void ca_fourth_interfaces
     (const int* lo, const int* hi,
-     const amrex::Real* time,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(statein),
-     BL_FORT_FAB_ARG_3D(stateout),
-     BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(q_bar),
-     BL_FORT_FAB_ARG_3D(qaux),
-     BL_FORT_FAB_ARG_3D(qaux_bar),
-     BL_FORT_FAB_ARG_3D(shk),
-     BL_FORT_FAB_ARG_3D(flatn),
-#ifdef DIFFUSION
-     BL_FORT_FAB_ARG_3D(T_Cc),
-#endif
-     const BL_FORT_FAB_ARG_3D(srcU),
-     BL_FORT_FAB_ARG_3D(update),
-     const amrex::Real* dx, const amrex::Real* dt,
-     BL_FORT_FAB_ARG_3D(flux1),
-#if AMREX_SPACEDIM >= 2
-     BL_FORT_FAB_ARG_3D(flux2),
-#endif
-#if AMREX_SPACEDIM >= 3
-     BL_FORT_FAB_ARG_3D(flux3),
-#endif
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(pradial),
-#endif
-     const BL_FORT_FAB_ARG_3D(area1),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(area2),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(area3),
-#endif
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(dloga),
-#endif
-     const BL_FORT_FAB_ARG_3D(volume),
-     const int&  verbose);
+     const int idir, const int ncomp,
+     const BL_FORT_FAB_ARG_3D(q),
+     BL_FORT_FAB_ARG_3D(q_int),
+     const int* domlo, const int* domhi);
+
+  void ca_states
+    (const int* lo, const int* hi,
+     const int idir, const int ncomp,
+     const BL_FORT_FAB_ARG_3D(q),
+     const BL_FORT_FAB_ARG_3D(q_int),
+     const BL_FORT_FAB_ARG_3D(flatn),
+     BL_FORT_FAB_ARG_3D(qm),
+     BL_FORT_FAB_ARG_3D(qp),
+     const int* domlo, const int* domhi);
 
   void ca_mol_diffusive_flux
     (const int* lo, const int* hi,
@@ -510,6 +488,58 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(cond),
      BL_FORT_FAB_ARG_3D(flux),
      const amrex::Real* dx);
+
+  void trans_laplacian
+    (const int i, const int j, const int k, const int n,
+     const int idir,
+     const BL_FORT_FAB_ARG_3D(q_avg), const int nq,
+     amrex::Real* lap,
+     const int* domlo, const int* domhi);
+
+  void avisc
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(q),
+     const BL_FORT_FAB_ARG_3D(qaux),
+     const amrex::Real* dx,
+     BL_FORT_FAB_ARG_3D(avis),
+     const int idir);
+
+  void riemann_state
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(qm),
+     const BL_FORT_FAB_ARG_3D(qp),
+     BL_FORT_FAB_ARG_3D(qint),
+#ifdef RADIATION
+     BL_FORT_FAB_ARG_3D(lambda_int),
+#endif
+     const BL_FORT_FAB_ARG_3D(qaux),
+     const int idir, const int compute_gammas,
+     const int* domlo, const int* domhi);
+
+  void compute_flux_q
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(qint),
+     BL_FORT_FAB_ARG_3D(F),
+#ifdef RADIATION
+     const BL_FORT_FAB_ARG_3D(lambda),
+     BL_FORT_FAB_ARG_3D(rF),
+#endif
+     const int idir, const int enforce_eos);
+
+  void add_diffusive_flux
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(q), const int nq, const int comp,
+     const BL_FORT_FAB_ARG_3D(q_avg),
+     BL_FORT_FAB_ARG_3D(f_avg),
+     const amrex::Real* dx, const int idir, const int is_avg);
+
+  void ca_store_godunov_state
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(qint),
+#ifdef RADIATION
+     const BL_FORT_FAB_ARG_3D(lambda),
+#endif
+     BL_FORT_FAB_ARG_3D(qgdnv));
 
 #ifndef AMREX_USE_CUDA
   void ca_sdc_update_advection_o2_lobatto
@@ -651,6 +681,7 @@ extern "C"
                                     const amrex::Real* dt_m, const int* sdc_iteration);
 #endif
 #endif
+
 
 #ifdef __cplusplus
 }

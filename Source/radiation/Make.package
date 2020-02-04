@@ -54,4 +54,6 @@ ca_F90EXE_sources += filter.F90
 ca_F90EXE_sources += RadDerive_nd.F90
 ca_F90EXE_sources += rad_util.F90
 
+ca_F90EXE_sources += rad_source.F90
+
 ca_F90EXE_sources += kavg.F90

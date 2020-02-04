@@ -3,9 +3,9 @@
 #BSUB -W 02:00
 #BSUB -nnodes 16
 #BSUB -alloc_flags smt1
-#BSUB -J flame_wave_noboost
-#BSUB -o flame_wave_noboost.%J
-#BSUB -e flame_wave_noboost.%J
+#BSUB -J flame_wave_noboost_20cm_1000Hz
+#BSUB -o flame_wave_noboost_20cm_1000Hz.%J
+#BSUB -e flame_wave_noboost_20cm_1000Hz.%J
 
 cd $LS_SUBCWD
 

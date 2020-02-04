@@ -572,30 +572,34 @@ end subroutine swap_outflow_data
 
 subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 #ifdef HYBRID_MOMENTUM
-     Rmom_in, &
+                                Rmom_in, &
 #endif
-     Eden_in, Eint_in, Temp_in, &
-     FirstAdv_in, FirstSpec_in, FirstAux_in, &
+                                Eden_in, Eint_in, Temp_in, &
+                                FirstAdv_in, FirstSpec_in, FirstAux_in, &
 #ifdef SHOCK_VAR
-     Shock_in, &
+                                Shock_in, &
 #endif
 #ifdef MHD
-     QMAGX_in, QMAGY_in, QMAGZ_in, &
+                                QMAGX_in, QMAGY_in, QMAGZ_in, &
 #endif
 #ifdef RADIATION
-     QPTOT_in, QREITOT_in, QRAD_in, &
+                                QPTOT_in, QREITOT_in, QRAD_in, &
 #endif
-     QRHO_in, &
-     QU_in, QV_in, QW_in, &
-     QGAME_in, QGC_in, QPRES_in, QREINT_in, &
-     QTEMP_in, &
-     QFA_in, QFS_in, QFX_in, &
+                                QRHO_in, &
+                                QU_in, QV_in, QW_in, &
+                                QGAME_in, QGC_in, QPRES_in, QREINT_in, &
+                                QTEMP_in, &
+                                QFA_in, QFS_in, QFX_in, &
 #ifdef RADIATION
-     GDLAMS_in, GDERADS_in, &
+                                GDLAMS_in, GDERADS_in, &
 #endif
-     GDRHO_in, GDU_in, GDV_in, GDW_in, &
-     GDPRES_in, GDGAME_in) &
-     bind(C, name="ca_set_method_params")
+                                GDRHO_in, GDU_in, GDV_in, GDW_in, &
+                                GDPRES_in, GDGAME_in, &
+#ifdef RADIATION
+                                QGAMCG_in, QCG_in, QLAMS_in, &
+#endif
+                                QGAMC_in, QC_in, QDPDR_in, QDPDE_in) &
+                                bind(C, name="ca_set_method_params")
 
   use meth_params_module
   use network, only : nspec, naux
@@ -633,6 +637,10 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
 #ifdef RADIATION
   integer, intent(in) :: GDLAMS_in, GDERADS_in
 #endif
+#ifdef RADIATION
+  integer, intent(in) :: QGAMCG_in, QCG_in, QLAMS_in
+#endif
+  integer, intent(in) :: QGAMC_in, QC_in, QDPDR_in, QDPDE_in
 
   integer :: iadv, ispec
 
@@ -644,37 +652,42 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !---------------------------------------------------------------------
   call ca_set_godunov_indices( &
 #ifdef RADIATION
-       GDLAMS_in, GDERADS_in, &
+                              GDLAMS_in, GDERADS_in, &
 #endif
-       GDRHO_in, GDU_in, GDV_in, GDW_in, &
-       GDPRES_in, GDGAME_in)
+                              GDRHO_in, GDU_in, GDV_in, GDW_in, &
+                              GDPRES_in, GDGAME_in)
 
   call ca_set_conserved_indices( &
 #ifdef HYBRID_MOMENTUM
-       Rmom_in, Rmom_in+1, Rmom_in+2, &
+                                Rmom_in, Rmom_in+1, Rmom_in+2, &
 #endif
 #ifdef SHOCK_VAR
-       Shock_in, &
+                                Shock_in, &
 #endif
-       Density_in ,Xmom_in, Xmom_in+1, Xmom_in+2, &
-       Eden_in, Eint_in, Temp_in, &
-       FirstAdv_in, FirstSpec_in, FirstAux_in &
-       )
+                                Density_in ,Xmom_in, Xmom_in+1, Xmom_in+2, &
+                                Eden_in, Eint_in, Temp_in, &
+                                FirstAdv_in, FirstSpec_in, FirstAux_in &
+                                )
 
-  call ca_set_auxiliary_indices()
+  call ca_set_auxiliary_indices( &
+#ifdef RADIATION
+                                QGAMCG_in, QCG_in, QLAMS_in, &
+#endif
+                                QGAMC_in, QC_in, QDPDR_in, QDPDE_in)
+
 
   call ca_set_primitive_indices( &
 #ifdef MHD
-       QMAGX_in, QMAGY_in, QMAGZ_in, &
+                                QMAGX_in, QMAGY_in, QMAGZ_in, &
 #endif
 #ifdef RADIATION
-       QPTOT_in, QREITOT_in, QRAD_in, &
+                                QPTOT_in, QREITOT_in, QRAD_in, &
 #endif
-       QRHO_in, &
-       QU_in, QV_in, QW_in, &
-       QGAME_in, QGC_in, QPRES_in, QREINT_in, &
-       QTEMP_in, &
-       QFA_in, QFS_in, QFX_in)
+                                QRHO_in, &
+                                QU_in, QV_in, QW_in, &
+                                QGAME_in, QGC_in, QPRES_in, QREINT_in, &
+                                QTEMP_in, &
+                                QFA_in, QFS_in, QFX_in)
 
   ! sanity check
 #ifndef AMREX_USE_CUDA
@@ -688,8 +701,6 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   ! Note: these sizes are the maximum size we expect for passives.
   allocate(qpass_map(nadv + nspec + naux))
   allocate(upass_map(nadv + nspec + naux))
-
-  ! Transverse velocities
 
   npassive = 0
 
@@ -765,7 +776,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !$acc device(USHK) &
   !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC) &
   !$acc device(QFA, QFS, QFX) &
-  !$acc device(NQAUX, NQSRC, QGAMC, QC, QDPDR, QDPDE) &
+  !$acc device(QGAMC, QC, QDPDR, QDPDE) &
 #ifdef RADIATION
   !$acc device(QGAMCG, QCG, QLAMS) &
 #endif
@@ -893,6 +904,15 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   mom_flux_has_p(3)%comp(UMY) = .false.
   mom_flux_has_p(3)%comp(UMZ) = .true.
 
+  !$acc update device(physbc_lo, physbc_hi)
+  !$acc update device(Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall)
+  !$acc update device(dim)
+  !$acc update device(dg)
+  !$acc update device(coord_type)
+  !$acc update device(center, problo, probhi)
+  !$acc update device(domlo_level, domhi_level, dx_level)
+  !$acc update device(ref_ratio, n_error_buf, blocking_factor)
+  !$acc update device(mom_flux_has_p)
 
 end subroutine ca_set_problem_params
 

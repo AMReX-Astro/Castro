@@ -239,7 +239,7 @@ Build Process Procedure
    dimensionality, ``COMP`` is the compiler name, and ``OPTIONS`` can be any
    number of options (``MPI``, ``DEBUG``, ...).
 
-This is the current build system process, for a CUDA build.
+This is the current build system process.
 
 * ``set_variables.py`` is called
 
@@ -252,8 +252,6 @@ This is the current build system process, for a CUDA build.
 
     These are used to define the size of the various state arrays.
 
-  * This is not GPU specific.
-
   * The hook for this is in ``Make.Castro`` in the build rule for ``set_indices.F90``
 
 * (for ``general_null networks``), ``actual_network.F90`` is created
@@ -264,7 +262,7 @@ This is the current build system process, for a CUDA build.
 
   * The hook for this is in ``$(CASTRO_HOME)/Microphysics/networks/general_null/Make.package``
 
-* Runtime parameter files are parsed by ``write_probin.py``
+* Runtime parameter files for the microphysics routines are parsed by ``write_probin.py``
 
   .. index:: write_probin.py
 
@@ -273,6 +271,21 @@ This is the current build system process, for a CUDA build.
     ``tmp_build_dir/castro_sources/``.
 
   * The hook for this is in ``Make.Castro`` in the rule for ``extern.F90``
+
+* Castro's runtime parameters are parsed by ``parse_castro_params.py``
+
+  .. index:: parse_castro_params.py
+
+  * This writes the Fortran module ``meth_params.F90``, which defines all
+    of the runtime parameters available to Fortran, from the template
+    ``meth_params.template`` in ``Source/driver``. The file is output in
+    ``tmp_build_dir/castro_sources/``. It also generates several C++
+    headers and snippets of .cpp files that define the variables, and
+    read them from the inputs file/command line, respectively, as well
+    as the code needed to set the Fortran data correctly once the inputs
+    have been read.
+
+  * The hook for this is in ``Make.Castro`` in the rule for ``meth_params.F90``
 
 * Problem-specific runtime parameters are parsed by ``write_probdata.py``
 
@@ -304,7 +317,7 @@ This is the current build system process, for a CUDA build.
     description of what each line does in the comments of the make
     file
 
-* Interpret the ``#pragma gpu``
+* (when ``USE_CUDA=TRUE``) Interpret the ``#pragma gpu``
 
   * The script ``write_cuda_headers.py`` (in ``amrex/Tools/F_scripts/``) is tasked with
     understanding our custom pragma.  Its flow is:
@@ -330,7 +343,7 @@ This is the current build system process, for a CUDA build.
 * Output to stdout the git version of the sources, via
   ``describe_sources.py``.  This doesn’t affect the build process
 
-* Create device and host versions of each needed Fortran file. This
+* (when ``USE+CUDA=TRUE``) Create device and host versions of each needed Fortran file. This
   is done as each ``.F90`` file is compiled with a rule in ``Make.rules`` that
   invokes ``gpu_fortran.py`` and then directs the compilation to build
   that version.

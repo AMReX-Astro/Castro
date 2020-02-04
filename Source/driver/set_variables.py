@@ -127,6 +127,8 @@ class Index:
             counter = "qcnt"
         elif self.iset == "godunov":
             counter = "gcnt"
+        elif self.iset == "auxiliary":
+            counter = "acnt"
         else:
             counter = "cnt"
 
@@ -339,11 +341,11 @@ def doit(variables_file, odir, defines, nadv,
                             ca.increment(i.count)
 
 
-                # for variables in the "conserved", primitive, or godunov, sets,
-                # it may be the case that the variable that defines
-                # the count is 0 (e.g. for nadv).  We need to
-                # initialize it specially then.
-                if s in ["conserved", "primitive", "godunov"]:
+                # for variables in the "conserved", primitive,
+                # auxillary, or godunov, sets, it may be the case that
+                # the variable that defines the count is 0 (e.g. for
+                # nadv).  We need to initialize it specially then.
+                if s in ["conserved", "primitive", "godunov", "auxiliary"]:
                     sub += i.get_set_string(val, set_default=0)
                 else:
                     sub += i.get_set_string(val)
@@ -393,6 +395,13 @@ def doit(variables_file, odir, defines, nadv,
         for g in godunov_indices:
             f.write(g.get_cxx_set_string())
 
+    aux_indices = [q for q in indices if q.iset == "auxiliary" and q.cxx_var is not None]
+
+    with open(os.path.join(odir, "set_auxiliary.H"), "w") as f:
+        f.write("  int acnt = 0;\n")
+        for a in aux_indices:
+            f.write(a.get_cxx_set_string())
+
 def main():
 
     # note: you need to put a space at the start of the string
@@ -414,7 +423,12 @@ def main():
     args = parser.parse_args()
 
     if args.odir != "" and not os.path.isdir(args.odir):
-        os.makedirs(args.odir)
+        try:
+            os.makedirs(args.odir)
+        except FileExistsError:
+            # this exception is needed in case of a race condition
+            # to create the directory by another make target
+            pass
 
     doit(args.variables_file[0], args.odir, args.defines, args.nadv,
          args.ngroups)
