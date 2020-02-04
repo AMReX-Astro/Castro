@@ -262,7 +262,7 @@ This is the current build system process.
 
   * The hook for this is in ``$(CASTRO_HOME)/Microphysics/networks/general_null/Make.package``
 
-* Runtime parameter files are parsed by ``write_probin.py``
+* Runtime parameter files for the microphysics routines are parsed by ``write_probin.py``
 
   .. index:: write_probin.py
 

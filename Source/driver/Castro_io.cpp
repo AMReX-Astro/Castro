@@ -369,7 +369,6 @@ Castro::restart (Amr&     papa,
           std::cout << "Doing special restart with grown_factor " << grown_factor << std::endl;
 
        MultiFab& S_new = get_new_data(State_Type);
-       Real cur_time   = state[State_Type].curTime();
 
        Box orig_domain;
        if (star_at_center == 0) {
@@ -419,8 +418,6 @@ Castro::restart (Amr&     papa,
           amrex::Abort();
        }
 
-       int ns = NUM_STATE;
-
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
            RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
@@ -440,8 +437,10 @@ Castro::restart (Amr&     papa,
 
 #else
 
+              Real cur_time = state[State_Type].curTime();
+
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-                (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
+                (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
 		 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
 		 ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 
@@ -1186,7 +1185,6 @@ Castro::plotFileOutput(const std::string& dir,
   ParticlePlotFile(dir);
 #endif
 
-    int i, n;
     //
     // The list of indices of State to write to plotfile.
     // first component of pair is state_type,
@@ -1252,7 +1250,7 @@ Castro::plotFileOutput(const std::string& dir,
 	//
 	// Names of variables -- first state, then derived
 	//
-	for (i =0; i < plot_var_map.size(); i++)
+	for (int i =0; i < plot_var_map.size(); i++)
         {
 	    int typ = plot_var_map[i].first;
 	    int comp = plot_var_map[i].second;
@@ -1267,7 +1265,7 @@ Castro::plotFileOutput(const std::string& dir,
         }
 
 #ifdef RADIATION
-	for (i=0; i<Radiation::nplotvar; ++i)
+	for (int i=0; i<Radiation::nplotvar; ++i)
 	    os << Radiation::plotvar_names[i] << '\n';
 #endif
 
@@ -1275,22 +1273,22 @@ Castro::plotFileOutput(const std::string& dir,
         os << parent->cumTime() << '\n';
         int f_lev = parent->finestLevel();
         os << f_lev << '\n';
-        for (i = 0; i < BL_SPACEDIM; i++)
+        for (int i = 0; i < BL_SPACEDIM; i++)
             os << geom.ProbLo(i) << ' ';
         os << '\n';
-        for (i = 0; i < BL_SPACEDIM; i++)
+        for (int i = 0; i < BL_SPACEDIM; i++)
             os << geom.ProbHi(i) << ' ';
         os << '\n';
-        for (i = 0; i < f_lev; i++)
+        for (int i = 0; i < f_lev; i++)
             os << parent->refRatio(i)[0] << ' ';
         os << '\n';
-        for (i = 0; i <= f_lev; i++)
+        for (int i = 0; i <= f_lev; i++)
             os << parent->Geom(i).Domain() << ' ';
         os << '\n';
-        for (i = 0; i <= f_lev; i++)
+        for (int i = 0; i <= f_lev; i++)
             os << parent->levelSteps(i) << ' ';
         os << '\n';
-        for (i = 0; i <= f_lev; i++)
+        for (int i = 0; i <= f_lev; i++)
         {
             for (int k = 0; k < BL_SPACEDIM; k++)
                 os << parent->Geom(i).CellSize()[k] << ' ';
@@ -1342,10 +1340,10 @@ Castro::plotFileOutput(const std::string& dir,
         os << level << ' ' << grids.size() << ' ' << cur_time << '\n';
         os << parent->levelSteps(level) << '\n';
 
-        for (i = 0; i < grids.size(); ++i)
+        for (int i = 0; i < grids.size(); ++i)
         {
             RealBox gridloc = RealBox(grids[i],geom.CellSize(),geom.ProbLo());
-            for (n = 0; n < BL_SPACEDIM; n++)
+            for (int n = 0; n < BL_SPACEDIM; n++)
                 os << gridloc.lo(n) << ' ' << gridloc.hi(n) << '\n';
         }
         //
@@ -1372,7 +1370,7 @@ Castro::plotFileOutput(const std::string& dir,
     //
     // Cull data from state variables -- use no ghost cells.
     //
-    for (i = 0; i < plot_var_map.size(); i++)
+    for (int i = 0; i < plot_var_map.size(); i++)
     {
 	int typ  = plot_var_map[i].first;
 	int comp = plot_var_map[i].second;

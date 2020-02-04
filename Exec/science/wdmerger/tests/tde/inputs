@@ -17,6 +17,8 @@ amr.blocking_factor = 32
 
 castro.init_shrink = 0.1
 
+castro.max_subcycles = 64
+
 castro.do_hydro = 1
 castro.do_grav = 1
 castro.do_react = 0

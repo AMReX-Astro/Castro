@@ -225,7 +225,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
 }
 
-void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Real time, Real dt)
+void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
     BL_PROFILE("Castro::construct_old_gravity_source()");
 
@@ -245,14 +245,14 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state, Rea
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 	const Box& bx = mfi.tilebox();
 
 #pragma gpu box(bx)
 	ca_gsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
 		AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-		BL_TO_FORTRAN_ANYD(state[mfi]),
+		BL_TO_FORTRAN_ANYD(state_in[mfi]),
 		BL_TO_FORTRAN_ANYD(phi_old[mfi]),
 		BL_TO_FORTRAN_ANYD(grav_old[mfi]),
 		BL_TO_FORTRAN_ANYD(source[mfi]),
