@@ -54,6 +54,7 @@ contains
     integer          :: i, j, k, n
     real(rt)         :: rhoInv, delta_e, delta_rho_e, dx_min
     integer, intent(in), value :: strang_half
+    logical          :: do_burn
 
     type (burn_t) :: burn_state_in, burn_state_out
 
@@ -84,14 +85,24 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             ! Initialize some data for later.
+
+             do_burn = .true.
+             burn_state_in % success = .true.
+             burn_state_out % success = .true.
+
              ! Don't burn on zones that we are intentionally masking out.
 
-             if (mask(i,j,k) /= 1) cycle
+             if (mask(i,j,k) /= 1) then
+                do_burn = .false.
+             end if
 
              ! Don't burn on zones inside shock regions, if the relevant option is set.
 
 #ifdef SHOCK_VAR
-             if (state(i,j,k,USHK) > ZERO .and. disable_shock_burning == 1) cycle
+             if (state(i,j,k,USHK) > ZERO .and. disable_shock_burning == 1) then
+                do_burn = .false.
+             end if
 #endif
 
              rhoInv = ONE / state(i,j,k,URHO)
@@ -135,11 +146,9 @@ contains
              burn_state_in % n_rhs = 0
              burn_state_in % n_jac = 0
 
-             ! Assume we will be successful, to start.
-
-             burn_state_in % success = .true.
-
-             call burner(burn_state_in, burn_state_out, dt_react, time)
+             if (do_burn) then
+                call burner(burn_state_in, burn_state_out, dt_react, time)
+             end if
 
              ! If we were unsuccessful, update the failure flag.
 
@@ -153,54 +162,58 @@ contains
 
              call reduce_add(failed, failed_tmp)
 
-             ! Note that we want to update the total energy by taking
-             ! the difference of the old rho*e and the new rho*e. If
-             ! the user wants to ensure that rho * E = rho * e + rho *
-             ! K, this reset should be enforced through an appropriate
-             ! choice for the dual energy formalism parameter
-             ! dual_energy_eta2 in reset_internal_energy.
+             if (do_burn) then
 
-             delta_e     = burn_state_out % e - burn_state_in % e
-             delta_rho_e = burn_state_out % rho * delta_e
+                ! Note that we want to update the total energy by taking
+                ! the difference of the old rho*e and the new rho*e. If
+                ! the user wants to ensure that rho * E = rho * e + rho *
+                ! K, this reset should be enforced through an appropriate
+                ! choice for the dual energy formalism parameter
+                ! dual_energy_eta2 in reset_internal_energy.
 
-             state(i,j,k,UEINT) = state(i,j,k,UEINT) + delta_rho_e
-             state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + delta_rho_e
+                delta_e     = burn_state_out % e - burn_state_in % e
+                delta_rho_e = burn_state_out % rho * delta_e
 
-             do n = 1, nspec
-                state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * burn_state_out % xn(n)
-             enddo
-
-#if naux > 0
-             do n = 1, naux
-                state(i,j,k,UFX+n-1)  = state(i,j,k,URHO) * burn_state_out % aux(n)
-             enddo
-#endif
-
-             ! Add burning rates to reactions MultiFab, but be
-             ! careful because the reactions and state MFs may
-             ! not have the same number of ghost cells.
-
-             if ( i .ge. r_lo(1) .and. i .le. r_hi(1) .and. &
-                  j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
-                  k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
+                state(i,j,k,UEINT) = state(i,j,k,UEINT) + delta_rho_e
+                state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + delta_rho_e
 
                 do n = 1, nspec
-                   reactions(i,j,k,n) = (burn_state_out % xn(n) - burn_state_in % xn(n)) / dt_react
+                   state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * burn_state_out % xn(n)
                 enddo
-                reactions(i,j,k,nspec+1) = delta_e / dt_react
-                reactions(i,j,k,nspec+2) = delta_rho_e / dt_react
 
-             endif
+#if naux > 0
+                do n = 1, naux
+                   state(i,j,k,UFX+n-1)  = state(i,j,k,URHO) * burn_state_out % aux(n)
+                enddo
+#endif
 
-             ! Insert weights for these burns.
+                ! Add burning rates to reactions MultiFab, but be
+                ! careful because the reactions and state MFs may
+                ! not have the same number of ghost cells.
 
-             if ( i .ge. w_lo(1) .and. i .le. w_hi(1) .and. &
-                  j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
-                  k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
+                if ( i .ge. r_lo(1) .and. i .le. r_hi(1) .and. &
+                     j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
+                     k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
 
-                weights(i,j,k) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
+                   do n = 1, nspec
+                      reactions(i,j,k,n) = (burn_state_out % xn(n) - burn_state_in % xn(n)) / dt_react
+                   end do
+                   reactions(i,j,k,nspec+1) = delta_e / dt_react
+                   reactions(i,j,k,nspec+2) = delta_rho_e / dt_react
 
-             endif
+                end if
+
+                ! Insert weights for these burns.
+
+                if ( i .ge. w_lo(1) .and. i .le. w_hi(1) .and. &
+                     j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
+                     k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
+
+                   weights(i,j,k) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
+
+                end if
+
+             end if
 
           enddo
        enddo
@@ -261,6 +274,7 @@ contains
     real(rt) :: rhooInv, rhonInv
     real(rt) :: sold(NVAR)
     real(rt) :: failed_tmp
+    logical  :: do_burn
 
     ! This interface is currently only supported for simplified SDC.
 
@@ -274,14 +288,24 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             ! Initialize some data for later.
+
+             do_burn = .true.
+             burn_state_in % success = .true.
+             burn_state_out % success = .true.
+
              ! Don't burn on zones that we are intentionally masking out.
 
-             if (mask(i,j,k) /= 1) cycle
+             if (mask(i,j,k) /= 1) then
+                do_burn = .false.
+             end if
 
              ! Don't burn on zones inside shock regions, if the relevant option is set.
 
 #ifdef SHOCK_VAR
-             if (unew(i,j,k,USHK) > ZERO .and. disable_shock_burning == 1) cycle
+             if (unew(i,j,k,USHK) > ZERO .and. disable_shock_burning == 1) then
+                do_burn = .false.
+             end if
 #endif
 
              ! Feed in the old-time state data.
@@ -295,7 +319,9 @@ contains
              ! Don't burn if we're outside of the relevant (rho, T) range.
 
              sold(:) = uold(i,j,k,:)
-             if (.not. okay_to_burn(sold)) cycle
+             if (.not. okay_to_burn(sold)) then
+                do_burn = .false.
+             end if
 
              ! Tell the integrator about the non-reacting source terms.
 
@@ -332,7 +358,9 @@ contains
 
              burn_state_in % sdc_iter = sdc_iter
 
-             call integrator(burn_state_in, burn_state_out, dt_react, time)
+             if (do_burn) then
+                call integrator(burn_state_in, burn_state_out, dt_react, time)
+             end if
 
              ! If we were unsuccessful, update the failure flag.
 
@@ -346,29 +374,33 @@ contains
 
              call reduce_add(failed, failed_tmp)
 
-             ! Update the state data.
+             if (do_burn) then
 
-             unew(i,j,k,UEDEN)           = burn_state_out % y(SEDEN)
-             unew(i,j,k,UEINT)           = burn_state_out % y(SEINT)
-             unew(i,j,k,UFS:UFS+nspec-1) = burn_state_out % y(SFS:SFS+nspec-1)
+                ! Update the state data.
 
-             ! Add burning rates to reactions MultiFab, but be
-             ! careful because the reactions and state MFs may
-             ! not have the same number of ghost cells.
+                unew(i,j,k,UEDEN)           = burn_state_out % y(SEDEN)
+                unew(i,j,k,UEINT)           = burn_state_out % y(SEINT)
+                unew(i,j,k,UFS:UFS+nspec-1) = burn_state_out % y(SFS:SFS+nspec-1)
 
-             if ( i .ge. r_lo(1) .and. i .le. r_hi(1) .and. &
-                  j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
-                  k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
+                ! Add burning rates to reactions MultiFab, but be
+                ! careful because the reactions and state MFs may
+                ! not have the same number of ghost cells.
 
-                rhonInv = ONE / unew(i,j,k,URHO)
+                if ( i .ge. r_lo(1) .and. i .le. r_hi(1) .and. &
+                     j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
+                     k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
 
-                do n = 1, nspec
-                   reactions(i,j,k,n) = (unew(i,j,k,UFS+n-1) * rhoninv - uold(i,j,k,UFS+n-1) * rhooinv) / dt_react
-                enddo
-                reactions(i,j,k,nspec+1) = (unew(i,j,k,UEINT) * rhonInv - uold(i,j,k,UEINT) * rhooInv) / dt_react
-                reactions(i,j,k,nspec+2) = (unew(i,j,k,UEINT) - uold(i,j,k,UEINT)) / dt_react
+                   rhonInv = ONE / unew(i,j,k,URHO)
 
-             endif
+                   do n = 1, nspec
+                      reactions(i,j,k,n) = (unew(i,j,k,UFS+n-1) * rhoninv - uold(i,j,k,UFS+n-1) * rhooinv) / dt_react
+                   end do
+                   reactions(i,j,k,nspec+1) = (unew(i,j,k,UEINT) * rhonInv - uold(i,j,k,UEINT) * rhooInv) / dt_react
+                   reactions(i,j,k,nspec+2) = (unew(i,j,k,UEINT) - uold(i,j,k,UEINT)) / dt_react
+
+                end if
+
+             end if
 
           enddo
        enddo
