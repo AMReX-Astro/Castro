@@ -170,8 +170,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // zones. So we use a FillPatch using the state data to give us
     // Sborder, which does have ghost zones.
 
-    MultiFab& S_old = get_old_data(State_Type);
-
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       // for the CTU unsplit method, we always start with the old
       // state note: a clean_state has already been done on the old
