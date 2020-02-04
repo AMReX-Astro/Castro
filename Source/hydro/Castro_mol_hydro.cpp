@@ -238,7 +238,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // operate on ibx[idir]
             riemann_state(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
                           BL_TO_FORTRAN_ANYD(qm),
-                          BL_TO_FORTRAN_ANYD(qp), 1, 1,
+                          BL_TO_FORTRAN_ANYD(qp),
                           BL_TO_FORTRAN_ANYD(q_avg),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           idir_f, 0,
@@ -492,7 +492,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               cmpflx_plus_godunov
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  BL_TO_FORTRAN_ANYD(qm),
-                 BL_TO_FORTRAN_ANYD(qp), 1, 1,
+                 BL_TO_FORTRAN_ANYD(qp),
                  BL_TO_FORTRAN_ANYD(flux[idir]),
                  BL_TO_FORTRAN_ANYD(q_int),
                  BL_TO_FORTRAN_ANYD(qe[idir]),
