@@ -24,8 +24,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   hydro_source.setVal(0.0);
 
-  int finest_level = parent->finestLevel();
-
   const Real *dx = geom.CellSize();
 
   const int* domain_lo = geom.Domain().loVect();

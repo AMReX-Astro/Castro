@@ -630,9 +630,9 @@ contains
 
     use actual_network, only: nspec, naux
     use meth_params_module, only: NVAR, NSRC, URHO, UMX, UMY, UMZ, UEINT, &
-                                   NQSRC, QRHO, QU, QV, QW, NQ, &
-                                   QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
-                                   npassive, upass_map, qpass_map
+                                  NQSRC, QRHO, QU, QV, QW, NQ, &
+                                  QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
+                                  npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only: rt => amrex_real
 
