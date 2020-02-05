@@ -131,6 +131,7 @@ extern "C"
   void ca_allocate_sponge_params();
   void ca_deallocate_sponge_params();
 #endif
+  void ca_get_ambient_params(const int* name, const int* namlen);
 
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
