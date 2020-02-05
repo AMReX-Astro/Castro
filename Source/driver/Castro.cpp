@@ -4013,7 +4013,7 @@ Castro::clean_state(
 		    MultiFab& by,
 		    MultiFab& bz,
 #endif
-Castro::clean_state(MultiFab& state_in, Real time, int ng) {
+                    MultiFab& state_in, Real time, int ng) {
 
     BL_PROFILE("Castro::clean_state()");
 
@@ -4040,7 +4040,7 @@ Castro::clean_state(MultiFab& state_in, Real time, int ng) {
 #ifdef MHD
                 bx, by, bz,
 #endif
-    computeTemp(state_in, time, ng);
+                state_in, time, ng);
 
     return frac_change;
 
