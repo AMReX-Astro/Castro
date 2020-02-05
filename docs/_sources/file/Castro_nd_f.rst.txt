@@ -161,6 +161,11 @@ ca\_deallocate\_sponge\_params subroutine
 
 .. f:autosubroutine:: ca_deallocate_sponge_params
 
+ca\_get\_ambient\_params subroutine
+-----------------------------------
+
+.. f:autosubroutine:: ca_get_ambient_params
+
 set\_pointmass subroutine
 -------------------------
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>problem_tagging_nd.F90 &mdash; Castro 20.02
+  <title>ambient.F90 &mdash; Castro 20.02
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Radiation" href="../radiation_files.html" />
-    <link rel="prev" title="bc_fill_nd.F90" href="bc_fill_nd_f.html" /> 
+    <link rel="next" title="bc_ext_fill_nd.F90" href="bc_ext_fill_nd_f.html" />
+    <link rel="prev" title="File Problem_Derives.H" href="Problem__Derives_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -142,13 +142,13 @@
 <li class="toctree-l3"><a class="reference internal" href="Problem_f.html">Problem.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ambient_f.html">ambient.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="bc_ext_fill_nd_f.html">bc_ext_fill_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="bc_fill_nd_f.html">bc_fill_nd.F90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">problem_tagging_nd.F90</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#f/problem_tagging_module">problem_tagging_module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ambient.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/ambient_module">ambient_module</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="bc_ext_fill_nd_f.html">bc_ext_fill_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bc_fill_nd_f.html">bc_fill_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem_tagging_nd_f.html">problem_tagging_nd.F90</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
@@ -213,13 +213,13 @@
         
           <li><a href="../problems_files.html">Problems</a> &raquo;</li>
         
-      <li>problem_tagging_nd.F90</li>
+      <li>ambient.F90</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/problem_tagging_nd_f.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/ambient_f.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -232,59 +232,32 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="problem-tagging-nd-f90">
-<h1>problem_tagging_nd.F90<a class="headerlink" href="#problem-tagging-nd-f90" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="f/problem_tagging_module">
-<span id="problem-tagging-module"></span><h2>problem_tagging_module<a class="headerlink" href="#f/problem_tagging_module" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="ambient-f90">
+<h1>ambient.F90<a class="headerlink" href="#ambient-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/ambient_module">
+<span id="ambient-module"></span><h2>ambient_module<a class="headerlink" href="#f/ambient_module" title="Permalink to this headline">¶</a></h2>
 <p class="rubric">Quick access</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/problem_tagging_module/set_problem_tags" title="f/problem_tagging_module/set_problem_tags"><code class="xref f f-func docutils literal notranslate"><span class="pre">set_problem_tags()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#f/ambient_module/ambient_state" title="f/ambient_module/ambient_state"><code class="xref f f-var docutils literal notranslate"><span class="pre">ambient_state</span></code></a></td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Needed modules</p>
 <ul class="simple">
 <li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
-<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">iso_c_binding</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">c_int8_t()</span></code>)</li>
 </ul>
-<p class="rubric">Subroutines and functions</p>
-<dl class="subroutine">
-<dt id="f/problem_tagging_module/set_problem_tags">
-<em class="property">subroutine  </em><code class="descclassname">problem_tagging_module/</code><code class="descname">set_problem_tags</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>tag</em>, <em>tag_lo</em>, <em>tag_hi</em>, <em>state</em>, <em>state_lo</em>, <em>state_hi</em>, <em>dx</em>, <em>problo</em>, <em>set</em>, <em>clear</em>, <em>time</em>, <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#f/problem_tagging_module/set_problem_tags" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a template routine for users to set their own tags based on the state.
-It will be overwritten by having a copy of this file in the user’s problem setup.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>tag</strong> (tag_hi(1)-(tag_lo(1))+1,tag_hi(2)-(tag_lo(2))+1,tag_hi(3)-(tag_lo(3))+1)<em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>tag_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>tag_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>state</strong> (state_hi(1)-(state_lo(1))+1,state_hi(2)-(state_lo(2))+1,state_hi(3)-(state_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>state_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>state_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>problo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>set</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
-<li><strong>clear</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
-<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<p class="rubric">Variables</p>
+<ul>
+<li><dl class="variable">
+<dt id="f/ambient_module/ambient_state">
+<code class="descclassname">ambient_module/</code><code class="descname">ambient_state</code> (*)<em> [</em><em>real</em><em>,</em><em>allocatable</em><em>]</em><a class="headerlink" href="#f/ambient_module/ambient_state" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
+</li>
+</ul>
 </div>
 </div>
 
@@ -296,10 +269,10 @@ It will be overwritten by having a copy of this file in the user’s problem set
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../radiation_files.html" class="btn btn-neutral float-right" title="Radiation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="bc_ext_fill_nd_f.html" class="btn btn-neutral float-right" title="bc_ext_fill_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="bc_fill_nd_f.html" class="btn btn-neutral float-left" title="bc_fill_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Problem__Derives_8H.html" class="btn btn-neutral float-left" title="File Problem_Derives.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

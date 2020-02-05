@@ -168,6 +168,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-sponge-params-subroutine">ca_get_sponge_params subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-allocate-sponge-params-subroutine">ca_allocate_sponge_params subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-deallocate-sponge-params-subroutine">ca_deallocate_sponge_params subroutine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ca-get-ambient-params-subroutine">ca_get_ambient_params subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#set-pointmass-subroutine">set_pointmass subroutine</a></li>
 </ul>
 </li>
@@ -1031,6 +1032,27 @@ be safe, we’ll deallocate and start again.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><a class="reference internal" href="sponge_nd_f.html#f/sponge_module" title="f/sponge_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">sponge_module</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="ca-get-ambient-params-subroutine">
+<h2>ca_get_ambient_params subroutine<a class="headerlink" href="#ca-get-ambient-params-subroutine" title="Permalink to this headline">¶</a></h2>
+<dl class="subroutine">
+<dt id="f/_/ca_get_ambient_params">
+<em class="property">subroutine  </em><code class="descname">ca_get_ambient_params</code><span class="sig-paren">(</span><em>name</em>, <em>namlen</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_get_ambient_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the ambient parameters</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (namlen)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><strong>namlen</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(name)</em><em>]</em></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><a class="reference internal" href="ambient_f.html#f/ambient_module" title="f/ambient_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">ambient_module</span></code></a> (<a class="reference internal" href="ambient_f.html#f/ambient_module/ambient_state" title="f/ambient_module/ambient_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">ambient_state()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_error_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">amrex_error()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_dens()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_ener()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">actual_network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>)</td>
 </tr>
 </tbody>
 </table>
