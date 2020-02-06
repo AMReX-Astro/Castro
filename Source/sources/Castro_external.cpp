@@ -4,7 +4,7 @@
 using namespace amrex;
 
 void
-Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, Real dt)
+Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
     const Real strt_time = ParallelDescriptor::second();
 
@@ -14,7 +14,7 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, R
 
     ext_src.setVal(0.0);
 
-    fill_ext_source(time, dt, state, state, ext_src);
+    fill_ext_source(time, dt, state_in, state_in, ext_src);
 
     Real mult_factor = 1.0;
 

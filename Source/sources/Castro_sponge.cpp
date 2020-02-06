@@ -5,7 +5,7 @@
 using namespace amrex;
 
 void
-Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time, Real dt)
+Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
     const Real strt_time = ParallelDescriptor::second();
 
@@ -20,13 +20,13 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state, Real time
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
 
 #pragma gpu box(bx)
         ca_sponge(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                  BL_TO_FORTRAN_ANYD(state[mfi]),
+                  BL_TO_FORTRAN_ANYD(state_in[mfi]),
                   BL_TO_FORTRAN_ANYD(source[mfi]),
                   BL_TO_FORTRAN_ANYD(volume[mfi]),
                   AMREX_REAL_ANYD(dx), dt, time, mult_factor);

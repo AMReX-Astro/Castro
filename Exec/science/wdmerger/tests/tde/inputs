@@ -16,6 +16,8 @@ amr.max_grid_size = 128
 amr.blocking_factor = 32
 
 castro.init_shrink = 0.1
+castro.change_max = 1.1
+castro.max_subcycles = 64
 
 castro.do_hydro = 1
 castro.do_grav = 1

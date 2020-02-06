@@ -28,10 +28,7 @@
   radial_damping_factor = -1.0d3
   initial_radial_velocity_factor = -1.0d-3
 
-  ambient_density = 1.0d-4
-
   stellar_temp = 1.0d7
-  ambient_temp = 1.0d7
 
   orbital_eccentricity = 0.0d0
   orbital_angle = 0.0d0
@@ -80,6 +77,13 @@
   onemg_wd_o_frac  = 0.60d0
   onemg_wd_ne_frac = 0.35d0
   onemg_wd_mg_frac = 0.05d0
+
+/
+
+&ambient
+
+  ambient_density = 1.0d-4
+  ambient_temp = 1.0d7
 
 /
 
