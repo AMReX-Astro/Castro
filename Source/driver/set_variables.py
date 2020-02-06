@@ -32,26 +32,6 @@ HEADER = """
 
 """
 
-CHECK_EQUAL = """
-subroutine check_equal(index1, index2)
-
-  use castro_error_module
-
-  implicit none
-
-  integer, intent(in) :: index1, index2
-
-#ifndef AMREX_USE_CUDA
-  if (index1 /= index2) then
-    call castro_error("ERROR: mismatch of indices")
-  endif
-#endif
-
-end subroutine check_equal
-
-
-"""
-
 def split_pair(pair_string):
     """given an option of the form "(val1, val2)", split it into val1 and
     val2"""
@@ -112,8 +92,6 @@ class Index:
         else:
             sstr += "  {} = {}\n".format(self.f90_var, val)
 
-        if self.cxx_var is not None:
-            sstr += "  call check_equal({},{}_in+1)\n".format(self.f90_var, self.cxx_var)
         if self.ifdef is not None:
             sstr += "#endif\n"
         sstr += "\n"
@@ -253,7 +231,6 @@ def doit(variables_file, odir, defines, nadv,
     with open(os.path.join(odir, "set_indices.F90"), "w") as f:
 
         f.write(HEADER)
-        f.write(CHECK_EQUAL)
 
         # loop over sets and create the functions
         for s in sorted(unique_sets):
