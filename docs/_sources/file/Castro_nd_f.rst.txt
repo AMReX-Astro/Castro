@@ -21,21 +21,6 @@ ca\_extern\_init subroutine
 
 .. f:autosubroutine:: ca_extern_init
 
-ca\_get\_num\_spec subroutine
------------------------------
-
-.. f:autosubroutine:: ca_get_num_spec
-
-ca\_get\_num\_aux subroutine
-----------------------------
-
-.. f:autosubroutine:: ca_get_num_aux
-
-ca\_get\_num\_adv subroutine
-----------------------------
-
-.. f:autosubroutine:: ca_get_num_adv
-
 ca\_get\_spec\_names subroutine
 -------------------------------
 

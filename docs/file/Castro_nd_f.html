@@ -140,9 +140,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#ca-network-finalize-subroutine">ca_network_finalize subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-eos-finalize-subroutine">ca_eos_finalize subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-extern-init-subroutine">ca_extern_init subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-get-num-spec-subroutine">ca_get_num_spec subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-get-num-aux-subroutine">ca_get_num_aux subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-get-num-adv-subroutine">ca_get_num_adv subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-spec-names-subroutine">ca_get_spec_names subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-spec-az-subroutine">ca_get_spec_az subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-aux-names-subroutine">ca_get_aux_names subroutine</a></li>
@@ -346,66 +343,6 @@ extern_probin_module</p>
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><strong>namlen</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(name)</em><em>]</em></td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-get-num-spec-subroutine">
-<h2>ca_get_num_spec subroutine<a class="headerlink" href="#ca-get-num-spec-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_get_num_spec">
-<em class="property">subroutine  </em><code class="descname">ca_get_num_spec</code><span class="sig-paren">(</span><em>nspec_out</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_get_num_spec" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Binds to C function <cite>ca_get_num_spec</cite></div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nspec_out</strong><em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-get-num-aux-subroutine">
-<h2>ca_get_num_aux subroutine<a class="headerlink" href="#ca-get-num-aux-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_get_num_aux">
-<em class="property">subroutine  </em><code class="descname">ca_get_num_aux</code><span class="sig-paren">(</span><em>naux_out</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_get_num_aux" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Binds to C function <cite>ca_get_num_aux</cite></div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>naux_out</strong><em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-get-num-adv-subroutine">
-<h2>ca_get_num_adv subroutine<a class="headerlink" href="#ca-get-num-adv-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_get_num_adv">
-<em class="property">subroutine  </em><code class="descname">ca_get_num_adv</code><span class="sig-paren">(</span><em>nadv_out</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_get_num_adv" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Binds to C function <cite>ca_get_num_adv</cite></div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nadv_out</strong><em> [</em><em>integer</em><em>,</em><em>out</em><em>]</em></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nadv()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
 </tr>
 </tbody>
 </table>
@@ -813,64 +750,14 @@ extern_probin_module</p>
 <h2>ca_set_method_params subroutine<a class="headerlink" href="#ca-set-method-params-subroutine" title="Permalink to this headline">¶</a></h2>
 <dl class="subroutine">
 <dt id="f/_/ca_set_method_params">
-<em class="property">subroutine  </em><code class="descname">ca_set_method_params</code><span class="sig-paren">(</span><em>dm</em>, <em>density_in</em>, <em>xmom_in</em>, <em>rmom_in</em>, <em>eden_in</em>, <em>eint_in</em>, <em>temp_in</em>, <em>firstadv_in</em>, <em>firstspec_in</em>, <em>firstaux_in</em>, <em>shock_in</em>, <em>qmagx_in</em>, <em>qmagy_in</em>, <em>qmagz_in</em>, <em>qptot_in</em>, <em>qreitot_in</em>, <em>qrad_in</em>, <em>qrho_in</em>, <em>qu_in</em>, <em>qv_in</em>, <em>qw_in</em>, <em>qgame_in</em>, <em>qgc_in</em>, <em>qpres_in</em>, <em>qreint_in</em>, <em>qtemp_in</em>, <em>qfa_in</em>, <em>qfs_in</em>, <em>qfx_in</em>, <em>gdlams_in</em>, <em>gderads_in</em>, <em>gdrho_in</em>, <em>gdu_in</em>, <em>gdv_in</em>, <em>gdw_in</em>, <em>gdpres_in</em>, <em>gdgame_in</em>, <em>qgamcg_in</em>, <em>qcg_in</em>, <em>qlams_in</em>, <em>qgamc_in</em>, <em>qc_in</em>, <em>qdpdr_in</em>, <em>qdpde_in</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_set_method_params" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descname">ca_set_method_params</code><span class="sig-paren">(</span><em>dm</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_set_method_params" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dm</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>density_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>xmom_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rmom_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>eden_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>eint_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>temp_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>firstadv_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>firstspec_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>firstaux_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>shock_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qmagx_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qmagy_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qmagz_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qptot_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qreitot_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qrad_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qrho_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qu_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qv_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qw_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qgame_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qgc_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qpres_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qreint_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qtemp_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qfa_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qfs_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qfx_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>gdlams_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>gderads_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>gdrho_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>gdu_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>gdv_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>gdw_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>gdpres_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>gdgame_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qgamcg_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qcg_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qlams_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qgamc_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qc_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qdpdr_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qdpde_in</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dm</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_init()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_get_small_dens()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_get_small_temp()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">state_sizes_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
-</td>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_init()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_get_small_dens()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_get_small_temp()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">state_sizes_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>)</td>
 </tr>
 </tbody>
 </table>
