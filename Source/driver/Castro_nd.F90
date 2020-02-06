@@ -156,84 +156,6 @@ end subroutine ca_get_aux_names
 ! :::
 
 
-
-subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
-    !
-    ! Binds to C function `ca_get_nqsrc`
-
-  use meth_params_module, only: NQSRC
-
-  implicit none
-
-  integer, intent(inout) :: nqsrc_in
-
-  nqsrc_in = NQSRC
-
-end subroutine ca_get_nqsrc
-
-
-subroutine ca_get_nsrc(nsrc_in) bind(C, name="ca_get_nsrc")
-    !
-    ! Binds to C function `ca_get_nsrc`
-
-  use meth_params_module, only: NSRC
-
-  implicit none
-
-  integer, intent(inout) :: nsrc_in
-
-  nsrc_in = NSRC
-
-end subroutine ca_get_nsrc
-
-
-
-subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
-    !
-    ! Binds to C function `ca_get_nq`
-
-  use meth_params_module, only: NQ
-
-  implicit none
-
-  integer, intent(inout) :: nq_in
-
-  nq_in = NQ
-
-end subroutine ca_get_nq
-
-
-
-subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
-    !
-    ! Binds to C function `ca_get_nqaux`
-
-  use meth_params_module, only: NQAUX
-
-  implicit none
-
-  integer, intent(inout) :: nqaux_in
-
-  nqaux_in = NQAUX
-
-end subroutine ca_get_nqaux
-
-
-subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
-    !
-    ! Binds to C function `ca_get_ngdnv`
-
-  use meth_params_module, only: NGDNV
-
-  implicit none
-
-  integer, intent(inout) :: ngdnv_in
-
-  ngdnv_in = NGDNV
-
-end subroutine ca_get_ngdnv
-
-
 #ifdef REACTIONS
 subroutine ca_get_abort_on_failure(abort_on_failure_in) bind(C, name="ca_get_abort_on_failure")
 
@@ -525,55 +447,48 @@ subroutine ca_set_method_params(dm) &
   use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use amrex_constants_module, only : ZERO, ONE
   use amrex_fort_module, only: rt => amrex_real
-#ifdef RADIATION
-  use state_sizes_module, only : ngroups
-#endif
+
   implicit none
 
   integer, intent(in) :: dm
 
-  integer :: iadv, ispec
+  integer :: iadv, ispec, iaux, ipassive
 
   integer :: ioproc
 
 
-  !---------------------------------------------------------------------
-  ! set integer keys to index states
-  !---------------------------------------------------------------------
-  call ca_set_godunov_indices()
-
-  call ca_set_conserved_indices()
-
-  call ca_set_auxiliary_indices()
-
-  call ca_set_primitive_indices()
-
   ! easy indexing for the passively advected quantities.  This lets us
   ! loop over all groups (advected, species, aux) in a single loop.
   ! Note: these sizes are the maximum size we expect for passives.
-  allocate(qpass_map(nadv + nspec + naux))
-  allocate(upass_map(nadv + nspec + naux))
+  allocate(qpass_map(npassive))
+  allocate(upass_map(npassive))
 
-  npassive = 0
+  ipassive = 1
 
-  do iadv = 1, nadv
-     upass_map(npassive + iadv) = UFA + iadv - 1
-     qpass_map(npassive + iadv) = QFA + iadv - 1
-  enddo
-  npassive = npassive + nadv
+  if (nadv > 0) then
+     do iadv = 1, nadv
+        upass_map(ipassive) = UFA + iadv - 1
+        qpass_map(ipassive) = QFA + iadv - 1
+        ipassive = ipassive + 1
+     end do
+  end if
 
-  if (QFS > -1) then
-     do ispec = 1, nspec+naux
-        upass_map(npassive + ispec) = UFS + ispec - 1
-        qpass_map(npassive + ispec) = QFS + ispec - 1
-     enddo
-     npassive = npassive + nspec + naux
+  if (nspec > 0) then
+     do ispec = 1, nspec
+        upass_map(ipassive) = UFS + ispec - 1
+        qpass_map(ipassive) = QFS + ispec - 1
+        ipassive = ipassive + 1
+     end do
   endif
 
+  if (naux > 0) then
+     do iaux = 1, naux
+        upass_map(ipassive) = UFX + iaux - 1
+        qpass_map(ipassive) = QFX + iaux - 1
+        ipassive = ipassive + 1
+     end do
+  endif
 
-#ifdef RADIATION
-  QRADHI = QRAD + ngroups - 1
-#endif
 
   !---------------------------------------------------------------------
   ! other initializations
@@ -623,15 +538,6 @@ subroutine ca_set_method_params(dm) &
 
   ! Update device variables
 
-  !$acc update &
-  !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
-  !$acc device(USHK) &
-  !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC) &
-  !$acc device(QFA, QFS, QFX) &
-  !$acc device(QGAMC, QC, QDPDR, QDPDE) &
-#ifdef RADIATION
-  !$acc device(QGAMCG, QCG, QLAMS) &
-#endif
   !$acc device(small_dens, small_temp)
 
 end subroutine ca_set_method_params
