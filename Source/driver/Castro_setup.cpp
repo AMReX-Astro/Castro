@@ -205,31 +205,6 @@ Castro::variableSetUp ()
 
   const int dm = BL_SPACEDIM;
 
-
-  //
-  // Set number of state variables and pointers to components
-  //
-
-  // Get the number of species from the network model.
-  ca_get_num_spec(&NumSpec);
-
-  // Get the number of auxiliary quantities from the network model.
-  ca_get_num_aux(&NumAux);
-
-  // Get the number of advected quantities -- set at compile time
-  ca_get_num_adv(&NumAdv);
-
-
-#include "set_conserved.H"
-
-  NUM_STATE = cnt;
-
-#include "set_primitive.H"
-
-#include "set_godunov.H"
-
-#include "set_auxiliary.H"
-
   // Define NUM_GROW from the f90 module.
   ca_get_method_params(&NUM_GROW);
 
@@ -239,58 +214,12 @@ Castro::variableSetUp ()
   ca_set_castro_method_params();
 
   // set the conserved, primitive, aux, and godunov indices in Fortran
-  ca_set_method_params(dm, Density, Xmom,
-#ifdef HYBRID_MOMENTUM
-                       Rmom,
-#endif
-                       Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
-#ifdef SHOCK_VAR
-		       Shock,
-#endif
-#ifdef MHD
-                       QMAGX, QMAGY, QMAGZ,
-#endif
-#ifdef RADIATION
-                       QPTOT, QREITOT, QRAD,
-#endif
-                       QRHO,
-                       QU, QV, QW,
-                       QGAME, QGC, QPRES, QREINT,
-                       QTEMP,
-                       QFA, QFS, QFX,
-#ifdef RADIATION
-                       GDLAMS, GDERADS,
-#endif
-                       GDRHO, GDU, GDV, GDW,
-                       GDPRES, GDGAME,
-#ifdef RADIATION
-                       QGAMCG, QCG, QLAMS,
-#endif
-                       QGAMC, QC, QDPDR, QDPDE);
-
-  // and the auxiliary variables
-  ca_get_nqaux(&NQAUX);
-
-  // and the number of primitive variable source terms
-  ca_get_nqsrc(&NQSRC);
-
-  // and the number of conserved variable source terms
-  ca_get_nsrc(&NSRC);
-
-  // initialize the Godunov state array used in hydro
-  ca_get_ngdnv(&NGDNV);
-
-  // NQ will be used to dimension the primitive variable state
-  // vector it will include the "pure" hydrodynamical variables +
-  // any radiation variables
-  ca_get_nq(&NQ);
-
+  ca_set_method_params(dm);
 
   // setup the passive maps -- this follows the same logic as the
   // Fortran versions in ca_set_method_params
-  npassive = NumAdv + NumSpec + NumAux;
   int ipassive = 0;
-  
+
   upass_map.resize(npassive);
   qpass_map.resize(npassive);
 
@@ -311,6 +240,7 @@ Castro::variableSetUp ()
     qpass_map[ipassive] = QFX + iaux;
     ++ipassive;
   }
+
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
