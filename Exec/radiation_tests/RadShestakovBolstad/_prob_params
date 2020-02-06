@@ -1,0 +1,15 @@
+wref_l1      real     0.0               y
+
+wref_l2      real     0.0               y
+
+rho_0        real     1.8212111e-5_rt   y
+
+T_0          real     0.1_rt            y
+
+kappa_0      real     0.1_rt            y
+
+x_jump       real     0.5_rt            y
+
+R            real     1.0_rt            y
+
+

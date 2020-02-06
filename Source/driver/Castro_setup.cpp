@@ -280,6 +280,10 @@ Castro::variableSetUp ()
   ca_get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
 #endif
 
+  // Read in the ambient state parameters.
+
+  ca_get_ambient_params(probin_file_name.dataPtr(),&probin_file_length);
+
   Interpolater* interp;
 
   if (state_interp_order == 0) {

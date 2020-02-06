@@ -10,15 +10,12 @@
 
   interp_temp = T
 
-  ambient_density = 1.0d-4
-
   stellar_temp = 1.0d7
-  ambient_temp = 1.0d7
 
   max_stellar_tagging_level = 20
   max_temperature_tagging_level = 0
   max_center_tagging_level = 0
-  stellar_density_threshold = 1.0d0
+  stellar_density_threshold = 1.0d4
   temperature_tagging_threshold = 5.0d8
   center_tagging_radius = 0.0d0
   max_tagging_radius = 0.75d0
@@ -35,11 +32,17 @@
 
 /
 
+&ambient
+
+  ambient_density = 1.0d-4
+  ambient_temp = 1.0d7
+
+/
+
 &tagging 
 
   ! Limit zone size based on nuclear burning considerations
   dxnuc_min = 0.1
-
 
 /
 
