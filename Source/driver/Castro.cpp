@@ -3782,7 +3782,7 @@ Castro::check_for_nan(MultiFab& state_in, int check_ghost)
     ng = state_in.nComp();
   }
 
-  if (state.contains_nan(URHO,state_in.nComp(),ng,true))
+  if (state_in.contains_nan(URHO,state_in.nComp(),ng,true))
     {
       for (int i = 0; i < state_in.nComp(); i++)
         {
