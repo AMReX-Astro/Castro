@@ -63,6 +63,11 @@
                                        amrex::Array4<amrex::Real> const qy,
                                        amrex::Array4<amrex::Real> const qz);
 
+    void uflatten(const amrex::Box& bx,
+                  amrex::Array4<amrex::Real const> const q,
+                  amrex::Array4<amrex::Real> const flatn,
+                  const int pres_comp);
+
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const shk,
                       amrex::Array4<amrex::Real> const update,

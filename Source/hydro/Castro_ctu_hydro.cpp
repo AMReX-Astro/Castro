@@ -178,22 +178,37 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // compute the flattening coefficient
 
+      Array4<Real const> const q_arr = q.array(mfi);
       Array4<Real> const flatn_arr = flatn.array();
+#ifdef RADIATION
+      Array4<Real> const flatg_arr = flatg.array();
+#endif
 
       if (first_order_hydro == 1) {
         AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
       } else if (use_flattening == 1) {
+
+        uflatten(obx, q_arr, flatn_arr, QPRES);
+
 #ifdef RADIATION
-        ca_rad_flatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
-                       BL_TO_FORTRAN_ANYD(flatn),
-                       BL_TO_FORTRAN_ANYD(flatg));
-#else
-#pragma gpu box(obx)
-        ca_uflatten(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                    BL_TO_FORTRAN_ANYD(q[mfi]),
-                    BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
+        uflatten(obx, q_arr, flatg_arr, QPTOT);
+
+        AMREX_PARALLEL_FOR_3D(obx, i, j, k,
+        {
+          flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k);
+
+          if (flatten_pp_threshold > ZERO) {
+            if ( q(i-1,j,k,QU) + q(i,j-1,k,QV) + q(i,j,k-1,QW) > &
+                 q(i+1,j,k,QU) + q(i,j+1,k,QV) + q(i,j,k+1,QW) ) {
+
+              if (q(i,j,k,QPRES) < flatten_pp_threshold * q(i,j,k,QPTOT)) {
+                flatn(i,j,k) = 0.0;
+              }
+            }
+          }
+        });
 #endif
+
       } else {
         AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
       }
@@ -1295,7 +1310,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         }
 
 #ifdef RADIATION
-        Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
+        Array4g<Real> const rad_flux_fab = (rad_flux[idir]).array();
         Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
         const int radcomp = Radiation::nGroups;
 
