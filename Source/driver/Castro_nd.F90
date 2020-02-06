@@ -72,60 +72,6 @@ end subroutine ca_extern_init
 ! :::
 
 
-subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
-    !
-    ! Binds to C function `ca_get_num_spec`
-
-  use network, only: nspec
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: nspec_out
-
-  nspec_out = nspec
-
-end subroutine ca_get_num_spec
-
-
-
-subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
-    !
-    ! Binds to C function `ca_get_num_aux`
-
-  use network, only: naux
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: naux_out
-
-  naux_out = naux
-
-end subroutine ca_get_num_aux
-
-
-
-subroutine ca_get_num_adv(nadv_out) bind(C, name="ca_get_num_adv")
-    !
-    ! Binds to C function `ca_get_num_adv`
-
-  use meth_params_module, only: nadv
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: nadv_out
-
-  nadv_out = nadv
-
-end subroutine ca_get_num_adv
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
 subroutine ca_get_spec_names(spec_names,ispec,len) &
      bind(C, name="ca_get_spec_names")
      ! Binds to C function `ca_get_spec_names`
@@ -570,35 +516,7 @@ end subroutine swap_outflow_data
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
-#ifdef HYBRID_MOMENTUM
-                                Rmom_in, &
-#endif
-                                Eden_in, Eint_in, Temp_in, &
-                                FirstAdv_in, FirstSpec_in, FirstAux_in, &
-#ifdef SHOCK_VAR
-                                Shock_in, &
-#endif
-#ifdef MHD
-                                QMAGX_in, QMAGY_in, QMAGZ_in, &
-#endif
-#ifdef RADIATION
-                                QPTOT_in, QREITOT_in, QRAD_in, &
-#endif
-                                QRHO_in, &
-                                QU_in, QV_in, QW_in, &
-                                QGAME_in, QGC_in, QPRES_in, QREINT_in, &
-                                QTEMP_in, &
-                                QFA_in, QFS_in, QFX_in, &
-#ifdef RADIATION
-                                GDLAMS_in, GDERADS_in, &
-#endif
-                                GDRHO_in, GDU_in, GDV_in, GDW_in, &
-                                GDPRES_in, GDGAME_in, &
-#ifdef RADIATION
-                                QGAMCG_in, QCG_in, QLAMS_in, &
-#endif
-                                QGAMC_in, QC_in, QDPDR_in, QDPDE_in) &
+subroutine ca_set_method_params(dm) &
                                 bind(C, name="ca_set_method_params")
 
   use meth_params_module
@@ -607,40 +525,9 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use amrex_constants_module, only : ZERO, ONE
   use amrex_fort_module, only: rt => amrex_real
-#ifdef RADIATION
-  use state_sizes_module, only : ngroups
-#endif
   implicit none
 
   integer, intent(in) :: dm
-  integer, intent(in) :: Density_in, Xmom_in, Eden_in, Eint_in, Temp_in, &
-       FirstAdv_in, FirstSpec_in, FirstAux_in
-#ifdef SHOCK_VAR
-  integer, intent(in) :: Shock_in
-#endif
-#ifdef MHD
-  integer, intent(in) :: QMAGX_in, QMAGY_in, QMAGZ_in
-#endif
-#ifdef RADIATION
-  integer, intent(in) :: QPTOT_in, QREITOT_in, QRAD_in
-#endif
-  integer, intent(in) :: QRHO_in
-  integer, intent(in) :: QU_in, QV_in, QW_in
-  integer, intent(in) :: QGAME_in, QGC_in, QPRES_in, QREINT_in
-  integer, intent(in) :: QTEMP_in
-  integer, intent(in) :: QFA_in, QFS_in, QFX_in
-#ifdef HYBRID_MOMENTUM
-  integer, intent(in) :: Rmom_in
-#endif
-  integer, intent(in) :: GDRHO_in, GDU_in, GDV_in, GDW_in
-  integer, intent(in) :: GDPRES_in, GDGAME_in
-#ifdef RADIATION
-  integer, intent(in) :: GDLAMS_in, GDERADS_in
-#endif
-#ifdef RADIATION
-  integer, intent(in) :: QGAMCG_in, QCG_in, QLAMS_in
-#endif
-  integer, intent(in) :: QGAMC_in, QC_in, QDPDR_in, QDPDE_in
 
   integer :: iadv, ispec
 
@@ -650,51 +537,13 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !---------------------------------------------------------------------
   ! set integer keys to index states
   !---------------------------------------------------------------------
-  call ca_set_godunov_indices( &
-#ifdef RADIATION
-                              GDLAMS_in, GDERADS_in, &
-#endif
-                              GDRHO_in, GDU_in, GDV_in, GDW_in, &
-                              GDPRES_in, GDGAME_in)
+  call ca_set_godunov_indices()
 
-  call ca_set_conserved_indices( &
-#ifdef HYBRID_MOMENTUM
-                                Rmom_in, Rmom_in+1, Rmom_in+2, &
-#endif
-#ifdef SHOCK_VAR
-                                Shock_in, &
-#endif
-                                Density_in ,Xmom_in, Xmom_in+1, Xmom_in+2, &
-                                Eden_in, Eint_in, Temp_in, &
-                                FirstAdv_in, FirstSpec_in, FirstAux_in &
-                                )
+  call ca_set_conserved_indices()
 
-  call ca_set_auxiliary_indices( &
-#ifdef RADIATION
-                                QGAMCG_in, QCG_in, QLAMS_in, &
-#endif
-                                QGAMC_in, QC_in, QDPDR_in, QDPDE_in)
+  call ca_set_auxiliary_indices()
 
-
-  call ca_set_primitive_indices( &
-#ifdef MHD
-                                QMAGX_in, QMAGY_in, QMAGZ_in, &
-#endif
-#ifdef RADIATION
-                                QPTOT_in, QREITOT_in, QRAD_in, &
-#endif
-                                QRHO_in, &
-                                QU_in, QV_in, QW_in, &
-                                QGAME_in, QGC_in, QPRES_in, QREINT_in, &
-                                QTEMP_in, &
-                                QFA_in, QFS_in, QFX_in)
-
-  ! sanity check
-#ifndef AMREX_USE_CUDA
-  if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-     call castro_error("ERROR: velocity components for godunov and primitive state are not aligned")
-  endif
-#endif
+  call ca_set_primitive_indices()
 
   ! easy indexing for the passively advected quantities.  This lets us
   ! loop over all groups (advected, species, aux) in a single loop.
