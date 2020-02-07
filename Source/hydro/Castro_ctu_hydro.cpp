@@ -239,10 +239,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       if (hybrid_riemann == 1 || compute_shock) {
 #pragma gpu box(obx)
-          ca_shock(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(shk),
-                   AMREX_REAL_ANYD(dx));
+        shock(obx, q_arr, shk_arr);
       }
       else {
         AMREX_PARALLEL_FOR_3D(obx, i, j, k, { shk_arr(i,j,k) = 0.0; });
@@ -335,13 +332,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       div.resize(obx, 1);
       Elixir elix_div = div.elixir();
       fab_size += div.nBytes();
+      auto div_arr = div.array();
 
       // compute divu -- we'll use this later when doing the artifical viscosity
 #pragma gpu box(obx)
-      divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-           BL_TO_FORTRAN_ANYD(q[mfi]),
-           AMREX_REAL_ANYD(dx),
-           BL_TO_FORTRAN_ANYD(div));
+      divu(obx, q_arr, div_arr);
 
       q_int.resize(obx, NQ);
       Elixir elix_q_int = q_int.elixir();

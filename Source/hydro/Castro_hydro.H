@@ -52,9 +52,10 @@
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
 
     void src_to_prim(const amrex::Box& bx,
-                     amrex::Array4<amrex::Real> const q, amrex::Array4<amrex::Real> const qaux,
-                     amrex::Array4<amrex::Real> const src, amrex::Array4<amrex::Real> const srcQ);
-
+                     amrex::Array4<amrex::Real const> const q,
+                     amrex::Array4<amrex::Real const> const qaux,
+                     amrex::Array4<amrex::Real const> const src,
+                     amrex::Array4<amrex::Real> const srcQ);
 
     void add_hybrid_advection_source_c(const int i, const int j, const int k,
                                        const amrex::Real dt, const amrex::Real* dx,
@@ -67,6 +68,14 @@
                   amrex::Array4<amrex::Real const> const q,
                   amrex::Array4<amrex::Real> const flatn,
                   const int pres_comp);
+
+    void shock(const amrex::Box& bx,
+               amrex::Array4<amrex::Real const> const q,
+               amrex::Array4<amrex::Real> const shk);
+
+    void divu(const amrex::Box& bx,
+              amrex::Array4<amrex::Real const> const q,
+              amrex::Array4<amrex::Real> const div);
 
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const shk,
