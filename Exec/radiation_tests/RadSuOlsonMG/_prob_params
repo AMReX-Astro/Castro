@@ -1,0 +1,11 @@
+x0       real    0.5e0_rt     y
+tau0     real    10.0e0_rt    y
+Q        real    1.e0_rt      y
+Temp0    real    1.e6_rt      y
+kapbar   real    1.e0_rt      y
+epsilon  real    1.e0_rt      y
+p0       real    0.5e0_rt     y
+p1       real    0.5e0_rt     y
+
+t0       real    0.0
+qn       real    0.0          n     2

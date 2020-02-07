@@ -74,7 +74,6 @@ class Index:
         """return the C++ code that sets this variable index.  Note: since C++
         is 0-based, we subtract 1, so we sync with the Fortran
         value
-
         """
         sstr = "  constexpr int {} = {};\n".format(self.cxx_var, self.cxx_value)
         return sstr

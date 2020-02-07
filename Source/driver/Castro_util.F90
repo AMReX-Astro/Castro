@@ -357,9 +357,10 @@ contains
     use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
-    use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, &
-         UFS, UFX
-    use amrex_constants_module, only: ZERO, ONE
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEINT, UEDEN, UTEMP, UFS, UFX, &
+                                  clamp_ambient_temp, ambient_safety_factor
+    use ambient_module, only: ambient_state
+    use amrex_constants_module, only: ZERO, HALF, ONE
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
 #endif
@@ -421,6 +422,14 @@ contains
              call eos(eos_input_re, eos_state)
 
              state(i,j,k,UTEMP) = eos_state % T
+
+             if (clamp_ambient_temp == 1) then
+                if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
+                   state(i,j,k,UTEMP) = ambient_state(UTEMP)
+                   state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
+                   state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
+                end if
+             end if
 
           enddo
        enddo
@@ -511,8 +520,6 @@ contains
     enddo
 
   end subroutine ca_normalize_species
-
-
 
 
 

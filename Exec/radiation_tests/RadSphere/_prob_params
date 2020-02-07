@@ -1,0 +1,7 @@
+rho_0      real    1.0         y
+
+T_0        real    5.797e5     y
+
+# we originally had rhoe_0 = rho_0 * 7.236399881810565625d13 but it is not clear
+# where this number comes from, and it was not being updated after we read probin
+rhoe_0     real    7.236399881810565625d13
