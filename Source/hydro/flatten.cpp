@@ -31,9 +31,8 @@ Castro::uflatten(const Box& bx,
 
     int ishft = dp > 0.0 ? 1 : -1;
 
-    Real diff = abs(q(i+2,j,k,pres_comp) - q(i-2,j,k,pres_comp));
-    Real denom = std::max(small_pres, diff);
-    Real zeta = abs(dp) / denom;
+    Real denom = std::max(small_pres, std::abs(q(i+2,j,k,pres_comp) - q(i-2,j,k,pres_comp)));
+    Real zeta = std::abs(dp) / denom;
     Real z = std::min(1.0, std::max(0.0, dzcut * (zeta - zcut1)));
 
     Real tst = 0.0;
@@ -44,16 +43,15 @@ Castro::uflatten(const Box& bx,
     Real tmp = std::min(q(i+1,j,k,pres_comp), q(i-1,j,k,pres_comp));
 
     Real chi = 0.0;
-    if (abs(dp) > shktst*tmp) {
+    if (std::abs(dp) > shktst*tmp) {
       chi = tst;
     }
 
 
     dp = q(i+1-ishft,j,k,pres_comp) - q(i-1-ishft,j,k,pres_comp);
 
-    diff =  abs(q(i+2-ishft,j,k,pres_comp)-q(i-2-ishft,j,k,pres_comp));
-    denom = std::max(small_pres, diff);
-    zeta = abs(dp) / denom;
+    denom = std::max(small_pres, std::abs(q(i+2-ishft,j,k,pres_comp)-q(i-2-ishft,j,k,pres_comp)));
+    zeta = std::abs(dp) / denom;
     Real z2 = std::min(1.0, std::max(0.0, dzcut * (zeta - zcut1)));
 
     tst = 0.0;
@@ -64,7 +62,7 @@ Castro::uflatten(const Box& bx,
     tmp = std::min(q(i+1-ishft,j,k,pres_comp), q(i-1-ishft,j,k,pres_comp));
 
     Real chi2 = 0.0;
-    if (abs(dp) > shktst*tmp) {
+    if (std::abs(dp) > shktst*tmp) {
       chi2 = tst;
     }
 
@@ -78,9 +76,8 @@ Castro::uflatten(const Box& bx,
 
     ishft = dp > 0.0 ? 1 : -1;
 
-    diff = abs(q(i,j+2,k,pres_comp) - q(i,j-2,k,pres_comp));
-    denom = std::max(small_pres, diff);
-    zeta = abs(dp) / denom;
+    denom = std::max(small_pres, std::abs(q(i,j+2,k,pres_comp) - q(i,j-2,k,pres_comp)));
+    zeta = std::abs(dp) / denom;
     z = min(1.0, max(0.0, dzcut * (zeta - zcut1)));
 
     tst = 0.0;
@@ -91,16 +88,15 @@ Castro::uflatten(const Box& bx,
     tmp = std::min(q(i,j+1,k,pres_comp), q(i,j-1,k,pres_comp));
 
     chi = 0.0;
-    if (abs(dp) > shktst*tmp) {
+    if (std::abs(dp) > shktst*tmp) {
       chi = tst;
     }
 
 
     dp = q(i,j+1-ishft,k,pres_comp) - q(i,j-1-ishft,k,pres_comp);
 
-    diff = abs(q(i,j+2-ishft,k,pres_comp) - q(i,j-2-ishft,k,pres_comp));
-    denom = std::max(small_pres, diff);
-    zeta = abs(dp) / denom;
+    denom = std::max(small_pres, std::abs(q(i,j+2-ishft,k,pres_comp) - q(i,j-2-ishft,k,pres_comp)));
+    zeta = std::abs(dp) / denom;
     z2 = min(1.0, max(0.0, dzcut * (zeta - zcut1)));
 
     tst = 0.0;
@@ -111,7 +107,7 @@ Castro::uflatten(const Box& bx,
     tmp = std::min(q(i,j+1-ishft,k,pres_comp), q(i,j-1-ishft,k,pres_comp));
 
     chi2 = 0.0;
-    if (abs(dp) > shktst*tmp) {
+    if (std::abs(dp) > shktst*tmp) {
       chi2 = tst;
     }
 
@@ -126,9 +122,8 @@ Castro::uflatten(const Box& bx,
 
     ishft = dp > 0.0 ? 1: -1;
 
-    diff = abs(q(i,j,k+2,pres_comp) - q(i,j,k-2,pres_comp));
-    denom = std::max(small_pres, diff);
-    zeta = abs(dp) / denom;
+    denom = std::max(small_pres, std::abs(q(i,j,k+2,pres_comp) - q(i,j,k-2,pres_comp)));
+    zeta = std::abs(dp) / denom;
     z = std::min(1.0, std::max(0.0, dzcut * (zeta - zcut1)));
 
     tst = 0.0;
@@ -139,16 +134,15 @@ Castro::uflatten(const Box& bx,
     tmp = std::min(q(i,j,k+1,pres_comp), q(i,j,k-1,pres_comp));
 
     chi = 0.0;
-    if (abs(dp) > shktst*tmp) {
+    if (std::abs(dp) > shktst*tmp) {
       chi = tst;
     }
 
 
     dp = q(i,j,k+1-ishft,pres_comp) - q(i,j,k-1-ishft,pres_comp);
 
-    diff = abs(q(i,j,k+2-ishft,pres_comp) - q(i,j,k-2-ishft,pres_comp));
-    denom = std::max(small_pres, diff);
-    zeta = abs(dp) / denom;
+    denom = std::max(small_pres, std::abs(q(i,j,k+2-ishft,pres_comp) - q(i,j,k-2-ishft,pres_comp)));
+    zeta = std::abs(dp) / denom;
     z2 = std::min(1.0, std::max(0.0, dzcut * (zeta - zcut1)));
 
     tst = 0.0;
@@ -159,7 +153,7 @@ Castro::uflatten(const Box& bx,
     tmp = std::min(q(i,j,k+1-ishft,pres_comp), q(i,j,k-1-ishft,pres_comp));
 
     chi2 = 0.0;
-    if (abs(dp) > shktst*tmp) {
+    if (std::abs(dp) > shktst*tmp) {
       chi2 = tst;
     }
 
