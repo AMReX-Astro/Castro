@@ -238,7 +238,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       if (hybrid_riemann == 1 || compute_shock) {
-#pragma gpu box(obx)
         shock(obx, q_arr, shk_arr);
       }
       else {
@@ -335,7 +334,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       auto div_arr = div.array();
 
       // compute divu -- we'll use this later when doing the artifical viscosity
-#pragma gpu box(obx)
       divu(obx, q_arr, div_arr);
 
       q_int.resize(obx, NQ);
