@@ -11,7 +11,7 @@ module riemann_module
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
 
 #ifdef RADIATION
-                                 qrad, qradhi, qptot, qreitot, &
+                                 qrad, qptot, qreitot, &
                                  GDERADS, QGAMCG, QLAMS, QREITOT, &
 #endif
                                  npassive, upass_map, qpass_map, &
@@ -1227,7 +1227,7 @@ contains
 #ifdef RADIATION
              pl = ql(i,j,k,qptot)
              rel = ql(i,j,k,qreitot)
-             erl(:) = ql(i,j,k,qrad:qradhi)
+             erl(:) = ql(i,j,k,qrad:qrad-1+ngroups)
              pl_g = ql(i,j,k,QPRES)
              rel_g = ql(i,j,k,QREINT)
 #else
@@ -1245,7 +1245,7 @@ contains
 #ifdef RADIATION
              pr = qr(i,j,k,qptot)
              rer = qr(i,j,k,qreitot)
-             err(:) = qr(i,j,k,qrad:qradhi)
+             err(:) = qr(i,j,k,qrad:qrad-1+ngroups)
              pr_g = qr(i,j,k,QPRES)
              rer_g = qr(i,j,k,QREINT)
 #else
