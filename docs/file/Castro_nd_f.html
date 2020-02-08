@@ -143,11 +143,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-spec-names-subroutine">ca_get_spec_names subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-spec-az-subroutine">ca_get_spec_az subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-aux-names-subroutine">ca_get_aux_names subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-get-nqsrc-subroutine">ca_get_nqsrc subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-get-nsrc-subroutine">ca_get_nsrc subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-get-nq-subroutine">ca_get_nq subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-get-nqaux-subroutine">ca_get_nqaux subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-get-ngdnv-subroutine">ca_get_ngdnv subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-abort-on-failure-subroutine">ca_get_abort_on_failure subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-set-abort-on-failure-subroutine">ca_set_abort_on_failure subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-amrinfo-init-subroutine">ca_amrinfo_init subroutine</a></li>
@@ -424,106 +419,6 @@ extern_probin_module</p>
 </tr>
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">short_aux_names()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-get-nqsrc-subroutine">
-<h2>ca_get_nqsrc subroutine<a class="headerlink" href="#ca-get-nqsrc-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_get_nqsrc">
-<em class="property">subroutine  </em><code class="descname">ca_get_nqsrc</code><span class="sig-paren">(</span><em>nqsrc_in</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_get_nqsrc" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Binds to C function <cite>ca_get_nqsrc</cite></div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nqsrc_in</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nqsrc()</span></code>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-get-nsrc-subroutine">
-<h2>ca_get_nsrc subroutine<a class="headerlink" href="#ca-get-nsrc-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_get_nsrc">
-<em class="property">subroutine  </em><code class="descname">ca_get_nsrc</code><span class="sig-paren">(</span><em>nsrc_in</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_get_nsrc" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Binds to C function <cite>ca_get_nsrc</cite></div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nsrc_in</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nsrc()</span></code>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-get-nq-subroutine">
-<h2>ca_get_nq subroutine<a class="headerlink" href="#ca-get-nq-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_get_nq">
-<em class="property">subroutine  </em><code class="descname">ca_get_nq</code><span class="sig-paren">(</span><em>nq_in</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_get_nq" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Binds to C function <cite>ca_get_nq</cite></div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nq_in</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-get-nqaux-subroutine">
-<h2>ca_get_nqaux subroutine<a class="headerlink" href="#ca-get-nqaux-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_get_nqaux">
-<em class="property">subroutine  </em><code class="descname">ca_get_nqaux</code><span class="sig-paren">(</span><em>nqaux_in</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_get_nqaux" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Binds to C function <cite>ca_get_nqaux</cite></div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nqaux_in</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-get-ngdnv-subroutine">
-<h2>ca_get_ngdnv subroutine<a class="headerlink" href="#ca-get-ngdnv-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_get_ngdnv">
-<em class="property">subroutine  </em><code class="descname">ca_get_ngdnv</code><span class="sig-paren">(</span><em>ngdnv_in</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_get_ngdnv" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Binds to C function <cite>ca_get_ngdnv</cite></div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ngdnv_in</strong><em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>)</td>
 </tr>
 </tbody>
 </table>

@@ -36,31 +36,6 @@ ca\_get\_aux\_names subroutine
 
 .. f:autosubroutine:: ca_get_aux_names
 
-ca\_get\_nqsrc subroutine
--------------------------
-
-.. f:autosubroutine:: ca_get_nqsrc
-
-ca\_get\_nsrc subroutine
-------------------------
-
-.. f:autosubroutine:: ca_get_nsrc
-
-ca\_get\_nq subroutine
-----------------------
-
-.. f:autosubroutine:: ca_get_nq
-
-ca\_get\_nqaux subroutine
--------------------------
-
-.. f:autosubroutine:: ca_get_nqaux
-
-ca\_get\_ngdnv subroutine
--------------------------
-
-.. f:autosubroutine:: ca_get_ngdnv
-
 ca\_get\_abort\_on\_failure subroutine
 --------------------------------------
 
