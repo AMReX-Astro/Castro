@@ -538,7 +538,7 @@ subroutine ca_set_method_params(dm) &
 
   ! Update device variables
 
-  !$acc device(small_dens, small_temp)
+  !$acc update device(small_dens, small_temp)
 
 end subroutine ca_set_method_params
 
