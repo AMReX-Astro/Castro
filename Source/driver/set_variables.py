@@ -40,23 +40,21 @@ def split_pair(pair_string):
 class Index:
     """an index that we want to set"""
 
-    def __init__(self, name, f90_var, default_group=None, iset=None,
-                 also_adds_to=None, count=1, cxx_var=None, ifdef=None, exists=True):
+    def __init__(self, name, var, default_group=None, iset=None,
+                 also_adds_to=None, count=1, ifdef=None, exists=True):
         """ parameters:
                name: a descriptive name for the quantity
-               f90_var: name of the variable in Fortran
+               var: name of the variable
                default_group: the name of a counter that we increment (e.g., NVAR)
                iset: a descriptive name for the set of the variables this belongs to
                      (e.g., conserved)
                also_adds_to: any other counters that we increment
                count: the number of variables in this group
-               cxx_var: the name of the variable in C++
                ifdef: any ifdef that wraps this variable
                exists: true if the ifdef says it is defined
         """
         self.name = name
-        self.cxx_var = cxx_var
-        self.f90_var = f90_var
+        self.var = var
         self.iset = iset
         self.default_group = default_group
         self.adds_to = also_adds_to
@@ -78,7 +76,7 @@ class Index:
         self.exists = exists
 
     def __str__(self):
-        return self.f90_var
+        return self.var
 
     def set_value(self, val, cxx_val):
         self.value = val
@@ -97,12 +95,12 @@ class Index:
         if set_default is not None and self.count != "1":
             # this adds a test that the count is greater than 0
             sstr += "  if ({} > 0) then\n".format(self.count)
-            sstr += "    {} = {}\n".format(self.f90_var, self.value)
+            sstr += "    {} = {}\n".format(self.var, self.value)
             sstr += "  else\n"
-            sstr += "    {} = {}\n".format(self.f90_var, set_default)
+            sstr += "    {} = {}\n".format(self.var, set_default)
             sstr += "  endif\n"
         else:
-            sstr += "  {} = {}\n".format(self.f90_var, self.value)
+            sstr += "  {} = {}\n".format(self.var, self.value)
 
         if self.ifdef is not None:
             sstr += "#endif\n"
@@ -114,7 +112,7 @@ class Index:
         is 0-based, we subtract 1, so we sync with the Fortran
         value
         """
-        sstr = "  constexpr int {} = {};\n".format(self.cxx_var, self.cxx_value)
+        sstr = "  constexpr int {} = {};\n".format(self.var, self.cxx_value)
         return sstr
 
 
@@ -206,11 +204,10 @@ def doit(variables_file, odir, defines, nadv,
                 fields = re.findall(r'[\w\"\+\.-]+|\([\w+\.-]+\s*,\s*[\w\+\.-]+\)', line)
 
                 name = fields[0]
-                cxx_var = fields[1]
-                f90_var = fields[2]
-                adds_to = fields[3]
-                count = fields[4]
-                ifdef = fields[5]
+                var = fields[1]
+                adds_to = fields[2]
+                count = fields[3]
+                ifdef = fields[4]
 
                 # we may be fed a pair of the form (SET, DEFINE),
                 # in which case we only add to SET if we define
@@ -224,8 +221,6 @@ def doit(variables_file, odir, defines, nadv,
 
                 if adds_to == "None":
                     adds_to = None
-                if cxx_var == "None":
-                    cxx_var = None
 
                 if ifdef == "None" or ifdef in defines:
                     exists = True
@@ -236,9 +231,9 @@ def doit(variables_file, odir, defines, nadv,
                     ifdef = None
 
 
-                indices.append(Index(name, f90_var, default_group=default_group,
+                indices.append(Index(name, var, default_group=default_group,
                                      iset=current_set, also_adds_to=adds_to,
-                                     count=count, cxx_var=cxx_var, ifdef=ifdef, exists=exists))
+                                     count=count, ifdef=ifdef, exists=exists))
 
 
     # find the set of set names

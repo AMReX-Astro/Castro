@@ -1018,7 +1018,7 @@ Gravity::test_level_grad_phi_prev(int level)
     // Fill the RHS for the solve
     MultiFab& S_old = LevelData[level]->get_old_data(State_Type);
     MultiFab Rhs(grids[level],dmap[level],1,0);
-    MultiFab::Copy(Rhs,S_old,Density,0,1,0);
+    MultiFab::Copy(Rhs,S_old, URHO,0,1,0);
 
     const Geometry& geom = parent->Geom(level);
 
@@ -1090,7 +1090,7 @@ Gravity::test_level_grad_phi_curr(int level)
     // Fill the RHS for the solve
     MultiFab& S_new = LevelData[level]->get_new_data(State_Type);
     MultiFab Rhs(grids[level],dmap[level],1,0);
-    MultiFab::Copy(Rhs,S_new,Density,0,1,0);
+    MultiFab::Copy(Rhs,S_new, URHO, 0,1,0);
 
     const Geometry& geom = parent->Geom(level);
 
@@ -1253,7 +1253,7 @@ Gravity::test_composite_phi (int crse_level)
 	rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
 	MultiFab::Copy(*rhs[ilev],
 		       LevelData[amr_lev]->get_new_data(State_Type),
-		       Density,0,1,0);
+		       URHO, 0,1,0);
 
 	res[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
 	res[ilev]->setVal(0.);
@@ -2593,7 +2593,7 @@ Gravity::get_rhs (int crse_level, int nlevs, int is_new)
 	MultiFab& state = (is_new == 1) ?
 	    LevelData[amr_lev]->get_new_data(State_Type) :
 	    LevelData[amr_lev]->get_old_data(State_Type);
-	MultiFab::Copy(*rhs[ilev], state, Density,0,1,0);
+	MultiFab::Copy(*rhs[ilev], state, URHO, 0,1,0);
     }
     return rhs;
 }
