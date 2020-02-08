@@ -1,3 +1,13 @@
+# 20.03
+
+   * The names of the conserved state variables in C++ (Density, Xmom, etc.)
+     have been changed to match the names in Fortran (URHO, UMX, etc.).
+     For user code, this will only affect problem-specific setup code
+     like Prob.cpp that references specific state variables. For compatibility,
+     we have kept a copy of the old names around that redirect to the
+     new names, but the old names are now considered deprecated and will
+     be removed in a future release. (#757)
+
 # 20.02
 
    * Fixed a bug in the nuclear burning timestep estimator when on GPUs
