@@ -116,7 +116,6 @@ public:
   static int current_group_number;
   static std::string current_group_name;
 
-  static amrex::Real flatten_pp_threshold;
   static int pure_hydro;
 
 #include <radiation_params.H>
