@@ -193,13 +193,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
         AMREX_PARALLEL_FOR_3D(obx, i, j, k,
         {
-          flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k);
+          flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
 
-          if (flatten_pp_threshold > 0.0) {
+          if (Radiation::flatten_pp_threshold > 0.0) {
             if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
                  q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
 
-              if (q_arr(i,j,k,QPRES) < flatten_pp_threshold * q_arr(i,j,k,QPTOT)) {
+              if (q_arr(i,j,k,QPRES) < Radiation::flatten_pp_threshold * q_arr(i,j,k,QPTOT)) {
                 flatn_arr(i,j,k) = 0.0;
               }
             }
