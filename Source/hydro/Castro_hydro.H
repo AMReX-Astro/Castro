@@ -57,11 +57,11 @@
 
 
     void add_hybrid_advection_source_c(const int i, const int j, const int k,
-                                       const amrex::Real dt, const amrex::Real* dx,
+                                       const amrex::Real dt, amrex::GpuArray<amrex::Real, 3> const dx,
                                        amrex::Array4<amrex::Real> const update,
-                                       amrex::Array4<amrex::Real> const qx,
-                                       amrex::Array4<amrex::Real> const qy,
-                                       amrex::Array4<amrex::Real> const qz);
+                                       amrex::Array4<amrex::Real const> const qx,
+                                       amrex::Array4<amrex::Real const> const qy,
+                                       amrex::Array4<amrex::Real const> const qz);
 
     void uflatten(const amrex::Box& bx,
                   amrex::Array4<amrex::Real const> const q,
