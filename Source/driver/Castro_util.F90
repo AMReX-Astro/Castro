@@ -624,13 +624,14 @@ contains
 
     real(rt) :: arear
 
-    logical :: cc(3) = .true.
+    logical :: cc(3)
     real(rt) :: dx(3), loc(3)
 
     !$gpu
 
     ! Force edge-centering along the direction of interest
 
+    cc(:) = .true.
     cc(dir) = .false.
 
     dx = dx_level(:,amr_level)
@@ -739,6 +740,61 @@ contains
     endif
 
   end function area
+
+
+
+
+
+  function dLogArea(i, j, k, dir) result(dlogarear)
+    ! Given an index (i,j,k) and a direction dir, return the
+    ! coefficient that appears in the geometry source terms (only
+    ! relevant for non-Cartesian geometries).
+
+    use amrinfo_module, only: amr_level
+    use amrex_constants_module, only: ZERO, ONE, TWO
+    use prob_params_module, only: dim, coord_type, dx_level
+#ifndef AMREX_USE_CUDA
+    use castro_error_module, only: castro_error
+#endif
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer, intent(in) :: i, j, k, dir
+
+    real(rt) :: dlogarear
+
+    real(rt) :: dx(3), loc(3)
+
+    !$gpu
+
+    dx = dx_level(:,amr_level)
+
+    dlogarear = ZERO
+
+    if (coord_type .eq. 1 .and. dir .eq. 1) then
+
+       ! Cylindrical (2D only)
+
+       ! Get cell-centered position
+
+       loc = position(i,j,k)
+
+       dlogarear = ONE / loc(1)
+
+    else if (coord_type .eq. 2 .and. dir .eq. 1) then
+
+       ! Spherical (1D only)
+
+       ! Get cell-centered position
+
+       loc = position(i,j,k)
+
+       dlogarear = TWO / loc(1)
+
+    endif
+
+  end function dLogArea
 
 
 

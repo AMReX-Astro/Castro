@@ -237,6 +237,8 @@ contains
 
   subroutine normalize_abundances(state)
 
+    !$acc routine seq
+
     use amrex_constants_module, only: ONE
     use extern_probin_module, only: small_x
 
@@ -256,6 +258,8 @@ contains
   ! Ensure that inputs are within reasonable limits.
 
   subroutine clean_state(state)
+
+    !$acc routine seq
 
     implicit none
 
