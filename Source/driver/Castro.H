@@ -4,6 +4,22 @@
 
 #include <state_indices.H>
 
+// for backwards compatibility with the old way of naming variables
+// these keys are deprecated and may be removed in the future
+constexpr int Density = URHO;
+constexpr int Xmom = UMX;
+constexpr int Ymom = UMY;
+constexpr int Zmom = UMZ;
+constexpr int Eden = UEDEN;
+constexpr int Eint = UEINT;
+constexpr int Temp = UTEMP;
+constexpr int FirstAdv = UFA;
+constexpr int FirstSpec = UFS;
+constexpr int FirstAux = UFX;
+#ifdef SHOCK_VAR
+constexpr int Shock = USHK;
+#endif
+
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
 #include <AMReX_iMultiFab.H>
