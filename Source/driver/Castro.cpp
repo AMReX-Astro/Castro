@@ -507,7 +507,7 @@ Castro::Castro (Amr&            papa,
     if (do_grav) {
       // gravity is a static object, only alloc if not already there
       if (gravity == 0)
-        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc,Density);
+        gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
 
       // Passing numpts_1d at level 0
       if (!level_geom.isAllPeriodic() && gravity != 0)
@@ -1111,8 +1111,8 @@ Castro::initData ()
            }
 
          // now copy back the averages for UEINT and UTEMP only
-         MultiFab::Copy(S_new, Sborder, Eint, Eint, 1, 0);
-         MultiFab::Copy(S_new, Sborder, Temp, Temp, 1, 0);
+         MultiFab::Copy(S_new, Sborder, UEINT, UEINT, 1, 0);
+         MultiFab::Copy(S_new, Sborder, UTEMP, UTEMP, 1, 0);
          Sborder.clear();
 
        }
@@ -2542,7 +2542,7 @@ Castro::reflux(int crse_level, int fine_level)
 	int ilev = lev - crse_level - 1;
 
 	if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
-	    reg->Reflux(*drho[ilev], crse_lev.volume, 1.0, 0, Density, 1, crse_lev.geom);
+	    reg->Reflux(*drho[ilev], crse_lev.volume, 1.0, 0, URHO, 1, crse_lev.geom);
 	    amrex::average_down(*drho[ilev + 1], *drho[ilev], 0, 1, getLevel(lev).crse_ratio);
 	}
 #endif
@@ -2567,7 +2567,7 @@ Castro::reflux(int crse_level, int fine_level)
 	    }
 	    for (int i = 0; i < BL_SPACEDIM; ++i) {
 		MultiFab::Add(*crse_lev.fluxes[i], *temp_fluxes[i], 0, 0, crse_lev.fluxes[i]->nComp(), 0);
-                MultiFab::Add(*crse_lev.mass_fluxes[i], *temp_fluxes[i], Density, 0, 1, 0);
+                MultiFab::Add(*crse_lev.mass_fluxes[i], *temp_fluxes[i], URHO, 0, 1, 0);
 		temp_fluxes[i].reset();
 	    }
 
@@ -2587,7 +2587,7 @@ Castro::reflux(int crse_level, int fine_level)
 
 	    reg->ClearInternalBorders(crse_lev.geom);
 
-	    reg->Reflux(crse_state, dr, 1.0, 0, Xmom, 1, crse_lev.geom);
+	    reg->Reflux(crse_state, dr, 1.0, 0, UMX, 1, crse_lev.geom);
 
 	    if (update_sources_after_reflux) {
 
@@ -3342,7 +3342,7 @@ Castro::reset_internal_energy(
 	    ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
 
 	    if (ParallelDescriptor::IOProcessor()) {
-		if (std::abs(reset_update[Eint]) != 0.0) {
+		if (std::abs(reset_update[UEINT]) != 0.0) {
 		    std::cout << std::endl << "  Contributions to the state from negative energy resets:" << std::endl;
 
 		    print_source_change(reset_update);
@@ -3407,7 +3407,7 @@ Castro::computeTemp(
 
       ca_compute_lap_term(BL_TO_FORTRAN_BOX(bx0),
                           BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), &Eint,
+                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), UEINT,
                           AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
       ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
@@ -3495,18 +3495,18 @@ Castro::computeTemp(
 
       // only temperature
       ca_make_fourth_in_place_n(BL_TO_FORTRAN_BOX(bx),
-                                BL_TO_FORTRAN_FAB(Stemp[mfi]), &Temp,
+                                BL_TO_FORTRAN_FAB(Stemp[mfi]), UTEMP,
                                 AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
     }
 
     // correct UEINT
-    MultiFab::Add(Stemp, Eint_lap, 0, Eint, 1, 0);
+    MultiFab::Add(Stemp, Eint_lap, 0, UEINT, 1, 0);
 
     // copy back UTEMP and UEINT -- those are the only things that
     // should have changed.
-    MultiFab::Copy(State, Stemp, Temp, Temp, 1, 0);
-    MultiFab::Copy(State, Stemp, Eint, Eint, 1, 0);
+    MultiFab::Copy(State, Stemp, UTEMP, UTEMP, 1, 0);
+    MultiFab::Copy(State, Stemp, UEINT, UEINT, 1, 0);
 
     // now that we redid these, redo the ghost fill -- technically,
     // only need this for UTEMP and UEINT, and only if ng > 0
@@ -3555,7 +3555,7 @@ Castro::apply_source_term_predictor()
 
     const Real dt_old = new_time - old_time;
 
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, Xmom, 3, Xmom);
+    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, UMX, 3, UMX);
 
     sources_for_hydro.mult(2.0 / dt_old, NUM_GROW);
 
@@ -3748,7 +3748,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     Real center[3];
     const Real* dx = geom.CellSize();
 
-    IntVect max_index = S.maxIndex(Density,0);
+    IntVect max_index = S.maxIndex(URHO,0);
     Box bx(max_index,max_index);
     bx.grow(1);
     BoxArray ba(bx);
@@ -3757,7 +3757,7 @@ Castro::define_new_center(MultiFab& S, Real time)
     MultiFab mf(ba,dm,1,0);
 
     // Define a cube 3-on-a-side around the point with the maximum density
-    FillPatch(*this,mf,0,time,State_Type,Density,1);
+    FillPatch(*this,mf,0,time,State_Type,URHO,1);
 
     int mi[BL_SPACEDIM];
     for (int i = 0; i < BL_SPACEDIM; i++) mi[i] = max_index[i];
@@ -3911,11 +3911,11 @@ Castro::check_for_nan(MultiFab& state_in, int check_ghost)
     ng = state_in.nComp();
   }
 
-  if (state_in.contains_nan(Density,state_in.nComp(),ng,true))
+  if (state_in.contains_nan(URHO,state_in.nComp(),ng,true))
     {
       for (int i = 0; i < state_in.nComp(); i++)
         {
-	  if (state_in.contains_nan(Density + i, 1, ng, true))
+	  if (state_in.contains_nan(URHO + i, 1, ng, true))
             {
 	      std::string abort_string = std::string("State has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::check_for_nan()");
 	      amrex::Abort(abort_string.c_str());

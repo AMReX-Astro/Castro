@@ -453,16 +453,16 @@ Castro::print_source_change(Vector<Real> update)
 
   if (ParallelDescriptor::IOProcessor()) {
 
-    std::cout << "       mass added: " << update[Density] << std::endl;
-    std::cout << "       xmom added: " << update[Xmom] << std::endl;
+    std::cout << "       mass added: " << update[URHO] << std::endl;
+    std::cout << "       xmom added: " << update[UMX] << std::endl;
 #if (BL_SPACEDIM >= 2)
-    std::cout << "       ymom added: " << update[Ymom] << std::endl;
+    std::cout << "       ymom added: " << update[UMY] << std::endl;
 #endif
 #if (BL_SPACEDIM == 3)
-    std::cout << "       zmom added: " << update[Zmom] << std::endl;
+    std::cout << "       zmom added: " << update[UMZ] << std::endl;
 #endif
-    std::cout << "       eint added: " << update[Eint] << std::endl;
-    std::cout << "       ener added: " << update[Eden] << std::endl;
+    std::cout << "       eint added: " << update[UEINT] << std::endl;
+    std::cout << "       ener added: " << update[UEDEN] << std::endl;
 
     std::cout << std::endl;
 
