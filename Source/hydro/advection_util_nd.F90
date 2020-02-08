@@ -1208,12 +1208,6 @@ contains
     dyinv = ONE/dx(2)
     dzinv = ONE/dx(3)
 
-#ifndef AMREX_USE_CUDA
-    if (coord_type /= 0) then
-       call castro_error("ERROR: invalid geometry in shock()")
-    endif
-#endif
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
