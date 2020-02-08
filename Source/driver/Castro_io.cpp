@@ -1216,13 +1216,13 @@ Castro::plotFileOutput(const std::string& dir,
                 if (Castro::theTracerPC())
                 {
                     derive_names.push_back(it->name());
-                    num_derive++;
+                    num_derive = num_derive + it->numDerive();
                 }
             } else
 #endif
 	    {
-		derive_names.push_back(it->name());
-		num_derive++;
+               derive_names.push_back(it->name());
+               num_derive = num_derive + it->numDerive();
 	    }
 	}
     }
@@ -1261,7 +1261,14 @@ Castro::plotFileOutput(const std::string& dir,
 	      it != derive_names.end(); ++it)
         {
 	    const DeriveRec* rec = derive_lst.get(*it);
-            os << rec->variableName(0) << '\n';
+            if (rec->numDerive() > 1) {
+                for (int i = 0; i < rec->numDerive(); ++i) {
+                    os << rec->variableName(0) + '_' + std::to_string(i) + '\n';
+                }
+            }
+            else {
+                os << rec->variableName(0) << '\n';
+            }
         }
 
 #ifdef RADIATION
@@ -1381,14 +1388,13 @@ Castro::plotFileOutput(const std::string& dir,
     //
     // Cull data from derived variables.
     //
-    if (derive_names.size() > 0)
+    if (dlist.size() > 0)
     {
-	for (std::list<std::string>::iterator it = derive_names.begin();
-	     it != derive_names.end(); ++it)
+	for (auto it = dlist.begin(); it != dlist.end(); ++it)
 	{
-	    auto derive_dat = derive(*it,cur_time,nGrow);
-	    MultiFab::Copy(plotMF,*derive_dat,0,cnt,1,nGrow);
-	    cnt++;
+	    auto derive_dat = derive(it->variableName(0), cur_time, nGrow);
+	    MultiFab::Copy(plotMF, *derive_dat, 0, cnt, it->numDerive(), nGrow);
+	    cnt = cnt + it->numDerive();
 	}
     }
 
