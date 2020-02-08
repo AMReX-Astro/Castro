@@ -1,21 +1,36 @@
 #!/usr/bin/env python3
 
-"""parse the _variables file and write a Fortran module and C++ header
-that defines the indices and size of state arrays.  We write:
-
-  * state_indices.F90
-
-  * state_indices.H
-
-They both have the same information.  For the C++ header, the indices
-are all 0-based, so they will be one less than the Fortran indices.
-
-"""
+# parse the _variables file and write the set of functions that will
+# define the indices.  We write two files with the following functions:
+#
+# 1. set_indices.F90:
+#
+#    * ca_set_auxiliary_indices: the auxiliary state information
+#
+#    * ca_set_conserved_indices: the conserved state
+#
+#    * ca_set_godunov_indices: the interface state
+#
+#    * ca_set_primitive_indices: the primitive variable state
+#
+# 2. state_indices.H
+#
+#    This simply sets the C++ indices
+#
 
 import argparse
 import os
 import re
+import sys
 
+HEADER = """
+! DO NOT EDIT!!!
+
+! This file is automatically created by set_variables.py.  To update
+! or add variable indices, please edit _variables and then rerun the
+! script.
+
+"""
 
 def split_pair(pair_string):
     """given an option of the form "(val1, val2)", split it into val1 and
@@ -56,6 +71,10 @@ class Index:
             self.count = count
             self.count_cxx = count
 
+        self.ifdef = ifdef
+
+        self.exists = exists
+
     def __str__(self):
         return self.var
 
@@ -64,7 +83,7 @@ class Index:
         self.cxx_value = cxx_val
 
     def get_f90_set_string(self, set_default=None):
-        """return the Fortran code that sets this variable index.
+        """return the Fortran code that sets this variable index (to val).
         Here set_default is a value to set the key to in the case that
         a string value (like nspec) is 0
 
@@ -119,7 +138,6 @@ class Counter:
 
     def add_index(self, index):
         """increment the counter"""
-
         try:
             i = int(index.count)
         except ValueError:
@@ -131,9 +149,9 @@ class Counter:
     def get_value(self, offset=0):
         """return the current value of the counter"""
         if self.strings:
-            val = "{} + {}".format(self.numeric - offset, " + ".join(self.strings))
+            val = "{} + {}".format(self.numeric-offset, " + ".join(self.strings))
         else:
-            val = "{}".format(self.numeric - offset)
+            val = "{}".format(self.numeric-offset)
 
         return val
 
@@ -166,11 +184,7 @@ def doit(variables_file, odir, defines, nadv,
 
     # read the file and create a list of indices
     indices = []
-
-    # default_set is the main category to which this index belongs
-    # (e.g., conserved, primitive, ...)
     default_set = {}
-
     with open(variables_file, "r") as f:
         current_set = None
         default_group = None
@@ -208,7 +222,6 @@ def doit(variables_file, odir, defines, nadv,
                 if adds_to == "None":
                     adds_to = None
 
-                # only recognize the index if we defined any required preprocessor variable
                 if ifdef == "None" or ifdef in defines:
                     exists = True
                 else:
@@ -232,6 +245,7 @@ def doit(variables_file, odir, defines, nadv,
     all_counters = []
 
     # loop over sets, create the counters, and store any indicies that belong to those
+
     for s in sorted(unique_sets):
 
         # these are the indices that belong to the default set s.
@@ -250,6 +264,9 @@ def doit(variables_file, odir, defines, nadv,
         # add the indices to the respective counters
         for i in set_indices:
 
+            if not i.exists:
+                continue
+
             # set the integer value for this index to the current
             # counter value
             i.set_value(counter_main.get_value(), counter_main.get_cxx_value())
@@ -261,7 +278,6 @@ def doit(variables_file, odir, defines, nadv,
                     if ca.name == i.adds_to:
                         ca.add_index(i)
 
-
         # store the counters for later writing
         all_counters += [counter_main]
         all_counters += counter_adds
@@ -270,28 +286,66 @@ def doit(variables_file, odir, defines, nadv,
     # all these routines will live in a single file
 
     # first the Fortran
-    with open(os.path.join(odir, "state_indices.F90"), "w") as f:
+    with open(os.path.join(odir, "set_indices.F90"), "w") as f:
 
-        # first write out the counter sizes
-        f.write("module state_indices_module\n")
-        f.write("   use network, only : nspec, naux\n")
-        f.write("   implicit none\n\n")
-        f.write("   integer, parameter :: nadv = {}\n".format(nadv))
-        if ngroups is not None:
-            f.write("   integer, parameter :: ngroups = {}\n".format(ngroups))
-        for ac in all_counters:
-            f.write("   {}\n".format(ac.get_f90_set_string()))
-        f.write("   integer, parameter :: npassive = nspec + naux + nadv\n")
+        f.write(HEADER)
 
-        # we only loop over the default sets for setting indices, not the
-        # "adds to", so we don't set the same index twice
-        for s in unique_sets:
+        # loop over sets and create the functions
+        for s in sorted(unique_sets):
+            subname = "ca_set_{}_indices".format(s)
+
             set_indices = [q for q in indices if q.iset == s]
-            f.write("\n   ! {}\n".format(s))
-            for i in set_indices:
-                f.write(i.get_f90_set_string(set_default=0))
 
-        f.write("\nend module state_indices_module\n")
+
+            # write the function heading
+            sub = ""
+            sub += "subroutine {}()\n".format(subname)
+
+            # done with the subroutine interface, now include the modules we need
+            sub += "\n\n"
+            sub += "  use meth_params_module\n"
+            sub += "  use network, only: naux, nspec\n"
+            sub += "#ifdef RADIATION\n  use rad_params_module, only : ngroups\n#endif\n"
+            sub += "  implicit none\n"
+
+            sub += "\n"
+
+            # write the lines to set the indices
+            for i in set_indices:
+
+                # if this variable has an ifdef, make sure it is in
+                # defines, otherwise skip
+                if not i.exists:
+                    continue
+
+
+
+                # for variables in the "conserved", primitive,
+                # auxillary, or godunov, sets, it may be the case that
+                # the variable that defines the count is 0 (e.g. for
+                # nadv).  We need to initialize it specially then.
+                if s in ["conserved", "primitive", "godunov", "auxiliary"]:
+                    sub += i.get_f90_set_string(set_default=0)
+                else:
+                    sub += i.get_f90_set_string()
+
+            # end the function
+            sub += "end subroutine {}\n\n".format(subname)
+
+            f.write(sub)
+
+
+    # write the module containing the size of the sets
+    with open(os.path.join(odir, "state_sizes.f90"), "w") as ss:
+        ss.write("module state_sizes_module\n")
+        ss.write("   use network, only : nspec, naux\n")
+        ss.write("   implicit none\n")
+        ss.write("   integer, parameter :: nadv = {}\n".format(nadv))
+        if ngroups is not None:
+            ss.write("   integer, parameter :: ngroups = {}\n".format(ngroups))
+        for ac in all_counters:
+            ss.write("   {}\n".format(ac.get_f90_set_string()))
+        ss.write("end module state_sizes_module\n")
 
 
     # now the C++
@@ -314,13 +368,13 @@ def doit(variables_file, odir, defines, nadv,
             set_indices = [q for q in indices if q.iset == s]
             f.write("\n   // {}\n".format(s))
             for i in set_indices:
+                if not i.exists:
+                    continue
                 f.write(i.get_cxx_set_string(set_default=0))
 
         f.write("\n#endif\n")
 
-
 def main():
-    """the main driver"""
 
     # note: you need to put a space at the start of the string
     # that gives defines so that the '-' is not interpreted as

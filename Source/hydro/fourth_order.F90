@@ -1166,7 +1166,7 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: nc
-    integer, intent(in), value ::ncomp
+    integer, intent(in), value :: ncomp
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
     integer, intent(in) :: domlo(3), domhi(3)
 

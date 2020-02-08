@@ -9,7 +9,7 @@ module rad_params_module
   ! radiation energy group information
 
   use amrex_fort_module, only: rt => amrex_real
-  use state_indices_module, only : ngroups
+  use state_sizes_module, only: ngroups
 
   implicit none
 
