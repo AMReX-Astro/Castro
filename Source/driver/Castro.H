@@ -74,6 +74,14 @@ enum sources { thermo_src = 0,
 	       num_src };
 
 
+#if AMREX_SPACEDIM == 1
+static const amrex::Vector<amrex::Real> dg = {1, 0, 0};
+#elif AMREX_SPACEDIM == 2
+static const amrex::Vector<amrex::Real> dg = {1, 1, 0};
+#else
+static const amrex::Vector<amrex::Real> dg = {1, 1, 1};
+#endif
+
 // time integration method
 
 enum int_method { CornerTransportUpwind = 0,

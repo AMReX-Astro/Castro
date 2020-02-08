@@ -137,11 +137,11 @@ Castro::shock(const Box& bx,
     // use compression to create unit vectors for the shock direction
     e_x = std::pow(q(i+1,j,k,QU) - q(i-1,j,k,QU), 2);
 
-#if (AMREX_SPACEDIM >= 2)
     Real py_pre;
     Real py_post;
     Real e_y;
 
+#if (AMREX_SPACEDIM >= 2)
     if (q(i,j+1,k,QPRES) - q(i,j-1,k,QPRES) < 0.0) {
       py_pre = q(i,j+1,k,QPRES);
       py_post = q(i,j-1,k,QPRES);
@@ -159,11 +159,11 @@ Castro::shock(const Box& bx,
     e_y = 0.0;
 #endif
 
-#if (AMREX_SPACEDIM == 3)
     Real pz_pre;
     Real pz_post;
     Real e_z;
 
+#if (AMREX_SPACEDIM == 3)
     if (q(i,j,k+1,QPRES) - q(i,j,k-1,QPRES) < 0.0) {
       pz_pre  = q(i,j,k+1,QPRES);
       pz_post = q(i,j,k-1,QPRES);
@@ -213,6 +213,8 @@ Castro::divu(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
   const int coord_type = geom.Coord();
+
+  const auto problo = geom.ProbLoArray();
 
   Real dxinv = 1.0/dx[0];
 #if AMREX_SPACEDIM >= 2
@@ -315,3 +317,92 @@ Castro::divu(const Box& bx,
   });
 
 }
+
+
+void
+Castro::apply_av(const Box& bx,
+                 const int idir,
+                 Array4<Real const> const div,
+                 Array4<Real const> const uin,
+                 Array4<Real> const flux) {
+
+  const auto dx = geom.CellSizeArray();
+
+  AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
+  {
+
+    if (n == UTEMP) continue;
+#ifdef SHOCK_VAR
+    if (n == USHK) continue;
+#endif
+
+    Real div1;
+    if (idir == 0) {
+
+      div1 = 0.25 * (div(i,j,k) + div(i,j+dg[1],k) +
+                     div(i,j,k+dg[2]) + div(i,j+dg[1],k+dg[2]));
+      div1 = difmag * std::min(0.0, div1);
+      div1 = div1 * (uin(i,j,k,n) - uin(i-1,j,k,n));
+
+    } else if (idir == 1) {
+
+      div1 = 0.25 * (div(i,j,k) + div(i+1,j,k) +
+                     div(i,j,k+dg[2]) + div(i+1,j,k+dg[2]));
+      div1 = difmag * std::min(0.0, div1);
+      div1 = div1 * (uin(i,j,k,n) - uin(i,j-dg[1],k,n));
+
+    } else {
+
+      div1 = 0.25 * (div(i,j,k) + div(i+1,j,k) +
+                     div(i,j+dg[1],k) + div(i+1,j+dg[1],k));
+      div1 = difmag * std::min(0.0, div1);
+      div1 = div1 * (uin(i,j,k,n) - uin(i,j,k-dg[2],n));
+
+    }
+
+    flux(i,j,k,n) += dx[idir] * div1;
+  });
+}
+
+
+#ifdef RADIATION
+void
+Castro::apply_av_rad(const Box& bx,
+                     const int idir,
+                     Array4<Real const> const div,
+                     Array4<Real const> const Erin,
+                     Array4<Real> const radflux) {
+
+  const auto dx = geom.CellSizeArray();
+
+  AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, n,
+  {
+
+    Real div1;
+    if (idir == 0) {
+
+      div1 = 0.25 * (div(i,j,k) + div(i,j+dg[1],k) +
+                     div(i,j,k+dg[2]) + div(i,j+dg[1],k+dg[2]));
+      div1 = difmag * std::min(0.0, div1);
+      div1 = div1 * (Erin(i,j,k,n) - Erin(i-1,j,k,n));
+
+    } else if (idir == 1) {
+
+      div1 = 0.25 * (div(i,j,k) + div(i+1,j,k) +
+                     div(i,j,k+dg[2]) + div(i+1,j,k+dg[2]));
+      div1 = difmag * std::min(0.0, div1);
+      div1 = div1 * (Erin(i,j,k,n) - Erin(i,j-dg[1],k,n));
+
+    } else {
+
+      div1 = 0.25 * (div(i,j,k) + div(i+1,j,k) +
+                     div(i,j+dg[1],k) + div(i+1,j+dg[1],k));
+      div1 = difmag * std::min(0.0, div1);
+      div1 = div1 * (Erin(i,j,k,n) - Erin(i,j,k-dg[2],n));
+
+    }
+
+    radflux(i,j,k,n) += dx[idir] * div1;
+  });
+}
+#endif

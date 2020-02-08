@@ -195,12 +195,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         {
           flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k);
 
-          if (flatten_pp_threshold > ZERO) {
-            if ( q(i-1,j,k,QU) + q(i,j-1,k,QV) + q(i,j,k-1,QW) > &
-                 q(i+1,j,k,QU) + q(i,j+1,k,QV) + q(i,j,k+1,QW) ) {
+          if (flatten_pp_threshold > 0.0) {
+            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
+                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
 
-              if (q(i,j,k,QPRES) < flatten_pp_threshold * q(i,j,k,QPTOT)) {
-                flatn(i,j,k) = 0.0;
+              if (q_arr(i,j,k,QPRES) < flatten_pp_threshold * q_arr(i,j,k,QPTOT)) {
+                flatn_arr(i,j,k) = 0.0;
               }
             }
           }
@@ -1104,6 +1104,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           int idir_f = idir + 1;
 
           Array4<Real> const flux_arr = (flux[idir]).array();
+          Array4<Real const> const uin_arr = Sborder.array(mfi);
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
           AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
@@ -1114,20 +1115,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
           });
 
-#pragma gpu box(nbx)
-          apply_av(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                   idir_f, AMREX_REAL_ANYD(dx),
-                   BL_TO_FORTRAN_ANYD(div),
-                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(flux[idir]));
+          apply_av(nbx, idir, div_arr, uin_arr, flux_arr);
 
 #ifdef RADIATION
-#pragma gpu box(nbx)
-          apply_av_rad(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                       idir_f, AMREX_REAL_ANYD(dx),
-                       BL_TO_FORTRAN_ANYD(div),
-                       BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                       BL_TO_FORTRAN_ANYD(rad_flux[idir]));
+          Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
+          Array4<Real const> const Erin_arr = Erborder.array(mfi);
+
+          apply_av_rad(nbx, idir, div_arr, Erin_arr, rad_flux_arr);
 #endif
 
           if (limit_fluxes_on_small_dens == 1) {
@@ -1301,7 +1295,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         }
 
 #ifdef RADIATION
-        Array4g<Real> const rad_flux_fab = (rad_flux[idir]).array();
+        Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
         Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
         const int radcomp = Radiation::nGroups;
 

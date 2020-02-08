@@ -77,6 +77,18 @@
               amrex::Array4<amrex::Real const> const q,
               amrex::Array4<amrex::Real> const div);
 
+    void apply_av(const amrex::Box& bx,
+                  const int idir,
+                  amrex::Array4<amrex::Real const> const div,
+                  amrex::Array4<amrex::Real const> const uin,
+                  amrex::Array4<amrex::Real> const flux);
+
+    void apply_av_rad(const amrex::Box& bx,
+                      const int idir,
+                      amrex::Array4<amrex::Real const> const div,
+                      amrex::Array4<amrex::Real const> const Erin,
+                      amrex::Array4<amrex::Real> const radflux);
+
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const shk,
                       amrex::Array4<amrex::Real> const update,
