@@ -2537,11 +2537,15 @@ contains
        r = loc(1)
        r = d1 * ((r + h1)**3 - (r - h1)**3)
 
+#if AMREX_SPACEDIM >= 2
        h2 = 0.5e0_rt * dx(2)
        d2 = 1.e0_rt / dx(2)
 
        s = loc(d)
        s = d2 * (cos(s - h2) - cos(s + h2))
+#else
+       s = ONE
+#endif
 
     end if
 
@@ -2595,15 +2599,19 @@ contains
 
           loc = position(i, j, k, ccx = .false.)
           r = loc(1)
+          r = r**2
 
+#if AMREX_SPACEDIM >= 2
           loc = position(i, j, k)
           s = loc(d)
 
           h2 = 0.5e0_rt * dx(2)
           d2 = 1.e0_rt / dx(2)
 
-          r = r**2
           s = d2 * (cos(s - h2) - cos(s + h2))
+#else
+          s = ONE
+#endif
 
        else
 
