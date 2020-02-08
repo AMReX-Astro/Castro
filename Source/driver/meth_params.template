@@ -9,42 +9,23 @@ module meth_params_module
 
   use castro_error_module
   use amrex_fort_module, only: rt => amrex_real
-  use state_sizes_module, only : nadv, NQAUX, NVAR, NGDNV, NQ, NQSRC, NSRC
+
+  ! this will import all of the indices into meth_params for convenience
+  use state_indices_module
 
   implicit none
 
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 
-  ! conservative variables
-  integer, allocatable, save :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
-  integer, allocatable, save :: USHK
-
-  ! primitive variables
-  integer, allocatable, save :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC
-  integer, allocatable, save :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
-  integer, allocatable, save :: QGAMCG, QCG, QLAMS
-#endif
-  integer, allocatable, save :: QFA, QFS, QFX
-
-#ifdef RADIATION
-  integer,  allocatable, save :: QRAD, QRADHI, QPTOT, QREITOT
   integer,  allocatable, save :: fspace_type
   logical,  allocatable, save :: do_inelastic_scattering
   logical,  allocatable, save :: comoving
 #endif
 
-  integer, save, allocatable :: npassive
   integer, save, allocatable :: qpass_map(:), upass_map(:)
 
-  ! These are used for the Godunov state
-  ! Note that the velocity indices here are picked to be the same value
-  ! as in the primitive variable array
-  integer, save, allocatable :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
-#ifdef RADIATION
-  integer, save, allocatable :: GDLAMS, GDERADS
-#endif
 
   ! Numerical values corresponding to the gravity types
 #ifdef GRAVITY
@@ -73,24 +54,13 @@ module meth_params_module
 
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
-
 #ifdef AMREX_USE_CUDA
-  attributes(managed) :: URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX
-  attributes(managed) :: USHK
-  attributes(managed) :: QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC
-  attributes(managed) :: QGAMC, QC, QDPDR, QDPDE
 #ifdef RADIATION
-  attributes(managed) :: QGAMCG, QCG, QLAMS
-  attributes(managed) :: QRAD, QRADHI, QPTOT, QREITOT
   attributes(managed) :: fspace_type
   attributes(managed) :: do_inelastic_scattering
   attributes(managed) :: comoving
-  attributes(managed) :: GDLAMS, GDERADS
 #endif
-  attributes(managed) :: QFA, QFS, QFX
-  attributes(managed) :: npassive
   attributes(managed) :: qpass_map, upass_map
-  attributes(managed) :: GDRHO, GDU, GDV, GDW, GDPRES, GDGAME
 #ifdef GRAVITY
   attributes(managed) :: gravity_type_int
 #endif
@@ -98,20 +68,10 @@ module meth_params_module
 #endif
 
   !$acc declare &
-  !$acc create(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS,UFX) &
-  !$acc create(USHK) &
-  !$acc create(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP) &
-  !$acc create(QC, QDPDR, QDPDE, QGAMC, QGAME, QGC) &
 #ifdef RADIATION
-  !$acc create(QGAMCG, QCG, QLAMS) &
-  !$acc create(QRAD, QRADHI, QPTOT, QREITOT) &
   !$acc create(fspace_type, do_inelastic_scattering, comoving) &
-  !$acc create(GDLAMS, GDERADS) &
 #endif
-  !$acc create(QFA, QFS, QFX) &
-  !$acc create(npassive) &
   !$acc create(qpass_map, upass_map) &
-  !$acc create(GDRHO, GDU, GDV, GDW,  GDPRES, GDGAME) &
 #ifdef GRAVITY
   !$acc create(gravity_type_int) &
 #endif
@@ -136,20 +96,7 @@ contains
 
     type (amrex_parmparse) :: pp
 
-
-    allocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
-    allocate(USHK)
-    allocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC)
-    allocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
-    allocate(QGAMCG, QCG, QLAMS)
-#endif
-    allocate(QFA, QFS, QFX)
-    allocate(npassive)
-    allocate(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
-#ifdef RADIATION
-    allocate(GDLAMS, GDERADS)
-    allocate(QRAD, QRADHI, QPTOT, QREITOT)
     allocate(fspace_type)
     allocate(do_inelastic_scattering)
     allocate(comoving)
@@ -232,20 +179,6 @@ contains
        zr_ext = EXT_UNDEFINED
     end select
 
-    !$acc update device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
-    !$acc update device(USHK)
-    !$acc update device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC)
-    !$acc update device(QGAMC, QC, QDPDR, QDPDE)
-#ifdef RADIATION
-    !$acc update device(QGAMCG, QCG, QLAMS)
-#endif
-    !$acc update device(QFA, QFS, QFX)
-    !$acc update device(npassive)
-    !$acc update device(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
-#ifdef RADIATION
-    !$acc update device(GDLAMS, GDERADS)
-    !$acc update device(QRAD, QRADHI, QPTOT, QREITOT)
-#endif
 #ifdef GRAVITY
     !$acc update device(gravity_type_int)
 #endif
@@ -256,24 +189,12 @@ contains
   subroutine ca_finalize_meth_params() bind(C, name="ca_finalize_meth_params")
     implicit none
 
-    deallocate(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX)
-    deallocate(USHK)
-    deallocate(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC)
-    deallocate(QGAMC, QC, QDPDR, QDPDE)
 #ifdef RADIATION
-    deallocate(QGAMCG, QCG, QLAMS)
-    deallocate(QRAD, QRADHI, QPTOT, QREITOT)
     deallocate(fspace_type)
     deallocate(do_inelastic_scattering)
     deallocate(comoving)
 #endif
-    deallocate(QFA, QFS, QFX)
-    deallocate(npassive)
-    deallocate(GDRHO, GDU, GDV, GDW, GDPRES, GDGAME)
-#ifdef RADIATION
-    deallocate(GDLAMS, GDERADS)
     deallocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
-#endif
 
     @@free_castro_params@@
 
@@ -314,7 +235,6 @@ contains
 
 
     !$acc update &
-    !$acc device(QRAD, QRADHI, QPTOT, QREITOT) &
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)
