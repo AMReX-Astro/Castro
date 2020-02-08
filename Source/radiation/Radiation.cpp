@@ -1484,10 +1484,9 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
   for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-      int comp = Temp;
       Array4<Real> const state_arr = state.array(mfi);
       Array4<Real> const temp_arr = temp.array(mfi);
-      AMREX_PARALLEL_FOR_3D(bx, i, j, k, { state_arr(i,j,k,comp) = temp_arr(i,j,k); });
+      AMREX_PARALLEL_FOR_3D(bx, i, j, k, { state_arr(i,j,k,UTEMP) = temp_arr(i,j,k); });
 
 #pragma gpu box(bx)
       ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -2035,7 +2034,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 	    c_v.resize(reg);
 	    get_c_v(c_v, temp, S[mfi], reg);
 
-	    S[mfi].copy(temp,reg,0,reg,Temp,1);
+	    S[mfi].copy(temp,reg,0,reg,UTEMP,1);
 
 #pragma gpu box(reg) sync
             ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
@@ -2051,7 +2050,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                               igroup, igroup, 1, 0.0);
 
 	    kp2.resize(reg);
-	    S[mfi].plus(dT, Temp, 1);
+	    S[mfi].plus(dT, UTEMP, 1);
 
 #pragma gpu box(reg) sync
             ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
@@ -2059,7 +2058,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                               BL_TO_FORTRAN_ANYD(S[mfi]),
                               igroup, igroup, 1, 0.0);
 
-	    S[mfi].plus(-dT, Temp, 1);
+	    S[mfi].plus(-dT, UTEMP, 1);
 
 	    ca_get_v_dcf(reg.loVect(), reg.hiVect(),
 			 BL_TO_FORTRAN(Er[mfi]),
