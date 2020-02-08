@@ -1,5 +1,8 @@
 # 20.03
 
+   * If a derived variable has multiple components, all components are now
+     added to plotfiles. Previously only the first component was used. (#758)
+
    * The names of the conserved state variables in C++ (Density, Xmom, etc.)
      have been changed to match the names in Fortran (URHO, UMX, etc.).
      For user code, this will only affect problem-specific setup code
