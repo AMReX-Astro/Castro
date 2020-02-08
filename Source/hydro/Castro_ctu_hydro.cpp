@@ -1096,17 +1096,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           int idir_f = idir + 1;
 
           Array4<Real> const flux_arr = (flux[idir]).array();
-          const int temp_comp = Temp;
-#ifdef SHOCK_VAR
-          const int shk_comp = Shock;
-#endif
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
           AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
           {
-              flux_arr(i,j,k,temp_comp) = 0.e0;
+              flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
-              flux_arr(i,j,k,shk_comp) = 0.e0;
+              flux_arr(i,j,k,USHK) = 0.e0;
 #endif
           });
 
@@ -1304,11 +1300,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
         Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
-        const int dens_comp = Density;
 
         AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
         {
-            mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,dens_comp);
+            mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
         });
 
       } // idir loop

@@ -209,12 +209,12 @@ Castro::TimestampParticles (int ngrow)
 	// have to do it here, not in read_particle_params, because Density, ..., are set after
 	// read_particle_params is called.
 	if (timestamp_density) {
-	    timestamp_indices.push_back(Density);
-	    std::cout << "Density = " << Density << std::endl;
+	    timestamp_indices.push_back(URHO);
+	    std::cout << "Density = " << URHO << std::endl;
 	}
 	if (timestamp_temperature) {
-	    timestamp_indices.push_back(Temp);
-	    std::cout << "Temp = " << Temp << std::endl;
+	    timestamp_indices.push_back(UTEMP);
+	    std::cout << "Temp = " << UTEMP << std::endl;
 	}
 
 	if (!timestamp_indices.empty()) {

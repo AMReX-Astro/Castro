@@ -67,7 +67,7 @@ Castro::do_energy_diagnostics()
       else {
         // This is a real neutrino problem
 	MultiFab & S_new = getLevel(lev).get_new_data(State_Type);
-	Real levelrhomax = S_new.max(Density);
+	Real levelrhomax = S_new.max(URHO);
 	rhomax = (rhomax > levelrhomax) ? rhomax : levelrhomax;
 #ifdef RHOYLTEST
         yl += getLevel(lev).volWgtSum("rho_Yl", prev_time + dt);

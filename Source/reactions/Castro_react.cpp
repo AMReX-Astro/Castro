@@ -505,12 +505,12 @@ Castro::valid_zones_to_burn(MultiFab& State)
     Real largedens = large;
 
     if (limit_small_rho) {
-      smalldens = State.min(Density, 0, local);
+      smalldens = State.min(URHO, 0, local);
       small_limiters.push_back(smalldens);
     }
 
     if (limit_large_rho) {
-      largedens = State.max(Density, 0, local);
+      largedens = State.max(URHO, 0, local);
       large_limiters.push_back(largedens);
     }
 
@@ -518,12 +518,12 @@ Castro::valid_zones_to_burn(MultiFab& State)
     Real large_T = large;
 
     if (limit_small_T) {
-      small_T = State.min(Temp, 0, local);
+      small_T = State.min(UTEMP, 0, local);
       small_limiters.push_back(small_T);
     }
 
     if (limit_large_T) {
-      large_T = State.max(Temp, 0, local);
+      large_T = State.max(UTEMP, 0, local);
       large_limiters.push_back(large_T);
     }
 
