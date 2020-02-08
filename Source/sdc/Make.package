@@ -1,3 +1,6 @@
+CEXE_headers += Castro_sdc.H
+FEXE_headers += Castro_sdc_F.H
+
 ifneq ($(USE_CUDA), TRUE)
   CEXE_sources += Castro_sdc.cpp
   ca_F90EXE_sources += sdc_util.F90

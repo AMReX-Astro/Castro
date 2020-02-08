@@ -145,6 +145,7 @@ contains
     use temperature_integration_module, only: self_heat
     use amrex_fort_module, only : rt => amrex_real
     use extern_probin_module, only: small_x
+    use reduction_module, only: reduce_min
 
     implicit none
 
@@ -164,6 +165,7 @@ contains
     real(rt) :: ydot(neqs)
     type (eos_t)  :: eos_state
     real(rt)      :: rhoninv
+    real(rt) :: dt_tmp
 
     ! Set a floor on the minimum size of a derivative. This floor
     ! is small enough such that it will result in no timestep limiting.
@@ -248,8 +250,9 @@ contains
                 end if
              end do
 
-             dt = min(dt, dtnuc_e * e / dedt)
-             dt = min(dt, dtnuc_X * minval(X / dXdt))
+             dt_tmp = min(dtnuc_e * e / dedt, dtnuc_X * minval(X / dXdt))
+
+             call reduce_min(dt, dt_tmp)
 
           enddo
        enddo
@@ -372,6 +375,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use amrex_fort_module, only : rt => amrex_real
+    use reduction_module, only: reduce_min
 
     implicit none
 
@@ -401,6 +405,7 @@ contains
     real(rt)         :: tau_X, tau_e
 #endif
     real(rt)         :: tau_CFL
+    real(rt)         :: dt_tmp
 
     real(rt)         :: v(3), c
     type (eos_t)     :: eos_state
@@ -447,7 +452,9 @@ contains
 
                 tau_CFL = minval(dx(1:dim) / (c + v(1:dim)))
 
-                dt_new = min(dt_new, cfl * tau_CFL)
+                dt_tmp = cfl * tau_CFL
+
+                call reduce_min(dt_new, dt_tmp)
 
              endif
 
@@ -480,17 +487,21 @@ contains
                 e_dot = max(abs(e_dot), derivative_floor)
                 tau_e = e_avg / e_dot
 
+                dt_tmp = dt_old
+
                 if (dt_old > dtnuc_e * tau_e) then
 
-                   dt_new = min(dt_new, dtnuc_e * tau_e)
+                   dt_tmp = min(dt_tmp, dtnuc_e * tau_e)
 
                 endif
 
                 if (dt_old > dtnuc_X * tau_X) then
 
-                   dt_new = min(dt_new, dtnuc_X * tau_X)
+                   dt_tmp = min(dt_tmp, dtnuc_X * tau_X)
 
                 endif
+
+                call reduce_min(dt_new, dt_tmp)
 
              endif
 #endif

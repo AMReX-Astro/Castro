@@ -430,7 +430,8 @@ contains
                             lambda, l_lo, l_hi, &
                             rF, rF_lo, rF_hi, &
 #endif
-                            idir, enforce_eos)
+                            idir, enforce_eos) bind(C, name="compute_flux_q")
+
     ! given a primitive state, compute the flux in direction idir
     !
 
@@ -466,7 +467,7 @@ contains
 
     implicit none
 
-    integer, intent(in) :: idir
+    integer, intent(in), value :: idir
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: F_lo(3), F_hi(3)
 #ifdef RADIATION
@@ -480,7 +481,7 @@ contains
     real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
     real(rt), intent(out) :: rF(rF_lo(1):rF_hi(1), rF_lo(2):rF_hi(2), rF_lo(3):rF_hi(3), 0:ngroups-1)
 #endif
-    logical, intent(in), optional :: enforce_eos
+    integer, intent(in), value :: enforce_eos
     integer, intent(in) :: lo(3), hi(3)
 
     integer :: iu, iv1, iv2, im1, im2, im3
@@ -493,17 +494,9 @@ contains
     real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
 #endif
 
-    logical :: do_eos
     type(eos_t) :: eos_state
 
     !$gpu
-
-    if (present(enforce_eos)) then
-       do_eos = enforce_eos
-    else
-       do_eos = .false.
-    endif
-
 
     if (idir == 1) then
        iu = QU
@@ -536,7 +529,7 @@ contains
 
              ! if we are enforcing the EOS, then take rho, p, and X, and
              ! compute rhoe
-             if (do_eos) then
+             if (enforce_eos == 1) then
                 eos_state % rho = qint(i,j,k,QRHO)
                 eos_state % p = qint(i,j,k,QPRES)
                 eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)

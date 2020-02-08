@@ -205,29 +205,6 @@ Castro::variableSetUp ()
 
   const int dm = BL_SPACEDIM;
 
-
-  //
-  // Set number of state variables and pointers to components
-  //
-
-  // Get the number of species from the network model.
-  ca_get_num_spec(&NumSpec);
-
-  // Get the number of auxiliary quantities from the network model.
-  ca_get_num_aux(&NumAux);
-
-  // Get the number of advected quantities -- set at compile time
-  ca_get_num_adv(&NumAdv);
-
-
-#include "set_conserved.H"
-
-  NUM_STATE = cnt;
-
-#include "set_primitive.H"
-
-#include "set_godunov.H"
-
   // Define NUM_GROW from the f90 module.
   ca_get_method_params(&NUM_GROW);
 
@@ -237,47 +214,32 @@ Castro::variableSetUp ()
   ca_set_castro_method_params();
 
   // set the conserved, primitive, aux, and godunov indices in Fortran
-  ca_set_method_params(dm, Density, Xmom,
-#ifdef HYBRID_MOMENTUM
-                       Rmom,
-#endif
-                       Eden, Eint, Temp, FirstAdv, FirstSpec, FirstAux,
-#ifdef SHOCK_VAR
-		       Shock,
-#endif
-#ifdef MHD
-                       QMAGX, QMAGY, QMAGZ,
-#endif
-#ifdef RADIATION
-                       QPTOT, QREITOT, QRAD,
-#endif
-                       QRHO,
-                       QU, QV, QW,
-                       QGAME, QGC, QPRES, QREINT,
-                       QTEMP,
-                       QFA, QFS, QFX,
-#ifdef RADIATION
-                       GDLAMS, GDERADS,
-#endif
-                       GDRHO, GDU, GDV, GDW,
-                       GDPRES, GDGAME);
+  ca_set_method_params(dm);
 
-  // and the auxiliary variables
-  ca_get_nqaux(&NQAUX);
+  // setup the passive maps -- this follows the same logic as the
+  // Fortran versions in ca_set_method_params
+  int ipassive = 0;
 
-  // and the number of primitive variable source terms
-  ca_get_nqsrc(&NQSRC);
+  upass_map.resize(npassive);
+  qpass_map.resize(npassive);
 
-  // and the number of conserved variable source terms
-  ca_get_nsrc(&NSRC);
+  for (int iadv = 0; iadv < NumAdv; ++iadv) {
+    upass_map[ipassive] = FirstAdv + iadv;
+    qpass_map[ipassive] = QFA + iadv;
+    ++ipassive;
+  }
 
-  // initialize the Godunov state array used in hydro
-  ca_get_ngdnv(&NGDNV);
+  for (int ispec = 0; ispec < NumSpec; ++ispec) {
+    upass_map[ipassive] = FirstSpec + ispec;
+    qpass_map[ipassive] = QFS + ispec;
+    ++ipassive;
+  }
 
-  // NQ will be used to dimension the primitive variable state
-  // vector it will include the "pure" hydrodynamical variables +
-  // any radiation variables
-  ca_get_nq(&NQ);
+  for (int iaux = 0; iaux < NumAux; ++iaux) {
+    upass_map[ipassive] = FirstAux + iaux;
+    qpass_map[ipassive] = QFX + iaux;
+    ++ipassive;
+  }
 
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
@@ -317,6 +279,10 @@ Castro::variableSetUp ()
 
   ca_get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
 #endif
+
+  // Read in the ambient state parameters.
+
+  ca_get_ambient_params(probin_file_name.dataPtr(),&probin_file_length);
 
   Interpolater* interp;
 
@@ -420,6 +386,7 @@ Castro::variableSetUp ()
 			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   // For simplified SDC, we want to store the reactions source.
 
@@ -431,6 +398,7 @@ Castro::variableSetUp ()
                              &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
   }
+#endif
 #endif
 
   Vector<BCRec>       bcs(NUM_STATE);
@@ -606,6 +574,7 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, BndryFunc(ca_reactfill));
 #endif
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
   if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
       for (int i = 0; i < NQSRC; ++i) {
@@ -616,6 +585,7 @@ Castro::variableSetUp ()
           desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
       }
   }
+#endif
 #endif
 
 #ifdef RADIATION

@@ -6,10 +6,7 @@
 
   roche_radius_factor = 1.0d0
 
-  ambient_density = 1.0d-4
-
   stellar_temp = 1.0d7
-  ambient_temp = 1.0d7
 
   relaxation_damping_factor = 1.0d-4
   relaxation_density_cutoff = 1.0d10
@@ -21,6 +18,13 @@
   stellar_density_threshold = 1.0d0
  
   smallu = 1.0d-12
+/
+
+&ambient
+
+  ambient_density = 1.0d-4
+  ambient_temp = 1.0d7
+
 /
 
 &tagging 

@@ -56,7 +56,6 @@ std::vector<int> Castro::err_list_ng;
 int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
-int          Castro::NUM_STATE     = -1;
 int          Castro::NUM_GROW      = -1;
 
 int          Castro::lastDtPlotLimited = 0;
@@ -64,76 +63,13 @@ Real         Castro::lastDtBeforePlotLimiting = 0.0;
 
 Real         Castro::frac_change   = 1.e200;
 
-int          Castro::Density       = -1;
-int          Castro::Eden          = -1;
-int          Castro::Eint          = -1;
-int          Castro::Temp          = -1;
-int          Castro::Xmom          = -1;
-int          Castro::Ymom          = -1;
-int          Castro::Zmom          = -1;
-#ifdef HYBRID_MOMENTUM
-int          Castro::Rmom          = -1;
-int          Castro::Lmom          = -1;
-int          Castro::Pmom          = -1;
-#endif
-
-int          Castro::QRHO = -1;
-int          Castro::QU = -1;
-int          Castro::QV = -1;
-int          Castro::QW = -1;
-int          Castro::QGAME = -1;
-int          Castro::QGC = -1;
-int          Castro::QPRES = -1;
-int          Castro::QREINT = -1;
-int          Castro::QTEMP = -1;
-int          Castro::QFA = -1;
-int          Castro::QFS = -1;
-int          Castro::QFX = -1;
-#ifdef MHD
-int          Castro::QMAGX = -1;
-int          Castro::QMAGY = -1;
-int          Castro::QMAGZ = -1;
-#endif
-#ifdef RADIATION
-int          Castro::QPTOT = -1;
-int          Castro::QREITOT = -1;
-int          Castro::QRAD = -1;
-#endif
-
-int          Castro::GDRHO = -1;
-int          Castro::GDU = -1;
-int          Castro::GDV = -1;
-int          Castro::GDW = -1;
-int          Castro::GDPRES = -1;
-int          Castro::GDGAME = -1;
-#ifdef RADIATION
-int          Castro::GDLAMS = -1;
-int          Castro::GDERADS = -1;
-#endif
-
-int          Castro::NumSpec       = 0;
-int          Castro::FirstSpec     = -1;
-
-int          Castro::NumAux        = 0;
-int          Castro::FirstAux      = -1;
-
-int          Castro::NumAdv        = 0;
-int          Castro::FirstAdv      = -1;
-
-#ifdef SHOCK_VAR
-int          Castro::Shock         = -1;
-#endif
-
-int          Castro::NQSRC         = -1;
-int          Castro::NSRC          = -1;
-int          Castro::NQAUX         = -1;
-int          Castro::NQ            = -1;
-
-int          Castro::NGDNV         = -1;
 
 Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
+
+Vector<int> Castro::upass_map;
+Vector<int> Castro::qpass_map;
 
 #ifdef TRUE_SDC
 int          Castro::SDC_NODES;
@@ -930,7 +866,6 @@ Castro::initData ()
     //
     // Loop over grids, call FORTRAN function to init with data.
     //
-    int ns          = NUM_STATE;
     const Real* dx  = geom.CellSize();
     const Real* prob_lo = geom.ProbLo();
     MultiFab& S_new = get_new_data(State_Type);
@@ -975,11 +910,13 @@ Castro::initData ()
     React_new.setVal(0.);
 #endif
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
        MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
        react_src_new.setVal(0.0, NUM_GROW);
    }
+#endif
 #endif
 
    if (Knapsack_Weight_Type > 0) {
@@ -1022,7 +959,7 @@ Castro::initData ()
 #else
 
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-          (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), ns,
+          (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
   	   BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
   	   ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 
@@ -2785,39 +2722,15 @@ Castro::reflux(int crse_level, int fine_level)
 void
 Castro::avgDown ()
 {
-    BL_PROFILE("Castro::avgDown()");
+  BL_PROFILE("Castro::avgDown()");
 
   if (level == parent->finestLevel()) return;
 
-  avgDown(State_Type);
-
-#ifdef GRAVITY
-  avgDown(Gravity_Type);
-  avgDown(PhiGrav_Type);
-#endif
-
-#ifdef ROTATION
-  avgDown(Rotation_Type);
-  avgDown(PhiRot_Type);
-#endif
-
-  avgDown(Source_Type);
-
-#ifdef REACTIONS
-  avgDown(Reactions_Type);
-#endif
-
-#ifdef REACTIONS
-  if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      avgDown(Simplified_SDC_React_Type);
+  for (int k = 0; k < num_state_type; k++) {
+    if (k != Knapsack_Weight_Type) {
+      avgDown(k);
+    }
   }
-#endif
-
-#ifdef RADIATION
-  if (do_radiation) {
-    avgDown(Rad_Type);
-  }
-#endif
 
 }
 
@@ -2861,13 +2774,14 @@ Castro::enforce_consistent_e (MultiFab& S)
 }
 
 Real
-Castro::enforce_min_density (MultiFab& state, int ng)
+Castro::enforce_min_density (MultiFab& state_in, int ng)
 {
 
     BL_PROFILE("Castro::enforce_min_density()");
 
-    // This routine sets the density in S_new to be larger than the density floor.
-    // Note that it will operate everywhere on S_new, including ghost zones.
+    // This routine sets the density in state_in to be larger than the
+    // density floor.  Note that it will operate everywhere on state_in,
+    // including ghost zones.
 
     Real dens_change = 1.e0;
 
@@ -2878,23 +2792,23 @@ Castro::enforce_min_density (MultiFab& state, int ng)
 
 	// Before we do anything, make a copy of the state.
 
-	reset_source.define(state.boxArray(), state.DistributionMap(), state.nComp(), 0);
+	reset_source.define(state_in.boxArray(), state_in.DistributionMap(), state_in.nComp(), 0);
 
-	MultiFab::Copy(reset_source, state, 0, 0, state.nComp(), 0);
+	MultiFab::Copy(reset_source, state_in, 0, 0, state_in.nComp(), 0);
 
     }
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dens_change)
 #endif
-    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
 	const Box& bx = mfi.growntilebox(ng);
 
 #pragma gpu box(bx)
 	ca_enforce_minimum_density
             (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(state[mfi]),
+             BL_TO_FORTRAN_ANYD(state_in[mfi]),
              AMREX_MFITER_REDUCE_MIN(&dens_change), verbose);
 
     }
@@ -2904,7 +2818,7 @@ Castro::enforce_min_density (MultiFab& state, int ng)
 
 	// Evaluate what the effective reset source was.
 
-	MultiFab::Subtract(reset_source, state, 0, 0, state.nComp(), 0);
+	MultiFab::Subtract(reset_source, state_in, 0, 0, state_in.nComp(), 0);
 
 	bool local = true;
 	Vector<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
@@ -3537,6 +3451,7 @@ Castro::swap_state_time_levels(const Real dt)
 	// this because we never need the old data, so we
 	// don't want to allocate memory for it.
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             if (k == Simplified_SDC_React_Type) {
@@ -3544,11 +3459,14 @@ Castro::swap_state_time_levels(const Real dt)
             }
         }
 #endif
+#endif
 
+#ifdef TRUE_SDC
 #ifdef REACTIONS
         if (time_integration_method == SpectralDeferredCorrections &&
             sdc_order == 4 && k == SDC_Source_Type)
             state[k].swapTimeLevels(0.0);
+#endif
 #endif
         state[k].allocOldData();
 
@@ -3854,20 +3772,20 @@ Castro::expand_state(MultiFab& S, Real time, int ng)
 
 
 void
-Castro::check_for_nan(MultiFab& state, int check_ghost)
+Castro::check_for_nan(MultiFab& state_in, int check_ghost)
 {
   BL_PROFILE("Castro::check_for_nan()");
 
   int ng = 0;
   if (check_ghost == 1) {
-    ng = state.nComp();
+    ng = state_in.nComp();
   }
 
-  if (state.contains_nan(Density,state.nComp(),ng,true))
+  if (state_in.contains_nan(Density,state_in.nComp(),ng,true))
     {
-      for (int i = 0; i < state.nComp(); i++)
+      for (int i = 0; i < state_in.nComp(); i++)
         {
-	  if (state.contains_nan(Density + i, 1, ng, true))
+	  if (state_in.contains_nan(Density + i, 1, ng, true))
             {
 	      std::string abort_string = std::string("State has NaNs in the ") + desc_lst[State_Type].name(i) + std::string(" component::check_for_nan()");
 	      amrex::Abort(abort_string.c_str());
@@ -3881,30 +3799,30 @@ Castro::check_for_nan(MultiFab& state, int check_ghost)
 // value of enforce_min_density.
 
 Real
-Castro::clean_state(MultiFab& state, Real time, int ng) {
+Castro::clean_state(MultiFab& state_in, Real time, int ng) {
 
     BL_PROFILE("Castro::clean_state()");
 
     // Enforce a minimum density.
 
-    Real frac_change = enforce_min_density(state, ng);
+    Real frac_change = enforce_min_density(state_in, ng);
 
     // Ensure all species are normalized.
 
-    normalize_species(state, ng);
+    normalize_species(state_in, ng);
 
     // Sync the linear and hybrid momenta.
 
 #ifdef HYBRID_MOMENTUM
     if (hybrid_hydro) {
-        hybrid_to_linear_momentum(state, ng);
+        hybrid_to_linear_momentum(state_in, ng);
     }
 #endif
 
     // Compute the temperature (note that this will also reset
     // the internal energy for consistency with the total energy).
 
-    computeTemp(state, time, ng);
+    computeTemp(state_in, time, ng);
 
     return frac_change;
 

@@ -72,60 +72,6 @@ end subroutine ca_extern_init
 ! :::
 
 
-subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
-    !
-    ! Binds to C function `ca_get_num_spec`
-
-  use network, only: nspec
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: nspec_out
-
-  nspec_out = nspec
-
-end subroutine ca_get_num_spec
-
-
-
-subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
-    !
-    ! Binds to C function `ca_get_num_aux`
-
-  use network, only: naux
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: naux_out
-
-  naux_out = naux
-
-end subroutine ca_get_num_aux
-
-
-
-subroutine ca_get_num_adv(nadv_out) bind(C, name="ca_get_num_adv")
-    !
-    ! Binds to C function `ca_get_num_adv`
-
-  use meth_params_module, only: nadv
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: nadv_out
-
-  nadv_out = nadv
-
-end subroutine ca_get_num_adv
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
 subroutine ca_get_spec_names(spec_names,ispec,len) &
      bind(C, name="ca_get_spec_names")
      ! Binds to C function `ca_get_spec_names`
@@ -209,83 +155,6 @@ end subroutine ca_get_aux_names
 ! ::: ----------------------------------------------------------------
 ! :::
 
-
-
-subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
-    !
-    ! Binds to C function `ca_get_nqsrc`
-
-  use meth_params_module, only: NQSRC
-
-  implicit none
-
-  integer, intent(inout) :: nqsrc_in
-
-  nqsrc_in = NQSRC
-
-end subroutine ca_get_nqsrc
-
-
-subroutine ca_get_nsrc(nsrc_in) bind(C, name="ca_get_nsrc")
-    !
-    ! Binds to C function `ca_get_nsrc`
-
-  use meth_params_module, only: NSRC
-
-  implicit none
-
-  integer, intent(inout) :: nsrc_in
-
-  nsrc_in = NSRC
-
-end subroutine ca_get_nsrc
-
-
-
-subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
-    !
-    ! Binds to C function `ca_get_nq`
-
-  use meth_params_module, only: NQ
-
-  implicit none
-
-  integer, intent(inout) :: nq_in
-
-  nq_in = NQ
-
-end subroutine ca_get_nq
-
-
-
-subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
-    !
-    ! Binds to C function `ca_get_nqaux`
-
-  use meth_params_module, only: NQAUX
-
-  implicit none
-
-  integer, intent(inout) :: nqaux_in
-
-  nqaux_in = NQAUX
-
-end subroutine ca_get_nqaux
-
-
-subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
-    !
-    ! Binds to C function `ca_get_ngdnv`
-
-  use meth_params_module, only: NGDNV
-
-  implicit none
-
-  integer, intent(inout) :: ngdnv_in
-
-  ngdnv_in = NGDNV
-
-end subroutine ca_get_ngdnv
 
 
 #ifdef REACTIONS
@@ -570,32 +439,8 @@ end subroutine swap_outflow_data
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
-#ifdef HYBRID_MOMENTUM
-     Rmom_in, &
-#endif
-     Eden_in, Eint_in, Temp_in, &
-     FirstAdv_in, FirstSpec_in, FirstAux_in, &
-#ifdef SHOCK_VAR
-     Shock_in, &
-#endif
-#ifdef MHD
-     QMAGX_in, QMAGY_in, QMAGZ_in, &
-#endif
-#ifdef RADIATION
-     QPTOT_in, QREITOT_in, QRAD_in, &
-#endif
-     QRHO_in, &
-     QU_in, QV_in, QW_in, &
-     QGAME_in, QGC_in, QPRES_in, QREINT_in, &
-     QTEMP_in, &
-     QFA_in, QFS_in, QFX_in, &
-#ifdef RADIATION
-     GDLAMS_in, GDERADS_in, &
-#endif
-     GDRHO_in, GDU_in, GDV_in, GDW_in, &
-     GDPRES_in, GDGAME_in) &
-     bind(C, name="ca_set_method_params")
+subroutine ca_set_method_params(dm) &
+                                bind(C, name="ca_set_method_params")
 
   use meth_params_module
   use network, only : nspec, naux
@@ -609,30 +454,6 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   implicit none
 
   integer, intent(in) :: dm
-  integer, intent(in) :: Density_in, Xmom_in, Eden_in, Eint_in, Temp_in, &
-       FirstAdv_in, FirstSpec_in, FirstAux_in
-#ifdef SHOCK_VAR
-  integer, intent(in) :: Shock_in
-#endif
-#ifdef MHD
-  integer, intent(in) :: QMAGX_in, QMAGY_in, QMAGZ_in
-#endif
-#ifdef RADIATION
-  integer, intent(in) :: QPTOT_in, QREITOT_in, QRAD_in
-#endif
-  integer, intent(in) :: QRHO_in
-  integer, intent(in) :: QU_in, QV_in, QW_in
-  integer, intent(in) :: QGAME_in, QGC_in, QPRES_in, QREINT_in
-  integer, intent(in) :: QTEMP_in
-  integer, intent(in) :: QFA_in, QFS_in, QFX_in
-#ifdef HYBRID_MOMENTUM
-  integer, intent(in) :: Rmom_in
-#endif
-  integer, intent(in) :: GDRHO_in, GDU_in, GDV_in, GDW_in
-  integer, intent(in) :: GDPRES_in, GDGAME_in
-#ifdef RADIATION
-  integer, intent(in) :: GDLAMS_in, GDERADS_in
-#endif
 
   integer :: iadv, ispec
 
@@ -642,54 +463,19 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
   !---------------------------------------------------------------------
   ! set integer keys to index states
   !---------------------------------------------------------------------
-  call ca_set_godunov_indices( &
-#ifdef RADIATION
-       GDLAMS_in, GDERADS_in, &
-#endif
-       GDRHO_in, GDU_in, GDV_in, GDW_in, &
-       GDPRES_in, GDGAME_in)
+  call ca_set_godunov_indices()
 
-  call ca_set_conserved_indices( &
-#ifdef HYBRID_MOMENTUM
-       Rmom_in, Rmom_in+1, Rmom_in+2, &
-#endif
-#ifdef SHOCK_VAR
-       Shock_in, &
-#endif
-       Density_in ,Xmom_in, Xmom_in+1, Xmom_in+2, &
-       Eden_in, Eint_in, Temp_in, &
-       FirstAdv_in, FirstSpec_in, FirstAux_in &
-       )
+  call ca_set_conserved_indices()
 
   call ca_set_auxiliary_indices()
 
-  call ca_set_primitive_indices( &
-#ifdef MHD
-       QMAGX_in, QMAGY_in, QMAGZ_in, &
-#endif
-#ifdef RADIATION
-       QPTOT_in, QREITOT_in, QRAD_in, &
-#endif
-       QRHO_in, &
-       QU_in, QV_in, QW_in, &
-       QGAME_in, QGC_in, QPRES_in, QREINT_in, &
-       QTEMP_in, &
-       QFA_in, QFS_in, QFX_in)
-
-  ! sanity check
-#ifndef AMREX_USE_CUDA
-  if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-     call castro_error("ERROR: velocity components for godunov and primitive state are not aligned")
-  endif
-#endif
+  call ca_set_primitive_indices()
 
   ! easy indexing for the passively advected quantities.  This lets us
   ! loop over all groups (advected, species, aux) in a single loop.
   ! Note: these sizes are the maximum size we expect for passives.
   allocate(qpass_map(nadv + nspec + naux))
   allocate(upass_map(nadv + nspec + naux))
-
-  ! Transverse velocities
 
   npassive = 0
 
@@ -1278,6 +1064,80 @@ subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_para
 
 end subroutine ca_deallocate_sponge_params
 #endif
+
+subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_params")
+    ! Initialize the ambient parameters
+
+  use ambient_module, only: ambient_state
+  use amrex_error_module, only: amrex_error
+  use amrex_fort_module, only: rt => amrex_real
+  use meth_params_module, only: NVAR, URHO, UMX, UMZ, UTEMP, UEINT, UEDEN, UFS, &
+                                small_dens, small_temp, small_ener
+  use amrex_constants_module, only: ZERO
+  use actual_network, only: nspec
+
+  implicit none
+
+  integer, intent(in) :: namlen
+  integer, intent(in) :: name(namlen)
+
+  integer :: un, i, status
+
+  integer, parameter :: maxlen = 256
+  character (len=maxlen) :: probin
+
+  real(rt) :: ambient_density, ambient_temp, ambient_energy
+
+  namelist /ambient/ ambient_density, ambient_temp, ambient_energy
+
+  ! Set namelist defaults
+
+  ambient_density = small_dens
+  ambient_temp    = small_temp
+  ambient_energy  = small_ener
+
+  ! create the filename
+  if (namlen > maxlen) then
+     call amrex_error('probin file name too long')
+  endif
+
+  do i = 1, namlen
+     probin(i:i) = char(name(i))
+  end do
+
+  ! read in the namelist
+  un = 9
+  open (unit=un, file=probin(1:namlen), form='formatted', status='old')
+  read (unit=un, nml=ambient, iostat=status)
+
+  if (status < 0) then
+     ! the namelist does not exist, so we just go with the defaults
+     continue
+
+  else if (status > 0) then
+     ! some problem in the namelist
+     call amrex_error('ERROR: problem in the ambient namelist')
+  endif
+
+  close (unit=un)
+
+  allocate(ambient_state(NVAR))
+
+  ! Set some initial data in the state for safety, though the
+  ! intent is that any problems using this may override these.
+
+  ambient_state(:) = ZERO
+
+  ambient_state(URHO)    = ambient_density
+  ambient_state(UMX:UMZ) = ZERO
+  ambient_state(UTEMP)   = ambient_temp
+  ambient_state(UEINT)   = ambient_density * ambient_energy
+  ambient_state(UEDEN)   = ambient_density * ambient_energy
+  ambient_state(UFS:UFS+nspec-1) = ambient_density * (1.0e0_rt / nspec)
+
+end subroutine ca_get_ambient_params
+
+
 
 #ifdef GRAVITY
 

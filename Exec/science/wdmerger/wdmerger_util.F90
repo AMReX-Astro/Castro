@@ -72,9 +72,7 @@ contains
        relaxation_cutoff_time, &
        initial_radial_velocity_factor, &
        radial_damping_factor, &
-       ambient_density, &
        stellar_temp, &
-       ambient_temp, &
        max_he_wd_mass, &
        max_hybrid_wd_mass, hybrid_wd_he_shell_mass, &
        max_co_wd_mass, &
@@ -118,13 +116,6 @@ contains
     central_density_P = -ONE
     central_density_S = -ONE
     stellar_temp = 1.0e7_rt
-
-    allocate(ambient_density)
-    allocate(ambient_temp)
-    allocate(ambient_comp(nspec))
-
-    ambient_density = 1.0e-4_rt
-    ambient_temp = 1.0e7_rt
 
     allocate(smallu)
 
@@ -431,7 +422,10 @@ contains
 
   subroutine set_small
 
-    use meth_params_module, only: small_temp, small_pres, small_dens, small_ener
+    use meth_params_module, only: small_temp, small_pres, small_dens, small_ener, &
+                                  UFS, URHO
+    use ambient_module, only: ambient_state
+    use network, only: nspec
     use eos_type_module, only: eos_t, eos_input_rt
     use eos_module, only: eos_on_host
 
@@ -443,7 +437,7 @@ contains
 
     eos_state % rho = small_dens
     eos_state % T   = small_temp
-    eos_state % xn  = ambient_comp
+    eos_state % xn  = ambient_state(UFS:UFS+nspec-1) / ambient_state(URHO)
 
     call eos_on_host(eos_input_rt, eos_state)
 
@@ -451,33 +445,6 @@ contains
     small_ener = eos_state % e
 
   end subroutine set_small
-
-
-
-  ! Returns the ambient state
-
-  subroutine get_ambient(ambient_state)
-
-    use eos_type_module, only: eos_t, eos_input_rt
-    use eos_module, only: eos
-
-    implicit none
-
-    type (eos_t) :: ambient_state
-
-    !$gpu
-
-    ! Define ambient state, using a composition that is an
-    ! even mixture of the primary and secondary composition, 
-    ! and then call the EOS to get internal energy and pressure.
-
-    ambient_state % rho = ambient_density
-    ambient_state % T   = ambient_temp
-    ambient_state % xn  = ambient_comp
-
-    call eos(eos_input_rt, ambient_state)
-
-  end subroutine get_ambient
 
 
 
@@ -704,7 +671,8 @@ contains
 
   subroutine binary_setup
 
-    use meth_params_module, only: rot_period, point_mass
+    use meth_params_module, only: rot_period, point_mass, URHO, UTEMP, UEINT, UEDEN, UFS, UFX
+    use network, only: nspec, naux
     use initial_model_module, only: initialize_model, establish_hse
     use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
     use rotation_frequency_module, only: get_omega
@@ -712,6 +680,9 @@ contains
     use binary_module, only: get_roche_radii
     use problem_io_module, only: ioproc
     use castro_error_module, only: castro_error
+    use ambient_module, only: ambient_state
+    use eos_type_module, only: eos_input_rt, eos_t
+    use eos_module, only: eos_on_host
     use fundamental_constants_module, only: Gconst, c_light, AU, M_solar
     use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
 
@@ -723,6 +694,8 @@ contains
     integer :: lev
 
     real(rt) :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
+
+    type(eos_t) :: eos_state
 
     omega = get_omega(ZERO)
 
@@ -758,8 +731,8 @@ contains
     call initialize_model(.true.,  initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
     call initialize_model(.false., initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
 
-    model_P % min_density = ambient_density
-    model_S % min_density = ambient_density
+    model_P % min_density = ambient_state(URHO)
+    model_S % min_density = ambient_state(URHO)
 
     model_P % central_temp = stellar_temp
     model_S % central_temp = stellar_temp
@@ -825,13 +798,25 @@ contains
 
        endif
 
-       ambient_comp = (model_P % envelope_comp + model_S % envelope_comp) / 2
+       ambient_state(UFS:UFS+nspec-1) = ambient_state(URHO) * (model_P % envelope_comp + model_S % envelope_comp) / 2
 
     else
 
-       ambient_comp = model_P % envelope_comp
+       ambient_state(UFS:UFS+nspec-1) = ambient_state(URHO) * model_P % envelope_comp
 
     endif
+
+    ! We have completed (rho, T, xn) for the ambient state, so we can call the EOS.
+
+    eos_state % rho = ambient_state(URHO)
+    eos_state % T   = ambient_state(UTEMP)
+    eos_state % xn  = ambient_state(UFS:UFS+nspec-1) / ambient_state(URHO)
+    eos_state % aux = ambient_state(UFX:UFX+naux-1) / ambient_state(URHO)
+
+    call eos_on_host(eos_input_rt, eos_state)
+
+    ambient_state(UEINT) = ambient_state(URHO) * eos_state % e
+    ambient_state(UEDEN) = ambient_state(UEINT)
 
 
 
@@ -1203,54 +1188,6 @@ contains
     vel = (TWO * Gconst * mass / distance)**HALF
 
   end subroutine freefall_velocity
-
-
-
-  ! Given a zone state, fill it with ambient material.
-
-  subroutine fill_ambient(state, loc, time)
-
-    use amrex_constants_module, only: ZERO, HALF
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UTEMP, UEINT, UEDEN, UFS, do_rotation
-    use network, only: nspec
-    use rotation_frequency_module, only: get_omega
-    use math_module, only: cross_product
-    use eos_type_module, only: eos_input_rt, eos_t
-    use eos_module, only: eos
-
-    implicit none
-
-    real(rt) :: state(NVAR)
-    real(rt) :: loc(3), time
-
-    type (eos_t) :: ambient_state
-    real(rt) :: omega(3)
-
-    omega = get_omega(time)
-
-    call get_ambient(ambient_state)
-
-    state(URHO) = ambient_state % rho
-    state(UTEMP) = ambient_state % T
-    state(UFS:UFS-1+nspec) = ambient_state % rho * ambient_state % xn(:)                 
-
-    ! If we're in the inertial frame, give the material the rigid-body rotation speed.
-    ! Otherwise set it to zero.
-
-    if (do_rotation /= 1 .and. problem == 1) then
-
-       state(UMX:UMZ) = state(URHO) * cross_product(omega, loc)
-
-    else
-
-       state(UMX:UMZ) = ZERO
-
-    endif
-
-    state(UEINT) = ambient_state % rho * ambient_state % e
-    state(UEDEN) = state(UEINT) + HALF * sum(state(UMX:UMZ)**2) / state(URHO)
-
-  end subroutine fill_ambient
 
 
 

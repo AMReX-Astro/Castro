@@ -5,7 +5,7 @@
 #  descriptive-name     C++-name   Fortran-name  also-adds-to    count   if-def
 
 # the conserved variable state
-@set: conserved NVAR
+@set: conserved NVAR NUM_STATE
    density                Density      URHO      NSRC                                  1                 None
    x-momentum             Xmom         UMX       NSRC                                  1                 None
    y-momentum             Ymom         UMY       NSRC                                  1                 None
@@ -23,7 +23,7 @@
 
 
 # the primitive variable state
-@set: primitive NQ
+@set: primitive NQ NQ
    density                QRHO         QRHO      NQSRC                                   1                 None
    x-velocity             QU           QU        NQSRC                                   1                 None
    y-velocity             QV           QV        NQSRC                                   1                 None
@@ -45,18 +45,18 @@
 
 
 # the auxiliary quantities
-@set: auxiliary NQAUX
-   gamma_c               None          QGAMC     None            1        None
-   sound-speed           None          QC        None            1        None
-   dpdr                  None          QDPDR     None            1        None
-   dpde                  None          QDPDE     None            1        None
-   gamma_c-gas           None          QGAMCG    None            1        RADIATION
-   sound-speed-gas       None          QCG       None            1        RADIATION
-   flux-limiter          None          QLAMS     None          ngroups    RADIATION
+@set: auxiliary NQAUX NQAUX
+   gamma_c               QGAMC         QGAMC     None            1                   None
+   sound-speed           QC            QC        None            1                   None
+   dpdr                  QDPDR         QDPDR     None            1                   None
+   dpde                  QDPDE         QDPDE     None            1                   None
+   gamma_c-gas           QGAMCG        QGAMCG    None            1                   RADIATION
+   sound-speed-gas       QCG           QCG       None            1                   RADIATION
+   flux-limiter          QLAMS         QLAMS     None          (ngroups, NGROUPS)    RADIATION
 
 
 # godunov interface states
-@set: godunov NGDNV
+@set: godunov NGDNV NGDNV
    density               GDRHO         GDRHO     None            1                   None
    x-velocity            GDU           GDU       None            1                   None
    y-velocity            GDV           GDV       None            1                   None

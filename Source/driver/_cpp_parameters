@@ -240,6 +240,16 @@ hse_interp_temp              int           0                  y
 # reflect? or outflow?
 hse_reflect_vels             int           0                  y
 
+# fills physical domain boundaries with the ambient state
+fill_ambient_bc              int           0                  y
+
+# clamps the ambient material to the ambient temperature
+clamp_ambient_temp           int           0                  y
+
+# specifies the upper limit, as a multiple of the ambient density, for
+# operations that are applied to ambient material, such as clamping T.
+ambient_safety_factor        Real          1.1e0              y
+
 # integration order for SDC integration
 # valid options are 2 and 4
 sdc_order                    int           2                  y
@@ -697,3 +707,5 @@ beta                         Real          1.0                n
 @namespace: radiation Radiation static
 
 prop_temp_floor              Real          0.0                y
+
+flatten_pp_threshold         Real          -1.0               y
