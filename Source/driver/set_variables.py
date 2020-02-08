@@ -26,7 +26,7 @@ class Index:
     """an index that we want to set"""
 
     def __init__(self, name, var, default_group=None, iset=None,
-                 also_adds_to=None, count=1):
+                 also_adds_to=None, count=1, ifdef=None, exists=True):
         """ parameters:
                name: a descriptive name for the quantity
                var: name of the variable
@@ -35,6 +35,8 @@ class Index:
                      (e.g., conserved)
                also_adds_to: any other counters that we increment
                count: the number of variables in this group
+               ifdef: any ifdef that wraps this variable
+               exists: true if the ifdef says it is defined
         """
         self.name = name
         self.var = var
@@ -67,7 +69,23 @@ class Index:
         a string value (like nspec) is 0
 
         """
-        sstr = "   integer, parameter :: {} = {}\n".format(self.var, self.value)
+        sstr = ""
+        if self.ifdef is not None:
+            sstr += "#ifdef {}\n".format(self.ifdef)
+
+        if set_default is not None and self.count != "1":
+            # this adds a test that the count is greater than 0
+            sstr += "  if ({} > 0) then\n".format(self.count)
+            sstr += "    {} = {}\n".format(self.var, self.value)
+            sstr += "  else\n"
+            sstr += "    {} = {}\n".format(self.var, set_default)
+            sstr += "  endif\n"
+        else:
+            sstr += "  {} = {}\n".format(self.var, self.value)
+
+        if self.ifdef is not None:
+            sstr += "#endif\n"
+        sstr += "\n"
         return sstr
 
     def get_cxx_set_string(self, set_default=None):
@@ -75,7 +93,7 @@ class Index:
         is 0-based, we subtract 1, so we sync with the Fortran
         value
         """
-        sstr = "  constexpr int {} = {};\n".format(self.cxx_var, self.cxx_value)
+        sstr = "  constexpr int {} = {};\n".format(self.var, self.cxx_value)
         return sstr
 
 
@@ -192,9 +210,17 @@ def doit(variables_file, odir, defines, nadv,
 
                 # only recognize the index if we defined any required preprocessor variable
                 if ifdef == "None" or ifdef in defines:
-                    indices.append(Index(name, var, default_group=default_group,
-                                         iset=current_set, also_adds_to=adds_to,
-                                         count=count))
+                    exists = True
+                else:
+                    exists = False
+
+                if ifdef == "None":
+                    ifdef = None
+
+
+                indices.append(Index(name, var, default_group=default_group,
+                                     iset=current_set, also_adds_to=adds_to,
+                                     count=count, ifdef=ifdef, exists=exists))
 
 
     # find the set of set names
