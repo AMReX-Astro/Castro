@@ -422,12 +422,12 @@ number of options (<code class="docutils literal notranslate"><span class="pre">
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">set_variables.py</span></code> is called</p>
 <ul id="index-19">
 <li><p class="first">This processes the Castro <code class="docutils literal notranslate"><span class="pre">_variables</span></code> file and writes
-<code class="docutils literal notranslate"><span class="pre">set_conserved.H</span></code>, <code class="docutils literal notranslate"><span class="pre">set_godunov.H</span></code>, <code class="docutils literal notranslate"><span class="pre">set_indices.F90</span></code>,
-<code class="docutils literal notranslate"><span class="pre">set_primitive.H</span></code>, and <code class="docutils literal notranslate"><span class="pre">state_sizes.f90</span></code> into the
+<code class="docutils literal notranslate"><span class="pre">state_indices.F90</span></code> and <code class="docutils literal notranslate"><span class="pre">state_indices.H</span></code> into the
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code> directory.</p>
-<p>These are used to define the size of the various state arrays.</p>
+<p>These are used to define the size of the various state arrays and
+the integer keys to index each state variable.</p>
 </li>
-<li><p class="first">The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the build rule for <code class="docutils literal notranslate"><span class="pre">set_indices.F90</span></code></p>
+<li><p class="first">The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the build rule for <code class="docutils literal notranslate"><span class="pre">state_indices.F90</span></code></p>
 </li>
 </ul>
 </li>
