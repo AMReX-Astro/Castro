@@ -19,6 +19,8 @@ contains
 
   subroutine composition(state)
 
+    !$acc routine seq
+
     use amrex_constants_module, only: ONE
     use network, only: aion_inv, zion
 
@@ -46,6 +48,8 @@ contains
   ! Compute thermodynamic derivatives with respect to xn(:)
 
   subroutine composition_derivatives(state, state_xderivs)
+
+    !$acc routine seq
 
     use amrex_constants_module, only: ZERO
     use network, only: aion, aion_inv, zion
