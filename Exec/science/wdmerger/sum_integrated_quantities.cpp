@@ -145,7 +145,7 @@ Castro::sum_integrated_quantities ()
     // Determine the names of the species in the simulation.
 
     for (int i = 0; i < NumSpec; i++) {
-      species_names[i] = desc_lst[State_Type].name(FirstSpec+i);
+      species_names[i] = desc_lst[State_Type].name(UFS+i);
       species_names[i] = species_names[i].substr(4,std::string::npos);
       species_mass[i]  = 0.0;
     }
