@@ -74,9 +74,8 @@ class Index:
         """return the C++ code that sets this variable index.  Note: since C++
         is 0-based, we subtract 1, so we sync with the Fortran
         value
-
         """
-        sstr = "  const int {} = {};\n".format(self.var, self.cxx_value)
+        sstr = "  constexpr int {} = {};\n".format(self.cxx_var, self.cxx_value)
         return sstr
 
 
@@ -136,7 +135,7 @@ class Counter:
 
     def get_cxx_set_string(self):
         """return the C++ needed to set this as a parameter"""
-        return "const int {} = {};".format(
+        return "constexpr int {} = {};".format(
             self.cxx_name, self.get_cxx_value(offset=self.cxx_starting_val))
 
 
@@ -278,10 +277,10 @@ def doit(variables_file, odir, defines, nadv,
 
         f.write("#include <actual_network.H>\n\n")
 
-        f.write("  const int NumAdv = {};\n".format(nadv))
+        f.write("  constexpr int NumAdv = {};\n".format(nadv))
         for ac in all_counters:
             f.write("  {}\n".format(ac.get_cxx_set_string()))
-        f.write("  const int npassive = NumSpec + NumAux + NumAdv;\n")
+        f.write("  constexpr int npassive = NumSpec + NumAux + NumAdv;\n")
 
         # we only loop over the default sets for setting indices, not the
         # "adds to", so we don't set the same index twice

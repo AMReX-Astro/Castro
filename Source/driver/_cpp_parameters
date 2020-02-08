@@ -707,3 +707,5 @@ beta                         Real          1.0                n
 @namespace: radiation Radiation static
 
 prop_temp_floor              Real          0.0                y
+
+flatten_pp_threshold         Real          -1.0               y

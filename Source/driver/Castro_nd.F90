@@ -67,7 +67,6 @@ subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
 
 end subroutine ca_extern_init
 
-
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
