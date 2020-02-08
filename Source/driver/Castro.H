@@ -74,14 +74,6 @@ enum sources { thermo_src = 0,
 	       num_src };
 
 
-#if AMREX_SPACEDIM == 1
-static const amrex::GpuArray<int, 3> dg = {1, 0, 0};
-#elif AMREX_SPACEDIM == 2
-static const amrex::GpuArray<int, 3> dg = {1, 1, 0};
-#else
-static const amrex::GpuArrayr<int, 3> dg = {1, 1, 1};
-#endif
-
 // time integration method
 
 enum int_method { CornerTransportUpwind = 0,
@@ -89,6 +81,25 @@ enum int_method { CornerTransportUpwind = 0,
                   SpectralDeferredCorrections,
                   SimplifiedSpectralDeferredCorrections
                 };
+
+
+#if AMREX_SPACEDIM == 1
+constexpr int dg0 = 1;
+constexpr int dg1 = 0;
+constexpr int dg2 = 0;
+
+#elif AMREX_SPACEDIM == 2
+constexpr int dg0 = 1;
+constexpr int dg1 = 1;
+constexpr int dg2 = 0;
+
+#else
+constexpr int dg0 = 1;
+constexpr int dg1 = 1;
+constexpr int dg2 = 1;
+
+#endif
+
 
 ///
 /// @class Castro

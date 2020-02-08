@@ -1246,13 +1246,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         if (idir == 0) {
             // get the scaled radial pressure -- we need to treat this specially
             Array4<Real> const qex_fab = qe[idir].array();
-            const int prescomp = GDPRES;
 
 #if AMREX_SPACEDIM == 1
             if (!Geom().IsCartesian()) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
-                    pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                    pradial_fab(i,j,k) = qex_fab(i,j,k,GDPRES) * dt;
                 });
             }
 #endif
@@ -1261,7 +1260,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             if (!momx_flux_has_p[0]) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
-                    pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                    pradial_fab(i,j,k) = qex_fab(i,j,k,GDPRES) * dt;
                 });
             }
 #endif
