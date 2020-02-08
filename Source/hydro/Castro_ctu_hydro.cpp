@@ -1308,7 +1308,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         }
 
 #ifdef RADIATION
-        Array4g<Real> const rad_flux_fab = (rad_flux[idir]).array();
+        Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
         Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
         const int radcomp = Radiation::nGroups;
 
