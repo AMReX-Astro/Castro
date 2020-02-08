@@ -22,7 +22,6 @@ module meth_params_module
   integer,  allocatable, save :: fspace_type
   logical,  allocatable, save :: do_inelastic_scattering
   logical,  allocatable, save :: comoving
-  real(rt), allocatable, save :: flatten_pp_threshold
 #endif
 
   integer, save, allocatable :: qpass_map(:), upass_map(:)
@@ -60,7 +59,6 @@ module meth_params_module
   attributes(managed) :: fspace_type
   attributes(managed) :: do_inelastic_scattering
   attributes(managed) :: comoving
-  attributes(managed) :: flatten_pp_threshold
 #endif
   attributes(managed) :: qpass_map, upass_map
 #ifdef GRAVITY
@@ -71,7 +69,7 @@ module meth_params_module
 
   !$acc declare &
 #ifdef RADIATION
-  !$acc create(fspace_type, do_inelastic_scattering, comoving, flatten_pp_threshold) &
+  !$acc create(fspace_type, do_inelastic_scattering, comoving) &
 #endif
   !$acc create(qpass_map, upass_map) &
 #ifdef GRAVITY
@@ -102,8 +100,6 @@ contains
     allocate(fspace_type)
     allocate(do_inelastic_scattering)
     allocate(comoving)
-    allocate(flatten_pp_threshold)
-    flatten_pp_threshold = -1.e0_rt
 #endif
     allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
@@ -197,7 +193,6 @@ contains
     deallocate(fspace_type)
     deallocate(do_inelastic_scattering)
     deallocate(comoving)
-    deallocate(flatten_pp_threshold)
 #endif
     deallocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
@@ -207,7 +202,7 @@ contains
 
 
 #ifdef RADIATION
-  subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in,fppt) &
+  subroutine ca_init_radhydro_pars(fsp_type_in, do_is_in, com_in) &
                                    bind(C, name="ca_init_radhydro_pars")
 
     use rad_params_module, only: ngroups
@@ -216,7 +211,6 @@ contains
     implicit none
 
     integer,  intent(in) :: fsp_type_in, do_is_in, com_in
-    real(rt), intent(in) :: fppt
 
     if (ngroups .eq. 1) then
        fspace_type = 1
@@ -239,13 +233,11 @@ contains
        call castro_error("Wrong value for comoving")
     end if
 
-    flatten_pp_threshold = fppt
 
     !$acc update &
     !$acc device(fspace_type) &
     !$acc device(do_inelastic_scattering) &
     !$acc device(comoving)
-    !$acc device(flatten_pp_threshold)
 
   end subroutine ca_init_radhydro_pars
 #endif
