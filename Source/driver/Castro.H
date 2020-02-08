@@ -2,6 +2,8 @@
 #ifndef _Castro_H_
 #define _Castro_H_
 
+#include <state_indices.H>
+
 #include <AMReX_BC_TYPES.H>
 #include <AMReX_AmrLevel.H>
 #include <AMReX_iMultiFab.H>
@@ -742,7 +744,6 @@ public:
 
     static int numGrow();
 
-    static int numState();
 
 #ifdef REACTIONS
 #include <Castro_react.H>
@@ -1073,60 +1074,10 @@ public:
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
 
-    static int       NUM_STATE;
-
-    /// conservative variable index keys
-    static int       Density, Xmom, Ymom, Zmom, Eden, Eint, Temp;
-#ifdef HYBRID_MOMENTUM
-    static int       Rmom, Lmom, Pmom;
-#endif
-#ifdef SHOCK_VAR
-    static int       Shock;
-#endif
-
-    static int       FirstAdv,  NumAdv;
-    static int       FirstSpec, NumSpec;
-    static int       FirstAux,  NumAux;
-
-    /// primitive variable index keys
-    static int       QRHO, QU, QV, QW;
-    static int       QGAME, QGC, QPRES, QREINT, QTEMP;
-    static int       QFA, QFS, QFX;
-#ifdef MHD
-    static int       QMAGX, QMAGY, QMAGZ;
-#endif
-#ifdef RADIATION
-    static int       QPTOT, QREITOT, QRAD;
-#endif
-
-    // Godunov state index keys
-    static int GDRHO, GDU, GDV, GDW;
-    static int GDPRES, GDGAME;
-#ifdef RADIATION
-    static int GDLAMS, GDERADS;
-#endif
-
-    // Auxillary state index keys
-    static int QGAMC, QC, QDPDR, QDPDE;
-#ifdef RADIATION
-    static int QGAMCG, QCG, QLAMS;
-#endif
-
-///
-/// variable counts
-///
-    static int       NQSRC;
-    static int       NSRC;
-    static int       NQAUX;
-    static int       NQ;
-    static int       NGDNV;
-
-
     static amrex::Vector<std::string> source_names;
 
     static amrex::Vector<int> upass_map;
     static amrex::Vector<int> qpass_map;
-    static int  npassive;
 
 ///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level
@@ -1658,13 +1609,6 @@ int
 Castro::numGrow()
 {
     return NUM_GROW;
-}
-
-inline
-int
-Castro::numState()
-{
-    return NUM_STATE;
 }
 
 inline

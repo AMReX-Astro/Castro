@@ -84,7 +84,6 @@ Real Radiation::aRad            = 0.0;
 int Radiation::current_group_number = -1;
 std::string Radiation::current_group_name = "Radiation";
 
-Real Radiation:: flatten_pp_threshold = -1.0;
 int Radiation::pure_hydro = 0;
 
 #include <radiation_defaults.H>
@@ -627,16 +626,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   delta_e_rat_level.resize(levels, 0.0);
   delta_T_rat_level.resize(levels, 0.0);
 
-  Density   = castro->Density;
-  Xmom      = castro->Xmom;
-  Eden      = castro->Eden;
-  Eint      = castro->Eint;
-  Temp      = castro->Temp;
-  FirstSpec = castro->FirstSpec;
-  FirstAux  = castro->FirstAux;
-  NUM_STATE = castro->NUM_STATE;
-
-  pp.query("flatten_pp_threshold", flatten_pp_threshold);
   pp.query("pure_hydro", pure_hydro);
 
   if (pure_hydro || limiter == 0) {
@@ -647,7 +636,7 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   }
 
   ca_init_radhydro_pars(fspace_advection_type, do_inelastic_scattering,
-			comoving, flatten_pp_threshold);
+			comoving);
 }
 
 void Radiation::regrid(int level, const BoxArray& grids, const DistributionMapping& dmap)

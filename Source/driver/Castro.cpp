@@ -56,7 +56,6 @@ std::vector<int> Castro::err_list_ng;
 int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
-int          Castro::NUM_STATE     = -1;
 int          Castro::NUM_GROW      = -1;
 
 int          Castro::lastDtPlotLimited = 0;
@@ -64,82 +63,6 @@ Real         Castro::lastDtBeforePlotLimiting = 0.0;
 
 Real         Castro::frac_change   = 1.e200;
 
-int          Castro::Density       = -1;
-int          Castro::Eden          = -1;
-int          Castro::Eint          = -1;
-int          Castro::Temp          = -1;
-int          Castro::Xmom          = -1;
-int          Castro::Ymom          = -1;
-int          Castro::Zmom          = -1;
-#ifdef HYBRID_MOMENTUM
-int          Castro::Rmom          = -1;
-int          Castro::Lmom          = -1;
-int          Castro::Pmom          = -1;
-#endif
-
-int          Castro::QRHO = -1;
-int          Castro::QU = -1;
-int          Castro::QV = -1;
-int          Castro::QW = -1;
-int          Castro::QGAME = -1;
-int          Castro::QGC = -1;
-int          Castro::QPRES = -1;
-int          Castro::QREINT = -1;
-int          Castro::QTEMP = -1;
-int          Castro::QFA = -1;
-int          Castro::QFS = -1;
-int          Castro::QFX = -1;
-#ifdef MHD
-int          Castro::QMAGX = -1;
-int          Castro::QMAGY = -1;
-int          Castro::QMAGZ = -1;
-#endif
-#ifdef RADIATION
-int          Castro::QPTOT = -1;
-int          Castro::QREITOT = -1;
-int          Castro::QRAD = -1;
-#endif
-
-int          Castro::GDRHO = -1;
-int          Castro::GDU = -1;
-int          Castro::GDV = -1;
-int          Castro::GDW = -1;
-int          Castro::GDPRES = -1;
-int          Castro::GDGAME = -1;
-#ifdef RADIATION
-int          Castro::GDLAMS = -1;
-int          Castro::GDERADS = -1;
-#endif
-
-int          Castro::QGAMC = -1;
-int          Castro::QC = -1;
-int          Castro::QDPDR = -1;
-int          Castro::QDPDE = -1;
-#ifdef RADIATION
-int          Castro::QGAMCG = -1;
-int          Castro::QCG = -1;
-int          Castro::QLAMS = -1;
-#endif
-
-int          Castro::NumSpec       = 0;
-int          Castro::FirstSpec     = -1;
-
-int          Castro::NumAux        = 0;
-int          Castro::FirstAux      = -1;
-
-int          Castro::NumAdv        = 0;
-int          Castro::FirstAdv      = -1;
-
-#ifdef SHOCK_VAR
-int          Castro::Shock         = -1;
-#endif
-
-int          Castro::NQSRC         = -1;
-int          Castro::NSRC          = -1;
-int          Castro::NQAUX         = -1;
-int          Castro::NQ            = -1;
-
-int          Castro::NGDNV         = -1;
 
 Real         Castro::num_zones_advanced = 0.0;
 
@@ -147,7 +70,6 @@ Vector<std::string> Castro::source_names;
 
 Vector<int> Castro::upass_map;
 Vector<int> Castro::qpass_map;
-int  Castro::npassive = -1;
 
 #ifdef TRUE_SDC
 int          Castro::SDC_NODES;

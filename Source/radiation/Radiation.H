@@ -60,8 +60,6 @@ public:
 
   static int accelerate;        ///< controls multigroup convergence acceleration
 
-  int Density, Xmom, Eden, Eint, Temp, FirstSpec, FirstAux, NUM_STATE;
-
   int verbose;
 
   int maxiter;           ///< iteration limit for implicit update loop
@@ -118,7 +116,6 @@ public:
   static int current_group_number;
   static std::string current_group_name;
 
-  static amrex::Real flatten_pp_threshold;
   static int pure_hydro;
 
 #include <radiation_params.H>

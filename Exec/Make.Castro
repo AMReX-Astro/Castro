@@ -464,7 +464,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/meth_params.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TEMPL
 #------------------------------------------------------------------------------
 # state variable info
 #-------------------------------------------------------------------------------
-$(CASTRO_AUTO_SOURCE_DIR)/set_conserved.H: $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90
+$(CASTRO_AUTO_SOURCE_DIR)/state_indices.H: $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90
 	echo "set_conserved.H will be generated at the same time as set_indices.F90"
 
 $(CASTRO_AUTO_SOURCE_DIR)/state_sizes.f90: $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90
@@ -477,6 +477,9 @@ $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90:
            --ngroups $(NGROUPS) \
            --odir $(CASTRO_AUTO_SOURCE_DIR) \
            $(CASTRO_HOME)/Source/driver/_variables
+
+# for debugging
+test_variables: $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90
 
 #------------------------------------------------------------------------------
 # build info
