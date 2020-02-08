@@ -3279,10 +3279,9 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
       const Box& bx0 = mfi.tilebox();
       const int idx = mfi.tileIndex();
 
-      int idx = UEINT;
       ca_compute_lap_term(BL_TO_FORTRAN_BOX(bx0),
                           BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), &idx,
+                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), UEINT,
                           AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
       ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
@@ -3366,7 +3365,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
       // only temperature
       ca_make_fourth_in_place_n(BL_TO_FORTRAN_BOX(bx),
-                                BL_TO_FORTRAN_FAB(Stemp[mfi]), &Temp,
+                                BL_TO_FORTRAN_FAB(Stemp[mfi]), UTEMP,
                                 AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
     }

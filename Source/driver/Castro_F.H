@@ -226,12 +226,12 @@ extern "C"
                                const int* domlo, const int* domhi);
 
   void ca_make_fourth_in_place_n(const int lo[], const int hi[],
-                                 BL_FORT_FAB_ARG_3D(q), const int* nc, const int* ncomp,
+                                 BL_FORT_FAB_ARG_3D(q), const int* nc, const int ncomp,
                                  const int* domlo, const int* domhi);
 
   void ca_compute_lap_term(const int lo[], const int hi[],
                            const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_ANYD(lap), const int* ncomp,
+                           BL_FORT_FAB_ARG_ANYD(lap), const int ncomp,
                            const int* domlo, const int* domhi);
 
   void ca_make_cell_center(const int lo[], const int hi[],
