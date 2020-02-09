@@ -31,6 +31,7 @@ contains
     use amrinfo_module, only : amr_level
     use burner_module
     use burn_type_module
+    use react_util_module, only: okay_to_burn ! function
     use amrex_constants_module
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
@@ -145,6 +146,16 @@ contains
 
              burn_state_in % n_rhs = 0
              burn_state_in % n_jac = 0
+
+             ! Don't burn if we're outside of the relevant (rho, T) range.
+
+             if (.not. okay_to_burn(burn_state_in)) then
+                do_burn = .false.
+             end if
+
+             ! Initialize the final state by assuming it does not change.
+
+             call copy_burn_t(burn_state_out, burn_state_in)
 
              if (do_burn) then
                 call burner(burn_state_in, burn_state_out, dt_react, time)

@@ -31,30 +31,6 @@ contains
 
 
 
-  function ok_to_burn(state) result(ok_to_burnr)
-
-    !$gpu
-
-    use meth_params_module, only: react_T_min, react_T_max, react_rho_min, react_rho_max
-
-    implicit none
-
-    logical       :: ok_to_burnr
-    type (burn_t) :: state
-
-    ok_to_burnr = .true.
-
-    if (state % T < react_T_min .or. state % T > react_T_max .or. &
-        state % rho < react_rho_min .or. state % rho > react_rho_max) then
-
-       ok_to_burnr = .false.
-
-    endif
-
-  end function ok_to_burn
-
-
-
 #ifndef SIMPLIFIED_SDC
   subroutine burner(state_in, state_out, dt, time)
 
@@ -80,14 +56,8 @@ contains
     endif
 #endif
 
-    ! Initialize the final state by assuming it does not change.
-    call copy_burn_t(state_out, state_in)
-
     ! Do the burning.
-
-    if (ok_to_burn(state_in)) then
-       call actual_burner(state_in, state_out, dt, time)
-    endif
+    call actual_burner(state_in, state_out, dt, time)
 
   end subroutine burner
 #endif
