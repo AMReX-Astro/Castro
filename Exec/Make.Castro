@@ -165,6 +165,8 @@ ifeq ($(USE_DIFFUSION), TRUE)
   Bdirs += Source/diffusion
   DEFINES += -DDIFFUSION
   USE_MLMG = TRUE
+  USE_CONDUCTIVITY = TRUE
+  USE_VISCOSITY = TRUE
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
@@ -263,9 +265,6 @@ EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
 NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(NETWORK_DIR))
 ifeq ($(USE_DIFFUSION), TRUE)
    COND_PATH := $(MICROPHYSICS_HOME)/conductivity/$(strip $(CONDUCTIVITY_DIR))
-endif
-
-ifeq ($(USE_DIFFUSION), TRUE)
    VISC_PATH := $(VISC_HOME)/constant
 endif
 
@@ -276,7 +275,7 @@ ifndef GENERAL_NET_INPUTS
    ifneq "$(wildcard $(NETWORK_INPUTS))" ""
       GENERAL_NET_INPUTS := $(NETWORK_INPUTS)
    else
-      GENERAL_NET_INPUTS := $(CASTRO_HOME)/Microphysics/networks/general_null/$(NETWORK_INPUTS)
+      GENERAL_NET_INPUTS := $(MICROPHYSICS_HOME)/networks/general_null/$(NETWORK_INPUTS)
    endif
 endif
 
@@ -303,9 +302,12 @@ EXTERN_CORE += $(MICROPHYSICS_HOME)/EOS
 EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
 EXTERN_CORE += $(MICROPHYSICS_HOME)/interfaces
 
-ifeq ($(USE_DIFFUSION), TRUE)
+ifeq ($(USE_CONDUCTIVITY), TRUE)
    EXTERN_CORE += $(COND_HOME)
    EXTERN_CORE += $(COND_PATH)
+endif
+
+ifeq ($(USE_VISCOSITY), TRUE)
    EXTERN_CORE += $(VISC_PATH)
 endif
 
