@@ -332,10 +332,7 @@ extern "C"
     BL_FORT_FAB_ARG_3D(djdT),
     const BL_FORT_FAB_ARG_3D(temp),
     const BL_FORT_FAB_ARG_3D(kappa_p),
-    const BL_FORT_FAB_ARG_3D(dkdT),
-    const amrex::Real* PFcoef, 
-    int use_WiensLaw,
-    amrex::Real Tf);
+    const BL_FORT_FAB_ARG_3D(dkdT));
 }
 
 extern "C"
