@@ -79,7 +79,7 @@ Castro::consup_hydro(const Box& bx,
 
 #ifdef SHOCK_VAR
     } else if (n == USHK) {
-      update(i,j,k,USHK) = shk(i,j,k,1) / dt;
+      update(i,j,k,USHK) = shk(i,j,k) / dt;
 #endif
 
 #ifndef RADIATION
