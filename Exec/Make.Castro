@@ -265,21 +265,7 @@ ifeq ($(USE_DIFFUSION), TRUE)
    COND_PATH := $(MICROPHYSICS_HOME)/conductivity/$(strip $(CONDUCTIVITY_DIR))
 endif
 
-# if the EOS / network / conductivity name exists in
-# Castro/Microphysics, then use that version
-
-ifneq "$(wildcard $(EOS_HOME)/$(strip $(EOS_DIR)) )" ""
-   EOS_PATH := $(EOS_HOME)/$(strip $(EOS_DIR))
-endif
-
-ifneq "$(wildcard $(NETWORK_HOME)/$(strip $(NETWORK_DIR)) )" ""
-   NETWORK_PATH := $(NETWORK_HOME)/$(strip $(NETWORK_DIR))
-endif
-
 ifeq ($(USE_DIFFUSION), TRUE)
-ifneq "$(wildcard $(COND_HOME)/$(strip $(CONDUCTIVITY_DIR)) )" ""
-   COND_PATH := $(COND_HOME)/$(strip $(CONDUCTIVITY_DIR))
-endif
    VISC_PATH := $(VISC_HOME)/constant
 endif
 
