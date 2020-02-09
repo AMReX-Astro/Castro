@@ -32,11 +32,15 @@ Castro::consup_hydro(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
+
   // For hydro, we will create an update source term that is
   // essentially the flux divergence.  This can be added with dt to
   // get the update
 
   const int flux_has_p = momx_flux_has_p[0];
+
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
 
   AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
   {
@@ -91,10 +95,11 @@ Castro::consup_hydro(const Box& bx,
 #ifdef HYBRID_MOMENTUM
     } else if (n == UMR) {
       // update the radial momentum with the hybrid advection source
-      add_hybrid_advection_source(i, j, k,
-                                  dt, dx,
-                                  update,
-                                  qx, qy, qz);
+      add_hybrid_advection_source_c(i, j, k,
+                                    dt, dx,
+                                    center,
+                                    update,
+                                    qx, qy, qz);
 #endif
 
     }
