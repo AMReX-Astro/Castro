@@ -9,6 +9,8 @@ BLAS_LIBRARY ?= -lopenblas
 
 TOP := $(CASTRO_HOME)
 
+MICROPHYSICS_HOME ?= $(TOP)/Microphysics
+
 # the Castro microphysics locations
 EOS_HOME ?= $(TOP)/Microphysics/EOS
 NETWORK_HOME ?= $(TOP)/Microphysics/networks
@@ -257,12 +259,10 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 # microphysics 
 #------------------------------------------------------------------------------
 
-ifdef MICROPHYSICS_HOME
-   EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
-   NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(NETWORK_DIR))
+EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
+NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(NETWORK_DIR))
 ifeq ($(USE_DIFFUSION), TRUE)
    COND_PATH := $(MICROPHYSICS_HOME)/conductivity/$(strip $(CONDUCTIVITY_DIR))
-endif
 endif
 
 # if the EOS / network / conductivity name exists in
@@ -313,10 +313,9 @@ EXTERN_CORE += $(NETWORK_PATH)
 # Network includes since it has actions that depend on variables set
 # there.
 
-ifdef MICROPHYSICS_HOME
-  EXTERN_CORE += $(MICROPHYSICS_HOME)/EOS
-  EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
-endif
+EXTERN_CORE += $(MICROPHYSICS_HOME)/EOS
+EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
+EXTERN_CORE += $(MICROPHYSICS_HOME)/interfaces
 
 ifeq ($(USE_DIFFUSION), TRUE)
    EXTERN_CORE += $(TOP)/Microphysics/conductivity
@@ -408,9 +407,7 @@ EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
 # these are for finding runtime parameters
 EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)/Util/conservative_interpolate
-ifdef MICROPHYSICS_HOME
-   EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
-endif
+EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 
 EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
 
