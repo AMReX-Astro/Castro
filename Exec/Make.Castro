@@ -304,7 +304,6 @@ EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
 EXTERN_CORE += $(MICROPHYSICS_HOME)/interfaces
 
 ifeq ($(USE_DIFFUSION), TRUE)
-   EXTERN_CORE += $(TOP)/Microphysics/conductivity
    EXTERN_CORE += $(COND_HOME)
    EXTERN_CORE += $(COND_PATH)
    EXTERN_CORE += $(VISC_PATH)
