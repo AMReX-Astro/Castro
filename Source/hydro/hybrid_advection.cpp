@@ -11,6 +11,7 @@ using namespace amrex;
 void
 Castro::add_hybrid_advection_source_c(const int i, const int j, const int k,
                                       const Real dt, GpuArray<Real, 3> const dx,
+                                      GpuArray<Real, 3> const center,
                                       Array4<Real> const update,
                                       Array4<Real const> const qx,
                                       Array4<Real const> const qy,
