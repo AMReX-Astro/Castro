@@ -290,9 +290,6 @@ extern "C"
      const amrex::Real * dt);
 #endif
 
-#ifdef NEUTRINO
-  void ca_setgroup(const int& igroup);
-#endif
 
 
 /* hydrodynamics */

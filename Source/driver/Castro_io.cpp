@@ -723,19 +723,6 @@ Castro::setPlotVariables ()
 {
   AmrLevel::setPlotVariables();
 
-#ifdef RADIATION
-  if (Radiation::nNeutrinoSpecies > 0 &&
-      Radiation::plot_neutrino_group_energies_total == 0) {
-    char rad_name[10];
-    for (int j = 0; j < Radiation::nNeutrinoSpecies; j++) {
-      for (int i = 0; i < Radiation::nNeutrinoGroups[j]; i++) {
-        sprintf(rad_name, "rads%dg%d", j, i);
-        parent->deleteStatePlotVar(rad_name);
-      }
-    }
-  }
-#endif
-
   // Don't add the Source_Type data to the plotfile, we only
   // want to store it in the checkpoints.
 

@@ -3070,22 +3070,6 @@ Castro::derive (const std::string& name,
 
     BL_PROFILE("Castro::derive()");
     
-#ifdef NEUTRINO
-  if (name.substr(0,4) == "Neut") {
-    // Extract neutrino energy group number from name string and
-    // pass to fortran so that derive will have access to it:
-    int is = atoi(name.c_str() + name.find('s') + 1);
-    int ig = atoi(name.c_str() + name.find('g') + 1);
-
-    BL_ASSERT(is < Radiation::nNeutrinoSpecies);
-    for (int n = 0; n < is; n++) {
-      ig += Radiation::nNeutrinoGroups[n];
-    }
-
-    ca_setgroup(ig);
-  }
-#endif
-
 #ifdef AMREX_PARTICLES
   return ParticleDerive(name,time,ngrow);
 #else
@@ -3101,22 +3085,6 @@ Castro::derive (const std::string& name,
 {
 
     BL_PROFILE("Castro::derive()");
-
-#ifdef NEUTRINO
-  if (name.substr(0,4) == "Neut") {
-    // Extract neutrino energy group number from name string and
-    // pass to fortran so that derive will have access to it:
-    int is = atoi(name.c_str() + name.find('s') + 1);
-    int ig = atoi(name.c_str() + name.find('g') + 1);
-
-    BL_ASSERT(is < Radiation::nNeutrinoSpecies);
-    for (int n = 0; n < is; n++) {
-      ig += Radiation::nNeutrinoGroups[n];
-    }
-
-    ca_setgroup(ig);
-  }
-#endif
 
     AmrLevel::derive(name,time,mf,dcomp);
 }

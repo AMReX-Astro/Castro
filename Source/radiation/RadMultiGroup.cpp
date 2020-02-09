@@ -44,75 +44,11 @@ void Radiation::get_groups(int verbose)
         xnu[i] = alpha*xnu[i-1];
     }
   }
-  else if (SolverType == MGFLDSolver && radiation_type == Neutrino) {
-
-    xnu.resize(nGroups+3, 0.0); 
-    nugroup.resize(nGroups, 0.0);
-    dnugroup.resize(nGroups, 0.0);
-    dlognugroup.resize(nGroups, 0.0);
-
-    Vector<Real> lowest, highest;
-    ParmParse pp("radiation");
-    pp.getarr( "lowestGroupMeV",  lowest, 0, nNeutrinoSpecies);
-    pp.getarr("highestGroupMeV", highest, 0, nNeutrinoSpecies);
-
-    Real hPlanckMeV = hPlanck / convert_MeV_erg; // Planck in (MeV sec)
-
-    group_print_factor = hPlanckMeV;
-    group_units        = " (units are MeV)";
-
-    int ibase = 0;
-    for (int ispec = 0; ispec < nNeutrinoSpecies; ispec++) {
-      if (nNeutrinoGroups[ispec] > 0) {
-        BL_ASSERT(nNeutrinoGroups[ispec] > 1); // no "gray" species
-        Real lowlog =  log( lowest[ispec]);
-        Real faclog = ((log(highest[ispec]) - lowlog)
-                       / (nNeutrinoGroups[ispec] - 1));
-        for (int igroup = 0; igroup < nNeutrinoGroups[ispec]; igroup++) {
-          int i = ibase + igroup;
-          nugroup[i] = exp(lowlog + igroup * faclog) / hPlanckMeV;
-        }
-      }
-      ibase += nNeutrinoGroups[ispec];
-    }
-
-    // set up xnu & dnu & dlognu
-    int ibase_nu = 0;
-    int ibase_xnu = 0;
-    for (int ispec = 0; ispec < nNeutrinoSpecies; ispec++) {
-      if (nNeutrinoGroups[ispec] > 0) {
-	int igroup, inu, ixnu;
-        for (igroup = 1; igroup < nNeutrinoGroups[ispec]; igroup++) {
-          inu = ibase_nu + igroup;
-	  ixnu = ibase_xnu + igroup;
-	  xnu[ixnu] = sqrt(nugroup[inu-1] * nugroup[inu]);
-        }
-	igroup = 0;
-	inu = ibase_nu + igroup;
-	ixnu = ibase_xnu + igroup;
-	xnu[ixnu] = nugroup[inu]*nugroup[inu]/xnu[ixnu+1];
-	igroup = nNeutrinoGroups[ispec];
-	inu = ibase_nu + igroup;
-	ixnu = ibase_xnu + igroup;
-	xnu[ixnu] = nugroup[inu-1]*nugroup[inu-1]/xnu[ixnu-1];
-
-	for (igroup=0; igroup < nNeutrinoGroups[ispec]; igroup++) {
-          inu = ibase_nu + igroup;
-	  ixnu = ibase_xnu + igroup;
-	  dnugroup[inu] = xnu[ixnu+1] - xnu[ixnu]; 
-	  dlognugroup[inu] = log(xnu[ixnu+1]) - log(xnu[ixnu]); 
-	}
-      }
-      ibase_nu  += nNeutrinoGroups[ispec];
-      ibase_xnu += nNeutrinoGroups[ispec]+1;
-    }
-    
-  }
   else if (SolverType == MGFLDSolver) {
 
     // xnu is being used by MGFLDSolver
 
-    xnu.resize(nGroups+3, 0.0);   // large enough for three neutrino species
+    xnu.resize(nGroups+1, 0.0);
     nugroup.resize(nGroups, 1.0);
     dnugroup.resize(nGroups, 0.0);
     dlognugroup.resize(nGroups, 0.0);
@@ -178,20 +114,8 @@ void Radiation::get_groups(int verbose)
   if (nugroup.size() == 0) {  // if not initialized above
     nugroup.resize(nGroups, 0.0);
 
-    if (nNeutrinoSpecies == 0) {
-      for (int i = 0; i < nGroups; i++) {
+    for (int i = 0; i < nGroups; i++) {
         nugroup[i] = sqrt(xnu[i] * xnu[i+1]);
-      }
-    }
-    else {
-      int ibase = 0;
-      for (int ispec = 0; ispec < nNeutrinoSpecies; ispec++) {
-        for (int igroup = 0; igroup < nNeutrinoGroups[ispec]; igroup++) {
-          int i = ibase + igroup;
-          nugroup[i] = 0.5 * (xnu[igroup] + xnu[igroup+1]);
-        }
-        ibase += nNeutrinoGroups[ispec];
-      }
     }
   }
 
@@ -205,7 +129,7 @@ void Radiation::get_groups(int verbose)
 	dlognugroup[i] = log(xnu[i+1]) - log(xnu[i]);
       }
     }
-    else if (nNeutrinoSpecies == 0) {
+    else {
       int i = 0;
       dnugroup[i] = 0.5 * (nugroup[i+1] - nugroup[i]);
       for (i = 1; i < nGroups - 1; i++) {
@@ -214,41 +138,9 @@ void Radiation::get_groups(int verbose)
       i = nGroups - 1;
       dnugroup[i] = 0.5 * (nugroup[i] - nugroup[i-1]);
     }
-    else {
-      int ibase = 0;
-      for (int ispec = 0; ispec < nNeutrinoSpecies; ispec++) {
-        if (nNeutrinoGroups[ispec] == 0) {
-          // no groups for this species, do nothing
-        }
-        else if (nNeutrinoGroups[ispec] == 1) {
-          // should we support "gray" species?
-          std::cout << "Species with single energy group not supported" << std::endl;
-          exit(1);
-        }
-        else {
-          int i = ibase;
-          dnugroup[i] = 0.5 * (nugroup[i+1] - nugroup[i]);
-          for (i = ibase + 1; i < ibase + nNeutrinoGroups[ispec] - 1; i++) {
-            dnugroup[i] = 0.5 * (nugroup[i+1] - nugroup[i-1]);
-          }
-          i = ibase + nNeutrinoGroups[ispec] - 1;
-          dnugroup[i] = 0.5 * (nugroup[i] - nugroup[i-1]);
-        }
-
-        ibase += nNeutrinoGroups[ispec];
-      }
-    }
   }
 
   int nG0 = 0, nG1 = 0;
-  if (nNeutrinoSpecies >= 2) {
-    nG0 = nNeutrinoGroups[0];
-    nG1 = nNeutrinoGroups[1];
-  }
-  else if (nNeutrinoSpecies == 1) {
-    nG0 = nNeutrinoGroups[0];
-    nG1 = 0;
-  }
 
   if (SolverType == MGFLDSolver) { 
     BL_FORT_PROC_CALL(CA_INITGROUPS3,ca_initgroups3)
@@ -270,17 +162,6 @@ void Radiation::get_groups(int verbose)
     groupfile.open("group_structure.dat");
 
     groupfile << "# total number of groups = " << nGroups << std::endl;
-    if (nNeutrinoSpecies > 0) {
-      groupfile << "# " << nNeutrinoSpecies
-                << " neutrino species, numbers of groups are: ";
-      for (int n = 0; n < nNeutrinoSpecies; n++) {
-        if (n > 0) {
-          groupfile << ", ";
-        }
-        groupfile << nNeutrinoGroups[n];
-      }
-      groupfile << std::endl;
-    }
     groupfile << "# group center, group weight" << group_units << std::endl;
 
     groupfile.precision(10);
@@ -320,17 +201,6 @@ void Radiation::get_groups(int verbose)
 void Radiation::write_groups(ostream& os)
 {
   os << "# total number of groups = " << nGroups << std::endl;
-  if (nNeutrinoSpecies > 0) {
-    os << "# " << nNeutrinoSpecies
-       << " neutrino species, numbers of groups are: ";
-    for (int n = 0; n < nNeutrinoSpecies; n++) {
-      if (n > 0) {
-        os << ", ";
-      }
-      os << nNeutrinoGroups[n];
-    }
-    os << std::endl;
-  }
 
   if (nGroups > 1) {
     os << "# group center, group weight" << group_units << std::endl;

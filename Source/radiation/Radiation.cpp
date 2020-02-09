@@ -30,7 +30,6 @@ using namespace amrex;
 int RadTests::do_rad_sphere = 0;
 
 Radiation::Solver_Type Radiation::SolverType = Radiation::InvalidSolver;
-Radiation::Radiation_Type Radiation::radiation_type = Radiation::Unknown;
 
 Real Radiation::radtoE = 0.;
 //Real Radiation::radtoJ = 0.;
@@ -39,10 +38,6 @@ Real Radiation::radfluxtoF = 0.;
 
 int Radiation::do_multigroup = 0;
 int Radiation::nGroups = NGROUPS;
-int Radiation::nNeutrinoSpecies = 0;
-Vector<int> Radiation::nNeutrinoGroups(0);
-int Radiation::plot_neutrino_group_energies_per_MeV = 1;
-int Radiation::plot_neutrino_group_energies_total   = 0;
 int Radiation::accelerate = 1;
 int Radiation::rad_hydro_combined = 0;
 int Radiation::comoving = 1;
@@ -183,7 +178,6 @@ void Radiation::read_static_params()
 
   if (Radiation::SolverType == Radiation::MGFLDSolver) {
 
-    radiation_type = Photon;
     Radiation::nGroups = NGROUPS;
 
     // sanity check -- in the old style, we allowed the number of groups to be
@@ -220,19 +214,11 @@ void Radiation::read_static_params()
 
 	  if (!do_multigroup || limiter == 0) {
 	      plotvar_names.push_back("lambda");
-	  } else if (nNeutrinoSpecies == 0) {
+	  } else {
 	      for (int g=0; g<nGroups; ++g) {
 		  std::ostringstream ss;
 		  ss << "lambda" << g;
 		  plotvar_names.push_back(ss.str());
-	      }
-	  } else {
-	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		  for (int g=0; g<Radiation::nNeutrinoGroups[s]; ++g) {
-		      std::ostringstream ss;
-		      ss << "lambdas" << s << "g" << g;
-		      plotvar_names.push_back(ss.str());
-		  }
 	      }
 	  }
       }
@@ -240,19 +226,11 @@ void Radiation::read_static_params()
 	  icomp_kp = plotvar_names.size();
 	  if (!do_multigroup) {
 	      plotvar_names.push_back("kappa_P");
-	  } else if (nNeutrinoSpecies == 0) {
+	  } else {
 	      for (int g=0; g<nGroups; ++g) {
 		  std::ostringstream ss;
 		  ss << "kappa_P" << g;
 		  plotvar_names.push_back(ss.str());
-	      }
-	  } else {
-	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		  for (int g=0; g<Radiation::nNeutrinoGroups[s]; ++g) {
-		      std::ostringstream ss;
-		      ss << "kappa_Ps" << s << "g" << g;
-		      plotvar_names.push_back(ss.str());
-		  }
 	      }
 	  }
       }
@@ -260,19 +238,11 @@ void Radiation::read_static_params()
 	  icomp_kr = plotvar_names.size();
 	  if (!do_multigroup) {
 	      plotvar_names.push_back("kappa_R");
-	  } else if (nNeutrinoSpecies == 0) {
+	  } else {
 	      for (int g=0; g<nGroups; ++g) {
 		  std::ostringstream ss;
 		  ss << "kappa_R" << g;
 		  plotvar_names.push_back(ss.str());
-	      }
-	  } else {
-	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		  for (int g=0; g<Radiation::nNeutrinoGroups[s]; ++g) {
-		      std::ostringstream ss;
-		      ss << "kappa_Rs" << s << "g" << g;
-		      plotvar_names.push_back(ss.str());
-		  }
 	      }
 	  }
       }
@@ -280,19 +250,11 @@ void Radiation::read_static_params()
 	  icomp_lab_Er = plotvar_names.size();
 	  if (!do_multigroup) {
 	      plotvar_names.push_back("Erlab");
-	  } else if (nNeutrinoSpecies == 0) {
+	  } else {
 	      for (int g=0; g<nGroups; ++g) {
 		  std::ostringstream ss;
 		  ss << "Erlab" << g;
 		  plotvar_names.push_back(ss.str());
-	      }
-	  } else {
-	      for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		  for (int g=0; g<nNeutrinoGroups[s]; ++g) {
-		      std::ostringstream ss;
-		      ss << "Erlab" << "s" << s << "g" << g;
-		      plotvar_names.push_back(ss.str());
-		  }
 	      }
 	  }
       }
@@ -309,22 +271,12 @@ void Radiation::read_static_params()
 		  ss << "Fr" << frame << dimname[idim];
 		  plotvar_names.push_back(ss.str());
 	      }
-	  } else if (nNeutrinoSpecies == 0) {
+	  } else {
 	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
 		  for (int g=0; g<nGroups; ++g) {
 		      std::ostringstream ss;
 		      ss << "Fr" << frame << g << dimname[idim];
 		      plotvar_names.push_back(ss.str());
-		  }
-	      }
-	  } else {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		      for (int g=0; g<nNeutrinoGroups[s]; ++g) {
-			  std::ostringstream ss;
-			  ss << "Fr" << frame << "s" << s << "g" << g << dimname[idim];
-			  plotvar_names.push_back(ss.str());
-		      }
 		  }
 	      }
 	  }
@@ -342,22 +294,12 @@ void Radiation::read_static_params()
 		  ss << "Fr" << frame << dimname[idim];
 		  plotvar_names.push_back(ss.str());
 	      }
-	  } else if (nNeutrinoSpecies == 0) {
+	  } else {
 	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
 		  for (int g=0; g<nGroups; ++g) {
 		      std::ostringstream ss;
 		      ss << "Fr" << frame << g << dimname[idim];
 		      plotvar_names.push_back(ss.str());
-		  }
-	      }
-	  } else {
-	      for (int idim=0; idim<BL_SPACEDIM; ++idim) {
-		  for (int s = 0; s < nNeutrinoSpecies; ++s) {
-		      for (int g=0; g<nNeutrinoGroups[s]; ++g) {
-			  std::ostringstream ss;
-			  ss << "Fr" << frame << "s" << s << "g" << g << dimname[idim];
-			  plotvar_names.push_back(ss.str());
-		      }
 		  }
 	      }
 	  }
@@ -2094,25 +2036,6 @@ void Radiation::EstTimeStep(Real & estdt, int level)
   Castro *castro        = dynamic_cast<Castro*>(&parent->getLevel(level));
   const Geometry& geom = parent->Geom(level);
   Real time = castro->get_state_data(Rad_Type).curTime();
-
-  if (nNeutrinoSpecies > 0 &&
-      nNeutrinoGroups[0] > 0) {
-//    Real derat = deltaEnergyRatMax(level);
-    Real dTrat = deltaTRatMax(level);
-
-    //    Real fac = std::min(deltaEnergyTol() / (derat + 1.e-20),
-    //		deltaTTol()      / (dTrat + 1.e-20));
-    Real fac = deltaTTol()  / (dTrat + 1.e-20);
-
-    Real estdt_rad = parent->dtLevel(level);
-    estdt_rad *= fac;
-
-    if (verbose && ParallelDescriptor::IOProcessor())
-      std::cout << "radiation timestep at level " << level
-		<< ":  estdt_rad = " << estdt_rad << std::endl;
-
-    estdt = std::min(estdt, estdt_rad);
-  }
 }
 
 void Radiation::set_current_group(int igroup)
