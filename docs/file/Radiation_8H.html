@@ -158,7 +158,6 @@
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_2d_f.html">RadPlotvar_2d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadPlotvar_3d_f.html">RadPlotvar_3d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="RadTests_8H.html">File RadTests.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Rad_nd_f.html">Rad_nd.F90</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File Radiation.H</a></li>
@@ -283,27 +282,6 @@
 <dl class="enumerator">
 <dt id="_CPPv411MGFLDSolver">
 <span id="_CPPv311MGFLDSolver"></span><span id="_CPPv211MGFLDSolver"></span><span class="target" id="classRadiation_1aa15dd5266a07c7389f9830102fde7acaae22961cdd524956a2fcf747863bc0a45"></span><code class="descname">MGFLDSolver</code> = 6<a class="headerlink" href="#_CPPv411MGFLDSolver" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="enum">
-<dt id="_CPPv414Radiation_Type">
-<span id="_CPPv314Radiation_Type"></span><span id="_CPPv214Radiation_Type"></span><span class="target" id="classRadiation_1a76e33862d1e2baa01a9c98d83d0e159c"></span><em class="property">enum </em><code class="descname">Radiation_Type</code><a class="headerlink" href="#_CPPv414Radiation_Type" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><em>Values:</em></p>
-<dl class="enumerator">
-<dt id="_CPPv47Unknown">
-<span id="_CPPv37Unknown"></span><span id="_CPPv27Unknown"></span><span class="target" id="classRadiation_1a76e33862d1e2baa01a9c98d83d0e159caf225f69ee88d30368a76bd6720bcd85b"></span><code class="descname">Unknown</code> = 0<a class="headerlink" href="#_CPPv47Unknown" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="enumerator">
-<dt id="_CPPv48Neutrino">
-<span id="_CPPv38Neutrino"></span><span id="_CPPv28Neutrino"></span><span class="target" id="classRadiation_1a76e33862d1e2baa01a9c98d83d0e159cac25f541286690d29911aa51fd9776757"></span><code class="descname">Neutrino</code> = 1<a class="headerlink" href="#_CPPv48Neutrino" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="enumerator">
-<dt id="_CPPv46Photon">
-<span id="_CPPv36Photon"></span><span id="_CPPv26Photon"></span><span class="target" id="classRadiation_1a76e33862d1e2baa01a9c98d83d0e159ca36d612a2c7f0be60b1f0efe2cc564790"></span><code class="descname">Photon</code> = 2<a class="headerlink" href="#_CPPv46Photon" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1638,11 +1616,6 @@
 <dd></dd></dl>
 
 <dl class="member">
-<dt id="_CPPv4N9Radiation14radiation_typeE">
-<span id="_CPPv3N9Radiation14radiation_typeE"></span><span id="_CPPv2N9Radiation14radiation_typeE"></span><span id="Radiation::radiation_type__Radiation_Type"></span><span class="target" id="classRadiation_1ac7c0efc1935471a3472a5484a5ba6869"></span><a class="reference internal" href="../class/classRadiation.html#_CPPv4N9Radiation14Radiation_TypeE" title="Radiation::Radiation_Type">Radiation_Type</a> <code class="descname">radiation_type</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
 <dt id="_CPPv4N9Radiation6radtoEE">
 <span id="_CPPv3N9Radiation6radtoEE"></span><span id="_CPPv2N9Radiation6radtoEE"></span><span id="Radiation::radtoE__amrex::Real"></span><span class="target" id="classRadiation_1ac6cdb833fbd8043053dcd281964f66d9"></span>amrex::Real <code class="descname">radtoE</code><br /></dt>
 <dd></dd></dl>
@@ -1665,26 +1638,6 @@
 <dl class="member">
 <dt id="_CPPv4N9Radiation7nGroupsE">
 <span id="_CPPv3N9Radiation7nGroupsE"></span><span id="_CPPv2N9Radiation7nGroupsE"></span><span id="Radiation::nGroups__i"></span><span class="target" id="classRadiation_1a70efff08c36c25f39e4e24895ee151d1"></span>int <code class="descname">nGroups</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N9Radiation16nNeutrinoSpeciesE">
-<span id="_CPPv3N9Radiation16nNeutrinoSpeciesE"></span><span id="_CPPv2N9Radiation16nNeutrinoSpeciesE"></span><span id="Radiation::nNeutrinoSpecies__i"></span><span class="target" id="classRadiation_1ae835fce6d94394e321b50c7ed9ab3050"></span>int <code class="descname">nNeutrinoSpecies</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N9Radiation15nNeutrinoGroupsE">
-<span id="_CPPv3N9Radiation15nNeutrinoGroupsE"></span><span id="_CPPv2N9Radiation15nNeutrinoGroupsE"></span><span id="Radiation::nNeutrinoGroups__amrex::Vector:i:"></span><span class="target" id="classRadiation_1a9f7fdbf8d505a40f34445c62a643a71e"></span>amrex::Vector&lt;int&gt; <code class="descname">nNeutrinoGroups</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N9Radiation36plot_neutrino_group_energies_per_MeVE">
-<span id="_CPPv3N9Radiation36plot_neutrino_group_energies_per_MeVE"></span><span id="_CPPv2N9Radiation36plot_neutrino_group_energies_per_MeVE"></span><span id="Radiation::plot_neutrino_group_energies_per_MeV__i"></span><span class="target" id="classRadiation_1a93d27d0e310031ac71e6d36d22a3fa22"></span>int <code class="descname">plot_neutrino_group_energies_per_MeV</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N9Radiation34plot_neutrino_group_energies_totalE">
-<span id="_CPPv3N9Radiation34plot_neutrino_group_energies_totalE"></span><span id="_CPPv2N9Radiation34plot_neutrino_group_energies_totalE"></span><span id="Radiation::plot_neutrino_group_energies_total__i"></span><span class="target" id="classRadiation_1a9102882ced5aed9ac79f86db245bae64"></span>int <code class="descname">plot_neutrino_group_energies_total</code><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">

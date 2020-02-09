@@ -27,7 +27,6 @@ Radiation
    file/RadPlotvar_2d_f
    file/RadPlotvar_3d_f
    file/RadSolve_8H
-   file/RadTests_8H
    file/RadTypes_8H
    file/Rad_nd_f
    file/Radiation_8H
