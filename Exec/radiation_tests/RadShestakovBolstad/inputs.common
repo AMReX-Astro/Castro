@@ -81,9 +81,6 @@ radiation.lowestGroupHz = 0.0
 radiation.groupGrowFactor = 1.1
 radiation.firstGroupWidthHz = 1.2089946159439433e13   # = 5.e-4 (dimensionless)
 
-radiation.use_WiensLaw = 1
-radiation.Tf_Wien = 1.1604518737857157e6   # 1 (dimensionless)
-
 radiation.do_fspace_advection = 0
 radiation.Er_Lorentz_term = 0
 
