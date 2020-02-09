@@ -275,7 +275,7 @@ def doit(variables_file, odir, defines, nadv,
         f.write("#ifndef _state_indices_H_\n")
         f.write("#define _state_indices_H_\n")
 
-        f.write("#include <actual_network.H>\n\n")
+        f.write("#include <network_properties.H>\n\n")
 
         f.write("  constexpr int NumAdv = {};\n".format(nadv))
         for ac in all_counters:
