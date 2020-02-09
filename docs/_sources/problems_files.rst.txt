@@ -14,6 +14,7 @@ Problems
    file/ambient_f
    file/bc_ext_fill_nd_f
    file/bc_fill_nd_f
+   file/emissivity_override_f
    file/problem_derive_nd_f
    file/problem_tagging_nd_f
    

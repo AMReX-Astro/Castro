@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File Castro_bc_ext_fill_nd.H &mdash; Castro 20.02
+  <title>emissivity_override.F90 &mdash; Castro 20.02
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File Castro_bc_fill_nd.H" href="Castro__bc__fill__nd_8H.html" />
-    <link rel="prev" title="Problems" href="../problems_files.html" /> 
+    <link rel="next" title="problem_tagging_nd.F90" href="problem_tagging_nd_f.html" />
+    <link rel="prev" title="bc_fill_nd.F90" href="bc_fill_nd_f.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -135,7 +135,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../problems_files.html">Problems</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_bc_ext_fill_nd.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__bc__ext__fill__nd_8H.html">File Castro_bc_ext_fill_nd.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro__bc__fill__nd_8H.html">File Castro_bc_fill_nd.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Prob_nd_f.html">Prob_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
@@ -145,7 +145,10 @@
 <li class="toctree-l3"><a class="reference internal" href="ambient_f.html">ambient.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="bc_ext_fill_nd_f.html">bc_ext_fill_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="bc_fill_nd_f.html">bc_fill_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="emissivity_override_f.html">emissivity_override.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">emissivity_override.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/emissivity_override_module">emissivity_override_module</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="problem_tagging_nd_f.html">problem_tagging_nd.F90</a></li>
 </ul>
 </li>
@@ -211,13 +214,13 @@
         
           <li><a href="../problems_files.html">Problems</a> &raquo;</li>
         
-      <li>File Castro_bc_ext_fill_nd.H</li>
+      <li>emissivity_override.F90</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/Castro__bc__ext__fill__nd_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/emissivity_override_f.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -230,34 +233,49 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-castro-bc-ext-fill-nd-h">
-<h1>File Castro_bc_ext_fill_nd.H<a class="headerlink" href="#file-castro-bc-ext-fill-nd-h" title="Permalink to this headline">¶</a></h1>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Functions</p>
-<dl class="function">
-<dt id="_CPPv411ca_ext_fillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
-<span id="_CPPv311ca_ext_fillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="_CPPv211ca_ext_fillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span class="target" id="Castro__bc__ext__fill__nd_8H_1a033dcf891bbe7f847120fdce0b3cf1fe"></span>void <code class="descname">ca_ext_fill</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>dlo</em>, <em class="property">const</em> int *<em>dhi</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real *<em>glo</em>, <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int *<em>bc</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411ca_ext_fillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv414ca_ext_denfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
-<span id="_CPPv314ca_ext_denfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="_CPPv214ca_ext_denfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span class="target" id="Castro__bc__ext__fill__nd_8H_1a66ae257e0968fc4d1c4ce3a4e4eaaf8e"></span>void <code class="descname">ca_ext_denfill</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>dlo</em>, <em class="property">const</em> int *<em>dhi</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real *<em>glo</em>, <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int *<em>bc</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414ca_ext_denfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv416ca_ext_gravxfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
-<span id="_CPPv316ca_ext_gravxfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="_CPPv216ca_ext_gravxfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span class="target" id="Castro__bc__ext__fill__nd_8H_1ad9582285e3cb0649657a90e755797cdb"></span>void <code class="descname">ca_ext_gravxfill</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>dlo</em>, <em class="property">const</em> int *<em>dhi</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real *<em>glo</em>, <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int *<em>bc</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416ca_ext_gravxfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv416ca_ext_gravyfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
-<span id="_CPPv316ca_ext_gravyfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="_CPPv216ca_ext_gravyfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span class="target" id="Castro__bc__ext__fill__nd_8H_1a9bfa1d6aaeb9d291f1b58e0a4d83ac4e"></span>void <code class="descname">ca_ext_gravyfill</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>dlo</em>, <em class="property">const</em> int *<em>dhi</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real *<em>glo</em>, <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int *<em>bc</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416ca_ext_gravyfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv416ca_ext_gravzfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
-<span id="_CPPv316ca_ext_gravzfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="_CPPv216ca_ext_gravzfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span class="target" id="Castro__bc__ext__fill__nd_8H_1ad6e6c75c1e0f7df4c68b44a04d1f29ff"></span>void <code class="descname">ca_ext_gravzfill</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>dlo</em>, <em class="property">const</em> int *<em>dhi</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real *<em>glo</em>, <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int *<em>bc</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416ca_ext_gravzfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+  <div class="section" id="emissivity-override-f90">
+<h1>emissivity_override.F90<a class="headerlink" href="#emissivity-override-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/emissivity_override_module">
+<span id="emissivity-override-module"></span><h2>emissivity_override_module<a class="headerlink" href="#f/emissivity_override_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/emissivity_override_module/emissivity_override" title="f/emissivity_override_module/emissivity_override"><code class="xref f f-func docutils literal notranslate"><span class="pre">emissivity_override()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/emissivity_override_module/emissivity_override">
+<em class="property">subroutine  </em><code class="descclassname">emissivity_override_module/</code><code class="descname">emissivity_override</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>g</em>, <em>t</em>, <em>kg</em>, <em>dkdt</em>, <em>jg</em>, <em>djdt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/emissivity_override_module/emissivity_override" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>g</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>t</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kg</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dkdt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>jg</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>djdt</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Rad_nd_f.html#f/rad_nd_module/ca_compute_emissivity" title="f/rad_nd_module/ca_compute_emissivity"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_emissivity()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 </div>
@@ -270,10 +288,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Castro__bc__fill__nd_8H.html" class="btn btn-neutral float-right" title="File Castro_bc_fill_nd.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="problem_tagging_nd_f.html" class="btn btn-neutral float-right" title="problem_tagging_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../problems_files.html" class="btn btn-neutral float-left" title="Problems" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="bc_fill_nd_f.html" class="btn btn-neutral float-left" title="bc_fill_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
