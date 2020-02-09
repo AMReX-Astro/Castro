@@ -29,9 +29,9 @@ GPU_COMPATIBLE_PROBLEM = TRUE
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := gamma_law_general
 
-# This sets the network directory in Castro/Networks
+# This sets the network directory in $(MICROPHYSICS_HOME)/Networks
 NETWORK_DIR := general_null
-GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(NETWORK_DIR)/gammalaw.net
+NETWORK_INPUTS = gammalaw.net
 
 Bpack   += $(TEST_DIR)/Make.package
 Blocs   += $(TEST_DIR)

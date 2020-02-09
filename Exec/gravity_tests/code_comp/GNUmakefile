@@ -23,7 +23,7 @@ EOS_DIR     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null
-GENERAL_NET_INPUTS = simple.net
+NETWORK_INPUTS = simple.net
 
 Bpack   := ./Make.package
 Blocs   := .

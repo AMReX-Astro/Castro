@@ -21,7 +21,7 @@ EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null
-GENERAL_NET_INPUTS = $(MICROPHYSICS_HOME)/networks/$(NETWORK_DIR)/ignition_wdconvect.net
+NETWORK_INPUTS = ignition_wdconvect.net
 
 Bpack   := ./Make.package
 Blocs   := .
