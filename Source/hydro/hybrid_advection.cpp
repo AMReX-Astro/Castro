@@ -8,7 +8,7 @@
 
 using namespace amrex;
 
-void
+AMREX_GPU_HOST_DEVICE void
 Castro::add_hybrid_advection_source_c(const int i, const int j, const int k,
                                       const Real dt, GpuArray<Real, 3> const dx,
                                       GpuArray<Real, 3> const center,
