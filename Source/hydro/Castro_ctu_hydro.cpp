@@ -1150,9 +1150,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    dt, AMREX_REAL_ANYD(dx));
           }
 
-#pragma gpu box(nbx)
-          normalize_species_fluxes(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                                   BL_TO_FORTRAN_ANYD(flux[idir]));
+          normalize_species_fluxes(nbx, flux_arr);
 
       }
 
@@ -1222,36 +1220,35 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM <= 2
       Array4<Real> pradial_fab = pradial.array();
+      Array4<Real> const qex_arr = qe[0].array();
 #endif
+
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
         const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-#pragma gpu box(nbx)
-        scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+        Array4<Real> const flux_arr = (flux[idir]).array();
+        Array4<Real const> const area_arr = (area[idir]).array(mfi);
+
+        scale_flux(nbx,
 #if AMREX_SPACEDIM == 1
-                   BL_TO_FORTRAN_ANYD(qe[idir]),
+                   qex_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(flux[idir]),
-                   BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
+                   flux_arr, area_arr, dt);
 
 #ifdef RADIATION
-#pragma gpu box(nbx)
-        scale_rad_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(rad_flux[idir]),
-                       BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
+        Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
+        scale_rad_flux(nbx, rad_flux_arr, area_arr, dt);
 #endif
 
         if (idir == 0) {
             // get the scaled radial pressure -- we need to treat this specially
-            Array4<Real> const qex_fab = qe[idir].array();
-
 #if AMREX_SPACEDIM == 1
             if (!Geom().IsCartesian()) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
-                    pradial_fab(i,j,k) = qex_fab(i,j,k,GDPRES) * dt;
+                    pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });
             }
 #endif
@@ -1260,7 +1257,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             if (!momx_flux_has_p[0]) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
-                    pradial_fab(i,j,k) = qex_fab(i,j,k,GDPRES) * dt;
+                    pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });
             }
 #endif

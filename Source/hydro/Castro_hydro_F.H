@@ -49,21 +49,6 @@ extern "C"
      const amrex::Real* dx, const amrex::Real dt);
 #endif
 
-  void scale_flux
-    (const int* lo, const int* hi,
-#if AMREX_SPACEDIM == 1
-     const BL_FORT_FAB_ARG_3D(qe0),
-#endif
-     BL_FORT_FAB_ARG_3D(flux),
-     BL_FORT_FAB_ARG_3D(area),
-     const amrex::Real dt);
-
-  void scale_rad_flux
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(rad_flux),
-     BL_FORT_FAB_ARG_3D(area),
-     const amrex::Real dt);
-
   void ca_track_grid_losses
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(flux0),
@@ -110,10 +95,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(flux),
      BL_FORT_FAB_ARG_3D(area),
      const amrex::Real dt, const amrex::Real* dx);
-
-  void normalize_species_fluxes
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(flux));
 
   void ca_shock
     (const int* lo, const int* hi,
