@@ -418,6 +418,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
            -t $(EXTERN_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/extern.F90 -n extern \
+           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
            --pa "$(EXTERN_PARAMETERS)" --managed
 
 
@@ -533,7 +534,7 @@ endif
 endif
 
 clean::
-	$(SILENT) $(RM) extern.F90 prob_params_auto.F90
+	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
 	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
