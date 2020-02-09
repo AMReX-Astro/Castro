@@ -168,9 +168,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           // fourth order method
           // -----------------------------------------------------------------
 
-          const int* lo = bx.loVect();
-          const int* hi = bx.hiVect();
-
           Box ibx[AMREX_SPACEDIM];
           ibx[0] = amrex::grow(amrex::surroundingNodes(bx, 0), IntVect(AMREX_D_DECL(0,1,1)));
 #if AMREX_SPACEDIM >= 2
@@ -493,6 +490,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               // set UTEMP and USHK fluxes to zero
               Array4<Real> const flux_arr = (flux[idir]).array();
+              Array4<Real const> const uin_arr = Sborder.array(mfi);
+
               AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                                     {
                                       flux_arr(i,j,k,UTEMP) = 0.e0;
@@ -503,13 +502,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
               // apply artificial viscosity
-#pragma gpu box(nbx)
-              apply_av
-                (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                 idir_f, AMREX_REAL_ANYD(dx),
-                 BL_TO_FORTRAN_ANYD(div),
-                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(flux[idir]));
+              apply_av(nbx, idir, div_arr, uin_arr, flux_arr);
 
             } else {
               // we are not doing hydro, so simply zero out the fluxes
