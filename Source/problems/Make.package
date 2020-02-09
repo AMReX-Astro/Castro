@@ -24,3 +24,7 @@ ca_F90EXE_sources += problem_derive_nd.F90
 ca_f90EXE_sources += Problem.f90
 
 ca_F90EXE_sources += ambient.F90
+
+ifeq ($(USE_RAD),TRUE)
+  ca_F90EXE_sources += emissivity_override.F90
+endif
