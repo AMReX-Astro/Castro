@@ -32,10 +32,6 @@ INTEGRATOR_DIR ?= VODE90
 
 COMP ?= gnu
 
-ifndef MICROPHYSICS_HOME
-  $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
-endif
-
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 
 EOS_DIR ?= helmholtz
