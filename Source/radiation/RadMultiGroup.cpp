@@ -6,8 +6,6 @@
 
 #include "RAD_F.H"
 
-#include "RadTests.H"
-
 #include <AMReX_ParmParse.H>
 
 #include <iostream>

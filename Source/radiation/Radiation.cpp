@@ -6,8 +6,6 @@
 
 #include "Castro_F.H"
 
-#include "RadTests.H"
-
 #include "RAD_F.H"
 #include "AMReX_PROB_AMR_F.H"
 
@@ -1823,8 +1821,6 @@ void Radiation::scaledGradient(int level,
   BL_PROFILE("Radiation::scaledGradient");
   BL_ASSERT(kappa_r.nGrow() == 1);
 
-  int Ercomp = igroup;
-
   MultiFab Erbtmp;
   if (nGrow_Er == 0) { // default value
     if (limiter > 0) {
@@ -1842,7 +1838,6 @@ void Radiation::scaledGradient(int level,
 
       Erbtmp.FillBoundary(parent->Geom(level).periodicity());
     }
-    Ercomp = 0;
   }
 
   MultiFab& Erborder = (nGrow_Er==0) ? Erbtmp : Er;

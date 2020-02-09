@@ -12,10 +12,6 @@ using std::endl;
 
 using namespace amrex;
 
-// RHOYLTEST just prints out extra diagnostics to check the Yl implementation.
-
-#define RHOYLTEST
-
 void
 Castro::do_energy_diagnostics()
 {
@@ -28,12 +24,7 @@ Castro::do_energy_diagnostics()
     Real prev_time = state[State_Type].prevTime();
     Real dt = parent->dtLevel(level);
 
-    Real m = 0.0, s = 0.0, r = 0.0, rr = 0.0, y = 0.0, ry = 0.0, rry = 0.0;
-    Real r_nu[3] = {0.0};
-#ifdef RHOYLTEST
-    Real yl = 0.0;
-#endif
-    Real rhomax = 0.0;
+    Real m = 0.0, s = 0.0, r = 0.0, rr = 0.0, rry = 0.0;
 
     for (int lev = 0; lev <= finest_level; lev++) {
       m += getLevel(lev).volWgtSum("density", prev_time + dt);
