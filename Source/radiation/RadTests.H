@@ -5,7 +5,6 @@ class RadTests {
 
 public:
 
-  static int do_thermal_wave_cgs;
   static int do_rad_sphere;
 };
 

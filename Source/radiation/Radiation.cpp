@@ -27,7 +27,6 @@ using namespace amrex;
 // for initializing these early is that some of them are used in
 // Castro::variableSetUp and affect the construction of the state.
 
-int RadTests::do_thermal_wave_cgs = 0;
 int RadTests::do_rad_sphere = 0;
 
 Radiation::Solver_Type Radiation::SolverType = Radiation::InvalidSolver;
@@ -96,7 +95,6 @@ void Radiation::read_static_params()
 
 #include <radiation_queries.H>
 
-  pp.query("do_thermal_wave_cgs",  RadTests::do_thermal_wave_cgs);
   pp.query("do_rad_sphere",    RadTests::do_rad_sphere);
 
   {
@@ -554,8 +552,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "do_multigroup = " << do_multigroup << std::endl;
     std::cout << "accelerate = " << accelerate << std::endl;
     std::cout << "verbose  = " << verbose << std::endl;
-    if (RadTests::do_thermal_wave_cgs)
-      std::cout << "do_thermal_wave_cgs = " << RadTests::do_thermal_wave_cgs << std::endl;
     if (RadTests::do_rad_sphere)
       std::cout << "do_rad_sphere = " << RadTests::do_rad_sphere << std::endl;
     if (SolverType == SingleGroupSolver) {
