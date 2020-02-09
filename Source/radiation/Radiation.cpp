@@ -21,14 +21,6 @@
 
 using namespace amrex;
 
-// Radiation test problems and static parameters.  Some of these are
-// initialized with inputs values in the function read_static_params.
-// This is called from Castro::read_params in Castro.cpp.  The reason
-// for initializing these early is that some of them are used in
-// Castro::variableSetUp and affect the construction of the state.
-
-int RadTests::do_rad_sphere = 0;
-
 Radiation::Solver_Type Radiation::SolverType = Radiation::InvalidSolver;
 
 Real Radiation::radtoE = 0.;
@@ -89,8 +81,6 @@ void Radiation::read_static_params()
   ParmParse pp("radiation");
 
 #include <radiation_queries.H>
-
-  pp.query("do_rad_sphere",    RadTests::do_rad_sphere);
 
   {
     int solver_type = Radiation::SolverType;
@@ -494,8 +484,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "do_multigroup = " << do_multigroup << std::endl;
     std::cout << "accelerate = " << accelerate << std::endl;
     std::cout << "verbose  = " << verbose << std::endl;
-    if (RadTests::do_rad_sphere)
-      std::cout << "do_rad_sphere = " << RadTests::do_rad_sphere << std::endl;
     if (SolverType == SingleGroupSolver) {
       std::cout << "SolverType = 0: SingleGroupSolver " << std::endl;
     }

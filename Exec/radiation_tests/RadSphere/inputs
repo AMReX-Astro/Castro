@@ -68,9 +68,6 @@ castro.v = 1
 
 # ------------------  INPUTS TO RADIATION CLASS  -------------------
 
-# RADIATION PROBLEM-SPECIFIC STUFF
-radiation.do_rad_sphere   = 1     # radiating sphere problem
-
 ##### SolverType #####
 # 0: single group diffusion w/o coupling to hydro
 # 5: SGFLD       6: MGFLD
@@ -79,6 +76,9 @@ radiation.SolverType = 6
 radiation.accelerate = 0
 
 radiation.nGroups = 60
+
+radiation.lowestGroupHz = 1.2089946159439434e14 // 0.5 eV
+radiation.highestGroupHz = 7.3990470495769334e19 // 306e3 eV
 
 radiation.Er_Lorentz_term = 0
 radiation.do_fspace_advection = 0
