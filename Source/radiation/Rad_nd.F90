@@ -1759,14 +1759,13 @@ contains
                                    djdT, djdT_lo, djdT_hi, &
                                    T, T_lo, T_hi, &
                                    kap, kap_lo, kap_hi, &
-                                   dkdT, dkdT_lo, dkdT_hi, &
-                                   pfc, use_WiensLaw, Tf) &
+                                   dkdT, dkdT_lo, dkdT_hi) &
                                    bind(C, name='ca_compute_emissivity')
 
     use amrex_fort_module, only: rt => amrex_real
-    use rad_params_module, only: ngroups, nugroup, dnugroup, xnu,  &
-                                 pi, clight, hplanck, kboltz, arad
+    use rad_params_module, only: ngroups, nugroup, dnugroup, xnu, arad
     use blackbody_module, only: BdBdTIndefInteg
+    use emissivity_override_module, only: emissivity_override
 
     implicit none
 
@@ -1781,115 +1780,54 @@ contains
     real(rt), intent(in   ) :: T(T_lo(1):T_hi(1),T_lo(2):T_hi(2),T_lo(3):T_hi(3))
     real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
     real(rt), intent(in   ) :: dkdT(dkdT_lo(1):dkdT_hi(1),dkdT_lo(2):dkdT_hi(2),dkdT_lo(3):dkdT_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: pfc(0:ngroups-1)
-    integer,  intent(in   ), value :: use_WiensLaw
-    real(rt), intent(in   ), value :: Tf
 
     integer  :: i, j, k, g
     real(rt) :: dBdT, Bg
-    real(rt) :: Teff, nu, num, nup, hoverk
-    real(rt) :: cB, Tfix
+    real(rt) :: Teff
     real(rt) :: B0, B1, dBdT0, dBdT1
-    real(rt) :: dnu, nubar, expnubar, cdBdT
-    real(rt) :: xnu_full(0:ngroups)
+    real(rt) :: xnup
 
-    if (ngroups .eq. 1) then
+    !$gpu
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+    ! Integrate the Planck distribution upward from zero frequency.
+    ! This handles both the single-group and multi-group cases.
 
-                Bg = arad * T(i,j,k)**4
-                dBdT = 4.e0_rt * arad * T(i,j,k)**3
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-                g = 0
+             Teff = max(T(i,j,k), 1.e-50_rt)
+             call BdBdTIndefInteg(Teff, 0.0_rt, B1, dBdT1)
+
+             do g = 0, ngroups-1
+
+                xnup = xnu(g)
+
+                ! For the last group, make sure that we complete
+                ! the integral up to "infinity".
+
+                if (g == ngroups - 1) then
+                   xnup = max(xnu(g), 1.e25_rt)
+                end if
+
+                B0 = B1
+                dBdT0 = dBdT1
+                call BdBdTIndefInteg(Teff, xnup, B1, dBdT1)
+                Bg = B1 - B0
+                dBdT = dBdT1 - dBdT0
+
                 jg(i,j,k,g) = Bg * kap(i,j,k,g)
                 djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
 
-             end do
-          end do
-       end do
+                ! Allow a problem to override this emissivity.
 
-    else if (pfc(0) > 0.e0_rt) then  ! a special case for picket-fence model in Su-Olson test
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                Bg = arad * T(i,j,k)**4
-                dBdT = 4.e0_rt * arad * T(i,j,k)**3
-
-                do g = 0, ngroups-1
-                   jg(i,j,k,g) = pfc(g) * Bg * kap(i,j,k,g)
-                   djdT(i,j,k,g) = pfc(g) * (dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g))
-                end do
+                call emissivity_override(i, j, k, g, T(i,j,k), kap(i,j,k,g), dkdT(i,j,k,g), jg(i,j,k,g), djdT(i,j,k,g))
 
              end do
+
           end do
        end do
-
-    else if (use_WiensLaw > 0) then
-
-       hoverk = hplanck/kboltz
-       cB = 8.*pi*kboltz/clight**3
-
-       do g = 0, ngroups-1
-          nu = nugroup(g)
-          num = xnu(g)
-          nup = xnu(g+1)
-
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-                do i = lo(1), hi(1)
-
-                   if (Tf < 0.e0_rt) then
-                      Tfix = T(i,j,k)
-                   else
-                      Tfix = Tf
-                   end if
-
-                   dBdT = cB * nu**3 * (exp(-hoverk * num / Tfix) - exp(-hoverk * nup / Tfix))
-                   Bg = dBdT * T(i,j,k)
-
-                   jg(i,j,k,g) = Bg * kap(i,j,k,g)
-                   djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
-
-                end do
-             end do
-          end do
-       end do
-
-    else
-
-       xnu_full = xnu(0:ngroups)
-       xnu_full(0) = 0.e0_rt
-       xnu_full(ngroups) = max(xnu(ngroups), 1.e25_rt)
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                Teff = max(T(i,j,k), 1.e-50_rt)
-                call BdBdTIndefInteg(Teff, xnu_full(0), B1, dBdT1)
-
-                do g = 0, ngroups-1
-
-                   B0 = B1
-                   dBdT0 = dBdT1
-                   call BdBdTIndefInteg(Teff, xnu_full(g+1), B1, dBdT1)
-                   Bg = B1 - B0
-                   dBdT = dBdT1 - dBdT0
-
-                   jg(i,j,k,g) = Bg * kap(i,j,k,g)
-                   djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
-
-                end do
-
-             end do
-          end do
-       end do
-
-    end if
+    end do
 
   end subroutine ca_compute_emissivity
 

@@ -30,17 +30,10 @@ public:
 
   static Solver_Type SolverType;
 
-  enum Radiation_Type {Unknown = 0, Neutrino = 1, Photon = 2};
-  static Radiation_Type radiation_type;
-
   static amrex::Real radtoE, Etorad, radfluxtoF;
 
   static int do_multigroup;
   static int nGroups;
-  static int nNeutrinoSpecies;
-  static amrex::Vector<int> nNeutrinoGroups;
-  static int plot_neutrino_group_energies_per_MeV;
-  static int plot_neutrino_group_energies_total;
 
   static int rad_hydro_combined;
   static int comoving;

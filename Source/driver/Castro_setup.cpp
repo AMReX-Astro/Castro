@@ -316,17 +316,6 @@ Castro::variableSetUp ()
       interp = &cell_cons_interp;
   }
 
-#ifdef RADIATION
-  // cell_cons_interp is not conservative in spherical coordinates.
-  // We could do this for other cases too, but I'll confine it to
-  // neutrino problems for now so as not to change the results of
-  // other people's tests.  Better to fix cell_cons_interp!
-
-  if (dgeom.IsSPHERICAL() && Radiation::nNeutrinoSpecies > 0) {
-    interp = &pc_interp;
-  }
-#endif
-
   // Note that the default is state_data_extrap = false,
   // store_in_checkpoint = true.  We only need to put these in
   // explicitly if we want to do something different,
@@ -646,23 +635,6 @@ Castro::variableSetUp ()
 
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "Radiation::nGroups = " << Radiation::nGroups << std::endl;
-    std::cout << "Radiation::nNeutrinoSpecies = "
-	      << Radiation::nNeutrinoSpecies << std::endl;
-    if (Radiation::nNeutrinoSpecies > 0) {
-      std::cout << "Radiation::nNeutrinoGroups  = ";
-      for (int n = 0; n < Radiation::nNeutrinoSpecies; n++) {
-	std::cout << " " << Radiation::nNeutrinoGroups[n];
-      }
-      std::cout << std::endl;
-      if (Radiation::nNeutrinoGroups[0] > 0 &&
-	  NumAdv != 0) {
-	amrex::Error("Neutrino solver assumes NumAdv == 0");
-      }
-      if (Radiation::nNeutrinoGroups[0] > 0 &&
-	  (NumSpec != 1 || NumAux != 1)) {
-	amrex::Error("Neutrino solver assumes NumSpec == NumAux == 1");
-      }
-    }
   }
 
   char rad_name[10];
@@ -672,25 +644,12 @@ Castro::variableSetUp ()
 		    BndryFunc(ca_radfill));
   }
   else {
-    if (Radiation::nNeutrinoSpecies == 0 ||
-	Radiation::nNeutrinoGroups[0] == 0) {
       for (int i = 0; i < Radiation::nGroups; i++) {
 	sprintf(rad_name, "rad%d", i);
 	desc_lst
 	  .setComponent(Rad_Type, i, rad_name, bc,
 			BndryFunc(ca_radfill));
       }
-    }
-    else {
-      int indx = 0;
-      for (int j = 0; j < Radiation::nNeutrinoSpecies; j++) {
-	for (int i = 0; i < Radiation::nNeutrinoGroups[j]; i++) {
-	  sprintf(rad_name, "rads%dg%d", j, i);
-	  desc_lst.setComponent(Rad_Type, indx, rad_name, bc, BndryFunc(ca_radfill));
-	  indx++;
-	}
-      }
-    }
   }
 #endif
 
@@ -958,63 +917,6 @@ Castro::variableSetUp ()
   }
 #endif
 
-#ifdef NEUTRINO
-  if (Radiation::nNeutrinoSpecies > 0 &&
-      Radiation::plot_neutrino_group_energies_per_MeV) {
-    char rad_name[10];
-    int indx = 0;
-    for (int j = 0; j < Radiation::nNeutrinoSpecies; j++) {
-      for (int i = 0; i < Radiation::nNeutrinoGroups[j]; i++) {
-	sprintf(rad_name, "Neuts%dg%d", j, i);
-	derive_lst.add(rad_name,IndexType::TheCellType(),1,ca_derneut,the_same_box);
-	derive_lst.addComponent(rad_name,desc_lst,Rad_Type,indx,1);
-	indx++;
-      }
-    }
-  }
-
-  if (Radiation::nNeutrinoSpecies > 0 &&
-      Radiation::nNeutrinoGroups[0] > 0) {
-    derive_lst.add("Enue", IndexType::TheCellType(),1,ca_derenue,the_same_box);
-    derive_lst.addComponent("Enue",desc_lst,Rad_Type,0,Radiation::nGroups);
-    derive_lst.add("Enuae", IndexType::TheCellType(),1,ca_derenuae,the_same_box);
-    derive_lst.addComponent("Enuae",desc_lst,Rad_Type,0,Radiation::nGroups);
-    //
-    // rho_Yl = rho(Ye + Ynue - Ynuebar)
-    //
-    derive_lst.add("rho_Yl",IndexType::TheCellType(),1,ca_derrhoyl,the_same_box);
-    // Don't actually need density for rho * Yl
-    derive_lst.addComponent("rho_Yl",desc_lst,State_Type,URHO,1);
-    // UFX is (rho * Ye)
-    derive_lst.addComponent("rho_Yl",desc_lst,State_Type, UFX,1);
-    derive_lst.addComponent("rho_Yl",desc_lst,Rad_Type,0,Radiation::nGroups);
-    //
-    // Yl = (Ye + Ynue - Ynuebar)
-    //
-    derive_lst.add("Yl",IndexType::TheCellType(),1,ca_deryl,the_same_box);
-    derive_lst.addComponent("Yl",desc_lst,State_Type,URHO,1);
-    // UFX is (rho * Ye)
-    derive_lst.addComponent("Yl",desc_lst,State_Type,UFX,1);
-    derive_lst.addComponent("Yl",desc_lst,Rad_Type,0,Radiation::nGroups);
-    //
-    // Ynue
-    //
-    derive_lst.add("Ynue",IndexType::TheCellType(),1,ca_derynue,the_same_box);
-    derive_lst.addComponent("Ynue",desc_lst,State_Type,URHO,1);
-    // UFX is (rho * Ye)
-    derive_lst.addComponent("Ynue",desc_lst,State_Type,UFX,1);
-    derive_lst.addComponent("Ynue",desc_lst,Rad_Type,0,Radiation::nGroups);
-    //
-    // Ynuebar
-    //
-    derive_lst.add("Ynuae",IndexType::TheCellType(),1,ca_derynuae,the_same_box);
-    derive_lst.addComponent("Ynuae",desc_lst,State_Type,URHO,1);
-    // UFX is (rho * Ye)
-    derive_lst.addComponent("Ynuae",desc_lst,State_Type,UFX,1);
-    derive_lst.addComponent("Ynuae",desc_lst,Rad_Type,0,Radiation::nGroups);
-  }
-#endif
-
 #ifdef MHD
 //Electric Field at the face
 //
@@ -1068,15 +970,6 @@ Castro::variableSetUp ()
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
-
-#if 0
-  //
-  // A derived quantity equal to all the state variables.
-  //
-  derive_lst.add("FULLSTATE",IndexType::TheCellType(),NUM_STATE,FORT_DERCOPY,the_same_box);
-  derive_lst.addComponent("FULLSTATE",desc_lst,State_Type,URHO,NUM_STATE);
-
-#endif
 
 
   //
