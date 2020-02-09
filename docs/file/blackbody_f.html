@@ -286,7 +286,7 @@
 </li>
 <li><dl class="variable">
 <dt id="f/blackbody_module/coefs">
-<code class="descclassname">blackbody_module/</code><code class="descname">coefs</code> (9)<em> [</em><em>real</em><em>,</em><em>private/optional/default=(\1.e0_rt/60.e0_rt</em><em>,</em><em>-1.e0_rt/5040.e0_rt</em><em>,</em><em>1.e0_rt/272160.e0_rt</em><em>,</em><em>-1.e0_rt/13305600.e0_rt</em><em>,</em><em>1.e0_rt/622702080.e0_rt</em><em>,</em><em>-691.e0_rt/19615115520000.e0_rt</em><em>,</em><em>1.e0_rt/1270312243200.e0_rt</em><em>,</em><em>-3617.e0_rt/202741834014720000.e0_rt</em><em>,</em><em>43867.e0_rt/107290978560589824000.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/blackbody_module/coefs" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">blackbody_module/</code><code class="descname">coefs</code> (9)<em> [</em><em>real</em><em>,</em><em>private/parameter/optional/default=(\1.e0_rt/60.e0_rt</em><em>,</em><em>-1.e0_rt/5040.e0_rt</em><em>,</em><em>1.e0_rt/272160.e0_rt</em><em>,</em><em>-1.e0_rt/13305600.e0_rt</em><em>,</em><em>1.e0_rt/622702080.e0_rt</em><em>,</em><em>-691.e0_rt/19615115520000.e0_rt</em><em>,</em><em>1.e0_rt/1270312243200.e0_rt</em><em>,</em><em>-3617.e0_rt/202741834014720000.e0_rt</em><em>,</em><em>43867.e0_rt/107290978560589824000.e0_rt\)</em><em>]</em><a class="headerlink" href="#f/blackbody_module/coefs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </li>
@@ -375,7 +375,7 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>bindefinteg</strong><em> [</em><em>real</em><em>]</em></p>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>b</strong><em> [</em><em>real</em><em>]</em></p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
@@ -405,7 +405,7 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>bgroup</strong><em> [</em><em>real</em><em>]</em></p>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>b</strong><em> [</em><em>real</em><em>]</em></p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
@@ -431,7 +431,7 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>li</strong><em> [</em><em>real</em><em>]</em></p>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>l</strong><em> [</em><em>real</em><em>]</em></p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
@@ -453,7 +453,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><strong>integlarge</strong><em> [</em><em>real</em><em>]</em></td>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><strong>i</strong><em> [</em><em>real</em><em>]</em></td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
 </tr>
@@ -474,7 +474,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><strong>integsmall</strong><em> [</em><em>real</em><em>]</em></td>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><strong>i</strong><em> [</em><em>real</em><em>]</em></td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
 </tr>
