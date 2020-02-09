@@ -1785,62 +1785,49 @@ contains
     real(rt) :: dBdT, Bg
     real(rt) :: Teff
     real(rt) :: B0, B1, dBdT0, dBdT1
-    real(rt) :: xnu_full(0:ngroups)
+    real(rt) :: xnup
 
     !$gpu
 
-    if (ngroups .eq. 1) then
+    ! Integrate the Planck distribution upward from zero frequency.
+    ! This handles both the single-group and multi-group cases.
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-                Bg = arad * T(i,j,k)**4
-                dBdT = 4.e0_rt * arad * T(i,j,k)**3
+             Teff = max(T(i,j,k), 1.e-50_rt)
+             call BdBdTIndefInteg(Teff, 0.0_rt, B1, dBdT1)
 
-                g = 0
+             do g = 0, ngroups-1
+
+                xnup = xnu(g)
+
+                ! For the last group, make sure that we complete
+                ! the integral up to "infinity".
+
+                if (g == ngroups - 1) then
+                   xnup = max(xnu(g), 1.e25_rt)
+                end if
+
+                B0 = B1
+                dBdT0 = dBdT1
+                call BdBdTIndefInteg(Teff, xnup, B1, dBdT1)
+                Bg = B1 - B0
+                dBdT = dBdT1 - dBdT0
+
                 jg(i,j,k,g) = Bg * kap(i,j,k,g)
                 djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
 
-             end do
-          end do
-       end do
+                ! Allow a problem to override this emissivity.
 
-    else
-
-       xnu_full = xnu(0:ngroups)
-       xnu_full(0) = 0.e0_rt
-       xnu_full(ngroups) = max(xnu(ngroups), 1.e25_rt)
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                Teff = max(T(i,j,k), 1.e-50_rt)
-                call BdBdTIndefInteg(Teff, xnu_full(0), B1, dBdT1)
-
-                do g = 0, ngroups-1
-
-                   B0 = B1
-                   dBdT0 = dBdT1
-                   call BdBdTIndefInteg(Teff, xnu_full(g+1), B1, dBdT1)
-                   Bg = B1 - B0
-                   dBdT = dBdT1 - dBdT0
-
-                   jg(i,j,k,g) = Bg * kap(i,j,k,g)
-                   djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
-
-                   ! Allow a problem to override this emissivity.
-
-                   call emissivity_override(i, j, k, g, T(i,j,k), kap(i,j,k,g), dkdT(i,j,k,g), jg(i,j,k,g), djdT(i,j,k,g))
-
-                end do
+                call emissivity_override(i, j, k, g, T(i,j,k), kap(i,j,k,g), dkdT(i,j,k,g), jg(i,j,k,g), djdT(i,j,k,g))
 
              end do
+
           end do
        end do
-
-    end if
+    end do
 
   end subroutine ca_compute_emissivity
 
