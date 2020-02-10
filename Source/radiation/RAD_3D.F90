@@ -18,27 +18,6 @@ contains
 ! The following routines implement metric terms in 2D and are included
 ! in the 3D source only to enable the code to link.
 
-subroutine multrs(d, &
-                  DIMS(dbox), &
-                  DIMS(reg), &
-                  r, s) bind(C, name="multrs")
-  
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(dbox)
-  integer :: DIMDEC(reg)
-  real(rt)         :: d(DIMV(dbox))
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(reg_l2:reg_h2)
-  integer :: i, j, k
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           d(i,j,k) = d(i,j,k) * r(i) * s(j)
-        enddo
-     enddo
-  enddo
-end subroutine multrs
-
 subroutine sphc(r, s, &
                 DIMS(reg), dx) bind(C, name="sphc")
 

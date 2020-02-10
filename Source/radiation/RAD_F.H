@@ -451,8 +451,9 @@ BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void multrs(BL_FORT_FAB_ARG(cc), 
-	      ARLIM_P(reglo), ARLIM_P(reghi), amrex::Real* r, amrex::Real* s);
+  void multrs(const int* lo, const int* hi,
+              BL_FORT_FAB_ARG_3D(cc),
+              const amrex::Real* dx);
 
   void sphc(amrex::Real* r, amrex::Real* s, ARLIM_P(reglo), ARLIM_P(reghi), const amrex::Real* dx);
 

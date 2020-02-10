@@ -134,26 +134,24 @@ void RadSolve::levelBndry(MGRadBndry& mgbd, const int comp)
 
 void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
 {
-  BL_PROFILE("RadSolve::cellCenteredApplyMetrics");
-  BL_ASSERT(cc.nGrow() == 0);
+    BL_PROFILE("RadSolve::cellCenteredApplyMetrics");
+    BL_ASSERT(cc.nGrow() == 0);
+
+    const Geometry& geom = parent->Geom(level);
+    const Real* dx       = geom.CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
+    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi) 
+    {
+        const Box& bx = mfi.tilebox();
 
-      for (MFIter mfi(cc,true); mfi.isValid(); ++mfi) 
-      {
-	  const Box &reg = mfi.tilebox();
-
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-	  
-	  multrs(BL_TO_FORTRAN(cc[mfi]), 
-		 ARLIM(reg.loVect()), ARLIM(reg.hiVect()), 
-		 r.dataPtr(), s.dataPtr());
-      }
-  }
+#pragma gpu box(bx)
+        multrs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
+               BL_TO_FORTRAN_ANYD(cc[mfi]),
+               dx);
+    }
 }
 
 void RadSolve::setLevelACoeffs(int level, const MultiFab& acoefs)

@@ -15,23 +15,6 @@ module rad_module
 
 contains
 
-subroutine multrs(d, &
-                  DIMS(dbox), &
-                  DIMS(reg), &
-                  r, s) bind(C, name="multrs")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(dbox)
-  integer :: DIMDEC(reg)
-  real(rt)         :: d(DIMV(dbox))
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(1)
-  integer :: i
-  do i = reg_l1, reg_h1
-     d(i) = d(i) * r(i)
-  enddo
-end subroutine multrs
-
 subroutine sphc(r, s, &
                 DIMS(reg), dx) bind(C, name="sphc")
   use amrex_fort_module, only : rt => amrex_real
