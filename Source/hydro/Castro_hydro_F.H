@@ -35,16 +35,15 @@ extern "C"
      const amrex::Real* dx,
      BL_FORT_FAB_ARG_3D(div));
 
-  void ca_uflatten
+#ifdef HYBRID_MOMENTUM
+  void add_hybrid_advection_source
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(flatn), int pres_comp);
-
-  void ca_rad_flatten
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(flatn),
-     BL_FORT_FAB_ARG_3D(flatg));
+     const amrex::Real dt,
+     BL_FORT_FAB_ARG_3D(hydro_source),
+     const BL_FORT_FAB_ARG_3D(qx),
+     const BL_FORT_FAB_ARG_3D(qy),
+     const BL_FORT_FAB_ARG_3D(qz));
+#endif
 
 #ifdef RADIATION
   void ctu_rad_consup

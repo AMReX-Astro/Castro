@@ -91,21 +91,6 @@ Castro::consup_hydro(const Box& bx,
         update(i,j,k,UMX) += - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
 #endif
-
-#ifdef HYBRID_MOMENTUM
-    } else if (n == UMR) {
-      // update the radial momentum with the hybrid advection source
-      add_hybrid_advection_source_c(i, j, k,
-                                    dt, dx,
-                                    center,
-                                    update,
-                                    qx, qy, qz);
-#endif
-
     }
-
-
-
   });
-
 }

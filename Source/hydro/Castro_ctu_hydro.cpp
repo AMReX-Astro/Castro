@@ -1206,6 +1206,16 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    dt);
 
 
+#ifdef HYBRID_MOMENTUM
+#pragma gpu box(bx)
+    add_hybrid_advection_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                dt,
+                                BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
+                                BL_TO_FORTRAN_ANYD(qe[0]),
+                                BL_TO_FORTRAN_ANYD(qe[1]),
+                                BL_TO_FORTRAN_ANYD(qe[2]));
+#endif
+
 #ifdef RADIATION
 #pragma gpu box(bx)
       ctu_rad_consup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
