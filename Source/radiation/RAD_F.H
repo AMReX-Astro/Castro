@@ -364,20 +364,12 @@ extern "C"
 	   BL_FORT_FAB_ARG(lamy),
 	   BL_FORT_FAB_ARG(lamz)),
     const int* igroup);
-#ifdef __cplusplus
-}
-#endif
 
-BL_FORT_PROC_DECL(CA_RHSTOER, ca_rhstoer)
-   (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG(rhs),
-    const amrex::Real* r, const amrex::Real* dt);
+  void ca_rhstoer
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(rhs),
+     const amrex::Real* dx, const amrex::Real dt);
 
-// in RadDerive_?d.f90
-#ifdef __cplusplus
-extern "C"
-{
-#endif
   void ca_derertot
     (BL_FORT_FAB_ARG_3D(der),const int* nvar,
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
