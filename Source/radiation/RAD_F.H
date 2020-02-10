@@ -588,11 +588,10 @@ extern "C" {
               BL_FORT_FAB_ARG_3D(dest), 
 	      int nvar);
 
-  void lacoefmgfld(BL_FORT_FAB_ARG(a), 
-		   ARLIM_P(reglo), ARLIM_P(reghi),
-		   amrex::Real* kappa, ARLIM_P(klo), ARLIM_P(khi),
-		   amrex::Real* r, amrex::Real* s,
-		   const amrex::Real& delta_t, const amrex::Real& c);
+  void lacoefmgfld(const int* lo, const int* hi,
+                   BL_FORT_FAB_ARG_3D(a), 
+		   BL_FORT_FAB_ARG_3D(kappa),
+		   const amrex::Real* dx, amrex::Real delta_t, amrex::Real c);
 
   void rfface(BL_FORT_FAB_ARG(fine), 
 	      BL_FORT_FAB_ARG(crse), 

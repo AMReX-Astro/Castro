@@ -9,6 +9,46 @@ module rad_nd_module
 
 contains
 
+  subroutine lacoefmgfld(lo, hi, &
+                         a, a_lo, a_hi, &
+                         kappa, k_lo, k_hi, &
+                         dx, dt, c) &
+                         bind(C, name="lacoefmgfld")
+
+    use habec_nd_module, only: cell_center_metric
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: a_lo(3), a_hi(3)
+    integer,  intent(in   ) :: k_lo(3), k_hi(3)
+    real(rt), intent(inout) :: a(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
+    real(rt), intent(in   ) :: kappa(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: dt, c
+
+    integer  :: i, j, k
+    real(rt) :: r, s
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             call cell_center_metric(i, j, k, dx, r, s)
+
+             a(i,j,k) = c * kappa(i,j,k) + 1.e0_rt / dt
+             a(i,j,k) = r * s * a(i,j,k)
+
+          end do
+       end do
+    end do
+
+  end subroutine lacoefmgfld
+
+
+
   subroutine multrs(lo, hi, &
                     d, d_lo, d_hi, &
                     dx) &
