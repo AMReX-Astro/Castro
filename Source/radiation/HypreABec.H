@@ -27,9 +27,9 @@ class HypreABec {
 /// @param solver_flag
 ///
   HypreABec(const amrex::BoxArray& grids,
-	    const amrex::DistributionMapping& dmap,
-	    const amrex::Geometry& geom,
-	    int solver_flag = 0);
+            const amrex::DistributionMapping& dmap,
+            const amrex::Geometry& geom,
+            int solver_flag = 0);
 
   ~HypreABec();
 
