@@ -9,6 +9,107 @@ module rad_nd_module
 
 contains
 
+  subroutine ca_compute_dcoefs(lo, hi, &
+                               d, d_lo, d_hi, &
+                               lam, l_lo, l_hi, &
+                               v, v_lo, v_hi, &
+                               dcf, f_lo, f_hi, &
+                               dx, idir) &
+                               bind(C, name="ca_compute_dcoefs")
+
+    use habec_nd_module, only: edge_center_metric
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    integer,  intent(in   ) :: l_lo(3), l_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(inout) :: d(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
+    real(rt), intent(in   ) :: lam(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3))
+    real(rt), intent(in   ) :: v(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),3)
+    real(rt), intent(in   ) :: dcf(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: idir
+
+    integer  :: i, j, k
+    real(rt) :: r, s
+
+    !$gpu
+
+    if (idir == 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, idir + 1, dx, r, s)
+
+                if (v(i-1,j,k,1) + v(i,j,k,1) .gt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i-1,j,k) * v(i-1,j,k,1) * lam(i,j,k)
+                else if (v(i-1,j,k,1) + v(i,j,k,1) .lt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i,j,k) * v(i,j,k,1) * lam(i,j,k)
+                else
+                   d(i,j,k) = 0.e0_rt
+                end if
+
+                d(i,j,k) = d(i,j,k) * r
+
+             end do
+          end do
+       end do
+
+    else if (idir == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, idir + 1, dx, r, s)
+
+                if (v(i,j-1,k,2) + v(i,j,k,2) .gt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i,j-1,k) * v(i,j-1,k,2) * lam(i,j,k)
+                else if (v(i,j-1,k,2) + v(i,j,k,2) .lt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i,j,k) * v(i,j,k,2) * lam(i,j,k)
+                else
+                   d(i,j,k) = 0.e0_rt
+                end if
+
+                d(i,j,k) = d(i,j,k) * r
+
+             end do
+          end do
+       end do
+
+    else
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, idir + 1, dx, r, s)
+
+                if (v(i,j,k-1,3) + v(i,j,k,3) .gt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i,j,k-1) * v(i,j,k-1,3) * lam(i,j,k)
+                else if (v(i,j,k-1,3) + v(i,j,k,3) .lt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i,j,k) * v(i,j,k,3) * lam(i,j,k)
+                else
+                   d(i,j,k) = 0.e0_rt
+                end if
+
+                d(i,j,k) = d(i,j,k) * r
+
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine ca_compute_dcoefs
+
+
+
   subroutine lacoefmgfld(lo, hi, &
                          a, a_lo, a_hi, &
                          kappa, k_lo, k_hi, &

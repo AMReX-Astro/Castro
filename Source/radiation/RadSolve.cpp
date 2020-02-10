@@ -322,6 +322,8 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
     BL_PROFILE("RadSolve::levelDCoeffs");
     const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
     const DistributionMapping& dm = castro->DistributionMap();
+    const Geometry& geom = parent->Geom(level);
+    const Real* dx       = geom.CellSize();
 
     for (int idim=0; idim<BL_SPACEDIM; idim++) {
 
@@ -330,19 +332,18 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	{
-	    Vector<Real> r, s;
-	    
-	    for (MFIter mfi(dcoefs,true); mfi.isValid(); ++mfi) {
-		const Box& ndbx = mfi.tilebox();
+        for (MFIter mfi(dcoefs, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-		getEdgeMetric(idim, parent->Geom(level), ndbx, r, s);
+            const Box& bx = mfi.tilebox();
 
-		ca_compute_dcoefs(ndbx.loVect(), ndbx.hiVect(),
-				  BL_TO_FORTRAN(dcoefs[mfi]), BL_TO_FORTRAN(lambda[idim][mfi]),
-				  BL_TO_FORTRAN(vel[mfi]), BL_TO_FORTRAN(dcf[mfi]), 
-				  r.dataPtr(), &idim);
-	    }
+#pragma gpu box(bx)
+            ca_compute_dcoefs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(dcoefs[mfi]),
+                              BL_TO_FORTRAN_ANYD(lambda[idim][mfi]),
+                              BL_TO_FORTRAN_ANYD(vel[mfi]),
+                              BL_TO_FORTRAN_ANYD(dcf[mfi]), 
+                              AMREX_REAL_ANYD(dx), idim);
+
 	}
 
 	HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();

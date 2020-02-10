@@ -85,11 +85,12 @@ extern "C" {
     const BL_FORT_FAB_ARG(kr));
 
   void ca_compute_dcoefs
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(d), 
-    const BL_FORT_FAB_ARG(lam), 
-    const BL_FORT_FAB_ARG(v), const BL_FORT_FAB_ARG(dcf),
-    const amrex::Real* r, const int* idir);
+   (const int* lo, const int* hi,
+    BL_FORT_FAB_ARG_3D(d), 
+    const BL_FORT_FAB_ARG_3D(lam), 
+    const BL_FORT_FAB_ARG_3D(v),
+    const BL_FORT_FAB_ARG_3D(dcf),
+    const amrex::Real* dx, int idir);
 
 #ifdef __cplusplus
 }
