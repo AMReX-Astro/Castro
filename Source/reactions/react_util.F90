@@ -24,8 +24,9 @@ contains
 #ifdef SIMPLIFIED_SDC
     real(rt), intent(in) :: state(NVAR)
 #else
-    type (burn_t) :: state
+    type (burn_t), intent(in) :: state
 #endif
+
     logical :: burn_flag
 
     !$gpu
