@@ -30,17 +30,10 @@ public:
 
   static Solver_Type SolverType;
 
-  enum Radiation_Type {Unknown = 0, Neutrino = 1, Photon = 2};
-  static Radiation_Type radiation_type;
-
   static amrex::Real radtoE, Etorad, radfluxtoF;
 
   static int do_multigroup;
   static int nGroups;
-  static int nNeutrinoSpecies;
-  static amrex::Vector<int> nNeutrinoGroups;
-  static int plot_neutrino_group_energies_per_MeV;
-  static int plot_neutrino_group_energies_total;
 
   static int rad_hydro_combined;
   static int comoving;
@@ -59,8 +52,6 @@ public:
   static int filter_prim_int, filter_prim_T, filter_prim_S;
 
   static int accelerate;        ///< controls multigroup convergence acceleration
-
-  int Density, Xmom, Eden, Eint, Temp, FirstSpec, FirstAux, NUM_STATE;
 
   int verbose;
 
@@ -118,7 +109,6 @@ public:
   static int current_group_number;
   static std::string current_group_name;
 
-  static amrex::Real flatten_pp_threshold;
   static int pure_hydro;
 
 #include <radiation_params.H>

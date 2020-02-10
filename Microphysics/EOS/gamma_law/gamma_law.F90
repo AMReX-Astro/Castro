@@ -22,6 +22,8 @@ module actual_eos_module
   attributes(managed) :: gamma_const, assume_neutral
 #endif
 
+  !$acc declare create(gamma_const, assume_neutral)
+
 contains
 
   subroutine actual_eos_init
@@ -42,6 +44,8 @@ contains
 
     assume_neutral = eos_assume_neutral
 
+    !$acc update device(gamma_const, assume_neutral)
+
   end subroutine actual_eos_init
 
   subroutine actual_eos_finalize()
@@ -51,6 +55,8 @@ contains
   end subroutine actual_eos_finalize
 
   subroutine actual_eos(input, state)
+
+    !$acc routine seq
 
     use fundamental_constants_module, only: k_B, n_A
     use network, only: aion, zion

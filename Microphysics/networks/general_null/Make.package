@@ -1,4 +1,5 @@
 F90EXE_sources += actual_network.F90
+CEXE_headers += network_properties.H
 
 ifeq ($(USE_REACT),TRUE)
 ifneq ($(USE_SIMPLIFIED_SDC), TRUE)
@@ -7,18 +8,23 @@ endif
 f90EXE_sources += actual_rhs.f90
 endif
 
+
+network_properties.H: actual_network.F90
+
 # actual_network.F90 is created at build time for this network
 actual_network.F90:   $(GENERAL_NET_INPUTS) $(CASTRO_HOME)/Microphysics/networks/general_null/network.template
 	@echo " "
 	@echo "---------------------------------------------------------------------------"
-	@echo "WRITING actual_network.F90:"
+	@echo "WRITING actual_network.F90 and network_properties.H:"
 	$(CASTRO_HOME)/Microphysics/networks/general_null/write_network.py \
             -t $(CASTRO_HOME)/Microphysics/networks/general_null/network.template \
             -s $(GENERAL_NET_INPUTS) \
-            -o actual_network.F90
+            -o actual_network.F90 \
+            --header_template $(CASTRO_HOME)/Microphysics/networks/general_null/network_header.template \
+            --header_output network_properties.H
 	@echo "---------------------------------------------------------------------------"
 	@echo " "
 
 # remove actual_network.F90 for 'make clean' and therefore 'make realclean'
 clean::
-	$(RM) actual_network.F90 actual_network.f90
+	$(RM) actual_network.F90 actual_network.f90 network_properties.H

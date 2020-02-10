@@ -9,7 +9,7 @@ module blackbody_module
   real(rt), parameter :: bk_const = a_rad * 15.e0_rt/pi**4
   real(rt), parameter :: magic_const = pi**4/15.e0_rt
   integer, parameter :: Ncoefs = 8
-  real(rt), dimension(0:Ncoefs) :: coefs = &
+  real(rt), dimension(0:Ncoefs), parameter :: coefs = &
                                            [1.e0_rt/60.e0_rt, &
                                            -1.e0_rt/5040.e0_rt, &
                                             1.e0_rt/272160.e0_rt, &
@@ -39,6 +39,8 @@ contains
     real(rt), intent(  out) :: B, dBdT
 
     real(rt) :: x, integ, part
+
+    !$gpu
 
     ! This routine evaluates the incomplete integral of the Planck function:
     ! integ(x) = int_{0}^{x} b(x') dx'
@@ -116,7 +118,7 @@ contains
 
 
 
-  function BIndefInteg(T, nu)
+  function BIndefInteg(T, nu) result(B)
 
     use amrex_fort_module, only: rt => amrex_real
 
@@ -124,8 +126,10 @@ contains
 
     real(rt), intent(in) :: T, nu
 
-    real(rt) :: BIndefInteg
+    real(rt) :: B
     real(rt) :: x, integ
+
+    !$gpu
 
     ! See comments above; this function evaluates B but does not
     ! evaluate dB/dT.
@@ -134,11 +138,11 @@ contains
 
     if (x .gt. xlarge) then
 
-       BIndefInteg = a_rad * T**4
+       B = a_rad * T**4
 
     else if (x .lt. xsmall) then
 
-       BIndefInteg = 0.e0_rt
+       B = 0.e0_rt
 
     else
 
@@ -148,7 +152,7 @@ contains
           integ = integsmall(x)
        end if
 
-       BIndefInteg = bk_const * T**4 * integ
+       B = bk_const * T**4 * integ
 
     end if
 
@@ -156,7 +160,7 @@ contains
 
 
 
-  function BGroup(T, nu0, nu1)
+  function BGroup(T, nu0, nu1) result(B)
 
     use amrex_fort_module, only: rt => amrex_real
 
@@ -164,17 +168,19 @@ contains
 
     real(rt), intent(in) :: T, nu0, nu1
 
-    real(rt) :: BGroup
+    real(rt) :: B
+
+    !$gpu
 
     ! Clark, Equation 35
 
-    BGroup = BIndefInteg(T, nu1) - BIndefInteg(T, nu0)
+    B = BIndefInteg(T, nu1) - BIndefInteg(T, nu0)
 
   end function BGroup
 
 
 
-  function Li(n, z)
+  function Li(n, z) result(L)
 
     use amrex_fort_module, only: rt => amrex_real
 
@@ -183,26 +189,28 @@ contains
     integer,  intent(in) :: n
     real(rt), intent(in) :: z
 
-    real(rt) :: Li, t
+    real(rt) :: L, t
     integer :: k
     integer, parameter :: kmax = 18
+
+    !$gpu
 
     ! Clark, Equation 19 / ALEGRA, Equation 2.1.64
     !
     ! z here is really exp(-h nu / kT), and nu and T are positive,
     ! so it satisfies the range of convergence.
 
-    Li = z
+    L = z
 
     do k = 2, kmax
 
        t = z**k / k**n
-       Li = Li + t
+       L = L + t
 
        ! Terminate the series when the additional terms
        ! become small enough that they approach roundoff error.
 
-       if (t / Li .lt. tol) then
+       if (t / L .lt. tol) then
           exit
        end if
 
@@ -212,7 +220,7 @@ contains
 
 
 
-  function integlarge(x)
+  function integlarge(x) result(I)
 
     use amrex_fort_module, only: rt => amrex_real
 
@@ -220,7 +228,9 @@ contains
 
     real(rt), intent(in) :: x
 
-    real(rt) :: integlarge, z
+    real(rt) :: I, z
+
+    !$gpu
 
     ! ALEGRA, Equation 2.1.63
     !
@@ -235,43 +245,45 @@ contains
 
     z = exp(-x)
 
-    integlarge = magic_const &
-                 - (x**3 * Li(1,z) + 3.e0_rt * x**2 * Li(2,z) &
-                 + 6.e0_rt* x * Li(3,z) + 6.e0_rt * Li(4,z))
+    I = magic_const &
+        - (x**3 * Li(1,z) + 3.e0_rt * x**2 * Li(2,z) &
+        + 6.e0_rt* x * Li(3,z) + 6.e0_rt * Li(4,z))
 
   end function integlarge
 
 
-  function integsmall(x)
+  function integsmall(x) result(I)
 
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
     real(rt), intent(in) :: x
-    real(rt) :: integsmall, t
-    integer :: i
+    real(rt) :: I, t
+    integer :: n
     real(rt) :: x2, x3, xfoo
+
+    !$gpu
 
     ! ALEGRA, Equation 2.1.65
 
     x2 = x**2
     x3 = x**3
 
-    integsmall = x3 / 3.0_rt - x2**2 / 8.0_rt
+    I = x3 / 3.0_rt - x2**2 / 8.0_rt
 
     xfoo = x3
 
-    do i = 0, Ncoefs
+    do n = 0, Ncoefs
 
        xfoo = xfoo * x2
-       t = coefs(i) * xfoo
-       integsmall = integsmall + t
+       t = coefs(n) * xfoo
+       I = I + t
 
        ! Terminate the series expansion early if the terms
        ! approach numerical roundoff error.
 
-       if (abs(t / integsmall) .lt. tol) then
+       if (abs(t / I) .lt. tol) then
           exit
        end if
 

@@ -1,10 +1,21 @@
+# 20.03
+
+   * The names of the conserved state variables in C++ (Density, Xmom, etc.)
+     have been changed to match the names in Fortran (URHO, UMX, etc.).
+     For user code, this will only affect problem-specific setup code
+     like Prob.cpp that references specific state variables. For compatibility,
+     we have kept a copy of the old names around that redirect to the
+     new names, but the old names are now considered deprecated and will
+     be removed in a future release. (#757)
+
 # 20.02
 
    * Fixed a bug in the nuclear burning timestep estimator when on GPUs
      (#745)
 
    * rewrote the 4th order SDC hydro driver in C++ to allow code reuse
-     with other solvers (#742)
+     with other solvers (#742), and simplified the 2nd order SDC code
+     to do dimensional sweeps to reduce memory (#749)
 
    * The option radiation.integrate_planck has been removed; it was only
      used by one test. By default we always do the full integral of the

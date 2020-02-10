@@ -452,7 +452,7 @@ contains
          NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
          QCG, QGAMCG, QLAMS, &
-         QPTOT, QRAD, QRADHI, QREITOT, &
+         QPTOT, QRAD, QREITOT, &
 #endif
          npassive, upass_map, qpass_map, dual_energy_eta1, &
          small_dens
@@ -562,7 +562,7 @@ contains
 
              q(i,j,k,QTEMP) = uin(i,j,k,UTEMP)
 #ifdef RADIATION
-             q(i,j,k,qrad:qradhi) = Erin(i,j,k,:)
+             q(i,j,k,qrad:qrad-1+ngroups) = Erin(i,j,k,:)
 #endif
 
              ! Load passively advected quatities into q
@@ -608,7 +608,7 @@ contains
                 qaux(i,j,k,QLAMS+g) = lam(i,j,k,g)
              enddo
 
-             q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qradhi))
+             q(i,j,k,qreitot) = q(i,j,k,QREINT) + sum(q(i,j,k,qrad:qrad-1+ngroups))
 #else
              qaux(i,j,k,QGAMC)  = eos_state % gam1
              qaux(i,j,k,QC   )  = eos_state % cs
@@ -630,9 +630,9 @@ contains
 
     use actual_network, only: nspec, naux
     use meth_params_module, only: NVAR, NSRC, URHO, UMX, UMY, UMZ, UEINT, &
-                                   NQSRC, QRHO, QU, QV, QW, NQ, &
-                                   QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
-                                   npassive, upass_map, qpass_map
+                                  NQSRC, QRHO, QU, QV, QW, NQ, &
+                                  QREINT, QPRES, QDPDR, QDPDE, NQAUX, &
+                                  npassive, upass_map, qpass_map
     use amrex_constants_module, only: ZERO, HALF, ONE
     use amrex_fort_module, only: rt => amrex_real
 
@@ -803,7 +803,10 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
-    use meth_params_module, only: NVAR, NQ, URHO, UTEMP, USHK, small_dens, cfl
+    use meth_params_module, only: NVAR, NQ, URHO, UTEMP, small_dens, cfl
+#ifdef SHOCK_VAR
+    use meth_params_module, only: USHK
+#endif
     use prob_params_module, only: dim
     use amrex_mempool_module, only: bl_allocate, bl_deallocate
 
@@ -990,7 +993,10 @@ contains
 
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
-    use meth_params_module, only: NVAR, NQ, URHO, UMX, UTEMP, USHK, cfl, speed_limit
+    use meth_params_module, only: NVAR, NQ, URHO, UMX, UTEMP, cfl, speed_limit
+#ifdef SHOCK_VAR
+    use meth_params_module, only: USHK
+#endif
     use prob_params_module, only: dim
 
     implicit none
@@ -1201,12 +1207,6 @@ contains
     dxinv = ONE/dx(1)
     dyinv = ONE/dx(2)
     dzinv = ONE/dx(3)
-
-#ifndef AMREX_USE_CUDA
-    if (coord_type /= 0) then
-       call castro_error("ERROR: invalid geometry in shock()")
-    endif
-#endif
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -1603,7 +1603,10 @@ contains
                       flux, f_lo, f_hi) bind(c, name="apply_av")
 
     use amrex_constants_module, only: ZERO, FOURTH
-    use meth_params_module, only: NVAR, UTEMP, USHK, difmag
+    use meth_params_module, only: NVAR, UTEMP, difmag
+#ifdef SHOCK_VAR
+    use meth_params_module, only: USHK
+#endif
     use prob_params_module, only: dg
 
     implicit none
@@ -1676,7 +1679,10 @@ contains
                           radflux, rf_lo, rf_hi) bind(c, name="apply_av_rad")
 
     use amrex_constants_module, only: ZERO, FOURTH
-    use meth_params_module, only: NVAR, UTEMP, USHK, difmag
+    use meth_params_module, only: NVAR, UTEMP, difmag
+#ifdef SHOCK_VAR
+    use meth_params_module, only: USHK
+#endif
     use prob_params_module, only: dg
     use rad_params_module, only: ngroups
     implicit none

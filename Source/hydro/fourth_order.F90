@@ -1039,7 +1039,7 @@ contains
     integer, intent(in) :: nc
     real(rt), intent(in) :: U(U_lo(1):U_hi(1), U_lo(2):U_hi(2), U_lo(3):U_hi(3), nc)
     real(rt), intent(inout) :: lap(lap_lo(1):lap_hi(1), lap_lo(2):lap_hi(2), lap_lo(3):lap_hi(3))
-    integer, intent(in) :: ncomp
+    integer, intent(in), value :: ncomp
     integer, intent(in) :: domlo(3), domhi(3)
 
     ! note: ncomp is C++ index (0-based)
@@ -1165,7 +1165,8 @@ contains
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: nc, ncomp
+    integer, intent(in) :: nc
+    integer, intent(in), value :: ncomp
     real(rt), intent(inout) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), nc)
     integer, intent(in) :: domlo(3), domhi(3)
 

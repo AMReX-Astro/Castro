@@ -357,9 +357,10 @@ contains
     use network, only: nspec, naux
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
-    use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, &
-         UFS, UFX
-    use amrex_constants_module, only: ZERO, ONE
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEINT, UEDEN, UTEMP, UFS, UFX, &
+                                  clamp_ambient_temp, ambient_safety_factor
+    use ambient_module, only: ambient_state
+    use amrex_constants_module, only: ZERO, HALF, ONE
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
 #endif
@@ -421,6 +422,14 @@ contains
              call eos(eos_input_re, eos_state)
 
              state(i,j,k,UTEMP) = eos_state % T
+
+             if (clamp_ambient_temp == 1) then
+                if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
+                   state(i,j,k,UTEMP) = ambient_state(UTEMP)
+                   state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
+                   state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
+                end if
+             end if
 
           enddo
        enddo
@@ -514,8 +523,6 @@ contains
 
 
 
-
-
   function position_to_index(loc) result(index)
     ! Given 3D spatial coordinates, return the cell-centered zone indices closest to it.
     ! Optionally we can also be edge-centered in any of the directions.
@@ -559,13 +566,14 @@ contains
 
     real(rt) :: arear
 
-    logical :: cc(3) = .true.
+    logical :: cc(3)
     real(rt) :: dx(3), loc(3)
 
     !$gpu
 
     ! Force edge-centering along the direction of interest
 
+    cc(:) = .true.
     cc(dir) = .false.
 
     dx = dx_level(:,amr_level)
@@ -674,6 +682,61 @@ contains
     endif
 
   end function area
+
+
+
+
+
+  function dLogArea(i, j, k, dir) result(dlogarear)
+    ! Given an index (i,j,k) and a direction dir, return the
+    ! coefficient that appears in the geometry source terms (only
+    ! relevant for non-Cartesian geometries).
+
+    use amrinfo_module, only: amr_level
+    use amrex_constants_module, only: ZERO, ONE, TWO
+    use prob_params_module, only: dim, coord_type, dx_level
+#ifndef AMREX_USE_CUDA
+    use castro_error_module, only: castro_error
+#endif
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer, intent(in) :: i, j, k, dir
+
+    real(rt) :: dlogarear
+
+    real(rt) :: dx(3), loc(3)
+
+    !$gpu
+
+    dx = dx_level(:,amr_level)
+
+    dlogarear = ZERO
+
+    if (coord_type .eq. 1 .and. dir .eq. 1) then
+
+       ! Cylindrical (2D only)
+
+       ! Get cell-centered position
+
+       loc = position(i,j,k)
+
+       dlogarear = ONE / loc(1)
+
+    else if (coord_type .eq. 2 .and. dir .eq. 1) then
+
+       ! Spherical (1D only)
+
+       ! Get cell-centered position
+
+       loc = position(i,j,k)
+
+       dlogarear = TWO / loc(1)
+
+    endif
+
+  end function dLogArea
 
 
 

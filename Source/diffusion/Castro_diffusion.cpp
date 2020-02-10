@@ -9,7 +9,7 @@ using std::string;
 using namespace amrex;
 
 void
-Castro::construct_old_diff_source(MultiFab& source, MultiFab& state, Real time, Real dt)
+Castro::construct_old_diff_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
     BL_PROFILE("Castro::construct_old_diff_source()");
 
@@ -17,7 +17,7 @@ Castro::construct_old_diff_source(MultiFab& source, MultiFab& state, Real time, 
 
     MultiFab TempDiffTerm(grids, dmap, 1, 0);
 
-    add_temp_diffusion_to_source(source, state, TempDiffTerm, time);
+    add_temp_diffusion_to_source(source, state_in, TempDiffTerm, time);
 
     if (verbose > 1)
     {
@@ -78,25 +78,25 @@ Castro::construct_new_diff_source(MultiFab& source, MultiFab& state_old, MultiFa
 // **********************************************************************************************
 
 void
-Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& state, MultiFab& DiffTerm, Real t, Real mult_factor)
+Castro::add_temp_diffusion_to_source (MultiFab& ext_src, MultiFab& state_in, MultiFab& DiffTerm, Real t, Real mult_factor)
 {
     BL_PROFILE("Castro::add_temp_diffusion_to_sources()");
 
     // Define an explicit temperature update.
     DiffTerm.setVal(0.);
     if (diffuse_temp == 1) {
-        getTempDiffusionTerm(t, state, DiffTerm);
+        getTempDiffusionTerm(t, state_in, DiffTerm);
     }
 
     if (diffuse_temp == 1) {
-       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,Eden,1,0);
-       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,Eint,1,0);
+       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,UEDEN,1,0);
+       MultiFab::Saxpy(ext_src,mult_factor,DiffTerm,0,UEINT,1,0);
     }
 }
 
 
 void
-Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm)
+Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffTerm)
 {
     BL_PROFILE("Castro::getTempDiffusionTerm()");
 
@@ -110,10 +110,10 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
    MultiFab Temperature(grids, dmap, 1, 1);
 
    {
-       FillPatchIterator fpi(*this, state, 1, time, State_Type, 0, NUM_STATE);
+       FillPatchIterator fpi(*this, state_in, 1, time, State_Type, 0, NUM_STATE);
        MultiFab& grown_state = fpi.get_mf();
 
-       MultiFab::Copy(Temperature, grown_state, Temp, 0, 1, 1);
+       MultiFab::Copy(Temperature, grown_state, UTEMP, 0, 1, 1);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -165,7 +165,7 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state, MultiFab& TempDiffTerm
        const BoxArray& crse_grids = getLevel(level-1).boxArray();
        const DistributionMapping& crse_dmap = getLevel(level-1).DistributionMap();
        CrseTemp.define(crse_grids,crse_dmap,1,1);
-       FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,Temp,1);
+       FillPatch(getLevel(level-1),CrseTemp,1,time,State_Type,UTEMP,1);
    }
 
    diffusion->applyop(level, Temperature, CrseTemp, TempDiffTerm, coeffs);

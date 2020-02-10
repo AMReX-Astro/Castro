@@ -26,7 +26,7 @@ extern "C"
 #endif
 void ca_init_radhydro_pars
     (const int & fspace_advection_type, const int & do_inelastic_scattering,
-     const int & comoving, const amrex::Real & flatten_pp_threshold);
+     const int & comoving);
 
 void ca_initradconstants
   (const amrex::Real& pi, amrex::Real& clight, amrex::Real& hplanck,
@@ -85,11 +85,12 @@ extern "C" {
     const BL_FORT_FAB_ARG(kr));
 
   void ca_compute_dcoefs
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(d), 
-    const BL_FORT_FAB_ARG(lam), 
-    const BL_FORT_FAB_ARG(v), const BL_FORT_FAB_ARG(dcf),
-    const amrex::Real* r, const int* idir);
+   (const int* lo, const int* hi,
+    BL_FORT_FAB_ARG_3D(d), 
+    const BL_FORT_FAB_ARG_3D(lam), 
+    const BL_FORT_FAB_ARG_3D(v),
+    const BL_FORT_FAB_ARG_3D(dcf),
+    const amrex::Real* dx, int idir);
 
 #ifdef __cplusplus
 }
@@ -332,10 +333,7 @@ extern "C"
     BL_FORT_FAB_ARG_3D(djdT),
     const BL_FORT_FAB_ARG_3D(temp),
     const BL_FORT_FAB_ARG_3D(kappa_p),
-    const BL_FORT_FAB_ARG_3D(dkdT),
-    const amrex::Real* PFcoef, 
-    int use_WiensLaw,
-    amrex::Real Tf);
+    const BL_FORT_FAB_ARG_3D(dkdT));
 }
 
 extern "C"
@@ -367,20 +365,12 @@ extern "C"
 	   BL_FORT_FAB_ARG(lamy),
 	   BL_FORT_FAB_ARG(lamz)),
     const int* igroup);
-#ifdef __cplusplus
-}
-#endif
 
-BL_FORT_PROC_DECL(CA_RHSTOER, ca_rhstoer)
-   (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG(rhs),
-    const amrex::Real* r, const amrex::Real* dt);
+  void ca_rhstoer
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(rhs),
+     const amrex::Real* dx, const amrex::Real dt);
 
-// in RadDerive_?d.f90
-#ifdef __cplusplus
-extern "C"
-{
-#endif
   void ca_derertot
     (BL_FORT_FAB_ARG_3D(der),const int* nvar,
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
@@ -462,8 +452,9 @@ BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void multrs(BL_FORT_FAB_ARG(cc), 
-	      ARLIM_P(reglo), ARLIM_P(reghi), amrex::Real* r, amrex::Real* s);
+  void multrs(const int* lo, const int* hi,
+              BL_FORT_FAB_ARG_3D(cc),
+              const amrex::Real* dx);
 
   void sphc(amrex::Real* r, amrex::Real* s, ARLIM_P(reglo), ARLIM_P(reghi), const amrex::Real* dx);
 
@@ -598,11 +589,10 @@ extern "C" {
               BL_FORT_FAB_ARG_3D(dest), 
 	      int nvar);
 
-  void lacoefmgfld(BL_FORT_FAB_ARG(a), 
-		   ARLIM_P(reglo), ARLIM_P(reghi),
-		   amrex::Real* kappa, ARLIM_P(klo), ARLIM_P(khi),
-		   amrex::Real* r, amrex::Real* s,
-		   const amrex::Real& delta_t, const amrex::Real& c);
+  void lacoefmgfld(const int* lo, const int* hi,
+                   BL_FORT_FAB_ARG_3D(a), 
+		   BL_FORT_FAB_ARG_3D(kappa),
+		   const amrex::Real* dx, amrex::Real delta_t, amrex::Real c);
 
   void rfface(BL_FORT_FAB_ARG(fine), 
 	      BL_FORT_FAB_ARG(crse), 

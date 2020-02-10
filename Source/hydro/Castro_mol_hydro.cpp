@@ -238,7 +238,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // operate on ibx[idir]
             riemann_state(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
                           BL_TO_FORTRAN_ANYD(qm),
-                          BL_TO_FORTRAN_ANYD(qp), 1, 1,
+                          BL_TO_FORTRAN_ANYD(qp),
                           BL_TO_FORTRAN_ANYD(q_avg),
                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
                           idir_f, 0,
@@ -381,10 +381,10 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               Array4<Real const> const avis_arr = avis.array();
 
               AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
-                  if (n == Temp) {
+                  if (n == UTEMP) {
                     flux_arr(i,j,k,n) = 0.0;
 #ifdef SHOCK_VAR
-                  } else if (n == Shock) {
+                  } else if (n == USHK) {
                     flux_arr(i,j,k,n) == 0.0;
 #endif
                   } else {
@@ -492,7 +492,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               cmpflx_plus_godunov
                 (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
                  BL_TO_FORTRAN_ANYD(qm),
-                 BL_TO_FORTRAN_ANYD(qp), 1, 1,
+                 BL_TO_FORTRAN_ANYD(qp),
                  BL_TO_FORTRAN_ANYD(flux[idir]),
                  BL_TO_FORTRAN_ANYD(q_int),
                  BL_TO_FORTRAN_ANYD(qe[idir]),
@@ -502,16 +502,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               // set UTEMP and USHK fluxes to zero
               Array4<Real> const flux_arr = (flux[idir]).array();
-              const int temp_comp = Temp;
-#ifdef SHOCK_VAR
-              const int shk_comp = Shock;
-#endif
 
               AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                                     {
-                                      flux_arr(i,j,k,temp_comp) = 0.e0;
+                                      flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
-                                      flux_arr(i,j,k,shk_comp) = 0.e0;
+                                      flux_arr(i,j,k,USHK) = 0.e0;
 #endif
                                     });
 

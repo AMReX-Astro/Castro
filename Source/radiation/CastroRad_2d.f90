@@ -522,62 +522,6 @@ subroutine ca_get_v_dcf(lo, hi, &
 end subroutine ca_get_v_dcf
 
 
-subroutine ca_compute_dcoefs(lo, hi, &
-                             d  ,   d_l1,   d_l2,   d_h1,   d_h2, &
-                             lam, lam_l1, lam_l2, lam_h1, lam_h2, &
-                             v ,    v_l1,   v_l2,   v_h1,   v_h2, &
-                             dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
-                             r, idir) bind(C, name="ca_compute_dcoefs")
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(2), hi(2)
-  integer, intent(in) :: d_l1, d_l2, d_h1, d_h2, &
-       & lam_l1, lam_l2, lam_h1, lam_h2, &
-       &   v_l1,   v_l2,   v_h1,   v_h2, &
-       & dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
-       idir
-
-  real(rt)                      ::   d(  d_l1:  d_h1,   d_l2:  d_h2)
-  real(rt)        , intent(in)  :: lam(lam_l1:lam_h1, lam_l2:lam_h2)
-  real(rt)        , intent(in)  ::   v(  v_l1:  v_h1,   v_l2:  v_h2, 2)
-  real(rt)        , intent(in)  :: dcf(dcf_l1:dcf_h1, dcf_l2:dcf_h2)
-  real(rt)        , intent(in)  ::   r( lo(1): hi(1))
-
-  integer :: i, j
-
-  if (idir.eq.0) then
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-           if (v(i-1,j,1) + v(i,j,1) .gt. 0.e0_rt) then
-              d(i,j) = dcf(i-1,j) * v(i-1,j,1) * lam(i,j)
-           else if (v(i-1,j,1) + v(i,j,1) .lt. 0.e0_rt) then
-              d(i,j) = dcf(i,j) * v(i,j,1) * lam(i,j)
-           else
-              d(i,j) = 0.e0_rt
-           end if
-           d(i,j) = d(i,j) * r(i)
-        end do
-     end do
-  else
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-           if (v(i,j-1,2) + v(i,j,2) .gt. 0.e0_rt) then
-              d(i,j) = dcf(i,j-1) * v(i,j-1,2) * lam(i,j)
-           else if (v(i,j-1,2) + v(i,j,2) .lt. 0.e0_rt) then
-              d(i,j) = dcf(i,j) * v(i,j,2) * lam(i,j)
-           else
-              d(i,j) = 0.e0_rt
-           end if
-           d(i,j) = d(i,j) * r(i)
-        end do
-     end do
-  end if
-
-end subroutine ca_compute_dcoefs
-
-
 subroutine ca_update_dcf(lo, hi, &
                          dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2, &
                          etainv, eti_l1, eti_l2, eti_h1, eti_h2, &

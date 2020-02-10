@@ -418,6 +418,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
            -t $(EXTERN_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/extern.F90 -n extern \
+           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
            --pa "$(EXTERN_PARAMETERS)" --managed
 
 
@@ -455,19 +456,19 @@ $(CASTRO_AUTO_SOURCE_DIR)/meth_params.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TEMPL
 #------------------------------------------------------------------------------
 # state variable info
 #-------------------------------------------------------------------------------
-$(CASTRO_AUTO_SOURCE_DIR)/set_conserved.H: $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90
-	echo "set_conserved.H will be generated at the same time as set_indices.F90"
+$(CASTRO_AUTO_SOURCE_DIR)/state_indices.H: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90
+	echo "state_indices.H will be generated at the same time as state_indices.F90"
 
-$(CASTRO_AUTO_SOURCE_DIR)/state_sizes.f90: $(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90
-	echo "state_sizes.f90 will be generated at the same time as set_indices.F90"
-
-$(CASTRO_AUTO_SOURCE_DIR)/set_indices.F90:
+$(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90:
 	$(CASTRO_HOME)/Source/driver/set_variables.py \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
            --ngroups $(NGROUPS) \
            --odir $(CASTRO_AUTO_SOURCE_DIR) \
            $(CASTRO_HOME)/Source/driver/_variables
+
+# for debugging
+test_variables: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90
 
 #------------------------------------------------------------------------------
 # build info
@@ -533,7 +534,7 @@ endif
 endif
 
 clean::
-	$(SILENT) $(RM) extern.F90 prob_params_auto.F90
+	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
 	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
 	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi

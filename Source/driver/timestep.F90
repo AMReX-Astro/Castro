@@ -140,7 +140,7 @@ contains
     use actual_rhs_module, only: actual_rhs
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
-    use burner_module, only: ok_to_burn ! function
+    use react_util_module, only: okay_to_burn_type ! function
     use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn, neqs
     use temperature_integration_module, only: self_heat
     use amrex_fort_module, only : rt => amrex_real
@@ -213,7 +213,7 @@ contains
              state_new % aux = snew(i,j,k,UFX:UFX+naux-1) * rhoninv
 #endif
 
-             if (.not. ok_to_burn(state_new)) cycle
+             if (.not. okay_to_burn_type(state_new)) cycle
 
              e    = state_new % e
              X    = max(state_new % xn, small_x)

@@ -208,7 +208,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
   for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(ngrow);
 
-#pragma gpu box(bx) sync
+#pragma gpu box(bx)
       ca_opacs
           (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
            BL_TO_FORTRAN_ANYD(S_new[mfi]),
@@ -220,21 +220,15 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
            use_dkdT, star_is_valid, lag_opac);
 
       const Box& reg = mfi.tilebox();
-      
-      Vector<Real> PFcoef(nGroups, -1.0); // picket-fence model coefficients
-#ifdef MG_SU_OLSON
-      PFcoef[0] = 0.5;
-      PFcoef[1] = 0.5;
-#endif
+
+#pragma gpu box(reg)
       ca_compute_emissivity
-          (AMREX_ARLIM_ANYD(reg.loVect()), AMREX_ARLIM_ANYD(reg.hiVect()),
+          (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
            BL_TO_FORTRAN_ANYD(jg[mfi]),  
            BL_TO_FORTRAN_ANYD(djdT[mfi]),  
            BL_TO_FORTRAN_ANYD(temp_new[mfi]),
            BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(dkdT[mfi]),
-           PFcoef.dataPtr(), 
-           use_WiensLaw, Tf_Wien);
+           BL_TO_FORTRAN_ANYD(dkdT[mfi]));
   }    
 
   if (ngrow == 0 && !lag_opac) {
@@ -684,7 +678,7 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
     for (MFIter mfi(kappa_r, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 	const Box& bx = mfi.growntilebox();
 
-#pragma gpu box(bx) sync
+#pragma gpu box(bx)
         ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                              BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
                              BL_TO_FORTRAN_ANYD(state[mfi]),
@@ -718,7 +712,7 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
   for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx) sync
+#pragma gpu box(bx)
       ca_get_rhoe
           (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
            BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
@@ -730,22 +724,19 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 
 void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 {
+    const Real* dx = parent->Geom(level).CellSize();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    {    
-	Vector<Real> r, s;
+    for (MFIter ri(rhs, TilingIfNotGPU()); ri.isValid(); ++ri) 
+    {
+        const Box& bx = ri.tilebox();	    
 
-	for (MFIter ri(rhs,true); ri.isValid(); ++ri) 
-	{
-	    const Box &reg = ri.tilebox();	    
-
-	    RadSolve::getCellCenterMetric(parent->Geom(level), reg, r, s);
-
-	    BL_FORT_PROC_CALL(CA_RHSTOER, ca_rhstoer)
-		(reg.loVect(), reg.hiVect(),
-		 BL_TO_FORTRAN(rhs[ri]), r.dataPtr(), &dt);
-	}
+#pragma gpu box(bx)
+        ca_rhstoer(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                   BL_TO_FORTRAN_ANYD(rhs[ri]),
+                   AMREX_REAL_ANYD(dx), dt);
     }
 }
 

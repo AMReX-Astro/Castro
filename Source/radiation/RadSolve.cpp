@@ -134,26 +134,24 @@ void RadSolve::levelBndry(MGRadBndry& mgbd, const int comp)
 
 void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
 {
-  BL_PROFILE("RadSolve::cellCenteredApplyMetrics");
-  BL_ASSERT(cc.nGrow() == 0);
+    BL_PROFILE("RadSolve::cellCenteredApplyMetrics");
+    BL_ASSERT(cc.nGrow() == 0);
+
+    const Geometry& geom = parent->Geom(level);
+    const Real* dx       = geom.CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
+    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi) 
+    {
+        const Box& bx = mfi.tilebox();
 
-      for (MFIter mfi(cc,true); mfi.isValid(); ++mfi) 
-      {
-	  const Box &reg = mfi.tilebox();
-
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-	  
-	  multrs(BL_TO_FORTRAN(cc[mfi]), 
-		 ARLIM(reg.loVect()), ARLIM(reg.hiVect()), 
-		 r.dataPtr(), s.dataPtr());
-      }
-  }
+#pragma gpu box(bx)
+        multrs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
+               BL_TO_FORTRAN_ANYD(cc[mfi]),
+               dx);
+    }
 }
 
 void RadSolve::setLevelACoeffs(int level, const MultiFab& acoefs)
@@ -324,6 +322,8 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
     BL_PROFILE("RadSolve::levelDCoeffs");
     const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
     const DistributionMapping& dm = castro->DistributionMap();
+    const Geometry& geom = parent->Geom(level);
+    const Real* dx       = geom.CellSize();
 
     for (int idim=0; idim<BL_SPACEDIM; idim++) {
 
@@ -332,19 +332,18 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	{
-	    Vector<Real> r, s;
-	    
-	    for (MFIter mfi(dcoefs,true); mfi.isValid(); ++mfi) {
-		const Box& ndbx = mfi.tilebox();
+        for (MFIter mfi(dcoefs, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-		getEdgeMetric(idim, parent->Geom(level), ndbx, r, s);
+            const Box& bx = mfi.tilebox();
 
-		ca_compute_dcoefs(ndbx.loVect(), ndbx.hiVect(),
-				  BL_TO_FORTRAN(dcoefs[mfi]), BL_TO_FORTRAN(lambda[idim][mfi]),
-				  BL_TO_FORTRAN(vel[mfi]), BL_TO_FORTRAN(dcf[mfi]), 
-				  r.dataPtr(), &idim);
-	    }
+#pragma gpu box(bx)
+            ca_compute_dcoefs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(dcoefs[mfi]),
+                              BL_TO_FORTRAN_ANYD(lambda[idim][mfi]),
+                              BL_TO_FORTRAN_ANYD(vel[mfi]),
+                              BL_TO_FORTRAN_ANYD(dcf[mfi]), 
+                              AMREX_REAL_ANYD(dx), idim);
+
 	}
 
 	HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
@@ -716,6 +715,7 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
   BL_PROFILE("RadSolve::levelACoeffs (MGFLD)");
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
+  const Real* dx = parent->Geom(level).CellSize();
 
   // allocate space for ABecLaplacian acoeffs, fill with values
 
@@ -726,20 +726,17 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
+  for (MFIter mfi(kpp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-      for (MFIter mfi(kpp,true); mfi.isValid(); ++mfi) {
-	  const Box &reg = mfi.tilebox();
+      const Box& bx = mfi.tilebox();
 	  
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-	  
-	  Real dt_ptc = delta_t/(1.0+ptc_tau);
-	  lacoefmgfld(BL_TO_FORTRAN(acoefs[mfi]), 
-		      ARLIM(reg.loVect()), ARLIM(reg.hiVect()), 
-		      BL_TO_FORTRAN_N(kpp[mfi], igroup), 
-		      r.dataPtr(), s.dataPtr(), dt_ptc, c);
-      }
+      Real dt_ptc = delta_t / (1.0 + ptc_tau);
+
+#pragma gpu box(bx)
+      lacoefmgfld(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                  BL_TO_FORTRAN_ANYD(acoefs[mfi]), 
+                  BL_TO_FORTRAN_N_ANYD(kpp[mfi], igroup), 
+                  AMREX_REAL_ANYD(dx), dt_ptc, c);
   }
 
   // set a coefficients
