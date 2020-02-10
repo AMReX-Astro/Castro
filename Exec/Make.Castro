@@ -11,6 +11,13 @@ TOP := $(CASTRO_HOME)
 
 MICROPHYSICS_HOME ?= $(TOP)/Microphysics
 
+# Check to make sure that Microphysics actually exists,
+# using an arbitrary file that must exist to check.
+# Throw an error if we don't have Microphysics.
+ifeq ("$(wildcard $(MICROPHYSICS_HOME)/Make.Microphysics)","")
+  $(error Microphysics has not been downloaded. Please run "git submodule update --init" from the top level of the code)
+endif
+
 # the Castro microphysics locations
 EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
