@@ -259,8 +259,8 @@ Castro::variableSetUp ()
   ppc.queryarr("center",center,0,BL_SPACEDIM);
 
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
-			Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-			dgeom.ProbLo(),dgeom.ProbHi(),center.dataPtr());
+                        Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+                        dgeom.ProbLo(),dgeom.ProbHi(),center.dataPtr());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
@@ -314,20 +314,20 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,ngrow_state,NUM_STATE,
-			 interp,state_data_extrap,store_in_checkpoint);
+                         StateDescriptor::Point,ngrow_state,NUM_STATE,
+                         interp,state_data_extrap,store_in_checkpoint);
 
 #ifdef GRAVITY
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, 1, 1,
-			 &cell_cons_interp, state_data_extrap,
-			 store_in_checkpoint);
+                         StateDescriptor::Point, 1, 1,
+                         &cell_cons_interp, state_data_extrap,
+                         store_in_checkpoint);
 
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,3,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         StateDescriptor::Point,NUM_GROW,3,
+                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
   // Source terms -- for the CTU method, because we do characteristic
@@ -348,20 +348,20 @@ Castro::variableSetUp ()
       amrex::Error("Unknown time_integration_method");
   }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, source_ng, NSRC,
-			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+                         StateDescriptor::Point, source_ng, NSRC,
+                         &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
   store_in_checkpoint = false;
   desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, 1, 1,
-			 &cell_cons_interp, state_data_extrap,
-			 store_in_checkpoint);
+                         StateDescriptor::Point, 1, 1,
+                         &cell_cons_interp, state_data_extrap,
+                         store_in_checkpoint);
 
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,3,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         StateDescriptor::Point,NUM_GROW,3,
+                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 
@@ -371,8 +371,8 @@ Castro::variableSetUp ()
   // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,0,NumSpec+2,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         StateDescriptor::Point,0,NumSpec+2,
+                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -463,7 +463,7 @@ Castro::variableSetUp ()
     {
       std::cout << NumSpec << " Species: " << std::endl;
       for (int i = 0; i < NumSpec; i++)
-	std::cout << spec_names[i] << ' ' << ' ';
+        std::cout << spec_names[i] << ' ' << ' ';
       std::cout << std::endl;
     }
 
@@ -492,7 +492,7 @@ Castro::variableSetUp ()
     {
       std::cout << NumAux << " Auxiliary Variables: " << std::endl;
       for (int i = 0; i < NumAux; i++)
-	std::cout << aux_names[i] << ' ' << ' ';
+        std::cout << aux_names[i] << ' ' << ' ';
       std::cout << std::endl;
     }
 
@@ -510,10 +510,10 @@ Castro::variableSetUp ()
 #endif
 
   desc_lst.setComponent(State_Type,
-			URHO,
-			name,
-			bcs,
-			BndryFunc(ca_denfill,ca_hypfill));
+                        URHO,
+                        name,
+                        bcs,
+                        BndryFunc(ca_denfill,ca_hypfill));
 
 #ifdef GRAVITY
   set_scalar_bc(bc,phys_bc);
@@ -581,8 +581,8 @@ Castro::variableSetUp ()
   int ngrow = 1;
   int ncomp = Radiation::nGroups;
   desc_lst.addDescriptor(Rad_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, ngrow, ncomp,
-			 interp);
+                         StateDescriptor::Point, ngrow, ncomp,
+                         interp);
   set_scalar_bc(bc,phys_bc);
 
   if (ParallelDescriptor::IOProcessor()) {
@@ -593,14 +593,14 @@ Castro::variableSetUp ()
   if (!Radiation::do_multigroup) {
     desc_lst
       .setComponent(Rad_Type, Rad, "rad", bc,
-		    BndryFunc(ca_radfill));
+                    BndryFunc(ca_radfill));
   }
   else {
       for (int i = 0; i < Radiation::nGroups; i++) {
-	sprintf(rad_name, "rad%d", i);
-	desc_lst
-	  .setComponent(Rad_Type, i, rad_name, bc,
-			BndryFunc(ca_radfill));
+        sprintf(rad_name, "rad%d", i);
+        desc_lst
+          .setComponent(Rad_Type, i, rad_name, bc,
+                        BndryFunc(ca_radfill));
       }
   }
 #endif
@@ -613,10 +613,10 @@ Castro::variableSetUp ()
       Knapsack_Weight_Type = desc_lst.size();
       desc_lst.addDescriptor(Knapsack_Weight_Type, IndexType::TheCellType(),
                              StateDescriptor::Point,
-			     0, 1, &pc_interp);
+                             0, 1, &pc_interp);
       // Because we use piecewise constant interpolation, we do not use bc and BndryFunc.
       desc_lst.setComponent(Knapsack_Weight_Type, 0, "KnapsackWeight",
-			    bc, BndryFunc(ca_nullfill));
+                            bc, BndryFunc(ca_nullfill));
   }
 
 

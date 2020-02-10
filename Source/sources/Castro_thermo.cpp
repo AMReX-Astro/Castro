@@ -31,7 +31,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
       ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
       if (ParallelDescriptor::IOProcessor())
-	  std::cout << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
+          std::cout << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
       });
 #endif

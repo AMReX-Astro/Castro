@@ -243,8 +243,8 @@ class BndryAuxVar : public BndryAuxVarBase {
 /// @param loc
 ///
   BndryAuxVar(const amrex::BoxArray& _grids,
-	      const amrex::DistributionMapping& _dmap,
-	      Location loc);
+              const amrex::DistributionMapping& _dmap,
+              Location loc);
 
   //~BndryAuxVar(); destructor not needed
 
@@ -284,7 +284,7 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
 /// @param loc
 ///
   CrseBndryAuxVar(const amrex::BoxArray& _cgrids,
-		  const amrex::DistributionMapping& _cdmap,
+                  const amrex::DistributionMapping& _cdmap,
                   const amrex::BoxArray& _fgrids, Location loc);
 
 
@@ -417,10 +417,10 @@ class HypreMultiABec {
 /// @param _crse_ratio
 ///
   void addLevel(int level,
-		const amrex::Geometry& _geom,
-		const amrex::BoxArray& _grids,
-		const amrex::DistributionMapping& _dmap,
-		amrex::IntVect         _crse_ratio);
+                const amrex::Geometry& _geom,
+                const amrex::BoxArray& _grids,
+                const amrex::DistributionMapping& _dmap,
+                amrex::IntVect         _crse_ratio);
 
   int crseLevel() {
     return crse_level;
@@ -625,10 +625,10 @@ class HypreMultiABec {
 /// @param inhom
 ///
   void boundaryFlux(int level,
-		    amrex::MultiFab* Flux,
-		    amrex::MultiFab& Er,
+                    amrex::MultiFab* Flux,
+                    amrex::MultiFab& Er,
                     int icomp,
-		    BC_Mode inhom);
+                    BC_Mode inhom);
 
 
 ///
