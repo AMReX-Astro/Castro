@@ -18,6 +18,7 @@ Castro::add_hybrid_advection_source_c(const int i, const int j, const int k,
                                       Array4<Real const> const qz) {
 
   auto loc = position_c(i,j,k, true, true, true);
+#if 0
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
     loc[idir] -= center[idir];
   }
@@ -27,4 +28,5 @@ Castro::add_hybrid_advection_source_c(const int i, const int j, const int k,
   update(i,j,k,UMR) += - ( (loc[0] / R) * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0] +
                            (loc[1] / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx[1] );
 
+#endif
 }

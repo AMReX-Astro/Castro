@@ -8,6 +8,7 @@
 
 using namespace amrex;
 
+AMREX_GPU_HOST_DEVICE
 amrex::Vector<Real>
 Castro::position_c(const int i, const int j, const int k,
                    const bool ccx, const bool ccy, const bool ccz) {
@@ -18,10 +19,10 @@ Castro::position_c(const int i, const int j, const int k,
   const int* domain_lo = geom.Domain().loVect();
   const int* domain_hi = geom.Domain().hiVect();
 
-  const Real *dx = geom.CellSize();
+  const auto dx = geom.CellSizeArray();
 
-  const Real* prob_lo = geom.ProbLo();
-  const Real* prob_hi = geom.ProbHi();
+  const auto prob_lo = geom.ProbLoArray();
+  const auto prob_hi = geom.ProbHiArray();
 
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
