@@ -2011,13 +2011,13 @@ contains
 
              do g = 0, ngroups-1
 
-                xnup = xnu(g)
+                xnup = xnu(g+1)
 
                 ! For the last group, make sure that we complete
                 ! the integral up to "infinity".
 
                 if (g == ngroups - 1) then
-                   xnup = max(xnu(g), 1.e25_rt)
+                   xnup = max(xnup, 1.e25_rt)
                 end if
 
                 B0 = B1
