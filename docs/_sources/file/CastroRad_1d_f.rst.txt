@@ -11,11 +11,6 @@ ca\_get\_v\_dcf subroutine
 
 .. f:autosubroutine:: ca_get_v_dcf
 
-ca\_compute\_dcoefs subroutine
-------------------------------
-
-.. f:autosubroutine:: ca_compute_dcoefs
-
 ca\_update\_dcf subroutine
 --------------------------
 

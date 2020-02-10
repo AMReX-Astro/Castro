@@ -140,7 +140,6 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">CastroRad_2d.f90</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#ca-compute-lamborder-subroutine">ca_compute_lamborder subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-v-dcf-subroutine">ca_get_v_dcf subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-compute-dcoefs-subroutine">ca_compute_dcoefs subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-update-dcf-subroutine">ca_update_dcf subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-set-dterm-face-subroutine">ca_set_dterm_face subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-face2center-subroutine">ca_face2center subroutine</a></li>
@@ -400,59 +399,6 @@
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-compute-dcoefs-subroutine">
-<h2>ca_compute_dcoefs subroutine<a class="headerlink" href="#ca-compute-dcoefs-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_compute_dcoefs">
-<em class="property">subroutine  </em><code class="descname">ca_compute_dcoefs</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>d</em>, <em>d_l1</em>, <em>d_l2</em>, <em>d_l3</em>, <em>d_h1</em>, <em>d_h2</em>, <em>d_h3</em>, <em>lam</em>, <em>lam_l1</em>, <em>lam_l2</em>, <em>lam_l3</em>, <em>lam_h1</em>, <em>lam_h2</em>, <em>lam_h3</em>, <em>v</em>, <em>v_l1</em>, <em>v_l2</em>, <em>v_l3</em>, <em>v_h1</em>, <em>v_h2</em>, <em>v_h3</em>, <em>dcf</em>, <em>dcf_l1</em>, <em>dcf_l2</em>, <em>dcf_l3</em>, <em>dcf_h1</em>, <em>dcf_h2</em>, <em>dcf_h3</em>, <em>r</em>, <em>idir</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_compute_dcoefs" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>d</strong> (d_h1-d_l1+1,d_h2-d_l2+1,d_h3-d_l3+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>d_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>d_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>d_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>d_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>d_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>d_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lam</strong> (lam_h1-lam_l1+1,lam_h2-lam_l2+1,lam_h3-lam_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lam_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lam_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lam_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lam_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lam_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>lam_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>v</strong> (v_h1-v_l1+1,v_h2-v_l2+1,v_h3-v_l3+1,3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>v_l1</strong></li>
-<li><strong>v_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>v_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>v_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>v_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>v_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dcf</strong> (dcf_h1-dcf_l1+1,dcf_h2-dcf_l2+1,dcf_h3-dcf_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dcf_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dcf_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dcf_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dcf_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dcf_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dcf_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>r</strong> (hi(1)-(lo(1))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
 </tr>
 </tbody>

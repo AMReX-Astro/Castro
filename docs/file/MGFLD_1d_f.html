@@ -147,7 +147,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#ca-state-update-subroutine">ca_state_update subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-ncupdate-matter-subroutine">ca_ncupdate_matter subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-flux-face2center-subroutine">ca_flux_face2center subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-rhstoer-subroutine">ca_rhstoer subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-spalpha-subroutine">ca_spalpha subroutine</a></li>
 </ul>
 </li>
@@ -424,38 +423,6 @@
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-rhstoer-subroutine">
-<h2>ca_rhstoer subroutine<a class="headerlink" href="#ca-rhstoer-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_rhstoer">
-<em class="property">subroutine  </em><code class="descname">ca_rhstoer</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>rhs</em>, <em>rhs_l1</em>, <em>rhs_l2</em>, <em>rhs_l3</em>, <em>rhs_h1</em>, <em>rhs_h2</em>, <em>rhs_h3</em>, <em>r</em>, <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_rhstoer" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rhs</strong> (rhs_h1-rhs_l1+1,rhs_h2-rhs_l2+1,rhs_h3-rhs_l3+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>rhs_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rhs_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rhs_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rhs_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rhs_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rhs_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>r</strong> (hi(1)-(lo(1))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
 </tr>
 </tbody>
