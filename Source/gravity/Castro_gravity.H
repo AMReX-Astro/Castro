@@ -6,7 +6,7 @@
 /// @param time             current time
 ///
     void construct_old_gravity(int amr_iteration, int amr_ncycle,
-			       amrex::Real time);
+                               amrex::Real time);
 
 
 ///
@@ -17,7 +17,7 @@
 /// @param time             current time
 ///
     void construct_new_gravity(int amr_iteration, int amr_ncycle,
-			       amrex::Real time);
+                               amrex::Real time);
 
 ///
 /// Construct gravitational source terms at old timestep

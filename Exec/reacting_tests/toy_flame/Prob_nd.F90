@@ -1,6 +1,6 @@
 subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amrex_probinit")
 
-  use eos_module, only: eos_on_host
+  use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use castro_error_module
   use network, only: nspec
@@ -29,7 +29,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state%xn(:) = ZERO
   eos_state%xn(1) = ONE
 
-  call eos_on_host(eos_input_rt, eos_state)
+  call eos(eos_input_rt, eos_state)
 
   lambda_f = sqrt(const_conductivity*T_burn_ref/ &
        (rho_burn_ref*specific_q_burn*nu*rtilde))

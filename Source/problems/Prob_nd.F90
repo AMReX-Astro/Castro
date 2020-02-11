@@ -33,7 +33,7 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
     ! dx        => cell size
     ! xlo, xhi  => physical locations of lower left and upper
     !              right hand corner of grid.  (does not include
-    !		   ghost region).
+    !              ghost region).
 
   use castro_error_module
 

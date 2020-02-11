@@ -159,9 +159,9 @@ public:
 /// @param is_new       do we use state data at current time (1) or old time (0)?
 ///
   void solve_for_phi (int               level,
-		      amrex::MultiFab&         phi,
+                      amrex::MultiFab&         phi,
                       const amrex::Vector<amrex::MultiFab*>& grad_phi,
-		      int               is_new);
+                      int               is_new);
 
 ///
 /// Find delta phi
@@ -187,7 +187,7 @@ public:
 /// @param dphi
 ///
   void gravity_sync (int crse_level, int fine_level,
-		     const amrex::Vector<amrex::MultiFab*>& drho, const amrex::Vector<amrex::MultiFab*>& dphi);
+                     const amrex::Vector<amrex::MultiFab*>& drho, const amrex::Vector<amrex::MultiFab*>& dphi);
 
 
 ///
@@ -211,7 +211,7 @@ public:
 ///
   void actual_multilevel_solve      (int level, int finest_level,
                                      const amrex::Vector<amrex::Vector<amrex::MultiFab*> >& grad_phi,
-				     int is_new,
+                                     int is_new,
                                      int use_previous_phi_as_guess = 0);
 
 
@@ -235,10 +235,10 @@ public:
 /// @param cml_gphi     Vector of MultiFabs, computed minus level grad phi
 ///
   void create_comp_minus_level_grad_phi(int level,
-					amrex::MultiFab& comp_phi,
-					const amrex::Vector<amrex::MultiFab*>& comp_gphi,
-					amrex::MultiFab& cml_phi,
-					amrex::Vector<std::unique_ptr<amrex::MultiFab> >& cml_gphi);
+                                        amrex::MultiFab& comp_phi,
+                                        const amrex::Vector<amrex::MultiFab*>& comp_gphi,
+                                        amrex::MultiFab& cml_phi,
+                                        amrex::Vector<std::unique_ptr<amrex::MultiFab> >& cml_gphi);
 
 
 ///

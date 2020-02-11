@@ -6,7 +6,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   use prob_params_module, only: center, coord_type
   use probdata_module
   use eos_type_module, only: eos_t, eos_input_rt
-  use eos_module, only : eos_on_host
+  use eos_module, only : eos
   use network, only : nspec
 #ifdef DIFFUSION
   use conductivity_module
@@ -80,7 +80,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   eos_state%rho = 1.0
   eos_state%xn(:) = X(:)
 
-  call eos_on_host(eos_input_rt, eos_state)
+  call eos(eos_input_rt, eos_state)
 
 #ifdef DIFFUSION
   ! get the conductivity

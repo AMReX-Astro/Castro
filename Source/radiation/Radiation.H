@@ -24,7 +24,7 @@ public:
                      // ProtoMultiGroupSolver = 1,  // deleted
                      //  NeutrinoSolver = 2,  // deleted
                      //  SGFLDHybrid = 3,  // deleted
-		     //  SGFLDImplicit = 4, // deleted
+                     //  SGFLDImplicit = 4, // deleted
                      SGFLDSolver = 5,
                      MGFLDSolver = 6};
 
@@ -131,7 +131,7 @@ public:
 /// @param dmap
 ///
   void regrid(int level, const amrex::BoxArray& grids,
-	      const amrex::DistributionMapping& dmap);
+              const amrex::DistributionMapping& dmap);
 
 
 ///
@@ -148,7 +148,7 @@ public:
 /// @param is
 ///
   void restart(int level, const amrex::BoxArray& grids,
-	       const amrex::DistributionMapping& dmap,
+               const amrex::DistributionMapping& dmap,
                const std::string& dir, std::istream& is);
 
 
@@ -298,9 +298,9 @@ public:
 /// @param &lamborder
 ///
   void compute_limiter(int level, const amrex::BoxArray& grids,
-		       const amrex::MultiFab &Sborder,
-		       const amrex::MultiFab &Erborder,
-		       amrex::MultiFab &lamborder);
+                       const amrex::MultiFab &Sborder,
+                       const amrex::MultiFab &Erborder,
+                       amrex::MultiFab &lamborder);
 
 
 ///
@@ -311,7 +311,7 @@ public:
 /// @param box
 ///
   void estimate_gamrPr(const amrex::FArrayBox& state, const amrex::FArrayBox& Er,
-		       amrex::FArrayBox& gPr, const amrex::Real* dx, const amrex::Box& box);
+                       amrex::FArrayBox& gPr, const amrex::Real* dx, const amrex::Box& box);
 
 
 ///
@@ -337,7 +337,7 @@ public:
 /// @param igroup
 ///
   void compute_exchange(amrex::MultiFab& exch, amrex::MultiFab& Er, amrex::MultiFab& fkp,
-			int igroup = -1);
+                        int igroup = -1);
 
 
 ///
@@ -354,9 +354,9 @@ public:
 /// @param igroup
 ///
   void compute_eta(amrex::MultiFab& eta, amrex::MultiFab& etainv, amrex::MultiFab& state,
-		   amrex::MultiFab& temp, amrex::MultiFab& fkp, amrex::MultiFab& Er,
-		   amrex::Real delta_t, amrex::Real c, amrex::Real underrel, int lag_planck,
-		   int igroup = 0);
+                   amrex::MultiFab& temp, amrex::MultiFab& fkp, amrex::MultiFab& Er,
+                   amrex::Real delta_t, amrex::Real c, amrex::Real underrel, int lag_planck,
+                   int igroup = 0);
 
 
 ///
@@ -372,9 +372,9 @@ public:
 /// @param delta_t
 ///
   void internal_energy_update(amrex::Real& relative, amrex::Real& absolute,
-			      amrex::MultiFab& frhoes, amrex::MultiFab& frhoem,
-			      amrex::MultiFab& eta, amrex::MultiFab& etainv,
-			      amrex::MultiFab& dflux_old, amrex::MultiFab& dflux_new,
+                              amrex::MultiFab& frhoes, amrex::MultiFab& frhoem,
+                              amrex::MultiFab& eta, amrex::MultiFab& etainv,
+                              amrex::MultiFab& dflux_old, amrex::MultiFab& dflux_new,
                               amrex::MultiFab& exchange, amrex::Real delta_t);
 
 
@@ -392,11 +392,11 @@ public:
 /// @param delta_t
 ///
   void internal_energy_update(amrex::Real& relative, amrex::Real& absolute,
-			      amrex::MultiFab& frhoes, amrex::MultiFab& frhoem,
-			      amrex::MultiFab& eta, amrex::MultiFab& etainv,
-			      amrex::MultiFab& dflux_old, amrex::MultiFab& dflux_new,
-			      amrex::MultiFab& exchange, amrex::MultiFab& Dterm,
-			      amrex::Real delta_t);
+                              amrex::MultiFab& frhoes, amrex::MultiFab& frhoem,
+                              amrex::MultiFab& eta, amrex::MultiFab& etainv,
+                              amrex::MultiFab& dflux_old, amrex::MultiFab& dflux_new,
+                              amrex::MultiFab& exchange, amrex::MultiFab& Dterm,
+                              amrex::Real delta_t);
 
 
 ///
@@ -415,12 +415,12 @@ public:
 /// @param delta_t
 ///
   void nonconservative_energy_update(amrex::Real& relative, amrex::Real& absolute,
-				     amrex::MultiFab& frhoes, amrex::MultiFab& frhoem,
-				     amrex::MultiFab& eta, amrex::MultiFab& etainv,
-				     amrex::MultiFab& Er_new,
-				     amrex::MultiFab& dflux_old, amrex::MultiFab& dflux_new,
-				     amrex::MultiFab& temp, amrex::MultiFab& fkp,
-				     amrex::MultiFab& state, amrex::Real delta_t);
+                                     amrex::MultiFab& frhoes, amrex::MultiFab& frhoem,
+                                     amrex::MultiFab& eta, amrex::MultiFab& etainv,
+                                     amrex::MultiFab& Er_new,
+                                     amrex::MultiFab& dflux_old, amrex::MultiFab& dflux_new,
+                                     amrex::MultiFab& temp, amrex::MultiFab& fkp,
+                                     amrex::MultiFab& state, amrex::Real delta_t);
 
 
 ///
@@ -533,7 +533,7 @@ public:
 /// @param delta_t
 ///
   void get_planck_and_temp(amrex::MultiFab& fkp, amrex::MultiFab& temp, amrex::MultiFab& state,
-			   int igroup = 0, amrex::Real delta_t = 0.0);
+                           int igroup = 0, amrex::Real delta_t = 0.0);
 
 ///
 /// Rosseland mean is needed on an extended region (nGrow == 1).
@@ -558,9 +558,9 @@ public:
 /// @param igroup
 ///
   void update_rosseland_from_temp(amrex::MultiFab& kappa_r,
-				  amrex::MultiFab& temp, amrex::MultiFab& state,
-				  const amrex::Geometry& geom,
-				  int igroup = 0);
+                                  amrex::MultiFab& temp, amrex::MultiFab& state,
+                                  const amrex::Geometry& geom,
+                                  int igroup = 0);
 
 ///
 /// RadHydro
@@ -574,9 +574,9 @@ public:
 /// @param igroup
 ///
   void get_rosseland_v_dcf(amrex::MultiFab& kappa_r, amrex::MultiFab& v, amrex::MultiFab& dcf,
-			   amrex::Real delta_t, amrex::Real c,
-			   amrex::AmrLevel* hclaw,
-			   int igroup = 0);
+                           amrex::Real delta_t, amrex::Real c,
+                           amrex::AmrLevel* hclaw,
+                           int igroup = 0);
 
 ///
 /// multigroup methods
@@ -613,7 +613,7 @@ public:
 /// @param geom
 ///
   void update_dcf(amrex::MultiFab& dcf, amrex::MultiFab& etainv, amrex::MultiFab& kp, amrex::MultiFab& kr,
-		  const amrex::Geometry& geom);
+                  const amrex::Geometry& geom);
 
 ///
 /// <MGFLD>
@@ -643,11 +643,11 @@ public:
 /// @param delta_t
 ///
   void check_convergence_er(amrex::Real& relative_in, amrex::Real& absolute_in, amrex::Real& error_er,
-  			    const amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi,
-			    const amrex::MultiFab& kappa_p,
-			    const amrex::MultiFab& etaTz,
-			    const amrex::MultiFab& temp_new,
-			    amrex::Real delta_t);
+                            const amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi,
+                            const amrex::MultiFab& kappa_p,
+                            const amrex::MultiFab& etaTz,
+                            const amrex::MultiFab& temp_new,
+                            amrex::Real delta_t);
 
 ///
 /// @param rhoe_new
@@ -669,15 +669,15 @@ public:
 /// @param delta_t
 ///
   void check_convergence_matt(const amrex::MultiFab& rhoe_new, const amrex::MultiFab& rhoe_star,
-			      const amrex::MultiFab& rhoe_step, const amrex::MultiFab& Er_new,
-			      const amrex::MultiFab& temp_new, const amrex::MultiFab& temp_star,
-			      const amrex::MultiFab& rho,
-			      const amrex::MultiFab& kappa_p, const amrex::MultiFab& jg,
-			      const amrex::MultiFab& dedT,
-			      amrex::Real& rel_rhoe, amrex::Real& abs_rhoe,
-			      amrex::Real& rel_FT,   amrex::Real& abs_FT,
-			      amrex::Real& rel_T,    amrex::Real& abs_T,
-			      amrex::Real delta_t);
+                              const amrex::MultiFab& rhoe_step, const amrex::MultiFab& Er_new,
+                              const amrex::MultiFab& temp_new, const amrex::MultiFab& temp_star,
+                              const amrex::MultiFab& rho,
+                              const amrex::MultiFab& kappa_p, const amrex::MultiFab& jg,
+                              const amrex::MultiFab& dedT,
+                              amrex::Real& rel_rhoe, amrex::Real& abs_rhoe,
+                              amrex::Real& rel_FT,   amrex::Real& abs_FT,
+                              amrex::Real& rel_T,    amrex::Real& abs_T,
+                              amrex::Real delta_t);
 
 ///
 /// @param coupT
@@ -686,8 +686,8 @@ public:
 /// @param jg
 ///
   void compute_coupling(amrex::MultiFab& coupT,
-			const amrex::MultiFab& kappa_p, const amrex::MultiFab& Er_pi,
-			const amrex::MultiFab& jg);
+                        const amrex::MultiFab& kappa_p, const amrex::MultiFab& Er_pi,
+                        const amrex::MultiFab& jg);
 
 ///
 /// @param etaT
@@ -722,11 +722,11 @@ public:
 /// @param ngrow
 ///
   void eos_opacity_emissivity(const amrex::MultiFab& S_new,
-			      const amrex::MultiFab& temp_new,
-			      const amrex::MultiFab& temp_star,
-			      amrex::MultiFab& kappa_p, amrex::MultiFab& kappa_r, amrex::MultiFab& jg,
-			      amrex::MultiFab& djdT, amrex::MultiFab& dkdT, amrex::MultiFab& dedT,
-			      int level, int it, int ngrow);
+                              const amrex::MultiFab& temp_new,
+                              const amrex::MultiFab& temp_star,
+                              amrex::MultiFab& kappa_p, amrex::MultiFab& kappa_r, amrex::MultiFab& jg,
+                              amrex::MultiFab& djdT, amrex::MultiFab& dkdT, amrex::MultiFab& dedT,
+                              int level, int it, int ngrow);
 
 ///
 /// @param Er_new
@@ -746,12 +746,12 @@ public:
 /// @param ptc_tau
 ///
   void gray_accel(amrex::MultiFab& Er_new, amrex::MultiFab& Er_pi,
-		  amrex::MultiFab& kappa_p, amrex::MultiFab& kappa_r,
-		  amrex::MultiFab& etaT, amrex::MultiFab& eta1,
-		  amrex::MultiFab& mugT,
-		  amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
-		  RadSolve& solver, MGRadBndry& mgbd,
-		  const amrex::BoxArray& grids, int level, amrex::Real time, amrex::Real delta_t, amrex::Real ptc_tau);
+                  amrex::MultiFab& kappa_p, amrex::MultiFab& kappa_r,
+                  amrex::MultiFab& etaT, amrex::MultiFab& eta1,
+                  amrex::MultiFab& mugT,
+                  amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
+                  RadSolve& solver, MGRadBndry& mgbd,
+                  const amrex::BoxArray& grids, int level, amrex::Real time, amrex::Real delta_t, amrex::Real ptc_tau);
 
 ///
 /// @param Er_new
@@ -763,10 +763,10 @@ public:
 /// @param ptc_tau
 ///
   void local_accel(amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi,
-		   const amrex::MultiFab& kappa_p,
-		   const amrex::MultiFab& etaT,
-		   const amrex::MultiFab& mugT,
-		   amrex::Real delta_t, amrex::Real ptc_tau);
+                   const amrex::MultiFab& kappa_p,
+                   const amrex::MultiFab& etaT,
+                   const amrex::MultiFab& mugT,
+                   amrex::Real delta_t, amrex::Real ptc_tau);
 
 ///
 /// @param state
@@ -778,8 +778,8 @@ public:
 /// @param level
 ///
   void state_energy_update(amrex::MultiFab& state, const amrex::MultiFab& rhoe,
-			   const amrex::MultiFab& temp, const amrex::BoxArray& grids,
-			   amrex::Real& derat, amrex::Real& dT, int level);
+                           const amrex::MultiFab& temp, const amrex::BoxArray& grids,
+                           amrex::Real& derat, amrex::Real& dT, int level);
 
 ///
 /// @param rhoe_new
@@ -803,17 +803,17 @@ public:
 /// @param conservative_update
 ///
   void update_matter(amrex::MultiFab& rhoe_new, amrex::MultiFab& temp_new,
-		     const amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi,
-		     const amrex::MultiFab& rhoe_star,
-		     const amrex::MultiFab& rhoe_step,
-		     const amrex::MultiFab& etaT, const amrex::MultiFab& etaTz,
-		     const amrex::MultiFab& eta1,
-		     const amrex::MultiFab& coupT,
-		     const amrex::MultiFab& kappa_p, const amrex::MultiFab& jg,
-		     const amrex::MultiFab& mugT,
-		     const amrex::MultiFab& S_new,
-		     int level, amrex::Real delta_t,
-		     amrex::Real ptc_tau, int it, bool conservative_update);
+                     const amrex::MultiFab& Er_new, const amrex::MultiFab& Er_pi,
+                     const amrex::MultiFab& rhoe_star,
+                     const amrex::MultiFab& rhoe_step,
+                     const amrex::MultiFab& etaT, const amrex::MultiFab& etaTz,
+                     const amrex::MultiFab& eta1,
+                     const amrex::MultiFab& coupT,
+                     const amrex::MultiFab& kappa_p, const amrex::MultiFab& jg,
+                     const amrex::MultiFab& mugT,
+                     const amrex::MultiFab& S_new,
+                     int level, amrex::Real delta_t,
+                     amrex::Real ptc_tau, int it, bool conservative_update);
 
 ///
 /// @param rhoe_new
@@ -825,8 +825,8 @@ public:
 /// @param level
 ///
   void bisect_matter(amrex::MultiFab& rhoe_new, amrex::MultiFab& temp_new,
-		     const amrex::MultiFab& rhoe_star, const amrex::MultiFab& temp_star,
-		     const amrex::MultiFab& S_new, const amrex::BoxArray& grids, int level);
+                     const amrex::MultiFab& rhoe_star, const amrex::MultiFab& temp_star,
+                     const amrex::MultiFab& S_new, const amrex::BoxArray& grids, int level);
 
 ///
 /// for the hyperbolic solver
@@ -874,7 +874,7 @@ public:
 /// @param iflx
 ///
   void save_lab_Er_in_plotvar(int level, const amrex::MultiFab& Snew,
-			      const amrex::MultiFab& Ecom, const amrex::MultiFab& F, int iflx);
+                              const amrex::MultiFab& Ecom, const amrex::MultiFab& F, int iflx);
 
 ///
 /// @param level
@@ -886,8 +886,8 @@ public:
 /// @param iflx
 ///
   void save_lab_flux_in_plotvar(int level, const amrex::MultiFab& Snew,
-				const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda,
-				const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
+                                const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda,
+                                const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
 
 ///
 /// @param level
@@ -899,8 +899,8 @@ public:
 /// @param iflx
 ///
   void save_com_flux_in_plotvar(int level, const amrex::MultiFab& Snew,
-				const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda,
-				const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
+                                const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda,
+                                const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
 
 protected:
 
