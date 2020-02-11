@@ -57,14 +57,6 @@
                      amrex::Array4<amrex::Real const> const src,
                      amrex::Array4<amrex::Real> const srcQ);
 
-    void add_hybrid_advection_source_c(const int i, const int j, const int k,
-                                       const amrex::Real dt, amrex::GpuArray<amrex::Real, 3> const dx,
-                                       amrex::GpuArray<amrex::Real, 3> const center,
-                                       amrex::Array4<amrex::Real> const update,
-                                       amrex::Array4<amrex::Real const> const qx,
-                                       amrex::Array4<amrex::Real const> const qy,
-                                       amrex::Array4<amrex::Real const> const qz);
-
     void uflatten(const amrex::Box& bx,
                   amrex::Array4<amrex::Real const> const q,
                   amrex::Array4<amrex::Real> const flatn,
@@ -109,11 +101,3 @@
                       amrex::Array4<amrex::Real const> const vol,
                       const amrex::Real dt);
 
-#ifdef HYBRID_MOMENTUM
-    void add_hybrid_advection_source(const int i, const int j, const int k,
-                                     const amrex::Real dt, const amrex::Real* dx,
-                                     amrex::Array4<amrex::Real> const update,
-                                     amrex::Array4<amrex::Real const> const qx,
-                                     amrex::Array4<amrex::Real const> const qy,
-                                     amrex::Array4<amrex::Real const> const qz);
-#endif
