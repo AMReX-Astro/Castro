@@ -6,10 +6,10 @@ REPO=`git config remote.origin.url`
 SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
 
 # Add rsa keys to the ssh agent to push to GitHub
-gpg --output ../id_maestro_rsa --batch --passphrase $DECRYPT_GITHUB_AUTH --decrypt id_maestro_rsa.enc
-chmod 600 ../id_maestro_rsa
+gpg --output ../id_rsa_travis --batch --passphrase $DECRYPT_GITHUB_AUTH --decrypt $TRAVIS_BUILD_DIR/id_rsa_travis.enc
+chmod 600 ../id_rsa_travis
 eval `ssh-agent -s`
-ssh-add ../id_maestro_rsa
+ssh-add ../id_rsa_travis
 #ls ../id_rsa_travis
 
 echo "Running tab exterminator script"
