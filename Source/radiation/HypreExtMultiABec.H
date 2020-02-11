@@ -124,9 +124,9 @@ class HypreExtMultiABec : public HypreMultiABec {
 /// @param icomp
 ///
   void boundaryDterm(int level,
-		     amrex::MultiFab* Dterm,
-		     amrex::MultiFab& Er,
-		     int icomp);
+                     amrex::MultiFab* Dterm,
+                     amrex::MultiFab& Er,
+                     int icomp);
 
  protected:
 

@@ -32,10 +32,6 @@ INTEGRATOR_DIR ?= VODE90
 
 COMP ?= gnu
 
-ifndef MICROPHYSICS_HOME
-  $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
-endif
-
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 
 EOS_DIR ?= helmholtz
@@ -47,7 +43,7 @@ NETWORK_DIR ?= aprox13
 # If using general_null, make sure we have a reasonable set of isotopes.
 
 ifeq ($(NETWORK_DIR), general_null)
-	GENERAL_NET_INPUTS = $(MICROPHYSICS_HOME)/networks/$(NETWORK_DIR)/aprox13.net
+  NETWORK_INPUTS = aprox13.net
 endif
 
 # Location where the source files are coming from.

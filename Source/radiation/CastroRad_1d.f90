@@ -272,46 +272,6 @@ subroutine ca_get_v_dcf( lo, hi, &
 
 end subroutine ca_get_v_dcf
 
-
-subroutine ca_compute_dcoefs( lo, hi, &
-     d  ,   d_l1,   d_h1, &
-     lam, lam_l1, lam_h1, &
-     v ,    v_l1,   v_h1, &
-     dcf, dcf_l1, dcf_h1, &
-     r, idir) bind(C, name="ca_compute_dcoefs")
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(1), hi(1)
-  integer, intent(in) :: d_l1, d_h1, &
-       & lam_l1, lam_h1, &
-       &   v_l1,   v_h1, &
-       & dcf_l1, dcf_h1, &
-       idir
-
-  real(rt)                      ::   d(  d_l1:  d_h1)
-  real(rt)        , intent(in)  :: lam(lam_l1:lam_h1)
-  real(rt)        , intent(in)  ::   v(  v_l1:  v_h1)
-  real(rt)        , intent(in)  :: dcf(dcf_l1:dcf_h1)
-  real(rt)        , intent(in)  ::   r( lo(1): hi(1))
-
-  integer :: i
-
-  do i = lo(1), hi(1)
-     if (v(i-1) + v(i) .gt. 0.e0_rt) then
-        d(i) = dcf(i-1) * v(i-1) * lam(i)
-     else if (v(i-1) + v(i) .lt. 0.e0_rt) then
-        d(i) = dcf(i) * v(i) * lam(i)
-     else
-        d(i) = 0.0e0_rt
-     end if
-     d(i) = d(i) * r(i)
-  end do
-
-end subroutine ca_compute_dcoefs
-
-
 subroutine ca_update_dcf(lo, hi, &
      dcf, dcf_l1, dcf_h1, &
      etainv, eti_l1, eti_h1, &

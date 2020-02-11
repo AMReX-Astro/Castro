@@ -36,17 +36,17 @@ Castro::source_flag(int src)
 
 #ifdef SPONGE
     case sponge_src:
-	if (do_sponge)
-	    return true;
-	else
-	    return false;
+        if (do_sponge)
+            return true;
+        else
+            return false;
 #endif
 
     case ext_src:
-	if (add_ext_src)
-	    return true;
-	else
-	    return false;
+        if (add_ext_src)
+            return true;
+        else
+            return false;
 
     case thermo_src:
         if (time_integration_method == SpectralDeferredCorrections)
@@ -67,27 +67,27 @@ Castro::source_flag(int src)
 
 #ifdef HYBRID_MOMENTUM
     case hybrid_src:
-	return true;
+        return true;
 #endif
 
 #ifdef GRAVITY
     case grav_src:
-	if (do_grav)
-	    return true;
-	else
-	    return false;
+        if (do_grav)
+            return true;
+        else
+            return false;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	if (do_rotation)
-	    return true;
-	else
-	    return false;
+        if (do_rotation)
+            return true;
+        else
+            return false;
 #endif
 
     default:
-	return false;
+        return false;
 
     } // end switch
 }
@@ -161,14 +161,14 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
         Real      run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-	if (ParallelDescriptor::IOProcessor())
-	  std::cout << "Castro::do_old_sources() time = " << run_time << "\n" << "\n";
+        if (ParallelDescriptor::IOProcessor())
+          std::cout << "Castro::do_old_sources() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 
@@ -248,14 +248,14 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
         Real      run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-	if (ParallelDescriptor::IOProcessor())
-	  std::cout << "Castro::do_new_sources() time = " << run_time << "\n" << "\n";
+        if (ParallelDescriptor::IOProcessor())
+          std::cout << "Castro::do_new_sources() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 
@@ -272,13 +272,13 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real
 
 #ifdef SPONGE
     case sponge_src:
-	construct_old_sponge_source(source, state_in, time, dt);
-	break;
+        construct_old_sponge_source(source, state_in, time, dt);
+        break;
 #endif
 
     case ext_src:
-	construct_old_ext_source(source, state_in, time, dt);
-	break;
+        construct_old_ext_source(source, state_in, time, dt);
+        break;
 
     case thermo_src:
         construct_old_thermo_source(source, state_in, time, dt);
@@ -295,24 +295,24 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real
 
 #ifdef HYBRID_MOMENTUM
     case hybrid_src:
-	construct_old_hybrid_source(source, state_in, time, dt);
-	break;
+        construct_old_hybrid_source(source, state_in, time, dt);
+        break;
 #endif
 
 #ifdef GRAVITY
     case grav_src:
-	construct_old_gravity_source(source, state_in, time, dt);
-	break;
+        construct_old_gravity_source(source, state_in, time, dt);
+        break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_old_rotation_source(source, state_in, time, dt);
-	break;
+        construct_old_rotation_source(source, state_in, time, dt);
+        break;
 #endif
 
     default:
-	break;
+        break;
 
     } // end switch
 }
@@ -328,40 +328,40 @@ Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, Mul
 
 #ifdef SPONGE
     case sponge_src:
-	construct_new_sponge_source(source, state_old, state_new, time, dt);
-	break;
+        construct_new_sponge_source(source, state_old, state_new, time, dt);
+        break;
 #endif
 
     case ext_src:
-	construct_new_ext_source(source, state_old, state_new, time, dt);
-	break;
+        construct_new_ext_source(source, state_old, state_new, time, dt);
+        break;
 
 #ifdef DIFFUSION
     case diff_src:
-	construct_new_diff_source(source, state_old, state_new, time, dt);
-	break;
+        construct_new_diff_source(source, state_old, state_new, time, dt);
+        break;
 #endif
 
 #ifdef HYBRID_MOMENTUM
     case hybrid_src:
-	construct_new_hybrid_source(source, state_old, state_new, time, dt);
-	break;
+        construct_new_hybrid_source(source, state_old, state_new, time, dt);
+        break;
 #endif
 
 #ifdef GRAVITY
     case grav_src:
-	construct_new_gravity_source(source, state_old, state_new, time, dt);
-	break;
+        construct_new_gravity_source(source, state_old, state_new, time, dt);
+        break;
 #endif
 
 #ifdef ROTATION
     case rot_src:
-	construct_new_rotation_source(source, state_old, state_new, time, dt);
-	break;
+        construct_new_rotation_source(source, state_old, state_new, time, dt);
+        break;
 #endif
 
     default:
-	break;
+        break;
 
     } // end switch
 }
@@ -565,7 +565,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
 
     if (dt > 0.0) {
         MultiFab::Saxpy(A_prim,  1.0 / dt, q_noreact, 0, 0, NQ, ng);
-	MultiFab::Saxpy(A_prim, -1.0 / dt, q_old,     0, 0, NQ, ng);
+        MultiFab::Saxpy(A_prim, -1.0 / dt, q_old,     0, 0, NQ, ng);
     }
 
     // Compute the primitive version of the new state.
