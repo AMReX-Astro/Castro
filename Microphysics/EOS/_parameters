@@ -1,2 +1,0 @@
-# Force the EOS output quantities to match input -- we override the value from the helmholtz StarKiller here
-eos_input_is_constant               logical            .true.       10000

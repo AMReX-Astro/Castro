@@ -1,9 +1,0 @@
-F90EXE_sources += network.F90
-
-ifeq ($(USE_REACT),TRUE)
-F90EXE_sources += burner.F90
-F90EXE_sources += burn_type.F90
-ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-F90EXE_sources += sdc_type.F90
-endif
-endif

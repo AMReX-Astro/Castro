@@ -45,15 +45,25 @@ is installed on your machine—we recommend version 1.7.x or higher.
 #. Clone/fork the Castro repository from the same
    github organization as above, using either HTTP access::
 
-       git clone https://github.com/AMReX-Astro/Castro.git
+       git clone --recursive https://github.com/AMReX-Astro/Castro.git
 
    or SSH access if you have it enabled::
 
-       git clone git@github.com:AMReX-Astro/Castro.git
+       git clone --recursive git@github.com:AMReX-Astro/Castro.git
 
    As with AMReX, development on Castro is done in the
    ``development`` branch, so you should work there if you want
    the latest source.
+
+   The ``--recursive`` option to ``git clone`` is used to ensure
+   that all of Castro's dependencies are downloaded. Currently this
+   requirement is for the Microphysics repository from the starkiller-astro
+   organization on GitHub. This adds the equations of state, reaction
+   networks, and other microphysics needed to run Castro. If you forget
+   to do a recursive clone, you can rectify the situation by running
+   the following from the top-level of the Castro directory::
+
+       git submodule update --init --recursive
 
 #. We recommend setting the ``CASTRO_HOME`` environment
    variable to point to the path name where you have put Castro.
@@ -61,10 +71,18 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
        export CASTRO_HOME="/path/to/Castro/"
 
-#. (optional) An additional repository, Microphysics, is
-   available at the starkiller-astro github page. This add
-   additional reaction networks and EOSes and can be cloned following
-   the same procedure as above [1]_::
+#. You can keep the code up to date with::
+
+       git pull --recurse-submodules
+
+   The recommended frequency for doing this is monthly, if you want the
+   stable version of the code; we issue a new release of the code at the
+   beginning of each month. For more frequent updates, you may work on
+   the ``development`` branch, at the risk of a less stable codebase.
+
+#. (optional, for developers) If you prefer, you can maintain Microphysics
+   as a standalone repository rather than a git submodule. To do so, you can
+   clone it from GitHub using::
 
        git clone https://github.com/starkiller-astro/Microphysics.git
 
@@ -72,8 +90,9 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
        git clone git@github.com:/starkiller-astro/Microphysics.git
 
-   To access the Microphysics routines, set the ``MICROPHYSICS_HOME``
-   environment variable to point to the ``Microphysics/`` directory.
+   Then, set the ``MICROPHYSICS_HOME`` environment variable to point to
+   the ``Microphysics/`` directory, and Castro will look there instead
+   of in its local ``Microphysics/`` subdirectory.
 
 Building the Code
 =================

@@ -1,4 +1,0 @@
-F90EXE_sources += eos.F90
-F90EXE_sources += composition.F90
-F90EXE_sources += eos_type.F90
-F90EXE_sources += eos_override.F90
