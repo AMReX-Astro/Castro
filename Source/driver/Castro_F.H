@@ -34,7 +34,7 @@ extern "C"
   void ca_amrinfo_finalize();
 
   void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
-		       const amrex::Real& time, const amrex::Real& dt);
+                       const amrex::Real& time, const amrex::Real& dt);
 
   void ca_get_method_params(int* HYP_GROW);
 
@@ -47,9 +47,9 @@ extern "C"
 #if (BL_SPACEDIM > 1)
   void allocate_outflow_data(const int* n1d, const int* nc);
   void set_old_outflow_data(const amrex::Real* radial, const amrex::Real* time,
-			    const int* numpts, const int* nc);
+                            const int* numpts, const int* nc);
   void set_new_outflow_data(const amrex::Real* radial, const amrex::Real* time,
-			    const int* numpts, const int* nc);
+                            const int* numpts, const int* nc);
   void swap_outflow_data();
 #endif
 #endif
@@ -163,7 +163,7 @@ extern "C"
   void ca_get_center(amrex::Real* center);
   void ca_set_center(const amrex::Real* center);
   void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
-		      const amrex::Real* dx, const amrex::Real* problo);
+                      const amrex::Real* dx, const amrex::Real* problo);
 
   void ca_compute_temp
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));

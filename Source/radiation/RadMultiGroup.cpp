@@ -161,7 +161,7 @@ void Radiation::write_groups(ostream& os)
     os << "# group lower boundaries" << std::endl;
     for (int i = 0; i < xnu.size(); i++) {
       os << "group(" << i << ") = "
-	 << xnu[i] * group_print_factor << std::endl;
+         << xnu[i] * group_print_factor << std::endl;
     }
   }
 }

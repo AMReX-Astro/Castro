@@ -9,11 +9,20 @@ BLAS_LIBRARY ?= -lopenblas
 
 TOP := $(CASTRO_HOME)
 
+MICROPHYSICS_HOME ?= $(TOP)/Microphysics
+
+# Check to make sure that Microphysics actually exists,
+# using an arbitrary file that must exist to check.
+# Throw an error if we don't have Microphysics.
+ifeq ("$(wildcard $(MICROPHYSICS_HOME)/Make.Microphysics)","")
+  $(error Microphysics has not been downloaded. Please run "git submodule update --init" from the top level of the code)
+endif
+
 # the Castro microphysics locations
-EOS_HOME ?= $(TOP)/Microphysics/EOS
-NETWORK_HOME ?= $(TOP)/Microphysics/networks
-COND_HOME ?= $(TOP)/Microphysics/conductivity
-VISC_HOME ?= $(TOP)/Microphysics/viscosity
+EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
+NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
+COND_HOME ?= $(MICROPHYSICS_HOME)/conductivity
+VISC_HOME ?= $(MICROPHYSICS_HOME)/viscosity
 
 # default integrator
 INTEGRATOR_DIR ?= VODE90
@@ -172,6 +181,8 @@ ifeq ($(USE_DIFFUSION), TRUE)
   Bdirs += Source/diffusion
   DEFINES += -DDIFFUSION
   USE_MLMG = TRUE
+  USE_CONDUCTIVITY = TRUE
+  USE_VISCOSITY = TRUE
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
@@ -266,29 +277,10 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 # microphysics 
 #------------------------------------------------------------------------------
 
-ifdef MICROPHYSICS_HOME
-   EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
-   NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(NETWORK_DIR))
+EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
+NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(NETWORK_DIR))
 ifeq ($(USE_DIFFUSION), TRUE)
    COND_PATH := $(MICROPHYSICS_HOME)/conductivity/$(strip $(CONDUCTIVITY_DIR))
-endif
-endif
-
-# if the EOS / network / conductivity name exists in
-# Castro/Microphysics, then use that version
-
-ifneq "$(wildcard $(EOS_HOME)/$(strip $(EOS_DIR)) )" ""
-   EOS_PATH := $(EOS_HOME)/$(strip $(EOS_DIR))
-endif
-
-ifneq "$(wildcard $(NETWORK_HOME)/$(strip $(NETWORK_DIR)) )" ""
-   NETWORK_PATH := $(NETWORK_HOME)/$(strip $(NETWORK_DIR))
-endif
-
-ifeq ($(USE_DIFFUSION), TRUE)
-ifneq "$(wildcard $(COND_HOME)/$(strip $(CONDUCTIVITY_DIR)) )" ""
-   COND_PATH := $(COND_HOME)/$(strip $(CONDUCTIVITY_DIR))
-endif
    VISC_PATH := $(VISC_HOME)/constant
 endif
 
@@ -299,7 +291,7 @@ ifndef GENERAL_NET_INPUTS
    ifneq "$(wildcard $(NETWORK_INPUTS))" ""
       GENERAL_NET_INPUTS := $(NETWORK_INPUTS)
    else
-      GENERAL_NET_INPUTS := $(CASTRO_HOME)/Microphysics/networks/general_null/$(NETWORK_INPUTS)
+      GENERAL_NET_INPUTS := $(MICROPHYSICS_HOME)/networks/general_null/$(NETWORK_INPUTS)
    endif
 endif
 
@@ -322,15 +314,16 @@ EXTERN_CORE += $(NETWORK_PATH)
 # Network includes since it has actions that depend on variables set
 # there.
 
-ifdef MICROPHYSICS_HOME
-  EXTERN_CORE += $(MICROPHYSICS_HOME)/EOS
-  EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
-endif
+EXTERN_CORE += $(MICROPHYSICS_HOME)/EOS
+EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
+EXTERN_CORE += $(MICROPHYSICS_HOME)/interfaces
 
-ifeq ($(USE_DIFFUSION), TRUE)
-   EXTERN_CORE += $(TOP)/Microphysics/conductivity
+ifeq ($(USE_CONDUCTIVITY), TRUE)
    EXTERN_CORE += $(COND_HOME)
    EXTERN_CORE += $(COND_PATH)
+endif
+
+ifeq ($(USE_VISCOSITY), TRUE)
    EXTERN_CORE += $(VISC_PATH)
 endif
 
@@ -338,7 +331,7 @@ ifeq ($(USE_RAD), TRUE)
    ifeq ($(Opacity_dir), null)
      $(error The null opacity directory has been removed, please update to rad_power_law)
    endif
-   OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
+   OPAC_PATH := $(MICROPHYSICS_HOME)/opacity/$(Opacity_dir)
    EXTERN_CORE += $(OPAC_PATH)
 endif
 
@@ -417,9 +410,7 @@ EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
 # these are for finding runtime parameters
 EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)/Util/conservative_interpolate
-ifdef MICROPHYSICS_HOME
-   EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
-endif
+EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 
 EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
 

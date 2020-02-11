@@ -83,7 +83,7 @@ Diffusion::weight_cc(int level, MultiFab& cc)
     const Real* dx = parent->Geom(level).CellSize();
     const int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
-#pragma omp parallel	  
+#pragma omp parallel      
 #endif
     for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -91,7 +91,7 @@ Diffusion::weight_cc(int level, MultiFab& cc)
 
 #pragma gpu box(bx)
         ca_weight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-		     BL_TO_FORTRAN_ANYD(cc[mfi]),
+                     BL_TO_FORTRAN_ANYD(cc[mfi]),
                      AMREX_REAL_ANYD(dx), coord_type);
     }
 }
@@ -102,7 +102,7 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
     const Real* dx = parent->Geom(level).CellSize();
     const int coord_type = parent->Geom(level).Coord();
 #ifdef _OPENMP
-#pragma omp parallel	  
+#pragma omp parallel      
 #endif
     for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -110,7 +110,7 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
 
 #pragma gpu box(bx)
         ca_unweight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-		       BL_TO_FORTRAN_ANYD(cc[mfi]),
+                       BL_TO_FORTRAN_ANYD(cc[mfi]),
                        AMREX_REAL_ANYD(dx), coord_type);
     }
 }

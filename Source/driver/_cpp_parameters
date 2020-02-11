@@ -616,7 +616,7 @@ restart_from_nonparticle_chkfile     int      0
 particle_output_file         string        ""
 
 # the name of a directory in which timestamp files are stored.
-timestamp_dir        	      string        ""
+timestamp_dir                 string        ""
 
 # whether the local densities at given positions of particles are stored in output files
 timestamp_density            int           1

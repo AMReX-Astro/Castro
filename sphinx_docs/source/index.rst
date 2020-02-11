@@ -21,8 +21,10 @@ https://github.com/amrex-astro/Castro
    mpi_plus_x
    FlowChart
    software
+   timestepping
    creating_a_problem
    io
+   regridding
    visualization
    retry
    faq

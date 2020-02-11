@@ -91,151 +91,151 @@ Gravity::read_params ()
 #include "gravity_queries.H"
 
         if ( (gravity_type != "ConstantGrav") &&
-	     (gravity_type != "PoissonGrav") &&
-	     (gravity_type != "MonopoleGrav") &&
+             (gravity_type != "PoissonGrav") &&
+             (gravity_type != "MonopoleGrav") &&
              (gravity_type != "PrescribedGrav") )
              {
                 std::cout << "Sorry -- dont know this gravity type"  << std::endl;
-        	amrex::Abort("Options are ConstantGrav, PoissonGrav, MonopoleGrav, or PrescribedGrav");
+                amrex::Abort("Options are ConstantGrav, PoissonGrav, MonopoleGrav, or PrescribedGrav");
              }
 
         if (  gravity_type == "ConstantGrav")
         {
-	  if ( dgeom.IsSPHERICAL() )
-	      amrex::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
+          if ( dgeom.IsSPHERICAL() )
+              amrex::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
         }
 
 #if (BL_SPACEDIM == 1)
         if (gravity_type == "PoissonGrav")
         {
-	  amrex::Abort(" gravity_type = PoissonGrav doesn't work well in 1-d -- please set gravity_type = MonopoleGrav");
+          amrex::Abort(" gravity_type = PoissonGrav doesn't work well in 1-d -- please set gravity_type = MonopoleGrav");
         }
         else if (gravity_type == "MonopoleGrav" && !(dgeom.IsSPHERICAL()))
         {
-	  amrex::Abort("Only use MonopoleGrav in 1D spherical coordinates");
+          amrex::Abort("Only use MonopoleGrav in 1D spherical coordinates");
         }
         else if (gravity_type == "ConstantGrav" && dgeom.IsSPHERICAL())
         {
-	  amrex::Abort("Can't use constant gravity in 1D spherical coordinates");
+          amrex::Abort("Can't use constant gravity in 1D spherical coordinates");
         }
 
 #elif (BL_SPACEDIM == 2)
         if (gravity_type == "MonopoleGrav" && dgeom.IsCartesian() )
         {
-	  amrex::Abort(" gravity_type = MonopoleGrav doesn't make sense in 2D Cartesian coordinates");
+          amrex::Abort(" gravity_type = MonopoleGrav doesn't make sense in 2D Cartesian coordinates");
         }
 #endif
 
-	if (pp.contains("get_g_from_phi") && !get_g_from_phi && gravity_type == "PoissonGrav")
-	  if (ParallelDescriptor::IOProcessor())
-	    std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
+        if (pp.contains("get_g_from_phi") && !get_g_from_phi && gravity_type == "PoissonGrav")
+          if (ParallelDescriptor::IOProcessor())
+            std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
 
-	int nlevs = parent->maxLevel() + 1;
+        int nlevs = parent->maxLevel() + 1;
 
         // Allow run-time input of solver tolerance. If the user provides no value, set a reasonable default
-	// value on the coarse level, and then increase it by ref_ratio**2 as the levels get finer to account
-	// for the change in the absolute scale of the Laplacian. If the user provides one value, use that
-	// on the coarse level, and increase it the same way for the fine levels. If the user provides more than
-	// one value, we expect them to provide one for every level, and we do not apply the ref_ratio effect.
+        // value on the coarse level, and then increase it by ref_ratio**2 as the levels get finer to account
+        // for the change in the absolute scale of the Laplacian. If the user provides one value, use that
+        // on the coarse level, and increase it the same way for the fine levels. If the user provides more than
+        // one value, we expect them to provide one for every level, and we do not apply the ref_ratio effect.
 
-	int n_abs_tol = pp.countval("abs_tol");
+        int n_abs_tol = pp.countval("abs_tol");
 
-	if (n_abs_tol <= 1) {
+        if (n_abs_tol <= 1) {
 
-	    Real tol;
+            Real tol;
 
-	    if (n_abs_tol == 1) {
+            if (n_abs_tol == 1) {
 
-		pp.get("abs_tol", tol);
+                pp.get("abs_tol", tol);
 
-	    } else {
+            } else {
 
-		if (dgeom.IsCartesian())
-		    tol = 1.e-11;
-		else
-		    tol = 1.e-10;
+                if (dgeom.IsCartesian())
+                    tol = 1.e-11;
+                else
+                    tol = 1.e-10;
 
-	    }
+            }
 
-	    abs_tol[0] = tol;
+            abs_tol[0] = tol;
 
-	    // Account for the fact that on finer levels, the scale of the
-	    // Laplacian changes due to the zone size changing. We assume
-	    // dx == dy == dz, so it is fair to say that on each level the
-	    // tolerance should increase by the factor ref_ratio**2, since
-	    // in absolute terms the Laplacian increases by that ratio too.
-	    // The actual tolerance we'll send in is the effective tolerance
-	    // on the finest level that we solve for.
+            // Account for the fact that on finer levels, the scale of the
+            // Laplacian changes due to the zone size changing. We assume
+            // dx == dy == dz, so it is fair to say that on each level the
+            // tolerance should increase by the factor ref_ratio**2, since
+            // in absolute terms the Laplacian increases by that ratio too.
+            // The actual tolerance we'll send in is the effective tolerance
+            // on the finest level that we solve for.
 
-	    for (int lev = 1; lev < nlevs; ++lev)
-		abs_tol[lev] = abs_tol[lev - 1] * std::pow(parent->refRatio(lev - 1)[0], 2);
+            for (int lev = 1; lev < nlevs; ++lev)
+                abs_tol[lev] = abs_tol[lev - 1] * std::pow(parent->refRatio(lev - 1)[0], 2);
 
-	} else if (n_abs_tol >= nlevs) {
+        } else if (n_abs_tol >= nlevs) {
 
-	    pp.getarr("abs_tol", abs_tol, 0, nlevs);
+            pp.getarr("abs_tol", abs_tol, 0, nlevs);
 
-	} else {
+        } else {
 
-	    amrex::Abort("If you are providing multiple values for abs_tol, you must provide at least one value for every level up to amr.max_level.");
+            amrex::Abort("If you are providing multiple values for abs_tol, you must provide at least one value for every level up to amr.max_level.");
 
-	}
+        }
 
-	// For the relative tolerance, we can again accept a single scalar (same for all levels)
-	// or one for all levels. The default value is zero, so that we only use the absolute tolerance.
-	// The multigrid always chooses the looser of the two criteria in determining whether the solve
-	// has converged.
+        // For the relative tolerance, we can again accept a single scalar (same for all levels)
+        // or one for all levels. The default value is zero, so that we only use the absolute tolerance.
+        // The multigrid always chooses the looser of the two criteria in determining whether the solve
+        // has converged.
 
-	// Note that the parameter rel_tol used to be known as ml_tol, so if we detect that the user has
-	// set ml_tol but not rel_tol, we'll accept that for specifying the relative tolerance. ml_tol
-	// is now considered deprecated and will be removed in a future release.
+        // Note that the parameter rel_tol used to be known as ml_tol, so if we detect that the user has
+        // set ml_tol but not rel_tol, we'll accept that for specifying the relative tolerance. ml_tol
+        // is now considered deprecated and will be removed in a future release.
 
-	std::string rel_tol_name = "rel_tol";
+        std::string rel_tol_name = "rel_tol";
 
-	if (pp.contains("ml_tol")) {
+        if (pp.contains("ml_tol")) {
 
-	    amrex::Warning("The gravity parameter ml_tol has been renamed rel_tol. ml_tol is now deprecated.");
+            amrex::Warning("The gravity parameter ml_tol has been renamed rel_tol. ml_tol is now deprecated.");
 
-	    if (!pp.contains("rel_tol"))
-		rel_tol_name = "ml_tol";
+            if (!pp.contains("rel_tol"))
+                rel_tol_name = "ml_tol";
 
-	}
+        }
 
-	int n_rel_tol = pp.countval(rel_tol_name.c_str());
+        int n_rel_tol = pp.countval(rel_tol_name.c_str());
 
-	if (n_rel_tol <= 1) {
+        if (n_rel_tol <= 1) {
 
-	    Real tol;
+            Real tol;
 
-	    if (n_rel_tol == 1) {
+            if (n_rel_tol == 1) {
 
-		pp.get(rel_tol_name.c_str(), tol);
+                pp.get(rel_tol_name.c_str(), tol);
 
-	    } else {
+            } else {
 
-		tol = 0.0;
+                tol = 0.0;
 
-	    }
+            }
 
-	    for (int lev = 0; lev < MAX_LEV; ++lev)
-		rel_tol[lev] = tol;
+            for (int lev = 0; lev < MAX_LEV; ++lev)
+                rel_tol[lev] = tol;
 
-	} else if (n_rel_tol >= nlevs) {
+        } else if (n_rel_tol >= nlevs) {
 
-	    pp.getarr(rel_tol_name.c_str(), rel_tol, 0, nlevs);
+            pp.getarr(rel_tol_name.c_str(), rel_tol, 0, nlevs);
 
-	} else {
+        } else {
 
-	    amrex::Abort("If you are providing multiple values for rel_tol, you must provide at least one value for every level up to amr.max_level.");
+            amrex::Abort("If you are providing multiple values for rel_tol, you must provide at least one value for every level up to amr.max_level.");
 
-	}
+        }
 
-	// Warn user about obsolete tolerance parameters.
+        // Warn user about obsolete tolerance parameters.
 
-	if (pp.contains("delta_tol"))
-	    amrex::Warning("The gravity parameter delta_tol is no longer used.");
+        if (pp.contains("delta_tol"))
+            amrex::Warning("The gravity parameter delta_tol is no longer used.");
 
-	if (pp.contains("sl_tol"))
-	    amrex::Warning("The gravity parameter sl_tol is no longer used.");
+        if (pp.contains("sl_tol"))
+            amrex::Warning("The gravity parameter sl_tol is no longer used.");
 
         Real Gconst;
         get_grav_const(&Gconst);
@@ -395,23 +395,23 @@ Gravity::swapTimeLevels (int level)
     BL_PROFILE("Gravity::swapTimeLevels()");
     
     if (gravity_type == "PoissonGrav") {
-	for (int n=0; n < BL_SPACEDIM; n++) {
-	    std::swap(grad_phi_prev[level][n], grad_phi_curr[level][n]);
-	    grad_phi_curr[level][n]->setVal(1.e50);
-	}
+        for (int n=0; n < BL_SPACEDIM; n++) {
+            std::swap(grad_phi_prev[level][n], grad_phi_curr[level][n]);
+            grad_phi_curr[level][n]->setVal(1.e50);
+        }
     }
 }
 
 void
 Gravity::solve_for_phi (int               level,
-			MultiFab&         phi,
+                        MultiFab&         phi,
                         const Vector<MultiFab*>& grad_phi,
-			int               is_new)
+                        int               is_new)
 {
     BL_PROFILE("Gravity::solve_for_phi()");
 
     if (verbose > 1 && ParallelDescriptor::IOProcessor())
-	std::cout << " ... solve for phi at level " << level << std::endl;
+        std::cout << " ... solve for phi at level " << level << std::endl;
 
     const Real strt = ParallelDescriptor::second();
 
@@ -461,13 +461,13 @@ Gravity::solve_for_phi (int               level,
         Real      end    = ParallelDescriptor::second() - strt;
 
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::solve_for_phi() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 }
@@ -504,20 +504,20 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
     Vector<std::unique_ptr<MultiFab> > delta_phi(nlevs);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
-	delta_phi[lev - crse_level].reset(new MultiFab(grids[lev], dmap[lev], 1, 1));
-	delta_phi[lev - crse_level]->setVal(0.0);
+        delta_phi[lev - crse_level].reset(new MultiFab(grids[lev], dmap[lev], 1, 1));
+        delta_phi[lev - crse_level]->setVal(0.0);
     }
 
     Vector< Vector<std::unique_ptr<MultiFab> > > ec_gdPhi(nlevs);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
-	ec_gdPhi[lev - crse_level].resize(BL_SPACEDIM);
+        ec_gdPhi[lev - crse_level].resize(BL_SPACEDIM);
 
-	const DistributionMapping& dm = LevelData[lev]->DistributionMap();
+        const DistributionMapping& dm = LevelData[lev]->DistributionMap();
         for (int n = 0; n < BL_SPACEDIM; ++n) {
-	    ec_gdPhi[lev - crse_level][n].reset(new MultiFab(LevelData[lev]->getEdgeBoxArray(n), dm, 1, 0));
-	    ec_gdPhi[lev - crse_level][n]->setVal(0.0);
-	}
+            ec_gdPhi[lev - crse_level][n].reset(new MultiFab(LevelData[lev]->getEdgeBoxArray(n), dm, 1, 0));
+            ec_gdPhi[lev - crse_level][n]->setVal(0.0);
+        }
     }
 
     // Construct a container for the right-hand-side (4 * pi * G * drho + dphi).
@@ -532,17 +532,17 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
     Vector<std::unique_ptr<MultiFab> > rhs(nlevs);
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
-	rhs[lev - crse_level].reset( new MultiFab(LevelData[lev]->boxArray(), LevelData[lev]->DistributionMap(), 1, 0));
-	MultiFab::Copy(*rhs[lev - crse_level], *dphi[lev - crse_level], 0, 0, 1, 0);
-	rhs[lev - crse_level]->mult(1.0 / Ggravity);
-	MultiFab::Add(*rhs[lev - crse_level], *drho[lev - crse_level], 0, 0, 1, 0);
+        rhs[lev - crse_level].reset( new MultiFab(LevelData[lev]->boxArray(), LevelData[lev]->DistributionMap(), 1, 0));
+        MultiFab::Copy(*rhs[lev - crse_level], *dphi[lev - crse_level], 0, 0, 1, 0);
+        rhs[lev - crse_level]->mult(1.0 / Ggravity);
+        MultiFab::Add(*rhs[lev - crse_level], *drho[lev - crse_level], 0, 0, 1, 0);
     }
 
     // Construct the boundary conditions for the Poisson solve.
 
     if (crse_level == 0 && !crse_geom.isAllPeriodic()) {
 
-	if (verbose > 1 && ParallelDescriptor::IOProcessor())
+        if (verbose > 1 && ParallelDescriptor::IOProcessor())
          std::cout << " ... Making bc's for delta_phi at crse_level 0"  << std::endl;
 
 #if (BL_SPACEDIM == 3)
@@ -572,7 +572,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
 
     // Restore the factor of (4 * pi * G) for the Poisson solve.
     for (int lev = crse_level; lev <= fine_level; ++lev)
-	rhs[lev - crse_level]->mult(Ggravity);
+        rhs[lev - crse_level]->mult(Ggravity);
 
     // In the all-periodic case we enforce that the RHS sums to zero.
     // We only do this if we're periodic and the coarse level covers the whole domain.
@@ -584,36 +584,36 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
     if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()))
     {
 
-	// We assume that if we're fully periodic then we're going to be in Cartesian
-	// coordinates, so to get the average value of the RHS we can divide the sum
-	// of the RHS by the number of points. This correction should probably be
-	// volume weighted if we somehow got here without being Cartesian.
+        // We assume that if we're fully periodic then we're going to be in Cartesian
+        // coordinates, so to get the average value of the RHS we can divide the sum
+        // of the RHS by the number of points. This correction should probably be
+        // volume weighted if we somehow got here without being Cartesian.
 
-	Real local_correction = rhs[0]->sum() / grids[crse_level].numPts();
+        Real local_correction = rhs[0]->sum() / grids[crse_level].numPts();
 
         if (verbose > 1 && ParallelDescriptor::IOProcessor())
             std::cout << "WARNING: Adjusting RHS in gravity_sync solve by " << local_correction << '\n';
 
-	for (int lev = fine_level; lev >= crse_level; --lev)
-	    rhs[lev-crse_level]->plus(-local_correction, 0, 1, 0);
+        for (int lev = fine_level; lev >= crse_level; --lev)
+            rhs[lev-crse_level]->plus(-local_correction, 0, 1, 0);
 
     }
 
     // Do multi-level solve for delta_phi.
 
     solve_for_delta_phi(crse_level, fine_level,
-			amrex::GetVecOfPtrs(rhs),
-			amrex::GetVecOfPtrs(delta_phi),
-			amrex::GetVecOfVecOfPtrs(ec_gdPhi));
+                        amrex::GetVecOfPtrs(rhs),
+                        amrex::GetVecOfPtrs(delta_phi),
+                        amrex::GetVecOfVecOfPtrs(ec_gdPhi));
 
     // In the all-periodic case we enforce that delta_phi averages to zero.
 
     if (crse_geom.isAllPeriodic() && (grids[crse_level].numPts() == crse_domain.numPts()) ) {
 
-	Real local_correction = delta_phi[0]->sum() / grids[crse_level].numPts();
+        Real local_correction = delta_phi[0]->sum() / grids[crse_level].numPts();
 
-	for (int lev = crse_level; lev <= fine_level; ++lev)
-	    delta_phi[lev - crse_level]->plus(-local_correction, 0, 1, 1);
+        for (int lev = crse_level; lev <= fine_level; ++lev)
+            delta_phi[lev - crse_level]->plus(-local_correction, 0, 1, 1);
 
     }
 
@@ -622,13 +622,13 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
 
     for (int lev = crse_level; lev <= fine_level; lev++) {
 
-	LevelData[lev]->get_new_data(PhiGrav_Type).plus(*delta_phi[lev - crse_level], 0, 1, 0);
+        LevelData[lev]->get_new_data(PhiGrav_Type).plus(*delta_phi[lev - crse_level], 0, 1, 0);
 
-	for (int n = 0; n < BL_SPACEDIM; n++)
-	    grad_phi_curr[lev][n]->plus(*ec_gdPhi[lev - crse_level][n], 0, 1, 0);
+        for (int n = 0; n < BL_SPACEDIM; n++)
+            grad_phi_curr[lev][n]->plus(*ec_gdPhi[lev - crse_level][n], 0, 1, 0);
 
-    	get_new_grav_vector(lev, LevelData[lev]->get_new_data(Gravity_Type),
-			    LevelData[lev]->get_state_data(State_Type).curTime());
+        get_new_grav_vector(lev, LevelData[lev]->get_new_data(Gravity_Type),
+                            LevelData[lev]->get_state_data(State_Type).curTime());
 
     }
 
@@ -637,23 +637,23 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
     for (int lev = fine_level-1; lev >= crse_level; --lev)
     {
 
-	// Average phi_new from fine to coarse level
+        // Average phi_new from fine to coarse level
 
-	const IntVect& ratio = parent->refRatio(lev);
+        const IntVect& ratio = parent->refRatio(lev);
 
-	amrex::average_down(LevelData[lev+1]->get_new_data(PhiGrav_Type),
-			     LevelData[lev  ]->get_new_data(PhiGrav_Type),
-			     0, 1, ratio);
+        amrex::average_down(LevelData[lev+1]->get_new_data(PhiGrav_Type),
+                             LevelData[lev  ]->get_new_data(PhiGrav_Type),
+                             0, 1, ratio);
 
-	// Average the edge-based grad_phi from finer to coarser level
+        // Average the edge-based grad_phi from finer to coarser level
 
-	average_fine_ec_onto_crse_ec(lev, is_new);
+        average_fine_ec_onto_crse_ec(lev, is_new);
 
-	// Average down the gravitational acceleration too.
+        // Average down the gravitational acceleration too.
 
-	amrex::average_down(LevelData[lev+1]->get_new_data(Gravity_Type),
-			     LevelData[lev  ]->get_new_data(Gravity_Type),
-			     0, 1, ratio);
+        amrex::average_down(LevelData[lev+1]->get_new_data(Gravity_Type),
+                             LevelData[lev  ]->get_new_data(Gravity_Type),
+                             0, 1, ratio);
 
     }
 
@@ -679,20 +679,20 @@ Gravity::GetCrsePhi(int level,
 #pragma omp parallel
 #endif
     {
-	FArrayBox PhiCrseTemp;
-	for (MFIter mfi(phi_crse, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+        FArrayBox PhiCrseTemp;
+        for (MFIter mfi(phi_crse, TilingIfNotGPU()); mfi.isValid(); ++mfi)
         {
-	    const Box& gtbx = mfi.growntilebox();
+            const Box& gtbx = mfi.growntilebox();
 
-	    PhiCrseTemp.resize(gtbx,1);
+            PhiCrseTemp.resize(gtbx,1);
 
-	    PhiCrseTemp.copy(LevelData[level-1]->get_old_data(PhiGrav_Type)[mfi]);
-	    PhiCrseTemp.mult(omalpha);
+            PhiCrseTemp.copy(LevelData[level-1]->get_old_data(PhiGrav_Type)[mfi]);
+            PhiCrseTemp.mult(omalpha);
 
-	    phi_crse[mfi].copy(LevelData[level-1]->get_new_data(PhiGrav_Type)[mfi], gtbx);
-	    phi_crse[mfi].mult(alpha, gtbx);
-	    phi_crse[mfi].plus(PhiCrseTemp);
-	}
+            phi_crse[mfi].copy(LevelData[level-1]->get_new_data(PhiGrav_Type)[mfi], gtbx);
+            phi_crse[mfi].mult(alpha, gtbx);
+            phi_crse[mfi].plus(PhiCrseTemp);
+        }
     }
 
     const Geometry& geom = parent->Geom(level-1);
@@ -712,19 +712,19 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
        for (int n=0; n<BL_SPACEDIM; ++n)
        {
            grad_phi_curr[lev][n].reset(new MultiFab(LevelData[lev]->getEdgeBoxArray(n),
-						    LevelData[lev]->DistributionMap(),1,1));
+                                                    LevelData[lev]->DistributionMap(),1,1));
        }
     }
 
     int is_new = 1;
     actual_multilevel_solve(level,finest_level,amrex::GetVecOfVecOfPtrs(grad_phi_curr),
-			    is_new,use_previous_phi_as_guess);
+                            is_new,use_previous_phi_as_guess);
 }
 
 void
 Gravity::actual_multilevel_solve (int crse_level, int finest_level,
                                   const Vector<Vector<MultiFab*> >& grad_phi,
-				  int is_new,
+                                  int is_new,
                                   int use_previous_phi_as_guess)
 {
     BL_PROFILE("Gravity::actual_multilevel_solve()");
@@ -737,36 +737,36 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
     Vector<MultiFab*> phi_p(nlevels);
     for (int ilev = 0; ilev < nlevels; ilev++)
     {
-	int amr_lev = ilev + crse_level;
-	if (is_new == 1) {
-	    phi_p[ilev] = &LevelData[amr_lev]->get_new_data(PhiGrav_Type);
-	} else {
-	    phi_p[ilev] = &LevelData[amr_lev]->get_old_data(PhiGrav_Type);
-	}
+        int amr_lev = ilev + crse_level;
+        if (is_new == 1) {
+            phi_p[ilev] = &LevelData[amr_lev]->get_new_data(PhiGrav_Type);
+        } else {
+            phi_p[ilev] = &LevelData[amr_lev]->get_old_data(PhiGrav_Type);
+        }
 
-	if (!use_previous_phi_as_guess)
-	    phi_p[ilev]->setVal(0.);
+        if (!use_previous_phi_as_guess)
+            phi_p[ilev]->setVal(0.);
     }
 
     const auto& rhs = get_rhs(crse_level, nlevels, is_new);
 
     if (!use_previous_phi_as_guess && crse_level == 0 && !(parent->Geom(0).isAllPeriodic()))
     {
-	make_radial_phi(0, *rhs[0], *phi_p[0], 1);
+        make_radial_phi(0, *rhs[0], *phi_p[0], 1);
     }
 
     Vector<Vector<MultiFab*> > grad_phi_p(nlevels);
     for (int ilev = 0; ilev < nlevels; ilev++)
     {
-	int amr_lev = ilev + crse_level;
-	grad_phi_p[ilev] = grad_phi[amr_lev];
+        int amr_lev = ilev + crse_level;
+        grad_phi_p[ilev] = grad_phi[amr_lev];
     }
 
     Real time;
     if (is_new == 1) {
-	time = LevelData[crse_level]->get_state_data(PhiGrav_Type).curTime();
+        time = LevelData[crse_level]->get_state_data(PhiGrav_Type).curTime();
     } else {
-	time = LevelData[crse_level]->get_state_data(PhiGrav_Type).prevTime();
+        time = LevelData[crse_level]->get_state_data(PhiGrav_Type).prevTime();
     }
 
     int fine_level = std::min(finest_level, max_solve_level);
@@ -893,7 +893,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "PrescribedGrav") {
 
-	MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
+        MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
       make_prescribed_grav(level,time,grav,phi);
 
     } else if (gravity_type == "PoissonGrav") {
@@ -909,18 +909,18 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     // Do the copy to the output vector.
 
     for (int dir = 0; dir < 3; dir++) {
-	if (dir < BL_SPACEDIM) {
-	    MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
-	} else {
-	    grav_vector.setVal(0.,dir,1,ng);
-	}
+        if (dir < BL_SPACEDIM) {
+            MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
+        } else {
+            grav_vector.setVal(0.,dir,1,ng);
+        }
     }
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav") {
-	// Fill ghost cells
-	AmrLevel* amrlev = &parent->getLevel(level) ;
-	AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM);
+        // Fill ghost cells
+        AmrLevel* amrlev = &parent->getLevel(level) ;
+        AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM);
     }
 #endif
 
@@ -964,10 +964,10 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "MonopoleGrav") {
 
-	// We always fill radial_grav_new (at every level)
-	const Real cur_time = LevelData[level]->get_state_data(State_Type).curTime();
-	make_radial_gravity(level,cur_time,radial_grav_new[level]);
-	interpolate_monopole_grav(level,radial_grav_new[level],grav);
+        // We always fill radial_grav_new (at every level)
+        const Real cur_time = LevelData[level]->get_state_data(State_Type).curTime();
+        make_radial_gravity(level,cur_time,radial_grav_new[level]);
+        interpolate_monopole_grav(level,radial_grav_new[level],grav);
 
     } else if (gravity_type == "PrescribedGrav") {
 
@@ -976,9 +976,9 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     } else if (gravity_type == "PoissonGrav") {
 
-	const Geometry& geom = parent->Geom(level);
-	amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_curr[level]), geom);
-	grav.mult(-1.0, ng); // g = - grad(phi)
+        const Geometry& geom = parent->Geom(level);
+        amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_curr[level]), geom);
+        grav.mult(-1.0, ng); // g = - grad(phi)
 
     } else {
        amrex::Abort("Unknown gravity_type in get_new_grav_vector");
@@ -987,18 +987,18 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     // Do the copy to the output vector.
 
     for (int dir = 0; dir < 3; dir++) {
-	if (dir < BL_SPACEDIM) {
-	    MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
-	} else {
-	    grav_vector.setVal(0.,dir,1,ng);
-	}
+        if (dir < BL_SPACEDIM) {
+            MultiFab::Copy(grav_vector, grav, dir, dir, 1, ng);
+        } else {
+            grav_vector.setVal(0.,dir,1,ng);
+        }
     }
 
 #if (BL_SPACEDIM > 1)
     if (gravity_type != "ConstantGrav" && ng>0) {
-	// Fill ghost cells
-	AmrLevel* amrlev = &parent->getLevel(level) ;
-	AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM);
+        // Fill ghost cells
+        AmrLevel* amrlev = &parent->getLevel(level) ;
+        AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM);
     }
 #endif
 
@@ -1055,11 +1055,11 @@ Gravity::test_level_grad_phi_prev(int level)
         //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
         // Fill the RHS array with the residual
         ca_test_residual(bx.loVect(), bx.hiVect(),
-			 BL_TO_FORTRAN(Rhs[mfi]),
-			 D_DECL(BL_TO_FORTRAN((*grad_phi_prev[level][0])[mfi]),
-				BL_TO_FORTRAN((*grad_phi_prev[level][1])[mfi]),
-				BL_TO_FORTRAN((*grad_phi_prev[level][2])[mfi])),
-			 dx,problo,&coord_type);
+                         BL_TO_FORTRAN(Rhs[mfi]),
+                         D_DECL(BL_TO_FORTRAN((*grad_phi_prev[level][0])[mfi]),
+                                BL_TO_FORTRAN((*grad_phi_prev[level][1])[mfi]),
+                                BL_TO_FORTRAN((*grad_phi_prev[level][2])[mfi])),
+                         dx,problo,&coord_type);
     }
     if (verbose > 1) {
        Real resnorm = Rhs.norm0();
@@ -1126,11 +1126,11 @@ Gravity::test_level_grad_phi_curr(int level)
         //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
         // Fill the RHS array with the residual
         ca_test_residual(bx.loVect(), bx.hiVect(),
-			 BL_TO_FORTRAN(Rhs[mfi]),
-			 D_DECL(BL_TO_FORTRAN((*grad_phi_curr[level][0])[mfi]),
-				BL_TO_FORTRAN((*grad_phi_curr[level][1])[mfi]),
-				BL_TO_FORTRAN((*grad_phi_curr[level][2])[mfi])),
-			 dx,problo,&coord_type);
+                         BL_TO_FORTRAN(Rhs[mfi]),
+                         D_DECL(BL_TO_FORTRAN((*grad_phi_curr[level][0])[mfi]),
+                                BL_TO_FORTRAN((*grad_phi_curr[level][1])[mfi]),
+                                BL_TO_FORTRAN((*grad_phi_curr[level][2])[mfi])),
+                         dx,problo,&coord_type);
     }
     if (verbose > 1) {
        Real resnorm = Rhs.norm0();
@@ -1155,32 +1155,32 @@ Gravity::test_level_grad_phi_curr(int level)
 
 void
 Gravity::create_comp_minus_level_grad_phi(int level,
-					  MultiFab& comp_phi,
-					  const Vector<MultiFab*>& comp_gphi,
-					  MultiFab& comp_minus_level_phi,
-					  Vector<std::unique_ptr<MultiFab> >& comp_minus_level_grad_phi)
+                                          MultiFab& comp_phi,
+                                          const Vector<MultiFab*>& comp_gphi,
+                                          MultiFab& comp_minus_level_phi,
+                                          Vector<std::unique_ptr<MultiFab> >& comp_minus_level_grad_phi)
 {
     BL_PROFILE("Gravity::create_comp_minus_level_grad_phi()");
 
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
-	std::cout << "\n";
-	std::cout << "... compute difference between level and composite solves at level " << level << "\n";
-	std::cout << "\n";
+        std::cout << "\n";
+        std::cout << "... compute difference between level and composite solves at level " << level << "\n";
+        std::cout << "\n";
     }
 
     comp_minus_level_phi.define(LevelData[level]->boxArray(),
-				LevelData[level]->DistributionMap(),
-				1, 0);
+                                LevelData[level]->DistributionMap(),
+                                1, 0);
 
     comp_minus_level_phi.copy(comp_phi, 0, 0, 1);
     comp_minus_level_phi.minus(parent->getLevel(level).get_old_data(PhiGrav_Type), 0, 1, 0);
 
     comp_minus_level_grad_phi.resize(BL_SPACEDIM);
     for (int n = 0; n < BL_SPACEDIM; ++n) {
-	comp_minus_level_grad_phi[n].reset(new MultiFab(LevelData[level]->getEdgeBoxArray(n),
-							LevelData[level]->DistributionMap(), 1, 0));
-	comp_minus_level_grad_phi[n]->copy(*comp_gphi[n], 0, 0, 1);
-	comp_minus_level_grad_phi[n]->minus(*grad_phi_prev[level][n], 0, 1, 0);
+        comp_minus_level_grad_phi[n].reset(new MultiFab(LevelData[level]->getEdgeBoxArray(n),
+                                                        LevelData[level]->DistributionMap(), 1, 0));
+        comp_minus_level_grad_phi[n]->copy(*comp_gphi[n], 0, 0, 1);
+        comp_minus_level_grad_phi[n]->minus(*grad_phi_prev[level][n], 0, 1, 0);
     }
 
 }
@@ -1207,21 +1207,21 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
     for (int n=0; n<BL_SPACEDIM; ++n)
     {
         BoxArray eba = crse_gphi_fine_BA;
-	eba.surroundingNodes(n);
+        eba.surroundingNodes(n);
         crse_gphi_fine[n].reset(new MultiFab(eba,dmap[level+1],1,0));
     }
 
     auto& grad_phi = (is_new) ? grad_phi_curr : grad_phi_prev;
 
     amrex::average_down_faces(amrex::GetVecOfConstPtrs(grad_phi[level+1]),
-			       amrex::GetVecOfPtrs(crse_gphi_fine),
-			       fine_ratio);
+                               amrex::GetVecOfPtrs(crse_gphi_fine),
+                               fine_ratio);
 
     const Geometry& cgeom = parent->Geom(level);
 
     for (int n = 0; n < BL_SPACEDIM; ++n)
     {
-	grad_phi[level][n]->copy(*crse_gphi_fine[n], cgeom.periodicity());
+        grad_phi[level][n]->copy(*crse_gphi_fine[n], cgeom.periodicity());
     }
 }
 
@@ -1243,20 +1243,20 @@ Gravity::test_composite_phi (int crse_level)
     Vector<std::unique_ptr<MultiFab> > res(nlevels);
     for (int ilev = 0; ilev < nlevels; ++ilev)
     {
-	int amr_lev = crse_level + ilev;
+        int amr_lev = crse_level + ilev;
 
-	phi[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
-	MultiFab::Copy(*phi[ilev],
-		       LevelData[amr_lev]->get_new_data(PhiGrav_Type),
-		       0,0,1,1);
+        phi[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
+        MultiFab::Copy(*phi[ilev],
+                       LevelData[amr_lev]->get_new_data(PhiGrav_Type),
+                       0,0,1,1);
 
-	rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
-	MultiFab::Copy(*rhs[ilev],
-		       LevelData[amr_lev]->get_new_data(State_Type),
-		       URHO, 0,1,0);
+        rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,1));
+        MultiFab::Copy(*rhs[ilev],
+                       LevelData[amr_lev]->get_new_data(State_Type),
+                       URHO, 0,1,0);
 
-	res[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
-	res[ilev]->setVal(0.);
+        res[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
+        res[ilev]->setVal(0.);
     }
 
     Real time = LevelData[crse_level]->get_state_data(PhiGrav_Type).curTime();
@@ -1272,18 +1272,18 @@ Gravity::test_composite_phi (int crse_level)
     // Average residual from fine to coarse level before printing the norm
     for (int amr_lev = finest_level-1; amr_lev >= 0; --amr_lev)
     {
-	const IntVect& ratio = parent->refRatio(amr_lev);
-	int ilev = amr_lev - crse_level;
-	amrex::average_down(*res[ilev+1], *res[ilev],
-			     0, 1, ratio);
+        const IntVect& ratio = parent->refRatio(amr_lev);
+        int ilev = amr_lev - crse_level;
+        amrex::average_down(*res[ilev+1], *res[ilev],
+                             0, 1, ratio);
     }
 
     for (int amr_lev = crse_level; amr_lev <= finest_level; ++amr_lev) {
-	Real resnorm = res[amr_lev]->norm0();
-	if (ParallelDescriptor::IOProcessor()) {
-	    std::cout << "      ... norm of composite residual at level "
-		      << amr_lev << "  " << resnorm << '\n';
-	}
+        Real resnorm = res[amr_lev]->norm0();
+        if (ParallelDescriptor::IOProcessor()) {
+            std::cout << "      ... norm of composite residual at level "
+                      << amr_lev << "  " << resnorm << '\n';
+        }
     }
     if (ParallelDescriptor::IOProcessor()) std::cout << std::endl;
 }
@@ -1305,7 +1305,7 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
     {
        const Box& bx = mfi.growntilebox();
        ca_prescribe_phi(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-		        BL_TO_FORTRAN_ANYD(phi[mfi]),dx);
+                        BL_TO_FORTRAN_ANYD(phi[mfi]),dx);
     }
 
 #ifdef _OPENMP
@@ -1315,7 +1315,7 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
     {
        const Box& bx = mfi.growntilebox();
        ca_prescribe_grav(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),
-			 BL_TO_FORTRAN_ANYD(grav_vector[mfi]),dx);
+                         BL_TO_FORTRAN_ANYD(grav_vector[mfi]),dx);
     }
 
     if (verbose)
@@ -1324,13 +1324,13 @@ Gravity::make_prescribed_grav(int level, Real time, MultiFab& grav_vector, Multi
         Real      end    = ParallelDescriptor::second() - strt;
 
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::make_prescribed_grav() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 }
@@ -1353,9 +1353,9 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
     {
        const Box& bx = mfi.growntilebox();
        ca_put_radial_grav(bx.loVect(),bx.hiVect(),dx,&dr,
-			  BL_TO_FORTRAN(grav_vector[mfi]),
-			  radial_grav.dataPtr(),geom.ProbLo(),
-			  &n1d,&level);
+                          BL_TO_FORTRAN(grav_vector[mfi]),
+                          radial_grav.dataPtr(),geom.ProbLo(),
+                          &n1d,&level);
     }
 }
 
@@ -1387,43 +1387,43 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
     Vector< RealVector > priv_radial_mass(nthreads);
     Vector< RealVector > priv_radial_vol (nthreads);
     for (int i=0; i<nthreads; i++) {
-	priv_radial_mass[i].resize(n1d,0.0);
-	priv_radial_vol [i].resize(n1d,0.0);
+        priv_radial_mass[i].resize(n1d,0.0);
+        priv_radial_vol [i].resize(n1d,0.0);
     }
 #pragma omp parallel
 #endif
     {
 #ifdef _OPENMP
-	int tid = omp_get_thread_num();
+        int tid = omp_get_thread_num();
 #endif
-	for (MFIter mfi(Rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-	{
-	    const Box& bx = mfi.tilebox();
+        for (MFIter mfi(Rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+        {
+            const Box& bx = mfi.tilebox();
 
 #pragma gpu box(bx)
-	    ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+            ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                    AMREX_REAL_ANYD(dx), dr,
-				   BL_TO_FORTRAN_ANYD(Rhs[mfi]),
+                                   BL_TO_FORTRAN_ANYD(Rhs[mfi]),
 #ifdef _OPENMP
-				   priv_radial_mass[tid].dataPtr(),
-				   priv_radial_vol[tid].dataPtr(),
+                                   priv_radial_mass[tid].dataPtr(),
+                                   priv_radial_vol[tid].dataPtr(),
 #else
-				   radial_mass.dataPtr(),
-				   radial_vol.dataPtr(),
+                                   radial_mass.dataPtr(),
+                                   radial_vol.dataPtr(),
 #endif
-				   AMREX_REAL_ANYD(geom.ProbLo()),
+                                   AMREX_REAL_ANYD(geom.ProbLo()),
                                    n1d, drdxfac, level);
-	}
+        }
 
 #ifdef _OPENMP
 #pragma omp barrier
 #pragma omp for
-	for (int i=0; i<n1d; i++) {
-	    for (int it=0; it<nthreads; it++) {
-		radial_mass[i] += priv_radial_mass[it][i];
-		radial_vol [i] += priv_radial_vol [it][i];
-	    }
-	}
+        for (int i=0; i<n1d; i++) {
+            for (int it=0; it<nthreads; it++) {
+                radial_mass[i] += priv_radial_mass[it][i];
+                radial_vol [i] += priv_radial_vol [it][i];
+            }
+        }
 #endif
     }
 
@@ -1439,11 +1439,11 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
     // Integrate radially outward to define the gravity
     ca_integrate_grav(radial_mass.dataPtr(), radial_den.dataPtr(),
-		      radial_grav.dataPtr(), &max_radius_all_in_domain, &dr, &n1d);
+                      radial_grav.dataPtr(), &max_radius_all_in_domain, &dr, &n1d);
 
     // Integrate radially inward to define the potential
     ca_integrate_phi(radial_mass.dataPtr(),radial_grav.dataPtr(),
-		     radial_phi.dataPtr(),&dr,&n1d);
+                     radial_phi.dataPtr(),&dr,&n1d);
 
     Box domain(parent->Geom(level).Domain());
 #ifdef _OPENMP
@@ -1455,12 +1455,12 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
 #pragma gpu box(bx)
         ca_put_radial_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-			  AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
-			  AMREX_REAL_ANYD(dx), dr,
+                          AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
+                          AMREX_REAL_ANYD(dx), dr,
                           BL_TO_FORTRAN_ANYD(phi[mfi]),
-			  radial_phi.dataPtr(),
+                          radial_phi.dataPtr(),
                           AMREX_REAL_ANYD(geom.ProbLo()),
-			  n1d, fill_interior);
+                          n1d, fill_interior);
     }
 
     if (verbose)
@@ -1469,13 +1469,13 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
         Real      end    = ParallelDescriptor::second() - strt;
 
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::make_radial_phi() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 
@@ -1593,17 +1593,17 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
 
-	// Create a local copy of the RHS so that we can mask it.
+        // Create a local copy of the RHS so that we can mask it.
 
         MultiFab source(Rhs[lev - crse_level]->boxArray(),
-			Rhs[lev - crse_level]->DistributionMap(), 1, 0);
+                        Rhs[lev - crse_level]->DistributionMap(), 1, 0);
 
-	MultiFab::Copy(source, *Rhs[lev - crse_level], 0, 0, 1, 0);
+        MultiFab::Copy(source, *Rhs[lev - crse_level], 0, 0, 1, 0);
 
-	if (lev < fine_level) {
-	    const MultiFab& mask = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)))->build_fine_mask();
-	    MultiFab::Multiply(source, mask, 0, 0, 1, 0);
-	}
+        if (lev < fine_level) {
+            const MultiFab& mask = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)))->build_fine_mask();
+            MultiFab::Multiply(source, mask, 0, 0, 1, 0);
+        }
 
         // Loop through the grids and compute the individual contributions
         // to the various moments. The multipole moment constructor
@@ -1611,120 +1611,120 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         // to directly hand the arrays to them.
 
         const Box& domain = parent->Geom(lev).Domain();
-	const Real* dx = parent->Geom(lev).CellSize();
+        const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
-	int nthreads = omp_get_max_threads();
-	Vector<std::unique_ptr<FArrayBox> > priv_qL0(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_qLC(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_qLS(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_qU0(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_qUC(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_qUS(nthreads);
-	for (int i=0; i<nthreads; i++) {
-	    priv_qL0[i].reset(new FArrayBox(boxq0));
-	    priv_qLC[i].reset(new FArrayBox(boxqC));
-	    priv_qLS[i].reset(new FArrayBox(boxqS));
-	    priv_qU0[i].reset(new FArrayBox(boxq0));
-	    priv_qUC[i].reset(new FArrayBox(boxqC));
-	    priv_qUS[i].reset(new FArrayBox(boxqS));
-	}
+        int nthreads = omp_get_max_threads();
+        Vector<std::unique_ptr<FArrayBox> > priv_qL0(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_qLC(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_qLS(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_qU0(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_qUC(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_qUS(nthreads);
+        for (int i=0; i<nthreads; i++) {
+            priv_qL0[i].reset(new FArrayBox(boxq0));
+            priv_qLC[i].reset(new FArrayBox(boxqC));
+            priv_qLS[i].reset(new FArrayBox(boxqS));
+            priv_qU0[i].reset(new FArrayBox(boxq0));
+            priv_qUC[i].reset(new FArrayBox(boxqC));
+            priv_qUS[i].reset(new FArrayBox(boxqS));
+        }
 #pragma omp parallel
 #endif
-	{
+        {
 #ifdef _OPENMP
-	    int tid = omp_get_thread_num();
-	    priv_qL0[tid]->setVal(0.0);
-	    priv_qLC[tid]->setVal(0.0);
-	    priv_qLS[tid]->setVal(0.0);
-	    priv_qU0[tid]->setVal(0.0);
-	    priv_qUC[tid]->setVal(0.0);
-	    priv_qUS[tid]->setVal(0.0);
+            int tid = omp_get_thread_num();
+            priv_qL0[tid]->setVal(0.0);
+            priv_qLC[tid]->setVal(0.0);
+            priv_qLS[tid]->setVal(0.0);
+            priv_qU0[tid]->setVal(0.0);
+            priv_qUC[tid]->setVal(0.0);
+            priv_qUS[tid]->setVal(0.0);
 #endif
-	    for (MFIter mfi(source, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-	    {
-	        const Box& bx = mfi.tilebox();
+            for (MFIter mfi(source, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+            {
+                const Box& bx = mfi.tilebox();
 
 #pragma gpu box(bx)
-		ca_compute_multipole_moments(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-		                             AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
-					     AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(source[mfi]),
-					     BL_TO_FORTRAN_ANYD((*volume[lev])[mfi]),
-					     lnum,
+                ca_compute_multipole_moments(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                             AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
+                                             AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(source[mfi]),
+                                             BL_TO_FORTRAN_ANYD((*volume[lev])[mfi]),
+                                             lnum,
 #ifdef _OPENMP
-					     priv_qL0[tid]->dataPtr(),
-					     priv_qLC[tid]->dataPtr(),priv_qLS[tid]->dataPtr(),
-					     priv_qU0[tid]->dataPtr(),
-					     priv_qUC[tid]->dataPtr(),priv_qUS[tid]->dataPtr(),
+                                             priv_qL0[tid]->dataPtr(),
+                                             priv_qLC[tid]->dataPtr(),priv_qLS[tid]->dataPtr(),
+                                             priv_qU0[tid]->dataPtr(),
+                                             priv_qUC[tid]->dataPtr(),priv_qUS[tid]->dataPtr(),
 #else
-					     qL0.dataPtr(), qLC.dataPtr(), qLS.dataPtr(),
-					     qU0.dataPtr(), qUC.dataPtr(), qUS.dataPtr(),
+                                             qL0.dataPtr(), qLC.dataPtr(), qLS.dataPtr(),
+                                             qU0.dataPtr(), qUC.dataPtr(), qUS.dataPtr(),
 #endif
-					     npts, boundary_only);
-	}
+                                             npts, boundary_only);
+        }
 
 #ifdef _OPENMP
-	    int np0 = boxq0.numPts();
-	    int npC = boxqC.numPts();
-	    int npS = boxqS.numPts();
-	    Real* pL0 = qL0.dataPtr();
-	    Real* pLC = qLC.dataPtr();
-	    Real* pLS = qLS.dataPtr();
-	    Real* pU0 = qU0.dataPtr();
-	    Real* pUC = qUC.dataPtr();
-	    Real* pUS = qUS.dataPtr();
+            int np0 = boxq0.numPts();
+            int npC = boxqC.numPts();
+            int npS = boxqS.numPts();
+            Real* pL0 = qL0.dataPtr();
+            Real* pLC = qLC.dataPtr();
+            Real* pLS = qLS.dataPtr();
+            Real* pU0 = qU0.dataPtr();
+            Real* pUC = qUC.dataPtr();
+            Real* pUS = qUS.dataPtr();
 #pragma omp barrier
 #pragma omp for nowait
-	    for (int i=0; i<np0; ++i)
-	    {
-	        for (int it=0; it<nthreads; it++) {
-		    const Real* pp = priv_qL0[it]->dataPtr();
-		    pL0[i] += pp[i];
-		}
-	    }
+            for (int i=0; i<np0; ++i)
+            {
+                for (int it=0; it<nthreads; it++) {
+                    const Real* pp = priv_qL0[it]->dataPtr();
+                    pL0[i] += pp[i];
+                }
+            }
 #pragma omp for nowait
-	    for (int i=0; i<npC; ++i)
-	    {
-	        for (int it=0; it<nthreads; it++) {
-		    const Real* pp = priv_qLC[it]->dataPtr();
-		    pLC[i] += pp[i];
-		}
-	    }
+            for (int i=0; i<npC; ++i)
+            {
+                for (int it=0; it<nthreads; it++) {
+                    const Real* pp = priv_qLC[it]->dataPtr();
+                    pLC[i] += pp[i];
+                }
+            }
 #pragma omp for nowait
-	    for (int i=0; i<npS; ++i)
-	    {
-	        for (int it=0; it<nthreads; it++) {
-		    const Real* pp = priv_qLS[it]->dataPtr();
-		    pLS[i] += pp[i];
-		}
-	    }
+            for (int i=0; i<npS; ++i)
+            {
+                for (int it=0; it<nthreads; it++) {
+                    const Real* pp = priv_qLS[it]->dataPtr();
+                    pLS[i] += pp[i];
+                }
+            }
 #pragma omp for nowait
-	    for (int i=0; i<np0; ++i)
-	    {
-	        for (int it=0; it<nthreads; it++) {
-		  const Real* pp = priv_qU0[it]->dataPtr();
-		  pU0[i] += pp[i];
-		}
-	    }
+            for (int i=0; i<np0; ++i)
+            {
+                for (int it=0; it<nthreads; it++) {
+                  const Real* pp = priv_qU0[it]->dataPtr();
+                  pU0[i] += pp[i];
+                }
+            }
 #pragma omp for nowait
-	    for (int i=0; i<npC; ++i)
-	    {
-	        for (int it=0; it<nthreads; it++) {
-		  const Real* pp = priv_qUC[it]->dataPtr();
-		  pUC[i] += pp[i];
-		}
-	    }
+            for (int i=0; i<npC; ++i)
+            {
+                for (int it=0; it<nthreads; it++) {
+                  const Real* pp = priv_qUC[it]->dataPtr();
+                  pUC[i] += pp[i];
+                }
+            }
 #pragma omp for nowait
-	    for (int i=0; i<npS; ++i)
-	    {
-	        for (int it=0; it<nthreads; it++) {
-		    const Real* pp = priv_qUS[it]->dataPtr();
-		    pUS[i] += pp[i];
-		}
-	    }
+            for (int i=0; i<npS; ++i)
+            {
+                for (int it=0; it<nthreads; it++) {
+                    const Real* pp = priv_qUS[it]->dataPtr();
+                    pUS[i] += pp[i];
+                }
+            }
 #endif
 
-	} // end OpenMP parallel loop
+        } // end OpenMP parallel loop
 
     } // end loop over levels
 
@@ -1782,12 +1782,12 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
 #pragma gpu box(bx)
         ca_put_multipole_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-			     AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
-			     AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
-			     lnum,
-			     qL0.dataPtr(), qLC.dataPtr(), qLS.dataPtr(),
-			     qU0.dataPtr(), qUC.dataPtr(), qUS.dataPtr(),
-			     npts, boundary_only);
+                             AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
+                             AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
+                             lnum,
+                             qL0.dataPtr(), qLC.dataPtr(), qLS.dataPtr(),
+                             qU0.dataPtr(), qUC.dataPtr(), qUS.dataPtr(),
+                             npts, boundary_only);
     }
 
     if (verbose)
@@ -1796,13 +1796,13 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         Real      end    = ParallelDescriptor::second() - strt;
 
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::fill_multipole_BCs() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 
@@ -1909,114 +1909,114 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
 
-	// Create a local copy of the RHS so that we can mask it.
+        // Create a local copy of the RHS so that we can mask it.
 
         MultiFab source(Rhs[lev - crse_level]->boxArray(),
-			Rhs[lev - crse_level]->DistributionMap(),
-			1, 0);
+                        Rhs[lev - crse_level]->DistributionMap(),
+                        1, 0);
 
-	MultiFab::Copy(source, *Rhs[lev - crse_level], 0, 0, 1, 0);
+        MultiFab::Copy(source, *Rhs[lev - crse_level], 0, 0, 1, 0);
 
-	if (lev < fine_level) {
-	    const MultiFab& mask = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)))->build_fine_mask();
-	    MultiFab::Multiply(source, mask, 0, 0, 1, 0);
-	}
+        if (lev < fine_level) {
+            const MultiFab& mask = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)))->build_fine_mask();
+            MultiFab::Multiply(source, mask, 0, 0, 1, 0);
+        }
 
-	const Real* dx = parent->Geom(lev).CellSize();
+        const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
-	int nthreads = omp_get_max_threads();
-	Vector<std::unique_ptr<FArrayBox> > priv_bcXYLo(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_bcXYHi(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_bcXZLo(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_bcXZHi(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_bcYZLo(nthreads);
-	Vector<std::unique_ptr<FArrayBox> > priv_bcYZHi(nthreads);
-	for (int i=0; i<nthreads; i++) {
-	    priv_bcXYLo[i].reset(new FArrayBox(boxXY));
-	    priv_bcXYHi[i].reset(new FArrayBox(boxXY));
-	    priv_bcXZLo[i].reset(new FArrayBox(boxXZ));
-	    priv_bcXZHi[i].reset(new FArrayBox(boxXZ));
-	    priv_bcYZLo[i].reset(new FArrayBox(boxYZ));
-	    priv_bcYZHi[i].reset(new FArrayBox(boxYZ));
-	}
+        int nthreads = omp_get_max_threads();
+        Vector<std::unique_ptr<FArrayBox> > priv_bcXYLo(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcXYHi(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcXZLo(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcXZHi(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcYZLo(nthreads);
+        Vector<std::unique_ptr<FArrayBox> > priv_bcYZHi(nthreads);
+        for (int i=0; i<nthreads; i++) {
+            priv_bcXYLo[i].reset(new FArrayBox(boxXY));
+            priv_bcXYHi[i].reset(new FArrayBox(boxXY));
+            priv_bcXZLo[i].reset(new FArrayBox(boxXZ));
+            priv_bcXZHi[i].reset(new FArrayBox(boxXZ));
+            priv_bcYZLo[i].reset(new FArrayBox(boxYZ));
+            priv_bcYZHi[i].reset(new FArrayBox(boxYZ));
+        }
 #pragma omp parallel
 #endif
-	{
+        {
 #ifdef _OPENMP
-	    int tid = omp_get_thread_num();
-	    priv_bcXYLo[tid]->setVal(0.0);
-	    priv_bcXYHi[tid]->setVal(0.0);
-	    priv_bcXZLo[tid]->setVal(0.0);
-	    priv_bcXZHi[tid]->setVal(0.0);
-	    priv_bcYZLo[tid]->setVal(0.0);
-	    priv_bcYZHi[tid]->setVal(0.0);
+            int tid = omp_get_thread_num();
+            priv_bcXYLo[tid]->setVal(0.0);
+            priv_bcXYHi[tid]->setVal(0.0);
+            priv_bcXZLo[tid]->setVal(0.0);
+            priv_bcXZHi[tid]->setVal(0.0);
+            priv_bcYZLo[tid]->setVal(0.0);
+            priv_bcYZHi[tid]->setVal(0.0);
 #endif
-	    for (MFIter mfi(source, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-	    {
-		const Box bx = mfi.tilebox();
+            for (MFIter mfi(source, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+            {
+                const Box bx = mfi.tilebox();
 
-		const FArrayBox& r = source[mfi];
-		const FArrayBox& v = (*volume[lev])[mfi];
+                const FArrayBox& r = source[mfi];
+                const FArrayBox& v = (*volume[lev])[mfi];
 
 #pragma gpu box(bx)
-		ca_compute_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), AMREX_REAL_ANYD(dx),
-					 symmetry_type, AMREX_INT_ANYD(physbc_lo), AMREX_INT_ANYD(physbc_hi),
-					 BL_TO_FORTRAN_ANYD(r),
-					 BL_TO_FORTRAN_ANYD(v),
-					 AMREX_REAL_ANYD(crse_geom.ProbLo()), AMREX_REAL_ANYD(crse_geom.ProbHi()),
+                ca_compute_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), AMREX_REAL_ANYD(dx),
+                                         symmetry_type, AMREX_INT_ANYD(physbc_lo), AMREX_INT_ANYD(physbc_hi),
+                                         BL_TO_FORTRAN_ANYD(r),
+                                         BL_TO_FORTRAN_ANYD(v),
+                                         AMREX_REAL_ANYD(crse_geom.ProbLo()), AMREX_REAL_ANYD(crse_geom.ProbHi()),
 #ifdef _OPENMP
-					 priv_bcXYLo[tid]->dataPtr(),
-					 priv_bcXYHi[tid]->dataPtr(),
-					 priv_bcXZLo[tid]->dataPtr(),
-					 priv_bcXZHi[tid]->dataPtr(),
-					 priv_bcYZLo[tid]->dataPtr(),
-					 priv_bcYZHi[tid]->dataPtr(),
+                                         priv_bcXYLo[tid]->dataPtr(),
+                                         priv_bcXYHi[tid]->dataPtr(),
+                                         priv_bcXZLo[tid]->dataPtr(),
+                                         priv_bcXZHi[tid]->dataPtr(),
+                                         priv_bcYZLo[tid]->dataPtr(),
+                                         priv_bcYZHi[tid]->dataPtr(),
 #else
-					 bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-					 bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-					 bcYZLo.dataPtr(), bcYZHi.dataPtr(),
+                                         bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+                                         bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+                                         bcYZLo.dataPtr(), bcYZHi.dataPtr(),
 #endif
-	                                 AMREX_INT_ANYD(bc_lo), AMREX_INT_ANYD(bc_hi), AMREX_REAL_ANYD(bc_dx));
-	    }
+                                         AMREX_INT_ANYD(bc_lo), AMREX_INT_ANYD(bc_hi), AMREX_REAL_ANYD(bc_dx));
+            }
 
 #ifdef _OPENMP
-	    Real* pXYLo = bcXYLo.dataPtr();
-	    Real* pXYHi = bcXYHi.dataPtr();
-	    Real* pXZLo = bcXZLo.dataPtr();
-	    Real* pXZHi = bcXZHi.dataPtr();
-	    Real* pYZLo = bcYZLo.dataPtr();
-	    Real* pYZHi = bcYZHi.dataPtr();
+            Real* pXYLo = bcXYLo.dataPtr();
+            Real* pXYHi = bcXYHi.dataPtr();
+            Real* pXZLo = bcXZLo.dataPtr();
+            Real* pXZHi = bcXZHi.dataPtr();
+            Real* pYZLo = bcYZLo.dataPtr();
+            Real* pYZHi = bcYZHi.dataPtr();
 #pragma omp barrier
 #pragma omp for nowait
-	    for (int i=0; i<nPtsXY; i++) {
-		for (int it=0; it<nthreads; it++) {
-		    const Real* pl = priv_bcXYLo[it]->dataPtr();
-		    const Real* ph = priv_bcXYHi[it]->dataPtr();
-		    pXYLo[i] += pl[i];
-		    pXYHi[i] += ph[i];
-		}
-	    }
+            for (int i=0; i<nPtsXY; i++) {
+                for (int it=0; it<nthreads; it++) {
+                    const Real* pl = priv_bcXYLo[it]->dataPtr();
+                    const Real* ph = priv_bcXYHi[it]->dataPtr();
+                    pXYLo[i] += pl[i];
+                    pXYHi[i] += ph[i];
+                }
+            }
 #pragma omp for nowait
-	    for (int i=0; i<nPtsXZ; i++) {
-		for (int it=0; it<nthreads; it++) {
-		    const Real* pl = priv_bcXZLo[it]->dataPtr();
-		    const Real* ph = priv_bcXZHi[it]->dataPtr();
-		    pXZLo[i] += pl[i];
-		    pXZHi[i] += ph[i];
-		}
-	    }
+            for (int i=0; i<nPtsXZ; i++) {
+                for (int it=0; it<nthreads; it++) {
+                    const Real* pl = priv_bcXZLo[it]->dataPtr();
+                    const Real* ph = priv_bcXZHi[it]->dataPtr();
+                    pXZLo[i] += pl[i];
+                    pXZHi[i] += ph[i];
+                }
+            }
 #pragma omp for nowait
-	    for (int i=0; i<nPtsYZ; i++) {
-		for (int it=0; it<nthreads; it++) {
-		    const Real* pl = priv_bcYZLo[it]->dataPtr();
-		    const Real* ph = priv_bcYZHi[it]->dataPtr();
-		    pYZLo[i] += pl[i];
-		    pYZHi[i] += ph[i];
-		}
-	    }
+            for (int i=0; i<nPtsYZ; i++) {
+                for (int it=0; it<nthreads; it++) {
+                    const Real* pl = priv_bcYZLo[it]->dataPtr();
+                    const Real* ph = priv_bcYZHi[it]->dataPtr();
+                    pYZLo[i] += pl[i];
+                    pYZHi[i] += ph[i];
+                }
+            }
 #endif
-	}
+        }
 
     } // end loop over levels
 
@@ -2039,15 +2039,15 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     {
         const Box& bx= mfi.growntilebox();
 
-	FArrayBox& p = phi[mfi];
+        FArrayBox& p = phi[mfi];
 
 #pragma gpu box(bx)
         ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-			     BL_TO_FORTRAN_ANYD(p),
-			     bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-			     bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-			     bcYZLo.dataPtr(), bcYZHi.dataPtr(),
-	                     AMREX_INT_ANYD(bc_lo), AMREX_INT_ANYD(bc_hi));
+                             BL_TO_FORTRAN_ANYD(p),
+                             bcXYLo.dataPtr(), bcXYHi.dataPtr(),
+                             bcXZLo.dataPtr(), bcXZHi.dataPtr(),
+                             bcYZLo.dataPtr(), bcYZHi.dataPtr(),
+                             AMREX_INT_ANYD(bc_lo), AMREX_INT_ANYD(bc_hi));
     }
 
     if (verbose)
@@ -2056,13 +2056,13 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
         Real      end    = ParallelDescriptor::second() - strt;
 
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::fill_direct_sum_BCs() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 
@@ -2083,7 +2083,7 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
     for (MFIter mfi(Rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(1);
-	const Box& xbx = mfi.nodaltilebox(0);
+        const Box& xbx = mfi.nodaltilebox(0);
 #if AMREX_SPACEDIM >= 2
         const Box& ybx = mfi.nodaltilebox(1);
 #endif
@@ -2091,16 +2091,16 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
         // Modify Rhs and coeffs with the appropriate metric terms.
 #pragma gpu box(bx)
         ca_apply_metric(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-		        AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
+                        AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
 #if AMREX_SPACEDIM >= 2
                         AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
 #endif
-			BL_TO_FORTRAN_ANYD(Rhs[mfi]),
-			BL_TO_FORTRAN_ANYD((*coeffs[0])[mfi]),
+                        BL_TO_FORTRAN_ANYD(Rhs[mfi]),
+                        BL_TO_FORTRAN_ANYD((*coeffs[0])[mfi]),
 #if AMREX_SPACEDIM >= 2
                         BL_TO_FORTRAN_ANYD((*coeffs[1])[mfi]),
 #endif
-			AMREX_REAL_ANYD(dx), coord_type);
+                        AMREX_REAL_ANYD(dx), coord_type);
     }
 }
 
@@ -2120,7 +2120,7 @@ Gravity::unweight_cc(int level, MultiFab& cc)
 
 #pragma gpu box(bx)
         ca_unweight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-		       BL_TO_FORTRAN_ANYD(cc[mfi]),
+                       BL_TO_FORTRAN_ANYD(cc[mfi]),
                        AMREX_REAL_ANYD(dx), coord_type);
     }
 }
@@ -2136,16 +2136,16 @@ Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
 #pragma omp parallel
 #endif
     for (int idir=0; idir<BL_SPACEDIM; ++idir) {
-	for (MFIter mfi(*edges[idir], TilingIfNotGPU()); mfi.isValid(); ++mfi)
-	{
-	    const Box& bx = mfi.tilebox();
+        for (MFIter mfi(*edges[idir], TilingIfNotGPU()); mfi.isValid(); ++mfi)
+        {
+            const Box& bx = mfi.tilebox();
 
 #pragma gpu box(bx)
-	    ca_unweight_edges(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-			      BL_TO_FORTRAN_ANYD((*edges[idir])[mfi]),
-			      AMREX_REAL_ANYD(dx),
+            ca_unweight_edges(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                              BL_TO_FORTRAN_ANYD((*edges[idir])[mfi]),
+                              AMREX_REAL_ANYD(dx),
                               coord_type, idir);
-	}
+        }
     }
 }
 #endif
@@ -2187,38 +2187,38 @@ Gravity::set_mass_offset (Real time, bool multi_level)
     const Geometry& geom = parent->Geom(0);
 
     if (!geom.isAllPeriodic()) {
-	mass_offset = 0.0;
+        mass_offset = 0.0;
     }
     else {
-	Real old_mass_offset = mass_offset;
-	mass_offset = 0.0;
+        Real old_mass_offset = mass_offset;
+        mass_offset = 0.0;
 
-	if (multi_level)
-	{
-	    for (int lev = 0; lev <= parent->finestLevel(); lev++) {
-		Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
-		mass_offset += cs->volWgtSum("density", time);
-	    }
-	}
-	else
-	{
-	    Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(0));
-	    mass_offset = cs->volWgtSum("density", time, false, false);  // do not mask off fine grids
-	}
+        if (multi_level)
+        {
+            for (int lev = 0; lev <= parent->finestLevel(); lev++) {
+                Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(lev));
+                mass_offset += cs->volWgtSum("density", time);
+            }
+        }
+        else
+        {
+            Castro* cs = dynamic_cast<Castro*>(&parent->getLevel(0));
+            mass_offset = cs->volWgtSum("density", time, false, false);  // do not mask off fine grids
+        }
 
-	mass_offset = mass_offset / geom.ProbSize();
-	if (verbose > 1 && ParallelDescriptor::IOProcessor())
-	    std::cout << "Defining average density to be " << mass_offset << std::endl;
+        mass_offset = mass_offset / geom.ProbSize();
+        if (verbose > 1 && ParallelDescriptor::IOProcessor())
+            std::cout << "Defining average density to be " << mass_offset << std::endl;
 
-	Real diff = std::abs(mass_offset - old_mass_offset);
-	Real eps = 1.e-10 * std::abs(old_mass_offset);
-	if (diff > eps && old_mass_offset > 0)
-	{
-	    if (ParallelDescriptor::IOProcessor())
-	    {
-	        std::cout << " ... new vs old mass_offset " << mass_offset << " " << old_mass_offset
-			  << " ... diff is " << diff <<  std::endl;
-		std::cout << " ... Gravity::set_mass_offset -- total mass has changed!" << std::endl;;
+        Real diff = std::abs(mass_offset - old_mass_offset);
+        Real eps = 1.e-10 * std::abs(old_mass_offset);
+        if (diff > eps && old_mass_offset > 0)
+        {
+            if (ParallelDescriptor::IOProcessor())
+            {
+                std::cout << " ... new vs old mass_offset " << mass_offset << " " << old_mass_offset
+                          << " ... diff is " << diff <<  std::endl;
+                std::cout << " ... Gravity::set_mass_offset -- total mass has changed!" << std::endl;;
             }
         }
     }
@@ -2263,9 +2263,9 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
 
     if (level < parent->finestLevel() && mask)
     {
-	Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
-	const MultiFab& mask = fine_level->build_fine_mask();
-	MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
+        Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
+        const MultiFab& mask = fine_level->build_fine_mask();
+        MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
 #ifdef _OPENMP
@@ -2284,8 +2284,8 @@ Gravity::computeAvg (int level, MultiFab* mf, bool mask)
         // Note that this routine will do a volume weighted sum of
         // whatever quantity is passed in, not strictly the "mass".
         //
-	ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
-		   dx,BL_TO_FORTRAN_ANYD((*volume[level])[mfi]),&s);
+        ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
+                   dx,BL_TO_FORTRAN_ANYD((*volume[level])[mfi]),&s);
         sum += s;
     }
 
@@ -2313,19 +2313,19 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         const Real t_new = LevelData[lev]->get_state_data(State_Type).curTime();
         const Real eps   = (t_new - t_old) * 1.e-6;
 
-	const int NUM_STATE = LevelData[lev]->get_new_data(State_Type).nComp();
+        const int NUM_STATE = LevelData[lev]->get_new_data(State_Type).nComp();
 
         // Create MultiFab with NUM_STATE components and no ghost cells
         MultiFab S(grids[lev],dmap[lev],NUM_STATE,0);
 
-	if ( eps == 0.0 )
-	{
+        if ( eps == 0.0 )
+        {
             // Old and new time are identical; this should only happen if
             // dt is smaller than roundoff compared to the current time,
             // in which case we're probably in trouble anyway,
             // but we will still handle it gracefully here.
             S.copy(LevelData[lev]->get_new_data(State_Type),0,0,NUM_STATE);
-	}
+        }
         else if ( std::abs(time-t_old) < eps)
         {
             S.copy(LevelData[lev]->get_old_data(State_Type),0,0,NUM_STATE);
@@ -2350,17 +2350,17 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         }
         else
         {
-     	    std::cout << " Level / Time in make_radial_gravity is: " << lev << " " << time  << std::endl;
-      	    std::cout << " but old / new time      are: " << t_old << " " << t_new << std::endl;
-      	    amrex::Abort("Problem in Gravity::make_radial_gravity");
+            std::cout << " Level / Time in make_radial_gravity is: " << lev << " " << time  << std::endl;
+            std::cout << " but old / new time      are: " << t_old << " " << t_new << std::endl;
+            amrex::Abort("Problem in Gravity::make_radial_gravity");
         }
 
         if (lev < level)
         {
-	    Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
-	    const MultiFab& mask = fine_level->build_fine_mask();
-	    for (int n = 0; n < NUM_STATE; ++n)
-		MultiFab::Multiply(S, mask, 0, n, 1, 0);
+            Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(lev+1)));
+            const MultiFab& mask = fine_level->build_fine_mask();
+            for (int n = 0; n < NUM_STATE; ++n)
+                MultiFab::Multiply(S, mask, 0, n, 1, 0);
         }
 
         int n1d = radial_mass[lev].size();
@@ -2376,70 +2376,70 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         Real dr = dx[0] / double(drdxfac);
 
 #ifdef _OPENMP
-	int nthreads = omp_get_max_threads();
+        int nthreads = omp_get_max_threads();
 #ifdef GR_GRAV
-	Vector< RealVector > priv_radial_pres(nthreads);
+        Vector< RealVector > priv_radial_pres(nthreads);
 #endif
-	Vector< RealVector > priv_radial_mass(nthreads);
-	Vector< RealVector > priv_radial_vol (nthreads);
-	for (int i=0; i<nthreads; i++) {
+        Vector< RealVector > priv_radial_mass(nthreads);
+        Vector< RealVector > priv_radial_vol (nthreads);
+        for (int i=0; i<nthreads; i++) {
 #ifdef GR_GRAV
-	    priv_radial_pres[i].resize(n1d,0.0);
+            priv_radial_pres[i].resize(n1d,0.0);
 #endif
-	    priv_radial_mass[i].resize(n1d,0.0);
-	    priv_radial_vol [i].resize(n1d,0.0);
-	}
+            priv_radial_mass[i].resize(n1d,0.0);
+            priv_radial_vol [i].resize(n1d,0.0);
+        }
 #pragma omp parallel
 #endif
-	{
+        {
 #ifdef _OPENMP
-	    int tid = omp_get_thread_num();
+            int tid = omp_get_thread_num();
 #endif
-	    for (MFIter mfi(S, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-	    {
-	        const Box& bx = mfi.tilebox();
-		FArrayBox& fab = S[mfi];
+            for (MFIter mfi(S, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+            {
+                const Box& bx = mfi.tilebox();
+                FArrayBox& fab = S[mfi];
 
 #pragma gpu box(bx)
-		ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                                        AMREX_REAL_ANYD(dx), dr,
-				       BL_TO_FORTRAN_ANYD(fab),
+                                       BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
-				       priv_radial_mass[tid].dataPtr(),
-				       priv_radial_vol[tid].dataPtr(),
+                                       priv_radial_mass[tid].dataPtr(),
+                                       priv_radial_vol[tid].dataPtr(),
 #else
-				       radial_mass[lev].dataPtr(),
-				       radial_vol[lev].dataPtr(),
+                                       radial_mass[lev].dataPtr(),
+                                       radial_vol[lev].dataPtr(),
 #endif
-				       AMREX_REAL_ANYD(geom.ProbLo()),
+                                       AMREX_REAL_ANYD(geom.ProbLo()),
                                        n1d, drdxfac, lev);
 
 #ifdef GR_GRAV
-		ca_compute_avgpres(bx.loVect(), bx.hiVect(), dx, &dr,
-				   BL_TO_FORTRAN(fab),
+                ca_compute_avgpres(bx.loVect(), bx.hiVect(), dx, &dr,
+                                   BL_TO_FORTRAN(fab),
 #ifdef _OPENMP
-				   priv_radial_pres[tid].dataPtr(),
+                                   priv_radial_pres[tid].dataPtr(),
 #else
-				   radial_pres[lev].dataPtr(),
+                                   radial_pres[lev].dataPtr(),
 #endif
-				   geom.ProbLo(),&n1d,&drdxfac,&lev);
+                                   geom.ProbLo(),&n1d,&drdxfac,&lev);
 #endif
-	    }
+            }
 
 #ifdef _OPENMP
 #pragma omp barrier
 #pragma omp for
-	    for (int i=0; i<n1d; i++) {
-		for (int it=0; it<nthreads; it++) {
+            for (int i=0; i<n1d; i++) {
+                for (int it=0; it<nthreads; it++) {
 #ifdef GR_GRAV
-	            radial_pres[lev][i] += priv_radial_pres[it][i];
+                    radial_pres[lev][i] += priv_radial_pres[it][i];
 #endif
-	            radial_mass[lev][i] += priv_radial_mass[it][i];
-		    radial_vol [lev][i] += priv_radial_vol [it][i];
-		}
-	    }
+                    radial_mass[lev][i] += priv_radial_mass[it][i];
+                    radial_vol [lev][i] += priv_radial_vol [it][i];
+                }
+            }
 #endif
-	}
+        }
 
         ParallelDescriptor::ReduceRealSum(radial_mass[lev].dataPtr() ,n1d);
         ParallelDescriptor::ReduceRealSum(radial_vol[lev].dataPtr()  ,n1d);
@@ -2556,12 +2556,12 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
     // Integrate radially outward to define the gravity -- here we add the post-Newtonian correction
     ca_integrate_gr_grav(radial_den_summed.dataPtr(),radial_mass_summed.dataPtr(),
-			 radial_pres_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
+                         radial_pres_summed.dataPtr(),radial_grav.dataPtr(),&dr,&n1d);
 
 #else
     // Integrate radially outward to define the gravity
     ca_integrate_grav(radial_mass_summed.dataPtr(),radial_den_summed.dataPtr(),
-		      radial_grav.dataPtr(),&max_radius_all_in_domain,&dr,&n1d);
+                      radial_grav.dataPtr(),&max_radius_all_in_domain,&dr,&n1d);
 #endif
 
     if (verbose)
@@ -2570,13 +2570,13 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         Real      end    = ParallelDescriptor::second() - strt;
 
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
         if (ParallelDescriptor::IOProcessor())
             std::cout << "Gravity::make_radial_gravity() time = " << end << std::endl << std::endl;
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 }
@@ -2588,12 +2588,12 @@ Gravity::get_rhs (int crse_level, int nlevs, int is_new)
 
     for (int ilev = 0; ilev < nlevs; ++ilev)
     {
-	int amr_lev = ilev + crse_level;
-	rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
-	MultiFab& state = (is_new == 1) ?
-	    LevelData[amr_lev]->get_new_data(State_Type) :
-	    LevelData[amr_lev]->get_old_data(State_Type);
-	MultiFab::Copy(*rhs[ilev], state, URHO, 0,1,0);
+        int amr_lev = ilev + crse_level;
+        rhs[ilev].reset(new MultiFab(grids[amr_lev],dmap[amr_lev],1,0));
+        MultiFab& state = (is_new == 1) ?
+            LevelData[amr_lev]->get_new_data(State_Type) :
+            LevelData[amr_lev]->get_old_data(State_Type);
+        MultiFab::Copy(*rhs[ilev], state, URHO, 0,1,0);
     }
     return rhs;
 }
@@ -2611,17 +2611,17 @@ Gravity::sanity_check (int level)
 
     if (level > 0  && !geom.isAllPeriodic())
     {
-	Box shrunk_domain(geom.Domain());
-	for (int dir = 0; dir < BL_SPACEDIM; dir++)
-	{
-	    if (!geom.isPeriodic(dir))
-	    {
-		if (phys_bc->lo(dir) != Symmetry)
-		    shrunk_domain.growLo(dir,-1);
-		if (phys_bc->hi(dir) != Symmetry)
-		    shrunk_domain.growHi(dir,-1);
-	    }
-	}
+        Box shrunk_domain(geom.Domain());
+        for (int dir = 0; dir < BL_SPACEDIM; dir++)
+        {
+            if (!geom.isPeriodic(dir))
+            {
+                if (phys_bc->lo(dir) != Symmetry)
+                    shrunk_domain.growLo(dir,-1);
+                if (phys_bc->hi(dir) != Symmetry)
+                    shrunk_domain.growHi(dir,-1);
+            }
+        }
         if (!shrunk_domain.contains(grids[level].minimalBox()))
             amrex::Error("Oops -- don't know how to set boundary conditions for grids at this level that touch the domain boundary!");
     }
@@ -2649,8 +2649,8 @@ Gravity::update_max_rhs()
 #if (BL_SPACEDIM == 3)
     if ( geom0.isAllPeriodic() )
     {
-	for (int lev = 0; lev < nlevs; ++lev)
-	    rhs[lev]->plus(-mass_offset,0,1,0);
+        for (int lev = 0; lev < nlevs; ++lev)
+            rhs[lev]->plus(-mass_offset,0,1,0);
     }
 #endif
 
@@ -2662,32 +2662,32 @@ Gravity::update_max_rhs()
 #if (BL_SPACEDIM < 3)
     if (geom0.IsSPHERICAL() || geom0.IsRZ() )
     {
-	Vector<Vector<std::unique_ptr<MultiFab> > > coeffs(nlevs);
+        Vector<Vector<std::unique_ptr<MultiFab> > > coeffs(nlevs);
 
-	for (int lev = 0; lev < nlevs; ++lev) {
+        for (int lev = 0; lev < nlevs; ++lev) {
 
-	    // We need to include this bit about the coefficients because
-	    // it's required by applyMetricTerms.
+            // We need to include this bit about the coefficients because
+            // it's required by applyMetricTerms.
 
-	    coeffs[lev].resize(BL_SPACEDIM);
+            coeffs[lev].resize(BL_SPACEDIM);
 
-	    for (int i = 0; i < BL_SPACEDIM ; i++) {
-		coeffs[lev][i].reset(new MultiFab(amrex::convert(grids[lev],
+            for (int i = 0; i < BL_SPACEDIM ; i++) {
+                coeffs[lev][i].reset(new MultiFab(amrex::convert(grids[lev],
                                                   IntVect::TheDimensionVector(i)),
                                                   dmap[lev], 1, 0));
 
-		coeffs[lev][i]->setVal(1.0);
-	    }
+                coeffs[lev][i]->setVal(1.0);
+            }
 
-	    applyMetricTerms(lev, *rhs[lev], amrex::GetVecOfPtrs(coeffs[lev]));
-	}
+            applyMetricTerms(lev, *rhs[lev], amrex::GetVecOfPtrs(coeffs[lev]));
+        }
     }
 #endif
 
     max_rhs = 0.0;
 
     for (int lev = 0; lev < nlevs; ++lev)
-	max_rhs = std::max(max_rhs, rhs[lev]->max(0));
+        max_rhs = std::max(max_rhs, rhs[lev]->max(0));
 
 }
 
@@ -2710,8 +2710,8 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
         }
 
 #if (BL_SPACEDIM == 3)
-	if ( direct_sum_bcs ) {
-	    fill_direct_sum_BCs(crse_level, fine_level, rhs, *phi[0]);
+        if ( direct_sum_bcs ) {
+            fill_direct_sum_BCs(crse_level, fine_level, rhs, *phi[0]);
         } else {
             if (lnum >= 0) {
                 fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
@@ -2719,17 +2719,17 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
                 int fill_interior = 0;
                 make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
             }
-	}
+        }
 #elif (BL_SPACEDIM == 2)
-	if (lnum >= 0) {
+        if (lnum >= 0) {
             fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
-	} else {
+        } else {
             int fill_interior = 0;
             make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
-	}
+        }
 #else
-	int fill_interior = 0;
-	make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
+        int fill_interior = 0;
+        make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
 #endif
     }
 
@@ -2846,9 +2846,9 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     MLMG mlmg(mlpoisson);
     mlmg.setVerbose(verbose - 1); // With normal verbosity we don't want MLMG information
     if (crse_level == 0) {
-	mlmg.setMaxFmgIter(mlmg_max_fmg_iter);
+        mlmg.setMaxFmgIter(mlmg_max_fmg_iter);
     } else {
-	mlmg.setMaxFmgIter(0); // Vcycle
+        mlmg.setMaxFmgIter(0); // Vcycle
     }
 
     AMREX_ALWAYS_ASSERT( !grad_phi.empty() or !res.empty() );
