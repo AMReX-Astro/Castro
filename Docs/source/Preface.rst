@@ -56,6 +56,7 @@ Current Castro core developers are:
   * John Bell
   * Vince Beckner
   * Marc Day
+  * Alice Harpole
   * Max Katz
   * Mike Lijewski
   * Chris Malone
