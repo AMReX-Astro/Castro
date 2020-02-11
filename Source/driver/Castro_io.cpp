@@ -1202,9 +1202,7 @@ Castro::plotFileOutput(const std::string& dir,
     std::list<std::string> derive_names;
     const std::list<DeriveRec>& dlist = derive_lst.dlist();
 
-    for (std::list<DeriveRec>::const_iterator it = dlist.begin();
-	 it != dlist.end();
-	 ++it)
+    for (auto it = dlist.begin(); it != dlist.end(); ++it)
     {
         if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
             (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1))
@@ -1257,8 +1255,7 @@ Castro::plotFileOutput(const std::string& dir,
 	    os << desc_lst[typ].name(comp) << '\n';
         }
 
-	for ( std::list<std::string>::iterator it = derive_names.begin();
-	      it != derive_names.end(); ++it)
+	for (auto it = derive_names.begin(); it != derive_names.end(); ++it)
         {
 	    const DeriveRec* rec = derive_lst.get(*it);
             if (rec->numDerive() > 1) {
@@ -1392,9 +1389,14 @@ Castro::plotFileOutput(const std::string& dir,
     {
 	for (auto it = dlist.begin(); it != dlist.end(); ++it)
 	{
-	    auto derive_dat = derive(it->variableName(0), cur_time, nGrow);
-	    MultiFab::Copy(plotMF, *derive_dat, 0, cnt, it->numDerive(), nGrow);
-	    cnt = cnt + it->numDerive();
+            if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
+                (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1)) {
+
+                auto derive_dat = derive(it->variableName(0), cur_time, nGrow);
+                MultiFab::Copy(plotMF, *derive_dat, 0, cnt, it->numDerive(), nGrow);
+                cnt = cnt + it->numDerive();
+
+            }
 	}
     }
 
