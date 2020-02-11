@@ -1,5 +1,8 @@
 # 20.03
 
+   * If a derived variable has multiple components, all components are now
+     added to plotfiles. Previously only the first component was used. (#758)
+
    * We have updated our workflow when it comes to Castro's microphysics.
      Previously Castro shipped with it a minimal set of microphysics that
      allowed basic problem setups like Sedov to compile, and more advanced
