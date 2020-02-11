@@ -50,12 +50,12 @@ rm -rf out/docs/**/* || exit 0
 git pull || true
 
 # Build the Sphinx documentation
-cd sphinx_docs
+cd Docs
 make html
 cd ../
 
 mkdir -p out/docs/
-mv sphinx_docs/build/html/* out/docs
+mv Docs/build/html/* out/docs
 touch out/.nojekyll
 
 # Now let's go have some fun with the cloned repo
