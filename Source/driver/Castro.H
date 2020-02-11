@@ -1078,6 +1078,7 @@ public:
 #endif
 
 
+  AMREX_GPU_HOST_DEVICE
   amrex::Vector<amrex::Real> position_c
   (const int i, const int j, const int k,
    const bool ccx, const bool ccy, const bool ccz);
