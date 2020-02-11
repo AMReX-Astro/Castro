@@ -18,7 +18,7 @@ class MGRadBndry : public NGBndry
 ///
 public:
   MGRadBndry(const amrex::BoxArray& _grids,
-	     const amrex::DistributionMapping& _dmap,
+             const amrex::DistributionMapping& _dmap,
              const int _ngroups,
              const amrex::Geometry& _geom);
 
@@ -31,7 +31,7 @@ public:
 /// @param ratio
 ///
   virtual void setBndryConds(const amrex::BCRec& phys_bc,
-			     const amrex::Geometry& geom, amrex::IntVect& ratio);
+                             const amrex::Geometry& geom, amrex::IntVect& ratio);
 
 
 ///
@@ -39,7 +39,7 @@ public:
 /// @param phys_bc_mode
 ///
   virtual void setBndryFluxConds(const amrex::BCRec& bc,
-		       const BC_Mode phys_bc_mode = Inhomogeneous_BC);
+                       const BC_Mode phys_bc_mode = Inhomogeneous_BC);
 
 
 ///
@@ -97,9 +97,9 @@ class MGRadBndryBld : public NGBndryBld
 {
 public:
   NGBndry* operator()(const amrex::BoxArray& _grids,
-		      const amrex::DistributionMapping& _dmap,
-		      int _ngroups,
-		      const amrex::Geometry& _geom) const {
+                      const amrex::DistributionMapping& _dmap,
+                      int _ngroups,
+                      const amrex::Geometry& _geom) const {
 
 ///
 /// @param _grids

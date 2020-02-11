@@ -1499,10 +1499,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-	if (ParallelDescriptor::IOProcessor())
-	  std::cout << "Castro::construct_ctu_hydro_source() time = " << run_time << "\n" << "\n";
+        if (ParallelDescriptor::IOProcessor())
+          std::cout << "Castro::construct_ctu_hydro_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 

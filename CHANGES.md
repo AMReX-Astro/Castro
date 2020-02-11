@@ -1,5 +1,29 @@
 # 20.03
 
+   * If a derived variable has multiple components, all components are now
+     added to plotfiles. Previously only the first component was used. (#758)
+
+   * We have updated our workflow when it comes to Castro's microphysics.
+     Previously Castro shipped with it a minimal set of microphysics that
+     allowed basic problem setups like Sedov to compile, and more advanced
+     setups (like ones that include nuclear burning) required downloading
+     the starkiller-astro Microphysics repository as an additional step.
+     Now, that Microphysics repository is a requirement for using Castro.
+     If you are a current user of the Microphysics repository and prefer
+     the current workflow where you maintain Microphysics as a separate
+     installation from Castro, no change in your workflow is necessary:
+     if MICROPHYSICS_HOME is set as an environment variable, Castro will
+     use the Microphysics installation in that directory. However we have
+     also added Microphysics as a git submodule to Castro, which is now
+     the required path if you previously were not using the more advanced
+     microphysics (but is also a possibility for those previously using a
+     standalone Microphysics installation). To obtain this, you can use
+     git submodule update --init --recursive from the top-level directory
+     of Castro. The developer team ensures that the version of Microphysics
+     that you obtain this way is consistent with the current version of Castro.
+     Then, you can keep up to date with the code mostly as normal, except now
+     using git pull --recurse-submodules instead of git pull. (#760)
+
    * The names of the conserved state variables in C++ (Density, Xmom, etc.)
      have been changed to match the names in Fortran (URHO, UMX, etc.).
      For user code, this will only affect problem-specific setup code

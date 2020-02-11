@@ -163,8 +163,8 @@ int BndryAuxVarBase::nextLocal(int i)
 }
 
 BndryAuxVar::BndryAuxVar(const BoxArray& _grids, 
-			 const DistributionMapping& _dmap,
-			 Location loc)
+                         const DistributionMapping& _dmap,
+                         Location loc)
     : BndryAuxVarBase(_dmap), grids(_grids)
 {
   // For Location type EXTERIOR use CrseBndryAuxVar instead:
@@ -198,7 +198,7 @@ BndryAuxVar::BndryAuxVar(const BoxArray& _grids,
             if (bm.intersects(bs)) {
               Box reg = (bm & bs);
               for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
-		  (*aux[om][i])(v).push_slave(&(*aux[os][i])(v));
+                  (*aux[om][i])(v).push_slave(&(*aux[os][i])(v));
               }
             }
           }
@@ -233,7 +233,7 @@ BndryAuxVar::BndryAuxVar(const BoxArray& _grids,
           if (bm.intersects(bs)) {
             Box reg = (bm & bs);
             for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
-		(*aux[om][i])(v).push_slave(&(*aux[os][i])(v));
+                (*aux[om][i])(v).push_slave(&(*aux[os][i])(v));
             }
           }
         }
@@ -244,7 +244,7 @@ BndryAuxVar::BndryAuxVar(const BoxArray& _grids,
 }
 
 CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
-				 const DistributionMapping& _cdmap,
+                                 const DistributionMapping& _cdmap,
                                  const BoxArray& _fgrids, Location loc)
     : BndryAuxVarBase(_cdmap), cgrids(_cgrids), fgrids(_fgrids)
 {
@@ -305,15 +305,15 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
 
         for (int k = 0; k < cgrids.size(); k++) {
           if (cgrids[k].intersects(mask_box)) {
-	      msk[ori][i][j]->setVal(RadBndryData::not_covered,
-				     (cgrids[k] & mask_box), 0);
+              msk[ori][i][j]->setVal(RadBndryData::not_covered,
+                                     (cgrids[k] & mask_box), 0);
           }
         }
 
         for (int k = 0; k < fgrids.size(); k++) {
           if (fgrids[k].intersects(mask_box)) {
-	      msk[ori][i][j]->setVal(RadBndryData::covered,
-				       (fgrids[k] & mask_box), 0);
+              msk[ori][i][j]->setVal(RadBndryData::covered,
+                                       (fgrids[k] & mask_box), 0);
           }
         }
 
@@ -409,14 +409,14 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
         for (int k = 0; k < cgrids.size(); k++) {
           if (cgrids[k].intersects(mask_box)) {
             msk[ori][i][j]->setVal(RadBndryData::not_covered,
-				   (cgrids[k] & mask_box), 0);
+                                   (cgrids[k] & mask_box), 0);
           }
         }
 
         for (int k = 0; k < fgrids.size(); k++) {
           if (fgrids[k].intersects(mask_box)) {
             msk[ori][i][j]->setVal(RadBndryData::covered,
-				   (fgrids[k] & mask_box), 0);
+                                   (fgrids[k] & mask_box), 0);
           }
         }
 
@@ -436,7 +436,7 @@ void CrseBndryAuxVar::reinitialize_connections(Location loc)
       for (int j = 0; j < n; j++) {
         const Box& reg = aux[ori][i][j]->box();
         for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
-	    (*aux[ori][i][j])(v).clear();
+            (*aux[ori][i][j])(v).clear();
         }
       }
     }
@@ -459,12 +459,12 @@ void CrseBndryAuxVar::initialize_slaves(Location loc)
           for (int jm = 0; jm < aux[om][i].size(); jm++) {
             const Box& bm = aux[om][i][jm]->box();
             for (int js = 0; js < aux[os][i].size(); js++) {
-		const Box& bs = aux[os][i][js]->box();
+                const Box& bs = aux[os][i][js]->box();
 
               if (bm.intersects(bs)) {
                 Box reg = (bm & bs);
                 for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
-		    (*aux[om][i][jm])(v).push_slave(&(*aux[os][i][js])(v));
+                    (*aux[om][i][jm])(v).push_slave(&(*aux[os][i][js])(v));
                 }
               }
 
@@ -488,7 +488,7 @@ void CrseBndryAuxVar::buildFaceData(IntVect& rat, int ncomp)
       int n = aux[ori][i].size();
       face_data[ori][i].resize(n);
       for (int j = 0; j < n; j++) {
-	  Box face_box = aux[ori][i][j]->box();
+          Box face_box = aux[ori][i][j]->box();
         // face_box is known to be "adjacent cell", convert to face:
         face_box.shiftHalf(ori.coordDir(), (ori.isLow() ? 1 : -1));
         face_box.refine(rat);
@@ -713,10 +713,10 @@ HypreMultiABec::~HypreMultiABec()
 }
 
 void HypreMultiABec::addLevel(int             level,
-			      const Geometry& _geom,
-			      const BoxArray& _grids,
-			      const DistributionMapping& _dmap,
-			      IntVect         _fine_ratio)
+                              const Geometry& _geom,
+                              const BoxArray& _grids,
+                              const DistributionMapping& _dmap,
+                              IntVect         _fine_ratio)
 {
   int part = level - crse_level;
 
@@ -746,9 +746,9 @@ void HypreMultiABec::addLevel(int             level,
     for (int i = 0; i < BL_SPACEDIM; i++) {
       is_periodic[i] = 0;
       if (geom[level].isPeriodic(i)) {
-	is_periodic[i] = geom[level].period(i);
-	BL_ASSERT(ispow2(is_periodic[i]));
-	BL_ASSERT(geom[level].Domain().smallEnd(i) == 0);
+        is_periodic[i] = geom[level].period(i);
+        BL_ASSERT(ispow2(is_periodic[i]));
+        BL_ASSERT(geom[level].Domain().smallEnd(i) == 0);
       }
     }
     HYPRE_SStructGridSetPeriodic(hgrid, part, is_periodic);
@@ -1005,27 +1005,27 @@ void HypreMultiABec::buildMatrixStructure()
   // if we were really 1D:
 /*
   int offsets[3][1] = {{ 0}
-		       {-1},
-		       { 1}};
+                       {-1},
+                       { 1}};
 */
   // fake 1D as a 2D problem:
   int offsets[3][2] = {{ 0,  0},
-		       {-1,  0},
-		       { 1,  0}};
+                       {-1,  0},
+                       { 1,  0}};
 #elif (BL_SPACEDIM == 2)
   int offsets[5][2] = {{ 0,  0},
-		       {-1,  0},
-		       { 1,  0},
-		       { 0, -1},
-		       { 0,  1}};
+                       {-1,  0},
+                       { 1,  0},
+                       { 0, -1},
+                       { 0,  1}};
 #elif (BL_SPACEDIM == 3)
   int offsets[7][3] = {{ 0,  0,  0},
-		       {-1,  0,  0},
-		       { 1,  0,  0},
-		       { 0, -1,  0},
-		       { 0,  1,  0},
-		       { 0,  0, -1},
-		       { 0,  0,  1}};
+                       {-1,  0,  0},
+                       { 1,  0,  0},
+                       { 0, -1,  0},
+                       { 0,  1,  0},
+                       { 0,  0, -1},
+                       { 0,  0,  1}};
 #endif
 
   BL_ASSERT(stencil == NULL);
@@ -1100,7 +1100,7 @@ void HypreMultiABec::buildMatrixStructure()
         for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (msk(v+vin) == RadBndryData::not_covered) {
             // value not important, since coefficient not known.
-	      entry(ori,i)(v).push(&(*ederiv[level])(ori,i)(v+vin), 1.0);
+              entry(ori,i)(v).push(&(*ederiv[level])(ori,i)(v+vin), 1.0);
           }
         }
       }
@@ -1171,7 +1171,7 @@ void HypreMultiABec::buildMatrixStructure()
     c_fgrids.coarsen(rat);
 
     c_cintrp[level].reset(new CrseBndryAuxVar(f_cgrids, dmap[level-1],
-					      f_fgrids, BndryAuxVar::GHOST));
+                                              f_fgrids, BndryAuxVar::GHOST));
     c_ederiv[level].reset(new CrseBndryAuxVar(*c_cintrp[level],
                                             BndryAuxVar::GHOST));
     c_entry[level].reset (new CrseBndryAuxVar(c_cgrids, c_fgrids,
@@ -1199,20 +1199,20 @@ void HypreMultiABec::buildMatrixStructure()
 #endif
       for (int i = c_cintrp[level]->firstLocal(); c_cintrp[level]->isValid(i);
          i = c_cintrp[level]->nextLocal(i)) {
-	 for (int j = 0; j < (*c_cintrp[level]).size(ori,i); j++) {
-	   const Box& reg = (*c_cintrp[level])(ori,i,j).box(); // adjacent cells
-	   const Box& creg = (*c_entry[level])(ori,i,j).box(); // adjacent cells
+         for (int j = 0; j < (*c_cintrp[level]).size(ori,i); j++) {
+           const Box& reg = (*c_cintrp[level])(ori,i,j).box(); // adjacent cells
+           const Box& creg = (*c_entry[level])(ori,i,j).box(); // adjacent cells
            const Mask &msk = c_cintrp[level]->mask(ori,i,j); // fine mask
 
-	 TransverseInterpolant((*c_cintrp[level])(ori,i,j), msk, reg, creg,
+         TransverseInterpolant((*c_cintrp[level])(ori,i,j), msk, reg, creg,
                                 D_DECL(rat,  vj1,  vk1),
                                 D_DECL(ve,   vjr,  vkr),
                                 D_DECL(idir, jdir, kdir),
                                 level-1);
 
-	 NormalDerivative((*c_ederiv[level])(ori,i,j),
-			  (*c_cintrp[level])(ori,i,j),
-			  msk, reg, vin, h, rat[idir], bho, level);
+         NormalDerivative((*c_ederiv[level])(ori,i,j),
+                          (*c_cintrp[level])(ori,i,j),
+                          msk, reg, vin, h, rat[idir], bho, level);
 
           // c_cintrp and c_ederiv are now complete.  c_entry will be done
           // in draft form to establish the graph connections, but must be
@@ -1225,8 +1225,8 @@ void HypreMultiABec::buildMatrixStructure()
             if (msk(vf) == RadBndryData::not_covered) {
               for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
                 // value not important, since coefficient not known.
-		  (*c_entry[level])(ori,i,j)(vc)
-		      .push(&(*c_ederiv[level])(ori,i,j)(v), 1.0);
+                  (*c_entry[level])(ori,i,j)(vc)
+                      .push(&(*c_ederiv[level])(ori,i,j)(v), 1.0);
               }
             }
           }
@@ -1250,7 +1250,7 @@ void HypreMultiABec::buildMatrixStructure()
             // entry to be covered but have a not_covered slave:
             if (msk(vf) == RadBndryData::not_covered &&
                 !(*c_entry[level])(ori,i,j)(vc).slave()) {
-	      (*c_entry[level])(ori,i,j)(vc).collapse();
+              (*c_entry[level])(ori,i,j)(vc).collapse();
               Vector<int> levels;
               Vector<IntVect> cells;
               int retval = (*c_entry[level])(ori,i,j)(vc)
@@ -1359,27 +1359,27 @@ void HypreMultiABec::loadMatrix()
   // if we were really 1D:
 /*
   int offsets[3][1] = {{ 0}
-		       {-1},
-		       { 1}};
+                       {-1},
+                       { 1}};
 */
   // fake 1D as a 2D problem:
   int offsets[3][2] = {{ 0,  0},
-		       {-1,  0},
-		       { 1,  0}};
+                       {-1,  0},
+                       { 1,  0}};
 #elif (BL_SPACEDIM == 2)
   int offsets[5][2] = {{ 0,  0},
-		       {-1,  0},
-		       { 1,  0},
-		       { 0, -1},
-		       { 0,  1}};
+                       {-1,  0},
+                       { 1,  0},
+                       { 0, -1},
+                       { 0,  1}};
 #elif (BL_SPACEDIM == 3)
   int offsets[7][3] = {{ 0,  0,  0},
-		       {-1,  0,  0},
-		       { 1,  0,  0},
-		       { 0, -1,  0},
-		       { 0,  1,  0},
-		       { 0,  0, -1},
-		       { 0,  0,  1}};
+                       {-1,  0,  0},
+                       { 1,  0,  0},
+                       { 0, -1,  0},
+                       { 0,  1,  0},
+                       { 0,  0, -1},
+                       { 0,  0,  1}};
 #endif
 
   const int size = 2 * BL_SPACEDIM + 1;
@@ -1411,15 +1411,15 @@ void HypreMultiABec::loadMatrix()
 #pragma gpu box(reg) sync
       hmac(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
            BL_TO_FORTRAN_ANYD(matfab),
-	   BL_TO_FORTRAN_ANYD((*acoefs[level])[mfi]),
-	   alpha);
+           BL_TO_FORTRAN_ANYD((*acoefs[level])[mfi]),
+           alpha);
 
       for (idim = 0; idim < BL_SPACEDIM; idim++) {
 #pragma gpu box(reg) sync
-	hmbc(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+        hmbc(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
              BL_TO_FORTRAN_ANYD(matfab), 
-	     BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-	     beta, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
+             BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+             beta, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
       }
 
       // add b.c.'s to matrix diagonal, and
@@ -1427,14 +1427,14 @@ void HypreMultiABec::loadMatrix()
 
       const Box& domain = bd[level]->getDomain();
       for (OrientationIter oitr; oitr; oitr++) {
-	int cdir(oitr());
-	idim = oitr().coordDir();
-	const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
-	const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
-	const Mask      &msk = bd[level]->bndryMasks(oitr(),i);
-	const Box &bbox = (*bcoefs[level])[idim][mfi].box();
-	const Box &msb  = msk.box();
-	if (reg[oitr()] == domain[oitr()] || level == crse_level) {
+        int cdir(oitr());
+        idim = oitr().coordDir();
+        const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
+        const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
+        const Mask      &msk = bd[level]->bndryMasks(oitr(),i);
+        const Box &bbox = (*bcoefs[level])[idim][mfi].box();
+        const Box &msb  = msk.box();
+        if (reg[oitr()] == domain[oitr()] || level == crse_level) {
 
           // Treat an exposed grid edge here as a boundary condition
           // for the linear solver:
@@ -1443,34 +1443,34 @@ void HypreMultiABec::loadMatrix()
             const int *tfp = NULL;
             int bctype = bct;
             if (bd[level]->mixedBndry(oitr())) {
-	      const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
+              const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
               tfp = tf.dataPtr();
               bctype = -1;
             }
             const FArrayBox &fs = bd[level]->bndryValues(oitr())[mfi];
-	    Real* pSPa;
-	    Box SPabox;
-	    if (SPa[level]) {
-		pSPa = (*SPa[level])[mfi].dataPtr();
-		SPabox = (*SPa[level])[mfi].box();
-	    }
-	    else {
-	      pSPa = &foo;
-	      SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-	    }
+            Real* pSPa;
+            Box SPabox;
+            if (SPa[level]) {
+                pSPa = (*SPa[level])[mfi].dataPtr();
+                SPabox = (*SPa[level])[mfi].box();
+            }
+            else {
+              pSPa = &foo;
+              SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
+            }
 #pragma gpu box(reg) sync
             hmmat3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
                    reg.loVect()[0], reg.hiVect()[0],
                    oitr().isLow(), idim+1,
                    BL_TO_FORTRAN_ANYD(matfab),
-		   cdir, bctype,
+                   cdir, bctype,
                    tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
                    bho, bcl,
-		   BL_TO_FORTRAN_ANYD(msk),
-		   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-		   beta, AMREX_REAL_ANYD(geom[level].CellSize()),
-		   flux_factor,
-		   pSPa, AMREX_INT_ANYD(SPabox.loVect()), AMREX_INT_ANYD(SPabox.hiVect()));
+                   BL_TO_FORTRAN_ANYD(msk),
+                   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+                   beta, AMREX_REAL_ANYD(geom[level].CellSize()),
+                   flux_factor,
+                   pSPa, AMREX_INT_ANYD(SPabox.loVect()), AMREX_INT_ANYD(SPabox.hiVect()));
           }
           else {
 #pragma gpu box(reg) sync
@@ -1490,12 +1490,12 @@ void HypreMultiABec::loadMatrix()
 
           const RadBoundCond bct_coarse = LO_NEUMANN;
 #pragma gpu box(reg) sync
-	  hmmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+          hmmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
                 BL_TO_FORTRAN_ANYD(matfab),
-		cdir, bct_coarse, bho, bcl,
-		BL_TO_FORTRAN_ANYD(msk),
-		BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-		beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+                cdir, bct_coarse, bho, bcl,
+                BL_TO_FORTRAN_ANYD(msk),
+                BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+                beta, AMREX_REAL_ANYD(geom[level].CellSize()));
         }
       }
 
@@ -1504,8 +1504,8 @@ void HypreMultiABec::loadMatrix()
       if (subgrids[level][i].size() > 0) {
         for (int j = 0; j < subgrids[level][i].size(); j++) {
           const Box& sreg = subgrids[level][i][j];
-	  smatfab.resize(sreg,size);
-	  Real* smat = smatfab.dataPtr();
+          smatfab.resize(sreg,size);
+          Real* smat = smatfab.dataPtr();
           for (IntVect v = sreg.smallEnd(); v <= sreg.bigEnd(); sreg.next(v)) {
             int is = sreg.index(v);
             int ir =  reg.index(v);
@@ -1547,8 +1547,8 @@ void HypreMultiABec::loadMatrix()
         const Mask &msk = bd[level]->bndryMasks(ori,i);
         for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (msk(v+vin) == RadBndryData::not_covered) {
-	      entry(ori,i)(v).push(&(*ederiv[level])(ori,i)(v+vin),
-				    ffac * (*bcoefs[level])[idir][i](v+ves));
+              entry(ori,i)(v).push(&(*ederiv[level])(ori,i)(v+vin),
+                                    ffac * (*bcoefs[level])[idir][i](v+ves));
           }
         }
       }
@@ -1643,7 +1643,7 @@ void HypreMultiABec::loadMatrix()
       for (int i = c_entry[level]->firstLocal(); c_entry[level]->isValid(i);
            i = c_entry[level]->nextLocal(i)) {
         // parallel loop is tied to coarse grids
-	  for (int j = 0; j < (*c_entry[level]).size(ori,i); j++) {
+          for (int j = 0; j < (*c_entry[level]).size(ori,i); j++) {
           const Box& reg = (*c_cintrp[level])(ori,i,j).box(); // adjacent cells
           const Box& creg = (*c_entry[level])(ori,i,j).box(); // adjacent cells
           const Mask& msk = c_cintrp[level]->mask(ori,i,j); // fine mask
@@ -1656,11 +1656,11 @@ void HypreMultiABec::loadMatrix()
               // Zero out connection to covered coarse cell:
               (*c_entry[level])(ori,i,j)(vc).push(-1, vc-vin, 0.0);
               (*c_entry[level])(ori,i,j)(vc).push(level-1, vc,
-						       zfac * (*bcoefs[level-1])[idir][i](vc+ves));
+                                                       zfac * (*bcoefs[level-1])[idir][i](vc+ves));
               // Add fine fluxes over face of coarse cell:
               for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
-		  (*c_entry[level])(ori,i,j)(vc)
-		      .push(&(*c_ederiv[level])(ori,i,j)(v), cfac * fbcoefs(v+ves));
+                  (*c_entry[level])(ori,i,j)(vc)
+                      .push(&(*c_ederiv[level])(ori,i,j)(v), cfac * fbcoefs(v+ves));
               }
             }
           }
@@ -1674,7 +1674,7 @@ void HypreMultiABec::loadMatrix()
       for (int i = c_entry[level]->firstLocal(); c_entry[level]->isValid(i);
            i = c_entry[level]->nextLocal(i)) {
         // parallel loop is tied to coarse grids
-	  for (int j = 0; j < (*c_entry[level]).size(ori,i); j++) {
+          for (int j = 0; j < (*c_entry[level]).size(ori,i); j++) {
           const Box& reg = (*c_cintrp[level])(ori,i,j).box(); // adjacent cells
           const Box& creg = (*c_entry[level])(ori,i,j).box(); // adjacent cells
           const Mask &msk = c_cintrp[level]->mask(ori,i,j); // fine mask
@@ -1683,7 +1683,7 @@ void HypreMultiABec::loadMatrix()
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             if (msk(vf) == RadBndryData::not_covered &&
                 !(*c_entry[level])(ori,i,j)(vc).slave()) {
-	      (*c_entry[level])(ori,i,j)(vc).collapse();
+              (*c_entry[level])(ori,i,j)(vc).collapse();
               Vector<int> levels;
               Vector<IntVect> cells;
               int retval = (*c_entry[level])(ori,i,j)(vc)
@@ -1784,15 +1784,15 @@ void HypreMultiABec::loadLevelVectors(int level,
     if (inhom) {
       const Box& domain = bd[level]->getDomain();
       for (OrientationIter oitr; oitr; oitr++) {
-	int cdir(oitr());
-	int idim = oitr().coordDir();
-	const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
-	const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
-	const FArrayBox       &fs  = bd[level]->bndryValues(oitr())[mfi];
-	const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
-	const Box &bbox = (*bcoefs[level])[idim][mfi].box();
+        int cdir(oitr());
+        int idim = oitr().coordDir();
+        const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
+        const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
+        const FArrayBox       &fs  = bd[level]->bndryValues(oitr())[mfi];
+        const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
+        const Box &bbox = (*bcoefs[level])[idim][mfi].box();
 
-	if (reg[oitr()] == domain[oitr()] || level == crse_level) {
+        if (reg[oitr()] == domain[oitr()] || level == crse_level) {
 
           // Treat an exposed grid edge here as a boundary condition
           // for the linear solver:
@@ -1801,7 +1801,7 @@ void HypreMultiABec::loadLevelVectors(int level,
             const int *tfp = NULL;
             int bctype = bct;
             if (bd[level]->mixedBndry(oitr())) {
-	      const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
+              const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
               tfp = tf.dataPtr();
               bctype = -1;
             }
@@ -1810,13 +1810,13 @@ void HypreMultiABec::loadLevelVectors(int level,
                    reg.loVect()[0], reg.hiVect()[0],
                    oitr().isLow(), idim+1,
                    vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-		   cdir, bctype,
+                   cdir, bctype,
                    tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
                    bho, bcl,
-		   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
-		   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-		   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-		   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+                   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+                   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+                   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+                   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
           else {
 #pragma gpu box(reg) sync
@@ -1900,15 +1900,15 @@ void HypreMultiABec::loadLevelVectorB(int level,
     if (inhom) {
       const Box& domain = bd[level]->getDomain();
       for (OrientationIter oitr; oitr; oitr++) {
-	int cdir(oitr());
-	int idim = oitr().coordDir();
-	const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
-	const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
-	const FArrayBox       &fs  = bd[level]->bndryValues(oitr())[mfi];
-	const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
-	const Box &bbox = (*bcoefs[level])[idim][mfi].box();
-	const Box &msb  = msk.box();
-	if (reg[oitr()] == domain[oitr()] || level == crse_level) {
+        int cdir(oitr());
+        int idim = oitr().coordDir();
+        const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
+        const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
+        const FArrayBox       &fs  = bd[level]->bndryValues(oitr())[mfi];
+        const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
+        const Box &bbox = (*bcoefs[level])[idim][mfi].box();
+        const Box &msb  = msk.box();
+        if (reg[oitr()] == domain[oitr()] || level == crse_level) {
 
           // Treat an exposed grid edge here as a boundary condition
           // for the linear solver:
@@ -1917,7 +1917,7 @@ void HypreMultiABec::loadLevelVectorB(int level,
             const int *tfp = NULL;
             int bctype = bct;
             if (bd[level]->mixedBndry(oitr())) {
-	      const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
+              const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
               tfp = tf.dataPtr();
               bctype = -1;
             }
@@ -1926,13 +1926,13 @@ void HypreMultiABec::loadLevelVectorB(int level,
                    reg.loVect()[0], reg.hiVect()[0],
                    oitr().isLow(), idim+1,
                    vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-		   cdir, bctype,
+                   cdir, bctype,
                    tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
                    bho, bcl,
-		   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
-		   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-		   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-		   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+                   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+                   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+                   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
+                   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
           else {
 #pragma gpu box(reg) sync
@@ -2694,8 +2694,8 @@ void HypreMultiABec::solve()
     }
 
     Real reltol_new = (bnorm > 0.0
-		       ? abstol / bnorm * sqrt(volume)
-		       : reltol);
+                       ? abstol / bnorm * sqrt(volume)
+                       : reltol);
 
     if (reltol_new > reltol) {
       if (solver_flag == 100) {
@@ -2726,11 +2726,11 @@ void HypreMultiABec::solve()
       else if (solver_flag == 108) {
         ParmParse pp("hmabec");
 #if (BL_SPACEDIM == 1)
-	int struct_flag = 0;
+        int struct_flag = 0;
 #else
-	int struct_flag = 1;
+        int struct_flag = 1;
 #endif
-	pp.query("struct_flag", struct_flag);
+        pp.query("struct_flag", struct_flag);
         if (struct_flag == 0) {
           HYPRE_StructSMGSetTol((HYPRE_StructSolver) solver, reltol_new);
         }
@@ -2985,8 +2985,8 @@ void HypreMultiABec::solve()
     if (num_iterations >= verbose_threshold) {
       int oldprec = std::cout.precision(20);
       if (Radiation::current_group_number >= 0) {
-	std::cout << Radiation::current_group_name << " Group "
-	     << Radiation::current_group_number << ": ";
+        std::cout << Radiation::current_group_name << " Group "
+             << Radiation::current_group_number << ": ";
       }
       std::cout << num_iterations
            << " Hypre Multigrid Iterations, Relative Residual "
@@ -3099,10 +3099,10 @@ Real HypreMultiABec::getAbsoluteResidual()
 }
 
 void HypreMultiABec::boundaryFlux(int level,
-				  MultiFab* Flux,
-				  MultiFab& Soln,
+                                  MultiFab* Flux,
+                                  MultiFab& Soln,
                                   int icomp,
-				  BC_Mode inhom)
+                                  BC_Mode inhom)
 {
     BL_PROFILE("HypreMultiABec::boundaryFlux");
 
@@ -3112,69 +3112,69 @@ void HypreMultiABec::boundaryFlux(int level,
 #pragma omp parallel
 #endif
     {
-	Vector<Real> r;
-	Real foo=1.e200;
+        Vector<Real> r;
+        Real foo=1.e200;
 
-	for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
-	    int i = mfi.index();
-	    const Box &reg = grids[level][i];
-	    for (OrientationIter oitr; oitr; oitr++) {
-		int cdir(oitr());
-		int idim = oitr().coordDir();
-		const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
-		const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
-		const FArrayBox       &fs  = bd[level]->bndryValues(oitr())[mfi];
-		const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
-		const Box &fbox = Flux[idim][mfi].box();
-		const Box &sbox = Soln[mfi].box();
-		const Box &msb  = msk.box();
-		const Box &bbox = (*bcoefs[level])[idim][mfi].box();
-		if (reg[oitr()] == domain[oitr()]) {
-		    const int *tfp = NULL;
-		    int bctype = bct;
-		    if (bd[level]->mixedBndry(oitr())) {
-			const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
-			tfp = tf.dataPtr();
-			bctype = -1;
-		    }
-		    // In normal code operation only the fluxes at internal
-		    // Dirichlet boundaries are used.  Some diagnostics use the
-		    // fluxes computed at domain boundaries but these do not
-		    // influence the evolution of the interior solution.
-		    Real* pSPa;
-		    Box SPabox;
-		    if (SPa[level]) {
-			pSPa = (*SPa[level])[mfi].dataPtr();
-			SPabox = (*SPa[level])[mfi].box();
-		    }
-		    else {
-			pSPa = &foo;
-			SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-		    }
-		    getFaceMetric(r, reg, oitr(), geom[level]);
-		    hbflx3(BL_TO_FORTRAN(Flux[idim][mfi]),
-			   BL_TO_FORTRAN_N(Soln[mfi], icomp),
-			   ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			   cdir, bctype, tfp, bho, bcl,
-			   BL_TO_FORTRAN_N(fs, bdcomp),
-			   BL_TO_FORTRAN(msk),
-			   BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-			   beta, geom[level].CellSize(),
-			   flux_factor, r.dataPtr(), inhom,
-			   pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
-		}
-		else {
-		    hbflx(BL_TO_FORTRAN(Flux[idim][mfi]),
-			  BL_TO_FORTRAN_N(Soln[mfi], icomp),
-			  ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			  cdir, bct, bho, bcl,
-			  BL_TO_FORTRAN_N(fs, bdcomp),
-			  BL_TO_FORTRAN(msk),
-			  BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
-			  beta, geom[level].CellSize(), inhom);
-		}
-	    }
-	}
+        for (MFIter mfi(Soln); mfi.isValid(); ++mfi) {
+            int i = mfi.index();
+            const Box &reg = grids[level][i];
+            for (OrientationIter oitr; oitr; oitr++) {
+                int cdir(oitr());
+                int idim = oitr().coordDir();
+                const RadBoundCond &bct = bd[level]->bndryConds(oitr())[i];
+                const Real      &bcl = bd[level]->bndryLocs(oitr())[i];
+                const FArrayBox       &fs  = bd[level]->bndryValues(oitr())[mfi];
+                const Mask      &msk = bd[level]->bndryMasks(oitr(), i);
+                const Box &fbox = Flux[idim][mfi].box();
+                const Box &sbox = Soln[mfi].box();
+                const Box &msb  = msk.box();
+                const Box &bbox = (*bcoefs[level])[idim][mfi].box();
+                if (reg[oitr()] == domain[oitr()]) {
+                    const int *tfp = NULL;
+                    int bctype = bct;
+                    if (bd[level]->mixedBndry(oitr())) {
+                        const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
+                        tfp = tf.dataPtr();
+                        bctype = -1;
+                    }
+                    // In normal code operation only the fluxes at internal
+                    // Dirichlet boundaries are used.  Some diagnostics use the
+                    // fluxes computed at domain boundaries but these do not
+                    // influence the evolution of the interior solution.
+                    Real* pSPa;
+                    Box SPabox;
+                    if (SPa[level]) {
+                        pSPa = (*SPa[level])[mfi].dataPtr();
+                        SPabox = (*SPa[level])[mfi].box();
+                    }
+                    else {
+                        pSPa = &foo;
+                        SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
+                    }
+                    getFaceMetric(r, reg, oitr(), geom[level]);
+                    hbflx3(BL_TO_FORTRAN(Flux[idim][mfi]),
+                           BL_TO_FORTRAN_N(Soln[mfi], icomp),
+                           ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+                           cdir, bctype, tfp, bho, bcl,
+                           BL_TO_FORTRAN_N(fs, bdcomp),
+                           BL_TO_FORTRAN(msk),
+                           BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
+                           beta, geom[level].CellSize(),
+                           flux_factor, r.dataPtr(), inhom,
+                           pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
+                }
+                else {
+                    hbflx(BL_TO_FORTRAN(Flux[idim][mfi]),
+                          BL_TO_FORTRAN_N(Soln[mfi], icomp),
+                          ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+                          cdir, bct, bho, bcl,
+                          BL_TO_FORTRAN_N(fs, bdcomp),
+                          BL_TO_FORTRAN(msk),
+                          BL_TO_FORTRAN((*bcoefs[level])[idim][mfi]),
+                          beta, geom[level].CellSize(), inhom);
+                }
+            }
+        }
     }
 }
 

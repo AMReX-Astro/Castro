@@ -59,8 +59,8 @@ Castro::advance (Real time,
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
       for (int iter = 0; iter < sdc_order+sdc_extra; ++iter) {
-	sdc_iteration = iter;
-	dt_new = do_advance_sdc(time, dt, amr_iteration, amr_ncycle);
+        sdc_iteration = iter;
+        dt_new = do_advance_sdc(time, dt, amr_iteration, amr_ncycle);
       }
 
 #endif // TRUE_SDC
@@ -77,7 +77,7 @@ Castro::advance (Real time,
     cfl_violation = 0;
 
     if (use_post_step_regrid)
-	check_for_post_regrid(time + dt);
+        check_for_post_regrid(time + dt);
 
 #ifdef AUX_UPDATE
     advance_aux(time, dt);
@@ -144,7 +144,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
     if (track_grid_losses)
       for (int i = 0; i < n_lost; i++)
-	material_lost_through_boundary_temp[i] = 0.0;
+        material_lost_through_boundary_temp[i] = 0.0;
 
 #ifdef GRAVITY
     if (moving_center == 1)
@@ -207,9 +207,9 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
 
 #ifdef RADIATION
     if (!do_hydro && Radiation::rad_hydro_combined) {
-	MultiFab& Er_old = get_old_data(Rad_Type);
-	MultiFab& Er_new = get_new_data(Rad_Type);
-	Er_new.copy(Er_old);
+        MultiFab& Er_old = get_old_data(Rad_Type);
+        MultiFab& Er_new = get_new_data(Rad_Type);
+        Er_new.copy(Er_old);
     }
 #endif
 
@@ -243,14 +243,14 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     if (use_post_step_regrid && level > 0) {
 
-	if (getLevel(level-1).post_step_regrid && amr_iteration == 1) {
+        if (getLevel(level-1).post_step_regrid && amr_iteration == 1) {
 
             // If the level below this just triggered a special regrid,
             // the coarse contribution to this level's FluxRegister
             // is no longer valid because the grids have, in general, changed.
             // Zero it out, and add them back using the saved copy of the fluxes.
 
-	    getLevel(level-1).FluxRegCrseInit();
+            getLevel(level-1).FluxRegCrseInit();
 
             // If we're coming off a new regrid at the end of the last coarse
             // timestep, then we want to subcycle this timestep at the timestep
@@ -308,7 +308,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // This must be done before the swap because it relies on the new data.
 
     if (level == 0 && gravity->get_gravity_type() == "PoissonGrav") {
-	gravity->update_max_rhs();
+        gravity->update_max_rhs();
     }
 #endif
 
@@ -358,7 +358,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 #ifdef GRAVITY
     if (do_grav)
-	gravity->swapTimeLevels(level);
+        gravity->swapTimeLevels(level);
 #endif
 
     // Ensure data is valid before beginning advance. This addresses
@@ -440,20 +440,20 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
       k_new[0].reset(new MultiFab(S_old, amrex::make_alias, 0, NUM_STATE));
       for (int n = 1; n < SDC_NODES; ++n) {
-	k_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
-	k_new[n]->setVal(0.0);
+        k_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        k_new[n]->setVal(0.0);
       }
 
       A_old.resize(SDC_NODES);
       for (int n = 0; n < SDC_NODES; ++n) {
-	A_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
-	A_old[n]->setVal(0.0);
+        A_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        A_old[n]->setVal(0.0);
       }
 
       A_new.resize(SDC_NODES);
       A_new[0].reset(new MultiFab(*A_old[0], amrex::make_alias, 0, NUM_STATE));
       for (int n = 1; n < SDC_NODES; ++n) {
-	A_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        A_new[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
         A_new[n]->setVal(0.0);
       }
 
@@ -469,7 +469,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #ifdef REACTIONS
       R_old.resize(SDC_NODES);
       for (int n = 0; n < SDC_NODES; ++n) {
-	R_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
+        R_old[n].reset(new MultiFab(grids, dmap, NUM_STATE, 0));
         R_old[n]->setVal(0.0);
       }
 #endif
@@ -480,20 +480,20 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Zero out the current fluxes.
 
     for (int dir = 0; dir < 3; ++dir)
-	fluxes[dir]->setVal(0.0);
+        fluxes[dir]->setVal(0.0);
 
     for (int dir = 0; dir < 3; ++dir)
         mass_fluxes[dir]->setVal(0.0);
 
 #if (BL_SPACEDIM <= 2)
     if (!Geom().IsCartesian())
-	P_radial.setVal(0.0);
+        P_radial.setVal(0.0);
 #endif
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined)
-	for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-	    rad_fluxes[dir]->setVal(0.0);
+        for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+            rad_fluxes[dir]->setVal(0.0);
 #endif
 
 }
@@ -512,13 +512,13 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       ParallelDescriptor::ReduceRealSum(material_lost_through_boundary_temp, n_lost);
 
       for (int i = 0; i < n_lost; i++)
-	material_lost_through_boundary_cumulative[i] += material_lost_through_boundary_temp[i];
+        material_lost_through_boundary_cumulative[i] += material_lost_through_boundary_temp[i];
 
     }
 
     if (do_reflux) {
-	FluxRegCrseInit();
-	FluxRegFineAdd();
+        FluxRegCrseInit();
+        FluxRegFineAdd();
     }
 
 

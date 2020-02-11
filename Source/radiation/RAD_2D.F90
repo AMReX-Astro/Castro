@@ -15,25 +15,6 @@ module rad_module
 
 contains
 
-subroutine multrs(d, &
-                  DIMS(dbox), &
-                  DIMS(reg), &
-                  r, s) bind(C, name="multrs")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer :: DIMDEC(dbox)
-  integer :: DIMDEC(reg)
-  real(rt)         :: d(DIMV(dbox))
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(reg_l2:reg_h2)
-  integer :: i, j
-  do j = reg_l2, reg_h2
-     do i = reg_l1, reg_h1
-        d(i,j) = d(i,j) * r(i) * s(j)
-     enddo
-  enddo
-end subroutine multrs
-
 subroutine sphc(r, s, &
                 DIMS(reg), dx) bind(C, name="sphc")
 
@@ -216,45 +197,6 @@ subroutine nceup(DIMS(reg), relres, absres, &
      enddo
   enddo
 end subroutine nceup
-
-! *********************************
-! ** BEGIN MGFLD routines        **
-! *********************************
-
-subroutine lacoefmgfld(a, &
-                       DIMS(abox), &
-                       DIMS(reg), &
-                       kappa, &
-                       DIMS(kbox), &
-                       r, s, &
-                       dt, c) bind(C, name="lacoefmgfld")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(abox)
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(kbox)
-
-  real(rt)         :: a(DIMV(abox))
-  real(rt)         :: kappa(DIMV(kbox))
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(reg_l2:reg_h2)
-  real(rt)         :: dt, c
-
-  integer :: i, j
-
-  do j = reg_l2, reg_h2
-     do i = reg_l1, reg_h1
-
-        a(i,j) = c*kappa(i,j) + 1.e0_rt/dt
-        a(i,j) = r(i) * s(j) * a(i,j)
-
-     enddo
-  enddo
-end subroutine lacoefmgfld
-
-! *********************************
-! ** END MGFLD routines          **
-! *********************************
 
 subroutine rfface(fine, &
                   DIMS(fbox), &

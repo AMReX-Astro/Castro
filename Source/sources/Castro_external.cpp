@@ -126,10 +126,10 @@ Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& stat
 
 #pragma gpu box(bx)
         ca_ext_src
-	  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-	   BL_TO_FORTRAN_ANYD(state_old[mfi]),
-	   BL_TO_FORTRAN_ANYD(state_new[mfi]),
-	   BL_TO_FORTRAN_ANYD(ext_src[mfi]),
-	   AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
+          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           BL_TO_FORTRAN_ANYD(state_old[mfi]),
+           BL_TO_FORTRAN_ANYD(state_new[mfi]),
+           BL_TO_FORTRAN_ANYD(ext_src[mfi]),
+           AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
     }
 }

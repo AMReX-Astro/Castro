@@ -66,22 +66,22 @@ Castro::restart (Amr&     papa,
     // Let's check Castro checkpoint version first;
     // trying to read from checkpoint; if nonexisting, set it to 0.
     if (input_version == -1) {
-   	if (ParallelDescriptor::IOProcessor()) {
-   	    std::ifstream CastroHeaderFile;
-   	    std::string FullPathCastroHeaderFile = papa.theRestartFile();
-   	    FullPathCastroHeaderFile += "/CastroHeader";
-   	    CastroHeaderFile.open(FullPathCastroHeaderFile.c_str(), std::ios::in);
-   	    if (CastroHeaderFile.good()) {
-		char foo[256];
-		// first line: Checkpoint version: ?
-		CastroHeaderFile.getline(foo, 256, ':');  
-		CastroHeaderFile >> input_version;
-   		CastroHeaderFile.close();
-  	    } else {
-   		input_version = 0;
-   	    }
-   	}
-  	ParallelDescriptor::Bcast(&input_version, 1, ParallelDescriptor::IOProcessorNumber());
+        if (ParallelDescriptor::IOProcessor()) {
+            std::ifstream CastroHeaderFile;
+            std::string FullPathCastroHeaderFile = papa.theRestartFile();
+            FullPathCastroHeaderFile += "/CastroHeader";
+            CastroHeaderFile.open(FullPathCastroHeaderFile.c_str(), std::ios::in);
+            if (CastroHeaderFile.good()) {
+                char foo[256];
+                // first line: Checkpoint version: ?
+                CastroHeaderFile.getline(foo, 256, ':');  
+                CastroHeaderFile >> input_version;
+                CastroHeaderFile.close();
+            } else {
+                input_version = 0;
+            }
+        }
+        ParallelDescriptor::Bcast(&input_version, 1, ParallelDescriptor::IOProcessorNumber());
     }
 
     // Check if there's a file in the header indicating that the
@@ -194,12 +194,12 @@ Castro::restart (Amr&     papa,
       // two components. The y- and z-momentum are zeroed out.
 
       for (int n = 0; n < ns; n++) {
-	if (n < UMY)
-	  MultiFab::Copy(new_data, chk_data, n,   n, 1, ng);
-	else if (n == UMY || n == UMZ)
-	  new_data.setVal(0.0, n, 1, ng);
-	else
-	  MultiFab::Copy(new_data, chk_data, n-2, n, 1, ng);
+        if (n < UMY)
+          MultiFab::Copy(new_data, chk_data, n,   n, 1, ng);
+        else if (n == UMY || n == UMZ)
+          new_data.setVal(0.0, n, 1, ng);
+        else
+          MultiFab::Copy(new_data, chk_data, n-2, n, 1, ng);
       }
 
 #elif (BL_SPACEDIM == 2)
@@ -208,12 +208,12 @@ Castro::restart (Amr&     papa,
       // shifting by one component.
 
       for (int n = 0; n < ns; n++) {
-	if (n < UMZ)
-	  MultiFab::Copy(new_data, chk_data, n,   n, 1, ng);
-	else if (n == UMZ)
-	  new_data.setVal(0.0, n, 1, ng);
-	else
-	  MultiFab::Copy(new_data, chk_data, n-1, n, 1, ng);
+        if (n < UMZ)
+          MultiFab::Copy(new_data, chk_data, n,   n, 1, ng);
+        else if (n == UMZ)
+          new_data.setVal(0.0, n, 1, ng);
+        else
+          MultiFab::Copy(new_data, chk_data, n-1, n, 1, ng);
       }
 
 #endif
@@ -334,23 +334,23 @@ Castro::restart (Amr&     papa,
 
     if (level == 0)
     {
-	// get problem-specific stuff -- note all processors do this,
-	// eliminating the need for a broadcast
-	std::string dir = parent->theRestartFile();
+        // get problem-specific stuff -- note all processors do this,
+        // eliminating the need for a broadcast
+        std::string dir = parent->theRestartFile();
 
-	char * dir_for_pass = new char[dir.size() + 1];
-	std::copy(dir.begin(), dir.end(), dir_for_pass);
-	dir_for_pass[dir.size()] = '\0';
+        char * dir_for_pass = new char[dir.size() + 1];
+        std::copy(dir.begin(), dir.end(), dir_for_pass);
+        dir_for_pass[dir.size()] = '\0';
 
-	int len = dir.size();
+        int len = dir.size();
 
-	Vector<int> int_dir_name(len);
-	for (int j = 0; j < len; j++)
-	  int_dir_name[j] = (int) dir_for_pass[j];
+        Vector<int> int_dir_name(len);
+        for (int j = 0; j < len; j++)
+          int_dir_name[j] = (int) dir_for_pass[j];
 
-	problem_restart(int_dir_name.dataPtr(), &len);
+        problem_restart(int_dir_name.dataPtr(), &len);
 
-	delete [] dir_for_pass;
+        delete [] dir_for_pass;
 
     }
 
@@ -441,8 +441,8 @@ Castro::restart (Amr&     papa,
 
               BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
                 (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
-		 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
-		 ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
+                 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
+                 ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
 
 #endif
 
@@ -605,14 +605,14 @@ Castro::checkPoint(const std::string& dir,
 
   if (level == 0 && ParallelDescriptor::IOProcessor())
     {
-	{
-	    std::ofstream CastroHeaderFile;
-	    std::string FullPathCastroHeaderFile = dir;
-	    FullPathCastroHeaderFile += "/CastroHeader";
-	    CastroHeaderFile.open(FullPathCastroHeaderFile.c_str(), std::ios::out);
+        {
+            std::ofstream CastroHeaderFile;
+            std::string FullPathCastroHeaderFile = dir;
+            FullPathCastroHeaderFile += "/CastroHeader";
+            CastroHeaderFile.open(FullPathCastroHeaderFile.c_str(), std::ios::out);
 
-	    CastroHeaderFile << "Checkpoint version: " << current_version << std::endl;
-	    CastroHeaderFile.close();
+            CastroHeaderFile << "Checkpoint version: " << current_version << std::endl;
+            CastroHeaderFile.close();
 
             writeJobInfo(dir, io_time);
 
@@ -626,7 +626,7 @@ Castro::checkPoint(const std::string& dir,
               StateListFile << desc_lst[State_Type].name(n) << "\n";
             }
             StateListFile.close();
-	}
+        }
 
         // If we have limited this last timestep to hit a plot interval,
         // store the timestep we took before limiting. After the restart,
@@ -645,31 +645,31 @@ Castro::checkPoint(const std::string& dir,
 
         }
 
-	{
-	    // store elapsed CPU time
-	    std::ofstream CPUFile;
-	    std::string FullPathCPUFile = dir;
-	    FullPathCPUFile += "/CPUtime";
-	    CPUFile.open(FullPathCPUFile.c_str(), std::ios::out);
+        {
+            // store elapsed CPU time
+            std::ofstream CPUFile;
+            std::string FullPathCPUFile = dir;
+            FullPathCPUFile += "/CPUtime";
+            CPUFile.open(FullPathCPUFile.c_str(), std::ios::out);
 
-	    CPUFile << std::setprecision(17) << getCPUTime();
-	    CPUFile.close();
-	}
+            CPUFile << std::setprecision(17) << getCPUTime();
+            CPUFile.close();
+        }
 
-	if (track_grid_losses) {
+        if (track_grid_losses) {
 
-	    // store diagnostic quantities
+            // store diagnostic quantities
             std::ofstream DiagFile;
-	    std::string FullPathDiagFile = dir;
-	    FullPathDiagFile += "/Diagnostics";
-	    DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
+            std::string FullPathDiagFile = dir;
+            FullPathDiagFile += "/Diagnostics";
+            DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
 
-	    for (int i = 0; i < n_lost; i++)
-	      DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
+            for (int i = 0; i < n_lost; i++)
+              DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
 
-	    DiagFile.close();
+            DiagFile.close();
 
-	}
+        }
 
 #ifdef GRAVITY
         if (use_point_mass) {
@@ -687,22 +687,22 @@ Castro::checkPoint(const std::string& dir,
         }
 #endif
 
-	{
-	    // store any problem-specific stuff
-	    char * dir_for_pass = new char[dir.size() + 1];
-	    std::copy(dir.begin(), dir.end(), dir_for_pass);
-	    dir_for_pass[dir.size()] = '\0';
+        {
+            // store any problem-specific stuff
+            char * dir_for_pass = new char[dir.size() + 1];
+            std::copy(dir.begin(), dir.end(), dir_for_pass);
+            dir_for_pass[dir.size()] = '\0';
 
-	    int len = dir.size();
+            int len = dir.size();
 
-	    Vector<int> int_dir_name(len);
-	    for (int j = 0; j < len; j++)
-		int_dir_name[j] = (int) dir_for_pass[j];
+            Vector<int> int_dir_name(len);
+            for (int j = 0; j < len; j++)
+                int_dir_name[j] = (int) dir_for_pass[j];
 
-	    problem_checkpoint(int_dir_name.dataPtr(), &len);
+            problem_checkpoint(int_dir_name.dataPtr(), &len);
 
-	    delete [] dir_for_pass;
-	}
+            delete [] dir_for_pass;
+        }
     }
 
 }
@@ -747,9 +747,9 @@ Castro::setPlotVariables ()
   {
       if (plot_X)
       {
-	  // Get the species names from the network model.
+          // Get the species names from the network model.
           //
-	  for (int i = 0; i < NumSpec; i++)
+          for (int i = 0; i < NumSpec; i++)
           {
               int len = 20;
               Vector<int> int_spec_names(len);
@@ -761,12 +761,12 @@ Castro::setPlotVariables ()
               for (int j = 0; j < len; j++)
                   spec_name[j] = int_spec_names[j];
               spec_name[len] = '\0';
-	      string spec_string = "X(";
+              string spec_string = "X(";
               spec_string += spec_name;
               spec_string += ')';
-	      parent->addDerivePlotVar(spec_string);
+              parent->addDerivePlotVar(spec_string);
               delete [] spec_name;
-	  }
+          }
       }
   }
 }
@@ -915,10 +915,10 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
       jobInfoFile << "   number of boxes = " << parent->numGrids(i) << "\n";
       jobInfoFile << "   maximum zones   = ";
       for (int n = 0; n < BL_SPACEDIM; n++)
-	{
-	  jobInfoFile << parent->Geom(i).Domain().length(n) << " ";
-	  //jobInfoFile << parent->Geom(i).ProbHi(n) << " ";
-	}
+        {
+          jobInfoFile << parent->Geom(i).Domain().length(n) << " ";
+          //jobInfoFile << parent->Geom(i).ProbHi(n) << " ";
+        }
       jobInfoFile << "\n\n";
     }
 
@@ -1026,17 +1026,17 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
       ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
       char* spec_name = new char[len+1];
       for (int j = 0; j < len; j++)
-	spec_name[j] = int_spec_names[j];
+        spec_name[j] = int_spec_names[j];
       spec_name[len] = '\0';
 
       // get A and Z
       ca_get_spec_az(&i, &Aion, &Zion);
 
       jobInfoFile <<
-	std::setw(6) << i << SkipSpace <<
-	std::setw(mlen+1) << std::setfill(' ') << spec_name << SkipSpace <<
-	std::setw(7) << Aion << SkipSpace <<
-	std::setw(7) << Zion << "\n";
+        std::setw(6) << i << SkipSpace <<
+        std::setw(mlen+1) << std::setfill(' ') << spec_name << SkipSpace <<
+        std::setw(7) << Aion << SkipSpace <<
+        std::setw(7) << Zion << "\n";
       delete [] spec_name;
     }
   jobInfoFile << "\n\n";
@@ -1155,8 +1155,8 @@ Castro::writePlotFile(const std::string& dir,
 
 void
 Castro::writeSmallPlotFile (const std::string& dir,
-			    ostream&       os,
-			    VisMF::How     how)
+                            ostream&       os,
+                            VisMF::How     how)
 {
   plotFileOutput(dir, os, how, 1);
 }
@@ -1189,9 +1189,7 @@ Castro::plotFileOutput(const std::string& dir,
     std::list<std::string> derive_names;
     const std::list<DeriveRec>& dlist = derive_lst.dlist();
 
-    for (std::list<DeriveRec>::const_iterator it = dlist.begin();
-	 it != dlist.end();
-	 ++it)
+    for (auto it = dlist.begin(); it != dlist.end(); ++it)
     {
         if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
             (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1))
@@ -1203,15 +1201,15 @@ Castro::plotFileOutput(const std::string& dir,
                 if (Castro::theTracerPC())
                 {
                     derive_names.push_back(it->name());
-                    num_derive++;
+                    num_derive = num_derive + it->numDerive();
                 }
             } else
 #endif
-	    {
-		derive_names.push_back(it->name());
-		num_derive++;
-	    }
-	}
+            {
+               derive_names.push_back(it->name());
+               num_derive = num_derive + it->numDerive();
+            }
+        }
     }
 
     int n_data_items = plot_var_map.size() + num_derive;
@@ -1234,26 +1232,32 @@ Castro::plotFileOutput(const std::string& dir,
 
         os << n_data_items << '\n';
 
-	//
-	// Names of variables -- first state, then derived
-	//
-	for (int i =0; i < plot_var_map.size(); i++)
+        //
+        // Names of variables -- first state, then derived
+        //
+        for (int i =0; i < plot_var_map.size(); i++)
         {
-	    int typ = plot_var_map[i].first;
-	    int comp = plot_var_map[i].second;
-	    os << desc_lst[typ].name(comp) << '\n';
+            int typ = plot_var_map[i].first;
+            int comp = plot_var_map[i].second;
+            os << desc_lst[typ].name(comp) << '\n';
         }
 
-	for ( std::list<std::string>::iterator it = derive_names.begin();
-	      it != derive_names.end(); ++it)
+        for (auto it = derive_names.begin(); it != derive_names.end(); ++it)
         {
-	    const DeriveRec* rec = derive_lst.get(*it);
-            os << rec->variableName(0) << '\n';
+            const DeriveRec* rec = derive_lst.get(*it);
+            if (rec->numDerive() > 1) {
+                for (int i = 0; i < rec->numDerive(); ++i) {
+                    os << rec->variableName(0) + '_' + std::to_string(i) + '\n';
+                }
+            }
+            else {
+                os << rec->variableName(0) << '\n';
+            }
         }
 
 #ifdef RADIATION
-	for (int i=0; i<Radiation::nplotvar; ++i)
-	    os << Radiation::plotvar_names[i] << '\n';
+        for (int i=0; i<Radiation::nplotvar; ++i)
+            os << Radiation::plotvar_names[i] << '\n';
 #endif
 
         os << BL_SPACEDIM << '\n';
@@ -1285,16 +1289,16 @@ Castro::plotFileOutput(const std::string& dir,
         os << "0\n"; // Write bndry data.
 
 #ifdef RADIATION
-	if (do_radiation && Radiation::do_multigroup) {
-	  std::ofstream groupfile;
-	  std::string FullPathGroupFile = dir;
-	  FullPathGroupFile += "/RadiationGroups";
-	  groupfile.open(FullPathGroupFile.c_str(), std::ios::out);
+        if (do_radiation && Radiation::do_multigroup) {
+          std::ofstream groupfile;
+          std::string FullPathGroupFile = dir;
+          FullPathGroupFile += "/RadiationGroups";
+          groupfile.open(FullPathGroupFile.c_str(), std::ios::out);
 
-	  radiation->write_groups(groupfile);
+          radiation->write_groups(groupfile);
 
-	  groupfile.close();
-	}
+          groupfile.close();
+        }
 #endif
     }
     // Build the directory to hold the MultiFab at this level.
@@ -1359,30 +1363,34 @@ Castro::plotFileOutput(const std::string& dir,
     //
     for (int i = 0; i < plot_var_map.size(); i++)
     {
-	int typ  = plot_var_map[i].first;
-	int comp = plot_var_map[i].second;
-	this_dat = &state[typ].newData();
-	MultiFab::Copy(plotMF,*this_dat,comp,cnt,1,nGrow);
-	cnt++;
+        int typ  = plot_var_map[i].first;
+        int comp = plot_var_map[i].second;
+        this_dat = &state[typ].newData();
+        MultiFab::Copy(plotMF,*this_dat,comp,cnt,1,nGrow);
+        cnt++;
     }
     //
     // Cull data from derived variables.
     //
-    if (derive_names.size() > 0)
+    if (dlist.size() > 0)
     {
-	for (std::list<std::string>::iterator it = derive_names.begin();
-	     it != derive_names.end(); ++it)
-	{
-	    auto derive_dat = derive(*it,cur_time,nGrow);
-	    MultiFab::Copy(plotMF,*derive_dat,0,cnt,1,nGrow);
-	    cnt++;
-	}
+        for (auto it = dlist.begin(); it != dlist.end(); ++it)
+        {
+            if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
+                (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1)) {
+
+                auto derive_dat = derive(it->variableName(0), cur_time, nGrow);
+                MultiFab::Copy(plotMF, *derive_dat, 0, cnt, it->numDerive(), nGrow);
+                cnt = cnt + it->numDerive();
+
+            }
+        }
     }
 
 #ifdef RADIATION
     if (Radiation::nplotvar > 0) {
-	MultiFab::Copy(plotMF,*(radiation->plotvar[level]),0,cnt,Radiation::nplotvar,0);
-	cnt += Radiation::nplotvar;
+        MultiFab::Copy(plotMF,*(radiation->plotvar[level]),0,cnt,Radiation::nplotvar,0);
+        cnt += Radiation::nplotvar;
     }
 #endif
 

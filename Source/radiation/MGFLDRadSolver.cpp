@@ -46,7 +46,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   Array<MultiFab, BL_SPACEDIM> lambda;
   if (limiter > 0) {
     for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-	lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, nGroups, 0);
+        lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, nGroups, 0);
     }
 
     if (inner_update_limiter == -1) {
@@ -56,24 +56,24 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
       MultiFab& S_lag = castro->get_old_data(State_Type);
       for (FillPatchIterator fpi(*castro,S_lag,ngrow,oldtime,State_Type,
-				 0,S_lag.nComp()); fpi.isValid(); ++fpi) {
-	S_lag[fpi].copy(fpi());
+                                 0,S_lag.nComp()); fpi.isValid(); ++fpi) {
+        S_lag[fpi].copy(fpi());
       }
 
       MultiFab kpr_lag(grids,dmap,nGroups,1);
       MGFLD_compute_rosseland(kpr_lag, S_lag); 
 
       for (int igroup=0; igroup<nGroups; ++igroup) {
-	scaledGradient(level, lambda, kpr_lag, igroup, Er_lag, igroup, limiter, 1, igroup);
-	// lambda now contains scaled gradient
-	fluxLimiter(level, lambda, limiter, igroup);
-	// lambda now contains flux limiter
+        scaledGradient(level, lambda, kpr_lag, igroup, Er_lag, igroup, limiter, 1, igroup);
+        // lambda now contains scaled gradient
+        fluxLimiter(level, lambda, limiter, igroup);
+        // lambda now contains flux limiter
       }
     }
   }
   else {
     for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-	lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
+        lambda[idim].define(castro->getEdgeBoxArray(idim), dmap, 1, 0);
       lambda[idim].setVal(1./3.);
     }    
   }
@@ -155,7 +155,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     lo_bc[idim] = rad_bc.lo(idim);
     hi_bc[idim] = rad_bc.hi(idim);
     if (lo_bc[idim] == LO_SANCHEZ_POMRANING || 
-	hi_bc[idim] == LO_SANCHEZ_POMRANING) {
+        hi_bc[idim] == LO_SANCHEZ_POMRANING) {
       have_Sanchez_Pomraning = true;
     }
   }
@@ -207,10 +207,10 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
     if (it == 1) {
       eos_opacity_emissivity(S_new, temp_new,
-			     temp_star, // input
-			     kappa_p, kappa_r, jg, 
-			     djdT, dkdT, dedT, // output
-			     level, it, 1); 
+                             temp_star, // input
+                             kappa_p, kappa_r, jg, 
+                             djdT, dkdT, dedT, // output
+                             level, it, 1); 
       // It's OK that temp_star does not have a valid value for it==1
     }
 
@@ -222,10 +222,10 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       Er_star.FillBoundary(parent->Geom(level).periodicity());
 
       for (int igroup=0; igroup<nGroups; ++igroup) {
-	scaledGradient(level, lambda, kappa_r, igroup, Er_star, igroup, limiter, 1, igroup);
-	// lambda now contains scaled gradient
-	fluxLimiter(level, lambda, limiter, igroup);
-	// lambda now contains flux limiter
+        scaledGradient(level, lambda, kappa_r, igroup, Er_star, igroup, limiter, 1, igroup);
+        // lambda now contains scaled gradient
+        fluxLimiter(level, lambda, limiter, igroup);
+        // lambda now contains flux limiter
       }
     }
     
@@ -249,107 +249,107 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       MultiFab::Copy(Er_pi, Er_new, 0, 0, nGroups, 0);
 
       if (limiter>0 && inner_update_limiter>0) { 
-	if (innerIteration <= inner_update_limiter) {
+        if (innerIteration <= inner_update_limiter) {
           Er_pi.FillBoundary(parent->Geom(level).periodicity());
-	  
-	  for (int igroup=0; igroup<nGroups; ++igroup) {
-	    scaledGradient(level, lambda, kappa_r, igroup, Er_pi, igroup, limiter, 1, igroup);
-	    // lambda now contains scaled gradient
-	    fluxLimiter(level, lambda, limiter, igroup);
-	    // lambda now contains flux limiter
-	  }
-	}
+          
+          for (int igroup=0; igroup<nGroups; ++igroup) {
+            scaledGradient(level, lambda, kappa_r, igroup, Er_pi, igroup, limiter, 1, igroup);
+            // lambda now contains scaled gradient
+            fluxLimiter(level, lambda, limiter, igroup);
+            // lambda now contains flux limiter
+          }
+        }
       }
 
       compute_coupling(coupT, kappa_p, Er_pi, jg);
 
       for (int igroup=0; igroup<nGroups; ++igroup) {
 
-	set_current_group(igroup);
+        set_current_group(igroup);
 
-	// setup and solve linear system
+        // setup and solve linear system
 
-	// set boundary condition
-	solver->levelBndry(mgbd, igroup);
-	
-	solver->levelACoeffs(level, kappa_p, delta_t, c, igroup, ptc_tau);
+        // set boundary condition
+        solver->levelBndry(mgbd, igroup);
+        
+        solver->levelACoeffs(level, kappa_p, delta_t, c, igroup, ptc_tau);
 
-	int lamcomp = (limiter==0) ? 0 : igroup;
-	solver->levelBCoeffs(level, lambda, kappa_r, igroup, c, lamcomp);
+        int lamcomp = (limiter==0) ? 0 : igroup;
+        solver->levelBCoeffs(level, lambda, kappa_r, igroup, c, lamcomp);
 
-	if (have_Sanchez_Pomraning) {
-	  solver->levelSPas(level, lambda, igroup, lo_bc, hi_bc);
-	}
+        if (have_Sanchez_Pomraning) {
+          solver->levelSPas(level, lambda, igroup, lo_bc, hi_bc);
+        }
 
-	{ // src and rhd block
-	  	  
-	  MultiFab rhs(grids,dmap,1,0);
+        { // src and rhd block
+                  
+          MultiFab rhs(grids,dmap,1,0);
 
-	  solver->levelRhs(level, rhs, jg, mugT,
+          solver->levelRhs(level, rhs, jg, mugT,
                            coupT, etaT,
                            Er_step, rhoe_step, Er_star, rhoe_star,
                            delta_t, igroup, it, ptc_tau);
 
-	  // solve Er equation and put solution in Er_new(igroup)
-	  solver->levelSolve(level, Er_new, igroup, rhs, 0.01);
-	} // end src and rhs block
+          // solve Er equation and put solution in Er_new(igroup)
+          solver->levelSolve(level, Er_new, igroup, rhs, 0.01);
+        } // end src and rhs block
 
-	solver->levelFlux(level, Flux, Er_new, igroup);
-	solver->levelFluxReg(level, flux_in, flux_out, Flux, igroup);
-	  
-	if (icomp_flux >= 0) 
-	    solver->levelFluxFaceToCenter(level, Flux, *flxcc, icomp_flux+igroup);
+        solver->levelFlux(level, Flux, Er_new, igroup);
+        solver->levelFluxReg(level, flux_in, flux_out, Flux, igroup);
+          
+        if (icomp_flux >= 0) 
+            solver->levelFluxFaceToCenter(level, Flux, *flxcc, icomp_flux+igroup);
 
       } // end loop over groups
       
       // Check for convergence *before* acceleration step:
       check_convergence_er(relative_in, absolute_in, error_er, Er_new, Er_pi,
-      			   kappa_p, etaTz, temp_new, delta_t);
+                           kappa_p, etaTz, temp_new, delta_t);
 
       if (verbose >= 2) {
-	int oldprec = std::cout.precision(3);
+        int oldprec = std::cout.precision(3);
         amrex::Print() << "Outer = " << it << ", Inner = " << innerIteration
                        << ", inner err =  " << std::setw(8) << relative_in << " (rel),  " 
                        << std::setw(8) << absolute_in << " (abs)" << std::endl;
-	std::cout.precision(oldprec);
+        std::cout.precision(oldprec);
       }
 
       if (relative_in < 1.e-15) {
-	inner_converged = true;
+        inner_converged = true;
       }
       else if (innerIteration < minInIter) {
-	inner_converged = false;
+        inner_converged = false;
       }
       else if ( (relative_in <= reltol_in || absolute_in <= absInTol) 
-		&& error_er <= reltol ) {
-	inner_converged = true;
+                && error_er <= reltol ) {
+        inner_converged = true;
       }
 
       if (!inner_converged) {
-	Real accel_fac=1.+1.e-6;
-	if (skipAccelAllowed &&
-	    relative_in>accel_fac*relative_in_prev && 
-	    absolute_in>accel_fac*absolute_in_prev) {
-	  accel_allowed = false;
-	  if (relative_in>10.*relative_in_prev && 
-	      absolute_in>10.*absolute_in_prev) {
-	    MultiFab::Copy(Er_new, Er_star, 0, 0, nGroups, 0);
-	  }
-	}
-	relative_in_prev = relative_in;
-	absolute_in_prev = absolute_in;
+        Real accel_fac=1.+1.e-6;
+        if (skipAccelAllowed &&
+            relative_in>accel_fac*relative_in_prev && 
+            absolute_in>accel_fac*absolute_in_prev) {
+          accel_allowed = false;
+          if (relative_in>10.*relative_in_prev && 
+              absolute_in>10.*absolute_in_prev) {
+            MultiFab::Copy(Er_new, Er_star, 0, 0, nGroups, 0);
+          }
+        }
+        relative_in_prev = relative_in;
+        absolute_in_prev = absolute_in;
 
-	if (accel_allowed) {
-	  if (accelerate == 1) {
-	    local_accel(Er_new, Er_pi, kappa_p, etaT,
-			mugT, delta_t, ptc_tau);
-	  } 
-	  else if (accelerate == 2) {
-	    gray_accel(Er_new, Er_pi, kappa_p, kappa_r, 
-		       etaT, eta1, mugT,
-		       lambda, *solver, mgbd, grids, level, time, delta_t, ptc_tau);
-	  } 
-	}
+        if (accel_allowed) {
+          if (accelerate == 1) {
+            local_accel(Er_new, Er_pi, kappa_p, etaT,
+                        mugT, delta_t, ptc_tau);
+          } 
+          else if (accelerate == 2) {
+            gray_accel(Er_new, Er_pi, kappa_p, kappa_r, 
+                       etaT, eta1, mugT,
+                       lambda, *solver, mgbd, grids, level, time, delta_t, ptc_tau);
+          } 
+        }
       }
 
     } while(!inner_converged && innerIteration < maxInIter); 
@@ -368,31 +368,31 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     }
     else if (matter_update_type == 1) {
       if (outer_ready || it >= maxiter) {
-	conservative_update = true;
+        conservative_update = true;
       }
       else {
-	conservative_update = false;
+        conservative_update = false;
       }
     }
     else if (matter_update_type == 2) {
       if (it%2 == 0) {
-	conservative_update = true;
+        conservative_update = true;
       }
       else {
-	conservative_update = false;
+        conservative_update = false;
       }
     }
     else if (matter_update_type == 3) {
       if (outer_ready || it >= maxiter) {
-	conservative_update = true;
+        conservative_update = true;
       }
       else {
-	if (it%2 == 0) {
-	  conservative_update = true;
-	}
-	else {
-	  conservative_update = false;
-	}
+        if (it%2 == 0) {
+          conservative_update = true;
+        }
+        else {
+          conservative_update = false;
+        }
       }
     }
     else {
@@ -400,23 +400,23 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     }
 
     update_matter(rhoe_new, temp_new, Er_new, Er_pi,
-		  rhoe_star, rhoe_step,
-    		  etaT, etaTz, eta1,
-		  coupT,
-		  kappa_p, jg, mugT,
-		  S_new, level, delta_t, ptc_tau, it, conservative_update);
+                  rhoe_star, rhoe_step,
+                  etaT, etaTz, eta1,
+                  coupT,
+                  kappa_p, jg, mugT,
+                  S_new, level, delta_t, ptc_tau, it, conservative_update);
 
     eos_opacity_emissivity(S_new, temp_new,
-			   temp_star, // input
-			   kappa_p, kappa_r, jg, 
-			   djdT, dkdT, dedT, // output
-			   level, it+1, 0);
+                           temp_star, // input
+                           kappa_p, kappa_r, jg, 
+                           djdT, dkdT, dedT, // output
+                           level, it+1, 0);
 
     check_convergence_matt(rhoe_new, rhoe_star, rhoe_step, Er_new,
-			   temp_new, temp_star, 
-			   rho, kappa_p, jg, dedT,
-			   rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T,
-			   delta_t);
+                           temp_new, temp_star, 
+                           rho, kappa_p, jg, dedT,
+                           rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T,
+                           delta_t);
 
     Real relative_out, absolute_out;
 
@@ -436,8 +436,8 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     default:
       relative_out = rel_T;
       if (conservative_update) {
-	//	relative_out = (relative_out > rel_rhoe) ? relative_out : rel_rhoe;
-	relative_out = (relative_out > rel_FT  ) ? relative_out : rel_FT;
+        //      relative_out = (relative_out > rel_rhoe) ? relative_out : rel_rhoe;
+        relative_out = (relative_out > rel_FT  ) ? relative_out : rel_FT;
       }
       absolute_out = abs_T;
     }
@@ -473,18 +473,18 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
 
     if (!converged && it > n_bisect) {
       bisect_matter(rhoe_new, temp_new,
-		    rhoe_star, temp_star,
-		    S_new, grids, level);
+                    rhoe_star, temp_star,
+                    S_new, grids, level);
 
       eos_opacity_emissivity(S_new, temp_new,
-			     temp_star, // input
-			     kappa_p, kappa_r, jg, 
-			     djdT, dkdT, dedT, // output
-			     level, it+1, 0);
+                             temp_star, // input
+                             kappa_p, kappa_r, jg, 
+                             djdT, dkdT, dedT, // output
+                             level, it+1, 0);
     }
    
   } while ( ((!converged || !inner_converged) && it<maxiter)
-   	    || !conservative_update);
+            || !conservative_update);
 
   if (verbose == 1) {
     int oldprec = std::cout.precision(4);
@@ -508,18 +508,18 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
   flux_in = (level < fine_level) ? flux_trial[level+1].get() : nullptr;
   if (flux_in) {
       for (OrientationIter face; face; ++face) {
-	  Orientation ori = face();
-	  (*flux_cons[level+1])[ori].linComb(1.0, -1.0,
-					     (*flux_in)[ori], 0, 0, nGroups);
+          Orientation ori = face();
+          (*flux_cons[level+1])[ori].linComb(1.0, -1.0,
+                                             (*flux_in)[ori], 0, 0, nGroups);
       }
   }
 
   flux_out = (level > 0) ? flux_trial[level].get() : nullptr;
   if (flux_out) {
       for (OrientationIter face; face; ++face) {
-	  Orientation ori = face();
-	  (*flux_cons[level])[ori].linComb(1.0, 1.0 / ncycle,
-					(*flux_out)[ori], 0, 0, nGroups);
+          Orientation ori = face();
+          (*flux_cons[level])[ori].linComb(1.0, 1.0 / ncycle,
+                                        (*flux_out)[ori], 0, 0, nGroups);
     }
   }
 
