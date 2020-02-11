@@ -1205,11 +1205,11 @@ Castro::plotFileOutput(const std::string& dir,
                 }
             } else
 #endif
-	    {
+            {
                derive_names.push_back(it->name());
                num_derive = num_derive + it->numDerive();
-	    }
-	}
+            }
+        }
     }
 
     int n_data_items = plot_var_map.size() + num_derive;
@@ -1242,9 +1242,9 @@ Castro::plotFileOutput(const std::string& dir,
             os << desc_lst[typ].name(comp) << '\n';
         }
 
-	for (auto it = derive_names.begin(); it != derive_names.end(); ++it)
+        for (auto it = derive_names.begin(); it != derive_names.end(); ++it)
         {
-	    const DeriveRec* rec = derive_lst.get(*it);
+            const DeriveRec* rec = derive_lst.get(*it);
             if (rec->numDerive() > 1) {
                 for (int i = 0; i < rec->numDerive(); ++i) {
                     os << rec->variableName(0) + '_' + std::to_string(i) + '\n';
@@ -1374,8 +1374,8 @@ Castro::plotFileOutput(const std::string& dir,
     //
     if (dlist.size() > 0)
     {
-	for (auto it = dlist.begin(); it != dlist.end(); ++it)
-	{
+        for (auto it = dlist.begin(); it != dlist.end(); ++it)
+        {
             if ((parent->isDerivePlotVar(it->name()) && is_small == 0) || 
                 (parent->isDeriveSmallPlotVar(it->name()) && is_small == 1)) {
 
@@ -1384,7 +1384,7 @@ Castro::plotFileOutput(const std::string& dir,
                 cnt = cnt + it->numDerive();
 
             }
-	}
+        }
     }
 
 #ifdef RADIATION
