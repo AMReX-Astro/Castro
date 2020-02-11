@@ -1,5 +1,9 @@
 # 20.03
 
+   * The option ppm_temp_fix = 3 was removed.  This used a
+     temperature-based eigensystem for characteristic tracing but was
+     never used for production science.
+
    * The names of the conserved state variables in C++ (Density, Xmom, etc.)
      have been changed to match the names in Fortran (URHO, UMX, etc.).
      For user code, this will only affect problem-specific setup code

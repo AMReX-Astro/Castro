@@ -1149,8 +1149,6 @@ which takes values:
     :math:`X_k`, and computing the corresponding pressure, :math:`p`
     from this.
 
-  * 3: This does the characteristic tracing using the
-    :math:`(\tau, u, T)` eigensystem. 
 
 Resets
 ======
