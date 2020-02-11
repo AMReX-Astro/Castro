@@ -21,7 +21,7 @@ def process_analysis(filename):
             print('Static analysis warnings from Castro:\n-------------------------------------\n')
             print('\n'.join(bugs))
             print(f'{n_warnings} bugs found')
-            return -1 
+            sys.exit(1)
 
     return True
 
