@@ -18,27 +18,6 @@ contains
 ! The following routines implement metric terms in 2D and are included
 ! in the 3D source only to enable the code to link.
 
-subroutine multrs(d, &
-                  DIMS(dbox), &
-                  DIMS(reg), &
-                  r, s) bind(C, name="multrs")
-  
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(dbox)
-  integer :: DIMDEC(reg)
-  real(rt)         :: d(DIMV(dbox))
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(reg_l2:reg_h2)
-  integer :: i, j, k
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           d(i,j,k) = d(i,j,k) * r(i) * s(j)
-        enddo
-     enddo
-  enddo
-end subroutine multrs
-
 subroutine sphc(r, s, &
                 DIMS(reg), dx) bind(C, name="sphc")
 
@@ -222,45 +201,6 @@ subroutine nceup(DIMS(reg), relres, absres, &
      enddo
   enddo
 end subroutine nceup
-
-! *********************************
-! ** BEGIN MGFLD routines        **
-! *********************************
-
-subroutine lacoefmgfld(a, &
-                       DIMS(abox), &
-                       DIMS(reg), &
-                       kappa, &
-                       DIMS(kbox), &
-                       r, s, &
-                       dt, c) bind(C, name="lacoefmgfld")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(abox)
-  integer :: DIMDEC(reg)
-  integer :: DIMDEC(kbox)
-
-  real(rt)         :: a(DIMV(abox))
-  real(rt)         :: kappa(DIMV(kbox))
-  real(rt)         :: r(reg_l1:reg_h1)
-  real(rt)         :: s(reg_l2:reg_h2)
-  real(rt)         :: dt, c
-
-  integer :: i, j, k
-
-  do k = reg_l3, reg_h3
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1
-           a(i,j,k) = c*kappa(i,j,k) + 1.e0_rt/dt
-        enddo
-     enddo
-  enddo
-
-end subroutine lacoefmgfld
-
-! *********************************
-! ** END MGFLD routines          **
-! *********************************
 
 subroutine rfface(fine, &
                   DIMS(fbox), &

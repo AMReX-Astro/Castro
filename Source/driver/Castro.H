@@ -54,16 +54,16 @@ enum StateType { State_Type = 0,
                  Gravity_Type,
 #endif
 #ifdef ROTATION
-		 PhiRot_Type,
-		 Rotation_Type,
+                 PhiRot_Type,
+                 Rotation_Type,
 #endif
-		 Source_Type,
+                 Source_Type,
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-		 Simplified_SDC_React_Type
+                 Simplified_SDC_React_Type
 #endif
 #endif
 };
@@ -87,7 +87,7 @@ enum sources { thermo_src = 0,
                sponge_src,
 #endif
                ext_src,
-	       num_src };
+               num_src };
 
 
 // time integration method
@@ -145,7 +145,7 @@ public:
 ///
     virtual void restart (amrex::Amr&     papa,
                           istream& is,
-			  bool bReadSpecial = false) override;
+                          bool bReadSpecial = false) override;
 
 ///
 /// This is called only when we restart from an old checkpoint.
@@ -196,8 +196,8 @@ public:
 /// @param how  ``VisMF::How`` object
 ///
     virtual void writeSmallPlotFile (const std::string& dir,
-				     ostream&       os,
-				     amrex::VisMF::How     how) override;
+                                     ostream&       os,
+                                     amrex::VisMF::How     how) override;
 
 ///
 /// @param dir      directory to write to
@@ -293,8 +293,8 @@ public:
 /// @param ngrow        Number of ghost cells
 ///
     std::unique_ptr<amrex::MultiFab> ParticleDerive (const std::string& name,
-						     amrex::Real           time,
-						     int            ngrow);
+                                                     amrex::Real           time,
+                                                     int            ngrow);
 
 ///
 /// Timestamp particles
@@ -699,8 +699,8 @@ public:
                            int          clearval,
                            int          tagval,
                            amrex::Real  time,
-			   int          n_error_buf = 0,
-			   int          ngrow = 0) override;
+                           int          n_error_buf = 0,
+                           int          ngrow = 0) override;
 
 
 ///
@@ -731,8 +731,8 @@ public:
 /// @param ngrow    Number of ghost cells
 ///
     virtual std::unique_ptr<amrex::MultiFab> derive (const std::string& name,
-						     amrex::Real        time,
-						     int                ngrow) override;
+                                                     amrex::Real        time,
+                                                     int                ngrow) override;
 
 ///
 /// This version of derive() fills the dcomp'th component of mf with the derived quantity.
@@ -743,9 +743,9 @@ public:
 /// @param dcomp        index of component of `mf` to fill with derived quantity
 ///
     virtual void derive (const std::string& name,
-			 amrex::Real               time,
-			 amrex::MultiFab&          mf,
-			 int                dcomp) override;
+                         amrex::Real               time,
+                         amrex::MultiFab&          mf,
+                         int                dcomp) override;
 
     static int numGrow();
 

@@ -60,13 +60,13 @@ main (int   argc,
     // Refuse to continue if we did not provide an inputs file.
 
     if (argc <= 1) {
-	amrex::Abort("Error: no inputs file provided on command line.");
+        amrex::Abort("Error: no inputs file provided on command line.");
     }
 
     // Save the inputs file name for later.
 
     if (!strchr(argv[1], '=')) {
-	inputs_name = argv[1];
+        inputs_name = argv[1];
     }
 
 #ifdef HYPRE
@@ -115,12 +115,12 @@ main (int   argc,
 
     if (ParallelDescriptor::IOProcessor())
       std::cout << std::setfill('0') << "\nStarting run at "
-		<< std::setw(2) << time_pointer->tm_hour << ":"
-		<< std::setw(2) << time_pointer->tm_min << ":"
-		<< std::setw(2) << time_pointer->tm_sec << " UTC on "
-		<< time_pointer->tm_year + 1900 << "-"
-		<< std::setw(2) << time_pointer->tm_mon + 1 << "-"
-		<< std::setw(2) << time_pointer->tm_mday << "." << std::endl;
+                << std::setw(2) << time_pointer->tm_hour << ":"
+                << std::setw(2) << time_pointer->tm_min << ":"
+                << std::setw(2) << time_pointer->tm_sec << " UTC on "
+                << time_pointer->tm_year + 1900 << "-"
+                << std::setw(2) << time_pointer->tm_mon + 1 << "-"
+                << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
 
     //
     // Initialize random seed after we're running in parallel.
@@ -160,7 +160,7 @@ main (int   argc,
         amrptr->coarseTimeStep(stop_time);
 
 #ifdef HAS_DUMPMODEL
-	dumpmodelptr->dump(amrptr);
+        dumpmodelptr->dump(amrptr);
 #endif
 
 
@@ -180,13 +180,13 @@ main (int   argc,
 
     if (Castro::get_output_at_completion() == 1) {
 
-	if (amrptr->stepOfLastCheckPoint() < amrptr->levelSteps(0)) {
-	    amrptr->checkPoint();
-	}
+        if (amrptr->stepOfLastCheckPoint() < amrptr->levelSteps(0)) {
+            amrptr->checkPoint();
+        }
 
-	if (amrptr->stepOfLastPlotFile() < amrptr->levelSteps(0)) {
-	    amrptr->writePlotFile();
-	}
+        if (amrptr->stepOfLastPlotFile() < amrptr->levelSteps(0)) {
+            amrptr->writePlotFile();
+        }
 
         if (amrptr->stepOfLastSmallPlotFile() < amrptr->levelSteps(0)) {
             amrptr->writeSmallPlotFile();
@@ -207,12 +207,12 @@ main (int   argc,
 
     if (ParallelDescriptor::IOProcessor())
       std::cout << std::setfill('0') << "\nEnding run at "
-		<< std::setw(2) << time_pointer->tm_hour << ":"
-		<< std::setw(2) << time_pointer->tm_min << ":"
-		<< std::setw(2) << time_pointer->tm_sec << " UTC on "
-		<< time_pointer->tm_year + 1900 << "-"
-		<< std::setw(2) << time_pointer->tm_mon + 1 << "-"
-		<< std::setw(2) << time_pointer->tm_mday << "." << std::endl;
+                << std::setw(2) << time_pointer->tm_hour << ":"
+                << std::setw(2) << time_pointer->tm_min << ":"
+                << std::setw(2) << time_pointer->tm_sec << " UTC on "
+                << time_pointer->tm_year + 1900 << "-"
+                << std::setw(2) << time_pointer->tm_mon + 1 << "-"
+                << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
 
 #ifdef HYPRE
     HYPRE_Finalize();
@@ -237,11 +237,11 @@ main (int   argc,
         std::cout << "Run time = " << runtime_total << std::endl;
         std::cout << "Run time without initialization = " << runtime_timestep << std::endl;
 
-	fom = fom / runtime_timestep / 1.e6;
+        fom = fom / runtime_timestep / 1.e6;
 
-	std::cout << "\n";
-	std::cout << "  Average number of zones advanced per microsecond: " << std::fixed << std::setprecision(3) << fom << "\n";
-	std::cout << "\n";
+        std::cout << "\n";
+        std::cout << "  Average number of zones advanced per microsecond: " << std::fixed << std::setprecision(3) << fom << "\n";
+        std::cout << "\n";
     }
 
     if (CArena* arena = dynamic_cast<CArena*>(amrex::The_Arena()))

@@ -259,8 +259,8 @@ Castro::variableSetUp ()
   ppc.queryarr("center",center,0,BL_SPACEDIM);
 
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
-			Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-			dgeom.ProbLo(),dgeom.ProbHi(),center.dataPtr());
+                        Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+                        dgeom.ProbLo(),dgeom.ProbHi(),center.dataPtr());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
@@ -296,17 +296,6 @@ Castro::variableSetUp ()
       interp = &cell_cons_interp;
   }
 
-#ifdef RADIATION
-  // cell_cons_interp is not conservative in spherical coordinates.
-  // We could do this for other cases too, but I'll confine it to
-  // neutrino problems for now so as not to change the results of
-  // other people's tests.  Better to fix cell_cons_interp!
-
-  if (dgeom.IsSPHERICAL() && Radiation::nNeutrinoSpecies > 0) {
-    interp = &pc_interp;
-  }
-#endif
-
   // Note that the default is state_data_extrap = false,
   // store_in_checkpoint = true.  We only need to put these in
   // explicitly if we want to do something different,
@@ -325,20 +314,20 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = true;
   desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,ngrow_state,NUM_STATE,
-			 interp,state_data_extrap,store_in_checkpoint);
+                         StateDescriptor::Point,ngrow_state,NUM_STATE,
+                         interp,state_data_extrap,store_in_checkpoint);
 
 #ifdef GRAVITY
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, 1, 1,
-			 &cell_cons_interp, state_data_extrap,
-			 store_in_checkpoint);
+                         StateDescriptor::Point, 1, 1,
+                         &cell_cons_interp, state_data_extrap,
+                         store_in_checkpoint);
 
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,3,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         StateDescriptor::Point,NUM_GROW,3,
+                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
   // Source terms -- for the CTU method, because we do characteristic
@@ -359,20 +348,20 @@ Castro::variableSetUp ()
       amrex::Error("Unknown time_integration_method");
   }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, source_ng, NSRC,
-			 &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+                         StateDescriptor::Point, source_ng, NSRC,
+                         &cell_cons_interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
   store_in_checkpoint = false;
   desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, 1, 1,
-			 &cell_cons_interp, state_data_extrap,
-			 store_in_checkpoint);
+                         StateDescriptor::Point, 1, 1,
+                         &cell_cons_interp, state_data_extrap,
+                         store_in_checkpoint);
 
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,NUM_GROW,3,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         StateDescriptor::Point,NUM_GROW,3,
+                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 
@@ -382,8 +371,8 @@ Castro::variableSetUp ()
   // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-			 StateDescriptor::Point,0,NumSpec+2,
-			 &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         StateDescriptor::Point,0,NumSpec+2,
+                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -474,7 +463,7 @@ Castro::variableSetUp ()
     {
       std::cout << NumSpec << " Species: " << std::endl;
       for (int i = 0; i < NumSpec; i++)
-	std::cout << spec_names[i] << ' ' << ' ';
+        std::cout << spec_names[i] << ' ' << ' ';
       std::cout << std::endl;
     }
 
@@ -503,7 +492,7 @@ Castro::variableSetUp ()
     {
       std::cout << NumAux << " Auxiliary Variables: " << std::endl;
       for (int i = 0; i < NumAux; i++)
-	std::cout << aux_names[i] << ' ' << ' ';
+        std::cout << aux_names[i] << ' ' << ' ';
       std::cout << std::endl;
     }
 
@@ -521,10 +510,10 @@ Castro::variableSetUp ()
 #endif
 
   desc_lst.setComponent(State_Type,
-			URHO,
-			name,
-			bcs,
-			BndryFunc(ca_denfill,ca_hypfill));
+                        URHO,
+                        name,
+                        bcs,
+                        BndryFunc(ca_denfill,ca_hypfill));
 
 #ifdef GRAVITY
   set_scalar_bc(bc,phys_bc);
@@ -592,57 +581,27 @@ Castro::variableSetUp ()
   int ngrow = 1;
   int ncomp = Radiation::nGroups;
   desc_lst.addDescriptor(Rad_Type, IndexType::TheCellType(),
-			 StateDescriptor::Point, ngrow, ncomp,
-			 interp);
+                         StateDescriptor::Point, ngrow, ncomp,
+                         interp);
   set_scalar_bc(bc,phys_bc);
 
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "Radiation::nGroups = " << Radiation::nGroups << std::endl;
-    std::cout << "Radiation::nNeutrinoSpecies = "
-	      << Radiation::nNeutrinoSpecies << std::endl;
-    if (Radiation::nNeutrinoSpecies > 0) {
-      std::cout << "Radiation::nNeutrinoGroups  = ";
-      for (int n = 0; n < Radiation::nNeutrinoSpecies; n++) {
-	std::cout << " " << Radiation::nNeutrinoGroups[n];
-      }
-      std::cout << std::endl;
-      if (Radiation::nNeutrinoGroups[0] > 0 &&
-	  NumAdv != 0) {
-	amrex::Error("Neutrino solver assumes NumAdv == 0");
-      }
-      if (Radiation::nNeutrinoGroups[0] > 0 &&
-	  (NumSpec != 1 || NumAux != 1)) {
-	amrex::Error("Neutrino solver assumes NumSpec == NumAux == 1");
-      }
-    }
   }
 
   char rad_name[10];
   if (!Radiation::do_multigroup) {
     desc_lst
       .setComponent(Rad_Type, Rad, "rad", bc,
-		    BndryFunc(ca_radfill));
+                    BndryFunc(ca_radfill));
   }
   else {
-    if (Radiation::nNeutrinoSpecies == 0 ||
-	Radiation::nNeutrinoGroups[0] == 0) {
       for (int i = 0; i < Radiation::nGroups; i++) {
-	sprintf(rad_name, "rad%d", i);
-	desc_lst
-	  .setComponent(Rad_Type, i, rad_name, bc,
-			BndryFunc(ca_radfill));
+        sprintf(rad_name, "rad%d", i);
+        desc_lst
+          .setComponent(Rad_Type, i, rad_name, bc,
+                        BndryFunc(ca_radfill));
       }
-    }
-    else {
-      int indx = 0;
-      for (int j = 0; j < Radiation::nNeutrinoSpecies; j++) {
-	for (int i = 0; i < Radiation::nNeutrinoGroups[j]; i++) {
-	  sprintf(rad_name, "rads%dg%d", j, i);
-	  desc_lst.setComponent(Rad_Type, indx, rad_name, bc, BndryFunc(ca_radfill));
-	  indx++;
-	}
-      }
-    }
   }
 #endif
 
@@ -654,10 +613,10 @@ Castro::variableSetUp ()
       Knapsack_Weight_Type = desc_lst.size();
       desc_lst.addDescriptor(Knapsack_Weight_Type, IndexType::TheCellType(),
                              StateDescriptor::Point,
-			     0, 1, &pc_interp);
+                             0, 1, &pc_interp);
       // Because we use piecewise constant interpolation, we do not use bc and BndryFunc.
       desc_lst.setComponent(Knapsack_Weight_Type, 0, "KnapsackWeight",
-			    bc, BndryFunc(ca_nullfill));
+                            bc, BndryFunc(ca_nullfill));
   }
 
 
@@ -910,78 +869,11 @@ Castro::variableSetUp ()
   }
 #endif
 
-#ifdef NEUTRINO
-  if (Radiation::nNeutrinoSpecies > 0 &&
-      Radiation::plot_neutrino_group_energies_per_MeV) {
-    char rad_name[10];
-    int indx = 0;
-    for (int j = 0; j < Radiation::nNeutrinoSpecies; j++) {
-      for (int i = 0; i < Radiation::nNeutrinoGroups[j]; i++) {
-	sprintf(rad_name, "Neuts%dg%d", j, i);
-	derive_lst.add(rad_name,IndexType::TheCellType(),1,ca_derneut,the_same_box);
-	derive_lst.addComponent(rad_name,desc_lst,Rad_Type,indx,1);
-	indx++;
-      }
-    }
-  }
-
-  if (Radiation::nNeutrinoSpecies > 0 &&
-      Radiation::nNeutrinoGroups[0] > 0) {
-    derive_lst.add("Enue", IndexType::TheCellType(),1,ca_derenue,the_same_box);
-    derive_lst.addComponent("Enue",desc_lst,Rad_Type,0,Radiation::nGroups);
-    derive_lst.add("Enuae", IndexType::TheCellType(),1,ca_derenuae,the_same_box);
-    derive_lst.addComponent("Enuae",desc_lst,Rad_Type,0,Radiation::nGroups);
-    //
-    // rho_Yl = rho(Ye + Ynue - Ynuebar)
-    //
-    derive_lst.add("rho_Yl",IndexType::TheCellType(),1,ca_derrhoyl,the_same_box);
-    // Don't actually need density for rho * Yl
-    derive_lst.addComponent("rho_Yl",desc_lst,State_Type,URHO,1);
-    // UFX is (rho * Ye)
-    derive_lst.addComponent("rho_Yl",desc_lst,State_Type, UFX,1);
-    derive_lst.addComponent("rho_Yl",desc_lst,Rad_Type,0,Radiation::nGroups);
-    //
-    // Yl = (Ye + Ynue - Ynuebar)
-    //
-    derive_lst.add("Yl",IndexType::TheCellType(),1,ca_deryl,the_same_box);
-    derive_lst.addComponent("Yl",desc_lst,State_Type,URHO,1);
-    // UFX is (rho * Ye)
-    derive_lst.addComponent("Yl",desc_lst,State_Type,UFX,1);
-    derive_lst.addComponent("Yl",desc_lst,Rad_Type,0,Radiation::nGroups);
-    //
-    // Ynue
-    //
-    derive_lst.add("Ynue",IndexType::TheCellType(),1,ca_derynue,the_same_box);
-    derive_lst.addComponent("Ynue",desc_lst,State_Type,URHO,1);
-    // UFX is (rho * Ye)
-    derive_lst.addComponent("Ynue",desc_lst,State_Type,UFX,1);
-    derive_lst.addComponent("Ynue",desc_lst,Rad_Type,0,Radiation::nGroups);
-    //
-    // Ynuebar
-    //
-    derive_lst.add("Ynuae",IndexType::TheCellType(),1,ca_derynuae,the_same_box);
-    derive_lst.addComponent("Ynuae",desc_lst,State_Type,URHO,1);
-    // UFX is (rho * Ye)
-    derive_lst.addComponent("Ynuae",desc_lst,State_Type,UFX,1);
-    derive_lst.addComponent("Ynuae",desc_lst,Rad_Type,0,Radiation::nGroups);
-  }
-#endif
-
-
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
-
-#if 0
-  //
-  // A derived quantity equal to all the state variables.
-  //
-  derive_lst.add("FULLSTATE",IndexType::TheCellType(),NUM_STATE,FORT_DERCOPY,the_same_box);
-  derive_lst.addComponent("FULLSTATE",desc_lst,State_Type,URHO,NUM_STATE);
-
-#endif
 
 
   //

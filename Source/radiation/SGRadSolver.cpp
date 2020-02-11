@@ -25,7 +25,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   }
 
   bool has_dcoefs = (Radiation::SolverType == Radiation::SGFLDSolver &&
-		     Radiation::Er_Lorentz_term);
+                     Radiation::Er_Lorentz_term);
 
   int group = 0;
   int fine_level = parent->finestLevel();
@@ -130,7 +130,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     lo_bc[idim] = rad_bc.lo(idim);
     hi_bc[idim] = rad_bc.hi(idim);
     if (lo_bc[idim] == LO_SANCHEZ_POMRANING || 
-	hi_bc[idim] == LO_SANCHEZ_POMRANING) {
+        hi_bc[idim] == LO_SANCHEZ_POMRANING) {
       have_Sanchez_Pomraning = true;
     }
   }
@@ -169,7 +169,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     // test is true it means we will not be updating fkp again.
 
     compute_eta(eta, etainv, S_new, temp, fkp, Er_new,
-		delta_t, c, underrel, it > update_planck);
+                delta_t, c, underrel, it > update_planck);
 
     underrel *= underfac;
 
@@ -197,7 +197,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
 
     if (has_dcoefs) {
       if (it>1) {
-	update_dcf(dcfactor, etainv, fkp, kappa_r, castro->Geom());
+        update_dcf(dcfactor, etainv, fkp, kappa_r, castro->Geom());
       }
       solver->levelDCoeffs(level, lambda, velo, dcfactor);
     }
@@ -223,7 +223,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       solver->levelFlux(level, Ff_new, Er_new, 0);
 
       if (has_dcoefs) {
-	solver->levelDterm(level, Dterm, Er_new, 0);
+        solver->levelDterm(level, Dterm, Er_new, 0);
       }
 
       // Ff_new is now the complete new-time flux
@@ -240,16 +240,16 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       compute_exchange(exch, Er_new, fkp);
 
       if (has_dcoefs) {
-	internal_energy_update(relative, absolute,
-			       frhoes, frhoem, eta, etainv,
-			       dflux_old, dflux_new,
-			       exch, Dterm, delta_t);
+        internal_energy_update(relative, absolute,
+                               frhoes, frhoem, eta, etainv,
+                               dflux_old, dflux_new,
+                               exch, Dterm, delta_t);
       }
       else {
-	internal_energy_update(relative, absolute,
-			       frhoes, frhoem, eta, etainv,
-			       dflux_old, dflux_new,
-			       exch, delta_t);
+        internal_energy_update(relative, absolute,
+                               frhoes, frhoem, eta, etainv,
+                               dflux_old, dflux_new,
+                               exch, delta_t);
       }
     }
     else {
@@ -258,19 +258,19 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
                                     Er_new, dflux_old, dflux_new,
                                     temp, fkp, S_new, delta_t);
       if (has_dcoefs) {
-	amrex::Error("Radiation::single_group_update: must do conservative energy update when has_dcoefs is true");
+        amrex::Error("Radiation::single_group_update: must do conservative energy update when has_dcoefs is true");
       }
     }
 
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       int oldprec = std::cout.precision(20);
       if (use_conservative_form)
-	std::cout << "Radiation Update:  Iteration " << it;
+        std::cout << "Radiation Update:  Iteration " << it;
       else
-	std::cout << "Nonconservative:   Iteration " << it;
+        std::cout << "Nonconservative:   Iteration " << it;
       std::cout << ", Relative = " << relative << std::endl;
       std::cout << "                              "
-	   << "  Absolute = " << absolute << std::endl;
+           << "  Absolute = " << absolute << std::endl;
       std::cout.precision(oldprec);
     }
 
@@ -320,7 +320,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     for (OrientationIter face; face; ++face) {
       Orientation ori = face();
       (*flux_cons[level+1])[ori].linComb(1.0, -1.0,
-					 (*flux_in)[ori], group, group, 1);
+                                         (*flux_in)[ori], group, group, 1);
     }
   }
 
@@ -328,7 +328,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     for (OrientationIter face; face; ++face) {
       Orientation ori = face();
       (*flux_cons[level])[ori].linComb(1.0, 1.0 / ncycle,
-				       (*flux_out)[ori], group, group, 1);
+                                       (*flux_out)[ori], group, group, 1);
     }
   }
 
@@ -348,7 +348,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     // recently been deleted.
 
     for (int flev = level+1; flev <= parent->maxLevel(); flev++) {
-	flux_cons_old[flev].reset();
+        flux_cons_old[flev].reset();
     }
   }
 
@@ -386,23 +386,23 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       solver->levelFluxFaceToCenter(level, Ff_new, flx, 0);
 
       if (plot_lab_Er) {
-	  save_lab_Er_in_plotvar(level, S_new, Er_new, flx, 0);
+          save_lab_Er_in_plotvar(level, S_new, Er_new, flx, 0);
       }
 
       if (plot_lab_flux) {
-	  if (comoving) {
-	      save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
-	  } else {
-	      MultiFab::Copy(*plotvar[level], flx, 0, icomp_lab_Fr, BL_SPACEDIM, 0);
-	  }
+          if (comoving) {
+              save_lab_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
+          } else {
+              MultiFab::Copy(*plotvar[level], flx, 0, icomp_lab_Fr, BL_SPACEDIM, 0);
+          }
       }
 
       if (plot_com_flux) {
-	  if (comoving) {
-	      MultiFab::Copy(*plotvar[level], flx, 0, icomp_com_Fr, BL_SPACEDIM, 0);
-	  } else {
-	      save_com_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
-	  }
+          if (comoving) {
+              MultiFab::Copy(*plotvar[level], flx, 0, icomp_com_Fr, BL_SPACEDIM, 0);
+          } else {
+              save_com_flux_in_plotvar(level, S_new, lambda, Er_new, flx, 0);
+          }
       }
   }
 
