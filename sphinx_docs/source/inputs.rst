@@ -3,26 +3,32 @@ Input Files
 ***********
 
 The Castro executable uses two inputs files at runtime to set and
-alter the behavior of the algorithm and initial conditions.
+alter the behavior of the algorithm and initial conditions:
 
-The main inputs file, typically named ``inputs`` is used to set AMReX
-parameters and the control flow in the C++ portions of Castro. Each
-parameter here has a namespace (like ``amr.optionname`` or
-``castro.optionname``).  Parameters set here are read using the AMReX
-``ParmParse`` class infrastructure.
+  * The main inputs file, typically named ``inputs``:
 
-.. warning:: Because the inputs file is handled by the C++ portion of
-   the code, any quantities you specify in scientific notation, must
-   take the form ``1.e5`` and not ``1.d5``—the ``d`` specifier is not
-   recognized.
+    This is used to set AMReX parameters and the control flow in the
+    physics solvers in Castro.  Each parameter here has a namespace
+    (like ``amr.optionname`` or ``castro.optionname``).  Parameters
+    set here are read using the AMReX ``ParmParse`` class
+    infrastructure.
 
-Additionally, note that in Castro, all quantities are in CGS units.
+    .. warning:: Because the inputs file is handled by the C++ portion
+       of the code, any quantities you specify in scientific notation,
+       must take the form ``1.e5`` and not ``1.d5``—the ``d``
+       specifier is not recognized.
 
-The second inputs file, typically named ``probin`` is used by the
-Fortran code that initializes the problem setup.  It is read at
-problem initialization (via a Fortran namelist) and the
-problem-specific quantities are stored in a Fortran module
-``probdata_module`` defined in the problem’s ``probdata.f90`` file.
+  * The problem / external inputs file, typically named ``probin``:
+
+    This is used by the Fortran code that initializes the problem
+    setup.  It is read at problem initialization (via a Fortran
+    namelist) and the problem-specific quantities are stored in a
+    Fortran module ``probdata_module`` defined in the problem’s
+    ``probdata.f90`` file.
+
+    The ``probin`` file also has an ``&extern`` namelist that is
+    used to specify runtime parameters for the microphysics
+    (EOS, reaction network, ...)
 
 Only the ``inputs`` file is specified on the commandline. The
 associated ``probin`` file is specified in the inputs file
@@ -31,6 +37,11 @@ using the ``amr.probin_file`` parameter, e.g.::
     amr.probin_file = my_special_probin
 
 for example, has the Fortran code read a file called ``my_special_probin``.
+
+.. note::
+
+   Additionally, note that in Castro, all quantities are in CGS units.
+
 
 Working with probin Files
 =========================

@@ -8,13 +8,19 @@ computers.
 
 Castro's major capabilities:
 
-  * 1-, 2-, and 3-dimensional unsplit, 2nd-order hydrodynamics
+  * 1-, 2-, and 3-dimensional unsplit, 2nd-order finite-volume
+    hydrodynamics; 4th order hydro for uniform grids.
+
+  * generalized retry mechanism for recovering from physical
+    violations over a timestep.
 
   * multigroup flux-limited diffusion radiation hydrodynamics
 
-  * adaptive mesh refinement with subcycling; jumps of 2x and 4x between levels
+  * adaptive mesh refinement with subcycling; jumps of 2x and 4x
+    between levels
 
-  * arbitrary equation of state (gamma-law and stellar EOSes are bundled)
+  * arbitrary equation of state (provided by the companion StarKiller
+    Microphysics project)
 
   * general nuclear reaction networks
 
@@ -24,7 +30,32 @@ Castro's major capabilities:
 
   * rotation (in the co-rotating frame) in 2-d axisymmetric and 3-d.
 
+  * spectral deferred corrections time integration for coupling hydro
+    and reactions
+
   * parallelization via MPI + OpenMP or MPI + CUDA
+
+
+Development Model
+=================
+
+Castro is developed on github (https://github.com/amrex-astro/Castro
+). The ``master`` branch is stable and can be used for day-to-day
+science.  New changes are made via pull requests to the
+``development`` branch.  This is where the ongoing regression testing
+is done (both on CPU and GPU).
+
+At the start of each month, we merge ``development`` → ``master`` and
+apply a tag of the form ``YY.MM`` (e.g. ``20.02`` for Feb. 2020).  We
+also create a github release and mint a Zenodo DOI using the
+information in the ``.zenodo.json`` file at the root level.
+
+Castro "core developers" are those who have made substantial code
+contributions (details are in the main ``README.md``).  These
+developers are coauthors on the Zenodo DOI and of any papers
+describing Castro generally (science papers coauthors are decided by
+the science paper lead).
+
 
 Units and Conventions
 =====================
@@ -34,7 +65,8 @@ Castro works in CGS units unless otherwise specified.
 throughout the code documentation and papers.
 
 .. _table:units:
-.. table:: [table:units] Common quantities and units.
+  
+.. table:: Common quantities and units.
 
    +-----------------------+-----------------------+-----------------------+
    | name                  | units                 | description           |
