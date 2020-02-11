@@ -68,18 +68,18 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     // The fourth order stuff cannot do tiling because of the Laplacian corrections
     for (MFIter mfi(S_new, (sdc_order == 4) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
       {
-	const Box& bx  = mfi.tilebox();
+        const Box& bx  = mfi.tilebox();
 
         const Box& obx = amrex::grow(bx, 1);
         const Box& obx2 = amrex::grow(bx, 2);
 
-	FArrayBox &statein  = Sborder[mfi];
-	FArrayBox &stateout = S_new[mfi];
+        FArrayBox &statein  = Sborder[mfi];
+        FArrayBox &stateout = S_new[mfi];
 
-	FArrayBox &source_in  = sources_for_hydro[mfi];
+        FArrayBox &source_in  = sources_for_hydro[mfi];
 
-	// the output of this will be stored in the correct stage MF
-	FArrayBox &source_out = A_update[mfi];
+        // the output of this will be stored in the correct stage MF
+        FArrayBox &source_out = A_update[mfi];
 
         Real stage_weight = 1.0;
 
@@ -681,8 +681,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         }
 
 
-	// Store the fluxes from this advance -- we weight them by the
-	// integrator weight for this stage
+        // Store the fluxes from this advance -- we weight them by the
+        // integrator weight for this stage
 
         // For SDC, we store node 0 the only time we enter here (the
         // first iteration) and we store the other nodes only on the
@@ -740,15 +740,15 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #ifdef BL_LAZY
       Lazy::QueueReduction( [=] () mutable {
 #endif
-	  ParallelDescriptor::ReduceRealSum(hydro_update.dataPtr(), hydro_update.size(), ParallelDescriptor::IOProcessorNumber());
+          ParallelDescriptor::ReduceRealSum(hydro_update.dataPtr(), hydro_update.size(), ParallelDescriptor::IOProcessorNumber());
 
-	  if (ParallelDescriptor::IOProcessor())
-	    std::cout << std::endl << "  Contributions to the state from the hydro source:" << std::endl;
+          if (ParallelDescriptor::IOProcessor())
+            std::cout << std::endl << "  Contributions to the state from the hydro source:" << std::endl;
 
-	  print_source_change(hydro_update);
+          print_source_change(hydro_update);
 
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 
@@ -758,14 +758,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         Real      run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
-	Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-	if (ParallelDescriptor::IOProcessor())
-	  std::cout << "Castro::construct_mol_hydro_source() time = " << run_time << "\n" << "\n";
+        if (ParallelDescriptor::IOProcessor())
+          std::cout << "Castro::construct_mol_hydro_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
-	});
+        });
 #endif
     }
 

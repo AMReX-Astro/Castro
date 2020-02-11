@@ -67,3 +67,8 @@ matrix:
       script:
         - cd $TRAVIS_BUILD_DIR/Exec/science/flame_wave; scan-build -enable-checker alpha.cplusplus.IteratorRange -enable-checker alpha.security.ArrayBoundV2 -enable-checker security.FloatLoopCounter -enable-checker security.insecureAPI.UncheckedReturn make -j 2 USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE 2>&1 | tee clang_analysis.txt
         - python3 $TRAVIS_BUILD_DIR/Util/code_checker/clang_static_analysis.py clang_analysis.txt
+    
+    - name: "tab exterminator"
+      if: type = pull_request OR type = api
+      script:
+        - ./Util/code_checker/pr_tab_remover.sh
