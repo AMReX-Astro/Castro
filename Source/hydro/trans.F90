@@ -4317,6 +4317,7 @@ contains
     type (eos_t) :: eos_state
     integer :: ii, jj, kk
     real(rt) :: old_p_state
+
     !$gpu
 
     do kk = lo(3), hi(3)

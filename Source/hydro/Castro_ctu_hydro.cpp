@@ -518,9 +518,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qe[1]),
                         hdtdy);
 
+#pragma gpu box(xbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(ql));
 
+#pragma gpu box(xbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qr));
 
@@ -564,9 +566,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(volume[mfi]),
                         hdt, hdtdx);
 
+#pragma gpu box(ybx)
       reset_edge_state_thermo(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
                               BL_TO_FORTRAN_ANYD(ql));
 
+#pragma gpu box(ybx)
       reset_edge_state_thermo(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qr));
 
@@ -653,9 +657,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         hdt, cdtdx);
 
+#pragma gpu box(tyxbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(tyxbx.loVect()), AMREX_INT_ANYD(tyxbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qmyx));
 
+#pragma gpu box(tyxbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(tyxbx.loVect()), AMREX_INT_ANYD(tyxbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qpyx));
 
@@ -684,9 +690,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         hdt, cdtdx);
 
+#pragma gpu box(tzxbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(tzxbx.loVect()), AMREX_INT_ANYD(tzxbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qmzx));
 
+#pragma gpu box(tzxbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(tzxbx.loVect()), AMREX_INT_ANYD(tzxbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qpzx));
 
@@ -740,9 +748,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         cdtdy);
 
+#pragma gpu box(txybx)
       reset_edge_state_thermo(AMREX_INT_ANYD(txybx.loVect()), AMREX_INT_ANYD(txybx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qmxy));
 
+#pragma gpu box(txybx)
       reset_edge_state_thermo(AMREX_INT_ANYD(txybx.loVect()), AMREX_INT_ANYD(txybx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qpxy));
 
@@ -774,9 +784,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         cdtdy);
 
+#pragma gpu box(tzybx)
       reset_edge_state_thermo(AMREX_INT_ANYD(tzybx.loVect()), AMREX_INT_ANYD(tzybx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qmzy));
 
+#pragma gpu box(tzybx)
       reset_edge_state_thermo(AMREX_INT_ANYD(tzybx.loVect()), AMREX_INT_ANYD(tzybx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qpzy));
 
@@ -830,9 +842,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         cdtdz);
 
+#pragma gpu box(txzbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(txzbx.loVect()), AMREX_INT_ANYD(txzbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qmxz));
 
+#pragma gpu box(txzbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(txzbx.loVect()), AMREX_INT_ANYD(txzbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qpxz));
 
@@ -864,9 +878,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         cdtdz);
 
+#pragma gpu box(tyzbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(tyzbx.loVect()), AMREX_INT_ANYD(tyzbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qmyz));
 
+#pragma gpu box(tyzbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(tyzbx.loVect()), AMREX_INT_ANYD(tyzbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qpyz));
 
@@ -942,9 +958,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qgdnvtmp2),
               hdt, hdtdy, hdtdz);
 
+#pragma gpu box(xbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(ql));
 
+#pragma gpu box(xbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qr));
 
@@ -1033,9 +1051,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qgdnvtmp1),
               hdt, hdtdx, hdtdz);
 
+#pragma gpu box(ybx)
       reset_edge_state_thermo(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
                               BL_TO_FORTRAN_ANYD(ql));
 
+#pragma gpu box(ybx)
       reset_edge_state_thermo(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qr));
 
@@ -1126,9 +1146,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qgdnvtmp2),
               hdt, hdtdx, hdtdy);
 
+#pragma gpu box(zbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(ql));
 
+#pragma gpu box(zbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
                               BL_TO_FORTRAN_ANYD(qr));
 
