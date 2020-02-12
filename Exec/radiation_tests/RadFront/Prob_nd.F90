@@ -20,7 +20,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state % xn  = 0.e0_rt
   eos_state % xn(1) = 1.e0_rt
 
-  call eos_on_host(eos_input_rt, eos_state)
+  call eos(eos_input_rt, eos_state)
 
   rhoe_0 = rho_0 * eos_state % e
 

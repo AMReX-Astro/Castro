@@ -427,7 +427,7 @@ contains
     use ambient_module, only: ambient_state
     use network, only: nspec
     use eos_type_module, only: eos_t, eos_input_rt
-    use eos_module, only: eos_on_host
+    use eos_module, only: eos
 
     implicit none
 
@@ -439,7 +439,7 @@ contains
     eos_state % T   = small_temp
     eos_state % xn  = ambient_state(UFS:UFS+nspec-1) / ambient_state(URHO)
 
-    call eos_on_host(eos_input_rt, eos_state)
+    call eos(eos_input_rt, eos_state)
 
     small_pres = eos_state % p
     small_ener = eos_state % e
@@ -682,7 +682,7 @@ contains
     use castro_error_module, only: castro_error
     use ambient_module, only: ambient_state
     use eos_type_module, only: eos_input_rt, eos_t
-    use eos_module, only: eos_on_host
+    use eos_module, only: eos
     use fundamental_constants_module, only: Gconst, c_light, AU, M_solar
     use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
 
@@ -813,7 +813,7 @@ contains
     eos_state % xn  = ambient_state(UFS:UFS+nspec-1) / ambient_state(URHO)
     eos_state % aux = ambient_state(UFX:UFX+naux-1) / ambient_state(URHO)
 
-    call eos_on_host(eos_input_rt, eos_state)
+    call eos(eos_input_rt, eos_state)
 
     ambient_state(UEINT) = ambient_state(URHO) * eos_state % e
     ambient_state(UEDEN) = ambient_state(UEINT)
