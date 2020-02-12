@@ -9,6 +9,216 @@ module rad_nd_module
 
 contains
 
+  subroutine ca_compute_dcoefs(lo, hi, &
+                               d, d_lo, d_hi, &
+                               lam, l_lo, l_hi, &
+                               v, v_lo, v_hi, &
+                               dcf, f_lo, f_hi, &
+                               dx, idir) &
+                               bind(C, name="ca_compute_dcoefs")
+
+    use habec_nd_module, only: edge_center_metric
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    integer,  intent(in   ) :: l_lo(3), l_hi(3)
+    integer,  intent(in   ) :: v_lo(3), v_hi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(inout) :: d(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
+    real(rt), intent(in   ) :: lam(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3))
+    real(rt), intent(in   ) :: v(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3),3)
+    real(rt), intent(in   ) :: dcf(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: idir
+
+    integer  :: i, j, k
+    real(rt) :: r, s
+
+    !$gpu
+
+    if (idir == 0) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, idir + 1, dx, r, s)
+
+                if (v(i-1,j,k,1) + v(i,j,k,1) .gt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i-1,j,k) * v(i-1,j,k,1) * lam(i,j,k)
+                else if (v(i-1,j,k,1) + v(i,j,k,1) .lt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i,j,k) * v(i,j,k,1) * lam(i,j,k)
+                else
+                   d(i,j,k) = 0.e0_rt
+                end if
+
+                d(i,j,k) = d(i,j,k) * r
+
+             end do
+          end do
+       end do
+
+    else if (idir == 1) then
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, idir + 1, dx, r, s)
+
+                if (v(i,j-1,k,2) + v(i,j,k,2) .gt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i,j-1,k) * v(i,j-1,k,2) * lam(i,j,k)
+                else if (v(i,j-1,k,2) + v(i,j,k,2) .lt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i,j,k) * v(i,j,k,2) * lam(i,j,k)
+                else
+                   d(i,j,k) = 0.e0_rt
+                end if
+
+                d(i,j,k) = d(i,j,k) * r
+
+             end do
+          end do
+       end do
+
+    else
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+
+                call edge_center_metric(i, j, k, idir + 1, dx, r, s)
+
+                if (v(i,j,k-1,3) + v(i,j,k,3) .gt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i,j,k-1) * v(i,j,k-1,3) * lam(i,j,k)
+                else if (v(i,j,k-1,3) + v(i,j,k,3) .lt. 0.e0_rt) then
+                   d(i,j,k) = dcf(i,j,k) * v(i,j,k,3) * lam(i,j,k)
+                else
+                   d(i,j,k) = 0.e0_rt
+                end if
+
+                d(i,j,k) = d(i,j,k) * r
+
+             end do
+          end do
+       end do
+
+    end if
+
+  end subroutine ca_compute_dcoefs
+
+
+
+  subroutine lacoefmgfld(lo, hi, &
+                         a, a_lo, a_hi, &
+                         kappa, k_lo, k_hi, &
+                         dx, dt, c) &
+                         bind(C, name="lacoefmgfld")
+
+    use habec_nd_module, only: cell_center_metric
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: a_lo(3), a_hi(3)
+    integer,  intent(in   ) :: k_lo(3), k_hi(3)
+    real(rt), intent(inout) :: a(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
+    real(rt), intent(in   ) :: kappa(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: dt, c
+
+    integer  :: i, j, k
+    real(rt) :: r, s
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             call cell_center_metric(i, j, k, dx, r, s)
+
+             a(i,j,k) = c * kappa(i,j,k) + 1.e0_rt / dt
+             a(i,j,k) = r * s * a(i,j,k)
+
+          end do
+       end do
+    end do
+
+  end subroutine lacoefmgfld
+
+
+
+  subroutine multrs(lo, hi, &
+                    d, d_lo, d_hi, &
+                    dx) &
+                    bind(C, name="multrs")
+
+    use habec_nd_module, only: cell_center_metric
+  
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: d_lo(3), d_hi(3)
+    real(rt), intent(inout) :: d(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+
+    integer  :: i, j, k
+    real(rt) :: r, s
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             call cell_center_metric(i, j, k, dx, r, s)
+
+             d(i,j,k) = d(i,j,k) * r * s
+
+          end do
+       end do
+    end do
+
+  end subroutine multrs
+
+
+
+  subroutine ca_rhstoer(lo, hi, &
+                        rhs, r_lo, r_hi, &
+                        dx, dt) &
+                        bind(C, name="ca_rhstoer")
+
+    use habec_nd_module, only: cell_center_metric
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: r_lo(3), r_hi(3)
+    real(rt), intent(inout) :: rhs(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ), value :: dt
+
+    integer  :: i, j, k
+    real(rt) :: r, s
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             call cell_center_metric(i, j, k, dx, r, s)
+
+             rhs(i,j,k) = rhs(i,j,k) * dt / r
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_rhstoer
+
+
+
   subroutine ca_compute_rhs(lo, hi, &
                             rhs, rhs_lo, rhs_hi, &
                             jg, jg_lo, jg_hi, &
@@ -1759,14 +1969,13 @@ contains
                                    djdT, djdT_lo, djdT_hi, &
                                    T, T_lo, T_hi, &
                                    kap, kap_lo, kap_hi, &
-                                   dkdT, dkdT_lo, dkdT_hi, &
-                                   pfc, use_WiensLaw, Tf) &
+                                   dkdT, dkdT_lo, dkdT_hi) &
                                    bind(C, name='ca_compute_emissivity')
 
     use amrex_fort_module, only: rt => amrex_real
-    use rad_params_module, only: ngroups, nugroup, dnugroup, xnu,  &
-                                 pi, clight, hplanck, kboltz, arad
+    use rad_params_module, only: ngroups, nugroup, dnugroup, xnu, arad
     use blackbody_module, only: BdBdTIndefInteg
+    use emissivity_override_module, only: emissivity_override
 
     implicit none
 
@@ -1781,115 +1990,54 @@ contains
     real(rt), intent(in   ) :: T(T_lo(1):T_hi(1),T_lo(2):T_hi(2),T_lo(3):T_hi(3))
     real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
     real(rt), intent(in   ) :: dkdT(dkdT_lo(1):dkdT_hi(1),dkdT_lo(2):dkdT_hi(2),dkdT_lo(3):dkdT_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: pfc(0:ngroups-1)
-    integer,  intent(in   ), value :: use_WiensLaw
-    real(rt), intent(in   ), value :: Tf
 
     integer  :: i, j, k, g
     real(rt) :: dBdT, Bg
-    real(rt) :: Teff, nu, num, nup, hoverk
-    real(rt) :: cB, Tfix
+    real(rt) :: Teff
     real(rt) :: B0, B1, dBdT0, dBdT1
-    real(rt) :: dnu, nubar, expnubar, cdBdT
-    real(rt) :: xnu_full(0:ngroups)
+    real(rt) :: xnup
 
-    if (ngroups .eq. 1) then
+    !$gpu
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+    ! Integrate the Planck distribution upward from zero frequency.
+    ! This handles both the single-group and multi-group cases.
 
-                Bg = arad * T(i,j,k)**4
-                dBdT = 4.e0_rt * arad * T(i,j,k)**3
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-                g = 0
+             Teff = max(T(i,j,k), 1.e-50_rt)
+             call BdBdTIndefInteg(Teff, 0.0_rt, B1, dBdT1)
+
+             do g = 0, ngroups-1
+
+                xnup = xnu(g+1)
+
+                ! For the last group, make sure that we complete
+                ! the integral up to "infinity".
+
+                if (g == ngroups - 1) then
+                   xnup = max(xnup, 1.e25_rt)
+                end if
+
+                B0 = B1
+                dBdT0 = dBdT1
+                call BdBdTIndefInteg(Teff, xnup, B1, dBdT1)
+                Bg = B1 - B0
+                dBdT = dBdT1 - dBdT0
+
                 jg(i,j,k,g) = Bg * kap(i,j,k,g)
                 djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
 
-             end do
-          end do
-       end do
+                ! Allow a problem to override this emissivity.
 
-    else if (pfc(0) > 0.e0_rt) then  ! a special case for picket-fence model in Su-Olson test
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                Bg = arad * T(i,j,k)**4
-                dBdT = 4.e0_rt * arad * T(i,j,k)**3
-
-                do g = 0, ngroups-1
-                   jg(i,j,k,g) = pfc(g) * Bg * kap(i,j,k,g)
-                   djdT(i,j,k,g) = pfc(g) * (dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g))
-                end do
+                call emissivity_override(i, j, k, g, T(i,j,k), kap(i,j,k,g), dkdT(i,j,k,g), jg(i,j,k,g), djdT(i,j,k,g))
 
              end do
+
           end do
        end do
-
-    else if (use_WiensLaw > 0) then
-
-       hoverk = hplanck/kboltz
-       cB = 8.*pi*kboltz/clight**3
-
-       do g = 0, ngroups-1
-          nu = nugroup(g)
-          num = xnu(g)
-          nup = xnu(g+1)
-
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-                do i = lo(1), hi(1)
-
-                   if (Tf < 0.e0_rt) then
-                      Tfix = T(i,j,k)
-                   else
-                      Tfix = Tf
-                   end if
-
-                   dBdT = cB * nu**3 * (exp(-hoverk * num / Tfix) - exp(-hoverk * nup / Tfix))
-                   Bg = dBdT * T(i,j,k)
-
-                   jg(i,j,k,g) = Bg * kap(i,j,k,g)
-                   djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
-
-                end do
-             end do
-          end do
-       end do
-
-    else
-
-       xnu_full = xnu(0:ngroups)
-       xnu_full(0) = 0.e0_rt
-       xnu_full(ngroups) = max(xnu(ngroups), 1.e25_rt)
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                Teff = max(T(i,j,k), 1.e-50_rt)
-                call BdBdTIndefInteg(Teff, xnu_full(0), B1, dBdT1)
-
-                do g = 0, ngroups-1
-
-                   B0 = B1
-                   dBdT0 = dBdT1
-                   call BdBdTIndefInteg(Teff, xnu_full(g+1), B1, dBdT1)
-                   Bg = B1 - B0
-                   dBdT = dBdT1 - dBdT0
-
-                   jg(i,j,k,g) = Bg * kap(i,j,k,g)
-                   djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
-
-                end do
-
-             end do
-          end do
-       end do
-
-    end if
+    end do
 
   end subroutine ca_compute_emissivity
 

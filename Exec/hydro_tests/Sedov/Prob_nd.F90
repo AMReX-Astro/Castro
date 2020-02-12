@@ -7,7 +7,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use prob_params_module, only: center, coord_type
   use castro_error_module, only: castro_error
   use eos_type_module, only: eos_t, eos_input_rt, eos_input_rp
-  use eos_module, only: eos_on_host
+  use eos_module, only: eos
   use network, only: nspec
 
   implicit none
@@ -40,7 +40,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      eos_state % xn(:) = xn_zone(:)
      eos_state % T = temp_ambient
 
-     call eos_on_host(eos_input_rt, eos_state)
+     call eos(eos_input_rt, eos_state)
 
      p_ambient = eos_state % p
 
@@ -53,7 +53,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   eos_state % T   = 1.e9_rt ! Initial guess for iterations
   eos_state % xn  = xn_zone
 
-  call eos_on_host(eos_input_rp, eos_state)
+  call eos(eos_input_rp, eos_state)
 
   e_ambient = eos_state % e
 

@@ -18,20 +18,12 @@ GPU_COMPATIBLE_PROBLEM = TRUE
 
 USE_PROB_PARAMS = TRUE
 
-ifdef MICROPHYSICS_HOME
-
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null
-GENERAL_NET_INPUTS = simple.net
-
-else
-
-$(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
-
-endif
+NETWORK_INPUTS = simple.net
 
 Bpack   := ./Make.package
 Blocs   := .

@@ -20,12 +20,12 @@ GPU_COMPATIBLE_PROBLEM = TRUE
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
 
-# This sets the EOS directory in $(CASTRO_HOME)/EOS
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := gamma_law
 
-# This sets the EOS directory in $(CASTRO_HOME)/Networks
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/Networks
 NETWORK_DIR := general_null
-GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(NETWORK_DIR)/ignition.net
+NETWORK_INPUTS = ignition.net
 
 Bpack	:= ./Make.package
 Blocs	:= .

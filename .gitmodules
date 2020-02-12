@@ -1,0 +1,3 @@
+[submodule "Microphysics"]
+	path = external/Microphysics
+	url = https://github.com/starkiller-astro/Microphysics.git

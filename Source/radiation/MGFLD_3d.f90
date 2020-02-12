@@ -158,26 +158,6 @@ subroutine ca_flux_face2center( lo, hi, &
 
 end subroutine ca_flux_face2center
 
-subroutine ca_rhstoer( lo, hi, &
-     rhs, rhs_l1, rhs_l2, rhs_l3, rhs_h1, rhs_h2, rhs_h3, &
-     r, dt)
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer,intent(in):: lo(3), hi(3)
-  integer,intent(in):: rhs_l1, rhs_h1, rhs_l2, rhs_h2, rhs_l3, rhs_h3
-  real(rt)         ::rhs ( rhs_l1: rhs_h1, rhs_l2: rhs_h2, rhs_l3: rhs_h3)
-  real(rt)        ,intent(in):: r(lo(1):hi(1))
-  real(rt)        ,intent(in):: dt
-  integer :: i, j, k
-  do k=lo(3), hi(3)
-  do j=lo(2), hi(2)
-  do i=lo(1), hi(1)
-     rhs(i,j,k) = rhs(i,j,k)*dt
-  end do
-  end do
-  end do
-end subroutine ca_rhstoer
-
 ! =======================================================================
 ! used by the hyperbolic solver
 

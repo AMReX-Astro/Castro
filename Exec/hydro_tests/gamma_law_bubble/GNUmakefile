@@ -16,16 +16,12 @@ USE_PROB_PARAMS = TRUE
 
 USE_MAESTRO_INIT = FALSE
 
-ifdef MICROPHYSICS_HOME
-  # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-  EOS_DIR     := gamma_law_general
-else
-  $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
-endif
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
+EOS_DIR     := gamma_law_general
 
-# This sets the network directory in $(CASTRO_HOME)/Networks
+# This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null
-GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(NETWORK_DIR)/gammalaw.net
+NETWORK_INPUTS = gammalaw.net
 
 Bpack   := ./Make.package
 Blocs   := .

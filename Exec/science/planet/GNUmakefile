@@ -25,21 +25,12 @@ USE_PROB_PARAMS = TRUE
 
 CASTRO_HOME = ../../..
 
-ifdef MICROPHYSICS_HOME
-
 #This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null
 NETWORK_INPUTS := ./taeho.net
-
-else
-
-$(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
-
-endif
-
 
 # power-law opacity
 Opacity_dir := rad_power_law
