@@ -92,7 +92,7 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
    Then, set the ``MICROPHYSICS_HOME`` environment variable to point to
    the ``Microphysics/`` directory, and Castro will look there instead
-   of in its local ``Microphysics/`` subdirectory.
+   of in its local ``external/Microphysics/`` subdirectory.
 
 Building the Code
 =================
