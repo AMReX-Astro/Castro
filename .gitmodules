@@ -5,6 +5,3 @@
 [submodule "Microphysics"]
 	path = external/Microphysics
 	url = https://github.com/starkiller-astro/Microphysics.git
-[submodule "external/Microphysics"]
-	path = external/Microphysics
-	url = https://github.com/starkiller-astro/Microphysics.git
