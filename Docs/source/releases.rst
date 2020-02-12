@@ -2,23 +2,28 @@
 Castro Releases
 ***************
 
-This outlines the procedure for doing the month Castro release.
+This outlines the procedure for doing the monthly Castro release.
 
 Castro uses submodules for dependencies, this means that, at a
-minimum, we must update the Microphysics submodule monthly when we
-issue new releases. The release for Microphysics must be done
-first. Then navigate to the Microphysics directory, checkout the new
+minimum, we must update the AMReX and  Microphysics submodules monthly when we
+issue new releases. The releases for AMReX and Microphysics must be done
+first. Then navigate to each submodule directory, checkout the new
 tag, and then from the top-level directory of Castro do a "git add" on
-the Microphysics directory to store the new tag. So, for example, at
+the ``external/`` directory to store the new tags. So, for example, at
 the beginning of March 2020 we would first issue the ``20.03`` tag on
-Microphysics, then do::
+Microphysics, and wait for AMReX to release a ``20.03`` tag, then do::
 
-   cd $CASTRO_HOME/Microphysics
+   cd $CASTRO_HOME/external
+   cd amrex
    git pull
    git checkout 20.03
    cd ..
-   git add Microphysics
-   git commit -m "Update Microphysics to release 20.03"
+   cd Microphysics
+   git pull
+   git checkout 20.03
+   cd ..
+   git add -u .
+   git commit -m "Update AMReX and Microphysics to release 20.03"
 
 Then we can proceed with issuing our own release.
 
@@ -60,4 +65,4 @@ the Castro development branch in the same way, replacing the git
 checkout statement with the latest commit hash on the Microphysics
 development branch. A git submodule always tracks a specific
 commit/tag on the target repo -- it is not configured to automatically
-track a particular branch.
+track a particular branch. A similar process applies for AMReX.
