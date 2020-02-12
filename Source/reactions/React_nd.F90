@@ -31,7 +31,7 @@ contains
     use amrinfo_module, only : amr_level
     use burner_module
     use burn_type_module
-    use react_util_module, only: okay_to_burn ! function
+    use react_util_module, only: okay_to_burn_type ! function
     use amrex_constants_module
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_re
@@ -149,7 +149,7 @@ contains
 
              ! Don't burn if we're outside of the relevant (rho, T) range.
 
-             if (.not. okay_to_burn(burn_state_in)) then
+             if (.not. okay_to_burn_type(burn_state_in)) then
                 do_burn = .false.
              end if
 

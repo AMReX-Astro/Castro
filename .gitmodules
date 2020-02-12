@@ -1,3 +1,7 @@
 [submodule "amrex"]
 	path = amrex
 	url = https://github.com/AMReX-Codes/amrex.git
+
+[submodule "Microphysics"]
+	path = Microphysics
+	url = https://github.com/starkiller-astro/Microphysics.git

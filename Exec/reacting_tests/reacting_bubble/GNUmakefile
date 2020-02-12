@@ -15,19 +15,11 @@ USE_MAESTRO_INIT = FALSE
 
 CASTRO_HOME = ../../..
 
-ifdef MICROPHYSICS_HOME
-
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := ignition_simple
-
-else
-
-$(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
-
-endif
 
 Bpack   := ./Make.package
 Blocs   := .

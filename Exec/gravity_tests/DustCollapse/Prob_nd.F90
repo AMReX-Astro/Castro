@@ -7,7 +7,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
                              r_old, r_old_s, r_0, smooth_delta, r_offset, offset_smooth_delta, &
                              center_x, center_y, center_z, nsub
   use eos_type_module, only: eos_t, eos_input_rp
-  use eos_module, only: eos_on_host
+  use eos_module, only: eos
   use network, only: nspec
   use meth_params_module, only: small_temp
   use prob_params_module, only: center
@@ -59,13 +59,13 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   eos_state % xn  = x_0
   eos_state % T   = small_temp ! Initial guess for the EOS
 
-  call eos_on_host(eos_input_rp, eos_state)
+  call eos(eos_input_rp, eos_state)
 
   T_0 = eos_state % T
 
   eos_state % rho = rho_ambient
 
-  call eos_on_host(eos_input_rp, eos_state)
+  call eos(eos_input_rp, eos_state)
 
   T_ambient = eos_state % T
 

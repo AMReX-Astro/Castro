@@ -91,7 +91,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   eos_state%T     = hse_T_top
   eos_state%xn(:) = hse_X_top
 
-  call eos_on_host(eos_input_rt, eos_state)
+  call eos(eos_input_rt, eos_state)
 
   hse_eint_top = eos_state%e
   hse_p_top = eos_state%p

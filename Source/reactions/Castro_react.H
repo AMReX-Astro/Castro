@@ -11,12 +11,12 @@
 /// @param ngrow        Number of ghost cells
 ///
     bool react_state(amrex::MultiFab& state,
-		     amrex::MultiFab& reactions,
-		     const amrex::iMultiFab& mask,
-		     amrex::MultiFab& weights,
-		     amrex::Real time,
-		     amrex::Real dt_react,
-		     int strang_half, int  ngrow = 0);
+                     amrex::MultiFab& reactions,
+                     const amrex::iMultiFab& mask,
+                     amrex::MultiFab& weights,
+                     amrex::Real time,
+                     amrex::Real dt_react,
+                     int strang_half, int  ngrow = 0);
 
 ///
 /// Simplified SDC version of react_state. Reacts the current state through a single timestep.
