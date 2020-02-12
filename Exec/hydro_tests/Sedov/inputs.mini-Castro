@@ -36,8 +36,8 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2       # how often to regrid
-amr.blocking_factor = 32      # block factor in grid generation
-amr.max_grid_size   = 64
+amr.blocking_factor = 128     # block factor in grid generation
+amr.max_grid_size   = 128
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
