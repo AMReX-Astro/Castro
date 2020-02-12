@@ -4316,7 +4316,7 @@ contains
     logical :: reset
     type (eos_t) :: eos_state
     integer :: ii, jj, kk
-
+    real(rt) :: old_p_state
     !$gpu
 
     do kk = lo(3), hi(3)
@@ -4324,6 +4324,10 @@ contains
           do ii = lo(1), hi(1)
 
              reset = .false.
+
+#ifdef RADIATION
+             old_p_state = qedge(ii,jj,kk,QPRES)
+#endif
 
              if (transverse_reset_rhoe == 1) then
                 ! if we are still negative, then we need to reset
@@ -4366,6 +4370,12 @@ contains
                    qedge(ii,jj,kk,QPRES) = max(qedge(ii,jj,kk,QPRES), small_pres)
                 end if
              end if
+
+#ifdef RADIATION
+             ! correct the total pressure (gas + radiation) with any
+             ! change to the gas pressure state
+             qedge(ii,jj,kk,QPTOT) = qedge(ii,jj,kk,QPTOT) + (qedge(ii,jj,kk,QPRES) - old_p_state)
+#endif
 
           end do
        end do
