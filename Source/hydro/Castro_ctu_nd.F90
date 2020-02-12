@@ -413,7 +413,7 @@ contains
     use prob_params_module, only : mom_flux_has_p, center, dg
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
-    use fluxlimiter_module, only : Edd_factor
+    use fluxlimiter_module, only : Edd_factor ! function
     use amrex_constants_module, only : ZERO, ONE, TWO, FOURTH, HALF
 
     integer, intent(in) ::       lo(3),       hi(3)
