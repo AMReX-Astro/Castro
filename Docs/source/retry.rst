@@ -1,5 +1,8 @@
+.. _ch:retry:
+
+***************
 Retry Mechanism
-===============
+***************
 
 Castro's Strang CTU solver has a retry mechanism that can discard a
 time step on a level and restart with a smaller timestep, subcycling
