@@ -22,10 +22,10 @@ Castro::src_to_prim(const Box& bx,
 
 
       for (int n = 0; n < NQSRC; ++n) {
-        srcQ(i,j,k,n) = 0.0;
+        srcQ(i,j,k,n) = 0.0_rt;
       }
 
-      Real rhoinv = 1.0 / q(i,j,k,QRHO);
+      Real rhoinv = 1.0_rt / q(i,j,k,QRHO);
 
       srcQ(i,j,k,QRHO) = src(i,j,k,URHO);
       srcQ(i,j,k,QU) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv;
