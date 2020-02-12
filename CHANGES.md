@@ -3,7 +3,8 @@
    * If a derived variable has multiple components, all components are now
      added to plotfiles. Previously only the first component was used. (#758)
 
-   * We have updated our workflow when it comes to Castro's microphysics.
+   * We have updated our workflow when it comes to Castro's dependencies.
+
      Previously Castro shipped with it a minimal set of microphysics that
      allowed basic problem setups like Sedov to compile, and more advanced
      setups (like ones that include nuclear burning) required downloading
@@ -22,7 +23,16 @@
      of Castro. The developer team ensures that the version of Microphysics
      that you obtain this way is consistent with the current version of Castro.
      Then, you can keep up to date with the code mostly as normal, except now
-     using git pull --recurse-submodules instead of git pull. (#760)
+     using git pull --recurse-submodules instead of git pull.
+
+     Similarly, AMReX is now maintained as a git submodule rather than as an
+     external standalone installation. If you use the same git submodule command
+     as above, you'll obtain AMReX. As with Microphysics, you may opt to
+     rely on your own installation of AMReX by setting the AMREX_HOME
+     environment variable. However you are then responsible for keeping it
+     in sync with Castro; if you use the submodule, then you'll get the version
+     of AMReX that we have tested to ensure compatibility with the current
+     version of Castro. (#651, #760, #762, #765)
 
    * The names of the conserved state variables in C++ (Density, Xmom, etc.)
      have been changed to match the names in Fortran (URHO, UMX, etc.).
