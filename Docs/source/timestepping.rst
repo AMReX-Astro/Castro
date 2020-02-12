@@ -30,8 +30,11 @@ As an example::
 will end the calculation when either the simulation time reaches 1.0 or
 the number of level 0 steps taken equals 1000, whichever comes first.
 
-Time Step
----------
+Time Step Constraints
+---------------------
+
+Hydrodynamics
+^^^^^^^^^^^^^
 
 If ``castro.do_hydro = 1``, then typically
 the code chooses a time step based on the CFL number:
@@ -51,6 +54,9 @@ If SDC integration is used instead, then we have
                                                        \left(\frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right)^{-1}\right]^{-1}
 
 (If we are simulating in 1D or 2D, the extraneous parts related to :math:`v` and/or :math:`w` are removed.)
+
+Additional Controls
+^^^^^^^^^^^^^^^^^^^
 
 The following parameters affect the timestep choice:
 
@@ -109,7 +115,11 @@ sets the *initial* level 0 time step to be :math:`10^{-4}` regardless of
 ``castro.cfl`` or ``castro.fixed_dt``. The time step can
 grow in subsequent steps by a factor of castro.change_max each step.
 
-*diffusion*: If diffusion is enabled, the timestep will also be limited by:
+
+Diffusion
+^^^^^^^^^
+
+If diffusion is enabled, the timestep will also be limited by:
 
 .. math::
 
@@ -122,7 +132,10 @@ and :math:`D \equiv k / (\rho c_P)` if we are diffusing enthalpy. No
 input parameter is necessary to enable this constraint. See Chapter
 :ref:`ch:diffusion` for more details.
 
-*reactions*: If reactions are enabled, the timestep will also
+Reactions
+^^^^^^^^^
+
+If reactions are enabled, the timestep will also
 be limited by two constraints:
 
 .. math:: \Delta t = \mathtt{dtnuc\_e}\, \min_{i,j,k} \left\{\frac{e_{i,j,k}}{\dot{e}_{i,j,k}}\right\}
@@ -149,8 +162,10 @@ for these values in the literature are :math:`\sim 0.1`.
 Subcycling
 ----------
 
+Subcycling with AMR means that coarser grids can take a larger timestep
+than finer grids.  
 Castro supports a number of different modes for subcycling in time,
-set via amr.subcycling_mode.
+set via ``amr.subcycling_mode``.
 
   * ``amr.subcycling_mode`` = ``Auto`` (default): the code will run with
     equal refinement in space and time. In other words, if level

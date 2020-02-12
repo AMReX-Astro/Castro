@@ -2,6 +2,13 @@
 Getting Started
 ***************
 
+.. note::
+
+   Castro has two source dependencies: AMReX, the adaptive mesh library,
+   and Microphysics, the collection of equations of state, reaction networks,
+   and other microphysics.  The instructions below describe how to get these
+   dependencies.
+
 Downloading the Code
 ====================
 
