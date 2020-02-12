@@ -1,5 +1,9 @@
 # 20.03
 
+   * The option ppm_temp_fix = 3 was removed.  This used a
+     temperature-based eigensystem for characteristic tracing but was
+     never used for production science.
+
    * If a derived variable has multiple components, all components are now
      added to plotfiles. Previously only the first component was used. (#758)
 
