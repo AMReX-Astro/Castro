@@ -1,5 +1,5 @@
 [submodule "amrex"]
-	path = amrex
+	path = external/amrex
 	url = https://github.com/AMReX-Codes/amrex.git
 
 [submodule "Microphysics"]
