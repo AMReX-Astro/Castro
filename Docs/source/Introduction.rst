@@ -10,28 +10,32 @@ Castro's major capabilities:
 
   * 1-, 2-, and 3-dimensional unsplit, 2nd-order finite-volume
     hydrodynamics; 4th order hydro for uniform grids.
+    (see :ref:`ch:hydro`)
 
   * generalized retry mechanism for recovering from physical
-    violations over a timestep.
+    violations over a timestep (see :ref:`ch:retry`)
 
   * multigroup flux-limited diffusion radiation hydrodynamics
+    (see :ref:`ch:radiation`)
 
   * adaptive mesh refinement with subcycling; jumps of 2x and 4x
-    between levels
+    between levels (see :ref:`ch:amr`)
 
   * arbitrary equation of state (provided by the companion StarKiller
     Microphysics project)
 
   * general nuclear reaction networks
 
-  * explicit thermal diffusion
+  * explicit thermal diffusion (see :ref:`ch:diffusion`)
 
   * full Poisson gravity (with isolated boundary conditions)
+    and a conservative energy formulation (see :ref:`ch:gravity`)
 
-  * rotation (in the co-rotating frame) in 2-d axisymmetric and 3-d.
+  * rotation (in the co-rotating frame) in 2-d axisymmetric and 3-d
+    (see :ref:`ch:rotation`)
 
   * spectral deferred corrections time integration for coupling hydro
-    and reactions
+    and reactions (see :ref:`ch:sdc`)
 
   * parallelization via MPI + OpenMP or MPI + CUDA
 
