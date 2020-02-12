@@ -24,12 +24,12 @@ COND_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 VISC_HOME ?= $(MICROPHYSICS_HOME)/viscosity
 
 # AMReX is a git submodule of Castro. By default
-# we assume it is in the top-level Castro directory.
+# we assume it is in external/ directory.
 # The user may override this with their own installation
 # of AMReX as long as they set the environment variable
 # AMREX_HOME.
 
-AMREX_HOME ?= $(TOP)/amrex
+AMREX_HOME ?= $(TOP)/external/amrex
 
 # Include the AMReX make rules. Throw an error
 # if we don't have AMReX.
