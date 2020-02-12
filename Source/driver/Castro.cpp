@@ -672,22 +672,22 @@ Castro::initMFs()
 
     // Keep track of which components of the momentum flux have pressure
     if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && Geom().IsRZ())) {
-        mom_flux_has_p[0][0] = false;
+        momx_flux_has_p[0] = 0;
     }
     else {
-        mom_flux_has_p[0][0] = true;
+        momx_flux_has_p[0] = 1;
     }
 
-    mom_flux_has_p[0][1] = false;
-    mom_flux_has_p[0][2] = false;
+    momx_flux_has_p[1] = 0;
+    momx_flux_has_p[2] = 0;
 
-    mom_flux_has_p[1][0] = false;
-    mom_flux_has_p[1][1] = true;
-    mom_flux_has_p[1][2] = false;
+    momy_flux_has_p[0] = 0;
+    momy_flux_has_p[1] = 1;
+    momy_flux_has_p[2] = 0;
 
-    mom_flux_has_p[2][0] = false;
-    mom_flux_has_p[2][1] = false;
-    mom_flux_has_p[2][2] = true;
+    momz_flux_has_p[0] = 0;
+    momz_flux_has_p[1] = 0;
+    momz_flux_has_p[2] = 1;
 
 
 #ifdef RADIATION
