@@ -48,7 +48,7 @@ NETWORK_DIR ?= aprox13
 # If using general_null, make sure we have a reasonable set of isotopes.
 
 ifeq ($(NETWORK_DIR), general_null)
-	GENERAL_NET_INPUTS = $(MICROPHYSICS_HOME)/networks/$(NETWORK_DIR)/aprox13.net
+	NETWORK_INPUTS = aprox13.net
 endif
 
 # Location where the source files are coming from.

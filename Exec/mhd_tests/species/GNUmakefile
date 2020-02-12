@@ -22,7 +22,7 @@ EOS_DIR     := gamma_law
 
 # This sets the network directory in Castro/Networks
 NETWORK_DIR := general_null
-GENERAL_NET_INPUTS = $(CASTRO_HOME)/Microphysics/networks/$(NETWORK_DIR)/simple.net
+NETWORK_INPUTS = simple.net
 
 Blocs   := .
 Bpack   := ./Make.package
