@@ -191,11 +191,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
         uflatten(obx, q_arr, flatg_arr, QPTOT);
 
+        Real flatten_pp_thresh = Radiation::flatten_pp_threshold;
+
         AMREX_PARALLEL_FOR_3D(obx, i, j, k,
         {
           flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
 
-          if (Radiation::flatten_pp_threshold > 0.0) {
+          if (flatten_pp_thresh > 0.0) {
             if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
                  q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
 
