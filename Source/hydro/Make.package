@@ -33,3 +33,6 @@ endif
 ifneq ($(DIM), 1)
   ca_F90EXE_sources += trans.F90
 endif
+
+ca_F90EXE_sources += edge_util.F90
+
