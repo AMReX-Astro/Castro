@@ -1058,6 +1058,13 @@ public:
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
 
+
+  AMREX_GPU_HOST_DEVICE
+  amrex::Vector<amrex::Real> position_c
+  (const int i, const int j, const int k,
+   const bool ccx, const bool ccy, const bool ccz);
+
+
 // Hydrodynamics
 #include <Castro_hydro.H>
 
@@ -1220,7 +1227,9 @@ protected:
     // Does the momentum flux include the pressure term?
     // First index is the coordinate direction, second
     // index is the momentum direction.
-    amrex::Array<amrex::Array<bool, 3>, 3> mom_flux_has_p;
+    amrex::GpuArray<int, 3> momx_flux_has_p;
+    amrex::GpuArray<int, 3> momy_flux_has_p;
+    amrex::GpuArray<int, 3> momz_flux_has_p;
 
 ///
 /// Scalings for the flux registers.

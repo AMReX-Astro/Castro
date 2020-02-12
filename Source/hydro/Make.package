@@ -1,7 +1,11 @@
 # sources used with hydro
 
 CEXE_sources += Castro_hydro.cpp
+CEXE_sources += Castro_ctu.cpp
+CEXE_sources += advection_util.cpp
 CEXE_sources += Castro_ctu_hydro.cpp
+CEXE_sources += flatten.cpp
+
 ifeq ($(USE_TRUE_SDC),TRUE)
   CEXE_sources += Castro_mol_hydro.cpp
 endif
@@ -13,7 +17,6 @@ ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
 endif
 
 ca_F90EXE_sources += advection_util_nd.F90
-ca_F90EXE_sources += flatten_nd.F90
 
 ca_F90EXE_sources += ppm_nd.F90
 ca_F90EXE_sources += riemann_nd.F90
