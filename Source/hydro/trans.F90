@@ -397,7 +397,6 @@ contains
                 qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qypo, qypo_lo, qypo_hi, i, j, k)
 
 #ifdef RADIATION
              qypo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
@@ -600,7 +599,6 @@ contains
                 qymo(i,j,k,QGAME) = qym(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qymo, qymo_lo, qymo_hi, i, j, k)
 
 #ifdef RADIATION
              qymo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
@@ -892,7 +890,6 @@ contains
                 qzpo(i,j,k,QGAME) = qzp(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qzpo, qzpo_lo, qzpo_hi, i, j, k)
 
 #ifdef RADIATION
              qzpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
@@ -1037,7 +1034,6 @@ contains
                 qzmo(i,j,k,QGAME) = qzm(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qzmo, qzmo_lo, qzmo_hi, i, j, k)
 
 #ifdef RADIATION
              qzmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
@@ -1326,7 +1322,6 @@ contains
                 qxpo(i,j,k,QGAME) = qxp(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qxpo, qxpo_lo, qxpo_hi, i, j, k)
 
 #ifdef RADIATION
              qxpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
@@ -1471,7 +1466,6 @@ contains
                 qxmo(i,j,k,QGAME) = qxm(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qxmo, qxmo_lo, qxmo_hi, i, j, k)
 
 #ifdef RADIATION
              qxmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
@@ -1759,7 +1753,6 @@ contains
                 qzpo(i,j,k,QGAME) = qzp(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qzpo, qzpo_lo, qzpo_hi, i, j, k)
 
 #ifdef RADIATION
              qzpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
@@ -1905,7 +1898,6 @@ contains
                 qzmo(i,j,k,QGAME) = qzm(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qzmo, qzmo_lo, qzmo_hi, i, j, k)
 
 #ifdef RADIATION
              qzmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
@@ -2195,7 +2187,6 @@ contains
                 qxpo(i,j,k,QGAME) = qxp(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qxpo, qxpo_lo, qxpo_hi, i, j, k)
 
 #ifdef RADIATION
              qxpo(i,j,k,qrad:qrad-1+ngroups) = ernewrx(:)
@@ -2338,7 +2329,6 @@ contains
                 qxmo(i,j,k,QGAME) = qxm(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qxmo, qxmo_lo, qxmo_hi, i, j, k)
 
 #ifdef RADIATION
              qxmo(i,j,k,qrad:qrad-1+ngroups) = ernewlx(:)
@@ -2623,7 +2613,6 @@ contains
                 qypo(i,j,k,QGAME) = qyp(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qypo, qypo_lo, qypo_hi, i, j, k)
 
 #ifdef RADIATION
              qypo(i,j,k,qrad:qrad-1+ngroups) = ernewry(:)
@@ -2767,7 +2756,6 @@ contains
                 qymo(i,j,k,QGAME) = qym(i,j,k,QGAME)
              endif
 
-             call reset_edge_state_thermo(qymo, qymo_lo, qymo_hi, i, j, k)
 
 #ifdef RADIATION
              qymo(i,j,k,qrad:qrad-1+ngroups) = ernewly(:)
@@ -3099,7 +3087,6 @@ contains
 
              qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
 
-             call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
              qpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
@@ -3275,7 +3262,6 @@ contains
 
              qmo(i,j,k,QPRES) = max(qmo(i,j,k,QPRES), small_pres)
 
-             call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i, j, k)
 
 #ifdef RADIATION
              qmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
@@ -3605,7 +3591,6 @@ contains
 
              qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
 
-             call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
              qpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
@@ -3782,7 +3767,6 @@ contains
 
              qmo(i,j,k,QPRES) = max(qmo(i,j,k,QPRES), small_pres)
 
-             call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i, j, k)
 
 #ifdef RADIATION
              qmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
@@ -4115,7 +4099,6 @@ contains
 
              qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES), small_pres)
 
-             call reset_edge_state_thermo(qpo, qpo_lo, qpo_hi, i, j, k)
 
 #ifdef RADIATION
              qpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
@@ -4293,7 +4276,6 @@ contains
 
              qmo(i,j,k,QPRES) = max(qmo(i,j,k,QPRES), small_pres)
 
-             call reset_edge_state_thermo(qmo, qmo_lo, qmo_hi, i, j, k)
 
 #ifdef RADIATION
              qmo(i,j,k,qrad:qrad-1+ngroups) = ernewl(:)
@@ -4308,72 +4290,83 @@ contains
   end subroutine transxy
 #endif
 
-  subroutine reset_edge_state_thermo(qedge, qd_lo, qd_hi, ii, jj, kk)
+  subroutine reset_edge_state_thermo(lo, hi, &
+                                     qedge, qd_lo, qd_hi) &
+                                     bind(C, name="reset_edge_state_thermo")
 
-  use amrex_constants_module, only : ZERO, ONE, HALF
+    use amrex_constants_module, only : ZERO, ONE, HALF
 
-  use network, only : nspec, naux
-  use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, &
-                                 QPRES, QREINT, QGAME, QFS, QFX, &
-                                 small_pres, small_temp, &
-                                 ppm_predict_gammae, &
-                                 transverse_use_eos, transverse_reset_rhoe
+    use network, only : nspec, naux
+    use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, &
+                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   small_pres, small_temp, &
+                                   ppm_predict_gammae, &
+                                   transverse_use_eos, transverse_reset_rhoe
 
-  use eos_module, only: eos
-  use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
+    use eos_module, only: eos
+    use eos_type_module, only: eos_input_rt, eos_input_re, eos_t
 
-    integer, intent(in) :: ii, jj, kk
+    integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: qd_lo(3), qd_hi(3)
-    real(rt)        , intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+    real(rt), intent(inout) :: qedge(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
 
     logical :: reset
     type (eos_t) :: eos_state
+    integer :: ii, jj, kk
 
     !$gpu
 
-    reset = .false.
+    do kk = lo(3), hi(3)
+       do jj = lo(2), hi(2)
+          do ii = lo(1), hi(1)
 
-    if (transverse_reset_rhoe == 1) then
-       ! if we are still negative, then we need to reset
-       if (qedge(ii,jj,kk,QREINT) < ZERO) then
-          reset = .true.
+             reset = .false.
 
-          eos_state % rho = qedge(ii,jj,kk,QRHO)
-          eos_state % T = small_temp
-          eos_state % xn(:) = qedge(ii,jj,kk,QFS:QFS-1+nspec)
-          eos_state % aux(:) = qedge(ii,jj,kk,QFX:QFX-1+naux)
+             if (transverse_reset_rhoe == 1) then
+                ! if we are still negative, then we need to reset
+                if (qedge(ii,jj,kk,QREINT) < ZERO) then
+                   reset = .true.
 
-          call eos(eos_input_rt, eos_state)
+                   eos_state % rho = qedge(ii,jj,kk,QRHO)
+                   eos_state % T = small_temp
+                   eos_state % xn(:) = qedge(ii,jj,kk,QFS:QFS-1+nspec)
+                   eos_state % aux(:) = qedge(ii,jj,kk,QFX:QFX-1+naux)
 
-          qedge(ii,jj,kk,QREINT) = qedge(ii,jj,kk,QRHO)*eos_state % e
-          qedge(ii,jj,kk,QPRES) = eos_state % p
-       endif
+                   call eos(eos_input_rt, eos_state)
 
-    end if
+                   qedge(ii,jj,kk,QREINT) = qedge(ii,jj,kk,QRHO)*eos_state % e
+                   qedge(ii,jj,kk,QPRES) = eos_state % p
+                endif
 
-    if (ppm_predict_gammae == 0 ) then
+             end if
 
-       if (transverse_use_eos == 1) then
-          eos_state % rho = qedge(ii,jj,kk,QRHO)
-          eos_state % e   = qedge(ii,jj,kk,QREINT) / qedge(ii,jj,kk,QRHO)
-          eos_state % T   = small_temp
-          eos_state % xn  = qedge(ii,jj,kk,QFS:QFS+nspec-1)
-          eos_state % aux = qedge(ii,jj,kk,QFX:QFX+naux-1)
+             if (ppm_predict_gammae == 0 ) then
 
-          call eos(eos_input_re, eos_state)
+                if (transverse_use_eos == 1) then
+                   eos_state % rho = qedge(ii,jj,kk,QRHO)
+                   eos_state % e   = qedge(ii,jj,kk,QREINT) / qedge(ii,jj,kk,QRHO)
+                   eos_state % T   = small_temp
+                   eos_state % xn  = qedge(ii,jj,kk,QFS:QFS+nspec-1)
+                   eos_state % aux = qedge(ii,jj,kk,QFX:QFX+naux-1)
 
-          qedge(ii,jj,kk,QREINT) = eos_state % e * eos_state % rho
-          qedge(ii,jj,kk,QPRES) = max(eos_state % p, small_pres)
-       end if
+                   call eos(eos_input_re, eos_state)
 
-    else
-       if (reset) then
-          ! recompute the p edge state from this and (rho e), since we reset
-          ! qreint  (actually, is this code even necessary?)
-          qedge(ii,jj,kk,QPRES) = qedge(ii,jj,kk,QREINT)*(qedge(ii,jj,kk,QGAME)-ONE)
-          qedge(ii,jj,kk,QPRES) = max(qedge(ii,jj,kk,QPRES), small_pres)
-       end if
-    end if
+                   qedge(ii,jj,kk,QREINT) = eos_state % e * eos_state % rho
+                   qedge(ii,jj,kk,QPRES) = max(eos_state % p, small_pres)
+                end if
+
+             else
+                if (reset) then
+                   ! recompute the p edge state from this and (rho e), since we reset
+                   ! qreint  (actually, is this code even necessary?)
+                   qedge(ii,jj,kk,QPRES) = qedge(ii,jj,kk,QREINT)*(qedge(ii,jj,kk,QGAME)-ONE)
+                   qedge(ii,jj,kk,QPRES) = max(qedge(ii,jj,kk,QPRES), small_pres)
+                end if
+             end if
+
+          end do
+       end do
+    end do
 
   end subroutine reset_edge_state_thermo
 

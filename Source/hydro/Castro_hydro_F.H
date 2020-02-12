@@ -350,6 +350,10 @@ extern "C"
                const BL_FORT_FAB_ARG_3D(qy),
                const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdy);
 
+  void reset_edge_state_thermo
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(qm));
+
   void ca_mol_plm_reconstruct
     (const int* lo, const int* hi,
      const int idir,
