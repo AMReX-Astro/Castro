@@ -8,7 +8,7 @@ BLAS_LIBRARY ?= -lopenblas
 
 TOP := $(CASTRO_HOME)
 
-MICROPHYSICS_HOME ?= $(TOP)/Microphysics
+MICROPHYSICS_HOME ?= $(TOP)/external/Microphysics
 
 # Check to make sure that Microphysics actually exists,
 # using an arbitrary file that must exist to check.

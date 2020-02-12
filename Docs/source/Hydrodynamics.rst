@@ -1,3 +1,5 @@
+.. _ch:hydro:
+
 *************
 Hydrodynamics
 *************

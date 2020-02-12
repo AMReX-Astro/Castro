@@ -2,6 +2,13 @@
 Getting Started
 ***************
 
+.. note::
+
+   Castro has two source dependencies: AMReX, the adaptive mesh library,
+   and Microphysics, the collection of equations of state, reaction networks,
+   and other microphysics.  The instructions below describe how to get these
+   dependencies.
+
 Downloading the Code
 ====================
 
@@ -69,7 +76,6 @@ is installed on your machine—we recommend version 1.7.x or higher.
    ``amrex/`` directory, and the ``MICROPHYSICS_HOME`` environment
    variable to point to the ``Microphysics/`` directory. Castro will
    look there instead of in its local ``external/`` subdirectory.
-
 
 Building the Code
 =================

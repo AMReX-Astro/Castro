@@ -35,7 +35,7 @@ the different code paths.  These fall into two categories:
      time using a simple quadrature rule, and integrates the hydro
      explicitly and reactions implicitly to the next time node.
      Iterations allow each process to see one another and achieve
-     high-order in time convergence.
+     high-order in time convergence.  This is described in :cite:`castro_sdc`.
 
 
 The time-integration method used is controlled by
