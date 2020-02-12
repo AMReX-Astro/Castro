@@ -4299,6 +4299,9 @@ contains
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, &
                                    QPRES, QREINT, QGAME, QFS, QFX, &
+#ifdef RADIATION
+                                   QPTOT, &
+#endif
                                    small_pres, small_temp, &
                                    ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_rhoe
