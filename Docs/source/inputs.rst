@@ -124,13 +124,16 @@ by BoxLib. The runtime parameters that we use are:
 
 The valid boundary types are:
 
-+-------------------------+------------------+
-| 0 – Interior / Periodic | 3 – Symmetry     |
-+-------------------------+------------------+
-| 1 – Inflow              | 4 – Slip Wall    |
-+-------------------------+------------------+
-| 2 – Outflow             | 5 – No Slip Wall |
-+-------------------------+------------------+
+.. table:: boundary condition types
+   :align: center
+
+   +------------------------+-----------------+
+   | 0: Interior / Periodic | 3: Symmetry     |
+   +------------------------+-----------------+
+   | 1: Inflow              | 4: Slip Wall    |
+   +------------------------+-----------------+
+   | 2: Outflow             | 5: No Slip Wall |
+   +------------------------+-----------------+
 
 .. note:: ``castro.lo_bc`` and ``castro.hi_bc`` must be consistent
    with ``geometry.is_periodic``—if the domain is periodic in a

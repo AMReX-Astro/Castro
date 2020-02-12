@@ -70,7 +70,8 @@ page, https://github.com/AMReX-Astro/Castro
 
 External contributions are welcomed. Fork the Castro repo, modify your
 local copy, and issue a pull-request to the AMReX-Astro/Castro
-project. Further guidelines are given in the ``README.md`` file.
+project. Further guidelines are given in the `README.md
+<https://github.com/AMReX-Astro/Castro/blob/master/README.md>`_ file.
 
 To get help, subscribe to the *castro-help* google group mailing list:
 https://groups.google.com/forum/#!forum/castro-help

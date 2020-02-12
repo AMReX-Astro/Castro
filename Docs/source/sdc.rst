@@ -1,3 +1,4 @@
+.. _ch:sdc:
 
 *****************************
 Spectral Deferred Corrections
