@@ -5,65 +5,39 @@ Getting Started
 Downloading the Code
 ====================
 
-Castro is built on top of the AMReX framework. In order to run Castro 
-you must download two separate git modules. First, make sure that git
+Castro is maintained as a repository on GitHub, and can be obtained
+via standard git clone commands. First, make sure that git
 is installed on your machine—we recommend version 1.7.x or higher.
 
 
-#. Clone/fork the AMReX repository from the AMReX-Codes
-   github page (https://github.com/AMReX-Codes/amrex/). To
-   clone via the command line, simply type::
-
-       git clone https://github.com/AMReX-Codes/amrex.git
-
-   Alternately, if you have a github account with your
-   machine’s SSH-keys registered, you can do::
-
-       git clone git@github.com:AMReX-Codes/amrex.git
-
-   This will create a directory called amrex/ on your machine.
-   You will want to periodically update AMReX by typing::
-
-       git pull
-
-   in the ``amrex/`` directory.
-
-   Note: active development is done on the ``development`` branch in
-   each repo, and merged into the ``master`` branch periodically.  If
-   you wish to use the Castro ``development`` branch, then you should
-   also switch to the ``development`` branch for AMReX.
-
-#. Set the environment variable, ``AMREX_HOME``, on your
-   machine to point to the path name where you have put AMReX.
-   You can add this to your ``.bashrc`` as::
-
-       export AMREX_HOME=/path/to/amrex/
-
-   where you replace ``/path/to/amrex/`` will the full path to the
-   ``amrex/`` directory.
-
-#. Clone/fork the Castro repository from the same
-   github organization as above, using either HTTP access::
+#. Clone/fork the Castro repository from the AMReX-Astro GitHub
+   organization, using either HTTP access::
 
        git clone --recursive https://github.com/AMReX-Astro/Castro.git
 
-   or SSH access if you have it enabled::
+   or SSH access if you have an SSH key enabled with GitHub::
 
        git clone --recursive git@github.com:AMReX-Astro/Castro.git
 
-   As with AMReX, development on Castro is done in the
-   ``development`` branch, so you should work there if you want
-   the latest source.
-
    The ``--recursive`` option to ``git clone`` is used to ensure
    that all of Castro's dependencies are downloaded. Currently this
-   requirement is for the Microphysics repository from the starkiller-astro
-   organization on GitHub. This adds the equations of state, reaction
+   requirement is for the AMReX mesh refinement framework, which is
+   maintained in the AMReX-Codes organization on GitHub, and the
+   Microphysics repository from the starkiller-astro organization.
+   AMReX adds the necessary code for the driver code for the simulation,
+   while Microphysics adds the equations of state, reaction
    networks, and other microphysics needed to run Castro. If you forget
    to do a recursive clone, you can rectify the situation by running
    the following from the top-level of the Castro directory::
 
        git submodule update --init --recursive
+
+#. Development on Castro (and its primary dependencies, AMReX and
+   Microphysics) is done in the ``development`` branch, so you should
+   work there if you want the latest source. The Castro team runs
+   nightly regression testing on the ``development`` branch, so bugs
+   are usually found and fixed relatively quickly, but it is generally
+   less stable than staying on the ``master`` branch.
 
 #. We recommend setting the ``CASTRO_HOME`` environment
    variable to point to the path name where you have put Castro.
@@ -75,24 +49,27 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
        git pull --recurse-submodules
 
-   The recommended frequency for doing this is monthly, if you want the
-   stable version of the code; we issue a new release of the code at the
-   beginning of each month. For more frequent updates, you may work on
-   the ``development`` branch, at the risk of a less stable codebase.
+   The recommended frequency for doing this is monthly, if you are on the
+   stable ``master`` branch of the code; we issue a new release of the code
+   at the beginning of each month.
 
-#. (optional, for developers) If you prefer, you can maintain Microphysics
-   as a standalone repository rather than a git submodule. To do so, you can
-   clone it from GitHub using::
+#. (optional, for developers) If you prefer, you can maintain AMReX and
+   Microphysics as standalone repositories rather than as git submodules.
+   To do so, you can clone them from GitHub using::
 
+       git clone https://github.com/AMReX-Codes/amrex.git
        git clone https://github.com/starkiller-astro/Microphysics.git
 
    or via SSH as::
 
+       git clone git@github.com:/AMReX-Codes/amrex.git
        git clone git@github.com:/starkiller-astro/Microphysics.git
 
-   Then, set the ``MICROPHYSICS_HOME`` environment variable to point to
-   the ``Microphysics/`` directory, and Castro will look there instead
-   of in its local ``Microphysics/`` subdirectory.
+   Then, set the ``AMREX_HOME`` environment variable to point to the
+   ``amrex/`` directory, and the ``MICROPHYSICS_HOME`` environment
+   variable to point to the ``Microphysics/`` directory. Castro will
+   look there instead of in its local ``external/`` subdirectory.
+
 
 Building the Code
 =================
