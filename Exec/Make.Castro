@@ -1,4 +1,3 @@
-AMREX_HOME ?= /path/to/amrex
 CASTRO_HOME ?= /path/to/Castro
 
 # radiation needs hypre
@@ -9,6 +8,12 @@ BLAS_LIBRARY ?= -lopenblas
 
 TOP := $(CASTRO_HOME)
 
+# Microphysics is a git submodule of Castro. By default
+# we assume it is in the external/ directory.
+# The user may override this with their own installation
+# of Microphysics as long as they set the environment variable
+# MICROPHYSICS_HOME.
+
 MICROPHYSICS_HOME ?= $(TOP)/external/Microphysics
 
 # Check to make sure that Microphysics actually exists,
@@ -18,11 +23,26 @@ ifeq ("$(wildcard $(MICROPHYSICS_HOME)/Make.Microphysics)","")
   $(error Microphysics has not been downloaded. Please run "git submodule update --init" from the top level of the code)
 endif
 
-# the Castro microphysics locations
+# Locations within Microphysics
 EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 COND_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 VISC_HOME ?= $(MICROPHYSICS_HOME)/viscosity
+
+# AMReX is a git submodule of Castro. By default
+# we assume it is in the external/ directory.
+# The user may override this with their own installation
+# of AMReX as long as they set the environment variable
+# AMREX_HOME.
+
+AMREX_HOME ?= $(TOP)/external/amrex
+
+# Check to make sure that AMReX actually exists,
+# using an arbitrary file that must exist to check.
+# Throw an error if we don't have AMReX.
+ifeq ("$(wildcard $(AMREX_HOME)/Tools/GNUMake/Make.defs)","")
+  $(error AMReX has not been downloaded. Please run "git submodule update --init" from the top level of the code)
+endif
 
 # default integrator
 INTEGRATOR_DIR ?= VODE90
