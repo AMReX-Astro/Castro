@@ -58,7 +58,7 @@ division between C++ and Fortran.
 
    -  ``unit_tests/``: test problems that exercise primarily a single module
 
--  ``Microphysics/``: contains directories for different default
+-  ``external/Microphysics/``: contains directories for different default
    microphysics (these are all implemented in Fortran)
 
    -  ``conductivity/``: the thermal conductivity
