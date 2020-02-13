@@ -84,7 +84,7 @@ contains
     real(rt), intent(in) :: qm(qym_lo(1):qym_hi(1),qym_lo(2):qym_hi(2),qym_lo(3):qym_hi(3),NQ)
     real(rt), intent(in) :: qp(qyp_lo(1):qyp_hi(1),qyp_lo(2):qyp_hi(2),qyp_lo(3):qyp_hi(3),NQ)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in) :: flux(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3),NVAR)
+    real(rt), intent(in) :: flux_t(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3),NVAR)
     real(rt), intent(in) :: q_t(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
 
     real(rt), intent(out) :: qmo(qmo_lo(1):qmo_hi(1),qmo_lo(2):qmo_hi(2),qmo_lo(3):qmo_hi(3),NQ)
@@ -96,30 +96,30 @@ contains
 
     integer i, j, k, n, nqp, ipassive
 
-    real(rt)         rhoinv
-    real(rt)         rrnew
-    real(rt)         rrry, rrly
-    real(rt)         rury, ruly
-    real(rt)         rvry, rvly
-    real(rt)         rwry, rwly
-    real(rt)         ekenry, ekenly
-    real(rt)         rery, rely
-    real(rt)         rrnewry, rrnewly
-    real(rt)         runewry, runewly
-    real(rt)         rvnewry, rvnewly
-    real(rt)         rwnewry, rwnewly
-    real(rt)         renewry, renewly
-    real(rt)         pnewry, pnewly
-    real(rt)         rhoekenry, rhoekenly, rhoekenrz, rhoekenlz
-    real(rt)         pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
-    real(rt)         compu
-    real(rt)         :: gamc
+    real(rt) :: rhoinv
+    real(rt) :: rrnew
+    real(rt) :: rrry, rrly
+    real(rt) :: rury, ruly
+    real(rt) :: rvry, rvly
+    real(rt) :: rwry, rwly
+    real(rt) :: ekenry, ekenly
+    real(rt) :: rery, rely
+    real(rt) :: rrnewry, rrnewly
+    real(rt) :: runewry, runewly
+    real(rt) :: rvnewry, rvnewly
+    real(rt) :: rwnewry, rwnewly
+    real(rt) :: renewry, renewly
+    real(rt) :: pnewry, pnewly
+    real(rt) :: rhoekenry, rhoekenly, rhoekenrz, rhoekenlz
+    real(rt) :: pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt) :: compu
+    real(rt) :: :: gamc
 
 #ifdef RADIATION
-    real(rt)         :: dre, dmom, divu
+    real(rt) :: :: dre, dmom, divu
     real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
          lamge, luge, der
-    real(rt)         eddf, f1
+    real(rt) :: eddf, f1
     integer :: g
 #endif
 
@@ -147,6 +147,35 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
+             !----------------------------------------------------------------
+             ! qpo state
+             !----------------------------------------------------------------
+
+             ! We are handling the states at the interface of
+             ! (i, i+1) in the x-direction, and similarly for
+             ! the y- and z- directions.
+
+             il = i
+             jl = j
+             kl = k
+
+             if (idir_t == 1) then
+                ir = i+1
+                jr = j
+                kr = k
+             else if (idir_t == 2) then
+                ir = i
+                jr = j+1
+                kr = k
+             else
+                ir = i
+                jr = j
+                kr = k+1
+             end if
+
+             ! the "p" interface state in a local array
+             lqn(:) = qp(i,j,k,:)
+
              do ipassive = 1, npassive
                 n  = upass_map(ipassive)
                 nqp = qpass_map(ipassive)
@@ -154,58 +183,34 @@ contains
 #if AMREX_SPACEDIM == 2
                 volinv = ONE/vol(i,j,k)
 
-                rrnew = qp(i,j,k,QRHO) - hdt*(area_t(i+1,j,k)*fx(i+1,j,k,URHO) - &
-                                               area_t(i,j,k)*fx(i,j,k,URHO)) * volinv
-                compu = qp(i,j,k,QRHO)*qp(i,j,k,nqp) - &
-                     hdt*(area_t(i+1,j,k)*fx(i+1,j,k,n) - &
-                          area_t(i,j,k)*fx(i,j,k,n)) * volinv
-                qpo(i,j,k,nqp) = compu/rrnew
+                rrnew = lqn(QRHO) - hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,URHO) - &
+                                         area_t(il,jl,kl)*flux_t(il,jl,kl,URHO)) * volinv
+                compu = lqn(QRHO)*lqn(nqp) - &
+                     hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,n) - &
+                          area_t(il,jl,kl)*flux_t(il,jl,kl,n)) * volinv
+                lqno(nqp) = compu/rrnew
 #else
-                rrnew = qp(i,j,k,QRHO) - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
-                compu = qp(i,j,k,QRHO)*qp(i,j,k,nqp) - cdtdx*(fx(i+1,j,k,n) - fx(i,j,k,n))
-                qpo(i,j,k,nqp) = compu/rrnew
-#endif
-
-#if AMREX_SPACEDIM == 2
-                volinv = ONE/vol(i,j-1,k)
-
-                rrnew = qm(i,j,k,QRHO) - hdt*(area_t(i+1,j-1,k)*fx(i+1,j-1,k,URHO) - &
-                                               area_t(i,j-1,k)*fx(i,j-1,k,URHO)) * volinv
-                compu = qm(i,j,k,QRHO)*qm(i,j,k,nqp) - &
-                     hdt*(area_t(i+1,j-1,k)*fx(i+1,j-1,k,n) - &
-                          area_t(i,j-1,k)*fx(i,j-1,k,n)) * volinv
-                qmo(i,j,k,nqp) = compu/rrnew
-#else
-                rrnew = qm(i,j,k,QRHO) - cdtdx*(fx(i+1,j-1,k,URHO) - fx(i,j-1,k,URHO))
-                compu = qm(i,j,k,QRHO)*qm(i,j,k,nqp) - cdtdx*(fx(i+1,j-1,k,n) - fx(i,j-1,k,n))
-                qmo(i,j,k,nqp) = compu/rrnew
+                rrnew = lqn(QRHO) - cdtdx*(flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO))
+                compu = lqn(QRHO)*lqn(nqp) - cdtdx*(flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n))
+                lqno(nqp) = compu/rrnew
 #endif
              end do
-
-
-             ! add the transverse flux difference in the x-direction to y-states
-             ! for the fluid variables
-
-
-             !----------------------------------------------------------------
-             ! qpo state
-             !----------------------------------------------------------------
 
 #if AMREX_SPACEDIM == 2
              volinv = ONE/vol(i,j,k)
 #endif
 
-             pgp  = q_t(i+1,j,k,GDPRES)
-             pgm  = q_t(i  ,j,k,GDPRES)
-             ugp  = q_t(i+1,j,k,GDU   )
-             ugm  = q_t(i  ,j,k,GDU   )
-             gegp = q_t(i+1,j,k,GDGAME)
-             gegm = q_t(i  ,j,k,GDGAME)
+             pgp  = q_t(ir,jr,kr,GDPRES)
+             pgm  = q_t(il,jl,kl,GDPRES)
+             ugp  = q_t(ir,jr,kr,GDU-1+idir_t)
+             ugm  = q_t(il,jl,kl,GDU-1+dir_t)
+             gegp = q_t(ir,jr,kr,GDGAME)
+             gegm = q_t(il,jl,kl,GDGAME)
 
 #ifdef RADIATION
-             lambda = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
-             ergp = q_t(i+1,j,k,GDERADS:GDERADS-1+ngroups)
-             ergm = q_t(i  ,j,k,GDERADS:GDERADS-1+ngroups)
+             lambda(:) = qaux(il,jl,kl,QLAMS:QLAMS+ngroups-1)
+             ergp(:) = q_t(ir,jr,kr,GDERADS:GDERADS-1+ngroups)
+             ergm(:) = q_t(il,jl,kl,GDERADS:GDERADS-1+ngroups)
 #endif
 
              ! we need to augment our conserved system with either a p
@@ -213,8 +218,8 @@ contains
              ! be able to deal with the general EOS
 
 #if AMREX_SPACEDIM == 2
-             dup = area_t(i+1,j,k)*pgp*ugp - area_t(i,j,k)*pgm*ugm
-             du = area_t(i+1,j,k)*ugp-area_t(i,j,k)*ugm
+             dup = area_t(ir,jr,kr)*pgp*ugp - area_t(il,jl,kl)*pgm*ugm
+             du = area_t(ir,jr,kr)*ugp-area_t(il,jl,kl)*ugm
 #else
              dup = pgp*ugp - pgm*ugm
              du = ugp-ugm
@@ -226,9 +231,9 @@ contains
 
              ! this is the gas gamma_1
 #ifdef RADIATION
-             gamc = qaux(i,j,k,QGAMCG)
+             gamc = qaux(il,jl,kl,QGAMCG)
 #else
-             gamc = qaux(i,j,k,QGAMC)
+             gamc = qaux(il,jl,kl,QGAMC)
 #endif
 
 #ifdef RADIATION
@@ -245,7 +250,7 @@ contains
                 end do
              else if (fspace_type .eq. 2) then
 #if AMREX_SPACEDIM == 2
-                divu = (area_t(i+1,j,k)*ugp-area_t(i,j,k)*ugm) * volinv
+                divu = (area_t(ir,jr,kr)*ugp - area_t(il,jl,kl)*ugm) * volinv
                 do g=0, ngroups-1
                    eddf = Edd_factor(lambda(g))
                    f1 = 0.5e0_rt*(1.e0_rt-eddf)
@@ -264,20 +269,20 @@ contains
 #endif
 
              ! Convert to conservation form
-             rrry = qp(i,j,k,QRHO)
-             rury = rrry*qp(i,j,k,QU)
-             rvry = rrry*qp(i,j,k,QV)
-             rwry = rrry*qp(i,j,k,QW)
-             ekenry = HALF*rrry*sum(qp(i,j,k,QU:QW)**2)
-             rery = qp(i,j,k,QREINT) + ekenry
+             rrn = lqn(QRHO)
+             run = rrrn*lqn(QU)
+             rvn = rrrn*lqn(QV)
+             rwn = rrrn*lqn(QW)
+             ekenn = HALF*rrrn*sum(lqn(QU:QW)**2)
+             ren = lqn(QREINT) + ekenrn
 #ifdef RADIATION
-             err  = qp(i,j,k,qrad:qrad-1+ngroups)
+             ern = lqn(qrad:qrad-1+ngroups)
 #endif
 
 #if AMREX_SPACEDIM == 2
              ! Add transverse predictor
-             rrnewry = rrry - hdt*(area_t(i+1,j,k)*fx(i+1,j,k,URHO) -  &
-                                   area_t(i,j,k)*fx(i,j,k,URHO)) * volinv
+             rrnewn = rrn - hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,URHO) -  &
+                                 area_t(i,j,k)*flux_t(i,j,k,URHO)) * volinv
 
              ! Note that pressure may be treated specially here, depending on
              ! the geometry.  Our y-interface equation for (rho u) is:
@@ -288,63 +293,63 @@ contains
              ! a divergence, so there are no area factors.  For this
              ! geometry, we do not include p in our definition of the
              ! flux in the x-direction, for we need to fix this now.
-             runewry = rury - hdt*(area_t(i+1,j,k)*fx(i+1,j,k,UMX)  -  &
-                                   area_t(i,j,k)*fx(i,j,k,UMX)) * volinv
-             if (.not. mom_flux_has_p(1)%comp(UMX)) then
-                runewry = runewry - cdtdx *(pgp-pgm)
+             runewn = run - hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,UMX) -  &
+                                 area_t(il,jl,kl)*flux_t(il,jl,kl,UMX)) * volinv
+             if (.not. mom_flux_has_p(idir_t)%comp(UMX)) then
+                runewn = runewn - cdtdx * (pgp-pgm)
              endif
-             rvnewry = rvry - hdt*(area_t(i+1,j,k)*fx(i+1,j,k,UMY)  -  &
-                                   area_t(i,j,k)*fx(i,j,k,UMY)) * volinv
-             rwnewry = rwry - hdt*(area_t(i+1,j,k)*fx(i+1,j,k,UMZ)  -  &
-                                   area_t(i,j,k)*fx(i,j,k,UMZ)) * volinv
-             renewry = rery - hdt*(area_t(i+1,j,k)*fx(i+1,j,k,UEDEN)-  &
-                                  area_t(i,j,k)*fx(i,j,k,UEDEN)) * volinv
+             rvnewn = rvn - hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,UMY) -  &
+                                 area_t(il,jl,kl)*flux_t(il,jl,kl,UMY)) * volinv
+             rwnewn = rwn - hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,UMZ) -  &
+                                 area_t(il,jl,kl)*flux_t(il,jl,kl,UMZ)) * volinv
+             renewn = ren - hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,UEDEN) -  &
+                                 area_t(il,jl,kl)*flux_t(il,jl,kl,UEDEN)) * volinv
 
 #ifdef RADIATION
-             runewry = runewry - HALF*hdt*(area_t(i+1,j,k)+area_t(i,j,k))*sum(lamge) * volinv
-             renewry = renewry + dre
-             ernewr(:) = err(:) - hdt*(area_t(i+1,j,k)*rfx(i+1,j,k,:)-  &
-                                       area_t(i,j,k)*rfx(i,j,k,:)) * volinv + der(:)
+             runewn = runewn - HALF*hdt*(area_t(ir,jr,kr)+area_t(il,jl,kl))*sum(lamge) * volinv
+             renewn = renewn + dre
+             ernewn(:) = err(:) - hdt*(area_t(ir,jr,kr)*rflux_t(ir,jr,kr,:) -  &
+                                       area_t(il,jl,kl)*rflux_t(il,jl,kl,:)) * volinv + der(:)
 #endif
 
 #else
              ! Add transverse predictor
-             rrnewry = rrry - cdtdx*(fx(i+1,j,k,URHO) - fx(i,j,k,URHO))
-             runewry = rury - cdtdx*(fx(i+1,j,k,UMX) - fx(i,j,k,UMX))
-             rvnewry = rvry - cdtdx*(fx(i+1,j,k,UMY) - fx(i,j,k,UMY))
-             rwnewry = rwry - cdtdx*(fx(i+1,j,k,UMZ) - fx(i,j,k,UMZ))
-             renewry = rery - cdtdx*(fx(i+1,j,k,UEDEN) - fx(i,j,k,UEDEN))
+             rrnewn = rrn - cdtdx*(flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO))
+             runewn = run - cdtdx*(flux_t(ir,jr,kr,UMX) - flux_t(il,jl,kl,UMX))
+             rvnewn = rvn - cdtdx*(flux_t(ir,jr,kr,UMY) - flux_t(il,jl,kl,UMY))
+             rwnewn = rwn - cdtdx*(flux_t(ir,jr,kr,UMZ) - flux_t(il,jl,kl,UMZ))
+             renewn = ren - cdtdx*(flux_t(ir,jr,kr,UEDEN) - flux_t(il,jl,kl,UEDEN))
 #ifdef RADIATION
-             runewry = runewry + dmom
-             renewry = renewry + dre
-             ernewr  = err(:) - cdtdx*(rfx(i+1,j,k,:) - rfx(i,j,k,:)) + der(:)
+             runewn = runewn + dmom
+             renewn = renewn + dre
+             ernewn  = err(:) - cdtdx*(rflux_t(ir,jr,kr,:) - rflux_t(il,jl,kl,:)) + der(:)
 #endif
 #endif
 
              ! Reset to original value if adding transverse terms made density negative
              reset_state = .false.
              if (transverse_reset_density == 1 .and. rrnewry < ZERO) then
-                rrnewry = rrry
-                runewry = rury
-                rvnewry = rvry
-                rwnewry = rwry
-                renewry = rery
+                rrnewn = rrn
+                runewn = run
+                rvnewn = rvn
+                rwnewn = rwn
+                renewn = ren
 #ifdef RADIATION
-                ernewr = err(:)
+                ernewn = ern(:)
 #endif
                 reset_state = .true.
              endif
 
              ! Convert back to primitive form
-             qpo(i,j,k,QRHO) = rrnewry
-             rhoinv = ONE/rrnewry
-             qpo(i,j,k,QU) = runewry*rhoinv
-             qpo(i,j,k,QV) = rvnewry*rhoinv
-             qpo(i,j,k,QW) = rwnewry*rhoinv
+             lqno(QRHO) = rrnewn
+             rhoinv = ONE/rrnewn
+             lqno(QU) = runewn*rhoinv
+             lqno(QV) = rvnewn*rhoinv
+             lqno(QW) = rwnewn*rhoinv
 
              ! note: we run the risk of (rho e) being negative here
-             rhoekenry = HALF*(runewry**2 + rvnewry**2 + rwnewry**2)*rhoinv
-             qpo(i,j,k,QREINT) = renewry - rhoekenry
+             rhoekenn = HALF*(runewn**2 + rvnewn**2 + rwnewn**2)*rhoinv
+             lqno(QREINT) = renewn - rhoekenn
 
              if (.not. reset_state) then
                 ! do the transverse terms for p, gamma, and rhoe, as necessary
@@ -353,12 +358,12 @@ contains
                    ! If it is negative, reset the internal energy by
                    ! using the discretized expression for updating (rho e).
 #if AMREX_SPACEDIM == 2
-                   qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) - &
-                        hdt*(area_t(i+1,j,k)*fx(i+1,j,k,UEINT)-  &
-                             area_t(i,j,k)*fx(i,j,k,UEINT) + pav*du) * volinv
+                   lqno(QREINT) = lqn(QREINT) - &
+                        hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,UEINT) - &
+                             area_t(il,jl,kl)*flux_t(il,jl,kl,UEINT) + pav*du) * volinv
 #else
-                   qpo(i,j,k,QREINT) = qp(i,j,k,QREINT) - &
-                        cdtdx*(fx(i+1,j,k,UEINT) - fx(i,j,k,UEINT) + pav*du)
+                   lqno(QREINT) = lqn(QREINT) - &
+                        cdtdx*(flux_t(ir,jr,kr,UEINT) - flux_t(il,jl,kl,UEINT) + pav*du)
 #endif
                 end if
 
@@ -369,40 +374,63 @@ contains
                    ! add the transverse term to the p evolution eq here
 #if AMREX_SPACEDIM == 2
                    ! the divergences here, dup and du, already have area factors
-                   pnewry = qp(i,j,k,QPRES) - hdt*(dup + pav*du*(gamc - ONE)) * volinv
+                   pnewn = lqn(QPRES) - hdt*(dup + pav*du*(gamc - ONE)) * volinv
 #else
-                   pnewry = qp(i,j,k,QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
+                   pnewn = lqn(QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
 #endif
-                   qpo(i,j,k,QPRES) = max(pnewry, small_pres)
+                   lqno(QPRES) = max(pnewn, small_pres)
                 else
                    ! Update gammae with its transverse terms
 #if AMREX_SPACEDIM == 2
-                   qpo(i,j,k,QGAME) = qp(i,j,k,QGAME) + &
+                   lqno(QGAME) = lqn(QGAME) + &
                         hdt*( (geav-ONE)*(geav - gamc)*du) * volinv - cdtdx*uav*dge
 #else
-                   qpo(i,j,k,QGAME) = qp(i,j,k,QGAME) + &
+                   lqno(QGAME) = lqn(QGAME) + &
                         cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
 #endif
                    ! and compute the p edge state from this and (rho e)
-                   qpo(i,j,k,QPRES) = qpo(i,j,k,QREINT)*(qpo(i,j,k,QGAME)-ONE)
-                   qpo(i,j,k,QPRES) = max(qpo(i,j,k,QPRES),small_pres)
+                   lqno(QPRES) = lqno(QREINT)*(lqno(QGAME) - ONE)
+                   lqno(QPRES) = max(lqno(QPRES), small_pres)
                 end if
              else
-                qpo(i,j,k,QPRES) = qp(i,j,k,QPRES)
-                qpo(i,j,k,QGAME) = qp(i,j,k,QGAME)
+                lqno(QPRES) = lqn(QPRES)
+                lqno(QGAME) = lqn(QGAME)
              endif
 
-
 #ifdef RADIATION
-             qpo(i,j,k,qrad:qrad-1+ngroups) = ernewr(:)
-             qpo(i,j,k,qptot  ) = sum(lambda(:)*ernewr(:)) + qpo(i,j,k,QPRES)
-             qpo(i,j,k,qreitot) = sum(qpo(i,j,k,qrad:qrad-1+ngroups)) + qpo(i,j,k,QREINT)
+             lqno(qrad:qrad-1+ngroups) = ernewn(:)
+             lqno(qptot  ) = sum(lambda(:)*ernewn(:)) + lqno(QPRES)
+             lqno(qreitot) = sum(lqno(qrad:qrad-1+ngroups)) + lqno(QREINT)
 #endif
+
+             ! store the state
+             qpo(i,j,k,:) = lqno(:)
 
 
              !-------------------------------------------------------------------
              ! qmo state
              !-------------------------------------------------------------------
+
+             do ipassive = 1, npassive
+                n  = upass_map(ipassive)
+                nqp = qpass_map(ipassive)
+
+#if AMREX_SPACEDIM == 2
+                volinv = ONE/vol(i,j-1,k)
+
+                rrnew = qm(i,j,k,QRHO) - hdt*(area_t(i+1,j-1,k)*flux_t(i+1,j-1,k,URHO) - &
+                                               area_t(i,j-1,k)*flux_t(i,j-1,k,URHO)) * volinv
+                compu = qm(i,j,k,QRHO)*qm(i,j,k,nqp) - &
+                     hdt*(area_t(i+1,j-1,k)*flux_t(i+1,j-1,k,n) - &
+                          area_t(i,j-1,k)*flux_t(i,j-1,k,n)) * volinv
+                qmo(i,j,k,nqp) = compu/rrnew
+#else
+                rrnew = qm(i,j,k,QRHO) - cdtdx*(flux_t(i+1,j-1,k,URHO) - flux_t(i,j-1,k,URHO))
+                compu = qm(i,j,k,QRHO)*qm(i,j,k,nqp) - cdtdx*(flux_t(i+1,j-1,k,n) - flux_t(i,j-1,k,n))
+                qmo(i,j,k,nqp) = compu/rrnew
+#endif
+             end do
+
 
 #if AMREX_SPACEDIM == 2
              volinv = ONE/vol(i,j-1,k)
@@ -488,38 +516,38 @@ contains
 #endif
 
 #if AMREX_SPACEDIM == 2
-             rrnewly = rrly - hdt*(area_t(i+1,j-1,k)*fx(i+1,j-1,k,URHO) -  &
-                                   area_t(i,j-1,k)*fx(i,j-1,k,URHO)) * volinv
-             runewly = ruly - hdt*(area_t(i+1,j-1,k)*fx(i+1,j-1,k,UMX)  -  &
-                                   area_t(i,j-1,k)*fx(i,j-1,k,UMX)) * volinv
+             rrnewly = rrly - hdt*(area_t(i+1,j-1,k)*flux_t(i+1,j-1,k,URHO) -  &
+                                   area_t(i,j-1,k)*flux_t(i,j-1,k,URHO)) * volinv
+             runewly = ruly - hdt*(area_t(i+1,j-1,k)*flux_t(i+1,j-1,k,UMX)  -  &
+                                   area_t(i,j-1,k)*flux_t(i,j-1,k,UMX)) * volinv
              if (.not. mom_flux_has_p(1)%comp(UMX)) then
                 runewly = runewly - cdtdx *(pgp-pgm)
              endif
-             rvnewly = rvly - hdt*(area_t(i+1,j-1,k)*fx(i+1,j-1,k,UMY)  -  &
-                                   area_t(i,j-1,k)*fx(i,j-1,k,UMY)) * volinv
-             rwnewly = rwly - hdt*(area_t(i+1,j-1,k)*fx(i+1,j-1,k,UMZ)  -  &
-                                   area_t(i,j-1,k)*fx(i,j-1,k,UMZ)) * volinv
-             renewly = rely - hdt*(area_t(i+1,j-1,k)*fx(i+1,j-1,k,UEDEN)-  &
-                                   area_t(i,j-1,k)*fx(i,j-1,k,UEDEN)) * volinv
+             rvnewly = rvly - hdt*(area_t(i+1,j-1,k)*flux_t(i+1,j-1,k,UMY)  -  &
+                                   area_t(i,j-1,k)*flux_t(i,j-1,k,UMY)) * volinv
+             rwnewly = rwly - hdt*(area_t(i+1,j-1,k)*flux_t(i+1,j-1,k,UMZ)  -  &
+                                   area_t(i,j-1,k)*flux_t(i,j-1,k,UMZ)) * volinv
+             renewly = rely - hdt*(area_t(i+1,j-1,k)*flux_t(i+1,j-1,k,UEDEN)-  &
+                                   area_t(i,j-1,k)*flux_t(i,j-1,k,UEDEN)) * volinv
 
 #ifdef RADIATION
              runewly = runewly - HALF*hdt*(area_t(i+1,j-1,k)+area_t(i,j-1,k))*sum(lamge) * volinv
              renewly = renewly + dre
-             ernewl(:) = erl(:) - hdt*(area_t(i+1,j-1,k)*rfx(i+1,j-1,k,:)-  &
-                                       area_t(i,j-1,k)*rfx(i,j-1,k,:)) * volinv + der(:)
+             ernewl(:) = erl(:) - hdt*(area_t(i+1,j-1,k)*rflux_t(i+1,j-1,k,:)-  &
+                                       area_t(i,j-1,k)*rflux_t(i,j-1,k,:)) * volinv + der(:)
 #endif
 
 #else
              ! Add transverse predictor
-             rrnewly = rrly - cdtdx*(fx(i+1,j-1,k,URHO) - fx(i,j-1,k,URHO))
-             runewly = ruly - cdtdx*(fx(i+1,j-1,k,UMX) - fx(i,j-1,k,UMX))
-             rvnewly = rvly - cdtdx*(fx(i+1,j-1,k,UMY) - fx(i,j-1,k,UMY))
-             rwnewly = rwly - cdtdx*(fx(i+1,j-1,k,UMZ) - fx(i,j-1,k,UMZ))
-             renewly = rely - cdtdx*(fx(i+1,j-1,k,UEDEN) - fx(i,j-1,k,UEDEN))
+             rrnewly = rrly - cdtdx*(flux_t(i+1,j-1,k,URHO) - flux_t(i,j-1,k,URHO))
+             runewly = ruly - cdtdx*(flux_t(i+1,j-1,k,UMX) - flux_t(i,j-1,k,UMX))
+             rvnewly = rvly - cdtdx*(flux_t(i+1,j-1,k,UMY) - flux_t(i,j-1,k,UMY))
+             rwnewly = rwly - cdtdx*(flux_t(i+1,j-1,k,UMZ) - flux_t(i,j-1,k,UMZ))
+             renewly = rely - cdtdx*(flux_t(i+1,j-1,k,UEDEN) - flux_t(i,j-1,k,UEDEN))
 #ifdef RADIATION
              runewly = runewly + dmom
              renewly = renewly + dre
-             ernewl  = erl(:) - cdtdx*(rfx(i+1,j-1,k,:) - rfx(i,j-1,k,:)) + der(:)
+             ernewl  = erl(:) - cdtdx*(rflux_t(i+1,j-1,k,:) - rflux_t(i,j-1,k,:)) + der(:)
 #endif
 #endif
              ! Reset to original value if adding transverse terms made density negative
@@ -555,11 +583,11 @@ contains
                    ! expression for updating (rho e).
 #if AMREX_SPACEDIM == 2
                    qmo(i,j,k,QREINT) = qm(i,j,k,QREINT) - &
-                        hdt*(area_t(i+1,j-1,k)*fx(i+1,j-1,k,UEINT)-  &
-                             area_t(i,j-1,k)*fx(i,j-1,k,UEINT) + pav*du) * volinv
+                        hdt*(area_t(i+1,j-1,k)*flux_t(i+1,j-1,k,UEINT)-  &
+                             area_t(i,j-1,k)*flux_t(i,j-1,k,UEINT) + pav*du) * volinv
 #else
                    qmo(i,j,k,QREINT) = qm(i,j,k,QREINT) - &
-                        cdtdx*(fx(i+1,j-1,k,UEINT) - fx(i,j-1,k,UEINT) + pav*du)
+                        cdtdx*(flux_t(i+1,j-1,k,UEINT) - flux_t(i,j-1,k,UEINT) + pav*du)
 #endif
                 end if
 
