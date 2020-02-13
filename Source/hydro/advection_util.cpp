@@ -479,7 +479,7 @@ Castro::scale_rad_flux(const Box& bx,
   AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
   {
     rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area(i,j,k);
-  }
+  )};
 }
 #endif
 
