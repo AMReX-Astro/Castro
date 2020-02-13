@@ -313,7 +313,7 @@ contains
                                          update, u_lo, u_hi, &
                                          qx, qx_lo, qx_hi, &
                                          qy, qy_lo, qy_hi, &
-                                         qz, qz_lo, qz_hi)
+                                         qz, qz_lo, qz_hi) bind(C, name="add_hybrid_advection_source")
 
     use meth_params_module, only: NVAR, NGDNV, GDPRES, UMR
     use prob_params_module, only: center, dx_level
@@ -322,16 +322,16 @@ contains
 
     implicit none
 
-    integer  :: lo(3), hi(3)
-    integer  :: u_lo(3), u_hi(3)
-    integer  :: qx_lo(3), qx_hi(3)
-    integer  :: qy_lo(3), qy_hi(3)
-    integer  :: qz_lo(3), qz_hi(3)
-    real(rt) :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    real(rt) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
-    real(rt) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
-    real(rt) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
-    real(rt) :: dt
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    integer, intent(in) :: qx_lo(3), qx_hi(3)
+    integer, intent(in) :: qy_lo(3), qy_hi(3)
+    integer, intent(in) :: qz_lo(3), qz_hi(3)
+    real(rt), intent(inout) :: update(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt), intent(in) :: qx(qx_lo(1):qx_hi(1),qx_lo(2):qx_hi(2),qx_lo(3):qx_hi(3),NGDNV)
+    real(rt), intent(in) :: qy(qy_lo(1):qy_hi(1),qy_lo(2):qy_hi(2),qy_lo(3):qy_hi(3),NGDNV)
+    real(rt), intent(in) :: qz(qz_lo(1):qz_hi(1),qz_lo(2):qz_hi(2),qz_lo(3):qz_hi(3),NGDNV)
+    real(rt), intent(in), value :: dt
 
     integer  :: i, j, k
     real(rt) :: loc(3), R, dx(3)

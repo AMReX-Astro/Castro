@@ -176,22 +176,39 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // compute the flattening coefficient
 
+      Array4<Real const> const q_arr = q.array(mfi);
       Array4<Real> const flatn_arr = flatn.array();
+#ifdef RADIATION
+      Array4<Real> const flatg_arr = flatg.array();
+#endif
 
       if (first_order_hydro == 1) {
         AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
       } else if (use_flattening == 1) {
+
+        uflatten(obx, q_arr, flatn_arr, QPRES);
+
 #ifdef RADIATION
-        ca_rad_flatten(ARLIM_3D(obx.loVect()), ARLIM_3D(obx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
-                       BL_TO_FORTRAN_ANYD(flatn),
-                       BL_TO_FORTRAN_ANYD(flatg));
-#else
-#pragma gpu box(obx)
-        ca_uflatten(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                    BL_TO_FORTRAN_ANYD(q[mfi]),
-                    BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
+        uflatten(obx, q_arr, flatg_arr, QPTOT);
+
+        Real flatten_pp_thresh = Radiation::flatten_pp_threshold;
+
+        AMREX_PARALLEL_FOR_3D(obx, i, j, k,
+        {
+          flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
+
+          if (flatten_pp_thresh > 0.0) {
+            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
+                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
+
+              if (q_arr(i,j,k,QPRES) < flatten_pp_thresh * q_arr(i,j,k,QPTOT)) {
+                flatn_arr(i,j,k) = 0.0;
+              }
+            }
+          }
+        });
 #endif
+
       } else {
         AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
       }
@@ -518,6 +535,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qe[1]),
                         hdtdy);
 
+#pragma gpu box(xbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(ql));
+
+#pragma gpu box(xbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qr));
+
       // solve the final Riemann problem axross the x-interfaces
 
 #pragma gpu box(xbx)
@@ -557,6 +582,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(area[0][mfi]),
                         BL_TO_FORTRAN_ANYD(volume[mfi]),
                         hdt, hdtdx);
+
+#pragma gpu box(ybx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(ql));
+
+#pragma gpu box(ybx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qr));
+
 
       // solve the final Riemann problem axross the y-interfaces
 
@@ -640,6 +674,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         hdt, cdtdx);
 
+#pragma gpu box(tyxbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(tyxbx.loVect()), AMREX_INT_ANYD(tyxbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qmyx));
+
+#pragma gpu box(tyxbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(tyxbx.loVect()), AMREX_INT_ANYD(tyxbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qpyx));
+
       // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
       const Box& tzxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0,1,0)));
 
@@ -664,6 +706,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         hdt, cdtdx);
+
+#pragma gpu box(tzxbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(tzxbx.loVect()), AMREX_INT_ANYD(tzxbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qmzx));
+
+#pragma gpu box(tzxbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(tzxbx.loVect()), AMREX_INT_ANYD(tzxbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qpzx));
 
       // compute F^y
       // [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
@@ -715,6 +765,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         cdtdy);
 
+#pragma gpu box(txybx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(txybx.loVect()), AMREX_INT_ANYD(txybx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qmxy));
+
+#pragma gpu box(txybx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(txybx.loVect()), AMREX_INT_ANYD(txybx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qpxy));
+
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), lo(3)+1]
       const Box& tzybx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1,0,0)));
 
@@ -742,6 +800,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         cdtdy);
+
+#pragma gpu box(tzybx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(tzybx.loVect()), AMREX_INT_ANYD(tzybx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qmzy));
+
+#pragma gpu box(tzybx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(tzybx.loVect()), AMREX_INT_ANYD(tzybx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qpzy));
 
       // compute F^z
       // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1]
@@ -793,6 +859,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         cdtdz);
 
+#pragma gpu box(txzbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(txzbx.loVect()), AMREX_INT_ANYD(txzbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qmxz));
+
+#pragma gpu box(txzbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(txzbx.loVect()), AMREX_INT_ANYD(txzbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qpxz));
+
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& tyzbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1,0,0)));
 
@@ -820,6 +894,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                         BL_TO_FORTRAN_ANYD(qgdnvtmp1),
                         cdtdz);
+
+#pragma gpu box(tyzbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(tyzbx.loVect()), AMREX_INT_ANYD(tyzbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qmyz));
+
+#pragma gpu box(tyzbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(tyzbx.loVect()), AMREX_INT_ANYD(tyzbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qpyz));
 
       // we now have q?zx, q?yx, q?zy, q?xy, q?yz, q?xz
 
@@ -892,6 +974,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qgdnvtmp1),
               BL_TO_FORTRAN_ANYD(qgdnvtmp2),
               hdt, hdtdy, hdtdz);
+
+#pragma gpu box(xbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(ql));
+
+#pragma gpu box(xbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qr));
 
 #pragma gpu box(xbx)
       cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
@@ -977,6 +1067,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qgdnvtmp2),
               BL_TO_FORTRAN_ANYD(qgdnvtmp1),
               hdt, hdtdx, hdtdz);
+
+#pragma gpu box(ybx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(ql));
+
+#pragma gpu box(ybx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qr));
 
       // Compute the final F^y
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
@@ -1064,6 +1162,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qgdnvtmp1),
               BL_TO_FORTRAN_ANYD(qgdnvtmp2),
               hdt, hdtdx, hdtdy);
+
+#pragma gpu box(zbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(ql));
+
+#pragma gpu box(zbx)
+      reset_edge_state_thermo(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(qr));
 
       // compute the final z fluxes F^z
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
@@ -1157,49 +1263,74 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
       // conservative update
+      Array4<Real> const update_arr = hydro_source.array(mfi);
 
+      Array4<Real> const flx_arr = (flux[0]).array();
+      Array4<Real> const qx_arr = (qe[0]).array();
+      Array4<Real> const areax_arr = (area[0]).array(mfi);
+
+#if AMREX_SPACEDIM >= 2
+      Array4<Real> const fly_arr = (flux[1]).array();
+      Array4<Real> const qy_arr = (qe[1]).array();
+      Array4<Real> const areay_arr = (area[1]).array(mfi);
+#endif
+
+#if AMREX_SPACEDIM == 3
+      Array4<Real> const flz_arr = (flux[2]).array();
+      Array4<Real> const qz_arr = (qe[2]).array();
+      Array4<Real> const areaz_arr = (area[2]).array(mfi);
+#endif
+
+      Array4<Real> const vol_arr = volume.array(mfi);
+
+      consup_hydro(bx,
+                   shk_arr,
+                   update_arr,
+                   flx_arr, qx_arr, areax_arr,
+#if AMREX_SPACEDIM >= 2
+                   fly_arr, qy_arr, areay_arr,
+#endif
+#if AMREX_SPACEDIM == 3
+                   flz_arr, qz_arr, areaz_arr,
+#endif
+                   vol_arr,
+                   dt);
+
+
+#ifdef HYBRID_MOMENTUM
 #pragma gpu box(bx)
-      ctu_consup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(shk),
-                 BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
-                 BL_TO_FORTRAN_ANYD(flux[0]),
-#if AMREX_SPACEDIM >= 2
-                 BL_TO_FORTRAN_ANYD(flux[1]),
+    add_hybrid_advection_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                                dt,
+                                BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
+                                BL_TO_FORTRAN_ANYD(qe[0]),
+                                BL_TO_FORTRAN_ANYD(qe[1]),
+                                BL_TO_FORTRAN_ANYD(qe[2]));
 #endif
-#if AMREX_SPACEDIM == 3
-                 BL_TO_FORTRAN_ANYD(flux[2]),
-#endif
-#ifdef RADIATION
-                 BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(rad_flux[0]),
-#if AMREX_SPACEDIM >= 2
-                 BL_TO_FORTRAN_ANYD(rad_flux[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-                 BL_TO_FORTRAN_ANYD(rad_flux[2]),
-#endif
-                 &priv_nstep_fsp,
-#endif
-                 BL_TO_FORTRAN_ANYD(qe[0]),
-#if AMREX_SPACEDIM >= 2
-                 BL_TO_FORTRAN_ANYD(qe[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-                 BL_TO_FORTRAN_ANYD(qe[2]),
-#endif
-                 BL_TO_FORTRAN_ANYD(area[0][mfi]),
-#if AMREX_SPACEDIM >= 2
-                 BL_TO_FORTRAN_ANYD(area[1][mfi]),
-#endif
-#if AMREX_SPACEDIM == 3
-                 BL_TO_FORTRAN_ANYD(area[2][mfi]),
-#endif
-                 BL_TO_FORTRAN_ANYD(volume[mfi]),
-                 AMREX_REAL_ANYD(dx), dt);
 
 #ifdef RADIATION
+#pragma gpu box(bx)
+      ctu_rad_consup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                     BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
+                     BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
+                     BL_TO_FORTRAN_ANYD(Er_new[mfi]),
+                     BL_TO_FORTRAN_ANYD(rad_flux[0]),
+                     BL_TO_FORTRAN_ANYD(qe[0]),
+                     BL_TO_FORTRAN_ANYD(area[0][mfi]),
+#if AMREX_SPACEDIM >= 2
+                     BL_TO_FORTRAN_ANYD(rad_flux[1]),
+                     BL_TO_FORTRAN_ANYD(qe[1]),
+                     BL_TO_FORTRAN_ANYD(area[1][mfi]),
+#endif
+#if AMREX_SPACEDIM == 3
+                     BL_TO_FORTRAN_ANYD(rad_flux[2]),
+                     BL_TO_FORTRAN_ANYD(qe[2]),
+                     BL_TO_FORTRAN_ANYD(area[2][mfi]),
+#endif
+                     &priv_nstep_fsp,
+                     BL_TO_FORTRAN_ANYD(volume[mfi]),
+                     AMREX_REAL_ANYD(dx), dt);
+
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
 
@@ -1241,7 +1372,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM == 2
-            if (!mom_flux_has_p[0][0]) {
+            if (!momx_flux_has_p[0]) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
                     pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;

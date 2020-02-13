@@ -50,13 +50,15 @@ Castro::cons_to_prim(const Real time)
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
-        if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-#pragma gpu box(qbx)
-            ca_srctoprim(BL_TO_FORTRAN_BOX(qbx),
-                         BL_TO_FORTRAN_ANYD(q[mfi]),
-                         BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                         BL_TO_FORTRAN_ANYD(sources_for_hydro[mfi]),
-                         BL_TO_FORTRAN_ANYD(src_q[mfi]));
+        if (time_integration_method == CornerTransportUpwind ||
+            time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+          Array4<Real> const q_arr = q.array(mfi);
+          Array4<Real> const qaux_arr = qaux.array(mfi);
+          Array4<Real> const src_arr = sources_for_hydro.array(mfi);
+          Array4<Real> const src_q_arr = src_q.array(mfi);
+
+          src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
         }
 
 #ifndef RADIATION

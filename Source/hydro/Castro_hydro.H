@@ -50,3 +50,33 @@
 /// @param A_update   divergence of the fluxes
 ///
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
+
+    void src_to_prim(const amrex::Box& bx,
+                     amrex::Array4<amrex::Real> const q, amrex::Array4<amrex::Real> const qaux,
+                     amrex::Array4<amrex::Real> const src, amrex::Array4<amrex::Real> const srcQ);
+
+
+    void uflatten(const amrex::Box& bx,
+                  amrex::Array4<amrex::Real const> const q,
+                  amrex::Array4<amrex::Real> const flatn,
+                  const int pres_comp);
+
+    void consup_hydro(const amrex::Box& bx,
+                      amrex::Array4<amrex::Real const> const shk,
+                      amrex::Array4<amrex::Real> const update,
+                      amrex::Array4<amrex::Real> const flux0,
+                      amrex::Array4<amrex::Real const> const qx,
+                      amrex::Array4<amrex::Real const> const area0,
+#if AMREX_SPACEDIM >= 2
+                      amrex::Array4<amrex::Real> const flux1,
+                      amrex::Array4<amrex::Real const> const qy,
+                      amrex::Array4<amrex::Real const> const area1,
+#endif
+#if AMREX_SPACEDIM == 3
+                      amrex::Array4<amrex::Real> const flux2,
+                      amrex::Array4<amrex::Real const> const qz,
+                      amrex::Array4<amrex::Real const> const area2,
+#endif
+                      amrex::Array4<amrex::Real const> const vol,
+                      const amrex::Real dt);
+

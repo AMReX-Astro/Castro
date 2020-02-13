@@ -35,57 +35,40 @@ extern "C"
      const amrex::Real* dx,
      BL_FORT_FAB_ARG_3D(div));
 
-  void ca_uflatten
+#ifdef HYBRID_MOMENTUM
+  void add_hybrid_advection_source
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(flatn), int pres_comp);
-
-  void ca_rad_flatten
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(flatn),
-     BL_FORT_FAB_ARG_3D(flatg));
-
-  void ctu_consup
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(shk),
+     const amrex::Real dt,
      BL_FORT_FAB_ARG_3D(hydro_source),
-     const BL_FORT_FAB_ARG_3D(flux0),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(flux1),
+     const BL_FORT_FAB_ARG_3D(qx),
+     const BL_FORT_FAB_ARG_3D(qy),
+     const BL_FORT_FAB_ARG_3D(qz));
 #endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(flux2),
-#endif
+
 #ifdef RADIATION
+  void ctu_rad_consup
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(hydro_source),
      const BL_FORT_FAB_ARG_3D(Erborder),
      BL_FORT_FAB_ARG_3D(S_new),
      BL_FORT_FAB_ARG_3D(Er_out),
      const BL_FORT_FAB_ARG_3D(rad_flux0),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(rad_flux1),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(rad_flux2),
-#endif
-     int* nstep_fsp,
-#endif
      const BL_FORT_FAB_ARG_3D(qe0),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(qe1),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(qe2),
-#endif
      const BL_FORT_FAB_ARG_3D(area0),
 #if AMREX_SPACEDIM >= 2
+     const BL_FORT_FAB_ARG_3D(rad_flux1),
+     const BL_FORT_FAB_ARG_3D(qe1),
      const BL_FORT_FAB_ARG_3D(area1),
 #endif
 #if AMREX_SPACEDIM == 3
+     const BL_FORT_FAB_ARG_3D(rad_flux2),
+     const BL_FORT_FAB_ARG_3D(qe2),
      const BL_FORT_FAB_ARG_3D(area2),
 #endif
+     int* nstep_fsp,
      const BL_FORT_FAB_ARG_3D(volume),
      const amrex::Real* dx, const amrex::Real dt);
+#endif
 
   void scale_flux
     (const int* lo, const int* hi,
@@ -413,6 +396,10 @@ extern "C"
                const BL_FORT_FAB_ARG_3D(qx),
                const BL_FORT_FAB_ARG_3D(qy),
                const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdy);
+
+  void reset_edge_state_thermo
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(qm));
 
   void ca_mol_plm_reconstruct
     (const int* lo, const int* hi,

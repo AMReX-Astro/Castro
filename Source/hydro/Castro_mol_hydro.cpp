@@ -91,16 +91,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         flatn.resize(obx, 1);
         Elixir elix_flatn = flatn.elixir();
 
+        Array4<Real const> const q_arr = q.array(mfi);
         Array4<Real> const flatn_arr = flatn.array();
 
         if (first_order_hydro == 1) {
           AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
         } else if (use_flattening == 1) {
-#pragma gpu box(obx)
-          ca_uflatten
-            (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-             BL_TO_FORTRAN_ANYD(q[mfi]),
-             BL_TO_FORTRAN_ANYD(flatn), QPRES+1);
+          uflatten(obx, q_arr, flatn_arr, QPRES);
         } else {
           AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
         }
@@ -502,7 +499,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               // set UTEMP and USHK fluxes to zero
               Array4<Real> const flux_arr = (flux[idir]).array();
-
               AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                                     {
                                       flux_arr(i,j,k,UTEMP) = 0.e0;
@@ -674,7 +670,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
 #if AMREX_SPACEDIM == 2
-            if (!mom_flux_has_p[0][0]) {
+            if (!momx_flux_has_p[0]) {
               AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                                     {
                                       pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
