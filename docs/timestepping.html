@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Timestepping &mdash; Castro  documentation</title>
+  <title>Timestepping and Retries &mdash; Castro  documentation</title>
   
 
   
@@ -93,7 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Timestepping</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Timestepping and Retries</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#simulation-time">Simulation Time</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#time-step-constraints">Time Step Constraints</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#hydrodynamics">Hydrodynamics</a></li>
@@ -103,13 +103,13 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#subcycling">Subcycling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#retry-mechanism">Retry Mechanism</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Plotfiles and Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Castro reference</span></p>
@@ -187,7 +187,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Timestepping</li>
+      <li>Timestepping and Retries</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -206,8 +206,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="timestepping">
-<h1>Timestepping<a class="headerlink" href="#timestepping" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="timestepping-and-retries">
+<h1>Timestepping and Retries<a class="headerlink" href="#timestepping-and-retries" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="simulation-time">
 <h2>Simulation Time<a class="headerlink" href="#simulation-time" title="Permalink to this headline">¶</a></h2>
 <p>There are two paramters that can define when a simulation ends:</p>
@@ -377,6 +377,52 @@ level-1 step, and take 2 timesteps at level-3 for each level-2 step.</p>
 </pre></div>
 </div>
 <p>which will subcycle twice at every level (except level 0).</p>
+</div>
+<div class="section" id="retry-mechanism">
+<span id="ch-retry"></span><h2>Retry Mechanism<a class="headerlink" href="#retry-mechanism" title="Permalink to this headline">¶</a></h2>
+<p>Castro’s Strang CTU solver has a retry mechanism that can discard a
+time step on a level and restart with a smaller timestep, subcycling
+within the level to make up the full time step needed for that level.
+It is enabled by setting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">use_retry</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The Castro retry mechanism is enabled by default for CTU + Strang
+and Simplified SDC integration.</p>
+</div>
+<p>The number of subcycles to try in the level is controlled via the
+<code class="docutils literal notranslate"><span class="pre">castro.max_subcycles</span></code> parameter.  It is not really suggested to go
+beyond <code class="docutils literal notranslate"><span class="pre">16</span></code>—any more is usually an indication of a bigger problem.</p>
+<p>A retry can be triggered by a number of conditions:</p>
+<blockquote>
+<div><ul>
+<li><p class="first">Exceeding the CFL condition for a level</p>
+</li>
+<li><p class="first">A negative density is encountered</p>
+</li>
+<li><p class="first">Integration failure in the burner</p>
+<p>Note: this requires that the following be set in your <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code>
+namelist:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">retry_burn</span> <span class="o">=</span> <span class="n">F</span>
+<span class="n">abort_on_failure</span> <span class="o">=</span> <span class="n">F</span>
+</pre></div>
+</div>
+<p>This instructs the integration routine in Microphysics to not
+abort when the integration fails, but instead to tell the calling
+Castro routine that the integration failed so Castro can handle
+the retry itself.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The combination of <code class="docutils literal notranslate"><span class="pre">use_retry</span> <span class="pre">=</span> <span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">abort_on_failure</span> <span class="pre">=</span> <span class="pre">F</span></code>
+is unsafe and not supported.</p>
+<p class="last">For true SDC, we disable retry and reset <code class="docutils literal notranslate"><span class="pre">abort_on_failure</span></code> to
+always be true, since retry is not supported for that integration.</p>
+</div>
+</li>
+</ul>
+</div></blockquote>
 </div>
 </div>
 
