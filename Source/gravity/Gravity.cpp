@@ -700,14 +700,14 @@ Gravity::GetCrsePhi(int level,
 }
 
 void
-Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_previous_phi_as_guess)
+Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in, int use_previous_phi_as_guess)
 {
     BL_PROFILE("Gravity::multilevel_solve_for_new_phi()");
 
     if (verbose > 1 && ParallelDescriptor::IOProcessor())
-      std::cout << "... multilevel solve for new phi at base level " << level << " to finest level " << finest_level << std::endl;
+      std::cout << "... multilevel solve for new phi at base level " << level << " to finest level " << finest_level_in << std::endl;
 
-    for (int lev = level; lev <= finest_level; lev++) {
+    for (int lev = level; lev <= finest_level_in; lev++) {
        BL_ASSERT(grad_phi_curr[lev].size()==BL_SPACEDIM);
        for (int n=0; n<BL_SPACEDIM; ++n)
        {
@@ -717,22 +717,22 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level, int use_prev
     }
 
     int is_new = 1;
-    actual_multilevel_solve(level,finest_level,amrex::GetVecOfVecOfPtrs(grad_phi_curr),
+    actual_multilevel_solve(level,finest_level_in,amrex::GetVecOfVecOfPtrs(grad_phi_curr),
                             is_new,use_previous_phi_as_guess);
 }
 
 void
-Gravity::actual_multilevel_solve (int crse_level, int finest_level,
+Gravity::actual_multilevel_solve (int crse_level, int finest_level_in,
                                   const Vector<Vector<MultiFab*> >& grad_phi,
                                   int is_new,
                                   int use_previous_phi_as_guess)
 {
     BL_PROFILE("Gravity::actual_multilevel_solve()");
 
-    for (int ilev = crse_level; ilev <= finest_level ; ++ilev)
+    for (int ilev = crse_level; ilev <= finest_level_in ; ++ilev)
         sanity_check(ilev);
 
-    int nlevels = finest_level - crse_level + 1;
+    int nlevels = finest_level_in - crse_level + 1;
 
     Vector<MultiFab*> phi_p(nlevels);
     for (int ilev = 0; ilev < nlevels; ilev++)
@@ -769,7 +769,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
         time = LevelData[crse_level]->get_state_data(PhiGrav_Type).prevTime();
     }
 
-    int fine_level = std::min(finest_level, max_solve_level);
+    int fine_level = std::min(finest_level_in, max_solve_level);
 
     if (fine_level >= crse_level) {
 
@@ -807,7 +807,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level,
     // fills from the coarse level just below it, we need to fill from the
     // lowest level upwards using successive interpolations.
 
-    for (int amr_lev = max_solve_level+1; amr_lev <= finest_level; amr_lev++) {
+    for (int amr_lev = max_solve_level+1; amr_lev <= finest_level_in; amr_lev++) {
 
         // Interpolate the potential.
 
@@ -2312,8 +2312,6 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
         const Real t_old = LevelData[lev]->get_state_data(State_Type).prevTime();
         const Real t_new = LevelData[lev]->get_state_data(State_Type).curTime();
         const Real eps   = (t_new - t_old) * 1.e-6;
-
-        const int NUM_STATE = LevelData[lev]->get_new_data(State_Type).nComp();
 
         // Create MultiFab with NUM_STATE components and no ghost cells
         MultiFab S(grids[lev],dmap[lev],NUM_STATE,0);
