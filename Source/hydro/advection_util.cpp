@@ -377,6 +377,8 @@ Castro::apply_av_rad(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
+  Real diff_coeff = difmag;
+
   AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, n,
   {
 
@@ -385,21 +387,21 @@ Castro::apply_av_rad(const Box& bx,
 
       div1 = 0.25 * (div(i,j,k) + div(i,j+dg1,k) +
                      div(i,j,k+dg2) + div(i,j+dg1,k+dg2));
-      div1 = difmag * std::min(0.0, div1);
+      div1 = diff_coeff * std::min(0.0, div1);
       div1 = div1 * (Erin(i,j,k,n) - Erin(i-1,j,k,n));
 
     } else if (idir == 1) {
 
       div1 = 0.25 * (div(i,j,k) + div(i+1,j,k) +
                      div(i,j,k+dg2) + div(i+1,j,k+dg2));
-      div1 = difmag * std::min(0.0, div1);
+      div1 = diff_coeff * std::min(0.0, div1);
       div1 = div1 * (Erin(i,j,k,n) - Erin(i,j-dg1,k,n));
 
     } else {
 
       div1 = 0.25 * (div(i,j,k) + div(i+1,j,k) +
                      div(i,j+dg1,k) + div(i+1,j+dg1,k));
-      div1 = difmag * std::min(0.0, div1);
+      div1 = diff_coeff * std::min(0.0, div1);
       div1 = div1 * (Erin(i,j,k,n) - Erin(i,j,k-dg2,n));
 
     }
