@@ -74,7 +74,7 @@ contains
     integer, intent(in) :: a_lo(3), a_hi(3)
     integer, intent(in) :: vol_lo(3), vol_hi(3)
 #endif
-    integer, intent(in) :: idir_t, idir_n
+    integer, intent(in), value :: idir_t, idir_n
 
 #ifdef RADIATION
     real(rt) :: rfx(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),rfx_lo(3):rfx_hi(3),0:ngroups-1)
