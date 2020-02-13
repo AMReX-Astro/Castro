@@ -320,13 +320,14 @@ contains
                 !
                 !  d(rho u)/dt + d(rho u v)/dy = - 1/r d(r rho u u)/dr - dp/dr
                 !
-                ! in cylindrical coords -- note that the p term is not in
-                ! a divergence, so there are no area factors.  For this
-                ! geometry, we do not include p in our definition of the
-                ! flux in the x-direction, for we need to fix this now.
+                ! in cylindrical coords -- note that the p term is not
+                ! in a divergence for UMX in the x-direction, so there
+                ! are no area factors.  For this geometry, we do not
+                ! include p in our definition of the flux in the
+                ! x-direction, for we need to fix this now.
                 runewn = run - hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,UMX) -  &
                                     area_t(il,jl,kl)*flux_t(il,jl,kl,UMX)) * volinv
-                if (.not. mom_flux_has_p(idir_t)%comp(UMX)) then
+                if (idir_t == 1 .and. .not. mom_flux_has_p(idir_t)%comp(UMX)) then
                    runewn = runewn - cdtdx * (pgp-pgm)
                 endif
                 rvnewn = rvn - hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,UMY) -  &
@@ -385,13 +386,13 @@ contains
                 if (.not. reset_state) then
                    ! do the transverse terms for p, gamma, and rhoe, as necessary
 
-                   if (transverse_reset_rhoe == 1 .and. qpo(i,j,k,QREINT) <= ZERO) then
+                   if (transverse_reset_rhoe == 1 .and. lqno(QREINT) <= ZERO) then
                       ! If it is negative, reset the internal energy by
                       ! using the discretized expression for updating (rho e).
 #if AMREX_SPACEDIM == 2
                       lqno(QREINT) = lqn(QREINT) - &
                            hdt*(area_t(ir,jr,kr)*flux_t(ir,jr,kr,UEINT) - &
-                           area_t(il,jl,kl)*flux_t(il,jl,kl,UEINT) + pav*du) * volinv
+                                area_t(il,jl,kl)*flux_t(il,jl,kl,UEINT) + pav*du) * volinv
 #else
                       lqno(QREINT) = lqn(QREINT) - &
                            cdtdx*(flux_t(ir,jr,kr,UEINT) - flux_t(il,jl,kl,UEINT) + pav*du)
