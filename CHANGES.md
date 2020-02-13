@@ -1,5 +1,8 @@
 # 20.03
 
+   * We've started converting the CTU hydro solver from Fortran to C++
+     (#731)
+
    * The option ppm_temp_fix = 3 was removed.  This used a
      temperature-based eigensystem for characteristic tracing but was
      never used for production science.
