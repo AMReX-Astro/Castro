@@ -26,7 +26,6 @@ https://github.com/amrex-astro/Castro
    io
    regridding
    visualization
-   retry
    faq
 
 .. toctree::
