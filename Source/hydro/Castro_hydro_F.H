@@ -67,11 +67,13 @@ extern "C"
      BL_FORT_FAB_ARG_3D(area),
      const amrex::Real dt);
 
+#ifdef RADIATION
   void scale_rad_flux
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(rad_flux),
      BL_FORT_FAB_ARG_3D(area),
      const amrex::Real dt);
+#endif
 
   void ca_track_grid_losses
     (const int* lo, const int* hi,
@@ -123,68 +125,6 @@ extern "C"
   void normalize_species_fluxes
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(flux));
-
-  void ca_shock
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(shk),
-     const amrex::Real* dx);
-
-  void ca_ctu_update
-    (const int* lo, const int* hi,
-     const int* is_finest_level,
-     const amrex::Real time,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(stateout),
-#ifdef RADIATION
-     BL_FORT_FAB_ARG_3D(Er),
-     BL_FORT_FAB_ARG_3D(Erout),
-#endif
-     BL_FORT_FAB_ARG_3D(q),
-     const BL_FORT_FAB_ARG_3D(qaux),
-     const BL_FORT_FAB_ARG_3D(src_q),
-     BL_FORT_FAB_ARG_3D(update),
-     const amrex::Real* dx, const amrex::Real dt,
-     BL_FORT_FAB_ARG_3D(xflux),
-#if AMREX_SPACEDIM >= 2
-     BL_FORT_FAB_ARG_3D(yflux),
-#endif
-#if AMREX_SPACEDIM == 3
-     BL_FORT_FAB_ARG_3D(zflux),
-#endif
-#ifdef RADIATION
-     BL_FORT_FAB_ARG_3D(rxflux),
-#if AMREX_SPACEDIM >= 2
-     BL_FORT_FAB_ARG_3D(ryflux),
-#endif
-#if AMREX_SPACEDIM == 3
-     BL_FORT_FAB_ARG_3D(rzflux),
-#endif
-#endif
-     const BL_FORT_FAB_ARG_3D(xarea),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(yarea),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(zarea),
-#endif
-#if (BL_SPACEDIM < 3)
-     BL_FORT_FAB_ARG_3D(pradial),
-     const BL_FORT_FAB_ARG_3D(dloga),
-#endif
-     const BL_FORT_FAB_ARG_3D(volume),
-#ifdef RADIATION
-     const int* priv_nstep_fsp,
-#endif
-     amrex::Real& mass_lost,
-     amrex::Real& xmom_lost,
-     amrex::Real& ymom_lost,
-     amrex::Real& zmom_lost,
-     amrex::Real& eden_lost,
-     amrex::Real& xang_lost,
-     amrex::Real& yang_lost,
-     amrex::Real& zang_lost);
 
   void ctu_ppm_states
      (const int* lo, const int* hi,

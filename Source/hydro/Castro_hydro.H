@@ -76,11 +76,13 @@
                   amrex::Array4<amrex::Real const> const uin,
                   amrex::Array4<amrex::Real> const flux);
 
+#ifdef RADIATION
     void apply_av_rad(const amrex::Box& bx,
                       const int idir,
                       amrex::Array4<amrex::Real const> const div,
                       amrex::Array4<amrex::Real const> const Erin,
                       amrex::Array4<amrex::Real> const radflux);
+#endif
 
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const shk,
