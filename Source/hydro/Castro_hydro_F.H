@@ -17,23 +17,11 @@ extern "C"
                   amrex::Real* q, const int* q_lo, const int* q_hi,
                   amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
 
-  void ca_srctoprim(const int* lo,   const int* hi,
-                    const amrex::Real* q,   const int* q_lo,   const int* q_hi,
-                    const amrex::Real* qaux, const int* qa_lo, const int* qa_hi,
-                    const amrex::Real* src, const int* src_lo, const int* src_hi,
-                          amrex::Real* srQ, const int* srQ_lo, const int* srQ_hi);
-
   void ca_compute_cfl(const int* lo, const int* hi,
                       const BL_FORT_FAB_ARG_ANYD(q),
                       const BL_FORT_FAB_ARG_ANYD(qaux),
                       const amrex::Real dt, const amrex::Real* dx,
                       amrex::Real* courno, const int verbose);
-
-  void divu
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(q),
-     const amrex::Real* dx,
-     BL_FORT_FAB_ARG_3D(div));
 
 #ifdef HYBRID_MOMENTUM
   void add_hybrid_advection_source
@@ -111,22 +99,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(qaux),
      const BL_FORT_FAB_ARG_3D(shk),
      const int idir, const int* domlo, const int* domhi);
-
-  void apply_av
-    (const int* lo, const int* hi,
-     const int idir, const amrex::Real* dx,
-     BL_FORT_FAB_ARG_3D(div),
-     BL_FORT_FAB_ARG_3D(Sborder),
-     BL_FORT_FAB_ARG_3D(flux));
-
-#ifdef RADIATION
-  void apply_av_rad
-    (const int* lo, const int* hi,
-     int idir, const amrex::Real* dx,
-     BL_FORT_FAB_ARG_3D(div),
-     BL_FORT_FAB_ARG_3D(Er),
-     BL_FORT_FAB_ARG_3D(radflux));
-#endif
 
   void limit_hydro_fluxes_on_small_dens
     (const int* lo, const int* hi,
