@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ppm_nd.F90 &mdash; Castro 20.02
- documentation</title>
+  <title>ppm_nd.F90 &mdash; Castro  documentation</title>
   
 
   
@@ -63,11 +62,6 @@
           
             
             
-              <div class="version">
-                20.02
-
-              </div>
-            
           
 
           
@@ -99,8 +93,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
@@ -125,6 +121,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releases.html">Castro Releases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul class="current">
@@ -138,7 +135,6 @@
 <li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro_mol_nd_f.html">Castro_mol_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="flatten_nd_f.html">flatten_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fourth_order_f.html">fourth_order.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">ppm_nd.F90</a><ul>
@@ -271,7 +267,7 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_mol_nd_f.html#f/castro_mol_module/ca_mol_ppm_reconstruct" title="f/castro_mol_module/ca_mol_ppm_reconstruct"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_mol_ppm_reconstruct()</span></code></a>, <a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_rhoe" title="f/trace_ppm_module/trace_ppm_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_rhoe()</span></code></a>, <a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_gammae" title="f/trace_ppm_module/trace_ppm_gammae"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_gammae()</span></code></a>, <a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_temp" title="f/trace_ppm_module/trace_ppm_temp"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_temp()</span></code></a>, <a class="reference internal" href="trace_ppm_rad_nd_f.html#f/trace_ppm_rad_module/trace_ppm_rad" title="f/trace_ppm_rad_module/trace_ppm_rad"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_rad()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_mol_nd_f.html#f/castro_mol_module/ca_mol_ppm_reconstruct" title="f/castro_mol_module/ca_mol_ppm_reconstruct"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_mol_ppm_reconstruct()</span></code></a>, <a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_rhoe" title="f/trace_ppm_module/trace_ppm_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_rhoe()</span></code></a>, <a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_gammae" title="f/trace_ppm_module/trace_ppm_gammae"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_gammae()</span></code></a>, <a class="reference internal" href="trace_ppm_rad_nd_f.html#f/trace_ppm_rad_module/trace_ppm_rad" title="f/trace_ppm_rad_module/trace_ppm_rad"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_rad()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -298,7 +294,7 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_rhoe" title="f/trace_ppm_module/trace_ppm_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_rhoe()</span></code></a>, <a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_gammae" title="f/trace_ppm_module/trace_ppm_gammae"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_gammae()</span></code></a>, <a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_temp" title="f/trace_ppm_module/trace_ppm_temp"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_temp()</span></code></a>, <a class="reference internal" href="trace_ppm_rad_nd_f.html#f/trace_ppm_rad_module/trace_ppm_rad" title="f/trace_ppm_rad_module/trace_ppm_rad"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_rad()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_rhoe" title="f/trace_ppm_module/trace_ppm_rhoe"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_rhoe()</span></code></a>, <a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_gammae" title="f/trace_ppm_module/trace_ppm_gammae"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_gammae()</span></code></a>, <a class="reference internal" href="trace_ppm_rad_nd_f.html#f/trace_ppm_rad_module/trace_ppm_rad" title="f/trace_ppm_rad_module/trace_ppm_rad"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_rad()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -327,7 +323,7 @@ call above (for ppm_temp_fix = 1)</p>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qtemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qfs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qfx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_gammae" title="f/trace_ppm_module/trace_ppm_gammae"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_gammae()</span></code></a>, <a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_temp" title="f/trace_ppm_module/trace_ppm_temp"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_temp()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="trace_ppm_f.html#f/trace_ppm_module/trace_ppm_gammae" title="f/trace_ppm_module/trace_ppm_gammae"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_gammae()</span></code></a></p>
 </td>
 </tr>
 </tbody>

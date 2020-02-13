@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Software Design &mdash; Castro 20.02
- documentation</title>
+  <title>Software Design &mdash; Castro  documentation</title>
   
 
   
@@ -39,7 +38,7 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Setting Up Your Own Problem" href="creating_a_problem.html" />
+    <link rel="next" title="Timestepping" href="timestepping.html" />
     <link rel="prev" title="Flowchart" href="FlowChart.html" /> 
 </head>
 
@@ -62,11 +61,6 @@
 
           
             
-            
-              <div class="version">
-                20.02
-
-              </div>
             
           
 
@@ -143,8 +137,10 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
@@ -169,6 +165,7 @@
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Castro Releases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul>
@@ -291,7 +288,7 @@ division between C++ and Fortran.</p>
 <li><code class="docutils literal notranslate"><span class="pre">unit_tests/</span></code>: test problems that exercise primarily a single module</li>
 </ul>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Microphysics/</span></code>: contains directories for different default
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">external/Microphysics/</span></code>: contains directories for different default
 microphysics (these are all implemented in Fortran)</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">conductivity/</span></code>: the thermal conductivity</li>
@@ -1136,7 +1133,7 @@ the <code class="docutils literal notranslate"><span class="pre">inputs</span></
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
 velocity, transverse velocity, and generic scalar are shown in
-<a class="reference internal" href="#table-castro-bcs"><span class="std std-numref">Table 19</span></a>.</p>
+<a class="reference internal" href="#table-castro-bcs"><span class="std std-numref">Table 20</span></a>.</p>
 <p>The definition of the specific actions are:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">INT_DIR</span></code>: data taken from other grids or interpolated</li>
@@ -1161,7 +1158,7 @@ An example is the problem toy_convect which implements a
 hydrostatic lower boundary (through its custom <code class="docutils literal notranslate"><span class="pre">bc_fill_?d.F90</span></code>
 routines.</p>
 <span id="table-castro-bcs"></span><table border="1" class="docutils" id="id11">
-<caption><span class="caption-number">Table 19 </span><span class="caption-text">Physical boundary conditions supported in Castro. why does slipwall and noslipwall do the same thing?</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 20 </span><span class="caption-text">Physical boundary conditions supported in Castro. why does slipwall and noslipwall do the same thing?</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="19%" />
 <col width="19%" />
@@ -1384,7 +1381,7 @@ compared to the actual code</td></tr>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="creating_a_problem.html" class="btn btn-neutral float-right" title="Setting Up Your Own Problem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="timestepping.html" class="btn btn-neutral float-right" title="Timestepping" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="FlowChart.html" class="btn btn-neutral float-left" title="Flowchart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

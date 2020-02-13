@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Retry Mechanism &mdash; Castro 20.02
- documentation</title>
+  <title>Retry Mechanism &mdash; Castro  documentation</title>
   
 
   
@@ -63,11 +62,6 @@
           
             
             
-              <div class="version">
-                20.02
-
-              </div>
-            
           
 
           
@@ -99,8 +93,10 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
@@ -125,6 +121,7 @@
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Castro Releases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul>
@@ -199,7 +196,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="retry-mechanism">
-<h1>Retry Mechanism<a class="headerlink" href="#retry-mechanism" title="Permalink to this headline">¶</a></h1>
+<span id="ch-retry"></span><h1>Retry Mechanism<a class="headerlink" href="#retry-mechanism" title="Permalink to this headline">¶</a></h1>
 <p>Castro’s Strang CTU solver has a retry mechanism that can discard a
 time step on a level and restart with a smaller timestep, subcycling
 within the level to make up the full time step needed for that level.

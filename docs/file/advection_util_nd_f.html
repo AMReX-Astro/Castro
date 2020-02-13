@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>advection_util_nd.F90 &mdash; Castro 20.02
- documentation</title>
+  <title>advection_util_nd.F90 &mdash; Castro  documentation</title>
   
 
   
@@ -39,7 +38,7 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="flatten_nd.F90" href="flatten_nd_f.html" />
+    <link rel="next" title="fourth_order.F90" href="fourth_order_f.html" />
     <link rel="prev" title="Castro_mol_nd.F90" href="Castro_mol_nd_f.html" /> 
 </head>
 
@@ -62,11 +61,6 @@
 
           
             
-            
-              <div class="version">
-                20.02
-
-              </div>
             
           
 
@@ -99,8 +93,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
@@ -125,6 +121,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releases.html">Castro Releases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul class="current">
@@ -141,7 +138,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#f/advection_util_module">advection_util_module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="flatten_nd_f.html">flatten_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fourth_order_f.html">fourth_order.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ppm_nd_f.html">ppm_nd.F90</a></li>
@@ -245,7 +241,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/advection_util_module/apply_av" title="f/advection_util_module/apply_av"><code class="xref f f-func docutils literal notranslate"><span class="pre">apply_av()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/apply_av_rad" title="f/advection_util_module/apply_av_rad"><code class="xref f f-func docutils literal notranslate"><span class="pre">apply_av_rad()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/ca_compute_cfl" title="f/advection_util_module/ca_compute_cfl"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_cfl()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/ca_ctoprim" title="f/advection_util_module/ca_ctoprim"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_ctoprim()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/ca_enforce_minimum_density" title="f/advection_util_module/ca_enforce_minimum_density"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_enforce_minimum_density()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/ca_shock" title="f/advection_util_module/ca_shock"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_shock()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/ca_srctoprim" title="f/advection_util_module/ca_srctoprim"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_srctoprim()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/dflux" title="f/advection_util_module/dflux"><code class="xref f f-func docutils literal notranslate"><span class="pre">dflux()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/divu" title="f/advection_util_module/divu"><code class="xref f f-func docutils literal notranslate"><span class="pre">divu()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/limit_hydro_fluxes_on_large_vel" title="f/advection_util_module/limit_hydro_fluxes_on_large_vel"><code class="xref f f-func docutils literal notranslate"><span class="pre">limit_hydro_fluxes_on_large_vel()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/limit_hydro_fluxes_on_small_dens" title="f/advection_util_module/limit_hydro_fluxes_on_small_dens"><code class="xref f f-func docutils literal notranslate"><span class="pre">limit_hydro_fluxes_on_small_dens()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/normalize_species_fluxes" title="f/advection_util_module/normalize_species_fluxes"><code class="xref f f-func docutils literal notranslate"><span class="pre">normalize_species_fluxes()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/pdivu" title="f/advection_util_module/pdivu"><code class="xref f f-func docutils literal notranslate"><span class="pre">pdivu()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/reset_to_small_state" title="f/advection_util_module/reset_to_small_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">reset_to_small_state()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/reset_to_zone_state" title="f/advection_util_module/reset_to_zone_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">reset_to_zone_state()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/scale_flux" title="f/advection_util_module/scale_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">scale_flux()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/scale_rad_flux" title="f/advection_util_module/scale_rad_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">scale_rad_flux()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/advection_util_module/apply_av" title="f/advection_util_module/apply_av"><code class="xref f f-func docutils literal notranslate"><span class="pre">apply_av()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/apply_av_rad" title="f/advection_util_module/apply_av_rad"><code class="xref f f-func docutils literal notranslate"><span class="pre">apply_av_rad()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/ca_compute_cfl" title="f/advection_util_module/ca_compute_cfl"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_cfl()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/ca_ctoprim" title="f/advection_util_module/ca_ctoprim"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_ctoprim()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/ca_enforce_minimum_density" title="f/advection_util_module/ca_enforce_minimum_density"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_enforce_minimum_density()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/ca_shock" title="f/advection_util_module/ca_shock"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_shock()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/dflux" title="f/advection_util_module/dflux"><code class="xref f f-func docutils literal notranslate"><span class="pre">dflux()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/divu" title="f/advection_util_module/divu"><code class="xref f f-func docutils literal notranslate"><span class="pre">divu()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/limit_hydro_fluxes_on_large_vel" title="f/advection_util_module/limit_hydro_fluxes_on_large_vel"><code class="xref f f-func docutils literal notranslate"><span class="pre">limit_hydro_fluxes_on_large_vel()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/limit_hydro_fluxes_on_small_dens" title="f/advection_util_module/limit_hydro_fluxes_on_small_dens"><code class="xref f f-func docutils literal notranslate"><span class="pre">limit_hydro_fluxes_on_small_dens()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/normalize_species_fluxes" title="f/advection_util_module/normalize_species_fluxes"><code class="xref f f-func docutils literal notranslate"><span class="pre">normalize_species_fluxes()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/reset_to_small_state" title="f/advection_util_module/reset_to_small_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">reset_to_small_state()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/reset_to_zone_state" title="f/advection_util_module/reset_to_zone_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">reset_to_zone_state()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/scale_flux" title="f/advection_util_module/scale_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">scale_flux()</span></code></a>, <a class="reference internal" href="#f/advection_util_module/scale_rad_flux" title="f/advection_util_module/scale_rad_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">scale_rad_flux()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -408,38 +404,6 @@ though any choice here would be arbitrary.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>, <a class="reference internal" href="Rotation_nd_f.html#f/rotation_module/inertial_to_rotational_velocity" title="f/rotation_module/inertial_to_rotational_velocity"><code class="xref f f-func docutils literal notranslate"><span class="pre">inertial_to_rotational_velocity()</span></code></a>, <a class="reference internal" href="rad_util_f.html#f/rad_util_module/compute_ptot_ctot" title="f/rad_util_module/compute_ptot_ctot"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_ptot_ctot()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/advection_util_module/ca_srctoprim">
-<em class="property">subroutine  </em><code class="descclassname">advection_util_module/</code><code class="descname">ca_srctoprim</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>q</em>, <em>q_lo</em>, <em>q_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>src</em>, <em>src_lo</em>, <em>src_hi</em>, <em>srcq</em>, <em>srq_lo</em>, <em>srq_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/advection_util_module/ca_srctoprim" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q</strong> (q_hi(1)-(q_lo(1))+1,q_hi(2)-(q_lo(2))+1,q_hi(3)-(q_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>src</strong> (src_hi(1)-(src_lo(1))+1,src_hi(2)-(src_lo(2))+1,src_hi(3)-(src_lo(3))+1,nsrc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>src_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>src_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>srcq</strong> (srq_hi(1)-(srq_lo(1))+1,srq_hi(2)-(srq_lo(2))+1,srq_hi(3)-(srq_lo(3))+1,nqsrc)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>srq_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>srq_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">actual_network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nsrc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqsrc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qdpdr()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qdpde()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
 </tr>
 </tbody>
@@ -635,57 +599,6 @@ AMRA and a Woodward (1995) (supposedly – couldn’t locate that).</p>
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="f/advection_util_module/pdivu">
-<em class="property">function  </em><code class="descclassname">advection_util_module/</code><code class="descname">pdivu</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>k</em>, <em>q1</em>, <em>q1_lo</em>, <em>q1_hi</em>, <em>area1</em>, <em>a1_lo</em>, <em>a1_hi</em>, <em>q2</em>, <em>q2_lo</em>, <em>q2_hi</em>, <em>area2</em>, <em>a2_lo</em>, <em>a2_hi</em>, <em>q3</em>, <em>q3_lo</em>, <em>q3_hi</em>, <em>area3</em>, <em>a3_lo</em>, <em>a3_hi</em>, <em>vol</em>, <em>v_lo</em>, <em>v_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/advection_util_module/pdivu" title="Permalink to this definition">¶</a></dt>
-<dd><p>this computes the cell-centered p div(U) term from the
-edge-centered Godunov state.  This is used in the internal energy
-update</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>i</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>j</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>k</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q1</strong> (q1_hi(1)-(q1_lo(1))+1,q1_hi(2)-(q1_lo(2))+1,q1_hi(3)-(q1_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q1_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q1_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>area1</strong> (a1_hi(1)-(a1_lo(1))+1,a1_hi(2)-(a1_lo(2))+1,a1_hi(3)-(a1_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a1_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a1_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q2</strong> (q2_hi(1)-(q2_lo(1))+1,q2_hi(2)-(q2_lo(2))+1,q2_hi(3)-(q2_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q2_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q2_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>area2</strong> (a2_hi(1)-(a2_lo(1))+1,a1_hi(2)-(a1_lo(2))+1,a1_hi(3)-(a1_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a2_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a2_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q3</strong> (q3_hi(1)-(q3_lo(1))+1,q3_hi(2)-(q3_lo(2))+1,q3_hi(3)-(q3_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q3_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q3_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>area3</strong> (a3_hi(1)-(a3_lo(1))+1,a1_hi(2)-(a1_lo(2))+1,a1_hi(3)-(a1_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a3_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>a3_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>vol</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>pdu</strong><em> [</em><em>real</em><em>]</em></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdw()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_ctu_nd_f.html#f/ctu_module/ctu_consup" title="f/ctu_module/ctu_consup"><code class="xref f f-func docutils literal notranslate"><span class="pre">ctu_consup()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="subroutine">
 <dt id="f/advection_util_module/normalize_species_fluxes">
 <em class="property">subroutine  </em><code class="descclassname">advection_util_module/</code><code class="descname">normalize_species_fluxes</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>flux</em>, <em>f_lo</em>, <em>f_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/advection_util_module/normalize_species_fluxes" title="Permalink to this definition">¶</a></dt>
@@ -848,7 +761,7 @@ defined in Plewa &amp; Muller, 1999, A&amp;A, 342, 179.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="flatten_nd_f.html" class="btn btn-neutral float-right" title="flatten_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="fourth_order_f.html" class="btn btn-neutral float-right" title="fourth_order.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="Castro_mol_nd_f.html" class="btn btn-neutral float-left" title="Castro_mol_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

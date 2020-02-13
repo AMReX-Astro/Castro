@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Input Files &mdash; Castro 20.02
- documentation</title>
+  <title>Input Files &mdash; Castro  documentation</title>
   
 
   
@@ -63,11 +62,6 @@
           
             
             
-              <div class="version">
-                20.02
-
-              </div>
-            
           
 
           
@@ -100,17 +94,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#problem-geometry">Problem Geometry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#domain-boundary-conditions">Domain Boundary Conditions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#resolution">Resolution</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#regridding">Regridding</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#getting-good-performance">Getting good performance</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#how-grids-are-created">How grids are created</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#simulation-time">Simulation Time</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#time-step">Time Step</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#subcycling">Subcycling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#restart-capability">Restart Capability</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#controlling-plotfile-generation">Controlling Plotfile Generation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#screen-output">Screen Output</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#other-parameters">Other parameters</a></li>
 </ul>
 </li>
@@ -120,8 +103,10 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
@@ -146,6 +131,7 @@
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Castro Releases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul>
@@ -222,25 +208,35 @@
   <div class="section" id="input-files">
 <h1>Input Files<a class="headerlink" href="#input-files" title="Permalink to this headline">¶</a></h1>
 <p>The Castro&nbsp;executable uses two inputs files at runtime to set and
-alter the behavior of the algorithm and initial conditions.</p>
-<p>The main inputs file, typically named <code class="docutils literal notranslate"><span class="pre">inputs</span></code> is used to set AMReX
-parameters and the control flow in the C++ portions of Castro. Each
-parameter here has a namespace (like <code class="docutils literal notranslate"><span class="pre">amr.optionname</span></code> or
-<code class="docutils literal notranslate"><span class="pre">castro.optionname</span></code>).  Parameters set here are read using the AMReX
-<code class="docutils literal notranslate"><span class="pre">ParmParse</span></code> class infrastructure.</p>
+alter the behavior of the algorithm and initial conditions:</p>
+<blockquote>
+<div><ul>
+<li><p class="first">The main inputs file, typically named <code class="docutils literal notranslate"><span class="pre">inputs</span></code>:</p>
+<p>This is used to set AMReX parameters and the control flow in the
+physics solvers in Castro.  Each parameter here has a namespace
+(like <code class="docutils literal notranslate"><span class="pre">amr.optionname</span></code> or <code class="docutils literal notranslate"><span class="pre">castro.optionname</span></code>).  Parameters
+set here are read using the AMReX <code class="docutils literal notranslate"><span class="pre">ParmParse</span></code> class
+infrastructure.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">Because the inputs file is handled by the C++ portion of
-the code, any quantities you specify in scientific notation, must
-take the form <code class="docutils literal notranslate"><span class="pre">1.e5</span></code> and not <code class="docutils literal notranslate"><span class="pre">1.d5</span></code>—the <code class="docutils literal notranslate"><span class="pre">d</span></code> specifier is not
-recognized.</p>
+<p class="last">Because the inputs file is handled by the C++ portion
+of the code, any quantities you specify in scientific notation,
+must take the form <code class="docutils literal notranslate"><span class="pre">1.e5</span></code> and not <code class="docutils literal notranslate"><span class="pre">1.d5</span></code>—the <code class="docutils literal notranslate"><span class="pre">d</span></code>
+specifier is not recognized.</p>
 </div>
-<p>Additionally, note that in Castro, all quantities are in CGS units.</p>
-<p>The second inputs file, typically named <code class="docutils literal notranslate"><span class="pre">probin</span></code> is used by the
-Fortran code that initializes the problem setup.  It is read at
-problem initialization (via a Fortran namelist) and the
-problem-specific quantities are stored in a Fortran module
-<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> defined in the problem’s <code class="docutils literal notranslate"><span class="pre">probdata.f90</span></code> file.</p>
+</li>
+<li><p class="first">The problem / external inputs file, typically named <code class="docutils literal notranslate"><span class="pre">probin</span></code>:</p>
+<p>This is used by the Fortran code that initializes the problem
+setup.  It is read at problem initialization (via a Fortran
+namelist) and the problem-specific quantities are stored in a
+Fortran module <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> defined in the problem’s
+<code class="docutils literal notranslate"><span class="pre">probdata.f90</span></code> file.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">probin</span></code> file also has an <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> namelist that is
+used to specify runtime parameters for the microphysics
+(EOS, reaction network, …)</p>
+</li>
+</ul>
+</div></blockquote>
 <p>Only the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> file is specified on the commandline. The
 associated <code class="docutils literal notranslate"><span class="pre">probin</span></code> file is specified in the inputs file
 using the <code class="docutils literal notranslate"><span class="pre">amr.probin_file</span></code> parameter, e.g.:</p>
@@ -248,6 +244,10 @@ using the <code class="docutils literal notranslate"><span class="pre">amr.probi
 </pre></div>
 </div>
 <p>for example, has the Fortran code read a file called <code class="docutils literal notranslate"><span class="pre">my_special_probin</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Additionally, note that in Castro, all quantities are in CGS units.</p>
+</div>
 <div class="section" id="working-with-probin-files">
 <h2>Working with probin Files<a class="headerlink" href="#working-with-probin-files" title="Permalink to this headline">¶</a></h2>
 <p>There are three several Fortran namelists that can be defined in the
@@ -323,20 +323,21 @@ by BoxLib. The runtime parameters that we use are:</p>
 </ul>
 </div></blockquote>
 <p>The valid boundary types are:</p>
-<table border="1" class="docutils">
+<table border="1" class="docutils align-center" id="id1">
+<caption><span class="caption-number">Table 2 </span><span class="caption-text">boundary condition types</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="58%" />
-<col width="42%" />
+<col width="59%" />
+<col width="41%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td>0 – Interior / Periodic</td>
-<td>3 – Symmetry</td>
+<tr class="row-odd"><td>0: Interior / Periodic</td>
+<td>3: Symmetry</td>
 </tr>
-<tr class="row-even"><td>1 – Inflow</td>
-<td>4 – Slip Wall</td>
+<tr class="row-even"><td>1: Inflow</td>
+<td>4: Slip Wall</td>
 </tr>
-<tr class="row-odd"><td>2 – Outflow</td>
-<td>5 – No Slip Wall</td>
+<tr class="row-odd"><td>2: Outflow</td>
+<td>5: No Slip Wall</td>
 </tr>
 </tbody>
 </table>
@@ -417,520 +418,6 @@ level 2 grids will be created every 2 level-1 time steps. If
 level will be disabled. If <code class="docutils literal notranslate"><span class="pre">amr.regrid_int</span> <span class="pre">=</span> <span class="pre">-1</span></code> only, then we
 never regrid for any level. Note that this is not compatible with
 <code class="docutils literal notranslate"><span class="pre">amr.regrid_on_restart</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p>
-</div>
-<div class="section" id="regridding">
-<h3>Regridding<a class="headerlink" href="#regridding" title="Permalink to this headline">¶</a></h3>
-<p>The details of the regridding strategy are described in
-§ <a class="reference internal" href="AMR.html#sec-tagging"><span class="std std-ref">Tagging for Refinement</span></a>; here we cover how the input parameters can
-control the gridding.</p>
-<p>As described later, the user defines Fortran subroutines which tag
-individual cells at a given level if they need refinement. This list
-of tagged cells is sent to a grid generation routine, which uses the
-Berger-Rigoutsos algorithm <a class="reference internal" href="zreferences.html#br-refine" id="id1">[br-refine]</a> to create rectangular
-grids that contain the tagged cells.</p>
-<p>The relevant runtime parameters are:</p>
-<blockquote>
-<div><ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.regrid_file</span></code>: name of file from which to read the grids
-(text; default: no file)</p>
-<p>If set to a filename, e.g. <code class="docutils literal notranslate"><span class="pre">fixed_girds</span></code>, then list of grids at
-each fine level are read in from this file during the gridding
-procedure. These grids must not violate the <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code>
-criterion. The rest of the gridding procedure described below will
-not occur if <code class="docutils literal notranslate"><span class="pre">amr.regrid_file</span></code> is set.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.n_error_buf</span></code>: radius of additional tagging
-around already tagged cells (integer <span class="math notranslate nohighlight">\(\geq 0\)</span>; default: 1)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code>: maximum size of a grid in any
-direction (integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: 128 (2-d), 32 (3-d))</p>
-<p>Note: <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> must be even, and a multiple of
-<code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code> at every level.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>: grid size must be a multiple of this
-(integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: 2)
-<code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code> at every level must be a power of 2
-and the domain size must be a multiple of <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>
-at level 0.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This can be very important for elliptic problems with
-multigrid. A higher blocking factor allows the multigrid
-algorithm to coarsen more at the lowest level, reducing the
-amount of work required by the bottom solver.</p>
-</div>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.grid_eff</span></code>: grid efficiency (Real <span class="math notranslate nohighlight">\(&gt;0\)</span> and <span class="math notranslate nohighlight">\(&lt;1\)</span>;
-default: 0.7)</p>
-<p>When creating a refined grid, do we make boxes that only include
-the coarse cells that were explicitly tagged for refinement? or do
-we allow ourselves to encompass nearby, untagged cells in order to
-make larger and more regular boxes? This is the grid efficiency.</p>
-<p>When <code class="docutils literal notranslate"><span class="pre">blocking_factor</span> <span class="pre">=</span> <span class="pre">1</span></code>, <em>grid efficiency</em> is exactly the
-fraction of refined cells in the fine <code class="docutils literal notranslate"><span class="pre">BoxArray</span></code> which
-correspond to coarse cells which were tagged. For other blocking
-factors, we actually apply <code class="docutils literal notranslate"><span class="pre">grid_eff</span></code> at the level which has been
-coarsened by <code class="docutils literal notranslate"><span class="pre">blocking_factor</span></code>, so it is no longer strictly this
-fraction, but the idea is still the same.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.refine_grid_layout</span></code>: refine grids more if # of
-processors <span class="math notranslate nohighlight">\(&gt;\)</span> # of grids (0 if false, 1 if true; default: 1)</p>
-</li>
-</ul>
-</div></blockquote>
-<p>Note also that <code class="docutils literal notranslate"><span class="pre">amr.n_error_buf</span></code>, <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> and
-<code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code> can be read in as a single value which is
-assigned to every level, or as multiple values, one for each level.</p>
-<p>As an example, consider:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">grid_eff</span> <span class="o">=</span> <span class="mf">0.9</span>
-<span class="n">amr</span><span class="o">.</span><span class="n">max_grid_size</span> <span class="o">=</span> <span class="mi">64</span>
-<span class="n">amr</span><span class="o">.</span><span class="n">blocking_factor</span><span class="p">}</span> <span class="o">=</span> <span class="mi">32</span>
-</pre></div>
-</div>
-<p>The grid efficiency, <code class="docutils literal notranslate"><span class="pre">amr.grid_eff</span></code>, means that during the grid
-creation process, at least 90% of the cells in each grid at the level
-at which the grid creation occurs must be tagged cells. A higher
-grid efficiency means fewer cells at higher levels, but may result
-in the production of lots of small grids, which have inefficient cache
-and OpenMP performance and higher communication costs.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> parameter means that the final grids will be
-no longer than 64 cells on a side at every level.  Alternately, we
-could specify a value for each level of refinement as
-<code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span> <span class="pre">=</span> <span class="pre">64</span> <span class="pre">32</span> <span class="pre">16</span></code> in which case our final grids will be
-no longer than 64 cells on a side at level 0, 32 cells on a side at
-level 1, and 16 cells on a side at level 2. The
-<code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code> means that all of the final grids will be
-multiples of 32 at all levels.  Again, this can be specified on a
-level-by-level basis, like <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span> <span class="pre">=</span> <span class="pre">32</span> <span class="pre">16</span> <span class="pre">8</span></code>, in which
-case the dimensions of all the final grids will be multiples of 32 at
-level 0, multiples of 16 at level 1, and multiples of 8 at level 2.</p>
-<div class="section" id="getting-good-performance">
-<h4>Getting good performance<a class="headerlink" href="#getting-good-performance" title="Permalink to this headline">¶</a></h4>
-<p>These parameters can have a large impact on the performance
-of Castro, so taking the time to experiment with is worth the effort.
-Having grids that are large enough to coarsen multiple levels in a
-V-cycle is essential for good multigrid performance in simulations
-that use self-gravity.</p>
-</div>
-<div class="section" id="how-grids-are-created">
-<h4>How grids are created<a class="headerlink" href="#how-grids-are-created" title="Permalink to this headline">¶</a></h4>
-<p>The gridding algorithm proceeds in this order:</p>
-<ol class="arabic simple">
-<li>Grids are created using the Berger-Rigoutsos clustering algorithm
-modified to ensure that all new fine grids are divisible by
-<code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>.</li>
-<li>Next, the grid list is chopped up if any grids are larger than
-<code class="docutils literal notranslate"><span class="pre">max_grid_size</span></code>.  Note that because <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> is a
-multiple of <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code> the <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>
-criterion is still satisfied.</li>
-<li>Next, if <code class="docutils literal notranslate"><span class="pre">amr.refine_grid_layout</span> <span class="pre">=</span> <span class="pre">1</span></code> and there are more
-processors than grids, and if <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> / 2 is a
-multiple of <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>, then the grids will be
-redefined, at each level independently, so that the maximum length
-of a grid at level <span class="math notranslate nohighlight">\(\ell\)</span>, in any dimension, is
-<code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> [<span class="math notranslate nohighlight">\(\ell\)</span>] / 2.</li>
-<li>Finally, if <code class="docutils literal notranslate"><span class="pre">amr.refine_grid_layout</span> <span class="pre">=</span> <span class="pre">1</span></code>, and there are still
-more processors than grids, and if <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> / 4 is a
-multiple of <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>, then the grids will be
-redefined, at each level independently, so that the maximum length
-of a grid at level <span class="math notranslate nohighlight">\(\ell\)</span>, in any dimension, is
-<code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> [<span class="math notranslate nohighlight">\(\ell\)</span>] / 4.</li>
-</ol>
-</div>
-</div>
-<div class="section" id="simulation-time">
-<h3>Simulation Time<a class="headerlink" href="#simulation-time" title="Permalink to this headline">¶</a></h3>
-<p>There are two paramters that can define when a simulation ends:</p>
-<blockquote>
-<div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">max_step</span></code>: maximum number of level 0 time steps (integer
-<span class="math notranslate nohighlight">\(\geq 0\)</span>; default: -1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: final simulation time (Real <span class="math notranslate nohighlight">\(\geq 0\)</span>; default:
--1.0)</li>
-</ul>
-</div></blockquote>
-<p>To control the number of time steps, you can limit by the maximum
-number of level 0 time steps (<code class="docutils literal notranslate"><span class="pre">max_step</span></code>) or by the final
-simulation time (<code class="docutils literal notranslate"><span class="pre">stop_time</span></code>), or both. The code will stop at
-whichever criterion comes first.</p>
-<p>Note that if the code reaches <code class="docutils literal notranslate"><span class="pre">stop_time</span></code> then the final time
-step will be shortened so as to end exactly at <code class="docutils literal notranslate"><span class="pre">stop_time</span></code>, not
-past it.</p>
-<p>As an example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">max_step</span>  <span class="o">=</span> <span class="mi">1000</span>
-<span class="n">stop_time</span>  <span class="o">=</span> <span class="mf">1.0</span>
-</pre></div>
-</div>
-<p>will end the calculation when either the simulation time reaches 1.0 or
-the number of level 0 steps taken equals 1000, whichever comes first.</p>
-</div>
-<div class="section" id="time-step">
-<h3>Time Step<a class="headerlink" href="#time-step" title="Permalink to this headline">¶</a></h3>
-<p>If <code class="docutils literal notranslate"><span class="pre">castro.do_hydro</span> <span class="pre">=</span> <span class="pre">1</span></code>, then typically
-the code chooses a time step based on the CFL number:</p>
-<div class="math notranslate nohighlight" id="equation-eq-cfl">
-<span class="eqno">(1)<a class="headerlink" href="#equation-eq-cfl" title="Permalink to this equation">¶</a></span>\[\Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\min\left\{\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}},
-                                                               \frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}},
-                                                               \frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right\}\right]\]</div>
-<p>If SDC integration is used instead, then we have</p>
-<div class="math notranslate nohighlight">
-\[\Delta t = \mathtt{CFL}\, \cdot\, \min_{i,j,k}\left[\left(\frac{\Delta x}{|u|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
-                                                    \left(\frac{\Delta y}{|v|_{i,j,k}+c_{i,j,k}}\right)^{-1} +
-                                                    \left(\frac{\Delta z}{|w|_{i,j,k}+c_{i,j,k}}\right)^{-1}\right]^{-1}\]</div>
-<p>(If we are simulating in 1D or 2D, the extraneous parts related to <span class="math notranslate nohighlight">\(v\)</span> and/or <span class="math notranslate nohighlight">\(w\)</span> are removed.)</p>
-<p>The following parameters affect the timestep choice:</p>
-<blockquote>
-<div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.cfl</span></code>: CFL number (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span> and <span class="math notranslate nohighlight">\(\leq 1\)</span>;
-default: 0.8)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.init_shrink</span></code>: factor by which to shrink the initial
-time step (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span> and <span class="math notranslate nohighlight">\(\leq 1\)</span>; default: 1.0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.change_max</span></code>: factor by which the time step can
-grow in subsequent steps (Real <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 1.1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.fixed_dt</span></code>: level 0 time step regardless of cfl
-or other settings (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; unused if not set)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.initial_dt</span></code>: initial level 0 time
-step regardless of other settings (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; unused if not set)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.dt_cutoff</span></code>: time step below which calculation
-will abort (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: 0.0)</li>
-</ul>
-</div></blockquote>
-<p>As an example, consider:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">cfl</span> <span class="o">=</span> <span class="mf">0.9</span>
-<span class="n">castro</span><span class="o">.</span><span class="n">init_shrink</span> <span class="o">=</span> <span class="mf">0.01</span>
-<span class="n">castro</span><span class="o">.</span><span class="n">change_max</span> <span class="o">=</span> <span class="mf">1.1</span>
-<span class="n">castro</span><span class="o">.</span><span class="n">dt_cutoff</span> <span class="o">=</span> <span class="mf">1.e-20</span>
-</pre></div>
-</div>
-<p>This defines the <span class="math notranslate nohighlight">\(\mathtt{cfl}\)</span> parameter in <a class="reference internal" href="#equation-eq-cfl">(1)</a> to be
-0.9, but sets (via <code class="docutils literal notranslate"><span class="pre">init_shrink</span></code>) the first timestep we take to
-be 1% of what it would be otherwise. This allows us to ramp up to
-the hydrodynamic timestep at the start of a simulation. The
-<code class="docutils literal notranslate"><span class="pre">change_max</span></code> parameter restricts the timestep from increasing by
-more than 10% over a coarse timestep. Note that the time step can
-shrink by any factor; this only controls the extent to which it can
-grow. The <code class="docutils literal notranslate"><span class="pre">dt_cutoff</span></code> parameter will force the code to abort if
-the timestep ever drops below <span class="math notranslate nohighlight">\(10^{-20}\)</span>. This is a safety
-feature—if the code hits such a small value, then something likely
-went wrong in the simulation, and by aborting, you won’t burn through
-your entire allocation before noticing that there is an issue.</p>
-<p>If we know what we are doing, then we can force a particular timestep:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">fixed_dt</span> <span class="o">=</span> <span class="mf">1.e-4</span>
-</pre></div>
-</div>
-<p>This sets the level 0 time step to be 1.e-4 for the entire simulation,
-ignoring the other timestep controls. Note that if
-<code class="docutils literal notranslate"><span class="pre">castro.init_shrink</span></code> <span class="math notranslate nohighlight">\(\neq 1\)</span> then the first time step will in fact
-be <code class="docutils literal notranslate"><span class="pre">castro.init_shrink</span></code> <span class="math notranslate nohighlight">\(\cdot\)</span> <code class="docutils literal notranslate"><span class="pre">castro.fixed_dt</span></code>.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">initial_dt</span> <span class="o">=</span> <span class="mf">1.e-4</span>
-</pre></div>
-</div>
-<p>sets the <em>initial</em> level 0 time step to be <span class="math notranslate nohighlight">\(10^{-4}\)</span> regardless of
-<code class="docutils literal notranslate"><span class="pre">castro.cfl</span></code> or <code class="docutils literal notranslate"><span class="pre">castro.fixed_dt</span></code>. The time step can
-grow in subsequent steps by a factor of castro.change_max each step.</p>
-<p><em>diffusion</em>: If diffusion is enabled, the timestep will also be limited by:</p>
-<div class="math notranslate nohighlight">
-\[\Delta t = \frac{1}{2}\min_{i,j,k}\left[\min\left\{\frac{\Delta x^2}{D_{i,j,k}},
-                                                   \frac{\Delta y^2}{D_{i,j,k}},
-                                                   \frac{\Delta z^2}{D_{i,j,k}}\right\}\right]\]</div>
-<p>where <span class="math notranslate nohighlight">\(D \equiv k / (\rho c_V)\)</span> if we are diffusing temperature,
-and <span class="math notranslate nohighlight">\(D \equiv k / (\rho c_P)\)</span> if we are diffusing enthalpy. No
-input parameter is necessary to enable this constraint. See Chapter
-<a class="reference internal" href="diffusion.html#ch-diffusion"><span class="std std-ref">Diffusion</span></a> for more details.</p>
-<p><em>reactions</em>: If reactions are enabled, the timestep will also
-be limited by two constraints:</p>
-<div class="math notranslate nohighlight">
-\[\Delta t = \mathtt{dtnuc\_e}\, \min_{i,j,k} \left\{\frac{e_{i,j,k}}{\dot{e}_{i,j,k}}\right\}\]</div>
-<div class="math notranslate nohighlight">
-\[\Delta t = \mathtt{dtnuc\_X}\, \min_{i,j,k} \left\{\min_n\frac{X^n_{i,j,k}}{\dot{X}^n_{i,j,k}}\right\}\]</div>
-<p>where <span class="math notranslate nohighlight">\(e\)</span> is the internal energy, and <span class="math notranslate nohighlight">\(X^n\)</span> is the mass fraction of
-the <span class="math notranslate nohighlight">\(n\)</span>th species. The safety factors correspond to the runtime parameters
-<code class="docutils literal notranslate"><span class="pre">castro.dtnuc_e</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.dtnuc_X</span></code>. These limiters
-say that the timestep must be small enough so that no zone can change
-its internal energy by more than the fraction in one
-step, and so that no zone can change the abundance of any isotope by
-more than the fraction in one step. The time derivatives
-<span class="math notranslate nohighlight">\(\dot{e}\)</span> and <span class="math notranslate nohighlight">\(\dot{X}^n\)</span> are estimated by calling the right-hand-side
-of the nuclear network given the state at the time the timestep limiter
-is being calculated. (We use a small number floor to prevent division by zero.)
-To prevent the timestep from being dominated by trace species, there is
-an additional option <code class="docutils literal notranslate"><span class="pre">castro.dtnuc_X_threshold</span></code> which is the
-mass fraction threshold below which a species will not be considered in
-the timestep constraint. and are set to
-a large number by default, effectively disabling them. Typical choices
-for these values in the literature are <span class="math notranslate nohighlight">\(\sim 0.1\)</span>.</p>
-</div>
-<div class="section" id="subcycling">
-<h3>Subcycling<a class="headerlink" href="#subcycling" title="Permalink to this headline">¶</a></h3>
-<p>Castro supports a number of different modes for subcycling in time,
-set via amr.subcycling_mode.</p>
-<blockquote>
-<div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = <code class="docutils literal notranslate"><span class="pre">Auto</span></code> (default): the code will run with
-equal refinement in space and time. In other words, if level
-<span class="math notranslate nohighlight">\(n+1\)</span> is a factor of 2 refinement above level <span class="math notranslate nohighlight">\(n\)</span>,
-then <span class="math notranslate nohighlight">\(n+1\)</span> will take 2 steps of half the duration for every
-level <span class="math notranslate nohighlight">\(n\)</span> step.</li>
-<li>If <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = <code class="docutils literal notranslate"><span class="pre">None</span></code>: the code will not refine in
-time. All levels will advance together with a timestep dictated by
-the level with the strictest <span class="math notranslate nohighlight">\(dt\)</span>. Note that this is
-identical to the deprecated command <code class="docutils literal notranslate"><span class="pre">amr.nosub</span> <span class="pre">=</span> <span class="pre">1</span></code>.</li>
-<li>If <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = <code class="docutils literal notranslate"><span class="pre">Manual</span></code>: the code will subcycle
-according to the values supplied by <code class="docutils literal notranslate"><span class="pre">amr.subcycling_iterations</span></code>.</li>
-</ul>
-</div></blockquote>
-<p>In the case of <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = Manual, we subcycle in
-manual mode with largest allowable timestep. The number of iterations
-at each level is then specified as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">subcycling_iterations</span> <span class="o">=</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">1</span> <span class="mi">2</span>
-</pre></div>
-</div>
-<p>Here, we take 1 level-0 timestep at a time (required). Take 2 level-1
-timesteps for each level-0 step, 1 timestep at level-2 for each
-level-1 step, and take 2 timesteps at level-3 for each level-2 step.</p>
-<p>Alternately, we could do:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">subcycling_iterations</span> <span class="o">=</span> <span class="mi">2</span>
-</pre></div>
-</div>
-<p>which will subcycle twice at every level (except level 0).</p>
-</div>
-<div class="section" id="restart-capability">
-<h3>Restart Capability<a class="headerlink" href="#restart-capability" title="Permalink to this headline">¶</a></h3>
-<p>Castro&nbsp;has a standard sort of checkpointing and restarting capability.
-In the inputs file, the following options control the generation of
-checkpoint files (which are really directories):</p>
-<blockquote>
-<div><ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.check_file</span></code>: prefix for restart files (text;
-default: chk)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.check_int</span></code>: how often (by level 0 time steps) to
-write restart files (integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: -1)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code>: how often (by simulation time) to
-write restart files (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: -1.0)</p>
-<p>Note that <code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code> will write a checkpoint at the first
-timestep whose ending time is past an integer multiple of this
-interval.  In particular, the timestep is not modified to match
-this interval, so you won’t get a checkpoint at exactly the time
-you requested.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.restart</span></code>: name of the file (directory) from which to
-restart (Text; not used if not set)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.checkpoint_files_output</span></code>: should we write
-checkpoint files? (0 or 1; default: 1)</p>
-<p>If you are doing a scaling study then set
-<code class="docutils literal notranslate"><span class="pre">amr.checkpoint_files_output</span></code> = 0 so you can test scaling of the
-algorithm without I/O.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.check_nfiles</span></code>: how parallel is the writing of
-the checkpoint files? (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 64)</p>
-<p>See the chapter <a class="reference internal" href="io.html#ch-io"><span class="std std-ref">Parallel I/O</span></a> for more details on parallel I/O and the
-<code class="docutils literal notranslate"><span class="pre">amr.check_nfiles</span></code> parameter.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.checkpoint_on_restart</span></code>: should we write a
-checkpoint immediately after restarting? (0 or 1; default: 0)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.grown_factor</span></code>: factor by which domain has been
-grown (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 1)</p>
-</li>
-</ul>
-</div></blockquote>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>You can specify both <code class="docutils literal notranslate"><span class="pre">amr.check_int</span></code> or <code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code>,
-if you so desire; the code will print a warning in case you did
-this unintentionally. It will work as you would expect – you will
-get checkpoints at integer multiples of <code class="docutils literal notranslate"><span class="pre">amr.check_int</span></code> timesteps
-and at integer multiples of <code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code> simulation time
-intervals.</p>
-<p class="last"><code class="docutils literal notranslate"><span class="pre">amr.plotfile_on_restart</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.checkpoint_on_restart</span></code>
-require amr.regrid_on_restart to be in effect.</p>
-</div>
-<p>As an example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">check_file</span> <span class="o">=</span> <span class="n">chk_run</span>
-<span class="n">amr</span><span class="o">.</span><span class="n">check_int</span> <span class="o">=</span> <span class="mi">10</span>
-</pre></div>
-</div>
-<p>means that restart files (really directories) starting with the prefix
-“chk_run” will be generated every 10 level-0 time steps. The
-directory names will be <code class="docutils literal notranslate"><span class="pre">chk_run00000</span></code>, <code class="docutils literal notranslate"><span class="pre">chk_run00010</span></code>,
-<code class="docutils literal notranslate"><span class="pre">chk_run00020</span></code>, etc.</p>
-<p>If instead you specify:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">check_file</span> <span class="o">=</span> <span class="n">chk_run</span>
-<span class="n">amr</span><span class="o">.</span><span class="n">check_per</span> <span class="o">=</span> <span class="mf">0.5</span>
-</pre></div>
-</div>
-<p>then restart files (really directories) starting with the prefix
-“chk_run” will be generated every 0.1 units of
-simulation time. The directory names will be <code class="docutils literal notranslate"><span class="pre">chk_run00000</span></code>,
-<code class="docutils literal notranslate"><span class="pre">chk_run00043</span></code>, <code class="docutils literal notranslate"><span class="pre">chk_run00061</span></code>, etc, where <span class="math notranslate nohighlight">\(t = 0.1\)</span> after
-43 level-0 steps, <span class="math notranslate nohighlight">\(t = 0.2\)</span> after 61 level-0 steps, etc.</p>
-<p>To restart from <code class="docutils literal notranslate"><span class="pre">chk_run00061</span></code>, for example, then set:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">restart</span> <span class="o">=</span> <span class="n">chk_run00061</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="controlling-plotfile-generation">
-<span id="sec-plotfiles"></span><h3>Controlling Plotfile Generation<a class="headerlink" href="#controlling-plotfile-generation" title="Permalink to this headline">¶</a></h3>
-<p>The main output from Castro&nbsp;is in the form of plotfiles (which are
-really directories). The following options in the inputs file control
-the generation of plotfiles:</p>
-<blockquote>
-<div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">amr.plot_file</span></code>: prefix for plotfiles (text; default:
-“plt”)</li>
-<li><code class="docutils literal notranslate"><span class="pre">amr.plot_int</span></code>: how often (by level-0 time steps) to
-write plot files (Integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: -1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">amr.plot_per</span></code>: how often (by simulation time) to write
-plot files (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: -1.0)</li>
-</ul>
-<blockquote>
-<div><div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><code class="docutils literal notranslate"><span class="pre">amr.plot_per</span></code> will write a plotfile at the first
-timestep whose ending time is past an integer multiple of this
-interval.  In particular, the timestep is not modified to match
-this interval, so you won’t get a checkpoint at exactly the time
-you requested.</p>
-</div>
-</div></blockquote>
-<ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.plot_vars</span></code>: name of state variables to include in plotfiles
-(valid options: ALL, NONE or a list; default: ALL)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.derive_plot_vars</span></code>: name of derived variables to include in
-plotfiles (valid options: ALL, NONE or a list; default: NONE</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.plot_files_output</span></code>: should we write plot files?
-(0 or 1; default: 1)</p>
-<p>If you are doing a scaling study then set
-<code class="docutils literal notranslate"><span class="pre">amr.plot_files_output</span></code> = 0 so you can test scaling of the
-algorithm without I/O.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.plotfile_on_restart</span></code>: should we write a plotfile
-immediately after restarting? (0 or 1; default: 0)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.plot_nfiles</span></code>: how parallel is the writing of the
-plotfiles? (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 64)</p>
-<p>See the Software Section for more details on parallel I/O and the
-<code class="docutils literal notranslate"><span class="pre">amr.plot_nfiles</span></code> parameter.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.plot_X</span></code>: include all the species mass
-fractions in the plotfile (0 or 1; default: 0)</p>
-</li>
-</ul>
-</div></blockquote>
-<p>All the options for <code class="docutils literal notranslate"><span class="pre">amr.derive_plot_vars</span></code> are kept in
-<code class="docutils literal notranslate"><span class="pre">derive_lst</span></code> in <code class="docutils literal notranslate"><span class="pre">Castro_setup.cpp</span></code>. Feel free to look at
-it and see what’s there.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">You can specify both <code class="docutils literal notranslate"><span class="pre">amr.plot_int</span></code> or <code class="docutils literal notranslate"><span class="pre">amr.plot_per</span></code>,
-if you so desire; the code will print a warning in case you did
-this unintentionally. It will work as you would expect – you will
-get plotfiles at integer multiples of amr.plot_int timesteps and at
-integer multiples of amr.plot_per simulation time intervals.</p>
-</div>
-<p>As an example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">plot_file</span> <span class="o">=</span> <span class="n">plt_run</span>
-<span class="n">amr</span><span class="o">.</span><span class="n">plot_int</span> <span class="o">=</span> <span class="mi">10</span>
-</pre></div>
-</div>
-<p>means that plot files (really directories) starting with the prefix
-“plt_run” will be generated every 10 level-0 time steps. The
-directory names will be <code class="docutils literal notranslate"><span class="pre">plt_run00000</span></code>, <code class="docutils literal notranslate"><span class="pre">plt_run00010</span></code>,
-<code class="docutils literal notranslate"><span class="pre">plt_run00020</span></code>, etc.</p>
-<p>If instead you specify:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">plot_file</span> <span class="o">=</span> <span class="n">plt_run</span>
-<span class="n">amr</span><span class="o">.</span><span class="n">plot_per</span> <span class="o">=</span> <span class="mf">0.5</span>
-</pre></div>
-</div>
-<p>then restart files (really directories) starting with the prefix
-“plt_run” will be generated every 0.1 units of simulation time. The
-directory names will be <code class="docutils literal notranslate"><span class="pre">plt_run00000</span></code>, <code class="docutils literal notranslate"><span class="pre">plt_run00043</span></code>,
-<code class="docutils literal notranslate"><span class="pre">plt_run00061</span></code>, etc, where <span class="math notranslate nohighlight">\(t = 0.1\)</span> after 43 level-0 steps, <span class="math notranslate nohighlight">\(t =
-0.2\)</span> after 61 level-0 steps, etc.</p>
-</div>
-<div class="section" id="screen-output">
-<h3>Screen Output<a class="headerlink" href="#screen-output" title="Permalink to this headline">¶</a></h3>
-<p>There are several options that set how much output is written to the
-screen as Castro&nbsp;runs:</p>
-<blockquote>
-<div><ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Amr.cpp</span></code> (0 or 1; default: 0)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Castro.cpp</span></code> (0 or 1; default: 0)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">gravity.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Gravity.cpp</span></code> (0 or 1; default: 0)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">diffusion.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Diffusion.cpp</span></code> (0 or 1;
-default: 0)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">mg.v</span></code>: verbosity of multigrid solver (for gravity) (allow
-values: 0, 1, 2, 3, 4; default: 0)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.grid_log</span></code>: name of the file to which the grids are
-written (text; not used if not set)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.run_log</span></code>: name of the file to which certain output is
-written (text; not used if not set)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.run_log_terse</span></code>: name of the file to which certain
-(terser) output is written (text; not used if not set)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.sum_interval</span></code>: if <span class="math notranslate nohighlight">\(&gt; 0\)</span>, how often (in level-0 time
-steps) to compute and print integral quantities (Integer; default: -1)</p>
-<p>The integral quantities include total mass, momentum and energy in
-the domain every <code class="docutils literal notranslate"><span class="pre">castro.sum_interval</span></code> level-0 steps.  The print
-statements have the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TIME</span><span class="o">=</span> <span class="mf">1.91717746</span> <span class="n">MASS</span><span class="o">=</span> <span class="mf">1.792410279e+34</span>
-</pre></div>
-</div>
-</li>
-</ul>
-<blockquote>
-<div>for example. If this line is commented out then
-it will not compute and print these quanitities.</div></blockquote>
-<ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.do_special_tagging</span></code>: allows the user to set a special
-flag based on user-specified criteria (0 or 1; default: 1)</p>
-<p><code class="docutils literal notranslate"><span class="pre">castro.do_special_tagging</span></code> = 1 can be used, for example, to
-calculate the bounce time in a core collapse simulation; the
-bounce time is defined as the first time at which the maximum
-density in the domain exceeds a user-specified value. This time
-can then be printed into a special file as a useful diagnostic.</p>
-</li>
-</ul>
-</div></blockquote>
-<p>As an example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">grid_log</span> <span class="o">=</span> <span class="n">grdlog</span>
-<span class="n">amr</span><span class="o">.</span><span class="n">run_log</span> <span class="o">=</span> <span class="n">runlog</span>
-</pre></div>
-</div>
-<p>Every time the code regrids it prints a list of grids at all relevant
-levels. Here the code will write these grids lists into the file
-<code class="docutils literal notranslate"><span class="pre">grdlog</span></code>. Additionally, every time step the code prints certain
-statements to the screen (if <code class="docutils literal notranslate"><span class="pre">amr.v</span></code> = 1), such as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">STEP</span> <span class="o">=</span> <span class="mi">1</span> <span class="n">TIME</span> <span class="o">=</span> <span class="mf">1.91717746</span> <span class="n">DT</span> <span class="o">=</span> <span class="mf">1.91717746</span>
-<span class="n">PLOTFILE</span><span class="p">:</span> <span class="n">file</span> <span class="o">=</span> <span class="n">plt00001</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">run_log</span></code> option will output these statements into
-<em>runlog</em> as well.</p>
-<p>Terser output can be obtained via:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">run_log_terse</span> <span class="o">=</span> <span class="n">runlogterse</span>
-</pre></div>
-</div>
-<p>This file, <code class="docutils literal notranslate"><span class="pre">runlogterse</span></code> differs from <code class="docutils literal notranslate"><span class="pre">runlog</span></code>, in that it
-only contains lines of the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">10</span>  <span class="mf">0.2</span>  <span class="mf">0.005</span>
-</pre></div>
-</div>
-<p>in which “10” is the number of steps taken, “0.2” is the
-simulation time, and “0.005” is the level-0 time step. This file
-can be plotted very easily to monitor the time step.</p>
 </div>
 <div class="section" id="other-parameters">
 <h3>Other parameters<a class="headerlink" href="#other-parameters" title="Permalink to this headline">¶</a></h3>

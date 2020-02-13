@@ -9,8 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; Castro 20.02
- documentation</title>
+  <title>Index &mdash; Castro  documentation</title>
   
 
   
@@ -62,11 +61,6 @@
           
             
             
-              <div class="version">
-                20.02
-
-              </div>
-            
           
 
           
@@ -98,8 +92,10 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
@@ -124,6 +120,7 @@
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Castro Releases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul>
@@ -732,8 +729,6 @@
       </ul></li>
       <li><a href="file/Gravity_nd_f.html#f/gravity_module/ca_put_radial_phi"><strong>ca_put_radial_phi() (fortran subroutine in module gravity_module)</strong></a>
 </li>
-      <li><a href="file/flatten_nd_f.html#f/flatten_module/ca_rad_flatten"><strong>ca_rad_flatten() (fortran subroutine in module flatten_module)</strong></a>
-</li>
       <li><a href="file/rad_source_f.html#f/rad_source_module/ca_rad_source"><strong>ca_rad_source() (fortran subroutine in module rad_source_module)</strong></a>
 </li>
       <li><a href="file/Tagging_nd_f.html#f/tagging_module/ca_raderror"><strong>ca_raderror() (fortran subroutine in module tagging_module)</strong></a>
@@ -810,8 +805,6 @@
 </li>
       <li><a href="file/sponge_nd_f.html#f/sponge_module/ca_sponge"><strong>ca_sponge() (fortran subroutine in module sponge_module)</strong></a>
 </li>
-      <li><a href="file/advection_util_nd_f.html#f/advection_util_module/ca_srctoprim"><strong>ca_srctoprim() (fortran subroutine in module advection_util_module)</strong></a>
-</li>
       <li><a href="file/MGFLD_1d_f.html#f/_/ca_state_update"><strong>ca_state_update() (fortran subroutine)</strong></a>, <a href="file/MGFLD_2d_f.html#f/_/ca_state_update"><strong>[1]</strong></a>, <a href="file/MGFLD_3d_f.html#f/_/ca_state_update"><strong>[2]</strong></a>
 </li>
       <li><a href="file/fourth_order_f.html#f/fourth_order/ca_states"><strong>ca_states() (fortran subroutine in module fourth_order)</strong></a>
@@ -847,8 +840,6 @@
       <li><a href="file/Castro_ctu_nd_f.html#f/ctu_module/ca_track_grid_losses"><strong>ca_track_grid_losses() (fortran subroutine in module ctu_module)</strong></a>
 </li>
       <li><a href="file/RadPlotvar_1d_f.html#f/_/ca_transform_flux"><strong>ca_transform_flux() (fortran subroutine)</strong></a>, <a href="file/RadPlotvar_2d_f.html#f/_/ca_transform_flux"><strong>[1]</strong></a>, <a href="file/RadPlotvar_3d_f.html#f/_/ca_transform_flux"><strong>[2]</strong></a>
-</li>
-      <li><a href="file/flatten_nd_f.html#f/flatten_module/ca_uflatten"><strong>ca_uflatten() (fortran subroutine in module flatten_module)</strong></a>
 </li>
       <li><a href="file/MGutils_nd_f.html#f/mgutils_2d_module/ca_unweight_cc"><strong>ca_unweight_cc() (fortran subroutine in module mgutils_2d_module)</strong></a>
 </li>
@@ -1036,14 +1027,14 @@
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.riemann_solver</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Hydrodynamics.html#index-3">castro.riemann_speed_limit</a>
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.rot_axis</a>
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.rot_source_type</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="runtime_parameters.html#index-5">castro.rotation_include_centrifugal</a>
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.rotation_include_coriolis</a>
@@ -1376,7 +1367,11 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro12minBCThreadsEi">Castro::minBCThreads (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro12minBCThreadsEi">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro14mom_flux_has_pE">Castro::mom_flux_has_p (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14mom_flux_has_pE">[1]</a>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro15momx_flux_has_pE">Castro::momx_flux_has_p (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro15momx_flux_has_pE">[1]</a>
+</li>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro15momy_flux_has_pE">Castro::momy_flux_has_p (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro15momy_flux_has_pE">[1]</a>
+</li>
+      <li><a href="class/classCastro.html#_CPPv4N6Castro15momz_flux_has_pE">Castro::momz_flux_has_p (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro15momz_flux_has_pE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro6n_lostE">Castro::n_lost (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6n_lostE">[1]</a>
 </li>
@@ -1686,6 +1681,8 @@
 </li>
       <li><a href="file/Castro__sources_8H.html#_CPPv427construct_old_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">construct_old_thermo_source (C++ function)</a>
 </li>
+      <li><a href="file/Castro__hydro_8H.html#_CPPv412consup_hydroRKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE">consup_hydro (C++ function)</a>
+</li>
       <li><a href="file/sdc_util_f.html#f/sdc_util/convergence_failure"><strong>convergence_failure (fortran variable in module sdc_util)</strong></a>
 </li>
       <li><a href="file/prob_params_f.html#f/prob_params_module/coord_type"><strong>coord_type (fortran variable in module prob_params_module)</strong></a>
@@ -1694,13 +1691,13 @@
 </li>
       <li><a href="file/math_f.html#f/math_module/cross_product"><strong>cross_product() (fortran function in module math_module)</strong></a>
 </li>
-      <li><a href="file/Castro_ctu_nd_f.html#f/ctu_module/ctu_consup"><strong>ctu_consup() (fortran subroutine in module ctu_module)</strong></a>
-</li>
       <li><a href="file/Castro_ctu_nd_f.html#f/ctu_module"><strong>ctu_module (module)</strong></a>
 </li>
       <li><a href="file/Castro_ctu_nd_f.html#f/ctu_module/ctu_plm_states"><strong>ctu_plm_states() (fortran subroutine in module ctu_module)</strong></a>
 </li>
       <li><a href="file/Castro_ctu_nd_f.html#f/ctu_module/ctu_ppm_states"><strong>ctu_ppm_states() (fortran subroutine in module ctu_module)</strong></a>
+</li>
+      <li><a href="file/Castro_ctu_nd_f.html#f/ctu_module/ctu_rad_consup"><strong>ctu_rad_consup() (fortran subroutine in module ctu_module)</strong></a>
 </li>
       <li><a href="file/rad_params_f.html#f/rad_params_module/current_group"><strong>current_group (fortran variable in module rad_params_module)</strong></a>
 </li>
@@ -1976,10 +1973,10 @@
 </li>
       <li><a href="file/filter_f.html#f/filter_module/ff4b1"><strong>ff4b1 (fortran variable in module filter_module)</strong></a>
 </li>
-      <li><a href="file/filter_f.html#f/filter_module/ff4b2"><strong>ff4b2 (fortran variable in module filter_module)</strong></a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="file/filter_f.html#f/filter_module/ff4b2"><strong>ff4b2 (fortran variable in module filter_module)</strong></a>
+</li>
       <li><a href="file/filter_f.html#f/filter_module/ff4b3"><strong>ff4b3 (fortran variable in module filter_module)</strong></a>
 </li>
       <li><a href="file/Castro__sources_8H.html#_CPPv415fill_ext_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">fill_ext_source (C++ function)</a>
@@ -1997,8 +1994,6 @@
       <li><a href="file/Castro_8H.html#_CPPv49FirstSpec">FirstSpec (C++ member)</a>
 </li>
       <li><a href="file/fluxlimiter_f.html#f/fluxlimiter_module/fiveninths"><strong>fiveninths (fortran variable in module fluxlimiter_module)</strong></a>
-</li>
-      <li><a href="file/flatten_nd_f.html#f/flatten_module"><strong>flatten_module (module)</strong></a>
 </li>
       <li><a href="file/fluxlimiter_f.html#f/fluxlimiter_module/fldalpha"><strong>fldalpha() (fortran function in module fluxlimiter_module)</strong></a>
 </li>
@@ -2814,8 +2809,6 @@
 </li>
       <li><a href="runtime_parameters.html#index-14">particles.v</a>
 </li>
-      <li><a href="file/advection_util_nd_f.html#f/advection_util_module/pdivu"><strong>pdivu() (fortran function in module advection_util_module)</strong></a>
-</li>
       <li><a href="file/Castro_8H.html#_CPPv412PhiGrav_Type">PhiGrav_Type (C++ enumerator)</a>
 </li>
       <li><a href="file/bc_fill_nd_f.html#f/bc_fill_module/phigravfill"><strong>phigravfill() (fortran subroutine in module bc_fill_module)</strong></a>
@@ -2842,10 +2835,10 @@
 </li>
       <li><a href="file/pointmass_nd_f.html#f/pointmass_module"><strong>pointmass_module (module)</strong></a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/Castro_util_f.html#f/castro_util_module/position"><strong>position() (fortran function in module castro_util_module)</strong></a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/Castro_util_f.html#f/castro_util_module/position_to_index"><strong>position_to_index() (fortran function in module castro_util_module)</strong></a>
 </li>
       <li><a href="file/ppm_nd_f.html#f/ppm_module/ppm_int_profile"><strong>ppm_int_profile() (fortran subroutine in module ppm_module)</strong></a>
@@ -3520,10 +3513,10 @@
 </li>
       <li><a href="file/sdc_util_f.html#f/sdc_util/singular_matrix"><strong>singular_matrix (fortran variable in module sdc_util)</strong></a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/prob_params_f.html#f/prob_params_module/slipwall"><strong>slipwall (fortran variable in module prob_params_module)</strong></a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/slope_nd_f.html#f/slope_module"><strong>slope_module (module)</strong></a>
 </li>
       <li><a href="file/riemann_nd_f.html#f/riemann_module/small"><strong>small (fortran variable in module riemann_module)</strong></a>
@@ -3579,6 +3572,8 @@
       <li><a href="file/sponge_nd_f.html#f/sponge_module/sponge_upper_pressure"><strong>sponge_upper_pressure (fortran variable in module sponge_module)</strong></a>
 </li>
       <li><a href="file/sponge_nd_f.html#f/sponge_module/sponge_upper_radius"><strong>sponge_upper_radius (fortran variable in module sponge_module)</strong></a>
+</li>
+      <li><a href="file/Castro__hydro_8H.html#_CPPv411src_to_primRKN5amrex3BoxEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEE">src_to_prim (C++ function)</a>
 </li>
       <li><a href="build_system.html#index-19">state_indices.F90</a>
 </li>
@@ -3664,10 +3659,10 @@
 </li>
       <li><a href="file/Castro_8H.html#_CPPv410thermo_src">thermo_src (C++ enumerator)</a>
 </li>
-      <li><a href="file/Castro__sources_8H.html#_CPPv424time_center_source_termsRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">time_center_source_terms (C++ function)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="file/Castro__sources_8H.html#_CPPv424time_center_source_termsRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">time_center_source_terms (C++ function)</a>
+</li>
       <li><a href="file/timestep_f.html#f/timestep_module"><strong>timestep_module (module)</strong></a>
 </li>
       <li><a href="file/Rad_nd_f.html#f/rad_nd_module/tiny"><strong>tiny (fortran variable in module rad_nd_module)</strong></a>
@@ -3695,8 +3690,6 @@
       <li><a href="file/trace_ppm_f.html#f/trace_ppm_module/trace_ppm_rhoe"><strong>trace_ppm_rhoe() (fortran subroutine in module trace_ppm_module)</strong></a>
 </li>
       <li><a href="file/trace_ppm_f.html#f/trace_ppm_module/trace_ppm_species"><strong>trace_ppm_species() (fortran subroutine in module trace_ppm_module)</strong></a>
-</li>
-      <li><a href="file/trace_ppm_f.html#f/trace_ppm_module/trace_ppm_temp"><strong>trace_ppm_temp() (fortran subroutine in module trace_ppm_module)</strong></a>
 </li>
       <li><a href="file/fourth_order_f.html#f/fourth_order/trans_laplacian"><strong>trans_laplacian() (fortran subroutine in module fourth_order)</strong></a>
 </li>
@@ -3738,6 +3731,8 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="file/Castro__hydro_8H.html#_CPPv48uflattenRKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKi">uflatten (C++ function)</a>
+</li>
       <li><a href="file/Castro_8H.html#_CPPv421UnusedTimeIntegration">UnusedTimeIntegration (C++ enumerator)</a>
 </li>
       <li><a href="file/sponge_nd_f.html#f/sponge_module/update_factor"><strong>update_factor() (fortran function in module sponge_module)</strong></a>
@@ -3768,10 +3763,10 @@
 </li>
       <li><a href="build_system.html#index-13">USE_HYBRID_MOMENTUM</a>
 </li>
-      <li><a href="build_system.html#index-0">USE_HYPRE</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="build_system.html#index-0">USE_HYPRE</a>
+</li>
       <li><a href="build_system.html#index-17">USE_MAESTRO_INIT</a>
 </li>
       <li><a href="build_system.html#index-1">USE_MPI</a>

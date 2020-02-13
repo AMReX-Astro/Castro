@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File Castro.H &mdash; Castro 20.02
- documentation</title>
+  <title>File Castro.H &mdash; Castro  documentation</title>
   
 
   
@@ -63,11 +62,6 @@
           
             
             
-              <div class="version">
-                20.02
-
-              </div>
-            
           
 
           
@@ -99,8 +93,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
@@ -125,6 +121,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releases.html">Castro Releases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul class="current">
@@ -1591,6 +1588,11 @@
 </dd></dl>
 
 <dl class="function">
+<dt>
+<span class="target" id="classCastro_1afbf24aa0786a02b44e3b5351606bff74"></span><code class="descname">AMREX_GPU_HOST_DEVICE amrex::Vector&lt;amrex::Real&gt; Castro::position_c(const int i, const int j, const int k, const bool ccx, const bool ccy, const bool ccz)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="_CPPv4N6Castro15build_fine_maskEv">
 <span id="_CPPv3N6Castro15build_fine_maskEv"></span><span id="_CPPv2N6Castro15build_fine_maskEv"></span><span id="Castro::build_fine_mask"></span><span class="target" id="classCastro_1ad7c4cfb1156d8c9defcb0f39728468fa"></span>amrex::MultiFab &amp;<code class="descname">build_fine_mask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
 <dd></dd></dl>
@@ -2077,8 +2079,18 @@
 <dd></dd></dl>
 
 <dl class="member">
-<dt id="_CPPv4N6Castro14mom_flux_has_pE">
-<span id="_CPPv3N6Castro14mom_flux_has_pE"></span><span id="_CPPv2N6Castro14mom_flux_has_pE"></span><span id="Castro::mom_flux_has_p__amrex::Array:amrex::Array:b.3:.3:"></span><span class="target" id="classCastro_1ae787a56d747d0de7c39fe4127fc50587"></span>amrex::Array&lt;amrex::Array&lt;bool, 3&gt;, 3&gt; <code class="descname">mom_flux_has_p</code><br /></dt>
+<dt id="_CPPv4N6Castro15momx_flux_has_pE">
+<span id="_CPPv3N6Castro15momx_flux_has_pE"></span><span id="_CPPv2N6Castro15momx_flux_has_pE"></span><span id="Castro::momx_flux_has_p__amrex::GpuArray:i.3:"></span><span class="target" id="classCastro_1abdb6dc0109d06b15f010b37b773d4623"></span>amrex::GpuArray&lt;int, 3&gt; <code class="descname">momx_flux_has_p</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro15momy_flux_has_pE">
+<span id="_CPPv3N6Castro15momy_flux_has_pE"></span><span id="_CPPv2N6Castro15momy_flux_has_pE"></span><span id="Castro::momy_flux_has_p__amrex::GpuArray:i.3:"></span><span class="target" id="classCastro_1ac57985eb5b039d2e2172330d7284c260"></span>amrex::GpuArray&lt;int, 3&gt; <code class="descname">momy_flux_has_p</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro15momz_flux_has_pE">
+<span id="_CPPv3N6Castro15momz_flux_has_pE"></span><span id="_CPPv2N6Castro15momz_flux_has_pE"></span><span id="Castro::momz_flux_has_p__amrex::GpuArray:i.3:"></span><span class="target" id="classCastro_1af21dbed6e8ee7a87be31fb38f71eee4d"></span>amrex::GpuArray&lt;int, 3&gt; <code class="descname">momz_flux_has_p</code><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">

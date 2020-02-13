@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Flowchart &mdash; Castro 20.02
- documentation</title>
+  <title>Flowchart &mdash; Castro  documentation</title>
   
 
   
@@ -63,11 +62,6 @@
           
             
             
-              <div class="version">
-                20.02
-
-              </div>
-            
           
 
           
@@ -114,8 +108,10 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
@@ -140,6 +136,7 @@
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Castro Releases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul>
@@ -242,7 +239,7 @@ to either 2nd or 4th order.  This approximates the integral in
 time using a simple quadrature rule, and integrates the hydro
 explicitly and reactions implicitly to the next time node.
 Iterations allow each process to see one another and achieve
-high-order in time convergence.</li>
+high-order in time convergence.  This is described in [castro_sdc].</li>
 </ul>
 </li>
 </ul>
@@ -251,7 +248,7 @@ high-order in time convergence.</li>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">0</span></code>: this is the original Castro method,
-described in <a class="reference internal" href="zreferences.html#castro-i" id="id2">[castro_I]</a>.  This uses Strang splitting and the CTU
+described in <a class="reference internal" href="zreferences.html#castro-i" id="id3">[castro_I]</a>.  This uses Strang splitting and the CTU
 hydrodynamics scheme.</li>
 <li><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">1</span></code>: unused (in Castro 19.08 and
 earlier, this was a method-of-lines integration method with Strang
@@ -375,7 +372,7 @@ coarse-fine interfaces. This cleans up the memory used during
 the step.</li>
 <li>If <code class="docutils literal notranslate"><span class="pre">castro.track_grid_losses</span></code> is set, then we
 also add up the mass that left through the boundary over this
-step. <a class="footnote-reference" href="#id7" id="id3">[1]</a></li>
+step. <a class="footnote-reference" href="#id8" id="id4">[1]</a></li>
 <li>Free any memory allocated for the level advance.</li>
 </ul>
 </li>
@@ -400,7 +397,7 @@ step (ignoring the reaction terms), and reacting for half a time step.
 The treatment of source terms complicates this a little. The actual
 update, in sequence, looks like:</p>
 <div class="math notranslate nohighlight" id="equation-eq-source-correct">
-<span class="eqno">(2)<a class="headerlink" href="#equation-eq-source-correct" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
+<span class="eqno">(1)<a class="headerlink" href="#equation-eq-source-correct" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{aligned}
 \Ub^\star &amp;= \Ub^n + \frac{\dt}{2}\Rb(\Ub^n) \\
 \Ub^{n+1,(a)} &amp;= \Ub^\star + \dt\, \Sb(\Ub^\star) \\
 \Ub^{n+1,(b)} &amp;= \Ub^{n+1,(a)} + \dt\, {\bf A}(\Ub^\star) \\
@@ -418,7 +415,7 @@ fluxes.</p>
 <p>At the beginning of the time step, we assume that <span class="math notranslate nohighlight">\(\Ub\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span> are
 defined consistently, i.e., <span class="math notranslate nohighlight">\(\rho^n\)</span> and <span class="math notranslate nohighlight">\(\phi^n\)</span> satisfy equation
 <a class="reference internal" href="gravity.html#equation-eq-self-gravity">(4)</a>. Note that in
-<a class="reference internal" href="#equation-eq-source-correct">(2)</a>, we can actually do some
+<a class="reference internal" href="#equation-eq-source-correct">(1)</a>, we can actually do some
 sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
 make the update more akin to:</p>
@@ -497,7 +494,7 @@ intermediate state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)
 <li><p class="first">sponge : the sponge is a damping term added to
 the momentum equation that is designed to drive the velocities to
 zero over some timescale. Our implementation of the sponge
-follows that of Maestro <a class="reference internal" href="zreferences.html#maestro-iii" id="id4">[maestro:III]</a></p>
+follows that of Maestro <a class="reference internal" href="zreferences.html#maestro-iii" id="id5">[maestro:III]</a></p>
 </li>
 <li><p class="first">external sources : users can define problem-specific sources
 in the <code class="docutils literal notranslate"><span class="pre">ext_src_?d.f90</span></code> file. Sources for the different
@@ -606,7 +603,7 @@ using the updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(
 correction, <span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]\)</span> to
 add to <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span> to give us the properly time-centered source,
 and the fully updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span>. This correction is stored
-in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference" href="#id8" id="id5">[2]</a>.</p>
+in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference" href="#id9" id="id6">[2]</a>.</p>
 <p>In the process of updating the sources, we update the temperature to
 make it consistent with the new state.</p>
 </li>
@@ -727,7 +724,7 @@ simulation.</p>
 <p class="last">The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
 evolution type.</p>
 </div>
-<p>The SDC solver follows the algorithm detailed in <a class="reference internal" href="zreferences.html#castro-sdc" id="id6">[castro_sdc]</a>.
+<p>The SDC solver follows the algorithm detailed in [castro_sdc].
 We write our evolution equation as:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)\]</div>
@@ -1024,19 +1021,19 @@ term at the new time. As discussed above, this will be used in the
 next iteration to approximate the time-centered source term.</p>
 </li>
 </ol>
-<table class="docutils footnote" frame="void" id="id7" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td>Note: this functionality assumes that only the
+<tr><td class="label"><a class="fn-backref" href="#id4">[1]</a></td><td>Note: this functionality assumes that only the
 coarse grid touches the physical boundary. It does not use
 any use masks to prevent double counting if multiple levels
 touch the boundary.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
+<table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[2]</a></td><td>The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id6">[2]</a></td><td>The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.</td></tr>
 </tbody>
 </table>
 </div>

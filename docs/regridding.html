@@ -1,0 +1,372 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Regridding &mdash; Castro  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Plotfiles and Visualization" href="visualization.html" />
+    <link rel="prev" title="Outputting" href="io.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Regridding</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-good-performance">Getting good performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-grids-are-created">How grids are created</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Plotfiles and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="retry.html">Retry Mechanism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coding_conventions.html">Coding Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Castro Releases</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Regridding</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/regridding.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="regridding">
+<h1>Regridding<a class="headerlink" href="#regridding" title="Permalink to this headline">¶</a></h1>
+<p>The details of the regridding strategy are described in
+§ <a class="reference internal" href="AMR.html#sec-tagging"><span class="std std-ref">Tagging for Refinement</span></a>; here we cover how the input parameters can
+control the gridding.</p>
+<p>As described later, the user defines Fortran subroutines which tag
+individual cells at a given level if they need refinement. This list
+of tagged cells is sent to a grid generation routine, which uses the
+Berger-Rigoutsos algorithm <a class="reference internal" href="zreferences.html#br-refine" id="id1">[br-refine]</a> to create rectangular
+grids that contain the tagged cells.</p>
+<p>The relevant runtime parameters are:</p>
+<blockquote>
+<div><ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.regrid_file</span></code>: name of file from which to read the grids
+(text; default: no file)</p>
+<p>If set to a filename, e.g. <code class="docutils literal notranslate"><span class="pre">fixed_girds</span></code>, then list of grids at
+each fine level are read in from this file during the gridding
+procedure. These grids must not violate the <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code>
+criterion. The rest of the gridding procedure described below will
+not occur if <code class="docutils literal notranslate"><span class="pre">amr.regrid_file</span></code> is set.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.n_error_buf</span></code>: radius of additional tagging
+around already tagged cells (integer <span class="math notranslate nohighlight">\(\geq 0\)</span>; default: 1)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code>: maximum size of a grid in any
+direction (integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: 128 (2-d), 32 (3-d))</p>
+<p>Note: <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> must be even, and a multiple of
+<code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code> at every level.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>: grid size must be a multiple of this
+(integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: 2)
+<code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code> at every level must be a power of 2
+and the domain size must be a multiple of <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>
+at level 0.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This can be very important for elliptic problems with
+multigrid. A higher blocking factor allows the multigrid
+algorithm to coarsen more at the lowest level, reducing the
+amount of work required by the bottom solver.</p>
+</div>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.grid_eff</span></code>: grid efficiency (Real <span class="math notranslate nohighlight">\(&gt;0\)</span> and <span class="math notranslate nohighlight">\(&lt;1\)</span>;
+default: 0.7)</p>
+<p>When creating a refined grid, do we make boxes that only include
+the coarse cells that were explicitly tagged for refinement? or do
+we allow ourselves to encompass nearby, untagged cells in order to
+make larger and more regular boxes? This is the grid efficiency.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">blocking_factor</span> <span class="pre">=</span> <span class="pre">1</span></code>, <em>grid efficiency</em> is exactly the
+fraction of refined cells in the fine <code class="docutils literal notranslate"><span class="pre">BoxArray</span></code> which
+correspond to coarse cells which were tagged. For other blocking
+factors, we actually apply <code class="docutils literal notranslate"><span class="pre">grid_eff</span></code> at the level which has been
+coarsened by <code class="docutils literal notranslate"><span class="pre">blocking_factor</span></code>, so it is no longer strictly this
+fraction, but the idea is still the same.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.refine_grid_layout</span></code>: refine grids more if # of
+processors <span class="math notranslate nohighlight">\(&gt;\)</span> # of grids (0 if false, 1 if true; default: 1)</p>
+</li>
+</ul>
+</div></blockquote>
+<p>Note also that <code class="docutils literal notranslate"><span class="pre">amr.n_error_buf</span></code>, <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> and
+<code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code> can be read in as a single value which is
+assigned to every level, or as multiple values, one for each level.</p>
+<p>As an example, consider:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">grid_eff</span> <span class="o">=</span> <span class="mf">0.9</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">max_grid_size</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">blocking_factor</span><span class="p">}</span> <span class="o">=</span> <span class="mi">32</span>
+</pre></div>
+</div>
+<p>The grid efficiency, <code class="docutils literal notranslate"><span class="pre">amr.grid_eff</span></code>, means that during the grid
+creation process, at least 90% of the cells in each grid at the level
+at which the grid creation occurs must be tagged cells. A higher
+grid efficiency means fewer cells at higher levels, but may result
+in the production of lots of small grids, which have inefficient cache
+and OpenMP performance and higher communication costs.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> parameter means that the final grids will be
+no longer than 64 cells on a side at every level.  Alternately, we
+could specify a value for each level of refinement as
+<code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span> <span class="pre">=</span> <span class="pre">64</span> <span class="pre">32</span> <span class="pre">16</span></code> in which case our final grids will be
+no longer than 64 cells on a side at level 0, 32 cells on a side at
+level 1, and 16 cells on a side at level 2. The
+<code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code> means that all of the final grids will be
+multiples of 32 at all levels.  Again, this can be specified on a
+level-by-level basis, like <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span> <span class="pre">=</span> <span class="pre">32</span> <span class="pre">16</span> <span class="pre">8</span></code>, in which
+case the dimensions of all the final grids will be multiples of 32 at
+level 0, multiples of 16 at level 1, and multiples of 8 at level 2.</p>
+<div class="section" id="getting-good-performance">
+<h2>Getting good performance<a class="headerlink" href="#getting-good-performance" title="Permalink to this headline">¶</a></h2>
+<p>These parameters can have a large impact on the performance
+of Castro, so taking the time to experiment with is worth the effort.
+Having grids that are large enough to coarsen multiple levels in a
+V-cycle is essential for good multigrid performance in simulations
+that use self-gravity.</p>
+</div>
+<div class="section" id="how-grids-are-created">
+<h2>How grids are created<a class="headerlink" href="#how-grids-are-created" title="Permalink to this headline">¶</a></h2>
+<p>The gridding algorithm proceeds in this order:</p>
+<ol class="arabic simple">
+<li>Grids are created using the Berger-Rigoutsos clustering algorithm
+modified to ensure that all new fine grids are divisible by
+<code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>.</li>
+<li>Next, the grid list is chopped up if any grids are larger than
+<code class="docutils literal notranslate"><span class="pre">max_grid_size</span></code>.  Note that because <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> is a
+multiple of <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code> the <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>
+criterion is still satisfied.</li>
+<li>Next, if <code class="docutils literal notranslate"><span class="pre">amr.refine_grid_layout</span> <span class="pre">=</span> <span class="pre">1</span></code> and there are more
+processors than grids, and if <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> / 2 is a
+multiple of <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>, then the grids will be
+redefined, at each level independently, so that the maximum length
+of a grid at level <span class="math notranslate nohighlight">\(\ell\)</span>, in any dimension, is
+<code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> [<span class="math notranslate nohighlight">\(\ell\)</span>] / 2.</li>
+<li>Finally, if <code class="docutils literal notranslate"><span class="pre">amr.refine_grid_layout</span> <span class="pre">=</span> <span class="pre">1</span></code>, and there are still
+more processors than grids, and if <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> / 4 is a
+multiple of <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span></code>, then the grids will be
+redefined, at each level independently, so that the maximum length
+of a grid at level <span class="math notranslate nohighlight">\(\ell\)</span>, in any dimension, is
+<code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span></code> [<span class="math notranslate nohighlight">\(\ell\)</span>] / 4.</li>
+</ol>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="visualization.html" class="btn btn-neutral float-right" title="Plotfiles and Visualization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="io.html" class="btn btn-neutral float-left" title="Outputting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Parallel I/O &mdash; Castro 20.02
- documentation</title>
+  <title>Outputting &mdash; Castro  documentation</title>
   
 
   
@@ -39,7 +38,7 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Plotfiles and Visualization" href="visualization.html" />
+    <link rel="next" title="Regridding" href="regridding.html" />
     <link rel="prev" title="Setting Up Your Own Problem" href="creating_a_problem.html" /> 
 </head>
 
@@ -62,11 +61,6 @@
 
           
             
-            
-              <div class="version">
-                20.02
-
-              </div>
             
           
 
@@ -99,8 +93,16 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Parallel I/O</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Outputting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#restart-capability">Restart Capability</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#controlling-plotfile-generation">Controlling Plotfile Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#screen-output">Screen Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parallel-i-o">Parallel I/O</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
@@ -125,6 +127,7 @@
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Castro Releases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul>
@@ -179,7 +182,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Parallel I/O</li>
+      <li>Outputting</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -198,8 +201,248 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="parallel-i-o">
-<span id="ch-io"></span><h1>Parallel I/O<a class="headerlink" href="#parallel-i-o" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="outputting">
+<span id="ch-io"></span><h1>Outputting<a class="headerlink" href="#outputting" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="restart-capability">
+<h2>Restart Capability<a class="headerlink" href="#restart-capability" title="Permalink to this headline">¶</a></h2>
+<p>Castro&nbsp;has a standard sort of checkpointing and restarting capability.
+In the inputs file, the following options control the generation of
+checkpoint files (which are really directories):</p>
+<blockquote>
+<div><ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.check_file</span></code>: prefix for restart files (text;
+default: chk)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.check_int</span></code>: how often (by level 0 time steps) to
+write restart files (integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: -1)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code>: how often (by simulation time) to
+write restart files (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: -1.0)</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code> will write a checkpoint at the first
+timestep whose ending time is past an integer multiple of this
+interval.  In particular, the timestep is not modified to match
+this interval, so you won’t get a checkpoint at exactly the time
+you requested.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.restart</span></code>: name of the file (directory) from which to
+restart (Text; not used if not set)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.checkpoint_files_output</span></code>: should we write
+checkpoint files? (0 or 1; default: 1)</p>
+<p>If you are doing a scaling study then set
+<code class="docutils literal notranslate"><span class="pre">amr.checkpoint_files_output</span></code> = 0 so you can test scaling of the
+algorithm without I/O.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.check_nfiles</span></code>: how parallel is the writing of
+the checkpoint files? (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 64)</p>
+<p>See the chapter <a class="reference internal" href="#ch-io"><span class="std std-ref">Outputting</span></a> for more details on parallel I/O and the
+<code class="docutils literal notranslate"><span class="pre">amr.check_nfiles</span></code> parameter.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.checkpoint_on_restart</span></code>: should we write a
+checkpoint immediately after restarting? (0 or 1; default: 0)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.grown_factor</span></code>: factor by which domain has been
+grown (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 1)</p>
+</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>You can specify both <code class="docutils literal notranslate"><span class="pre">amr.check_int</span></code> or <code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code>,
+if you so desire; the code will print a warning in case you did
+this unintentionally. It will work as you would expect – you will
+get checkpoints at integer multiples of <code class="docutils literal notranslate"><span class="pre">amr.check_int</span></code> timesteps
+and at integer multiples of <code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code> simulation time
+intervals.</p>
+<p class="last"><code class="docutils literal notranslate"><span class="pre">amr.plotfile_on_restart</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.checkpoint_on_restart</span></code>
+require amr.regrid_on_restart to be in effect.</p>
+</div>
+<p>As an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">check_file</span> <span class="o">=</span> <span class="n">chk_run</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">check_int</span> <span class="o">=</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p>means that restart files (really directories) starting with the prefix
+“chk_run” will be generated every 10 level-0 time steps. The
+directory names will be <code class="docutils literal notranslate"><span class="pre">chk_run00000</span></code>, <code class="docutils literal notranslate"><span class="pre">chk_run00010</span></code>,
+<code class="docutils literal notranslate"><span class="pre">chk_run00020</span></code>, etc.</p>
+<p>If instead you specify:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">check_file</span> <span class="o">=</span> <span class="n">chk_run</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">check_per</span> <span class="o">=</span> <span class="mf">0.5</span>
+</pre></div>
+</div>
+<p>then restart files (really directories) starting with the prefix
+“chk_run” will be generated every 0.1 units of
+simulation time. The directory names will be <code class="docutils literal notranslate"><span class="pre">chk_run00000</span></code>,
+<code class="docutils literal notranslate"><span class="pre">chk_run00043</span></code>, <code class="docutils literal notranslate"><span class="pre">chk_run00061</span></code>, etc, where <span class="math notranslate nohighlight">\(t = 0.1\)</span> after
+43 level-0 steps, <span class="math notranslate nohighlight">\(t = 0.2\)</span> after 61 level-0 steps, etc.</p>
+<p>To restart from <code class="docutils literal notranslate"><span class="pre">chk_run00061</span></code>, for example, then set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">restart</span> <span class="o">=</span> <span class="n">chk_run00061</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="controlling-plotfile-generation">
+<span id="sec-plotfiles"></span><h2>Controlling Plotfile Generation<a class="headerlink" href="#controlling-plotfile-generation" title="Permalink to this headline">¶</a></h2>
+<p>The main output from Castro&nbsp;is in the form of plotfiles (which are
+really directories). The following options in the inputs file control
+the generation of plotfiles:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">amr.plot_file</span></code>: prefix for plotfiles (text; default:
+“plt”)</li>
+<li><code class="docutils literal notranslate"><span class="pre">amr.plot_int</span></code>: how often (by level-0 time steps) to
+write plot files (Integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: -1)</li>
+<li><code class="docutils literal notranslate"><span class="pre">amr.plot_per</span></code>: how often (by simulation time) to write
+plot files (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: -1.0)</li>
+</ul>
+<blockquote>
+<div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><code class="docutils literal notranslate"><span class="pre">amr.plot_per</span></code> will write a plotfile at the first
+timestep whose ending time is past an integer multiple of this
+interval.  In particular, the timestep is not modified to match
+this interval, so you won’t get a checkpoint at exactly the time
+you requested.</p>
+</div>
+</div></blockquote>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.plot_vars</span></code>: name of state variables to include in plotfiles
+(valid options: ALL, NONE or a list; default: ALL)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.derive_plot_vars</span></code>: name of derived variables to include in
+plotfiles (valid options: ALL, NONE or a list; default: NONE</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.plot_files_output</span></code>: should we write plot files?
+(0 or 1; default: 1)</p>
+<p>If you are doing a scaling study then set
+<code class="docutils literal notranslate"><span class="pre">amr.plot_files_output</span></code> = 0 so you can test scaling of the
+algorithm without I/O.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.plotfile_on_restart</span></code>: should we write a plotfile
+immediately after restarting? (0 or 1; default: 0)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.plot_nfiles</span></code>: how parallel is the writing of the
+plotfiles? (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 64)</p>
+<p>See the Software Section for more details on parallel I/O and the
+<code class="docutils literal notranslate"><span class="pre">amr.plot_nfiles</span></code> parameter.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.plot_X</span></code>: include all the species mass
+fractions in the plotfile (0 or 1; default: 0)</p>
+</li>
+</ul>
+</div></blockquote>
+<p>All the options for <code class="docutils literal notranslate"><span class="pre">amr.derive_plot_vars</span></code> are kept in
+<code class="docutils literal notranslate"><span class="pre">derive_lst</span></code> in <code class="docutils literal notranslate"><span class="pre">Castro_setup.cpp</span></code>. Feel free to look at
+it and see what’s there.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You can specify both <code class="docutils literal notranslate"><span class="pre">amr.plot_int</span></code> or <code class="docutils literal notranslate"><span class="pre">amr.plot_per</span></code>,
+if you so desire; the code will print a warning in case you did
+this unintentionally. It will work as you would expect – you will
+get plotfiles at integer multiples of amr.plot_int timesteps and at
+integer multiples of amr.plot_per simulation time intervals.</p>
+</div>
+<p>As an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">plot_file</span> <span class="o">=</span> <span class="n">plt_run</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">plot_int</span> <span class="o">=</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p>means that plot files (really directories) starting with the prefix
+“plt_run” will be generated every 10 level-0 time steps. The
+directory names will be <code class="docutils literal notranslate"><span class="pre">plt_run00000</span></code>, <code class="docutils literal notranslate"><span class="pre">plt_run00010</span></code>,
+<code class="docutils literal notranslate"><span class="pre">plt_run00020</span></code>, etc.</p>
+<p>If instead you specify:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">plot_file</span> <span class="o">=</span> <span class="n">plt_run</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">plot_per</span> <span class="o">=</span> <span class="mf">0.5</span>
+</pre></div>
+</div>
+<p>then restart files (really directories) starting with the prefix
+“plt_run” will be generated every 0.1 units of simulation time. The
+directory names will be <code class="docutils literal notranslate"><span class="pre">plt_run00000</span></code>, <code class="docutils literal notranslate"><span class="pre">plt_run00043</span></code>,
+<code class="docutils literal notranslate"><span class="pre">plt_run00061</span></code>, etc, where <span class="math notranslate nohighlight">\(t = 0.1\)</span> after 43 level-0 steps, <span class="math notranslate nohighlight">\(t =
+0.2\)</span> after 61 level-0 steps, etc.</p>
+</div>
+<div class="section" id="screen-output">
+<h2>Screen Output<a class="headerlink" href="#screen-output" title="Permalink to this headline">¶</a></h2>
+<p>There are several options that set how much output is written to the
+screen as Castro&nbsp;runs:</p>
+<blockquote>
+<div><ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Amr.cpp</span></code> (0 or 1; default: 0)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Castro.cpp</span></code> (0 or 1; default: 0)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">gravity.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Gravity.cpp</span></code> (0 or 1; default: 0)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">diffusion.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Diffusion.cpp</span></code> (0 or 1;
+default: 0)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">mg.v</span></code>: verbosity of multigrid solver (for gravity) (allow
+values: 0, 1, 2, 3, 4; default: 0)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.grid_log</span></code>: name of the file to which the grids are
+written (text; not used if not set)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.run_log</span></code>: name of the file to which certain output is
+written (text; not used if not set)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.run_log_terse</span></code>: name of the file to which certain
+(terser) output is written (text; not used if not set)</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">amr.sum_interval</span></code>: if <span class="math notranslate nohighlight">\(&gt; 0\)</span>, how often (in level-0 time
+steps) to compute and print integral quantities (Integer; default: -1)</p>
+<p>The integral quantities include total mass, momentum and energy in
+the domain every <code class="docutils literal notranslate"><span class="pre">castro.sum_interval</span></code> level-0 steps.  The print
+statements have the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TIME</span><span class="o">=</span> <span class="mf">1.91717746</span> <span class="n">MASS</span><span class="o">=</span> <span class="mf">1.792410279e+34</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<blockquote>
+<div>for example. If this line is commented out then
+it will not compute and print these quanitities.</div></blockquote>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.do_special_tagging</span></code>: allows the user to set a special
+flag based on user-specified criteria (0 or 1; default: 1)</p>
+<p><code class="docutils literal notranslate"><span class="pre">castro.do_special_tagging</span></code> = 1 can be used, for example, to
+calculate the bounce time in a core collapse simulation; the
+bounce time is defined as the first time at which the maximum
+density in the domain exceeds a user-specified value. This time
+can then be printed into a special file as a useful diagnostic.</p>
+</li>
+</ul>
+</div></blockquote>
+<p>As an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">grid_log</span> <span class="o">=</span> <span class="n">grdlog</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">run_log</span> <span class="o">=</span> <span class="n">runlog</span>
+</pre></div>
+</div>
+<p>Every time the code regrids it prints a list of grids at all relevant
+levels. Here the code will write these grids lists into the file
+<code class="docutils literal notranslate"><span class="pre">grdlog</span></code>. Additionally, every time step the code prints certain
+statements to the screen (if <code class="docutils literal notranslate"><span class="pre">amr.v</span></code> = 1), such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">STEP</span> <span class="o">=</span> <span class="mi">1</span> <span class="n">TIME</span> <span class="o">=</span> <span class="mf">1.91717746</span> <span class="n">DT</span> <span class="o">=</span> <span class="mf">1.91717746</span>
+<span class="n">PLOTFILE</span><span class="p">:</span> <span class="n">file</span> <span class="o">=</span> <span class="n">plt00001</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">run_log</span></code> option will output these statements into
+<em>runlog</em> as well.</p>
+<p>Terser output can be obtained via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">run_log_terse</span> <span class="o">=</span> <span class="n">runlogterse</span>
+</pre></div>
+</div>
+<p>This file, <code class="docutils literal notranslate"><span class="pre">runlogterse</span></code> differs from <code class="docutils literal notranslate"><span class="pre">runlog</span></code>, in that it
+only contains lines of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">10</span>  <span class="mf">0.2</span>  <span class="mf">0.005</span>
+</pre></div>
+</div>
+<p>in which “10” is the number of steps taken, “0.2” is the
+simulation time, and “0.005” is the level-0 time step. This file
+can be plotted very easily to monitor the time step.</p>
+</div>
+<div class="section" id="parallel-i-o">
+<h2>Parallel I/O<a class="headerlink" href="#parallel-i-o" title="Permalink to this headline">¶</a></h2>
 <p>Both checkpoint files and plotfiles are really directories containing
 subdirectories: one subdirectory for each level of the AMR hierarchy.
 The fundamental data structure we read/write to disk is a <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>,
@@ -234,6 +477,7 @@ value -1 forces <span class="math notranslate nohighlight">\(N\)</span> to the n
 running, which means that each CPU writes to a unique file, which can
 create a very large number of files, which can lead to inode issues.</p>
 </div>
+</div>
 
 
            </div>
@@ -243,7 +487,7 @@ create a very large number of files, which can lead to inode issues.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="visualization.html" class="btn btn-neutral float-right" title="Plotfiles and Visualization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="regridding.html" class="btn btn-neutral float-right" title="Regridding" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="creating_a_problem.html" class="btn btn-neutral float-left" title="Setting Up Your Own Problem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

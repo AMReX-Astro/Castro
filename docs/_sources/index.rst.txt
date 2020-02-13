@@ -21,8 +21,10 @@ https://github.com/amrex-astro/Castro
    mpi_plus_x
    FlowChart
    software
+   timestepping
    creating_a_problem
    io
+   regridding
    visualization
    retry
    faq
@@ -49,6 +51,7 @@ https://github.com/amrex-astro/Castro
    self_consistent_field
    MAESTRO_restart
    Verification
+   releases.rst
 
 .. toctree::
    :maxdepth: 1

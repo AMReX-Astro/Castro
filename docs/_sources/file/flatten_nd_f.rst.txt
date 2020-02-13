@@ -1,8 +1,0 @@
-flatten_nd.F90
-==============
-
-flatten\_module
----------------
-
-.. f:automodule:: flatten_module
-

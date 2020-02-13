@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>hybrid_advection_nd.F90 &mdash; Castro 20.02
- documentation</title>
+  <title>hybrid_advection_nd.F90 &mdash; Castro  documentation</title>
   
 
   
@@ -63,11 +62,6 @@
           
             
             
-              <div class="version">
-                20.02
-
-              </div>
-            
           
 
           
@@ -99,8 +93,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../io.html">Parallel I/O</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Plotfiles and Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../retry.html">Retry Mechanism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
@@ -125,6 +121,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releases.html">Castro Releases</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul class="current">
@@ -138,7 +135,6 @@
 <li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro_mol_nd_f.html">Castro_mol_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="flatten_nd_f.html">flatten_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fourth_order_f.html">fourth_order.F90</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">hybrid_advection_nd.F90</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#f/hybrid_advection_module">hybrid_advection_module</a></li>
@@ -472,28 +468,28 @@ that has radial and angular components.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>]</em></li>
-<li><strong>update</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,nvar)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>qx</strong> (qx_hi(1)-(qx_lo(1))+1,qx_hi(2)-(qx_lo(2))+1,qx_hi(3)-(qx_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>qx_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>qx_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>qy</strong> (qy_hi(1)-(qy_lo(1))+1,qy_hi(2)-(qy_lo(2))+1,qy_hi(3)-(qy_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>qy_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>qy_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>qz</strong> (qz_hi(1)-(qz_lo(1))+1,qz_hi(2)-(qz_lo(2))+1,qz_hi(3)-(qz_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>qz_lo</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
-<li><strong>qz_hi</strong> (3)<em> [</em><em>integer</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>update</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qx</strong> (qx_hi(1)-(qx_lo(1))+1,qx_hi(2)-(qx_lo(2))+1,qx_hi(3)-(qx_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qy</strong> (qy_hi(1)-(qy_lo(1))+1,qy_hi(2)-(qy_lo(2))+1,qy_hi(3)-(qy_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qz</strong> (qz_hi(1)-(qz_lo(1))+1,qz_hi(2)-(qz_lo(2))+1,qz_hi(3)-(qz_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umr()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_f.html#f/prob_params_module/dx_level" title="f/prob_params_module/dx_level"><code class="xref f f-func docutils literal notranslate"><span class="pre">dx_level()</span></code></a>), <a class="reference internal" href="Castro_util_f.html#f/castro_util_module" title="f/castro_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_util_module</span></code></a> (<a class="reference internal" href="Castro_util_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>), <a class="reference internal" href="amrinfo_f.html#f/amrinfo_module" title="f/amrinfo_module: This module contains information about the state of the Amr class in C++."><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrinfo_module</span></code></a> (<a class="reference internal" href="amrinfo_f.html#f/amrinfo_module/amr_level" title="f/amrinfo_module/amr_level"><code class="xref f f-func docutils literal notranslate"><span class="pre">amr_level()</span></code></a>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="Castro_ctu_nd_f.html#f/ctu_module/ctu_consup" title="f/ctu_module/ctu_consup"><code class="xref f f-func docutils literal notranslate"><span class="pre">ctu_consup()</span></code></a>, <a class="reference internal" href="Castro_mol_nd_f.html#f/castro_mol_module/ca_mol_consup" title="f/castro_mol_module/ca_mol_consup"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_mol_consup()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="Castro_mol_nd_f.html#f/castro_mol_module/ca_mol_consup" title="f/castro_mol_module/ca_mol_consup"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_mol_consup()</span></code></a></p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_util_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a></p>
