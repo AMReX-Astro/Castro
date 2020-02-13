@@ -52,14 +52,35 @@
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
 
     void src_to_prim(const amrex::Box& bx,
-                     amrex::Array4<amrex::Real> const q, amrex::Array4<amrex::Real> const qaux,
-                     amrex::Array4<amrex::Real> const src, amrex::Array4<amrex::Real> const srcQ);
-
+                     amrex::Array4<amrex::Real const> const q,
+                     amrex::Array4<amrex::Real const> const qaux,
+                     amrex::Array4<amrex::Real const> const src,
+                     amrex::Array4<amrex::Real> const srcQ);
 
     void uflatten(const amrex::Box& bx,
                   amrex::Array4<amrex::Real const> const q,
                   amrex::Array4<amrex::Real> const flatn,
                   const int pres_comp);
+
+    void shock(const amrex::Box& bx,
+               amrex::Array4<amrex::Real const> const q,
+               amrex::Array4<amrex::Real> const shk);
+
+    void divu(const amrex::Box& bx,
+              amrex::Array4<amrex::Real const> const q,
+              amrex::Array4<amrex::Real> const div);
+
+    void apply_av(const amrex::Box& bx,
+                  const int idir,
+                  amrex::Array4<amrex::Real const> const div,
+                  amrex::Array4<amrex::Real const> const uin,
+                  amrex::Array4<amrex::Real> const flux);
+
+    void apply_av_rad(const amrex::Box& bx,
+                      const int idir,
+                      amrex::Array4<amrex::Real const> const div,
+                      amrex::Array4<amrex::Real const> const Erin,
+                      amrex::Array4<amrex::Real> const radflux);
 
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const shk,

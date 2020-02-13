@@ -98,6 +98,25 @@ enum int_method { CornerTransportUpwind = 0,
                   SimplifiedSpectralDeferredCorrections
                 };
 
+
+#if AMREX_SPACEDIM == 1
+constexpr int dg0 = 1;
+constexpr int dg1 = 0;
+constexpr int dg2 = 0;
+
+#elif AMREX_SPACEDIM == 2
+constexpr int dg0 = 1;
+constexpr int dg1 = 1;
+constexpr int dg2 = 0;
+
+#else
+constexpr int dg0 = 1;
+constexpr int dg1 = 1;
+constexpr int dg2 = 1;
+
+#endif
+
+
 ///
 /// @class Castro
 ///
@@ -1057,12 +1076,6 @@ public:
 ///
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
-
-
-  AMREX_GPU_HOST_DEVICE
-  amrex::Vector<amrex::Real> position_c
-  (const int i, const int j, const int k,
-   const bool ccx, const bool ccy, const bool ccz);
 
 
 // Hydrodynamics

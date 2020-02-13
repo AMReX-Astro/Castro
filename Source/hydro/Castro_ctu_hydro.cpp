@@ -240,11 +240,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       if (hybrid_riemann == 1 || compute_shock) {
-#pragma gpu box(obx)
-          ca_shock(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(shk),
-                   AMREX_REAL_ANYD(dx));
+        shock(obx, q_arr, shk_arr);
       }
       else {
         AMREX_PARALLEL_FOR_3D(obx, i, j, k, { shk_arr(i,j,k) = 0.0; });
@@ -337,13 +333,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       div.resize(obx, 1);
       Elixir elix_div = div.elixir();
       fab_size += div.nBytes();
+      auto div_arr = div.array();
 
       // compute divu -- we'll use this later when doing the artifical viscosity
-#pragma gpu box(obx)
-      divu(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-           BL_TO_FORTRAN_ANYD(q[mfi]),
-           AMREX_REAL_ANYD(dx),
-           BL_TO_FORTRAN_ANYD(div));
+      divu(obx, q_arr, div_arr);
 
       q_int.resize(obx, NQ);
       Elixir elix_q_int = q_int.elixir();
@@ -1202,6 +1195,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           int idir_f = idir + 1;
 
           Array4<Real> const flux_arr = (flux[idir]).array();
+          Array4<Real const> const uin_arr = Sborder.array(mfi);
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
           AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
@@ -1212,20 +1206,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
           });
 
-#pragma gpu box(nbx)
-          apply_av(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                   idir_f, AMREX_REAL_ANYD(dx),
-                   BL_TO_FORTRAN_ANYD(div),
-                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(flux[idir]));
+          apply_av(nbx, idir, div_arr, uin_arr, flux_arr);
 
 #ifdef RADIATION
-#pragma gpu box(nbx)
-          apply_av_rad(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                       idir_f, AMREX_REAL_ANYD(dx),
-                       BL_TO_FORTRAN_ANYD(div),
-                       BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                       BL_TO_FORTRAN_ANYD(rad_flux[idir]));
+          Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
+          Array4<Real const> const Erin_arr = Erborder.array(mfi);
+
+          apply_av_rad(nbx, idir, div_arr, Erin_arr, rad_flux_arr);
 #endif
 
           if (limit_fluxes_on_small_dens == 1) {
@@ -1360,13 +1347,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         if (idir == 0) {
             // get the scaled radial pressure -- we need to treat this specially
             Array4<Real> const qex_fab = qe[idir].array();
-            const int prescomp = GDPRES;
 
 #if AMREX_SPACEDIM == 1
             if (!Geom().IsCartesian()) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
-                    pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                    pradial_fab(i,j,k) = qex_fab(i,j,k,GDPRES) * dt;
                 });
             }
 #endif
@@ -1375,7 +1361,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             if (!momx_flux_has_p[0]) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
-                    pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+                    pradial_fab(i,j,k) = qex_fab(i,j,k,GDPRES) * dt;
                 });
             }
 #endif
