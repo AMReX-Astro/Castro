@@ -1235,8 +1235,8 @@ Gravity::test_composite_phi (int crse_level)
         std::cout << "... test_composite_phi at base level " << crse_level << '\n';
     }
 
-    int finest_level = parent->finestLevel();
-    int nlevels = finest_level - crse_level + 1;
+    int finest_level_local = parent->finestLevel();
+    int nlevels = finest_level_local - crse_level + 1;
 
     Vector<std::unique_ptr<MultiFab> > phi(nlevels);
     Vector<std::unique_ptr<MultiFab> > rhs(nlevels);
@@ -1262,7 +1262,7 @@ Gravity::test_composite_phi (int crse_level)
     Real time = LevelData[crse_level]->get_state_data(PhiGrav_Type).curTime();
 
     Vector< Vector<MultiFab*> > grad_phi_null;
-    solve_phi_with_mlmg(crse_level, finest_level,
+    solve_phi_with_mlmg(crse_level, finest_level_local,
                         amrex::GetVecOfPtrs(phi),
                         amrex::GetVecOfPtrs(rhs),
                         grad_phi_null,
@@ -1270,7 +1270,7 @@ Gravity::test_composite_phi (int crse_level)
                         time);
 
     // Average residual from fine to coarse level before printing the norm
-    for (int amr_lev = finest_level-1; amr_lev >= 0; --amr_lev)
+    for (int amr_lev = finest_level_local-1; amr_lev >= 0; --amr_lev)
     {
         const IntVect& ratio = parent->refRatio(amr_lev);
         int ilev = amr_lev - crse_level;
@@ -1278,7 +1278,7 @@ Gravity::test_composite_phi (int crse_level)
                              0, 1, ratio);
     }
 
-    for (int amr_lev = crse_level; amr_lev <= finest_level; ++amr_lev) {
+    for (int amr_lev = crse_level; amr_lev <= finest_level_local; ++amr_lev) {
         Real resnorm = res[amr_lev]->norm0();
         if (ParallelDescriptor::IOProcessor()) {
             std::cout << "      ... norm of composite residual at level "

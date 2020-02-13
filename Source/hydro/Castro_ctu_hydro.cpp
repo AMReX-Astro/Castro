@@ -113,8 +113,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox qmyz, qpyz;
 #endif
 
+#ifdef AMREX_USE_GPU
     size_t starting_size = MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level));
     size_t current_size = starting_size;
+#endif
 
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
