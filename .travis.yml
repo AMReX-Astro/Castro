@@ -38,7 +38,7 @@ matrix:
       #     branch: master
 
     - name: "clang static analysis"
-      if: type = pull_request OR type = api
+      if: type = pull_request OR type = api OR type = cron
       language: cpp
       compiler: 
         - clang
