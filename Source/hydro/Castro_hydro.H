@@ -119,6 +119,8 @@
                         amrex::Array4<amrex::Real> const rflux,
                         amrex::Array4<amrex::Real const> area,
                         const int dt);
+#endif
+
 #ifdef HYBRID_MOMENTUM
 
 ///
