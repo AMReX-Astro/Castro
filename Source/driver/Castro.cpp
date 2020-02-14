@@ -2627,14 +2627,14 @@ Castro::reflux(int crse_level, int fine_level)
             MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
             MultiFab& source = getLevel(lev).get_new_data(Source_Type);
             Real time = getLevel(lev).state[State_Type].curTime();
-            Real dt_advance = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
+            Real dt_advance_local = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
             Real dt_amr = parent->dtLevel(lev); // The full timestep expected by the Amr class.
 
-            ca_set_amr_info(lev, -1, -1, time, dt_advance);
+            ca_set_amr_info(lev, -1, -1, time, dt_advance_local);
 
             if (getLevel(lev).apply_sources()) {
 
-                getLevel(lev).apply_source_to_state(S_new, source, -dt_advance, 0);
+                getLevel(lev).apply_source_to_state(S_new, source, -dt_advance_local, 0);
                 getLevel(lev).clean_state(S_new, time, 0);
 
             }
@@ -2642,7 +2642,7 @@ Castro::reflux(int crse_level, int fine_level)
             // Temporarily restore the last iteration's old data for the purposes of recalculating the corrector.
             // This is only necessary if we've done subcycles on that level.
 
-            if (use_retry && dt_advance < dt_amr && getLevel(lev).keep_prev_state) {
+            if (use_retry && dt_advance_local < dt_amr && getLevel(lev).keep_prev_state) {
 
                 for (int k = 0; k < num_state_type; k++) {
 
@@ -2657,7 +2657,7 @@ Castro::reflux(int crse_level, int fine_level)
                         MultiFab::Copy(getLevel(lev).prev_state[k]->newData(), old, 0, 0, old.nComp(), old.nGrow());
                         MultiFab::Copy(old, getLevel(lev).prev_state[k]->oldData(), 0, 0, old.nComp(), old.nGrow());
 
-                        getLevel(lev).state[k].setTimeLevel(time, dt_advance, 0.0);
+                        getLevel(lev).state[k].setTimeLevel(time, dt_advance_local, 0.0);
                         getLevel(lev).prev_state[k]->setTimeLevel(time, dt_amr, 0.0);
 
                     }
@@ -2668,10 +2668,10 @@ Castro::reflux(int crse_level, int fine_level)
 
             if (getLevel(lev).apply_sources()) {
                 bool apply_sources_to_state = true;
-                getLevel(lev).do_new_sources(source, S_old, S_new, time, dt_advance, apply_sources_to_state);
+                getLevel(lev).do_new_sources(source, S_old, S_new, time, dt_advance_local, apply_sources_to_state);
             }
 
-            if (use_retry && dt_advance < dt_amr && getLevel(lev).keep_prev_state) {
+            if (use_retry && dt_advance_local < dt_amr && getLevel(lev).keep_prev_state) {
 
                 for (int k = 0; k < num_state_type; k++) {
 
@@ -2683,7 +2683,7 @@ Castro::reflux(int crse_level, int fine_level)
                         MultiFab::Copy(old, getLevel(lev).prev_state[k]->newData(), 0, 0, old.nComp(), old.nGrow());
 
                         getLevel(lev).state[k].setTimeLevel(time, dt_amr, 0.0);
-                        getLevel(lev).prev_state[k]->setTimeLevel(time, dt_advance, 0.0);
+                        getLevel(lev).prev_state[k]->setTimeLevel(time, dt_advance_local, 0.0);
 
                     }
 

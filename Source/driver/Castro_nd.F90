@@ -72,60 +72,6 @@ end subroutine ca_extern_init
 ! :::
 
 
-subroutine ca_get_spec_names(spec_names,ispec,len) &
-     bind(C, name="ca_get_spec_names")
-     ! Binds to C function `ca_get_spec_names`
-
-  use network, only: nspec, short_spec_names
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in   ) :: ispec
-  integer, intent(inout) :: len
-  integer, intent(inout) :: spec_names(len)
-
-  ! Local variables
-  integer   :: i
-
-  len = len_trim(short_spec_names(ispec+1))
-
-  do i = 1,len
-     spec_names(i) = ichar(short_spec_names(ispec+1)(i:i))
-  end do
-
-end subroutine ca_get_spec_names
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine ca_get_spec_az(ispec,A,Z) bind(C, name="ca_get_spec_az")
-    !
-    ! Binds to C function `ca_get_spec_az`
-
-  use network, only: nspec, aion, zion
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer,  intent(in   ) :: ispec
-  real(rt), intent(inout) :: A, Z
-
-  ! C++ is 0-based indexing, so increment
-  A = aion(ispec+1)
-  Z = zion(ispec+1)
-
-end subroutine ca_get_spec_az
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
 subroutine ca_get_aux_names(aux_names,iaux,len) &
      bind(C, name="ca_get_aux_names")
      !
