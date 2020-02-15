@@ -428,14 +428,14 @@ Castro::normalize_species_fluxes(const Box& bx,
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
 
-    Real sum = 0.0;
+    Real sum = 0.0_rt;
 
     for (int n = UFS; n < UFS+NumSpec; n++) {
       sum += flux(i,j,k,n);
     }
 
-    Real fac = 1.0;
-    if (sum != 0.0) {
+    Real fac = 1.0_rt;
+    if (sum != 0.0_rt) {
       fac = flux(i,j,k,URHO) / sum;
     }
 
