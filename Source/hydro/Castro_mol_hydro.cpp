@@ -559,6 +559,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             const Box& nbx = amrex::surroundingNodes(bx, idir);
 
+            Array4<Real> const flux_arr = (flux[idir]).array();
+
             int idir_f = idir + 1;
 
 
@@ -577,10 +579,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             }
 
             // ensure that the species fluxes are normalized
-#pragma gpu box(nbx)
-            normalize_species_fluxes
-              (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-               BL_TO_FORTRAN_ANYD(flux[idir]));
+            normalize_species_fluxes(nbx, flux_arr);
 
           }
 
@@ -627,19 +626,21 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         Elixir elix_pradial = pradial.elixir();
 
         Array4<Real> pradial_fab = pradial.array();
+        Array4<Real> const qex_arr = qe[0].array();
 #endif
 
         for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
           const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-#pragma gpu box(nbx)
-          scale_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
+          Array4<Real> const flux_arr = (flux[idir]).array();
+          Array4<Real const> const area_arr = (area[idir]).array(mfi);
+
+          scale_flux(nbx,
 #if AMREX_SPACEDIM == 1
-                     BL_TO_FORTRAN_ANYD(qe[idir]),
+                     qex_arr,
 #endif
-                     BL_TO_FORTRAN_ANYD(flux[idir]),
-                     BL_TO_FORTRAN_ANYD(area[idir][mfi]), dt);
+                     flux_arr, area_arr, dt);
 
 
           if (idir == 0) {

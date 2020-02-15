@@ -104,6 +104,23 @@
                       const amrex::Real dt);
 
 
+    void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const flux);
+
+    void scale_flux(const amrex::Box& bx,
+#if AMREX_SPACEDIM == 1
+                    amrex::Array4<amrex::Real const> const qint,
+#endif
+                    amrex::Array4<amrex::Real> const flux,
+                    amrex::Array4<amrex::Real const> const area,
+                    const int dt);
+
+#ifdef RADIATION
+    void scale_rad_flux(const amrex::Box& bx,
+                        amrex::Array4<amrex::Real> const rflux,
+                        amrex::Array4<amrex::Real const> area,
+                        const int dt);
+#endif
+
 #ifdef HYBRID_MOMENTUM
 
 ///

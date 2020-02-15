@@ -82,6 +82,7 @@ Castro::shock(const Box& bx,
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
     Real div_u = 0.0_rt;
+
     // construct div{U}
     if (coord_type == 0) {
 
@@ -414,3 +415,75 @@ Castro::apply_av_rad(const Box& bx,
   });
 }
 #endif
+
+
+void
+Castro::normalize_species_fluxes(const Box& bx,
+                                 Array4<Real> const flux) {
+
+  // Normalize the fluxes of the mass fractions so that
+  // they sum to 0.  This is essentially the CMA procedure that is
+  // defined in Plewa & Muller, 1999, A&A, 342, 179.
+
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
+
+    Real sum = 0.0_rt;
+
+    for (int n = UFS; n < UFS+NumSpec; n++) {
+      sum += flux(i,j,k,n);
+    }
+
+    Real fac = 1.0_rt;
+    if (sum != 0.0_rt) {
+      fac = flux(i,j,k,URHO) / sum;
+    }
+
+    for (int n = UFS; n < UFS+NumSpec; n++) {
+      flux(i,j,k,n) = flux(i,j,k,n) * fac;
+    }
+  });
+}
+
+
+void
+Castro::scale_flux(const Box& bx,
+#if AMREX_SPACEDIM == 1
+                   Array4<Real const> const qint,
+#endif
+                   Array4<Real> const flux,
+                   Array4<Real const> const area,
+                   const int dt) {
+
+#if AMREX_SPACEDIM == 1
+  const int coord_type = geom.Coord();
+#endif
+
+  AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
+  {
+
+    flux(i,j,k,n) = dt * flux(i,j,k,n) * area(i,j,k);
+#if AMREX_SPACEDIM == 1
+    // Correct the momentum flux with the grad p part.
+    if (coord_type == 0 && n == UMX) {
+      flux(i,j,k,n) += dt * area(i,j,k) * qint(i,j,k,GDPRES);
+    }
+#endif
+  });
+}
+
+
+#ifdef RADIATION
+void
+Castro::scale_rad_flux(const Box& bx,
+                       Array4<Real> const rflux,
+                       Array4<Real const> area,
+                       const int dt) {
+
+  AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
+  {
+    rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area(i,j,k);
+  });
+}
+#endif
+
