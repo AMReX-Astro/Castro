@@ -1323,7 +1323,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM <= 2
       Array4<Real> pradial_fab = pradial.array();
-      Array4<Real> const qex_arr = qe[0].array();
+      Array4<Real> const qex_arr = (qe[0]).array();
 #endif
 
 
