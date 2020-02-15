@@ -112,13 +112,13 @@
 #endif
                     amrex::Array4<amrex::Real> const flux,
                     amrex::Array4<amrex::Real const> const area,
-                    const int dt);
+                    const amrex::Real dt);
 
 #ifdef RADIATION
     void scale_rad_flux(const amrex::Box& bx,
                         amrex::Array4<amrex::Real> const rflux,
                         amrex::Array4<amrex::Real const> area,
-                        const int dt);
+                        const amrex::Real dt);
 #endif
 
 #ifdef HYBRID_MOMENTUM

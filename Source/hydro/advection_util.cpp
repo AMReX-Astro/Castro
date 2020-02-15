@@ -453,7 +453,7 @@ Castro::scale_flux(const Box& bx,
 #endif
                    Array4<Real> const flux,
                    Array4<Real const> const area,
-                   const int dt) {
+                   const Real dt) {
 
 #if AMREX_SPACEDIM == 1
   const int coord_type = geom.Coord();
@@ -478,7 +478,7 @@ void
 Castro::scale_rad_flux(const Box& bx,
                        Array4<Real> const rflux,
                        Array4<Real const> area,
-                       const int dt) {
+                       const Real dt) {
 
   AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
   {
