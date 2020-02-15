@@ -323,7 +323,6 @@ endif
 table:
 	@if [ ! -f helm_table.dat ]; then echo Linking helm_table.dat; ln -s $(EOS_PATH)/helm_table.dat .;  fi
 
-EXTERN_CORE += $(NETWORK_HOME)
 EXTERN_CORE += $(NETWORK_PATH)
 
 # Note that this should be located after the include of the EOS and
@@ -333,6 +332,11 @@ EXTERN_CORE += $(NETWORK_PATH)
 EXTERN_CORE += $(MICROPHYSICS_HOME)/EOS
 EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
 EXTERN_CORE += $(MICROPHYSICS_HOME)/interfaces
+
+# for the automatically generated network_properties stuff, we should
+# tell it where to put them
+NETWORK_HEADERS_DIR = $(CASTRO_AUTO_SOURCE_DIR)
+
 
 ifeq ($(USE_CONDUCTIVITY), TRUE)
    EXTERN_CORE += $(COND_HOME)
