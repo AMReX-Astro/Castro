@@ -91,7 +91,7 @@ radition contribution should be taken out of EOS because radiation has
 been treated in other places. To use Helmholtz EOS, we will use the
 version in Microphysics, as with the pure hydrodynamics code, but
 this will interpret the RADIATION preprocessor variable and
-disable the radiation portion of the EOS [1]_ If you have your own EOS, you
+disable the radiation portion of the EOS. If you have your own EOS, you
 can put it in Microphysics.
 
 There is also an artificial EOS that is used for several test cases called
@@ -726,9 +726,3 @@ Gray Solver
 For the gray radiation solver, the radiation energy density is stored in plotfiles
 as rad. Note that this quantity has units of :math:`\mathrm{erg~cm^{-3}}`, which
 is different that the specify internal energy of the gas :math:`\mathrm{erg~g^{-1}}`.
-
-.. [1]
-   at the moment, we
-   don’t have a way to allow for the EOS to provide radiation pressure
-   if the Castro radiation is used solely for neutrinos, but this is
-   something that could be added easily.

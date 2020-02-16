@@ -90,26 +90,11 @@ is handled.
 Radiation Parameters
 ^^^^^^^^^^^^^^^^^^^^
 
-  * ``USE_RAD``: use radiation (photon or neutrino).  Note, For
+  * ``USE_RAD``: use photon radiation diffusion.  Note, For
     multigroup radiation, you need to set the number of radiation
     groups.  This is controlled by the ``NGROUPS`` parameter.
 
     .. index:: USE_RAD, NGROUPS
-
-  * ``USE_NEUTRINO``: use neutrino radiation.  This requires
-    ``USE_RAD``.  The number of neutrino species and groups can be set
-    via the parameters:
-
-      * ``N_NEUTRINO_SPECIES``: the number of different neutrino
-        species / flavors.
-
-      * ``N_NEUTRINO_GROUPS_1``: the number of groups for neutrino species 1
-
-      * ``N_NEUTRINO_GROUPS_2``: the number of groups for neutrino species 2
-
-      * ``N_NEUTRINO_GROUPS_3``: the number of groups for neutrino species 3
-
-    .. index:: USE_NEUTRINO, N_NEUTRINO_SPECIES, N_NEUTRINO_GROUPS_1, N_NEUTRINO_GROUPS_2, N_NEUTRINO_GROUPS_3
 
   * ``USE_DUMPMODEL``: this is used with 1-d neutrino simulations to
     dump out a file called ``modelDump`` at the end of a simulation

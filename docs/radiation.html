@@ -305,7 +305,7 @@ radition contribution should be taken out of EOS because radiation has
 been treated in other places. To use Helmholtz EOS, we will use the
 version in Microphysics, as with the pure hydrodynamics code, but
 this will interpret the RADIATION preprocessor variable and
-disable the radiation portion of the EOS <a class="footnote-reference" href="#id2" id="id1">[1]</a> If you have your own EOS, you
+disable the radiation portion of the EOS. If you have your own EOS, you
 can put it in Microphysics.</p>
 <p>There is also an artificial EOS that is used for several test cases called</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">EOS_DIR</span> <span class="p">:</span><span class="o">=</span> <span class="n">rad_power_law</span>
@@ -908,15 +908,6 @@ Verbosity for level_solver_flag <span class="math notranslate nohighlight">\(&gt
 <p>For the gray radiation solver, the radiation energy density is stored in plotfiles
 as rad. Note that this quantity has units of <span class="math notranslate nohighlight">\(\mathrm{erg~cm^{-3}}\)</span>, which
 is different that the specify internal energy of the gas <span class="math notranslate nohighlight">\(\mathrm{erg~g^{-1}}\)</span>.</p>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>at the moment, we
-don’t have a way to allow for the EOS to provide radiation pressure
-if the Castro radiation is used solely for neutrinos, but this is
-something that could be added easily.</td></tr>
-</tbody>
-</table>
 </div>
 </div>
 </div>
