@@ -242,7 +242,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
                            MultiFab& etaT, MultiFab& eta1,
                            MultiFab& mugT,
                            Array<MultiFab, BL_SPACEDIM>& lambda,
-                           RadSolve& solver, MGRadBndry& mgbd, 
+                           RadSolve* solver, MGRadBndry& mgbd, 
                            const BoxArray& grids, int level, Real time, 
                            Real delta_t, Real ptc_tau)
 {
@@ -252,10 +252,10 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   const DistributionMapping& dmap = castro->DistributionMap();
 
   if (nGroups > 1) {
-    solver.setHypreMulti(1.0);
+    solver->setHypreMulti(1.0);
   }
   else {
-    solver.setHypreMulti(0.0);
+    solver->setHypreMulti(0.0);
   }
   mgbd.setCorrection();
 
@@ -289,7 +289,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   spec.FillBoundary(parent->Geom(level).periodicity());
 
   // set boundary condition
-  solver.levelBndry(mgbd,0);
+  solver->levelBndry(mgbd,0);
 
   // A coefficients
   MultiFab acoefs(grids, dmap, 1, 0);
@@ -310,8 +310,8 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
            delta_t, ptc_tau);    
   }  
 
-  solver.cellCenteredApplyMetrics(level, acoefs);
-  solver.setLevelACoeffs(level, acoefs);
+  solver->cellCenteredApplyMetrics(level, acoefs);
+  solver->setLevelACoeffs(level, acoefs);
 
   const DistributionMapping& dm = castro->DistributionMap();
 
@@ -333,7 +333,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
 
   for (int igroup = 0; igroup < nGroups; igroup++) {
     for (int idim=0; idim<BL_SPACEDIM; idim++) {
-      solver.computeBCoeffs(bcgrp[idim], idim, kappa_r, igroup,
+      solver->computeBCoeffs(bcgrp[idim], idim, kappa_r, igroup,
                             lambda[idim], igroup, c, geom);
       // metrics is already in bcgrp
 
@@ -364,10 +364,10 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   }
 
   for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-    solver.setLevelBCoeffs(level, bcoefs[idim], idim);
+    solver->setLevelBCoeffs(level, bcoefs[idim], idim);
 
     if (nGroups > 1) {
-      solver.setLevelCCoeffs(level, ccoefs[idim], idim);
+      solver->setLevelCCoeffs(level, ccoefs[idim], idim);
     }
   }
 
@@ -392,12 +392,12 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   }
 
   // must apply metrics to rhs here
-  solver.cellCenteredApplyMetrics(level, rhs);
+  solver->cellCenteredApplyMetrics(level, rhs);
 
   // solve
   MultiFab accel(grids,dmap,1,0);
   accel.setVal(0.0);
-  solver.levelSolve(level, accel, 0, rhs, 0.01);
+  solver->levelSolve(level, accel, 0, rhs, 0.01);
 
   // update Er_new
 #ifdef _OPENMP
@@ -417,7 +417,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   mgbd.unsetCorrection();
   getBndryDataMG(mgbd, Er_new, time, level);
 
-  solver.restoreHypreMulti();
+  solver->restoreHypreMulti();
 }
 
 
