@@ -63,8 +63,8 @@ enum StateType { State_Type = 0,
 #endif
 #ifdef MHD
                Mag_Type_x,
-	       Mag_Type_y,
-	       Mag_Type_z,
+               Mag_Type_y,
+               Mag_Type_z,
 #endif
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -809,8 +809,8 @@ public:
     void reset_internal_energy (
 #ifdef MHD
                                 amrex::MultiFab& Bx,
-				amrex::MultiFab& By,
-				amrex::MultiFab& Bz,
+                                amrex::MultiFab& By,
+                                amrex::MultiFab& Bz,
 #endif
                                 amrex::MultiFab& State, int ng);
 
@@ -825,8 +825,8 @@ public:
     void computeTemp (
 #ifdef MHD
                       amrex::MultiFab& Bx,
-		      amrex::MultiFab& By,
-		      amrex::MultiFab& Bz,
+                      amrex::MultiFab& By,
+                      amrex::MultiFab& Bz,
 #endif
                       amrex::MultiFab& state, amrex::Real time, int ng);
 
@@ -1336,8 +1336,8 @@ protected:
    void enforce_consistent_e (
 #ifdef MHD
                                amrex::MultiFab& Bx,
-			       amrex::MultiFab& By,
-			       amrex::MultiFab& Bz,
+                               amrex::MultiFab& By,
+                               amrex::MultiFab& Bz,
 #endif
                                amrex:: MultiFab& S);
 
@@ -1367,8 +1367,8 @@ protected:
     amrex::Real clean_state (
 #ifdef MHD
                               amrex::MultiFab& Bx,
-			      amrex::MultiFab& By,
-			      amrex::MultiFab& Bz,
+                              amrex::MultiFab& By,
+                              amrex::MultiFab& Bz,
 #endif
                               amrex::MultiFab& state, amrex::Real time, int ng);
 

@@ -477,7 +477,7 @@ contains
                 qxp(i,j,kc,n) = q(i,j,k3d,n) + HALF*xi*(Im(i,j,kc,1,2,n) - q(i,j,k3d,n))
              endif
 
-	  enddo
+          enddo
 
           ! Minus state on face i+1
           do i = ilo1-1, ihi1

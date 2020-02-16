@@ -426,10 +426,10 @@ contains
              leig = 0.d0
              lam = 0.d0
              !Skip Bx
-             dQL(1:5) = 	temp(i,j,k,1:ibx-1) - temp(i-1,j,k,1:ibx-1) !gas
-             dQL(6:7) = 	temp(i,j,k,ibx+1:8) - temp(i-1,j,k,ibx+1:8)	!mag
-             dQR(1:5) = 	temp(i+1,j,k,1:ibx-1) - temp(i,j,k,1:ibx-1)
-             dQR(6:7) = 	temp(i+1,j,k,ibx+1:8) - temp(i,j,k,ibx+1:8)
+             dQL(1:5) =         temp(i,j,k,1:ibx-1) - temp(i-1,j,k,1:ibx-1) !gas
+             dQL(6:7) =         temp(i,j,k,ibx+1:8) - temp(i-1,j,k,ibx+1:8)     !mag
+             dQR(1:5) =         temp(i+1,j,k,1:ibx-1) - temp(i,j,k,1:ibx-1)
+             dQR(6:7) =         temp(i+1,j,k,ibx+1:8) - temp(i,j,k,ibx+1:8)
 
              call evals(lam, s(i,j,k,:), 1) !!X dir eigenvalues
              call lvecx(leig,s(i,j,k,:))    !!left eigenvectors
@@ -441,7 +441,7 @@ contains
              smhd(5) = temp(i,j,k,ibx)*temp(i,j,k,2) + temp(i,j,k,iby)*temp(i,j,k,3) + temp(i,j,k,ibz)*temp(i,j,k,4)
              smhd(6) = temp(i,j,k,3)
              smhd(7) = temp(i,j,k,4)
-             smhd 	= smhd*(tbx(i+1,j,k) - tbx(i,j,k))/dx !cross-talk of normal magnetic field direction
+             smhd       = smhd*(tbx(i+1,j,k) - tbx(i,j,k))/dx !cross-talk of normal magnetic field direction
              !Interpolate
              !Plus
              !!Using HLLD so sum over all eigenvalues -- see the discussion after Eq. 31
@@ -598,8 +598,8 @@ contains
              leig = 0.d0
              lam = 0.d0
              !Skip Bz
-             dQL(1:7) = 	temp(i,j,k,1:iby) - temp(i,j,k-1,1:iby)
-             dQR(1:7) = 	temp(i,j,k+1,1:iby) - temp(i,j,k,1:iby)
+             dQL(1:7) =         temp(i,j,k,1:iby) - temp(i,j,k-1,1:iby)
+             dQR(1:7) =         temp(i,j,k+1,1:iby) - temp(i,j,k,1:iby)
                         
              call evals(lam, s(i,j,k,:), 3) !!Z dir eigenvalues
              call lvecz(leig,s(i,j,k,:))    !!left eigenvectors
@@ -620,7 +620,7 @@ contains
              smhd(5) = temp(i,j,k,ibx)*temp(i,j,k,2) + temp(i,j,k,iby)*temp(i,j,k,3) + temp(i,j,k,ibz)*temp(i,j,k,4)
              smhd(6) = temp(i,j,k,2)
              smhd(7) = temp(i,j,k,3)
-             smhd 	= smhd*(tbz(i,j,k+1) - tbz(i,j,k))/dz !cross-talk of normal magnetic field direction
+             smhd       = smhd*(tbz(i,j,k+1) - tbz(i,j,k))/dz !cross-talk of normal magnetic field direction
 
              !Interpolate
              Ip(i,j,k,QRHO,3) = temp(i,j,k,1) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
@@ -629,8 +629,8 @@ contains
              Ip(i,j,k,QW,3)   = temp(i,j,k,4) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
              Ip(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Ip(i,j,k,QMAGX:QMAGY,3)	= temp(i,j,k,ibx:iby) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-             Ip(i,j,k,QMAGZ,3) 		= tbz(i,j,k+1) !! Bz stuff
+             Ip(i,j,k,QMAGX:QMAGY,3)    = temp(i,j,k,ibx:iby) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Ip(i,j,k,QMAGZ,3)          = tbz(i,j,k+1) !! Bz stuff
 
              !species
              do ii = QFS, QFS+nspec-1  
@@ -656,7 +656,7 @@ contains
              Im(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
 
              Im(i,j,k,QMAGX:QMAGY,3) = temp(i,j,k,ibx:iby) + 0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-             Im(i,j,k,QMAGZ,3)		= tbz(i,j,k) !! Bz stuff
+             Im(i,j,k,QMAGZ,3)          = tbz(i,j,k) !! Bz stuff
 
              
              !update this, when species work is done
@@ -753,8 +753,8 @@ contains
 
     implicit none
 
-    real(rt), intent(in )	::  WR, WL
-    real(rt), intent(out)	::  dW
+    real(rt), intent(in )       ::  WR, WL
+    real(rt), intent(out)       ::  dW
     dW = 0.0d0
 
     if( WR*WL .gt. 0.0d0 ) then
@@ -1158,7 +1158,7 @@ contains
     AAf = sqrt(as)*alf*sqrt(Q(QRHO))
     AAs = sqrt(as)*als*sqrt(Q(QRHO))
 
-    !   u - cf 	     u - Cax 	  u - cs   u 	u + cs	 u + Cax   u + cf
+    !   u - cf       u - Cax      u - cs   u    u + cs   u + Cax   u + cf
     reig(1,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
     reig(2,:) = (/-cff , 0.d0, -css, 0.d0, css, 0.d0, cff/)
     reig(3,:) = (/Qs*bety, -betz, -Qf*bety, 0.d0, Qf*bety, betz, -Qs*bety/)
@@ -1225,7 +1225,7 @@ contains
     AAf = sqrt(as)*alf*sqrt(Q(QRHO))
     AAs = sqrt(as)*als*sqrt(Q(QRHO))
 
-    !   v - cf 	 v - Cay   v - cs   v   v + cs	 v + Cay   v + cf
+    !   v - cf   v - Cay   v - cs   v   v + cs   v + Cay   v + cf
     reig(1,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
     reig(3,:) = (/-cff, 0.d0, -css, 0.d0  , css, 0.d0, cff/)
     reig(2,:) = (/Qs*betx, -betz, -Qf*betx, 0.d0  , Qf*betx, betz, -Qs*betx/)
@@ -1291,7 +1291,7 @@ contains
     AAf = sqrt(as)*alf*sqrt(Q(QRHO))
     AAs = sqrt(as)*als*sqrt(Q(QRHO))
 
-    !   w - cf 	  w - Caz     w - cs	 w    w + cs    w + Caz     w + cf
+    !   w - cf    w - Caz     w - cs     w    w + cs    w + Caz     w + cf
     reig(1,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
     reig(4,:) = (/-cff , 0.d0, -css, 0.d0, css, 0.d0 , cff/)
     reig(2,:) = (/Qs*betx, -bety, -Qf*betx, 0.d0, Qf*betx, bety, -Qs*betx/)

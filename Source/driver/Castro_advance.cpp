@@ -54,7 +54,7 @@ Castro::advance (Real time,
 
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
-#ifndef MHD	
+#ifndef MHD     
 #ifndef AMREX_USE_CUDA
 #ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
@@ -66,7 +66,7 @@ Castro::advance (Real time,
 
 #endif // TRUE_SDC
 #endif // AMREX_USE_CUDA
-#endif //MHD	
+#endif //MHD    
     }
 
     // Optionally kill the job at this point, if we've detected a violation.
@@ -184,7 +184,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       FillPatch(*this, Bx_old_tmp, NUM_GROW, time, Mag_Type_x, 0, 1);
       FillPatch(*this, By_old_tmp, NUM_GROW, time, Mag_Type_y, 0, 1);
       FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
-#endif	    
+#endif      
       // for the CTU unsplit method, we always start with the old
       // state note: a clean_state has already been done on the old
       // state in initialize_advance so we don't need to do another
@@ -385,10 +385,10 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     clean_state(
 #ifdef MHD
                  get_old_data(Mag_Type_x),
-		 get_old_data(Mag_Type_y),
-		 get_old_data(Mag_Type_z),
-#endif	    
-		  S_old, time, S_old.nGrow());
+                 get_old_data(Mag_Type_y),
+                 get_old_data(Mag_Type_z),
+#endif      
+                  S_old, time, S_old.nGrow());
 
 
     // Initialize the previous state data container now, so that we can

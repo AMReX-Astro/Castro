@@ -20,9 +20,9 @@ contains
 ! ::: domlo,hi  => index extent of problem domain
 ! ::: dx        => cell spacing
 ! ::: xlo       => physical location of lower left hand
-! :::	           corner of q array
-! ::: bc	=> array of boundary flags bc(SPACEDIM,lo:hi)
-! ::: dir	=> direction of face centered data (i.e. x-direction)
+! :::              corner of q array
+! ::: bc        => array of boundary flags bc(SPACEDIM,lo:hi)
+! ::: dir       => direction of face centered data (i.e. x-direction)
 ! ::: 
 ! ::: -----------------------------------------------------------
 
@@ -41,23 +41,23 @@ contains
       integer    i, j, k, n
 
       is = max(q_l1,domlo(1))
-	if(dir.eq.1) then
+        if(dir.eq.1) then
       ie = min(q_h1,domhi(1)+1)
-	else
+        else
       ie = min(q_h1,domhi(1))
-	endif
+        endif
       js = max(q_l2,domlo(2))
-	if(dir.eq.2) then
+        if(dir.eq.2) then
       je = min(q_h2,domhi(2)+1)
-	else
+        else
       je = min(q_h2,domhi(2))
-	endif
+        endif
       ks = max(q_l3,domlo(3))
-	if(dir.eq.3) then
+        if(dir.eq.3) then
       ke = min(q_h3,domhi(3)+1)
-	else
+        else
       ke = min(q_h3,domhi(3))
-	endif
+        endif
 
       nlft = max(0,domlo(1)-q_l1)
       nrgt = max(0,q_h1-(domhi(1)))
@@ -73,44 +73,44 @@ contains
       if (q_l1 .lt. domlo(1)) then
          ilo = domlo(1)
 
-	 if (bc(1,1) .eq. FOEXTRAP .or. &
+         if (bc(1,1) .eq. FOEXTRAP .or. &
              bc(1,1) .eq. HOEXTRAP) then
 
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ilo-1,j,k) = 2.d0*q(ilo,j,k) - q(ilo+1,j,k)
             end do
-	    end do
+            end do
 
             do n = 2, nlft
                do k = q_l3,q_h3
                do j = q_l2,q_h2
                   q(ilo-n,j,k) = q(ilo-1,j,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(1,1) .eq. REFLECT_EVEN) then
+         else if (bc(1,1) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nlft
+            do n = 1, nlft
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ilo-n,j,k) = q(ilo+n,j,k)
             end do
             end do
-	    end do
-	 else !periodic
-		if(q_h1.gt.domhi(1)) then
-		 ihi = domhi(1)
-		   do n = 1,nlft
-			do k = q_l3, q_h3
-			do j = q_l2, q_h2
-			q(ilo-n,j,k) = q(ihi-n+1,j,k)
-			enddo
-			enddo
-		   enddo
-		endif
-	 end if
+            end do
+         else !periodic
+                if(q_h1.gt.domhi(1)) then
+                 ihi = domhi(1)
+                   do n = 1,nlft
+                        do k = q_l3, q_h3
+                        do j = q_l2, q_h2
+                        q(ilo-n,j,k) = q(ihi-n+1,j,k)
+                        enddo
+                        enddo
+                   enddo
+                endif
+         end if
       end if
 !
 !     ::::: X-face extending in hi-x direction
@@ -118,44 +118,44 @@ contains
       if (q_h1 .gt. domhi(1)+1) then
          ihi = domhi(1)!+1
 
-	 if (bc(1,2) .eq. FOEXTRAP .or. &
+         if (bc(1,2) .eq. FOEXTRAP .or. &
              bc(1,2) .eq. HOEXTRAP) then
 
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ihi+1,j,k) = 2.d0*q(ihi,j,k) - q(ihi-1,j,k)
             end do
-	    end do
+            end do
 
             do n = 2, nrgt
                do k = q_l3,q_h3
                do j = q_l2,q_h2
                   q(ihi+n,j,k) = q(ihi+1,j,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(1,2) .eq. REFLECT_EVEN) then
+         else if (bc(1,2) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nrgt
+            do n = 1, nrgt
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ihi+n,j,k) = q(ihi-n,j,k)
             end do
             end do
-	    end do
-	 else 
-	    if(q_l1.lt.domlo(1)) then
-	    ilo = domlo(1)
-	    do n = 1, nrgt
+            end do
+         else 
+            if(q_l1.lt.domlo(1)) then
+            ilo = domlo(1)
+            do n = 1, nrgt
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ihi+n,j,k) = q(ilo+(n-1),j,k)
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 !
 !     ::::: X-face extending in lo-y direction
@@ -164,38 +164,38 @@ contains
 
          jlo = domlo(2)
 
-	 if (bc(2,1) .eq. FOEXTRAP .or. &
+         if (bc(2,1) .eq. FOEXTRAP .or. &
              bc(2,1) .eq. HOEXTRAP) then
 
             do n = 1, nbot
                do k = q_l3,q_h3
                do i = q_l1,q_h1
                   q(i,jlo-n,k) = q(i,jlo,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(2,1) .eq. REFLECT_EVEN) then
+         else if (bc(2,1) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nbot
+            do n = 1, nbot
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jlo-n,k) = q(i,jlo+n-1,k)
             end do
             end do
-	    end do
-	 else 
-	    if(q_h2.gt.domhi(2)) then
-	    jhi = domhi(2)
-	    do n = 1, nbot
+            end do
+         else 
+            if(q_h2.gt.domhi(2)) then
+            jhi = domhi(2)
+            do n = 1, nbot
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jlo-n,k) = q(i,jhi-(n-1),k)
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
 !
@@ -205,38 +205,38 @@ contains
 
          jhi = domhi(2)
 
-	 if (bc(2,2) .eq. FOEXTRAP .or. &
+         if (bc(2,2) .eq. FOEXTRAP .or. &
              bc(2,2) .eq. HOEXTRAP) then
 
             do n = 1, ntop
                do k = q_l3,q_h3
                do i = q_l1,q_h1
                   q(i,jhi+n,k) = q(i,jhi,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(2,2) .eq. REFLECT_EVEN) then
+         else if (bc(2,2) .eq. REFLECT_EVEN) then
 
-	    do n = 1, ntop
+            do n = 1, ntop
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jhi+n,k) = q(i,jhi-n+1,k)
             end do
             end do
-	    end do
-	 else 
-	    if(q_l2.lt.domlo(2)) then
-	    jlo = domlo(2)
-	    do n = 1, ntop
+            end do
+         else 
+            if(q_l2.lt.domlo(2)) then
+            jlo = domlo(2)
+            do n = 1, ntop
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jhi+n,k) = q(i,jlo+(n-1),k)
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
 !
@@ -246,38 +246,38 @@ contains
 
          klo = domlo(3)
 
-	 if (bc(3,1) .eq. FOEXTRAP .or. &
+         if (bc(3,1) .eq. FOEXTRAP .or. &
              bc(3,1) .eq. HOEXTRAP) then
 
             do n = 1, ndwn
                do j = q_l2,q_h2
                do i = q_l1,q_h1
                   q(i,j,klo-n) = q(i,j,klo)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(3,1) .eq. REFLECT_EVEN) then
+         else if (bc(3,1) .eq. REFLECT_EVEN) then
 
-	    do n = 1, ndwn
+            do n = 1, ndwn
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,klo-n) = q(i,j,klo+n-1)
             end do
             end do
-	    end do
-	 else 
-	    if(q_h3.gt.domhi(3)) then
-	    khi = domhi(3)
-	    do n = 1, ndwn
+            end do
+         else 
+            if(q_h3.gt.domhi(3)) then
+            khi = domhi(3)
+            do n = 1, ndwn
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,klo-n) = q(i,j,khi-(n-1))
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
 !
@@ -287,38 +287,38 @@ contains
 
          khi = domhi(3)
 
-	 if (bc(3,2) .eq. FOEXTRAP .or. &
+         if (bc(3,2) .eq. FOEXTRAP .or. &
              bc(3,2) .eq. HOEXTRAP) then
 
             do n = 1, nup
                do j = q_l2,q_h2
                do i = q_l1,q_h1
                   q(i,j,khi+n) = q(i,j,khi)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(3,2) .eq. REFLECT_EVEN) then
+         else if (bc(3,2) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nup
+            do n = 1, nup
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,khi+n) = q(i,j,khi-n+1)
             end do
             end do
-	    end do
-	 else 
-	    if(q_l3.lt.domlo(3)) then
-	    klo = domlo(3)
-	    do n = 1, nup
+            end do
+         else 
+            if(q_l3.lt.domlo(3)) then
+            klo = domlo(3)
+            do n = 1, nup
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,khi+n) = q(i,j,klo+(n-1))
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
       else if (dir.eq.2) then
@@ -328,38 +328,38 @@ contains
       if (q_l1 .lt. domlo(1)) then
          ilo = domlo(1)
 
-	 if (bc(1,1) .eq. FOEXTRAP .or. &
+         if (bc(1,1) .eq. FOEXTRAP .or. &
              bc(1,1) .eq. HOEXTRAP) then
 
             do n = 1, nlft
                do k = q_l3,q_h3
                do j = q_l2,q_h2
                   q(ilo-n,j,k) = q(ilo,j,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(1,1) .eq. REFLECT_EVEN) then
+         else if (bc(1,1) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nlft
+            do n = 1, nlft
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ilo-n,j,k) = q(ilo+n-1,j,k)
             end do
             end do
-	    end do
-	 else 
-	if(q_h1.gt.domhi(1)) then
-		 ihi = domhi(1)
-		   do n = 1,nlft
-			do k = q_l3, q_h3
-			do j = q_l2, q_h2
-			q(ilo-n,j,k) = q(ihi-n+1,j,k)
-			enddo
-			enddo
-		   enddo
-		endif
-	 end if
+            end do
+         else 
+        if(q_h1.gt.domhi(1)) then
+                 ihi = domhi(1)
+                   do n = 1,nlft
+                        do k = q_l3, q_h3
+                        do j = q_l2, q_h2
+                        q(ilo-n,j,k) = q(ihi-n+1,j,k)
+                        enddo
+                        enddo
+                   enddo
+                endif
+         end if
       end if
 !
 !     ::::: Y-face extending in hi-x direction
@@ -367,38 +367,38 @@ contains
       if (q_h1 .gt. domhi(1)) then
          ihi = domhi(1)
 
-	 if (bc(1,2) .eq. FOEXTRAP .or. &
+         if (bc(1,2) .eq. FOEXTRAP .or. &
              bc(1,2) .eq. HOEXTRAP) then
 
             do n = 1, nrgt
                do k = q_l3,q_h3
                do j = q_l2,q_h2
                   q(ihi+n,j,k) = q(ihi,j,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(1,2) .eq. REFLECT_EVEN) then
+         else if (bc(1,2) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nrgt
+            do n = 1, nrgt
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ihi+n,j,k) = q(ihi-n+1,j,k)
             end do
             end do
-	    end do
-	 else 
-	    if(q_l1.lt.domlo(1)) then
-	    ilo = domlo(1)
-	    do n = 1, nrgt
+            end do
+         else 
+            if(q_l1.lt.domlo(1)) then
+            ilo = domlo(1)
+            do n = 1, nrgt
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ihi+n,j,k) = q(ilo+(n-1),j,k)
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 !
 !     ::::: Y-face extending in lo-y direction
@@ -407,7 +407,7 @@ contains
 
          jlo = domlo(2)
 
-	 if (bc(2,1) .eq. FOEXTRAP .or. &
+         if (bc(2,1) .eq. FOEXTRAP .or. &
              bc(2,1) .eq. HOEXTRAP) then
 
             do k = q_l3,q_h3
@@ -420,31 +420,31 @@ contains
                do k = q_l3,q_h3
                do i = q_l1,q_h1
                   q(i,jlo-n,k) = q(i,jlo-1,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(2,1) .eq. REFLECT_EVEN) then
+         else if (bc(2,1) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nbot
+            do n = 1, nbot
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jlo-n,k) = q(i,jlo+n,k)
             end do
             end do
-	    end do
-	 else 
-	    if(q_h2.gt.domhi(2)) then
-	    jhi = domhi(2)
-	    do n = 1, nbot
+            end do
+         else 
+            if(q_h2.gt.domhi(2)) then
+            jhi = domhi(2)
+            do n = 1, nbot
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jlo-n,k) = q(i,jhi-(n-1),k)
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
 !
@@ -454,7 +454,7 @@ contains
 
          jhi = domhi(2)
 
-	 if (bc(2,2) .eq. FOEXTRAP .or. &
+         if (bc(2,2) .eq. FOEXTRAP .or. &
              bc(2,2) .eq. HOEXTRAP) then
 
             do k = q_l3,q_h3
@@ -467,31 +467,31 @@ contains
                do k = q_l3,q_h3
                do i = q_l1,q_h1
                   q(i,jhi+n,k) = q(i,jhi+1,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(2,2) .eq. REFLECT_EVEN) then
+         else if (bc(2,2) .eq. REFLECT_EVEN) then
 
-	    do n = 1, ntop
+            do n = 1, ntop
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jhi+n,k) = q(i,jhi-n,k)
             end do
             end do
-	    end do
-	 else 
-	    if(q_l2.lt.domlo(2)) then
-	    jlo = domlo(2)
-	    do n = 1, ntop
+            end do
+         else 
+            if(q_l2.lt.domlo(2)) then
+            jlo = domlo(2)
+            do n = 1, ntop
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jhi+n,k) = q(i,jlo+(n-1),k)
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
 !
@@ -501,38 +501,38 @@ contains
 
          klo = domlo(3)
 
-	 if (bc(3,1) .eq. FOEXTRAP .or. &
+         if (bc(3,1) .eq. FOEXTRAP .or. &
              bc(3,1) .eq. HOEXTRAP) then
 
             do n = 1, ndwn
                do j = q_l2,q_h2
                do i = q_l1,q_h1
                   q(i,j,klo-n) = q(i,j,klo)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(3,1) .eq. REFLECT_EVEN) then
+         else if (bc(3,1) .eq. REFLECT_EVEN) then
 
-	    do n = 1, ndwn
+            do n = 1, ndwn
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,klo-n) = q(i,j,klo+n-1)
             end do
             end do
-	    end do
-	 else 
-	    if(q_h3.gt.domhi(3)) then
-	    khi = domhi(3)
-	    do n = 1, ndwn
+            end do
+         else 
+            if(q_h3.gt.domhi(3)) then
+            khi = domhi(3)
+            do n = 1, ndwn
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,klo-n) = q(i,j,khi-(n-1))
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
 !
@@ -542,38 +542,38 @@ contains
 
          khi = domhi(3)
 
-	 if (bc(3,2) .eq. FOEXTRAP .or. &
+         if (bc(3,2) .eq. FOEXTRAP .or. &
              bc(3,2) .eq. HOEXTRAP) then
 
             do n = 1, nup
                do j = q_l2,q_h2
                do i = q_l1,q_h1
                   q(i,j,khi+n) = q(i,j,khi)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(3,2) .eq. REFLECT_EVEN) then
+         else if (bc(3,2) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nup
+            do n = 1, nup
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,khi+n) = q(i,j,khi-n+1)
             end do
             end do
-	    end do
-	 else 
-	    if(q_l3.lt.domlo(3)) then
-	    klo = domlo(3)
-	    do n = 1, nup
+            end do
+         else 
+            if(q_l3.lt.domlo(3)) then
+            klo = domlo(3)
+            do n = 1, nup
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,khi+n) = q(i,j,klo+(n-1))
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
       else if (dir.eq.3) then
@@ -583,38 +583,38 @@ contains
       if (q_l1 .lt. domlo(1)) then
          ilo = domlo(1)
 
-	 if (bc(1,1) .eq. FOEXTRAP .or. &
+         if (bc(1,1) .eq. FOEXTRAP .or. &
              bc(1,1) .eq. HOEXTRAP) then
 
             do n = 1, nlft
                do k = q_l3,q_h3
                do j = q_l2,q_h2
                   q(ilo-n,j,k) = q(ilo,j,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(1,1) .eq. REFLECT_EVEN) then
+         else if (bc(1,1) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nlft
+            do n = 1, nlft
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ilo-n,j,k) = q(ilo+n-1,j,k)
             end do
             end do
-	    end do
-	 else 
-	if(q_h1.gt.domhi(1)) then
-		 ihi = domhi(1)
-		   do n = 1,nlft
-			do k = q_l3, q_h3
-			do j = q_l2, q_h2
-			q(ilo-n,j,k) = q(ihi-n+1,j,k)
-			enddo
-			enddo
-		   enddo
-		endif
-	 end if
+            end do
+         else 
+        if(q_h1.gt.domhi(1)) then
+                 ihi = domhi(1)
+                   do n = 1,nlft
+                        do k = q_l3, q_h3
+                        do j = q_l2, q_h2
+                        q(ilo-n,j,k) = q(ihi-n+1,j,k)
+                        enddo
+                        enddo
+                   enddo
+                endif
+         end if
       end if
 !
 !     ::::: Z-face extending in hi-x direction
@@ -622,38 +622,38 @@ contains
       if (q_h1 .gt. domhi(1)) then
          ihi = domhi(1)
 
-	 if (bc(1,2) .eq. FOEXTRAP .or. &
+         if (bc(1,2) .eq. FOEXTRAP .or. &
              bc(1,2) .eq. HOEXTRAP) then
 
             do n = 1, nrgt
                do k = q_l3,q_h3
                do j = q_l2,q_h2
                   q(ihi+n,j,k) = q(ihi,j,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(1,2) .eq. REFLECT_EVEN) then
+         else if (bc(1,2) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nrgt
+            do n = 1, nrgt
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ihi+n,j,k) = q(ihi-n+1,j,k)
             end do
             end do
-	    end do
-	 else 
-	    if(q_l1.lt.domlo(1)) then
-	    ilo = domlo(1)
-	    do n = 1, nrgt
+            end do
+         else 
+            if(q_l1.lt.domlo(1)) then
+            ilo = domlo(1)
+            do n = 1, nrgt
             do k = q_l3,q_h3
             do j = q_l2,q_h2
                q(ihi+n,j,k) = q(ilo+(n-1),j,k)
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 !
 !     ::::: Z-face extending in lo-y direction
@@ -662,38 +662,38 @@ contains
 
          jlo = domlo(2)
 
-	 if (bc(2,1) .eq. FOEXTRAP .or. &
+         if (bc(2,1) .eq. FOEXTRAP .or. &
              bc(2,1) .eq. HOEXTRAP) then
 
             do n = 1, nbot
                do k = q_l3,q_h3
                do i = q_l1,q_h1
                   q(i,jlo-n,k) = q(i,jlo,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(2,1) .eq. REFLECT_EVEN) then
+         else if (bc(2,1) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nbot
+            do n = 1, nbot
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jlo-n,k) = q(i,jlo+n-1,k)
             end do
             end do
-	    end do
-	 else 
-	    if(q_h2.gt.domhi(2)) then
-	    jhi = domhi(2)
-	    do n = 1, nbot
+            end do
+         else 
+            if(q_h2.gt.domhi(2)) then
+            jhi = domhi(2)
+            do n = 1, nbot
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jlo-n,k) = q(i,jhi-(n-1),k)
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
 !
@@ -703,38 +703,38 @@ contains
 
          jhi = domhi(2)
 
-	 if (bc(2,2) .eq. FOEXTRAP .or. &
+         if (bc(2,2) .eq. FOEXTRAP .or. &
              bc(2,2) .eq. HOEXTRAP) then
 
             do n = 1, ntop
                do k = q_l3,q_h3
                do i = q_l1,q_h1
                   q(i,jhi+n,k) = q(i,jhi,k)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(2,2) .eq. REFLECT_EVEN) then
+         else if (bc(2,2) .eq. REFLECT_EVEN) then
 
-	    do n = 1, ntop
+            do n = 1, ntop
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jhi+n,k) = q(i,jhi-n+1,k)
             end do
             end do
-	    end do
-	 else 
-	    if(q_l2.lt.domlo(2)) then
-	    jlo = domlo(2)
-	    do n = 1, ntop
+            end do
+         else 
+            if(q_l2.lt.domlo(2)) then
+            jlo = domlo(2)
+            do n = 1, ntop
             do k = q_l3,q_h3
             do i = q_l1,q_h1
                q(i,jhi+n,k) = q(i,jlo+(n-1),k)
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
 !
@@ -744,7 +744,7 @@ contains
 
          klo = domlo(3)
 
-	 if (bc(3,1) .eq. FOEXTRAP .or. &
+         if (bc(3,1) .eq. FOEXTRAP .or. &
              bc(3,1) .eq. HOEXTRAP) then
 
             do j = q_l2,q_h2
@@ -757,31 +757,31 @@ contains
                do j = q_l2,q_h2
                do i = q_l1,q_h1
                   q(i,j,klo-n) = q(i,j,klo-1)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(3,1) .eq. REFLECT_EVEN) then
+         else if (bc(3,1) .eq. REFLECT_EVEN) then
 
-	    do n = 1, ndwn
+            do n = 1, ndwn
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,klo-n) = q(i,j,klo+n)
             end do
             end do
-	    end do
-	 else 
-	    if(q_h3.gt.domhi(3)) then
-	    khi = domhi(3)
-	    do n = 1, ndwn
+            end do
+         else 
+            if(q_h3.gt.domhi(3)) then
+            khi = domhi(3)
+            do n = 1, ndwn
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,klo-n) = q(i,j,khi-(n-1))
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
 
 !
@@ -791,7 +791,7 @@ contains
 
          khi = domhi(3)!+1
 
-	 if (bc(3,2) .eq. FOEXTRAP .or. &
+         if (bc(3,2) .eq. FOEXTRAP .or. &
              bc(3,2) .eq. HOEXTRAP) then
 
             do j = q_l2,q_h2
@@ -804,31 +804,31 @@ contains
                do j = q_l2,q_h2
                do i = q_l1,q_h1
                   q(i,j,khi+n) = q(i,j,khi+1)
-	       end do
-   	       end do
-	    end do
+               end do
+               end do
+            end do
 
-	 else if (bc(3,2) .eq. REFLECT_EVEN) then
+         else if (bc(3,2) .eq. REFLECT_EVEN) then
 
-	    do n = 1, nup
+            do n = 1, nup
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,khi+n) = q(i,j,khi-n)
             end do
             end do
-	    end do
-	 else 
-	    if(q_l3.lt.domlo(3)) then
-	    klo = domlo(3)
-	    do n = 1, nup
+            end do
+         else 
+            if(q_l3.lt.domlo(3)) then
+            klo = domlo(3)
+            do n = 1, nup
             do j = q_l2,q_h2
             do i = q_l1,q_h1
                q(i,j,khi+n) = q(i,j,klo+(n-1))
             end do
             end do
-	    end do
-	    endif
-	 end if
+            end do
+            endif
+         end if
       end if
  end if
 

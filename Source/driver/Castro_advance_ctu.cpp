@@ -103,9 +103,9 @@ Castro::do_advance_ctu(Real time,
 
       do_old_sources(
 #ifdef MHD
-		      Bx_new, By_new, Bz_new,
-#endif		      
-		      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+                      Bx_new, By_new, Bz_new,
+#endif                
+                      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -149,9 +149,9 @@ Castro::do_advance_ctu(Real time,
     // Sync up state after old sources and hydro source.
     frac_change = clean_state(
 #ifdef MHD
-		              Bx_new, By_new, Bz_new,
-#endif		    
-		              S_new, cur_time, 0);
+                              Bx_new, By_new, Bz_new,
+#endif              
+                              S_new, cur_time, 0);
 
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
@@ -193,9 +193,9 @@ Castro::do_advance_ctu(Real time,
 
       do_new_sources(
 #ifdef MHD
-		              Bx_new, By_new, Bz_new,
-#endif	
-		      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+                              Bx_new, By_new, Bz_new,
+#endif  
+                      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
     } else {
 
@@ -209,9 +209,9 @@ Castro::do_advance_ctu(Real time,
     if (S_new.nGrow() > 0) {
       clean_state(
 #ifdef MHD
-		  Bx_new, By_new, Bz_new,
-#endif		      
-		  S_new, cur_time, 0);
+                  Bx_new, By_new, Bz_new,
+#endif                
+                  S_new, cur_time, 0);
 
       expand_state(S_new, cur_time, S_new.nGrow());
     }

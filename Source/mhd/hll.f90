@@ -27,11 +27,11 @@ subroutine hll(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
    real(rt), intent(in)  :: qp(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,QVAR,3)
    real(rt), intent(out) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,QVAR)
 
-   real(rt)	  :: cfL2, cfR, sL, sR, sM, ssL, ssR, pst, caL, canL
-   real(rt) 	  :: caR, canR, asL, asR, ptL, ptR, eL, eR
-   real(rt)	  :: QL(QVAR), QR(QVAR)
-   real(rt)	  :: uL(QVAR), uR(QVAR)
-   real(rt)	  :: FL(QVAR), FR(QVAR)
+   real(rt)       :: cfL2, cfR, sL, sR, sM, ssL, ssR, pst, caL, canL
+   real(rt)       :: caR, canR, asL, asR, ptL, ptR, eL, eR
+   real(rt)       :: QL(QVAR), QR(QVAR)
+   real(rt)       :: uL(QVAR), uR(QVAR)
+   real(rt)       :: FL(QVAR), FR(QVAR)
    real(rt)       :: uS(QVAR), FS(QVAR)
 
    integer           :: QVELN, QVELP1, QVELP2
@@ -104,7 +104,7 @@ subroutine hll(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
       eL   = eos_state % rho * eos_state % e &
                         + 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)) &
-   	                    + 0.5d0*dot_product(qL(QU:QW),qL(QU:QW))*qL(QRHO)
+                            + 0.5d0*dot_product(qL(QU:QW),qL(QU:QW))*qL(QRHO)
 
       FL(URHO)  = qL(QRHO)*qL(QVELN)
       FL(UMN)   = qL(QRHO)*qL(QVELN)**2 + qL(QPRES) - qL(QMAGN)**2
@@ -124,7 +124,7 @@ subroutine hll(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       call eos(eos_input_rp, eos_state)
       eR   = eos_state % rho * eos_state % e &
                         + 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)) &
-      	                + 0.5d0*dot_product(qR(QU:QW),qR(QU:QW))*qR(QRHO)
+                        + 0.5d0*dot_product(qR(QU:QW),qR(QU:QW))*qR(QRHO)
 
       FR(URHO)  = qR(QRHO)*qR(QVELN)
       FR(UMN)   = qR(QRHO)*qR(QVELN)**2 + qR(QPRES) - qR(QMAGN)**2
@@ -135,38 +135,38 @@ subroutine hll(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FR(QMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)  
       FR(QMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN)
 
-	uS = sR*uR - sL*uL - FR + FL
-	uS = uS/(sR - sL)
+        uS = sR*uR - sL*uL - FR + FL
+        uS = uS/(sR - sL)
 
-	!--------------------------------------------------------- Fluxes ----------------------------------------------------------------------
+        !--------------------------------------------------------- Fluxes ----------------------------------------------------------------------
 
-	FS  = sR*FL - sL*FR + sR*sL*(uR - uL)
-	FS  = FS/(sR - sL)
+        FS  = sR*FL - sL*FR + sR*sL*(uR - uL)
+        FS  = FS/(sR - sL)
 
-	!Solve the RP
-	if(sL .gt. 0.d0) then
-	   flx(i,j,k,:) = FL
-	   choice = "FL"
-	elseif(sL .le. 0.d0 .and. sR .ge. 0.d0) then 
-	   flx(i,j,k,:) = FS
-	   choice = "FS"
-	else 
-	   flx(i,j,k,:) = FR
-	   choice = "FR"
-	endif
+        !Solve the RP
+        if(sL .gt. 0.d0) then
+           flx(i,j,k,:) = FL
+           choice = "FL"
+        elseif(sL .le. 0.d0 .and. sR .ge. 0.d0) then 
+           flx(i,j,k,:) = FS
+           choice = "FS"
+        else 
+           flx(i,j,k,:) = FR
+           choice = "FR"
+        endif
 
-	!if(dir.eq.2.and.((i.eq.3.and.j.eq.16.and.k.eq.1).or.(i.eq.4.and.j.eq.16.and.k.eq.1))) then
-	!	print*, "dir, i, j, k =", dir, i, j, k
-	!	print*, "flux is ", choice, " = ", flx(i,j,k,UMX:UMZ), flx(i,j,k,QMAGX:QMAGZ)
-	!	print*, "FL = ",  FL(UMX:UMZ), FL(QMAGX:QMAGZ)
-	!	print*, "FsL = ", FsL(UMX:UMZ), FsL(QMAGX:QMAGZ)
-	!	print*, "ssL = ", ssL, "sL = ", sL, "sM =", sM
-	!	print*, "UsL = ", UsL(UMX:UMZ), UsL(QMAGX:QMAGZ) 
-	!	print*, "UssL = ", UssL(UMX:UMZ), UssL(QMAGX:QMAGZ) 
-	!	print*, "qL = ", qL(QMAGX:QMAGZ)
-	!	print*, "qR = ", qR(QMAGX:QMAGZ)
-	!	pause
-	!endif
+        !if(dir.eq.2.and.((i.eq.3.and.j.eq.16.and.k.eq.1).or.(i.eq.4.and.j.eq.16.and.k.eq.1))) then
+        !       print*, "dir, i, j, k =", dir, i, j, k
+        !       print*, "flux is ", choice, " = ", flx(i,j,k,UMX:UMZ), flx(i,j,k,QMAGX:QMAGZ)
+        !       print*, "FL = ",  FL(UMX:UMZ), FL(QMAGX:QMAGZ)
+        !       print*, "FsL = ", FsL(UMX:UMZ), FsL(QMAGX:QMAGZ)
+        !       print*, "ssL = ", ssL, "sL = ", sL, "sM =", sM
+        !       print*, "UsL = ", UsL(UMX:UMZ), UsL(QMAGX:QMAGZ) 
+        !       print*, "UssL = ", UssL(UMX:UMZ), UssL(QMAGX:QMAGZ) 
+        !       print*, "qL = ", qL(QMAGX:QMAGZ)
+        !       print*, "qR = ", qR(QMAGX:QMAGZ)
+        !       pause
+        !endif
    end do
    end do
    end do
@@ -185,7 +185,7 @@ subroutine PToC(q, u)
 
    implicit none
 
-   real(rt), intent(in)	 ::q(QVAR)
+   real(rt), intent(in)  ::q(QVAR)
    real(rt), intent(out) ::u(QVAR)
    
    type(eos_t) :: eos_state
@@ -205,7 +205,7 @@ subroutine PToC(q, u)
 
    u(UEINT)       = eos_state % rho * eos_state % e
    u(UEDEN)       = u(UEINT)  + 0.5d0*q(QRHO)*dot_product(q(QU:QW),q(QU:QW)) &
-		             + 0.5d0*(dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))
+                             + 0.5d0*(dot_product(q(QMAGX:QMAGZ),q(QMAGX:QMAGZ)))
    u(QMAGX:QMAGZ) = q(QMAGX:QMAGZ)
 
 end subroutine PToC

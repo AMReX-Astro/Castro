@@ -952,15 +952,15 @@ Castro::initData ()
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
 
-	  Bx_new[mfi].setVal(0.0);
-	  By_new[mfi].setVal(0.0);
-	  Bz_new[mfi].setVal(0.0);
+          Bx_new[mfi].setVal(0.0);
+          By_new[mfi].setVal(0.0);
+          Bz_new[mfi].setVal(0.0);
 
-	  BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
-	     (level, cur_time, lo, hi,
-	      nbx, BL_TO_FORTRAN_3D(Bx_new[mfi]),
-	      nby, BL_TO_FORTRAN_3D(By_new[mfi]),
-	      nbz, BL_TO_FORTRAN_3D(Bz_new[mfi]),
+          BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
+             (level, cur_time, lo, hi,
+              nbx, BL_TO_FORTRAN_3D(Bx_new[mfi]),
+              nby, BL_TO_FORTRAN_3D(By_new[mfi]),
+              nbz, BL_TO_FORTRAN_3D(Bz_new[mfi]),
               dx, gridloc.lo(),gridloc.hi());
 
        }
@@ -1045,7 +1045,7 @@ Castro::initData ()
 #ifdef MHD
                             Bx_new, By_new,Bz_new,
 #endif
-			    S_new);
+                            S_new);
 
          // For fourth-order, we need to convert to cell-averages now.
          // (to second-order, these are cell-averages, so we're done in that case).
@@ -1122,7 +1122,7 @@ Castro::initData ()
 #ifdef MHD
                             Bx_new, By_new,Bz_new,
 #endif
-		            S_new);
+                            S_new);
 #endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
@@ -1135,9 +1135,9 @@ Castro::initData ()
 
     clean_state(
 #ifdef MHD
-		    Bx_new, By_new, Bz_new,
+                    Bx_new, By_new, Bz_new,
 #endif
-		    S_new, cur_time, S_new.nGrow());
+                    S_new, cur_time, S_new.nGrow());
 
 
 #ifdef RADIATION
@@ -1376,21 +1376,21 @@ Castro::estTimeStep (Real dt_old)
 #ifndef MHD
 
 #pragma gpu
-		  ca_estdt(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-			   BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-			   AMREX_REAL_ANYD(dx),
+                  ca_estdt(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
+                           BL_TO_FORTRAN_ANYD(stateMF[mfi]),
+                           AMREX_REAL_ANYD(dx),
                            AMREX_MFITER_REDUCE_MIN(&dt));
 #else
                   ca_estdt_mhd(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()), 
-		               BL_TO_FORTRAN_3D(stateMF[mfi]),
-			       BL_TO_FORTRAN_3D(bxMF[mfi]),
-			       BL_TO_FORTRAN_3D(byMF[mfi]),
-			       BL_TO_FORTRAN_3D(bzMF[mfi]),
-			       ZFILL(dx),&dt);
+                               BL_TO_FORTRAN_3D(stateMF[mfi]),
+                               BL_TO_FORTRAN_3D(bxMF[mfi]),
+                               BL_TO_FORTRAN_3D(byMF[mfi]),
+                               BL_TO_FORTRAN_3D(bzMF[mfi]),
+                               ZFILL(dx),&dt);
 #endif
 
 
-		}
+                }
               estdt_hydro = std::min(estdt_hydro, dt);
             }
 
@@ -2726,7 +2726,7 @@ Castro::reflux(int crse_level, int fine_level)
 #ifdef MHD
                                           Bx_new, By_new, Bz_new,
 #endif
-				          S_new, time, 0);
+                                          S_new, time, 0);
 
             }
 
@@ -2761,9 +2761,9 @@ Castro::reflux(int crse_level, int fine_level)
                 bool apply_sources_to_state = true;
                 getLevel(lev).do_new_sources(
 #ifdef MHD
-				Bx_new, By_new, Bz_new,
+                                Bx_new, By_new, Bz_new,
 #endif
-				source, S_old, S_new, time, dt_advance_local, apply_sources_to_state);
+                                source, S_old, S_new, time, dt_advance_local, apply_sources_to_state);
             }
 
             if (use_retry && dt_advance_local < dt_amr && getLevel(lev).keep_prev_state) {
@@ -2852,8 +2852,8 @@ void
 Castro::enforce_consistent_e (
 #ifdef MHD
                               MultiFab& Bx,
-			      MultiFab& By,
-			      MultiFab& Bz,
+                              MultiFab& By,
+                              MultiFab& Bz,
 #endif
                               MultiFab& S)
 {
@@ -2873,10 +2873,10 @@ Castro::enforce_consistent_e (
         ca_enforce_consistent_e(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
 #ifdef MHD
                                 BL_TO_FORTRAN_3D(Bx[mfi]),
-				BL_TO_FORTRAN_3D(By[mfi]),
-				BL_TO_FORTRAN_3D(Bz[mfi]),
+                                BL_TO_FORTRAN_3D(By[mfi]),
+                                BL_TO_FORTRAN_3D(Bz[mfi]),
 #endif
-                        	BL_TO_FORTRAN_ANYD(S[mfi]));
+                                BL_TO_FORTRAN_ANYD(S[mfi]));
     }
 }
 
@@ -3249,8 +3249,8 @@ void
 Castro::reset_internal_energy(
 #ifdef MHD
                               MultiFab& Bx,
-			      MultiFab& By,
-			      MultiFab& Bz,
+                              MultiFab& By,
+                              MultiFab& Bz,
 #endif
                               MultiFab& S_new, int ng)
 
@@ -3328,11 +3328,11 @@ void
 Castro::computeTemp(
 #ifdef MHD
                     MultiFab& Bx,
-		    MultiFab& By,
-		    MultiFab& Bz,
+                    MultiFab& By,
+                    MultiFab& Bz,
 #endif
 
-		    MultiFab& State, Real time, int ng)
+                    MultiFab& State, Real time, int ng)
 
 {
 
@@ -3396,12 +3396,12 @@ Castro::computeTemp(
     enforce_min_density(Stemp, Stemp.nGrow());
     reset_internal_energy(Stemp, Stemp.nGrow());
   } else {
-#endif	  
+#endif    
     reset_internal_energy(
 #ifdef MHD
-		          Bx, By, Bz,
+                          Bx, By, Bz,
 #endif
-		          State, ng);
+                          State, ng);
 #ifdef TRUE_SDC
   }
 #endif
@@ -3901,8 +3901,8 @@ Real
 Castro::clean_state(
 #ifdef MHD
                     MultiFab& bx,
-		    MultiFab& by,
-		    MultiFab& bz,
+                    MultiFab& by,
+                    MultiFab& bz,
 #endif
                     MultiFab& state_in, Real time, int ng) {
 

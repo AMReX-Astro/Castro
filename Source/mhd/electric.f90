@@ -10,19 +10,19 @@ use meth_params_module, only : NQ, QU,QV, QW, QMAGX, QMAGY, QMAGZ
 
 implicit none
 
- real(rt), intent(in)	::Q(NQ)
- real(rt), intent(out) 	::E
+ real(rt), intent(in)   ::Q(NQ)
+ real(rt), intent(out)  ::E
  integer, intent(in)    ::comp
 
-		!E = -v X B
-	if(comp.eq. 1) then
-	E	= -Q(QV)*Q(QMAGZ) + Q(QW)*Q(QMAGY)
-	elseif(comp.eq. 2) then
-	E	= -Q(QW)*Q(QMAGX) + Q(QU)*Q(QMAGZ)
-	elseif(comp.eq. 3) then
-	E	= -Q(QU)*Q(QMAGY) + Q(QV)*Q(QMAGX)
-	else
-	endif
+                !E = -v X B
+        if(comp.eq. 1) then
+        E       = -Q(QV)*Q(QMAGZ) + Q(QW)*Q(QMAGY)
+        elseif(comp.eq. 2) then
+        E       = -Q(QW)*Q(QMAGX) + Q(QU)*Q(QMAGZ)
+        elseif(comp.eq. 3) then
+        E       = -Q(QU)*Q(QMAGY) + Q(QV)*Q(QMAGX)
+        else
+        endif
  
 end subroutine electric
 

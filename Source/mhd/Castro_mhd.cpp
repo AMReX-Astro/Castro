@@ -29,8 +29,8 @@ Castro::just_the_mhd(Real time, Real dt)
       MultiFab electric[BL_SPACEDIM];
       for (int j = 0; j < BL_SPACEDIM; j++)
       {
-	electric[j].define(getEdgeBoxArray(j), dmap, 1, 0);
-	electric[j].setVal(0.0);
+        electric[j].define(getEdgeBoxArray(j), dmap, 1, 0);
+        electric[j].setVal(0.0);
       }
 
 
@@ -49,8 +49,8 @@ Castro::just_the_mhd(Real time, Real dt)
         Real cflLoc = -1.0e+200;
         int is_finest_level = (level == finest_level) ? 1 : 0;
         for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-	{
-	   const Box& bx = mfi.tilebox();
+        {
+           const Box& bx = mfi.tilebox();
 
            const int* lo = bx.loVect();
            const int* hi = bx.hiVect();
@@ -63,23 +63,23 @@ Castro::just_the_mhd(Real time, Real dt)
 
            FArrayBox& Bx  = Bx_old_tmp[mfi];
            FArrayBox& By  = By_old_tmp[mfi]; 
-	   FArrayBox& Bz  = Bz_old_tmp[mfi];
+           FArrayBox& Bz  = Bz_old_tmp[mfi];
 
-	   FArrayBox& Bxout = Bx_new[mfi];
-	   FArrayBox& Byout = By_new[mfi];
-	   FArrayBox& Bzout = Bz_new[mfi];
+           FArrayBox& Bxout = Bx_new[mfi];
+           FArrayBox& Byout = By_new[mfi];
+           FArrayBox& Bzout = Bz_new[mfi];
 
            Real se  = 0;
-	   Real ske = 0;
+           Real ske = 0;
 
-	   //Allocate fabs for fluxes
-	   for (int i = 0; i < BL_SPACEDIM; i++){
-	      const Box& bxtmp = amrex::surroundingNodes(bx,i);
+           //Allocate fabs for fluxes
+           for (int i = 0; i < BL_SPACEDIM; i++){
+              const Box& bxtmp = amrex::surroundingNodes(bx,i);
               flux[i].resize(bxtmp,NUM_STATE);
-	      E[i].resize(bxtmp,NUM_STATE);
-	      u_gdnv[i].resize(amrex::grow(bxtmp, 1), 1);
-	      u_gdnv[i].setVal(1.e200);
-	   }
+              E[i].resize(bxtmp,NUM_STATE);
+              u_gdnv[i].resize(amrex::grow(bxtmp, 1), 1);
+              u_gdnv[i].setVal(1.e200);
+           }
 
 
            ca_advance_mhd
@@ -106,14 +106,14 @@ Castro::just_the_mhd(Real time, Real dt)
              &cflLoc, &se, &ske, &print_fortran_warnings);
 
            for (int i = 0; i < BL_SPACEDIM; i++){
-	     (*fluxes[i])[mfi].plus(flux[i], mfi.nodaltilebox(i),0,0,NUM_STATE);
+             (*fluxes[i])[mfi].plus(flux[i], mfi.nodaltilebox(i),0,0,NUM_STATE);
              
-	     (*mass_fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i),Density,mfi.nodaltilebox(i),0,1);
+             (*mass_fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i),Density,mfi.nodaltilebox(i),0,1);
              electric[i][mfi].copy(E[i], mfi.nodaltilebox(i));
-	   }
+           }
 
 
-	}
+        }
 
     } 
 

@@ -727,7 +727,7 @@ subroutine consup(uin, uin_lo, uin_hi, &
   integer,  intent(in)  :: flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
   integer,  intent(in)  :: flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
   integer,  intent(in)  :: src_lo(3), src_hi(3)
-  integer, intent(in) 	:: lo(3), hi(3)
+  integer, intent(in)   :: lo(3), hi(3)
 
   real(rt), intent(in)  :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
   real(rt), intent(inout)  :: bcc(bcc_l1:bcc_h1, bcc_l2:bcc_h2, bcc_l3:bcc_h3, 3)
@@ -735,10 +735,10 @@ subroutine consup(uin, uin_lo, uin_hi, &
   real(rt), intent(in)  :: fluxx(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR+3)
   real(rt), intent(in)  :: fluxy(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR+3)
   real(rt), intent(in)  :: fluxz(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR+3)
-  real(rt), intent(in) 	:: dx,dy,dz,dt 
+  real(rt), intent(in)  :: dx,dy,dz,dt 
   real(rt), intent(out) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3),NVAR)
 
-  integer 				:: i, j, k	
+  integer                               :: i, j, k      
   !****TO DO ******* SOURCES
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
@@ -820,33 +820,33 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
   real(rt), intent(out) :: byout(byout_lo(1):byout_hi(1), byout_lo(2):byout_hi(2), byout_lo(3):byout_hi(3))
   real(rt), intent(out) :: bzout(bzout_lo(1):bzout_hi(1), bzout_lo(2):bzout_hi(2), bzout_lo(3):bzout_hi(3))
 
-  integer				  :: i, j, k
+  integer                                 :: i, j, k
 
   !***** TO DO ***** SOURCES
   !-------------------------------- bx --------------------------------------------------
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
-	do i = lo(1), hi(1)+1
+        do i = lo(1), hi(1)+1
            bxout(i,j,k) = bxin(i,j,k) + dt/dx*( (Ey(i,j,k+1) - Ey(i,j,k)) - (Ez(i,j+1,k) - Ez(i,j,k)) )
 
-	enddo
+        enddo
      enddo
   enddo
 
   !------------------------------- by --------------------------------------------------
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)+1
-	do i = lo(1), hi(1)
+        do i = lo(1), hi(1)
            byout(i,j,k) = byin(i,j,k) + dt/dy*( (Ez(i+1,j,k) - Ez(i,j,k)) - (Ex(i,j,k+1) - Ex(i,j,k)) )
-	enddo
+        enddo
      enddo
   enddo
  !------------------------------- bz --------------------------------------------------
   do k = lo(3), hi(3)+1
      do j = lo(2), hi(2)
-	do i = lo(1), hi(1)
+        do i = lo(1), hi(1)
            bzout(i,j,k) = bzin(i,j,k) + dt/dz*( (Ex(i,j+1,k) - Ex(i,j,k)) - (Ey(i+1,j,k) - Ey(i,j,k)) )
-	enddo
+        enddo
      enddo
   enddo
 
@@ -888,7 +888,7 @@ subroutine enercorr(bcc, bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3, &
  !-------------------------------- Internal Energy ----------------------------------------------------
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
-	do i = lo(1), hi(1)
+        do i = lo(1), hi(1)
            bx = 0.5d0*(bxout(i+1,j,k)+bxout(i,j,k))
            by = 0.5d0*(byout(i,j+1,k)+byout(i,j,k))
            bz = 0.5d0*(bzout(i,j,k+1)+bzout(i,j,k))
@@ -899,7 +899,7 @@ subroutine enercorr(bcc, bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3, &
            !uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) + 0.5d0*(bx**2 +by**2 + bz**2 - dot_product(bcc(i,j,k,1:3),bcc(i,j,k,1:3)))
            e = uout(i,j,k,UEDEN) - 0.5d0*(u**2 + v**2 + w**2)*uout(i,j,k,URHO)
            uout(i,j,k,UEINT) = e - 0.5d0*(bx**2 + by**2 + bz**2)
-	enddo
+        enddo
      enddo
   enddo
 
