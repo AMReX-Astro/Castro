@@ -103,6 +103,25 @@ enum int_method { CornerTransportUpwind = 0,
                   SimplifiedSpectralDeferredCorrections
                 };
 
+
+#if AMREX_SPACEDIM == 1
+constexpr int dg0 = 1;
+constexpr int dg1 = 0;
+constexpr int dg2 = 0;
+
+#elif AMREX_SPACEDIM == 2
+constexpr int dg0 = 1;
+constexpr int dg1 = 1;
+constexpr int dg2 = 0;
+
+#else
+constexpr int dg0 = 1;
+constexpr int dg1 = 1;
+constexpr int dg2 = 1;
+
+#endif
+
+
 ///
 /// @class Castro
 ///
@@ -975,66 +994,6 @@ public:
     amrex::Real get_point_mass ();
 #endif
 
-#ifdef HYBRID_MOMENTUM
-
-///
-/// Construct hybrid source terms at old time
-///
-/// @param source   MultiFab to save source to
-/// @param state    Old state
-/// @param time     current time
-/// @param dt       timestep
-///
-    void construct_old_hybrid_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
-
-
-///
-/// Construct hybrid source terms at new time
-///
-/// @param source       MultiFab to save source to
-/// @param state_old    Old state
-/// @param state_new    New state
-/// @param time         current time
-/// @param dt           timestep
-///
-    void construct_new_hybrid_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
-
-
-///
-/// Fill ``source`` with hybrid source terms
-///
-/// @param state        Current state
-/// @param source       MultiFab to save source to
-/// @param mult_factor
-///
-    void fill_hybrid_hydro_source(amrex::MultiFab& state, amrex::MultiFab& source, const amrex::Real mult_factor);
-
-
-///
-/// Synchronize linear momentum with hybrid momentum
-///
-/// @param state    Current state
-/// @param ng       Number of ghost cells
-///
-    void hybrid_to_linear_momentum(amrex::MultiFab& state, int ng = 0);
-
-
-///
-/// Synchronize hybrid momentum with linear momentum
-///
-/// @param state    Current state
-/// @param ng       Number of ghost cells
-///
-    void linear_to_hybrid_momentum(amrex::MultiFab& state, int ng = 0);
-#endif
-
-
-///
-/// @param force
-/// @param sources
-/// @param state
-///
-    void add_force_to_sources (amrex::MultiFab& force, amrex::MultiFab& sources, amrex::MultiFab& state);
 
 ///
 /// Add source terms to ``state``
@@ -1077,6 +1036,7 @@ public:
 ///
     void advance_aux(amrex::Real time, amrex::Real dt);
 #endif
+
 
 // Hydrodynamics
 #include <Castro_hydro.H>
@@ -1246,7 +1206,9 @@ protected:
     // Does the momentum flux include the pressure term?
     // First index is the coordinate direction, second
     // index is the momentum direction.
-    amrex::Array<amrex::Array<bool, 3>, 3> mom_flux_has_p;
+    amrex::GpuArray<int, 3> momx_flux_has_p;
+    amrex::GpuArray<int, 3> momy_flux_has_p;
+    amrex::GpuArray<int, 3> momz_flux_has_p;
 
 ///
 /// Scalings for the flux registers.
