@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Reactions &mdash; Castro  documentation</title>
+  <title>Development Best Practices &mdash; Castro  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="File Castro_react.H" href="file/Castro__react_8H.html" />
-    <link rel="prev" title="trace_ppm_rad_nd.F90" href="file/trace_ppm_rad_nd_f.html" /> 
+    <link rel="next" title="File list" href="filelist.html" />
+    <link rel="prev" title="Verification" href="Verification.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -101,7 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Castro reference</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coding_conventions.html">Coding Conventions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
@@ -120,31 +120,15 @@
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
-<li class="toctree-l1"><a class="reference internal" href="development.html#castro-releases">Castro Releases</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Development Best Practices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#castro-releases">Castro Releases</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#interim-updates">Interim updates</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="filelist.html">File list</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="diffusion_files.html">Diffusion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="driver_files.html">Driver</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gravity_files.html">Gravity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hydro_files.html">Hydro</a></li>
-<li class="toctree-l2"><a class="reference internal" href="particles_files.html">Particles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="problems_files.html">Problems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="radiation_files.html">Radiation</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Reactions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro__react_8H.html">File Castro_react.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/React_nd_f.html">React_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/react_util_f.html">react_util.F90</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="rotation_files.html">Rotation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scf_files.html">Scf</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sdc_files.html">Sdc</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sources_files.html">Sources</a></li>
-</ul>
-</li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 </ul>
 <p class="caption"><span class="caption-text">References</span></p>
@@ -195,15 +179,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-          <li><a href="filelist.html">File list</a> &raquo;</li>
-        
-      <li>Reactions</li>
+      <li>Development Best Practices</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/reactions_files.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/development.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -216,20 +198,68 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="reactions">
-<h1>Reactions<a class="headerlink" href="#reactions" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="file/Castro__react_8H.html">File Castro_react.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/React_nd_f.html">React_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/React_nd_f.html#f/reactions_module">reactions_module</a></li>
+  <div class="section" id="development-best-practices">
+<h1>Development Best Practices<a class="headerlink" href="#development-best-practices" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="castro-releases">
+<h1>Castro Releases<a class="headerlink" href="#castro-releases" title="Permalink to this headline">¶</a></h1>
+<p>This outlines the procedure for doing the monthly Castro release.</p>
+<p>Castro uses submodules for dependencies, this means that, at a
+minimum, we must update the AMReX and  Microphysics submodules monthly when we
+issue new releases. The releases for AMReX and Microphysics must be done
+first. Then navigate to each submodule directory, checkout the new
+tag, and then from the top-level directory of Castro do a “git add” on
+the <code class="docutils literal notranslate"><span class="pre">external/</span></code> directory to store the new tags. So, for example, at
+the beginning of March 2020 we would first issue the <code class="docutils literal notranslate"><span class="pre">20.03</span></code> tag on
+Microphysics, and wait for AMReX to release a <code class="docutils literal notranslate"><span class="pre">20.03</span></code> tag, then do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd $CASTRO_HOME/external
+cd amrex
+git pull
+git checkout 20.03
+cd ..
+cd Microphysics
+git pull
+git checkout 20.03
+cd ..
+git add -u .
+git commit -m &quot;Update AMReX and Microphysics to release 20.03&quot;
+</pre></div>
+</div>
+<p>Then we can proceed with issuing our own release.</p>
+<p>Each month the <code class="docutils literal notranslate"><span class="pre">development</span></code> branch is merged into <code class="docutils literal notranslate"><span class="pre">master</span></code> and a
+release is tagged.  This needs to be done in coordination with its
+submodule dependencies.  The general procedure is:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Do ‘git pull’ in both master and development branches.  (Use <cite>git
+checkout xxx</cite> to change to branch xxx.</li>
+<li>In master branch, do <cite>git merge development</cite>.  Fix any conflicts
+if there are any.  (There should not be any conflicts unless a
+commit is checked into master directly without going through
+development.)</li>
+<li>In master branch, commit new release notes (<code class="docutils literal notranslate"><span class="pre">CHANGES.md</span></code>)
+summarizing changes since last major release.</li>
+<li>Tag the new release: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span> <span class="pre">-m</span> <span class="pre">&quot;Castro</span> <span class="pre">YY.MM&quot;</span> <span class="pre">YY.MM</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">--tags</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">development</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">merge</span> <span class="pre">master</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/react_util_f.html">react_util.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/react_util_f.html#f/react_util_module">react_util_module</a></li>
-</ul>
-</li>
-</ul>
+</div></blockquote>
+<div class="section" id="interim-updates">
+<h2>Interim updates<a class="headerlink" href="#interim-updates" title="Permalink to this headline">¶</a></h2>
+<p>When breaking changes to Microphysics occur in its development branch
+that Castro depends on, we must update the Microphysics submodule on
+the Castro development branch in the same way, replacing the git
+checkout statement with the latest commit hash on the Microphysics
+development branch. (A git submodule always tracks a specific
+commit/tag on the target repo – it is not configured to automatically
+track a particular branch.)  Since such breaking changes usually are
+accompanied by a Castro change, it is best practice to ensure that
+the PRs in both Microphysics and Castro have been approved, then
+merge the Microphysics PR, then add the update to the Microphysics
+submodule to the Castro PR, then merge. A similar process applies for AMReX.</p>
 </div>
 </div>
 
@@ -241,10 +271,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="file/Castro__react_8H.html" class="btn btn-neutral float-right" title="File Castro_react.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="filelist.html" class="btn btn-neutral float-right" title="File list" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="file/trace_ppm_rad_nd_f.html" class="btn btn-neutral float-left" title="trace_ppm_rad_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Verification.html" class="btn btn-neutral float-left" title="Verification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
