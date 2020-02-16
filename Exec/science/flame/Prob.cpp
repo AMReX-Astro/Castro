@@ -45,15 +45,7 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
     const Real* dx = geom.CellSize();
   std::vector<std::string> spec_names;
   for (int i = 0; i < NumSpec; i++) {
-    int len = 20;
-    Vector<int> int_spec_names(len);
-    // This call return the actual length of each string in "len"
-    ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
-    char char_spec_names[len+1];
-    for (int j = 0; j < len; j++)
-      char_spec_names[j] = int_spec_names[j];
-    char_spec_names[len] = '\0';
-    spec_names.push_back(std::string(char_spec_names));
+    spec_names.push_back(short_spec_names_cxx[i]);
   }
 
   std::string name;

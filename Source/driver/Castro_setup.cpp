@@ -445,25 +445,12 @@ Castro::variableSetUp ()
       name[UFA+i] = string(buf);
     }
 
-  // Get the species names from the network model.
-  std::vector<std::string> spec_names;
-  for (int i = 0; i < NumSpec; i++) {
-    int len = 20;
-    Vector<int> int_spec_names(len);
-    // This call return the actual length of each string in "len"
-    ca_get_spec_names(int_spec_names.dataPtr(),&i,&len);
-    Vector<char> char_spec_names(len+1);
-    for (int j = 0; j < len; j++)
-      char_spec_names[j] = int_spec_names[j];
-    char_spec_names[len] = '\0';
-    spec_names.push_back(std::string(char_spec_names.data()));
-  }
 
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumSpec << " Species: " << std::endl;
       for (int i = 0; i < NumSpec; i++)
-        std::cout << spec_names[i] << ' ' << ' ';
+        std::cout << short_spec_names_cxx[i] << ' ' << ' ';
       std::cout << std::endl;
     }
 
@@ -471,13 +458,13 @@ Castro::variableSetUp ()
     {
       set_scalar_bc(bc, phys_bc);
       bcs[UFS+i] = bc;
-      name[UFS+i] = "rho_" + spec_names[i];
+      name[UFS+i] = "rho_" + short_spec_names_cxx[i];
     }
 
   // Get the auxiliary names from the network model.
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
-    int len = 20;
+    const int len = 20;
     Vector<int> int_aux_names(len);
     // This call return the actual length of each string in "len"
     ca_get_aux_names(int_aux_names.dataPtr(),&i,&len);
@@ -556,7 +543,7 @@ Castro::variableSetUp ()
   for (int i=0; i<NumSpec; ++i)
     {
       set_scalar_bc(bc,phys_bc);
-      name_react = "omegadot_" + spec_names[i];
+      name_react = "omegadot_" + short_spec_names_cxx[i];
       desc_lst.setComponent(Reactions_Type, i, name_react, bc,BndryFunc(ca_reactfill));
     }
   desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, BndryFunc(ca_reactfill));
@@ -781,7 +768,7 @@ Castro::variableSetUp ()
   // X from rhoX
   //
   for (int i = 0; i < NumSpec; i++){
-    std::string spec_string = "X("+spec_names[i]+")";
+    std::string spec_string = "X(" + short_spec_names_cxx[i] + ")";
     derive_lst.add(spec_string,IndexType::TheCellType(),1,ca_derspec,the_same_box);
     derive_lst.addComponent(spec_string,desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);

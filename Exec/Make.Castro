@@ -306,6 +306,11 @@ ifndef GENERAL_NET_INPUTS
    endif
 endif
 
+# Specify that we want to write the general_null network
+# files to our temporary build directory (this has no
+# effect for other networks).
+NETWORK_OUTPUT_PATH = $(CASTRO_AUTO_SOURCE_DIR)
+
 EXTERN_CORE += $(EOS_PATH)
 EXTERN_CORE += $(EOS_HOME)
 

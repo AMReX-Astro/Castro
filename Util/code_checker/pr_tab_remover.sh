@@ -1,16 +1,18 @@
 #!/bin/bash
 set -e # Exit with nonzero exit code if anything fails
 
-# Save some useful information
-REPO=`git config remote.origin.url`
-SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
-
 # Add rsa keys to the ssh agent to push to GitHub
 gpg --output ../id_rsa_travis --batch --passphrase $DECRYPT_GITHUB_AUTH --decrypt $TRAVIS_BUILD_DIR/id_rsa_travis.enc
 chmod 600 ../id_rsa_travis
 eval `ssh-agent -s`
 ssh-add ../id_rsa_travis
 #ls ../id_rsa_travis
+
+cd $TRAVIS_BUILD_DIR
+git config remote.origin.url git@github.com:${TRAVIS_PULL_REQUEST_SLUG}.git
+git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+git fetch origin
+git checkout --track origin/$TRAVIS_PULL_REQUEST_BRANCH
 
 echo "Running tab exterminator script"
 
@@ -36,7 +38,8 @@ fi
 
 # Otherwise, commit and push
 git commit -m "Tabs have been converted to spaces by tab_exterminator.sh"
-git push $SSH_REPO $TRAVIS_PULL_REQUEST_BRANCH
+echo "pushing to $TRAVIS_PULL_REQUEST_BRANCH"
+git push origin $TRAVIS_PULL_REQUEST_BRANCH
 cd 
 
 # Kill the ssh-agent

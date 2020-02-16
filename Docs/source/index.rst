@@ -33,7 +33,6 @@ https://github.com/amrex-astro/Castro
    :caption: Castro reference
 
    build_system
-   coding_conventions
    debugging
    gpu_porting
    Hydrodynamics
@@ -50,7 +49,7 @@ https://github.com/amrex-astro/Castro
    self_consistent_field
    MAESTRO_restart
    Verification
-   releases.rst
+   development
 
 .. toctree::
    :maxdepth: 1
