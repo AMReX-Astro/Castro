@@ -28,11 +28,6 @@ CEXE_headers += MGRadBndry.H
 FEXE_headers += RAD_F.H
 FEXE_headers += HABEC_F.H
 
-ifeq ($(DIM), 1)
-  CEXE_sources += DumpModel1d.cpp
-  CEXE_headers += DumpModel1d.H
-endif
-
 ca_F90EXE_sources += RAD_$(DIM)D.F90 
 ca_F90EXE_sources += HABEC_$(DIM)D.F90
 ca_F90EXE_sources += HABEC_nd.F90

@@ -25,10 +25,6 @@
 
 #include <time.h>
 
-#ifdef HAS_DUMPMODEL
-#include <DumpModel1d.H>
-#endif
-
 #include "Castro.H"
 #include "Castro_io.H"
 
@@ -130,11 +126,6 @@ main (int   argc,
 
     amrptr->init(strt_time,stop_time);
 
-#ifdef HAS_DUMPMODEL
-    DumpModel *dumpmodelptr = new DumpModel();
-#endif
-
-
     // If we set the regrid_on_restart flag and if we are *not* going to take
     //    a time step then we want to go ahead and regrid here.
     if ( amrptr->RegridOnRestart() &&
@@ -158,23 +149,11 @@ main (int   argc,
         // Do a timestep.
         //
         amrptr->coarseTimeStep(stop_time);
-
-#ifdef HAS_DUMPMODEL
-        dumpmodelptr->dump(amrptr);
-#endif
-
-
     }
 
 #ifdef DO_PROBLEM_POST_SIMULATION
     Castro::problem_post_simulation(amrptr->getAmrLevels());
 #endif
-
-#ifdef HAS_DUMPMODEL
-    dumpmodelptr->dump(amrptr, 1);
-    delete dumpmodelptr;
-#endif
-
 
     // Write final checkpoint and plotfile
 
