@@ -18,7 +18,7 @@ extern "C"
 
   void ca_extern_init(const int* name, const int* namlen);
 
-  void ca_get_aux_names(int* aux_names,  const int* iaux, int* len);
+  void ca_get_aux_names(int* aux_names,  const int* iaux, const int* len);
 
 #ifdef REACTIONS
   void ca_get_abort_on_failure(int * abort_on_failure);
