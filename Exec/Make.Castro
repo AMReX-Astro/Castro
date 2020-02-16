@@ -45,7 +45,7 @@ ifeq ("$(wildcard $(AMREX_HOME)/Tools/GNUMake/Make.defs)","")
 endif
 
 # default integrator
-INTEGRATOR_DIR ?= VODE90
+INTEGRATOR_DIR ?= VODE
 
 # number of passively advected quantities that are not species or auxillary
 NUMADV ?= 0
@@ -491,12 +491,6 @@ $(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90:
 
 # for debugging
 test_variables: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90
-
-
-#------------------------------------------------------------------------------
-# network stuff
-#------------------------------------------------------------------------------
-NETWORK_HEADERS_DIR = $(CASTRO_AUTO_SOURCE_DIR)
 
 
 #------------------------------------------------------------------------------
