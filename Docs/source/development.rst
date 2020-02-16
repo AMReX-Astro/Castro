@@ -1,4 +1,8 @@
 ***************
+Development Best Practices
+***************
+
+***************
 Castro Releases
 ***************
 
@@ -63,6 +67,10 @@ When breaking changes to Microphysics occur in its development branch
 that Castro depends on, we must update the Microphysics submodule on
 the Castro development branch in the same way, replacing the git
 checkout statement with the latest commit hash on the Microphysics
-development branch. A git submodule always tracks a specific
+development branch. (A git submodule always tracks a specific
 commit/tag on the target repo -- it is not configured to automatically
-track a particular branch. A similar process applies for AMReX.
+track a particular branch.)  Since such breaking changes usually are
+accompanied by a Castro change, it is best practice to ensure that
+the PRs in both Microphysics and Castro have been approved, then
+merge the Microphysics PR, then add the update to the Microphysics
+submodule to the Castro PR, then merge. A similar process applies for AMReX.

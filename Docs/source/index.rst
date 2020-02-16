@@ -50,7 +50,7 @@ https://github.com/amrex-astro/Castro
    self_consistent_field
    MAESTRO_restart
    Verification
-   releases.rst
+   development
 
 .. toctree::
    :maxdepth: 1
