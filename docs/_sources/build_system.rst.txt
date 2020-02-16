@@ -96,11 +96,6 @@ Radiation Parameters
 
     .. index:: USE_RAD, NGROUPS
 
-  * ``USE_DUMPMODEL``: this is used with 1-d neutrino simulations to
-    dump out a file called ``modelDump`` at the end of a simulation
-    that can then be used to initialize higher-dimension simulations.
-
-    .. index:: USE_DUMPMODEL
 
 
 Gravity Parameters

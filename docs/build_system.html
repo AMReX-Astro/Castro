@@ -285,39 +285,35 @@ with <code class="docutils literal notranslate"><span class="pre">castro.time_in
 multigroup radiation, you need to set the number of radiation
 groups.  This is controlled by the <code class="docutils literal notranslate"><span class="pre">NGROUPS</span></code> parameter.</p>
 </li>
-<li id="index-3"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_DUMPMODEL</span></code>: this is used with 1-d neutrino simulations to
-dump out a file called <code class="docutils literal notranslate"><span class="pre">modelDump</span></code> at the end of a simulation
-that can then be used to initialize higher-dimension simulations.</p>
-</li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="gravity-parameters">
-<span id="index-4"></span><h3>Gravity Parameters<a class="headerlink" href="#gravity-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="index-3"></span><h3>Gravity Parameters<a class="headerlink" href="#gravity-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_GRAV</span></code>: use gravity (this could be constant or self-gravity)</p>
 </li>
-<li id="index-5"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SELF_GRAV</span></code>: use self-gravity.  At the moment, this is always set
+<li id="index-4"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SELF_GRAV</span></code>: use self-gravity.  At the moment, this is always set
 if <code class="docutils literal notranslate"><span class="pre">USE_GRAV</span></code> is enabled.</p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_GR</span></code>: use a post-Newtonian approximation for GR gravity for the monopole
 solver.</p>
 </li>
-<li id="index-6"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_POINTMASS</span></code>: include a pointmass source to the gravitational potential.</p>
+<li id="index-5"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_POINTMASS</span></code>: include a pointmass source to the gravitational potential.</p>
 </li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="microphysics-parameters">
-<span id="index-7"></span><h3>Microphysics Parameters<a class="headerlink" href="#microphysics-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="index-6"></span><h3>Microphysics Parameters<a class="headerlink" href="#microphysics-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_DIFFUSION</span></code>: enable thermal diffusion.  The conductivity is
 set via <code class="docutils literal notranslate"><span class="pre">CONDUCTIVITY_DIR</span></code>, which should be a directory in the
 Microphysics repo.</p>
 </li>
-<li id="index-8"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_REACT</span></code>: enable reactions.  When reactions are set, we need
+<li id="index-7"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_REACT</span></code>: enable reactions.  When reactions are set, we need
 to specify a network and an integrator.  Typically these come from
 the Microphysics repo, but one common exception is the
 <code class="docutils literal notranslate"><span class="pre">general_null</span></code> network, which just defines a composition.  The
@@ -332,7 +328,7 @@ reaction system.  This is expected to be a subdirectory in the Microphysics
 repo.</li>
 </ul>
 </li>
-<li id="index-9"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_REACT_SPARSE_JACOBIAN</span></code></p>
+<li id="index-8"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_REACT_SPARSE_JACOBIAN</span></code></p>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SPARSE_STOP_ON_OOB</span></code></p>
 </li>
@@ -343,22 +339,22 @@ Microphysics repo.</p>
 </div></blockquote>
 </div>
 <div class="section" id="hydrodynamics-and-source-term-parameters">
-<span id="index-10"></span><h3>Hydrodynamics and Source Term Parameters<a class="headerlink" href="#hydrodynamics-and-source-term-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="index-9"></span><h3>Hydrodynamics and Source Term Parameters<a class="headerlink" href="#hydrodynamics-and-source-term-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_ROTATION</span></code>: include rotation sources</p>
 </li>
-<li id="index-11"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_HYBRID_MOMENTUM</span></code>: have Castro evolve angular momentum in addition to linear
+<li id="index-10"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_HYBRID_MOMENTUM</span></code>: have Castro evolve angular momentum in addition to linear
 momentum.</p>
 </li>
-<li id="index-12"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SHOCK_VAR</span></code>: include a variable in the State_Type StateData that marks the
+<li id="index-11"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_SHOCK_VAR</span></code>: include a variable in the State_Type StateData that marks the
 location of a shock.</p>
 </li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="simulation-flow-parameters">
-<span id="index-13"></span><h3>Simulation Flow Parameters<a class="headerlink" href="#simulation-flow-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="index-12"></span><h3>Simulation Flow Parameters<a class="headerlink" href="#simulation-flow-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_AUX_UPDATE</span></code>: some networks define auxillary quantities, which in general
@@ -366,22 +362,22 @@ Castro will advect, but not otherwise change.  If we set <code class="docutils l
 then Castro will call a user-supplied routine <code class="docutils literal notranslate"><span class="pre">advance_aux()</span></code> that can
 change the auxillary quantities.</p>
 </li>
-<li id="index-14"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_POST_SIM</span></code>: if this is defined, then Castro will call the user-defined
+<li id="index-13"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_POST_SIM</span></code>: if this is defined, then Castro will call the user-defined
 routine <code class="docutils literal notranslate"><span class="pre">problem_post_simulation()</span></code> after the full evolution of the problem
 has ended.</p>
 </li>
-<li id="index-15"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_MAESTRO_INIT</span></code>: this enables the code to allow Castro to restart from a
+<li id="index-14"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_MAESTRO_INIT</span></code>: this enables the code to allow Castro to restart from a
 Maestro simulation.  This will need to be updated in the future to allow for
 restarts from MAESTROeX.</p>
 </li>
-<li id="index-16"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_HDF5</span></code>: compile in support for HDF5.  This is needed for some tables used
+<li id="index-15"><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_HDF5</span></code>: compile in support for HDF5.  This is needed for some tables used
 by Microphysics routines.</p>
 </li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="tracer-particle-parameters">
-<span id="index-17"></span><h3>Tracer Particle Parameters<a class="headerlink" href="#tracer-particle-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="index-16"></span><h3>Tracer Particle Parameters<a class="headerlink" href="#tracer-particle-parameters" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">USE_PARTICLES</span></code>: compile in support for tracer particles.</li>
@@ -402,7 +398,7 @@ number of options (<code class="docutils literal notranslate"><span class="pre">
 <p>This is the current build system process.</p>
 <ul>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">set_variables.py</span></code> is called</p>
-<ul id="index-18">
+<ul id="index-17">
 <li><p class="first">This processes the Castro <code class="docutils literal notranslate"><span class="pre">_variables</span></code> file and writes
 <code class="docutils literal notranslate"><span class="pre">state_indices.F90</span></code> and <code class="docutils literal notranslate"><span class="pre">state_indices.H</span></code> into the
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code> directory.</p>
@@ -414,13 +410,13 @@ the integer keys to index each state variable.</p>
 </ul>
 </li>
 <li><p class="first">(for <code class="docutils literal notranslate"><span class="pre">general_null</span> <span class="pre">networks</span></code>), <code class="docutils literal notranslate"><span class="pre">actual_network.F90</span></code> is created</p>
-<ul class="simple" id="index-19">
+<ul class="simple" id="index-18">
 <li>This is done by <code class="docutils literal notranslate"><span class="pre">write_network.py</span></code></li>
 <li>The hook for this is in <code class="docutils literal notranslate"><span class="pre">$(CASTRO_HOME)/Microphysics/networks/general_null/Make.package</span></code></li>
 </ul>
 </li>
 <li><p class="first">Runtime parameter files for the microphysics routines are parsed by <code class="docutils literal notranslate"><span class="pre">write_probin.py</span></code></p>
-<ul class="simple" id="index-20">
+<ul class="simple" id="index-19">
 <li>This writes the Fortran module that holds the Microphysics runtime
 parameters, <code class="docutils literal notranslate"><span class="pre">extern.F90</span></code>.  This is output in
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</li>
@@ -428,7 +424,7 @@ parameters, <code class="docutils literal notranslate"><span class="pre">extern.
 </ul>
 </li>
 <li><p class="first">Castro’s runtime parameters are parsed by <code class="docutils literal notranslate"><span class="pre">parse_castro_params.py</span></code></p>
-<ul class="simple" id="index-21">
+<ul class="simple" id="index-20">
 <li>This writes the Fortran module <code class="docutils literal notranslate"><span class="pre">meth_params.F90</span></code>, which defines all
 of the runtime parameters available to Fortran, from the template
 <code class="docutils literal notranslate"><span class="pre">meth_params.template</span></code> in <code class="docutils literal notranslate"><span class="pre">Source/driver</span></code>. The file is output in
