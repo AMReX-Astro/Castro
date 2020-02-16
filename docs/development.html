@@ -103,7 +103,6 @@
 <p class="caption"><span class="caption-text">Castro reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="coding_conventions.html">Coding Conventions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
@@ -120,9 +119,19 @@
 <li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Development Best Practices</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#castro-releases">Castro Releases</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#interim-updates">Interim updates</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Development Best Practices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#coding-conventions">Coding Conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#general">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c">C++</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c-to-fortran">C++ to Fortran</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fortran">Fortran</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#castro-releases">Castro Releases</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#interim-updates">Interim updates</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -200,9 +209,120 @@
             
   <div class="section" id="development-best-practices">
 <h1>Development Best Practices<a class="headerlink" href="#development-best-practices" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="coding-conventions">
+<h2>Coding Conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this headline">¶</a></h2>
+<p>Castro development should do its best to adhere to the following coding
+style guidelines.</p>
+<div class="section" id="general">
+<h3>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Indentation should be spaces, not tabs, with 4 spaces preferred.</li>
+</ul>
+</div>
+<div class="section" id="c">
+<h3>C++<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">Conditional should appear as:</p>
+<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+<span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+<span class="k">else</span>
+<span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="c-to-fortran">
+<h3>C++ to Fortran<a class="headerlink" href="#c-to-fortran" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">All C to Fortran interfaces should use the ISO C binding.  The
+Fortran subroutine should use</p>
+<div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">subroutine_name</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="n">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;subroutine_name)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Data passed by reference from C++ should use <code class="docutils literal notranslate"><span class="pre">*</span></code> and not <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>.</p>
+</li>
+<li><p class="first">Scalars should be passed by value, using the Fortran <code class="docutils literal notranslate"><span class="pre">value</span></code> attribute.</p>
+</li>
+<li><p class="first">Fortran routines that are called from C++ should being with <code class="docutils literal notranslate"><span class="pre">ca_</span></code>.
+This is true even if these routines are also called by other
+Fortran.</p>
+</li>
+<li><p class="first">A separate tile <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> should be passed in to each
+subroutine, with the expectation that the Fortran subroutine will
+act exactly over the domain (lo, hi). If you want to include ghost
+zones in the calculation, include them in your box using
+<code class="docutils literal notranslate"><span class="pre">mfi.growntilebox(ng)</span></code> instead of <code class="docutils literal notranslate"><span class="pre">mfi.validbox()</span></code>.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="fortran">
+<h3>Fortran<a class="headerlink" href="#fortran" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Put all routines in a module—this ensures that argument lists are
+checked.</li>
+<li>Use the <code class="docutils literal notranslate"><span class="pre">only</span></code> clause in module <code class="docutils literal notranslate"><span class="pre">use</span></code> statements to explicitly
+make clear what is being accessed.</li>
+<li>In a module, there should be no “top-level” <code class="docutils literal notranslate"><span class="pre">use</span></code> statements (with
+the exception of getting access to the <code class="docutils literal notranslate"><span class="pre">rt</span></code> type).  Instead each
+function / subroutine in the module  should use what it needs directly.</li>
+<li>New Fortran files should have the .F90 file extension, not the .f90
+file extension, so that they can be preprocessed.</li>
+</ul>
+</div>
+<div class="section" id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<p>C++ routines should use Doxygen style comments.</p>
+<ul>
+<li><p class="first">C++ functions should be documented in the header file using the style:</p>
+<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span>
+<span class="o">///</span> <span class="n">Description</span> <span class="n">of</span> <span class="n">the</span> <span class="n">function</span>
+<span class="o">///</span>
+<span class="o">///</span> <span class="nd">@param</span> <span class="n">bar</span>       <span class="n">Brief</span> <span class="n">description</span> <span class="n">of</span> <span class="n">the</span> <span class="n">variable</span>
+<span class="o">///</span>
+<span class="n">void</span> <span class="n">foo</span><span class="p">(</span><span class="nb">int</span> <span class="n">bar</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Member variables can either be documented using the above style of comment block or
+with a brief inline description:</p>
+<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">var</span><span class="p">;</span> <span class="o">///&lt;</span> <span class="n">Brief</span> <span class="n">description</span> <span class="n">after</span> <span class="n">the</span> <span class="n">variable</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Fortran functions should use Sphinx style comments</p>
+<ul>
+<li><p class="first">Fortran functions should be documented by placing a comment block
+immediately after their prototype (i.e. <cite>without</cite> a line in betwen ) using the style:</p>
+<div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span>subroutine foo(bar)
+  ! Description of the function
+
+  use some_module
+
+  implicit none
+
+  integer, intent(inout) :: bar   ! Brief description of bar
+  ...
+</pre></div>
+</div>
+<p>Documentation for modules should be similarly formatted, with the comment block again
+coming <cite>immediately</cite> after the module definition.</p>
+</li>
+</ul>
+</div>
 </div>
 <div class="section" id="castro-releases">
-<h1>Castro Releases<a class="headerlink" href="#castro-releases" title="Permalink to this headline">¶</a></h1>
+<h2>Castro Releases<a class="headerlink" href="#castro-releases" title="Permalink to this headline">¶</a></h2>
 <p>This outlines the procedure for doing the monthly Castro release.</p>
 <p>Castro uses submodules for dependencies, this means that, at a
 minimum, we must update the AMReX and  Microphysics submodules monthly when we
@@ -248,7 +368,7 @@ summarizing changes since last major release.</li>
 </ul>
 </div></blockquote>
 <div class="section" id="interim-updates">
-<h2>Interim updates<a class="headerlink" href="#interim-updates" title="Permalink to this headline">¶</a></h2>
+<h3>Interim updates<a class="headerlink" href="#interim-updates" title="Permalink to this headline">¶</a></h3>
 <p>When breaking changes to Microphysics occur in its development branch
 that Castro depends on, we must update the Microphysics submodule on
 the Castro development branch in the same way, replacing the git
@@ -260,6 +380,7 @@ accompanied by a Castro change, it is best practice to ensure that
 the PRs in both Microphysics and Castro have been approved, then
 merge the Microphysics PR, then add the update to the Microphysics
 submodule to the Castro PR, then merge. A similar process applies for AMReX.</p>
+</div>
 </div>
 </div>
 

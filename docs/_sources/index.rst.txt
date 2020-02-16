@@ -33,7 +33,6 @@ https://github.com/amrex-astro/Castro
    :caption: Castro reference
 
    build_system
-   coding_conventions
    debugging
    gpu_porting
    Hydrodynamics
