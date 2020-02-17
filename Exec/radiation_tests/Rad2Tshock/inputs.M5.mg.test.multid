@@ -1,6 +1,7 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step  = 5    # maximum timestep
+max_step  = 10    # maximum timestep
 stop_time = 0.04
+#max_step = 11
 
 geometry.is_periodic = 0 0 0
 
@@ -12,7 +13,7 @@ geometry.prob_hi   =    2000. 187.5 187.5
 amr.n_cell   = 256  8  8
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 1       # maximum level number allowed
+amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 2 2 # how often to regrid
 amr.blocking_factor = 4       # block factor in grid generation
@@ -24,6 +25,7 @@ amr.grid_eff        = 0.7     # what constitutes an efficient grid
 # CHECKPOINT FILES
 amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 1000      # number of timesteps between checkpoints
+#amr.restart = chk00011
 
 # PLOTFILES
 amr.plot_file       = plt_
@@ -90,7 +92,7 @@ radiation.nGroups = 16
 radiation.lowestGroupHz = 1.e10
 radiation.highestGroupHz = 1.e15
 
-radiation.accelerate = 2
+radiation.accelerate = 1
 radiation.skipAccelAllowed = 1
 radiation.relInTol = 1.e-6 # relative tolerance for inner update loop
 radiation.absInTol = 0.0   # absolute tolerance for inner update loop

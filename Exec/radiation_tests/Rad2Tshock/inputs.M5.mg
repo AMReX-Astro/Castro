@@ -93,7 +93,7 @@ radiation.nGroups = 16
 radiation.lowestGroupHz = 1.e10
 radiation.highestGroupHz = 1.e15
 
-radiation.accelerate = 2
+radiation.accelerate = 1
 radiation.skipAccelAllowed = 1
 radiation.relInTol = 1.e-6 # relative tolerance for inner update loop
 radiation.absInTol = 0.0   # absolute tolerance for inner update loop
