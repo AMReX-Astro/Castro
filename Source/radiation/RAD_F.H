@@ -607,8 +607,9 @@ extern "C" {
                       int* tfab, ARLIM_P(dlo), ARLIM_P(dhi),
                       const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real& time);
 
-  void bextrp(BL_FORT_FAB_ARG(f), 
-              ARLIM_P(reglo), ARLIM_P(reghi));
+    void bextrp(const int* lo, const int* hi,
+                const int* vlo, const int* vhi,
+                BL_FORT_FAB_ARG_3D(f));
 
   // neutrino routines below
 

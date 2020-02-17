@@ -9,6 +9,188 @@ module rad_nd_module
 
 contains
 
+  subroutine bextrp(lo, hi, &
+                    vlo, vhi, &
+                    f, f_lo, f_hi) &
+                    bind(C, name="bextrp")
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: vlo(3), vhi(3)
+    integer,  intent(in   ) :: f_lo(3), f_hi(3)
+    real(rt), intent(inout) :: f(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+
+    integer :: i, j, k
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! Extrapolate the data in the ghost zones of the box using a one-sided difference:
+             ! f(i-1) = 2 * f(i) - f(i+1)
+             !
+             ! For corners in 2D, or edges in 3D, this is applied in both directions, yielding
+             ! f_{i-1,j-1} = 4 * f(i,j) - 2 * (f(i+1,j) + f(i,j+1)) + f(i+1,j+1)
+             !
+             ! and for corners in 3D, this is applied in all three directions, yielding
+             ! f(i-1,j-1,k-1) = 8 * (f(i,j,k) - 4 * (f(i+1,j,k) + f(i,j+1,k) + f(i,j,k+1)) +
+             !                  2 * (f(i+1,j,k+1) + f(i,j+1,k+1) + f(i+1,j+1,k)) - f(i+1,j+1,k+1)
+
+             if (k == vlo(3)-1) then
+
+                if (j == vlo(1)-1) then
+
+                   if (i == vlo(1)-1) then
+
+                      f(i,j,k) = 8.0_rt * f(i+1,j+1,k+1) - 4.0_rt * (f(i+2,j+1,k+1) + f(i+1,j+2,k+1) + f(i+1,j+1,k+2)) + &
+                                 2.0_rt * (f(i+2,j+1,k+2) + f(i+1,j+2,k+2) + f(i+2,j+2,k+1)) - f(i+2,j+2,k+2)
+
+                   else if (i == vhi(1)+1) then
+
+                      f(i,j,k) = 8.0_rt * f(i-1,j+1,k+1) - 4.0_rt * (f(i-2,j+1,k+1) + f(i-1,j+2,k+1) + f(i-1,j+1,k+2)) + &
+                                 2.0_rt * (f(i-2,j+1,k+2) + f(i-1,j+2,k+2) + f(i-2,j+2,k+1)) - f(i-2,j+2,k+2)
+
+                   else ! valid i
+
+                      f(i,j,k) = 4.0_rt * f(i,j+1,k+1) - 2.0_rt * (f(i,j+2,k+1) + f(i-1,j+1,k+2)) + f(i,j+2,k+2)
+
+                   end if
+
+                else if (j == vhi(1)+1) then
+
+                   if (i == vlo(1)-1) then
+
+                      f(i,j,k) = 8.0_rt * f(i+1,j-1,k+1) - 4.0_rt * (f(i+2,j-1,k+1) + f(i+1,j-2,k+1) + f(i+1,j-1,k+2)) + &
+                                 2.0_rt * (f(i+2,j-1,k+2) + f(i+1,j-2,k+2) + f(i+2,j-2,k+1)) - f(i+2,j-2,k+2)
+
+                   else if (i == vhi(1)+1) then
+
+                      f(i,j,k) = 8.0_rt * f(i-1,j-1,k+1) - 4.0_rt * (f(i-2,j-1,k+1) + f(i-1,j-2,k+1) + f(i-1,j-1,k+2)) + &
+                                 2.0_rt * (f(i-2,j-1,k+2) + f(i-1,j-2,k+2) + f(i-2,j-2,k+1)) - f(i-2,j-2,k+2)
+
+                   else ! valid i
+
+                      f(i,j,k) = 4.0_rt * f(i,j-1,k+1) - 2.0_rt * (f(i,j-2,k+1) + f(i-1,j-1,k+2)) + f(i,j-2,k+2)
+
+                   end if
+
+                else ! valid j
+
+                   if (i == vlo(1)-1) then
+
+                      f(i,j,k) = 4.0_rt * f(i+1,j,k+1) - 2.0_rt * (f(i+2,j,k+1) + f(i+1,j,k+2)) + f(i+2,j,k+2)
+
+                   else if (i == vhi(1)+1) then
+
+                      f(i,j,k) = 4.0_rt * f(i-1,j,k+1) - 2.0_rt * (f(i-2,j,k+1) + f(i-1,j,k+2)) + f(i-2,j,k+2)
+
+                   end if
+
+                end if
+
+             else if (k == vhi(1)+1) then
+
+                if (j == vlo(1)-1) then
+
+                   if (i == vlo(1)-1) then
+
+                      f(i,j,k) = 8.0_rt * f(i+1,j+1,k-1) - 4.0_rt * (f(i+2,j+1,k-1) + f(i+1,j+2,k-1) + f(i+1,j+1,k-2)) + &
+                                 2.0_rt * (f(i+2,j+1,k-2) + f(i+1,j+2,k-2) + f(i+2,j+2,k-1)) - f(i+2,j+2,k-2)
+
+                   else if (i == vhi(1)+1) then
+
+                      f(i,j,k) = 8.0_rt * f(i-1,j+1,k-1) - 4.0_rt * (f(i-2,j+1,k-1) + f(i-1,j+2,k-1) + f(i-1,j+1,k-2)) + &
+                                 2.0_rt * (f(i-2,j+1,k-2) + f(i-1,j+2,k-2) + f(i-2,j+2,k-1)) - f(i-2,j+2,k-2)
+
+                   else ! valid i
+
+                      f(i,j,k) = 4.0_rt * f(i,j+1,k-1) - 2.0_rt * (f(i,j+2,k-1) + f(i-1,j+1,k-2)) + f(i,j+2,k-2)
+
+                   end if
+
+                else if (j == vhi(1)+1) then
+
+                   if (i == vlo(1)-1) then
+
+                      f(i,j,k) = 8.0_rt * f(i+1,j-1,k-1) - 4.0_rt * (f(i+2,j-1,k-1) + f(i+1,j-2,k-1) + f(i+1,j-1,k-2)) + &
+                                 2.0_rt * (f(i+2,j-1,k-2) + f(i+1,j-2,k-2) + f(i+2,j-2,k-1)) - f(i+2,j-2,k-2)
+
+                   else if (i == vhi(1)+1) then
+
+                      f(i,j,k) = 8.0_rt * f(i-1,j-1,k-1) - 4.0_rt * (f(i-2,j-1,k-1) + f(i-1,j-2,k-1) + f(i-1,j-1,k-2)) + &
+                                 2.0_rt * (f(i-2,j-1,k-2) + f(i-1,j-2,k-2) + f(i-2,j-2,k-1)) - f(i-2,j-2,k-2)
+
+                   else ! valid i
+
+                      f(i,j,k) = 4.0_rt * f(i,j-1,k-1) - 2.0_rt * (f(i,j-2,k-1) + f(i-1,j-1,k-2)) + f(i,j-2,k-2)
+
+                   end if
+
+                else ! valid j
+
+                   if (i == vlo(1)-1) then
+
+                      f(i,j,k) = 4.0_rt * f(i+1,j,k-1) - 2.0_rt * (f(i+2,j,k-1) + f(i+1,j,k-2)) + f(i+2,j,k-2)
+
+                   else if (i == vhi(1)+1) then
+
+                      f(i,j,k) = 4.0_rt * f(i-1,j,k-1) - 2.0_rt * (f(i-2,j,k-1) + f(i-1,j,k-2)) + f(i-2,j,k-2)
+
+                   end if
+
+                end if
+
+             else ! valid k
+
+                if (j == vlo(1)-1) then
+
+                   if (i == vlo(1)-1) then
+
+                      f(i,j,k) = 4.0_rt * f(i+1,j+1,k) - 2.0_rt * (f(i+2,j+1,k) + f(i+1,j+2,k)) + f(i+2,j+2,k)
+
+                   else if (i == vhi(1)+1) then
+
+                      f(i,j,k) = 4.0_rt * f(i-1,j+1,k) - 2.0_rt * (f(i-2,j+1,k) + f(i-1,j+2,k)) + f(i-2,j+2,k)
+
+                   end if
+
+                else if (j == vhi(1)+1) then
+
+                   if (i == vlo(1)-1) then
+
+                      f(i,j,k) = 4.0_rt * f(i+1,j-1,k) - 2.0_rt * (f(i+2,j-1,k) + f(i+1,j-2,k)) + f(i+2,j-2,k)
+
+                   else if (i == vhi(1)+1) then
+
+                      f(i,j,k) = 4.0_rt * f(i-1,j-1,k) - 2.0_rt * (f(i-2,j-1,k) + f(i-1,j-2,k)) + f(i-2,j-2,k)
+
+                   end if
+
+                else ! valid j
+
+                   if (i == vlo(1)-1) then
+
+                      f(i,j,k) = 2.e0_rt * f(i+1,j,k) - f(i+2,j,k)
+
+                   else if (i == vhi(1)+1) then
+
+                      f(i,j,k) = 2.e0_rt * f(i-1,j,k) - f(i-2,j,k)
+
+                   end if
+
+                end if
+
+             end if
+
+          end do
+       end do
+    end do
+
+  end subroutine bextrp
+
+
+
   subroutine ca_compute_dcoefs(lo, hi, &
                                d, d_lo, d_hi, &
                                lam, l_lo, l_hi, &

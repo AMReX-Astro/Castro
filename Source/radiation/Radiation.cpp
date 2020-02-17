@@ -1083,21 +1083,23 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
 
 void Radiation::extrapolateBorders(MultiFab& f, int indx)
 {
-  BL_PROFILE("Radiation::extrapolateBorders");
+    BL_PROFILE("Radiation::extrapolateBorders");
 
-  BL_ASSERT(f.nGrow() >= 1);
+    BL_ASSERT(f.nGrow() >= 1);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for(MFIter mfi(f); mfi.isValid(); ++mfi) {
-    int i = mfi.index();
+    for(MFIter mfi(f, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    {
+        const Box& vbx = mfi.validbox();
+        const Box& obx = mfi.growntilebox(1);
 
-    const Box& reg  = f.box(i);
-
-    bextrp(BL_TO_FORTRAN_N(f[mfi],indx),
-           ARLIM(reg.loVect()), ARLIM(reg.hiVect()));
-  }
+#pragma gpu box(obx)
+        bextrp(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+               AMREX_INT_ANYD(vbx.loVect()), AMREX_INT_ANYD(vbx.hiVect()),
+               BL_TO_FORTRAN_N_ANYD(f[mfi],indx));
+    }
 }
 
 
