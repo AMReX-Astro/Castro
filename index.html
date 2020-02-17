@@ -83,8 +83,8 @@
 	      <h3>Performance</h3>
 	      <p>Castro is built on the AMReX adaptive mesh
 	      refinement library, and uses an advance MPI + tiled
-	      OpenMP approach to parallelism to get great performance
-		on modern architectures.  It scales from 1 to 100,000 cores,
+	      OpenMP or MPI + CUDA approach to parallelism to get great performance
+		on modern architectures.  It scales from 1 to 100,000 cores and to 1000s of GPUs
 		and is run at most national supercomputing facilities.</p>
 	      <a href="about.html#performance" class="button alt">learn more</a>
 	    </section>
@@ -116,30 +116,26 @@
 	  <ul class="alt">
 	    <li><h3><span class="icon fa-download"></span> Clone</h3>
 	      <pre>
-git clone https://github.com/AMReX-Codes/amrex.git
-git clone https://github.com/AMReX-Astro/Castro.git
-git clone https://github.com/StarKiller-astro/Microphysics.git</pre>
+git clone --recursive git@github.com:AMReX-Astro/Castro.git</pre>
 	    </li>
 
 	    <li><h3><span class="icon fa-cogs"></span> Setup your environment</h3>
 	      <pre>
 export CASTRO_HOME=/path/to/Castro
-export AMREX_HOME=/path/to/AMReX
-export MICROPHYSICS_HOME=/path/to/Microphysics</pre>
 	    </li>
 
 	    <li><h3><span class="icon fa-magic"></span> Compile</h3>
 	      problems are compiled in their own directory.  E.g.,
 	      <pre>
-cd Castro/Exec/Sedov/
-make DIM=2</pre>
+cd Castro/Exec/hydro_tests/Sedov/
+make DIM=2 USE_MPI=FALSE</pre>
 	    </li>
 
 	    <li><h3><span class="icon fa-laptop"></span> Run</h3>
 	      The executable name will start with <var>Castro2d</var>, and an input file
 	      is always required:
 	      <pre>
-./Castro2d..gnu.MPI.ex inputs.2d.sph_in_cylcoords</pre>
+./Castro2d.gnu.ex inputs.2d.sph_in_cylcoords</pre>
 	    </li>
 
 	    <li><h3><span class="icon fa-image"></span> Visualize</h3>
