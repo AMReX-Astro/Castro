@@ -204,10 +204,11 @@
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Castro has two source dependencies: AMReX, the adaptive mesh library,
-and Microphysics, the collection of equations of state, reaction networks,
-and other microphysics.  The instructions below describe how to get these
-dependencies.</p>
+<p class="last">Castro has two source dependencies: <a class="reference external" href="https://github.com/AMReX-Codes/amrex">AMReX</a>, the adaptive mesh
+library, and <a class="reference external" href="https://github.com/starkiller-astro/Microphysics">StarKiller Microphysics</a>, the collection of equations
+of state, reaction networks, and other microphysics.  The
+instructions below describe how to get these dependencies automatically
+with Castro.</p>
 </div>
 <div class="section" id="downloading-the-code">
 <h2>Downloading the Code<a class="headerlink" href="#downloading-the-code" title="Permalink to this headline">¶</a></h2>
@@ -237,17 +238,24 @@ the following from the top-level of the Castro directory:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span> <span class="o">--</span><span class="n">recursive</span>
 </pre></div>
 </div>
-</li>
-<li><p class="first">Development on Castro (and its primary dependencies, AMReX and
-Microphysics) is done in the <code class="docutils literal notranslate"><span class="pre">development</span></code> branch, so you should
-work there if you want the latest source. The Castro team runs
-nightly regression testing on the <code class="docutils literal notranslate"><span class="pre">development</span></code> branch, so bugs
-are usually found and fixed relatively quickly, but it is generally
-less stable than staying on the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>By default, you will be on the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch of the source.
+Development on Castro (and its primary dependencies, AMReX and
+Microphysics) is done in the <code class="docutils literal notranslate"><span class="pre">development</span></code> branch, so you
+should work there if you want the latest source:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">checkout</span> <span class="n">development</span>
+</pre></div>
+</div>
+<p class="last">The Castro team runs nightly regression testing on the
+<code class="docutils literal notranslate"><span class="pre">development</span></code> branch, so bugs are usually found and fixed
+relatively quickly, but it is generally less stable than staying
+on the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch.</p>
+</div>
 </li>
 <li><p class="first">We recommend setting the <code class="docutils literal notranslate"><span class="pre">CASTRO_HOME</span></code> environment
 variable to point to the path name where you have put Castro.
-Add the following to your .bashrc:</p>
+Add the following to your <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CASTRO_HOME</span><span class="o">=</span><span class="s2">&quot;/path/to/Castro/&quot;</span>
 </pre></div>
 </div>
