@@ -1,5 +1,5 @@
 ---
-title: 'CASTRO: A Compressible Astrophysics Simulation Code'
+title: 'CASTRO: A Massively Parallel Compressible Astrophysics Simulation Code'
 tags:
   - C++
   - Fortran90
@@ -45,14 +45,18 @@ date: 17 February 2020
 bibliography: paper.bib
 ---
 
-# Summary
-Castro is a highly parallel, adaptive mesh, multiphysics simulation code for
-compressible astrophysical flows. 
+# Summary Castro is a highly parallel, adaptive mesh, multiphysics
+simulation code for compressible astrophysical flows.  It has been
+used to simulate different progenitor models of Type Ia supernovae,
+X-ray bursts, core-collapse and electron capture supernovae, and
+dynamics in exoplanets.  Together, Castro, the low Mach number code
+MAESTROeX [@maestroex], and the cosmology code Nyx [@nyx] make up the
+AMReX-Astrophysics Suite of open-source, adaptive mesh, performance
+portable astrophysical simulation codes.
 
-
-The core hydrodynamics solver in Castro is based on a the
-directionally unsplit corner transport upwind method of XX with
-piecewise parabolic reconstruction XX.  Modeling reactive flows in
+The core hydrodynamics solver in Castro [@castro] is based on a the
+directionally unsplit corner transport upwind method of [@ctu] with
+piecewise parabolic reconstruction [@ppm].  Modeling reactive flows in
 stellar environments is a core capability of Castro.  Astrophysical
 reaction networks are stiff and require implicit integration
 techniques for accurate and stable solutions.  In Castro, we have
@@ -60,37 +64,40 @@ several modes of coupling the reactions to hydro.  The simplest method
 is the traditional operator splitting approach, using Strang splitting
 to achieve second-order in time.  However, when the reactions are
 energetic this coupling can break down, and we have two different
-implementations based on spectral deferred corrections.  The
+implementations based on spectral deferred corrections (SDC).  The
 simplified SDC method uses the CTU PPM hydro together with an
 iterative scheme to fully couple the reactions and hydro, still to
-second order XX.  Both of these methods have a retry scheme, where a
-timestep will be rejected if the burning solve fails to meet its
-tolerance, negative densities are generated, or we violate one of the
-timestepping criterion.  Alternately, we have implemented a
+second order [@simple_sdc].  Both of these methods have a retry
+scheme, where a timestep will be rejected if the burning solve fails
+to meet its tolerance, negative densities are generated, or we violate
+one of the timestepping criterion.  Alternately, we have implemented a
 traditional SDC method that couples hydro and reactions to both second
-and fourth-order in space and time XX (at present, this method is
-single-level only).
+and fourth-order in space and time [@castro_sdc] (at present, this
+method is single-level only).
 
 In addition to reactive hydrodynamics, Castro includes full
 self-gravity with isolated boundary conditions and rotation, both
 implemented in an energy-conserving fashion, explicit thermal
-diffusion, and gray and multigroup flux limited diffusion radiation
-hydrodynamics.  An MHD solver has been implemented and will be merged
-into the master branch in the near future.
+diffusion, and gray [@castroII] and multigroup [@castroIII] flux
+limited diffusion radiation hydrodynamics.  An MHD solver has been
+implemented and will be merged into the master branch in the near
+future.  Castro can use an arbitrary equation of state and reaction
+network and these microphysics routines are provided by the StarKiller
+project [@starkiller].
 
-AMR
-
-Castro is written in a performance-portable manner, using MPI to
+Castro is build on the AMReX [@AMReX] adaptive mesh refinement (AMR)
+library and is largely written in C++ with Fortran compute kernels.
+AMR levels are advanced at their own timestep (subcycling) and jumps
+by factors of 2 and 4 are supported between levels.  We use MPI to
 distribute AMR grids across nodes and using logical tiling with OpenMP
 to divide a grid across threads for manycore machines or CUDA to
 spread the work across GPU threads on GPU-based machines.  All of the
 core physics runs on GPUs (CTU PPM hydro, self-gravity, diffusion,
-reactions) and has been shown to scale well to 1000s of GPUs.  For
-performance portability, the same compute kernel is used for CPUs or
-GPUs,
+reactions) and has been shown to scale well to 1000s of GPUs
+[@castro_2019].  For performance portability, the same compute kernel
+is used for CPUs or GPUs, using either a custom preprocessor pragrma
+for Fortran or lambda-capturing for C++ kernels.
 
-
-Open
 
 
 
