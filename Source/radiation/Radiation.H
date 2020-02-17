@@ -750,7 +750,7 @@ public:
                   amrex::MultiFab& etaT, amrex::MultiFab& eta1,
                   amrex::MultiFab& mugT,
                   amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
-                  RadSolve& solver, MGRadBndry& mgbd,
+                  RadSolve* solver, MGRadBndry& mgbd,
                   const amrex::BoxArray& grids, int level, amrex::Real time, amrex::Real delta_t, amrex::Real ptc_tau);
 
 ///

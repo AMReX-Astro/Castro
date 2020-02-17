@@ -45,7 +45,7 @@ ifeq ("$(wildcard $(AMREX_HOME)/Tools/GNUMake/Make.defs)","")
 endif
 
 # default integrator
-INTEGRATOR_DIR ?= VODE90
+INTEGRATOR_DIR ?= VODE
 
 # number of passively advected quantities that are not species or auxillary
 NUMADV ?= 0
@@ -108,6 +108,9 @@ ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
+
+CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
+
 
 all: build_status $(executable)
 	@echo SUCCESS
@@ -285,7 +288,7 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 
 
 #------------------------------------------------------------------------------
-# microphysics 
+# microphysics
 #------------------------------------------------------------------------------
 
 EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
@@ -323,7 +326,6 @@ endif
 table:
 	@if [ ! -f helm_table.dat ]; then echo Linking helm_table.dat; ln -s $(EOS_PATH)/helm_table.dat .;  fi
 
-EXTERN_CORE += $(NETWORK_HOME)
 EXTERN_CORE += $(NETWORK_PATH)
 
 # Note that this should be located after the include of the EOS and
@@ -333,6 +335,11 @@ EXTERN_CORE += $(NETWORK_PATH)
 EXTERN_CORE += $(MICROPHYSICS_HOME)/EOS
 EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
 EXTERN_CORE += $(MICROPHYSICS_HOME)/interfaces
+
+# for the automatically generated network_properties stuff, we should
+# tell it where to put them
+NETWORK_HEADERS_DIR = $(CASTRO_AUTO_SOURCE_DIR)
+
 
 ifeq ($(USE_CONDUCTIVITY), TRUE)
    EXTERN_CORE += $(COND_HOME)
@@ -410,7 +417,6 @@ VPATH_LOCATIONS   += $(Blocs)
 #------------------------------------------------------------------------------
 # make generated source files location
 #------------------------------------------------------------------------------
-CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
 VPATH_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
 INCLUDE_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
 
@@ -486,6 +492,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90:
 # for debugging
 test_variables: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90
 
+
 #------------------------------------------------------------------------------
 # build info
 #------------------------------------------------------------------------------
@@ -555,7 +562,7 @@ clean::
 	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
 	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
 
-# these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we 
+# these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we
 # can get rid of explicitly removing them (this is for backwards compatability)
 clean::
 	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90

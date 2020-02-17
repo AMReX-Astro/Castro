@@ -301,6 +301,7 @@ protected:
 
     std::unique_ptr<HypreABec> hd;
     std::unique_ptr<HypreMultiABec> hm;
+    std::unique_ptr<HypreExtMultiABec> hem;
 
 #include <radsolve_params.H>
 

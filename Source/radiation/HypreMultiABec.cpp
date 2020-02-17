@@ -149,6 +149,10 @@ int BndryAuxVarBase::firstLocal()
   int i = 0;
   while (distributionMap[i] != MyProc) {
     i++;
+    if (i >= distributionMap.size()) {
+        i = -1;
+        break;
+    }
   }
   return i;
 }
@@ -158,6 +162,10 @@ int BndryAuxVarBase::nextLocal(int i)
   const int MyProc = ParallelDescriptor::MyProc();
   do {
     i++;
+    if (i >= distributionMap.size()) {
+        i = -1;
+        break;
+    }
   } while (distributionMap[i] != MyProc);
   return i;
 }
