@@ -77,7 +77,7 @@ contains
     integer, intent(in), value :: idir_t, idir_n
 
 #ifdef RADIATION
-    real(rt) :: rfx(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),rfx_lo(3):rfx_hi(3),0:ngroups-1)
+    real(rt) :: rflux_t(rf_lo(1):rf_hi(1),rf_lo(2):rf_hi(2),rf_lo(3):rf_hi(3),0:ngroups-1)
 #endif
 
     real(rt), intent(in), value :: hdt, cdtdx
@@ -118,8 +118,8 @@ contains
     real(rt) :: gamc
 
 #ifdef RADIATION
-    real(rt) :: :: dre, dmom, divu
-    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+    real(rt) :: dre, dmom, divu
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, ern, ernewn, &
          lamge, luge, der
     real(rt) :: eddf, f1
     integer :: g
@@ -340,7 +340,7 @@ contains
 #ifdef RADIATION
                 runewn = runewn - HALF*hdt*(area_t(ir,jr,kr)+area_t(il,jl,kl))*sum(lamge) * volinv
                 renewn = renewn + dre
-                ernewn(:) = err(:) - hdt*(area_t(ir,jr,kr)*rflux_t(ir,jr,kr,:) -  &
+                ernewn(:) = ern(:) - hdt*(area_t(ir,jr,kr)*rflux_t(ir,jr,kr,:) -  &
                                           area_t(il,jl,kl)*rflux_t(il,jl,kl,:)) * volinv + der(:)
 #endif
 
@@ -354,7 +354,7 @@ contains
 #ifdef RADIATION
                 runewn = runewn + dmom
                 renewn = renewn + dre
-                ernewn  = err(:) - cdtdx*(rflux_t(ir,jr,kr,:) - rflux_t(il,jl,kl,:)) + der(:)
+                ernewn  = ern(:) - cdtdx*(rflux_t(ir,jr,kr,:) - rflux_t(il,jl,kl,:)) + der(:)
 #endif
 #endif
 
@@ -542,7 +542,7 @@ contains
 #ifdef RADIATION
     real(rt) :: dmt1, dmt2, dre
     real(rt), dimension(0:ngroups-1) :: der, lambda, luget1, luget2, lget1, lget2, &
-         ern, ernewn, ergt1, ergt2
+         ern, ernewn, ergt1m, ergt1p, ergt2m, ergt2p
     real(rt) :: eddf, f1
     integer :: g
 #endif
@@ -785,17 +785,17 @@ contains
                                          flux_t2(il_t2,jl_t2,kl_t2,UEDEN))
 #ifdef RADIATION
                 if (idir_n == 1) then
-                   rvnewr = rvnewr + dm_t1
-                   rwnewr = rwnewr + dm_t2
+                   rvnewn = rvnewn + dmt1
+                   rwnewn = rwnewn + dmt2
                 else if (idir_n == 2) then
-                   runewr = runewr + dm_t1
-                   rwnewr = rwnewr + dm_t2
+                   runewn = runewn + dmt1
+                   rwnewn = rwnewn + dmt2
                 else
-                   runewr = runewr + dm_t1
-                   rvnewr = rvnewr + dm_t2
+                   runewn = runewn + dmt1
+                   rvnewn = rvnewn + dmt2
                 end if
-                renewr = renewr + dre
-                ernewr = err(:) - cdtdx_t1*(rflux_t1(ir_t1,jr_t1,kr_t1,:) - &
+                renewn = renewn + dre
+                ernewn = ern(:) - cdtdx_t1*(rflux_t1(ir_t1,jr_t1,kr_t1,:) - &
                                             rflux_t1(il_t1,jl_t1,kl_t1,:)) &
                                 - cdtdx_t2*(rflux_t2(ir_t2,jr_t2,kr_t2,:) - &
                                             rflux_t2(il_t2,jl_t2,kl_t2,:)) &
