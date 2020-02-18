@@ -962,23 +962,24 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
 
 #pragma gpu box(xbx)
-      transyz(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-              BL_TO_FORTRAN_ANYD(qxm),
-              BL_TO_FORTRAN_ANYD(ql),
-              BL_TO_FORTRAN_ANYD(qxp),
-              BL_TO_FORTRAN_ANYD(qr),
-              BL_TO_FORTRAN_ANYD(qaux[mfi]),
-              BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_final(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
+                  1, 2, 3,
+                  BL_TO_FORTRAN_ANYD(qxm),
+                  BL_TO_FORTRAN_ANYD(ql),
+                  BL_TO_FORTRAN_ANYD(qxp),
+                  BL_TO_FORTRAN_ANYD(qr),
+                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                  BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
-              BL_TO_FORTRAN_ANYD(rftmp1),
+                  BL_TO_FORTRAN_ANYD(rftmp1),
 #endif
-              BL_TO_FORTRAN_ANYD(ftmp2),
+                  BL_TO_FORTRAN_ANYD(ftmp2),
 #ifdef RADIATION
-              BL_TO_FORTRAN_ANYD(rftmp2),
+                  BL_TO_FORTRAN_ANYD(rftmp2),
 #endif
-              BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-              BL_TO_FORTRAN_ANYD(qgdnvtmp2),
-              hdt, hdtdy, hdtdz);
+                  BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                  BL_TO_FORTRAN_ANYD(qgdnvtmp2),
+                  hdt, hdtdx, hdtdy, hdtdz);
 
 #pragma gpu box(xbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
@@ -1055,23 +1056,24 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
 
 #pragma gpu box(ybx)
-      transxz(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
-              BL_TO_FORTRAN_ANYD(qym),
-              BL_TO_FORTRAN_ANYD(ql),
-              BL_TO_FORTRAN_ANYD(qyp),
-              BL_TO_FORTRAN_ANYD(qr),
-              BL_TO_FORTRAN_ANYD(qaux[mfi]),
-              BL_TO_FORTRAN_ANYD(ftmp2),
+      trans_final(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
+                  2, 1, 3,
+                  BL_TO_FORTRAN_ANYD(qym),
+                  BL_TO_FORTRAN_ANYD(ql),
+                  BL_TO_FORTRAN_ANYD(qyp),
+                  BL_TO_FORTRAN_ANYD(qr),
+                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                  BL_TO_FORTRAN_ANYD(ftmp2),
 #ifdef RADIATION
-              BL_TO_FORTRAN_ANYD(rftmp2),
+                  BL_TO_FORTRAN_ANYD(rftmp2),
 #endif
-              BL_TO_FORTRAN_ANYD(ftmp1),
+                  BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
-              BL_TO_FORTRAN_ANYD(rftmp1),
+                  BL_TO_FORTRAN_ANYD(rftmp1),
 #endif
-              BL_TO_FORTRAN_ANYD(qgdnvtmp2),
-              BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-              hdt, hdtdx, hdtdz);
+                  BL_TO_FORTRAN_ANYD(qgdnvtmp2),
+                  BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                  hdt, hdtdx, hdtdy, hdtdz);
 
 #pragma gpu box(ybx)
       reset_edge_state_thermo(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
@@ -1150,23 +1152,24 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
 
 #pragma gpu box(zbx)
-      transxy(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
-              BL_TO_FORTRAN_ANYD(qzm),
-              BL_TO_FORTRAN_ANYD(ql),
-              BL_TO_FORTRAN_ANYD(qzp),
-              BL_TO_FORTRAN_ANYD(qr),
-              BL_TO_FORTRAN_ANYD(qaux[mfi]),
-              BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_final(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
+                  3, 1, 2,
+                  BL_TO_FORTRAN_ANYD(qzm),
+                  BL_TO_FORTRAN_ANYD(ql),
+                  BL_TO_FORTRAN_ANYD(qzp),
+                  BL_TO_FORTRAN_ANYD(qr),
+                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                  BL_TO_FORTRAN_ANYD(ftmp1),
 #ifdef RADIATION
-              BL_TO_FORTRAN_ANYD(rftmp1),
+                  BL_TO_FORTRAN_ANYD(rftmp1),
 #endif
-              BL_TO_FORTRAN_ANYD(ftmp2),
+                  BL_TO_FORTRAN_ANYD(ftmp2),
 #ifdef RADIATION
-              BL_TO_FORTRAN_ANYD(rftmp2),
+                  BL_TO_FORTRAN_ANYD(rftmp2),
 #endif
-              BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-              BL_TO_FORTRAN_ANYD(qgdnvtmp2),
-              hdt, hdtdx, hdtdy);
+                  BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                  BL_TO_FORTRAN_ANYD(qgdnvtmp2),
+                  hdt, hdtdx, hdtdy, hdtdz);
 
 #pragma gpu box(zbx)
       reset_edge_state_thermo(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
