@@ -338,13 +338,19 @@ contains
                                     area_t(il,jl,kl)*flux_t(il,jl,kl,UEDEN)) * volinv
 
 #ifdef RADIATION
-                runewn = runewn - HALF*hdt*(area_t(ir,jr,kr)+area_t(il,jl,kl))*sum(lamge) * volinv
+                if (idir_t == 1) then 
+                   runewn = runewn - HALF*hdt*(area_t(ir,jr,kr)+area_t(il,jl,kl))*sum(lamge) * volinv
+                else
+                   rvnewn = rvnewn + dmom
+                endif
                 renewn = renewn + dre
                 ernewn(:) = ern(:) - hdt*(area_t(ir,jr,kr)*rflux_t(ir,jr,kr,:) -  &
                                           area_t(il,jl,kl)*rflux_t(il,jl,kl,:)) * volinv + der(:)
 #endif
 
 #else
+                ! 3-d
+
                 ! Add transverse predictor
                 rrnewn = rrn - cdtdx*(flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO))
                 runewn = run - cdtdx*(flux_t(ir,jr,kr,UMX) - flux_t(il,jl,kl,UMX))
