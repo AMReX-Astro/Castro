@@ -16,10 +16,12 @@ void Print_Help() {
 	Print() << "\nPrint out the radiation quantities at a specified distance from"
 	        << "\nthe origin.  This is written for the 1-d radiating sphere problem."
 	        << "\n"
-	        << "\n./fradsphere -p plotfile -r radius -g groupfile"
+	        << "\n./fradsphere -p plotfile -r radius -g groupfile -v variable"
 	        << "\n"
 	        << "\nHere groupfile is the file containing the group structure information"
 	        << "\nas output by Castro (usually group_structure.dat)."
+                << "\nvariable should be either rad or rad_analytic_ (to obtain the numerical"
+                << "\nand analytic data, respectively.)"
 	        << "\n\n" << std::endl;
 }
 
@@ -34,7 +36,7 @@ int main(int argc, char* argv[])
 		Abort("ERROR: rad_sphere diagnostic only works for DIM=1");
 
 	// Input arguments
-	string pltfile, groupfile;
+	string pltfile, groupfile, variable;
 	Real radius = 0.;
 	int j = 1;         // skip program name
 
@@ -53,6 +55,10 @@ int main(int argc, char* argv[])
 		{
 			radius = std::atof(argv[++j]);
 		}
+                else if ( !strcmp(argv[j], "-v") || !strcmp(argv[j],"--variable") )
+                {
+                    variable = argv[++j];
+                }
 		else
 		{
 			std::cout << "\n\nOption " << argv[j] << " not recognized" << std::endl;
@@ -73,6 +79,7 @@ int main(int argc, char* argv[])
 	Print() << "\nplotfile  = \"" << pltfile << "\"" << std::endl;
 	Print() << "groupfile = \"" << groupfile << "\"" << std::endl;
 	Print() << "radius = " << radius << std::endl;
+        Print() << "variable = " << variable << std::endl;
 	Print() << std::endl;
 
 	// Start dataservices
@@ -112,7 +119,7 @@ int main(int argc, char* argv[])
 	int nbins = domain.length(0);
 
 	// find variable indices
-	Vector<std::string> compVarNames = {"rad0"};
+	Vector<std::string> compVarNames = {variable + "0"};
 
 	auto varComps = GetComponents(data, compVarNames);
 	auto rad_comp = varComps[0];

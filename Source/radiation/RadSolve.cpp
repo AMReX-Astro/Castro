@@ -33,17 +33,19 @@ RadSolve::RadSolve (Amr* Parent, int level, const BoxArray& grids, const Distrib
     else {
         if (use_hypre_nonsymmetric_terms == 0) {
             hm.reset(new HypreMultiABec(level, level, level_solver_flag));
+            hm->addLevel(level, parent->Geom(level), grids, dmap,
+                         IntVect::TheUnitVector());
+            hm->buildMatrixStructure();
         }
         else {
-            hm.reset(new HypreExtMultiABec(level, level, level_solver_flag));
-            HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
+            hem.reset(new HypreExtMultiABec(level, level, level_solver_flag));
             cMulti  = hem->cMultiplier();
             d1Multi = hem->d1Multiplier();
             d2Multi = hem->d2Multiplier();
+            hem->addLevel(level, parent->Geom(level), grids, dmap,
+                          IntVect::TheUnitVector());
+            hem->buildMatrixStructure();
         }
-        hm->addLevel(level, parent->Geom(level), grids, dmap,
-                     IntVect::TheUnitVector());
-        hm->buildMatrixStructure();
     }
 }
 
@@ -117,6 +119,9 @@ void RadSolve::levelBndry(RadBndry& bd)
   else if (hm) {
     hm->setBndry(hm->crseLevel(), bd);
   }
+  else if (hem) {
+    hem->setBndry(hem->crseLevel(), bd);
+  }
 }
 
 // update multigroup version
@@ -129,6 +134,9 @@ void RadSolve::levelBndry(MGRadBndry& mgbd, const int comp)
   }
   else if (hm) {
     hm->setBndry(hm->crseLevel(), mgbd, comp);
+  }
+  else if (hem) {
+    hem->setBndry(hem->crseLevel(), mgbd, comp);
   }
 }
 
@@ -162,6 +170,9 @@ void RadSolve::setLevelACoeffs(int level, const MultiFab& acoefs)
     else if (hm) {
         hm->aCoefficients(level, acoefs);
     }
+    else if (hem) {
+        hem->aCoefficients(level, acoefs);
+    }
 }
 
 void RadSolve::setLevelBCoeffs(int level, const MultiFab& bcoefs, int dir)
@@ -172,16 +183,16 @@ void RadSolve::setLevelBCoeffs(int level, const MultiFab& bcoefs, int dir)
     else if (hm) {
         hm->bCoefficients(level, bcoefs, dir);
     }
+    else if (hem) {
+        hem->bCoefficients(level, bcoefs, dir);
+    }
 }
 
 void RadSolve::setLevelCCoeffs(int level, const MultiFab& ccoefs, int dir)
 {
-  if (hm) {
-    HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm.get());
     if (hem) {
       hem->cCoefficients(level, ccoefs, dir);
     }
-  }
 }
 
 void RadSolve::levelACoeffs(int level,
@@ -222,6 +233,9 @@ void RadSolve::levelACoeffs(int level,
   }
   else if (hm) {
     hm->aCoefficients(level, acoefs);
+  }
+  else if (hem) {
+    hem->aCoefficients(level, acoefs);
   }
 }
 
@@ -269,6 +283,9 @@ void RadSolve::levelSPas(int level, Array<MultiFab, BL_SPACEDIM>& lambda, int ig
   if (hm) {
     hm->SPalpha(level, spa);
   }
+  else if (hem) {
+    hem->SPalpha(level, spa);
+  }
   else if (hd) {
     hd->SPalpha(spa);
   }
@@ -313,6 +330,9 @@ void RadSolve::levelBCoeffs(int level,
     else if (hm) {
       hm->bCoefficients(level, bcoefs, idim);
     }
+    else if (hem) {
+      hem->bCoefficients(level, bcoefs, idim);
+    }
   } // -->> over dimension
 }
 
@@ -346,7 +366,6 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
 
         }
 
-        HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
         hem->d2Coefficients(level, dcoefs, idim);
         hem->d2Multiplier() = 1.0;
     }
@@ -419,6 +438,9 @@ void RadSolve::levelSolve(int level,
   else if (hm) {
     hm->setScalars(alpha, beta);
   }
+  else if (hem) {
+    hem->setScalars(alpha, beta);
+  }
 
   if (hd) {
     hd->setupSolver(reltol, abstol, maxiter);
@@ -448,6 +470,23 @@ void RadSolve::levelSolve(int level,
     }
     res *= sync_absres_factor;
     hm->clearSolver();
+  }
+  else if (hem) {
+    hem->loadMatrix();
+    hem->finalizeMatrix();
+    hem->loadLevelVectors(level, Er, igroup, rhs, Inhomogeneous_BC);
+    hem->finalizeVectors();
+    hem->setupSolver(reltol, abstol, maxiter);
+    hem->solve();
+    hem->getSolution(level, Er, igroup);
+    Real res = hem->getAbsoluteResidual();
+    if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
+      int oldprec = std::cout.precision(20);
+      std::cout << "Absolute residual = " << res << std::endl;
+      std::cout.precision(oldprec);
+    }
+    res *= sync_absres_factor;
+    hem->clearSolver();
   }
 }
 
@@ -511,6 +550,9 @@ void RadSolve::levelFlux(int level,
       }
       else if (hm) {
           bp = &hm->bCoefficients(level, n);
+      }
+      else if (hem) {
+          bp = &hem->bCoefficients(level, n);
       }
 
       MultiFab &bcoef = *(MultiFab*)bp;
@@ -598,8 +640,6 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   MultiFab::Copy(Erborder, Er, igroup, 0, 1, 0);
 
   Erborder.FillBoundary(parent->Geom(level).periodicity()); // zeroes left in off-level boundaries
-
-  HypreExtMultiABec *hem = (HypreExtMultiABec*)hm.get();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -746,6 +786,9 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
   else if (hm) {
     hm->aCoefficients(level,acoefs);
   }
+  else if (hem) {
+    hem->aCoefficients(level,acoefs);
+  }
 }
 
 
@@ -794,7 +837,6 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 
 void RadSolve::setHypreMulti(Real cMul, Real d1Mul, Real d2Mul)
 {
-  HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm.get());
   if (hem) {
     hem-> cMultiplier() =  cMul;
     hem->d1Multiplier() = d1Mul;
@@ -804,7 +846,6 @@ void RadSolve::setHypreMulti(Real cMul, Real d1Mul, Real d2Mul)
 
 void RadSolve::restoreHypreMulti()
 {
-  HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm.get());
   if (hem) {
     hem-> cMultiplier() =  cMulti;
     hem->d1Multiplier() = d1Multi;

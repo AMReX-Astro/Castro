@@ -90,8 +90,8 @@ contains
        if (limiter .eq. 0) then ! no limiter
           f = OneThird
        else if (limiter < 10) then  ! approximate LP, [123]
-          f = lambda + 0.25e0_rt*((1.e0_rt-3.e0_rt*lambda) + &
-              sqrt((1.e0_rt-3.e0_rt*lambda)*(1.e0_rt+5.e0_rt*lambda)))**2
+          f = lambda + 0.25e0_rt*(max(0.0_rt, (1.e0_rt-3.e0_rt*lambda)) + &
+              sqrt(max(0.0_rt, (1.e0_rt-3.e0_rt*lambda))*(1.e0_rt+5.e0_rt*lambda)))**2
        else if (limiter < 20) then  ! Bruenn, 1[123]
           f = 1.0e0_rt - 5.e0_rt*lambda + 9.e0_rt*lambda**2
        else if (limiter < 30) then  ! Larsen's square root, 2[123]
@@ -110,8 +110,8 @@ contains
        if (limiter .eq. 0) then ! no limiter
           f = OneThird
        else if (limiter < 10) then  ! approximate LP, [123]
-          f = OneThird + OneSixth*((1.e0_rt-3.e0_rt*lambda) + &
-               sqrt((1.e0_rt-3.e0_rt*lambda)*(1.e0_rt+5.e0_rt*lambda)))**2
+          f = OneThird + OneSixth*(max(0.0_rt, (1.e0_rt-3.e0_rt*lambda)) + &
+               sqrt(max(0.0_rt, (1.e0_rt-3.e0_rt*lambda))*(1.e0_rt+5.e0_rt*lambda)))**2
        else if (limiter < 20) then  ! Bruenn, 1[123]
           f = OneThird + TwoThirds*(1.0e0_rt - 6.e0_rt*lambda + 9.e0_rt*lambda**2)
        else if (limiter < 30) then  ! Larsen's square root, 2[123]
