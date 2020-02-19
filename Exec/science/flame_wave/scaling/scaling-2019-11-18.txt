@@ -2,6 +2,8 @@ run: 2019-11-18
 
 built using iso7 network
 
+** NOTE: these were single-level runs (amr.max_level = 0) **
+
 average time calculated using avg_time script and is the average of 20 timesteps
 
 Run on summit with the following git hashes:
