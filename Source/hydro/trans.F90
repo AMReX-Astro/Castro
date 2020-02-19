@@ -76,7 +76,7 @@ contains
     integer, intent(in), value :: idir_t, idir_n
 
 #ifdef RADIATION
-    real(rt) :: rfx(rfx_lo(1):rfx_hi(1),rfx_lo(2):rfx_hi(2),rfx_lo(3):rfx_hi(3),0:ngroups-1)
+    real(rt) :: rflux_t(rf_lo(1):rf_hi(1),rf_lo(2):rf_hi(2),rf_lo(3):rf_hi(3),0:ngroups-1)
 #endif
 
     real(rt), intent(in), value :: hdt, cdtdx
@@ -117,8 +117,8 @@ contains
     real(rt) :: gamc
 
 #ifdef RADIATION
-    real(rt) :: :: dre, dmom, divu
-    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, err, erl, ernewr, ernewl, &
+    real(rt) :: dre, dmom, divu
+    real(rt)        , dimension(0:ngroups-1) :: lambda, ergp, ergm, ern, ernewn, &
          lamge, luge, der
     real(rt) :: eddf, f1
     integer :: g
@@ -336,13 +336,19 @@ contains
                                     area_t(il,jl,kl)*flux_t(il,jl,kl,UEDEN)) * volinv
 
 #ifdef RADIATION
-                runewn = runewn - HALF*hdt*(area_t(ir,jr,kr)+area_t(il,jl,kl))*sum(lamge) * volinv
+                if (idir_t == 1) then 
+                   runewn = runewn - HALF*hdt*(area_t(ir,jr,kr)+area_t(il,jl,kl))*sum(lamge) * volinv
+                else
+                   rvnewn = rvnewn + dmom
+                endif
                 renewn = renewn + dre
-                ernewn(:) = err(:) - hdt*(area_t(ir,jr,kr)*rflux_t(ir,jr,kr,:) -  &
+                ernewn(:) = ern(:) - hdt*(area_t(ir,jr,kr)*rflux_t(ir,jr,kr,:) -  &
                                           area_t(il,jl,kl)*rflux_t(il,jl,kl,:)) * volinv + der(:)
 #endif
 
 #else
+                ! 3-d
+
                 ! Add transverse predictor
                 rrnewn = rrn - cdtdx*(flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO))
                 runewn = run - cdtdx*(flux_t(ir,jr,kr,UMX) - flux_t(il,jl,kl,UMX))
@@ -352,7 +358,7 @@ contains
 #ifdef RADIATION
                 runewn = runewn + dmom
                 renewn = renewn + dre
-                ernewn  = err(:) - cdtdx*(rflux_t(ir,jr,kr,:) - rflux_t(il,jl,kl,:)) + der(:)
+                ernewn  = ern(:) - cdtdx*(rflux_t(ir,jr,kr,:) - rflux_t(il,jl,kl,:)) + der(:)
 #endif
 #endif
 
@@ -488,7 +494,9 @@ contains
     integer, intent(in) :: qt2_lo(3), qt2_hi(3)
     integer, intent(in) :: lo(3), hi(3)
 
-    real(rt), intent(in), value :: hdt, cdtdy, cdtdz
+    integer, intent(in), value :: idir_n, idir_t1, idir_t2
+
+    real(rt), intent(in), value :: hdt, cdtdx_n, cdtdx_t1, cdtdx_t2
 
 #ifdef RADIATION
     integer, intent(in) :: rft1_lo(3), rft1_hi(3)
@@ -514,20 +522,29 @@ contains
     real(rt)         rrn, run, rvn, rwn, ren, ekenn, rhoekenn
     real(rt)         rrnewn, runewn, rvnewn, rwnewn, renewn
     real(rt)         pnewn
-    real(rt)         pgt1, ugt1, gegt1, dut1, pt1av, dut1, pt1new, get1new
-    real(rt)         pgt2, ugt2, gegt2, dut2, pt2av, dut2, pt2new, get2new
+    real(rt)         pgt1p, ugt1p, gegt1p, pgt1m, ugt1m, gegt1m, dut1, dupt1, pt1av, pt1new, get1new
+    real(rt)         pgt2p, ugt2p, gegt2p, pgt2m, ugt2m, gegt2m, dut2, dupt2, pt2av, pt2new, get2new
     real(rt)         ut1av, get1av, dget1, ut2av, get2av, dget2
     real(rt)         compn, compnn
 
 #ifdef RADIATION
     real(rt) :: dmt1, dmt2, dre
     real(rt), dimension(0:ngroups-1) :: der, lambda, luget1, luget2, lget1, lget2, &
-         ern, ernewn, ergt1, ergt2
+         ern, ernewn, ergt1m, ergt1p, ergt2m, ergt2p
     real(rt) :: eddf, f1
     integer :: g
 #endif
 
+    real(rt) :: lqn(NQ), lqno(NQ)
+
     logical :: reset_state
+
+    integer :: d
+    integer :: iln, jln, kln
+    integer :: il_t1, jl_t1, kl_t1
+    integer :: ir_t1, jr_t1, kr_t1
+    integer :: il_t2, jl_t2, kl_t2
+    integer :: ir_t2, jr_t2, kr_t2
 
     !$gpu
 
@@ -633,7 +650,7 @@ contains
                                             flux_t2(il_t2,jl_t2,kl_t2,URHO))
                    compnn = compn - cdtdx_t1*(flux_t1(ir_t1,jr_t1,kr_t1,n) - &
                                               flux_t1(il_t1,jl_t1,kl_t1,n)) &
-                                  - cdtdz_t2*(flux_t2(ir_t2,jr_t2,kr_t2,n) - &
+                                  - cdtdx_t2*(flux_t2(ir_t2,jr_t2,kr_t2,n) - &
                                               flux_t2(il_t2,jl_t2,kl_t2,n))
 
                    lqno(nqp) = compnn/rrnewn
@@ -664,31 +681,31 @@ contains
                 ergt2m = q_t2(il_t2,jl_t2,kl_t2,GDERADS:GDERADS-1+ngroups)
 #endif
 
-                dut1p = pgt1p*ugt1p - pgt1m*ugt1m
+                dupt1 = pgt1p*ugt1p - pgt1m*ugt1m
                 pt1av = HALF*(pgt1p + pgt1m)
                 ut1av = HALF*(ugt1p + ugt1m)
                 get1av = HALF*(gegt1p + gegt1m)
                 dut1 = ugt1p - ugt1m
                 dget1 = gegt1p - gegt1m
 #ifdef RADIATION
-                pt1new = cdtdx_t1*(dut1p + pt1av*dut1*(qaux(iln,jln,kln,QGAMCG) - ONE))
+                pt1new = cdtdx_t1*(dupt1 + pt1av*dut1*(qaux(iln,jln,kln,QGAMCG) - ONE))
                 get1new = cdtdx_t1*( (get1av-ONE)*(get1av - qaux(iln,jln,kln,QGAMCG))*dut1 - ut1av*dget1 )
 #else
-                pt1new = cdtdx_t1*(dut1p + pt1av*dut1*(qaux(iln,jln,kln,QGAMC) - ONE))
+                pt1new = cdtdx_t1*(dupt1 + pt1av*dut1*(qaux(iln,jln,kln,QGAMC) - ONE))
                 get1new = cdtdx_t1*( (get1av-ONE)*(get1av - qaux(iln,jln,kln,QGAMC))*dut1 - ut1av*dget1 )
 #endif
 
-                dut2p = pgt2p*ugt2p - pgt2m*ugt2m
+                dupt2 = pgt2p*ugt2p - pgt2m*ugt2m
                 pt2av = HALF*(pgt2p + pgt2m)
                 ut2av = HALF*(ugt2p + ugt2m)
                 get2av = HALF*(gegt2p + gegt2m)
                 dut2 = ugt2p - ugt2m
                 dget2 = gegt2p - gegt2m
 #ifdef RADIATION
-                pt2new = cdtdx_t2*(dut2p + pt2av*dut2*(qaux(iln,jln,kln,QGAMCG) - ONE))
+                pt2new = cdtdx_t2*(dupt2 + pt2av*dut2*(qaux(iln,jln,kln,QGAMCG) - ONE))
                 get2new = cdtdx_t2*( (get2av-ONE)*(get2av - qaux(iln,jln,kln,QGAMCG))*dut2 - ut2av*dget2 )
 #else
-                pt2new = cdtdx_t2*(dut2p + pt2av*dut2*(qaux(iln,jln,kln,QGAMC) - ONE))
+                pt2new = cdtdx_t2*(dupt2 + pt2av*dut2*(qaux(iln,jln,kln,QGAMC) - ONE))
                 get2new = cdtdx_t2*( (get2av-ONE)*(get2av - qaux(iln,jln,kln,QGAMC))*dut2 - ut2av*dget2 )
 #endif
 
@@ -756,17 +773,17 @@ contains
                                          flux_t2(il_t2,jl_t2,kl_t2,UEDEN))
 #ifdef RADIATION
                 if (idir_n == 1) then
-                   rvnewr = rvnewr + dm_t1
-                   rwnewr = rwnewr + dm_t2
+                   rvnewn = rvnewn + dmt1
+                   rwnewn = rwnewn + dmt2
                 else if (idir_n == 2) then
-                   runewr = runewr + dm_t1
-                   rwnewr = rwnewr + dm_t2
+                   runewn = runewn + dmt1
+                   rwnewn = rwnewn + dmt2
                 else
-                   runewr = runewr + dm_t1
-                   rvnewr = rvnewr + dm_t2
+                   runewn = runewn + dmt1
+                   rvnewn = rvnewn + dmt2
                 end if
-                renewr = renewr + dre
-                ernewr = err(:) - cdtdx_t1*(rflux_t1(ir_t1,jr_t1,kr_t1,:) - &
+                renewn = renewn + dre
+                ernewn = ern(:) - cdtdx_t1*(rflux_t1(ir_t1,jr_t1,kr_t1,:) - &
                                             rflux_t1(il_t1,jl_t1,kl_t1,:)) &
                                 - cdtdx_t2*(rflux_t2(ir_t2,jr_t2,kr_t2,:) - &
                                             rflux_t2(il_t2,jl_t2,kl_t2,:)) &
@@ -814,7 +831,7 @@ contains
 
                    ! add the transverse term to the p evolution eq here
                    pnewn = lqn(QPRES) - pt1new - pt2new
-                   lqno(QPRES) = pnewr
+                   lqno(QPRES) = pnewn
                 else
                    lqno(QPRES) = lqn(QPRES)
                 endif
