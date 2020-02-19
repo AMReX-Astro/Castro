@@ -26,7 +26,7 @@ endif
 # Locations within Microphysics
 EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
-COND_HOME ?= $(MICROPHYSICS_HOME)/conductivity
+CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
 
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
@@ -288,7 +288,17 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 #------------------------------------------------------------------------------
 # microphysics
 #------------------------------------------------------------------------------
+
+# Specify that we want to write any automatically generated network
+# file (including the general_null network) to our temporary build
+# directory
+NETWORK_OUTPUT_PATH = $(CASTRO_AUTO_SOURCE_DIR)
+
 include $(TOP)/Exec/Make.microphysics
+
+Bpack += $(foreach dir, $(EXTERN_CORE), $(dir)/Make.package)
+Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
+
 
 
 #------------------------------------------------------------------------------
