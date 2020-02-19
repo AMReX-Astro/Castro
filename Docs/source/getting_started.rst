@@ -4,10 +4,11 @@ Getting Started
 
 .. note::
 
-   Castro has two source dependencies: AMReX, the adaptive mesh library,
-   and Microphysics, the collection of equations of state, reaction networks,
-   and other microphysics.  The instructions below describe how to get these
-   dependencies.
+   Castro has two source dependencies: `AMReX <https://github.com/AMReX-Codes/amrex>`_, the adaptive mesh
+   library, and `StarKiller Microphysics <https://github.com/starkiller-astro/Microphysics>`_, the collection of equations
+   of state, reaction networks, and other microphysics.  The
+   instructions below describe how to get these dependencies automatically
+   with Castro.
 
 Downloading the Code
 ====================
@@ -39,16 +40,23 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
        git submodule update --init --recursive
 
-#. Development on Castro (and its primary dependencies, AMReX and
-   Microphysics) is done in the ``development`` branch, so you should
-   work there if you want the latest source. The Castro team runs
-   nightly regression testing on the ``development`` branch, so bugs
-   are usually found and fixed relatively quickly, but it is generally
-   less stable than staying on the ``master`` branch.
+   .. note::
+
+      By default, you will be on the ``master`` branch of the source.
+      Development on Castro (and its primary dependencies, AMReX and
+      Microphysics) is done in the ``development`` branch, so you
+      should work there if you want the latest source::
+
+        git checkout development
+
+      The Castro team runs nightly regression testing on the
+      ``development`` branch, so bugs are usually found and fixed
+      relatively quickly, but it is generally less stable than staying
+      on the ``master`` branch.
 
 #. We recommend setting the ``CASTRO_HOME`` environment
    variable to point to the path name where you have put Castro.
-   Add the following to your .bashrc::
+   Add the following to your ``.bashrc``::
 
        export CASTRO_HOME="/path/to/Castro/"
 
@@ -126,8 +134,8 @@ build the Sedov problem:
 #. Now type ``make``.
 
    The resulting executable will look something like
-   ``Castro2d.Linux.gnu.ex``, which means this is a 2-d version
-   of the code, made on a Linux machine, with ``COMP = gnu``.
+   ``Castro2d.gnu.ex``, which means this is a 2-d version
+   of the code compiled with ``COMP = gnu``.
 
 Running the Code
 ================
@@ -135,7 +143,7 @@ Running the Code
 #. Castro takes an input file that overrides the runtime parameter defaults.
    The code is run as::
 
-       ./Castro2d.Linux.gcc.gfortran.ex inputs.2d.cyl_in_cartcoords
+       ./Castro2d.gnu.ex inputs.2d.cyl_in_cartcoords
 
    This will run the 2-d cylindrical Sedov problem in Cartesian
    (:math:`x`-:math:`y` coordinates). You can see other possible

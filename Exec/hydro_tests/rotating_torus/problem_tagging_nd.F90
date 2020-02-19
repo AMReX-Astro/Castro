@@ -18,7 +18,7 @@ contains
 
     use meth_params_module, only: NVAR
     use prob_params_module, only: center
-    use castro_util_module, only: position
+    use castro_util_module, only: position ! function
     use probdata_module, only: torus_center, torus_width
     use amrex_fort_module, only : rt => amrex_real
     use iso_c_binding, only : c_int8_t
@@ -37,6 +37,8 @@ contains
 
     integer  :: i, j, k
     real(rt) :: loc(3), R, Z
+
+    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

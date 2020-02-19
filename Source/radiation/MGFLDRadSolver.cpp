@@ -347,7 +347,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
           else if (accelerate == 2) {
             gray_accel(Er_new, Er_pi, kappa_p, kappa_r, 
                        etaT, eta1, mugT,
-                       lambda, *solver, mgbd, grids, level, time, delta_t, ptc_tau);
+                       lambda, solver, mgbd, grids, level, time, delta_t, ptc_tau);
           } 
         }
       }

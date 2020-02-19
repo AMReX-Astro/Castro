@@ -53,13 +53,11 @@ def process(castro_dir, plotfile):
         if not os.path.isfile(group_file):
             sys.exit("error: cannot find group_structure.dat")
 
-    cmd = "./{} -p {} -r 0.06 -g {}".format(analysis_routine, plotfile, group_file)
+    variable = "rad"
+
+    cmd = "./{} -p {} -r 0.06 -g {} -v {}".format(analysis_routine, plotfile, group_file, variable)
     print(cmd)
     os.system(cmd)
-
-
-    analytic = castro_dir + "/Exec/radiation_tests/RadSphere/testsuite_analysis/radsphere_analytic.out"
-    analytic_data = np.loadtxt(analytic)
 
     group = []
     rad_energy = []
@@ -72,8 +70,25 @@ def process(castro_dir, plotfile):
             group.append(float(group_energy))
             rad_energy.append(float(e_rad))
 
+    # Now do the same for the analytic data
+
+    variable = "rad_analytic_"
+
+    cmd = "./{} -p {} -r 0.06 -g {} -v {}".format(analysis_routine, plotfile, group_file, variable)
+    print(cmd)
+    os.system(cmd)
+
+    rad_energy_analytic = []
+    with open("rad_sphere.out", "r") as of:
+        lines = of.readlines()
+        for line in lines:
+            if line.strip().startswith("#"):
+                continue
+            _, _, e_rad, _ = line.strip().split()
+            rad_energy_analytic.append(float(e_rad))
+
     # 3. make the plot
-    plt.plot(analytic_data[:,1], analytic_data[:,2])
+    plt.plot(np.array(group), np.array(rad_energy_analytic))
     plt.scatter(np.array(group), np.array(rad_energy), marker="+", color="r")
 
     plt.xlabel(r"group center (Hz)")

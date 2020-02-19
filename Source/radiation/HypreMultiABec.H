@@ -216,7 +216,7 @@ class BndryAuxVarBase {
 /// @param i
 ///
   bool isValid(int i) {
-    return (i < distributionMap.ProcessorMap().size());
+    return (i >= 0 && i < distributionMap.ProcessorMap().size());
   }
 
  protected:
