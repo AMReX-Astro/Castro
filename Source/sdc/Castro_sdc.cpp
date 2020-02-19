@@ -91,13 +91,15 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
 
       const Box& bx = mfi.tilebox();
 
-      ca_sdc_compute_initial_guess(BL_TO_FORTRAN_BOX(bx),
-                                   BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
-                                   BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
-                                   BL_TO_FORTRAN_3D((*A_old[m_start])[mfi]),
-                                   BL_TO_FORTRAN_3D((*R_old[m_start])[mfi]),
-                                   BL_TO_FORTRAN_3D(S_new[mfi]),
-                                   &dt_m, &sdc_iteration);
+      amrex::Array4<const amrex::Real> const& k_new_m_start_arr=(k_new[m_start])->array(mfi);
+      amrex::Array4<const amrex::Real> const& k_new_m_end_arr=(k_new[m_end])->array(mfi);
+      amrex::Array4<const amrex::Real> const& A_old_arr=(A_old[m_start])->array(mfi);
+      amrex::Array4<const amrex::Real> const& R_old_arr=(R_old[m_start])->array(mfi);
+      amrex::Array4<amrex::Real> const& S_new_arr=S_new.array(mfi);
+
+      ca_sdc_compute_initial_guess(bx, k_new_m_start_arr, k_new_m_end_arr,
+				   A_old_arr, R_old_arr, S_new_arr,
+                                   dt_m, sdc_iteration);
 
 
     }
@@ -351,4 +353,58 @@ Castro::construct_old_react_source(amrex::MultiFab& U_state,
     }
   }
 }
+#endif
+
+void Castro::ca_sdc_compute_initial_guess(const amrex::Box& bx,
+					  amrex::Array4<const amrex::Real> const& U_old,
+					  amrex::Array4<const amrex::Real> const& U_new,
+					  amrex::Array4<const amrex::Real> const& A_old,
+					  amrex::Array4<const amrex::Real> const& R_old,
+					  amrex::Array4<amrex::Real> const& U_guess,
+					  amrex::Real const dt_m, int const sdc_iteration)
+{
+    // compute the initial guess for the Newton solve
+    // Here dt_m is the timestep to update from time node m to m+1
+
+    if (sdc_iteration == 0)
+    {
+        AMREX_PARALLEL_FOR_4D(bx, U_guess.nComp(), i, j, k, n,
+	{
+            U_guess(i,j,k,n) = U_old(i,j,k,n) + dt_m * A_old(i,j,k,n) + dt_m * R_old(i,j,k,n);
+	});
+    }
+    else
+    {
+        AMREX_PARALLEL_FOR_4D(bx, U_guess.nComp(), i, j, k, n,
+	{
+	    U_guess(i,j,k,n) = U_new(i,j,k,n);
+	});
+    }
+
+}
+
+#ifdef REACTIONS
+void Castro::ca_store_reaction_state(const amrex::Box& bx,
+			     amrex::Array4<const amrex::Real> const& R_old,
+			     amrex::Array4<const amrex::Real> const& state,
+			     amrex::Array4<amrex::Real> const& R_store)
+{
+// copy the data from the last node's reactive source to the state data
+
+  // for R_store we use the indices defined in Castro_setup.cpp for
+  // Reactions_Type
+  int nspec = R_store.nComp()-2;
+
+  AMREX_PARALLEL_FOR_4D(bx, nspec, i, j, k, n,
+  {
+    R_store(i,j,k,n) = R_old(i,j,k,UFS-1+n)/state(i,j,k,URHO);
+  });
+
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
+    R_store(i,j,k,nspec+1-1) = R_old(i,j,k,UEDEN)/state(i,j,k,URHO);
+    R_store(i,j,k,nspec+2-1) = R_old(i,j,k,UEDEN);
+  });
+}
+
 #endif

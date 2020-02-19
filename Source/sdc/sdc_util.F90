@@ -1125,55 +1125,6 @@ contains
   end subroutine ca_sdc_compute_C4_radau
 
 
-  subroutine ca_sdc_compute_initial_guess(lo, hi, &
-                                          U_old, Uo_lo, Uo_hi, &
-                                          U_new, Un_lo, Un_hi, &
-                                          A_old, a_lo, a_hi, &
-                                          R_old, r_lo, r_hi, &
-                                          U_guess, Ug_lo, Ug_hi, &
-                                          dt_m, sdc_iteration) bind(C, name="ca_sdc_compute_initial_guess")
-    ! compute the initial guess for the Newton solve
-
-    use meth_params_module, only : NVAR
-    use amrex_constants_module, only : ONE, HALF, TWO, FIVE, EIGHT
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: Uo_lo(3), Uo_hi(3)
-    integer, intent(in) :: Un_lo(3), Un_hi(3)
-    integer, intent(in) :: a_lo(3), a_hi(3)
-    integer, intent(in) :: r_lo(3), r_hi(3)
-    integer, intent(in) :: Ug_lo(3), Ug_hi(3)
-
-    real(rt), intent(in) :: U_old(Uo_lo(1):Uo_hi(1), Uo_lo(2):Uo_hi(2), Uo_lo(3):Uo_hi(3), NVAR)
-    real(rt), intent(in) :: U_new(Un_lo(1):Un_hi(1), Un_lo(2):Un_hi(2), Un_lo(3):Un_hi(3), NVAR)
-    real(rt), intent(in) :: A_old(a_lo(1):a_hi(1), a_lo(2):a_hi(2), a_lo(3):a_hi(3), NVAR)
-    real(rt), intent(in) :: R_old(r_lo(1):r_hi(1), r_lo(2):r_hi(2), r_lo(3):r_hi(3), NVAR)
-    real(rt), intent(inout) :: U_guess(Ug_lo(1):Ug_hi(1), Ug_lo(2):Ug_hi(2), Ug_lo(3):Ug_hi(3), NVAR)
-    real(rt), intent(in) :: dt_m
-    integer, intent(in) :: sdc_iteration
-    integer :: i, j, k
-
-    ! Here dt_m is the timestep to update from time node m to m+1
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (sdc_iteration == 0) then
-                U_guess(i,j,k,:) = U_old(i,j,k,:) + dt_m * A_old(i,j,k,:) + dt_m * R_old(i,j,k,:)
-             else
-                U_guess(i,j,k,:) = U_new(i,j,k,:)
-             endif
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_sdc_compute_initial_guess
-
-
   subroutine ca_sdc_compute_C2_lobatto(lo, hi, dt_m, dt, &
                                        A_m, Amlo, Amhi, &
                                        A_0_old, A0lo, A0hi, &
@@ -1531,44 +1482,6 @@ contains
     enddo
 
   end subroutine ca_instantaneous_react
-
-  subroutine ca_store_reaction_state(lo, hi, &
-                                     R_old, r_lo, r_hi, &
-                                     state, s_lo, s_hi, &
-                                     R_store, rs_lo, rs_hi) &
-                                     bind(C, name="ca_store_reaction_state")
-     ! copy the data from the last node's reactive source to the state data
-
-    use meth_params_module, only : NVAR, URHO, UEDEN, UFS
-    use network, only : nspec
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-    integer, intent(in) :: r_lo(3), r_hi(3)
-    integer, intent(in) :: rs_lo(3), rs_hi(3)
-
-    real(rt), intent(in) :: R_old(r_lo(1):r_hi(1), r_lo(2):r_hi(2), r_lo(3):r_hi(3), NVAR)
-    real(rt), intent(in) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
-    real(rt), intent(inout) :: R_store(rs_lo(1):rs_hi(1), rs_lo(2):rs_hi(2), rs_lo(3):rs_hi(3), nspec+2)
-
-    integer :: i, j, k
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             ! for R_store we use the indices defined in Castro_setup.cpp for
-             ! Reactions_Type
-             R_store(i,j,k,1:nspec) = R_old(i,j,k,UFS:UFS-1+nspec)/state(i,j,k,URHO)
-             R_store(i,j,k,nspec+1) = R_old(i,j,k,UEDEN)/state(i,j,k,URHO)
-             R_store(i,j,k,nspec+2) = R_old(i,j,k,UEDEN)
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_store_reaction_state
 
 #endif
 
