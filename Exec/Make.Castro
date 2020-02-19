@@ -361,8 +361,8 @@ endif
 
 ifeq ($(USE_REACT), TRUE)
   ifeq ($(USE_CUDA), TRUE)
-    ifneq ($(INTEGRATOR_DIR), VODE90)
-      $(error Only the VODE90 integrator supports GPUs currently, please change INTEGRATOR_DIR)
+    ifneq ($(INTEGRATOR_DIR), VODE)
+      $(error Only the VODE integrator supports GPUs currently, please change INTEGRATOR_DIR)
     endif
   endif
 endif
