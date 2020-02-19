@@ -153,12 +153,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(R));
 
-  void ca_store_reaction_state
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG_3D(R_old),
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(R_new));
-
 #endif
 #endif // CUDA
 

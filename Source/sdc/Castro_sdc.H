@@ -25,3 +25,18 @@
                                     const bool input_is_average);
 #endif
 
+void ca_sdc_compute_initial_guess(const amrex::Box& bx,
+				  amrex::Array4<const amrex::Real> const& U_old,
+				  amrex::Array4<const amrex::Real> const& U_new,
+				  amrex::Array4<const amrex::Real> const& A_old,
+				  amrex::Array4<const amrex::Real> const& R_old,
+				  amrex::Array4<amrex::Real> const& U_guess,
+				  amrex::Real const dt_m, int const sdc_iteration);
+
+#ifdef REACTIONS
+void ca_store_reaction_state(const amrex::Box& bx,
+			     amrex::Array4<const amrex::Real> const& R_old,
+			     amrex::Array4<const amrex::Real> const& state,
+			     amrex::Array4<amrex::Real> const& R_store);
+#endif
+
