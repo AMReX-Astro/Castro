@@ -1,0 +1,77 @@
+EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
+NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(NETWORK_DIR))
+ifeq ($(USE_DIFFUSION), TRUE)
+   COND_PATH := $(MICROPHYSICS_HOME)/conductivity/$(strip $(CONDUCTIVITY_DIR))
+endif
+
+# Problems can specify the input file for general_null by setting
+# GENERAL_NET_INPUTS directly (full path) or just specifying the name
+# of the inputs file as NETWORK_INPUTS and let us sort it out
+ifndef GENERAL_NET_INPUTS
+   ifneq "$(wildcard $(NETWORK_INPUTS))" ""
+      GENERAL_NET_INPUTS := $(NETWORK_INPUTS)
+   else
+      GENERAL_NET_INPUTS := $(MICROPHYSICS_HOME)/networks/general_null/$(NETWORK_INPUTS)
+   endif
+endif
+
+# Specify that we want to write the general_null network
+# files to our temporary build directory (this has no
+# effect for other networks).
+NETWORK_OUTPUT_PATH = $(CASTRO_AUTO_SOURCE_DIR)
+
+EXTERN_CORE += $(EOS_PATH)
+EXTERN_CORE += $(EOS_HOME)
+
+# the helmholtz EOS has an include file -- also add a target to link
+# the table into the problem directory.
+ifeq ($(findstring helmholtz, $(EOS_DIR)), helmholtz)
+   all: table
+endif
+
+table:
+	@if [ ! -f helm_table.dat ]; then echo Linking helm_table.dat; ln -s $(EOS_PATH)/helm_table.dat .;  fi
+
+EXTERN_CORE += $(NETWORK_PATH)
+
+# Note that this should be located after the include of the EOS and
+# Network includes since it has actions that depend on variables set
+# there.
+
+EXTERN_CORE += $(MICROPHYSICS_HOME)/EOS
+EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
+EXTERN_CORE += $(MICROPHYSICS_HOME)/interfaces
+
+# for the automatically generated network_properties stuff, we should
+# tell it where to put them
+NETWORK_HEADERS_DIR = $(CASTRO_AUTO_SOURCE_DIR)
+
+
+ifeq ($(USE_CONDUCTIVITY), TRUE)
+   EXTERN_CORE += $(COND_HOME)
+   EXTERN_CORE += $(COND_PATH)
+endif
+
+ifeq ($(USE_RAD), TRUE)
+   ifeq ($(Opacity_dir), null)
+     $(error The null opacity directory has been removed, please update to rad_power_law)
+   endif
+   OPAC_PATH := $(MICROPHYSICS_HOME)/opacity/$(Opacity_dir)
+   EXTERN_CORE += $(OPAC_PATH)
+endif
+
+Bpack += $(foreach dir, $(EXTERN_CORE), $(dir)/Make.package)
+Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
+
+ifeq ($(USE_EXTRA_THERMO), TRUE)
+   DEFINES += -DEXTRA_THERMO
+endif
+
+
+ifeq ($(USE_REACT), TRUE)
+  ifeq ($(USE_CUDA), TRUE)
+    ifneq ($(INTEGRATOR_DIR), VODE90)
+      $(error Only the VODE90 integrator supports GPUs currently, please change INTEGRATOR_DIR)
+    endif
+  endif
+endif
