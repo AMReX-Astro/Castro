@@ -36,7 +36,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, &
+                                   QPRES, QREINT, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qptot, qreitot, &
@@ -48,8 +48,7 @@ contains
                                    NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                    small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
-                                   transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_predict_gammae
+                                   transverse_reset_density, transverse_reset_rhoe
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -245,8 +244,7 @@ contains
 #endif
 
                 ! we need to augment our conserved system with either a p
-                ! equation or gammae (if we have ppm_predict_gammae = 1) to
-                ! be able to deal with the general EOS
+                ! equation
 
 #if AMREX_SPACEDIM == 2
                 dup = area_t(ir,jr,kr)*pgp*ugp - area_t(il,jl,kl)*pgm*ugm
@@ -402,31 +400,16 @@ contains
                    ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
                    ! If we are wrong, we will fix it later
 
-                   if (ppm_predict_gammae == 0) then
-                      ! add the transverse term to the p evolution eq here
+                   ! add the transverse term to the p evolution eq here
 #if AMREX_SPACEDIM == 2
-                      ! the divergences here, dup and du, already have area factors
-                      pnewn = lqn(QPRES) - hdt*(dup + pav*du*(gamc - ONE)) * volinv
+                   ! the divergences here, dup and du, already have area factors
+                   pnewn = lqn(QPRES) - hdt*(dup + pav*du*(gamc - ONE)) * volinv
 #else
-                      pnewn = lqn(QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
+                   pnewn = lqn(QPRES) - cdtdx*(dup + pav*du*(gamc - ONE))
 #endif
-                      lqno(QPRES) = max(pnewn, small_pres)
-                   else
-                      ! Update gammae with its transverse terms
-#if AMREX_SPACEDIM == 2
-                      lqno(QGAME) = lqn(QGAME) + &
-                           hdt*( (geav-ONE)*(geav - gamc)*du) * volinv - cdtdx*uav*dge
-#else
-                      lqno(QGAME) = lqn(QGAME) + &
-                           cdtdx*( (geav-ONE)*(geav - gamc)*du - uav*dge )
-#endif
-                      ! and compute the p edge state from this and (rho e)
-                      lqno(QPRES) = lqno(QREINT)*(lqno(QGAME) - ONE)
-                      lqno(QPRES) = max(lqno(QPRES), small_pres)
-                   end if
+                   lqno(QPRES) = max(pnewn, small_pres)
                 else
                    lqno(QPRES) = lqn(QPRES)
-                   lqno(QGAME) = lqn(QGAME)
                 endif
 
 #ifdef RADIATION
@@ -475,7 +458,7 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, QGAME, &
+                                   QPRES, QREINT, &
                                    QC, QGAMC, &
 #ifdef RADIATION
                                    qrad, qptot, qreitot, &
@@ -487,8 +470,7 @@ contains
                                    NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
                                    small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
-                                   transverse_reset_density, transverse_reset_rhoe, &
-                                   ppm_predict_gammae
+                                   transverse_reset_density, transverse_reset_rhoe
 
 #ifdef RADIATION
     use rad_params_module, only : ngroups
@@ -830,20 +812,11 @@ contains
                    ! Pretend QREINT has been fixed and transverse_use_eos .ne. 1.
                    ! If we are wrong, we will fix it later
 
-                   if (ppm_predict_gammae == 0) then
-                      ! add the transverse term to the p evolution eq here
-                      pnewn = lqn(QPRES) - pt1new - pt2new
-                      lqno(QPRES) = pnewr
-                   else
-                      ! Update gammae with its transverse terms
-                      lqno(QGAME) = lqn(QGAME) + get1new + get2new
-
-                      ! and compute the p edge state from this and (rho e)
-                      lqno(QPRES) = lqno(QREINT)*(lqno(QGAME)-ONE)
-                   end if
+                   ! add the transverse term to the p evolution eq here
+                   pnewn = lqn(QPRES) - pt1new - pt2new
+                   lqno(QPRES) = pnewr
                 else
                    lqno(QPRES) = lqn(QPRES)
-                   lqno(QGAME) = lqn(QGAME)
                 endif
 
                 lqno(QPRES) = max(lqno(QPRES), small_pres)
