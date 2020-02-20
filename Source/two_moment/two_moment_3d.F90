@@ -37,6 +37,7 @@
     use UnitsModule, only : Gram, Centimeter, Second,  AtomicMassUnit, Erg
 
     use SubcellReconstructionModule, only : ProjectionMatrix
+    use network, only: iprot, ineut
 
     implicit none
     integer, intent(in) :: lo(3), hi(3)
@@ -410,8 +411,9 @@
 
          dS(i,j,k,UEINT) = dS(i,j,k,UEDEN)     ! TRUE IFF NO MOMENTUM SOURCE TERMS
 
-         ! Store electron molar fraction * density in the species
-         dS(i,j,k,UFS)   = dS(i,j,k,UFX) * AtomicMassUnit / Gram
+         ! Update species with source for electron molar fraction * density
+         dS(i,j,k,UFS-1+iprot) =  dS(i,j,k,UFX) * AtomicMassUnit / Gram ! d(rho*Ye) = d(rho*X(protons))
+         dS(i,j,k,UFS-1+ineut) = -dS(i,j,k,UFS-1+iprot)  ! d(rho*(1-Ye)) = d(rho*X(neutrons))
 
     end do
     end do
