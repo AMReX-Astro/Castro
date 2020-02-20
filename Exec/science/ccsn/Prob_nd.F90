@@ -65,7 +65,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
                                  UEDEN, UEINT, UFS, UFX, small_dens
-  use network, only : nspec
+  use network, only : nspec, iprot, ineut
   use model_parser_module
   use prob_params_module, only : center, problo, probhi
   use eos_type_module
@@ -113,16 +113,14 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            call interpolate_sub(state(i,j,k,URHO), rad_sph, idens_model)
 
            ! enforce the minimum density in the problem parameters
-           ! and set Ye below this density to fluff_ye in the problem parameters
+           ! and set Ye=X_protons below this density to fluff_ye in the problem parameters
            if (state(i,j,k,URHO) .le. min_density) then
                state(i,j,k,URHO) = min_density
-               do n = 1, nspec
-                  state(i,j,k,UFS-1+n) = fluff_ye
-               end do
+               state(i,j,k,UFS-1+iprot) = fluff_ye
+               state(i,j,k,UFS-1+ineut) = ONE - fluff_ye
            else
-               do n = 1, nspec
-                  call interpolate_sub(state(i,j,k,UFS-1+n), rad_sph, ispec_model-1+n)
-               end do
+               call interpolate_sub(state(i,j,k,UFS-1+iprot), rad_sph, ispec_model-1+iprot)
+               state(i,j,k,UFS-1+ineut) = ONE - state(i,j,k,UFS-1+iprot)
            end if
 
            ! get interpolated radial velocity
@@ -177,7 +175,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            end do
 
            ! Store Ne as an auxiliary quantity
-           state(i,j,k,UFX) = state(i,j,k,UFS) * Gram / AtomicMassUnit
+           state(i,j,k,UFX) = state(i,j,k,UFS-1+iprot) * Gram / AtomicMassUnit
         end do
      end do
   end do
