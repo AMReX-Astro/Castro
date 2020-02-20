@@ -40,7 +40,7 @@ contains
 
     !$gpu
 
-    eos_state % y_e = eos_state % xn(iye)
+    eos_state % y_e = eos_state % xn(iprot)
     eos_state % xne = eos_state % y_e * Gram * eos_state % rho / AtomicMassUnit
     eos_state % aux(ine) = eos_state % xne
     
