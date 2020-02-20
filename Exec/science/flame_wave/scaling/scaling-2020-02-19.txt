@@ -1,0 +1,23 @@
+Scaling on summit using:
+
+EOS: /ccs/home/zingale/Microphysics/EOS/helmholtz
+NETWORK: /ccs/home/zingale/Microphysics/networks/iso7
+CONDUCTIVITY: /ccs/home/zingale/Microphysics/conductivity/stellar
+
+Castro       git describe: 20.02-113-g8da7f5bc6
+AMReX        git describe: 20.02-296-g260ed2ea5
+Microphysics git describe: 20.02-38-g008e6491
+
+This used the inputs as is (with amr.max_level = 1)
+
+Problem size: 768x768x192
+# GPUs      avg_time        std
+  192*       381.868       50.2331
+  384         11.0236       0.071518
+  768          5.9786       0.0848969
+ 1536          3.59221      0.0702979
+
+Notice that the lowest GPU count is very slow -- we are
+oversubscribing the GPU memory here and paying the penalty.  All of
+the larger GPU counts appear to scale very well.
+
