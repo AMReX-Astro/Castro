@@ -294,7 +294,7 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 # directory
 NETWORK_OUTPUT_PATH = $(CASTRO_AUTO_SOURCE_DIR)
 
-include $(TOP)/Exec/Make.microphysics
+include $(MICROPHYSICS_HOME)/Make.Microphysics_extern
 
 Bpack += $(foreach dir, $(EXTERN_CORE), $(dir)/Make.package)
 Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
