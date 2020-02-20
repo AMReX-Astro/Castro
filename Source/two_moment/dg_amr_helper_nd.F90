@@ -36,7 +36,7 @@ contains
     integer :: nFineX_local(3)
     integer :: cblo(3), cbhi(3)
 
-#if (AMREX_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2 || AMREX_SPACEDIM == 1)
     real(rt) :: U_FineCoarse(1:nDOF, 1:nE, 1:nFineX(1), 1:nFineX(2), 1:1)
 #elif (AMREX_SPACEDIM == 3)
     real(rt) :: U_FineCoarse(1:nDOF, 1:nE, 1:nFineX(1), 1:nFineX(2), 1:nFineX(3))
@@ -46,13 +46,18 @@ contains
 
     ! The C++ sends in zero in 2D but Refine_TwoMoment expects 1
     nFineX_local(:) = nFineX(:)
-#if (AMREX_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 1)
+    nFineX_local(2:3) = 1
+#elif (AMREX_SPACEDIM == 2)
     nFineX_local(3) = 1
 #endif
 
     if ( nvar .ne. nNodesE * nE * nCR * nSpecies ) &
        call amrex_error("Mismatch of nvar with nNodesE*nE*nCR*nSpecies in dg_refine")
-#if (AMREX_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 1)
+    if ( nDOF .ne. nNodesE * nNodesX(1) ) &
+       call amrex_error("Mismatch of nDOF with nNodesE*nNodesX(1) in dg_refine")
+#elif (AMREX_SPACEDIM == 2)
     if ( nDOF .ne. nNodesE * nNodesX(1) * nNodesX(2) ) &
        call amrex_error("Mismatch of nDOF with nNodesE*nNodesX(1)*nNodesX(2) in dg_refine")
 #elif (AMREX_SPACEDIM == 3)
@@ -66,20 +71,28 @@ contains
  
     cblo(1) = fblo(1) / nFineX(1)
     cbhi(1) = fbhi(1) / nFineX(1)
+#if (AMREX_SPACEDIM > 1)
     cblo(2) = fblo(2) / nFineX(2)
     cbhi(2) = fbhi(2) / nFineX(2)
+#endif
 #if (AMREX_SPACEDIM == 3)
     cblo(3) = fblo(3) / nFineX(3)
     cbhi(3) = fbhi(3) / nFineX(3)
 #endif
 
     ! loop over coarse grid under fine region...
-#if (AMREX_SPACEDIM == 2)
+#if (AMREX_SPACEDIM < 3)
     do kc = crse_lo(3), crse_hi(3)
 #elif (AMREX_SPACEDIM == 3)
     do kc = cblo(3), cbhi(3), 2
 #endif
+
+#if (AMREX_SPACEDIM == 1)
+       do jc = crse_lo(2), crse_hi(2)
+#else
        do jc = cblo(2), cbhi(2), 2
+#endif
+
        do ic = cblo(1), cbhi(1), 2
 
              do ispec = 1, nSpecies
@@ -97,7 +110,8 @@ contains
                              ii   = ioff + (id-nNodesE-1)
                              U_CrseCoarse(id,ie) = crse(ic+1,jc,kc,ii)
                           end do
-   
+
+#if (AMREX_SPACEDIM > 1)
                           do id = 2*nNodesE+1, 3*nNodesE
                              ii   = ioff + (id-2*nNodesE-1)
                              U_CrseCoarse(id,ie) = crse(ic,jc+1,kc,ii)
@@ -107,6 +121,7 @@ contains
                           ii   = ioff + (id-3*nNodesE-1)
                              U_CrseCoarse(id,ie) = crse(ic+1,jc+1,kc,ii)
                           end do
+#endif
 
 #if (AMREX_SPACEDIM == 3)
                           do id = 4*nNodesE+1, 5*nNodesE
@@ -157,6 +172,7 @@ contains
                             fine(ifc+1,jfc,kfc,ii) = U_FineCoarse(id,ie,icc,jcc,kcc)
                          end do
       
+#if (AMREX_SPACEDIM > 1)
                          do id = 2*nNodesE+1, 3*nNodesE
                             ii   = ioff + (id-2*nNodesE-1)
                             fine(ifc,jfc+1,kfc,ii) = U_FineCoarse(id,ie,icc,jcc,kcc)
@@ -166,6 +182,7 @@ contains
                             ii   = ioff + (id-3*nNodesE-1)
                             fine(ifc+1,jfc+1,kfc,ii) = U_FineCoarse(id,ie,icc,jcc,kcc)
                          end do
+#endif
 
 #if (AMREX_SPACEDIM == 3)
                          do id = 4*nNodesE+1, 5*nNodesE
@@ -234,7 +251,7 @@ contains
     integer :: ispec, imom, id, ie, ii, ioff
     integer :: nFineX_local(3)
 
-#if (AMREX_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2 || AMREX_SPACEDIM == 1)
     real(rt) :: U_FineCoarse(1:nDOF, 1:nE, 1:nFineX(1), 1:nFineX(2), 1:1)
 #elif (AMREX_SPACEDIM == 3)
     real(rt) :: U_FineCoarse(1:nDOF, 1:nE, 1:nFineX(1), 1:nFineX(2), 1:nFineX(3))
@@ -243,7 +260,9 @@ contains
 
     ! The C++ sends in zero but Coarsen_TwoMoment expects 1
     nFineX_local(:) = nFineX(:)
-#if (AMREX_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 1)
+    nFineX_local(2:3) = 1
+#elif (AMREX_SPACEDIM == 2)
     nFineX_local(3) = 1
 #endif
 
@@ -255,7 +274,10 @@ contains
 
     if ( nvar .ne. nNodesE * nE * nCR * nSpecies ) &
        call amrex_error("Mismatch of nvar with nNodesE*nE*nCR*nSpecies in dg_coarsen")
-#if (AMREX_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 1)
+    if ( nDOF .ne. nNodesE * nNodesX(1) ) &
+       call amrex_error("Mismatch of nDOF with nNodesE*nNodesX(1) in dg_refine")
+#elif (AMREX_SPACEDIM == 2)
     if ( nDOF .ne. nNodesE * nNodesX(1) * nNodesX(2) ) &
        call amrex_error("Mismatch of nDOF with nNodesE*nNodesX(1)*nNodesX(2) in dg_refine")
 #elif (AMREX_SPACEDIM == 3)
@@ -265,12 +287,18 @@ contains
 
     ! loop over coarse grid -- note that we must skip here because we need to construct an intermediate
     !      array at half of this resolution
-#if (AMREX_SPACEDIM == 2)
+#if (AMREX_SPACEDIM < 3)
     do kc = crse_lo(3), crse_hi(3)
 #elif (AMREX_SPACEDIM == 3)
     do kc = cblo(3), cbhi(3), 2
 #endif
+
+#if (AMREX_SPACEDIM == 1)
+    do jc = crse_lo(2), crse_hi(2)
+#else
     do jc = cblo(2), cbhi(2), 2
+#endif
+
     do ic = cblo(1), cbhi(1), 2
 
           ! loop over species and moments ...
@@ -287,8 +315,12 @@ contains
                        ifc = 2*(ic+icc-1)
                        jfc = 2*(jc+jcc-1)
                        kfc = 2*(kc+kcc-1)
-#if (AMREX_SPACEDIM == 2)
+
+#if (AMREX_SPACEDIM < 3)
                        kfc = 0
+#endif
+#if (AMREX_SPACEDIM < 2)
+                       jfc = 0
 #endif
 
                        do id = 1, nNodesE
@@ -301,6 +333,7 @@ contains
                           U_FineCoarse(id,ie,icc,jcc,kcc) = fine(ifc+1,jfc,kfc,ii)
                        end do
 
+#if (AMREX_SPACEDIM > 1)
                        do id = 2*nNodesE+1, 3*nNodesE
                           ii = ioff + (id-2*nNodesE-1)
                           U_FineCoarse(id,ie,icc,jcc,kcc) = fine(ifc,jfc+1,kfc,ii)
@@ -310,6 +343,7 @@ contains
                           ii = ioff + (id-3*nNodesE-1)
                           U_FineCoarse(id,ie,icc,jcc,kcc) = fine(ifc+1,jfc+1,kfc,ii)
                        end do
+#endif
 
 #if (AMREX_SPACEDIM == 3)
                        do id = 4*nNodesE+1, 5*nNodesE
@@ -357,6 +391,7 @@ contains
                       crse(ic+1,jc,kc,ii) = U_CrseCoarse(id,ie)
                    end do
    
+#if (AMREX_SPACEDIM > 1)
                    do id = 2*nNodesE+1, 3*nNodesE
                       ii = ioff + (id-2*nNodesE-1)
                       crse(ic,jc+1,kc,ii) = U_CrseCoarse(id,ie)
@@ -366,6 +401,8 @@ contains
                       ii = ioff + (id-3*nNodesE-1)
                       crse(ic+1,jc+1,kc,ii) = U_CrseCoarse(id,ie)
                    end do
+#endif
+
 #if (AMREX_SPACEDIM == 3)
                    do id = 4*nNodesE+1, 5*nNodesE
                       ii = ioff + (id-4*nNodesE-1)
