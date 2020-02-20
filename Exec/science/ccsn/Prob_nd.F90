@@ -126,7 +126,12 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            ! get interpolated radial velocity
            call interpolate_sub(velr, rad_sph, ivelr_model)
 
-#if (AMREX_SPACEDIM==2)
+#if (AMREX_SPACEDIM==1)
+           ! Spherical radial velocity
+           state(i,j,k,UMX) = state(i,j,k,URHO) * velr
+           state(i,j,k,UMY) = ZERO
+           state(i,j,k,UMZ) = ZERO
+#elif (AMREX_SPACEDIM==2)
            ! project spherical radial velocity onto cylindrical r-z velocity components
            rad_cyl = x
            sin_theta = rad_cyl/rad_sph
