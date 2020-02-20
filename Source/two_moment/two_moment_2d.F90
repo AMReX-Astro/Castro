@@ -39,6 +39,7 @@
 
     use ReferenceElementModuleX, only: NodesX_q, WeightsX_q
     use SubcellReconstructionModule, only: ProjectionMatrix
+    use network, only: iprot, ineut
 
     implicit none
     integer, intent(in) :: lo(2), hi(2)
@@ -311,8 +312,9 @@
 
          dS(i,j,UEINT) = dS(i,j,UEDEN)     ! TRUE IFF NO MOFX SOURCE TERMS
 
-         ! Store electron molar fraction * density in the species
-         dS(i,j,UFS) = dS(i,j,UFX) * AtomicMassUnit / Gram
+         ! Update species with source for electron molar fraction * density
+         dS(i,j,UFS-1+iprot) =  dS(i,j,UFX) * AtomicMassUnit / Gram ! d(rho*Ye) = d(rho*X(protons))
+         dS(i,j,UFS-1+ineut) = -dS(i,j,UFS-1+iprot)  ! d(rho*(1-Ye)) = d(rho*X(neutrons))
 
     end do
     end do
