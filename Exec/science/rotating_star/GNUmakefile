@@ -22,7 +22,7 @@ EOS_DIR     := helmholtz
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := aprox21
 
-INTEGRATOR_DIR := VODE90
+INTEGRATOR_DIR := VODE
 
 Bpack   := ./Make.package
 Blocs   := .
