@@ -20,22 +20,22 @@ ca_F90EXE_sources += advection_util_nd.F90
 
 ca_F90EXE_sources += ppm_nd.F90
 ca_F90EXE_sources += riemann_nd.F90
-ca_F90EXE_sources += riemann_util.F90
+ca_F90EXE_sources += riemann_util_nd.F90
 ca_F90EXE_sources += slope_nd.F90
-ca_F90EXE_sources += trace_plm.F90
-ca_F90EXE_sources += trace_ppm.F90
+ca_F90EXE_sources += trace_plm_nd.F90
+ca_F90EXE_sources += trace_ppm_nd.F90
 
 ca_F90EXE_sources += Castro_ctu_nd.F90
 
 ifeq ($(USE_TRUE_SDC),TRUE)
-  ca_F90EXE_sources += fourth_order.F90
+  ca_F90EXE_sources += fourth_order_nd.F90
   ca_F90EXE_sources += Castro_mol_nd.F90
-  ca_F90EXE_sources += Castro_fourth_order.F90
+  ca_F90EXE_sources += Castro_fourth_order_nd.F90
 endif
 
 ifneq ($(DIM), 1)
-  ca_F90EXE_sources += trans.F90
+  ca_F90EXE_sources += trans_nd.F90
 endif
 
-ca_F90EXE_sources += edge_util.F90
+ca_F90EXE_sources += edge_util_nd.F90
 

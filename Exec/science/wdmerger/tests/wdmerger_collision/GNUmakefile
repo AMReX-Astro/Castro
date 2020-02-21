@@ -1,3 +1,3 @@
-INTEGRATOR_DIR=VODE90
+INTEGRATOR_DIR=VODE
 
 include ../../GNUmakefile
