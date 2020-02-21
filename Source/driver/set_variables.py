@@ -3,7 +3,7 @@
 """parse the _variables file and write a Fortran module and C++ header
 that defines the indices and size of state arrays.  We write:
 
-  * state_indices.F90
+  * state_indices_nd.F90
 
   * state_indices.H
 
@@ -244,7 +244,7 @@ def doit(variables_file, odir, defines, nadv,
     # all these routines will live in a single file
 
     # first the Fortran
-    with open(os.path.join(odir, "state_indices.F90"), "w") as f:
+    with open(os.path.join(odir, "state_indices_nd.F90"), "w") as f:
 
         # first write out the counter sizes
         f.write("module state_indices_module\n")
