@@ -25,18 +25,37 @@
                                     const bool input_is_average);
 #endif
 
+void ca_sdc_update_advection_o2_lobatto(const amrex::Box& bx,
+                                        amrex::Real dt_m, amrex::Real dt,
+                                        amrex::Array4<const amrex::Real> const& k_m,
+                                        amrex::Array4<amrex::Real> const& k_n,
+                                        amrex::Array4<const amrex::Real> const& A_m,
+                                        amrex::Array4<const amrex::Real> const& A_0_old,
+                                        amrex::Array4<const amrex::Real> const& A_1_old,
+                                        int m_start);
+
+void ca_sdc_update_advection_o2_radau(const amrex::Box& bx,
+                                      amrex::Real dt_m, amrex::Real dt,
+                                      amrex::Array4<const amrex::Real> const& k_m,
+                                      amrex::Array4<amrex::Real> const& k_n,
+                                      amrex::Array4<const amrex::Real> const& A_m,
+                                      amrex::Array4<const amrex::Real> const& A_0_old,
+                                      amrex::Array4<const amrex::Real> const& A_1_old,
+                                      amrex::Array4<const amrex::Real> const& A_2_old,
+                                      int m_start);
+
 void ca_sdc_compute_initial_guess(const amrex::Box& bx,
-				  amrex::Array4<const amrex::Real> const& U_old,
-				  amrex::Array4<const amrex::Real> const& U_new,
-				  amrex::Array4<const amrex::Real> const& A_old,
-				  amrex::Array4<const amrex::Real> const& R_old,
-				  amrex::Array4<amrex::Real> const& U_guess,
-				  amrex::Real const dt_m, int const sdc_iteration);
+                                  amrex::Array4<const amrex::Real> const& U_old,
+                                  amrex::Array4<const amrex::Real> const& U_new,
+                                  amrex::Array4<const amrex::Real> const& A_old,
+                                  amrex::Array4<const amrex::Real> const& R_old,
+                                  amrex::Array4<amrex::Real> const& U_guess,
+                                  amrex::Real const dt_m, int const sdc_iteration);
 
 #ifdef REACTIONS
 void ca_store_reaction_state(const amrex::Box& bx,
-			     amrex::Array4<const amrex::Real> const& R_old,
-			     amrex::Array4<const amrex::Real> const& state,
-			     amrex::Array4<amrex::Real> const& R_store);
+                             amrex::Array4<const amrex::Real> const& R_old,
+                             amrex::Array4<const amrex::Real> const& state,
+                             amrex::Array4<amrex::Real> const& R_store);
 #endif
 

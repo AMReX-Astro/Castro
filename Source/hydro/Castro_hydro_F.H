@@ -204,29 +204,6 @@ extern "C"
      const amrex::Real* dx, const int idir, const int is_avg);
 
 #ifndef AMREX_USE_CUDA
-  void ca_sdc_update_advection_o2_lobatto
-    (const int* lo, const int* hi,
-     const amrex::Real* dt_m,
-     const amrex::Real* dt,
-     const BL_FORT_FAB_ARG_3D(k_m),
-     BL_FORT_FAB_ARG_3D(k_n),
-     BL_FORT_FAB_ARG_3D(A_m),
-     BL_FORT_FAB_ARG_3D(A_0_old),
-     BL_FORT_FAB_ARG_3D(A_1_old),
-     const int* m_start);
-
-  void ca_sdc_update_advection_o2_radau
-    (const int* lo, const int* hi,
-     const amrex::Real* dt_m,
-     const amrex::Real* dt,
-     const BL_FORT_FAB_ARG_3D(k_m),
-     BL_FORT_FAB_ARG_3D(k_n),
-     BL_FORT_FAB_ARG_3D(A_m),
-     BL_FORT_FAB_ARG_3D(A_0_old),
-     BL_FORT_FAB_ARG_3D(A_1_old),
-     BL_FORT_FAB_ARG_3D(A_2_old),
-     const int* m_start);
-
   void ca_sdc_update_advection_o4_lobatto
     (const int* lo, const int* hi,
      const amrex::Real* dt_m,
