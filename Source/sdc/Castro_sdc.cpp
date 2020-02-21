@@ -98,7 +98,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
       amrex::Array4<amrex::Real> const& S_new_arr=S_new.array(mfi);
 
       ca_sdc_compute_initial_guess(bx, k_new_m_start_arr, k_new_m_end_arr,
-				   A_old_arr, R_old_arr, S_new_arr,
+                                   A_old_arr, R_old_arr, S_new_arr,
                                    dt_m, sdc_iteration);
 
 
@@ -234,27 +234,24 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
 
     }
 #else
+    amrex::Array4<const amrex::Real> const& k_new_m_start_arr=(k_new[m_start])->array(mfi);
+    amrex::Array4<amrex::Real> const& k_new_m_end_arr=(k_new[m_end])->array(mfi);
+    amrex::Array4<const amrex::Real> const& A_new_arr=(A_new[m_start])->array(mfi);
+    amrex::Array4<const amrex::Real> const& A_old_0_arr=(A_old[0])->array(mfi);
+    amrex::Array4<const amrex::Real> const& A_old_1_arr=(A_old[1])->array(mfi);
     // pure advection
     if (sdc_order == 2) {
 
       if (sdc_quadrature == 0) {
-        ca_sdc_update_advection_o2_lobatto(BL_TO_FORTRAN_BOX(bx), &dt_m, &dt,
-                                           BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
-                                           BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
-                                           BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                                           BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                                           BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                                           &m_start);
+        ca_sdc_update_advection_o2_lobatto(bx, dt_m, dt, k_new_m_start_arr, k_new_m_end_arr,
+                                           A_new_arr, A_old_0_arr, A_old_1_arr,
+                                           m_start);
 
       } else {
-        ca_sdc_update_advection_o2_radau(BL_TO_FORTRAN_BOX(bx), &dt_m, &dt,
-                                         BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
-                                         BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
-                                         BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                                         BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                                         BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                                         BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
-                                         &m_start);
+          amrex::Array4<const amrex::Real> const& A_old_2_arr=(A_old[2])->array(mfi);
+          ca_sdc_update_advection_o2_radau(bx, dt_m, dt, k_new_m_start_arr, k_new_m_end_arr,
+                                           A_new_arr, A_old_0_arr, A_old_1_arr, A_old_2_arr,
+                                           m_start);
 
       }
 
@@ -355,13 +352,79 @@ Castro::construct_old_react_source(amrex::MultiFab& U_state,
 }
 #endif
 
+void
+Castro::ca_sdc_update_advection_o2_lobatto(const amrex::Box& bx,
+                                           amrex::Real dt_m, amrex::Real dt,
+                                           amrex::Array4<const amrex::Real> const& k_m,
+                                           amrex::Array4<amrex::Real> const& k_n,
+                                           amrex::Array4<const amrex::Real> const& A_m,
+                                           amrex::Array4<const amrex::Real> const& A_0_old,
+                                           amrex::Array4<const amrex::Real> const& A_1_old,
+                                           int m_start)
+{
+    // update k_m to k_n via advection -- this is a second-order accurate update
+    // for the Gauss-Lobatto discretization of the time nodes
+
+    // here, dt_m is the update for this stage, from one time node to the next
+    // dt is the update over the whole timestep, n to n+1
+
+    // Gauss-Lobatto / trapezoid
+
+    AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+    {
+        k_n(i,j,k,n) = k_m(i,j,k,n) + 0.5_rt * dt * (A_0_old(i,j,k,n) + A_1_old(i,j,k,n));
+    });
+}
+
+
+void
+Castro::ca_sdc_update_advection_o2_radau(const amrex::Box& bx,
+                                         amrex::Real dt_m, amrex::Real dt,
+                                         amrex::Array4<const amrex::Real> const& k_m,
+                                         amrex::Array4<amrex::Real> const& k_n,
+                                         amrex::Array4<const amrex::Real> const& A_m,
+                                         amrex::Array4<const amrex::Real> const& A_0_old,
+                                         amrex::Array4<const amrex::Real> const& A_1_old,
+                                         amrex::Array4<const amrex::Real> const& A_2_old,
+                                         int m_start)
+{
+    // update k_m to k_n via advection -- this is a second-order accurate update
+    // for the Radau discretization of the time nodes
+
+    // here, dt_m is the update for this stage, from one time node to the next
+    // dt is the update over the whole timestep, n to n+1
+
+    // Radau
+
+    if (m_start == 0)
+    {
+        AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+        {
+            k_n(i,j,k,n) = k_m(i,j,k,n) +
+                dt_m * (A_m(i,j,k,n) - A_0_old(i,j,k,n)) +
+                dt/12.0_rt * (5.0_rt*A_1_old(i,j,k,n) - A_2_old(i,j,k,n));
+        });
+    }
+    else if (m_start == 1)
+    {
+        AMREX_PARALLEL_FOR_4D(bx, k_n.nComp(), i, j, k, n,
+        {
+            k_n(i,j,k,n) = k_m(i,j,k,n) +
+                dt_m * (A_m(i,j,k,n) - A_1_old(i,j,k,n)) +
+                dt/3.0_rt * (A_1_old(i,j,k,n) + A_2_old(i,j,k,n));
+        });
+    }
+}
+
+
+
 void Castro::ca_sdc_compute_initial_guess(const amrex::Box& bx,
-					  amrex::Array4<const amrex::Real> const& U_old,
-					  amrex::Array4<const amrex::Real> const& U_new,
-					  amrex::Array4<const amrex::Real> const& A_old,
-					  amrex::Array4<const amrex::Real> const& R_old,
-					  amrex::Array4<amrex::Real> const& U_guess,
-					  amrex::Real const dt_m, int const sdc_iteration)
+                                          amrex::Array4<const amrex::Real> const& U_old,
+                                          amrex::Array4<const amrex::Real> const& U_new,
+                                          amrex::Array4<const amrex::Real> const& A_old,
+                                          amrex::Array4<const amrex::Real> const& R_old,
+                                          amrex::Array4<amrex::Real> const& U_guess,
+                                          amrex::Real const dt_m, int const sdc_iteration)
 {
     // compute the initial guess for the Newton solve
     // Here dt_m is the timestep to update from time node m to m+1
@@ -369,25 +432,26 @@ void Castro::ca_sdc_compute_initial_guess(const amrex::Box& bx,
     if (sdc_iteration == 0)
     {
         AMREX_PARALLEL_FOR_4D(bx, U_guess.nComp(), i, j, k, n,
-	{
+        {
             U_guess(i,j,k,n) = U_old(i,j,k,n) + dt_m * A_old(i,j,k,n) + dt_m * R_old(i,j,k,n);
-	});
+        });
     }
     else
     {
         AMREX_PARALLEL_FOR_4D(bx, U_guess.nComp(), i, j, k, n,
-	{
-	    U_guess(i,j,k,n) = U_new(i,j,k,n);
-	});
+        {
+            U_guess(i,j,k,n) = U_new(i,j,k,n);
+        });
     }
 
 }
 
+
 #ifdef REACTIONS
 void Castro::ca_store_reaction_state(const amrex::Box& bx,
-			     amrex::Array4<const amrex::Real> const& R_old,
-			     amrex::Array4<const amrex::Real> const& state,
-			     amrex::Array4<amrex::Real> const& R_store)
+                                     amrex::Array4<const amrex::Real> const& R_old,
+                                     amrex::Array4<const amrex::Real> const& state,
+                                     amrex::Array4<amrex::Real> const& R_store)
 {
 // copy the data from the last node's reactive source to the state data
 
@@ -397,7 +461,7 @@ void Castro::ca_store_reaction_state(const amrex::Box& bx,
 
   AMREX_PARALLEL_FOR_4D(bx, nspec, i, j, k, n,
   {
-    R_store(i,j,k,n) = R_old(i,j,k,UFS-1+n)/state(i,j,k,URHO);
+    R_store(i,j,k,n) = R_old(i,j,k,UFS+n)/state(i,j,k,URHO);
   });
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
