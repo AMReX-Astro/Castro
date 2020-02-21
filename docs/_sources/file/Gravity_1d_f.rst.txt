@@ -1,4 +1,4 @@
-Gravity_1d.f90
+Gravity_1d.F90
 ==============
 
 gravity\_1d\_module

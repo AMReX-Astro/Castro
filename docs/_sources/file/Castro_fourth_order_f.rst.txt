@@ -1,8 +1,0 @@
-Castro_fourth_order.F90
-=======================
-
-fourth\_order\_hydro
---------------------
-
-.. f:automodule:: fourth_order_hydro
-

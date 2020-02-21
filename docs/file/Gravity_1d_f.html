@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Gravity_1d.f90 &mdash; Castro  documentation</title>
+  <title>Gravity_1d.F90 &mdash; Castro  documentation</title>
   
 
   
@@ -38,7 +38,7 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Gravity_2d.f90" href="Gravity_2d_f.html" />
+    <link rel="next" title="Gravity_2d.F90" href="Gravity_2d_f.html" />
     <link rel="prev" title="File Gravity.H" href="Gravity_8H.html" /> 
 </head>
 
@@ -128,16 +128,16 @@
 <li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../gravity_files.html">Gravity</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_1d_f.html">GR_Gravity_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_2d_f.html">GR_Gravity_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_3d_f.html">GR_Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_1d_f.html">GR_Gravity_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_2d_f.html">GR_Gravity_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_3d_f.html">GR_Gravity_3d.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Gravity_1d.f90</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Gravity_1d.F90</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#f/gravity_1d_module">gravity_1d_module</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="Gravity_2d_f.html">Gravity_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Gravity_3d_f.html">Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_2d_f.html">Gravity_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_3d_f.html">Gravity_3d.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Gravity_nd_f.html">Gravity_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="gravity_sources_nd_f.html">gravity_sources_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pointmass_nd_f.html">pointmass_nd.F90</a></li>
@@ -210,7 +210,7 @@
         
           <li><a href="../gravity_files.html">Gravity</a> &raquo;</li>
         
-      <li>Gravity_1d.f90</li>
+      <li>Gravity_1d.F90</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -230,12 +230,12 @@
            <div itemprop="articleBody">
             
   <div class="section" id="gravity-1d-f90">
-<h1>Gravity_1d.f90<a class="headerlink" href="#gravity-1d-f90" title="Permalink to this headline">¶</a></h1>
+<h1>Gravity_1d.F90<a class="headerlink" href="#gravity-1d-f90" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="f/gravity_1d_module">
 <span id="gravity-1d-module"></span><h2>gravity_1d_module<a class="headerlink" href="#f/gravity_1d_module" title="Permalink to this headline">¶</a></h2>
 <p class="rubric">Needed modules</p>
 <ul class="simple">
-<li><a class="reference internal" href="Castro_error_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a></li>
+<li><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a></li>
 <li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
 </ul>
 <p class="rubric">Subroutines and functions</p>
@@ -264,7 +264,7 @@
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -295,10 +295,10 @@
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(radial_grav)</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -316,7 +316,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Gravity_2d_f.html" class="btn btn-neutral float-right" title="Gravity_2d.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Gravity_2d_f.html" class="btn btn-neutral float-right" title="Gravity_2d.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="Gravity_8H.html" class="btn btn-neutral float-left" title="File Gravity.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

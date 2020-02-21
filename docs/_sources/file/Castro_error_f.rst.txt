@@ -1,8 +1,0 @@
-Castro_error.F90
-================
-
-castro\_error\_module
----------------------
-
-.. f:automodule:: castro_error_module
-

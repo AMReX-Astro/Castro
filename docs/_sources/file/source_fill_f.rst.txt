@@ -1,8 +1,0 @@
-source_fill.F90
-===============
-
-source\_fill\_module
---------------------
-
-.. f:automodule:: source_fill_module
-

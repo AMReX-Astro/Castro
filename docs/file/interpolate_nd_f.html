@@ -1,0 +1,412 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>interpolate_nd.F90 &mdash; Castro  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="io_nd.F90" href="io_nd_f.html" />
+    <link rel="prev" title="generic_fill_nd.F90" href="generic_fill_nd_f.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_error_nd_f.html">Castro_error_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_nd_f.html">Castro_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__source__fill_8H.html">File Castro_source_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_util_nd_f.html">Castro_util_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_nd_f.html">Derive_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils_nd_f.html">MGutils_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tagging_nd_f.html">Tagging_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="amrinfo_nd_f.html">amrinfo_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="check_for_nan_nd_f.html">check_for_nan_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generic_fill_nd_f.html">generic_fill_nd.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">interpolate_nd.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/interpolate_module">interpolate_module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="io_nd_f.html">io_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="math_nd_f.html">math_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prob_params_nd_f.html">prob_params_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reduction_nd_f.html">reduction_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source_fill_nd_f.html">source_fill_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sums_nd_f.html">sums_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timestep_nd_f.html">timestep_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../driver_files.html">Driver</a> &raquo;</li>
+        
+      <li>interpolate_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/interpolate_nd_f.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="interpolate-nd-f90">
+<h1>interpolate_nd.F90<a class="headerlink" href="#interpolate-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/interpolate_module">
+<span id="interpolate-module"></span><h2>interpolate_module<a class="headerlink" href="#f/interpolate_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/interpolate_module/interpolate" title="f/interpolate_module/interpolate"><code class="xref f f-func docutils literal notranslate"><span class="pre">interpolate()</span></code></a>, <a class="reference internal" href="#f/interpolate_module/locate" title="f/interpolate_module/locate"><code class="xref f f-func docutils literal notranslate"><span class="pre">locate()</span></code></a>, <a class="reference internal" href="#f/interpolate_module/tri_interpolate" title="f/interpolate_module/tri_interpolate"><code class="xref f f-func docutils literal notranslate"><span class="pre">tri_interpolate()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Needed modules</p>
+<ul class="simple">
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+</ul>
+<p class="rubric">Subroutines and functions</p>
+<dl class="function">
+<dt id="f/interpolate_module/interpolate">
+<em class="property">function  </em><code class="descclassname">interpolate_module/</code><code class="descname">interpolate</code><span class="sig-paren">(</span><em>r</em>, <em>npts_model</em>, <em>model_r</em>, <em>model_var</em><span class="optional">[</span>, <em>iloc</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/interpolate_module/interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>given the array of model coordinates (model_r), and variable (model_var),
+find the value of model_var at point r (var_r) using linear interpolation.
+Eventually, we can do something fancier here.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>r</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>model_r</strong> (npts_model)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>model_var</strong> (npts_model)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>iloc</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>npts_model</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(model_r)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>interp</strong><em> [</em><em>real</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/interpolate_module/locate" title="f/interpolate_module/locate"><code class="xref f f-func docutils literal notranslate"><span class="pre">locate()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/interpolate_module/tri_interpolate">
+<em class="property">subroutine  </em><code class="descclassname">interpolate_module/</code><code class="descname">tri_interpolate</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em>, <em>npts_x</em>, <em>npts_y</em>, <em>npts_z</em>, <em>model_x</em>, <em>model_y</em>, <em>model_z</em>, <em>model_var</em>, <em>interp_var</em>, <em>derivs</em>, <em>error</em><span class="sig-paren">)</span><a class="headerlink" href="#f/interpolate_module/tri_interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>tri-linear interpolation; useful for EOS tables
+this is stricly interpolation, so if the point (x,y,z) is outside
+the bounds of model_x,model_y,model_z, then we abort</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>y</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>z</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>model_x</strong> (npts_x)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>model_y</strong> (npts_y)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>model_z</strong> (npts_z)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>model_var</strong> (npts_x,npts_y,npts_z)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>interp_var</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>derivs</strong> (3)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>error</strong><em> [</em><em>logical</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><ul class="first simple">
+<li><strong>npts_x</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(model_x)</em><em>]</em></li>
+<li><strong>npts_y</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(model_y)</em><em>]</em></li>
+<li><strong>npts_z</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(model_z)</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/interpolate_module/locate">
+<em class="property">function  </em><code class="descclassname">interpolate_module/</code><code class="descname">locate</code><span class="sig-paren">(</span><em>x</em>, <em>n</em>, <em>xs</em><span class="sig-paren">)</span><a class="headerlink" href="#f/interpolate_module/locate" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>xs</strong> (n)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(xs)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>loc</strong><em> [</em><em>integer</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/interpolate_module/interpolate" title="f/interpolate_module/interpolate"><code class="xref f f-func docutils literal notranslate"><span class="pre">interpolate()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="io_nd_f.html" class="btn btn-neutral float-right" title="io_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="generic_fill_nd_f.html" class="btn btn-neutral float-left" title="generic_fill_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

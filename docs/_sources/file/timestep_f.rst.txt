@@ -1,8 +1,0 @@
-timestep.F90
-============
-
-timestep\_module
-----------------
-
-.. f:automodule:: timestep_module
-

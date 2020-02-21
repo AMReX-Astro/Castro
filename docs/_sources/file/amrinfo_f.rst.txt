@@ -1,8 +1,0 @@
-amrinfo.F90
-===========
-
-amrinfo\_module
----------------
-
-.. f:automodule:: amrinfo_module
-

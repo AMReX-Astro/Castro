@@ -1,4 +1,4 @@
-GR_Gravity_3d.f90
+GR_Gravity_3d.F90
 =================
 
 ca\_compute\_avgpres subroutine

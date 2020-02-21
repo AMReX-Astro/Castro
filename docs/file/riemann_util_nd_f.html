@@ -1,0 +1,549 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>riemann_util_nd.F90 &mdash; Castro  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="slope_nd.F90" href="slope_nd_f.html" />
+    <link rel="prev" title="riemann_nd.F90" href="riemann_nd_f.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_ctu_nd_f.html">Castro_ctu_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_fourth_order_nd_f.html">Castro_fourth_order_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_mol_nd_f.html">Castro_mol_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fourth_order_nd_f.html">fourth_order_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ppm_nd_f.html">ppm_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="riemann_nd_f.html">riemann_nd.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">riemann_util_nd.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/riemann_util_module">riemann_util_module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="slope_nd_f.html">slope_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace_plm_nd_f.html">trace_plm_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace_ppm_nd_f.html">trace_ppm_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trans_nd_f.html">trans_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+        
+      <li>riemann_util_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/riemann_util_nd_f.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="riemann-util-nd-f90">
+<h1>riemann_util_nd.F90<a class="headerlink" href="#riemann-util-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/riemann_util_module">
+<span id="riemann-util-module"></span><h2>riemann_util_module<a class="headerlink" href="#f/riemann_util_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/riemann_util_module/ca_store_godunov_state" title="f/riemann_util_module/ca_store_godunov_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_store_godunov_state()</span></code></a>, <a class="reference internal" href="#f/riemann_util_module/compute_flux" title="f/riemann_util_module/compute_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_flux()</span></code></a>, <a class="reference internal" href="#f/riemann_util_module/compute_flux_q" title="f/riemann_util_module/compute_flux_q"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_flux_q()</span></code></a>, <a class="reference internal" href="#f/riemann_util_module/cons_state" title="f/riemann_util_module/cons_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">cons_state()</span></code></a>, <a class="reference internal" href="#f/riemann_util_module/hll" title="f/riemann_util_module/hll"><code class="xref f f-func docutils literal notranslate"><span class="pre">hll()</span></code></a>, <a class="reference internal" href="#f/riemann_util_module/hllc_state" title="f/riemann_util_module/hllc_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">hllc_state()</span></code></a>, <a class="reference internal" href="#f/riemann_util_module/pstar_bisection" title="f/riemann_util_module/pstar_bisection"><code class="xref f f-func docutils literal notranslate"><span class="pre">pstar_bisection()</span></code></a>, <a class="reference internal" href="#f/riemann_util_module/wsqge" title="f/riemann_util_module/wsqge"><code class="xref f f-func docutils literal notranslate"><span class="pre">wsqge()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Needed modules</p>
+<ul class="simple">
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>)</li>
+</ul>
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/riemann_util_module/wsqge">
+<em class="property">subroutine  </em><code class="descclassname">riemann_util_module/</code><code class="descname">wsqge</code><span class="sig-paren">(</span><em>p</em>, <em>v</em>, <em>gam</em>, <em>gdot</em>, <em>gstar</em>, <em>pstar</em>, <em>wsq</em>, <em>csq</em>, <em>gmin</em>, <em>gmax</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_util_module/wsqge" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>p</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gam</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gdot</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gstar</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>pstar</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>wsq</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>csq</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gmin</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gmax</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="riemann_nd_f.html#f/riemann_module/riemanncg" title="f/riemann_module/riemanncg"><code class="xref f f-func docutils literal notranslate"><span class="pre">riemanncg()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/riemann_util_module/pstar_bisection">
+<em class="property">subroutine  </em><code class="descclassname">riemann_util_module/</code><code class="descname">pstar_bisection</code><span class="sig-paren">(</span><em>pstar_lo</em>, <em>pstar_hi</em>, <em>ul</em>, <em>pl</em>, <em>taul</em>, <em>gamel</em>, <em>clsql</em>, <em>ur</em>, <em>pr</em>, <em>taur</em>, <em>gamer</em>, <em>clsqr</em>, <em>gdot</em>, <em>gmin</em>, <em>gmax</em>, <em>pstar</em>, <em>gamstar</em>, <em>converged</em>, <em>pstar_hist_extra</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_util_module/pstar_bisection" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pstar_lo</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>pstar_hi</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>ul</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>pl</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>taul</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gamel</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>clsql</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ur</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>pr</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>taur</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gamer</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>clsqr</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gdot</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gmin</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gmax</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>pstar</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>gamstar</strong><em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>converged</strong><em> [</em><em>logical</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>pstar_hist_extra</strong> (*)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">cg_maxiter()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">cg_tol()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="riemann_nd_f.html#f/riemann_module/riemanncg" title="f/riemann_module/riemanncg"><code class="xref f f-func docutils literal notranslate"><span class="pre">riemanncg()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/riemann_util_module/hll">
+<em class="property">subroutine  </em><code class="descclassname">riemann_util_module/</code><code class="descname">hll</code><span class="sig-paren">(</span><em>ql</em>, <em>qr</em>, <em>cl</em>, <em>cr</em>, <em>idir</em>, <em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_util_module/hll" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ql</strong> (nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qr</strong> (nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>cl</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>cr</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f</strong> (nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/mom_flux_has_p" title="f/prob_params_module/mom_flux_has_p"><code class="xref f f-func docutils literal notranslate"><span class="pre">mom_flux_has_p()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="riemann_nd_f.html#f/riemann_module/cmpflx" title="f/riemann_module/cmpflx"><code class="xref f f-func docutils literal notranslate"><span class="pre">cmpflx()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/riemann_util_module/cons_state">
+<em class="property">subroutine  </em><code class="descclassname">riemann_util_module/</code><code class="descname">cons_state</code><span class="sig-paren">(</span><em>q</em>, <em>u</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_util_module/cons_state" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>q</strong> (nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u</strong> (nvar)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ushk()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="riemann_nd_f.html#f/riemann_module/hllc" title="f/riemann_module/hllc"><code class="xref f f-func docutils literal notranslate"><span class="pre">hllc()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/riemann_util_module/hllc_state">
+<em class="property">subroutine  </em><code class="descclassname">riemann_util_module/</code><code class="descname">hllc_state</code><span class="sig-paren">(</span><em>idir</em>, <em>s_k</em>, <em>s_c</em>, <em>q</em>, <em>u</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_util_module/hllc_state" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_k</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_c</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q</strong> (nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u</strong> (nvar)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ushk()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="riemann_nd_f.html#f/riemann_module/hllc" title="f/riemann_module/hllc"><code class="xref f f-func docutils literal notranslate"><span class="pre">hllc()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/riemann_util_module/compute_flux_q">
+<em class="property">subroutine  </em><code class="descclassname">riemann_util_module/</code><code class="descname">compute_flux_q</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qint</em>, <em>q_lo</em>, <em>q_hi</em>, <em>f</em>, <em>f_lo</em>, <em>f_hi</em>, <em>lambda</em>, <em>l_lo</em>, <em>l_hi</em>, <em>rf</em>, <em>rf_lo</em>, <em>rf_hi</em>, <em>idir</em>, <em>enforce_eos</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_util_module/compute_flux_q" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qint</strong> (q_hi(1)-(q_lo(1))+1,q_hi(2)-(q_lo(2))+1,q_hi(3)-(q_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f</strong> (f_hi(1)-(f_lo(1))+1,f_hi(2)-(f_lo(2))+1,f_hi(3)-(f_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>f_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lambda</strong> (l_hi(1)-(l_lo(1))+1,l_hi(2)-(l_lo(2))+1,l_hi(3)-(l_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>l_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>l_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rf</strong> (rf_hi(1)-(rf_lo(1))+1,rf_hi(2)-(rf_lo(2))+1,rf_hi(3)-(rf_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>rf_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rf_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>enforce_eos</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/mom_flux_has_p" title="f/prob_params_module/mom_flux_has_p"><code class="xref f f-func docutils literal notranslate"><span class="pre">mom_flux_has_p()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ushk()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qfs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qfx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrad()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">fspace_type()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gderads()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">t_guess()</span></code>), <a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module" title="f/fluxlimiter_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fluxlimiter_module</span></code></a> (<a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a>), <a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module" title="f/hybrid_advection_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">hybrid_advection_module</span></code></a> (<a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module/compute_hybrid_flux" title="f/hybrid_advection_module/compute_hybrid_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_hybrid_flux()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_rp()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="riemann_nd_f.html#f/riemann_module/cmpflx" title="f/riemann_module/cmpflx"><code class="xref f f-func docutils literal notranslate"><span class="pre">cmpflx()</span></code></a></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a>, <a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module/compute_hybrid_flux" title="f/hybrid_advection_module/compute_hybrid_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_hybrid_flux()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/riemann_util_module/ca_store_godunov_state">
+<em class="property">subroutine  </em><code class="descclassname">riemann_util_module/</code><code class="descname">ca_store_godunov_state</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qint</em>, <em>qi_lo</em>, <em>qi_hi</em>, <em>lambda</em>, <em>l_lo</em>, <em>l_hi</em>, <em>qgdnv</em>, <em>qg_lo</em>, <em>qg_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_util_module/ca_store_godunov_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>this copies the full interface state (NQ – one for each primitive
+variable) over to a smaller subset of size NGDNV for use later in the
+hydro advancement.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qint</strong> (qi_hi(1)-(qi_lo(1))+1,qi_hi(2)-(qi_lo(2))+1,qi_hi(3)-(qi_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qi_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qi_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lambda</strong> (l_hi(1)-(l_lo(1))+1,l_hi(2)-(l_lo(2))+1,l_hi(3)-(l_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>l_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>l_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qgdnv</strong> (qg_hi(1)-(qg_lo(1))+1,qg_hi(2)-(qg_lo(2))+1,qg_hi(3)-(qg_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qg_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qg_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrad()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gderads()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdw()</span></code>), <a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="riemann_nd_f.html#f/riemann_module/cmpflx_plus_godunov" title="f/riemann_module/cmpflx_plus_godunov"><code class="xref f f-func docutils literal notranslate"><span class="pre">cmpflx_plus_godunov()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/riemann_util_module/compute_flux">
+<em class="property">subroutine  </em><code class="descclassname">riemann_util_module/</code><code class="descname">compute_flux</code><span class="sig-paren">(</span><em>idir</em>, <em>bnd_fac</em>, <em>u</em>, <em>p</em>, <em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#f/riemann_util_module/compute_flux" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>idir</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bnd_fac</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u</strong> (nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>p</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f</strong> (nvar)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ushk()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/mom_flux_has_p" title="f/prob_params_module/mom_flux_has_p"><code class="xref f f-func docutils literal notranslate"><span class="pre">mom_flux_has_p()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="riemann_nd_f.html#f/riemann_module/hllc" title="f/riemann_module/hllc"><code class="xref f f-func docutils literal notranslate"><span class="pre">hllc()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="slope_nd_f.html" class="btn btn-neutral float-right" title="slope_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="riemann_nd_f.html" class="btn btn-neutral float-left" title="riemann_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

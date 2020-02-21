@@ -1,8 +1,0 @@
-trace_plm.F90
-=============
-
-trace\_plm\_module
-------------------
-
-.. f:automodule:: trace_plm_module
-

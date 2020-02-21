@@ -128,13 +128,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../gravity_files.html">Gravity</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_1d_f.html">GR_Gravity_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_2d_f.html">GR_Gravity_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_3d_f.html">GR_Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_1d_f.html">GR_Gravity_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_2d_f.html">GR_Gravity_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_3d_f.html">GR_Gravity_3d.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Gravity_1d_f.html">Gravity_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Gravity_2d_f.html">Gravity_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Gravity_3d_f.html">Gravity_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_1d_f.html">Gravity_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_2d_f.html">Gravity_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_3d_f.html">Gravity_3d.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Gravity_nd_f.html">Gravity_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="gravity_sources_nd_f.html">gravity_sources_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pointmass_nd_f.html">pointmass_nd.F90</a></li>
@@ -257,14 +257,14 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>grav</strong> (g_hi(1)-(g_lo(1))+1,g_hi(2)-(g_lo(2))+1,g_hi(3)-(g_lo(3))+1,<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim">dim</a>)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>grav</strong> (g_hi(1)-(g_lo(1))+1,g_hi(2)-(g_lo(2))+1,g_hi(3)-(g_lo(3))+1,<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim">dim</a>)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
 <li><strong>g_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>g_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>), <a class="reference internal" href="prob_params_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
 </td>
 </tr>
 </tbody>

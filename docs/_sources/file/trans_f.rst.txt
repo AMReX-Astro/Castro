@@ -1,8 +1,0 @@
-trans.F90
-=========
-
-transverse\_module
-------------------
-
-.. f:automodule:: transverse_module
-

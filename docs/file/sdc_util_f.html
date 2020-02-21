@@ -237,7 +237,7 @@
 <p class="rubric">Needed modules</p>
 <ul class="simple">
 <li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
-<li><a class="reference internal" href="Castro_error_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a> (<a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>)</li>
+<li><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a> (<a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>)</li>
 </ul>
 <p class="rubric">Variables</p>
 <ul>
@@ -304,7 +304,7 @@ tries VODE and then does the Newton update.</p>
 <tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/sdc_util/ca_sdc_update_o2" title="f/sdc_util/ca_sdc_update_o2"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_update_o2()</span></code></a>, <a class="reference internal" href="#f/sdc_util/ca_sdc_update_centers_o4" title="f/sdc_util/ca_sdc_update_centers_o4"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_sdc_update_centers_o4()</span></code></a></p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/sdc_util/sdc_newton_subdivide" title="f/sdc_util/sdc_newton_subdivide"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_newton_subdivide()</span></code></a>, <a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>, <a class="reference internal" href="#f/sdc_util/sdc_vode_solve" title="f/sdc_util/sdc_vode_solve"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_vode_solve()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/sdc_util/sdc_newton_subdivide" title="f/sdc_util/sdc_newton_subdivide"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_newton_subdivide()</span></code></a>, <a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>, <a class="reference internal" href="#f/sdc_util/sdc_vode_solve" title="f/sdc_util/sdc_vode_solve"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_vode_solve()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -408,7 +408,7 @@ to the Newton solve on the real system.</p>
 <tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/sdc_util/sdc_solve" title="f/sdc_util/sdc_solve"><code class="xref f f-func docutils literal notranslate"><span class="pre">sdc_solve()</span></code></a></p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -570,7 +570,7 @@ for the Radau discretization of the time nodes</p>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">five()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eight()</span></code>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -618,7 +618,7 @@ for the Radau discretization of the time nodes</p>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">five()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eight()</span></code>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -668,7 +668,7 @@ for the Radau discretization of the time nodes</p>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">five()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eight()</span></code>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -726,7 +726,7 @@ note: this ‘C’ is cell-averages</p>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">five()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eight()</span></code>)</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
 </td>
 </tr>
 </tbody>
