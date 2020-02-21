@@ -23,7 +23,7 @@ the first three (name, type, default) are mandatory:
 
 the next are optional:
 
-   need-in-fortran: if "y" then we do a pp.query() in meth_params.F90
+   need-in-fortran: if "y" then we do a pp.query() in meth_params_nd.F90
 
    ifdef: only define this parameter if the name provided is #ifdef-ed
 
@@ -59,7 +59,7 @@ For a namespace, name, we write out:
 
 we write out a single copy of:
 
-  -- meth_params.F90
+  -- meth_params_nd.F90
      does the parmparse query to override the default in Fortran,
      and sets a number of other parameters specific to the F90 routines
 
@@ -271,7 +271,7 @@ class Param:
         return ostr
 
     def get_f90_decl_string(self):
-        # this is the line that goes into meth_params.f90
+        # this is the line that goes into meth_params_nd.F90
 
         if not self.in_fortran:
             return None
@@ -304,9 +304,9 @@ def write_meth_module(plist, meth_template, out_directory):
         sys.exit("invalid template file")
 
     try:
-        mo = open("{}/meth_params.F90".format(out_directory), "w")
+        mo = open("{}/meth_params_nd.F90".format(out_directory), "w")
     except IOError:
-        sys.exit("unable to open meth_params.F90 for writing")
+        sys.exit("unable to open meth_params_nd.F90 for writing")
 
 
     mo.write(FWARNING)

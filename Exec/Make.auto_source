@@ -51,22 +51,22 @@ $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS
 # Castro C++ parameters
 #------------------------------------------------------------------------------
 
-F90EXE_sources += meth_params.F90
+F90EXE_sources += meth_params_nd.F90
 
 CPP_PARAMETERS := $(TOP)/Source/driver/_cpp_parameters
 METH_PARAMS_TEMPLATE := $(TOP)/Source/driver/meth_params.template
 
-$(CASTRO_AUTO_SOURCE_DIR)/meth_params.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TEMPLATE)
+$(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(TOP)/Source/driver/parse_castro_params.py -m $(METH_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
 
 #------------------------------------------------------------------------------
 # state variable info
 #-------------------------------------------------------------------------------
-$(CASTRO_AUTO_SOURCE_DIR)/state_indices.H: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90
-	echo "state_indices.H will be generated at the same time as state_indices.F90"
+$(CASTRO_AUTO_SOURCE_DIR)/state_indices.H: $(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90
+	echo "state_indices.H will be generated at the same time as state_indices_nd.F90"
 
-$(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90:
+$(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90:
 	$(CASTRO_HOME)/Source/driver/set_variables.py \
            --defines "$(DEFINES)" \
            --nadv $(NUMADV) \
@@ -75,7 +75,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90:
            $(CASTRO_HOME)/Source/driver/_variables
 
 # for debugging
-test_variables: $(CASTRO_AUTO_SOURCE_DIR)/state_indices.F90
+test_variables: $(CASTRO_AUTO_SOURCE_DIR)/state_indices_nd.F90
 
 
 #------------------------------------------------------------------------------
