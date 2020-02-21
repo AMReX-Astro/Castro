@@ -44,6 +44,27 @@ void ca_sdc_update_advection_o2_radau(const amrex::Box& bx,
                                       amrex::Array4<const amrex::Real> const& A_2_old,
                                       int m_start);
 
+void ca_sdc_update_advection_o4_lobatto(const amrex::Box& bx,
+                                        amrex::Real dt_m, amrex::Real dt,
+                                        amrex::Array4<const amrex::Real> const& k_m,
+                                        amrex::Array4<amrex::Real> const& k_n,
+                                        amrex::Array4<const amrex::Real> const& A_m,
+                                        amrex::Array4<const amrex::Real> const& A_0_old,
+                                        amrex::Array4<const amrex::Real> const& A_1_old,
+                                        amrex::Array4<const amrex::Real> const& A_2_old,
+                                        int m_start);
+
+void ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
+                                      amrex::Real dt_m, amrex::Real dt,
+                                      amrex::Array4<const amrex::Real> const& k_m,
+                                      amrex::Array4<amrex::Real> const& k_n,
+                                      amrex::Array4<const amrex::Real> const& A_m,
+                                      amrex::Array4<const amrex::Real> const& A_0_old,
+                                      amrex::Array4<const amrex::Real> const& A_1_old,
+                                      amrex::Array4<const amrex::Real> const& A_2_old,
+                                      amrex::Array4<const amrex::Real> const& A_3_old,
+                                      int m_start);
+
 void ca_sdc_compute_initial_guess(const amrex::Box& bx,
                                   amrex::Array4<const amrex::Real> const& U_old,
                                   amrex::Array4<const amrex::Real> const& U_new,
