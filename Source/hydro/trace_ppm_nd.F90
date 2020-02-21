@@ -212,7 +212,7 @@ contains
                                    QREINT, QPRES, QC, QGAMC, &
                                    small_dens, small_pres, &
                                    ppm_type
-    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile
 
     implicit none
 
