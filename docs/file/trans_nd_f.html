@@ -133,6 +133,7 @@
 <li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro_mol_nd_f.html">Castro_mol_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="edge_util_f.html">edge_util.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fourth_order_nd_f.html">fourth_order_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ppm_nd_f.html">ppm_nd.F90</a></li>
@@ -239,7 +240,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/transverse_module/reset_edge_state_thermo" title="f/transverse_module/reset_edge_state_thermo"><code class="xref f f-func docutils literal notranslate"><span class="pre">reset_edge_state_thermo()</span></code></a>, <a class="reference internal" href="#f/transverse_module/transx_on_ystates" title="f/transverse_module/transx_on_ystates"><code class="xref f f-func docutils literal notranslate"><span class="pre">transx_on_ystates()</span></code></a>, <a class="reference internal" href="#f/transverse_module/transx_on_zstates" title="f/transverse_module/transx_on_zstates"><code class="xref f f-func docutils literal notranslate"><span class="pre">transx_on_zstates()</span></code></a>, <a class="reference internal" href="#f/transverse_module/transxy" title="f/transverse_module/transxy"><code class="xref f f-func docutils literal notranslate"><span class="pre">transxy()</span></code></a>, <a class="reference internal" href="#f/transverse_module/transxz" title="f/transverse_module/transxz"><code class="xref f f-func docutils literal notranslate"><span class="pre">transxz()</span></code></a>, <a class="reference internal" href="#f/transverse_module/transy_on_xstates" title="f/transverse_module/transy_on_xstates"><code class="xref f f-func docutils literal notranslate"><span class="pre">transy_on_xstates()</span></code></a>, <a class="reference internal" href="#f/transverse_module/transy_on_zstates" title="f/transverse_module/transy_on_zstates"><code class="xref f f-func docutils literal notranslate"><span class="pre">transy_on_zstates()</span></code></a>, <a class="reference internal" href="#f/transverse_module/transyz" title="f/transverse_module/transyz"><code class="xref f f-func docutils literal notranslate"><span class="pre">transyz()</span></code></a>, <a class="reference internal" href="#f/transverse_module/transz_on_xstates" title="f/transverse_module/transz_on_xstates"><code class="xref f f-func docutils literal notranslate"><span class="pre">transz_on_xstates()</span></code></a>, <a class="reference internal" href="#f/transverse_module/transz_on_ystates" title="f/transverse_module/transz_on_ystates"><code class="xref f f-func docutils literal notranslate"><span class="pre">transz_on_ystates()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/transverse_module/trans_final" title="f/transverse_module/trans_final"><code class="xref f f-func docutils literal notranslate"><span class="pre">trans_final()</span></code></a>, <a class="reference internal" href="#f/transverse_module/trans_single" title="f/transverse_module/trans_single"><code class="xref f f-func docutils literal notranslate"><span class="pre">trans_single()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -251,8 +252,8 @@
 </ul>
 <p class="rubric">Subroutines and functions</p>
 <dl class="subroutine">
-<dt id="f/transverse_module/transx_on_ystates">
-<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">transx_on_ystates</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qym</em>, <em>qym_lo</em>, <em>qym_hi</em>, <em>qymo</em>, <em>qymo_lo</em>, <em>qymo_hi</em>, <em>qyp</em>, <em>qyp_lo</em>, <em>qyp_hi</em>, <em>qypo</em>, <em>qypo_lo</em>, <em>qypo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>fx</em>, <em>fx_lo</em>, <em>fx_hi</em>, <em>rfx</em>, <em>rfx_lo</em>, <em>rfx_hi</em>, <em>qx</em>, <em>qx_lo</em>, <em>qx_hi</em>, <em>area1</em>, <em>area1_lo</em>, <em>area1_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em>, <em>hdt</em>, <em>cdtdx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/transx_on_ystates" title="Permalink to this definition">¶</a></dt>
+<dt id="f/transverse_module/trans_single">
+<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">trans_single</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>idir_t</em>, <em>idir_n</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qmo</em>, <em>qmo_lo</em>, <em>qmo_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>qpo</em>, <em>qpo_lo</em>, <em>qpo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>flux_t</em>, <em>f_lo</em>, <em>f_hi</em>, <em>rflux_t</em>, <em>rf_lo</em>, <em>rf_hi</em>, <em>q_t</em>, <em>q_lo</em>, <em>q_hi</em>, <em>area_t</em>, <em>a_lo</em>, <em>a_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em>, <em>hdt</em>, <em>cdtdx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/trans_single" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -260,33 +261,35 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qym</strong> (qym_hi(1)-(qym_lo(1))+1,qym_hi(2)-(qym_lo(2))+1,qym_hi(3)-(qym_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qym_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qym_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qymo</strong> (qymo_hi(1)-(qymo_lo(1))+1,qymo_hi(2)-(qymo_lo(2))+1,qymo_hi(3)-(qymo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qymo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qymo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qyp</strong> (qyp_hi(1)-(qyp_lo(1))+1,qyp_hi(2)-(qyp_lo(2))+1,qyp_hi(3)-(qyp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qyp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qyp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qypo</strong> (qypo_hi(1)-(qypo_lo(1))+1,qypo_hi(2)-(qypo_lo(2))+1,qypo_hi(3)-(qypo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qypo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qypo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir_t</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>idir_n</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>qm</strong> (qm_hi(1)-(qm_lo(1))+1,qm_hi(2)-(qm_lo(2))+1,qm_hi(3)-(qm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qmo</strong> (qmo_hi(1)-(qmo_lo(1))+1,qmo_hi(2)-(qmo_lo(2))+1,qmo_hi(3)-(qmo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>qmo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qmo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qp</strong> (qp_hi(1)-(qp_lo(1))+1,qp_hi(2)-(qp_lo(2))+1,qp_hi(3)-(qp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qpo</strong> (qpo_hi(1)-(qpo_lo(1))+1,qpo_hi(2)-(qpo_lo(2))+1,qpo_hi(3)-(qpo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>qpo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qpo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fx</strong> (fx_hi(1)-(fx_lo(1))+1,fx_hi(2)-(fx_lo(2))+1,fx_hi(3)-(fx_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfx</strong> (rfx_hi(1)-(rfx_lo(1))+1,rfx_hi(2)-(rfx_lo(2))+1,rfx_hi(3)-(rfx_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>rfx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx</strong> (qx_hi(1)-(qx_lo(1))+1,qx_hi(2)-(qx_lo(2))+1,qx_hi(3)-(qx_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>area1</strong> (area1_hi(1)-(area1_lo(1))+1,area1_hi(2)-(area1_lo(2))+1,area1_hi(3)-(area1_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>area1_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>area1_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux_t</strong> (f_hi(1)-(f_lo(1))+1,f_hi(2)-(f_lo(2))+1,f_hi(3)-(f_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rflux_t</strong> (rf_hi(1)-(rf_lo(1))+1,rf_hi(2)-(rf_lo(2))+1,rf_hi(3)-(rf_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>]</em></li>
+<li><strong>rf_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rf_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q_t</strong> (q_hi(1)-(q_lo(1))+1,q_hi(2)-(q_lo(2))+1,q_hi(3)-(q_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>area_t</strong> (a_hi(1)-(a_lo(1))+1,a_hi(2)-(a_lo(2))+1,a_hi(3)-(a_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>vol</strong> (vol_hi(1)-(vol_lo(1))+1,vol_hi(2)-(vol_lo(2))+1,vol_hi(3)-(vol_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>vol_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>vol_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
@@ -306,8 +309,8 @@
 </dd></dl>
 
 <dl class="subroutine">
-<dt id="f/transverse_module/transx_on_zstates">
-<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">transx_on_zstates</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qzm</em>, <em>qzm_lo</em>, <em>qzm_hi</em>, <em>qzmo</em>, <em>qzmo_lo</em>, <em>qzmo_hi</em>, <em>qzp</em>, <em>qzp_lo</em>, <em>qzp_hi</em>, <em>qzpo</em>, <em>qzpo_lo</em>, <em>qzpo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>fx</em>, <em>fx_lo</em>, <em>fx_hi</em>, <em>rfx</em>, <em>rfx_lo</em>, <em>rfx_hi</em>, <em>qx</em>, <em>qx_lo</em>, <em>qx_hi</em>, <em>hdt</em>, <em>cdtdx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/transx_on_zstates" title="Permalink to this definition">¶</a></dt>
+<dt id="f/transverse_module/trans_final">
+<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">trans_final</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>idir_n</em>, <em>idir_t1</em>, <em>idir_t2</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qmo</em>, <em>qmo_lo</em>, <em>qmo_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>qpo</em>, <em>qpo_lo</em>, <em>qpo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>flux_t1</em>, <em>ft1_lo</em>, <em>ft1_hi</em>, <em>rflux_t1</em>, <em>rft1_lo</em>, <em>rft1_hi</em>, <em>flux_t2</em>, <em>ft2_lo</em>, <em>ft2_hi</em>, <em>rflux_t2</em>, <em>rft2_lo</em>, <em>rft2_hi</em>, <em>q_t1</em>, <em>qt1_lo</em>, <em>qt1_hi</em>, <em>q_t2</em>, <em>qt2_lo</em>, <em>qt2_hi</em>, <em>hdt</em>, <em>cdtdx_n</em>, <em>cdtdx_t1</em>, <em>cdtdx_t2</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/trans_final" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -315,247 +318,9 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzm</strong> (qzm_hi(1)-(qzm_lo(1))+1,qzm_hi(2)-(qzm_lo(2))+1,qzm_hi(3)-(qzm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzmo</strong> (qzmo_hi(1)-(qzmo_lo(1))+1,qzmo_hi(2)-(qzmo_lo(2))+1,qzmo_hi(3)-(qzmo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qzmo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzmo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzp</strong> (qzp_hi(1)-(qzp_lo(1))+1,qzp_hi(2)-(qzp_lo(2))+1,qzp_hi(3)-(qzp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzpo</strong> (qzpo_hi(1)-(qzpo_lo(1))+1,qzpo_hi(2)-(qzpo_lo(2))+1,qzpo_hi(3)-(qzpo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qzpo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzpo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fx</strong> (fx_hi(1)-(fx_lo(1))+1,fx_hi(2)-(fx_lo(2))+1,fx_hi(3)-(fx_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfx</strong> (rfx_hi(1)-(rfx_lo(1))+1,rfx_hi(2)-(rfx_lo(2))+1,rfx_hi(3)-(rfx_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>]</em></li>
-<li><strong>rfx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx</strong> (qx_hi(1)-(qx_lo(1))+1,qx_hi(2)-(qx_lo(2))+1,qx_hi(3)-(qx_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hdt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-<li><strong>cdtdx</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrad()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qptot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreitot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">fspace_type()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">comoving()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gderads()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_pres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_density()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_rhoe()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_predict_gammae()</span></code>), <a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module" title="f/fluxlimiter_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fluxlimiter_module</span></code></a> (<a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/mom_flux_has_p" title="f/prob_params_module/mom_flux_has_p"><code class="xref f f-func docutils literal notranslate"><span class="pre">mom_flux_has_p()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/transverse_module/transy_on_xstates">
-<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">transy_on_xstates</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qxm</em>, <em>qxm_lo</em>, <em>qxm_hi</em>, <em>qxmo</em>, <em>qxmo_lo</em>, <em>qxmo_hi</em>, <em>qxp</em>, <em>qxp_lo</em>, <em>qxp_hi</em>, <em>qxpo</em>, <em>qxpo_lo</em>, <em>qxpo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>fy</em>, <em>fy_lo</em>, <em>fy_hi</em>, <em>rfy</em>, <em>rfy_lo</em>, <em>rfy_hi</em>, <em>qy</em>, <em>qy_lo</em>, <em>qy_hi</em>, <em>cdtdy</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/transy_on_xstates" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxm</strong> (qxm_hi(1)-(qxm_lo(1))+1,qxm_hi(2)-(qxm_lo(2))+1,qxm_hi(3)-(qxm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxmo</strong> (qxmo_hi(1)-(qxmo_lo(1))+1,qxmo_hi(2)-(qxmo_lo(2))+1,qxmo_hi(3)-(qxmo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qxmo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxmo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxp</strong> (qxp_hi(1)-(qxp_lo(1))+1,qxp_hi(2)-(qxp_lo(2))+1,qxp_hi(3)-(qxp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxpo</strong> (qxpo_hi(1)-(qxpo_lo(1))+1,qxpo_hi(2)-(qxpo_lo(2))+1,qxpo_hi(3)-(qxpo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qxpo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxpo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fy</strong> (fy_hi(1)-(fy_lo(1))+1,fy_hi(2)-(fy_lo(2))+1,fy_hi(3)-(fy_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfy</strong> (rfy_hi(1)-(rfy_lo(1))+1,rfy_hi(2)-(rfy_lo(2))+1,rfy_hi(3)-(rfy_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy</strong> (qy_hi(1)-(qy_lo(1))+1,qy_hi(2)-(qy_lo(2))+1,qy_hi(3)-(qy_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>cdtdy</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrad()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qptot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreitot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">fspace_type()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">comoving()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gderads()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_pres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_density()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_rhoe()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_predict_gammae()</span></code>), <a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module" title="f/fluxlimiter_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fluxlimiter_module</span></code></a> (<a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/transverse_module/transy_on_zstates">
-<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">transy_on_zstates</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qzm</em>, <em>qzm_lo</em>, <em>qzm_hi</em>, <em>qzmo</em>, <em>qzmo_lo</em>, <em>qzmo_hi</em>, <em>qzp</em>, <em>qzp_lo</em>, <em>qzp_hi</em>, <em>qzpo</em>, <em>qzpo_lo</em>, <em>qzpo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>fy</em>, <em>fy_lo</em>, <em>fy_hi</em>, <em>rfy</em>, <em>rfy_lo</em>, <em>rfy_hi</em>, <em>qy</em>, <em>qy_lo</em>, <em>qy_hi</em>, <em>cdtdy</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/transy_on_zstates" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzm</strong> (qzm_hi(1)-(qzm_lo(1))+1,qzm_hi(2)-(qzm_lo(2))+1,qzm_hi(3)-(qzm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzmo</strong> (qzmo_hi(1)-(qzmo_lo(1))+1,qzmo_hi(2)-(qzmo_lo(2))+1,qzmo_hi(3)-(qzmo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qzmo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzmo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzp</strong> (qzp_hi(1)-(qzp_lo(1))+1,qzp_hi(2)-(qzp_lo(2))+1,qzp_hi(3)-(qzp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzpo</strong> (qzpo_hi(1)-(qzpo_lo(1))+1,qzpo_hi(2)-(qzpo_lo(2))+1,qzpo_hi(3)-(qzpo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qzpo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzpo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fy</strong> (fy_hi(1)-(fy_lo(1))+1,fy_hi(2)-(fy_lo(2))+1,fy_hi(3)-(fy_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfy</strong> (rfy_hi(1)-(rfy_lo(1))+1,rfy_hi(2)-(rfy_lo(2))+1,rfy_hi(3)-(rfy_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy</strong> (qy_hi(1)-(qy_lo(1))+1,qy_hi(2)-(qy_lo(2))+1,qy_hi(3)-(qy_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>cdtdy</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrad()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qptot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreitot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">fspace_type()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">comoving()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gderads()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_pres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_density()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_rhoe()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_predict_gammae()</span></code>), <a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module" title="f/fluxlimiter_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fluxlimiter_module</span></code></a> (<a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/transverse_module/transz_on_xstates">
-<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">transz_on_xstates</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qxm</em>, <em>qxm_lo</em>, <em>qxm_hi</em>, <em>qxmo</em>, <em>qxmo_lo</em>, <em>qxmo_hi</em>, <em>qxp</em>, <em>qxp_lo</em>, <em>qxp_hi</em>, <em>qxpo</em>, <em>qxpo_lo</em>, <em>qxpo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>fz</em>, <em>fz_lo</em>, <em>fz_hi</em>, <em>rfz</em>, <em>rfz_lo</em>, <em>rfz_hi</em>, <em>qz</em>, <em>qz_lo</em>, <em>qz_hi</em>, <em>cdtdz</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/transz_on_xstates" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxm</strong> (qxm_hi(1)-(qxm_lo(1))+1,qxm_hi(2)-(qxm_lo(2))+1,qxm_hi(3)-(qxm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxmo</strong> (qxmo_hi(1)-(qxmo_lo(1))+1,qxmo_hi(2)-(qxmo_lo(2))+1,qxmo_hi(3)-(qxmo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qxmo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxmo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxp</strong> (qxp_hi(1)-(qxp_lo(1))+1,qxp_hi(2)-(qxp_lo(2))+1,qxp_hi(3)-(qxp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxpo</strong> (qxpo_hi(1)-(qxpo_lo(1))+1,qxpo_hi(2)-(qxpo_lo(2))+1,qxpo_hi(3)-(qxpo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qxpo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxpo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fz</strong> (fz_hi(1)-(fz_lo(1))+1,fz_hi(2)-(fz_lo(2))+1,fz_hi(3)-(fz_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfz</strong> (rfz_hi(1)-(rfz_lo(1))+1,rfz_hi(2)-(rfz_lo(2))+1,rfz_hi(3)-(rfz_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz</strong> (qz_hi(1)-(qz_lo(1))+1,qz_hi(2)-(qz_lo(2))+1,qz_hi(3)-(qz_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>cdtdz</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrad()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qptot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreitot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">fspace_type()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">comoving()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gderads()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_pres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_density()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_rhoe()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_predict_gammae()</span></code>), <a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module" title="f/fluxlimiter_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fluxlimiter_module</span></code></a> (<a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/transverse_module/transz_on_ystates">
-<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">transz_on_ystates</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qym</em>, <em>qym_lo</em>, <em>qym_hi</em>, <em>qymo</em>, <em>qymo_lo</em>, <em>qymo_hi</em>, <em>qyp</em>, <em>qyp_lo</em>, <em>qyp_hi</em>, <em>qypo</em>, <em>qypo_lo</em>, <em>qypo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>fz</em>, <em>fz_lo</em>, <em>fz_hi</em>, <em>rfz</em>, <em>rfz_lo</em>, <em>rfz_hi</em>, <em>qz</em>, <em>qz_lo</em>, <em>qz_hi</em>, <em>cdtdz</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/transz_on_ystates" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qym</strong> (qym_hi(1)-(qym_lo(1))+1,qym_hi(2)-(qym_lo(2))+1,qym_hi(3)-(qym_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qym_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qym_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qymo</strong> (qymo_hi(1)-(qymo_lo(1))+1,qymo_hi(2)-(qymo_lo(2))+1,qymo_hi(3)-(qymo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qymo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qymo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qyp</strong> (qyp_hi(1)-(qyp_lo(1))+1,qyp_hi(2)-(qyp_lo(2))+1,qyp_hi(3)-(qyp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qyp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qyp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qypo</strong> (qypo_hi(1)-(qypo_lo(1))+1,qypo_hi(2)-(qypo_lo(2))+1,qypo_hi(3)-(qypo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qypo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qypo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fz</strong> (fz_hi(1)-(fz_lo(1))+1,fz_hi(2)-(fz_lo(2))+1,fz_hi(3)-(fz_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfz</strong> (rfz_hi(1)-(rfz_lo(1))+1,rfz_hi(2)-(rfz_lo(2))+1,rfz_hi(3)-(rfz_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz</strong> (qz_hi(1)-(qz_lo(1))+1,qz_hi(2)-(qz_lo(2))+1,qz_hi(3)-(qz_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>cdtdz</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrad()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qptot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreitot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">fspace_type()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">comoving()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gderads()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_pres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_density()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_rhoe()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_predict_gammae()</span></code>), <a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module" title="f/fluxlimiter_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fluxlimiter_module</span></code></a> (<a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/transverse_module/transyz">
-<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">transyz</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qmo</em>, <em>qmo_lo</em>, <em>qmo_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>qpo</em>, <em>qpo_lo</em>, <em>qpo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>fyz</em>, <em>fyz_lo</em>, <em>fyz_hi</em>, <em>rfyz</em>, <em>rfyz_lo</em>, <em>rfyz_hi</em>, <em>fzy</em>, <em>fzy_lo</em>, <em>fzy_hi</em>, <em>rfzy</em>, <em>rfzy_lo</em>, <em>rfzy_hi</em>, <em>qy</em>, <em>qy_lo</em>, <em>qy_hi</em>, <em>qz</em>, <em>qz_lo</em>, <em>qz_hi</em>, <em>hdt</em>, <em>cdtdy</em>, <em>cdtdz</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/transyz" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idir_n</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>idir_t1</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>idir_t2</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
 <li><strong>qm</strong> (qm_hi(1)-(qm_lo(1))+1,qm_hi(2)-(qm_lo(2))+1,qm_hi(3)-(qm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
@@ -571,27 +336,28 @@
 <li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fyz</strong> (fyz_hi(1)-(fyz_lo(1))+1,fyz_hi(2)-(fyz_lo(2))+1,fyz_hi(3)-(fyz_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fyz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fyz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfyz</strong> (fyz_hi(1)-(fyz_lo(1))+1,fyz_hi(2)-(fyz_lo(2))+1,fyz_hi(3)-(fyz_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfyz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfyz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fzy</strong> (fzy_hi(1)-(fzy_lo(1))+1,fzy_hi(2)-(fzy_lo(2))+1,fzy_hi(3)-(fzy_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fzy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fzy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfzy</strong> (fzy_hi(1)-(fzy_lo(1))+1,fzy_hi(2)-(fzy_lo(2))+1,fzy_hi(3)-(fzy_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfzy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfzy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy</strong> (qy_hi(1)-(qy_lo(1))+1,qy_hi(2)-(qy_lo(2))+1,qy_hi(3)-(qy_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz</strong> (qz_hi(1)-(qz_lo(1))+1,qz_hi(2)-(qz_lo(2))+1,qz_hi(3)-(qz_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux_t1</strong> (ft1_hi(1)-(ft1_lo(1))+1,ft1_hi(2)-(ft1_lo(2))+1,ft1_hi(3)-(ft1_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ft1_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ft1_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rflux_t1</strong> (rft1_hi(1)-(rft1_lo(1))+1,rft1_hi(2)-(rft1_lo(2))+1,rft1_hi(3)-(rft1_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rft1_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rft1_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux_t2</strong> (ft2_hi(1)-(ft2_lo(1))+1,ft2_hi(2)-(ft2_lo(2))+1,ft2_hi(3)-(ft2_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ft2_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ft2_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rflux_t2</strong> (rft2_hi(1)-(rft2_lo(1))+1,rft2_hi(2)-(rft2_lo(2))+1,rft2_hi(3)-(rft2_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rft2_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rft2_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q_t1</strong> (qt1_hi(1)-(qt1_lo(1))+1,qt1_hi(2)-(qt1_lo(2))+1,qt1_hi(3)-(qt1_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qt1_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qt1_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>q_t2</strong> (qt2_hi(1)-(qt2_lo(1))+1,qt2_hi(2)-(qt2_lo(2))+1,qt2_hi(3)-(qt2_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qt2_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qt2_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>hdt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-<li><strong>cdtdy</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-<li><strong>cdtdz</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>cdtdx_n</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>cdtdx_t1</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>cdtdx_t2</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
 </ul>
 </td>
 </tr>
@@ -599,147 +365,6 @@
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/transverse_module/transxz">
-<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">transxz</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qmo</em>, <em>qmo_lo</em>, <em>qmo_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>qpo</em>, <em>qpo_lo</em>, <em>qpo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>fxz</em>, <em>fxz_lo</em>, <em>fxz_hi</em>, <em>rfxz</em>, <em>rfxz_lo</em>, <em>rfxz_hi</em>, <em>fzx</em>, <em>fzx_lo</em>, <em>fzx_hi</em>, <em>rfzx</em>, <em>rfzx_lo</em>, <em>rfzx_hi</em>, <em>qx</em>, <em>qx_lo</em>, <em>qx_hi</em>, <em>qz</em>, <em>qz_lo</em>, <em>qz_hi</em>, <em>hdt</em>, <em>cdtdx</em>, <em>cdtdz</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/transxz" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qm</strong> (qm_hi(1)-(qm_lo(1))+1,qm_hi(2)-(qm_lo(2))+1,qm_hi(3)-(qm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qmo</strong> (qmo_hi(1)-(qmo_lo(1))+1,qmo_hi(2)-(qmo_lo(2))+1,qmo_hi(3)-(qmo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qmo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qmo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qp</strong> (qp_hi(1)-(qp_lo(1))+1,qp_hi(2)-(qp_lo(2))+1,qp_hi(3)-(qp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qpo</strong> (qpo_hi(1)-(qpo_lo(1))+1,qpo_hi(2)-(qpo_lo(2))+1,qpo_hi(3)-(qpo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qpo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qpo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fxz</strong> (fxz_hi(1)-(fxz_lo(1))+1,fxz_hi(2)-(fxz_lo(2))+1,fxz_hi(3)-(fxz_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fxz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fxz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfxz</strong> (rfxz_hi(1)-(rfxz_lo(1))+1,rfxz_hi(2)-(rfxz_lo(2))+1,rfxz_hi(3)-(rfxz_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfxz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfxz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fzx</strong> (fzx_hi(1)-(fzx_lo(1))+1,fzx_hi(2)-(fzx_lo(2))+1,fzx_hi(3)-(fzx_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fzx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fzx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfzx</strong> (rfzx_hi(1)-(rfzx_lo(1))+1,rfzx_hi(2)-(rfzx_lo(2))+1,rfzx_hi(3)-(rfzx_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfzx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfzx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx</strong> (qx_hi(1)-(qx_lo(1))+1,qx_hi(2)-(qx_lo(2))+1,qx_hi(3)-(qx_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz</strong> (qz_hi(1)-(qz_lo(1))+1,qz_hi(2)-(qz_lo(2))+1,qz_hi(3)-(qz_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qz_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hdt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-<li><strong>cdtdx</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-<li><strong>cdtdz</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrad()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qptot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreitot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">fspace_type()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">comoving()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gderads()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_pres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_density()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_rhoe()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_predict_gammae()</span></code>), <a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module" title="f/fluxlimiter_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fluxlimiter_module</span></code></a> (<a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/transverse_module/transxy">
-<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">transxy</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qm</em>, <em>qm_lo</em>, <em>qm_hi</em>, <em>qmo</em>, <em>qmo_lo</em>, <em>qmo_hi</em>, <em>qp</em>, <em>qp_lo</em>, <em>qp_hi</em>, <em>qpo</em>, <em>qpo_lo</em>, <em>qpo_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>fxy</em>, <em>fxy_lo</em>, <em>fxy_hi</em>, <em>rfxy</em>, <em>rfxy_lo</em>, <em>rfxy_hi</em>, <em>fyx</em>, <em>fyx_lo</em>, <em>fyx_hi</em>, <em>rfyx</em>, <em>rfyx_lo</em>, <em>rfyx_hi</em>, <em>qx</em>, <em>qx_lo</em>, <em>qx_hi</em>, <em>qy</em>, <em>qy_lo</em>, <em>qy_hi</em>, <em>hdt</em>, <em>cdtdx</em>, <em>cdtdy</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/transxy" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qm</strong> (qm_hi(1)-(qm_lo(1))+1,qm_hi(2)-(qm_lo(2))+1,qm_hi(3)-(qm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qmo</strong> (qmo_hi(1)-(qmo_lo(1))+1,qmo_hi(2)-(qmo_lo(2))+1,qmo_hi(3)-(qmo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qmo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qmo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qp</strong> (qp_hi(1)-(qp_lo(1))+1,qp_hi(2)-(qp_lo(2))+1,qp_hi(3)-(qp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qpo</strong> (qpo_hi(1)-(qpo_lo(1))+1,qpo_hi(2)-(qpo_lo(2))+1,qpo_hi(3)-(qpo_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
-<li><strong>qpo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qpo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fxy</strong> (fxy_hi(1)-(fxy_lo(1))+1,fxy_hi(2)-(fxy_lo(2))+1,fxy_hi(3)-(fxy_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fxy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fxy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfxy</strong> (rfxy_hi(1)-(rfxy_lo(1))+1,rfxy_hi(2)-(rfxy_lo(2))+1,rfxy_hi(3)-(rfxy_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfxy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfxy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fyx</strong> (fyx_hi(1)-(fyx_lo(1))+1,fyx_hi(2)-(fyx_lo(2))+1,fyx_hi(3)-(fyx_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fyx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>fyx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfyx</strong> (rfyx_hi(1)-(rfyx_lo(1))+1,rfyx_hi(2)-(rfyx_lo(2))+1,rfyx_hi(3)-(rfyx_lo(3))+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfyx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>rfyx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx</strong> (qx_hi(1)-(qx_lo(1))+1,qx_hi(2)-(qx_lo(2))+1,qx_hi(3)-(qx_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qx_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy</strong> (qy_hi(1)-(qy_lo(1))+1,qy_hi(2)-(qy_lo(2))+1,qy_hi(3)-(qy_lo(3))+1,ngdnv)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qy_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hdt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-<li><strong>cdtdx</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-<li><strong>cdtdy</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrad()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qptot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreitot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">fspace_type()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">comoving()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gderads()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamcg()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qlams()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ngdnv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdu()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdv()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdw()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">gdgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_pres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">npassive()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">upass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpass_map()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_density()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_rhoe()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_predict_gammae()</span></code>), <a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module" title="f/fluxlimiter_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fluxlimiter_module</span></code></a> (<a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/edd_factor" title="f/fluxlimiter_module/edd_factor"><code class="xref f f-func docutils literal notranslate"><span class="pre">edd_factor()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/transverse_module/reset_edge_state_thermo">
-<em class="property">subroutine  </em><code class="descclassname">transverse_module/</code><code class="descname">reset_edge_state_thermo</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>qedge</em>, <em>qd_lo</em>, <em>qd_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/transverse_module/reset_edge_state_thermo" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qedge</strong> (qd_hi(1)-(qd_lo(1))+1,qd_hi(2)-(qd_lo(2))+1,qd_hi(3)-(qd_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>qd_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qd_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qrho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qpres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgame()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qfs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qfx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qptot()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_pres()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_predict_gammae()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_use_eos()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">transverse_reset_rhoe()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_rt()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>)</p>
 </td>
 </tr>
 </tbody>
