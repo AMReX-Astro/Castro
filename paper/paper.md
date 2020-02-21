@@ -64,7 +64,8 @@ several modes of coupling the reactions to hydro.  The simplest method
 is the traditional operator splitting approach, using Strang splitting
 to achieve second-order in time.  However, when the reactions are
 energetic this coupling can break down, and we have two different
-implementations based on spectral deferred corrections (SDC).  The
+implementations based on spectral deferred corrections (SDC), a method
+that aims prevent the hydro and reactions from becoming decoupled.  The
 simplified SDC method uses the CTU PPM hydro together with an
 iterative scheme to fully couple the reactions and hydro, still to
 second order [@simple_sdc].  Both of these methods have a retry
@@ -85,7 +86,7 @@ future.  Castro can use an arbitrary equation of state and reaction
 network and these microphysics routines are provided by the StarKiller
 project [@starkiller].
 
-Castro is build on the AMReX [@AMReX] adaptive mesh refinement (AMR)
+Castro is built on the AMReX [@AMReX] adaptive mesh refinement (AMR)
 library and is largely written in C++ with Fortran compute kernels.
 AMR levels are advanced at their own timestep (subcycling) and jumps
 by factors of 2 and 4 are supported between levels.  We use MPI to
