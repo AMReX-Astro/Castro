@@ -27,7 +27,6 @@ endif
 EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
 NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
 COND_HOME ?= $(MICROPHYSICS_HOME)/conductivity
-VISC_HOME ?= $(MICROPHYSICS_HOME)/viscosity
 
 # AMReX is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
@@ -196,7 +195,6 @@ ifeq ($(USE_DIFFUSION), TRUE)
   DEFINES += -DDIFFUSION
   USE_MLMG = TRUE
   USE_CONDUCTIVITY = TRUE
-  USE_VISCOSITY = TRUE
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
@@ -295,7 +293,6 @@ EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
 NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(NETWORK_DIR))
 ifeq ($(USE_DIFFUSION), TRUE)
    COND_PATH := $(MICROPHYSICS_HOME)/conductivity/$(strip $(CONDUCTIVITY_DIR))
-   VISC_PATH := $(VISC_HOME)/constant
 endif
 
 # Problems can specify the input file for general_null by setting
@@ -346,10 +343,6 @@ ifeq ($(USE_CONDUCTIVITY), TRUE)
    EXTERN_CORE += $(COND_PATH)
 endif
 
-ifeq ($(USE_VISCOSITY), TRUE)
-   EXTERN_CORE += $(VISC_PATH)
-endif
-
 ifeq ($(USE_RAD), TRUE)
    ifeq ($(Opacity_dir), null)
      $(error The null opacity directory has been removed, please update to rad_power_law)
@@ -368,8 +361,8 @@ endif
 
 ifeq ($(USE_REACT), TRUE)
   ifeq ($(USE_CUDA), TRUE)
-    ifneq ($(INTEGRATOR_DIR), VODE90)
-      $(error Only the VODE90 integrator supports GPUs currently, please change INTEGRATOR_DIR)
+    ifneq ($(INTEGRATOR_DIR), VODE)
+      $(error Only the VODE integrator supports GPUs currently, please change INTEGRATOR_DIR)
     endif
   endif
 endif
@@ -505,7 +498,6 @@ INCLUDE_LOCATIONS +=  $(AMREX_HOME)/Tools/C_scripts
 MNAMES := EOS=$(EOS_PATH) NETWORK=$(NETWORK_PATH)
 ifeq ($(USE_DIFFUSION), TRUE)
    MNAMES += CONDUCTIVITY=$(COND_PATH)
-   MNAMES += VISCOSITY=$(VISC_PATH)
 endif
 
 ifeq ($(USE_RAD), TRUE)
