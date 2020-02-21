@@ -45,7 +45,8 @@ date: 17 February 2020
 bibliography: paper.bib
 ---
 
-# Summary Castro is a highly parallel, adaptive mesh, multiphysics
+# Summary 
+Castro is a highly parallel, adaptive mesh, multiphysics
 simulation code for compressible astrophysical flows.  It has been
 used to simulate different progenitor models of Type Ia supernovae,
 X-ray bursts, core-collapse and electron capture supernovae, and
@@ -93,10 +94,10 @@ by factors of 2 and 4 are supported between levels.  We use MPI to
 distribute AMR grids across nodes and using logical tiling with OpenMP
 to divide a grid across threads for manycore machines or CUDA to
 spread the work across GPU threads on GPU-based machines.  All of the
-core physics runs on GPUs (CTU PPM hydro, self-gravity, diffusion,
+core physics can run on GPUs (CTU PPM hydro, self-gravity, diffusion,
 reactions) and has been shown to scale well to 1000s of GPUs
 [@castro_2019].  For performance portability, the same compute kernel
-is used for CPUs or GPUs, using either a custom preprocessor pragrma
+is used for CPUs or GPUs, using either a custom preprocessor pragma
 for Fortran or lambda-capturing for C++ kernels.
 
 
