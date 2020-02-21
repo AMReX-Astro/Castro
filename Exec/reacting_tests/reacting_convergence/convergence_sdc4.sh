@@ -15,7 +15,8 @@ castro.sdc_solve_for_rhoe=1
 castro.sdc_solver_tol_dens=1.e-10
 castro.sdc_solver_tol_spec=1.e-10
 castro.sdc_solver_tol_ener=1.e-10
-castro.sdc_solver=1"
+castro.sdc_solver=1
+castro.use_retry=0"
 
 mpiexec -n 8 ${EXEC}  inputs.64 ${RUNPARAMS}  &> 64.out
 mpiexec -n 16 ${EXEC} inputs.128 ${RUNPARAMS} &> 128.out
