@@ -114,22 +114,3 @@ code by linearly scaling the conductivity to zero between these limits, e.g.,
 
 A simple test problem that sets up a Gaussian temperature profile
 and does pure diffusion is provided as ``diffusion_test``.
-
-Enthalpy Diffusion
-==================
-
-Castro can also diffuse enthalpy
-
-Note this uses the same interface for the transport coefficients as
-thermal diffusion, so the two cannot be used at the same time.
-
-Species Diffusion
-=================
-
-Castro can also diffuse species.
-
-Note this uses the same interface for the transport coefficients as
-thermal diffusion, so the two cannot be used at the same time.
-
-Viscosity
-=========
