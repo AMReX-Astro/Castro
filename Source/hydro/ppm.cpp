@@ -16,8 +16,9 @@ constexpr int i0 = 2;
 constexpr int ip1 = 3;
 constexpr int ip2 = 4;
 
+AMREX_GPU_HOST_DEVICE
 void
-Castro::ppm_reconstruct(GpuArray<Real, 5> s,
+Castro::ppm_reconstruct(Real* s,
                         const Real flatn, Real sm, Real sp) {
 
   // This routine does the reconstruction of the zone data into a parabola.
@@ -104,10 +105,11 @@ Castro::ppm_reconstruct(GpuArray<Real, 5> s,
 }
 
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::ppm_int_profile(const Real sm, const Real sp, const Real sc,
                         const Real u, const Real c, const Real dtdx,
-                        GpuArray<Real, 3> Ip, GpuArray<Real, 3> Im) {
+                        Real* Ip, Real* Im) {
 
   // Integrate the parabolic profile to the edge of the cell.
 
