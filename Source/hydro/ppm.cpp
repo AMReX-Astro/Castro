@@ -137,26 +137,24 @@ Castro::ppm_int_profile(const Real sm, const Real sp, const Real sc,
   speed = u;
   sigma = std::abs(speed) * dtdx;
 
-  if (speed <= ZERO) {
-       Ip(2) = sp
-       Im(2) = sm + HALF * sigma * (sp - sm + (ONE - TWO3RD * sigma) * s6)
-    else
-       Ip(2) = sp - HALF * sigma * (sp - sm - (ONE - TWO3RD * sigma) * s6)
-       Im(2) = sm
-    endif
+  if (speed <= 0.0_rt) {
+    Ip(1) = sp;
+    Im(1) = sm + 0.5_rt * sigma * (sp - sm + (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
+  } else {
+    Ip(1) = sp - 0.5_rt * sigma * (sp - sm - (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
+    Im(1) = sm;
+  }
 
-    ! u+c wave
-    speed = u + c
-    sigma = abs(speed) * dtdx
+  // u+c wave
+  speed = u + c;
+  sigma = std::abs(speed) * dtdx;
 
-    if (speed <= ZERO) then
-       Ip(3) = sp
-       Im(3) = sm + HALF * sigma * (sp - sm + (ONE - TWO3RD * sigma) * s6)
-    else
-       Ip(3) = sp - HALF * sigma * (sp - sm - (ONE - TWO3RD * sigma) * s6)
-       Im(3) = sm
-    endif
+  if (speed <= 0.0_rt) {
+    Ip(2) = sp;
+    Im(2) = sm + 0.5_rt * sigma * (sp - sm + (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
+  } else {
+    Ip(2) = sp - 0.5_rt * sigma * (sp - sm - (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
+    Im(2) = sm;
+  }
 
-  end subroutine ppm_int_profile
-
-end module ppm_module
+}
