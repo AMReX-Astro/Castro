@@ -3282,12 +3282,19 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 #endif
 
       const Box& bx = mfi.growntilebox(num_ghost);
-      Array4<Real> const u = (sdc_order == 4) ? Stemp[mfi].array() : State[mfi].array();
+
+#ifdef TRUE_SDC
+      FArrayBox& u_fab = (sdc_order == 4) ? Stemp[mfi] : State[mfi];
+#else
+      FArrayBox& u_fab = State[mfi];
+#endif
+
+      Array4<Real> const u = u_fab.array();
 
       AMREX_PARALLEL_FOR_3D(bx, i, j, k,
       {
 
-          Real rhoInv = 1.0_rt / state(i,j,k,URHO);
+          Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
           eos_t eos_state;
 
