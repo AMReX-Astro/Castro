@@ -21,11 +21,6 @@ ca\_extern\_init subroutine
 
 .. f:autosubroutine:: ca_extern_init
 
-ca\_get\_aux\_names subroutine
-------------------------------
-
-.. f:autosubroutine:: ca_get_aux_names
-
 ca\_get\_abort\_on\_failure subroutine
 --------------------------------------
 

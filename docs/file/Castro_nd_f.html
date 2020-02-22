@@ -135,7 +135,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#ca-network-finalize-subroutine">ca_network_finalize subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-eos-finalize-subroutine">ca_eos_finalize subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-extern-init-subroutine">ca_extern_init subroutine</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ca-get-aux-names-subroutine">ca_get_aux_names subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-abort-on-failure-subroutine">ca_get_abort_on_failure subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-set-abort-on-failure-subroutine">ca_set_abort_on_failure subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-amrinfo-init-subroutine">ca_amrinfo_init subroutine</a></li>
@@ -331,34 +330,6 @@ extern_probin_module</p>
 <tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><strong>namlen</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(name)</em><em>]</em></td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="ca-get-aux-names-subroutine">
-<h2>ca_get_aux_names subroutine<a class="headerlink" href="#ca-get-aux-names-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_get_aux_names">
-<em class="property">subroutine  </em><code class="descname">ca_get_aux_names</code><span class="sig-paren">(</span><em>aux_names</em>, <em>iaux</em>, <em>len_bn</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_get_aux_names" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Binds to C function <cite>ca_get_aux_names</cite></div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>aux_names</strong> (len_bn)<em> [</em><em>integer</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>iaux</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>len_bn</strong><em> [</em><em>integer</em><em>,</em><em>inout,optional/default=len(aux_names)</em><em>]</em></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">short_aux_names()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
 </tr>
 </tbody>
 </table>
