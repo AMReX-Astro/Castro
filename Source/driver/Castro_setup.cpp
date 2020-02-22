@@ -2,6 +2,7 @@
 
 #include "AMReX_LevelBld.H"
 #include <AMReX_ParmParse.H>
+#include "eos.H"
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_bc_fill_nd_F.H"
@@ -163,8 +164,11 @@ Castro::variableSetUp ()
   extern_init();
 
   // Initialize the network
-  network_init();
+  ca_network_init();
 
+  // Initialize the EOS
+  ca_eos_init();
+  eos_init();
 
   // some consistency checks on the parameters
 #ifdef REACTIONS

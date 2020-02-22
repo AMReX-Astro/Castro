@@ -31,6 +31,16 @@ subroutine ca_network_finalize() bind(C, name="ca_network_finalize")
 end subroutine ca_network_finalize
 
 
+subroutine ca_eos_init() bind(C, name="ca_eos_init")
+
+  use eos_module, only: eos_init
+
+  implicit none
+
+  call eos_init()
+
+end subroutine ca_eos_init
+
 
 subroutine ca_eos_finalize() bind(C, name="ca_eos_finalize")
     !
@@ -448,10 +458,10 @@ subroutine ca_set_method_params(dm) &
   endif
 
   ! Note that the EOS may modify our choices because of its
-  ! internal limitations, so the small_dens and small_temp
-  ! may be modified coming back out of this routine.
+  ! internal limitations.
 
-  call eos_init(small_dens=small_dens, small_temp=small_temp)
+  call eos_get_small_dens(small_dens)
+  call eos_get_small_temp(small_temp)
 
   ! Update device variables
 

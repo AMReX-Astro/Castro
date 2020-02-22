@@ -12,6 +12,8 @@ extern "C"
 
   void ca_network_finalize();
 
+  void ca_eos_init();
+
   void ca_eos_finalize();
 
   void burner_init();

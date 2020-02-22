@@ -189,8 +189,11 @@ Castro::variableCleanUp ()
 
     ca_finalize_meth_params();
 
-    network_finalize();
+    ca_network_finalize();
+
     eos_finalize();
+    ca_eos_finalize();
+
 #ifdef SPONGE
     sponge_finalize();
 #endif
@@ -3101,24 +3104,6 @@ void
 Castro::amrinfo_finalize()
 {
    ca_amrinfo_finalize();
-}
-
-void
-Castro::network_init ()
-{
-   ca_network_init();
-}
-
-void
-Castro::network_finalize ()
-{
-   ca_network_finalize();
-}
-
-void
-Castro::eos_finalize ()
-{
-   ca_eos_finalize();
 }
 
 void
