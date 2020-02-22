@@ -3282,20 +3282,29 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 #endif
 
       const Box& bx = mfi.growntilebox(num_ghost);
+      Array4<Real> const u = (sdc_order == 4) ? Stemp[mfi].array() : State[mfi].array();
 
-      // general EOS version
+      AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+      {
 
-#ifdef TRUE_SDC
-      if (sdc_order == 4) {
-          // note, this is working on a growntilebox, but we will not have
-          // valid cell-centers in the very last ghost cell
-          ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(Stemp[mfi]));
-      } else {
-#endif
-#pragma gpu box(bx)
-          ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(State[mfi]));
+          Real rhoInv = 1.0_rt / state(i,j,k,URHO);
+
+          eos_t eos_state;
+
+          eos_state.rho = u(i,j,k,URHO);
+          eos_state.T   = u(i,j,k,UTEMP); // Initial guess for the EOS
+          eos_state.e   = u(i,j,k,UEINT) * rhoInv;
+          for (int n = 0; n < NumSpec; ++n)
+              eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+          for (int n = 0; n < NumAux; ++n)
+              eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+
+          eos(eos_input_re, eos_state);
+
+          u(i,j,k,UTEMP) = eos_state.T;
+
+      });
+
 #ifdef TRUE_SDC
       }
 #endif
