@@ -109,9 +109,6 @@
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Diffusion</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#thermal-diffusion">Thermal Diffusion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#enthalpy-diffusion">Enthalpy Diffusion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#species-diffusion">Species Diffusion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#viscosity">Viscosity</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
@@ -296,21 +293,6 @@ code by linearly scaling the conductivity to zero between these limits, e.g.,</p
 \[\kth = \kth \cdot \frac{\rho - \mathtt{castro.diffuse\_cutoff\_density}}{\mathtt{castro.diffuse\_cutoff\_density\_hi} - \mathtt{castro.diffuse\_cutoff\_density}}\]</div>
 <p>A simple test problem that sets up a Gaussian temperature profile
 and does pure diffusion is provided as <code class="docutils literal notranslate"><span class="pre">diffusion_test</span></code>.</p>
-</div>
-<div class="section" id="enthalpy-diffusion">
-<h2>Enthalpy Diffusion<a class="headerlink" href="#enthalpy-diffusion" title="Permalink to this headline">¶</a></h2>
-<p>Castro can also diffuse enthalpy</p>
-<p>Note this uses the same interface for the transport coefficients as
-thermal diffusion, so the two cannot be used at the same time.</p>
-</div>
-<div class="section" id="species-diffusion">
-<h2>Species Diffusion<a class="headerlink" href="#species-diffusion" title="Permalink to this headline">¶</a></h2>
-<p>Castro can also diffuse species.</p>
-<p>Note this uses the same interface for the transport coefficients as
-thermal diffusion, so the two cannot be used at the same time.</p>
-</div>
-<div class="section" id="viscosity">
-<h2>Viscosity<a class="headerlink" href="#viscosity" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
