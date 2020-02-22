@@ -464,15 +464,7 @@ Castro::variableSetUp ()
   // Get the auxiliary names from the network model.
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
-    const int len = 20;
-    Vector<int> int_aux_names(len);
-    // This call return the actual length of each string in "len"
-    ca_get_aux_names(int_aux_names.dataPtr(),&i,&len);
-    char char_aux_names[len+1];
-    for (int j = 0; j < len; j++)
-      char_aux_names[j] = int_aux_names[j];
-    char_aux_names[len] = '\0';
-    aux_names.push_back(std::string(char_aux_names));
+    aux_names.push_back(short_aux_names_cxx[i]);
   }
 
   if ( ParallelDescriptor::IOProcessor())
