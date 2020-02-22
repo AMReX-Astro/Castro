@@ -139,9 +139,7 @@ USE_MLMG = FALSE
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/hydro \
            Source/problems Source/sources \
-           Source/scf constants Util/model_parser Util/conservative_interpolate
-else
-  Bdirs := constants
+           Source/scf Util/model_parser Util/conservative_interpolate
 endif
 
 # add / define any special physics we need
