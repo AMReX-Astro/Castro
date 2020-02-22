@@ -38,7 +38,7 @@ contains
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
     use trace_ppm_module, only : trace_ppm_species
     use amrex_fort_module, only : rt => amrex_real
-    use ppm_module, only : ppm_reconstruct, ppm_int_profile, ppm_reconstruct_with_eos
+    use ppm_module, only : ppm_reconstruct, ppm_int_profile
 
     implicit none
 
