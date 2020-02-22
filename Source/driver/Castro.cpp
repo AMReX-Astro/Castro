@@ -47,6 +47,8 @@
 #include <cuda_profiler_api.h>
 #endif
 
+#include <extern_parameters.H>
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -2231,7 +2233,7 @@ Castro::post_grown_restart ()
 {
 
     BL_PROFILE("Castro::post_grown_restart()");
-    
+
     if (level > 0)
         return;
 
@@ -2329,7 +2331,7 @@ void
 Castro::advance_aux(Real time, Real dt)
 {
     BL_PROFILE("Castro::advance_aux()");
-    
+
     if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... special update for auxiliary variables \n";
 
@@ -2381,7 +2383,7 @@ void
 Castro::FluxRegFineAdd() {
 
     BL_PROFILE("Castro::FluxRegFineAdd()");
-    
+
     if (level == 0) return;
 
     for (int i = 0; i < BL_SPACEDIM; ++i)
@@ -3069,7 +3071,7 @@ Castro::derive (const std::string& name,
 {
 
     BL_PROFILE("Castro::derive()");
-    
+
 #ifdef AMREX_PARTICLES
   return ParticleDerive(name,time,ngrow);
 #else
@@ -3135,7 +3137,12 @@ Castro::extern_init ()
   for (int i = 0; i < probin_file_length; i++)
     probin_file_name[i] = probin_file[i];
 
+  // read them in in Fortran
   ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
+
+  // grab them from Fortran to C++
+  init_extern_parameters();
+
 }
 
 void

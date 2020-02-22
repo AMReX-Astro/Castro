@@ -12,6 +12,9 @@ INCLUDE_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
 
 # runtime parameter support for extern/ routines
 F90EXE_sources += extern.F90
+CEXE_sources += extern_parameters.cpp
+FEXE_headers += extern_parameters_F.H
+CEXE_headers += extern_parameters.H
 
 EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
@@ -20,6 +23,8 @@ EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)
 EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 
 EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
+
+$(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern.F90
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
