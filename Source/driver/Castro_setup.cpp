@@ -158,6 +158,9 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
+  // Read in the input values to Fortran.
+  ca_set_castro_method_params();
+
   // Initialize the runtime parameters for any of the external
   // microphysics (these are the parameters that are in the &extern
   // block of the probin file)
@@ -213,9 +216,6 @@ Castro::variableSetUp ()
   ca_get_method_params(&NUM_GROW);
 
   const Real run_strt = ParallelDescriptor::second() ;
-
-  // Read in the input values to Fortran.
-  ca_set_castro_method_params();
 
   // set the conserved, primitive, aux, and godunov indices in Fortran
   ca_set_method_params(dm);

@@ -33,11 +33,14 @@ end subroutine ca_network_finalize
 
 subroutine ca_eos_init() bind(C, name="ca_eos_init")
 
+  use meth_params_module, only: small_dens, small_temp
   use eos_module, only: eos_init
 
   implicit none
 
-  call eos_init()
+  call eos_init(small_dens=small_dens, small_temp=small_temp)
+
+  !$acc update device(small_dens, small_temp)
 
 end subroutine ca_eos_init
 
@@ -370,8 +373,6 @@ subroutine ca_set_method_params(dm) &
 
   use meth_params_module
   use network, only : nspec, naux
-  use eos_module, only: eos_init
-  use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use amrex_constants_module, only : ZERO, ONE
   use amrex_fort_module, only: rt => amrex_real
 
@@ -457,15 +458,7 @@ subroutine ca_set_method_params(dm) &
      small_ener = 1.e-200_rt
   endif
 
-  ! Note that the EOS may modify our choices because of its
-  ! internal limitations.
-
-  call eos_get_small_dens(small_dens)
-  call eos_get_small_temp(small_temp)
-
-  ! Update device variables
-
-  !$acc update device(small_dens, small_temp)
+  !$acc update device(small_dens, small_temp, small_pres, small_ener)
 
 end subroutine ca_set_method_params
 
