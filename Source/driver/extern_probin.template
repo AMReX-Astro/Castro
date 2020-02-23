@@ -104,3 +104,17 @@ subroutine runtime_pretty_print(name, namlen) bind(C, name="runtime_pretty_print
   close(unit=unit)
 
 end subroutine runtime_pretty_print
+
+module extern_f90_to_cxx
+
+  use iso_c_binding
+  use extern_probin_module
+  use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
+
+contains
+
+  @@cxx_gets@@
+
+end module extern_f90_to_cxx
