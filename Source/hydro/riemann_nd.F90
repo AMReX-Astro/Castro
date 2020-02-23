@@ -6,7 +6,7 @@ module riemann_module
                                  URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UFX, UTEMP, &
                                  QRHO, QU, QV, QW, &
-                                 QPRES, QGAME, QREINT, QFS, QFX, &
+                                 QPRES, QREINT, QFS, QFX, &
                                  QC, QGAMC, QGC, &
                                  NGDNV, GDRHO, GDPRES, GDGAME, &
 
@@ -506,7 +506,7 @@ contains
     real(rt) :: wsmall, csmall, qavg
     real(rt) :: cavg
 
-    real(rt) :: gcl, gcr
+    real(rt) :: gcl, gcr, game_int
     real(rt) :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
     real(rt) :: zm, zp
     real(rt) :: denom, dpditer, dpjmp
@@ -989,7 +989,7 @@ contains
              qint(i,j,k,QRHO) = frac*rstar + (ONE - frac)*ro
              qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
              qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
-             qint(i,j,k,QGAME) = frac*gamstar + (ONE-frac)*gameo
+             game_int = frac*gamstar + (ONE-frac)*gameo
 
              ! now handle the cases where instead we are fully in the
              ! star or fully in the original (l/r) state
@@ -997,14 +997,14 @@ contains
                 qint(i,j,k,QRHO) = ro
                 qint(i,j,k,iu) = uo
                 qint(i,j,k,QPRES) = po
-                qint(i,j,k,QGAME) = gameo
+                game_int = gameo
              endif
 
              if (spin >= ZERO) then
                 qint(i,j,k,QRHO) = rstar
                 qint(i,j,k,iu) = ustar
                 qint(i,j,k,QPRES) = pstar
-                qint(i,j,k,QGAME) = gamstar
+                game_int = gamstar
              endif
 
              qint(i,j,k,QPRES) = max(qint(i,j,k,QPRES), small_pres)
@@ -1024,7 +1024,7 @@ contains
              qint(i,j,k,iu) = u_adv
 
              ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
-             qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(qint(i,j,k,QGAME) - ONE)
+             qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(game_int - ONE)
 
              ! advected quantities -- only the contact matters
              do ipassive = 1, npassive
@@ -1490,8 +1490,6 @@ contains
                 qint(i,j,k,QRAD+g) = max(regdnv_r(g), 0.e0_rt)
              end do
 
-             qint(i,j,k,QGAME) = pgdnv_g/regdnv_g + ONE
-
              qint(i,j,k,QPRES) = pgdnv_g
              qint(i,j,k,QPTOT) = pgdnv_t
              qint(i,j,k,QREINT) = regdnv_g
@@ -1500,7 +1498,6 @@ contains
              lambda_int(i,j,k,:) = lambda(:)
 
 #else
-             qint(i,j,k,QGAME) = qint(i,j,k,QPRES)/regdnv + ONE
              qint(i,j,k,QPRES) = max(qint(i,j,k,QPRES),small_pres)
              qint(i,j,k,QREINT) = regdnv
 #endif
@@ -1521,7 +1518,6 @@ contains
 
                 call eos(eos_input_rp, eos_state)
 
-                qint(i,j,k,QGAME) = eos_state % p / (eos_state % rho * eos_state % e) + ONE
                 qint(i,j,k,QREINT) = eos_state % rho * eos_state % e
              endif
 
@@ -1780,7 +1776,6 @@ contains
 
              qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
              qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
-             qint(i,j,k,QGAME) = qint(i,j,k,QPRES)/regdnv + ONE
 
 
              ! now we do the HLLC construction
