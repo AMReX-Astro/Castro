@@ -37,5 +37,5 @@ ifneq ($(DIM), 1)
   ca_F90EXE_sources += trans_nd.F90
 endif
 
-ca_F90EXE_sources += edge_util.F90
+ca_F90EXE_sources += edge_util_nd.F90
 

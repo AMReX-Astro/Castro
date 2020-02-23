@@ -26,7 +26,7 @@ subroutine runtime_init(name, namlen)
 
   integer :: namlen
   integer :: name(namlen)
-  
+
   integer :: un, i, status
 
   integer, parameter :: maxlen = 256

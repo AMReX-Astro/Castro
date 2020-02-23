@@ -44,9 +44,9 @@ Castro::do_advance_ctu(Real time,
 
     // Since we are Strang splitting the reactions, do them now
 
+#ifdef REACTIONS
     bool burn_success = true;
 
-#ifdef REACTIONS
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
         // this operates on Sborder (which is initially S_old).  The result
