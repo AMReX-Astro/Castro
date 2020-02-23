@@ -84,6 +84,60 @@
                       amrex::Array4<amrex::Real> const radflux);
 #endif
 
+    void ctu_ppm_states(const amrex::Box& bx, const amrex::Box& vbx,
+                        amrex::Array4<amrex::Real const> const q,
+                        amrex::Array4<amrex::Real const> const flatn,
+                        amrex::Array4<amrex::Real const> const qaux,
+                        amrex::Array4<amrex::Real const> const srcQ,
+                        amrex::Array4<amrex::Real> const qxm,
+                        amrex::Array4<amrex::Real> const qxp,
+#if AMREX_SPACEDIM >= 2
+                        amrex::Array4<amrex::Real> const qym,
+                        amrex::Array4<amrex::Real> const qyp,
+#endif
+#if AMREX_SPACEDIM == 3
+                        amrex::Array4<amrex::Real> const qzm,
+                        amrex::Array4<amrex::Real> const qzp,
+#endif
+#if AMREX_SPACEDIM < 3
+                        amrex::Array4<amrex::Real const> const dloga,
+#endif
+                        const amrex::Real dt);
+
+    AMREX_GPU_HOST_DEVICE
+    void trace_ppm(const amrex::Box& bx,
+                   const int idir,
+                   amrex::Array4<amrex::Real const> const q,
+                   amrex::Array4<amrex::Real const> const qaux,
+                   amrex::Array4<amrex::Real const> const srcQ,
+                   amrex::Array4<amrex::Real const> const flatn,
+                   amrex::Array4<amrex::Real> const qm,
+                   amrex::Array4<amrex::Real> const qp,
+#if (AMREX_SPACEDIM < 3)
+                   amrex::Array4<amrex::Real const> const dloga,
+#endif
+                   const amrex::Box& vbx,
+                   const amrex::Real dt);
+
+    AMREX_GPU_HOST_DEVICE
+    void trace_ppm_species(const int i, const int j, const int k,
+                           const int idir,
+                           amrex::Real Ip[][3], amrex::Real Im[][3],
+                           amrex::Real Ip_src[][3], amrex::Real Im_src[][3],
+                           amrex::Array4<amrex::Real> const qm, amrex::Array4<amrex::Real> const qp,
+                           const int* vlo, const int* vhi,
+                           const amrex::Real dt);
+
+    AMREX_GPU_HOST_DEVICE
+    void ppm_reconstruct(const amrex::Real* s,
+                         const amrex::Real flatn, amrex::Real sm, amrex::Real sp);
+
+    AMREX_GPU_HOST_DEVICE
+    void ppm_int_profile(const amrex::Real sm, const amrex::Real sp, const amrex::Real sc,
+                         const amrex::Real u, const amrex::Real c, const amrex::Real dtdx,
+                         amrex::Real* Ip, amrex::Real* Im);
+
+
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const shk,
                       amrex::Array4<amrex::Real> const update,

@@ -176,9 +176,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
       }
 
+      Array4<Real const> const q_arr = q.array(mfi);
+      Array4<Real const> const qaux_arr = qaux.array(mfi);
+      Array4<Real const> const src_q_arr = src_q.array(mfi);
+
+      Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
+
       // compute the flattening coefficient
 
-      Array4<Real const> const q_arr = q.array(mfi);
       Array4<Real> const flatn_arr = flatn.array();
 #ifdef RADIATION
       Array4<Real> const flatg_arr = flatg.array();
@@ -256,6 +261,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_qxp = qxp.elixir();
       fab_size += qxp.nBytes();
 
+      Array4<Real> const qxm_arr = qxm.array();
+      Array4<Real> const qxp_arr = qxp.array();
+
 #if AMREX_SPACEDIM >= 2
       qym.resize(obx, NQ);
       Elixir elix_qym = qym.elixir();
@@ -264,6 +272,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       qyp.resize(obx, NQ);
       Elixir elix_qyp = qyp.elixir();
       fab_size += qyp.nBytes();
+
+      Array4<Real> const qym_arr = qym.array();
+      Array4<Real> const qyp_arr = qyp.array();
+
 #endif
 
 #if AMREX_SPACEDIM == 3
@@ -274,6 +286,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       qzp.resize(obx, NQ);
       Elixir elix_qzp = qzp.elixir();
       fab_size += qzp.nBytes();
+
+      Array4<Real> const qzm_arr = qzm.array();
+      Array4<Real> const qzp_arr = qzp.array();
+
 #endif
 
       if (ppm_type == 0) {
@@ -308,28 +324,47 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       } else {
 
+#ifdef RADIATION
 #pragma gpu box(obx)
-        ctu_ppm_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                       AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
-                       BL_TO_FORTRAN_ANYD(flatn),
-                       BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                       BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                       BL_TO_FORTRAN_ANYD(qxm),
-                       BL_TO_FORTRAN_ANYD(qxp),
+        ctu_ppm_rad_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
+                           AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                           BL_TO_FORTRAN_ANYD(q[mfi]),
+                           BL_TO_FORTRAN_ANYD(flatn),
+                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
+                           BL_TO_FORTRAN_ANYD(src_q[mfi]),
+                           BL_TO_FORTRAN_ANYD(qxm),
+                           BL_TO_FORTRAN_ANYD(qxp),
 #if AMREX_SPACEDIM >= 2
-                       BL_TO_FORTRAN_ANYD(qym),
-                       BL_TO_FORTRAN_ANYD(qyp),
+                           BL_TO_FORTRAN_ANYD(qym),
+                           BL_TO_FORTRAN_ANYD(qyp),
 #endif
 #if AMREX_SPACEDIM == 3
-                       BL_TO_FORTRAN_ANYD(qzm),
-                       BL_TO_FORTRAN_ANYD(qzp),
+                           BL_TO_FORTRAN_ANYD(qzm),
+                           BL_TO_FORTRAN_ANYD(qzp),
 #endif
-                       AMREX_REAL_ANYD(dx), dt,
+                           AMREX_REAL_ANYD(dx), dt,
 #if (AMREX_SPACEDIM < 3)
-                       BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
+                           BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
 #endif
-                       AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                           AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+#else
+
+
+        ctu_ppm_states(obx, bx,
+                       q_arr, flatn_arr, qaux_arr, src_q_arr,
+                       qxm_arr, qxp_arr,
+#if AMREX_SPACEDIM >= 2
+                       qym_arr, qyp_arr,
+#endif
+#if AMREX_SPACEDIM == 3
+                       qzm_arr, qzp_arr,
+#endif
+#if AMREX_SPACEDIM < 3
+                       dLogArea_arr,
+#endif
+                       dt);
+#endif
+
       }
 
       div.resize(obx, 1);

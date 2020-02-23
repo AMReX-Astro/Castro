@@ -18,12 +18,13 @@ endif
 
 ca_F90EXE_sources += advection_util_nd.F90
 
-ca_F90EXE_sources += ppm_nd.F90
+CEXE_sources += ppm.cpp
+CEXE_headers += ppm.H
 ca_F90EXE_sources += riemann_nd.F90
 ca_F90EXE_sources += riemann_util_nd.F90
 ca_F90EXE_sources += slope_nd.F90
 ca_F90EXE_sources += trace_plm_nd.F90
-ca_F90EXE_sources += trace_ppm_nd.F90
+CEXE_sources += trace_ppm.cpp
 
 ca_F90EXE_sources += Castro_ctu_nd.F90
 

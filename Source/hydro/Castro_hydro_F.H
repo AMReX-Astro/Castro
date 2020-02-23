@@ -105,7 +105,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(area),
      const amrex::Real dt, const amrex::Real* dx);
 
-  void ctu_ppm_states
+#ifdef RADATION
+  void ctu_ppm_rad_states
      (const int* lo, const int* hi,
       const int* vlo, const int* vhi,
       const BL_FORT_FAB_ARG_3D(q),
@@ -127,6 +128,7 @@ extern "C"
       const BL_FORT_FAB_ARG_3D(dloga),
 #endif
       const int* domlo, const int* domhi);
+#endif
 
   void ctu_plm_states
      (const int* lo, const int* hi,

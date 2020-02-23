@@ -8,6 +8,11 @@
 
 #include <cmath>
 
+#include <ppm.H>
+
+using namespace amrex;
+
+AMREX_GPU_HOST_DEVICE
 void
 Castro::trace_ppm(const Box& bx,
                   const int idir,
@@ -47,6 +52,8 @@ Castro::trace_ppm(const Box& bx,
   //    rho, u, v, w, ptot, rhoe_g, cc, h_g
 
 
+  const auto dx = geom.CellSizeArray();
+
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
 
@@ -63,12 +70,13 @@ Castro::trace_ppm(const Box& bx,
   const int* lo = bx.loVect();
   const int* hi = bx.hiVect();
 
-  do_source_trace[n] = 0;
 
   for (int n = 0; n < NQSRC; n++) {
-    for (int k = lo[2]-2*dg2, k <= hi[2]+2*dg2; k++) {
-      for (int j = lo[1]-2*dg1, j <= hi[1]+2*dg1; j++) {
-        for (int i = lo[0]-2, i <= hi[0]+2; i++) {
+    do_source_trace[n] = 0;
+
+    for (int k = lo[2]-2*dg2; k <= hi[2]+2*dg2; k++) {
+      for (int j = lo[1]-2*dg1; j <= hi[1]+2*dg1; j++) {
+        for (int i = lo[0]-2; i <= hi[0]+2; i++) {
           if (std::abs(srcQ(i,j,k,n)) > 0.0_rt) {
             do_source_trace[n] = 1;
             break;
@@ -124,17 +132,23 @@ Castro::trace_ppm(const Box& bx,
 
     Real rho = q(i,j,k,QRHO);
 
+
     Real cc = qaux(i,j,k,QC);
     Real csq = cc*cc;
 
     Real un = q(i,j,k,QUN);
 
+
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
     Real s[5];
     Real flat = flatn(i,j,k);
-    Real sm, sp;
-    Real Ip[NQ][3], Im[NQ][3];
+    Real sm;
+    Real sp;
+
+    Real Ip[NQ][3];
+    Real Im[NQ][3];
+
 
     for (int n = 0; n < NQ; n++) {
       if (n == UTEMP) continue;
@@ -193,6 +207,7 @@ Castro::trace_ppm(const Box& bx,
         s[ip2] = qaux(i,j,k+2,QGAMC);
 
     }
+
 
     ppm_reconstruct(s, flat, sm, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_gc, Im_gc);
@@ -273,6 +288,9 @@ Castro::trace_ppm(const Box& bx,
 
     }
 
+    const int* vlo = vbx.loVect();
+    const int* vhi = vbx.hiVect();
+
     // do the passives separately
     trace_ppm_species(i, j, k,
                       idir,
@@ -335,8 +353,8 @@ Castro::trace_ppm(const Box& bx,
       // paper (except we work with rho instead of tau).  This is
       // simply (l . dq), where dq = qref - I(q)
 
-      Real alpham = HALF*(dptotm*rho_ref_inv*cc_ref_inv - dum)*rho_ref*cc_ref_inv;
-      Real alphap = HALF*(dptotp*rho_ref_inv*cc_ref_inv + dup)*rho_ref*cc_ref_inv;
+      Real alpham = 0.5_rt*(dptotm*rho_ref_inv*cc_ref_inv - dum)*rho_ref*cc_ref_inv;
+      Real alphap = 0.5_rt*(dptotp*rho_ref_inv*cc_ref_inv + dup)*rho_ref*cc_ref_inv;
       Real alpha0r = drho - dptot/csq_ref;
       Real alpha0e_g = drhoe_g - dptot*h_g_ref/csq_ref;
 
@@ -431,7 +449,7 @@ Castro::trace_ppm(const Box& bx,
 
         // transverse velocities
         qm(i+1,j,k,QUT) = Ip[QUT][1] + hdt*Ip_src[QUT][1];
-        qm(i+1,j,k,QUTT) = Ip[QUTT][1] + hdt*Ip_sr[QUTT][1];
+        qm(i+1,j,k,QUTT) = Ip[QUTT][1] + hdt*Ip_src[QUTT][1];
 
       } else if (idir == 1) {
         qm(i,j+1,k,QRHO) = std::max(small_dens, rho_ref +  alphap + alpham + alpha0r);
@@ -458,7 +476,7 @@ Castro::trace_ppm(const Box& bx,
 
 #if (AMREX_SPACEDIM < 3)
       // these only apply for x states (idir = 0)
-      if (idir == 0 && dloga(i,j,k) /= 0.0_rt) {
+      if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
         Real courn = dt/dx[0]*(cc+std::abs(un));
         Real eta = (1.0_rt - courn)/(cc*dt*std::abs(dloga(i,j,k)));
         Real dlogatmp = std::min(eta, 1.0_rt)*dloga(i,j,k);
@@ -473,7 +491,7 @@ Castro::trace_ppm(const Box& bx,
           qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source;
         }
 
-        if (i >= vlo(1)) {
+        if (i >= vlo[1]) {
           qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr;
           qp(i,j,k,QRHO) = std::max(qp(i,j,k,QRHO), small_dens);
           qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp;
@@ -482,6 +500,7 @@ Castro::trace_ppm(const Box& bx,
       }
 #endif
     }
+
   });
 
 }
@@ -491,8 +510,8 @@ AMREX_GPU_HOST_DEVICE
 void
 Castro::trace_ppm_species(const int i, const int j, const int k,
                           const int idir,
-                          Real** Ip, Real** Im,
-                          Real* Ip_src, Real* Im_src,
+                          Real Ip[][3], Real Im[][3],
+                          Real Ip_src[][3], Real Im_src[][3],
                           Array4<Real> const qm, Array4<Real> const qp,
                           const int* vlo, const int* vhi,
                           const Real dt) {
