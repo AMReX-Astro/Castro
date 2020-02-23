@@ -180,7 +180,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Array4<Real const> const qaux_arr = qaux.array(mfi);
       Array4<Real const> const src_q_arr = src_q.array(mfi);
 
+#if AMREX_SPACEDIM < 3
       Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
+#endif
 
       // compute the flattening coefficient
 
