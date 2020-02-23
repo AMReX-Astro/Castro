@@ -1167,13 +1167,6 @@ reconstruction.</li>
 <li><code class="docutils literal notranslate"><span class="pre">castro.ppm_temp_fix</span></code> does various attempts to use the
 temperature in the reconstruction of the interface states.
 See <a class="reference internal" href="#sec-ppm-temp-fix"><span class="std std-ref">Temperature Fixes</span></a> for an explanation of the allowed options.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.ppm_predict_gammae</span></code> reconstructs <span class="math notranslate nohighlight">\(\gamma_e = p/(\rho e) + 1\)</span>
-to the interfaces and does the necessary transverse terms to aid in
-the conversion between the conserved and primitive interface states
-in the transverse flux routines (0 or 1; default 0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.ppm_reference_eigenvectors</span></code> uses the reference states in
-the evaluation of the eigenvectors for the characteristic projection
-(0 or 1; default 0)</li>
 </ul>
 <p>The interface states are corrected with information from the
 transverse directions to make this a second-order update. These

@@ -351,53 +351,45 @@ Colella &amp; Woodward ppm; 2: extrema-preserving ppm</td>
 the reconstruction—see Zingale &amp; Katz 2015</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">ppm_predict_gammae</span></code></td>
-<td>do we construct <span class="math notranslate nohighlight">\(\gamma_e = p/(\rho e) + 1\)</span> and
-bring it to the interfaces for additional thermodynamic
-information (this is the Colella &amp; Glaz technique) or
-do we use <span class="math notranslate nohighlight">\((\rho e)\)</span> (the classic castrobehavior).  Note this also uses <span class="math notranslate nohighlight">\(\tau = 1/\rho\)</span>
-instead of <span class="math notranslate nohighlight">\(\rho\)</span>.</td>
-<td>0</td>
-</tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">plm_iorder</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">plm_iorder</span></code></td>
 <td>for piecewise linear, reconstruction order to use 1 =
 piecewise constant, 2 = piecewise linear</td>
 <td>2</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">plm_limiter</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">plm_limiter</span></code></td>
 <td>for piecewise linear, what limiter to use? 1 = 2nd
 order MC, 2 = 4th order MC</td>
 <td>2</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">plm_well_balanced</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">plm_well_balanced</span></code></td>
 <td>for piecewise linear, MOL or SDC, do well-balanced
 reconstruction on pressure</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hybrid_riemann</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hybrid_riemann</span></code></td>
 <td>do we drop from our regular Riemann solver to HLL when
 we are in shocks to avoid the odd-even decoupling
 instability?</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">riemann_solver</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">riemann_solver</span></code></td>
 <td>which Riemann solver do we use: 0: Colella, Glaz, &amp;
 Ferguson (a two-shock solver); 1: Colella &amp; Glaz (a
 two-shock solver) 2: HLLC</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">cg_maxiter</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">cg_maxiter</span></code></td>
 <td>for the Colella &amp; Glaz Riemann solver, the maximum
 number of iterations to take when solving for the star
 state</td>
 <td>12</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">cg_tol</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">cg_tol</span></code></td>
 <td>for the Colella &amp; Glaz Riemann solver, the tolerance
 to demand in finding the star state</td>
 <td>1.0e-5</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">cg_blend</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">cg_blend</span></code></td>
 <td>for the Colella &amp; Glaz Riemann solver, what to do if
 we do not converge to a solution for the star state. 0
 = do nothing; print iterations and exit 1 = revert to
@@ -405,30 +397,30 @@ the original guess for p-star 2 = do a bisection search
 for another 2 * cg_maxiter iterations.</td>
 <td>2</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_eos_in_riemann</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">use_eos_in_riemann</span></code></td>
 <td>should we use the EOS in the Riemann solver to ensure
 thermodynamic consistency?</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">use_flattening</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_flattening</span></code></td>
 <td>flatten the reconstructed profiles around shocks to
 prevent them from becoming too thin</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">transverse_use_eos</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">transverse_use_eos</span></code></td>
 <td>after we add the transverse correction to the interface
 states, replace the predicted pressure with an EOS call
 (using <span class="math notranslate nohighlight">\(e\)</span> and <span class="math notranslate nohighlight">\(\rho\)</span>).</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">transverse_reset_density</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">transverse_reset_density</span></code></td>
 <td>if the transverse interface state correction, if the
 new density is negative, then replace all of the
 interface quantities with their values without the
 transverse correction.</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">transverse_reset_rhoe</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">transverse_reset_rhoe</span></code></td>
 <td>if the interface state for <span class="math notranslate nohighlight">\((\rho e)\)</span> is negative
 after we add the transverse terms, then replace the
 interface value of <span class="math notranslate nohighlight">\((\rho e)\)</span> with a value
@@ -436,189 +428,189 @@ constructed from the <span class="math notranslate nohighlight">\((\rho e)\)</sp
 equation</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dual_energy_eta1</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">dual_energy_eta1</span></code></td>
 <td>Threshold value of (E - K) / E such that above eta1,
 the hydrodynamic pressure is derived from E - K;
 otherwise, we use the internal energy variable UEINT.</td>
 <td>1.0e0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">dual_energy_eta2</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">dual_energy_eta2</span></code></td>
 <td>Threshold value of (E - K) / E such that above eta2, we
 update the internal energy variable UEINT to match E -
 K. Below this, UEINT remains unchanged.</td>
 <td>1.0e-4</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">use_pslope</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">use_pslope</span></code></td>
 <td>for the piecewise linear reconstruction, do we subtract
 off <span class="math notranslate nohighlight">\((\rho g)\)</span> from the pressure before limiting?</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_small_dens</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_small_dens</span></code></td>
 <td>Should we limit the density fluxes so that we do not
 create small densities?</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_large_vel</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_large_vel</span></code></td>
 <td>Should we limit the momentum fluxes so that we do not
 create large velocities?</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">speed_limit</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">speed_limit</span></code></td>
 <td>If we’re limiting the fluxes to avoid large velocities,
 this is the speed limit.</td>
 <td>2.99792458e10</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">density_reset_method</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">density_reset_method</span></code></td>
 <td>Which method to use when resetting a negative/small
 density 1 = Reset to characteristics of adjacent zone
 with largest density 2 = Use average of all adjacent
 zones for all state variables</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">allow_small_energy</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">allow_small_energy</span></code></td>
 <td>Whether or not to allow the internal energy to be less
 than the internal energy corresponding to small_temp</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">do_sponge</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">do_sponge</span></code></td>
 <td>permits sponge to be turned on and off</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sponge_implicit</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sponge_implicit</span></code></td>
 <td>if we are using the sponge, whether to use the implicit
 solve for it</td>
 <td>1</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">ext_src_implicit</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">ext_src_implicit</span></code></td>
 <td>if we are using user-defined source terms, are these
 solved implicitly?</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">source_term_predictor</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">source_term_predictor</span></code></td>
 <td>extrapolate the source terms (gravity and rotation) to
 <span class="math notranslate nohighlight">\(n+1/2\)</span> timelevel for use in the interface state
 prediction</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">first_order_hydro</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">first_order_hydro</span></code></td>
 <td>set the flattening parameter to zero to force the
 reconstructed profiles to be flat, resulting in a
 first-order method</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">xl_ext_bc_type</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">xl_ext_bc_type</span></code></td>
 <td>if we are doing an external -x boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">xr_ext_bc_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">xr_ext_bc_type</span></code></td>
 <td>if we are doing an external +x boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">yl_ext_bc_type</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">yl_ext_bc_type</span></code></td>
 <td>if we are doing an external -y boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">yr_ext_bc_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">yr_ext_bc_type</span></code></td>
 <td>if we are doing an external +y boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">zl_ext_bc_type</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">zl_ext_bc_type</span></code></td>
 <td>if we are doing an external -z boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">zr_ext_bc_type</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">zr_ext_bc_type</span></code></td>
 <td>if we are doing an external +z boundary condition, who
 do we interpret it?</td>
 <td>“”</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hse_zero_vels</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hse_zero_vels</span></code></td>
 <td>if we are doing HSE boundary conditions, do we zero the
 velocity?</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hse_interp_temp</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hse_interp_temp</span></code></td>
 <td>if we are doing HSE boundary conditions, should we get
 the temperature via interpolation (using model_parser)
 or hold it constant?</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">hse_reflect_vels</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">hse_reflect_vels</span></code></td>
 <td>if we are doing HSE boundary conditions, how do we
 treat the velocity? reflect? or outflow?</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">fill_ambient_bc</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">fill_ambient_bc</span></code></td>
 <td>fills physical domain boundaries with the ambient state</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">clamp_ambient_temp</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">clamp_ambient_temp</span></code></td>
 <td>clamps the ambient material to the ambient temperature</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">ambient_safety_factor</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">ambient_safety_factor</span></code></td>
 <td>specifies the upper limit, as a multiple of the ambient
 density, for operations that are applied to ambient
 material, such as clamping T.</td>
 <td>1.1e0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_order</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_order</span></code></td>
 <td>integration order for SDC integration valid options are
 2 and 4</td>
 <td>2</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_quadrature</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_quadrature</span></code></td>
 <td>which quadrature type to use with SDC?  0 = Gauss-
 Lobatto, 1 = Radau</td>
 <td>0</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_extra</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_extra</span></code></td>
 <td>number of extra SDC iterations to take beyond the order</td>
 <td>0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver</span></code></td>
 <td>which SDC nonlinear solver to use?  1 = Newton, 2 =
 VODE, 3 = VODE for first iter</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_dens</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_dens</span></code></td>
 <td>relative tolerance for the nonlinear solve on rho with
 SDC</td>
 <td>1.e-6</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_spec</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_spec</span></code></td>
 <td>relative tolerance for the nonlinear solve on rho X_k
 with SDC</td>
 <td>1.e-6</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_ener</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_ener</span></code></td>
 <td>relative tolerance for the nonlinear solve on (rho e)
 or (rho E) with SDC</td>
 <td>1.e-6</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_atol</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_atol</span></code></td>
 <td>absolute tolerance for species with SDC (this will be
 multiplied by the current rho in the zone to define the
 absolute tolerance on (rho X)).</td>
 <td>1.e-10</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_relax_factor</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solver_relax_factor</span></code></td>
 <td>factor by which to reduce the SDC solver tol for each
 iteration before the last (e.g., for iteration k out of
 kmax iterations, the tol is
 <span class="math notranslate nohighlight">\(\epsilon/f^{(k_\mathrm{max} - k)}\)</span></td>
 <td>1.0</td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code></td>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code></td>
 <td>do we solve for (rho e) or (rho E) in the SDC nonlinear
 solve?</td>
 <td>1</td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">sdc_use_analytic_jac</span></code></td>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">sdc_use_analytic_jac</span></code></td>
 <td>do we use the analytic or numerical Jacobian?</td>
 <td>1</td>
 </tr>

@@ -1,5 +1,5 @@
-edge_util.F90
-=============
+edge_util_nd.F90
+================
 
 edge\_util\_module
 ------------------

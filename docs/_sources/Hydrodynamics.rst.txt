@@ -896,7 +896,7 @@ framework, the details follow exactly as given in Section 4.2.1 in
 Miller & Colella, except for the details of the Riemann solver,
 which are given below.
 
-.. index:: castro.ppm_type, castro.ppm_predict_gammae, castro.ppm_reference_eigenvectors
+.. index:: castro.ppm_type
 
 For the reconstruction of the interface states, the following apply:
 
@@ -907,15 +907,6 @@ For the reconstruction of the interface states, the following apply:
 -  ``castro.ppm_temp_fix`` does various attempts to use the
    temperature in the reconstruction of the interface states.
    See :ref:`sec-ppm_temp_fix` for an explanation of the allowed options.
-
--  ``castro.ppm_predict_gammae`` reconstructs :math:`\gamma_e = p/(\rho e) + 1`
-   to the interfaces and does the necessary transverse terms to aid in
-   the conversion between the conserved and primitive interface states
-   in the transverse flux routines (0 or 1; default 0)
-
--  ``castro.ppm_reference_eigenvectors`` uses the reference states in
-   the evaluation of the eigenvectors for the characteristic projection
-   (0 or 1; default 0)
 
 The interface states are corrected with information from the
 transverse directions to make this a second-order update. These
