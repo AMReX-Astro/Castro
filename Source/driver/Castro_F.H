@@ -161,7 +161,7 @@ extern "C"
   void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
                       const amrex::Real* dx, const amrex::Real* problo);
 
-  void ca_compute_temp
+  void ca_clamp_temp
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_enforce_consistent_e

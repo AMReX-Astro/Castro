@@ -3312,6 +3312,12 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
       });
 
+      if (clamp_ambient_temp == 1) {
+#pragma gpu box(bx)
+          ca_clamp_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                        BL_TO_FORTRAN_ANYD(u_fab));
+      }
+
 #ifdef TRUE_SDC
       }
 #endif
