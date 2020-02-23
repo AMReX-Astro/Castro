@@ -1,5 +1,7 @@
 # 20.03
 
+   * The Microphysics "extern" parameters are now available in C++
+
    * We've started converting the CTU hydro solver from Fortran to C++
      (#731)
 
