@@ -19,7 +19,7 @@ constexpr int ip2 = 4;
 AMREX_GPU_HOST_DEVICE
 void
 Castro::ppm_reconstruct(const Real* s,
-                        const Real flatn, Real sm, Real sp) {
+                        const Real flatn, Real& sm, Real& sp) {
 
   // This routine does the reconstruction of the zone data into a parabola.
 
