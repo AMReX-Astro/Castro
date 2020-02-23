@@ -17,12 +17,11 @@ contains
 
     use network, only : nspec, naux
     use meth_params_module, only : NQ, NVAR, NQAUX, QRHO, &
-                                   QPRES, QREINT, QGAME, QFS, QFX, &
+                                   QPRES, QREINT, QFS, QFX, &
 #ifdef RADIATION
                                    QPTOT, &
 #endif
                                    small_pres, small_temp, &
-                                   ppm_predict_gammae, &
                                    transverse_use_eos, transverse_reset_rhoe
 
     use eos_module, only: eos
@@ -67,28 +66,17 @@ contains
 
              end if
 
-             if (ppm_predict_gammae == 0 ) then
+             if (transverse_use_eos == 1) then
+                eos_state % rho = qedge(ii,jj,kk,QRHO)
+                eos_state % e   = qedge(ii,jj,kk,QREINT) / qedge(ii,jj,kk,QRHO)
+                eos_state % T   = small_temp
+                eos_state % xn  = qedge(ii,jj,kk,QFS:QFS+nspec-1)
+                eos_state % aux = qedge(ii,jj,kk,QFX:QFX+naux-1)
 
-                if (transverse_use_eos == 1) then
-                   eos_state % rho = qedge(ii,jj,kk,QRHO)
-                   eos_state % e   = qedge(ii,jj,kk,QREINT) / qedge(ii,jj,kk,QRHO)
-                   eos_state % T   = small_temp
-                   eos_state % xn  = qedge(ii,jj,kk,QFS:QFS+nspec-1)
-                   eos_state % aux = qedge(ii,jj,kk,QFX:QFX+naux-1)
+                call eos(eos_input_re, eos_state)
 
-                   call eos(eos_input_re, eos_state)
-
-                   qedge(ii,jj,kk,QREINT) = eos_state % e * eos_state % rho
-                   qedge(ii,jj,kk,QPRES) = max(eos_state % p, small_pres)
-                end if
-
-             else
-                if (reset) then
-                   ! recompute the p edge state from this and (rho e), since we reset
-                   ! qreint  (actually, is this code even necessary?)
-                   qedge(ii,jj,kk,QPRES) = qedge(ii,jj,kk,QREINT)*(qedge(ii,jj,kk,QGAME)-ONE)
-                   qedge(ii,jj,kk,QPRES) = max(qedge(ii,jj,kk,QPRES), small_pres)
-                end if
+                qedge(ii,jj,kk,QREINT) = eos_state % e * eos_state % rho
+                qedge(ii,jj,kk,QPRES) = max(eos_state % p, small_pres)
              end if
 
 #ifdef RADIATION

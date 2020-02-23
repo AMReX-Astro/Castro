@@ -236,7 +236,7 @@ contains
 
     use meth_params_module, only : NQSRC, NQ, NVAR, &
                                    QTEMP, QREINT, &
-                                   QC, QGAMC, NQAUX, QGAME, QREINT, &
+                                   QC, QGAMC, NQAUX, QREINT, &
                                    use_pslope
     use trace_plm_module, only : trace_plm
     use slope_module, only : uslope, pslope
@@ -299,7 +299,6 @@ contains
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing
     reconstruct_state(:) = .true.
-    reconstruct_state(QGAME) = .false.
     reconstruct_state(QTEMP) = .false.
 
 
