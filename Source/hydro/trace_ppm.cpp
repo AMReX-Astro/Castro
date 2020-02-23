@@ -250,14 +250,14 @@ Castro::trace_ppm(const Box& bx,
 
       if (do_trace) {
 
-        if (idir == 1) {
+        if (idir == 0) {
           s[im2] = srcQ(i-2,j,k,n);
           s[im1] = srcQ(i-1,j,k,n);
           s[i0]  = srcQ(i,j,k,n);
           s[ip1] = srcQ(i+1,j,k,n);
           s[ip2] = srcQ(i+2,j,k,n);
 
-        } else if (idir == 2) {
+        } else if (idir == 1) {
           s[im2] = srcQ(i,j-2,k,n);
           s[im1] = srcQ(i,j-1,k,n);
           s[i0]  = srcQ(i,j,k,n);
