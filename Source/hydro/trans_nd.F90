@@ -45,7 +45,7 @@ contains
                                    QCG, QGAMCG, QLAMS, &
 #endif
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                   NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+                                   NGDNV, GDPRES, GDU, GDV, GDW, &
                                    small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
                                    transverse_reset_density, transverse_reset_rhoe
@@ -112,7 +112,7 @@ contains
     real(rt) :: renewn
     real(rt) :: pnewn
     real(rt) :: rhoekenn
-    real(rt) :: pgp, pgm, ugp, ugm, gegp, gegm, dup, pav, du, dge, uav, geav
+    real(rt) :: pgp, pgm, ugp, ugm, dup, pav, du, uav
     real(rt) :: compu
     real(rt) :: gamc
 
@@ -234,8 +234,6 @@ contains
                 pgm  = q_t(il,jl,kl,GDPRES)
                 ugp  = q_t(ir,jr,kr,GDU-1+idir_t)
                 ugm  = q_t(il,jl,kl,GDU-1+idir_t)
-                gegp = q_t(ir,jr,kr,GDGAME)
-                gegm = q_t(il,jl,kl,GDGAME)
 
 #ifdef RADIATION
                 lambda(:) = qaux(il,jl,kl,QLAMS:QLAMS+ngroups-1)
@@ -255,8 +253,6 @@ contains
 #endif
                 pav = HALF*(pgp+pgm)
                 uav = HALF*(ugp+ugm)
-                geav = HALF*(gegp+gegm)
-                dge = gegp-gegm
 
              ! this is the gas gamma_1
 #ifdef RADIATION
@@ -473,7 +469,7 @@ contains
                                    QCG, QGAMCG, QLAMS, &
 #endif
                                    URHO, UMX, UMY, UMZ, UEDEN, UEINT, &
-                                   NGDNV, GDPRES, GDU, GDV, GDW, GDGAME, &
+                                   NGDNV, GDPRES, GDU, GDV, GDW, &
                                    small_pres, small_temp, &
                                    npassive, upass_map, qpass_map, &
                                    transverse_reset_density, transverse_reset_rhoe
@@ -522,9 +518,9 @@ contains
     real(rt)         rrn, run, rvn, rwn, ren, ekenn, rhoekenn
     real(rt)         rrnewn, runewn, rvnewn, rwnewn, renewn
     real(rt)         pnewn
-    real(rt)         pgt1p, ugt1p, gegt1p, pgt1m, ugt1m, gegt1m, dut1, dupt1, pt1av, pt1new, get1new
-    real(rt)         pgt2p, ugt2p, gegt2p, pgt2m, ugt2m, gegt2m, dut2, dupt2, pt2av, pt2new, get2new
-    real(rt)         ut1av, get1av, dget1, ut2av, get2av, dget2
+    real(rt)         pgt1p, ugt1p, pgt1m, ugt1m, dut1, dupt1, pt1av, pt1new
+    real(rt)         pgt2p, ugt2p, pgt2m, ugt2m, dut2, dupt2, pt2av, pt2new
+    real(rt)         ut1av, ut2av
     real(rt)         compn, compnn
 
 #ifdef RADIATION
@@ -663,8 +659,6 @@ contains
                 pgt1m  = q_t1(il_t1,jl_t1,kl_t1,GDPRES)
                 ugt1p  = q_t1(ir_t1,jr_t1,kr_t1,GDU+idir_t1-1)
                 ugt1m  = q_t1(il_t1,jl_t1,kl_t1,GDU+idir_t1-1)
-                gegt1p = q_t1(ir_t1,jr_t1,kr_t1,GDGAME)
-                gegt1m = q_t1(il_t1,jl_t1,kl_t1,GDGAME)
 #ifdef RADIATION
                 ergt1p = q_t1(ir_t1,jr_t1,kr_t1,GDERADS:GDERADS-1+ngroups)
                 ergt1m = q_t1(il_t1,jl_t1,kl_t1,GDERADS:GDERADS-1+ngroups)
@@ -674,8 +668,6 @@ contains
                 pgt2m  = q_t2(il_t2,jl_t2,kl_t2,GDPRES)
                 ugt2p  = q_t2(ir_t2,jr_t2,kr_t2,GDU+idir_t2-1)
                 ugt2m  = q_t2(il_t2,jl_t2,kl_t2,GDU+idir_t2-1)
-                gegt2p = q_t2(ir_t2,jr_t2,kr_t2,GDGAME)
-                gegt2m = q_t2(il_t2,jl_t2,kl_t2,GDGAME)
 #ifdef RADIATION
                 ergt2p = q_t2(ir_t2,jr_t2,kr_t2,GDERADS:GDERADS-1+ngroups)
                 ergt2m = q_t2(il_t2,jl_t2,kl_t2,GDERADS:GDERADS-1+ngroups)
@@ -684,29 +676,21 @@ contains
                 dupt1 = pgt1p*ugt1p - pgt1m*ugt1m
                 pt1av = HALF*(pgt1p + pgt1m)
                 ut1av = HALF*(ugt1p + ugt1m)
-                get1av = HALF*(gegt1p + gegt1m)
                 dut1 = ugt1p - ugt1m
-                dget1 = gegt1p - gegt1m
 #ifdef RADIATION
                 pt1new = cdtdx_t1*(dupt1 + pt1av*dut1*(qaux(iln,jln,kln,QGAMCG) - ONE))
-                get1new = cdtdx_t1*( (get1av-ONE)*(get1av - qaux(iln,jln,kln,QGAMCG))*dut1 - ut1av*dget1 )
 #else
                 pt1new = cdtdx_t1*(dupt1 + pt1av*dut1*(qaux(iln,jln,kln,QGAMC) - ONE))
-                get1new = cdtdx_t1*( (get1av-ONE)*(get1av - qaux(iln,jln,kln,QGAMC))*dut1 - ut1av*dget1 )
 #endif
 
                 dupt2 = pgt2p*ugt2p - pgt2m*ugt2m
                 pt2av = HALF*(pgt2p + pgt2m)
                 ut2av = HALF*(ugt2p + ugt2m)
-                get2av = HALF*(gegt2p + gegt2m)
                 dut2 = ugt2p - ugt2m
-                dget2 = gegt2p - gegt2m
 #ifdef RADIATION
                 pt2new = cdtdx_t2*(dupt2 + pt2av*dut2*(qaux(iln,jln,kln,QGAMCG) - ONE))
-                get2new = cdtdx_t2*( (get2av-ONE)*(get2av - qaux(iln,jln,kln,QGAMCG))*dut2 - ut2av*dget2 )
 #else
                 pt2new = cdtdx_t2*(dupt2 + pt2av*dut2*(qaux(iln,jln,kln,QGAMC) - ONE))
-                get2new = cdtdx_t2*( (get2av-ONE)*(get2av - qaux(iln,jln,kln,QGAMC))*dut2 - ut2av*dget2 )
 #endif
 
 #ifdef RADIATION
