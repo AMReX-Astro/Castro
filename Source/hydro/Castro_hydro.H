@@ -130,7 +130,7 @@
 
     AMREX_GPU_HOST_DEVICE
     void ppm_reconstruct(const amrex::Real* s,
-                         const amrex::Real flatn, amrex::Real sm, amrex::Real sp);
+                         const amrex::Real flatn, amrex::Real& sm, amrex::Real& sp);
 
     AMREX_GPU_HOST_DEVICE
     void ppm_int_profile(const amrex::Real sm, const amrex::Real sp, const amrex::Real sc,

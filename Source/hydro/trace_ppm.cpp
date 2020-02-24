@@ -74,18 +74,30 @@ Castro::trace_ppm(const Box& bx,
   for (int n = 0; n < NQSRC; n++) {
     do_source_trace[n] = 0;
 
+#if AMREX_SPACEDIM == 3
     for (int k = lo[2]-2*dg2; k <= hi[2]+2*dg2; k++) {
+#else
+      int k = 0;
+#endif
+#if AMREX_SPACEDIM >= 2
       for (int j = lo[1]-2*dg1; j <= hi[1]+2*dg1; j++) {
+#else
+        int j = 0;
+#endif
         for (int i = lo[0]-2; i <= hi[0]+2; i++) {
           if (std::abs(srcQ(i,j,k,n)) > 0.0_rt) {
             do_source_trace[n] = 1;
             break;
           }
         }
+#if AMREX_SPACEDIM >= 2
         if (do_source_trace[n] == 1) break;
       }
+#endif
+#if AMREX_SPACEDIM == 3
       if (do_source_trace[n] == 1) break;
     }
+#endif
   }
 #endif
 
@@ -125,6 +137,7 @@ Castro::trace_ppm(const Box& bx,
     QUT = QU;
     QUTT = QV;
   }
+
 
   // Trace to left and right edges using upwind PPM
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
@@ -178,6 +191,7 @@ Castro::trace_ppm(const Box& bx,
 
       ppm_reconstruct(s, flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
+
     }
 
     // gamma_c
@@ -225,22 +239,22 @@ Castro::trace_ppm(const Box& bx,
 #else
       int do_trace = 0;
       if (idir == 0) {
-        for (int q = lo[0]-2; q <= hi[0]+2) {
-          if (std::abs(srcQ(q,j,k,n) > 0.0_rt)) {
+        for (int b = lo[0]-2; b <= hi[0]+2) {
+          if (std::abs(srcQ(b,j,k,n) > 0.0_rt)) {
             do_trace = 1;
             break;
           }
         }
       } else if (idir == 1) {
-        for (int q = lo[1]-2; q <= hi[1]+2) {
-          if (std::abs(srcQ(i,q,k,n) > 0.0_rt)) {
+        for (int b = lo[1]-2; b <= hi[1]+2) {
+          if (std::abs(srcQ(i,b,k,n) > 0.0_rt)) {
             do_trace = 1;
             break;
           }
         }
       } else {
-        for (int q = lo[2]-2; q <= hi[2]+2) {
-          if (std::abs(srcQ(i,j,q,n) > 0.0_rt)) {
+        for (int b = lo[2]-2; b <= hi[2]+2) {
+          if (std::abs(srcQ(i,j,b,n) > 0.0_rt)) {
             do_trace = 1;
             break;
           }
@@ -250,14 +264,14 @@ Castro::trace_ppm(const Box& bx,
 
       if (do_trace) {
 
-        if (idir == 1) {
+        if (idir == 0) {
           s[im2] = srcQ(i-2,j,k,n);
           s[im1] = srcQ(i-1,j,k,n);
           s[i0]  = srcQ(i,j,k,n);
           s[ip1] = srcQ(i+1,j,k,n);
           s[ip2] = srcQ(i+2,j,k,n);
 
-        } else if (idir == 2) {
+        } else if (idir == 1) {
           s[im2] = srcQ(i,j-2,k,n);
           s[im1] = srcQ(i,j-1,k,n);
           s[i0]  = srcQ(i,j,k,n);
@@ -472,38 +486,39 @@ Castro::trace_ppm(const Box& bx,
         qm(i,j,k+1,QUTT) = Ip[QUTT][1] + hdt*Ip_src[QUTT][1];
       }
 
-      // geometry source terms
-
-#if (AMREX_SPACEDIM < 3)
-      // these only apply for x states (idir = 0)
-      if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
-        Real courn = dt/dx[0]*(cc+std::abs(un));
-        Real eta = (1.0_rt - courn)/(cc*dt*std::abs(dloga(i,j,k)));
-        Real dlogatmp = std::min(eta, 1.0_rt)*dloga(i,j,k);
-        Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
-        Real sourcp = sourcr*csq;
-        Real source = sourcp*((q(i,j,k,QPRES) + q(i,j,k,QREINT))/rho)/csq;
-
-        if (i <= vhi[0]) {
-          qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr;
-          qm(i+1,j,k,QRHO) = std::max(qm(i+1,j,k,QRHO), small_dens);
-          qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp;
-          qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source;
-        }
-
-        if (i >= vlo[1]) {
-          qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr;
-          qp(i,j,k,QRHO) = std::max(qp(i,j,k,QRHO), small_dens);
-          qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp;
-          qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source;
-        }
-      }
-#endif
     }
 
-  });
+    // geometry source terms
 
+#if (AMREX_SPACEDIM < 3)
+    // these only apply for x states (idir = 0)
+    if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
+      Real courn = dt/dx[0]*(cc+std::abs(un));
+      Real eta = (1.0_rt - courn)/(cc*dt*std::abs(dloga(i,j,k)));
+      Real dlogatmp = std::min(eta, 1.0_rt)*dloga(i,j,k);
+      Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
+      Real sourcp = sourcr*csq;
+      Real source = sourcp*((q(i,j,k,QPRES) + q(i,j,k,QREINT))/rho)/csq;
+
+      if (i <= vhi[0]) {
+        qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr;
+        qm(i+1,j,k,QRHO) = std::max(qm(i+1,j,k,QRHO), small_dens);
+        qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp;
+        qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source;
+      }
+
+      if (i >= vlo[0]) {
+        qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr;
+        qp(i,j,k,QRHO) = std::max(qp(i,j,k,QRHO), small_dens);
+        qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp;
+        qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source;
+      }
+    }
+#endif
+
+  });
 }
+
 
 
 AMREX_GPU_HOST_DEVICE

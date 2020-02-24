@@ -2774,10 +2774,8 @@ Gravity::solve_for_delta_phi(int crse_level, int fine_level,
 {
     BL_PROFILE("Gravity::solve_for_delta_phi");
 
-    int nlevs = fine_level - crse_level + 1;
-
-    BL_ASSERT(grad_delta_phi.size() == nlevs);
-    BL_ASSERT(delta_phi.size() == nlevs);
+    BL_ASSERT(grad_delta_phi.size() == fine_level - crse_level + 1);
+    BL_ASSERT(delta_phi.size() == fine_level - crse_level + 1);
 
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "... solving for delta_phi at crse_level = " << crse_level << std::endl;
