@@ -192,7 +192,7 @@ Castro::trace_ppm(const Box& bx,
 
 
     for (int n = 0; n < NQ; n++) {
-      if (n == UTEMP) continue;
+      if (n == QTEMP) continue;
 
       if (idir == 0) {
         s[im2] = q(i-2,j,k,n);
@@ -514,7 +514,6 @@ Castro::trace_ppm(const Box& bx,
     }
 
     // geometry source terms
-
 #if (AMREX_SPACEDIM < 3)
     // these only apply for x states (idir = 0)
     if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
