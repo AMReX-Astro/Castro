@@ -125,7 +125,7 @@
                            amrex::Real Ip[][3], amrex::Real Im[][3],
                            amrex::Real Ip_src[][3], amrex::Real Im_src[][3],
                            amrex::Array4<amrex::Real> const qm, amrex::Array4<amrex::Real> const qp,
-                           const int* vlo, const int* vhi,
+                           const amrex::GpuArray<int, 3> vlo, const amrex::GpuArray<int, 3> vhi,
                            const amrex::Real dt);
 
     AMREX_GPU_HOST_DEVICE

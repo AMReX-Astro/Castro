@@ -57,6 +57,37 @@ Castro::trace_ppm(const Box& bx,
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
 
+  const int* _lo = bx.loVect();
+  const int* _hi = bx.hiVect();
+
+#if AMREX_SPACEDIM == 1
+  GpuArray<int, 3> lo = {_lo[0], 0, 0};
+  GpuArray<int, 3> hi = {_hi[0], 0, 0};
+#elif AMREX_SPACEDIM == 2
+  GpuArray<int, 3> lo = {_lo[0], _lo[1], 0};
+  GpuArray<int, 3> hi = {_hi[0], _hi[1], 0};
+#else
+  GpuArray<int, 3> lo = {_lo[0], _lo[1], _lo[2]};
+  GpuArray<int, 3> hi = {_hi[0], _hi[1], _hi[2]};
+#endif
+
+
+  const int* _vlo = vbx.loVect();
+  const int* _vhi = vbx.hiVect();
+
+#if AMREX_SPACEDIM == 1
+  GpuArray<int, 3> vlo = {_vlo[0], 0, 0};
+  GpuArray<int, 3> vhi = {_vhi[0], 0, 0};
+#elif AMREX_SPACEDIM == 2
+  GpuArray<int, 3> vlo = {_vlo[0], _vlo[1], 0};
+  GpuArray<int, 3> vhi = {_vhi[0], _vhi[1], 0};
+#else
+  GpuArray<int, 3> vlo = {_vlo[0], _vlo[1], _vlo[2]};
+  GpuArray<int, 3> vhi = {_vhi[0], _vhi[1], _vhi[2]};
+#endif
+
+
+
 #ifndef AMREX_USE_CUDA
 
   // if we're on the CPU, we preprocess the sources over the whole
@@ -66,9 +97,6 @@ Castro::trace_ppm(const Box& bx,
   // here is only local to this tile.
 
   GpuArray<int, NQSRC> do_source_trace;
-
-  const int* lo = bx.loVect();
-  const int* hi = bx.hiVect();
 
 
   for (int n = 0; n < NQSRC; n++) {
@@ -302,9 +330,6 @@ Castro::trace_ppm(const Box& bx,
 
     }
 
-    const int* vlo = vbx.loVect();
-    const int* vhi = vbx.hiVect();
-
     // do the passives separately
     trace_ppm_species(i, j, k,
                       idir,
@@ -528,7 +553,7 @@ Castro::trace_ppm_species(const int i, const int j, const int k,
                           Real Ip[][3], Real Im[][3],
                           Real Ip_src[][3], Real Im_src[][3],
                           Array4<Real> const qm, Array4<Real> const qp,
-                          const int* vlo, const int* vhi,
+                          const GpuArray<int, 3> vlo, const GpuArray<int, 3> vhi,
                           const Real dt) {
 
   // here, lo and hi are the range we loop over -- this can include ghost cells
