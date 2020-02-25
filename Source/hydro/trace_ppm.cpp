@@ -168,6 +168,7 @@ Castro::trace_ppm(const Box& bx,
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
 
+  int* AMREX_RESTRICT qpass_map_p = qpass_map.dataPtr();
 
   // Trace to left and right edges using upwind PPM
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
@@ -336,13 +337,53 @@ Castro::trace_ppm(const Box& bx,
     }
 
     // do the passives separately
-    trace_ppm_species(i, j, k,
-                      idir,
-                      Ip, Im, Ip_src, Im_src,
-                      qm, qp,
-                      vlo, vhi,
-                      dt);
 
+  // the passive stuff is the same regardless of the tracing
+  
+    for (int ipassive = 0; ipassive < npassive; ipassive++) {
+
+      int n = qpass_map_p[ipassive];
+
+      // Plus state on face i
+      if ((idir == 0 && i >= vlo[0]) ||
+          (idir == 1 && j >= vlo[1]) ||
+          (idir == 2 && k >= vlo[2])) {
+
+        // We have
+        //
+        // q_l = q_ref - Proj{(q_ref - I)}
+        //
+        // and Proj{} represents the characteristic projection.
+        // But for these, there is only 1-wave that matters, the u
+        // wave, so no projection is needed.  Since we are not
+        // projecting, the reference state doesn't matter
+
+        qp(i,j,k,n) = Im[n][1];
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+        qp(i,j,k,n) += 0.5_rt * dt * Im_src[n][1];
+#endif
+      }
+
+      // Minus state on face i+1
+      if (idir == 0 && i <= vhi[0]) {
+        qm(i+1,j,k,n) = Ip[n][1];
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+        qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src[n][1];
+#endif
+
+      } else if (idir == 1 && j <= vhi[1]) {
+        qm(i,j+1,k,n) = Ip[n][1];
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+        qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src[n][1];
+#endif
+
+      } else if (idir == 2 && k <= vhi[2]) {
+        qm(i,j,k+1,n) = Ip[n][1];
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+        qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src[n][1];
+#endif
+      }
+    }
 
     // plus state on face i
 
@@ -548,67 +589,4 @@ Castro::trace_ppm(const Box& bx,
   });
 }
 
-
-
-AMREX_GPU_HOST_DEVICE
-void
-Castro::trace_ppm_species(const int i, const int j, const int k,
-                          const int idir,
-                          Real Ip[][3], Real Im[][3],
-                          Real Ip_src[][3], Real Im_src[][3],
-                          Array4<Real> const qm, Array4<Real> const qp,
-                          const GpuArray<int, 3> vlo, const GpuArray<int, 3> vhi,
-                          const Real dt) {
-
-  // here, lo and hi are the range we loop over -- this can include ghost cells
-  // vlo and vhi are the bounds of the valid box (no ghost cells)
-
-
-  // the passive stuff is the same regardless of the tracing
-  
-  for (int ipassive = 0; ipassive < npassive; ipassive++) {
-
-    int n = qpass_map[ipassive];
-
-    // Plus state on face i
-    if ((idir == 0 && i >= vlo[0]) ||
-        (idir == 1 && j >= vlo[1]) ||
-        (idir == 2 && k >= vlo[2])) {
-
-      // We have
-      //
-      // q_l = q_ref - Proj{(q_ref - I)}
-      //
-      // and Proj{} represents the characteristic projection.
-      // But for these, there is only 1-wave that matters, the u
-      // wave, so no projection is needed.  Since we are not
-      // projecting, the reference state doesn't matter
-
-      qp(i,j,k,n) = Im[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      qp(i,j,k,n) += 0.5_rt * dt * Im_src[n][1];
-#endif
-    }
-
-    // Minus state on face i+1
-    if (idir == 0 && i <= vhi[0]) {
-      qm(i+1,j,k,n) = Ip[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src[n][1];
-#endif
-
-    } else if (idir == 1 && j <= vhi[1]) {
-      qm(i,j+1,k,n) = Ip[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src[n][1];
-#endif
-
-    } else if (idir == 2 && k <= vhi[2]) {
-      qm(i,j,k+1,n) = Ip[n][1];
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src[n][1];
-#endif
-    }
-  }
-}
 

@@ -127,15 +127,6 @@
                    const amrex::Real dt);
 
     AMREX_GPU_HOST_DEVICE
-    void trace_ppm_species(const int i, const int j, const int k,
-                           const int idir,
-                           amrex::Real Ip[][3], amrex::Real Im[][3],
-                           amrex::Real Ip_src[][3], amrex::Real Im_src[][3],
-                           amrex::Array4<amrex::Real> const qm, amrex::Array4<amrex::Real> const qp,
-                           const amrex::GpuArray<int, 3> vlo, const amrex::GpuArray<int, 3> vhi,
-                           const amrex::Real dt);
-
-    AMREX_GPU_HOST_DEVICE
     void ppm_reconstruct(const amrex::Real* s,
                          const amrex::Real flatn, amrex::Real& sm, amrex::Real& sp);
 
