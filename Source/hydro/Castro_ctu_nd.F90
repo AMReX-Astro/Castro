@@ -31,7 +31,7 @@ contains
 #if AMREX_SPACEDIM < 3
                                 dloga, dloga_lo, dloga_hi, &
 #endif
-                                domlo, domhi) bind(C, name="ctu_rad_ppm_states")
+                                domlo, domhi) bind(C, name="ctu_ppm_rad_states")
     ! Compute the normal interface states by reconstructing
     ! the primitive variables using the piecewise parabolic method
     ! and doing characteristic tracing.  We do not apply the
