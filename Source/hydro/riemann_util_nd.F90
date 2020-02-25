@@ -446,7 +446,7 @@ contains
                                    QPRES, QREINT, &
                                    QGAMC, QFS, QFX, &
 #ifdef HYBRID_MOMENTUM
-                                   NGDNV, GDPRES, GDGAME, &
+                                   NGDNV, GDPRES, &
                                    GDRHO, GDU, GDV, GDW, &
 #endif
 #ifdef RADIATION
@@ -625,7 +625,7 @@ contains
     use meth_params_module, only : NQ, NVAR, NQAUX, &
                                    QRHO, QU, QV, QW, &
                                    QPRES, &
-                                   NGDNV, GDRHO, GDPRES, GDGAME, &
+                                   NGDNV, GDRHO, GDPRES, &
 #ifdef RADIATION
                                    QRAD, GDERADS, GDLAMS, &
 #endif

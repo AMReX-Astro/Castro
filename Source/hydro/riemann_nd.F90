@@ -8,7 +8,7 @@ module riemann_module
                                  QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QFS, QFX, &
                                  QC, QGAMC, QGC, &
-                                 NGDNV, GDRHO, GDPRES, GDGAME, &
+                                 NGDNV, GDRHO, GDPRES, &
 
 #ifdef RADIATION
                                  qrad, qptot, qreitot, &

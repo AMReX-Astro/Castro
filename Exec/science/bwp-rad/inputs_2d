@@ -40,7 +40,6 @@ castro.sponge_implicit = 0
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
-castro.ppm_predict_gammae = 0
 
 castro.transverse_reset_rhoe = 1
 
