@@ -104,6 +104,14 @@
 #endif
                         const amrex::Real dt);
 
+     void mol_ppm_reconstruct(const amrex::Box& bx,
+                              const int idir,
+                              amrex::Array4<amrex::Real const> const q_arr,
+                              amrex::Array4<amrex::Real const> const flatn_arr,
+                              amrex::Array4<amrex::Real> const qm,
+                              amrex::Array4<amrex::Real> const qp);
+
+
     AMREX_GPU_HOST_DEVICE
     void trace_ppm(const amrex::Box& bx,
                    const int idir,

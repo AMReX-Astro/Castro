@@ -2,6 +2,7 @@
 
 CEXE_sources += Castro_hydro.cpp
 CEXE_sources += Castro_ctu.cpp
+CEXE_sources += Castro_mol.cpp
 CEXE_sources += advection_util.cpp
 CEXE_sources += Castro_ctu_hydro.cpp
 CEXE_sources += flatten.cpp
