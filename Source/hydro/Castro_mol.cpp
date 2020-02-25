@@ -52,14 +52,14 @@ Castro::mol_ppm_reconstruct(const Box& bx,
 
     ppm_reconstruct(s, flat, sm, sp);
 
-    if (idir == 1) {
+    if (idir == 0) {
       // right state at i-1/2
       qp(i,j,k,n) = sm;
 
       // left state at i+1/2
       qm(i+1,j,k,n) = sp;
 
-    } else if (idir == 2) {
+    } else if (idir == 1) {
       // right state at j-1/2
       qp(i,j,k,n) = sm;
 
