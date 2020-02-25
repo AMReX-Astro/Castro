@@ -12,7 +12,6 @@
 
 using namespace amrex;
 
-AMREX_GPU_HOST_DEVICE
 void
 Castro::trace_ppm(const Box& bx,
                   const int idir,
@@ -166,6 +165,9 @@ Castro::trace_ppm(const Box& bx,
     QUTT = QV;
   }
 
+  Real lsmall_dens = small_dens;
+  Real lsmall_pres = small_pres;
+
 
   // Trace to left and right edges using upwind PPM
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
@@ -175,7 +177,10 @@ Castro::trace_ppm(const Box& bx,
 
 
     Real cc = qaux(i,j,k,QC);
+
+#if AMREX_SPACEDIM < 3
     Real csq = cc*cc;
+#endif
 
     Real un = q(i,j,k,QUN);
 
@@ -267,21 +272,21 @@ Castro::trace_ppm(const Box& bx,
 #else
       int do_trace = 0;
       if (idir == 0) {
-        for (int b = lo[0]-2; b <= hi[0]+2) {
+        for (int b = lo[0]-2; b <= hi[0]+2; b++) {
           if (std::abs(srcQ(b,j,k,n) > 0.0_rt)) {
             do_trace = 1;
             break;
           }
         }
       } else if (idir == 1) {
-        for (int b = lo[1]-2; b <= hi[1]+2) {
+        for (int b = lo[1]-2; b <= hi[1]+2; b++) {
           if (std::abs(srcQ(i,b,k,n) > 0.0_rt)) {
             do_trace = 1;
             break;
           }
         }
       } else {
-        for (int b = lo[2]-2; b <= hi[2]+2) {
+        for (int b = lo[2]-2; b <= hi[2]+2; b++) {
           if (std::abs(srcQ(i,j,b,n) > 0.0_rt)) {
             do_trace = 1;
             break;
@@ -357,10 +362,10 @@ Castro::trace_ppm(const Box& bx,
 
       Real gam_g_ref = Im_gc[0];
 
-      rho_ref = std::max(rho_ref, small_dens);
+      rho_ref = std::max(rho_ref, lsmall_dens);
 
       Real rho_ref_inv = 1.0_rt/rho_ref;
-      p_ref = std::max(p_ref, small_pres);
+      p_ref = std::max(p_ref, lsmall_pres);
 
       // For tracing
       Real csq_ref = gam_g_ref*p_ref*rho_ref_inv;
@@ -405,10 +410,10 @@ Castro::trace_ppm(const Box& bx,
       // The final interface states are just
       // q_s = q_ref - sum(l . dq) r
       // note that the a{mpz}right as defined above have the minus already
-      qp(i,j,k,QRHO) = std::max(small_dens, rho_ref +  alphap + alpham + alpha0r);
+      qp(i,j,k,QRHO) = std::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
       qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
       qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g;
-      qp(i,j,k,QPRES) = std::max(small_pres, p_ref + (alphap + alpham)*csq_ref);
+      qp(i,j,k,QPRES) = std::max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
       // Transverse velocities -- there's no projection here, so we
       // don't need a reference state.  We only care about the state
@@ -438,9 +443,9 @@ Castro::trace_ppm(const Box& bx,
 
       Real gam_g_ref = Ip_gc[2];
 
-      rho_ref = std::max(rho_ref, small_dens);
+      rho_ref = std::max(rho_ref, lsmall_dens);
       Real rho_ref_inv = 1.0_rt/rho_ref;
-      p_ref = std::max(p_ref, small_pres);
+      p_ref = std::max(p_ref, lsmall_pres);
 
       // For tracing
       Real csq_ref = gam_g_ref*p_ref*rho_ref_inv;
@@ -481,30 +486,30 @@ Castro::trace_ppm(const Box& bx,
       // q_s = q_ref - sum (l . dq) r
       // note that the a{mpz}left as defined above have the minus already
       if (idir == 0) {
-        qm(i+1,j,k,QRHO) = std::max(small_dens, rho_ref +  alphap + alpham + alpha0r);
+        qm(i+1,j,k,QRHO) = std::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
         qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g;
-        qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref);
+        qm(i+1,j,k,QPRES) = max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
         // transverse velocities
         qm(i+1,j,k,QUT) = Ip[QUT][1] + hdt*Ip_src[QUT][1];
         qm(i+1,j,k,QUTT) = Ip[QUTT][1] + hdt*Ip_src[QUTT][1];
 
       } else if (idir == 1) {
-        qm(i,j+1,k,QRHO) = std::max(small_dens, rho_ref +  alphap + alpham + alpha0r);
+        qm(i,j+1,k,QRHO) = std::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
         qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g;
-        qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref);
+        qm(i,j+1,k,QPRES) = max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
         // transverse velocities
         qm(i,j+1,k,QUT) = Ip[QUT][1] + hdt*Ip_src[QUT][1];
         qm(i,j+1,k,QUTT) = Ip[QUTT][1] + hdt*Ip_src[QUTT][1];
 
       } else if (idir == 2) {
-        qm(i,j,k+1,QRHO) = std::max(small_dens, rho_ref +  alphap + alpham + alpha0r);
+        qm(i,j,k+1,QRHO) = std::max(lsmall_dens, rho_ref +  alphap + alpham + alpha0r);
         qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc_ref*rho_ref_inv;
         qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g_ref + alpha0e_g;
-        qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*csq_ref);
+        qm(i,j,k+1,QPRES) = max(lsmall_pres, p_ref + (alphap + alpham)*csq_ref);
 
         // transverse velocities
         qm(i,j,k+1,QUT) = Ip[QUT][1] + hdt*Ip_src[QUT][1];
@@ -526,14 +531,14 @@ Castro::trace_ppm(const Box& bx,
 
       if (i <= vhi[0]) {
         qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr;
-        qm(i+1,j,k,QRHO) = std::max(qm(i+1,j,k,QRHO), small_dens);
+        qm(i+1,j,k,QRHO) = std::max(qm(i+1,j,k,QRHO), lsmall_dens);
         qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp;
         qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source;
       }
 
       if (i >= vlo[0]) {
         qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr;
-        qp(i,j,k,QRHO) = std::max(qp(i,j,k,QRHO), small_dens);
+        qp(i,j,k,QRHO) = std::max(qp(i,j,k,QRHO), lsmall_dens);
         qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp;
         qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source;
       }
