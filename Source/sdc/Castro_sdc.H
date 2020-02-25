@@ -1,5 +1,5 @@
 #ifndef AMREX_USE_CUDA
-    void do_sdc_update(int m1, int m2, amrex::Real dt);
+void do_sdc_update(int m1, int m2, amrex::Real dt);
 #endif
 
 #ifdef REACTIONS
@@ -20,9 +20,9 @@
 ///    (input_is_average = false), then we just return R_source
 ///    at the cell-centers.
 ///
-    void construct_old_react_source(amrex::MultiFab& U_state,
-                                    amrex::MultiFab& R_source,
-                                    const bool input_is_average);
+void construct_old_react_source(amrex::MultiFab& U_state,
+                                amrex::MultiFab& R_source,
+                                const bool input_is_average);
 #endif
 
 void ca_sdc_update_advection_o2_lobatto(const amrex::Box& bx,
@@ -66,26 +66,26 @@ void ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
                                       int m_start);
 
 void ca_sdc_compute_C2_lobatto(const amrex::Box& bx,
-							   amrex::Real dt_m, amrex::Real dt,
-							   amrex::Array4<const amrex::Real> const& A_m,
-							   amrex::Array4<const amrex::Real> const& A_0_old,
-							   amrex::Array4<const amrex::Real> const& A_1_old,
-							   amrex::Array4<const amrex::Real> const& R_0_old,
-							   amrex::Array4<const amrex::Real> const& R_1_old,
-							   amrex::Array4<amrex::Real> const& C,
-							   int m_start);
+                               amrex::Real dt_m, amrex::Real dt,
+                               amrex::Array4<const amrex::Real> const& A_m,
+                               amrex::Array4<const amrex::Real> const& A_0_old,
+                               amrex::Array4<const amrex::Real> const& A_1_old,
+                               amrex::Array4<const amrex::Real> const& R_0_old,
+                               amrex::Array4<const amrex::Real> const& R_1_old,
+                               amrex::Array4<amrex::Real> const& C,
+                               int m_start);
 
 void ca_sdc_compute_C2_radau(const amrex::Box& bx,
-							 amrex::Real dt_m, amrex::Real dt,
-							 amrex::Array4<const amrex::Real> const& A_m,
-							 amrex::Array4<const amrex::Real> const& A_0_old,
-							 amrex::Array4<const amrex::Real> const& A_1_old,
-							 amrex::Array4<const amrex::Real> const& A_2_old,
-							 amrex::Array4<const amrex::Real> const& R_0_old,
-							 amrex::Array4<const amrex::Real> const& R_1_old,
-							 amrex::Array4<const amrex::Real> const& R_2_old,
-							 amrex::Array4<amrex::Real> const& C,
-							 int m_start);
+                             amrex::Real dt_m, amrex::Real dt,
+                             amrex::Array4<const amrex::Real> const& A_m,
+                             amrex::Array4<const amrex::Real> const& A_0_old,
+                             amrex::Array4<const amrex::Real> const& A_1_old,
+                             amrex::Array4<const amrex::Real> const& A_2_old,
+                             amrex::Array4<const amrex::Real> const& R_0_old,
+                             amrex::Array4<const amrex::Real> const& R_1_old,
+                             amrex::Array4<const amrex::Real> const& R_2_old,
+                             amrex::Array4<amrex::Real> const& C,
+                             int m_start);
 
 void ca_sdc_compute_initial_guess(const amrex::Box& bx,
                                   amrex::Array4<const amrex::Real> const& U_old,
