@@ -163,8 +163,76 @@ Castro::ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
         amrex::Abort("error in ca_sdc_update_advection_o4_radau -- should not be here");
 }
 
+void
+Castro::ca_sdc_compute_C2_lobatto(const amrex::Box& bx,
+								  amrex::Real dt_m, amrex::Real dt,
+								  amrex::Array4<const amrex::Real> const& A_m,
+								  amrex::Array4<const amrex::Real> const& A_0_old,
+								  amrex::Array4<const amrex::Real> const& A_1_old,
+								  amrex::Array4<const amrex::Real> const& R_0_old,
+								  amrex::Array4<const amrex::Real> const& R_1_old,
+								  amrex::Array4<amrex::Real> const& C,
+								  int m_start)
+{
+	// compute the source term C for the 2nd order Lobatto update
 
+    // Here, dt_m is the timestep between time-nodes m and m+1
 
+	AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+    {
+		// construct the source term to the update for 2nd order
+		// Lobatto, there is no advective correction, and we have
+		// C = - R(U^{m+1,k}) + I_m^{m+1}/dt
+		C(i,j,k,n) = -R_1_old(i,j,k,n) +
+			0.5_rt * (A_0_old(i,j,k,n) + A_1_old(i,j,k,n)) +
+			0.5_rt * (R_0_old(i,j,k,n) + R_1_old(i,j,k,n));
+	});
+
+} // end ca_sdc_compute_C2_lobatto
+
+void
+Castro::ca_sdc_compute_C2_radau(const amrex::Box& bx,
+								amrex::Real dt_m, amrex::Real dt,
+								amrex::Array4<const amrex::Real> const& A_m,
+								amrex::Array4<const amrex::Real> const& A_0_old,
+								amrex::Array4<const amrex::Real> const& A_1_old,
+								amrex::Array4<const amrex::Real> const& A_2_old,
+								amrex::Array4<const amrex::Real> const& R_0_old,
+								amrex::Array4<const amrex::Real> const& R_1_old,
+								amrex::Array4<const amrex::Real> const& R_2_old,
+								amrex::Array4<amrex::Real> const& C,
+								int m_start)
+{
+    // compute the source term C for the 2nd order Radau update
+
+    // Here, dt_m is the timestep between time-nodes m and m+1
+
+    // construct the source term to the update for 2nd order
+    // Radau
+
+    if (m_start == 0)
+	{
+		AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+		{
+			C(i,j,k,n) = -R_1_old(i,j,k,n) +
+				(A_m(i,j,k,n) - A_0_old(i,j,k,n)) +
+				(dt/dt_m) * (1.0_rt/12.0_rt) *
+				5.0_rt*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) -
+				(A_2_old(i,j,k,n) + R_2_old(i,j,k,n));
+		});
+	}
+    else if (m_start == 1)
+	{
+		AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+		{
+			C(i,j,k,n) = -R_2_old(i,j,k,n) +
+				(A_m(i,j,k,n) - A_1_old(i,j,k,n)) +
+				(dt/dt_m) * (1.0_rt/3.0_rt) *
+				(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
+				(A_2_old(i,j,k,n) + R_2_old(i,j,k,n));
+		});
+	}
+} // end ca_sdc_compute_C2_radau
 
 void Castro::ca_sdc_compute_initial_guess(const amrex::Box& bx,
                                           amrex::Array4<const amrex::Real> const& U_old,

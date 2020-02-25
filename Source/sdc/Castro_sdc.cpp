@@ -135,32 +135,26 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt) {
       // first compute the source term, C -- this differs depending
       // on whether we are Lobatto or Radau
       C2.resize(bx, NUM_STATE);
+	  Elixir elix_C2 = C2.elixir();
+	  amrex::Array4<amrex::Real> const& C2_arr=C2.array();
+
+	  amrex::Array4<const amrex::Real> const& A_new_arr=(A_new[m_start])->array(mfi);
+	  amrex::Array4<const amrex::Real> const& A_old_0_arr=(A_old[0])->array(mfi);
+	  amrex::Array4<const amrex::Real> const& A_old_1_arr=(A_old[1])->array(mfi);
+	  amrex::Array4<const amrex::Real> const& R_old_0_arr=(R_old[0])->array(mfi);
+	  amrex::Array4<const amrex::Real> const& R_old_1_arr=(R_old[1])->array(mfi);
 
       if (sdc_quadrature == 0) {
 
-        ca_sdc_compute_C2_lobatto(BL_TO_FORTRAN_BOX(bx),
-                                  &dt_m, &dt,
-                                  BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                                  BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                                  BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                                  BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
-                                  BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
-                                  BL_TO_FORTRAN_3D(C2),
-                                  &m_start);
+		  ca_sdc_compute_C2_lobatto(bx, dt_m, dt, A_new_arr, A_old_0_arr, A_old_1_arr,
+									R_old_0_arr, R_old_1_arr, C2_arr, m_start);
 
       } else {
 
-        ca_sdc_compute_C2_radau(BL_TO_FORTRAN_BOX(bx),
-                                &dt_m, &dt,
-                                BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                                BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                                BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                                BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
-                                BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
-                                BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
-                                BL_TO_FORTRAN_3D((*R_old[2])[mfi]),
-                                BL_TO_FORTRAN_3D(C2),
-                                &m_start);
+	      amrex::Array4<const amrex::Real> const& A_old_2_arr=(A_old[2])->array(mfi);
+		  amrex::Array4<const amrex::Real> const& R_old_2_arr=(R_old[2])->array(mfi);
+		  ca_sdc_compute_C2_radau(bx, dt_m, dt, A_new_arr, A_old_0_arr, A_old_1_arr, A_old_2_arr,
+								  R_old_0_arr, R_old_1_arr, R_old_2_arr, C2_arr, m_start);
 
       }
 
