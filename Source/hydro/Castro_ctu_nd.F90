@@ -343,7 +343,7 @@ contains
                          dloga, dloga_lo, dloga_hi, &
 #endif
                          SrcQ, src_lo, src_hi, &
-                         vlo, vhi, domlo, domhi, &
+                         vlo, vhi, &
                          dx, dt)
 
 #if AMREX_SPACEDIM >= 2
@@ -358,7 +358,7 @@ contains
                          dloga, dloga_lo, dloga_hi, &
 #endif
                          SrcQ, src_lo, src_hi, &
-                         vlo, vhi, domlo, domhi, &
+                         vlo, vhi, &
                          dx, dt)
 #endif
 
@@ -371,7 +371,7 @@ contains
                          qzm, qzm_lo, qzm_hi, &
                          qzp, qzp_lo, qzp_hi, &
                          SrcQ, src_lo, src_hi, &
-                         vlo, vhi, domlo, domhi, &
+                         vlo, vhi, &
                          dx, dt)
 #endif
        end if
