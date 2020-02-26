@@ -56,35 +56,11 @@ Castro::trace_ppm(const Box& bx,
   Real hdt = 0.5_rt * dt;
   Real dtdx = dt / dx[idir];
 
-  const int* _lo = bx.loVect();
-  const int* _hi = bx.hiVect();
+  auto lo = bx.loVect3d();
+  auto hi = bx.hiVect3d();
 
-#if AMREX_SPACEDIM == 1
-  GpuArray<int, 3> lo = {_lo[0], 0, 0};
-  GpuArray<int, 3> hi = {_hi[0], 0, 0};
-#elif AMREX_SPACEDIM == 2
-  GpuArray<int, 3> lo = {_lo[0], _lo[1], 0};
-  GpuArray<int, 3> hi = {_hi[0], _hi[1], 0};
-#else
-  GpuArray<int, 3> lo = {_lo[0], _lo[1], _lo[2]};
-  GpuArray<int, 3> hi = {_hi[0], _hi[1], _hi[2]};
-#endif
-
-
-  const int* _vlo = vbx.loVect();
-  const int* _vhi = vbx.hiVect();
-
-#if AMREX_SPACEDIM == 1
-  GpuArray<int, 3> vlo = {_vlo[0], 0, 0};
-  GpuArray<int, 3> vhi = {_vhi[0], 0, 0};
-#elif AMREX_SPACEDIM == 2
-  GpuArray<int, 3> vlo = {_vlo[0], _vlo[1], 0};
-  GpuArray<int, 3> vhi = {_vhi[0], _vhi[1], 0};
-#else
-  GpuArray<int, 3> vlo = {_vlo[0], _vlo[1], _vlo[2]};
-  GpuArray<int, 3> vhi = {_vhi[0], _vhi[1], _vhi[2]};
-#endif
-
+  auto vlo = vbx.loVect3d();
+  auto vhi = vbx.hiVect3d();
 
 
 #ifndef AMREX_USE_CUDA
