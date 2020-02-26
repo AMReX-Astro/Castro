@@ -47,37 +47,33 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
         {
 
             const Box& bx = mfi.tilebox();
+            amrex::Array4<amrex::Real> const& C_source_arr=C_source.array(mfi);
 
+            amrex::Array4<const amrex::Real> const& A_new_arr=(A_new[m_start])->array(mfi);
+            amrex::Array4<const amrex::Real> const& A_old_0_arr=(A_old[0])->array(mfi);
+            amrex::Array4<const amrex::Real> const& A_old_1_arr=(A_old[1])->array(mfi);
+			amrex::Array4<const amrex::Real> const& A_old_2_arr=(A_old[2])->array(mfi);
+            amrex::Array4<const amrex::Real> const& R_old_0_arr=(R_old[0])->array(mfi);
+            amrex::Array4<const amrex::Real> const& R_old_1_arr=(R_old[1])->array(mfi);
+			amrex::Array4<const amrex::Real> const& R_old_2_arr=(R_old[2])->array(mfi);
             if (sdc_quadrature == 0)
             {
 
-                ca_sdc_compute_C4_lobatto(BL_TO_FORTRAN_BOX(bx),
-                                          &dt_m, &dt,
-                                          BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                                          BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                                          BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                                          BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
-                                          BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
-                                          BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
-                                          BL_TO_FORTRAN_3D((*R_old[2])[mfi]),
-                                          BL_TO_FORTRAN_3D(C_source[mfi]),
-                                          &m_start);
+                ca_sdc_compute_C4_lobatto(bx, dt_m, dt, A_new_arr, A_old_0_arr, A_old_1_arr,
+										  A_old_2_arr, R_old_0_arr, R_old_1_arr, R_old_2_arr,
+										  C_source_arr, m_start);
+
             }
             else
             {
-                ca_sdc_compute_C4_radau(BL_TO_FORTRAN_BOX(bx),
-                                        &dt_m, &dt,
-                                        BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                                        BL_TO_FORTRAN_3D((*A_old[0])[mfi]),
-                                        BL_TO_FORTRAN_3D((*A_old[1])[mfi]),
-                                        BL_TO_FORTRAN_3D((*A_old[2])[mfi]),
-                                        BL_TO_FORTRAN_3D((*A_old[3])[mfi]),
-                                        BL_TO_FORTRAN_3D((*R_old[0])[mfi]),
-                                        BL_TO_FORTRAN_3D((*R_old[1])[mfi]),
-                                        BL_TO_FORTRAN_3D((*R_old[2])[mfi]),
-                                        BL_TO_FORTRAN_3D((*R_old[3])[mfi]),
-                                        BL_TO_FORTRAN_3D(C_source[mfi]),
-                                        &m_start);
+
+				amrex::Array4<const amrex::Real> const& A_old_3_arr=(A_old[3])->array(mfi);
+				amrex::Array4<const amrex::Real> const& R_old_3_arr=(R_old[3])->array(mfi);
+
+				ca_sdc_compute_C4_radau(bx, dt_m, dt, A_new_arr, A_old_0_arr, A_old_1_arr, A_old_2_arr,
+										A_old_3_arr, R_old_0_arr, R_old_1_arr, R_old_2_arr, R_old_3_arr,
+										C_source_arr, m_start);
+
             }
         }
 
@@ -188,6 +184,12 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // fourth order SDC reaction update -- we need to respect the
             // difference between cell-centers and averages
 
+			amrex::Array4<const amrex::Real> const& k_new_m_start_arr=
+				(k_new[m_start])->array(mfi);
+			amrex::Array4<amrex::Real> const& k_new_m_end_arr=(k_new[m_end])->array(mfi);
+			amrex::Array4<amrex::Real> const& C_source_arr=C_source.array(mfi);
+            amrex::Array4<const amrex::Real> const& R_new_arr=R_new.array();
+			
             // convert the starting U to cell-centered on a fab-by-fab basis
             // -- including one ghost cell
             U_center.resize(bx1, NUM_STATE);
@@ -237,11 +239,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
             // now do the conservative update using this <R> to get <U>
             // We'll also need to pass in <C>
-            ca_sdc_conservative_update(BL_TO_FORTRAN_BOX(bx), &dt_m,
-                                       BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
-                                       BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
-                                       BL_TO_FORTRAN_3D(C_source[mfi]),
-                                       BL_TO_FORTRAN_3D(R_new));
+            ca_sdc_conservative_update(bx, dt_m, k_new_m_start_arr, k_new_m_end_arr,
+									   C_source_arr,R_new_arr);
 
         }
 #else
