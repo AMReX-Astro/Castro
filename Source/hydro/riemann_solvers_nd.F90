@@ -30,24 +30,20 @@ module riemann_solvers_module
 
 contains
 
-  subroutine riemanncg(ql, ql_lo, ql_hi, &
-                       qr, qr_lo, qr_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       qint, q_lo, q_hi, &
-                       idir, lo, hi, &
-                       domlo, domhi)
+  subroutine riemanncg(ql, qr, &
+                       gcl, gcr, &
+                       csmall, cavg, &
+                       bnd_fac, &
+                       qint, &
+                       idir)
+
     ! this implements the approximate Riemann solver of Colella & Glaz
     ! (1985)
-    !
-    ! this version is dimension agnostic -- for 1- and 2-d, set kc,
-    ! kflux, and k3d to 0
 
     use castro_error_module
 #ifndef AMREX_USE_CUDA
     use amrex_mempool_module, only : bl_allocate, bl_deallocate
 #endif
-    use prob_params_module, only : physbc_lo, physbc_hi, &
-         Symmetry, SlipWall, NoSlipWall
     use network, only : nspec, naux
     use eos_type_module
     use eos_module
@@ -59,22 +55,15 @@ contains
 
     implicit none
 
-    integer, intent(in) :: ql_lo(3), ql_hi(3)
-    integer, intent(in) :: qr_lo(3), qr_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: idir, lo(3), hi(3)
-    integer, intent(in) :: domlo(3), domhi(3)
+    integer, intent(in) :: idir
 
-    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ)
-    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ)
+    real(rt), intent(in) :: ql(NQ)
+    real(rt), intent(in) :: qr(NQ)
+    real(rt), intent(inout) :: gcl, gcr
+    real(rt), intent(in) :: csmall, cavg
+    real(rt), intent(in) :: bnd_fac
+    real(rt), intent(inout) :: qint(NQ)
 
-    ! note: qaux comes in dimensioned as the fully box, so use k3d to
-    ! index in z
-    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-
-    integer :: i, j, k
     integer :: n, nqp, ipassive
 
     real(rt) :: ustar
@@ -85,18 +74,16 @@ contains
     real(rt) :: rstar, cstar, pstar
     real(rt) :: ro, uo, po, co, gamco
     real(rt) :: sgnm, spin, spout, ushock, frac
-    real(rt) :: wsmall, csmall, qavg
-    real(rt) :: cavg
+    real(rt) :: wsmall, qavg
 
-    real(rt) :: gcl, gcr, game_int
+    real(rt) :: game_int
     real(rt) :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
     real(rt) :: zm, zp
     real(rt) :: denom, dpditer, dpjmp
     real(rt) :: gamc_bar, game_bar
     real(rt) :: gamel, gamer, gameo, gamstar, gmin, gmax, gdot
 
-    integer :: iter, iter_max
-    real(rt) :: tol
+    integer :: iter
     real(rt) :: err
 
     logical :: converged
@@ -160,12 +147,10 @@ contains
        sz = 1
     end if
 
-    tol = cg_tol
-    iter_max = cg_maxiter
 
 #ifndef AMREX_USE_CUDA
-    call bl_allocate(pstar_hist, 1,iter_max)
-    call bl_allocate(pstar_hist_extra, 1,2*iter_max)
+    call bl_allocate(pstar_hist, 1, cg_maxiter)
+    call bl_allocate(pstar_hist_extra, 1, 2*cg_maxiter)
 #endif
 
     ! left state
@@ -289,7 +274,7 @@ contains
     ! secant iteration
     converged = .false.
     iter = 1
-    do while ((iter <= iter_max .and. .not. converged) .or. iter <= 2)
+    do while ((iter <= cg_maxiter .and. .not. converged) .or. iter <= 2)
 
        call wsqge(pl, taul, gamel, gdot,  &
                   gamstar, pstar, wlsq, clsql, gmin, gmax)
@@ -330,7 +315,7 @@ contains
        pstar = max(pstar, small_pres)
 
        err = abs(pstar - pstar_old)
-       if (err < tol*pstar) converged = .true.
+       if (err < cg_tol*pstar) converged = .true.
 
 #ifndef AMREX_USE_CUDA
        pstar_hist(iter) = pstar
@@ -352,7 +337,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
           print *, 'pstar history: '
-          do iter = 1, iter_max
+          do iter = 1, cg_maxiter
              print *, iter, pstar_hist(iter)
           end do
 
@@ -372,8 +357,8 @@ contains
           ! we can't do this
 #ifndef AMREX_USE_CUDA
           ! first try to find a reasonable bounds
-          pstarl = minval(pstar_hist(iter_max-5:iter_max))
-          pstaru = maxval(pstar_hist(iter_max-5:iter_max))
+          pstarl = minval(pstar_hist(cg_maxiter-5:cg_maxiter))
+          pstaru = maxval(pstar_hist(cg_maxiter-5:cg_maxiter))
 
           call pstar_bisection(pstarl, pstaru, &
                                ul, pl, taul, gamel, clsql, &
@@ -384,11 +369,11 @@ contains
           if (.not. converged) then
 
              print *, 'pstar history: '
-             do iter = 1, iter_max
+             do iter = 1, cg_maxiter
                 print *, iter, pstar_hist(iter)
              end do
-             do iter = 1, 2 * iter_max
-                print *, iter + iter_max, pstar_hist_extra(iter)
+             do iter = 1, 2 * cg_maxiter
+                print *, iter + cg_maxiter, pstar_hist_extra(iter)
              end do
 
              print *, ' '
@@ -562,23 +547,26 @@ contains
   end subroutine riemanncg
 
 
-  subroutine riemannus(ql, ql_lo, ql_hi, &
-                       qr, qr_lo, qr_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       qint, q_lo, q_hi, &
+  subroutine riemannus(ql, qr, &
+                       gamcl, gamcr, &
 #ifdef RADIATION
-                       lambda_int, l_lo, l_hi, &
+                       laml, lamr, &
+                       gamcgl, gamcgr, &
 #endif
-                       idir, compute_gammas, lo, hi, &
-                       domlo, domhi)
+                       csmall, cavg, &
+                       bnd_fac, &
+                       qint, &
+#ifdef RADIATION
+                       lambda_int, &
+#endif
+                       idir)
+
     ! Colella, Glaz, and Ferguson solver
     !
     ! this is a 2-shock solver that uses a very simple approximation for the
     ! star state, and carries an auxiliary jump condition for (rho e) to
     ! deal with a real gas
 
-    use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall
     use eos_type_module, only : eos_t, eos_input_rp
     use eos_module, only : eos
     use network, only : nspec, naux
@@ -586,30 +574,24 @@ contains
 
     implicit none
 
-    integer, intent(in) :: ql_lo(3), ql_hi(3)
-    integer, intent(in) :: qr_lo(3), qr_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: idir, lo(3), hi(3)
-    integer, intent(in) :: domlo(3),domhi(3)
+    real(rt), intent(in) :: ql(NQ)
+    real(rt), intent(in) :: qr(NQ)
 
-#ifdef RADIATION
-    integer, intent(in) :: l_lo(3), l_hi(3)
-#endif
-
-    integer, intent(in) :: compute_gammas
-    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ)
-    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ)
+    real(rt), intent(in) :: gamcl, gamcr
+    real(rt), intent(in) :: csmall, cavg
 
     ! note: qaux comes in dimensioned as the fully box, so use k3d to
     ! index in z
-    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qint(NQ)
 #ifdef RADIATION
-    real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: laml(0:ngroups-1)
+    real(rt), intent(in) :: lamr(0:ngroups-1)
+    real(rt), intent(inout) :: lambda_int(0:ngroups-1)
+    real(rt), intent(in) :: gamcgl, gamcgr
 #endif
+    real(rt), intent(in) :: bnd_fac
+    integer, intent(in) :: idir
 
-    integer :: i, j, k
     integer :: nqp, ipassive
 
     real(rt) :: regdnv
@@ -619,8 +601,7 @@ contains
     real(rt) :: rstar, cstar, estar, pstar, ustar
     real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
     real(rt) :: sgnm, spin, spout, ushock, frac
-    real(rt) :: wsmall, csmall
-    real(rt) :: cavg, gamcl, gamcr
+    real(rt) :: wsmall
 
 #ifdef RADIATION
     real(rt), dimension(0:ngroups-1) :: erl, err
@@ -630,7 +611,6 @@ contains
     real(rt) :: estar_g, pstar_g
     real(rt), dimension(0:ngroups-1) :: lambda, laml, lamr, reo_r, po_r, estar_r, regdnv_r
     integer :: g
-    real(rt) :: gamcgl, gamcgr
 #endif
 
     real(rt) :: u_adv
@@ -859,7 +839,7 @@ contains
        regdnv_g = reo_g
        regdnv_r = reo_r(:)
 #else
-       qint(PRES) = po
+       qint(QPRES) = po
        regdnv = reo
 #endif
     end if
@@ -916,11 +896,7 @@ contains
     end if
 
     ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-    u_adv = qint(i,j,k,iu)
-
-    u_adv = u_adv * bnd_fac
-
-    qint(iu) = u_adv
+    qint(iu) = qint(iu) * bnd_fac
 
     ! passively advected quantities
     do ipassive = 1, npassive

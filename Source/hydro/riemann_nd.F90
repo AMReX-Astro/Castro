@@ -28,6 +28,10 @@ module riemann_module
 
   implicit none
 
+  real(rt), parameter :: small = 1.e-8_rt
+
+  private :: small
+
 contains
 
   subroutine cmpflx_plus_godunov(lo, hi, &
@@ -44,8 +48,6 @@ contains
                                  shk, s_lo, s_hi, &
                                  idir, domlo, domhi) bind(C, name="cmpflx_plus_godunov")
 
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t
     use network, only: nspec, naux
     use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
@@ -205,12 +207,14 @@ contains
     ! don't compute the fluxes
 
     use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
+    use eos_type_module, only: eos_t, eos_input_re, eos_input_rp
     use network, only: nspec, naux
     use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : hybrid_riemann, ppm_temp_fix, riemann_solver, &
                                    T_guess
+    use prob_params_module, only : physbc_lo, physbc_hi, &
+         Symmetry, SlipWall, NoSlipWall
 
     implicit none
 
@@ -243,6 +247,16 @@ contains
     integer i, j, k
 
     type (eos_t) :: eos_state
+
+    real(rt) :: qleft(NQ), qright(NQ)
+    real(rt) :: bnd_fac
+    real(rt) :: csmall, cavg
+    real(rt) :: gamcl, gamcr
+#ifdef RADIATION
+    real(rt) :: gamcgl, gamcgr
+#endif
+
+    logical :: special_bnd_lo, special_bnd_hi
 
     !$gpu
 
@@ -364,8 +378,8 @@ contains
              ! override the gammas if needed
 #ifndef RADIATION
              if (use_reconstructed_gamma1 == 1) then
-                gamcl = qleft(i,j,k,QGC)
-                gamcr = qright(i,j,k,QGC)
+                gamcl = qleft(QGC)
+                gamcr = qright(QGC)
 
              else if (compute_gammas == 1) then
                 ! we come in with a good p, rho, and X on the interfaces
