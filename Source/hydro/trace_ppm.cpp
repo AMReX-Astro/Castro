@@ -101,30 +101,18 @@ Castro::trace_ppm(const Box& bx,
   for (int n = 0; n < NQSRC; n++) {
     do_source_trace[n] = 0;
 
-#if AMREX_SPACEDIM == 3
     for (int k = lo[2]-2*dg2; k <= hi[2]+2*dg2; k++) {
-#else
-      int k = 0;
-#endif
-#if AMREX_SPACEDIM >= 2
       for (int j = lo[1]-2*dg1; j <= hi[1]+2*dg1; j++) {
-#else
-        int j = 0;
-#endif
         for (int i = lo[0]-2; i <= hi[0]+2; i++) {
           if (std::abs(srcQ(i,j,k,n)) > 0.0_rt) {
             do_source_trace[n] = 1;
             break;
           }
         }
-#if AMREX_SPACEDIM >= 2
         if (do_source_trace[n] == 1) break;
       }
-#endif
-#if AMREX_SPACEDIM == 3
       if (do_source_trace[n] == 1) break;
     }
-#endif
   }
 #endif
 
@@ -168,7 +156,10 @@ Castro::trace_ppm(const Box& bx,
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
 
-  int* AMREX_RESTRICT qpass_map_p = qpass_map.dataPtr();
+  GpuArray<int, npassive> qpass_map_p;
+  for (int n = 0; n < npassive; n++){
+    qpass_map_p[n] = qpass_map[n];
+  }
 
   // Trace to left and right edges using upwind PPM
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
