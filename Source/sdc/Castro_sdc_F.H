@@ -82,42 +82,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(C_center),
      const int* sdc_iteration);
 
-  void ca_sdc_conservative_update
-    (const int* lo, const int* hi,
-     const amrex::Real* time,
-     const BL_FORT_FAB_ARG_3D(U_old),
-     BL_FORT_FAB_ARG_3D(U_new),
-     const BL_FORT_FAB_ARG_3D(C),
-     const BL_FORT_FAB_ARG_3D(R_new));
-
-  void ca_sdc_compute_C4_lobatto(const int* lo, const int* hi,
-                                 const amrex::Real* dt_m,
-                                 const amrex::Real* dt,
-                                 const BL_FORT_FAB_ARG_3D(A_m),
-                                 const BL_FORT_FAB_ARG_3D(A_0),
-                                 const BL_FORT_FAB_ARG_3D(A_1),
-                                 const BL_FORT_FAB_ARG_3D(A_2),
-                                 const BL_FORT_FAB_ARG_3D(R_0),
-                                 const BL_FORT_FAB_ARG_3D(R_1),
-                                 const BL_FORT_FAB_ARG_3D(R_2),
-                                 BL_FORT_FAB_ARG_3D(C),
-                                 const int* m_start);
-
-  void ca_sdc_compute_C4_radau(const int* lo, const int* hi,
-                               const amrex::Real* dt_m,
-                               const amrex::Real* dt,
-                               const BL_FORT_FAB_ARG_3D(A_m),
-                               const BL_FORT_FAB_ARG_3D(A_0),
-                               const BL_FORT_FAB_ARG_3D(A_1),
-                               const BL_FORT_FAB_ARG_3D(A_2),
-                               const BL_FORT_FAB_ARG_3D(A_3),
-                               const BL_FORT_FAB_ARG_3D(R_0),
-                               const BL_FORT_FAB_ARG_3D(R_1),
-                               const BL_FORT_FAB_ARG_3D(R_2),
-                               const BL_FORT_FAB_ARG_3D(R_3),
-                               BL_FORT_FAB_ARG_3D(C),
-                               const int* m_start);
-
   void ca_sdc_compute_initial_guess(const int* lo, const int* hi,
                                     const BL_FORT_FAB_ARG_3D(U_old),
                                     const BL_FORT_FAB_ARG_3D(U_new),
