@@ -20,6 +20,7 @@ ca_F90EXE_sources += advection_util_nd.F90
 
 ca_F90EXE_sources += ppm_nd.F90
 ca_F90EXE_sources += riemann_nd.F90
+ca_F90EXE_sources += riemann_solvers_nd.F90
 ca_F90EXE_sources += riemann_util_nd.F90
 ca_F90EXE_sources += slope_nd.F90
 ca_F90EXE_sources += trace_plm_nd.F90
