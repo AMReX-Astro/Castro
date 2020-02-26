@@ -266,101 +266,197 @@ contains
 #endif
 #endif
 
-    if (ppm_temp_fix == 2) then
-       ! recompute the thermodynamics on the interface to make it
-       ! all consistent
+    ! do we want to force the flux to zero at the boundary?
+    special_bnd_lo = (physbc_lo(idir) == Symmetry &
+         .or.         physbc_lo(idir) == SlipWall &
+         .or.         physbc_lo(idir) == NoSlipWall)
+    special_bnd_hi = (physbc_hi(idir) == Symmetry &
+         .or.         physbc_hi(idir) == SlipWall &
+         .or.         physbc_hi(idir) == NoSlipWall)
 
-       ! we want to take the edge states of rho, e, and X, and get
-       ! new values for p on the edges that are
-       ! thermodynamically consistent.
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+             ! Extract this zone's interface values
+
+             qleft(:) = qm(i,j,k,:)
+             qright(:) = qp(i,j,k,:)
+
+#ifdef RADIATION
+             if (idir == 1) then
+                laml(:) = qaux(i-1,j,k,QLAMS:QLAMS+ngroups-1)
+             else if (idir == 2) then
+                laml(:) = qaux(i,j-1,k,QLAMS:QLAMS+ngroups-1)
+             else
+                laml(:) = qaux(i,j,k-1,QLAMS:QLAMS+ngroups-1)
+             end if
+             lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+
+#endif
+
+             if (ppm_temp_fix == 2) then
+                ! recompute the thermodynamics on the interface to make it
+                ! all consistent
+
+                ! we want to take the edge states of rho, e, and X, and get
+                ! new values for p on the edges that are
+                ! thermodynamically consistent.
+
 
                 ! this is an initial guess for iterations, since we
                 ! can't be certain what temp is on interfaces
                 eos_state % T = T_guess
 
                 ! minus state
-                eos_state % rho = qm(i,j,k,QRHO)
-                eos_state % p   = qm(i,j,k,QPRES)
-                eos_state % e   = qm(i,j,k,QREINT)/qm(i,j,k,QRHO)
-                eos_state % xn  = qm(i,j,k,QFS:QFS+nspec-1)
-                eos_state % aux = qm(i,j,k,QFX:QFX+naux-1)
+                eos_state % rho = qleft(QRHO)
+                eos_state % p   = qleft(QPRES)
+                eos_state % e   = qleft(QREINT)/qleft(QRHO)
+                eos_state % xn  = qleft(QFS:QFS+nspec-1)
+                eos_state % aux = qleft(QFX:QFX+naux-1)
 
                 call eos(eos_input_re, eos_state)
 
-                qm(i,j,k,QREINT) = eos_state % e * eos_state % rho
-                qm(i,j,k,QPRES)  = eos_state % p
-                !gamcm(i,j)        = eos_state % gam1
-
-             end do
-          end do
-       end do
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                ! this is an initial guess for iterations, since we
-                ! can't be certain what temp is on interfaces
-                eos_state % T = T_guess
+                qleft(QREINT) = eos_state % e * eos_state % rho
+                qleft(QPRES)  = eos_state % p
 
                 ! plus state
-                eos_state % rho = qp(i,j,k,QRHO)
-                eos_state % p   = qp(i,j,k,QPRES)
-                eos_state % e   = qp(i,j,k,QREINT)/qp(i,j,k,QRHO)
-                eos_state % xn  = qp(i,j,k,QFS:QFS+nspec-1)
-                eos_state % aux = qp(i,j,k,QFX:QFX+naux-1)
+                eos_state % rho = qright(QRHO)
+                eos_state % p   = qright(QPRES)
+                eos_state % e   = qright(QREINT)/qright(QRHO)
+                eos_state % xn  = qright(QFS:QFS+nspec-1)
+                eos_state % aux = qright(QFX:QFX+naux-1)
 
                 call eos(eos_input_re, eos_state)
 
-                qp(i,j,k,QREINT) = eos_state % e * eos_state % rho
-                qp(i,j,k,QPRES)  = eos_state % p
-                !gamcp(i,j)        = eos_state % gam1
+                qright(QREINT) = eos_state % e * eos_state % rho
+                qright(QPRES)  = eos_state % p
 
-             end do
-          end do
-       end do
+             end if
 
-    endif
-
-    ! Solve Riemann problem
-    if (riemann_solver == 0) then
-       ! Colella, Glaz, & Ferguson solver
-
-       call riemannus(qm, qm_lo, qm_hi, &
-                      qp, qp_lo, qp_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      qint, q_lo, q_hi, &
+             if (idir == 1) then
+                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i-1,j,k,QC)))
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC))
+                gamcl = qaux(i-1,j,k,QGAMC)
 #ifdef RADIATION
-                      lambda_int, q_lo, q_hi, &
+                gamcgl = qaux(i-1,j,k,QGAMCG)
 #endif
-                      idir, compute_gammas, lo, hi, &
-                      domlo, domhi)
+             else if (idir == 2) then
+                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i,j-1,k,QC)))
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC))
+                gamcl = qaux(i,j-1,k,QGAMC)
+#ifdef RADIATION
+                gamcgl = qaux(i,j-1,k,QGAMCG)
+#endif
+             else
+                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i,j,k-1,QC)))
+                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC))
+                gamcl = qaux(i,j,k-1,QGAMC)
+#ifdef RADIATION
+                gamcgl = qaux(i,j,k-1,QGAMCG)
+#endif
+             end if
+             gamcr = qaux(i,j,k,QGAMC)
+#ifdef RADIATION
+             gamcgr = qaux(i,j,k,QGAMCG)
+#endif
 
-    elseif (riemann_solver == 1) then
-       ! Colella & Glaz solver
+             ! override the gammas if needed
+#ifndef RADIATION
+             if (use_reconstructed_gamma1 == 1) then
+                gamcl = qleft(i,j,k,QGC)
+                gamcr = qright(i,j,k,QGC)
+
+             else if (compute_gammas == 1) then
+                ! we come in with a good p, rho, and X on the interfaces
+                ! -- use this to find the gamma used in the sound speed
+                eos_state % p = qleft(QPRES)
+                eos_state % rho = qleft(QRHO)
+                eos_state % xn(:) = qleft(QFS:QFS-1+nspec)
+                eos_state % T = T_guess ! initial guess
+                eos_state % aux(:) = qleft(QFX:QFX-1+naux)
+
+                call eos(eos_input_rp, eos_state)
+
+                gamcl = eos_state % gam1
+
+                eos_state % p = qright(QPRES)
+                eos_state % rho = qright(QRHO)
+                eos_state % xn(:) = qright(QFS:QFS-1+nspec)
+                eos_state % T = T_guess ! initial guess
+                eos_state % aux(:) = qright(QFX:QFX-1+naux)
+
+                call eos(eos_input_rp, eos_state)
+
+                gamcr = eos_state % gam1
+
+             end if
+#endif
+
+             ! deal with hard walls
+             bnd_fac = 1.0_rt
+
+             if (idir == 1) then
+                if ((i == domlo(1) .and. special_bnd_lo) .or. &
+                    (i == domhi(1)+1 .and. special_bnd_hi)) then
+                   bnd_fac = 0.0_rt
+                end if
+             else if (idir == 2) then
+                if ((j == domlo(2) .and. special_bnd_lo) .or. &
+                    (j == domhi(2)+1 .and. special_bnd_hi)) then
+                   bnd_fac = 0.0_rt
+                end if
+             else
+                if ((k == domlo(3) .and. special_bnd_lo) .or. &
+                    (k == domhi(3)+1 .and. special_bnd_hi)) then
+                   bnd_fac = 0.0_rt
+                end if
+             end if
+
+
+             if (riemann_solver == 0) then
+                ! Colella, Glaz, & Ferguson solver
+
+                call riemannus(qleft, qright, &
+                               gamcl, gamcr, &
+#ifdef RADIATION
+                               gamcgl, gamcgr, &
+#endif
+                               csmall, cavg, &
+                               bnd_fac, &
+                               qint, &
+
+#ifdef RADIATION
+                               lambda_int, &
+#endif
+                               idir)
+
+             elseif (riemann_solver == 1) then
+                ! Colella & Glaz solver
 
 #ifndef RADIATION
-       call riemanncg(qm, qm_lo, qm_hi, &
-                      qp, qp_lo, qp_hi, &
-                      qaux, qa_lo, qa_hi, &
-                      qint, q_lo, q_hi, &
-                      idir, lo, hi, &
-                      domlo, domhi)
+                call riemanncg(qleft, qright, &
+                               gamcl, gamcr, &
+                               csmall, cavg, &
+                               bnd_fac, &
+                               qint, &
+                               idir)
+
 #else
 #ifndef AMREX_USE_CUDA
-       call castro_error("ERROR: CG solver does not support radiaiton")
+                call castro_error("ERROR: CG solver does not support radiaiton")
 #endif
 #endif
 
 #ifndef AMREX_USE_CUDA
-    else
-       call castro_error("ERROR: invalid value of riemann_solver")
+             else
+                call castro_error("ERROR: invalid value of riemann_solver")
 #endif
-    endif
+             endif
+
+          end do
+       end do
+    end do
 
   end subroutine riemann_state
 
