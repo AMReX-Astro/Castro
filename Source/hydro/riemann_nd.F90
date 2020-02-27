@@ -249,6 +249,7 @@ contains
     type (eos_t) :: eos_state
 
     real(rt) :: qleft(NQ), qright(NQ)
+    real(rt) :: qint_zone(NQ)
     real(rt) :: bnd_fac
     real(rt) :: csmall, cavg
     real(rt) :: gamcl, gamcr
@@ -438,7 +439,7 @@ contains
 #endif
                                csmall, cavg, &
                                bnd_fac, &
-                               qint, &
+                               qint_zone, &
 
 #ifdef RADIATION
                                lambda_int, &
@@ -453,7 +454,7 @@ contains
                                gamcl, gamcr, &
                                csmall, cavg, &
                                bnd_fac, &
-                               qint, &
+                               qint_zone, &
                                idir)
 
 #else
@@ -467,6 +468,8 @@ contains
                 call castro_error("ERROR: invalid value of riemann_solver")
 #endif
              endif
+
+             qint(i,j,k,:) = qint_zone(:)
 
           end do
        end do
