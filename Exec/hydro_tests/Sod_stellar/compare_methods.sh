@@ -15,7 +15,7 @@
 
 ./compare_sdc.py --ppm test3_ppm_plt????? --sdc test3_sdc_plt????? -o test3_sdc.pdf --exact Verification/test3.exact.128.out
 
-#./Castro2d.gnu.ex inputs-test4-helm amr.plot_file=test4_sdc_plt castro.sdc_order=4 castro.time_integration_method=2 castro.fourth_order=1
+#./Castro2d.gnu.ex inputs-test4-helm amr.plot_file=test4_sdc_plt castro.sdc_order=4 castro.time_integration_method=2
 #./Castro2d.gnu.ex inputs-test4-helm amr.plot_file=test4_ppm_plt
 
 #./compare_sdc.py --ppm test4_ppm_plt????? --sdc test4_sdc_plt????? -o test4_sdc.png --exact Verification/test4.exact.128.out

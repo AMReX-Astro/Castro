@@ -18,7 +18,7 @@ contains
                        dloga, dloga_lo, dloga_hi, &
 #endif
                        SrcQ, src_lo, src_hi, &
-                       vlo, vhi, domlo, domhi, &
+                       vlo, vhi, &
                        dx, dt)
 
     ! here, lo and hi are the range we loop over -- this can include ghost cells
@@ -46,7 +46,6 @@ contains
     integer, intent(in) :: src_lo(3), src_hi(3)
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: vlo(3), vhi(3)
-    integer, intent(in) :: domlo(3), domhi(3)
 
     real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
