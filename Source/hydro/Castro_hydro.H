@@ -126,16 +126,6 @@
                    const amrex::Box& vbx,
                    const amrex::Real dt);
 
-    AMREX_GPU_HOST_DEVICE
-    void ppm_reconstruct(const amrex::Real* s,
-                         const amrex::Real flatn, amrex::Real& sm, amrex::Real& sp);
-
-    AMREX_GPU_HOST_DEVICE
-    void ppm_int_profile(const amrex::Real sm, const amrex::Real sp, const amrex::Real sc,
-                         const amrex::Real u, const amrex::Real c, const amrex::Real dtdx,
-                         amrex::Real* Ip, amrex::Real* Im);
-
-
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const shk,
                       amrex::Array4<amrex::Real> const update,
