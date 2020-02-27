@@ -241,21 +241,21 @@ Castro::trace_ppm(const Box& bx,
       int do_trace = 0;
       if (idir == 0) {
         for (int b = i-2; b <= i+2; b++) {
-          if (std::abs(srcQ(b,j,k,n) > 0.0_rt)) {
+          if (std::abs(srcQ(b,j,k,n)) > 0.0_rt) {
             do_trace = 1;
             break;
           }
         }
       } else if (idir == 1) {
         for (int b = j-2; b <= j+2; b++) {
-          if (std::abs(srcQ(i,b,k,n) > 0.0_rt)) {
+          if (std::abs(srcQ(i,b,k,n)) > 0.0_rt) {
             do_trace = 1;
             break;
           }
         }
       } else {
         for (int b = k-2; b <= k+2; b++) {
-          if (std::abs(srcQ(i,j,b,n) > 0.0_rt)) {
+          if (std::abs(srcQ(i,j,b,n)) > 0.0_rt) {
             do_trace = 1;
             break;
           }
