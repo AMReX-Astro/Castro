@@ -4,7 +4,7 @@
 set -x
 
 DIM=2
-EXEC=./Castro${DIM}d.gnu.MPI.TRUESDC.ex
+EXEC=./Castro${DIM}d.gnu.MPI.ex
 
 RUNPARAMS="castro.fourth_order=1 castro.mol_order=4 castro.time_integration_method=1"
 
