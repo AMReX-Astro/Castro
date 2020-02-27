@@ -176,7 +176,9 @@ contains
   end subroutine ca_recompute_energetics
 
 
-  subroutine ca_reset_internal_e(lo,hi,u,u_lo,u_hi,verbose) bind(c,name='ca_reset_internal_e')
+  subroutine ca_reset_internal_e(lo, hi,
+                                 u, u_lo, u_hi,
+                                 e_reset, verbose) bind(c,name='ca_reset_internal_e')
 
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt

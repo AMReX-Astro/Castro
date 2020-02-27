@@ -330,11 +330,6 @@ use_retry                    int           1
 # prevents retries that are caused by small numerical differences.
 retry_tolerance              Real          0.02
 
-# If we're doing retries, set the target threshold for changes in density
-# if a retry is triggered by a negative density. If this is set to a negative
-# number then it will disable retries using this criterion.
-retry_neg_dens_factor        Real          1.e-1
-
 # When performing a retry, the factor to multiply the current
 # timestep by when trying again.
 retry_subcycle_factor        Real          0.5

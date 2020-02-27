@@ -129,11 +129,16 @@ Castro::do_advance_ctu(Real time,
 
       construct_ctu_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
+
+      // Check for small/negative densities.
+      // If we detect one, return immediately.
+      if (S_new.min(URHO) < small_dens)
+          return false;
     }
 
 
     // Sync up state after old sources and hydro source.
-    frac_change = clean_state(S_new, cur_time, 0);
+    clean_state(S_new, cur_time, 0);
 
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
@@ -251,19 +256,6 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 #endif
                           AMREX_REAL_ANYD(dx),
                           dt, AMREX_MFITER_REDUCE_MIN(&dt_sub));
-
-    }
-
-    if (retry_neg_dens_factor > 0.0) {
-
-        // Negative density criterion
-        // Reset so that the desired maximum fractional change in density
-        // is not larger than retry_neg_dens_factor.
-
-        ParallelDescriptor::ReduceRealMin(frac_change);
-
-        if (frac_change < 0.0)
-            dt_sub = std::min(dt_sub, dt * -(retry_neg_dens_factor / frac_change));
 
     }
 
