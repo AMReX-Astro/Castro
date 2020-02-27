@@ -172,6 +172,9 @@ use_pslope                   int           1                  y
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0                  y
 
+# Should we limit the density fluxes so that we do not create small internal energies?
+limit_fluxes_on_small_eint   int           0                  y
+
 # Should we limit the momentum fluxes so that we do not create large velocities?
 limit_fluxes_on_large_vel    int           0                  y
 

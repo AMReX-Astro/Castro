@@ -893,6 +893,204 @@ contains
 
 
 
+  subroutine limit_hydro_fluxes_on_small_eint(lo, hi, &
+                                              idir, &
+                                              u, u_lo, u_hi, &
+                                              q, q_lo, q_hi, &
+                                              vol, vol_lo, vol_hi, &
+                                              flux, flux_lo, flux_hi, &
+                                              area, area_lo, area_hi, &
+                                              dt, dx) bind(c, name="limit_hydro_fluxes_on_small_eint")
+    ! The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
+    ! "Positivity-preserving method for high-order conservative schemes solving
+    ! compressible Euler equations." It has been modified to enforce not only positivity
+    ! but also the stronger requirement that e > small_ener.
+
+    use amrex_fort_module, only: rt => amrex_real
+    use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+    use meth_params_module, only: NVAR, NQ, URHO, UTEMP, UEINT, UFS, UFX, small_temp, cfl
+#ifdef SHOCK_VAR
+    use meth_params_module, only: USHK
+#endif
+    use network, only: nspec, naux
+    use eos_type_module, only: eos_t, eos_input_rt
+    use eos_module, only: eos
+    use prob_params_module, only: dim
+
+    implicit none
+
+    integer, intent(in) :: u_lo(3), u_hi(3)
+    integer, intent(in), value :: idir
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: vol_lo(3), vol_hi(3)
+    integer, intent(in) :: lo(3), hi(3)
+    integer, intent(in) :: flux_lo(3), flux_hi(3)
+    integer, intent(in) :: area_lo(3), area_hi(3)
+    real(rt), intent(in) :: dx(3)
+    real(rt), intent(in), value :: dt
+
+    real(rt), intent(in   ) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+    real(rt), intent(in   ) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in   ) :: vol(vol_lo(1):vol_hi(1),vol_lo(2):vol_hi(2),vol_lo(3):vol_hi(3))
+    real(rt), intent(inout) :: flux(flux_lo(1):flux_hi(1),flux_lo(2):flux_hi(2),flux_lo(3):flux_hi(3),NVAR)
+    real(rt), intent(in   ) :: area(area_lo(1):area_hi(1),area_lo(2):area_hi(2),area_lo(3):area_hi(3))
+
+    integer  :: i, j, k
+
+    real(rt) :: rhoInv, rhoeL, rhoeR, drhoeL, drhoeR, fluxLF(NVAR), fluxL(NVAR), fluxR(NVAR), rhoeLF, drhoeLF, dtdx, theta, alpha
+    real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ), volL, volR, flux_coefL, flux_coefR
+    integer  :: idxL(3), idxR(3)
+
+    real(rt) :: small_e_L, small_e_R
+
+    type(eos_t) :: eos_state
+
+    !$gpu
+
+    dtdx = dt / dx(idir)
+    alpha = ONE / DIM
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             ! Grab the states on either side of the interface we are working with,
+             ! depending on which dimension we're currently calling this with.
+
+             uR = u(i,j,k,:)
+             qR = q(i,j,k,:)
+             volR = vol(i,j,k)
+             idxR = [i,j,k]
+
+             if (idir == 1) then
+                uL = u(i-1,j,k,:)
+                qL = q(i-1,j,k,:)
+                volL = vol(i-1,j,k)
+                idxL = [i-1,j,k]
+             else if (idir == 2) then
+                uL = u(i,j-1,k,:)
+                qL = q(i,j-1,k,:)
+                volL = vol(i,j-1,k)
+                idxL = [i,j-1,k]
+             else
+                uL = u(i,j,k-1,:)
+                qL = q(i,j,k-1,:)
+                volL = vol(i,j,k-1)
+                idxL = [i,j,k-1]
+             end if
+
+             ! Calculate the minimum allowable value of the internal energy for each zone.
+
+             rhoInv = ONE / uR(uRHO)
+             eos_state % rho = uR(URHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = uR(UFS:UFS+nspec-1) * rhoInv
+             eos_state % aux = uR(UFX:UFX+naux-1) * rhoInv
+
+             call eos(eos_input_rt, eos_state)
+
+             small_e_R = eos_state % e
+
+             rhoInv = ONE / uL(uRHO)
+             eos_state % rho = uL(URHO)
+             eos_state % T   = small_temp
+             eos_state % xn  = uL(UFS:UFS+nspec-1) * rhoInv
+             eos_state % aux = uL(UFX:UFX+naux-1) * rhoInv
+
+             call eos(eos_input_rt, eos_state)
+
+             small_e_L = eos_state % e
+
+             ! If an adjacent zone has a floor-violating internal energy, set the flux to zero and move on.
+             ! At that point, the only thing to do is wait for a reset at a later point.
+
+             if (uR(UEINT) < uR(URHO) * small_e_R .or. uL(UEINT) < uL(URHO) * small_e_L) then
+
+                flux(i,j,k,:) = ZERO
+                cycle
+
+             endif
+
+             ! Construct cell-centered fluxes.
+
+             fluxL = dflux(uL, qL, idir, idxL)
+             fluxR = dflux(uR, qR, idir, idxR)
+
+             ! Construct the Lax-Friedrichs flux on the interface (Equation 12).
+
+             fluxLF = HALF * (fluxL(:) + fluxR(:) + (cfl / dtdx / alpha) * (uL(:) - uR(:)))
+
+             ! Coefficients of fluxes on either side of the interface.
+
+             flux_coefR = TWO * (dt / alpha) * area(i,j,k) / volR
+             flux_coefL = TWO * (dt / alpha) * area(i,j,k) / volL
+
+             ! Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
+
+             drhoeL = flux_coefL * flux(i,j,k,UEINT)
+             rhoeL = uL(UEINT) - drhoeL
+
+             drhoeR = flux_coefR * flux(i,j,k,UEINT)
+             rhoeR = uR(UEINT) + drhoeR
+
+             theta = ONE
+
+             if (rhoeL < uL(URHO) * small_e_L) then
+
+                ! Obtain the final density corresponding to the LF flux.
+
+                drhoeLF = flux_coefL * fluxLF(UEINT)
+                rhoeLF = uL(UEINT) - drhoeLF
+
+                ! Solve for theta from (1 - theta) * rhoeLF + theta * rhoe = rho * small_e_L.
+
+                theta = (uL(URHO) * small_e_L - rhoeLF) / (rhoeL - rhoeLF)
+
+                ! Limit theta to the valid range (this will deal with roundoff issues).
+
+                theta = min(ONE, max(theta, ZERO))
+
+             else if (rhoeR < uR(URHO) * small_e_R) then
+
+                drhoeLF = flux_coefR * fluxLF(UEINT)
+                rhoeLF = uR(UEINT) + drhoeLF
+
+                theta = (uR(URHO) * small_e_R - rhoeLF) / (rhoeR - rhoeLF)
+
+                theta = min(ONE, max(theta, ZERO))
+
+             endif
+
+             ! Assemble the limited flux (Equation 16).
+
+             flux(i,j,k,:) = (ONE - theta) * fluxLF(:) + theta * flux(i,j,k,:)
+
+             ! Zero out fluxes for quantities that don't advect.
+
+             flux(i,j,k,UTEMP) = ZERO
+#ifdef SHOCK_VAR
+             flux(i,j,k,USHK) = ZERO
+#endif
+
+             ! Now, apply our requirement that the final flux cannot violate the density floor.
+
+             drhoeR = flux_coefR * flux(i,j,k,UEINT)
+             drhoeL = flux_coefL * flux(i,j,k,UEINT)
+
+             if (uR(UEINT) + drhoeR < uR(URHO) * small_e_R) then
+                flux(i,j,k,:) = flux(i,j,k,:) * abs((uR(URHO) * small_e_R - uR(UEINT)) / drhoeR)
+             else if (uL(UEINT) - drhoeL < uL(URHO) * small_e_L) then
+                flux(i,j,k,:) = flux(i,j,k,:) * abs((uL(URHO) * small_e_L - uL(UEINT)) / drhoeL)
+             endif
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine limit_hydro_fluxes_on_small_eint
+
+
+
   subroutine limit_hydro_fluxes_on_large_vel(lo, hi, &
                                              idir, &
                                              u, u_lo, u_hi, &
