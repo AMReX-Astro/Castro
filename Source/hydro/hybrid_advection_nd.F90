@@ -4,6 +4,9 @@ module hybrid_advection_module
 
   implicit none
 
+  ! Avoid the singularity in cylindrical coordinates
+  real(rt), parameter :: R_min = epsilon(0.0_rt)
+
 contains
 
 
@@ -107,7 +110,7 @@ contains
 
              loc = position(i,j,k) - center
 
-             R = sqrt( loc(1)**2 + loc(2)**2 )
+             R = max(sqrt(loc(1)**2 + loc(2)**2), R_min)
 
              rhoInv = ONE / state(i,j,k,URHO)
 
@@ -136,7 +139,7 @@ contains
 
     !$gpu
 
-    R = sqrt( loc(1)**2 + loc(2)**2 )
+    R = max(sqrt(loc(1)**2 + loc(2)**2), R_min)
 
     ! This conversion is Eqs. 25 and 26 in Byerly et al. 2014.
     ! Note that we expect the linear momentum to be consistent
@@ -169,7 +172,7 @@ contains
 
     !$gpu
 
-    R = sqrt( loc(1)**2 + loc(2)**2 )
+    R = max(sqrt(loc(1)**2 + loc(2)**2), R_min)
 
     ! This is the inverse of Byerly et al., Equations 25 and 26.
 
@@ -193,7 +196,7 @@ contains
 
     !$gpu
 
-    R = sqrt( loc(1)**2 + loc(2)**2 )
+    R = max(sqrt(loc(1)**2 + loc(2)**2), R_min)
 
     ! This is analogous to the conversion of linear momentum to hybrid momentum.
 
@@ -215,7 +218,7 @@ contains
 
     !$gpu
 
-    R = sqrt( loc(1)**2 + loc(2)**2 )
+    R = max(sqrt(loc(1)**2 + loc(2)**2), R_min)
 
     ! This is analogous to the conversion of linear momentum to hybrid momentum.
 
@@ -274,7 +277,7 @@ contains
 #endif
     endif
 
-    R = sqrt(loc(1)**2 + loc(2)**2)
+    R = max(sqrt(loc(1)**2 + loc(2)**2), R_min)
 
     linear_mom = state(GDRHO) * state(GDU:GDW)
 
@@ -346,7 +349,7 @@ contains
 
              loc = position(i,j,k) - center
 
-             R = sqrt( loc(1)**2 + loc(2)**2 )
+             R = max(sqrt(loc(1)**2 + loc(2)**2), R_min)
 
              update(i,j,k,UMR) = update(i,j,k,UMR) - ( (loc(1) / R) * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx(1) + &
                   (loc(2) / R) * (qy(i,j+1,k,GDPRES) - qy(i,j,k,GDPRES)) / dx(2) )

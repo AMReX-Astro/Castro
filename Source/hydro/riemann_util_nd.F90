@@ -443,10 +443,10 @@ contains
                                    USHK, &
 #endif
                                    QRHO, QU, QV, QW, &
-                                   QPRES, QGAME, QREINT, &
+                                   QPRES, QREINT, &
                                    QGAMC, QFS, QFX, &
 #ifdef HYBRID_MOMENTUM
-                                   NGDNV, GDPRES, GDGAME, &
+                                   NGDNV, GDPRES, &
                                    GDRHO, GDU, GDV, GDW, &
 #endif
 #ifdef RADIATION
@@ -595,7 +595,6 @@ contains
              qgdnv_zone(GDV) = qint(i,j,k,QV)
              qgdnv_zone(GDW) = qint(i,j,k,QW)
              qgdnv_zone(GDPRES) = qint(i,j,k,QPRES)
-             qgdnv_zone(GDGAME) = qint(i,j,k,QGAME)
 #ifdef RADIATION
              qgdnv_zone(GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
              qgdnv_zone(GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
@@ -625,8 +624,8 @@ contains
 
     use meth_params_module, only : NQ, NVAR, NQAUX, &
                                    QRHO, QU, QV, QW, &
-                                   QPRES, QGAME, &
-                                   NGDNV, GDRHO, GDPRES, GDGAME, &
+                                   QPRES, &
+                                   NGDNV, GDRHO, GDPRES, &
 #ifdef RADIATION
                                    QRAD, GDERADS, GDLAMS, &
 #endif
@@ -660,7 +659,6 @@ contains
              qgdnv(i,j,k,GDV) = qint(i,j,k,QV)
              qgdnv(i,j,k,GDW) = qint(i,j,k,QW)
              qgdnv(i,j,k,GDPRES) = qint(i,j,k,QPRES)
-             qgdnv(i,j,k,GDGAME) = qint(i,j,k,QGAME)
 #ifdef RADIATION
              qgdnv(i,j,k,GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
              qgdnv(i,j,k,GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)

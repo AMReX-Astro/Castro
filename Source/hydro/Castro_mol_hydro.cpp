@@ -284,7 +284,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Array4<const Real> const q_avg_arr = q_avg.array();
 
             AMREX_PARALLEL_FOR_4D(nbx, NQ, i, j, k, n, {
-                bool test = (n == QGAME) || (n == QGC) || (n == QTEMP);
+                bool test = (n == QGC) || (n == QTEMP);
 
                 if (test) continue;
 

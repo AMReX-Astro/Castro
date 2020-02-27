@@ -236,7 +236,7 @@ contains
 
     use meth_params_module, only : NQSRC, NQ, NVAR, &
                                    QTEMP, QREINT, &
-                                   QC, QGAMC, NQAUX, QGAME, QREINT, &
+                                   QC, QGAMC, NQAUX, QREINT, &
                                    use_pslope
     use trace_plm_module, only : trace_plm
     use slope_module, only : uslope, pslope
@@ -299,7 +299,6 @@ contains
     ! we don't need to reconstruct all of the NQ state variables,
     ! depending on how we are tracing
     reconstruct_state(:) = .true.
-    reconstruct_state(QGAME) = .false.
     reconstruct_state(QTEMP) = .false.
 
 
@@ -344,7 +343,7 @@ contains
                          dloga, dloga_lo, dloga_hi, &
 #endif
                          SrcQ, src_lo, src_hi, &
-                         vlo, vhi, domlo, domhi, &
+                         vlo, vhi, &
                          dx, dt)
 
 #if AMREX_SPACEDIM >= 2
@@ -359,7 +358,7 @@ contains
                          dloga, dloga_lo, dloga_hi, &
 #endif
                          SrcQ, src_lo, src_hi, &
-                         vlo, vhi, domlo, domhi, &
+                         vlo, vhi, &
                          dx, dt)
 #endif
 
@@ -372,7 +371,7 @@ contains
                          qzm, qzm_lo, qzm_hi, &
                          qzp, qzp_lo, qzp_hi, &
                          SrcQ, src_lo, src_hi, &
-                         vlo, vhi, domlo, domhi, &
+                         vlo, vhi, &
                          dx, dt)
 #endif
        end if

@@ -72,35 +72,6 @@ end subroutine ca_extern_init
 ! :::
 
 
-subroutine ca_get_aux_names(aux_names,iaux,len) &
-     bind(C, name="ca_get_aux_names")
-     !
-     ! Binds to C function `ca_get_aux_names`
-
-  use network, only: naux, short_aux_names
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in   ) :: iaux
-  integer, intent(inout) :: len
-  integer, intent(inout) :: aux_names(len)
-
-  ! Local variables
-  integer   :: i
-
-  len = len_trim(short_aux_names(iaux+1))
-
-  do i = 1,len
-     aux_names(i) = ichar(short_aux_names(iaux+1)(i:i))
-  end do
-
-end subroutine ca_get_aux_names
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
 
 #ifdef REACTIONS
 subroutine ca_get_abort_on_failure(abort_on_failure_in) bind(C, name="ca_get_abort_on_failure")
