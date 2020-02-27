@@ -94,7 +94,7 @@ void ca_sdc_compute_C4_lobatto(const amrex::Box& bx,
                                amrex::Array4<const amrex::Real> const& A_1_old,
                                amrex::Array4<const amrex::Real> const& A_2_old,
                                amrex::Array4<const amrex::Real> const& R_0_old,
-                                                           amrex::Array4<const amrex::Real> const& R_1_old,
+                               amrex::Array4<const amrex::Real> const& R_1_old,
                                amrex::Array4<const amrex::Real> const& R_2_old,
                                amrex::Array4<amrex::Real> const& C,
                                int m_start);
@@ -113,11 +113,11 @@ void ca_sdc_compute_C4_radau(const amrex::Box& bx,
                              amrex::Array4<amrex::Real> const& C,
                              int m_start);
 
-void ca_sdc_conservative_update(const amrex::Box& bx, amrex::Real const dt_m, 
-                                                                amrex::Array4<const amrex::Real> const& U_old,
-                                                                amrex::Array4<amrex::Real> const& U_new,
-                                                                amrex::Array4<const amrex::Real> const& C,
-                                                                amrex::Array4<const amrex::Real> const& R_new);
+void ca_sdc_conservative_update(const amrex::Box& bx, amrex::Real const dt_m,
+                                amrex::Array4<const amrex::Real> const& U_old,
+                                amrex::Array4<amrex::Real> const& U_new,
+                                amrex::Array4<const amrex::Real> const& C,
+                                amrex::Array4<const amrex::Real> const& R_new);
 #endif
 
 void ca_sdc_compute_initial_guess(const amrex::Box& bx,

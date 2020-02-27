@@ -135,8 +135,8 @@ Castro::ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_0_old(i,j,k,n)) +
                 dt/1800.0_rt * ((-35.0_rt*sqrt(6.0_rt) + 440.0_rt)*A_1_old(i,j,k,n) +
-                            (-169.0_rt*sqrt(6.0_rt) + 296.0_rt)*A_2_old(i,j,k,n) +
-                            (-16.0_rt + 24.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,n));
+                                (-169.0_rt*sqrt(6.0_rt) + 296.0_rt)*A_2_old(i,j,k,n) +
+                                (-16.0_rt + 24.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,n));
         });
     }
     else if (m_start == 1)
@@ -146,8 +146,8 @@ Castro::ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_1_old(i,j,k,n)) +
                 dt/150.0_rt * ((-12.0_rt + 17.0_rt*sqrt(6.0_rt))*A_1_old(i,j,k,n) +
-                           (12.0_rt + 17.0_rt*sqrt(6.0_rt))*A_2_old(i,j,k,n) +
-                           (-4.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,n));
+                               (12.0_rt + 17.0_rt*sqrt(6.0_rt))*A_2_old(i,j,k,n) +
+                               (-4.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,n));
         });
     }
     else if (m_start == 2)
@@ -157,8 +157,8 @@ Castro::ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_2_old(i,j,k,n)) +
                 dt/600.0_rt * ((168.0_rt - 73.0_rt*sqrt(6.0_rt))*A_1_old(i,j,k,n) +
-                           (120.0_rt + 5.0_rt*sqrt(6.0_rt))*A_2_old(i,j,k,n) +
-                           (72.0_rt + 8.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,n));
+                               (120.0_rt + 5.0_rt*sqrt(6.0_rt))*A_2_old(i,j,k,n) +
+                               (72.0_rt + 8.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,n));
         });
     }
     else
@@ -274,15 +274,17 @@ Castro::ca_sdc_compute_C4_lobatto(const amrex::Box& bx,
         // compute the integral from [t_m, t_{m+1}], normalized by dt_m
         AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
         {
-            Real integral = 1.0_rt/12.0_rt * (-(A_0_old(i,j,k,n) + R_0_old(i,j,k,n)) + 
-                                              8.0_rt*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) + 
+            Real integral = 1.0_rt/12.0_rt * (-(A_0_old(i,j,k,n) + R_0_old(i,j,k,n)) +
+                                              8.0_rt*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
                                               5.0_rt*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)));
 
             C(i,j,k,n) = (A_m(i,j,k,n) - A_1_old(i,j,k,n)) - R_2_old(i,j,k,n) + integral;
         });
     }
     else
+    {
         amrex::Abort("error in ca_sdc_compute_C4 -- should not be here");
+    }
 
 } // end subroutine ca_sdc_compute_C4_lobatto
 
@@ -312,58 +314,60 @@ Castro::ca_sdc_compute_C4_radau(const amrex::Box& bx,
         // compute the integral from [t_m, t_{m+1}], normalized by dt_m
         AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
         {
-                        Real integral = (dt/dt_m) * (1.0_rt/1800.0_rt) *
-                                ((-35.0_rt*sqrt(6.0_rt) + 440.0_rt)*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
-                                 (-169.0_rt*sqrt(6.0_rt) + 296.0_rt)*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
-                                 (-16.0_rt + 24.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
+            Real integral = (dt/dt_m) * (1.0_rt/1800.0_rt) *
+                ((-35.0_rt*sqrt(6.0_rt) + 440.0_rt)*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
+                 (-169.0_rt*sqrt(6.0_rt) + 296.0_rt)*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
+                 (-16.0_rt + 24.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
 
-                        C(i,j,k,n) = (A_m(i,j,k,n) - A_0_old(i,j,k,n)) - R_1_old(i,j,k,n) + integral;
-                });
+            C(i,j,k,n) = (A_m(i,j,k,n) - A_0_old(i,j,k,n)) - R_1_old(i,j,k,n) + integral;
+        });
     }
     else if (m_start == 1)
     {
-                // compute the integral from [t_m, t_{m+1}], normalized by dt_m
-                AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
-                {
-                        Real integral = (dt/dt_m) * (1.0_rt/150.0_rt) *
-                                ((-12.0_rt + 17.0_rt*sqrt(6.0_rt))*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
-                                 (12.0_rt + 17.0_rt*sqrt(6.0_rt))*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
-                                 (-4.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
+        // compute the integral from [t_m, t_{m+1}], normalized by dt_m
+        AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+        {
+            Real integral = (dt/dt_m) * (1.0_rt/150.0_rt) *
+                ((-12.0_rt + 17.0_rt*sqrt(6.0_rt))*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
+                 (12.0_rt + 17.0_rt*sqrt(6.0_rt))*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
+                 (-4.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
 
-                        C(i,j,k,n) = (A_m(i,j,k,n) - A_1_old(i,j,k,n)) - R_2_old(i,j,k,n) + integral;
-                });
-        }
+            C(i,j,k,n) = (A_m(i,j,k,n) - A_1_old(i,j,k,n)) - R_2_old(i,j,k,n) + integral;
+        });
+    }
     else if (m_start == 2)
     {
-                // compute the integral from [t_m, t_{m+1}], normalized by dt_m
-                AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
+        // compute the integral from [t_m, t_{m+1}], normalized by dt_m
+        AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
         {
-                        Real integral = (dt/dt_m) * (1.0_rt/600.0_rt) *
-                                ((168.0_rt - 73.0_rt*sqrt(6.0_rt))*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
-                                 (120.0_rt + 5.0_rt*sqrt(6.0_rt))*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
-                                 (72.0_rt + 8.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
+            Real integral = (dt/dt_m) * (1.0_rt/600.0_rt) *
+                ((168.0_rt - 73.0_rt*sqrt(6.0_rt))*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
+                 (120.0_rt + 5.0_rt*sqrt(6.0_rt))*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
+                 (72.0_rt + 8.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
 
-                        C(i,j,k,n) = (A_m(i,j,k,n) - A_2_old(i,j,k,n)) - R_3_old(i,j,k,n) + integral;
-                });
+            C(i,j,k,n) = (A_m(i,j,k,n) - A_2_old(i,j,k,n)) - R_3_old(i,j,k,n) + integral;
+        });
     }
     else
+    {
         amrex::Abort("error in ca_sdc_compute_C4 -- should not be here");
+    }
 } //  end ca_sdc_compute_C4_radau
 
 void
-Castro::ca_sdc_conservative_update(const amrex::Box& bx, amrex::Real const dt_m, 
-                                                                   amrex::Array4<const amrex::Real> const& U_old,
-                                                                   amrex::Array4<amrex::Real> const& U_new,
-                                                                   amrex::Array4<const amrex::Real> const& C,
-                                                                   amrex::Array4<const amrex::Real> const& R_new)
+Castro::ca_sdc_conservative_update(const amrex::Box& bx, amrex::Real const dt_m,
+                                   amrex::Array4<const amrex::Real> const& U_old,
+                                   amrex::Array4<amrex::Real> const& U_new,
+                                   amrex::Array4<const amrex::Real> const& C,
+                                   amrex::Array4<const amrex::Real> const& R_new)
 {
     // given <U>_old, <R>_new, and <C>, compute <U>_new
 
     // now consider the reacting system
-        AMREX_PARALLEL_FOR_4D(bx, U_new.nComp(), i, j, k, n,
-        {
-                U_new(i,j,k,n) = U_old(i,j,k,n) + dt_m * R_new(i,j,k,n) + dt_m * C(i,j,k,n);
-        });
+    AMREX_PARALLEL_FOR_4D(bx, U_new.nComp(), i, j, k, n,
+    {
+        U_new(i,j,k,n) = U_old(i,j,k,n) + dt_m * R_new(i,j,k,n) + dt_m * C(i,j,k,n);
+    });
 } // end subroutine ca_sdc_conservative_update
 
 
