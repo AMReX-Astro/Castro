@@ -70,9 +70,6 @@ amr.compute_new_dt_on_regrid = 1
 # Use a retry if an advance violated our stability criteria
 castro.use_retry = 1
 
-# Disable retries based on negative density resets
-castro.retry_neg_dens_factor = -1.0
-
 ############################################################################################ 
 # Resolution, gridding and AMR
 ############################################################################################
