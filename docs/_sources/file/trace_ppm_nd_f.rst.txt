@@ -1,8 +1,0 @@
-trace_ppm_nd.F90
-================
-
-trace\_ppm\_module
-------------------
-
-.. f:automodule:: trace_ppm_module
-
