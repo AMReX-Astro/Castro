@@ -6,9 +6,9 @@ module riemann_module
                                  URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UFX, UTEMP, &
                                  QRHO, QU, QV, QW, &
-                                 QPRES, QGAME, QREINT, QFS, QFX, &
+                                 QPRES, QREINT, QFS, QFX, &
                                  QC, QGAMC, QGC, &
-                                 NGDNV, GDRHO, GDPRES, GDGAME, &
+                                 NGDNV, GDRHO, GDPRES, &
 
 #ifdef RADIATION
                                  qrad, qptot, qreitot, &
@@ -16,7 +16,8 @@ module riemann_module
 #endif
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp, &
-                                 use_eos_in_riemann, use_reconstructed_gamma1
+                                 use_eos_in_riemann, use_reconstructed_gamma1, &
+                                 hybrid_riemann, riemann_solver
 
   use riemann_util_module
 
@@ -92,94 +93,10 @@ contains
 
     real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
 
-    !$gpu
-
-    call cmpflx(lo, hi, &
-                qm, qm_lo, qm_hi, &
-                qp, qp_lo, qp_hi, &
-                flx, flx_lo, flx_hi, &
-                qint, q_lo, q_hi, &
-#ifdef RADIATION
-                rflx, rflx_lo, rflx_hi, &
-                lambda_int, li_lo, li_hi, &
-#endif
-                qaux, qa_lo, qa_hi, &
-                shk, s_lo, s_hi, &
-                idir, domlo, domhi)
-
-    call ca_store_godunov_state(lo, hi, &
-                                qint, q_lo, q_hi, &
-#ifdef RADIATION
-                                lambda_int, li_lo, li_hi, &
-#endif
-                                qgdnv, qg_lo, qg_hi)
-
-  end subroutine cmpflx_plus_godunov
-
-  subroutine cmpflx(lo, hi, &
-                    qm, qm_lo, qm_hi, &
-                    qp, qp_lo, qp_hi, &
-                    flx, flx_lo, flx_hi, &
-                    qint, q_lo, q_hi, &
-#ifdef RADIATION
-                    rflx, rflx_lo, rflx_hi, &
-                    lambda_int, li_lo, li_hi, &
-#endif
-                    qaux, qa_lo, qa_hi, &
-                    shk, s_lo, s_hi, &
-                    idir, domlo, domhi)
-
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t
-    use network, only: nspec, naux
-    use castro_error_module
-    use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, riemann_solver
-
-    implicit none
-
-    ! note: lo, hi necessarily the limits of the valid (no ghost
-    ! cells) domain, but could be hi+1 in some dimensions.  We rely on
-    ! the caller to specific the interfaces over which to solve the
-    ! Riemann problems
-
-    integer, intent(in) :: lo(3), hi(3)
-
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
-    integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: flx_lo(3), flx_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-
-    integer, intent(in) :: idir
-
-    integer, intent(in) :: domlo(3),domhi(3)
-
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
-
-    real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-
-#ifdef RADIATION
-    integer, intent(in) :: rflx_lo(3), rflx_hi(3)
-    real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
-    integer, intent(in) :: li_lo(3), li_hi(3)
-    real(rt), intent(inout) :: lambda_int(li_lo(1),li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
-#endif
-
-    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
-
-    real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
-
-    ! local variables
-
-    integer i, j, k
-
-    integer :: is_shock
+    integer :: i, j, k
     real(rt) :: cl, cr
+    real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
+    integer :: is_shock
 
     !$gpu
 
@@ -230,6 +147,8 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
+                is_shock = 0
+
                 select case (idir)
                 case (1)
                    is_shock = shk(i-1,j,k) + shk(i,j,k)
@@ -265,9 +184,14 @@ contains
 
     endif
 
-  end subroutine cmpflx
+    call ca_store_godunov_state(lo, hi, &
+                                qint, q_lo, q_hi, &
+#ifdef RADIATION
+                                lambda_int, li_lo, li_hi, &
+#endif
+                                qgdnv, qg_lo, qg_hi)
 
-
+  end subroutine cmpflx_plus_godunov
 
 
   subroutine riemann_state(lo, hi, &
@@ -506,7 +430,7 @@ contains
     real(rt) :: wsmall, csmall, qavg
     real(rt) :: cavg
 
-    real(rt) :: gcl, gcr
+    real(rt) :: gcl, gcr, game_int
     real(rt) :: clsq, clsql, clsqr, wlsq, wosq, wrsq, wo
     real(rt) :: zm, zp
     real(rt) :: denom, dpditer, dpjmp
@@ -989,7 +913,7 @@ contains
              qint(i,j,k,QRHO) = frac*rstar + (ONE - frac)*ro
              qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
              qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
-             qint(i,j,k,QGAME) = frac*gamstar + (ONE-frac)*gameo
+             game_int = frac*gamstar + (ONE-frac)*gameo
 
              ! now handle the cases where instead we are fully in the
              ! star or fully in the original (l/r) state
@@ -997,14 +921,14 @@ contains
                 qint(i,j,k,QRHO) = ro
                 qint(i,j,k,iu) = uo
                 qint(i,j,k,QPRES) = po
-                qint(i,j,k,QGAME) = gameo
+                game_int = gameo
              endif
 
              if (spin >= ZERO) then
                 qint(i,j,k,QRHO) = rstar
                 qint(i,j,k,iu) = ustar
                 qint(i,j,k,QPRES) = pstar
-                qint(i,j,k,QGAME) = gamstar
+                game_int = gamstar
              endif
 
              qint(i,j,k,QPRES) = max(qint(i,j,k,QPRES), small_pres)
@@ -1024,7 +948,7 @@ contains
              qint(i,j,k,iu) = u_adv
 
              ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
-             qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(qint(i,j,k,QGAME) - ONE)
+             qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(game_int - ONE)
 
              ! advected quantities -- only the contact matters
              do ipassive = 1, npassive
@@ -1490,8 +1414,6 @@ contains
                 qint(i,j,k,QRAD+g) = max(regdnv_r(g), 0.e0_rt)
              end do
 
-             qint(i,j,k,QGAME) = pgdnv_g/regdnv_g + ONE
-
              qint(i,j,k,QPRES) = pgdnv_g
              qint(i,j,k,QPTOT) = pgdnv_t
              qint(i,j,k,QREINT) = regdnv_g
@@ -1500,7 +1422,6 @@ contains
              lambda_int(i,j,k,:) = lambda(:)
 
 #else
-             qint(i,j,k,QGAME) = qint(i,j,k,QPRES)/regdnv + ONE
              qint(i,j,k,QPRES) = max(qint(i,j,k,QPRES),small_pres)
              qint(i,j,k,QREINT) = regdnv
 #endif
@@ -1521,7 +1442,6 @@ contains
 
                 call eos(eos_input_rp, eos_state)
 
-                qint(i,j,k,QGAME) = eos_state % p / (eos_state % rho * eos_state % e) + ONE
                 qint(i,j,k,QREINT) = eos_state % rho * eos_state % e
              endif
 
@@ -1780,7 +1700,6 @@ contains
 
              qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
              qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
-             qint(i,j,k,QGAME) = qint(i,j,k,QPRES)/regdnv + ONE
 
 
              ! now we do the HLLC construction

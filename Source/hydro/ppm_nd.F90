@@ -7,7 +7,7 @@ module ppm_module
 
 contains
 
-  subroutine ppm_reconstruct(s, flatn, sm, sp)
+  subroutine ppm_reconstruct_f90(s, flatn, sm, sp)
     ! This routine does the reconstruction of the zone data into a parabola.
 
     implicit none
@@ -105,11 +105,11 @@ contains
 
     end if
 
-  end subroutine ppm_reconstruct
+  end subroutine ppm_reconstruct_f90
 
 
 
-  subroutine ppm_int_profile(sm, sp, sc, u, c, dtdx, Ip, Im)
+  subroutine ppm_int_profile_f90(sm, sp, sc, u, c, dtdx, Ip, Im)
     ! Integrate the parabolic profile to the edge of the cell.
 
     implicit none
@@ -168,62 +168,6 @@ contains
        Im(3) = sm
     endif
 
-  end subroutine ppm_int_profile
-
-
-
-
-  subroutine ppm_reconstruct_with_eos(Ip, Im, Ip_gc, Im_gc)
-    ! temperature-based PPM -- if desired, take the Ip(T)/Im(T)
-    ! constructed above and use the EOS to overwrite Ip(p)/Im(p)
-    ! get an edge-based gam1 here if we didn't get it from the EOS
-    ! call above (for ppm_temp_fix = 1)
-
-    use meth_params_module, only: NQ, QRHO, QTEMP, QPRES, QREINT, QFS, QFX, small_temp
-    use eos_type_module, only: eos_t, eos_input_rt
-    use eos_module, only: eos
-    use network, only: nspec, naux
-
-    real(rt), intent(inout) :: Ip(1:3, NQ)
-    real(rt), intent(inout) :: Im(1:3, NQ)
-    real(rt), intent(inout) :: Ip_gc(1:3, 1)
-    real(rt), intent(inout) :: Im_gc(1:3, 1)
-
-    integer :: iwave
-
-    type(eos_t) :: eos_state
-
-    !$gpu
-
-    do iwave = 1, 3
-
-       eos_state % rho = Ip(iwave,QRHO)
-       eos_state % T   = max(Ip(iwave,QTEMP), small_temp)
-
-       eos_state % xn  = Ip(iwave,QFS:QFS+nspec-1)
-       eos_state % aux = Ip(iwave,QFX:QFX+naux-1)
-
-       call eos(eos_input_rt, eos_state)
-
-       Ip(iwave,QPRES)  = eos_state % p
-       Ip(iwave,QREINT) = Ip(iwave,QRHO) * eos_state % e
-       Ip_gc(iwave,1)   = eos_state % gam1
-
-
-       eos_state % rho = Im(iwave,QRHO)
-       eos_state % T   = max(Im(iwave,QTEMP), small_temp)
-
-       eos_state % xn  = Im(iwave,QFS:QFS+nspec-1)
-       eos_state % aux = Im(iwave,QFX:QFX+naux-1)
-
-       call eos(eos_input_rt, eos_state)
-
-       Im(iwave,QPRES)  = eos_state % p
-       Im(iwave,QREINT) = Im(iwave,QRHO) * eos_state % e
-       Im_gc(iwave,1)   = eos_state % gam1
-
-    end do
-
-  end subroutine ppm_reconstruct_with_eos
+  end subroutine ppm_int_profile_f90
 
 end module ppm_module

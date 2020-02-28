@@ -448,7 +448,7 @@ contains
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, &
          UEDEN, UEINT, UTEMP, &
          QRHO, QU, QV, QW, &
-         QREINT, QPRES, QTEMP, QGAME, QFS, QFX, &
+         QREINT, QPRES, QTEMP, QFS, QFX, &
          NQ, QC, QGAMC, QGC, QDPDR, QDPDE, NQAUX, &
 #ifdef RADIATION
          QCG, QGAMCG, QLAMS, &
@@ -584,7 +584,6 @@ contains
              q(i,j,k,QTEMP)  = eos_state % T
              q(i,j,k,QREINT) = eos_state % e * q(i,j,k,QRHO)
              q(i,j,k,QPRES)  = eos_state % p
-             q(i,j,k,QGAME)  = q(i,j,k,QPRES) / q(i,j,k,QREINT) + ONE
              q(i,j,k,QGC) = eos_state % gam1
 
              qaux(i,j,k,QDPDR)  = eos_state % dpdr_e

@@ -1,5 +1,14 @@
 # 20.03
 
+   * We now depend on the fundamental constants from Microphysics
+     instead of keep our own copy in Castro (#787)
+
+   * We removed the ppm_predict_gammae option for the CTU hydro solver.
+     This was not used frequently and did not show much difference with
+     the default (rho e) reconstruction. (#780)
+
+   * The Microphysics "extern" parameters are now available in C++
+
    * We've started converting the CTU hydro solver from Fortran to C++
      (#731)
 

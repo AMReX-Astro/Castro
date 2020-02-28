@@ -284,7 +284,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Array4<const Real> const q_avg_arr = q_avg.array();
 
             AMREX_PARALLEL_FOR_4D(nbx, NQ, i, j, k, n, {
-                bool test = (n == QGAME) || (n == QGC) || (n == QTEMP);
+                bool test = (n == QGC) || (n == QTEMP);
 
                 if (test) continue;
 
@@ -429,9 +429,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           qm.resize(tbx, NQ);
           Elixir elix_qm = qm.elixir();
+          Array4<Real> const qm_arr = qm.array();
 
           qp.resize(tbx, NQ);
           Elixir elix_qp = qp.elixir();
+          Array4<Real> const qp_arr = qp.array();
 
           // compute the fluxes and add artificial viscosity
 
@@ -463,15 +465,18 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               } else {
 
+                mol_ppm_reconstruct(obx, idir,
+                                    q_arr, flatn_arr,
+                                    qm_arr, qp_arr);
+              }
+
+              // ppm_temp_fix = 1
+              if (ppm_temp_fix == 1) {
 #pragma gpu box(obx)
-                ca_mol_ppm_reconstruct
+                edge_state_temp_to_pres
                   (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                   idir_f,
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(flatn),
                    BL_TO_FORTRAN_ANYD(qm),
-                   BL_TO_FORTRAN_ANYD(qp),
-                   AMREX_REAL_ANYD(dx));
+                   BL_TO_FORTRAN_ANYD(qp));
               }
 
               const Box& nbx = amrex::surroundingNodes(bx, idir);
