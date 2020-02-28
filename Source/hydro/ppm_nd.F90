@@ -7,7 +7,7 @@ module ppm_module
 
 contains
 
-  subroutine ppm_reconstruct(s, flatn, sm, sp)
+  subroutine ppm_reconstruct_f90(s, flatn, sm, sp)
     ! This routine does the reconstruction of the zone data into a parabola.
 
     implicit none
@@ -105,11 +105,11 @@ contains
 
     end if
 
-  end subroutine ppm_reconstruct
+  end subroutine ppm_reconstruct_f90
 
 
 
-  subroutine ppm_int_profile(sm, sp, sc, u, c, dtdx, Ip, Im)
+  subroutine ppm_int_profile_f90(sm, sp, sc, u, c, dtdx, Ip, Im)
     ! Integrate the parabolic profile to the edge of the cell.
 
     implicit none
@@ -168,6 +168,6 @@ contains
        Im(3) = sm
     endif
 
-  end subroutine ppm_int_profile
+  end subroutine ppm_int_profile_f90
 
 end module ppm_module
