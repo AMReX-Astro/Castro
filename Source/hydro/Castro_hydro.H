@@ -111,6 +111,23 @@
                               amrex::Array4<amrex::Real> const qm,
                               amrex::Array4<amrex::Real> const qp);
 
+     void trans_single(const amrex::Box& bx,
+                       int idir_t, int idir_n,
+                       amrex::Array4<amrex::Real const> const qm,
+                       amrex::Array4<amrex::Real> const qmo,
+                       amrex::Array4<amrex::Real const> const qp,
+                       amrex::Array4<amrex::Real> const qpo,
+                       amrex::Array4<amrex::Real const> const qaux,
+                       amrex::Array4<amrex::Real const> const flux_t,
+#ifdef RADIATION
+                       amrex::Array4<amrex::Real const> const rflux_t,
+#endif
+                       amrex::Array4<amrex::Real const> const q_t,
+#if AMREX_SPACEDIM == 2
+                       amrex::Array4<amrex::Real const> const area_t,
+                       amrex::Array4<amrex::Real const> const vol,
+#endif
+                       amrex::Real hdt, amrex::Real cdtdx);
 
     void trace_ppm(const amrex::Box& bx,
                    const int idir,

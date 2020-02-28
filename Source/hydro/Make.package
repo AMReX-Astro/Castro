@@ -36,6 +36,7 @@ ifeq ($(USE_TRUE_SDC),TRUE)
 endif
 
 ifneq ($(DIM), 1)
+  CEXE_sources += trans.cpp
   ca_F90EXE_sources += trans_nd.F90
 endif
 
