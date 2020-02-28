@@ -263,8 +263,6 @@ Castro::trace_ppm(const Box& bx,
       }
 #endif
 
-      //do_trace = 1;
-
       if (do_trace) {
 
         if (idir == 0) {
