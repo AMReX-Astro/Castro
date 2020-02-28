@@ -250,6 +250,7 @@ contains
 
     real(rt) :: qleft(NQ), qright(NQ)
     real(rt) :: qint_zone(NQ)
+    real(rt) :: lambda_int_zone(0:ngroups-1)
     real(rt) :: bnd_fac
     real(rt) :: csmall, cavg
     real(rt) :: gamcl, gamcr
@@ -442,7 +443,7 @@ contains
                                qint_zone, &
 
 #ifdef RADIATION
-                               lambda_int, &
+                               lambda_int_zone, &
 #endif
                                idir)
 
@@ -454,7 +455,7 @@ contains
                                gamcl, gamcr, &
                                csmall, cavg, &
                                bnd_fac, &
-                               qint_zone, &
+                               qint_zone_zone, &
                                idir)
 
 #else
@@ -470,7 +471,9 @@ contains
              endif
 
              qint(i,j,k,:) = qint_zone(:)
-
+#ifdef RADIATION
+             lambda_int(i,j,k,:) = lambda_int_zone(:)
+#endif
           end do
        end do
     end do
