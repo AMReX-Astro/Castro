@@ -6,6 +6,7 @@ module trace_ppm_rad_module
   use prob_params_module, only : dg
   use castro_error_module, only : castro_error
   use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
 
   implicit none
 
@@ -36,9 +37,8 @@ contains
     use rad_params_module, only : ngroups
     use amrex_constants_module
     use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-    use trace_ppm_module, only : trace_ppm_species
     use amrex_fort_module, only : rt => amrex_real
-    use ppm_module, only : ppm_reconstruct, ppm_int_profile
+    use ppm_module, only : ppm_reconstruct_f90, ppm_int_profile_f90
 
     implicit none
 
@@ -259,9 +259,9 @@ contains
                    s(:) = q(i,j,k-2:k+2,n)
                 end if
 
-                call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                call ppm_reconstruct_f90(s, flatn(i,j,k), sm, sp)
 
-                call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
+                call ppm_int_profile_f90(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
              end do
 
              ! source terms
@@ -276,9 +276,9 @@ contains
                       s(:) = srcQ(i,j,k-2:k+2,n)
                    end if
 
-                   call ppm_reconstruct(s, flatn(i,j,k), sm, sp)
+                   call ppm_reconstruct_f90(s, flatn(i,j,k), sm, sp)
 
-                   call ppm_int_profile(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
+                   call ppm_int_profile_f90(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
                 else
                    Ip_src(:,n) = ZERO
                    Im_src(:,n) = ZERO
@@ -659,5 +659,89 @@ contains
     end do
 
   end subroutine trace_ppm_rad
+
+  subroutine trace_ppm_species(i, j, k, &
+                               idir, &
+                               q, qd_lo, qd_hi, &
+                               Ip, Im, &
+                               Ip_src, Im_src, &
+                               qm, qm_lo, qm_hi, &
+                               qp, qp_lo, qp_hi, &
+                               vlo, vhi, domlo, domhi, &
+                               dx, dt)
+    ! here, lo and hi are the range we loop over -- this can include ghost cells
+    ! vlo and vhi are the bounds of the valid box (no ghost cells)
+
+    use network, only : nspec, naux
+    use meth_params_module, only : NQ, NQSRC, npassive, qpass_map
+
+    implicit none
+
+    integer, intent(in) :: idir
+    integer, intent(in) :: qd_lo(3), qd_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+
+    integer, intent(in) :: vlo(3), vhi(3)
+    integer, intent(in) :: domlo(3), domhi(3)
+
+    real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
+
+    real(rt), intent(in) :: Ip(1:3,NQ)
+    real(rt), intent(in) :: Im(1:3,NQ)
+
+    real(rt), intent(in) :: Ip_src(1:3,NQSRC)
+    real(rt), intent(in) :: Im_src(1:3,NQSRC)
+
+    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
+    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+    real(rt), intent(in) :: dt, dx(3)
+
+    integer, intent(in) :: i, j, k
+
+    integer :: ipassive, n
+
+    !$gpu
+
+    ! the passive stuff is the same regardless of the tracing
+    do ipassive = 1, npassive
+       n = qpass_map(ipassive)
+
+       ! Plus state on face i
+       if ((idir == 1 .and. i >= vlo(1)) .or. &
+           (idir == 2 .and. j >= vlo(2)) .or. &
+           (idir == 3 .and. k >= vlo(3))) then
+
+          ! We have
+          !
+          ! q_l = q_ref - Proj{(q_ref - I)}
+          !
+          ! and Proj{} represents the characteristic projection.
+          ! But for these, there is only 1-wave that matters, the u
+          ! wave, so no projection is needed.  Since we are not
+          ! projecting, the reference state doesn't matter
+
+          qp(i,j,k,n) = Im(2,n)
+          if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(2,n)
+
+       end if
+
+       ! Minus state on face i+1
+       if (idir == 1 .and. i <= vhi(1)) then
+          qm(i+1,j,k,n) = Ip(2,n)
+          if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(2,n)
+
+       else if (idir == 2 .and. j <= vhi(2)) then
+          qm(i,j+1,k,n) = Ip(2,n)
+          if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(2,n)
+
+       else if (idir == 3 .and. k <= vhi(3)) then
+          qm(i,j,k+1,n) = Ip(2,n)
+          if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(2,n)
+       end if
+
+    end do
+  end subroutine trace_ppm_species
+
 
 end module trace_ppm_rad_module

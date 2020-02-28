@@ -94,3 +94,67 @@ Castro::consup_hydro(const Box& bx,
     }
   });
 }
+
+
+void
+Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
+                       Array4<Real const> const q,
+                       Array4<Real const> const flatn,
+                       Array4<Real const> const qaux,
+                       Array4<Real const> const srcQ,
+                       Array4<Real> const qxm,
+                       Array4<Real> const qxp,
+#if AMREX_SPACEDIM >= 2
+                       Array4<Real> const qym,
+                       Array4<Real> const qyp,
+#endif
+#if AMREX_SPACEDIM == 3
+                       Array4<Real> const qzm,
+                       Array4<Real> const qzp,
+#endif
+#if AMREX_SPACEDIM < 3
+                       Array4<Real const> const dloga,
+#endif
+                       const Real dt) {
+
+  // Compute the normal interface states by reconstructing
+  // the primitive variables using the piecewise parabolic method
+  // and doing characteristic tracing.  We do not apply the
+  // transverse terms here.
+
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+
+    if (idir == 0) {
+      trace_ppm(bx,
+                idir,
+                q, qaux, srcQ, flatn,
+                qxm, qxp,
+#if AMREX_SPACEDIM <= 2
+                dloga,
+#endif
+                vbx, dt);
+
+#if AMREX_SPACEDIM >= 2
+    } else if (idir == 1) {
+      trace_ppm(bx,
+                idir,
+                q, qaux, srcQ, flatn,
+                qym, qyp,
+#if AMREX_SPACEDIM <= 2
+                dloga,
+#endif
+                vbx, dt);
+#endif
+
+#if AMREX_SPACEDIM == 3
+    } else {
+      trace_ppm(bx,
+                idir,
+                q, qaux, srcQ, flatn,
+                qzm, qzp,
+                vbx, dt);
+
+#endif
+    }
+  }
+}
