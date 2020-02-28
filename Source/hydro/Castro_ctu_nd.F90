@@ -10,41 +10,36 @@ module ctu_module
 
 contains
 
-  subroutine ctu_ppm_states(lo, hi, &
-                            vlo, vhi, &
-                            q, qd_lo, qd_hi, &
-                            flatn, f_lo, f_hi, &
-                            qaux, qa_lo, qa_hi, &
-                            srcQ, src_lo, src_hi, &
-                            qxm, qxm_lo, qxm_hi, &
-                            qxp, qxp_lo, qxp_hi, &
+#ifdef RADIATION
+  subroutine ctu_ppm_rad_states(lo, hi, &
+                                vlo, vhi, &
+                                q, qd_lo, qd_hi, &
+                                flatn, f_lo, f_hi, &
+                                qaux, qa_lo, qa_hi, &
+                                srcQ, src_lo, src_hi, &
+                                qxm, qxm_lo, qxm_hi, &
+                                qxp, qxp_lo, qxp_hi, &
 #if AMREX_SPACEDIM >= 2
-                            qym, qym_lo, qym_hi, &
-                            qyp, qyp_lo, qyp_hi, &
+                                qym, qym_lo, qym_hi, &
+                                qyp, qyp_lo, qyp_hi, &
 #endif
 #if AMREX_SPACEDIM == 3
-                            qzm, qzm_lo, qzm_hi, &
-                            qzp, qzp_lo, qzp_hi, &
+                                qzm, qzm_lo, qzm_hi, &
+                                qzp, qzp_lo, qzp_hi, &
 #endif
-                            dx, dt, &
+                                dx, dt, &
 #if AMREX_SPACEDIM < 3
-                            dloga, dloga_lo, dloga_hi, &
+                                dloga, dloga_lo, dloga_hi, &
 #endif
-                            domlo, domhi) bind(C, name="ctu_ppm_states")
+                                domlo, domhi) bind(C, name="ctu_ppm_rad_states")
     ! Compute the normal interface states by reconstructing
     ! the primitive variables using the piecewise parabolic method
     ! and doing characteristic tracing.  We do not apply the
     ! transverse terms here.
 
     use meth_params_module, only : NQSRC, NQ, NVAR, NQAUX
-
-
-#ifdef RADIATION
     use rad_params_module, only : ngroups
     use trace_ppm_rad_module, only : trace_ppm_rad
-#else
-    use trace_ppm_module, only : trace_ppm
-#endif
 
     implicit none
 
@@ -101,7 +96,6 @@ contains
 
        ! compute the interface states
 
-#ifdef RADIATION
        if (idir == 1) then
           call trace_ppm_rad(lo, hi, &
                              1, &
@@ -148,60 +142,11 @@ contains
                              dx, dt)
 #endif
        endif
-#else
-       ! hydro (no radiation)
-       if (idir == 1) then
-          call trace_ppm(lo, hi, &
-                         1, &
-                         q, qd_lo, qd_hi, &
-                         qaux, qa_lo, qa_hi, &
-                         srcQ, src_lo, src_hi, &
-                         flatn, f_lo, f_hi, &
-                         qxm, qxm_lo, qxm_hi, &
-                         qxp, qxp_lo, qxp_hi, &
-#if AMREX_SPACEDIM <= 2
-                         dloga, dloga_lo, dloga_hi, &
-#endif
-                         vlo, vhi, domlo, domhi, &
-                         dx, dt)
-
-#if AMREX_SPACEDIM >= 2
-       else if (idir == 2) then
-          call trace_ppm(lo, hi, &
-                         2, &
-                         q, qd_lo, qd_hi, &
-                         qaux, qa_lo, qa_hi, &
-                         srcQ, src_lo, src_hi, &
-                         flatn, f_lo, f_hi, &
-                         qym, qym_lo, qym_hi, &
-                         qyp, qyp_lo, qyp_hi, &
-#if AMREX_SPACEDIM == 2
-                         dloga, dloga_lo, dloga_hi, &
-#endif
-                         vlo, vhi, domlo, domhi, &
-                         dx, dt)
-#endif
-
-#if AMREX_SPACEDIM == 3
-       else
-          call trace_ppm(lo, hi, &
-                         3, &
-                         q, qd_lo, qd_hi, &
-                         qaux, qa_lo, qa_hi, &
-                         srcQ, src_lo, src_hi, &
-                         flatn, f_lo, f_hi, &
-                         qzm, qzm_lo, qzm_hi, &
-                         qzp, qzp_lo, qzp_hi, &
-                         vlo, vhi, domlo, domhi, &
-                         dx, dt)
-#endif
-       end if
-#endif
 
     end do
 
-  end subroutine ctu_ppm_states
-
+  end subroutine ctu_ppm_rad_states
+#endif
 
   subroutine ctu_plm_states(lo, hi, &
                             vlo, vhi, &
