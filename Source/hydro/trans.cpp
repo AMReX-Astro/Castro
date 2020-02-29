@@ -133,12 +133,12 @@ Castro::trans_single(const Box& bx,
       const Real volinv = 1.0_rt / vol(il,jl,kl);
 #endif
       for (int ipassive = 0; ipassive < npassive; ipassive++) {
-        int n  = upass_map_p[ipassive];
+        int n = upass_map_p[ipassive];
         int nqp = qpass_map_p[ipassive];
 
 #if AMREX_SPACEDIM == 2
-        Real rrnew = lqn[QRHO] - hdt * (area_t(ir,jr,kr)*flux_t(ir,jr,kr,URHO) -
-                                        area_t(il,jl,kl)*flux_t(il,jl,kl,URHO)) * volinv;
+        Real rrnew = lqn[QRHO] - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
+                                        area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
         Real compu = lqn[QRHO] * lqn[nqp] - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,n) -
                                                    area_t(il,jl,kl) * flux_t(il,jl,kl,n)) * volinv;
         lqno[nqp] = compu / rrnew;
@@ -155,14 +155,14 @@ Castro::trans_single(const Box& bx,
       Real ugm  = q_t(il,jl,kl,GDU+idir_t);
 
 #ifdef RADIATION
-      GpuArray<Real, ngroups> lambda;
-      GpuArray<Real, ngroups> ergp;
-      GpuArray<Real, ngroups> ergm;
+      Real lambda[ngroups];
+      Real ergp[ngroups];
+      Real ergm[ngroups];
 
       for (int g = 0; g < ngroups; g++) {
-        lambda(g) = qaux(il,jl,kl,QLAMS+g);
-        ergp(g) = q_t(ir,jr,kr,GDERADS+g);
-        ergm(g) = q_t(il,jl,kl,GDERADS+g);
+        lambda[g] = qaux(il,jl,kl,QLAMS+g);
+        ergp[g] = q_t(ir,jr,kr,GDERADS+g);
+        ergm[g] = q_t(il,jl,kl,GDERADS+g);
       }
 #endif
 
@@ -188,44 +188,44 @@ Castro::trans_single(const Box& bx,
 #endif
 
 #ifdef RADIATION
-      GpuArray<Real, ngroups> lamge;
-      GpuArray<Real, ngroups> luge;
-      GpuArray<Real, ngroups> der;
+      Real lamge[ngroups];
+      Real luge[ngroups];
+      Real der[ngroups];
       Real dmom = 0.0_rt;
       Real dre = 0.0_rt;
       for (int g = 0; g < ngroups; g++) {
-        lamge(g) = lambda(g) * (ergp(g)-ergm(g));
-        dmom += - cdtdx*lamge(g);
-        luge(g) = uav * lamge(g);
-        dre += -cdtdx*luge(g);
+          lamge[g] = lambda[g] * (ergp[g] - ergm[g]);
+          dmom += -cdtdx * lamge[g];
+          luge[g] = uav * lamge[g];
+          dre += -cdtdx * luge[g];
       }
 
       if (fspace_type == 1 && comoving) {
-        for (int g=0; g < ngroups; g++) {
-          Real eddf = Edd_factor(lambda(g));
-          Real f1 = 0.5_rt*(1.0_rt - eddf);
-          der(g) = cdtdx * uav * f1 * (ergp(g) - ergm(g));
-        }
+          for (int g = 0; g < ngroups; g++) {
+              Real eddf = Edd_factor(lambda[g]);
+              Real f1 = 0.5_rt * (1.0_rt - eddf);
+              der[g] = cdtdx * uav * f1 * (ergp[g] - ergm[g]);
+          }
 
       } else if (fspace_type == 2) {
 #if AMREX_SPACEDIM == 2
-        Real divu = (area_t(ir,jr,kr)*ugp - area_t(il,jl,kl)*ugm) * volinv;
-        for (int g=0; g < ngroups; g++) {
-          Real eddf = Edd_factor(lambda(g));
-          Real f1 = 0.5_rt*(1.0_rt - eddf);
-          der(g) = -hdt * f1 * 0.5_rt*(ergp(g)+ergm(g)) * divu;
-        }
+          Real divu = (area_t(ir,jr,kr) * ugp - area_t(il,jl,kl) * ugm) * volinv;
+          for (int g = 0; g < ngroups; g++) {
+              Real eddf = Edd_factor(lambda[g]);
+              Real f1 = 0.5_rt * (1.0_rt - eddf);
+              der[g] = -hdt * f1 * 0.5_rt * (ergp[g] + ergm[g]) * divu;
+          }
 #else
-        for (int g=0, g < ngroups; g++) {
-          Real eddf = Edd_factor(lambda(g));
-          Real f1 = 0.5_rt*(1.0_rt-eddf);
-          der(g) = cdtdx * f1 * 0.5_rt*(ergp(g)+ergm(g)) * (ugm-ugp);
-        }
+          for (int g = 0, g < ngroups; g++) {
+              Real eddf = Edd_factor(lambda[g]);
+              Real f1 = 0.5_rt * (1.0_rt-eddf);
+              der[g] = cdtdx * f1 * 0.5_rt*(ergp[g] + ergm[g]) * (ugm - ugp);
+          }
 #endif
       } else { // mixed frame
-        for (int g = 0; g < ngroups; g++) {
-          der(g) = cdtdx * luge(g);
-        }
+          for (int g = 0; g < ngroups; g++) {
+              der[g] = cdtdx * luge[g];
+          }
       }
 #endif
 
@@ -238,7 +238,7 @@ Castro::trans_single(const Box& bx,
       Real ren = lqn[QREINT] + ekenn;
 #ifdef RADIATION
       for (int g = 0; g < ngroups; g++) {
-        ern(g) = lqn(QRAD+g);
+          ern[g] = lqn[QRAD+g];
       }
 #endif
 
@@ -259,8 +259,8 @@ Castro::trans_single(const Box& bx,
       // x-direction, for we need to fix this now.
       Real runewn = run - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMX) -
                                  area_t(il,jl,kl) * flux_t(il,jl,kl,UMX)) * volinv;
-      if (idir_t == 0 && !momx_flux_has_p(idir_t)) {
-        runewn = runewn - cdtdx * (pgp-pgm);
+      if (idir_t == 0 && !momx_flux_has_p[idir_t]) {
+          runewn = runewn - cdtdx * (pgp - pgm);
       }
       Real rvnewn = rvn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMY) -
                                  area_t(il,jl,kl) * flux_t(il,jl,kl,UMY)) * volinv;
@@ -270,12 +270,14 @@ Castro::trans_single(const Box& bx,
                                  area_t(il,jl,kl) * flux_t(il,jl,kl,UEDEN)) * volinv;
 
 #ifdef RADIATION
-      @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-      runewn = runewn - 0.5_rt*hdt*(area_t(ir,jr,kr)+area_t(il,jl,kl))*sum(lamge) * volinv;
+      Real lamge_sum = 0.0_rt;
+      for (int g = 0; g < ngroups; ++g)
+          lamge_sum = lamge_sum + lamge[g];
+      runewn = runewn - 0.5_rt * hdt * (area_t(ir,jr,kr) + area_t(il,jl,kl)) * lamge_sum * volinv;
       renewn = renewn + dre;
       for (int g = 0; g < ngroups; g++) {
-        ernewn(g) = ern(g) - hdt*(area_t(ir,jr,kr)*rflux_t(ir,jr,kr,g) -
-                                  area_t(il,jl,kl)*rflux_t(il,jl,kl,g)) * volinv + der(g);
+          ernewn[g] = ern[g] - hdt * (area_t(ir,jr,kr) * rflux_t(ir,jr,kr,g) -
+                                      area_t(il,jl,kl) * rflux_t(il,jl,kl,g)) * volinv + der[g];
       }
 #endif
 
@@ -290,7 +292,7 @@ Castro::trans_single(const Box& bx,
       runewn = runewn + dmom;
       renewn = renewn + dre;
       for (int g = 0; g < ngroups; g++) {
-        ernewn(g)  = ern(g) - cdtdx * (rflux_t(ir,jr,kr,g) - rflux_t(il,jl,kl,g)) + der(g);
+          ernewn[g] = ern[g] - cdtdx * (rflux_t(ir,jr,kr,g) - rflux_t(il,jl,kl,g)) + der[g];
       }
 #endif
 #endif
@@ -298,17 +300,17 @@ Castro::trans_single(const Box& bx,
       // Reset to original value if adding transverse terms made density negative
       bool reset_state = false;
       if (reset_density == 1 && rrnewn < 0.0_rt) {
-        rrnewn = rrn;
-        runewn = run;
-        rvnewn = rvn;
-        rwnewn = rwn;
-        renewn = ren;
+          rrnewn = rrn;
+          runewn = run;
+          rvnewn = rvn;
+          rwnewn = rwn;
+          renewn = ren;
 #ifdef RADIATION
-        for (int g = 0; g < ngroups; g++) {
-          ernewn(g) = ern(g);
+          for (int g = 0; g < ngroups; g++) {
+              ernewn[g] = ern[g];
         }
 #endif
-        reset_state = true;
+          reset_state = true;
       }
 
       // Convert back to primitive form
@@ -355,9 +357,19 @@ Castro::trans_single(const Box& bx,
       }
 
 #ifdef RADIATION
-      lqno(qrad:qrad-1+ngroups) = ernewn(:);
-      lqno(qptot  ) = sum(lambda(:)*ernewn(:)) + lqno(QPRES);
-      lqno(qreitot) = sum(lqno(qrad:qrad-1+ngroups)) + lqno(QREINT);
+      for (int g = 0; g < ngroups; ++g) {
+          lqno[QRAD + g] = ernewn[g];
+      }
+
+      lqno[QPTOT] = lqno[QPRES];
+      for (int g = 0; g < ngroups; ++g) {
+          lqno[QPTOT] = lqno[QPTOT] + lambda[g] * ernewn[g];
+      }
+
+      lqno[QREITOT] = lqno[QREINT];
+      for (int g = 0; g < ngroups; ++g) {
+          lqno[QREITOT] = lqno[QREITOT] + lqno[QRAD + g];
+      }
 #endif
 
       // store the state

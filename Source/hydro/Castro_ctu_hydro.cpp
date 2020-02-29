@@ -730,7 +730,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qmzx.resize(tzxbx, NQ);
       Elixir elix_qmzx = qmzx.elixir();
-      auto qmzx_arr = qmxz.array();
+      auto qmzx_arr = qmzx.array();
       fab_size += qmzx.nBytes();
 
       qpzx.resize(tzxbx, NQ);
