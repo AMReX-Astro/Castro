@@ -569,7 +569,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // ftmp2 = fy
       // rftmp2 = rfy
-      trans_single(xbx, 2, 1,
+      trans_single(xbx, 1, 0,
                    qxm_arr, ql_arr,
                    qxp_arr, qr_arr,
                    qaux_arr,
@@ -614,7 +614,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnvx
 
-      trans_single(ybx, 1, 2,
+      trans_single(ybx, 0, 1,
                    qym_arr, ql_arr,
                    qyp_arr, qr_arr,
                    qaux_arr,
@@ -706,7 +706,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnvx
-      trans_single(tyxbx, 1, 2,
+      trans_single(tyxbx, 0, 1,
                    qym_arr, qmyx_arr,
                    qyp_arr, qpyx_arr,
                    qaux_arr,
@@ -738,7 +738,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       auto qpzx_arr = qpzx.array();
       fab_size += qpzx.nBytes();
 
-      trans_single(tzxbx, 1, 3,
+      trans_single(tzxbx, 0, 2,
                    qzm_arr, qmzx_arr,
                    qzp_arr, qpzx_arr,
                    qaux_arr,
@@ -795,7 +795,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
-      trans_single(txybx, 2, 1,
+      trans_single(txybx, 1, 0,
                    qxm_arr, qmxy_arr,
                    qxp_arr, qpxy_arr,
                    qaux_arr,
@@ -830,7 +830,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
-      trans_single(tzybx, 2, 3,
+      trans_single(tzybx, 1, 2,
                    qzm_arr, qmzy_arr,
                    qzp_arr, qpzy_arr,
                    qaux_arr,
@@ -887,7 +887,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fz
       // rftmp1 = rfz
       // qgdnvtmp1 = qgdnvz
-      trans_single(txzbx, 3, 1,
+      trans_single(txzbx, 2, 0,
                    qxm_arr, qmxz_arr,
                    qxp_arr, qpxz_arr,
                    qaux_arr,
@@ -922,7 +922,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fz
       // rftmp1 = rfz
       // qgdnvtmp1 = qgdnvz
-      trans_single(tyzbx, 3, 2,
+      trans_single(tyzbx, 2, 1,
                    qym_arr, qmyz_arr,
                    qyp_arr, qpyz_arr,
                    qaux_arr,
