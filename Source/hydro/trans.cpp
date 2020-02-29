@@ -58,6 +58,11 @@ Castro::trans_single(const Box& bx,
     bool reset_rhoe = transverse_reset_rhoe;
     Real small_p = small_pres;
 
+#ifdef RADIATION
+    int fspace_t = Radiation::fspace_advection_type;
+    int comov = Radiation::comoving;
+#endif
+
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
 
@@ -155,11 +160,11 @@ Castro::trans_single(const Box& bx,
         Real ugm  = q_t(il,jl,kl,GDU+idir_t);
 
 #ifdef RADIATION
-        Real lambda[ngroups];
-        Real ergp[ngroups];
-        Real ergm[ngroups];
+        Real lambda[NGROUPS];
+        Real ergp[NGROUPS];
+        Real ergm[NGROUPS];
 
-        for (int g = 0; g < ngroups; g++) {
+        for (int g = 0; g < NGROUPS; g++) {
             lambda[g] = qaux(il,jl,kl,QLAMS+g);
             ergp[g] = q_t(ir,jr,kr,GDERADS+g);
             ergm[g] = q_t(il,jl,kl,GDERADS+g);
@@ -188,44 +193,44 @@ Castro::trans_single(const Box& bx,
 #endif
 
 #ifdef RADIATION
-        Real lamge[ngroups];
-        Real luge[ngroups];
-        Real der[ngroups];
+        Real lamge[NGROUPS];
+        Real luge[NGROUPS];
+        Real der[NGROUPS];
 
         Real dmom = 0.0_rt;
         Real dre = 0.0_rt;
 
-        for (int g = 0; g < ngroups; g++) {
+        for (int g = 0; g < NGROUPS; g++) {
             lamge[g] = lambda[g] * (ergp[g] - ergm[g]);
             dmom += -cdtdx * lamge[g];
             luge[g] = uav * lamge[g];
             dre += -cdtdx * luge[g];
         }
 
-        if (fspace_type == 1 && comoving) {
-            for (int g = 0; g < ngroups; g++) {
+        if (fspace_t == 1 && comov) {
+            for (int g = 0; g < NGROUPS; g++) {
                 Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = cdtdx * uav * f1 * (ergp[g] - ergm[g]);
             }
 
-        } else if (fspace_type == 2) {
+        } else if (fspace_t == 2) {
 #if AMREX_SPACEDIM == 2
             Real divu = (area_t(ir,jr,kr) * ugp - area_t(il,jl,kl) * ugm) * volinv;
-            for (int g = 0; g < ngroups; g++) {
+            for (int g = 0; g < NGROUPS; g++) {
                 Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt - eddf);
                 der[g] = -hdt * f1 * 0.5_rt * (ergp[g] + ergm[g]) * divu;
             }
 #else
-            for (int g = 0, g < ngroups; g++) {
+            for (int g = 0, g < NGROUPS; g++) {
                 Real eddf = Edd_factor(lambda[g]);
                 Real f1 = 0.5_rt * (1.0_rt-eddf);
                 der[g] = cdtdx * f1 * 0.5_rt*(ergp[g] + ergm[g]) * (ugm - ugp);
             }
 #endif
         } else { // mixed frame
-            for (int g = 0; g < ngroups; g++) {
+            for (int g = 0; g < NGROUPS; g++) {
                 der[g] = cdtdx * luge[g];
             }
         }
@@ -238,8 +243,9 @@ Castro::trans_single(const Box& bx,
         Real rwn = rrn * lqn[QW];
         Real ekenn = 0.5_rt * rrn * (lqn[QU] * lqn[QU] + lqn[QV] * lqn[QV] + lqn[QW] * lqn[QW]);
         Real ren = lqn[QREINT] + ekenn;
+        Real ern[NGROUPS];
 #ifdef RADIATION
-        for (int g = 0; g < ngroups; g++) {
+        for (int g = 0; g < NGROUPS; g++) {
             ern[g] = lqn[QRAD+g];
         }
 #endif
@@ -273,13 +279,14 @@ Castro::trans_single(const Box& bx,
 
 #ifdef RADIATION
         Real lamge_sum = 0.0_rt;
-        for (int g = 0; g < ngroups; ++g)
+        for (int g = 0; g < NGROUPS; ++g)
             lamge_sum = lamge_sum + lamge[g];
 
         runewn = runewn - 0.5_rt * hdt * (area_t(ir,jr,kr) + area_t(il,jl,kl)) * lamge_sum * volinv;
         renewn = renewn + dre;
 
-        for (int g = 0; g < ngroups; g++) {
+        Real ernewn[NGROUPS];
+        for (int g = 0; g < NGROUPS; g++) {
             ernewn[g] = ern[g] - hdt * (area_t(ir,jr,kr) * rflux_t(ir,jr,kr,g) -
                                         area_t(il,jl,kl) * rflux_t(il,jl,kl,g)) * volinv + der[g];
         }
@@ -295,7 +302,7 @@ Castro::trans_single(const Box& bx,
 #ifdef RADIATION
         runewn = runewn + dmom;
         renewn = renewn + dre;
-        for (int g = 0; g < ngroups; g++) {
+        for (int g = 0; g < NGROUPS; g++) {
             ernewn[g] = ern[g] - cdtdx * (rflux_t(ir,jr,kr,g) - rflux_t(il,jl,kl,g)) + der[g];
         }
 #endif
@@ -310,7 +317,7 @@ Castro::trans_single(const Box& bx,
             rwnewn = rwn;
             renewn = ren;
 #ifdef RADIATION
-            for (int g = 0; g < ngroups; g++) {
+            for (int g = 0; g < NGROUPS; g++) {
                 ernewn[g] = ern[g];
           }
 #endif
@@ -361,17 +368,17 @@ Castro::trans_single(const Box& bx,
         }
 
 #ifdef RADIATION
-        for (int g = 0; g < ngroups; ++g) {
+        for (int g = 0; g < NGROUPS; ++g) {
             lqno[QRAD + g] = ernewn[g];
         }
 
         lqno[QPTOT] = lqno[QPRES];
-        for (int g = 0; g < ngroups; ++g) {
+        for (int g = 0; g < NGROUPS; ++g) {
             lqno[QPTOT] = lqno[QPTOT] + lambda[g] * ernewn[g];
         }
 
         lqno[QREITOT] = lqno[QREINT];
-        for (int g = 0; g < ngroups; ++g) {
+        for (int g = 0; g < NGROUPS; ++g) {
             lqno[QREITOT] = lqno[QREITOT] + lqno[QRAD + g];
         }
 #endif
@@ -436,7 +443,7 @@ Castro::trans_single(const Box& bx,
                                    ppm_predict_gammae
 
 #ifdef RADIATION
-    use rad_params_module, only : ngroups
+    use rad_params_module, only : NGROUPS
     use fluxlimiter_module, only : Edd_factor ! function
 #endif
 
@@ -458,8 +465,8 @@ Castro::trans_single(const Box& bx,
 #ifdef RADIATION
     integer, intent(in) :: rft1_lo(3), rft1_hi(3)
     integer, intent(in) :: rft2_lo(3), rft2_hi(3)
-    real(rt), intent(in) :: rflux_t1(rft1_lo(1):rft1_hi(1),rft1_lo(2):rft1_hi(2),rft1_lo(3):rft1_hi(3),0:ngroups-1)
-    real(rt), intent(in) :: rflux_t2(rft2_lo(1):rft2_hi(1),rft2_lo(2):rft2_hi(2),rft2_lo(3):rft2_hi(3),0:ngroups-1)
+    real(rt), intent(in) :: rflux_t1(rft1_lo(1):rft1_hi(1),rft1_lo(2):rft1_hi(2),rft1_lo(3):rft1_hi(3),0:NGROUPS-1)
+    real(rt), intent(in) :: rflux_t2(rft2_lo(1):rft2_hi(1),rft2_lo(2):rft2_hi(2),rft2_lo(3):rft2_hi(3),0:NGROUPS-1)
 #endif
 
     real(rt), intent(in) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
@@ -486,7 +493,7 @@ Castro::trans_single(const Box& bx,
 
 #ifdef RADIATION
     real(rt) :: dmt1, dmt2, dre
-    real(rt), dimension(0:ngroups-1) :: der, lambda, luget1, luget2, lget1, lget2, &
+    real(rt), dimension(0:NGROUPS-1) :: der, lambda, luget1, luget2, lget1, lget2, &
          ern, ernewn, ergt1m, ergt1p, ergt2m, ergt2p
     real(rt) :: eddf, f1
     integer :: g
@@ -623,8 +630,8 @@ Castro::trans_single(const Box& bx,
                 gegt1p = q_t1(ir_t1,jr_t1,kr_t1,GDGAME)
                 gegt1m = q_t1(il_t1,jl_t1,kl_t1,GDGAME)
 #ifdef RADIATION
-                ergt1p = q_t1(ir_t1,jr_t1,kr_t1,GDERADS:GDERADS-1+ngroups)
-                ergt1m = q_t1(il_t1,jl_t1,kl_t1,GDERADS:GDERADS-1+ngroups)
+                ergt1p = q_t1(ir_t1,jr_t1,kr_t1,GDERADS:GDERADS-1+NGROUPS)
+                ergt1m = q_t1(il_t1,jl_t1,kl_t1,GDERADS:GDERADS-1+NGROUPS)
 #endif
 
                 pgt2p  = q_t2(ir_t2,jr_t2,kr_t2,GDPRES)
@@ -634,8 +641,8 @@ Castro::trans_single(const Box& bx,
                 gegt2p = q_t2(ir_t2,jr_t2,kr_t2,GDGAME)
                 gegt2m = q_t2(il_t2,jl_t2,kl_t2,GDGAME)
 #ifdef RADIATION
-                ergt2p = q_t2(ir_t2,jr_t2,kr_t2,GDERADS:GDERADS-1+ngroups)
-                ergt2m = q_t2(il_t2,jl_t2,kl_t2,GDERADS:GDERADS-1+ngroups)
+                ergt2p = q_t2(ir_t2,jr_t2,kr_t2,GDERADS:GDERADS-1+NGROUPS)
+                ergt2m = q_t2(il_t2,jl_t2,kl_t2,GDERADS:GDERADS-1+NGROUPS)
 #endif
 
                 dupt1 = pgt1p*ugt1p - pgt1m*ugt1m
@@ -667,7 +674,7 @@ Castro::trans_single(const Box& bx,
 #endif
 
 #ifdef RADIATION
-                lambda(:) = qaux(iln,jln,kln,QLAMS:QLAMS+ngroups-1)
+                lambda(:) = qaux(iln,jln,kln,QLAMS:QLAMS+NGROUPS-1)
 
                 lget1 = lambda(:) * (ergt1p(:) - ergt1m(:))
                 lget2 = lambda(:) * (ergt2p(:) - ergt2m(:))
@@ -678,14 +685,14 @@ Castro::trans_single(const Box& bx,
                 dre = -cdtdx_t1*sum(luget1) - cdtdx_t2*sum(luget2)
 
                 if (fspace_type .eq. 1 && comoving) then
-                   do g=0, ngroups-1
+                   do g=0, NGROUPS-1
                       eddf = Edd_factor(lambda(g))
                       f1 = 0.5_rt*(ONE-eddf)
                       der(g) = f1*(cdtdx_t1*0.5_rt*(ugt1p + ugt1m)*(ergt1p(g) - ergt1m(g)) + &
                                    cdtdx_t2*0.5_rt*(ugt2p + ugt2m)*(ergt2p(g) - ergt2m(g)) )
                    end do
                 else if (fspace_type .eq. 2) then
-                   do g=0, ngroups-1
+                   do g=0, NGROUPS-1
                       eddf = Edd_factor(lambda(g))
                       f1 = 0.5_rt*(ONE-eddf)
                       der(g) = f1*(cdtdx_t1*0.5_rt*(ergt1p(g) + ergt1m(g))*(ugt1m - ugt1p) + &
@@ -704,7 +711,7 @@ Castro::trans_single(const Box& bx,
                 ekenn = 0.5_rt*rrn*sum(lqn(QU:QW)**2)
                 ren = lqn(QREINT) + ekenn
 #ifdef RADIATION
-                ern(:) = lqn(qrad:qrad-1+ngroups)
+                ern(:) = lqn(qrad:qrad-1+NGROUPS)
 #endif
 
                 ! Add transverse predictor
@@ -805,9 +812,9 @@ Castro::trans_single(const Box& bx,
                 lqno(QPRES) = max(lqno(QPRES), small_pres)
 
 #ifdef RADIATION
-                lqno(qrad:qrad-1+ngroups) = ernewn(:)
+                lqno(qrad:qrad-1+NGROUPS) = ernewn(:)
                 lqno(qptot  ) = sum(lambda(:)*ernewn(:)) + lqno(QPRES)
-                lqno(qreitot) = sum(lqno(qrad:qrad-1+ngroups)) + lqno(QREINT)
+                lqno(qreitot) = sum(lqno(qrad:qrad-1+NGROUPS)) + lqno(QREINT)
 #endif
 
                 if (d == -1) then
