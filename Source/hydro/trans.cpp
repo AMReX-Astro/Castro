@@ -335,7 +335,7 @@ Castro::trans_single(const Box& bx,
                 // If it is negative, reset the internal energy by
                 // using the discretized expression for updating (rho e).
 #if AMREX_SPACEDIM == 2
-                lqno[QREINT] = lqn[QREINT] - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UEINT) - &
+                lqno[QREINT] = lqn[QREINT] - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UEINT) -
                                                     area_t(il,jl,kl) * flux_t(il,jl,kl,UEINT) +
                                                     pav * du) * volinv;
 #else

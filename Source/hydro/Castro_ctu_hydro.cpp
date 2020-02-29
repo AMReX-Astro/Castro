@@ -188,6 +188,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Array4<Real const> const areaz_arr = area[2].array(mfi);
 #endif
 
+      Array4<Real> const vol_arr = volume.array(mfi);
+
 #if AMREX_SPACEDIM < 3
       Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
 #endif
@@ -401,6 +403,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qe[0].resize(gxbx, NGDNV);
       Elixir elix_qe_x = qe[0].elixir();
+      auto qex_arr = qe[0].array();
       fab_size += qe[0].nBytes();
 
 #ifdef RADIATION
@@ -416,6 +419,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qe[1].resize(gybx, NGDNV);
       Elixir elix_qe_y = qe[1].elixir();
+      auto qey_arr = qe[1].array();
       fab_size += qe[1].nBytes();
 
 #ifdef RADIATION
@@ -432,6 +436,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qe[2].resize(gzbx, NGDNV);
       Elixir elix_qe_z = qe[2].elixir();
+      auto qez_arr = qe[2].array();
       fab_size += qe[2].nBytes();
 
 #ifdef RADIATION
@@ -1311,8 +1316,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Array4<Real> const qz_arr = (qe[2]).array();
 #endif
 
-      Array4<Real> const vol_arr = volume.array(mfi);
-
       consup_hydro(bx,
                    shk_arr,
                    update_arr,
@@ -1366,7 +1369,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM <= 2
       Array4<Real> pradial_fab = pradial.array();
-      Array4<Real> const qex_arr = (qe[0]).array();
 #endif
 
 
