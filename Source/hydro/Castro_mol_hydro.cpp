@@ -437,9 +437,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           // compute the fluxes and add artificial viscosity
 
-          q_int.resize(obx, NQ);
-          Elixir elix_q_int = q_int.elixir();
-
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
             const int idir_f = idir + 1;
@@ -487,7 +484,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                  BL_TO_FORTRAN_ANYD(qm),
                  BL_TO_FORTRAN_ANYD(qp),
                  BL_TO_FORTRAN_ANYD(flux[idir]),
-                 BL_TO_FORTRAN_ANYD(q_int),
                  BL_TO_FORTRAN_ANYD(qe[idir]),
                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
                  BL_TO_FORTRAN_ANYD(shk),
