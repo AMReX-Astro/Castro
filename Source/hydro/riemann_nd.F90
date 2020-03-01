@@ -240,6 +240,8 @@ contains
                       cr = qaux(i,j,k,QC)
                    end select
 
+                   qleft(:) = qm(i,j,k,:)
+                   qright(:) = qp(i,j,k,:)
                    call HLL(qleft, qright, cl, cr, idir, flx_zone)
                    flx(i,j,k,:) = flx_zone(:)
                 end if
