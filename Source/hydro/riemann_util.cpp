@@ -366,315 +366,225 @@ Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
     }
 }
 
-  subroutine compute_flux_q(lo, hi, &
-                            qint, q_lo, q_hi, &
-                            F, F_lo, F_hi, &
+void
+Castro::compute_flux_q(const Box& bx,
+                       Array4<Real const> const qint,
+                       Array4<Real> const F,
 #ifdef RADIATION
-                            lambda, l_lo, l_hi, &
-                            rF, rF_lo, rF_hi, &
+                       Array4<Real const> const lambda,
+                       Array4<Real> const rF,
 #endif
-                            idir, enforce_eos) bind(C, name="compute_flux_q")
+                       const int idir, const int enforce_eos) {
 
-    ! given a primitive state, compute the flux in direction idir
-    !
+  // given a primitive state, compute the flux in direction idir
+  //
 
-    use prob_params_module, only : mom_flux_has_p
-    use meth_params_module, only : NQ, NVAR, NQAUX, &
-                                   URHO, UMX, UMY, UMZ, &
-                                   UEDEN, UEINT, UTEMP, &
+  int iu, iv1, iv2;
+  int im1, im2, im3;
+  int mom_check = 0;
+
+  if (idir == 0) {
+    iu = QU;
+    iv1 = QV;
+    iv2 = QW;
+    im1 = UMX;
+    im2 = UMY;
+    im3 = UMZ;
+    mom_check = momx_flux_has_p[im1];
+
+  } else if (idir == 1) {
+    iu = QV;
+    iv1 = QU;
+    iv2 = QW;
+    im1 = UMY;
+    im2 = UMX;
+    im3 = UMZ;
+    mom_check = momy_flux_has_p[im1];
+
+  } else {
+    iu = QW;
+    iv1 = QU;
+    iv2 = QV;
+    im1 = UMZ;
+    im2 = UMX;
+    im3 = UMY;
+    mom_check = momz_flux_has_p[im1];
+  }
+
+
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
+
+    Real u_adv = qint(i,j,k,iu);
+    Real rhoeint = qint(i,j,k,QREINT);
+
+    // if we are enforcing the EOS, then take rho, p, and X, and
+    // compute rhoe
+    if (enforce_eos == 1) {
+      eos_t eos_state;
+      eos_state.rho = qint(i,j,k,QRHO);
+      eos_state.p = qint(i,j,k,QPRES);
+      for (int n = 0; n < nspec; n++) {
+        eos_state.xn[n] = qint(i,j,k,QFS+n);
+      }
+      eos_state.T = T_guess;  // initial guess
+      for (int n = 0; n < naux; n++) {
+        eos_state.aux[n] = qint(i,j,k,QFX+n);
+      }
+
+      eos(eos_input_rp, eos_state);
+
+      rhoeint = qint(i,j,k,QRHO) * eos_state.e;
+    }
+
+    // Compute fluxes, order as conserved state (not q)
+    F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv;
+
+    F(i,j,k,im1) = F(i,j,k,URHO)*qint(i,j,k,iu);
+    if (mom_check) {
+      F(i,j,k,im1) += qint(i,j,k,QPRES);
+    }
+    F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1);
+    F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2);
+
+    rhoetot = rhoeint + 0.5_rt * qint(i,j,k,QRHO)*
+      (qint(i,j,k,iu)*qint(i,j,k,iu) +
+       qint(i,j,k,iv1)*qint(i,j,k,iv1) +
+       qint(i,j,k,iv2)*qint(i,j,k,iv2));
+
+    F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES));
+    F(i,j,k,UEINT) = u_adv*rhoeint;
+
+    F(i,j,k,UTEMP) = 0.0;
 #ifdef SHOCK_VAR
-                                   USHK, &
-#endif
-                                   QRHO, QU, QV, QW, &
-                                   QPRES, QREINT, &
-                                   QGAMC, QFS, QFX, &
-#ifdef HYBRID_MOMENTUM
-                                   NGDNV, GDPRES, &
-                                   GDRHO, GDU, GDV, GDW, &
-#endif
-#ifdef RADIATION
-                                   QRAD, fspace_type, &
-                                   GDERADS, GDLAMS, &
-#endif
-                                   npassive, upass_map, qpass_map, T_guess
-#ifdef RADIATION
-    use fluxlimiter_module, only: Edd_factor ! function
-    use rad_params_module, only : ngroups
-#endif
-#ifdef HYBRID_MOMENTUM
-    use hybrid_advection_module, only : compute_hybrid_flux
-#endif
-    use eos_type_module, only : eos_t, eos_input_rp
-    use eos_module, only : eos
-    use network, only : nspec, naux
-
-    implicit none
-
-    integer, intent(in), value :: idir
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: F_lo(3), F_hi(3)
-#ifdef RADIATION
-    integer, intent(in) :: l_lo(3), l_hi(3)
-    integer, intent(in) :: rF_lo(3), rF_hi(3)
-#endif
-
-    real(rt), intent(in) :: qint(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
-    real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
-#ifdef RADIATION
-    real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
-    real(rt), intent(out) :: rF(rF_lo(1):rF_hi(1), rF_lo(2):rF_hi(2), rF_lo(3):rF_hi(3), 0:ngroups-1)
-#endif
-    integer, intent(in), value :: enforce_eos
-    integer, intent(in) :: lo(3), hi(3)
-
-    integer :: iu, iv1, iv2, im1, im2, im3
-    integer :: g, n, ipassive, nqp
-    real(rt) :: u_adv, rhoetot, rhoeint
-    real(rt) :: eddf, f1
-    integer :: i, j, k
-
-#ifdef HYBRID_MOMENTUM
-    real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
-#endif
-
-    type(eos_t) :: eos_state
-
-    !$gpu
-
-    if (idir == 1) then
-       iu = QU
-       iv1 = QV
-       iv2 = QW
-       im1 = UMX
-       im2 = UMY
-       im3 = UMZ
-    else if (idir == 2) then
-       iu = QV
-       iv1 = QU
-       iv2 = QW
-       im1 = UMY
-       im2 = UMX
-       im3 = UMZ
-    else
-       iu = QW
-       iv1 = QU
-       iv2 = QV
-       im1 = UMZ
-       im2 = UMX
-       im3 = UMY
-    end if
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             u_adv = qint(i,j,k,iu)
-
-             ! if we are enforcing the EOS, then take rho, p, and X, and
-             ! compute rhoe
-             if (enforce_eos == 1) then
-                eos_state % rho = qint(i,j,k,QRHO)
-                eos_state % p = qint(i,j,k,QPRES)
-                eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)
-                eos_state % T = T_guess  ! initial guess
-                eos_state % aux(:) = qint(i,j,k,QFX:QFX+naux-1)
-
-                call eos(eos_input_rp, eos_state)
-                rhoeint = qint(i,j,k,QRHO) * eos_state % e
-             else
-                rhoeint = qint(i,j,k,QREINT)
-             endif
-
-             ! Compute fluxes, order as conserved state (not q)
-             F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv
-
-             F(i,j,k,im1) = F(i,j,k,URHO)*qint(i,j,k,iu)
-             if (mom_flux_has_p(idir) % comp(im1)) then
-                F(i,j,k,im1) = F(i,j,k,im1) + qint(i,j,k,QPRES)
-             endif
-             F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1)
-             F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2)
-
-             rhoetot = rhoeint + &
-                  HALF*qint(i,j,k,QRHO)*(qint(i,j,k,iu)**2 + &
-                  qint(i,j,k,iv1)**2 + &
-                  qint(i,j,k,iv2)**2)
-
-             F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES))
-             F(i,j,k,UEINT) = u_adv*rhoeint
-
-             F(i,j,k,UTEMP) = ZERO
-#ifdef SHOCK_VAR
-             F(i,j,k,USHK) = ZERO
+    F(i,j,k,USHK) = 0.0;
 #endif
 
 #ifdef RADIATION
-             if (fspace_type == 1) then
-                do g=0,ngroups-1
-                   eddf = Edd_factor(lambda(i,j,k,g))
-                   f1 = 0.5e0_rt*(1.e0_rt-eddf)
-                   rF(i,j,k,g) = (1.e0_rt + f1) * qint(i,j,k,QRAD+g) * u_adv
-                end do
-             else ! type 2
-                do g=0,ngroups-1
-                   rF(i,j,k,g) = qint(i,j,k,QRAD+g) * u_adv
-                end do
-             end if
+    if (fspace_type == 1) {
+      for (int g = 0; g < ngroups; g++) {
+        Real eddf = Edd_factor(lambda(i,j,k,g));
+        Real f1 = 0.5e0_rt*(1.0_rt-eddf);
+        rF(i,j,k,g) = (1.0_rt + f1) * qint(i,j,k,QRAD+g) * u_adv;
+      }
+    } else {
+      // type 2
+      for (int g = 0; g < ngroups; g++) {
+        rF(i,j,k,g) = qint(i,j,k,QRAD+g) * u_adv;
+      }
+    }
 #endif
 
-             ! passively advected quantities
-             do ipassive = 1, npassive
-                n  = upass_map(ipassive)
-                nqp = qpass_map(ipassive)
+    // passively advected quantities
+    for (int ipassive = 0, ipassive < npassive; ipassive++) {
+      int n  = upass_map[ipassive];
+      int nqp = qpass_map[ipassive];
 
-                F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp)
-             end do
+      F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp);
+    }
 
 #ifdef HYBRID_MOMENTUM
-
-             ! the hybrid routine uses the Godunov indices, not the full NQ state
-             qgdnv_zone(GDRHO) = qint(i,j,k,QRHO)
-             qgdnv_zone(GDU) = qint(i,j,k,QU)
-             qgdnv_zone(GDV) = qint(i,j,k,QV)
-             qgdnv_zone(GDW) = qint(i,j,k,QW)
-             qgdnv_zone(GDPRES) = qint(i,j,k,QPRES)
+    // the hybrid routine uses the Godunov indices, not the full NQ state
+    Real qgdnv_zone[NGDNV];
+    qgdnv_zone[GDRHO] = qint(i,j,k,QRHO);
+    qgdnv_zone[GDU] = qint(i,j,k,QU);
+    qgdnv_zone[GDV] = qint(i,j,k,QV);
+    qgdnv_zone[GDW] = qint(i,j,k,QW);
+    qgdnv_zone[GDPRES] = qint(i,j,k,QPRES);
 #ifdef RADIATION
-             qgdnv_zone(GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
-             qgdnv_zone(GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
+    for (int g = 0; g < ngroups; g++) {
+      qgdnv_zone[GDLAMS+g] = lambda(i,j,k,g);
+      qgdnv_zone(GDERADS+g] = qint(i,j,k,QRAD+g);
+    }
 #endif
-
-             F_zone(:) = F(i,j,k,:)
-             call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k])
-             F(i,j,k,:) = F_zone(:)
+    Real F_zone[NUM_STATE];
+    for (int n = 0; n < NUM_STATE; n++) {
+      F_zone[n] = F(i,j,k,n);
+    }
+    compute_hybrid_flux(qgdnv_zone, F_zone, idir, i, j, k);
+    for (int n = 0; n < NUM_STATE; n++) {
+      F(i,j,k,n) = F_zone[n];
+    }
 #endif
-          end do
-       end do
-    end do
-
-  end subroutine compute_flux_q
+  });
+}
 
 
-
-  subroutine ca_store_godunov_state(lo, hi, &
-                                    qint, qi_lo, qi_hi, &
+void
+Castro::store_godunov_state(const Box& bx,
+                            Array4<Real const> const qint,
 #ifdef RADIATION
-                                    lambda, l_lo, l_hi, &
+                            Array4<Real const> const lambda,
 #endif
-                                    qgdnv, qg_lo, qg_hi) bind(C, name="ca_store_godunov_state")
-    ! this copies the full interface state (NQ -- one for each primitive
-    ! variable) over to a smaller subset of size NGDNV for use later in the
-    ! hydro advancement.
+                            Array4<Real> const qgdnv) {
+  // this copies the full interface state (NQ -- one for each primitive
+  // variable) over to a smaller subset of size NGDNV for use later in the
+  // hydro advancement.
 
-    use meth_params_module, only : NQ, NVAR, NQAUX, &
-                                   QRHO, QU, QV, QW, &
-                                   QPRES, &
-                                   NGDNV, GDRHO, GDPRES, &
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
+
+    // the hybrid routine uses the Godunov indices, not the full NQ state
+    qgdnv(i,j,k,GDRHO) = qint(i,j,k,QRHO);
+    qgdnv(i,j,k,GDU) = qint(i,j,k,QU);
+    qgdnv(i,j,k,GDV) = qint(i,j,k,QV);
+    qgdnv(i,j,k,GDW) = qint(i,j,k,QW);
+    qgdnv(i,j,k,GDPRES) = qint(i,j,k,QPRES);
 #ifdef RADIATION
-                                   QRAD, GDERADS, GDLAMS, &
+    for (int g = 0; g < ngroups; g++) {
+      qgdnv(i,j,k,GDLAMS+g) = lambda(i,j,k,g);
+      qgdnv(i,j,k,GDERADS+g) = qint(i,j,k,QRAD+g);
+    }
 #endif
-                                   GDRHO, GDU, GDV, GDW
+  });
+}
 
-#ifdef RADIATION
-    use rad_params_module, only : ngroups
-#endif
+void
+Castro::compute_flux(const int idir, const Real bnd_fac,
+                     const Real* U, const Real p,
+                     Real* F) {
 
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: qi_lo(3), qi_hi(3)
-    integer, intent(in) :: qg_lo(3), qg_hi(3)
-    real(rt), intent(in) :: qint(qi_lo(1):qi_hi(1), qi_lo(2):qi_hi(2), qi_lo(3):qi_hi(3), NQ)
-#ifdef RADIATION
-    integer, intent(in) :: l_lo(3), l_hi(3)
-    real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
-#endif
-    real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
+  // given a conserved state, compute the flux in direction idir
 
-    integer :: i, j, k
+  u_flx = U[UMX+idir]/U[URHO];
 
-    !$gpu
+  if (bnd_fac == 0) {
+    u_flx = 0.0;
+  }
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+  F[URHO] = U[URHO]*u_flx;
 
-             ! the hybrid routine uses the Godunov indices, not the full NQ state
-             qgdnv(i,j,k,GDRHO) = qint(i,j,k,QRHO)
-             qgdnv(i,j,k,GDU) = qint(i,j,k,QU)
-             qgdnv(i,j,k,GDV) = qint(i,j,k,QV)
-             qgdnv(i,j,k,GDW) = qint(i,j,k,QW)
-             qgdnv(i,j,k,GDPRES) = qint(i,j,k,QPRES)
-#ifdef RADIATION
-             qgdnv(i,j,k,GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
-             qgdnv(i,j,k,GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
-#endif
+  F[UMX] = U[UMX]*u_flx;
+  F[UMY] = U[UMY]*u_flx;
+  F[UMZ] = U[UMZ]*u_flx;
 
-          end do
-       end do
-    end do
+  int mom_check = 0;
+  if (idir == 0) {
+    mom_check = momx_flux_has_p[UMX];
+  } else if (idir == 1) {
+    mom_check = momy_flux_has_p[UMY];
+  } else {
+    mom_check = momz_flux_has_p[UMZ];
+  }
 
-  end subroutine ca_store_godunov_state
+  if (mom_check) {
+    // we do not include the pressure term in any non-Cartesian
+    // coordinate directions
+    F(UMX-1+idir) = F(UMX-1+idir) + p;
+  }
 
+  F[UEINT] = U[UEINT]*u_flx;
+  F[UEDEN] = (U[UEDEN] + p)*u_flx;
 
-
-  pure subroutine compute_flux(idir, bnd_fac, U, p, F)
-    ! given a conserved state, compute the flux in direction idir
-
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, &
-#ifdef SHOCK_VAR
-                                  USHK, &
-#endif
-                                  npassive, upass_map
-    use prob_params_module, only: mom_flux_has_p
-
-    implicit none
-
-    integer,  intent(in) :: idir, bnd_fac
-    real(rt), intent(in) :: U(NVAR)
-    real(rt), intent(in) :: p
-    real(rt), intent(out) :: F(NVAR)
-
-    integer :: ipassive, n
-    real(rt) :: u_flx
-
-    !$gpu
-
-    if (idir == 1) then
-       u_flx = U(UMX)/U(URHO)
-    elseif (idir == 2) then
-       u_flx = U(UMY)/U(URHO)
-    elseif (idir == 3) then
-       u_flx = U(UMZ)/U(URHO)
-    endif
-
-    if (bnd_fac == 0) then
-       u_flx = ZERO
-    endif
-
-    F(URHO) = U(URHO)*u_flx
-
-    F(UMX) = U(UMX)*u_flx
-    F(UMY) = U(UMY)*u_flx
-    F(UMZ) = U(UMZ)*u_flx
-
-    if (mom_flux_has_p(idir)%comp(UMX-1+idir)) then
-       ! we do not include the pressure term in any non-Cartesian
-       ! coordinate directions
-       F(UMX-1+idir) = F(UMX-1+idir) + p
-    endif
-
-    F(UEINT) = U(UEINT)*u_flx
-    F(UEDEN) = (U(UEDEN) + p)*u_flx
-
-    F(UTEMP) = ZERO
+  F[UTEMP] = 0.0;
 
 #ifdef SHOCK_VAR
-    F(USHK) = ZERO
+  F[USHK] = 0.0;
 #endif
 
-    do ipassive = 1, npassive
-       n = upass_map(ipassive)
-       F(n) = U(n)*u_flx
-    enddo
+  for (int ipassive=0; ipassive < npassive; ipassive++) {
+    int n = upass_map[ipassive];
+    F[n] = U[n]*u_flx;
+  }
+}
 
-  end subroutine compute_flux
-
-end module riemann_util_module
