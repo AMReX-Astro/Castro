@@ -8,6 +8,7 @@ module riemann_module
                                  QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QFS, QFX, &
                                  QC, QGAMC, QGC, &
+                                 GDRHO, GDU, GDV, GDW, GDPRES, &
                                  NGDNV, GDRHO, GDPRES, &
 
 #ifdef RADIATION
@@ -38,10 +39,8 @@ contains
                                  qm, qm_lo, qm_hi, &
                                  qp, qp_lo, qp_hi, &
                                  flx, flx_lo, flx_hi, &
-                                 qint, q_lo, q_hi, &
 #ifdef RADIATION
                                  rflx, rflx_lo, rflx_hi, &
-                                 lambda_int, li_lo, li_hi, &
 #endif
                                  qgdnv, qg_lo, qg_hi, &
                                  qaux, qa_lo, qa_hi, &
@@ -51,6 +50,8 @@ contains
     use network, only: nspec, naux
     use castro_error_module
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only : physbc_lo, physbc_hi, &
+         Symmetry, SlipWall, NoSlipWall
 
     implicit none
 
@@ -64,7 +65,6 @@ contains
     integer, intent(in) :: qm_lo(3), qm_hi(3)
     integer, intent(in) :: qp_lo(3), qp_hi(3)
     integer, intent(in) :: flx_lo(3), flx_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: qg_lo(3), qg_hi(3)
@@ -77,13 +77,11 @@ contains
     real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
 
     real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
 
 #ifdef RADIATION
     integer, intent(in) :: rflx_lo(3), rflx_hi(3)
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
     integer, intent(in) :: li_lo(3), li_hi(3)
-    real(rt), intent(inout) :: lambda_int(li_lo(1),li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
 #endif
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
@@ -93,8 +91,17 @@ contains
 
     integer :: i, j, k
     real(rt) :: cl, cr
-    real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
+    real(rt) :: qleft(NQ), qright(NQ), qint_zone(NQ), flx_zone(NVAR)
+    real(rt) :: gamcl, gamcr
+    real(rt) :: csmall, cavg, bnd_fac
     integer :: is_shock
+
+#ifdef RADIATION
+    real(rt) :: gamcgl, gamcgr
+    real(rt) :: lambda_int_zone(0:ngroups-1)
+#endif
+
+    logical :: special_bnd_lo, special_bnd_hi
 
     !$gpu
 
@@ -114,7 +121,7 @@ contains
                                          qm, qm_lo, qm_hi, &
                                          qp, qp_lo, qp_hi, &
                                          qaux, qa_lo, qa_hi, &
-                                         idir, compute_gammas, &
+                                         idir, 0, &
                                          qleft, qright, &
                                          gamcl, gamcr, &
 #ifdef RADIATION
@@ -142,19 +149,25 @@ contains
 #endif
                                idir)
 
-                qint(i,j,k,:) = qint_zone(:)
+                qgdnv(i,j,k,GDRHO) = qint_zone(QRHO)
+                qgdnv(i,j,k,GDU) = qint_zone(QU)
+                qgdnv(i,j,k,GDV) = qint_zone(QV)
+                qgdnv(i,j,k,GDW) = qint_zone(QW)
+                qgdnv(i,j,k,GDPRES) = qint_zone(QPRES)
 #ifdef RADIATION
-                lambda_int(i,j,k,:) = lambda_int_zone(:)
+                qgdnv(i,j,k,GDLAMS:GDLAMS-1+ngroups) = lambda_int_zone(:)
+                qgdnv(i,j,k,GDERADS:GDERADS-1+ngroups) = qint_zone(QRAD:QRAD-1+ngroups)
 #endif
 
-                call compute_flux_q(lo, hi, &
-                                    qint, q_lo, q_hi, &
-                                    flx, flx_lo, flx_hi, &
+
+                call compute_flux_q_single(i, j, k, &
+                                           qint_zone, &
+                                           flx, flx_lo, flx_hi, &
 #ifdef RADIATION
-                                    lambda_int, q_lo, q_hi, &
-                                    rflx, rflx_lo, rflx_hi, &
+                                           lambda_int_zone, &
+                                           rflx, rflx_lo, rflx_hi, &
 #endif
-                                    idir, 0)
+                                           idir, 0)
 
 
              else if (riemann_solver == 1) then
@@ -165,22 +178,20 @@ contains
                                gamcl, gamcr, &
                                csmall, cavg, &
                                bnd_fac, &
-                               qint_zone_zone, &
+                               qint_zone, &
                                idir)
 
-                qint(i,j,k,:) = qint_zone(:)
-#ifdef RADIATION
-                lambda_int(i,j,k,:) = lambda_int_zone(:)
-#endif
+                qgdnv(i,j,k,GDRHO) = qint_zone(QRHO)
+                qgdnv(i,j,k,GDU) = qint_zone(QU)
+                qgdnv(i,j,k,GDV) = qint_zone(QV)
+                qgdnv(i,j,k,GDW) = qint_zone(QW)
+                qgdnv(i,j,k,GDPRES) = qint_zone(QPRES)
 
-                call compute_flux_q(lo, hi, &
-                                    qint, q_lo, q_hi, &
-                                    flx, flx_lo, flx_hi, &
-#ifdef RADIATION
-                                    lambda_int, q_lo, q_hi, &
-                                    rflx, rflx_lo, rflx_hi, &
+                call compute_flux_q_single(i, j, k, &
+                                           qint_zone, &
+                                           flx, flx_lo, flx_hi, &
+                                           idir, 0)
 #endif
-                                    idir, 0)
 
 
              else if (riemann_solver == 2) then
@@ -190,7 +201,7 @@ contains
                           qp, qp_lo, qp_hi, &
                           qaux, qa_lo, qa_hi, &
                           flx, flx_lo, flx_hi, &
-                          qint, q_lo, q_hi, &
+                          qgdnv, qg_lo, qg_hi, &
                           idir, lo, hi, &
                           domlo, domhi)
 #ifndef AMREX_USE_CUDA
@@ -241,159 +252,97 @@ contains
 
   end subroutine cmpflx_plus_godunov
 
-
-  subroutine interface_input_states(i, j, k, &
-                                    qm, qm_lo, qm_hi, &
-                                    qp, qp_lo, qp_hi, &
-                                    qaux, qa_lo, qa_hi, &
-                                    idir, compute_gammas, &
-                                    qleft, qright, &
-                                    gamcl, gamcr, &
+  subroutine compute_flux_q(lo, hi, &
+                            qint, q_lo, q_hi, &
+                            F, F_lo, F_hi, &
 #ifdef RADIATION
-                                    laml, lamr, &
-                                    gamcgl, gamcgr, &
+                            lambda, l_lo, l_hi, &
+                            rF, rF_lo, rF_hi, &
 #endif
-                                    csmall, cavg, bnd_fac, &
-                                    special_bnd_lo, special_bnd_hi, &
-                                    domlo, domhi) bind(C, name="riemann_state")
+                            idir, enforce_eos) bind(C, name="compute_flux_q")
 
-             ! Extract this zone's interface values
+    ! given a primitive state, compute the flux in direction idir
+    !
 
-             qleft(:) = qm(i,j,k,:)
-             qright(:) = qp(i,j,k,:)
-
+    use prob_params_module, only : mom_flux_has_p
+    use meth_params_module, only : NQ, NVAR, NQAUX, &
+                                   URHO, UMX, UMY, UMZ, &
+                                   UEDEN, UEINT, UTEMP, &
+#ifdef SHOCK_VAR
+                                   USHK, &
+#endif
+                                   QRHO, QU, QV, QW, &
+                                   QPRES, QREINT, &
+                                   QGAMC, QFS, QFX, &
+#ifdef HYBRID_MOMENTUM
+                                   NGDNV, GDPRES, &
+                                   GDRHO, GDU, GDV, GDW, &
+#endif
 #ifdef RADIATION
-             if (idir == 1) then
-                laml(:) = qaux(i-1,j,k,QLAMS:QLAMS+ngroups-1)
-             else if (idir == 2) then
-                laml(:) = qaux(i,j-1,k,QLAMS:QLAMS+ngroups-1)
-             else
-                laml(:) = qaux(i,j,k-1,QLAMS:QLAMS+ngroups-1)
-             end if
-             lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
-
+                                   QRAD, fspace_type, &
+                                   GDERADS, GDLAMS, &
 #endif
-
-             if (ppm_temp_fix == 2) then
-                ! recompute the thermodynamics on the interface to make it
-                ! all consistent
-
-                ! we want to take the edge states of rho, e, and X, and get
-                ! new values for p on the edges that are
-                ! thermodynamically consistent.
-
-
-                ! this is an initial guess for iterations, since we
-                ! can't be certain what temp is on interfaces
-                eos_state % T = T_guess
-
-                ! minus state
-                eos_state % rho = qleft(QRHO)
-                eos_state % p   = qleft(QPRES)
-                eos_state % e   = qleft(QREINT)/qleft(QRHO)
-                eos_state % xn  = qleft(QFS:QFS+nspec-1)
-                eos_state % aux = qleft(QFX:QFX+naux-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qleft(QREINT) = eos_state % e * eos_state % rho
-                qleft(QPRES)  = eos_state % p
-
-                ! plus state
-                eos_state % rho = qright(QRHO)
-                eos_state % p   = qright(QPRES)
-                eos_state % e   = qright(QREINT)/qright(QRHO)
-                eos_state % xn  = qright(QFS:QFS+nspec-1)
-                eos_state % aux = qright(QFX:QFX+naux-1)
-
-                call eos(eos_input_re, eos_state)
-
-                qright(QREINT) = eos_state % e * eos_state % rho
-                qright(QPRES)  = eos_state % p
-
-             end if
-
-             if (idir == 1) then
-                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i-1,j,k,QC)))
-                cavg = HALF*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC))
-                gamcl = qaux(i-1,j,k,QGAMC)
+                                   npassive, upass_map, qpass_map, T_guess
 #ifdef RADIATION
-                gamcgl = qaux(i-1,j,k,QGAMCG)
+    use fluxlimiter_module, only: Edd_factor ! function
+    use rad_params_module, only : ngroups
 #endif
-             else if (idir == 2) then
-                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i,j-1,k,QC)))
-                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC))
-                gamcl = qaux(i,j-1,k,QGAMC)
+#ifdef HYBRID_MOMENTUM
+    use hybrid_advection_module, only : compute_hybrid_flux
+#endif
+    use eos_type_module, only : eos_t, eos_input_rp
+    use eos_module, only : eos
+    use network, only : nspec, naux
+
+    implicit none
+
+    integer, intent(in), value :: idir
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: F_lo(3), F_hi(3)
 #ifdef RADIATION
-                gamcgl = qaux(i,j-1,k,QGAMCG)
+    integer, intent(in) :: l_lo(3), l_hi(3)
+    integer, intent(in) :: rF_lo(3), rF_hi(3)
 #endif
-             else
-                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i,j,k-1,QC)))
-                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC))
-                gamcl = qaux(i,j,k-1,QGAMC)
+
+    real(rt), intent(in) :: qint(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
+    real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
 #ifdef RADIATION
-                gamcgl = qaux(i,j,k-1,QGAMCG)
+    real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
+    real(rt), intent(out) :: rF(rF_lo(1):rF_hi(1), rF_lo(2):rF_hi(2), rF_lo(3):rF_hi(3), 0:ngroups-1)
 #endif
-             end if
-             gamcr = qaux(i,j,k,QGAMC)
+    integer, intent(in), value :: enforce_eos
+    integer, intent(in) :: lo(3), hi(3)
+
+    integer :: i, j, k
+
+    real(rt) :: qint_zone(NQ)
 #ifdef RADIATION
-             gamcgr = qaux(i,j,k,QGAMCG)
+    real(rt) :: lambda_zone(0:ngroups-1)
 #endif
 
-             ! override the gammas if needed
-#ifndef RADIATION
-             if (use_reconstructed_gamma1 == 1) then
-                gamcl = qleft(QGC)
-                gamcr = qright(QGC)
+    !$gpu
 
-             else if (compute_gammas == 1) then
-                ! we come in with a good p, rho, and X on the interfaces
-                ! -- use this to find the gamma used in the sound speed
-                eos_state % p = qleft(QPRES)
-                eos_state % rho = qleft(QRHO)
-                eos_state % xn(:) = qleft(QFS:QFS-1+nspec)
-                eos_state % T = T_guess ! initial guess
-                eos_state % aux(:) = qleft(QFX:QFX-1+naux)
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
-                call eos(eos_input_rp, eos_state)
-
-                gamcl = eos_state % gam1
-
-                eos_state % p = qright(QPRES)
-                eos_state % rho = qright(QRHO)
-                eos_state % xn(:) = qright(QFS:QFS-1+nspec)
-                eos_state % T = T_guess ! initial guess
-                eos_state % aux(:) = qright(QFX:QFX-1+naux)
-
-                call eos(eos_input_rp, eos_state)
-
-                gamcr = eos_state % gam1
-
-             end if
+             qint_zone(:) = qint(i,j,k,:)
+#ifdef RADIATION
+             lambda_zone(:) = lambda(i,j,k,:)
 #endif
+             call compute_flux_q_single(i, j, k, &
+                                        qint_zone, &
+                                        F, F_lo, F_hi, &
+#ifdef RADIATION
+                                        lambda_zone, &
+                                        rF, rF_lo, rF_hi, &
+#endif
+                                        idir, enforce_eos)
+          end do
+       end do
+    end do
 
-             ! deal with hard walls
-             bnd_fac = 1.0_rt
-
-             if (idir == 1) then
-                if ((i == domlo(1) .and. special_bnd_lo) .or. &
-                    (i == domhi(1)+1 .and. special_bnd_hi)) then
-                   bnd_fac = 0.0_rt
-                end if
-             else if (idir == 2) then
-                if ((j == domlo(2) .and. special_bnd_lo) .or. &
-                    (j == domhi(2)+1 .and. special_bnd_hi)) then
-                   bnd_fac = 0.0_rt
-                end if
-             else
-                if ((k == domlo(3) .and. special_bnd_lo) .or. &
-                    (k == domhi(3)+1 .and. special_bnd_hi)) then
-                   bnd_fac = 0.0_rt
-                end if
-             end if
-
-
-  end subroutine interface_input_states
+  end subroutine compute_flux_q
 
 
   subroutine riemann_state(lo, hi, &
@@ -454,11 +403,11 @@ contains
 
     real(rt) :: qleft(NQ), qright(NQ)
     real(rt) :: qint_zone(NQ)
-    real(rt) :: lambda_int_zone(0:ngroups-1)
     real(rt) :: bnd_fac
     real(rt) :: csmall, cavg
     real(rt) :: gamcl, gamcr
 #ifdef RADIATION
+    real(rt) :: lambda_int_zone(0:ngroups-1)
     real(rt) :: gamcgl, gamcgr
 #endif
 
@@ -538,7 +487,7 @@ contains
                                gamcl, gamcr, &
                                csmall, cavg, &
                                bnd_fac, &
-                               qint_zone_zone, &
+                               qint_zone, &
                                idir)
 
 #else

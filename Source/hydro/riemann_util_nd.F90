@@ -423,14 +423,14 @@ contains
   end subroutine HLLC_state
 
 
-  subroutine compute_flux_q(lo, hi, &
-                            qint, q_lo, q_hi, &
-                            F, F_lo, F_hi, &
+  subroutine compute_flux_q_single(i, j, k, &
+                                   qint, &
+                                   F, F_lo, F_hi, &
 #ifdef RADIATION
-                            lambda, l_lo, l_hi, &
-                            rF, rF_lo, rF_hi, &
+                                   lambda, &
+                                   rF, rF_lo, rF_hi, &
 #endif
-                            idir, enforce_eos) bind(C, name="compute_flux_q")
+                                   idir, enforce_eos)
 
     ! given a primitive state, compute the flux in direction idir
     !
@@ -468,27 +468,24 @@ contains
     implicit none
 
     integer, intent(in), value :: idir
-    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in), value :: i, j, k
     integer, intent(in) :: F_lo(3), F_hi(3)
 #ifdef RADIATION
-    integer, intent(in) :: l_lo(3), l_hi(3)
     integer, intent(in) :: rF_lo(3), rF_hi(3)
 #endif
 
-    real(rt), intent(in) :: qint(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
+    real(rt), intent(in) :: qint(NQ)
     real(rt), intent(out) :: F(F_lo(1):F_hi(1), F_lo(2):F_hi(2), F_lo(3):F_hi(3), NVAR)
 #ifdef RADIATION
-    real(rt), intent(in) :: lambda(l_lo(1):l_hi(1), l_lo(2):l_hi(2), l_lo(3):l_hi(3), 0:ngroups-1)
+    real(rt), intent(in) :: lambda(0:ngroups-1)
     real(rt), intent(out) :: rF(rF_lo(1):rF_hi(1), rF_lo(2):rF_hi(2), rF_lo(3):rF_hi(3), 0:ngroups-1)
 #endif
     integer, intent(in), value :: enforce_eos
-    integer, intent(in) :: lo(3), hi(3)
 
     integer :: iu, iv1, iv2, im1, im2, im3
     integer :: g, n, ipassive, nqp
     real(rt) :: u_adv, rhoetot, rhoeint
     real(rt) :: eddf, f1
-    integer :: i, j, k
 
 #ifdef HYBRID_MOMENTUM
     real(rt) :: F_zone(NVAR), qgdnv_zone(NGDNV)
@@ -521,94 +518,87 @@ contains
        im3 = UMY
     end if
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+    u_adv = qint(iu)
 
-             u_adv = qint(i,j,k,iu)
+    ! if we are enforcing the EOS, then take rho, p, and X, and
+    ! compute rhoe
+    if (enforce_eos == 1) then
+       eos_state % rho = qint(QRHO)
+       eos_state % p = qint(QPRES)
+       eos_state % xn(:) = qint(QFS:QFS-1+nspec)
+       eos_state % T = T_guess  ! initial guess
+       eos_state % aux(:) = qint(QFX:QFX+naux-1)
 
-             ! if we are enforcing the EOS, then take rho, p, and X, and
-             ! compute rhoe
-             if (enforce_eos == 1) then
-                eos_state % rho = qint(i,j,k,QRHO)
-                eos_state % p = qint(i,j,k,QPRES)
-                eos_state % xn(:) = qint(i,j,k,QFS:QFS-1+nspec)
-                eos_state % T = T_guess  ! initial guess
-                eos_state % aux(:) = qint(i,j,k,QFX:QFX+naux-1)
+       call eos(eos_input_rp, eos_state)
+       rhoeint = qint(QRHO) * eos_state % e
+    else
+       rhoeint = qint(QREINT)
+    endif
 
-                call eos(eos_input_rp, eos_state)
-                rhoeint = qint(i,j,k,QRHO) * eos_state % e
-             else
-                rhoeint = qint(i,j,k,QREINT)
-             endif
+    ! Compute fluxes, order as conserved state (not q)
+    F(i,j,k,URHO) = qint(QRHO)*u_adv
 
-             ! Compute fluxes, order as conserved state (not q)
-             F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv
+    F(i,j,k,im1) = F(i,j,k,URHO)*qint(iu)
+    if (mom_flux_has_p(idir) % comp(im1)) then
+       F(i,j,k,im1) = F(i,j,k,im1) + qint(QPRES)
+    endif
+    F(i,j,k,im2) = F(i,j,k,URHO)*qint(iv1)
+    F(i,j,k,im3) = F(i,j,k,URHO)*qint(iv2)
 
-             F(i,j,k,im1) = F(i,j,k,URHO)*qint(i,j,k,iu)
-             if (mom_flux_has_p(idir) % comp(im1)) then
-                F(i,j,k,im1) = F(i,j,k,im1) + qint(i,j,k,QPRES)
-             endif
-             F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1)
-             F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2)
+    rhoetot = rhoeint + &
+         HALF*qint(QRHO)*(qint(iu)**2 + &
+                          qint(iv1)**2 + &
+                          qint(iv2)**2)
 
-             rhoetot = rhoeint + &
-                  HALF*qint(i,j,k,QRHO)*(qint(i,j,k,iu)**2 + &
-                  qint(i,j,k,iv1)**2 + &
-                  qint(i,j,k,iv2)**2)
+    F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(QPRES))
+    F(i,j,k,UEINT) = u_adv*rhoeint
 
-             F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES))
-             F(i,j,k,UEINT) = u_adv*rhoeint
-
-             F(i,j,k,UTEMP) = ZERO
+    F(i,j,k,UTEMP) = ZERO
 #ifdef SHOCK_VAR
-             F(i,j,k,USHK) = ZERO
+    F(i,j,k,USHK) = ZERO
 #endif
 
 #ifdef RADIATION
-             if (fspace_type == 1) then
-                do g=0,ngroups-1
-                   eddf = Edd_factor(lambda(i,j,k,g))
-                   f1 = 0.5e0_rt*(1.e0_rt-eddf)
-                   rF(i,j,k,g) = (1.e0_rt + f1) * qint(i,j,k,QRAD+g) * u_adv
-                end do
-             else ! type 2
-                do g=0,ngroups-1
-                   rF(i,j,k,g) = qint(i,j,k,QRAD+g) * u_adv
-                end do
-             end if
+    if (fspace_type == 1) then
+       do g=0,ngroups-1
+          eddf = Edd_factor(lambda(g))
+          f1 = 0.5e0_rt*(1.e0_rt-eddf)
+          rF(i,j,k,g) = (1.e0_rt + f1) * qint(QRAD+g) * u_adv
+       end do
+    else ! type 2
+       do g=0,ngroups-1
+          rF(i,j,k,g) = qint(QRAD+g) * u_adv
+       end do
+    end if
 #endif
 
-             ! passively advected quantities
-             do ipassive = 1, npassive
-                n  = upass_map(ipassive)
-                nqp = qpass_map(ipassive)
+    ! passively advected quantities
+    do ipassive = 1, npassive
+       n  = upass_map(ipassive)
+       nqp = qpass_map(ipassive)
 
-                F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp)
-             end do
+       F(i,j,k,n) = F(i,j,k,URHO)*qint(nqp)
+    end do
 
 #ifdef HYBRID_MOMENTUM
 
-             ! the hybrid routine uses the Godunov indices, not the full NQ state
-             qgdnv_zone(GDRHO) = qint(i,j,k,QRHO)
-             qgdnv_zone(GDU) = qint(i,j,k,QU)
-             qgdnv_zone(GDV) = qint(i,j,k,QV)
-             qgdnv_zone(GDW) = qint(i,j,k,QW)
-             qgdnv_zone(GDPRES) = qint(i,j,k,QPRES)
+    ! the hybrid routine uses the Godunov indices, not the full NQ state
+    qgdnv_zone(GDRHO) = qint(QRHO)
+    qgdnv_zone(GDU) = qint(QU)
+    qgdnv_zone(GDV) = qint(QV)
+    qgdnv_zone(GDW) = qint(QW)
+    qgdnv_zone(GDPRES) = qint(QPRES)
 #ifdef RADIATION
-             qgdnv_zone(GDLAMS:GDLAMS-1+ngroups) = lambda(i,j,k,:)
-             qgdnv_zone(GDERADS:GDERADS-1+ngroups) = qint(i,j,k,QRAD:QRAD-1+ngroups)
+    qgdnv_zone(GDLAMS:GDLAMS-1+ngroups) = lambda(:)
+    qgdnv_zone(GDERADS:GDERADS-1+ngroups) = qint(QRAD:QRAD-1+ngroups)
 #endif
 
-             F_zone(:) = F(i,j,k,:)
-             call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k])
-             F(i,j,k,:) = F_zone(:)
+    F_zone(:) = F(i,j,k,:)
+    call compute_hybrid_flux(qgdnv_zone, F_zone, idir, [i, j, k])
+    F(i,j,k,:) = F_zone(:)
 #endif
-          end do
-       end do
-    end do
 
-  end subroutine compute_flux_q
+  end subroutine compute_flux_q_single
 
 
 

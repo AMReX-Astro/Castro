@@ -8,7 +8,7 @@ module riemann_solvers_module
                                  QRHO, QU, QV, QW, &
                                  QPRES, QREINT, QFS, QFX, &
                                  QC, QGAMC, QGC, &
-                                 NGDNV, GDRHO, GDPRES, &
+                                 NGDNV, GDRHO, GDPRES, GDU, GDV, GDW, &
 
 #ifdef RADIATION
                                  qrad, qptot, qreitot, &
@@ -17,7 +17,13 @@ module riemann_solvers_module
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp, &
                                  use_eos_in_riemann, use_reconstructed_gamma1, &
-                                 hybrid_riemann, riemann_solver
+                                 hybrid_riemann, riemann_solver, T_guess, ppm_temp_fix
+
+  use network, only: nspec, naux
+
+#ifdef RADIATION
+  use rad_params_module, only : ngroups
+#endif
 
   use riemann_util_module
 
@@ -29,6 +35,189 @@ module riemann_solvers_module
   private :: smallu, small
 
 contains
+
+
+
+  subroutine interface_input_states(i, j, k, &
+                                    qm, qm_lo, qm_hi, &
+                                    qp, qp_lo, qp_hi, &
+                                    qaux, qa_lo, qa_hi, &
+                                    idir, compute_gammas, &
+                                    qleft, qright, &
+                                    gamcl, gamcr, &
+#ifdef RADIATION
+                                    laml, lamr, &
+                                    gamcgl, gamcgr, &
+#endif
+                                    csmall, cavg, bnd_fac, &
+                                    special_bnd_lo, special_bnd_hi, &
+                                    domlo, domhi) bind(C, name="interface_input_states")
+
+    use eos_module, only: eos
+    use eos_type_module, only: eos_t, eos_input_re, eos_input_rp
+
+    implicit none
+
+    integer, intent(in), value :: i, j, k
+    integer, intent(in) :: qm_lo(3), qm_hi(3)
+    integer, intent(in) :: qp_lo(3), qp_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
+
+    real(rt), intent(in) :: qm(qm_lo(1):qm_hi(1), qm_lo(2):qm_hi(2), qm_lo(3):qm_hi(3), NQ)
+    real(rt), intent(in) :: qp(qp_lo(1):qp_hi(1), qp_lo(2):qp_hi(2), qp_lo(3):qp_hi(3), NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
+
+    integer, intent(in), value :: idir, compute_gammas
+    real(rt), intent(inout) :: qleft(NQ), qright(NQ)
+    real(rt), intent(out) :: gamcl, gamcr, csmall, cavg, bnd_fac
+    logical, intent(in) :: special_bnd_lo, special_bnd_hi
+
+#ifdef RADIATION
+    real(rt), intent(out) :: gamcgl, gamcgr
+    real(rt), intent(inout) :: laml(0:ngroups-1), lamr(0:ngroups-1)
+#endif
+    integer, intent(in) :: domlo(3), domhi(3)
+
+    type(eos_t) :: eos_state
+
+    ! Extract this zone's interface values
+
+    qleft(:) = qm(i,j,k,:)
+    qright(:) = qp(i,j,k,:)
+
+#ifdef RADIATION
+    if (idir == 1) then
+       laml(:) = qaux(i-1,j,k,QLAMS:QLAMS+ngroups-1)
+    else if (idir == 2) then
+       laml(:) = qaux(i,j-1,k,QLAMS:QLAMS+ngroups-1)
+    else
+       laml(:) = qaux(i,j,k-1,QLAMS:QLAMS+ngroups-1)
+    end if
+    lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+
+#endif
+
+    if (ppm_temp_fix == 2) then
+       ! recompute the thermodynamics on the interface to make it
+       ! all consistent
+
+       ! we want to take the edge states of rho, e, and X, and get
+       ! new values for p on the edges that are
+       ! thermodynamically consistent.
+
+
+       ! this is an initial guess for iterations, since we
+       ! can't be certain what temp is on interfaces
+       eos_state % T = T_guess
+
+       ! minus state
+       eos_state % rho = qleft(QRHO)
+       eos_state % p   = qleft(QPRES)
+       eos_state % e   = qleft(QREINT)/qleft(QRHO)
+       eos_state % xn  = qleft(QFS:QFS+nspec-1)
+       eos_state % aux = qleft(QFX:QFX+naux-1)
+
+       call eos(eos_input_re, eos_state)
+
+       qleft(QREINT) = eos_state % e * eos_state % rho
+       qleft(QPRES)  = eos_state % p
+
+       ! plus state
+       eos_state % rho = qright(QRHO)
+       eos_state % p   = qright(QPRES)
+       eos_state % e   = qright(QREINT)/qright(QRHO)
+       eos_state % xn  = qright(QFS:QFS+nspec-1)
+       eos_state % aux = qright(QFX:QFX+naux-1)
+
+       call eos(eos_input_re, eos_state)
+
+       qright(QREINT) = eos_state % e * eos_state % rho
+       qright(QPRES)  = eos_state % p
+
+    end if
+
+    if (idir == 1) then
+       csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i-1,j,k,QC)))
+       cavg = HALF*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC))
+       gamcl = qaux(i-1,j,k,QGAMC)
+#ifdef RADIATION
+       gamcgl = qaux(i-1,j,k,QGAMCG)
+#endif
+    else if (idir == 2) then
+       csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i,j-1,k,QC)))
+       cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC))
+       gamcl = qaux(i,j-1,k,QGAMC)
+#ifdef RADIATION
+       gamcgl = qaux(i,j-1,k,QGAMCG)
+#endif
+    else
+       csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i,j,k-1,QC)))
+       cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC))
+       gamcl = qaux(i,j,k-1,QGAMC)
+#ifdef RADIATION
+       gamcgl = qaux(i,j,k-1,QGAMCG)
+#endif
+    end if
+    gamcr = qaux(i,j,k,QGAMC)
+#ifdef RADIATION
+    gamcgr = qaux(i,j,k,QGAMCG)
+#endif
+
+    ! override the gammas if needed
+#ifndef RADIATION
+    if (use_reconstructed_gamma1 == 1) then
+       gamcl = qleft(QGC)
+       gamcr = qright(QGC)
+
+    else if (compute_gammas == 1) then
+       ! we come in with a good p, rho, and X on the interfaces
+       ! -- use this to find the gamma used in the sound speed
+       eos_state % p = qleft(QPRES)
+       eos_state % rho = qleft(QRHO)
+       eos_state % xn(:) = qleft(QFS:QFS-1+nspec)
+       eos_state % T = T_guess ! initial guess
+       eos_state % aux(:) = qleft(QFX:QFX-1+naux)
+
+       call eos(eos_input_rp, eos_state)
+
+       gamcl = eos_state % gam1
+
+       eos_state % p = qright(QPRES)
+       eos_state % rho = qright(QRHO)
+       eos_state % xn(:) = qright(QFS:QFS-1+nspec)
+       eos_state % T = T_guess ! initial guess
+       eos_state % aux(:) = qright(QFX:QFX-1+naux)
+
+       call eos(eos_input_rp, eos_state)
+
+       gamcr = eos_state % gam1
+
+    end if
+#endif
+
+    ! deal with hard walls
+    bnd_fac = 1.0_rt
+
+    if (idir == 1) then
+       if ((i == domlo(1) .and. special_bnd_lo) .or. &
+            (i == domhi(1)+1 .and. special_bnd_hi)) then
+          bnd_fac = 0.0_rt
+       end if
+    else if (idir == 2) then
+       if ((j == domlo(2) .and. special_bnd_lo) .or. &
+            (j == domhi(2)+1 .and. special_bnd_hi)) then
+          bnd_fac = 0.0_rt
+       end if
+    else
+       if ((k == domlo(3) .and. special_bnd_lo) .or. &
+            (k == domhi(3)+1 .and. special_bnd_hi)) then
+          bnd_fac = 0.0_rt
+       end if
+    end if
+
+
+  end subroutine interface_input_states
+
 
   subroutine riemanncg(ql, qr, &
                        gcl, gcr, &
@@ -911,7 +1100,7 @@ contains
                   qr, qr_lo, qr_hi, &
                   qaux, qa_lo, qa_hi, &
                   uflx, uflx_lo, uflx_hi, &
-                  qint, q_lo, q_hi, &
+                  qgdnv, q_lo, q_hi, &
                   idir, lo, hi, &
                   domlo, domhi)
     ! this is an implementation of the HLLC solver described in Toro's
@@ -942,7 +1131,7 @@ contains
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
 
     real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(inout) :: qgdnv(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NGDNV)
 
     integer :: i, j, k
 
@@ -956,7 +1145,7 @@ contains
     real(rt) :: wsmall, csmall
     real(rt) :: cavg, gamcl, gamcr
 
-    integer :: iu, iv1, iv2, sx, sy, sz
+    integer :: iu, iv1, iv2, sx, sy, sz, igu, igv1, igv2
     logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
     integer :: bnd_fac_x, bnd_fac_y, bnd_fac_z, bnd_fac
     real(rt) :: wwinv, roinv, co2inv
@@ -972,6 +1161,9 @@ contains
        iu = QU
        iv1 = QV
        iv2 = QW
+       igu = GDU
+       igv1 = GDV
+       igv2= GDW
        sx = 1
        sy = 0
        sz = 0
@@ -979,6 +1171,9 @@ contains
        iu = QV
        iv1 = QU
        iv2 = QW
+       igu = GDV
+       igv1 = GDU
+       igv2= GDW
        sx = 0
        sy = 1
        sz = 0
@@ -986,6 +1181,9 @@ contains
        iu = QW
        iv1 = QU
        iv2 = QV
+       igu = GDW
+       igv1 = GDU
+       igv2= GDV
        sx = 0
        sy = 0
        sz = 1
@@ -1133,8 +1331,8 @@ contains
              rgdnv = frac*rstar + (ONE - frac)*ro
              regdnv = frac*estar + (ONE - frac)*reo
 
-             qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
-             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
+             qgdnv(i,j,k,igu) = frac*ustar + (ONE - frac)*uo
+             qgdnv(i,j,k,GDPRES) = frac*pstar + (ONE - frac)*po
 
 
              ! now we do the HLLC construction

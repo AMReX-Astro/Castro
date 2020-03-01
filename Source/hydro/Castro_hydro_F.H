@@ -75,10 +75,8 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(ql),
      const BL_FORT_FAB_ARG_3D(qr),
      BL_FORT_FAB_ARG_3D(flux),
-     BL_FORT_FAB_ARG_3D(q_int),
 #ifdef RADIATION
      BL_FORT_FAB_ARG_3D(radflux),
-     BL_FORT_FAB_ARG_3D(lambda_int),
 #endif
      BL_FORT_FAB_ARG_3D(qe),
      const BL_FORT_FAB_ARG_3D(qaux),
