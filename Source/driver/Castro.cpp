@@ -3271,13 +3271,13 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 #pragma omp parallel
 #endif
   for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
+  {
 
       int num_ghost = ng;
 #ifdef TRUE_SDC
       if (sdc_order == 4) {
-        // only one ghost cell is at cell-centers
-        num_ghost = 1;
+          // only one ghost cell is at cell-centers
+          num_ghost = 1;
       }
 #endif
 
@@ -3317,10 +3317,6 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
           ca_clamp_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                         BL_TO_FORTRAN_ANYD(u_fab));
       }
-
-#ifdef TRUE_SDC
-      }
-#endif
 
   }
 

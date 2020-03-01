@@ -166,6 +166,10 @@
     void reset_edge_state_thermo(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const qedge);
 
+    void edge_state_temp_to_pres(const Box& bx,
+                                 amrex::Array4<amrex::Real> const qm,
+                                 amrex::Array4<amrex::Real> const qp);
+
 #ifdef HYBRID_MOMENTUM
 
 ///
