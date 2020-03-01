@@ -121,6 +121,9 @@
                         const amrex::Real dt);
 #endif
 
+    void reset_edge_state_thermo(const amrex::Box& bx,
+                                 amrex::Array4<amrex::Real> const qedge);
+
 #ifdef HYBRID_MOMENTUM
 
 ///
