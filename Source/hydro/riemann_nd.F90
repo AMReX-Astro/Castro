@@ -113,41 +113,58 @@ contains
          .or.         physbc_hi(idir) == SlipWall &
          .or.         physbc_hi(idir) == NoSlipWall)
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
+    if (riemann_solver < 2) then
 
-             call interface_input_states(i, j, k, &
-                                         qm, qm_lo, qm_hi, &
-                                         qp, qp_lo, qp_hi, &
-                                         qaux, qa_lo, qa_hi, &
-                                         idir, 0, &
-                                         qleft, qright, &
-                                         gamcl, gamcr, &
-#ifdef RADIATION
-                                         laml, lamr, &
-                                         gamcgl, gamcgr, &
-#endif
-                                         csmall, cavg, bnd_fac, &
-                                         special_bnd_lo, special_bnd_hi, &
-                                         domlo, domhi)
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
-             if (riemann_solver == 0) then
-                ! Colella, Glaz, & Ferguson solver
+                call interface_input_states(i, j, k, &
+                                            qm, qm_lo, qm_hi, &
+                                            qp, qp_lo, qp_hi, &
+                                            qaux, qa_lo, qa_hi, &
+                                            idir, 0, &
+                                            qleft, qright, &
+                                            gamcl, gamcr, &
+#ifdef RADIATION
+                                            laml, lamr, &
+                                            gamcgl, gamcgr, &
+#endif
+                                            csmall, cavg, bnd_fac, &
+                                            special_bnd_lo, special_bnd_hi, &
+                                            domlo, domhi)
 
-                call riemannus(qleft, qright, &
-                               gamcl, gamcr, &
+
+                if (riemann_solver == 0) then
+                   ! Colella, Glaz, & Ferguson solver
+
+                   call riemannus(qleft, qright, &
+                                  gamcl, gamcr, &
 #ifdef RADIATION
-                               laml, lamr, &
-                               gamcgl, gamcgr, &
+                                  laml, lamr, &
+                                  gamcgl, gamcgr, &
 #endif
-                               csmall, cavg, &
-                               bnd_fac, &
-                               qint_zone, &
+                                  csmall, cavg, &
+                                  bnd_fac, &
+                                  qint_zone, &
 #ifdef RADIATION
-                               lambda_int_zone, &
+                                  lambda_int_zone, &
 #endif
-                               idir)
+                                  idir)
+
+                else if (riemann_solver == 1) then
+                   ! Colella & Glaz solver
+
+#ifndef RADIATION
+                   call riemanncg(qleft, qright, &
+                                  gamcl, gamcr, &
+                                  csmall, cavg, &
+                                  bnd_fac, &
+                                  qint_zone, &
+                                  idir)
+#endif
+
+                end if
 
                 qgdnv(i,j,k,GDRHO) = qint_zone(QRHO)
                 qgdnv(i,j,k,GDU) = qint_zone(QU)
@@ -159,7 +176,6 @@ contains
                 qgdnv(i,j,k,GDERADS:GDERADS-1+ngroups) = qint_zone(QRAD:QRAD-1+ngroups)
 #endif
 
-
                 call compute_flux_q_single(i, j, k, &
                                            qint_zone, &
                                            flx, flx_lo, flx_hi, &
@@ -169,51 +185,35 @@ contains
 #endif
                                            idir, 0)
 
+             end do
+          end do
+       end do
 
-             else if (riemann_solver == 1) then
-                ! Colella & Glaz solver
+    else if (riemann_solver == 2) then
 
-#ifndef RADIATION
-                call riemanncg(qleft, qright, &
-                               gamcl, gamcr, &
-                               csmall, cavg, &
-                               bnd_fac, &
-                               qint_zone, &
-                               idir)
+       ! HLLC
+       call HLLC(qm, qm_lo, qm_hi, &
+                 qp, qp_lo, qp_hi, &
+                 qaux, qa_lo, qa_hi, &
+                 flx, flx_lo, flx_hi, &
+                 qgdnv, qg_lo, qg_hi, &
+                 idir, lo, hi, &
+                 domlo, domhi)
 
-                qgdnv(i,j,k,GDRHO) = qint_zone(QRHO)
-                qgdnv(i,j,k,GDU) = qint_zone(QU)
-                qgdnv(i,j,k,GDV) = qint_zone(QV)
-                qgdnv(i,j,k,GDW) = qint_zone(QW)
-                qgdnv(i,j,k,GDPRES) = qint_zone(QPRES)
-
-                call compute_flux_q_single(i, j, k, &
-                                           qint_zone, &
-                                           flx, flx_lo, flx_hi, &
-                                           idir, 0)
-#endif
-
-
-             else if (riemann_solver == 2) then
-
-                ! HLLC
-                call HLLC(qm, qm_lo, qm_hi, &
-                          qp, qp_lo, qp_hi, &
-                          qaux, qa_lo, qa_hi, &
-                          flx, flx_lo, flx_hi, &
-                          qgdnv, qg_lo, qg_hi, &
-                          idir, lo, hi, &
-                          domlo, domhi)
 #ifndef AMREX_USE_CUDA
-             else
-                call castro_error("ERROR: invalid value of riemann_solver")
+    else
+       call castro_error("ERROR: invalid value of riemann_solver")
 #endif
-             endif
+    endif
 
 
-             if (hybrid_riemann == 1) then
-                ! correct the fluxes using an HLL scheme if we are in a shock
-                ! and doing the hybrid approach
+    if (hybrid_riemann == 1) then
+       ! correct the fluxes using an HLL scheme if we are in a shock
+       ! and doing the hybrid approach
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
 
                 is_shock = 0
 
@@ -244,11 +244,11 @@ contains
                    flx(i,j,k,:) = flx_zone(:)
                 end if
 
-             end if
-
+             end do
           end do
        end do
-    end do
+
+    end if
 
   end subroutine cmpflx_plus_godunov
 
