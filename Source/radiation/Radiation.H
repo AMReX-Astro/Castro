@@ -72,11 +72,11 @@ public:
   int inner_convergence_check;
   amrex::Real delta_e_rat_dt_tol; ///< energy change tolerance for adjusting timestep
   amrex::Real delta_T_rat_dt_tol; ///< T change tolerance for adjusting timestep
-  int limiter;          ///< 0: no limiter, 2: Lev-Pom limiter
-                        ///< 12: Bruenn, 22: square root, 32: Minerbo
-  int closure;      ///< 0: \f$f = \lambda\f$, 1: \f$f = 1/3\f$,
-                    ///< 2: \f$f = 1-2\lambda\f$, 3: \f$f = \lambda+(\lambda R)^2\f$
-                    ///< 4: \f$f = 1/3 + 2/3 (\lambda R)^2\f$
+  static int limiter;          ///< 0: no limiter, 2: Lev-Pom limiter
+                               ///< 12: Bruenn, 22: square root, 32: Minerbo
+  static int closure;      ///< 0: \f$f = \lambda\f$, 1: \f$f = 1/3\f$,
+                           ///< 2: \f$f = 1-2\lambda\f$, 3: \f$f = \lambda+(\lambda R)^2\f$
+                           ///< 4: \f$f = 1/3 + 2/3 (\lambda R)^2\f$
   int update_planck;     ///< after this number of iterations, lag planck
   int update_rosseland;  ///< after this number of iterations, lag rosseland
   int update_opacity;
