@@ -999,24 +999,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // compute the corrected x interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
 
-#pragma gpu box(xbx)
-      trans_final(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-                  1, 2, 3,
-                  BL_TO_FORTRAN_ANYD(qxm),
-                  BL_TO_FORTRAN_ANYD(ql),
-                  BL_TO_FORTRAN_ANYD(qxp),
-                  BL_TO_FORTRAN_ANYD(qr),
-                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                  BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_final(xbx, 0, 1, 2,
+                  qxm_arr, ql_arr,
+                  qxp_arr, qr_arr,
+                  qaux_arr,
+                  ftmp1_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp1),
+                  rftmp1_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(ftmp2),
+                  ftmp2_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp2),
+                  rftmp2_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp2),
+                  qgdnvtmp1_arr,
+                  qgdnvtmp2_arr,
                   hdt, hdtdx, hdtdy, hdtdz);
 
 #pragma gpu box(xbx)
@@ -1093,24 +1089,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // Compute the corrected y interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
 
-#pragma gpu box(ybx)
-      trans_final(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
-                  2, 1, 3,
-                  BL_TO_FORTRAN_ANYD(qym),
-                  BL_TO_FORTRAN_ANYD(ql),
-                  BL_TO_FORTRAN_ANYD(qyp),
-                  BL_TO_FORTRAN_ANYD(qr),
-                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                  BL_TO_FORTRAN_ANYD(ftmp2),
+      trans_final(ybx, 1, 0, 2,
+                  qym_arr, ql_arr,
+                  qyp_arr, qr_arr,
+                  qaux_arr,
+                  ftmp2_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp2),
+                  rftmp2_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(ftmp1),
+                  ftmp1_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp1),
+                  rftmp1_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp2),
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                  qgdnvtmp2_arr,
+                  qgdnvtmp1_arr,
                   hdt, hdtdx, hdtdy, hdtdz);
 
 #pragma gpu box(ybx)
@@ -1189,24 +1181,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // compute the corrected z interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
 
-#pragma gpu box(zbx)
-      trans_final(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
-                  3, 1, 2,
-                  BL_TO_FORTRAN_ANYD(qzm),
-                  BL_TO_FORTRAN_ANYD(ql),
-                  BL_TO_FORTRAN_ANYD(qzp),
-                  BL_TO_FORTRAN_ANYD(qr),
-                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                  BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_final(zbx, 2, 0, 1,
+                  qzm_arr, ql_arr,
+                  qzp_arr, qr_arr,
+                  qaux_arr,
+                  ftmp1_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp1),
+                  rftmp1_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(ftmp2),
+                  ftmp2_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp2),
+                  rftmp2_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp2),
+                  qgdnvtmp1_arr,
+                  qgdnvtmp2_arr,
                   hdt, hdtdx, hdtdy, hdtdz);
 
 #pragma gpu box(zbx)
