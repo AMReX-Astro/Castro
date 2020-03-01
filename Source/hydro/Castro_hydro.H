@@ -84,6 +84,48 @@
                       amrex::Array4<amrex::Real> const radflux);
 #endif
 
+    void ctu_ppm_states(const amrex::Box& bx, const amrex::Box& vbx,
+                        amrex::Array4<amrex::Real const> const q,
+                        amrex::Array4<amrex::Real const> const flatn,
+                        amrex::Array4<amrex::Real const> const qaux,
+                        amrex::Array4<amrex::Real const> const srcQ,
+                        amrex::Array4<amrex::Real> const qxm,
+                        amrex::Array4<amrex::Real> const qxp,
+#if AMREX_SPACEDIM >= 2
+                        amrex::Array4<amrex::Real> const qym,
+                        amrex::Array4<amrex::Real> const qyp,
+#endif
+#if AMREX_SPACEDIM == 3
+                        amrex::Array4<amrex::Real> const qzm,
+                        amrex::Array4<amrex::Real> const qzp,
+#endif
+#if AMREX_SPACEDIM < 3
+                        amrex::Array4<amrex::Real const> const dloga,
+#endif
+                        const amrex::Real dt);
+
+     void mol_ppm_reconstruct(const amrex::Box& bx,
+                              const int idir,
+                              amrex::Array4<amrex::Real const> const q_arr,
+                              amrex::Array4<amrex::Real const> const flatn_arr,
+                              amrex::Array4<amrex::Real> const qm,
+                              amrex::Array4<amrex::Real> const qp);
+
+
+    void trace_ppm(const amrex::Box& bx,
+                   const int idir,
+                   amrex::Array4<amrex::Real const> const q,
+                   amrex::Array4<amrex::Real const> const qaux,
+                   amrex::Array4<amrex::Real const> const srcQ,
+                   amrex::Array4<amrex::Real const> const flatn,
+                   amrex::Array4<amrex::Real> const qm,
+                   amrex::Array4<amrex::Real> const qp,
+#if (AMREX_SPACEDIM < 3)
+                   amrex::Array4<amrex::Real const> const dloga,
+#endif
+                   const amrex::Box& vbx,
+                   const amrex::Real dt);
+
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const shk,
                       amrex::Array4<amrex::Real> const update,

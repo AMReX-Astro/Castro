@@ -105,7 +105,8 @@ extern "C"
      BL_FORT_FAB_ARG_3D(area),
      const amrex::Real dt, const amrex::Real* dx);
 
-  void ctu_ppm_states
+#ifdef RADIATION
+  void ctu_ppm_rad_states
      (const int* lo, const int* hi,
       const int* vlo, const int* vhi,
       const BL_FORT_FAB_ARG_3D(q),
@@ -127,6 +128,7 @@ extern "C"
       const BL_FORT_FAB_ARG_3D(dloga),
 #endif
       const int* domlo, const int* domhi);
+#endif
 
   void ctu_plm_states
      (const int* lo, const int* hi,
@@ -200,14 +202,10 @@ extern "C"
      const amrex::Real* dx,
      const int* domlo, const int* domhi);
 
-  void ca_mol_ppm_reconstruct
+  void edge_state_temp_to_pres
     (const int* lo, const int* hi,
-     const int idir,
-     BL_FORT_FAB_ARG_3D(q),
-     const BL_FORT_FAB_ARG_3D(flatn),
      BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp),
-     const amrex::Real* dx);
+     BL_FORT_FAB_ARG_3D(qp));
 
   void ca_mol_consup
     (const int* lo, const int* hi,
