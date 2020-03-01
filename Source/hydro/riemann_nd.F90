@@ -13,7 +13,7 @@ module riemann_module
 
 #ifdef RADIATION
                                  qrad, qptot, qreitot, &
-                                 GDERADS, QGAMCG, QLAMS, QREITOT, &
+                                 GDERADS, QGAMCG, QLAMS, QREITOT, GDLAMS, &
 #endif
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp, &
@@ -81,7 +81,6 @@ contains
 #ifdef RADIATION
     integer, intent(in) :: rflx_lo(3), rflx_hi(3)
     real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
-    integer, intent(in) :: li_lo(3), li_hi(3)
 #endif
 
     real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
@@ -98,7 +97,7 @@ contains
 
 #ifdef RADIATION
     real(rt) :: gamcgl, gamcgr
-    real(rt) :: lambda_int_zone(0:ngroups-1)
+    real(rt) :: laml(0:ngroups-1), lamr(0:ngroups-1), lambda_int_zone(0:ngroups-1)
 #endif
 
     logical :: special_bnd_lo, special_bnd_hi
@@ -409,7 +408,7 @@ contains
     real(rt) :: csmall, cavg
     real(rt) :: gamcl, gamcr
 #ifdef RADIATION
-    real(rt) :: lambda_int_zone(0:ngroups-1)
+    real(rt) :: laml(0:ngroups-1), lamr(0:ngroups-1), lambda_int_zone(0:ngroups-1)
     real(rt) :: gamcgl, gamcgr
 #endif
 
