@@ -798,7 +798,7 @@ contains
     real(rt) :: pl_g, rel_g, pr_g, rer_g
     real(rt) :: regdnv_g, pgdnv_g, pgdnv_t
     real(rt) :: estar_g, pstar_g
-    real(rt), dimension(0:ngroups-1) :: lambda, laml, lamr, reo_r, po_r, estar_r, regdnv_r
+    real(rt), dimension(0:ngroups-1) :: reo_r, po_r, estar_r, regdnv_r
     integer :: g
 #endif
 
@@ -917,18 +917,18 @@ contains
     reo = fp*rel + fm*rer
     gamco = fp*gamcl + fm*gamcr
 #ifdef RADIATION
-    lambda = fp*laml + fm*lamr
+    lambda_int = fp*laml + fm*lamr
 
     if (ustar == 0) then
        ! harmonic average
        do g=0, ngroups-1
-          lambda(g) = 2.0e0_rt*(laml(g)*lamr(g))/(laml(g)+lamr(g)+1.e-50_rt)
+          lambda_int(g) = 2.0e0_rt*(laml(g)*lamr(g))/(laml(g)+lamr(g)+1.e-50_rt)
        end do
     end if
 
     po_g = fp*pl_g + fm*pr_g
     reo_r(:) = fp*erl(:) + fm*err(:)
-    po_r(:) = lambda(:)*reo_r(:)
+    po_r(:) = lambda_int(:)*reo_r(:)
     reo_g = fp*rel_g + fm*rer_g
     gamco_g = fp*gamcgl + fm*gamcgr
 #endif
@@ -1058,8 +1058,6 @@ contains
     qint(QPTOT) = pgdnv_t
     qint(QREINT) = regdnv_g
     qint(QREITOT) = sum(regdnv_r(:)) + regdnv_g
-
-    lambda_int(:) = lambda(:)
 
 #else
     qint(QPRES) = max(qint(QPRES),small_pres)
