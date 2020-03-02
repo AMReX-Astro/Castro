@@ -986,296 +986,267 @@ Castro::riemannus(const Box& bx,
 }
 
 
-  subroutine HLLC(ql, ql_lo, ql_hi, &
-                  qr, qr_lo, qr_hi, &
-                  qaux, qa_lo, qa_hi, &
-                  uflx, uflx_lo, uflx_hi, &
-                  qint, q_lo, q_hi, &
-                  idir, lo, hi, &
-                  domlo, domhi)
-    ! this is an implementation of the HLLC solver described in Toro's
-    ! book.  it uses the simplest estimate of the wave speeds, since
-    ! those should work for a general EOS.  We also initially do the
-    ! CGF Riemann construction to get pstar and ustar, since we'll
-    ! need to know the pressure and velocity on the interface for the
-    ! pdV term in the internal energy update.
+void
+Castro::HLLC(const Box& bx,
+             Array4<Real const> const ql,
+             Array4<Real const> const qr,
+             Array4<Real const> const qaux,
+             Array4<Real> const uflx,
+             Array4<Real> const qint,
+             const int idir,
+             const int* domlo, const int* domhi) {
 
-    use prob_params_module, only : physbc_lo, physbc_hi, &
-         Symmetry, SlipWall, NoSlipWall
+  // this is an implementation of the HLLC solver described in Toro's
+  // book.  it uses the simplest estimate of the wave speeds, since
+  // those should work for a general EOS.  We also initially do the
+  // CGF Riemann construction to get pstar and ustar, since we'll
+  // need to know the pressure and velocity on the interface for the
+  // pdV term in the internal energy update.
 
-    implicit none
+  int iu, iv1, iv2;
+  int im1, im2, im3;
 
-    integer, intent(in) :: ql_lo(3), ql_hi(3)
-    integer, intent(in) :: qr_lo(3), qr_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: uflx_lo(3), uflx_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: idir, lo(3), hi(3)
-    integer, intent(in) :: domlo(3), domhi(3)
+  if (idir == 0) {
+    iu = QU;
+    iv1 = QV;
+    iv2 = QW;
+    im1 = UMX;
+    im2 = UMY;
+    im3 = UMZ;
 
-    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ)
-    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ)
+  } else if (idir == 1) {
+    iu = QV;
+    iv1 = QU;
+    iv2 = QW;
+    im1 = UMY;
+    im2 = UMX;
+    im3 = UMZ;
 
-    ! note: qaux comes in dimensioned as the fully box, so use k3d to
-    ! index in z
-    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
+  } else {
+    iu = QW;
+    iv1 = QU;
+    iv2 = QV;
+    im1 = UMZ;
+    im2 = UMX;
+    im3 = UMY;
+  }
 
-    real(rt), intent(inout) :: uflx(uflx_lo(1):uflx_hi(1),uflx_lo(2):uflx_hi(2),uflx_lo(3):uflx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-
-    integer :: i, j, k
-
-    real(rt) :: rgdnv, regdnv
-    real(rt) :: rl, ul, v1l, v2l, pl, rel
-    real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, scr
-    real(rt) :: rstar, cstar, estar, pstar, ustar
-    real(rt) :: ro, uo, po, reo, co, gamco, entho
-    real(rt) :: sgnm, spin, spout, ushock, frac
-    real(rt) :: wsmall, csmall
-    real(rt) :: cavg, gamcl, gamcr
-
-    integer :: iu, iv1, iv2, sx, sy, sz
-    logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
-    integer :: bnd_fac_x, bnd_fac_y, bnd_fac_z, bnd_fac
-    real(rt) :: wwinv, roinv, co2inv
-
-    real(rt) :: U_hllc_state(nvar), U_state(nvar), F_state(nvar)
-    real(rt) :: S_l, S_r, S_c
-
-    real(rt) :: q_zone(NQ)
-
-    !$gpu
-
-    if (idir == 1) then
-       iu = QU
-       iv1 = QV
-       iv2 = QW
-       sx = 1
-       sy = 0
-       sz = 0
-    else if (idir == 2) then
-       iu = QV
-       iv1 = QU
-       iv2 = QW
-       sx = 0
-       sy = 1
-       sz = 0
-    else
-       iu = QW
-       iv1 = QU
-       iv2 = QV
-       sx = 0
-       sy = 0
-       sz = 1
-    end if
-
-    special_bnd_lo = (physbc_lo(idir) == Symmetry &
-         .or.         physbc_lo(idir) == SlipWall &
-         .or.         physbc_lo(idir) == NoSlipWall)
-    special_bnd_hi = (physbc_hi(idir) == Symmetry &
-         .or.         physbc_hi(idir) == SlipWall &
-         .or.         physbc_hi(idir) == NoSlipWall)
-
-    if (idir == 1) then
-       special_bnd_lo_x = special_bnd_lo
-       special_bnd_hi_x = special_bnd_hi
-    else
-       special_bnd_lo_x = .false.
-       special_bnd_hi_x = .false.
-    end if
-
-    do k = lo(3), hi(3)
-
-       bnd_fac_z = 1
-       if (idir == 3) then
-          if ( k == domlo(3)   .and. special_bnd_lo .or. &
-               k == domhi(3)+1 .and. special_bnd_hi ) then
-             bnd_fac_z = 0
-          end if
-       end if
-
-       do j = lo(2), hi(2)
-
-          bnd_fac_y = 1
-          if (idir == 2) then
-             if ( j == domlo(2)   .and. special_bnd_lo .or. &
-                  j == domhi(2)+1 .and. special_bnd_hi ) then
-                bnd_fac_y = 0
-             end if
-          end if
-
-          !dir$ ivdep
-          do i = lo(1), hi(1)
-
-             rl = max(ql(i,j,k,QRHO), small_dens)
-
-             ! pick left velocities based on direction
-             ul  = ql(i,j,k,iu)
-             v1l = ql(i,j,k,iv1)
-             v2l = ql(i,j,k,iv2)
-
-             pl  = max(ql(i,j,k,QPRES), small_pres)
-             rel = ql(i,j,k,QREINT)
-
-             rr = max(qr(i,j,k,QRHO), small_dens)
-
-             ! pick right velocities based on direction
-             ur  = qr(i,j,k,iu)
-             v1r = qr(i,j,k,iv1)
-             v2r = qr(i,j,k,iv2)
-
-             pr  = max(qr(i,j,k,QPRES), small_pres)
-             rer = qr(i,j,k,QREINT)
-
-             ! now we essentially do the CGF solver to get p and u on the
-             ! interface, but we won't use these in any flux construction.
-             csmall = max( small, max(small * qaux(i,j,k,QC) , small * qaux(i-sx,j-sy,k-sz,QC)) )
-             cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC))
-
-             if (use_reconstructed_gamma1 == 1) then
-                gamcl = ql(i,j,k,QGC)
-                gamcr = qr(i,j,k,QGC)
-             else
-                gamcl = qaux(i-sx,j-sy,k-sz,QGAMC)
-                gamcr = qaux(i,j,k,QGAMC)
-             endif
-
-             wsmall = small_dens*csmall
-             wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))
-             wr = max(wsmall, sqrt(abs(gamcr*pr*rr)))
-
-             wwinv = 1.0_rt/(wl + wr)
-             pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
-             ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
-
-             pstar = max(pstar, small_pres)
-             ! for symmetry preservation, if ustar is really small, then we
-             ! set it to zero
-             if (abs(ustar) < smallu*0.5_rt*(abs(ul) + abs(ur))) then
-                ustar = 0.0_rt
-             endif
-
-             if (ustar > 0.0_rt) then
-                ro = rl
-                uo = ul
-                po = pl
-                reo = rel
-                gamco = gamcl
-
-             else if (ustar < 0.0_rt) then
-                ro = rr
-                uo = ur
-                po = pr
-                reo = rer
-                gamco = gamcr
-             else
-                ro = 0.5_rt*(rl + rr)
-                uo = 0.5_rt*(ul + ur)
-                po = 0.5_rt*(pl + pr)
-                reo = 0.5_rt*(rel + rer)
-                gamco = 0.5_rt*(gamcl + gamcr)
-             endif
-             ro = max(small_dens, ro)
-
-             roinv = 1.0_rt/ro
-             co = sqrt(abs(gamco*po*roinv))
-             co = max(csmall, co)
-             co2inv = 1.0_rt/(co*co)
-
-             rstar = ro + (pstar - po)*co2inv
-             rstar = max(small_dens, rstar)
-
-             entho = (reo + po)*co2inv * roinv
-             estar = reo + (pstar - po)*entho
-
-             cstar = sqrt(abs(gamco*pstar/rstar))
-             cstar = max(cstar, csmall)
-
-             sgnm = sign(1.0_rt, ustar)
-             spout = co - sgnm*uo
-             spin = cstar - sgnm*ustar
-             ushock = 0.5_rt*(spin + spout)
-
-             if (pstar-po > 0.0_rt) then
-                spin = ushock
-                spout = ushock
-             endif
-             if (spout-spin == 0.0_rt) then
-                scr = small*cavg
-             else
-                scr = spout-spin
-             endif
-             frac = (1.0_rt + (spout + spin)/scr)*0.5_rt
-             frac = max(0.0_rt, min(1.0_rt, frac))
-
-             rgdnv = frac*rstar + (1.0_rt - frac)*ro
-             regdnv = frac*estar + (1.0_rt - frac)*reo
-
-             qint(i,j,k,iu) = frac*ustar + (1.0_rt - frac)*uo
-             qint(i,j,k,QPRES) = frac*pstar + (1.0_rt - frac)*po
+  // do we want to force the flux to zero at the boundary?
+  bool special_bnd_lo = (physbc_lo[idir] == Symmetry ||
+                         physbc_lo[idir] == SlipWall ||
+                         physbc_lo(idir) == NoSlipWall);
+  bool special_bnd_hi = (physbc_hi(idir) == Symmetry ||
+                         physbc_hi(idir) == SlipWall ||
+                         physbc_hi(idir) == NoSlipWall);
 
 
-             ! now we do the HLLC construction
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
+
+    // deal with hard walls
+    Real bnd_fac = 1.0_rt;
+
+    if (idir == 0) {
+      if ((i == domlo[0] && special_bnd_lo) ||
+          (i == domhi[0]+1 && special_bnd_hi)) {
+        bnd_fac = 0.0_rt;
+      }
+
+    } else if (idir == 1) {
+      if ((j == domlo[1] && special_bnd_lo) ||
+          (j == domhi[1]+1 && special_bnd_hi)) {
+        bnd_fac = 0.0_rt;
+      }
+    } else {
+      if ((k == domlo[2] && special_bnd_lo) ||
+          (k == domhi[2]+1 && special_bnd_hi)) {
+        bnd_fac = 0.0_rt;
+      }
+    }
 
 
-             ! Enforce that the fluxes through a symmetry plane or wall are hard zero.
-             if ( special_bnd_lo_x .and. i== domlo(1) .or. &
-                  special_bnd_hi_x .and. i== domhi(1)+1 ) then
-                bnd_fac_x = 0
-             else
-                bnd_fac_x = 1
-             end if
+    Real rl = amrex::max(ql(i,j,k,QRHO), small_dens);
 
-             bnd_fac = bnd_fac_x*bnd_fac_y*bnd_fac_z
+    // pick left velocities based on direction
+    Real ul  = ql(i,j,k,iu);
+    Real v1l = ql(i,j,k,iv1);
+    Real v2l = ql(i,j,k,iv2);
 
-             ! use the simplest estimates of the wave speeds
-             S_l = min(ul - sqrt(gamcl*pl/rl), ur - sqrt(gamcr*pr/rr))
-             S_r = max(ul + sqrt(gamcl*pl/rl), ur + sqrt(gamcr*pr/rr))
+    Real pl = amrex::max(ql(i,j,k,QPRES), small_pres);
+    Real rel = ql(i,j,k,QREINT);
 
-             ! estimate of the contact speed -- this is Toro Eq. 10.8
-             S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/ &
-                  (rl*(S_l - ul) - rr*(S_r - ur))
+    Real rr = amrex::max(qr(i,j,k,QRHO), small_dens);
 
-             if (S_r <= 0.0_rt) then
-                ! R region
-                q_zone(:) = qr(i,j,k,:)
-                call cons_state(q_zone, U_state)
-                call compute_flux(idir, bnd_fac, U_state, pr, F_state)
+    // pick right velocities based on direction
+    Real ur  = qr(i,j,k,iu);
+    Real v1r = qr(i,j,k,iv1);
+    Real v2r = qr(i,j,k,iv2);
 
-             else if (S_r > 0.0_rt .and. S_c <= 0.0_rt) then
-                ! R* region
-                q_zone(:) = qr(i,j,k,:)
-                call cons_state(q_zone, U_state)
-                call compute_flux(idir, bnd_fac, U_state, pr, F_state)
+    Real pr = amrex::max(qr(i,j,k,QPRES), small_pres);
+    Real rer = qr(i,j,k,QREINT);
 
-                call HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state)
+    // now we essentially do the CGF solver to get p and u on the
+    // interface, but we won't use these in any flux construction.
+    Real csmall = amrex::max(small, amrex::max(small * qaux(i,j,k,QC), small * qaux(i-sx,j-sy,k-sz,QC)));
+    Real cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC));
 
-                ! correct the flux
-                F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
+    Real gamcl;
+    Real gamcr;
 
-             else if (S_c > 0.0_rt .and. S_l < 0.0_rt) then
-                ! L* region
-                q_zone(:) = ql(i,j,k,:)
-                call cons_state(q_zone, U_state)
-                call compute_flux(idir, bnd_fac, U_state, pl, F_state)
+    if (use_reconstructed_gamma1 == 1) {
+      gamcl = ql(i,j,k,QGC);
+      gamcr = qr(i,j,k,QGC);
+    } else {
+      gamcl = qaux(i-sx,j-sy,k-sz,QGAMC);
+      gamcr = qaux(i,j,k,QGAMC);
+    }
 
-                call HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state)
+    Real wsmall = small_dens*csmall;
+    Real wl = amrex::max(wsmall, std::sqrt(std::abs(gamcl*pl*rl)));
+    Real wr = amrex::max(wsmall, std::sqrt(std::abs(gamcr*pr*rr)));
 
-                ! correct the flux
-                F_state(:) = F_state(:) + S_l*(U_hllc_state(:) - U_state(:))
+    Real wwinv = 1.0_rt/(wl + wr);
+    Real pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv;
+    Real ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv;
 
-             else
-                ! L region
-                q_zone(:) = ql(i,j,k,:)
-                call cons_state(q_zone, U_state)
-                call compute_flux(idir, bnd_fac, U_state, pl, F_state)
+    pstar = amrex::max(pstar, small_pres);
+    // for symmetry preservation, if ustar is really small, then we
+    // set it to zero
+    if (abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))){
+      ustar = 0.0_rt;
+    }
 
-             endif
+    Real ro;
+    Real uo;
+    Real po;
+    Real reo;
+    Real gamco;
 
-             uflx(i,j,k,:) = F_state(:)
-          end do
-       end do
-    end do
+    if (ustar > 0.0_rt) {
+      ro = rl;
+      uo = ul;
+      po = pl;
+      reo = rel;
+      gamco = gamcl;
 
-  end subroutine HLLC
+    } else if (ustar < 0.0_rt) {
+      ro = rr;
+      uo = ur;
+      po = pr;
+      reo = rer;
+      gamco = gamcr;
+
+    } else {
+      ro = 0.5_rt*(rl + rr);
+      uo = 0.5_rt*(ul + ur);
+      po = 0.5_rt*(pl + pr);
+      reo = 0.5_rt*(rel + rer);
+      gamco = 0.5_rt*(gamcl + gamcr);
+    }
+
+    ro = std::max(small_dens, ro);
+
+    Real roinv = 1.0_rt/ro;
+    Real co = std::sqrt(std::abs(gamco*po*roinv));
+    co = amrex::max(csmall, co);
+    Real co2inv = 1.0_rt/(co*co);
+
+    Real rstar = ro + (pstar - po)*co2inv;
+    rstar = amrex::max(small_dens, rstar);
+
+    Real entho = (reo + po)*co2inv * roinv;
+    Real estar = reo + (pstar - po)*entho;
+
+    Real cstar = std::sqrt(std::abs(gamco*pstar/rstar));
+    cstar = max(cstar, csmall);
+
+    Real sgnm = std::copysign(1.0_rt, ustar);
+    Real spout = co - sgnm*uo;
+    Real spin = cstar - sgnm*ustar;
+    Real ushock = 0.5_rt*(spin + spout);
+
+    if (pstar-po > 0.0_rt) {
+      spin = ushock;
+      spout = ushock;
+    }
+
+    Real scr = spout-spin;
+    if (spout-spin == 0.0_rt) {
+      scr = small*cavg;
+    }
+
+    Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
+    frac = amrex::max(0.0_rt, amrex::min(1.0_rt, frac));
+
+    Real rgdnv = frac*rstar + (1.0_rt - frac)*ro;
+    Real regdnv = frac*estar + (1.0_rt - frac)*reo;
+
+    qint(i,j,k,iu) = frac*ustar + (1.0_rt - frac)*uo;
+    qint(i,j,k,QPRES) = frac*pstar + (1.0_rt - frac)*po;
+
+
+    // now we do the HLLC construction
+
+    // use the simplest estimates of the wave speeds
+    Real S_l = amrex::min(ul - std::sqrt(gamcl*pl/rl), ur - std::sqrt(gamcr*pr/rr));
+    Real S_r = amrex::max(ul + std::sqrt(gamcl*pl/rl), ur + std::sqrt(gamcr*pr/rr));
+
+    // estimate of the contact speed -- this is Toro Eq. 10.8
+    Real S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/
+      (rl*(S_l - ul) - rr*(S_r - ur));
+
+    Real q_zone[NQ];
+    Real U_state[NUM_STATE];
+    Real U_hllc_state[NUM_STATE];
+    Real F_state[NUM_STATE];
+
+    if (S_r <= 0.0_rt) {
+      // R region
+      for (int n = 0; n < NQ; n++) {
+        q_zone[n] = qr(i,j,k,n);
+      }
+      cons_state(q_zone, U_state);
+      compute_flux(idir, bnd_fac, U_state, pr, F_state);
+
+    } else if (S_r > 0.0_rt && S_c <= 0.0_rt) {
+      // R* region
+      for (int n = 0; n < NQ; n++) {
+        q_zone[n] = qr(i,j,k,n);
+      }
+      cons_state(q_zone, U_state);
+      compute_flux(idir, bnd_fac, U_state, pr, F_state);
+      HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state);
+
+      // correct the flux
+      for (int n = 0; n < NUM_STATE; n++) {
+        F_state[n] = F_state[n] + S_r*(U_hllc_state[n] - U_state[n]);
+      }
+
+    } else if (S_c > 0.0_rt && S_l < 0.0_rt) {
+      // L* region
+      for (int n = 0; n < NQ; n++) {
+        q_zone[n] = ql(i,j,k,n);
+      }
+      cons_state(q_zone, U_state);
+      compute_flux(idir, bnd_fac, U_state, pl, F_state);
+      HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state);
+
+      // correct the flux
+      for (int n = 0; n < NUM_STATE; n++) {
+        F_state[n] = F_state[n] + S_l*(U_hllc_state[n] - U_state[n]);
+      }
+
+    } else {
+      // L region
+      for (int n = 0; n < NQ; n++) {
+        q_zone[n] = ql(i,j,k,n);
+      }
+      cons_state(q_zone, U_state);
+      compute_flux(idir, bnd_fac, U_state, pl, F_state);
+    }
+
+    for (int n = 0; n < NUM_STATE; n++) {
+      uflx(i,j,k,n) = F_state[n];
+    }
+  });
+}
