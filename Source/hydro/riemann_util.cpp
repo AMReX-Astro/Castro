@@ -16,11 +16,7 @@
 
 using namespace amrex;
 
-constexpr Real smlp1 = 1.e-10_rt;
-constexpr Real small = 1.e-7_rt;
-constexpr Real smallu = 1.e-12_rt;
-//constexpr Real small = 1.e-8_rt;
-
+#include <riemann.H>
 
 AMREX_GPU_HOST_DEVICE
 void
@@ -68,7 +64,7 @@ Castro::pstar_bisection(Real& pstar_lo, const Real& pstar_hi,
                         const Real gamer, const Real clsqr,
                         const Real gdot, const Real gmin, const Real gmax,
                         Real& pstar, Real& gamstar,
-                        bool& converged, Real& pstar_hist_extra) {
+                        bool& converged, GpuArray<Real, 2*HISTORY_SIZE>& pstar_hist_extra) {
 
   // we want to zero
   // f(p*) = u*_l(p*) - u*_r(p*)

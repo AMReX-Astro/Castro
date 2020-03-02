@@ -4,6 +4,8 @@
 
 #include <state_indices.H>
 
+constexpr int HISTORY_SIZE = 40;
+
 // for backwards compatibility with the old way of naming variables
 // these keys are deprecated and may be removed in the future
 constexpr int Density = URHO;

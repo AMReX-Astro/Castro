@@ -116,12 +116,12 @@ Castro::cmpflx_plus_godunov(const Box& bx,
   }
 
 
-  ca_store_godunov_state(bx,
-                         qint,
+  store_godunov_state(bx,
+                      qint,
 #ifdef RADIATION
-                         lambda_int,
+                      lambda_int,
 #endif
-                         qgdnv);
+                      qgdnv);
 }
 
 
@@ -185,10 +185,10 @@ Castro::riemann_state(const Box& bx,
      eos_state.rho = qm(i,j,k,QRHO);
      eos_state.p = qm(i,j,k,QPRES);
      eos_state.e = qm(i,j,k,QREINT)/qm(i,j,k,QRHO);
-     for (int n = 0; n < nspec; n++) {
+     for (int n = 0; n < NumSpec; n++) {
        eos_state.xn[n] = qm(i,j,k,QFS+n);
      }
-     for (int n = 0; n < naux; n++) {
+     for (int n = 0; n < NumAux; n++) {
        eos_state.aux[n] = qm(i,j,k,QFX+n);
      }
 
@@ -201,10 +201,10 @@ Castro::riemann_state(const Box& bx,
      eos_state.rho = qp(i,j,k,QRHO);
      eos_state.p = qp(i,j,k,QPRES);
      eos_state.e = qp(i,j,k,QREINT)/qp(i,j,k,QRHO);
-     for (int n = 0; n < nspec; n++) {
+     for (int n = 0; n < NumSpec; n++) {
        eos_state.xn[n] = qp(i,j,k,QFS+n);
      }
-     for (int n = 0; n < naux; n++) {
+     for (int n = 0; n < NumAux; n++) {
        eos_state.aux[n] = qp(i,j,k,QFX+n);
      }
 
@@ -239,7 +239,7 @@ Castro::riemann_state(const Box& bx,
 
 #ifndef AMREX_USE_CUDA
   } else {
-    call castro_error("ERROR: invalid value of riemann_solver");
+    amrex::Error("ERROR: invalid value of riemann_solver");
 #endif
   }
 }

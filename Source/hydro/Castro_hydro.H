@@ -176,8 +176,7 @@
                    amrex::Array4<amrex::Real> const qr,
                    amrex::Array4<amrex::Real const> const qaux,
                    amrex::Array4<amrex::Real> const qint,
-                   const int idir,
-                   const int* domlo, const int* domhi);
+                   const int idir);
 
     void riemannus(const amrex::Box& bx,
                    amrex::Array4<amrex::Real> const ql,
@@ -187,8 +186,8 @@
 #ifdef RADIATION
                    amrex::Array4<amrex::Real> const lambda_int,
 #endif
-                   const int idir, const int compute_gammas,
-                   const int* domlo, const int& domhi);
+                   const int idir, const int compute_gammas);
+
 
     void HLLC(const amrex::Box& bx,
               amrex::Array4<amrex::Real const> const ql,
@@ -196,8 +195,7 @@
               amrex::Array4<amrex::Real const> const qaux,
               amrex::Array4<amrex::Real> const uflx,
               amrex::Array4<amrex::Real> const qint,
-              const int idir,
-              const int* domlo, const int* domhi);
+              const int idir);
 
     void HLL(const amrex::Real* ql, const amrex::Real* qr,
              const amrex::Real cl, const amrex::Real cr,
@@ -220,7 +218,7 @@
                     const amrex::Real gamer, const amrex::Real clsqr,
                     const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
                     amrex::Real& pstar, amrex::Real& gamstar,
-                    bool& converged, amrex::Real& pstar_hist_extra);
+                    bool& converged, amrex::GpuArray<amrex::Real, 2*HISTORY_SIZE>& pstar_hist_extra);
 
     AMREX_GPU_HOST_DEVICE
     void
