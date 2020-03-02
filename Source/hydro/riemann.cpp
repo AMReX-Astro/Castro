@@ -1,7 +1,16 @@
+#include "Castro.H"
+#include "Castro_F.H"
+#include "Castro_hydro_F.H"
 
-constexpr Real smallu = 1.e-12_rt;
-constexpr Real small = 1.e-8_rt;
+#ifdef RADIATION
+#include "Radiation.H"
+#endif
 
+#include <cmath>
+
+#include <riemann.H>
+
+using namespace amrex;
 
 void
 Castro::cmpflx_plus_godunov(const Box& bx,
