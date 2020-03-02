@@ -167,6 +167,7 @@ Castro::ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
     }
 }
 
+#ifdef REACTIONS
 void
 Castro::ca_sdc_compute_C2_lobatto(const amrex::Box& bx,
                                   amrex::Real dt_m, amrex::Real dt,
@@ -369,7 +370,7 @@ Castro::ca_sdc_conservative_update(const amrex::Box& bx, amrex::Real const dt_m,
         U_new(i,j,k,n) = U_old(i,j,k,n) + dt_m * R_new(i,j,k,n) + dt_m * C(i,j,k,n);
     });
 } // end subroutine ca_sdc_conservative_update
-
+#endif
 
 
 void Castro::ca_sdc_compute_initial_guess(const amrex::Box& bx,

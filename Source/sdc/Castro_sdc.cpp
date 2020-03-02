@@ -188,8 +188,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             amrex::Array4<const amrex::Real> const& k_new_m_start_arr=
                 (k_new[m_start])->array(mfi);
             amrex::Array4<amrex::Real> const& k_new_m_end_arr=(k_new[m_end])->array(mfi);
-            amrex::Array4<amrex::Real> const& C_source_arr=C_source.array(mfi);
-            amrex::Array4<const amrex::Real> const& R_new_arr=R_new.array();
+            amrex::Array4<const amrex::Real> const& C_source_arr=C_source.array(mfi);
 
             // convert the starting U to cell-centered on a fab-by-fab basis
             // -- including one ghost cell
@@ -230,6 +229,9 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // compute R_i and in 1 ghost cell and then convert to <R> in
             // place (only for the interior)
             R_new.resize(bx1, NUM_STATE);
+            Elixir elix_R_new = R_new.elixir();
+            amrex::Array4<const amrex::Real> const& R_new_arr=R_new.array();
+
             ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
                                    BL_TO_FORTRAN_3D(U_new_center),
                                    BL_TO_FORTRAN_3D(R_new));
