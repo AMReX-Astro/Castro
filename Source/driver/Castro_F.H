@@ -268,8 +268,10 @@ extern "C"
      const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir1, const int idir2);
 
   void ca_sumlocsquaredmass
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir);
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(rho),
+     const BL_FORT_FAB_ARG_3D(vol),
+     amrex::Real* mass, const amrex::Real* dx, int idir);
 
   void ca_sumproduct
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(f1), const BL_FORT_FAB_ARG_3D(f2),

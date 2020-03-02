@@ -16,7 +16,8 @@ module riemann_module
 #endif
                                  npassive, upass_map, qpass_map, &
                                  small_dens, small_pres, small_temp, &
-                                 use_eos_in_riemann, use_reconstructed_gamma1
+                                 use_eos_in_riemann, use_reconstructed_gamma1, &
+                                 hybrid_riemann, riemann_solver
 
   use riemann_util_module
 
@@ -92,94 +93,10 @@ contains
 
     real(rt), intent(inout) :: qgdnv(qg_lo(1):qg_hi(1), qg_lo(2):qg_hi(2), qg_lo(3):qg_hi(3), NGDNV)
 
-    !$gpu
-
-    call cmpflx(lo, hi, &
-                qm, qm_lo, qm_hi, &
-                qp, qp_lo, qp_hi, &
-                flx, flx_lo, flx_hi, &
-                qint, q_lo, q_hi, &
-#ifdef RADIATION
-                rflx, rflx_lo, rflx_hi, &
-                lambda_int, li_lo, li_hi, &
-#endif
-                qaux, qa_lo, qa_hi, &
-                shk, s_lo, s_hi, &
-                idir, domlo, domhi)
-
-    call ca_store_godunov_state(lo, hi, &
-                                qint, q_lo, q_hi, &
-#ifdef RADIATION
-                                lambda_int, li_lo, li_hi, &
-#endif
-                                qgdnv, qg_lo, qg_hi)
-
-  end subroutine cmpflx_plus_godunov
-
-  subroutine cmpflx(lo, hi, &
-                    qm, qm_lo, qm_hi, &
-                    qp, qp_lo, qp_hi, &
-                    flx, flx_lo, flx_hi, &
-                    qint, q_lo, q_hi, &
-#ifdef RADIATION
-                    rflx, rflx_lo, rflx_hi, &
-                    lambda_int, li_lo, li_hi, &
-#endif
-                    qaux, qa_lo, qa_hi, &
-                    shk, s_lo, s_hi, &
-                    idir, domlo, domhi)
-
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t
-    use network, only: nspec, naux
-    use castro_error_module
-    use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : hybrid_riemann, riemann_solver
-
-    implicit none
-
-    ! note: lo, hi necessarily the limits of the valid (no ghost
-    ! cells) domain, but could be hi+1 in some dimensions.  We rely on
-    ! the caller to specific the interfaces over which to solve the
-    ! Riemann problems
-
-    integer, intent(in) :: lo(3), hi(3)
-
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
-    integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: flx_lo(3), flx_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-
-    integer, intent(in) :: idir
-
-    integer, intent(in) :: domlo(3),domhi(3)
-
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
-
-    real(rt), intent(inout) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-
-#ifdef RADIATION
-    integer, intent(in) :: rflx_lo(3), rflx_hi(3)
-    real(rt), intent(inout) :: rflx(rflx_lo(1):rflx_hi(1), rflx_lo(2):rflx_hi(2), rflx_lo(3):rflx_hi(3),0:ngroups-1)
-    integer, intent(in) :: li_lo(3), li_hi(3)
-    real(rt), intent(inout) :: lambda_int(li_lo(1),li_hi(1), li_lo(2):li_hi(2), li_lo(3):li_hi(3), 0:ngroups-1)
-#endif
-
-    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in) ::  shk(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
-
-    real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
-
-    ! local variables
-
-    integer i, j, k
-
-    integer :: is_shock
+    integer :: i, j, k
     real(rt) :: cl, cr
+    real(rt) :: ql_zone(NQ), qr_zone(NQ), flx_zone(NVAR)
+    integer :: is_shock
 
     !$gpu
 
@@ -230,6 +147,8 @@ contains
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
 
+                is_shock = 0
+
                 select case (idir)
                 case (1)
                    is_shock = shk(i-1,j,k) + shk(i,j,k)
@@ -265,9 +184,14 @@ contains
 
     endif
 
-  end subroutine cmpflx
+    call ca_store_godunov_state(lo, hi, &
+                                qint, q_lo, q_hi, &
+#ifdef RADIATION
+                                lambda_int, li_lo, li_hi, &
+#endif
+                                qgdnv, qg_lo, qg_hi)
 
-
+  end subroutine cmpflx_plus_godunov
 
 
   subroutine riemann_state(lo, hi, &

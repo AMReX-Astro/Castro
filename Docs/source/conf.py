@@ -80,6 +80,8 @@ project = 'Castro'
 copyright = '2018, Castro development tem'
 author = 'Castro development team'
 
+html_logo = "castro_logo_hot_200.png"
+
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
