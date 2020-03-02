@@ -146,6 +146,69 @@
                       const amrex::Real dt);
 
 
+
+    void cmpflx_plus_godunov(const amrex::Box& bx,
+                             amrex::Array4<amrex::Real> const qm,
+                             amrex::Array4<amrex::Real> const qp,
+                             amrex::Array4<amrex::Real> const flx,
+                             amrex::Array4<amrex::Real> const qint,
+#ifdef RADIATION
+                             amrex::Array4<amrex::Real> const rflx,
+                             amrex::Array4<amrex::Real> const lambda_int,
+#endif
+                             amrex::Array4<amrex::Real> const qgdnv,
+                             amrex::Array4<amrex::Real const> const qaux,
+                             amrex::Array4<amrex::Real const> const shk,
+                             const int idir);
+
+    void riemann_state(const amrex::Box& bx,
+                       amrex::Array4<amrex::Real> const qm,
+                       amrex::Array4<amrex::Real> const qp,
+                       amrex::Array4<amrex::Real> const qint,
+#ifdef RADIATION
+                       amrex::Array4<amrex::Real> lambda_int,
+#endif
+                       amrex::Array4<amrex::Real const> const qaux,
+                       const int idir, const int compute_gammas);
+
+    void riemanncg(const amrex::Box& bx,
+                   amrex::Array4<amrex::Real> const ql,
+                   amrex::Array4<amrex::Real> const qr,
+                   amrex::Array4<amrex::Real const> const qaux,
+                   amrex::Array4<amrex::Real> const qint,
+                   const int idir,
+                   const int* domlo, const int* domhi);
+
+    void riemannus(const amrex::Box& bx,
+                   amrex::Array4<amrex::Real> const ql,
+                   amrex::Array4<amrex::Real> const qr,
+                   amrex::Array4<amrex::Real const> const qaux,
+                   amrex::Array4<amrex::Real> const qint,
+#ifdef RADIATION
+                   amrex::Array4<amrex::Real> const lambda_int,
+#endif
+                   const int idir, const int compute_gammas,
+                   const int* domlo, const int& domhi);
+
+    void HLLC(const amrex::Box& bx,
+              amrex::Array4<amrex::Real const> const ql,
+              amrex::Array4<amrex::Real const> const qr,
+              amrex::Array4<amrex::Real const> const qaux,
+              amrex::Array4<amrex::Real> const uflx,
+              amrex::Array4<amrex::Real> const qint,
+              const int idir,
+              const int* domlo, const int* domhi);
+
+    void HLL(const amrex::Real* ql, const amrex::Real* qr,
+             const amrex::Real cl, const amrex::Real cr,
+             const int idir,
+             amrex::Real* f);
+
+
+
+
+
+
     void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const flux);
 
     void scale_flux(const amrex::Box& bx,

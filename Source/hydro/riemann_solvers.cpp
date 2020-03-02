@@ -528,7 +528,7 @@ Castro::riemannus(const Box& bx,
                   Array4<Real> const lambda_int,
 #endif
                   const int idir, const int compute_gammas,
-                  const int* domlo, comst int& domhi) {
+                  const int* domlo, const int& domhi) {
 
   // Colella, Glaz, and Ferguson solver
   //
@@ -1249,4 +1249,159 @@ Castro::HLLC(const Box& bx,
       uflx(i,j,k,n) = F_state[n];
     }
   });
+}
+
+AMREX_GPU_HOST_DEVICE
+void
+Castro::HLL(const Real* ql, const Real* qr,
+            const Real cl, const Real cr,
+            const int idir,
+            Real* f) {
+
+
+  constexptr Real small = 1.e-10_rt;
+
+  int ivel, ivelt, iveltt;
+  int imom, imomt, imomtt;
+
+  switch (idir) {
+  case 0:
+    ivel = QU;
+    ivelt = QV;
+    iveltt = QW;
+
+    imom = UMX;
+    imomt = UMY;
+    imomtt = UMZ;
+
+    break;
+
+  case 1:
+    ivel = QV;
+    ivelt = QU;
+    iveltt = QW;
+
+    imom = UMY;
+    imomt = UMX;
+    imomtt = UMZ;
+
+    break;
+
+  case 2:
+    ivel = QW;
+    ivelt = QU;
+    iveltt = QV;
+
+    imom = UMZ;
+    imomt = UMX;
+    imomtt = UMY;
+
+  }
+
+  Real rhol_sqrt = std::sqrt(ql[QRHO]);
+  Real rhor_sqrt = std::sqrt(qr[QRHO]);
+
+  Real rhod = 1.0_rt/(rhol_sqrt + rhor_sqrt);
+
+
+  // compute the average sound speed. This uses an approximation from
+  // E88, eq. 5.6, 5.7 that assumes gamma falls between 1
+  // and 5/3
+  Real cavg = std::sqrt( (std::pow(rhol_sqrt*cl, 2) + std::pow(rhor_sqrt*cr, 2))*rhod +
+                         0.5_rt*rhol_sqrt*rhor_sqrt*rhod*rhod*std::pow(qr[ivel] - ql[ivel], 2));
+
+
+  // Roe eigenvalues (E91, eq. 5.3b)
+  Real uavg = (rhol_sqrt*ql[ivel] + rhor_sqrt*qr[ivel])*rhod;
+
+  Real a1 = uavg - cavg;
+  Real a4 = uavg + cavg;
+
+
+  // signal speeds (E91, eq. 4.5)
+  Real bl = amrex::min(a1, ql[ivel] - cl);
+  Real br = amrex::max(a4, qr[ivel] + cr);
+
+  bm = std::min(0.0_rt, bl);
+  bp = std::max(0.0_rt, br);
+
+  Real bd = bp - bm;
+
+  if (std::abs(bd) < small*amrex::max(std::abs(bm), std::abs(bp))) return;
+
+  bd = 1.0_rt/bd;
+
+  // compute the fluxes according to E91, eq. 4.4b -- note that the
+  // min/max above picks the correct flux if we are not in the star
+  // region
+
+  // density flux
+  Real fl_tmp = ql[QRHO]*ql[ivel];
+  Real fr_tmp = qr[QRHO]*qr[ivel];
+
+  f[URHO] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO] - ql[QRHO]);
+
+  // normal momentum flux.  Note for 1-d and 2-d non cartesian
+  // r-coordinate, we leave off the pressure term and handle that
+  // separately in the update, to accommodate different geometries
+  fl_tmp = ql[QRHO]*ql[ivel]*ql[ivel];
+  fr_tmp = qr[QRHO]*qr[ivel]*qr[ivel];
+  if (idir == 0) {
+    if (momx_flux_has_p[UMX]) {
+      fl_tmp = fl_tmp + ql[QPRES];
+      fr_tmp = fr_tmp + qr[QPRES];
+    }
+  } else if (idir == 1) {
+    if (momy_flux_has_p[UMY]) {
+      fl_tmp = fl_tmp + ql[QPRES];
+      fr_tmp = fr_tmp + qr[QPRES];
+    }
+  } else {
+    if (momz_flux_has_p[UMZ]) {
+      fl_tmp = fl_tmp + ql[QPRES];
+      fr_tmp = fr_tmp + qr[QPRES];
+    }
+  }
+
+  f[imom] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[ivel] - ql[QRHO]*ql[ivel]);
+
+  // transverse momentum flux
+  fl_tmp = ql[QRHO]*ql[ivel]*ql[ivelt];
+  fr_tmp = qr[QRHO]*qr[ivel]*qr[ivelt];
+
+  f[imomt] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[ivelt] - ql[QRHO]*ql[ivelt]);
+
+
+  fl_tmp = ql[QRHO]*ql[ivel]*ql[iveltt];
+  fr_tmp = qr[QRHO]*qr[ivel]*qr[iveltt];
+
+  f[imomtt] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[iveltt] - ql[QRHO]*ql[iveltt]);
+
+  // total energy flux
+  Real rhoEl = ql[QREINT] + 0.5_rt*ql[QRHO]*(ql[ivel]*ql[ivel] + ql[ivelt]*ql[ivelt] + ql[iveltt]*ql[iveltt]);
+  fl_tmp = ql[ivel]*(rhoEl + ql[QPRES]);
+
+  Real rhoEr = qr[QREINT] + 0.5_rt*qr[QRHO]*(qr[ivel]*qr[ivel] + qr[ivelt]*qr[ivelt] + qr[iveltt]*qr[iveltt]);
+  fr_tmp = qr[ivel]*(rhoEr + qr[QPRES]);
+
+  f[UEDEN] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl);
+
+
+  // eint flux
+  fl_tmp = ql[QREINT]*ql[ivel];
+  fr_tmp = qr[QREINT]*qr[ivel];
+
+  f[UEINT] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QREINT] - ql[QREINT]);
+
+
+  // passively-advected scalar fluxes
+  for (int ipassive = 0; ipassive < npassive; ipassive++) {
+    int n  = upass_map[ipassive];
+    int nqs = qpass_map[ipassive];
+
+    fl_tmp = ql[QRHO]*ql[nqs]*ql[ivel];
+    fr_tmp = qr[QRHO]*qr[nqs]*qr[ivel];
+
+    f[n] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[nqs] - ql[QRHO]*ql[nqs]);
+  }
 }
