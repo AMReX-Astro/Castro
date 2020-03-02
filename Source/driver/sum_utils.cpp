@@ -515,9 +515,9 @@ Castro::locSquaredSum (const std::string& name,
 {
     BL_PROFILE("Castro::locSquaredSum()");
 
-    Real        sum     = 0.0;
-    const Real* dx      = geom.CellSize();
-    auto        mf      = derive(name,time,0);
+    Real        sum = 0.0;
+    const Real* dx  = geom.CellSize();
+    auto        mf  = derive(name, time, 0);
 
     BL_ASSERT(mf);
 
@@ -534,13 +534,15 @@ Castro::locSquaredSum (const std::string& name,
     {
         const FArrayBox& fab = (*mf)[mfi];
     
-        const Box& box  = mfi.tilebox();
-        const int* lo   = box.loVect();
-        const int* hi   = box.hiVect();
+        const Box& box = mfi.tilebox();
+        const int* lo  = box.loVect();
+        const int* hi  = box.hiVect();
 
 #pragma gpu box(box)
-        ca_sumlocsquaredmass(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(fab),
-                             AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(volume[mfi]), AMREX_MFITER_REDUCE_SUM(&sum), idir);
+        ca_sumlocsquaredmass(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+                             BL_TO_FORTRAN_ANYD(fab),
+                             BL_TO_FORTRAN_ANYD(volume[mfi]),
+                             AMREX_MFITER_REDUCE_SUM(&sum), AMREX_REAL_ANYD(dx), idir);
     }
 
     if (!local)
@@ -548,4 +550,3 @@ Castro::locSquaredSum (const std::string& name,
 
     return sum;
 }
-
