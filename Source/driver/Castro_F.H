@@ -246,37 +246,7 @@ extern "C"
      const amrex::Real& dt);
 #endif
 
-
-
   void flush_output();
-
-
-  void ca_summass
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass);
-
-  void ca_sumsquared
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass);
-
-  void ca_sumlocmass
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir);
-
-  void ca_sumlocmass2d
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir1, const int idir2);
-
-  void ca_sumlocsquaredmass
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(rho),
-     const BL_FORT_FAB_ARG_3D(vol),
-     amrex::Real* mass, const amrex::Real* dx, int idir);
-
-  void ca_sumproduct
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(f1), const BL_FORT_FAB_ARG_3D(f2),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* s);
-
 
 #ifdef AUX_UPDATE
   void ca_auxupdate
