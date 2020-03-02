@@ -1,5 +1,3 @@
-
-
 void
 Castro::riemanncg(const Box& bx,
                   Array4<Real> const ql,
@@ -41,7 +39,7 @@ Castro::riemanncg(const Box& bx,
     sy = 0;
     sz = 0;
 
-  } else if (idir == 2) {
+  } else if (idir == 1) {
     iu = QV;
     iv1 = QU;
     iv2 = QW;
@@ -72,14 +70,6 @@ Castro::riemanncg(const Box& bx,
                          physbc_hi(idir) == SlipWall ||
                          physbc_hi(idir) == NoSlipWall);
 
-  if (idir == 1) {
-    bool special_bnd_lo_x = special_bnd_lo;
-    bool special_bnd_hi_x = special_bnd_hi;
-  } else {
-    special_bnd_lo_x = false;
-    special_bnd_hi_x = false;
-  }
-
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -87,20 +77,20 @@ Castro::riemanncg(const Box& bx,
     // deal with hard walls
     bnd_fac = 1.0_rt;
 
-    if (idir == 1) {
-      if ((i == domlo[1] && special_bnd_lo) ||
-          (i == domhi[1]+1 && special_bnd_hi)) {
+    if (idir == 0) {
+      if ((i == domlo[0] && special_bnd_lo) ||
+          (i == domhi[0]+1 && special_bnd_hi)) {
         bnd_fac = 0.0_rt;
       }
 
-    } else if (idir == 2) {
-      if ((j == domlo[2] && special_bnd_lo) ||
-          (j == domhi[2]+1 && special_bnd_hi)) {
+    } else if (idir == 1) {
+      if ((j == domlo[1] && special_bnd_lo) ||
+          (j == domhi[1]+1 && special_bnd_hi)) {
         bnd_fac = 0.0_rt;
       }
     } else {
-      if ((k == domlo[3] && special_bnd_lo) ||
-          (k == domhi[3]+1 && special_bnd_hi)) {
+      if ((k == domlo[2] && special_bnd_lo) ||
+          (k == domhi[2]+1 && special_bnd_hi)) {
         bnd_fac = 0.0_rt;
       }
     }
@@ -464,583 +454,536 @@ Castro::riemanncg(const Box& bx,
       spout = ushock;
     }
 
-    Real frac = HALF*(ONE + (spin + spout)/max(spout-spin, spin+spout, small*cavg))
+    Real frac = 0.5_rt*(1.0_rt + (spin + spout)/amrex::max(amrex::max(spout-spin, spin+spout), small*cavg));
 
-             ! the transverse velocity states only depend on the
-             ! direction that the contact moves
-             if (ustar > ZERO) then
-                qint(i,j,k,iv1) = v1l
-                qint(i,j,k,iv2) = v2l
-             else if (ustar < ZERO) then
-                qint(i,j,k,iv1) = v1r
-                qint(i,j,k,iv2) = v2r
-             else
-                qint(i,j,k,iv1) = HALF*(v1l+v1r)
-                qint(i,j,k,iv2) = HALF*(v2l+v2r)
-             endif
+    // the transverse velocity states only depend on the
+    // direction that the contact moves
+    if (ustar > 0.0_rt) {
+      qint(i,j,k,iv1) = v1l;
+      qint(i,j,k,iv2) = v2l;
+    } else if (ustar < 0.0_rt) {
+      qint(i,j,k,iv1) = v1r;
+      qint(i,j,k,iv2) = v2r;
+    } else {
+      qint(i,j,k,iv1) = 0.5_rt*(v1l+v1r);
+      qint(i,j,k,iv2) = 0.5_rt*(v2l+v2r);
+    }
 
-             ! linearly interpolate between the star and normal state -- this covers the
-             ! case where we are inside the rarefaction fan.
-             qint(i,j,k,QRHO) = frac*rstar + (ONE - frac)*ro
-             qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
-             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
-             game_int = frac*gamstar + (ONE-frac)*gameo
+    // linearly interpolate between the star and normal state -- this covers the
+    // case where we are inside the rarefaction fan.
+    qint(i,j,k,QRHO) = frac*rstar + (1.0_rt - frac)*ro;
+    qint(i,j,k,iu) = frac*ustar + (1.0_rt - frac)*uo;
+    qint(i,j,k,QPRES) = frac*pstar + (1.0_rt - frac)*po;
+    game_int = frac*gamstar + (1.0_rt-frac)*gameo;
 
-             ! now handle the cases where instead we are fully in the
-             ! star or fully in the original (l/r) state
-             if (spout < ZERO) then
-                qint(i,j,k,QRHO) = ro
-                qint(i,j,k,iu) = uo
-                qint(i,j,k,QPRES) = po
-                game_int = gameo
-             endif
+    // now handle the cases where instead we are fully in the
+    // star or fully in the original (l/r) state
+    if (spout < 0.0_rt) {
+      qint(i,j,k,QRHO) = ro;
+      qint(i,j,k,iu) = uo;
+      qint(i,j,k,QPRES) = po;
+      game_int = gameo;
+    }
 
-             if (spin >= ZERO) then
-                qint(i,j,k,QRHO) = rstar
-                qint(i,j,k,iu) = ustar
-                qint(i,j,k,QPRES) = pstar
-                game_int = gamstar
-             endif
+    if (spin >= 0.0_rt) {
+      qint(i,j,k,QRHO) = rstar;
+      qint(i,j,k,iu) = ustar;
+      qint(i,j,k,QPRES) = pstar;
+      game_int = gamstar;
+    }
 
-             qint(i,j,k,QPRES) = max(qint(i,j,k,QPRES), small_pres)
+    qint(i,j,k,QPRES) = amrex::max(qint(i,j,k,QPRES), small_pres);
 
-             u_adv = qint(i,j,k,iu)
+    qint(i,j,k,iu) = qint(i,j,k,iu) * bnd_fac;
 
-             ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-             if ( special_bnd_lo_x .and. i ==  domlo(1) .or. &
-                  special_bnd_hi_x .and. i ==  domhi(1)+1 ) then
-                bnd_fac_x = ZERO
-             else
-                bnd_fac_x = ONE
-             end if
-             u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
+    // Compute fluxes, order as conserved state (not q)
 
-             ! Compute fluxes, order as conserved state (not q)
-             qint(i,j,k,iu) = u_adv
+    // compute the total energy from the internal, p/(gamma - 1), and the kinetic
+    qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(game_int - 1.0_rt);
 
-             ! compute the total energy from the internal, p/(gamma - 1), and the kinetic
-             qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(game_int - ONE)
+    // advected quantities -- only the contact matters
+    for (int ipassive = 0; ipassive < npassive; ipassive++) {
+      int n  = upass_map[ipassive];
+      int nqp = qpass_map[ipassive];
 
-             ! advected quantities -- only the contact matters
-             do ipassive = 1, npassive
-                n  = upass_map(ipassive)
-                nqp = qpass_map(ipassive)
+      if (ustar > 0.0_rt) {
+        qint(i,j,k,nqp) = ql(i,j,k,nqp);
+      } else if (ustar < 0.0_rt) {
+        qint(i,j,k,nqp) = qr(i,j,k,nqp);
+      } else {
+        qint(i,j,k,nqp) = 0.5_rt * (ql(i,j,k,nqp) + qr(i,j,k,nqp));
+      }
+    }
 
-                if (ustar > ZERO) then
-                   qint(i,j,k,nqp) = ql(i,j,k,nqp)
-                else if (ustar < ZERO) then
-                   qint(i,j,k,nqp) = qr(i,j,k,nqp)
-                else
-                   qavg = HALF * (ql(i,j,k,nqp) + qr(i,j,k,nqp))
-                   qint(i,j,k,nqp) = qavg
-                end if
-             end do
+  });
+}
 
-          end do
-       end do
-    end do
-
-#ifndef AMREX_USE_CUDA
-    call bl_deallocate(pstar_hist)
-    call bl_deallocate(pstar_hist_extra)
-#endif
-
-  end subroutine riemanncg
-
-
-  subroutine riemannus(ql, ql_lo, ql_hi, &
-                       qr, qr_lo, qr_hi, &
-                       qaux, qa_lo, qa_hi, &
-                       qint, q_lo, q_hi, &
+void
+Castro::riemannus(const Box& bx,
+                  Array4<Real> const ql,
+                  Array4<Real> const qr,
+                  Array4<Real const> const qaux,
+                  Array4<Real> const qint,
 #ifdef RADIATION
-                       lambda_int, l_lo, l_hi, &
+                  Array4<Real> const lambda_int,
 #endif
-                       idir, compute_gammas, lo, hi, &
-                       domlo, domhi)
-    ! Colella, Glaz, and Ferguson solver
-    !
-    ! this is a 2-shock solver that uses a very simple approximation for the
-    ! star state, and carries an auxiliary jump condition for (rho e) to
-    ! deal with a real gas
+                  const int idir, const int compute_gammas,
+                  const int* domlo, comst int& domhi) {
 
-    use prob_params_module, only : physbc_lo, physbc_hi, &
-                                   Symmetry, SlipWall, NoSlipWall
-    use eos_type_module, only : eos_t, eos_input_rp
-    use eos_module, only : eos
-    use network, only : nspec, naux
-    use meth_params_module, only: T_guess
+  // Colella, Glaz, and Ferguson solver
+  //
+  // this is a 2-shock solver that uses a very simple approximation for the
+  // star state, and carries an auxiliary jump condition for (rho e) to
+  // deal with a real gas
 
-    implicit none
+  // set integer pointers for the normal and transverse velocity and
+  // momentum
 
-    integer, intent(in) :: ql_lo(3), ql_hi(3)
-    integer, intent(in) :: qr_lo(3), qr_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: idir, lo(3), hi(3)
-    integer, intent(in) :: domlo(3),domhi(3)
+  int iu, iv1, iv2;
+  int im1, im2, im3;
 
-#ifdef RADIATION
-    integer, intent(in) :: l_lo(3), l_hi(3)
-#endif
+  if (idir == 0) {
+    iu = QU;
+    iv1 = QV;
+    iv2 = QW;
+    im1 = UMX;
+    im2 = UMY;
+    im3 = UMZ;
 
-    integer, intent(in) :: compute_gammas
-    real(rt), intent(in) :: ql(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ)
-    real(rt), intent(in) :: qr(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ)
+  } else if (idir == 1) {
+    iu = QV;
+    iv1 = QU;
+    iv2 = QW;
+    im1 = UMY;
+    im2 = UMX;
+    im3 = UMZ;
 
-    ! note: qaux comes in dimensioned as the fully box, so use k3d to
-    ! index in z
-    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(inout) :: qint(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-#ifdef RADIATION
-    real(rt), intent(inout) :: lambda_int(l_lo(1):l_hi(1),l_lo(2):l_hi(2),l_lo(3):l_hi(3),0:ngroups-1)
-#endif
+  } else {
+    iu = QW;
+    iv1 = QU;
+    iv2 = QV;
+    im1 = UMZ;
+    im2 = UMX;
+    im3 = UMY;
+  }
 
-    integer :: i, j, k
-    integer :: nqp, ipassive
+  // do we want to force the flux to zero at the boundary?
+  bool special_bnd_lo = (physbc_lo[idir] == Symmetry ||
+                         physbc_lo[idir] == SlipWall ||
+                         physbc_lo(idir) == NoSlipWall);
+  bool special_bnd_hi = (physbc_hi(idir) == Symmetry ||
+                         physbc_hi(idir) == SlipWall ||
+                         physbc_hi(idir) == NoSlipWall);
 
-    real(rt) :: regdnv
-    real(rt) :: rl, ul, v1l, v2l, pl, rel
-    real(rt) :: rr, ur, v1r, v2r, pr, rer
-    real(rt) :: wl, wr, scr
-    real(rt) :: rstar, cstar, estar, pstar, ustar
-    real(rt) :: ro, uo, po, reo, co, gamco, entho, drho
-    real(rt) :: sgnm, spin, spout, ushock, frac
-    real(rt) :: wsmall, csmall
-    real(rt) :: cavg, gamcl, gamcr
 
-#ifdef RADIATION
-    real(rt), dimension(0:ngroups-1) :: erl, err
-    real(rt) :: reo_g, po_g, co_g, gamco_g
-    real(rt) :: pl_g, rel_g, pr_g, rer_g
-    real(rt) :: regdnv_g, pgdnv_g, pgdnv_t
-    real(rt) :: estar_g, pstar_g
-    real(rt), dimension(0:ngroups-1) :: lambda, laml, lamr, reo_r, po_r, estar_r, regdnv_r
-    integer :: g
-    real(rt) :: gamcgl, gamcgr
-#endif
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
 
-    real(rt) :: u_adv
+    // deal with hard walls
+    bnd_fac = 1.0_rt;
 
-    integer :: iu, iv1, iv2, im1, im2, im3
-    logical :: special_bnd_lo, special_bnd_hi, special_bnd_lo_x, special_bnd_hi_x
-    real(rt) :: bnd_fac_x, bnd_fac_y, bnd_fac_z
-    real(rt) :: wwinv, roinv, co2inv
-    real(rt) :: fp, fm
+    if (idir == 0) {
+      if ((i == domlo[0] && special_bnd_lo) ||
+          (i == domhi[0]+1 && special_bnd_hi)) {
+        bnd_fac = 0.0_rt;
+      }
 
-    type(eos_t) :: eos_state
-    real(rt), dimension(nspec) :: xn
+    } else if (idir == 1) {
+      if ((j == domlo[1] && special_bnd_lo) ||
+          (j == domhi[1]+1 && special_bnd_hi)) {
+        bnd_fac = 0.0_rt;
+      }
+    } else {
+      if ((k == domlo[2] && special_bnd_lo) ||
+          (k == domhi[2]+1 && special_bnd_hi)) {
+        bnd_fac = 0.0_rt;
+      }
+    }
 
-    !$gpu
 
-    ! set integer pointers for the normal and transverse velocity and
-    ! momentum
-
-    if (idir == 1) then
-       iu = QU
-       iv1 = QV
-       iv2 = QW
-       im1 = UMX
-       im2 = UMY
-       im3 = UMZ
-    else if (idir == 2) then
-       iu = QV
-       iv1 = QU
-       iv2 = QW
-       im1 = UMY
-       im2 = UMX
-       im3 = UMZ
-    else
-       iu = QW
-       iv1 = QU
-       iv2 = QV
-       im1 = UMZ
-       im2 = UMX
-       im3 = UMY
-    end if
-
-    special_bnd_lo = (physbc_lo(idir) == Symmetry &
-         .or.         physbc_lo(idir) == SlipWall &
-         .or.         physbc_lo(idir) == NoSlipWall)
-    special_bnd_hi = (physbc_hi(idir) == Symmetry &
-         .or.         physbc_hi(idir) == SlipWall &
-         .or.         physbc_hi(idir) == NoSlipWall)
-
-    if (idir == 1) then
-       special_bnd_lo_x = special_bnd_lo
-       special_bnd_hi_x = special_bnd_hi
-    else
-       special_bnd_lo_x = .false.
-       special_bnd_hi_x = .false.
-    end if
-
-    do k = lo(3), hi(3)
-
-       bnd_fac_z = ONE
-       if (idir == 3) then
-          if ( k == domlo(3)   .and. special_bnd_lo .or. &
-               k == domhi(3)+1 .and. special_bnd_hi ) then
-             bnd_fac_z = ZERO
-          end if
-       end if
-
-       do j = lo(2), hi(2)
-
-          bnd_fac_y = ONE
-          if (idir == 2) then
-             if ( j == domlo(2)   .and. special_bnd_lo .or. &
-                  j == domhi(2)+1 .and. special_bnd_hi ) then
-                bnd_fac_y = ZERO
-             end if
-          end if
-
-          !dir$ ivdep
-          do i = lo(1), hi(1)
-
-             ! ------------------------------------------------------------------
-             ! set the left and right states for this interface
-             ! ------------------------------------------------------------------
+    // set the left and right states for this interface
 
 #ifdef RADIATION
-             if (idir == 1) then
-                laml(:) = qaux(i-1,j,k,QLAMS:QLAMS+ngroups-1)
-             else if (idir == 2) then
-                laml(:) = qaux(i,j-1,k,QLAMS:QLAMS+ngroups-1)
-             else
-                laml(:) = qaux(i,j,k-1,QLAMS:QLAMS+ngroups-1)
-             end if
-             lamr(:) = qaux(i,j,k,QLAMS:QLAMS+ngroups-1)
+    Real laml[ngroups];
+    Real lamr[ngroups];
 
+    for (int g = 0; g < ngroups; g++) {
+      if (idir == 0) {
+        laml[g] = qaux(i-1,j,k,QLAMS+g);
+      } else if (idir == 1) {
+        laml[g] = qaux(i,j-1,k,QLAMS+g);
+      } else {
+        laml[g] = qaux(i,j,k-1,QLAMS+g);
+      }
+      lamr[g] = qaux(i,j,k,QLAMS+g);
+    }
 #endif
 
-             rl = max(ql(i,j,k,QRHO), small_dens)
+    Real rl = amrex::max(ql(i,j,k,QRHO), small_dens);
 
-             ! pick left velocities based on direction
-             ul  = ql(i,j,k,iu)
-             v1l = ql(i,j,k,iv1)
-             v2l = ql(i,j,k,iv2)
+    // pick left velocities based on direction
+    Real ul  = ql(i,j,k,iu);
+    Real v1l = ql(i,j,k,iv1);
+    Real v2l = ql(i,j,k,iv2);
 
 #ifdef RADIATION
-             pl = ql(i,j,k,qptot)
-             rel = ql(i,j,k,qreitot)
-             erl(:) = ql(i,j,k,qrad:qrad-1+ngroups)
-             pl_g = ql(i,j,k,QPRES)
-             rel_g = ql(i,j,k,QREINT)
+    Real pl = ql(i,j,k,qptot);
+    Real rel = ql(i,j,k,qreitot);
+    Real erl[ngroups];
+    for (int g = 0; g < ngroups; g++) {
+      erl[g] = ql(i,j,k,qrad+g);
+    }
+    Real pl_g = ql(i,j,k,QPRES);
+    Real rel_g = ql(i,j,k,QREINT);
 #else
-             pl  = max(ql(i,j,k,QPRES), small_pres)
-             rel = ql(i,j,k,QREINT)
+    Real pl = amrex::max(ql(i,j,k,QPRES), small_pres);
+    Real rel = ql(i,j,k,QREINT);
 #endif
 
-             rr = max(qr(i,j,k,QRHO), small_dens)
+    Real rr = amrex::max(qr(i,j,k,QRHO), small_dens);
 
-             ! pick right velocities based on direction
-             ur  = qr(i,j,k,iu)
-             v1r = qr(i,j,k,iv1)
-             v2r = qr(i,j,k,iv2)
+    // pick right velocities based on direction
+    Real ur  = qr(i,j,k,iu);
+    Real v1r = qr(i,j,k,iv1);
+    Real v2r = qr(i,j,k,iv2);
 
 #ifdef RADIATION
-             pr = qr(i,j,k,qptot)
-             rer = qr(i,j,k,qreitot)
-             err(:) = qr(i,j,k,qrad:qrad-1+ngroups)
-             pr_g = qr(i,j,k,QPRES)
-             rer_g = qr(i,j,k,QREINT)
+    Real pr = qr(i,j,k,qptot);
+    Real rer = qr(i,j,k,qreitot);
+    Real err[ngroups];
+    for (int g = 0; g < ngroups; g++) {
+      err[g] = qr(i,j,k,qrad:qrad-1+ngroups);
+    }
+    Real pr_g = qr(i,j,k,QPRES);
+    Real rer_g = qr(i,j,k,QREINT);
 #else
-             pr  = max(qr(i,j,k,QPRES), small_pres)
-             rer = qr(i,j,k,QREINT)
+    Real pr = amrex::max(qr(i,j,k,QPRES), small_pres);
+    Real rer = qr(i,j,k,QREINT);
 #endif
 
-             ! ------------------------------------------------------------------
-             ! estimate the star state: pstar, ustar
-             ! ------------------------------------------------------------------
+    // estimate the star state: pstar, ustar
 
-             if (idir == 1) then
-                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i-1,j,k,QC)))
-                cavg = HALF*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC))
-                gamcl = qaux(i-1,j,k,QGAMC)
-                gamcr = qaux(i,j,k,QGAMC)
+    Real csmall;
+    Real cavg;
+    Real gamcl;
+    Real gamcr;
 #ifdef RADIATION
-                gamcgl = qaux(i-1,j,k,QGAMCG)
-                gamcgr = qaux(i,j,k,QGAMCG)
+    Real gamcgl;
+    Real gamcgr;
 #endif
-             else if (idir == 2) then
-                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i,j-1,k,QC)))
-                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC))
-                gamcl = qaux(i,j-1,k,QGAMC)
-                gamcr = qaux(i,j,k,QGAMC)
+
+    if (idir == 0) {
+      csmall = amrex::max(small, small * amrex::max(qaux(i,j,k,QC), qaux(i-1,j,k,QC)));
+      cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC));
+      gamcl = qaux(i-1,j,k,QGAMC);
+      gamcr = qaux(i,j,k,QGAMC);
 #ifdef RADIATION
-                gamcgl = qaux(i,j-1,k,QGAMCG)
-                gamcgr = qaux(i,j,k,QGAMCG)
+      gamcgl = qaux(i-1,j,k,QGAMCG);
+      gamcgr = qaux(i,j,k,QGAMCG);
 #endif
-             else
-                csmall = max( small, small * max(qaux(i,j,k,QC), qaux(i,j,k-1,QC)))
-                cavg = HALF*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC))
-                gamcl = qaux(i,j,k-1,QGAMC)
-                gamcr = qaux(i,j,k,QGAMC)
+
+    } else if (idir == 1) {
+      csmall = amrex::max(small, small * amrex::max(qaux(i,j,k,QC), qaux(i,j-1,k,QC)));
+      cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC));
+      gamcl = qaux(i,j-1,k,QGAMC);
+      gamcr = qaux(i,j,k,QGAMC);
 #ifdef RADIATION
-                gamcgl = qaux(i,j,k-1,QGAMCG)
-                gamcgr = qaux(i,j,k,QGAMCG)
+      gamcgl = qaux(i,j-1,k,QGAMCG);
+      gamcgr = qaux(i,j,k,QGAMCG);
 #endif
-             end if
+
+    } else {
+      csmall = amrex::max(small, small * amrex::max(qaux(i,j,k,QC), qaux(i,j,k-1,QC)));
+      cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC));
+      gamcl = qaux(i,j,k-1,QGAMC);
+      gamcr = qaux(i,j,k,QGAMC);
+#ifdef RADIATION
+      gamcgl = qaux(i,j,k-1,QGAMCG);
+      gamcgr = qaux(i,j,k,QGAMCG);
+#endif
+    }
 
 #ifndef RADIATION
-             if (use_reconstructed_gamma1 == 1) then
-                gamcl = ql(i,j,k,QGC)
-                gamcr = qr(i,j,k,QGC)
-             else if (compute_gammas == 1) then
+    if (use_reconstructed_gamma1 == 1) {
+      gamcl = ql(i,j,k,QGC);
+      gamcr = qr(i,j,k,QGC);
 
-                ! we come in with a good p, rho, and X on the interfaces
-                ! -- use this to find the gamma used in the sound speed
-                eos_state % p = pl
-                eos_state % rho = rl
-                eos_state % xn(:) = ql(i,j,k,QFS:QFS-1+nspec)
-                eos_state % T = T_guess ! initial guess
-                eos_state % aux(:) = ql(i,j,k,QFX:QFX-1+naux)
+    } else if (compute_gammas == 1) {
 
-                call eos(eos_input_rp, eos_state)
+      // we come in with a good p, rho, and X on the interfaces
+      // -- use this to find the gamma used in the sound speed
+      eos_t eos_state;
+      eos_state.p = pl;
+      eos_state.rho = rl;
+      for (int n = 0; n < nspec; n++) {
+        eos_state.xn[n] = ql(i,j,k,QFS+n);
+      }
+      eos_state.T = T_guess; // initial guess
+      for (int n = 0; n < naux; n++) {
+        eos_state.aux[:] = ql(i,j,k,QFX+n);
+      }
 
-                gamcl = eos_state % gam1
+      eos(eos_input_rp, eos_state);
 
-                eos_state % p = pr
-                eos_state % rho = rr
-                eos_state % xn(:) = qr(i,j,k,QFS:QFS-1+nspec)
-                eos_state % T = T_guess ! initial guess
-                eos_state % aux(:) = qr(i,j,k,QFX:QFX-1+naux)
+      gamcl = eos_state.gam1;
 
-                call eos(eos_input_rp, eos_state)
+      eos_state.p = pr;
+      eos_state.rho = rr;
+      for (int n = 0; n < nspec; n++) {
+        eos_state.xn[n] = qr(i,j,k,QFS+n);
+      }
+      eos_state.T = T_guess; // initial guess
+      for (int n = 0; n < naux; n++) {
+        eos_state.aux[n] = qr(i,j,k,QFX+n);
+      }
 
-                gamcr = eos_state % gam1
-             endif
+      eos(eos_input_rp, eos_state);
+
+      gamcr = eos_state.gam1;
+    }
 #endif
 
-             wsmall = small_dens*csmall
+    Real wsmall = small_dens*csmall;
 
-             ! this is Castro I: Eq. 33
-             wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))
-             wr = max(wsmall, sqrt(abs(gamcr*pr*rr)))
+    // this is Castro I: Eq. 33
+    Real wl = amrex::max(wsmall, std::sqrt(std::abs(gamcl*pl*rl)));
+    Real wr = amrex::max(wsmall, std::sqrt(std::abs(gamcr*pr*rr)));
 
-             wwinv = ONE/(wl + wr)
-             pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
-             ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
+    Real wwinv = 1.0_rt/(wl + wr);
+    Real pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv;
+    Real ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv;
 
-             pstar = max(pstar, small_pres)
+    pstar = amrex::max(pstar, small_pres);
 
-             ! for symmetry preservation, if ustar is really small, then we
-             ! set it to zero
-             if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
-                ustar = ZERO
-             endif
+    // for symmetry preservation, if ustar is really small, then we
+    // set it to zero
+    if (std::abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))) {
+      ustar = 0.0_rt;
+    }
 
-             ! ------------------------------------------------------------------
-             ! look at the contact to determine which region we are in
-             ! ------------------------------------------------------------------
+    // look at the contact to determine which region we are in
 
-             ! this just determines which of the left or right states is still
-             ! in play.  We still need to look at the other wave to determine
-             ! if the star state or this state is on the interface.
-             sgnm = sign(ONE, ustar)
-             if (ustar == ZERO) sgnm = ZERO
+    // this just determines which of the left or right states is still
+    // in play.  We still need to look at the other wave to determine
+    // if the star state or this state is on the interface.
+    Real sgnm = std::copysign(1.0_rt, ustar);
+    if (ustar == 0.0_rt) {
+      sgnm = 0.0_rt;
+    }
 
-             fp = HALF*(ONE + sgnm)
-             fm = HALF*(ONE - sgnm)
+    Real fp = 0.5_rt*(1.0_rt + sgnm);
+    Real fm = 0.5_rt*(1.0_rt - sgnm);
 
-             ro = fp*rl + fm*rr
-             uo = fp*ul + fm*ur
-             po = fp*pl + fm*pr
-             reo = fp*rel + fm*rer
-             gamco = fp*gamcl + fm*gamcr
+    Real ro = fp*rl + fm*rr;
+    Real uo = fp*ul + fm*ur;
+    Real po = fp*pl + fm*pr;
+    Real reo = fp*rel + fm*rer;
+    Real gamco = fp*gamcl + fm*gamcr;
 #ifdef RADIATION
-             lambda = fp*laml + fm*lamr
+    Real lambda[ngroups];
+    for (int g = 0; g < ngroups; g++) {
+      lambda[g] = fp*laml[g] + fm*lamr[g];
+    }
 
-             if (ustar == 0) then
-                ! harmonic average
-                do g=0, ngroups-1
-                   lambda(g) = 2.0e0_rt*(laml(g)*lamr(g))/(laml(g)+lamr(g)+1.e-50_rt)
-                end do
-             end if
+    if (ustar == 0) {
+      // harmonic average
+      for (int g = 0, g < ngroups; g++) {
+        lambda[g] = 2.0_rt*(laml[g]*lamr[g])/(laml[g] + lamr[g] + 1.e-50_rt);
+      }
+    }
 
-             po_g = fp*pl_g + fm*pr_g
-             reo_r(:) = fp*erl(:) + fm*err(:)
-             po_r(:) = lambda(:)*reo_r(:)
-             reo_g = fp*rel_g + fm*rer_g
-             gamco_g = fp*gamcgl + fm*gamcgr
+    Real po_g = fp*pl_g + fm*pr_g;
+    Real reo_r[ngroups];
+    Real po_r[ngroups];
+    for (int g = 0; g < ngroups; g++) {
+      reo_r[g] = fp*erl[g] + fm*err[g];
+      po_r[g] = lambda[g]*reo_r[g];
+    }
+    Real reo_g = fp*rel_g + fm*rer_g;
+    Real gamco_g = fp*gamcgl + fm*gamcgr;
 #endif
 
-             ro = max(small_dens, ro)
+    ro = amrex::max(small_dens, ro);
 
-             roinv = ONE/ro
+    Real roinv = 1.0_rt/ro;
 
-             co = sqrt(abs(gamco*po*roinv))
-             co = max(csmall,co)
-             co2inv = ONE/(co*co)
+    Real co = std::sqrt(std::abs(gamco*po*roinv));
+    co = amrex::max(csmall, co);
+    Real co2inv = 1.0_rt/(co*co);
 
-             ! we can already deal with the transverse velocities -- they
-             ! only jump across the contact
-             qint(i,j,k,iv1) = fp*v1l + fm*v1r
-             qint(i,j,k,iv2) = fp*v2l + fm*v2r
+    // we can already deal with the transverse velocities -- they
+    // only jump across the contact
+    qint(i,j,k,iv1) = fp*v1l + fm*v1r;
+    qint(i,j,k,iv2) = fp*v2l + fm*v2r;
 
-             ! ------------------------------------------------------------------
-             ! compute the rest of the star state
-             ! ------------------------------------------------------------------
+    // compute the rest of the star state
 
-             drho = (pstar - po)*co2inv
-             rstar = ro + drho
-             rstar = max(small_dens, rstar)
+    Real drho = (pstar - po)*co2inv;
+    Real rstar = ro + drho;
+    rstar = amrex::max(small_dens, rstar);
 
 #ifdef RADIATION
-             estar_g = reo_g + drho*(reo_g + po_g)*roinv
-             co_g = sqrt(abs(gamco_g*po_g*roinv))
-             co_g = max(csmall, co_g)
-             pstar_g = po_g + drho*co_g**2
-             pstar_g = max(pstar_g, small_pres)
-             estar_r = reo_r(:) + drho*(reo_r(:) + po_r(:))*roinv
+    Real estar_g = reo_g + drho*(reo_g + po_g)*roinv;
+
+    Real co_g = std::sqrt(std::abs(gamco_g*po_g*roinv));
+    co_g = amrex::max(csmall, co_g);
+
+    Real pstar_g = po_g + drho*co_g*co_g;
+    pstar_g = amrex::max(pstar_g, small_pres);
+
+    for (int g = 0; g < ngroups; g++) {
+      estar_r[g] = reo_r[g] + drho*(reo_r[g] + po_r[g])*roinv;
+    }
 #else
-             entho = (reo + po)*roinv*co2inv
-             estar = reo + (pstar - po)*entho
+    Real entho = (reo + po)*roinv*co2inv;
+    Real estar = reo + (pstar - po)*entho;
 #endif
-             cstar = sqrt(abs(gamco*pstar/rstar))
-             cstar = max(cstar, csmall)
 
-             ! ------------------------------------------------------------------
-             ! finish sampling the solution
-             ! ------------------------------------------------------------------
+    Real cstar = std::sqrt(std::abs(gamco*pstar/rstar));
+    cstar = amrex::max(cstar, csmall);
 
-             ! look at the remaining wave to determine if the star state or the
-             ! 'o' state above is on the interface
+    // finish sampling the solution
 
+    // look at the remaining wave to determine if the star state or the
+    // 'o' state above is on the interface
 
-             ! the values of u +/- c on either side of the non-contact
-             ! wave
-             spout = co - sgnm*uo
-             spin = cstar - sgnm*ustar
+    // the values of u +/- c on either side of the non-contact wave
+    Real spout = co - sgnm*uo;
+    Real spin = cstar - sgnm*ustar;
 
-             ! a simple estimate of the shock speed
-             ushock = HALF*(spin + spout)
+    // a simple estimate of the shock speed
+    Real ushock = 0.5_rt*(spin + spout);
 
-             if (pstar-po > ZERO) then
-                spin = ushock
-                spout = ushock
-             endif
+    if (pstar-po > 0.0_rt) {
+      spin = ushock;
+      spout = ushock;
+    }
 
-             if (spout-spin == ZERO) then
-                scr = small*cavg
-             else
-                scr = spout-spin
-             endif
+    if (spout-spin == 0.0_rt) {
+      scr = small*cavg;
+    } else {
+      scr = spout - spin;
+    }
 
-             ! interpolate for the case that we are in a rarefaction
-             frac = (ONE + (spout + spin)/scr)*HALF
-             frac = max(ZERO, min(ONE, frac))
+    // interpolate for the case that we are in a rarefaction
+    Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
+    frac = amrex::max(0.0_rt, amrex::min(1.0_rt, frac));
 
-             qint(i,j,k,QRHO) = frac*rstar + (ONE - frac)*ro
-             qint(i,j,k,iu  ) = frac*ustar + (ONE - frac)*uo
+    qint(i,j,k,QRHO) = frac*rstar + (1.0_rt - frac)*ro;
+    qint(i,j,k,iu  ) = frac*ustar + (1.0_rt - frac)*uo;
 
 #ifdef RADIATION
-             pgdnv_t = frac*pstar + (ONE - frac)*po
-             pgdnv_g = frac*pstar_g + (ONE - frac)*po_g
-             regdnv_g = frac*estar_g + (ONE - frac)*reo_g
-             regdnv_r(:) = frac*estar_r(:) + (ONE - frac)*reo_r(:)
+    Real pgdnv_t = frac*pstar + (1.0_rt - frac)*po;
+    Real pgdnv_g = frac*pstar_g + (1.0_rt - frac)*po_g;
+    Real regdnv_g = frac*estar_g + (1.0_rt - frac)*reo_g;
+    Real regdnv_r[ngroups];
+    for (int g = 0; g < ngroups; g++) {
+      regdnv_r[g] = frac*estar_r[g] + (1.0_rt - frac)*reo_r[g];
+    }
 #else
-             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
-             regdnv = frac*estar + (ONE - frac)*reo
+    qint(i,j,k,QPRES) = frac*pstar + (1.0_rt - frac)*po;
+    Real regdnv = frac*estar + (1.0_rt - frac)*reo;
 #endif
 
-             ! as it stands now, we set things assuming that the rarefaction
-             ! spans the interface.  We overwrite that here depending on the
-             ! wave speeds
+    // as it stands now, we set things assuming that the rarefaction
+    // spans the interface.  We overwrite that here depending on the
+    // wave speeds
 
-             ! look at the speeds on either side of the remaining wave
-             ! to determine which region we are in
-             if (spout < ZERO) then
-                ! the l or r state is on the interface
-                qint(i,j,k,QRHO) = ro
-                qint(i,j,k,iu  ) = uo
+    // look at the speeds on either side of the remaining wave
+    // to determine which region we are in
+    if (spout < 0.0_rt) {
+      // the l or r state is on the interface
+      qint(i,j,k,QRHO) = ro;
+      qint(i,j,k,iu  ) = uo;
 #ifdef RADIATION
-                pgdnv_t = po
-                pgdnv_g = po_g
-                regdnv_g = reo_g
-                regdnv_r = reo_r(:)
+      pgdnv_t = po;
+      pgdnv_g = po_g;
+      regdnv_g = reo_g;
+      for (int g = 0; g < ngroups; g++) {
+        regdnv_r[g] = reo_r[g];
+      }
 #else
-                qint(i,j,k,QPRES) = po
-                regdnv = reo
+      qint(i,j,k,QPRES) = po;
+      regdnv = reo;
 #endif
-             endif
+    }
 
-             if (spin >= ZERO) then
-                ! the star state is on the interface
-                qint(i,j,k,QRHO) = rstar
-                qint(i,j,k,iu  ) = ustar
+    if (spin >= 0.0_rt) {
+      // the star state is on the interface
+      qint(i,j,k,QRHO) = rstar;
+      qint(i,j,k,iu  ) = ustar;
 #ifdef RADIATION
-                pgdnv_t = pstar
-                pgdnv_g = pstar_g
-                regdnv_g = estar_g
-                regdnv_r = estar_r(:)
+      pgdnv_t = pstar;
+      pgdnv_g = pstar_g;
+      regdnv_g = estar_g;
+      for (int g = 0; g < ngroups; g++) {
+        regdnv_r[g] = estar_r[g];
+      }
 #else
-                qint(i,j,k,QPRES) = pstar
-                regdnv = estar
+      qint(i,j,k,QPRES) = pstar;
+      regdnv = estar;
 #endif
-             endif
-
+    }
 
 #ifdef RADIATION
-             do g=0, ngroups-1
-                qint(i,j,k,QRAD+g) = max(regdnv_r(g), 0.e0_rt)
-             end do
+    for (int g = 0, g < ngroups; g++) {
+      qint(i,j,k,QRAD+g) = amrex::max(regdnv_[g], 0.0_rt);
+    }
 
-             qint(i,j,k,QPRES) = pgdnv_g
-             qint(i,j,k,QPTOT) = pgdnv_t
-             qint(i,j,k,QREINT) = regdnv_g
-             qint(i,j,k,QREITOT) = sum(regdnv_r(:)) + regdnv_g
+    qint(i,j,k,QPRES) = pgdnv_g;
+    qint(i,j,k,QPTOT) = pgdnv_t;
+    qint(i,j,k,QREINT) = regdnv_g;
 
-             lambda_int(i,j,k,:) = lambda(:)
+    qint(i,j,k,QREITOT) = regdnv_g;
+    for (int g = 0; g < ngroups; g++) {
+      qint(i,j,k,QREITOT) += regdnv_r[g];
+    }
+
+    for (int g = 0; g < ngroups; g++) {
+      lambda_int(i,j,k,g) = lambda[g];
+    }
 
 #else
-             qint(i,j,k,QPRES) = max(qint(i,j,k,QPRES),small_pres)
-             qint(i,j,k,QREINT) = regdnv
+    qint(i,j,k,QPRES) = amrex::max(qint(i,j,k,QPRES), small_pres);
+    qint(i,j,k,QREINT) = regdnv;
 #endif
 
+    // we are potentially thermodynamically inconsistent, fix that
+    // here
+    if (use_eos_in_riemann == 1) {
+      // we need to know the species -- they only jump across
+      // the contact
+      eos_t eos_state;
 
-             ! we are potentially thermodynamically inconsistent, fix that
-             ! here
-             if (use_eos_in_riemann == 1) then
-                ! we need to know the species -- they only jump across
-                ! the contact
-                xn(:) = fp*ql(i,j,k,QFS:QFS-1+nspec) + &
-                        fm*qr(i,j,k,QFS:QFS-1+nspec)
+      eos_state.rho = qint(i,j,k,QRHO);
+      eos_state.p = qint(i,j,k,QPRES);
 
-                eos_state % rho = qint(i,j,k,QRHO)
-                eos_state % p = qint(i,j,k,QPRES)
-                eos_state % xn(:) = xn(:)
-                eos_state % T = T_guess
+      for (int n = 0; n < nspec; n++) {
+        eos_state.xn[n] = fp*ql(i,j,k,QFS+n) + fm*qr(i,j,k,QFS+n);
+      }
 
-                call eos(eos_input_rp, eos_state)
+      eos_state.T = T_guess;
 
-                qint(i,j,k,QREINT) = eos_state % rho * eos_state % e
-             endif
+      for (int n = 0; n < naux; n++) {
+        eos_state.aux[n] = fp*ql(i,j,k,QFX+n) + fm*qr(i,j,k,QFX+n);
+      }
 
-             ! Enforce that fluxes through a symmetry plane or wall are hard zero.
-             u_adv = qint(i,j,k,iu)
+      eos(eos_input_rp, eos_state);
 
-             if ( special_bnd_lo_x .and. i == domlo(1) .or. &
-                  special_bnd_hi_x .and. i == domhi(1)+1 ) then
-                bnd_fac_x = ZERO
-             else
-                bnd_fac_x = ONE
-             end if
-             u_adv = u_adv * bnd_fac_x*bnd_fac_y*bnd_fac_z
+      qint(i,j,k,QREINT) = eos_state.rho * eos_state.e;
+    }
 
-             qint(i,j,k,iu) = u_adv
+    // Enforce that fluxes through a symmetry plane or wall are hard zero.
+    qint(i,j,k,iu) = qint(i,j,k,iu) * bnd_fac;
 
-             ! passively advected quantities
-             do ipassive = 1, npassive
-                nqp = qpass_map(ipassive)
-                qint(i,j,k,nqp) = fp*ql(i,j,k,nqp) + fm*qr(i,j,k,nqp)
-             end do
+    // passively advected quantities
+    for (int ipassive = 0; ipassive < npassive; ipassive++) {
+      int nqp = qpass_map[ipassive];
+      qint(i,j,k,nqp) = fp*ql(i,j,k,nqp) + fm*qr(i,j,k,nqp);
+    }
 
-          end do
-
-       end do
-    end do
-
-  end subroutine riemannus
+  });
+}
 
 
   subroutine HLLC(ql, ql_lo, ql_hi, &
@@ -1188,7 +1131,7 @@ Castro::riemanncg(const Box& bx,
              ! now we essentially do the CGF solver to get p and u on the
              ! interface, but we won't use these in any flux construction.
              csmall = max( small, max(small * qaux(i,j,k,QC) , small * qaux(i-sx,j-sy,k-sz,QC)) )
-             cavg = HALF*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC))
+             cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC))
 
              if (use_reconstructed_gamma1 == 1) then
                 gamcl = ql(i,j,k,QGC)
@@ -1202,43 +1145,43 @@ Castro::riemanncg(const Box& bx,
              wl = max(wsmall, sqrt(abs(gamcl*pl*rl)))
              wr = max(wsmall, sqrt(abs(gamcr*pr*rr)))
 
-             wwinv = ONE/(wl + wr)
+             wwinv = 1.0_rt/(wl + wr)
              pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv
              ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv
 
              pstar = max(pstar, small_pres)
              ! for symmetry preservation, if ustar is really small, then we
              ! set it to zero
-             if (abs(ustar) < smallu*HALF*(abs(ul) + abs(ur))) then
-                ustar = ZERO
+             if (abs(ustar) < smallu*0.5_rt*(abs(ul) + abs(ur))) then
+                ustar = 0.0_rt
              endif
 
-             if (ustar > ZERO) then
+             if (ustar > 0.0_rt) then
                 ro = rl
                 uo = ul
                 po = pl
                 reo = rel
                 gamco = gamcl
 
-             else if (ustar < ZERO) then
+             else if (ustar < 0.0_rt) then
                 ro = rr
                 uo = ur
                 po = pr
                 reo = rer
                 gamco = gamcr
              else
-                ro = HALF*(rl + rr)
-                uo = HALF*(ul + ur)
-                po = HALF*(pl + pr)
-                reo = HALF*(rel + rer)
-                gamco = HALF*(gamcl + gamcr)
+                ro = 0.5_rt*(rl + rr)
+                uo = 0.5_rt*(ul + ur)
+                po = 0.5_rt*(pl + pr)
+                reo = 0.5_rt*(rel + rer)
+                gamco = 0.5_rt*(gamcl + gamcr)
              endif
              ro = max(small_dens, ro)
 
-             roinv = ONE/ro
+             roinv = 1.0_rt/ro
              co = sqrt(abs(gamco*po*roinv))
              co = max(csmall, co)
-             co2inv = ONE/(co*co)
+             co2inv = 1.0_rt/(co*co)
 
              rstar = ro + (pstar - po)*co2inv
              rstar = max(small_dens, rstar)
@@ -1249,28 +1192,28 @@ Castro::riemanncg(const Box& bx,
              cstar = sqrt(abs(gamco*pstar/rstar))
              cstar = max(cstar, csmall)
 
-             sgnm = sign(ONE, ustar)
+             sgnm = sign(1.0_rt, ustar)
              spout = co - sgnm*uo
              spin = cstar - sgnm*ustar
-             ushock = HALF*(spin + spout)
+             ushock = 0.5_rt*(spin + spout)
 
-             if (pstar-po > ZERO) then
+             if (pstar-po > 0.0_rt) then
                 spin = ushock
                 spout = ushock
              endif
-             if (spout-spin == ZERO) then
+             if (spout-spin == 0.0_rt) then
                 scr = small*cavg
              else
                 scr = spout-spin
              endif
-             frac = (ONE + (spout + spin)/scr)*HALF
-             frac = max(ZERO, min(ONE, frac))
+             frac = (1.0_rt + (spout + spin)/scr)*0.5_rt
+             frac = max(0.0_rt, min(1.0_rt, frac))
 
-             rgdnv = frac*rstar + (ONE - frac)*ro
-             regdnv = frac*estar + (ONE - frac)*reo
+             rgdnv = frac*rstar + (1.0_rt - frac)*ro
+             regdnv = frac*estar + (1.0_rt - frac)*reo
 
-             qint(i,j,k,iu) = frac*ustar + (ONE - frac)*uo
-             qint(i,j,k,QPRES) = frac*pstar + (ONE - frac)*po
+             qint(i,j,k,iu) = frac*ustar + (1.0_rt - frac)*uo
+             qint(i,j,k,QPRES) = frac*pstar + (1.0_rt - frac)*po
 
 
              ! now we do the HLLC construction
@@ -1294,13 +1237,13 @@ Castro::riemanncg(const Box& bx,
              S_c = (pr - pl + rl*ul*(S_l - ul) - rr*ur*(S_r - ur))/ &
                   (rl*(S_l - ul) - rr*(S_r - ur))
 
-             if (S_r <= ZERO) then
+             if (S_r <= 0.0_rt) then
                 ! R region
                 q_zone(:) = qr(i,j,k,:)
                 call cons_state(q_zone, U_state)
                 call compute_flux(idir, bnd_fac, U_state, pr, F_state)
 
-             else if (S_r > ZERO .and. S_c <= ZERO) then
+             else if (S_r > 0.0_rt .and. S_c <= 0.0_rt) then
                 ! R* region
                 q_zone(:) = qr(i,j,k,:)
                 call cons_state(q_zone, U_state)
@@ -1311,7 +1254,7 @@ Castro::riemanncg(const Box& bx,
                 ! correct the flux
                 F_state(:) = F_state(:) + S_r*(U_hllc_state(:) - U_state(:))
 
-             else if (S_c > ZERO .and. S_l < ZERO) then
+             else if (S_c > 0.0_rt .and. S_l < 0.0_rt) then
                 ! L* region
                 q_zone(:) = ql(i,j,k,:)
                 call cons_state(q_zone, U_state)
