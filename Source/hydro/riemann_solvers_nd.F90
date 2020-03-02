@@ -80,6 +80,8 @@ contains
 
     type(eos_t) :: eos_state
 
+    !$gpu
+
     ! Extract this zone's interface values
 
     qleft(:) = qm(i,j,k,:)
