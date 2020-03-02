@@ -10,10 +10,6 @@
 
 #include <cmath>
 
-#ifndef _riemann_H_
-#define _riemann_H_
-
-
 using namespace amrex;
 
 #include <riemann.H>
@@ -57,7 +53,7 @@ Castro::wsqge(const Real p, const Real v,
 
 AMREX_GPU_HOST_DEVICE
 void
-Castro::pstar_bisection(Real& pstar_lo, const Real& pstar_hi,
+Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
                         const Real ul, const Real pl, const Real taul,
                         const Real gamel, const Real clsql,
                         const Real ur, const Real pr, const Real taur,
@@ -75,9 +71,11 @@ Castro::pstar_bisection(Real& pstar_lo, const Real& pstar_hi,
 
 
   // lo bounds
+  Real wlsq;
   wsqge(pl, taul, gamel, gdot,
          gamstar, gmin, gmax, clsql, pstar_lo, wlsq);
 
+  Real wrsq;
   wsqge(pr, taur, gamer, gdot,
          gamstar, gmin, gmax, clsqr, pstar_lo, wrsq);
 
@@ -106,9 +104,11 @@ Castro::pstar_bisection(Real& pstar_lo, const Real& pstar_hi,
 
   // bisection
   converged = false;
+  Real pstar_c = 0.0;
+
   for (int iter = 0; iter < cg_maxiter; iter++) {
 
-    Real pstar_c = HALF * (pstar_lo + pstar_hi);
+    pstar_c = 0.5_rt * (pstar_lo + pstar_hi);
     pstar_hist_extra[iter] = pstar_c;
 
     wsqge(pl, taul, gamel, gdot,
@@ -123,7 +123,7 @@ Castro::pstar_bisection(Real& pstar_lo, const Real& pstar_hi,
     ustar_l = ul - (pstar_c - pl)*wl;
     ustar_r = ur - (pstar_c - pr)*wr;
 
-    f_c = ustar_l - ustar_r;
+    Real f_c = ustar_l - ustar_r;
 
     if ( 0.5_rt * std::abs(pstar_lo - pstar_hi) < cg_tol * pstar_c ) {
       converged = true;
@@ -179,49 +179,50 @@ void
 Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
                    const Real* q, Real* U) {
 
-    if (idir == 0) {
-      u_k = q[QU];
-    } else if (idir == 1) {
-      u_k = q(QV);
-    } else if (idir == 2) {
-      u_k = q[QW];
-    }
+  Real u_k;
+  if (idir == 0) {
+    u_k = q[QU];
+  } else if (idir == 1) {
+    u_k = q[QV];
+  } else if (idir == 2) {
+    u_k = q[QW];
+  }
 
-    Real hllc_factor = q[QRHO]*(S_k - u_k)/(S_k - S_c);
-    U[URHO] = hllc_factor;
+  Real hllc_factor = q[QRHO]*(S_k - u_k)/(S_k - S_c);
+  U[URHO] = hllc_factor;
 
-    if (idir == 0) {
-      U[UMX]  = hllc_factor*S_c;
-      U[UMY]  = hllc_factor*q[QV];
-      U[UMZ]  = hllc_factor*q[QW];
+  if (idir == 0) {
+    U[UMX]  = hllc_factor*S_c;
+    U[UMY]  = hllc_factor*q[QV];
+    U[UMZ]  = hllc_factor*q[QW];
 
-    } else if (idir == 1) {
-      U[UMX]  = hllc_factor*q[QU];
-      U[UMY]  = hllc_factor*S_c;
-      U[UMZ]  = hllc_factor*q[QW];
+  } else if (idir == 1) {
+    U[UMX]  = hllc_factor*q[QU];
+    U[UMY]  = hllc_factor*S_c;
+    U[UMZ]  = hllc_factor*q[QW];
 
-    } else {
-      U[UMX]  = hllc_factor*q[QU];
-      U[UMY]  = hllc_factor*q[QV];
-      U[UMZ]  = hllc_factor*S_c;
-    }
+  } else {
+    U[UMX]  = hllc_factor*q[QU];
+    U[UMY]  = hllc_factor*q[QV];
+    U[UMZ]  = hllc_factor*S_c;
+  }
 
-    U[UEDEN] = hllc_factor*(q[QREINT]/q[QRHO] +
-                            0.5_rt*(q[QU]*q[QU] + q[QV]*q[QV] + q[QW]*q[QW]) +
-                            (S_c - u_k)*(S_c + q[QPRES]/(q[QRHO]*(S_k - u_k))));
-    U[UEINT] = hllc_factor*q[QREINT]/q[QRHO];
+  U[UEDEN] = hllc_factor*(q[QREINT]/q[QRHO] +
+                          0.5_rt*(q[QU]*q[QU] + q[QV]*q[QV] + q[QW]*q[QW]) +
+                          (S_c - u_k)*(S_c + q[QPRES]/(q[QRHO]*(S_k - u_k))));
+  U[UEINT] = hllc_factor*q[QREINT]/q[QRHO];
 
-    U[UTEMP] = 0.0; // we don't evolve T
+  U[UTEMP] = 0.0; // we don't evolve T
 
 #ifdef SHOCK_VAR
-    U[USHK] = 0.0;
+  U[USHK] = 0.0;
 #endif
 
-    for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upass_map[ipassive];
-      int nqs = qpass_map[ipassive];
-      U[n] = hllc_factor*q[nqs];
-    }
+  for (int ipassive = 0; ipassive < npassive; ipassive++) {
+    int n  = upass_map[ipassive];
+    int nqs = qpass_map[ipassive];
+    U[n] = hllc_factor*q[nqs];
+  }
 }
 
 AMREX_GPU_HOST_DEVICE
@@ -283,11 +284,11 @@ Castro::compute_flux_q(const Box& bx,
       eos_t eos_state;
       eos_state.rho = qint(i,j,k,QRHO);
       eos_state.p = qint(i,j,k,QPRES);
-      for (int n = 0; n < nspec; n++) {
+      for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qint(i,j,k,QFS+n);
       }
       eos_state.T = T_guess;  // initial guess
-      for (int n = 0; n < naux; n++) {
+      for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qint(i,j,k,QFX+n);
       }
 
@@ -306,7 +307,7 @@ Castro::compute_flux_q(const Box& bx,
     F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1);
     F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2);
 
-    rhoetot = rhoeint + 0.5_rt * qint(i,j,k,QRHO)*
+    Real rhoetot = rhoeint + 0.5_rt * qint(i,j,k,QRHO)*
       (qint(i,j,k,iu)*qint(i,j,k,iu) +
        qint(i,j,k,iv1)*qint(i,j,k,iv1) +
        qint(i,j,k,iv2)*qint(i,j,k,iv2));
@@ -335,7 +336,7 @@ Castro::compute_flux_q(const Box& bx,
 #endif
 
     // passively advected quantities
-    for (int ipassive = 0, ipassive < npassive; ipassive++) {
+    for (int ipassive = 0; ipassive < npassive; ipassive++) {
       int n  = upass_map[ipassive];
       int nqp = qpass_map[ipassive];
 
@@ -408,7 +409,7 @@ Castro::compute_flux(const int idir, const Real bnd_fac,
 
   // given a conserved state, compute the flux in direction idir
 
-  u_flx = U[UMX+idir]/U[URHO];
+  Real u_flx = U[UMX+idir]/U[URHO];
 
   if (bnd_fac == 0) {
     u_flx = 0.0;
@@ -432,7 +433,7 @@ Castro::compute_flux(const int idir, const Real bnd_fac,
   if (mom_check) {
     // we do not include the pressure term in any non-Cartesian
     // coordinate directions
-    F(UMX-1+idir) = F(UMX-1+idir) + p;
+    F[UMX+idir] = F[UMX+idir] + p;
   }
 
   F[UEINT] = U[UEINT]*u_flx;
@@ -451,4 +452,3 @@ Castro::compute_flux(const int idir, const Real bnd_fac,
 }
 
 
-#endif
