@@ -8,8 +8,7 @@
 
 #include <cmath>
 
-#include <riemann.H>
-
+#include <eos.H>
 using namespace amrex;
 
 void

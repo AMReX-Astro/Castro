@@ -204,8 +204,58 @@
              const int idir,
              amrex::Real* f);
 
+    AMREX_GPU_HOST_DEVICE
+    void
+    wsqge(const amrex::Real p, const amrex::Real v,
+          const amrex::Real gam, const amrex::Real gdot, amrex::Real& gstar,
+          const amrex::Real gmin, const amrex::Real gmax, const amrex::Real csq,
+          amrex::Real& pstar, amrex::Real& wsq);
 
+    AMREX_GPU_HOST_DEVICE
+    void
+    pstar_bisection(amrex::Real& pstar_lo, amrex::Real& pstar_hi,
+                    const amrex::Real ul, const amrex::Real pl, const amrex::Real taul,
+                    const amrex::Real gamel, const amrex::Real clsql,
+                    const amrex::Real ur, const amrex::Real pr, const amrex::Real taur,
+                    const amrex::Real gamer, const amrex::Real clsqr,
+                    const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
+                    amrex::Real& pstar, amrex::Real& gamstar,
+                    bool& converged, amrex::Real& pstar_hist_extra);
 
+    AMREX_GPU_HOST_DEVICE
+    void
+    cons_state(const amrex::Real* q, amrex::Real* U);
+
+    AMREX_GPU_HOST_DEVICE
+    void
+    HLLC_state(const int idir, const amrex::Real S_k, const amrex::Real S_c,
+               const amrex::Real* q, amrex::Real* U);
+
+    AMREX_GPU_HOST_DEVICE
+    void
+    compute_flux_q(const amrex::Box& bx,
+                   amrex::Array4<amrex::Real const> const qint,
+                   amrex::Array4<amrex::Real> const F,
+#ifdef RADIATION
+                   amrex::Array4<amrex::Real const> const lambda,
+                   amrex::Array4<amrex::Real> const rF,
+#endif
+                   const int idir, const int enforce_eos);
+
+    AMREX_GPU_HOST_DEVICE
+    void
+    store_godunov_state(const amrex::Box& bx,
+                        amrex::Array4<amrex::Real const> const qint,
+#ifdef RADIATION
+                        amrex::Array4<amrex::Real const> const lambda,
+#endif
+                        amrex::Array4<amrex::Real> const qgdnv);
+
+    AMREX_GPU_HOST_DEVICE
+    void
+    compute_flux(const int idir, const amrex::Real bnd_fac,
+                 const amrex::Real* U, const amrex::Real p,
+                 amrex::Real* F);
 
 
 

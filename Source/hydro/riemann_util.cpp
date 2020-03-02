@@ -6,25 +6,38 @@
 #include "Radiation.H"
 #endif
 
+#include <eos.H>
+
+#include <cmath>
+
+#ifndef _riemann_H_
+#define _riemann_H_
+
+
 using namespace amrex;
 
+constexpr Real smlp1 = 1.e-10_rt;
+constexpr Real small = 1.e-7_rt;
+constexpr Real smallu = 1.e-12_rt;
+//constexpr Real small = 1.e-8_rt;
+
+
+AMREX_GPU_HOST_DEVICE
 void
 Castro::wsqge(const Real p, const Real v,
-              const Real gam, const Real gdot, const Real gstar,
+              const Real gam, const Real gdot, Real& gstar,
               const Real gmin, const Real gmax, const Real csq,
               Real& pstar, Real& wsq) {
 
   // compute the lagrangian wave speeds -- this is the approximate
   // version for the Colella & Glaz algorithm
 
-  constexpr Real smlp1 = 1.e-10_rt;
-  constexpr Real small = 1.e-7_rt;
 
   // First predict a value of game across the shock
 
   // CG Eq. 31
-  Real gstar = (pstar-p)*gdot/(pstar+p) + gam;
-  Real gstar = amrex::max(gmin, amrex::min(gmax, gstar));
+  gstar = (pstar-p)*gdot/(pstar+p) + gam;
+  gstar = amrex::max(gmin, amrex::min(gmax, gstar));
 
   // Now use that predicted value of game with the R-H jump conditions
   // to compute the wave speed.
@@ -46,6 +59,7 @@ Castro::wsqge(const Real p, const Real v,
 }
 
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::pstar_bisection(Real& pstar_lo, const Real& pstar_hi,
                         const Real ul, const Real pl, const Real taul,
@@ -55,6 +69,7 @@ Castro::pstar_bisection(Real& pstar_lo, const Real& pstar_hi,
                         const Real gdot, const Real gmin, const Real gmax,
                         Real& pstar, Real& gamstar,
                         bool& converged, Real& pstar_hist_extra) {
+
   // we want to zero
   // f(p*) = u*_l(p*) - u*_r(p*)
   // we'll do bisection
@@ -133,6 +148,7 @@ Castro::pstar_bisection(Real& pstar_lo, const Real& pstar_hi,
 }
 
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::cons_state(const Real* q, Real* U) {
 
@@ -162,6 +178,7 @@ Castro::cons_state(const Real* q, Real* U) {
   }
 }
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
                    const Real* q, Real* U) {
@@ -211,6 +228,7 @@ Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
     }
 }
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::compute_flux_q(const Box& bx,
                        Array4<Real const> const qint,
@@ -355,6 +373,7 @@ Castro::compute_flux_q(const Box& bx,
 }
 
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::store_godunov_state(const Box& bx,
                             Array4<Real const> const qint,
@@ -362,6 +381,7 @@ Castro::store_godunov_state(const Box& bx,
                             Array4<Real const> const lambda,
 #endif
                             Array4<Real> const qgdnv) {
+
   // this copies the full interface state (NQ -- one for each primitive
   // variable) over to a smaller subset of size NGDNV for use later in the
   // hydro advancement.
@@ -384,6 +404,7 @@ Castro::store_godunov_state(const Box& bx,
   });
 }
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::compute_flux(const int idir, const Real bnd_fac,
                      const Real* U, const Real p,
@@ -433,3 +454,5 @@ Castro::compute_flux(const int idir, const Real bnd_fac,
   }
 }
 
+
+#endif
