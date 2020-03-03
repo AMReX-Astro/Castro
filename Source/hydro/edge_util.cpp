@@ -57,7 +57,7 @@ Castro::reset_edge_state_thermo(const Box& bx,
             eos(eos_input_re, eos_state);
 
             qedge(i,j,k,QREINT) = eos_state.e * eos_state.rho;
-            qedge(i,j,k,QPRES) = max(eos_state.p, small_p);
+            qedge(i,j,k,QPRES) = amrex::max(eos_state.p, small_p);
         }
 
 #ifdef RADIATION
