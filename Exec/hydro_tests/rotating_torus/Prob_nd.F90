@@ -65,7 +65,8 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use actual_eos_module, only: polytrope_index, K_const
     use network, only: nspec
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, point_mass, do_rotation
+    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, point_mass, &
+                                  do_rotation, state_in_rotating_frame
 #ifdef ROTATION
     use rotation_frequency_module, only: get_omega ! function
 #endif
@@ -110,11 +111,11 @@ contains
 
              loc = position(i, j, k) - center
 
-             R = sqrt( loc(1)**2 + loc(2)**2 ) ! Cylindrical radius
+             R = sqrt(loc(1)**2 + loc(2)**2) ! Cylindrical radius
 
-             Z = loc(3)                        ! Cylindrical height
+             Z = loc(3)                      ! Cylindrical height
 
-             dist = sqrt(sum(loc**2))          ! Distance from origin
+             dist = sqrt(sum(loc**2))        ! Distance from origin
 
              ! rho_s is the scale for the density; it satisfies that at r = density_maximum_radius, rho == 1.
              ! We guarantee this above by setting the polytropic K constant to satisfy this condition.
@@ -123,7 +124,7 @@ contains
              ! If the term inside square brackets in Equation 2.9 is negative, that means effectively that we're no longer
              ! inside the torus, so at that point we just use a low ambient density instead.
 
-             rho_s = ( Gconst * point_mass / ( (ONE + polytrope_index) * K_const * density_maximum_radius ) )**polytrope_index
+             rho_s = (Gconst * point_mass / ((ONE + polytrope_index) * K_const * density_maximum_radius))**polytrope_index
 
              fac = density_maximum_radius / dist &
                    - HALF * density_maximum_radius**2 / R**2 &
@@ -143,7 +144,7 @@ contains
 
              endif
 
-             if (rho > ambient_density .and. do_rotation .ne. 1) then
+             if (rho > ambient_density .and. (do_rotation == 0 .or. (do_rotation == 1 .and. state_in_rotating_frame == 0))) then
                 vel = cross_product(omega, loc)
              else
                 vel = ZERO
