@@ -543,7 +543,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // ftmp2 = fy
       // rftmp2 = rfy
-      cmpflx_plus_godunov(cybx.
+      cmpflx_plus_godunov(cybx,
                           qym_arr, qyp_arr,
                           ftmp2_arr, q_int_arr,
 #ifdef RADIATION
