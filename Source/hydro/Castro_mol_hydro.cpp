@@ -472,11 +472,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               // ppm_temp_fix = 1
               if (ppm_temp_fix == 1) {
-#pragma gpu box(obx)
-                edge_state_temp_to_pres
-                  (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(qm),
-                   BL_TO_FORTRAN_ANYD(qp));
+                  edge_state_temp_to_pres(obx, qm.array(), qp.array());
               }
 
               const Box& nbx = amrex::surroundingNodes(bx, idir);
