@@ -2,6 +2,7 @@
 
 #include "AMReX_LevelBld.H"
 #include <AMReX_ParmParse.H>
+#include "eos.H"
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_bc_fill_nd_F.H"
@@ -157,14 +158,20 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
+  // Read in the input values to Fortran.
+  ca_set_castro_method_params();
+
   // Initialize the runtime parameters for any of the external
   // microphysics (these are the parameters that are in the &extern
   // block of the probin file)
   extern_init();
 
   // Initialize the network
-  network_init();
+  ca_network_init();
 
+  // Initialize the EOS
+  ca_eos_init();
+  eos_init();
 
   // some consistency checks on the parameters
 #ifdef REACTIONS
@@ -209,9 +216,6 @@ Castro::variableSetUp ()
   ca_get_method_params(&NUM_GROW);
 
   const Real run_strt = ParallelDescriptor::second() ;
-
-  // Read in the input values to Fortran.
-  ca_set_castro_method_params();
 
   // set the conserved, primitive, aux, and godunov indices in Fortran
   ca_set_method_params(dm);
