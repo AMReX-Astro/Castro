@@ -1,0 +1,43 @@
+RadDerive_nd.F90
+================
+
+ca\_derneut subroutine
+----------------------
+
+.. f:autosubroutine:: ca_derneut
+
+ca\_derrhoyl subroutine
+-----------------------
+
+.. f:autosubroutine:: ca_derrhoyl
+
+ca\_deryl subroutine
+--------------------
+
+.. f:autosubroutine:: ca_deryl
+
+ca\_derynue subroutine
+----------------------
+
+.. f:autosubroutine:: ca_derynue
+
+ca\_derynuae subroutine
+-----------------------
+
+.. f:autosubroutine:: ca_derynuae
+
+ca\_derertot subroutine
+-----------------------
+
+.. f:autosubroutine:: ca_derertot
+
+ca\_derenue subroutine
+----------------------
+
+.. f:autosubroutine:: ca_derenue
+
+ca\_derenuae subroutine
+-----------------------
+
+.. f:autosubroutine:: ca_derenuae
+

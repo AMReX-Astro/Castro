@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Visualization &mdash; Castro 20.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Frequently Asked Questions" href="faq.html" />
+    <link rel="prev" title="Regridding" href="regridding.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../visualization.html">master</a> | <a href="./visualization.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Visualization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#visualization-tools">Visualization Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#amrvis">amrvis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#visit">VisIt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#yt">yt</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Visualization</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/visualization.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="visualization">
+<h1>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h1>
+<p>There are a large number of tools that can be used to read in Castro
+or AMReX data and make plots.  These tools all work from Castro
+plotfiles.  Here we give an overview of the variables in plotfiles and
+controlling their output, as well as some of the tools that can be used
+for visualization.</p>
+<div class="section" id="visualization-tools">
+<h2>Visualization Tools<a class="headerlink" href="#visualization-tools" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="amrvis">
+<h3>amrvis<a class="headerlink" href="#amrvis" title="Permalink to this headline">¶</a></h3>
+<p>Our favorite visualization tool is amrvis. We heartily encourage you
+to build the amrvis2d and amrvis3d executables, and to try using them
+to visualize your data. A very useful feature is View/Dataset, which
+allows you to actually view the numbers – this can be handy for
+debugging. You can modify how many levels of data you want to see,
+whether you want to see the grid boxes or not, what palette you use,
+etc.</p>
+<p>If you like to have amrvis display a certain variable, at a certain
+scale, when you first bring up each plotfile (you can always change it
+once the amrvis window is open), you can modify the amrvis.defaults
+file in your directory to have amrvis default to these settings every
+time you run it. The directories CoreCollapse, HSE_test, Sod and
+Sedov have amrvis.defaults files in them. If you are working in a new
+run directory, simply copy one of these and modify it.</p>
+</div>
+<div class="section" id="visit">
+<h3>VisIt<a class="headerlink" href="#visit" title="Permalink to this headline">¶</a></h3>
+<p>VisIt is also a great visualization tool, and it directly handles our
+plotfile format (which it calls Boxlib). For more information check
+out visit.llnl.gov.</p>
+<p>[Useful tip:] To use the Boxlib3D plugin, select it from File
+<span class="math notranslate nohighlight">\(\rightarrow\)</span> Open file <span class="math notranslate nohighlight">\(\rightarrow\)</span> Open file as type Boxlib, and
+then the key is to read the Header file, plt00000/Header, for example,
+rather than telling to to read plt00000.</p>
+</div>
+<div class="section" id="yt">
+<h3>yt<a class="headerlink" href="#yt" title="Permalink to this headline">¶</a></h3>
+<p>yt is a free and open-source software that provides data analysis and
+publication-level visualization tools for astrophysical simulation
+results such as those Castro produces. As yt is script-based, it’s not
+as easy to use as VisIt, and certainly not as easy as amrvis, but the
+images can be worth it! Here we do not flesh out yt, but give an
+overview intended to get a person started. Full documentation and
+explanations from which this section was adapted can be found at
+<a class="reference external" href="http://yt-project.org/doc/index.html">http://yt-project.org/doc/index.html</a>.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="faq.html" class="btn btn-neutral float-right" title="Frequently Asked Questions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="regridding.html" class="btn btn-neutral float-left" title="Regridding" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

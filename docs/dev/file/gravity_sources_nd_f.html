@@ -1,0 +1,414 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>gravity_sources_nd.F90 &mdash; Castro 20.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pointmass_nd.F90" href="pointmass_nd_f.html" />
+    <link rel="prev" title="Gravity_nd.F90" href="Gravity_nd_f.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../file/gravity_sources_nd_f.html">master</a> | <a href="../file/gravity_sources_nd_f.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../gravity_files.html">Gravity</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_1d_f.html">GR_Gravity_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_2d_f.html">GR_Gravity_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_3d_f.html">GR_Gravity_3d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_1d_f.html">Gravity_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_2d_f.html">Gravity_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_3d_f.html">Gravity_3d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_nd_f.html">Gravity_nd.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">gravity_sources_nd.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/gravity_sources_module">gravity_sources_module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pointmass_nd_f.html">pointmass_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe_grav_nd_f.html">prescribe_grav_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe_phi_nd_f.html">prescribe_phi_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../gravity_files.html">Gravity</a> &raquo;</li>
+        
+      <li>gravity_sources_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/gravity_sources_nd_f.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="gravity-sources-nd-f90">
+<h1>gravity_sources_nd.F90<a class="headerlink" href="#gravity-sources-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/gravity_sources_module">
+<span id="gravity-sources-module"></span><h2>gravity_sources_module<a class="headerlink" href="#f/gravity_sources_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/gravity_sources_module/ca_corrgsrc" title="f/gravity_sources_module/ca_corrgsrc"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_corrgsrc()</span></code></a>, <a class="reference internal" href="#f/gravity_sources_module/ca_gsrc" title="f/gravity_sources_module/ca_gsrc"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_gsrc()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/gravity_sources_module/ca_gsrc">
+<em class="property">subroutine  </em><code class="descclassname">gravity_sources_module/</code><code class="descname">ca_gsrc</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>uold</em>, <em>uold_lo</em>, <em>uold_hi</em>, <em>phi</em>, <em>phi_lo</em>, <em>phi_hi</em>, <em>grav</em>, <em>grav_lo</em>, <em>grav_hi</em>, <em>source</em>, <em>src_lo</em>, <em>src_hi</em>, <em>dx</em>, <em>dt</em>, <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_sources_module/ca_gsrc" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uold</strong> (uold_hi(1)-(uold_lo(1))+1,uold_hi(2)-(uold_lo(2))+1,uold_hi(3)-(uold_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uold_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uold_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>phi</strong> (phi_hi(1)-(phi_lo(1))+1,phi_hi(2)-(phi_lo(2))+1,phi_hi(3)-(phi_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>phi_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>phi_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav</strong> (grav_hi(1)-(grav_lo(1))+1,grav_hi(2)-(grav_lo(2))+1,grav_hi(3)-(grav_lo(3))+1,3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>source</strong> (src_hi(1)-(src_lo(1))+1,src_hi(2)-(src_lo(2))+1,src_hi(3)-(src_lo(3))+1,nsrc)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>src_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>src_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a> (<a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">umr()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ump()</span></code>), <a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module" title="f/castro_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_util_module</span></code></a> (<a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module" title="f/hybrid_advection_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">hybrid_advection_module</span></code></a> (<a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module/set_hybrid_momentum_source" title="f/hybrid_advection_module/set_hybrid_momentum_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">set_hybrid_momentum_source()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>, <a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module/set_hybrid_momentum_source" title="f/hybrid_advection_module/set_hybrid_momentum_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">set_hybrid_momentum_source()</span></code></a>, <a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_sources_module/ca_corrgsrc">
+<em class="property">subroutine  </em><code class="descclassname">gravity_sources_module/</code><code class="descname">ca_corrgsrc</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>uold</em>, <em>uo_lo</em>, <em>uo_hi</em>, <em>unew</em>, <em>un_lo</em>, <em>un_hi</em>, <em>pold</em>, <em>po_lo</em>, <em>po_hi</em>, <em>pnew</em>, <em>pn_lo</em>, <em>pn_hi</em>, <em>gold</em>, <em>go_lo</em>, <em>go_hi</em>, <em>gnew</em>, <em>gn_lo</em>, <em>gn_hi</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em>, <em>flux1</em>, <em>f1_lo</em>, <em>f1_hi</em>, <em>flux2</em>, <em>f2_lo</em>, <em>f2_hi</em>, <em>flux3</em>, <em>f3_lo</em>, <em>f3_hi</em>, <em>source</em>, <em>sr_lo</em>, <em>sr_hi</em>, <em>dx</em>, <em>dt</em>, <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_sources_module/ca_corrgsrc" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uold</strong> (uo_hi(1)-(uo_lo(1))+1,uo_hi(2)-(uo_lo(2))+1,uo_hi(3)-(uo_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uo_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>uo_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>unew</strong> (un_hi(1)-(un_lo(1))+1,un_hi(2)-(un_lo(2))+1,un_hi(3)-(un_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>un_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>un_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>pold</strong> (po_hi(1)-(po_lo(1))+1,po_hi(2)-(po_lo(2))+1,po_hi(3)-(po_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>po_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>po_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>pnew</strong> (pn_hi(1)-(pn_lo(1))+1,pn_hi(2)-(pn_lo(2))+1,pn_hi(3)-(pn_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>pn_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>pn_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gold</strong> (go_hi(1)-(go_lo(1))+1,go_hi(2)-(go_lo(2))+1,go_hi(3)-(go_lo(3))+1,3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>go_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>go_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gnew</strong> (gn_hi(1)-(gn_lo(1))+1,gn_hi(2)-(gn_lo(2))+1,gn_hi(3)-(gn_lo(3))+1,3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gn_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>gn_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol</strong> (vol_hi(1)-(vol_lo(1))+1,vol_hi(2)-(vol_lo(2))+1,vol_hi(3)-(vol_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux1</strong> (f1_hi(1)-(f1_lo(1))+1,f1_hi(2)-(f1_lo(2))+1,f1_hi(3)-(f1_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f1_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f1_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux2</strong> (f2_hi(1)-(f2_lo(1))+1,f2_hi(2)-(f2_lo(2))+1,f2_hi(3)-(f2_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f2_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f2_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>flux3</strong> (f3_hi(1)-(f3_lo(1))+1,f3_hi(2)-(f3_lo(2))+1,f3_hi(3)-(f3_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f3_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f3_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>source</strong> (sr_hi(1)-(sr_lo(1))+1,sr_hi(2)-(sr_lo(2))+1,sr_hi(3)-(sr_lo(3))+1,nsrc)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>sr_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>sr_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a> (<a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_mempool_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">bl_allocate()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">bl_deallocate()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">umr()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ump()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dg" title="f/prob_params_module/dg"><code class="xref f f-func docutils literal notranslate"><span class="pre">dg()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/physbc_lo" title="f/prob_params_module/physbc_lo"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_lo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/physbc_hi" title="f/prob_params_module/physbc_hi"><code class="xref f f-func docutils literal notranslate"><span class="pre">physbc_hi()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/symmetry" title="f/prob_params_module/symmetry"><code class="xref f f-func docutils literal notranslate"><span class="pre">symmetry()</span></code></a>), <a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module" title="f/castro_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_util_module</span></code></a> (<a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>), <a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module" title="f/hybrid_advection_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">hybrid_advection_module</span></code></a> (<a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module/set_hybrid_momentum_source" title="f/hybrid_advection_module/set_hybrid_momentum_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">set_hybrid_momentum_source()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>, <a class="reference internal" href="hybrid_advection_nd_f.html#f/hybrid_advection_module/set_hybrid_momentum_source" title="f/hybrid_advection_module/set_hybrid_momentum_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">set_hybrid_momentum_source()</span></code></a>, <a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pointmass_nd_f.html" class="btn btn-neutral float-right" title="pointmass_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Gravity_nd_f.html" class="btn btn-neutral float-left" title="Gravity_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

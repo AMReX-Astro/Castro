@@ -1,0 +1,602 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Getting Started &mdash; Castro 20.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Input Files" href="inputs.html" />
+    <link rel="prev" title="Introduction to Castro" href="Introduction.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../getting_started.html">master</a> | <a href="./getting_started.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#downloading-the-code">Downloading the Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-the-code">Building the Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-code">Running the Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualization-of-the-results">Visualization of the Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-distributed-problem-setups">Other Distributed Problem Setups</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Getting Started</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/getting_started.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Castro has two source dependencies: <a class="reference external" href="https://github.com/AMReX-Codes/amrex">AMReX</a>, the adaptive mesh
+library, and <a class="reference external" href="https://github.com/starkiller-astro/Microphysics">StarKiller Microphysics</a>, the collection of equations
+of state, reaction networks, and other microphysics.  The
+instructions below describe how to get these dependencies automatically
+with Castro.</p>
+</div>
+<div class="section" id="downloading-the-code">
+<h2>Downloading the Code<a class="headerlink" href="#downloading-the-code" title="Permalink to this headline">¶</a></h2>
+<p>Castro is maintained as a repository on GitHub, and can be obtained
+via standard git clone commands. First, make sure that git
+is installed on your machine—we recommend version 1.7.x or higher.</p>
+<ol class="arabic">
+<li><p class="first">Clone/fork the Castro repository from the AMReX-Astro GitHub
+organization, using either HTTP access:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">recursive</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Astro</span><span class="o">/</span><span class="n">Castro</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>or SSH access if you have an SSH key enabled with GitHub:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">recursive</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Astro</span><span class="o">/</span><span class="n">Castro</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--recursive</span></code> option to <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span></code> is used to ensure
+that all of Castro’s dependencies are downloaded. Currently this
+requirement is for the AMReX mesh refinement framework, which is
+maintained in the AMReX-Codes organization on GitHub, and the
+Microphysics repository from the starkiller-astro organization.
+AMReX adds the necessary code for the driver code for the simulation,
+while Microphysics adds the equations of state, reaction
+networks, and other microphysics needed to run Castro. If you forget
+to do a recursive clone, you can rectify the situation by running
+the following from the top-level of the Castro directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span> <span class="o">--</span><span class="n">recursive</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>By default, you will be on the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch of the source.
+Development on Castro (and its primary dependencies, AMReX and
+Microphysics) is done in the <code class="docutils literal notranslate"><span class="pre">development</span></code> branch, so you
+should work there if you want the latest source:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">checkout</span> <span class="n">development</span>
+</pre></div>
+</div>
+<p class="last">The Castro team runs nightly regression testing on the
+<code class="docutils literal notranslate"><span class="pre">development</span></code> branch, so bugs are usually found and fixed
+relatively quickly, but it is generally less stable than staying
+on the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch.</p>
+</div>
+</li>
+<li><p class="first">We recommend setting the <code class="docutils literal notranslate"><span class="pre">CASTRO_HOME</span></code> environment
+variable to point to the path name where you have put Castro.
+Add the following to your <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CASTRO_HOME</span><span class="o">=</span><span class="s2">&quot;/path/to/Castro/&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">You can keep the code up to date with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">pull</span> <span class="o">--</span><span class="n">recurse</span><span class="o">-</span><span class="n">submodules</span>
+</pre></div>
+</div>
+<p>The recommended frequency for doing this is monthly, if you are on the
+stable <code class="docutils literal notranslate"><span class="pre">master</span></code> branch of the code; we issue a new release of the code
+at the beginning of each month.</p>
+</li>
+<li><p class="first">(optional, for developers) If you prefer, you can maintain AMReX and
+Microphysics as standalone repositories rather than as git submodules.
+To do so, you can clone them from GitHub using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Codes</span><span class="o">/</span><span class="n">amrex</span><span class="o">.</span><span class="n">git</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">starkiller</span><span class="o">-</span><span class="n">astro</span><span class="o">/</span><span class="n">Microphysics</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>or via SSH as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Codes</span><span class="o">/</span><span class="n">amrex</span><span class="o">.</span><span class="n">git</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="o">/</span><span class="n">starkiller</span><span class="o">-</span><span class="n">astro</span><span class="o">/</span><span class="n">Microphysics</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>Then, set the <code class="docutils literal notranslate"><span class="pre">AMREX_HOME</span></code> environment variable to point to the
+<code class="docutils literal notranslate"><span class="pre">amrex/</span></code> directory, and the <code class="docutils literal notranslate"><span class="pre">MICROPHYSICS_HOME</span></code> environment
+variable to point to the <code class="docutils literal notranslate"><span class="pre">Microphysics/</span></code> directory. Castro will
+look there instead of in its local <code class="docutils literal notranslate"><span class="pre">external/</span></code> subdirectory.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="building-the-code">
+<h2>Building the Code<a class="headerlink" href="#building-the-code" title="Permalink to this headline">¶</a></h2>
+<p>In Castro each different problem setup is stored in its own
+sub-directory under <code class="docutils literal notranslate"><span class="pre">Castro/Exec/</span></code>. You build the
+Castro executable in the problem sub-directory. Here we’ll
+build the Sedov problem:</p>
+<ol class="arabic">
+<li><p class="first">From the directory in which you checked out the Castro git repo,
+type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">Castro</span><span class="o">/</span><span class="n">Exec</span><span class="o">/</span><span class="n">hydro_tests</span><span class="o">/</span><span class="n">Sedov</span>
+</pre></div>
+</div>
+<p>This will put you into a directory in which you can run the Sedov
+problem in 1-d, 2-d or 3-d.</p>
+</li>
+<li><p class="first">In <code class="docutils literal notranslate"><span class="pre">Sedov/</span></code>, edit the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>, and set</p>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">DIM</span> <span class="pre">=</span> <span class="pre">2</span></code></p>
+<p>This is the dimensionality—here we pick 2-d.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">COMP</span> <span class="pre">=</span> <span class="pre">gnu</span></code></p>
+<p>This is the set of compilers. GNUu are a good default choice
+(this will use g++ and gfortran). You can also choose <code class="docutils literal notranslate"><span class="pre">pgi</span></code> and
+<code class="docutils literal notranslate"><span class="pre">intel</span></code> for example.</p>
+<p>If you want to try other compilers than the GNU suite and they
+don’t work, please let us know.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">DEBUG</span> <span class="pre">=</span> <span class="pre">FALSE</span></code></p>
+<p>This disables debugging checks and results in a more optimized
+executable.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">USE_MPI</span> <span class="pre">=</span> <span class="pre">FALSE</span></code></p>
+<p>This turns off parallelization via MPI. Set it to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code> to build
+with MPI—this requires that you have the MPI library installed on
+your machine. In this case, the build system will need to know
+about your MPI installation. This can be done by editing the
+makefiles in the AMReX tree, but the default fallback is to look
+for the standard MPI wrappers (e.g. <code class="docutils literal notranslate"><span class="pre">mpic++</span></code> and <code class="docutils literal notranslate"><span class="pre">mpif90</span></code>) to do
+the build.</p>
+</li>
+</ul>
+</li>
+<li><p class="first">Now type <code class="docutils literal notranslate"><span class="pre">make</span></code>.</p>
+<p>The resulting executable will look something like
+<code class="docutils literal notranslate"><span class="pre">Castro2d.gnu.ex</span></code>, which means this is a 2-d version
+of the code compiled with <code class="docutils literal notranslate"><span class="pre">COMP</span> <span class="pre">=</span> <span class="pre">gnu</span></code>.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="running-the-code">
+<h2>Running the Code<a class="headerlink" href="#running-the-code" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Castro&nbsp;takes an input file that overrides the runtime parameter defaults.
+The code is run as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">Castro2d</span><span class="o">.</span><span class="n">gnu</span><span class="o">.</span><span class="n">ex</span> <span class="n">inputs</span><span class="o">.</span><span class="mi">2</span><span class="n">d</span><span class="o">.</span><span class="n">cyl_in_cartcoords</span>
+</pre></div>
+</div>
+<p>This will run the 2-d cylindrical Sedov problem in Cartesian
+(<span class="math notranslate nohighlight">\(x\)</span>-<span class="math notranslate nohighlight">\(y\)</span> coordinates). You can see other possible
+options, which should be clear by the names of the inputs files.</p>
+</li>
+<li><p class="first">You will notice that running the code generates directories that
+look like <code class="docutils literal notranslate"><span class="pre">plt00000/</span></code>, <code class="docutils literal notranslate"><span class="pre">plt00020/</span></code>, etc, and <code class="docutils literal notranslate"><span class="pre">chk00000/</span></code>,
+<code class="docutils literal notranslate"><span class="pre">chk00020/</span></code>, etc. These are “plotfiles” and “checkpoint”
+files. The plotfiles are used for visualization, the checkpoint
+files are used for restarting the code.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="visualization-of-the-results">
+<h2>Visualization of the Results<a class="headerlink" href="#visualization-of-the-results" title="Permalink to this headline">¶</a></h2>
+<p>There are several options for visualizing the data. The popular VisIt
+package supports the AMReX file format natively, as does the yt python
+package <a class="footnote-reference" href="#id8" id="id1">[2]</a>. The standard tool used within the AMReX-community is
+Amrvis, which we demonstrate here. Amrvis is available on github.</p>
+<ol class="arabic">
+<li><p class="first">Get Amrvis:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Codes</span><span class="o">/</span><span class="n">Amrvis</span>
+</pre></div>
+</div>
+<p>Then cd into <code class="docutils literal notranslate"><span class="pre">Amrvis/</span></code>, edit the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> there
+to set <code class="docutils literal notranslate"><span class="pre">DIM</span> <span class="pre">=</span> <span class="pre">2</span></code>, and again set <code class="docutils literal notranslate"><span class="pre">COMP</span></code> to compilers that
+you have. Leave <code class="docutils literal notranslate"><span class="pre">DEBUG</span> <span class="pre">=</span> <span class="pre">FALSE</span></code>.</p>
+<p>Type <code class="docutils literal notranslate"><span class="pre">make</span></code> to build, resulting in an executable that
+looks like <code class="docutils literal notranslate"><span class="pre">amrvis2d...ex</span></code>.</p>
+<p>If you want to build amrvis with <code class="docutils literal notranslate"><span class="pre">DIM</span> <span class="pre">=</span> <span class="pre">3</span></code>, you must first
+download and build volpack:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">ccse</span><span class="o">.</span><span class="n">lbl</span><span class="o">.</span><span class="n">gov</span><span class="o">/</span><span class="n">pub</span><span class="o">/</span><span class="n">Downloads</span><span class="o">/</span><span class="n">volpack</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>Then cd into <code class="docutils literal notranslate"><span class="pre">volpack/</span></code> and type <code class="docutils literal notranslate"><span class="pre">make</span></code>.</p>
+<p>Note: Amrvisrequires the OSF/Motif libraries and headers. If you
+don’t have these you will need to install the development version
+of motif through your package manager.  On most Linux
+distributions, the motif library is provided by the openmotif
+package, and its header files (like <code class="docutils literal notranslate"><span class="pre">Xm.h</span></code>) are provided by
+openmotif-devel. If those packages are not installed, then use the
+package management tool to install them, which varies from
+distribution to distribution, but is straightforward.  lesstif
+gives some functionality and will allow you to build the amrvis
+executable, but Amrvis may not run properly.</p>
+<p>You may then want to create an alias to amrvis2d, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">alias</span> <span class="n">amrvis2d</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">Amrvis</span><span class="o">/</span><span class="n">amrvis2d</span><span class="o">...</span><span class="n">ex</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">/tmp/Amrvis/amrvis2d...ex</span></code> is the full path and name of
+the Amrvis executable.</p>
+</li>
+<li><p class="first">Configure Amrvis:</p>
+<p>Copy the <code class="docutils literal notranslate"><span class="pre">amrvis.defaults</span></code> file to your home directory (you can
+rename it to <code class="docutils literal notranslate"><span class="pre">.amrvis.defaults</span></code> if you wish). Then edit the
+file, and change the palette line to point to the full
+path/filename of the <code class="docutils literal notranslate"><span class="pre">Palette</span></code> file that comes with Amrvis.</p>
+</li>
+<li><p class="first">Visualize:</p>
+<p>Return to the <code class="docutils literal notranslate"><span class="pre">Castro/Exec/hydro_tests/Sedov</span></code> directory. You should
+have a number of output files, including some in the form <code class="docutils literal notranslate"><span class="pre">pltXXXXX</span></code>,
+where XXXXX is a number corresponding to the timestep the file
+was output.</p>
+<p><code class="docutils literal notranslate"><span class="pre">amrvis2d</span> <span class="pre">filename</span></code> to see a single plotfile, or <code class="docutils literal notranslate"><span class="pre">amrvis2d</span> <span class="pre">-a</span>
+<span class="pre">plt*</span></code>, which will animate the sequence of plotfiles.</p>
+<p>Try playing around with this—you can change which variable you are
+looking at, select a region and click “Dataset” (under View) in
+order to look at the actual numbers, etc. You can also export the
+pictures in several different formats under “File/Export”.</p>
+<p>Some users have found that Amrvis does not work properly under X
+with the proprietary Nvidia graphics driver. A fix for this is
+provided in the FAQ (§ <a class="reference internal" href="faq.html#ch-faq-vis"><span class="std std-ref">Runtime Errors</span></a>)—this is due
+to the default behavior of the DAC in mappuing colors.</p>
+<p>Note: yt is a great alternative to using Amrvis&nbsp;for visualization,
+and understands Castro plotfiles well.</p>
+<p>Please know that we do have a number of conversion routines to other
+formats (such as matlab), but it is hard to describe them all. If you
+would like to display the data in another format, please let us know
+(again, <a class="reference external" href="mailto:asalmgren&#37;&#52;&#48;lbl&#46;gov">asalmgren<span>&#64;</span>lbl<span>&#46;</span>gov</a>) and we will point you to whatever we have
+that can help.</p>
+</li>
+</ol>
+<p>You have now completed a brief introduction to Castro.</p>
+</div>
+<div class="section" id="other-distributed-problem-setups">
+<h2>Other Distributed Problem Setups<a class="headerlink" href="#other-distributed-problem-setups" title="Permalink to this headline">¶</a></h2>
+<p>There are a number of standard problem setups that come with Castro.
+These can be used as a starting point toward writing your own setup.
+We organize these into subdirectories by broad type (radiation, hydro,
+gravity, etc.): The standard categories and <em>some</em> of the included
+problems are:</p>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">gravity_tests</span></code>:</p>
+<blockquote>
+<div><ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">DustCollapse</span></code>:</p>
+<p>A pressureless cloud collapse that is a standard test problem for
+gravity. An analytic solution that describes the radius of the
+sphere as a function of time is found in Colgate and
+White <a class="reference internal" href="zreferences.html#colgwhite" id="id2">[colgwhite]</a>. This problem is also found
+in the FLASH User’s Guide.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">hydrostatic_adjust</span></code>:</p>
+<p>Model a 1-d stellar atmosphere (plane-parallel or
+spherical/self-gravitating) and dump energy in via an analytic
+heat source and watch the atmosphere’s hydrostatic state adjust
+in response. This is the counterpart to the Maestro
+<code class="docutils literal notranslate"><span class="pre">test_basestate</span></code> unit test.</p>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">hydro_tests</span></code>:</p>
+<blockquote>
+<div><ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">double_bubble</span></code>:</p>
+<p>Initialize 1 or 2 bubbles in a stratified atmosphere (isothermal
+or isentropic) and allow for the bubbles to have the same or a
+different <span class="math notranslate nohighlight">\(\gamma\)</span> from one another / the background
+atmosphere.  This uses the multigamma EOS.</p>
+<p>An analogous problem is implemented in Maestro.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">HCBubble</span></code>:</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">KH</span></code>:</p>
+<p>A Kelvin-Helmholtz shear instability problem.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">oddeven</span></code>:</p>
+<p>A grid-aligned shock hitting a very small density perturbation.
+This demonstrates the odd-even decoupling problem discussed in
+<a class="reference internal" href="zreferences.html#quirk1997" id="id3">[quirk1997]</a>. This setup serves to test the
+castro.hybrid_riemann option to hydrodynamics.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">reacting_bubble</span></code>:</p>
+<p>A reacting bubble in a stratified white dwarf atmosphere. This
+problem was featured in the Maestro&nbsp;reaction
+paper <a class="reference internal" href="zreferences.html#maestro-iii" id="id4">[maestro:III]</a>.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">RT</span></code>:</p>
+<p>A single-model Rayleigh-Taylor instability problem.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">RT_particles</span></code>:</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Sedov</span></code>:</p>
+<p>The standard Sedov-Taylor blast wave problem. This setup was used
+in the first Castro paper <a class="reference internal" href="zreferences.html#castro-i" id="id5">[castro_I]</a>.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Sod</span></code>:</p>
+<p>A one-dimensional shock tube setup, including the classic Sod
+problem. This setup was used in the original Castro paper.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Sod_stellar</span></code>:</p>
+<p>A version of the Sod shock tube for the general stellar equation
+of state. This setup and the included inputs files was used
+in <a class="reference internal" href="zreferences.html#zingalekatz" id="id6">[zingalekatz]</a>.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">toy_convect</span></code>:</p>
+<p>A simple nova-like convection problem with an external heating
+source. This problem shows how to use the model parser to
+initialize a 1-d atmosphere on the Castro grid, incorporate a
+custom tagging routine, sponge the fluid above the atmosphere,
+and write a custom diagnostics routine.</p>
+<p>A Maestro version of this problem setup also exists.</p>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">radiation_tests</span></code>:</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">science</span></code>:</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">unit_tests</span></code>:</p>
+</li>
+</ul>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td>Note: previously the radiation
+solver was distributed separately as <code class="docutils literal notranslate"><span class="pre">CastroRadiation.git</span></code>,
+but this has been merged into the main Castro respository</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id8" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[2]</a></td><td>Each of these will recognize it as the
+BoxLib&nbsp;format.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="inputs.html" class="btn btn-neutral float-right" title="Input Files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Introduction.html" class="btn btn-neutral float-left" title="Introduction to Castro" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

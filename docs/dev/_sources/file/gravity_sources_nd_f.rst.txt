@@ -1,0 +1,8 @@
+gravity_sources_nd.F90
+======================
+
+gravity\_sources\_module
+------------------------
+
+.. f:automodule:: gravity_sources_module
+

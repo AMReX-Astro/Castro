@@ -1,0 +1,549 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>MGFLD_3d.f90 &mdash; Castro 20.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File MGRadBndry.H" href="MGRadBndry_8H.html" />
+    <link rel="prev" title="MGFLD_2d.f90" href="MGFLD_2d_f.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../file/MGFLD_3d_f.html">master</a> | <a href="../file/MGFLD_3d_f.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../radiation_files.html">Radiation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="CastroRad_1d_f.html">CastroRad_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CastroRad_2d_f.html">CastroRad_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="CastroRad_3d_f.html">CastroRad_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HABEC_nd_f.html">HABEC_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD_1d_f.html">MGFLD_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGFLD_2d_f.html">MGFLD_2d.f90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">MGFLD_3d.f90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ca-state-update-subroutine">ca_state_update subroutine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ca-ncupdate-matter-subroutine">ca_ncupdate_matter subroutine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ca-flux-face2center-subroutine">ca_flux_face2center subroutine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ca-spalpha-subroutine">ca_spalpha subroutine</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry_1d_f.html">RadBndry_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry_2d_f.html">RadBndry_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry_3d_f.html">RadBndry_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadDerive_nd_f.html">RadDerive_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadHydro_nd_f.html">RadHydro_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar_1d_f.html">RadPlotvar_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar_2d_f.html">RadPlotvar_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadPlotvar_3d_f.html">RadPlotvar_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Rad_nd_f.html">Rad_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blackbody_f.html">blackbody.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt_prim_1d_f.html">filt_prim_1d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt_prim_2d_f.html">filt_prim_2d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filt_prim_3d_f.html">filt_prim_3d.f90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filter_f.html">filter.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fluxlimiter_f.html">fluxlimiter.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fluxlimiter_8H.html">File fluxlimiter.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rad_params_f.html">rad_params.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rad_source_f.html">rad_source.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rad_util_f.html">rad_util.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="trace_ppm_rad_nd_f.html">trace_ppm_rad_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
+        
+      <li>MGFLD_3d.f90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/MGFLD_3d_f.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mgfld-3d-f90">
+<h1>MGFLD_3d.f90<a class="headerlink" href="#mgfld-3d-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ca-state-update-subroutine">
+<h2>ca_state_update subroutine<a class="headerlink" href="#ca-state-update-subroutine" title="Permalink to this headline">¶</a></h2>
+<dl class="subroutine">
+<dt id="f/_/ca_state_update">
+<em class="property">subroutine  </em><code class="descname">ca_state_update</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>state</em>, <em>state_l1</em>, <em>state_l2</em>, <em>state_l3</em>, <em>state_h1</em>, <em>state_h2</em>, <em>state_h3</em>, <em>rhoe</em>, <em>rhoe_l1</em>, <em>rhoe_l2</em>, <em>rhoe_l3</em>, <em>rhoe_h1</em>, <em>rhoe_h2</em>, <em>rhoe_h3</em>, <em>temp</em>, <em>temp_l1</em>, <em>temp_l2</em>, <em>temp_l3</em>, <em>temp_h1</em>, <em>temp_h2</em>, <em>temp_h3</em>, <em>msk</em>, <em>msk_l1</em>, <em>msk_l2</em>, <em>msk_l3</em>, <em>msk_h1</em>, <em>msk_h2</em>, <em>msk_h3</em>, <em>derat</em>, <em>dtrat</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_state_update" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>state</strong> (state_h1-state_l1+1,state_h2-state_l2+1,state_h3-state_l3+1,nvar)<em> [</em><em>real</em><em>]</em></li>
+<li><strong>state_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>state_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>state_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>state_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>state_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>state_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhoe</strong> (rhoe_h1-rhoe_l1+1,rhoe_h2-rhoe_l2+1,rhoe_h3-rhoe_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhoe_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhoe_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhoe_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhoe_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhoe_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhoe_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>temp</strong> (temp_h1-temp_l1+1,temp_h2-temp_l2+1,temp_h3-temp_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>temp_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>temp_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>temp_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>temp_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>temp_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>temp_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>msk</strong> (msk_h1-msk_l1+1,msk_h2-msk_l2+1,msk_h3-msk_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>msk_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>msk_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>msk_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>msk_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>msk_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>msk_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>derat</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>dtrat</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="ca-ncupdate-matter-subroutine">
+<h2>ca_ncupdate_matter subroutine<a class="headerlink" href="#ca-ncupdate-matter-subroutine" title="Permalink to this headline">¶</a></h2>
+<dl class="subroutine">
+<dt id="f/_/ca_ncupdate_matter">
+<em class="property">subroutine  </em><code class="descname">ca_ncupdate_matter</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>tp_n</em>, <em>tp_n_l1</em>, <em>tp_n_l2</em>, <em>tp_n_l3</em>, <em>tp_n_h1</em>, <em>tp_n_h2</em>, <em>tp_n_h3</em>, <em>er_n</em>, <em>er_n_l1</em>, <em>er_n_l2</em>, <em>er_n_l3</em>, <em>er_n_h1</em>, <em>er_n_h2</em>, <em>er_n_h3</em>, <em>re_s</em>, <em>re_s_l1</em>, <em>re_s_l2</em>, <em>re_s_l3</em>, <em>re_s_h1</em>, <em>re_s_h2</em>, <em>re_s_h3</em>, <em>re_2</em>, <em>re_2_l1</em>, <em>re_2_l2</em>, <em>re_2_l3</em>, <em>re_2_h1</em>, <em>re_2_h2</em>, <em>re_2_h3</em>, <em>ettz</em>, <em>ettz_l1</em>, <em>ettz_l2</em>, <em>ettz_l3</em>, <em>ettz_h1</em>, <em>ettz_h2</em>, <em>ettz_h3</em>, <em>kpp</em>, <em>kpp_l1</em>, <em>kpp_l2</em>, <em>kpp_l3</em>, <em>kpp_h1</em>, <em>kpp_h2</em>, <em>kpp_h3</em>, <em>jg</em>, <em>jg_l1</em>, <em>jg_l2</em>, <em>jg_l3</em>, <em>jg_h1</em>, <em>jg_h2</em>, <em>jg_h3</em>, <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_ncupdate_matter" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>tp_n</strong> (tp_n_h1-tp_n_l1+1,tp_n_h2-tp_n_l2+1,tp_n_h3-tp_n_l3+1)<em> [</em><em>real</em><em>]</em></li>
+<li><strong>tp_n_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>tp_n_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>tp_n_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>tp_n_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>tp_n_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>tp_n_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_n</strong> (er_n_h1-er_n_l1+1,er_n_h2-er_n_l2+1,er_n_h3-er_n_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_n_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_n_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_n_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_n_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_n_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>er_n_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_s</strong> (re_s_h1-re_s_l1+1,re_s_h2-re_s_l2+1,re_s_h3-re_s_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_s_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_s_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_s_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_s_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_s_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_s_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_2</strong> (re_2_h1-re_2_l1+1,re_2_h2-re_2_l2+1,re_2_h3-re_2_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_2_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_2_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_2_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_2_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_2_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>re_2_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ettz</strong> (ettz_h1-ettz_l1+1,ettz_h2-ettz_l2+1,ettz_h3-ettz_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ettz_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ettz_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ettz_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ettz_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ettz_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ettz_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kpp</strong> (kpp_h1-kpp_l1+1,kpp_h2-kpp_l2+1,kpp_h3-kpp_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kpp_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kpp_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kpp_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kpp_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kpp_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>kpp_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>jg</strong> (jg_h1-jg_l1+1,jg_h2-jg_l2+1,jg_h3-jg_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>jg_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>jg_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>jg_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>jg_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>jg_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>jg_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>, <a class="reference internal" href="rad_params_f.html#f/rad_params_module/clight" title="f/rad_params_module/clight"><code class="xref f f-func docutils literal notranslate"><span class="pre">clight()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="ca-flux-face2center-subroutine">
+<h2>ca_flux_face2center subroutine<a class="headerlink" href="#ca-flux-face2center-subroutine" title="Permalink to this headline">¶</a></h2>
+<dl class="subroutine">
+<dt id="f/_/ca_flux_face2center">
+<em class="property">subroutine  </em><code class="descname">ca_flux_face2center</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>t</em>, <em>t_l1</em>, <em>t_l2</em>, <em>t_l3</em>, <em>t_h1</em>, <em>t_h2</em>, <em>t_h3</em>, <em>f</em>, <em>f_l1</em>, <em>f_l2</em>, <em>f_l3</em>, <em>f_h1</em>, <em>f_h2</em>, <em>f_h3</em>, <em>x</em>, <em>x_l1</em>, <em>x_h1</em>, <em>nt</em>, <em>idim</em>, <em>iflx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_flux_face2center" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>t</strong> (t_h1-t_l1+1,t_h2-t_l2+1,t_h3-t_l3+1,nt)<em> [</em><em>real</em><em>]</em></li>
+<li><strong>t_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>t_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>t_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>t_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>t_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>t_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f</strong> (f_h1-f_l1+1,f_h2-f_l2+1,f_h3-f_l3+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>f_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>x</strong> (x_h1-x_l1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>x_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>x_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nt</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>idim</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>iflx</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="ca-spalpha-subroutine">
+<h2>ca_spalpha subroutine<a class="headerlink" href="#ca-spalpha-subroutine" title="Permalink to this headline">¶</a></h2>
+<dl class="subroutine">
+<dt id="f/_/ca_spalpha">
+<em class="property">subroutine  </em><code class="descname">ca_spalpha</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>spa</em>, <em>spa_l1</em>, <em>spa_l2</em>, <em>spa_l3</em>, <em>spa_h1</em>, <em>spa_h2</em>, <em>spa_h3</em>, <em>lmx</em>, <em>lmx_l1</em>, <em>lmx_l2</em>, <em>lmx_l3</em>, <em>lmx_h1</em>, <em>lmx_h2</em>, <em>lmx_h3</em>, <em>lmy</em>, <em>lmy_l1</em>, <em>lmy_l2</em>, <em>lmy_l3</em>, <em>lmy_h1</em>, <em>lmy_h2</em>, <em>lmy_h3</em>, <em>lmz</em>, <em>lmz_l1</em>, <em>lmz_l2</em>, <em>lmz_l3</em>, <em>lmz_h1</em>, <em>lmz_h2</em>, <em>lmz_h3</em>, <em>igroup</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_spalpha" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>spa</strong> (spa_h1-spa_l1+1,spa_h2-spa_l2+1,spa_h3-spa_l3+1)<em> [</em><em>real</em><em>]</em></li>
+<li><strong>spa_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>spa_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>spa_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>spa_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>spa_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>spa_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmx</strong> (lmx_h1-lmx_l1+1,lmx_h2-lmx_l2+1,lmx_h3-lmx_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmx_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmx_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmx_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmx_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmx_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmx_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmy</strong> (lmy_h1-lmy_l1+1,lmy_h2-lmy_l2+1,lmy_h3-lmy_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmy_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmy_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmy_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmy_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmy_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmy_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmz</strong> (lmz_h1-lmz_l1+1,lmz_h2-lmz_l2+1,lmz_h3-lmz_l3+1,ngroups-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmz_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmz_l2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmz_l3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmz_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmz_h2</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lmz_h3</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>igroup</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="rad_params_f.html#f/rad_params_module" title="f/rad_params_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">rad_params_module</span></code></a> (<code class="xref f f-func docutils literal notranslate"><span class="pre">ngroups()</span></code>), <a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module" title="f/fluxlimiter_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fluxlimiter_module</span></code></a> (<a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/fldalpha" title="f/fluxlimiter_module/fldalpha"><code class="xref f f-func docutils literal notranslate"><span class="pre">fldalpha()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="fluxlimiter_f.html#f/fluxlimiter_module/fldalpha" title="f/fluxlimiter_module/fldalpha"><code class="xref f f-func docutils literal notranslate"><span class="pre">fldalpha()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="MGRadBndry_8H.html" class="btn btn-neutral float-right" title="File MGRadBndry.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="MGFLD_2d_f.html" class="btn btn-neutral float-left" title="MGFLD_2d.f90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

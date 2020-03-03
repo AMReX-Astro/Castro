@@ -1,0 +1,641 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Class HypreABec &mdash; Castro 20.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class HypreExtMultiABec" href="classHypreExtMultiABec.html" />
+    <link rel="prev" title="Class Gravity" href="classGravity.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../class/classHypreABec.html">master</a> | <a href="../class/classHypreABec.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../classlist.html">Class list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="classCastro.html">Class Castro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classDiffusion.html">Class Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classGradPhiPhysBCFunct.html">Class GradPhiPhysBCFunct</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classGravity.html">Class Gravity</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Class HypreABec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classHypreExtMultiABec.html">Class HypreExtMultiABec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classMGRadBndry.html">Class MGRadBndry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classNGBndry.html">Class NGBndry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classNGBndryBld.html">Class NGBndryBld</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classRadBndry.html">Class RadBndry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classRadBndryBld.html">Class RadBndryBld</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classRadSolve.html">Class RadSolve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classRadiation.html">Class Radiation</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../classlist.html">Class list</a> &raquo;</li>
+        
+      <li>Class HypreABec</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/class/classHypreABec.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="class-hypreabec">
+<h1>Class HypreABec<a class="headerlink" href="#class-hypreabec" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="_CPPv49HypreABec">
+<span id="_CPPv39HypreABec"></span><span id="_CPPv29HypreABec"></span><span id="HypreABec"></span><span class="target" id="classHypreABec"></span><em class="property">class </em><code class="descname">HypreABec</code><a class="headerlink" href="#_CPPv49HypreABec" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv4N9HypreABec9HypreABecERKN5amrex8BoxArrayERKN5amrex19DistributionMappingERKN5amrex8GeometryEi">
+<span id="_CPPv3N9HypreABec9HypreABecERKN5amrex8BoxArrayERKN5amrex19DistributionMappingERKN5amrex8GeometryEi"></span><span id="_CPPv2N9HypreABec9HypreABecERKN5amrex8BoxArrayERKN5amrex19DistributionMappingERKN5amrex8GeometryEi"></span><span id="HypreABec::HypreABec__amrex::BoxArrayCR.amrex::DistributionMappingCR.amrex::GeometryCR.i"></span><span class="target" id="classHypreABec_1a179d20e10e0884fa2df96f851e9dff93"></span><code class="descname">HypreABec</code><span class="sig-paren">(</span><em class="property">const</em> amrex::BoxArray &amp;<em>grids</em>, <em class="property">const</em> amrex::DistributionMapping &amp;<em>dmap</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geom</em>, int <em>solver_flag</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec9HypreABecERKN5amrex8BoxArrayERKN5amrex19DistributionMappingERKN5amrex8GeometryEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>solver_flag = 0 for SMG solver_flag = 1 for PFMG</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">grids</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">dmap</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">geom</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">solver_flag</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABecD0Ev">
+<span id="_CPPv3N9HypreABecD0Ev"></span><span id="_CPPv2N9HypreABecD0Ev"></span><span id="HypreABec::~HypreABec"></span><span class="target" id="classHypreABec_1a6a77fc1fce5fed900e37e2096da2640c"></span><code class="descname">~HypreABec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABecD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec10setVerboseEi">
+<span id="_CPPv3N9HypreABec10setVerboseEi"></span><span id="_CPPv2N9HypreABec10setVerboseEi"></span><span id="HypreABec::setVerbose__i"></span><span class="target" id="classHypreABec_1a47a31b4a76e3ff0db34b74d46b68b6ea"></span>void <code class="descname">setVerbose</code><span class="sig-paren">(</span>int <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec10setVerboseEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">v</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec10setScalarsEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv3N9HypreABec10setScalarsEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N9HypreABec10setScalarsEN5amrex4RealEN5amrex4RealE"></span><span id="HypreABec::setScalars__amrex::Real.amrex::Real"></span><span class="target" id="classHypreABec_1ab4dfdffc5f58ce10fd70c55c1c248521"></span>void <code class="descname">setScalars</code><span class="sig-paren">(</span>amrex::Real <em>alpha</em>, amrex::Real <em>beta</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec10setScalarsEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">alpha</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">beta</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK9HypreABec8getAlphaEv">
+<span id="_CPPv3NK9HypreABec8getAlphaEv"></span><span id="_CPPv2NK9HypreABec8getAlphaEv"></span><span id="HypreABec::getAlphaC"></span><span class="target" id="classHypreABec_1a9e094c46077bef39a35d7d2a1cf0a7f2"></span>amrex::Real <code class="descname">getAlpha</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9HypreABec8getAlphaEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4NK9HypreABec7getBetaEv">
+<span id="_CPPv3NK9HypreABec7getBetaEv"></span><span id="_CPPv2NK9HypreABec7getBetaEv"></span><span id="HypreABec::getBetaC"></span><span class="target" id="classHypreABec_1a8637c090986a2bd72e43c13ee03bffd4"></span>amrex::Real <code class="descname">getBeta</code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property">const</em><a class="headerlink" href="#_CPPv4NK9HypreABec7getBetaEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec13aCoefficientsERKN5amrex8MultiFabE">
+<span id="_CPPv3N9HypreABec13aCoefficientsERKN5amrex8MultiFabE"></span><span id="_CPPv2N9HypreABec13aCoefficientsERKN5amrex8MultiFabE"></span><span id="HypreABec::aCoefficients__amrex::MultiFabCR"></span><span class="target" id="classHypreABec_1aecdf67745895b9736f19fb7683a33d01"></span>void <code class="descname">aCoefficients</code><span class="sig-paren">(</span><em class="property">const</em> amrex::MultiFab &amp;<em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec13aCoefficientsERKN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">&amp;a</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec13bCoefficientsERKN5amrex8MultiFabEi">
+<span id="_CPPv3N9HypreABec13bCoefficientsERKN5amrex8MultiFabEi"></span><span id="_CPPv2N9HypreABec13bCoefficientsERKN5amrex8MultiFabEi"></span><span id="HypreABec::bCoefficients__amrex::MultiFabCR.i"></span><span class="target" id="classHypreABec_1a82411205a1513482c0dcd57559bc56c8"></span>void <code class="descname">bCoefficients</code><span class="sig-paren">(</span><em class="property">const</em> amrex::MultiFab &amp;<em>b</em>, int <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec13bCoefficientsERKN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">&amp;b</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec7SPalphaERKN5amrex8MultiFabE">
+<span id="_CPPv3N9HypreABec7SPalphaERKN5amrex8MultiFabE"></span><span id="_CPPv2N9HypreABec7SPalphaERKN5amrex8MultiFabE"></span><span id="HypreABec::SPalpha__amrex::MultiFabCR"></span><span class="target" id="classHypreABec_1a1bd4c2c01412155c591642d89b5a8ed9"></span>void <code class="descname">SPalpha</code><span class="sig-paren">(</span><em class="property">const</em> amrex::MultiFab &amp;<em>Spa</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec7SPalphaERKN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">&amp;Spa</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec13aCoefficientsEv">
+<span id="_CPPv3N9HypreABec13aCoefficientsEv"></span><span id="_CPPv2N9HypreABec13aCoefficientsEv"></span><span id="HypreABec::aCoefficients"></span><span class="target" id="classHypreABec_1ae7871d0288997dbbcdb5b31f070cc699"></span><em class="property">const</em> amrex::MultiFab &amp;<code class="descname">aCoefficients</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec13aCoefficientsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec13bCoefficientsEi">
+<span id="_CPPv3N9HypreABec13bCoefficientsEi"></span><span id="_CPPv2N9HypreABec13bCoefficientsEi"></span><span id="HypreABec::bCoefficients__i"></span><span class="target" id="classHypreABec_1afa2e5fbc141259289d0312190e32864b"></span><em class="property">const</em> amrex::MultiFab &amp;<code class="descname">bCoefficients</code><span class="sig-paren">(</span>int <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec13bCoefficientsEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dir</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec8setBndryERK7NGBndryi">
+<span id="_CPPv3N9HypreABec8setBndryERK7NGBndryi"></span><span id="_CPPv2N9HypreABec8setBndryERK7NGBndryi"></span><span id="HypreABec::setBndry__NGBndryCR.i"></span><span class="target" id="classHypreABec_1a686d4f0fe5b07e89264ef4c2675d339c"></span>void <code class="descname">setBndry</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="classNGBndry.html#_CPPv47NGBndry" title="NGBndry">NGBndry</a> &amp;<em>bd</em>, int <em>_comp</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec8setBndryERK7NGBndryi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">bd</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">_comp</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec8getBndryEv">
+<span id="_CPPv3N9HypreABec8getBndryEv"></span><span id="_CPPv2N9HypreABec8getBndryEv"></span><span id="HypreABec::getBndry"></span><span class="target" id="classHypreABec_1a97821d44660405011d8be3bdeaa2fcee"></span><em class="property">const</em> <a class="reference internal" href="classNGBndry.html#_CPPv47NGBndry" title="NGBndry">NGBndry</a> &amp;<code class="descname">getBndry</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec8getBndryEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec12boundaryFluxEPN5amrex8MultiFabERN5amrex8MultiFabEi7BC_Mode">
+<span id="_CPPv3N9HypreABec12boundaryFluxEPN5amrex8MultiFabERN5amrex8MultiFabEi7BC_Mode"></span><span id="_CPPv2N9HypreABec12boundaryFluxEPN5amrex8MultiFabERN5amrex8MultiFabEi7BC_Mode"></span><span id="HypreABec::boundaryFlux__amrex::MultiFabP.amrex::MultiFabR.i.BC_Mode"></span><span class="target" id="classHypreABec_1ab877b23be1f5fa33e5d61615fc4a2515"></span>void <code class="descname">boundaryFlux</code><span class="sig-paren">(</span>amrex::MultiFab *<em>Flux</em>, amrex::MultiFab &amp;<em>Er</em>, int <em>icomp</em>, <a class="reference internal" href="../file/NGBndry_8H.html#_CPPv47BC_Mode" title="BC_Mode">BC_Mode</a> <em>inhom</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec12boundaryFluxEPN5amrex8MultiFabERN5amrex8MultiFabEi7BC_Mode" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>The argument inhom in the following methods formerly defaulted to 1. For greater type safety (to avoid confusion with icomp) it is now an enum with no default. The argument icomp is always a component number for the independent variable, whether it is called Er, vector, or dest.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">Flux</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">Er</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">icomp</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">inhom</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec11setupSolverEN5amrex4RealEN5amrex4RealEi">
+<span id="_CPPv3N9HypreABec11setupSolverEN5amrex4RealEN5amrex4RealEi"></span><span id="_CPPv2N9HypreABec11setupSolverEN5amrex4RealEN5amrex4RealEi"></span><span id="HypreABec::setupSolver__amrex::Real.amrex::Real.i"></span><span class="target" id="classHypreABec_1ad68087a481a5d3dc276f733ae511e54b"></span>void <code class="descname">setupSolver</code><span class="sig-paren">(</span>amrex::Real <em>_reltol</em>, amrex::Real <em>_abstol</em>, int <em>maxiter</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec11setupSolverEN5amrex4RealEN5amrex4RealEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Three steps separated so that multiple calls to solve can be made</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">_reltol</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">_abstol</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">maxiter</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec5solveERN5amrex8MultiFabEiRN5amrex8MultiFabE7BC_Mode">
+<span id="_CPPv3N9HypreABec5solveERN5amrex8MultiFabEiRN5amrex8MultiFabE7BC_Mode"></span><span id="_CPPv2N9HypreABec5solveERN5amrex8MultiFabEiRN5amrex8MultiFabE7BC_Mode"></span><span id="HypreABec::solve__amrex::MultiFabR.i.amrex::MultiFabR.BC_Mode"></span><span class="target" id="classHypreABec_1a623bac4884d9a81c01e098fa9c1ecd63"></span>void <code class="descname">solve</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>dest</em>, int <em>icomp</em>, amrex::MultiFab &amp;<em>rhs</em>, <a class="reference internal" href="../file/NGBndry_8H.html#_CPPv47BC_Mode" title="BC_Mode">BC_Mode</a> <em>inhom</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec5solveERN5amrex8MultiFabEiRN5amrex8MultiFabE7BC_Mode" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dest</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">icomp</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">inhom</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec19getAbsoluteResidualEv">
+<span id="_CPPv3N9HypreABec19getAbsoluteResidualEv"></span><span id="_CPPv2N9HypreABec19getAbsoluteResidualEv"></span><span id="HypreABec::getAbsoluteResidual"></span><span class="target" id="classHypreABec_1acede68dff3d569771865971f835ddc84"></span>amrex::Real <code class="descname">getAbsoluteResidual</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec19getAbsoluteResidualEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This is the 2-norm of the complete rhs, including b.c. contributions </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec11clearSolverEv">
+<span id="_CPPv3N9HypreABec11clearSolverEv"></span><span id="_CPPv2N9HypreABec11clearSolverEv"></span><span id="HypreABec::clearSolver"></span><span class="target" id="classHypreABec_1a6a9af7c53bd7eb08f7ed1dcd64a640c5"></span>void <code class="descname">clearSolver</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec11clearSolverEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
+<dl class="function">
+<dt id="_CPPv4N9HypreABec10fluxFactorEv">
+<span id="_CPPv3N9HypreABec10fluxFactorEv"></span><span id="_CPPv2N9HypreABec10fluxFactorEv"></span><span id="HypreABec::fluxFactor"></span><span class="target" id="classHypreABec_1abd2fdc1983a1c6773bc971f400514a9c"></span><em class="property">static</em> amrex::Real &amp;<code class="descname">fluxFactor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec10fluxFactorEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec13getFaceMetricERN5amrex6VectorIN5amrex4RealEEERKN5amrex3BoxERKN5amrex11OrientationERKN5amrex8GeometryE">
+<span id="_CPPv3N9HypreABec13getFaceMetricERN5amrex6VectorIN5amrex4RealEEERKN5amrex3BoxERKN5amrex11OrientationERKN5amrex8GeometryE"></span><span id="_CPPv2N9HypreABec13getFaceMetricERN5amrex6VectorIN5amrex4RealEEERKN5amrex3BoxERKN5amrex11OrientationERKN5amrex8GeometryE"></span><span id="HypreABec::getFaceMetric__amrex::Vector:amrex::Real:R.amrex::BoxCR.amrex::OrientationCR.amrex::GeometryCR"></span><span class="target" id="classHypreABec_1a6947eb9b4176be05c4112fdd1a8636a4"></span><em class="property">static</em> void <code class="descname">getFaceMetric</code><span class="sig-paren">(</span>amrex::Vector&lt;amrex::Real&gt; &amp;<em>r</em>, <em class="property">const</em> amrex::Box &amp;<em>reg</em>, <em class="property">const</em> amrex::Orientation &amp;<em>ori</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geom</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec13getFaceMetricERN5amrex6VectorIN5amrex4RealEEERKN5amrex3BoxERKN5amrex11OrientationERKN5amrex8GeometryE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">r</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">reg</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">ori</span></code>: </li>
+<li><code class="docutils literal notranslate"><span class="pre">geom</span></code>: </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Functions</p>
+<dl class="function">
+<dt id="_CPPv4N9HypreABec6bcoefsE11BL_SPACEDIM">
+<span id="_CPPv3N9HypreABec6bcoefsE11BL_SPACEDIM"></span><span id="_CPPv2N9HypreABec6bcoefsE11BL_SPACEDIM"></span><span id="HypreABec::bcoefs__BL_SPACEDIM"></span><span class="target" id="classHypreABec_1a456f746702e0498f5b8c9ffedfc8f631"></span>std::unique_ptr&lt;amrex::MultiFab&gt; <code class="descname">bcoefs</code><span class="sig-paren">(</span>BL_SPACEDIM<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec6bcoefsE11BL_SPACEDIM" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N9HypreABec2dxE11BL_SPACEDIM">
+<span id="_CPPv3N9HypreABec2dxE11BL_SPACEDIM"></span><span id="_CPPv2N9HypreABec2dxE11BL_SPACEDIM"></span><span id="HypreABec::dx__BL_SPACEDIM"></span><span class="target" id="classHypreABec_1a83703e51e8a8251c96725bcfc0567c9b"></span>amrex::Real <code class="descname">dx</code><span class="sig-paren">(</span>BL_SPACEDIM<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9HypreABec2dxE11BL_SPACEDIM" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
+<dl class="member">
+<dt id="_CPPv4N9HypreABec4geomE">
+<span id="_CPPv3N9HypreABec4geomE"></span><span id="_CPPv2N9HypreABec4geomE"></span><span id="HypreABec::geom__amrex::GeometryCR"></span><span class="target" id="classHypreABec_1a71c66c370750e4fd597d902f318e24a5"></span><em class="property">const</em> amrex::Geometry &amp;<code class="descname">geom</code><a class="headerlink" href="#_CPPv4N9HypreABec4geomE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec6acoefsE">
+<span id="_CPPv3N9HypreABec6acoefsE"></span><span id="_CPPv2N9HypreABec6acoefsE"></span><span id="HypreABec::acoefs__std::unique_ptr:amrex::MultiFab:"></span><span class="target" id="classHypreABec_1a0c8d7429f345bb836f6098e4b1b8b6c6"></span>std::unique_ptr&lt;amrex::MultiFab&gt; <code class="descname">acoefs</code><a class="headerlink" href="#_CPPv4N9HypreABec6acoefsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec5alphaE">
+<span id="_CPPv3N9HypreABec5alphaE"></span><span id="_CPPv2N9HypreABec5alphaE"></span><span id="HypreABec::alpha__amrex::Real"></span><span class="target" id="classHypreABec_1aff4277a0f12a0e457a5b7a932a8a2641"></span>amrex::Real <code class="descname">alpha</code><a class="headerlink" href="#_CPPv4N9HypreABec5alphaE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec4betaE">
+<span id="_CPPv3N9HypreABec4betaE"></span><span id="_CPPv2N9HypreABec4betaE"></span><span id="HypreABec::beta__amrex::Real"></span><span class="target" id="classHypreABec_1a7344798180767809a9d367d19e71db29"></span>amrex::Real <code class="descname">beta</code><a class="headerlink" href="#_CPPv4N9HypreABec4betaE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec6reltolE">
+<span id="_CPPv3N9HypreABec6reltolE"></span><span id="_CPPv2N9HypreABec6reltolE"></span><span id="HypreABec::reltol__amrex::Real"></span><span class="target" id="classHypreABec_1a6b8ed3c1c6279077ab5801933647f4af"></span>amrex::Real <code class="descname">reltol</code><a class="headerlink" href="#_CPPv4N9HypreABec6reltolE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec6abstolE">
+<span id="_CPPv3N9HypreABec6abstolE"></span><span id="_CPPv2N9HypreABec6abstolE"></span><span id="HypreABec::abstol__amrex::Real"></span><span class="target" id="classHypreABec_1aedff734593505f355e8d04dba9e6f92f"></span>amrex::Real <code class="descname">abstol</code><a class="headerlink" href="#_CPPv4N9HypreABec6abstolE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec3SPaE">
+<span id="_CPPv3N9HypreABec3SPaE"></span><span id="_CPPv2N9HypreABec3SPaE"></span><span id="HypreABec::SPa__std::unique_ptr:amrex::MultiFab:"></span><span class="target" id="classHypreABec_1a5338c719df679019e7c27cfbd868c6c2"></span>std::unique_ptr&lt;amrex::MultiFab&gt; <code class="descname">SPa</code><a class="headerlink" href="#_CPPv4N9HypreABec3SPaE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>LO_SANCHEZ_POMRANING alpha. </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec3bdpE">
+<span id="_CPPv3N9HypreABec3bdpE"></span><span id="_CPPv2N9HypreABec3bdpE"></span><span id="HypreABec::bdp__NGBndryCP"></span><span class="target" id="classHypreABec_1a87afee3be6083d1a0b29ceee70bfaba8"></span><em class="property">const</em> <a class="reference internal" href="classNGBndry.html#_CPPv47NGBndry" title="NGBndry">NGBndry</a> *<code class="descname">bdp</code><a class="headerlink" href="#_CPPv4N9HypreABec3bdpE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec6bdcompE">
+<span id="_CPPv3N9HypreABec6bdcompE"></span><span id="_CPPv2N9HypreABec6bdcompE"></span><span id="HypreABec::bdcomp__i"></span><span class="target" id="classHypreABec_1a66f24e4bbdb7f482029a119313c25db4"></span>int <code class="descname">bdcomp</code><a class="headerlink" href="#_CPPv4N9HypreABec6bdcompE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>component number used for bdp </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec11solver_flagE">
+<span id="_CPPv3N9HypreABec11solver_flagE"></span><span id="_CPPv2N9HypreABec11solver_flagE"></span><span id="HypreABec::solver_flag__i"></span><span class="target" id="classHypreABec_1a6d20c60d709d6b8f29e7708d31a01c1a"></span>int <code class="descname">solver_flag</code><a class="headerlink" href="#_CPPv4N9HypreABec11solver_flagE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec7verboseE">
+<span id="_CPPv3N9HypreABec7verboseE"></span><span id="_CPPv2N9HypreABec7verboseE"></span><span id="HypreABec::verbose__i"></span><span class="target" id="classHypreABec_1a9c7dc8cb9f8a556b9ef647fe3f727013"></span>int <code class="descname">verbose</code><a class="headerlink" href="#_CPPv4N9HypreABec7verboseE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec17verbose_thresholdE">
+<span id="_CPPv3N9HypreABec17verbose_thresholdE"></span><span id="_CPPv2N9HypreABec17verbose_thresholdE"></span><span id="HypreABec::verbose_threshold__i"></span><span class="target" id="classHypreABec_1af742eee474eb05ec2afd2ab5dabddfa6"></span>int <code class="descname">verbose_threshold</code><a class="headerlink" href="#_CPPv4N9HypreABec17verbose_thresholdE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec15pfmg_relax_typeE">
+<span id="_CPPv3N9HypreABec15pfmg_relax_typeE"></span><span id="_CPPv2N9HypreABec15pfmg_relax_typeE"></span><span id="HypreABec::pfmg_relax_type__i"></span><span class="target" id="classHypreABec_1a21ac8ffbd1da792e2593deecb260ef30"></span>int <code class="descname">pfmg_relax_type</code><a class="headerlink" href="#_CPPv4N9HypreABec15pfmg_relax_typeE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec3bhoE">
+<span id="_CPPv3N9HypreABec3bhoE"></span><span id="_CPPv2N9HypreABec3bhoE"></span><span id="HypreABec::bho__i"></span><span class="target" id="classHypreABec_1afbc6bc46476701e79c994e0b6332626c"></span>int <code class="descname">bho</code><a class="headerlink" href="#_CPPv4N9HypreABec3bhoE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec5hgridE">
+<span id="_CPPv3N9HypreABec5hgridE"></span><span id="_CPPv2N9HypreABec5hgridE"></span><span id="HypreABec::hgrid__HYPRE_StructGrid"></span><span class="target" id="classHypreABec_1a9ee6e593d1d472683e929239d15dff60"></span>HYPRE_StructGrid <code class="descname">hgrid</code><a class="headerlink" href="#_CPPv4N9HypreABec5hgridE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec1AE">
+<span id="_CPPv3N9HypreABec1AE"></span><span id="_CPPv2N9HypreABec1AE"></span><span id="HypreABec::A__HYPRE_StructMatrix"></span><span class="target" id="classHypreABec_1a4a4ab87732639d74286530991b4ab84a"></span>HYPRE_StructMatrix <code class="descname">A</code><a class="headerlink" href="#_CPPv4N9HypreABec1AE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec2A0E">
+<span id="_CPPv3N9HypreABec2A0E"></span><span id="_CPPv2N9HypreABec2A0E"></span><span id="HypreABec::A0__HYPRE_StructMatrix"></span><span class="target" id="classHypreABec_1a738988323db43167f5f558313b896701"></span>HYPRE_StructMatrix <code class="descname">A0</code><a class="headerlink" href="#_CPPv4N9HypreABec2A0E" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec1bE">
+<span id="_CPPv3N9HypreABec1bE"></span><span id="_CPPv2N9HypreABec1bE"></span><span id="HypreABec::b__HYPRE_StructVector"></span><span class="target" id="classHypreABec_1a8475d6705f6f1b9b4fcfe1993721bceb"></span>HYPRE_StructVector <code class="descname">b</code><a class="headerlink" href="#_CPPv4N9HypreABec1bE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec1xE">
+<span id="_CPPv3N9HypreABec1xE"></span><span id="_CPPv2N9HypreABec1xE"></span><span id="HypreABec::x__HYPRE_StructVector"></span><span class="target" id="classHypreABec_1a0e90db55a60190365a3e50cb3cdc68ee"></span>HYPRE_StructVector <code class="descname">x</code><a class="headerlink" href="#_CPPv4N9HypreABec1xE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec6solverE">
+<span id="_CPPv3N9HypreABec6solverE"></span><span id="_CPPv2N9HypreABec6solverE"></span><span id="HypreABec::solver__HYPRE_StructSolver"></span><span class="target" id="classHypreABec_1af3fdca5709cf1eb453413ed7241a2fc2"></span>HYPRE_StructSolver <code class="descname">solver</code><a class="headerlink" href="#_CPPv4N9HypreABec6solverE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N9HypreABec7precondE">
+<span id="_CPPv3N9HypreABec7precondE"></span><span id="_CPPv2N9HypreABec7precondE"></span><span id="HypreABec::precond__HYPRE_StructSolver"></span><span class="target" id="classHypreABec_1aaf34cba1f3aaa657d76edb261e8c6ae1"></span>HYPRE_StructSolver <code class="descname">precond</code><a class="headerlink" href="#_CPPv4N9HypreABec7precondE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Static Attributes</p>
+<dl class="member">
+<dt id="_CPPv4N9HypreABec11flux_factorE">
+<span id="_CPPv3N9HypreABec11flux_factorE"></span><span id="_CPPv2N9HypreABec11flux_factorE"></span><span id="HypreABec::flux_factor__amrex::Real"></span><span class="target" id="classHypreABec_1abede9a5413f039e75a1c22ff44ff9197"></span>amrex::Real <code class="descname">flux_factor</code><a class="headerlink" href="#_CPPv4N9HypreABec11flux_factorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="classHypreExtMultiABec.html" class="btn btn-neutral float-right" title="Class HypreExtMultiABec" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="classGravity.html" class="btn btn-neutral float-left" title="Class Gravity" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

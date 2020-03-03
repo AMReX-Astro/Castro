@@ -1,0 +1,4 @@
+Class RadSolve
+==============
+
+.. doxygenclass:: RadSolve

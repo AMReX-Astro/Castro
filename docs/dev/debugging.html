@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Debugging &mdash; Castro 20.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Offloading a routine to GPU" href="gpu_porting.html" />
+    <link rel="prev" title="Build System Overview" href="build_system.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../debugging.html">master</a> | <a href="./debugging.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Debugging</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-compiler-of-other-tools">Using the compiler of other tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#compiler-checks">Compiler checks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#check-for-invalid-floating-point-exceptions">Check for invalid floating point exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#valgrind">Valgrind</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#thread-sanitizer">Thread sanitizer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#instrumenting-the-code">Instrumenting the Code</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#checking-for-nans">Checking for NaNs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#physics-issues">Physics issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Debugging</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/debugging.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="debugging">
+<h1>Debugging<a class="headerlink" href="#debugging" title="Permalink to this headline">¶</a></h1>
+<p>There are several methods we typically use to debug issues in Castro.
+Some descriptions are given below.</p>
+<div class="section" id="using-the-compiler-of-other-tools">
+<h2>Using the compiler of other tools<a class="headerlink" href="#using-the-compiler-of-other-tools" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="compiler-checks">
+<h3>Compiler checks<a class="headerlink" href="#compiler-checks" title="Permalink to this headline">¶</a></h3>
+<p>Recompile the code in debug-mode by setting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DEBUG</span> <span class="p">:</span><span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> (or invoking <code class="docutils literal notranslate"><span class="pre">make</span></code> as <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">DEBUG=TRUE</span></code>).
+This will create an executable with bounds checking and other compiler
+options enabled.  Running this sometimes will show issues.</p>
+</div>
+<div class="section" id="check-for-invalid-floating-point-exceptions">
+<h3>Check for invalid floating point exceptions<a class="headerlink" href="#check-for-invalid-floating-point-exceptions" title="Permalink to this headline">¶</a></h3>
+<p>Compiling in debug mode also initializes uninitialized variables to
+NaN.  For optimized code, the same can be done by setting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST</span> <span class="p">:</span><span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  To capture the NaNs, use the runtime parameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amrex</span><span class="o">.</span><span class="n">fpe_trap_invalid</span><span class="o">=</span><span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="valgrind">
+<h3>Valgrind<a class="headerlink" href="#valgrind" title="Permalink to this headline">¶</a></h3>
+<p>We frequently run Castro with valgrind to find illegal memory
+accesses.  The valgrind documentation can give details on how to use
+it.</p>
+</div>
+<div class="section" id="thread-sanitizer">
+<h3>Thread sanitizer<a class="headerlink" href="#thread-sanitizer" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<div class="section" id="instrumenting-the-code">
+<h2>Instrumenting the Code<a class="headerlink" href="#instrumenting-the-code" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="checking-for-nans">
+<h3>Checking for NaNs<a class="headerlink" href="#checking-for-nans" title="Permalink to this headline">¶</a></h3>
+<p>In the C++ code, you can check whether a FAB contains NaNs using
+the <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> method:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="n">MFIter</span> <span class="n">mfi</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">True</span><span class="p">);</span> <span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span> <span class="o">++</span><span class="n">mfi</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="k">const</span> <span class="n">Box</span><span class="o">&amp;</span> <span class="n">bx</span> <span class="o">=</span> <span class="n">mf</span><span class="p">.</span><span class="n">tilebox</span><span class="p">()</span>
+
+  <span class="c1">// do some operations on S[mfi]</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="n">mfi</span><span class="p">].</span><span class="n">contains_nan</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">amrex</span><span class="o">::</span><span class="n">Abort</span><span class="p">(</span><span class="s">&quot;S has NaNs&quot;</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>There are other versions of <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> that can take a Box
+to operate over.</p>
+<p>For Fortran code, the module <code class="docutils literal notranslate"><span class="pre">nan_check</span></code> has the function
+<code class="docutils literal notranslate"><span class="pre">check_for_nan()</span></code> that can be called in a Fortran routine to look
+for NaNs:</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">check_for_nan</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">s_lo</span><span class="p">,</span> <span class="n">s_hi</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">ncomp</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span>
+  <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+  <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+  <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">ncomp</span>
+  <span class="kt">real</span><span class="p">(</span><span class="n">rt</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">s</span><span class="p">(</span><span class="n">s_lo</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">ncomp</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="physics-issues">
+<h2>Physics issues<a class="headerlink" href="#physics-issues" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="gpu_porting.html" class="btn btn-neutral float-right" title="Offloading a routine to GPU" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="build_system.html" class="btn btn-neutral float-left" title="Build System Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

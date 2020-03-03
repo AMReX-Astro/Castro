@@ -1,0 +1,375 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Gravity_1d.F90 &mdash; Castro 20.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Gravity_2d.F90" href="Gravity_2d_f.html" />
+    <link rel="prev" title="File Gravity.H" href="Gravity_8H.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../file/Gravity_1d_f.html">master</a> | <a href="../file/Gravity_1d_f.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../gravity_files.html">Gravity</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_1d_f.html">GR_Gravity_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_2d_f.html">GR_Gravity_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_3d_f.html">GR_Gravity_3d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Gravity_1d.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/gravity_1d_module">gravity_1d_module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_2d_f.html">Gravity_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_3d_f.html">Gravity_3d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_nd_f.html">Gravity_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gravity_sources_nd_f.html">gravity_sources_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pointmass_nd_f.html">pointmass_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe_grav_nd_f.html">prescribe_grav_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe_phi_nd_f.html">prescribe_phi_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../gravity_files.html">Gravity</a> &raquo;</li>
+        
+      <li>Gravity_1d.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Gravity_1d_f.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="gravity-1d-f90">
+<h1>Gravity_1d.F90<a class="headerlink" href="#gravity-1d-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/gravity_1d_module">
+<span id="gravity-1d-module"></span><h2>gravity_1d_module<a class="headerlink" href="#f/gravity_1d_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Needed modules</p>
+<ul class="simple">
+<li><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a></li>
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+</ul>
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/gravity_1d_module/ca_test_residual">
+<em class="property">subroutine  </em><code class="descclassname">gravity_1d_module/</code><code class="descname">ca_test_residual</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>rhs</em>, <em>rhl1</em>, <em>rhh1</em>, <em>ecx</em>, <em>ecxl1</em>, <em>ecxh1</em>, <em>dx</em>, <em>problo</em>, <em>coord_type</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_1d_module/ca_test_residual" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (1)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (1)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhs</strong> (rhh1-rhl1+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>rhl1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rhh1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ecx</strong> (ecxh1-ecxl1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ecxl1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ecxh1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>problo</strong> (1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>coord_type</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_1d_module/ca_put_radial_grav">
+<em class="property">subroutine  </em><code class="descclassname">gravity_1d_module/</code><code class="descname">ca_put_radial_grav</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dx</em>, <em>dr</em>, <em>grav</em>, <em>g_l1</em>, <em>g_h1</em>, <em>radial_grav</em>, <em>problo</em>, <em>n1d</em>, <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_1d_module/ca_put_radial_grav" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (1)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (1)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dr</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav</strong> (g_h1-g_l1+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>g_l1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>g_h1</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>radial_grav</strong> (n1d)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>problo</strong> (1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(radial_grav)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Gravity_2d_f.html" class="btn btn-neutral float-right" title="Gravity_2d.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Gravity_8H.html" class="btn btn-neutral float-left" title="File Gravity.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

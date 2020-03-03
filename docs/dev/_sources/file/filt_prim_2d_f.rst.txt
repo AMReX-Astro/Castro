@@ -1,0 +1,8 @@
+filt_prim_2d.f90
+================
+
+ca\_filt\_prim subroutine
+-------------------------
+
+.. f:autosubroutine:: ca_filt_prim
+

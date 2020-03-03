@@ -1,0 +1,8 @@
+sdc_util.F90
+============
+
+sdc\_util
+---------
+
+.. f:automodule:: sdc_util
+

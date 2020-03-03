@@ -1,0 +1,1250 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Derive_nd.F90 &mdash; Castro 20.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MGutils_nd.F90" href="MGutils_nd_f.html" />
+    <link rel="prev" title="File Derive.H" href="Derive_8H.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../file/Derive_nd_f.html">master</a> | <a href="../file/Derive_nd_f.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_error_nd_f.html">Castro_error_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_nd_f.html">Castro_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__source__fill_8H.html">File Castro_source_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro_util_nd_f.html">Castro_util_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Derive_nd.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/derive_module">derive_module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils_nd_f.html">MGutils_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Tagging_nd_f.html">Tagging_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="amrinfo_nd_f.html">amrinfo_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="check_for_nan_nd_f.html">check_for_nan_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generic_fill_nd_f.html">generic_fill_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interpolate_nd_f.html">interpolate_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io_nd_f.html">io_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="math_nd_f.html">math_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prob_params_nd_f.html">prob_params_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reduction_nd_f.html">reduction_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="source_fill_nd_f.html">source_fill_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sums_nd_f.html">sums_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timestep_nd_f.html">timestep_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../driver_files.html">Driver</a> &raquo;</li>
+        
+      <li>Derive_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Derive_nd_f.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="derive-nd-f90">
+<h1>Derive_nd.F90<a class="headerlink" href="#derive-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/derive_module">
+<span id="derive-module"></span><h2>derive_module<a class="headerlink" href="#f/derive_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Description</p>
+<p>All subroutines in this file must be threadsafe because they are called
+inside OpenMP parallel regions.</p>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/derive_module/derabar" title="f/derive_module/derabar"><code class="xref f f-func docutils literal notranslate"><span class="pre">derabar()</span></code></a>, <a class="reference internal" href="#f/derive_module/derangmomx" title="f/derive_module/derangmomx"><code class="xref f f-func docutils literal notranslate"><span class="pre">derangmomx()</span></code></a>, <a class="reference internal" href="#f/derive_module/derangmomy" title="f/derive_module/derangmomy"><code class="xref f f-func docutils literal notranslate"><span class="pre">derangmomy()</span></code></a>, <a class="reference internal" href="#f/derive_module/derangmomz" title="f/derive_module/derangmomz"><code class="xref f f-func docutils literal notranslate"><span class="pre">derangmomz()</span></code></a>, <a class="reference internal" href="#f/derive_module/dercond" title="f/derive_module/dercond"><code class="xref f f-func docutils literal notranslate"><span class="pre">dercond()</span></code></a>, <a class="reference internal" href="#f/derive_module/derdiffcoeff" title="f/derive_module/derdiffcoeff"><code class="xref f f-func docutils literal notranslate"><span class="pre">derdiffcoeff()</span></code></a>, <a class="reference internal" href="#f/derive_module/derdiffterm" title="f/derive_module/derdiffterm"><code class="xref f f-func docutils literal notranslate"><span class="pre">derdiffterm()</span></code></a>, <a class="reference internal" href="#f/derive_module/derdivu" title="f/derive_module/derdivu"><code class="xref f f-func docutils literal notranslate"><span class="pre">derdivu()</span></code></a>, <a class="reference internal" href="#f/derive_module/dereint1" title="f/derive_module/dereint1"><code class="xref f f-func docutils literal notranslate"><span class="pre">dereint1()</span></code></a>, <a class="reference internal" href="#f/derive_module/dereint2" title="f/derive_module/dereint2"><code class="xref f f-func docutils literal notranslate"><span class="pre">dereint2()</span></code></a>, <a class="reference internal" href="#f/derive_module/derentropy" title="f/derive_module/derentropy"><code class="xref f f-func docutils literal notranslate"><span class="pre">derentropy()</span></code></a>, <a class="reference internal" href="#f/derive_module/derenuctimescale" title="f/derive_module/derenuctimescale"><code class="xref f f-func docutils literal notranslate"><span class="pre">derenuctimescale()</span></code></a>, <a class="reference internal" href="#f/derive_module/dergamma1" title="f/derive_module/dergamma1"><code class="xref f f-func docutils literal notranslate"><span class="pre">dergamma1()</span></code></a>, <a class="reference internal" href="#f/derive_module/derkineng" title="f/derive_module/derkineng"><code class="xref f f-func docutils literal notranslate"><span class="pre">derkineng()</span></code></a>, <a class="reference internal" href="#f/derive_module/derlogden" title="f/derive_module/derlogden"><code class="xref f f-func docutils literal notranslate"><span class="pre">derlogden()</span></code></a>, <a class="reference internal" href="#f/derive_module/dermachnumber" title="f/derive_module/dermachnumber"><code class="xref f f-func docutils literal notranslate"><span class="pre">dermachnumber()</span></code></a>, <a class="reference internal" href="#f/derive_module/dermaggrav" title="f/derive_module/dermaggrav"><code class="xref f f-func docutils literal notranslate"><span class="pre">dermaggrav()</span></code></a>, <a class="reference internal" href="#f/derive_module/dermagmom" title="f/derive_module/dermagmom"><code class="xref f f-func docutils literal notranslate"><span class="pre">dermagmom()</span></code></a>, <a class="reference internal" href="#f/derive_module/dermagvel" title="f/derive_module/dermagvel"><code class="xref f f-func docutils literal notranslate"><span class="pre">dermagvel()</span></code></a>, <a class="reference internal" href="#f/derive_module/dermagvort" title="f/derive_module/dermagvort"><code class="xref f f-func docutils literal notranslate"><span class="pre">dermagvort()</span></code></a>, <a class="reference internal" href="#f/derive_module/derpres" title="f/derive_module/derpres"><code class="xref f f-func docutils literal notranslate"><span class="pre">derpres()</span></code></a>, <a class="reference internal" href="#f/derive_module/derradialvel" title="f/derive_module/derradialvel"><code class="xref f f-func docutils literal notranslate"><span class="pre">derradialvel()</span></code></a>, <a class="reference internal" href="#f/derive_module/dersoundspeed" title="f/derive_module/dersoundspeed"><code class="xref f f-func docutils literal notranslate"><span class="pre">dersoundspeed()</span></code></a>, <a class="reference internal" href="#f/derive_module/derspec" title="f/derive_module/derspec"><code class="xref f f-func docutils literal notranslate"><span class="pre">derspec()</span></code></a>, <a class="reference internal" href="#f/derive_module/derstate" title="f/derive_module/derstate"><code class="xref f f-func docutils literal notranslate"><span class="pre">derstate()</span></code></a>, <a class="reference internal" href="#f/derive_module/deruminusc" title="f/derive_module/deruminusc"><code class="xref f f-func docutils literal notranslate"><span class="pre">deruminusc()</span></code></a>, <a class="reference internal" href="#f/derive_module/deruplusc" title="f/derive_module/deruplusc"><code class="xref f f-func docutils literal notranslate"><span class="pre">deruplusc()</span></code></a>, <a class="reference internal" href="#f/derive_module/dervel" title="f/derive_module/dervel"><code class="xref f f-func docutils literal notranslate"><span class="pre">dervel()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Needed modules</p>
+<ul class="simple">
+<li><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a></li>
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+</ul>
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/derive_module/derstate">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derstate</code><span class="sig-paren">(</span><em>state</em>, <em>s_lo</em>, <em>s_hi</em>, <em>nv</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derstate" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>The incoming   “dat” vector contains (rho,T,(rho X)_1)
+The outgoing “state” vector contains (rho,T,X_1)</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dervel">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dervel</code><span class="sig-paren">(</span><em>vel</em>, <em>v_lo</em>, <em>v_hi</em>, <em>nv</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dervel" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will derive the velocity from the momentum.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vel</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/deruplusc">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">deruplusc</code><span class="sig-paren">(</span><em>vel</em>, <em>v_lo</em>, <em>v_hi</em>, <em>nv</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/deruplusc" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vel</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/deruminusc">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">deruminusc</code><span class="sig-paren">(</span><em>vel</em>, <em>v_lo</em>, <em>v_hi</em>, <em>nv</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/deruminusc" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vel</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dermagvel">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dermagvel</code><span class="sig-paren">(</span><em>magvel</em>, <em>v_lo</em>, <em>v_hi</em>, <em>nv</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dermagvel" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will derive magnitude of velocity.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>magvel</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dermaggrav">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dermaggrav</code><span class="sig-paren">(</span><em>maggrav</em>, <em>g_lo</em>, <em>g_hi</em>, <em>ng</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dermaggrav" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will derive magnitude of the gravity vector.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>maggrav</strong> (g_hi(1)-(g_lo(1))+1,g_hi(2)-(g_lo(2))+1,g_hi(3)-(g_lo(3))+1,ng)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>g_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>g_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ng</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derradialvel">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derradialvel</code><span class="sig-paren">(</span><em>radvel</em>, <em>v_lo</em>, <em>v_hi</em>, <em>nv</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derradialvel" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will derive the radial velocity.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>radvel</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dermagmom">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dermagmom</code><span class="sig-paren">(</span><em>magmom</em>, <em>m_lo</em>, <em>m_hi</em>, <em>nv</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dermagmom" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will derive magnitude of momentum.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>magmom</strong> (m_hi(1)-(m_lo(1))+1,m_hi(2)-(m_lo(2))+1,m_hi(3)-(m_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>m_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>m_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derangmomx">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derangmomx</code><span class="sig-paren">(</span><em>l</em>, <em>l_lo</em>, <em>l_hi</em>, <em>ncomp_l</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derangmomx" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>l</strong> (l_hi(1)-(l_lo(1))+1,l_hi(2)-(l_lo(2))+1,l_hi(3)-(l_lo(3))+1,ncomp_l)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>l_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>l_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: == 1</li>
+<li><strong>ncomp_l</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em> :: == 4</li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em> :: == 1, 4</li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <a class="reference internal" href="math_nd_f.html#f/math_module" title="f/math_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">math_module</span></code></a> (<a class="reference internal" href="math_nd_f.html#f/math_module/cross_product" title="f/math_module/cross_product"><code class="xref f f-func docutils literal notranslate"><span class="pre">cross_product()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="math_nd_f.html#f/math_module/cross_product" title="f/math_module/cross_product"><code class="xref f f-func docutils literal notranslate"><span class="pre">cross_product()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derangmomy">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derangmomy</code><span class="sig-paren">(</span><em>l</em>, <em>l_lo</em>, <em>l_hi</em>, <em>ncomp_l</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derangmomy" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>l</strong> (l_hi(1)-(l_lo(1))+1,l_hi(2)-(l_lo(2))+1,l_hi(3)-(l_lo(3))+1,ncomp_l)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>l_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>l_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_l</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em> :: == 1, 4</li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <a class="reference internal" href="math_nd_f.html#f/math_module" title="f/math_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">math_module</span></code></a> (<a class="reference internal" href="math_nd_f.html#f/math_module/cross_product" title="f/math_module/cross_product"><code class="xref f f-func docutils literal notranslate"><span class="pre">cross_product()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="math_nd_f.html#f/math_module/cross_product" title="f/math_module/cross_product"><code class="xref f f-func docutils literal notranslate"><span class="pre">cross_product()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derangmomz">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derangmomz</code><span class="sig-paren">(</span><em>l</em>, <em>l_lo</em>, <em>l_hi</em>, <em>ncomp_l</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derangmomz" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>l</strong> (l_hi(1)-(l_lo(1))+1,l_hi(2)-(l_lo(2))+1,l_hi(3)-(l_lo(3))+1,ncomp_l)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>l_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>l_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_l</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em> :: == 1, 4</li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <a class="reference internal" href="math_nd_f.html#f/math_module" title="f/math_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">math_module</span></code></a> (<a class="reference internal" href="math_nd_f.html#f/math_module/cross_product" title="f/math_module/cross_product"><code class="xref f f-func docutils literal notranslate"><span class="pre">cross_product()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="math_nd_f.html#f/math_module/cross_product" title="f/math_module/cross_product"><code class="xref f f-func docutils literal notranslate"><span class="pre">cross_product()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derpres">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derpres</code><span class="sig-paren">(</span><em>p</em>, <em>p_lo</em>, <em>p_hi</em>, <em>ncomp_p</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derpres" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>p</strong> (p_hi(1)-(p_lo(1))+1,p_hi(2)-(p_lo(2))+1,p_hi(3)-(p_lo(3))+1,ncomp_p)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>p_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>p_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_p</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dereint1">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dereint1</code><span class="sig-paren">(</span><em>e</em>, <em>e_lo</em>, <em>e_hi</em>, <em>ncomp_e</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dereint1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute internal energy from (rho E).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>e</strong> (e_hi(1)-(e_lo(1))+1,e_hi(2)-(e_lo(2))+1,e_hi(3)-(e_lo(3))+1,ncomp_e)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>e_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>e_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_e</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umy()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueden()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dereint2">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dereint2</code><span class="sig-paren">(</span><em>e</em>, <em>e_lo</em>, <em>e_hi</em>, <em>ncomp_e</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dereint2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute internal energy from (rho e).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>e</strong> (e_hi(1)-(e_lo(1))+1,e_hi(2)-(e_lo(2))+1,e_hi(3)-(e_lo(3))+1,ncomp_e)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>e_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>e_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_e</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dersoundspeed">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dersoundspeed</code><span class="sig-paren">(</span><em>c</em>, <em>c_lo</em>, <em>c_hi</em>, <em>ncomp_c</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dersoundspeed" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>c</strong> (c_hi(1)-(c_lo(1))+1,c_hi(2)-(c_lo(2))+1,c_hi(3)-(c_lo(3))+1,ncomp_c)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>c_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>c_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_c</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dergamma1">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dergamma1</code><span class="sig-paren">(</span><em>g1</em>, <em>g1_lo</em>, <em>g1_hi</em>, <em>ncomp_g1</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dergamma1" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>g1</strong> (g1_hi(1)-(g1_lo(1))+1,g1_hi(2)-(g1_lo(2))+1,g1_hi(3)-(g1_lo(3))+1,ncomp_g1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>g1_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>g1_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_g1</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dermachnumber">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dermachnumber</code><span class="sig-paren">(</span><em>mach</em>, <em>m_lo</em>, <em>m_hi</em>, <em>ncomp_mach</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dermachnumber" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mach</strong> (m_hi(1)-(m_lo(1))+1,m_hi(2)-(m_lo(2))+1,m_hi(3)-(m_lo(3))+1,ncomp_mach)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>m_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>m_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_mach</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derentropy">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derentropy</code><span class="sig-paren">(</span><em>s</em>, <em>s_lo</em>, <em>s_hi</em>, <em>ncomp_s</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derentropy" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,ncomp_s)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_s</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derenuctimescale">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derenuctimescale</code><span class="sig-paren">(</span><em>t</em>, <em>t_lo</em>, <em>t_hi</em>, <em>ncomp_t</em>, <em>u</em>, <em>u_lo</em>, <em>u_hi</em>, <em>ncomp_u</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derenuctimescale" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t</strong> (t_hi(1)-(t_lo(1))+1,t_hi(2)-(t_lo(2))+1,t_hi(3)-(t_lo(3))+1,ncomp_t)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>t_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>t_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_t</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>u</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,ncomp_u)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ncomp_u</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derspec">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derspec</code><span class="sig-paren">(</span><em>spec</em>, <em>s_lo</em>, <em>s_hi</em>, <em>nv</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derspec" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine derives the mass fractions of the species.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>spec</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derabar">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derabar</code><span class="sig-paren">(</span><em>abar</em>, <em>a_lo</em>, <em>a_hi</em>, <em>nv</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derabar" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine derives the mass fractions of the species.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>abar</strong> (a_hi(1)-(a_lo(1))+1,a_hi(2)-(a_lo(2))+1,a_hi(3)-(a_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>a_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>a_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">aion()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derlogden">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derlogden</code><span class="sig-paren">(</span><em>logden</em>, <em>l_lo</em>, <em>l_hi</em>, <em>nd</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derlogden" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>logden</strong> (l_hi(1)-(l_lo(1))+1,l_hi(2)-(l_lo(2))+1,l_hi(3)-(l_lo(3))+1,nd)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>l_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>l_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nd</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dermagvort">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dermagvort</code><span class="sig-paren">(</span><em>vort</em>, <em>v_lo</em>, <em>v_hi</em>, <em>nv</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dermagvort" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will calculate vorticity</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vort</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1,nv)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nv</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dg" title="f/prob_params_module/dg"><code class="xref f f-func docutils literal notranslate"><span class="pre">dg()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derdivu">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derdivu</code><span class="sig-paren">(</span><em>divu</em>, <em>u_lo</em>, <em>u_hi</em>, <em>nd</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derdivu" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will calculate the divergence of velocity.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>divu</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,nd)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nd</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dg" title="f/prob_params_module/dg"><code class="xref f f-func docutils literal notranslate"><span class="pre">dg()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derkineng">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derkineng</code><span class="sig-paren">(</span><em>kineng</em>, <em>k_lo</em>, <em>k_hi</em>, <em>nk</em>, <em>dat</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derkineng" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will derive kinetic energy = 1/2 rho (u^2 + v^2 + w^2)</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>kineng</strong> (k_hi(1)-(k_lo(1))+1,k_hi(2)-(k_lo(2))+1,k_hi(3)-(k_lo(3))+1,nk)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>k_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>k_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nk</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>dat</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/dercond">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">dercond</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>cond</em>, <em>u_lo</em>, <em>u_hi</em>, <em>nd</em>, <em>state</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/dercond" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will calculate the thermal conductivity</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>cond</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,nd)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nd</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>state</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">diffuse_cutoff_density()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">diffuse_cutoff_density_hi()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">conductivity_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">conductivity()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derdiffcoeff">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derdiffcoeff</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>diff</em>, <em>u_lo</em>, <em>u_hi</em>, <em>nd</em>, <em>state</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derdiffcoeff" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will calculate the thermal conductivity</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>diff</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,nd)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nd</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>state</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">diffuse_cutoff_density()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">diffuse_cutoff_density_hi()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">conductivity_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">conductivity()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/derive_module/derdiffterm">
+<em class="property">subroutine  </em><code class="descclassname">derive_module/</code><code class="descname">derdiffterm</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>diff</em>, <em>u_lo</em>, <em>u_hi</em>, <em>nd</em>, <em>state</em>, <em>d_lo</em>, <em>d_hi</em>, <em>nc</em>, <em>coeff_x</em>, <em>x_lo</em>, <em>x_hi</em>, <em>coeff_y</em>, <em>y_lo</em>, <em>y_hi</em>, <em>coeff_z</em>, <em>z_lo</em>, <em>z_hi</em>, <em>domlo</em>, <em>domhi</em>, <em>delta</em><span class="sig-paren">)</span><a class="headerlink" href="#f/derive_module/derdiffterm" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This routine will calculate the thermal conductivity</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>diff</strong> (u_hi(1)-(u_lo(1))+1,u_hi(2)-(u_lo(2))+1,u_hi(3)-(u_lo(3))+1,nd)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>u_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>u_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nd</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>state</strong> (d_hi(1)-(d_lo(1))+1,d_hi(2)-(d_lo(2))+1,d_hi(3)-(d_lo(3))+1,nc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>d_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>nc</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>coeff_x</strong> (x_hi(1)-(x_lo(1))+1,x_hi(2)-(x_lo(2))+1,x_hi(3)-(x_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>x_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>x_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>coeff_y</strong> (y_hi(1)-(y_lo(1))+1,y_hi(2)-(y_lo(2))+1,y_hi(3)-(y_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>y_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>y_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>coeff_z</strong> (z_hi(1)-(z_lo(1))+1,z_hi(2)-(z_lo(2))+1,z_hi(3)-(z_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>z_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>z_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>delta</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="MGutils_nd_f.html" class="btn btn-neutral float-right" title="MGutils_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Derive_8H.html" class="btn btn-neutral float-left" title="File Derive.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

@@ -1,0 +1,979 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Gravity_nd.F90 &mdash; Castro 20.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gravity_sources_nd.F90" href="gravity_sources_nd_f.html" />
+    <link rel="prev" title="Gravity_3d.F90" href="Gravity_3d_f.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../file/Gravity_nd_f.html">master</a> | <a href="../file/Gravity_nd_f.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../gravity_files.html">Gravity</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_1d_f.html">GR_Gravity_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_2d_f.html">GR_Gravity_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="GR_Gravity_3d_f.html">GR_Gravity_3d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_8H.html">File Gravity.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_1d_f.html">Gravity_1d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_2d_f.html">Gravity_2d.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity_3d_f.html">Gravity_3d.F90</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Gravity_nd.F90</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#f/gravity_module">gravity_module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gravity_sources_nd_f.html">gravity_sources_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pointmass_nd_f.html">pointmass_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe_grav_nd_f.html">prescribe_grav_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="prescribe_phi_nd_f.html">prescribe_phi_nd.F90</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../gravity_files.html">Gravity</a> &raquo;</li>
+        
+      <li>Gravity_nd.F90</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Gravity_nd_f.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="gravity-nd-f90">
+<h1>Gravity_nd.F90<a class="headerlink" href="#gravity-nd-f90" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="f/gravity_module">
+<span id="gravity-module"></span><h2>gravity_module<a class="headerlink" href="#f/gravity_module" title="Permalink to this headline">¶</a></h2>
+<p class="rubric">Quick access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#f/gravity_module/doreflectionhi" title="f/gravity_module/doreflectionhi"><code class="xref f f-var docutils literal notranslate"><span class="pre">doreflectionhi</span></code></a>, <a class="reference internal" href="#f/gravity_module/doreflectionlo" title="f/gravity_module/doreflectionlo"><code class="xref f f-var docutils literal notranslate"><span class="pre">doreflectionlo</span></code></a>, <a class="reference internal" href="#f/gravity_module/dosymmetricadd" title="f/gravity_module/dosymmetricadd"><code class="xref f f-var docutils literal notranslate"><span class="pre">dosymmetricadd</span></code></a>, <a class="reference internal" href="#f/gravity_module/dosymmetricaddhi" title="f/gravity_module/dosymmetricaddhi"><code class="xref f f-var docutils literal notranslate"><span class="pre">dosymmetricaddhi</span></code></a>, <a class="reference internal" href="#f/gravity_module/dosymmetricaddlo" title="f/gravity_module/dosymmetricaddlo"><code class="xref f f-var docutils literal notranslate"><span class="pre">dosymmetricaddlo</span></code></a>, <a class="reference internal" href="#f/gravity_module/edgetolerance" title="f/gravity_module/edgetolerance"><code class="xref f f-var docutils literal notranslate"><span class="pre">edgetolerance</span></code></a>, <a class="reference internal" href="#f/gravity_module/factarray" title="f/gravity_module/factarray"><code class="xref f f-var docutils literal notranslate"><span class="pre">factarray</span></code></a>, <a class="reference internal" href="#f/gravity_module/lnum_max" title="f/gravity_module/lnum_max"><code class="xref f f-var docutils literal notranslate"><span class="pre">lnum_max</span></code></a>, <a class="reference internal" href="#f/gravity_module/parity_q0" title="f/gravity_module/parity_q0"><code class="xref f f-var docutils literal notranslate"><span class="pre">parity_q0</span></code></a>, <a class="reference internal" href="#f/gravity_module/parity_qc_qs" title="f/gravity_module/parity_qc_qs"><code class="xref f f-var docutils literal notranslate"><span class="pre">parity_qc_qs</span></code></a>, <a class="reference internal" href="#f/gravity_module/parityfactor" title="f/gravity_module/parityfactor"><code class="xref f f-var docutils literal notranslate"><span class="pre">parityfactor</span></code></a>, <a class="reference internal" href="#f/gravity_module/rmax" title="f/gravity_module/rmax"><code class="xref f f-var docutils literal notranslate"><span class="pre">rmax</span></code></a>, <a class="reference internal" href="#f/gravity_module/volumefactor" title="f/gravity_module/volumefactor"><code class="xref f f-var docutils literal notranslate"><span class="pre">volumefactor</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/gravity_module/ca_compute_direct_sum_bc" title="f/gravity_module/ca_compute_direct_sum_bc"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_direct_sum_bc()</span></code></a>, <a class="reference internal" href="#f/gravity_module/ca_compute_multipole_moments" title="f/gravity_module/ca_compute_multipole_moments"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_multipole_moments()</span></code></a>, <a class="reference internal" href="#f/gravity_module/ca_compute_radial_mass" title="f/gravity_module/ca_compute_radial_mass"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_radial_mass()</span></code></a>, <a class="reference internal" href="#f/gravity_module/ca_integrate_gr_grav" title="f/gravity_module/ca_integrate_gr_grav"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_integrate_gr_grav()</span></code></a>, <a class="reference internal" href="#f/gravity_module/ca_integrate_grav" title="f/gravity_module/ca_integrate_grav"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_integrate_grav()</span></code></a>, <a class="reference internal" href="#f/gravity_module/ca_integrate_phi" title="f/gravity_module/ca_integrate_phi"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_integrate_phi()</span></code></a>, <a class="reference internal" href="#f/gravity_module/ca_put_direct_sum_bc" title="f/gravity_module/ca_put_direct_sum_bc"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_direct_sum_bc()</span></code></a>, <a class="reference internal" href="#f/gravity_module/ca_put_multipole_phi" title="f/gravity_module/ca_put_multipole_phi"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_multipole_phi()</span></code></a>, <a class="reference internal" href="#f/gravity_module/ca_put_radial_phi" title="f/gravity_module/ca_put_radial_phi"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_radial_phi()</span></code></a>, <a class="reference internal" href="#f/gravity_module/calcassoclegpolylm" title="f/gravity_module/calcassoclegpolylm"><code class="xref f f-func docutils literal notranslate"><span class="pre">calcassoclegpolylm()</span></code></a>, <a class="reference internal" href="#f/gravity_module/calclegpolyl" title="f/gravity_module/calclegpolyl"><code class="xref f f-func docutils literal notranslate"><span class="pre">calclegpolyl()</span></code></a>, <a class="reference internal" href="#f/gravity_module/direct_sum_symmetric_add" title="f/gravity_module/direct_sum_symmetric_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">direct_sum_symmetric_add()</span></code></a>, <a class="reference internal" href="#f/gravity_module/factorial" title="f/gravity_module/factorial"><code class="xref f f-func docutils literal notranslate"><span class="pre">factorial()</span></code></a>, <a class="reference internal" href="#f/gravity_module/get_grav_const" title="f/gravity_module/get_grav_const"><code class="xref f f-func docutils literal notranslate"><span class="pre">get_grav_const()</span></code></a>, <a class="reference internal" href="#f/gravity_module/init_multipole_gravity" title="f/gravity_module/init_multipole_gravity"><code class="xref f f-func docutils literal notranslate"><span class="pre">init_multipole_gravity()</span></code></a>, <a class="reference internal" href="#f/gravity_module/multipole_add" title="f/gravity_module/multipole_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_add()</span></code></a>, <a class="reference internal" href="#f/gravity_module/multipole_symmetric_add" title="f/gravity_module/multipole_symmetric_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_symmetric_add()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Needed modules</p>
+<ul class="simple">
+<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
+</ul>
+<p class="rubric">Variables</p>
+<ul>
+<li><dl class="variable">
+<dt id="f/gravity_module/doreflectionhi">
+<code class="descclassname">gravity_module/</code><code class="descname">doreflectionhi</code> (*)<em> [</em><em>logical</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/doreflectionhi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/doreflectionlo">
+<code class="descclassname">gravity_module/</code><code class="descname">doreflectionlo</code> (*)<em> [</em><em>logical</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/doreflectionlo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/dosymmetricadd">
+<code class="descclassname">gravity_module/</code><code class="descname">dosymmetricadd</code><em> [</em><em>logical</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/dosymmetricadd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/dosymmetricaddhi">
+<code class="descclassname">gravity_module/</code><code class="descname">dosymmetricaddhi</code> (*)<em> [</em><em>logical</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/dosymmetricaddhi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/dosymmetricaddlo">
+<code class="descclassname">gravity_module/</code><code class="descname">dosymmetricaddlo</code> (*)<em> [</em><em>logical</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/dosymmetricaddlo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/edgetolerance">
+<code class="descclassname">gravity_module/</code><code class="descname">edgetolerance</code><em> [</em><em>real</em><em>,</em><em>public/parameter/optional/default=1.0e-2_rt</em><em>]</em><a class="headerlink" href="#f/gravity_module/edgetolerance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/factarray">
+<code class="descclassname">gravity_module/</code><code class="descname">factarray</code> (*,*)<em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/factarray" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/lnum_max">
+<code class="descclassname">gravity_module/</code><code class="descname">lnum_max</code><em> [</em><em>integer</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/lnum_max" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/parity_q0">
+<code class="descclassname">gravity_module/</code><code class="descname">parity_q0</code> (*)<em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/parity_q0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/parity_qc_qs">
+<code class="descclassname">gravity_module/</code><code class="descname">parity_qc_qs</code> (*,*)<em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/parity_qc_qs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/parityfactor">
+<code class="descclassname">gravity_module/</code><code class="descname">parityfactor</code><em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/parityfactor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/rmax">
+<code class="descclassname">gravity_module/</code><code class="descname">rmax</code><em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/rmax" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+<li><dl class="variable">
+<dt id="f/gravity_module/volumefactor">
+<code class="descclassname">gravity_module/</code><code class="descname">volumefactor</code><em> [</em><em>real</em><em>,</em><em>public/allocatable</em><em>]</em><a class="headerlink" href="#f/gravity_module/volumefactor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</li>
+</ul>
+<p class="rubric">Subroutines and functions</p>
+<dl class="subroutine">
+<dt id="f/gravity_module/get_grav_const">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">get_grav_const</code><span class="sig-paren">(</span><em>gconst_out</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/get_grav_const" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the gravitational constant, G</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Binds to C function <code class="docutils literal notranslate"><span class="pre">get_grav_const</span></code></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>gconst_out</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/ca_compute_radial_mass">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">ca_compute_radial_mass</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dx</em>, <em>dr</em>, <em>state</em>, <em>s_lo</em>, <em>s_hi</em>, <em>radial_mass</em>, <em>radial_vol</em>, <em>problo</em>, <em>n1d</em>, <em>drdxfac</em>, <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/ca_compute_radial_mass" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dr</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>radial_mass</strong> (n1d)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>radial_vol</strong> (n1d)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>problo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>drdxfac</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>level</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>n1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/value/default=len(radial_mass)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">four3rd()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">m_pi()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eight()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dg" title="f/prob_params_module/dg"><code class="xref f f-func docutils literal notranslate"><span class="pre">dg()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="reduction_nd_f.html#f/reduction_module" title="f/reduction_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">reduction_module</span></code></a> (<a class="reference internal" href="reduction_nd_f.html#f/reduction_module/reduce_add" title="f/reduction_module/reduce_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_add()</span></code></a>), <a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a> (<a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>, <a class="reference internal" href="reduction_nd_f.html#f/reduction_module/reduce_add" title="f/reduction_module/reduce_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_add()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/ca_integrate_grav">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">ca_integrate_grav</code><span class="sig-paren">(</span><em>mass</em>, <em>den</em>, <em>grav</em>, <em>max_radius</em>, <em>dr</em>, <em>numpts_1d</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/ca_integrate_grav" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a radial mass distribution, this computes the gravitational
+acceleration as a function of radius by computing the mass enclosed
+in successive spherical shells.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mass</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>den</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>max_radius</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dr</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>numpts_1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(mass)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/ca_integrate_phi">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">ca_integrate_phi</code><span class="sig-paren">(</span><em>mass</em>, <em>grav</em>, <em>phi</em>, <em>dr</em>, <em>numpts_1d</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/ca_integrate_phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integrates a radial gravitational acceleration, grav, to get the
+gravitational potential, phi. Here the mass variable
+gives the mass contained in each radial shell.</p>
+<p>The convention in Castro for Poisson’s equation is</p>
+<blockquote>
+<div>laplacian(phi) = 4*pi*G*rho</div></blockquote>
+<p>The gravitational acceleration is then
+f(</p>
+<blockquote>
+<div>g(r) = -G M(r) / r^2</div></blockquote>
+<p>f)
+where f$M(r)f$ is the mass interior to radius r.</p>
+<p>The strategy for calculating the potential is to calculate the potential
+at the boundary assuming all the mass is enclosed:
+f(</p>
+<blockquote>
+<div>phi(R) = -G M / R</div></blockquote>
+<p>f)
+Then, the potential in all other zones can be found using
+f(</p>
+<blockquote>
+<div>frac{d(phi)}{dr} = g   ; Rightarrow ;
+phi(r &lt; R) = phi(R) - int(g dr)</div></blockquote>
+<p>f)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mass</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>phi</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>dr</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em> :: radial cell spacing</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>numpts_1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(mass)</em><em>]</em> :: number of points in radial direction</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/ca_integrate_gr_grav">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">ca_integrate_gr_grav</code><span class="sig-paren">(</span><em>rho</em>, <em>mass</em>, <em>pres</em>, <em>grav</em>, <em>dr</em>, <em>numpts_1d</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/ca_integrate_gr_grav" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same as ca_integrate_grav above, but includes general relativistic effects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rho</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>mass</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>pres</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>grav</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>dr</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>numpts_1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=len(rho)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">c_light()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/ca_put_radial_phi">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">ca_put_radial_phi</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em>, <em>dr</em>, <em>phi</em>, <em>p_lo</em>, <em>p_hi</em>, <em>radial_phi</em>, <em>problo</em>, <em>numpts_1d</em>, <em>fill_interior</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/ca_put_radial_phi" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dr</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>phi</strong> (p_hi(1)-(p_lo(1))+1,p_hi(2)-(p_lo(2))+1,p_hi(3)-(p_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>p_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>p_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>radial_phi</strong> (numpts_1d)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>problo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>fill_interior</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>numpts_1d</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/value/default=len(radial_phi)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a> (<a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/ca_compute_direct_sum_bc">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">ca_compute_direct_sum_bc</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>dx</em>, <em>symmetry_type</em>, <em>physbc_lo</em>, <em>physbc_hi</em>, <em>rho</em>, <em>r_lo</em>, <em>r_hi</em>, <em>vol</em>, <em>v_lo</em>, <em>v_hi</em>, <em>problo</em>, <em>probhi</em>, <em>bcxylo</em>, <em>bcxyhi</em>, <em>bcxzlo</em>, <em>bcxzhi</em>, <em>bcyzlo</em>, <em>bcyzhi</em>, <em>bc_lo</em>, <em>bc_hi</em>, <em>bc_dx</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/ca_compute_direct_sum_bc" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>symmetry_type</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>physbc_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>physbc_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rho</strong> (r_hi(1)-(r_lo(1))+1,r_hi(2)-(r_lo(2))+1,r_hi(3)-(r_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>problo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>probhi</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bcxylo</strong> (bc_hi(1)-(bc_lo(1))+1,bc_hi(2)-(bc_lo(2))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>bcxyhi</strong> (bc_hi(1)-(bc_lo(1))+1,bc_hi(2)-(bc_lo(2))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>bcxzlo</strong> (bc_hi(1)-(bc_lo(1))+1,bc_hi(3)-(bc_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>bcxzhi</strong> (bc_hi(1)-(bc_lo(1))+1,bc_hi(3)-(bc_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>bcyzlo</strong> (bc_hi(2)-(bc_lo(2))+1,bc_hi(3)-(bc_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>bcyzhi</strong> (bc_hi(2)-(bc_lo(2))+1,bc_hi(3)-(bc_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>bc_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc_dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <a class="reference internal" href="reduction_nd_f.html#f/reduction_module" title="f/reduction_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">reduction_module</span></code></a> (<a class="reference internal" href="reduction_nd_f.html#f/reduction_module/reduce_add" title="f/reduction_module/reduce_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_add()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/direct_sum_symmetric_add" title="f/gravity_module/direct_sum_symmetric_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">direct_sum_symmetric_add()</span></code></a>, <a class="reference internal" href="reduction_nd_f.html#f/reduction_module/reduce_add" title="f/reduction_module/reduce_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_add()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/ca_put_direct_sum_bc">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">ca_put_direct_sum_bc</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>phi</em>, <em>p_lo</em>, <em>p_hi</em>, <em>bcxylo</em>, <em>bcxyhi</em>, <em>bcxzlo</em>, <em>bcxzhi</em>, <em>bcyzlo</em>, <em>bcyzhi</em>, <em>bc_lo</em>, <em>bc_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/ca_put_direct_sum_bc" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>phi</strong> (p_hi(1)-(p_lo(1))+1,p_hi(2)-(p_lo(2))+1,p_hi(3)-(p_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>p_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>p_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bcxylo</strong> (bc_hi(1)-(bc_lo(1))+1,bc_hi(2)-(bc_lo(2))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bcxyhi</strong> (bc_hi(1)-(bc_lo(1))+1,bc_hi(2)-(bc_lo(2))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bcxzlo</strong> (bc_hi(1)-(bc_lo(1))+1,bc_hi(3)-(bc_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bcxzhi</strong> (bc_hi(1)-(bc_lo(1))+1,bc_hi(3)-(bc_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bcyzlo</strong> (bc_hi(2)-(bc_lo(2))+1,bc_hi(3)-(bc_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bcyzhi</strong> (bc_hi(2)-(bc_lo(2))+1,bc_hi(3)-(bc_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>bc_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/gravity_module/direct_sum_symmetric_add">
+<em class="property">function  </em><code class="descclassname">gravity_module/</code><code class="descname">direct_sum_symmetric_add</code><span class="sig-paren">(</span><em>loc</em>, <em>locb</em>, <em>problo</em>, <em>probhi</em>, <em>rho</em>, <em>dv</em>, <em>dosymmetricaddlo</em>, <em>dosymmetricaddhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/direct_sum_symmetric_add" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>loc</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>locb</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>problo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>probhi</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rho</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dv</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dosymmetricaddlo</strong> (3)<em> [</em><em>logical</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dosymmetricaddhi</strong> (3)<em> [</em><em>logical</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>bcterm</strong><em> [</em><em>real</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/ca_compute_direct_sum_bc" title="f/gravity_module/ca_compute_direct_sum_bc"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_direct_sum_bc()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/init_multipole_gravity">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">init_multipole_gravity</code><span class="sig-paren">(</span><em>lnum</em>, <em>lo_bc</em>, <em>hi_bc</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/init_multipole_gravity" title="Permalink to this definition">¶</a></dt>
+<dd><p>If any of the boundaries are symmetric, we need to account for the mass that is assumed
+to lie on the opposite side of the symmetric axis. If the center in any direction
+coincides with the boundary, then we can simply double the mass as a result of that reflection.
+Otherwise, we need to do a more general solve. We include a logical that is set to true
+if any boundary is symmetric, so that we can avoid unnecessary function calls.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Binds to C function <code class="docutils literal notranslate"><span class="pre">init_multipole_gravity</span></code></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>lo_bc</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi_bc</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/symmetry" title="f/prob_params_module/symmetry"><code class="xref f f-func docutils literal notranslate"><span class="pre">symmetry()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/probhi" title="f/prob_params_module/probhi"><code class="xref f f-func docutils literal notranslate"><span class="pre">probhi()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/factorial" title="f/gravity_module/factorial"><code class="xref f f-func docutils literal notranslate"><span class="pre">factorial()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/ca_put_multipole_phi">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">ca_put_multipole_phi</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em>, <em>phi</em>, <em>p_lo</em>, <em>p_hi</em>, <em>lnum</em>, <em>ql0</em>, <em>qlc</em>, <em>qls</em>, <em>qu0</em>, <em>quc</em>, <em>qus</em>, <em>npts</em>, <em>boundary_only</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/ca_put_multipole_phi" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>phi</strong> (p_hi(1)-(p_lo(1))+1,p_hi(2)-(p_lo(2))+1,p_hi(3)-(p_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>p_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>p_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ql0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qlc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qls</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qu0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>quc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qus</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>npts</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>boundary_only</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in,value/optional/default=(shape(ql0,0)-1)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a> (<a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">fundamental_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">gconst()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>, <a class="reference internal" href="#f/gravity_module/calclegpolyl" title="f/gravity_module/calclegpolyl"><code class="xref f f-func docutils literal notranslate"><span class="pre">calclegpolyl()</span></code></a>, <a class="reference internal" href="#f/gravity_module/calcassoclegpolylm" title="f/gravity_module/calcassoclegpolylm"><code class="xref f f-func docutils literal notranslate"><span class="pre">calcassoclegpolylm()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/ca_compute_multipole_moments">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">ca_compute_multipole_moments</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>domlo</em>, <em>domhi</em>, <em>dx</em>, <em>rho</em>, <em>r_lo</em>, <em>r_hi</em>, <em>vol</em>, <em>v_lo</em>, <em>v_hi</em>, <em>lnum</em>, <em>ql0</em>, <em>qlc</em>, <em>qls</em>, <em>qu0</em>, <em>quc</em>, <em>qus</em>, <em>npts</em>, <em>boundary_only</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/ca_compute_multipole_moments" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rho</strong> (r_hi(1)-(r_lo(1))+1,r_hi(2)-(r_lo(2))+1,r_hi(3)-(r_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol</strong> (v_hi(1)-(v_lo(1))+1,v_hi(2)-(v_lo(2))+1,v_hi(3)-(v_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>v_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ql0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qlc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qls</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qu0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>quc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qus</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>npts</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+<li><strong>boundary_only</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in,value/optional/default=(shape(ql0,0)-1)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a> (<a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/problo" title="f/prob_params_module/problo"><code class="xref f f-func docutils literal notranslate"><span class="pre">problo()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/probhi" title="f/prob_params_module/probhi"><code class="xref f f-func docutils literal notranslate"><span class="pre">probhi()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/dim" title="f/prob_params_module/dim"><code class="xref f f-func docutils literal notranslate"><span class="pre">dim()</span></code></a>, <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/coord_type" title="f/prob_params_module/coord_type"><code class="xref f f-func docutils literal notranslate"><span class="pre">coord_type()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>, <a class="reference internal" href="#f/gravity_module/multipole_add" title="f/gravity_module/multipole_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_add()</span></code></a>, <a class="reference internal" href="#f/gravity_module/multipole_symmetric_add" title="f/gravity_module/multipole_symmetric_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_symmetric_add()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="f/gravity_module/factorial">
+<em class="property">function  </em><code class="descclassname">gravity_module/</code><code class="descname">factorial</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/factorial" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong><em> [</em><em>integer</em><em>]</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><strong>fact</strong><em> [</em><em>real</em><em>]</em></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><a class="reference internal" href="#f/gravity_module/init_multipole_gravity" title="f/gravity_module/init_multipole_gravity"><code class="xref f f-func docutils literal notranslate"><span class="pre">init_multipole_gravity()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/calcassoclegpolylm">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">calcassoclegpolylm</code><span class="sig-paren">(</span><em>l</em>, <em>m</em>, <em>assoclegpolylm</em>, <em>assoclegpolylm1</em>, <em>assoclegpolylm2</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/calcassoclegpolylm" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>l</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>m</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>assoclegpolylm</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>assoclegpolylm1</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>assoclegpolylm2</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>x</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/ca_put_multipole_phi" title="f/gravity_module/ca_put_multipole_phi"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_multipole_phi()</span></code></a>, <a class="reference internal" href="#f/gravity_module/multipole_add" title="f/gravity_module/multipole_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_add()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/calclegpolyl">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">calclegpolyl</code><span class="sig-paren">(</span><em>l</em>, <em>legpolyl</em>, <em>legpolyl1</em>, <em>legpolyl2</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/calclegpolyl" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>l</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>legpolyl</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>legpolyl1</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>legpolyl2</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>x</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/ca_put_multipole_phi" title="f/gravity_module/ca_put_multipole_phi"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_put_multipole_phi()</span></code></a>, <a class="reference internal" href="#f/gravity_module/multipole_add" title="f/gravity_module/multipole_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_add()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/multipole_symmetric_add">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">multipole_symmetric_add</code><span class="sig-paren">(</span><em>dosymmetricaddlo</em>, <em>dosymmetricaddhi</em>, <em>x</em>, <em>y</em>, <em>z</em>, <em>problo</em>, <em>probhi</em>, <em>rho</em>, <em>vol</em>, <em>qu0</em>, <em>quc</em>, <em>qus</em>, <em>ql0</em>, <em>qlc</em>, <em>qls</em>, <em>lnum</em>, <em>npts</em>, <em>nlo</em>, <em>index_bn</em><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/multipole_symmetric_add" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dosymmetricaddlo</strong> (3)<em> [</em><em>logical</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>dosymmetricaddhi</strong> (3)<em> [</em><em>logical</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>x</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>y</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>z</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>problo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>probhi</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rho</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>qu0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>quc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qus</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>ql0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qlc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qls</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>npts</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>nlo</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>index_bn</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=(shape(qu0,0)-1)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/gravity_module/ca_compute_multipole_moments" title="f/gravity_module/ca_compute_multipole_moments"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_multipole_moments()</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/multipole_add" title="f/gravity_module/multipole_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_add()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="subroutine">
+<dt id="f/gravity_module/multipole_add">
+<em class="property">subroutine  </em><code class="descclassname">gravity_module/</code><code class="descname">multipole_add</code><span class="sig-paren">(</span><em>costheta</em>, <em>phiangle</em>, <em>r</em>, <em>rho</em>, <em>vol</em>, <em>ql0</em>, <em>qlc</em>, <em>qls</em>, <em>qu0</em>, <em>quc</em>, <em>qus</em>, <em>lnum</em>, <em>npts</em>, <em>nlo</em>, <em>index_bn</em><span class="optional">[</span>, <em>do_parity</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f/gravity_module/multipole_add" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>costheta</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>phiangle</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>r</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rho</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>vol</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>ql0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qlc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qls</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qu0</strong> (lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>quc</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>qus</strong> (lnum + 1,lnum + 1,npts)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>npts</strong><em> [</em><em>integer</em><em>,</em><em>in,</em><em>]</em></li>
+<li><strong>nlo</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>index_bn</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>do_parity</strong><em> [</em><em>logical</em><em>,</em><em>in,</em><em>]</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Options:</th><td class="field-body"><p class="first"><strong>lnum</strong><em> [</em><em>integer</em><em>,</em><em>in,optional/default=(shape(ql0,0)-1)</em><em>]</em></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <a class="reference internal" href="reduction_nd_f.html#f/reduction_module" title="f/reduction_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">reduction_module</span></code></a> (<a class="reference internal" href="reduction_nd_f.html#f/reduction_module/reduce_add" title="f/reduction_module/reduce_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_add()</span></code></a>)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first"><a class="reference internal" href="#f/gravity_module/ca_compute_multipole_moments" title="f/gravity_module/ca_compute_multipole_moments"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_compute_multipole_moments()</span></code></a>, <a class="reference internal" href="#f/gravity_module/multipole_symmetric_add" title="f/gravity_module/multipole_symmetric_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">multipole_symmetric_add()</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/gravity_module/calclegpolyl" title="f/gravity_module/calclegpolyl"><code class="xref f f-func docutils literal notranslate"><span class="pre">calclegpolyl()</span></code></a>, <a class="reference internal" href="reduction_nd_f.html#f/reduction_module/reduce_add" title="f/reduction_module/reduce_add"><code class="xref f f-func docutils literal notranslate"><span class="pre">reduce_add()</span></code></a>, <a class="reference internal" href="#f/gravity_module/calcassoclegpolylm" title="f/gravity_module/calcassoclegpolylm"><code class="xref f f-func docutils literal notranslate"><span class="pre">calcassoclegpolylm()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="gravity_sources_nd_f.html" class="btn btn-neutral float-right" title="gravity_sources_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Gravity_3d_f.html" class="btn btn-neutral float-left" title="Gravity_3d.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

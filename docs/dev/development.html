@@ -1,0 +1,459 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Development Best Practices &mdash; Castro 20.03
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="File list" href="filelist.html" />
+    <link rel="prev" title="Verification" href="Verification.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.03
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../development.html">master</a> | <a href="./development.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Development Best Practices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#coding-conventions">Coding Conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#general">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c">C++</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#c-to-fortran">C++ to Fortran</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fortran">Fortran</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#castro-releases">Castro Releases</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#interim-updates">Interim updates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#continuous-integration">Continuous Integration</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Development Best Practices</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/development.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="development-best-practices">
+<h1>Development Best Practices<a class="headerlink" href="#development-best-practices" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="coding-conventions">
+<h2>Coding Conventions<a class="headerlink" href="#coding-conventions" title="Permalink to this headline">¶</a></h2>
+<p>Castro development should do its best to adhere to the following coding
+style guidelines.</p>
+<div class="section" id="general">
+<h3>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Indentation should be spaces, not tabs, with 4 spaces preferred.</li>
+</ul>
+</div>
+<div class="section" id="c">
+<h3>C++<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">Conditional should appear as:</p>
+<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+<span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+<span class="k">else</span>
+<span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="c-to-fortran">
+<h3>C++ to Fortran<a class="headerlink" href="#c-to-fortran" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">All C to Fortran interfaces should use the ISO C binding.  The
+Fortran subroutine should use</p>
+<div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">subroutine_name</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="n">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;subroutine_name)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Data passed by reference from C++ should use <code class="docutils literal notranslate"><span class="pre">*</span></code> and not <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>.</p>
+</li>
+<li><p class="first">Scalars should be passed by value, using the Fortran <code class="docutils literal notranslate"><span class="pre">value</span></code> attribute.</p>
+</li>
+<li><p class="first">Fortran routines that are called from C++ should being with <code class="docutils literal notranslate"><span class="pre">ca_</span></code>.
+This is true even if these routines are also called by other
+Fortran.</p>
+</li>
+<li><p class="first">A separate tile <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> should be passed in to each
+subroutine, with the expectation that the Fortran subroutine will
+act exactly over the domain (lo, hi). If you want to include ghost
+zones in the calculation, include them in your box using
+<code class="docutils literal notranslate"><span class="pre">mfi.growntilebox(ng)</span></code> instead of <code class="docutils literal notranslate"><span class="pre">mfi.validbox()</span></code>.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="fortran">
+<h3>Fortran<a class="headerlink" href="#fortran" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Put all routines in a module—this ensures that argument lists are
+checked.</li>
+<li>Use the <code class="docutils literal notranslate"><span class="pre">only</span></code> clause in module <code class="docutils literal notranslate"><span class="pre">use</span></code> statements to explicitly
+make clear what is being accessed.</li>
+<li>In a module, there should be no “top-level” <code class="docutils literal notranslate"><span class="pre">use</span></code> statements (with
+the exception of getting access to the <code class="docutils literal notranslate"><span class="pre">rt</span></code> type).  Instead each
+function / subroutine in the module  should use what it needs directly.</li>
+<li>New Fortran files should have the .F90 file extension, not the .f90
+file extension, so that they can be preprocessed.</li>
+</ul>
+</div>
+<div class="section" id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<p>C++ routines should use Doxygen style comments.</p>
+<ul>
+<li><p class="first">C++ functions should be documented in the header file using the style:</p>
+<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span>
+<span class="o">///</span> <span class="n">Description</span> <span class="n">of</span> <span class="n">the</span> <span class="n">function</span>
+<span class="o">///</span>
+<span class="o">///</span> <span class="nd">@param</span> <span class="n">bar</span>       <span class="n">Brief</span> <span class="n">description</span> <span class="n">of</span> <span class="n">the</span> <span class="n">variable</span>
+<span class="o">///</span>
+<span class="n">void</span> <span class="n">foo</span><span class="p">(</span><span class="nb">int</span> <span class="n">bar</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Member variables can either be documented using the above style of comment block or
+with a brief inline description:</p>
+<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">var</span><span class="p">;</span> <span class="o">///&lt;</span> <span class="n">Brief</span> <span class="n">description</span> <span class="n">after</span> <span class="n">the</span> <span class="n">variable</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Fortran functions should use Sphinx style comments</p>
+<ul>
+<li><p class="first">Fortran functions should be documented by placing a comment block
+immediately after their prototype (i.e. <cite>without</cite> a line in betwen ) using the style:</p>
+<div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span>subroutine foo(bar)
+  ! Description of the function
+
+  use some_module
+
+  implicit none
+
+  integer, intent(inout) :: bar   ! Brief description of bar
+  ...
+</pre></div>
+</div>
+<p>Documentation for modules should be similarly formatted, with the comment block again
+coming <cite>immediately</cite> after the module definition.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="castro-releases">
+<h2>Castro Releases<a class="headerlink" href="#castro-releases" title="Permalink to this headline">¶</a></h2>
+<p>This outlines the procedure for doing the monthly Castro release.</p>
+<p>Castro uses submodules for dependencies, this means that, at a
+minimum, we must update the AMReX and  Microphysics submodules monthly when we
+issue new releases. The releases for AMReX and Microphysics must be done
+first. Then navigate to each submodule directory, checkout the new
+tag, and then from the top-level directory of Castro do a “git add” on
+the <code class="docutils literal notranslate"><span class="pre">external/</span></code> directory to store the new tags. So, for example, at
+the beginning of March 2020 we would first issue the <code class="docutils literal notranslate"><span class="pre">20.03</span></code> tag on
+Microphysics, and wait for AMReX to release a <code class="docutils literal notranslate"><span class="pre">20.03</span></code> tag, then do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd $CASTRO_HOME/external
+cd amrex
+git pull
+git checkout 20.03
+cd ..
+cd Microphysics
+git pull
+git checkout 20.03
+cd ..
+git add -u .
+git commit -m &quot;Update AMReX and Microphysics to release 20.03&quot;
+</pre></div>
+</div>
+<p>Then we can proceed with issuing our own release.</p>
+<p>Each month the <code class="docutils literal notranslate"><span class="pre">development</span></code> branch is merged into <code class="docutils literal notranslate"><span class="pre">master</span></code> and a
+release is tagged.  This needs to be done in coordination with its
+submodule dependencies.  The general procedure is:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Do ‘git pull’ in both master and development branches.  (Use <cite>git
+checkout xxx</cite> to change to branch xxx.</li>
+<li>In master branch, do <cite>git merge development</cite>.  Fix any conflicts
+if there are any.  (There should not be any conflicts unless a
+commit is checked into master directly without going through
+development.)</li>
+<li>In master branch, commit new release notes (<code class="docutils literal notranslate"><span class="pre">CHANGES.md</span></code>)
+summarizing changes since last major release.</li>
+<li>Tag the new release: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span> <span class="pre">-m</span> <span class="pre">&quot;Castro</span> <span class="pre">YY.MM&quot;</span> <span class="pre">YY.MM</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">--tags</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">development</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">merge</span> <span class="pre">master</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code></li>
+</ul>
+</div></blockquote>
+<div class="section" id="interim-updates">
+<h3>Interim updates<a class="headerlink" href="#interim-updates" title="Permalink to this headline">¶</a></h3>
+<p>When breaking changes to Microphysics occur in its development branch
+that Castro depends on, we must update the Microphysics submodule on
+the Castro development branch in the same way, replacing the git
+checkout statement with the latest commit hash on the Microphysics
+development branch. (A git submodule always tracks a specific
+commit/tag on the target repo – it is not configured to automatically
+track a particular branch.)  Since such breaking changes usually are
+accompanied by a Castro change, it is best practice to ensure that
+the PRs in both Microphysics and Castro have been approved, then
+merge the Microphysics PR, then add the update to the Microphysics
+submodule to the Castro PR, then merge. A similar process applies for AMReX.</p>
+</div>
+</div>
+<div class="section" id="continuous-integration">
+<h2>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Permalink to this headline">¶</a></h2>
+<p>We use Travis CI to run integration tests on the code and to build and deploy the documentation. The current status of these tests on the development branch can be found here:</p>
+<a class="reference external image-reference" href="https://travis-ci.com/AMReX-Astro/Castro"><img alt="https://travis-ci.com/AMReX-Astro/Castro.svg?branch=development" src="https://travis-ci.com/AMReX-Astro/Castro.svg?branch=development" /></a>
+<p>Currently, travis runs the <a class="reference external" href="https://clang-analyzer.llvm.org/">clang static analyzer</a>, which finds potential bugs in the code. It also runs a script to convert any tabs in the code into spaces. Both of these are run on pull requests to the Castro GitHub repo, and are run weekly on the development branch.</p>
+<p>The travis build settings can be found in the <code class="docutils literal notranslate"><span class="pre">.travis.yml</span></code> file.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="filelist.html" class="btn btn-neutral float-right" title="File list" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Verification.html" class="btn btn-neutral float-left" title="Verification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

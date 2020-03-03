@@ -1,0 +1,8 @@
+GR_Gravity_1d.F90
+=================
+
+ca\_compute\_avgpres subroutine
+-------------------------------
+
+.. f:autosubroutine:: ca_compute_avgpres
+
